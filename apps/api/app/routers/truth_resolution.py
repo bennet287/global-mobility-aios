@@ -405,7 +405,8 @@ def truth_resolution_admin(session: Session = Depends(get_session)):
     items = [_truth_resolution_summary(session, lead) for lead in leads]
     stage_counts: Dict[str, int] = {}
     for item in items:
-        stage_counts[item["stage"]] = stage_counts.get(stage, 0) + 1
+        stage = item["stage"]
+        stage_counts[stage] = stage_counts.get(stage, 0) + 1
 
     rows = []
     for item in items:
@@ -484,7 +485,7 @@ def admin_close_reviews(lead_id: str, session: Session = Depends(get_session)):
 def debug_truth_resolution():
     return {
         "status": "ok",
-        "version": "v1",
+        "version": "v1.1",
         "routes": [
             "GET /api/v1/truth/resolution-queue",
             "GET /api/v1/leads/{lead_id}/truth-resolution",
