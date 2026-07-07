@@ -1,6 +1,9 @@
 from datetime import timedelta
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
+
+import yaml
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -15,6 +18,8 @@ from app.models.domain import (
     Lead,
     LeadStatus,
     ReviewStatus,
+    SourceReference,
+    TruthClaim,
     WorkflowRun,
     WorkflowStatus,
     now_utc,
@@ -196,5 +201,185 @@ def complete_follow_up(
         {
             "status": "completed",
             "follow_up": follow_up,
+        }
+    )
+# --- Truth Engine v1.2: official source evidence attachment ---
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[4]
+
+
+def _source_registry_path() -> Path:
+    candidates = [
+        Path("knowledge/official_sources/sources.yaml"),
+        Path("../../knowledge/official_sources/sources.yaml"),
+        _project_root() / "knowledge" / "official_sources" / "sources.yaml",
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return _project_root() / "knowledge" / "official_sources" / "sources.yaml"
+
+
+def _normalize_key(value: str | None) -> str:
+    if not value:
+        return ""
+    return value.strip().lower().replace(" ", "_").replace("-", "_")
+
+
+def _domain_candidates(domain: str | None) -> list[str]:
+    normalized = _normalize_key(domain)
+
+    candidates = []
+
+    if normalized:
+        candidates.append(normalized)
+
+    if normalized in {"education", "study", "study_abroad", "scholarship", "recruitment", "job", "overseas_job"}:
+        candidates.append("visa")
+
+    candidates.extend(["visa", "general"])
+
+    deduped = []
+    for candidate in candidates:
+        if candidate and candidate not in deduped:
+            deduped.append(candidate)
+
+    return deduped
+
+
+def _load_source_registry() -> dict:
+    path = _source_registry_path()
+
+    if not path.exists():
+        return {}
+
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def _country_node(data: dict, country: str | None) -> dict:
+    if not country:
+        return {}
+
+    wanted = _normalize_key(country)
+
+    for key, value in data.items():
+        if _normalize_key(str(key)) == wanted and isinstance(value, dict):
+            return value
+
+    return {}
+
+
+def _extract_sources(country: str | None, domain: str | None) -> list[dict]:
+    data = _load_source_registry()
+    node = _country_node(data, country)
+
+    if not node:
+        return []
+
+    selected_entries = []
+
+    for domain_key in _domain_candidates(domain):
+        entries = node.get(domain_key)
+
+        if isinstance(entries, list):
+            selected_entries.extend(entries)
+
+        if selected_entries:
+            break
+
+    if not selected_entries:
+        for entries in node.values():
+            if isinstance(entries, list):
+                selected_entries.extend(entries)
+
+    cleaned = []
+    seen_urls = set()
+
+    for entry in selected_entries:
+        if not isinstance(entry, dict):
+            continue
+
+        url = entry.get("url")
+
+        if not url or url in seen_urls:
+            continue
+
+        seen_urls.add(url)
+
+        cleaned.append(
+            {
+                "url": url,
+                "title": entry.get("title"),
+                "source_type": entry.get("source_type", "official"),
+                "country": country,
+            }
+        )
+
+    return cleaned
+
+
+@router.post("/operations/truth-claims/{claim_id}/attach-sources")
+def attach_sources_to_truth_claim(
+    claim_id: UUID,
+    session: Session = Depends(get_session),
+) -> dict:
+    claim = session.get(TruthClaim, claim_id)
+
+    if not claim:
+        raise HTTPException(status_code=404, detail="Truth claim not found")
+
+    official_sources = _extract_sources(claim.country, claim.domain)
+
+    if not official_sources:
+        return jsonable_encoder(
+            {
+                "status": "no_sources_found",
+                "truth_claim_id": claim_id,
+                "country": claim.country,
+                "domain": claim.domain,
+                "attached_count": 0,
+                "message": "No official sources found in knowledge/official_sources/sources.yaml for this country/domain.",
+            }
+        )
+
+    existing_refs = session.exec(
+        select(SourceReference).where(SourceReference.truth_claim_id == claim_id)
+    ).all()
+
+    existing_urls = {ref.source_url for ref in existing_refs}
+
+    attached = []
+
+    for source in official_sources:
+        if source["url"] in existing_urls:
+            continue
+
+        ref = SourceReference(
+            truth_claim_id=claim.id,
+            source_url=source["url"],
+            source_type=source["source_type"],
+            title=source["title"],
+            country=claim.country,
+        )
+        session.add(ref)
+        attached.append(ref)
+
+    session.commit()
+
+    for ref in attached:
+        session.refresh(ref)
+
+    return jsonable_encoder(
+        {
+            "status": "attached",
+            "truth_claim_id": claim_id,
+            "country": claim.country,
+            "domain": claim.domain,
+            "attached_count": len(attached),
+            "skipped_existing_count": len(official_sources) - len(attached),
+            "sources": attached,
         }
     )

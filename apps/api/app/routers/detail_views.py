@@ -247,6 +247,7 @@ def lead_detail_page(lead_id: UUID) -> str:
         <th>Verdict</th>
         <th>Confidence</th>
         <th>Explanation</th>
+        <th>Evidence Actions</th>
       </tr>
     </thead>
     <tbody id="truthClaims"></tbody>
@@ -425,6 +426,16 @@ async function completeFollowUp(id) {{
   }}
 }}
 
+async function attachSources(claimId) {{
+  try {{
+    const result = await apiPost(`/api/v1/operations/truth-claims/${{claimId}}/attach-sources`);
+    showMessage(`Official sources attached: ${{result.attached_count}}. Existing skipped: ${{result.skipped_existing_count || 0}}.`);
+    await loadLead();
+  }} catch (err) {{
+    showMessage(err.message || String(err), "error");
+  }}
+}}
+
 async function loadLead() {{
   const res = await fetch(`/api/v1/leads/${{leadId}}/detail`);
 
@@ -495,6 +506,9 @@ async function loadLead() {{
       <td>${{pill(r.verdict)}}</td>
       <td>${{esc(r.confidence)}}</td>
       <td>${{esc(r.explanation)}}</td>
+      <td>
+        <button class="ok" onclick="attachSources('${{r.id}}')">Attach Official Sources</button>
+      </td>
     </tr>
   `).join("");
 
