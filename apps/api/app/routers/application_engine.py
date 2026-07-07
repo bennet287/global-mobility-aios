@@ -1,6 +1,5 @@
 from __future__ import annotations
 import uuid
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -93,6 +92,68 @@ def _uuid_or_404(value: Any, field_name: str = "id") -> uuid.UUID:
             detail={"message": f"Invalid {field_name}", field_name: str(value)},
         ) from exc
 
+
+
+
+def _coerce_uuid(value: Any) -> Any:
+    if isinstance(value, uuid.UUID):
+        return value
+    if isinstance(value, str):
+        try:
+            return uuid.UUID(value)
+        except ValueError:
+            return value
+    return value
+
+
+def _json_safe_value(value: Any) -> Any:
+    value = _value(value)
+    if isinstance(value, uuid.UUID):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return value
+
+
+def _application_record_to_dict(app: Any) -> Dict[str, Any]:
+    """Serialize ApplicationRecord reliably.
+
+    Some SQLModel table instances can return an empty model_dump() when the
+    table model was declared with fields that are not exposed in the runtime
+    serializer. For application workflow responses, read the known persisted
+    fields explicitly so PowerShell/API clients can access application.id.
+    """
+    if app is None:
+        return {}
+
+    ordered_fields = [
+        "id",
+        "lead_id",
+        "domain",
+        "target_country",
+        "target_institution_or_employer",
+        "status",
+        "risk_score",
+        "created_at",
+        "updated_at",
+        "title",
+        "notes",
+        "stage",
+        "current_stage",
+    ]
+    data: Dict[str, Any] = {}
+    for field in ordered_fields:
+        if hasattr(app, field):
+            data[field] = _json_safe_value(getattr(app, field))
+
+    if not data:
+        try:
+            raw = vars(app)
+        except TypeError:
+            raw = {}
+        data = {k: _json_safe_value(v) for k, v in raw.items() if not k.startswith("_")}
+
+    return data
 
 def _set_if_field(obj: Any, field: str, value: Any) -> bool:
     if field in _model_fields(obj.__class__) or hasattr(obj, field):
@@ -315,7 +376,7 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
 
     return _json_response({
         "status": "created",
-        "application": _to_dict(app),
+        "application": _application_record_to_dict(app),
         "readiness": readiness,
         "follow_up": _to_dict(follow_up) if follow_up else None,
     })
@@ -346,7 +407,7 @@ def approve_application(application_id: str, request: ApplicationActionRequest =
     session.add(app)
     session.commit()
     session.refresh(app)
-    return _json_response({"status": "approved", "application": _to_dict(app), "readiness": readiness})
+    return _json_response({"status": "approved", "application": _application_record_to_dict(app), "readiness": readiness})
 
 
 @router.post("/api/v1/applications/{application_id}/submit")
@@ -384,7 +445,7 @@ def submit_application(application_id: str, request: ApplicationActionRequest = 
     session.add(app)
     session.commit()
     session.refresh(app)
-    return _json_response({"status": "submitted", "application": _to_dict(app), "readiness": readiness})
+    return _json_response({"status": "submitted", "application": _application_record_to_dict(app), "readiness": readiness})
 
 
 @router.get("/admin/applications", response_class=HTMLResponse)
@@ -467,7 +528,7 @@ def admin_create_application_draft(lead_id: str, session: Session = Depends(get_
 def debug_application_engine():
     return {
         "status": "ok",
-        "version": "v1.3",
+        "version": "v1.5",
         "routes": [
             "GET /api/v1/applications/queue",
             "GET /api/v1/applications/leads/{lead_id}/readiness",
