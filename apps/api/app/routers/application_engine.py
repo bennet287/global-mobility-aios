@@ -1,4 +1,5 @@
 from __future__ import annotations
+import uuid
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -72,6 +73,25 @@ def _to_dict(obj: Any) -> Dict[str, Any]:
 
 def _json_response(payload: Dict[str, Any]) -> JSONResponse:
     return JSONResponse(content=jsonable_encoder(payload))
+
+
+
+
+def _uuid_or_404(value: Any, field_name: str = "id") -> uuid.UUID:
+    """Convert path/string IDs to UUIDs for SQLModel UUID primary keys.
+
+    SQLAlchemy's UUID type expects a uuid.UUID object. Passing a string causes
+    errors such as: AttributeError: 'str' object has no attribute 'hex'.
+    """
+    if isinstance(value, uuid.UUID):
+        return value
+    try:
+        return uuid.UUID(str(value))
+    except (TypeError, ValueError, AttributeError) as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"message": f"Invalid {field_name}", field_name: str(value)},
+        ) from exc
 
 
 def _set_if_field(obj: Any, field: str, value: Any) -> bool:
@@ -199,7 +219,8 @@ def _application_id(app: ApplicationRecord) -> Any:
 
 
 def _get_application(session: Session, application_id: str) -> ApplicationRecord:
-    app = session.get(ApplicationRecord, application_id)
+    app_pk = _uuid_or_404(application_id, "application_id")
+    app = session.get(ApplicationRecord, app_pk)
     if not app:
         raise HTTPException(status_code=404, detail="Application record not found")
     return app
@@ -252,7 +273,8 @@ def _create_follow_up(session: Session, lead: Lead, message: str) -> Optional[Fo
 
 @router.get("/api/v1/applications/leads/{lead_id}/readiness")
 def get_application_readiness(lead_id: str, session: Session = Depends(get_session)):
-    lead = session.get(Lead, lead_id)
+    lead_pk = _uuid_or_404(lead_id, "lead_id")
+    lead = session.get(Lead, lead_pk)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     return _json_response(_calculate_readiness(session, lead))
@@ -273,7 +295,8 @@ def get_application_queue(session: Session = Depends(get_session)):
 
 @router.post("/api/v1/applications/leads/{lead_id}/draft")
 def create_application_draft(lead_id: str, request: ApplicationDraftRequest, session: Session = Depends(get_session)):
-    lead = session.get(Lead, lead_id)
+    lead_pk = _uuid_or_404(lead_id, "lead_id")
+    lead = session.get(Lead, lead_pk)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
@@ -299,7 +322,8 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
 @router.post("/api/v1/applications/{application_id}/approve")
 def approve_application(application_id: str, request: ApplicationActionRequest = ApplicationActionRequest(), session: Session = Depends(get_session)):
     app = _get_application(session, application_id)
-    lead = session.get(Lead, getattr(app, "lead_id", None))
+    lead_pk = _uuid_or_404(getattr(app, "lead_id", None), "lead_id")
+    lead = session.get(Lead, lead_pk)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead for application not found")
     readiness = _calculate_readiness(session, lead)
@@ -326,7 +350,8 @@ def approve_application(application_id: str, request: ApplicationActionRequest =
 @router.post("/api/v1/applications/{application_id}/submit")
 def submit_application(application_id: str, request: ApplicationActionRequest = ApplicationActionRequest(), session: Session = Depends(get_session)):
     app = _get_application(session, application_id)
-    lead = session.get(Lead, getattr(app, "lead_id", None))
+    lead_pk = _uuid_or_404(getattr(app, "lead_id", None), "lead_id")
+    lead = session.get(Lead, lead_pk)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead for application not found")
     readiness = _calculate_readiness(session, lead)
@@ -427,7 +452,8 @@ def applications_admin(session: Session = Depends(get_session)):
 
 @router.post("/admin/applications/leads/{lead_id}/draft")
 def admin_create_application_draft(lead_id: str, session: Session = Depends(get_session)):
-    lead = session.get(Lead, lead_id)
+    lead_pk = _uuid_or_404(lead_id, "lead_id")
+    lead = session.get(Lead, lead_pk)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     request = ApplicationDraftRequest(application_type=str(_value(getattr(lead, "intent", "visa")) or "visa"))
@@ -439,7 +465,7 @@ def admin_create_application_draft(lead_id: str, session: Session = Depends(get_
 def debug_application_engine():
     return {
         "status": "ok",
-        "version": "v1.1",
+        "version": "v1.2",
         "routes": [
             "GET /api/v1/applications/queue",
             "GET /api/v1/applications/leads/{lead_id}/readiness",
