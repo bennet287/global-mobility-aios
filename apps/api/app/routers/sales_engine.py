@@ -1,0 +1,462 @@
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlmodel import Session, select
+
+from app.core.db import get_session
+from app.models.domain import DocumentRecord, FollowUp, HumanReview, Lead, TruthClaim
+
+try:
+    from app.models.domain import LeadStatus
+except Exception:  # pragma: no cover - keeps router compatible with older local models
+    LeadStatus = None  # type: ignore
+
+
+router = APIRouter()
+
+
+class SalesFollowUpCreate(BaseModel):
+    channel: str = "email"
+    subject: Optional[str] = None
+    message: Optional[str] = None
+    due_in_days: int = 1
+    priority: str = "normal"
+    follow_up_type: str = "sales"
+
+
+class SalesQualificationRequest(BaseModel):
+    qualification_status: str = "qualified"
+    notes: Optional[str] = None
+    create_follow_up: bool = True
+    follow_up_due_in_days: int = 1
+
+
+class ConversionRequest(BaseModel):
+    notes: Optional[str] = None
+    create_onboarding_follow_up: bool = True
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _model_fields(model_cls: type) -> set[str]:
+    fields = getattr(model_cls, "model_fields", None) or getattr(model_cls, "__fields__", {})
+    return set(fields.keys())
+
+
+def _value(value: Any) -> Any:
+    return getattr(value, "value", value)
+
+
+def _serialize(obj: Any) -> dict[str, Any]:
+    if obj is None:
+        return {}
+    if hasattr(obj, "model_dump"):
+        data = obj.model_dump()
+    elif hasattr(obj, "dict"):
+        data = obj.dict()
+    else:
+        data = dict(getattr(obj, "__dict__", {}))
+    data.pop("_sa_instance_state", None)
+    return {key: _serialize_value(val) for key, val in data.items()}
+
+
+def _serialize_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, list):
+        return [_serialize_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _serialize_value(val) for key, val in value.items()}
+    return _value(value)
+
+
+def _set_lead_status(lead: Lead, status: str) -> None:
+    if not hasattr(lead, "status"):
+        return
+    if LeadStatus is not None and hasattr(LeadStatus, status):
+        setattr(lead, "status", getattr(LeadStatus, status))
+    else:
+        setattr(lead, "status", status)
+    if hasattr(lead, "updated_at"):
+        setattr(lead, "updated_at", _now())
+
+
+def _truth_status(claim: Any) -> str:
+    for name in ("verdict", "status", "verification_status"):
+        if hasattr(claim, name):
+            return str(_value(getattr(claim, name))).upper()
+    return "UNKNOWN"
+
+
+def _review_status(review: Any) -> str:
+    if hasattr(review, "status"):
+        return str(_value(getattr(review, "status"))).lower()
+    if hasattr(review, "resolved") and getattr(review, "resolved"):
+        return "resolved"
+    return "pending"
+
+
+def _followup_status(follow_up: Any) -> str:
+    if hasattr(follow_up, "status"):
+        return str(_value(getattr(follow_up, "status"))).lower()
+    if hasattr(follow_up, "completed_at") and getattr(follow_up, "completed_at"):
+        return "completed"
+    return "pending"
+
+
+def _doc_status(document: Any) -> str:
+    if hasattr(document, "status"):
+        return str(_value(getattr(document, "status"))).lower()
+    return "unknown"
+
+
+def _followup_message_for_lead(lead: Lead, purpose: str = "sales") -> str:
+    country = getattr(lead, "target_country", None) or "your target country"
+    name = getattr(lead, "full_name", "there")
+    if purpose == "qualified":
+        return (
+            f"Hi {name}, your profile has been qualified for the next stage. "
+            f"The next step is to confirm your documents and preferred pathway for {country}."
+        )
+    if purpose == "converted":
+        return (
+            f"Hi {name}, welcome onboard. We will now start your structured mobility process, "
+            f"including documents, verified guidance, and application tracking for {country}."
+        )
+    return (
+        f"Hi {name}, thank you for your interest. We reviewed your profile for {country}. "
+        "Please confirm your preferred pathway and share any pending documents so we can proceed."
+    )
+
+
+def _create_follow_up(
+    session: Session,
+    lead_id: UUID,
+    *,
+    channel: str = "email",
+    subject: str = "Next steps for your global mobility profile",
+    message: str,
+    status: str = "pending",
+    priority: str = "normal",
+    follow_up_type: str = "sales",
+    due_in_days: int = 1,
+) -> FollowUp:
+    fields = _model_fields(FollowUp)
+    due_at = _now() + timedelta(days=max(due_in_days, 0))
+    candidates: dict[str, Any] = {
+        "lead_id": lead_id,
+        "channel": channel,
+        "subject": subject,
+        "message": message,
+        "body": message,
+        "content": message,
+        "follow_up_type": follow_up_type,
+        "type": follow_up_type,
+        "status": status,
+        "priority": priority,
+        "due_at": due_at,
+        "scheduled_at": due_at,
+        "created_at": _now(),
+        "updated_at": _now(),
+    }
+    payload = {key: value for key, value in candidates.items() if key in fields}
+    follow_up = FollowUp(**payload)
+    session.add(follow_up)
+    session.commit()
+    session.refresh(follow_up)
+    return follow_up
+
+
+def _pipeline_item(session: Session, lead: Lead) -> dict[str, Any]:
+    lead_id = getattr(lead, "id")
+    truth_claims = session.exec(select(TruthClaim).where(TruthClaim.lead_id == lead_id)).all()
+    reviews = session.exec(select(HumanReview).where(HumanReview.lead_id == lead_id)).all()
+    documents = session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all()
+    follow_ups = session.exec(select(FollowUp).where(FollowUp.lead_id == lead_id)).all()
+
+    rejected_truth = [claim for claim in truth_claims if _truth_status(claim) == "REJECTED"]
+    needs_review_truth = [claim for claim in truth_claims if _truth_status(claim) in {"NEEDS_REVIEW", "REVIEW"}]
+    pending_reviews = [review for review in reviews if _review_status(review) in {"pending", "open", "needs_review"}]
+    missing_docs = [doc for doc in documents if _doc_status(doc) in {"missing", "needs_review", "rejected"}]
+    pending_followups = [fu for fu in follow_ups if _followup_status(fu) in {"pending", "open", "scheduled"}]
+
+    if rejected_truth:
+        stage = "blocked_truth_rejected"
+    elif pending_reviews or needs_review_truth:
+        stage = "human_review"
+    elif missing_docs:
+        stage = "needs_documents"
+    elif pending_followups:
+        stage = "follow_up_pending"
+    else:
+        stage = str(_value(getattr(lead, "status", "new")))
+
+    return {
+        "lead": _serialize(lead),
+        "stage": stage,
+        "counts": {
+            "truth_claims": len(truth_claims),
+            "rejected_truth_claims": len(rejected_truth),
+            "pending_reviews": len(pending_reviews),
+            "documents": len(documents),
+            "missing_or_problem_documents": len(missing_docs),
+            "follow_ups": len(follow_ups),
+            "pending_follow_ups": len(pending_followups),
+        },
+        "next_action": _next_action(stage),
+    }
+
+
+def _next_action(stage: str) -> str:
+    return {
+        "blocked_truth_rejected": "Resolve or reject the risky claim before sales conversion.",
+        "human_review": "Human reviewer must approve, reject, or resolve the case.",
+        "needs_documents": "Request missing or rejected documents from the lead.",
+        "follow_up_pending": "Complete the pending sales follow-up.",
+        "new": "Qualify the lead and create a follow-up.",
+        "qualified": "Move lead toward document completion and conversion.",
+        "converted": "Start onboarding and application tracking.",
+        "closed": "No active action required.",
+    }.get(stage, "Review lead and decide next action.")
+
+
+def _get_lead_or_404(session: Session, lead_id: UUID) -> Lead:
+    lead = session.get(Lead, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    return lead
+
+
+@router.get("/api/v1/sales/pipeline")
+def get_sales_pipeline(session: Session = Depends(get_session)) -> dict[str, Any]:
+    leads = session.exec(select(Lead)).all()
+    items = [_pipeline_item(session, lead) for lead in leads]
+    stage_counts: dict[str, int] = {}
+    for item in items:
+        stage_counts[item["stage"]] = stage_counts.get(item["stage"], 0) + 1
+    return {
+        "total_leads": len(items),
+        "stage_counts": stage_counts,
+        "items": items,
+    }
+
+
+@router.get("/api/v1/sales/follow-ups")
+def list_sales_follow_ups(
+    status: Optional[str] = Query(default=None),
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    follow_ups = session.exec(select(FollowUp)).all()
+    if status:
+        follow_ups = [fu for fu in follow_ups if _followup_status(fu) == status.lower()]
+    return {
+        "count": len(follow_ups),
+        "items": [_serialize(fu) for fu in follow_ups],
+    }
+
+
+@router.post("/api/v1/sales/leads/{lead_id}/follow-ups")
+def create_sales_follow_up(
+    lead_id: UUID,
+    payload: SalesFollowUpCreate,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    lead = _get_lead_or_404(session, lead_id)
+    message = payload.message or _followup_message_for_lead(lead, purpose="sales")
+    follow_up = _create_follow_up(
+        session,
+        lead_id,
+        channel=payload.channel,
+        subject=payload.subject or "Next steps for your global mobility profile",
+        message=message,
+        priority=payload.priority,
+        follow_up_type=payload.follow_up_type,
+        due_in_days=payload.due_in_days,
+    )
+    return {
+        "status": "created",
+        "lead_id": str(lead_id),
+        "follow_up": _serialize(follow_up),
+    }
+
+
+@router.post("/api/v1/sales/leads/{lead_id}/qualify")
+def qualify_lead(
+    lead_id: UUID,
+    payload: SalesQualificationRequest | None = None,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    payload = payload or SalesQualificationRequest()
+    lead = _get_lead_or_404(session, lead_id)
+    _set_lead_status(lead, payload.qualification_status)
+    if payload.notes and hasattr(lead, "notes"):
+        existing = getattr(lead, "notes", None) or ""
+        setattr(lead, "notes", (existing + "\n" if existing else "") + payload.notes)
+    session.add(lead)
+    session.commit()
+    session.refresh(lead)
+
+    follow_up = None
+    if payload.create_follow_up:
+        follow_up = _create_follow_up(
+            session,
+            lead_id,
+            subject="Profile qualified - next steps",
+            message=_followup_message_for_lead(lead, purpose="qualified"),
+            follow_up_type="sales_qualification",
+            due_in_days=payload.follow_up_due_in_days,
+        )
+
+    return {
+        "status": "qualified",
+        "lead": _serialize(lead),
+        "follow_up": _serialize(follow_up) if follow_up else None,
+    }
+
+
+@router.post("/api/v1/sales/leads/{lead_id}/convert")
+def convert_lead(
+    lead_id: UUID,
+    payload: ConversionRequest | None = None,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    payload = payload or ConversionRequest()
+    lead = _get_lead_or_404(session, lead_id)
+    _set_lead_status(lead, "converted")
+    if payload.notes and hasattr(lead, "notes"):
+        existing = getattr(lead, "notes", None) or ""
+        setattr(lead, "notes", (existing + "\n" if existing else "") + payload.notes)
+    session.add(lead)
+    session.commit()
+    session.refresh(lead)
+
+    follow_up = None
+    if payload.create_onboarding_follow_up:
+        follow_up = _create_follow_up(
+            session,
+            lead_id,
+            subject="Client onboarding started",
+            message=_followup_message_for_lead(lead, purpose="converted"),
+            follow_up_type="onboarding",
+            due_in_days=0,
+        )
+
+    return {
+        "status": "converted",
+        "lead": _serialize(lead),
+        "follow_up": _serialize(follow_up) if follow_up else None,
+    }
+
+
+@router.post("/api/v1/sales/follow-ups/{follow_up_id}/complete")
+def complete_sales_follow_up(
+    follow_up_id: UUID,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    follow_up = session.get(FollowUp, follow_up_id)
+    if not follow_up:
+        raise HTTPException(status_code=404, detail="Follow-up not found")
+
+    fields = _model_fields(FollowUp)
+    if "status" in fields:
+        setattr(follow_up, "status", "completed")
+    if "completed_at" in fields:
+        setattr(follow_up, "completed_at", _now())
+    if "updated_at" in fields:
+        setattr(follow_up, "updated_at", _now())
+    session.add(follow_up)
+    session.commit()
+    session.refresh(follow_up)
+    return {
+        "status": "completed",
+        "follow_up": _serialize(follow_up),
+    }
+
+
+@router.get("/admin/sales", include_in_schema=False)
+def admin_sales_page(session: Session = Depends(get_session)) -> str:
+    pipeline = get_sales_pipeline(session)
+    rows = []
+    for item in pipeline["items"]:
+        lead = item["lead"]
+        lead_id = lead.get("id")
+        rows.append(
+            "<tr>"
+            f"<td><a href='/admin/leads/{lead_id}'>{lead.get('full_name', 'Unknown')}</a></td>"
+            f"<td>{lead.get('email') or ''}</td>"
+            f"<td>{lead.get('intent') or ''}</td>"
+            f"<td>{lead.get('target_country') or ''}</td>"
+            f"<td><strong>{item['stage']}</strong></td>"
+            f"<td>{item['next_action']}</td>"
+            f"<td>"
+            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/qualify' style='display:inline'><button>Qualify</button></form> "
+            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/convert' style='display:inline'><button>Convert</button></form> "
+            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/follow-ups' style='display:inline'><button>Create Follow-up</button></form>"
+            f"</td>"
+            "</tr>"
+        )
+
+    stage_cards = "".join(
+        f"<div class='card'><h3>{stage}</h3><p>{count}</p></div>"
+        for stage, count in sorted(pipeline["stage_counts"].items())
+    )
+
+    return f"""
+    <!doctype html>
+    <html>
+    <head>
+      <title>Sales Pipeline - Global Mobility AIOS</title>
+      <style>
+        body {{ font-family: Arial, sans-serif; margin: 24px; background: #f7f7f8; }}
+        a {{ color: #164ea6; text-decoration: none; }}
+        table {{ width: 100%; border-collapse: collapse; background: white; }}
+        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }}
+        th {{ background: #111827; color: white; }}
+        button {{ padding: 6px 10px; margin: 2px; cursor: pointer; }}
+        .cards {{ display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }}
+        .card {{ background: white; border: 1px solid #ddd; border-radius: 8px; padding: 12px 16px; min-width: 180px; }}
+        .card h3 {{ margin: 0 0 8px 0; font-size: 14px; }}
+        .card p {{ margin: 0; font-size: 24px; font-weight: bold; }}
+      </style>
+    </head>
+    <body>
+      <h1>Sales Pipeline</h1>
+      <p><a href='/admin'>← Back to Admin Dashboard</a> | <a href='/api/v1/sales/pipeline'>Raw Pipeline JSON</a></p>
+      <div class='cards'>{stage_cards}</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Lead</th><th>Email</th><th>Intent</th><th>Country</th><th>Stage</th><th>Next Action</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>{''.join(rows)}</tbody>
+      </table>
+    </body>
+    </html>
+    """
+
+
+@router.get("/debug/sales-engine", include_in_schema=False)
+def debug_sales_engine() -> dict[str, Any]:
+    return {
+        "module": "sales_engine",
+        "version": "1.0",
+        "routes": [
+            "GET /api/v1/sales/pipeline",
+            "GET /api/v1/sales/follow-ups",
+            "POST /api/v1/sales/leads/{lead_id}/follow-ups",
+            "POST /api/v1/sales/leads/{lead_id}/qualify",
+            "POST /api/v1/sales/leads/{lead_id}/convert",
+            "POST /api/v1/sales/follow-ups/{follow_up_id}/complete",
+            "GET /admin/sales",
+        ],
+    }

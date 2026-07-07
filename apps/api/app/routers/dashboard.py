@@ -553,6 +553,7 @@ loadDashboard();
   <iframe src="/admin/documents/missing-card" style="width:100%;height:420px;border:0;border-radius:12px;background:white;"></iframe>
 </section>
 
+<p><a href='/admin/sales'>Sales Pipeline</a></p>
 </body>
 </html>
 """
