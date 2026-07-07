@@ -39,6 +39,7 @@ class SalesQualificationRequest(BaseModel):
 class ConversionRequest(BaseModel):
     notes: Optional[str] = None
     create_onboarding_follow_up: bool = True
+    require_documents_ready: bool = False
 
 
 def _now() -> datetime:
@@ -55,14 +56,24 @@ def _value(value: Any) -> Any:
 
 
 def _serialize(obj: Any) -> dict[str, Any]:
+    """Serialize SQLModel/Pydantic/SQLAlchemy objects safely.
+
+    SQLModel table objects can sometimes return an empty dict from model_dump()
+    after session refresh/expiration. Reading table columns directly keeps API
+    responses stable for admin actions.
+    """
     if obj is None:
         return {}
-    if hasattr(obj, "model_dump"):
+
+    if hasattr(obj, "__table__"):
+        data = {column.name: getattr(obj, column.name, None) for column in obj.__table__.columns}
+    elif hasattr(obj, "model_dump"):
         data = obj.model_dump()
     elif hasattr(obj, "dict"):
         data = obj.dict()
     else:
         data = dict(getattr(obj, "__dict__", {}))
+
     data.pop("_sa_instance_state", None)
     return {key: _serialize_value(val) for key, val in data.items()}
 
@@ -132,6 +143,11 @@ def _followup_message_for_lead(lead: Lead, purpose: str = "sales") -> str:
             f"Hi {name}, welcome onboard. We will now start your structured mobility process, "
             f"including documents, verified guidance, and application tracking for {country}."
         )
+    if purpose == "blocked":
+        return (
+            f"Hi {name}, before we proceed further, our compliance check found that your case "
+            f"requires manual review for {country}. We will verify the details and update you with safe next steps."
+        )
     return (
         f"Hi {name}, thank you for your interest. We reviewed your profile for {country}. "
         "Please confirm your preferred pathway and share any pending documents so we can proceed."
@@ -176,12 +192,22 @@ def _create_follow_up(
     return follow_up
 
 
+def _lead_related_records(session: Session, lead_id: UUID) -> dict[str, list[Any]]:
+    return {
+        "truth_claims": session.exec(select(TruthClaim).where(TruthClaim.lead_id == lead_id)).all(),
+        "reviews": session.exec(select(HumanReview).where(HumanReview.lead_id == lead_id)).all(),
+        "documents": session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all(),
+        "follow_ups": session.exec(select(FollowUp).where(FollowUp.lead_id == lead_id)).all(),
+    }
+
+
 def _pipeline_item(session: Session, lead: Lead) -> dict[str, Any]:
     lead_id = getattr(lead, "id")
-    truth_claims = session.exec(select(TruthClaim).where(TruthClaim.lead_id == lead_id)).all()
-    reviews = session.exec(select(HumanReview).where(HumanReview.lead_id == lead_id)).all()
-    documents = session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all()
-    follow_ups = session.exec(select(FollowUp).where(FollowUp.lead_id == lead_id)).all()
+    related = _lead_related_records(session, lead_id)
+    truth_claims = related["truth_claims"]
+    reviews = related["reviews"]
+    documents = related["documents"]
+    follow_ups = related["follow_ups"]
 
     rejected_truth = [claim for claim in truth_claims if _truth_status(claim) == "REJECTED"]
     needs_review_truth = [claim for claim in truth_claims if _truth_status(claim) in {"NEEDS_REVIEW", "REVIEW"}]
@@ -213,12 +239,13 @@ def _pipeline_item(session: Session, lead: Lead) -> dict[str, Any]:
             "pending_follow_ups": len(pending_followups),
         },
         "next_action": _next_action(stage),
+        "guardrails": _sales_guardrails(session, lead_id),
     }
 
 
 def _next_action(stage: str) -> str:
     return {
-        "blocked_truth_rejected": "Resolve or reject the risky claim before sales conversion.",
+        "blocked_truth_rejected": "Resolve or replace the risky claim before sales conversion.",
         "human_review": "Human reviewer must approve, reject, or resolve the case.",
         "needs_documents": "Request missing or rejected documents from the lead.",
         "follow_up_pending": "Complete the pending sales follow-up.",
@@ -227,6 +254,63 @@ def _next_action(stage: str) -> str:
         "converted": "Start onboarding and application tracking.",
         "closed": "No active action required.",
     }.get(stage, "Review lead and decide next action.")
+
+
+def _sales_guardrails(session: Session, lead_id: UUID) -> dict[str, Any]:
+    related = _lead_related_records(session, lead_id)
+    truth_claims = related["truth_claims"]
+    reviews = related["reviews"]
+    documents = related["documents"]
+
+    rejected_truth = [claim for claim in truth_claims if _truth_status(claim) == "REJECTED"]
+    needs_review_truth = [claim for claim in truth_claims if _truth_status(claim) in {"NEEDS_REVIEW", "REVIEW"}]
+    pending_reviews = [review for review in reviews if _review_status(review) in {"pending", "open", "needs_review"}]
+    problem_documents = [doc for doc in documents if _doc_status(doc) in {"missing", "needs_review", "rejected"}]
+
+    hard_blockers: list[str] = []
+    warnings: list[str] = []
+
+    if rejected_truth:
+        hard_blockers.append("truth_claim_rejected")
+    if needs_review_truth:
+        hard_blockers.append("truth_claim_needs_review")
+    if pending_reviews:
+        hard_blockers.append("human_review_pending")
+    if problem_documents:
+        warnings.append("documents_missing_or_problematic")
+
+    return {
+        "can_qualify": not hard_blockers,
+        "can_convert": not hard_blockers,
+        "hard_blockers": hard_blockers,
+        "warnings": warnings,
+        "counts": {
+            "rejected_truth_claims": len(rejected_truth),
+            "truth_claims_needing_review": len(needs_review_truth),
+            "pending_reviews": len(pending_reviews),
+            "problem_documents": len(problem_documents),
+        },
+    }
+
+
+def _raise_if_sales_blocked(session: Session, lead_id: UUID, action: str, *, require_documents_ready: bool = False) -> None:
+    guardrails = _sales_guardrails(session, lead_id)
+    blockers = list(guardrails["hard_blockers"])
+    if require_documents_ready and "documents_missing_or_problematic" in guardrails["warnings"]:
+        blockers.append("documents_missing_or_problematic")
+
+    if blockers:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": f"Sales action '{action}' is blocked by governance guardrails.",
+                "lead_id": str(lead_id),
+                "blocked_action": action,
+                "blockers": blockers,
+                "guardrails": guardrails,
+                "next_action": "Resolve rejected truth claims and pending human reviews before qualification or conversion.",
+            },
+        )
 
 
 def _get_lead_or_404(session: Session, lead_id: UUID) -> Lead:
@@ -267,11 +351,16 @@ def list_sales_follow_ups(
 @router.post("/api/v1/sales/leads/{lead_id}/follow-ups")
 def create_sales_follow_up(
     lead_id: UUID,
-    payload: SalesFollowUpCreate,
+    payload: SalesFollowUpCreate | None = None,
     session: Session = Depends(get_session),
 ) -> dict[str, Any]:
+    payload = payload or SalesFollowUpCreate()
     lead = _get_lead_or_404(session, lead_id)
-    message = payload.message or _followup_message_for_lead(lead, purpose="sales")
+    guardrails = _sales_guardrails(session, lead_id)
+    message = payload.message or _followup_message_for_lead(
+        lead,
+        purpose="blocked" if guardrails["hard_blockers"] else "sales",
+    )
     follow_up = _create_follow_up(
         session,
         lead_id,
@@ -285,6 +374,7 @@ def create_sales_follow_up(
     return {
         "status": "created",
         "lead_id": str(lead_id),
+        "guardrails": guardrails,
         "follow_up": _serialize(follow_up),
     }
 
@@ -297,6 +387,8 @@ def qualify_lead(
 ) -> dict[str, Any]:
     payload = payload or SalesQualificationRequest()
     lead = _get_lead_or_404(session, lead_id)
+    _raise_if_sales_blocked(session, lead_id, "qualify")
+
     _set_lead_status(lead, payload.qualification_status)
     if payload.notes and hasattr(lead, "notes"):
         existing = getattr(lead, "notes", None) or ""
@@ -319,6 +411,7 @@ def qualify_lead(
     return {
         "status": "qualified",
         "lead": _serialize(lead),
+        "guardrails": _sales_guardrails(session, lead_id),
         "follow_up": _serialize(follow_up) if follow_up else None,
     }
 
@@ -331,6 +424,13 @@ def convert_lead(
 ) -> dict[str, Any]:
     payload = payload or ConversionRequest()
     lead = _get_lead_or_404(session, lead_id)
+    _raise_if_sales_blocked(
+        session,
+        lead_id,
+        "convert",
+        require_documents_ready=payload.require_documents_ready,
+    )
+
     _set_lead_status(lead, "converted")
     if payload.notes and hasattr(lead, "notes"):
         existing = getattr(lead, "notes", None) or ""
@@ -353,6 +453,7 @@ def convert_lead(
     return {
         "status": "converted",
         "lead": _serialize(lead),
+        "guardrails": _sales_guardrails(session, lead_id),
         "follow_up": _serialize(follow_up) if follow_up else None,
     }
 
@@ -389,6 +490,10 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
     for item in pipeline["items"]:
         lead = item["lead"]
         lead_id = lead.get("id")
+        guardrails = item.get("guardrails", {})
+        blocked = bool(guardrails.get("hard_blockers"))
+        blocker_text = ", ".join(guardrails.get("hard_blockers", [])) or "None"
+        disabled = "disabled title='Blocked by Truth Engine/Human Review guardrails'" if blocked else ""
         rows.append(
             "<tr>"
             f"<td><a href='/admin/leads/{lead_id}'>{lead.get('full_name', 'Unknown')}</a></td>"
@@ -396,10 +501,10 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
             f"<td>{lead.get('intent') or ''}</td>"
             f"<td>{lead.get('target_country') or ''}</td>"
             f"<td><strong>{item['stage']}</strong></td>"
-            f"<td>{item['next_action']}</td>"
+            f"<td>{item['next_action']}<br><small>Blockers: {blocker_text}</small></td>"
             f"<td>"
-            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/qualify' style='display:inline'><button>Qualify</button></form> "
-            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/convert' style='display:inline'><button>Convert</button></form> "
+            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/qualify' style='display:inline'><button {disabled}>Qualify</button></form> "
+            f"<form method='post' action='/api/v1/sales/leads/{lead_id}/convert' style='display:inline'><button {disabled}>Convert</button></form> "
             f"<form method='post' action='/api/v1/sales/leads/{lead_id}/follow-ups' style='display:inline'><button>Create Follow-up</button></form>"
             f"</td>"
             "</tr>"
@@ -422,15 +527,18 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
         th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }}
         th {{ background: #111827; color: white; }}
         button {{ padding: 6px 10px; margin: 2px; cursor: pointer; }}
+        button:disabled {{ opacity: 0.5; cursor: not-allowed; }}
         .cards {{ display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }}
         .card {{ background: white; border: 1px solid #ddd; border-radius: 8px; padding: 12px 16px; min-width: 180px; }}
         .card h3 {{ margin: 0 0 8px 0; font-size: 14px; }}
         .card p {{ margin: 0; font-size: 24px; font-weight: bold; }}
+        .warning {{ background: #fff7ed; border: 1px solid #fed7aa; padding: 12px; border-radius: 8px; }}
       </style>
     </head>
     <body>
       <h1>Sales Pipeline</h1>
       <p><a href='/admin'>← Back to Admin Dashboard</a> | <a href='/api/v1/sales/pipeline'>Raw Pipeline JSON</a></p>
+      <div class='warning'><strong>Governance:</strong> Qualification and conversion are blocked when a lead has rejected truth claims or unresolved human-review items.</div>
       <div class='cards'>{stage_cards}</div>
       <table>
         <thead>
@@ -449,7 +557,14 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
 def debug_sales_engine() -> dict[str, Any]:
     return {
         "module": "sales_engine",
-        "version": "1.0",
+        "version": "1.1",
+        "guardrails": [
+            "qualification blocked by rejected truth claim",
+            "qualification blocked by pending human review",
+            "conversion blocked by rejected truth claim",
+            "conversion blocked by pending human review",
+            "optional conversion block for missing/problem documents",
+        ],
         "routes": [
             "GET /api/v1/sales/pipeline",
             "GET /api/v1/sales/follow-ups",
