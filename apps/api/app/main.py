@@ -72,3 +72,8 @@ app.include_router(detail_views.router, tags=["lead-detail"])
 app.include_router(document_engine.router, tags=["document-engine"])
 
 app.include_router(truth_resolution.router)
+
+# Document Verification Actions v1.2
+from app.routers import document_verification as document_verification_router
+app.include_router(document_verification_router.router)
+
