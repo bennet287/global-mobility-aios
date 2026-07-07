@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.routers import (
+    detail_views,
     operations,
     dashboard,
     agent_runs,
@@ -59,3 +60,4 @@ app.include_router(workflows.router, prefix="/api/v1", tags=["workflows"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["dashboard"])
 app.include_router(dashboard.router, tags=["dashboard"])
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
+app.include_router(detail_views.router, tags=["lead-detail"])

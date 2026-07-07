@@ -476,7 +476,7 @@ async function loadDashboard() {
 
   document.getElementById("leads").innerHTML = (data.recent.leads || []).map(r => `
     <tr>
-      <td>${esc(r.full_name)}</td>
+      <td><a href="/admin/leads/${r.id}">${esc(r.full_name)}</a></td>
       <td>${esc(r.email)}</td>
       <td>${pill(r.intent)}</td>
       <td>${esc(r.target_country)}</td>
