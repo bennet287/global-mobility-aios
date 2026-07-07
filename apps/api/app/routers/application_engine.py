@@ -403,6 +403,31 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
                 "next_action": "Use the existing application or cancel duplicate drafts first.",
             },
         )
+
+    # Application Draft Guard v2.3 readiness guard
+    try:
+        _v23_lead = _get_lead(session, lead_id)
+    except NameError:
+        _v23_lead = session.get(Lead, _coerce_uuid(lead_id))
+    if not _v23_lead:
+        raise _V18HTTPException(status_code=404, detail="Lead not found")
+
+    _v23_readiness = _calculate_readiness(session, _v23_lead)
+    _v23_stage = str(_v23_readiness.get("stage") or "")
+    _v23_blockers = _v23_readiness.get("blockers") or []
+    _v23_warnings = _v23_readiness.get("warnings") or []
+    if _v23_stage != "ready_for_human_approval" or _v23_blockers or _v23_warnings:
+        raise _V18HTTPException(
+            status_code=409,
+            detail={
+                "message": "Draft creation blocked because the lead is not ready for application drafting.",
+                "blocker": "readiness_not_clear",
+                "readiness_stage": _v23_stage,
+                "blockers": _v23_blockers,
+                "warnings": _v23_warnings,
+                "next_action": _v23_readiness.get("next_action", "Complete truth and document prerequisites before creating a draft."),
+            },
+        )
     lead_pk = _uuid_or_404(lead_id, "lead_id")
     lead = session.get(Lead, lead_pk)
     if not lead:
