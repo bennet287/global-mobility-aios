@@ -77,3 +77,7 @@ app.include_router(truth_resolution.router)
 from app.routers import document_verification as document_verification_router
 app.include_router(document_verification_router.router)
 
+# Application Lifecycle Engine v1.7
+from app.routers import application_lifecycle as application_lifecycle_router
+app.include_router(application_lifecycle_router.router)
+
