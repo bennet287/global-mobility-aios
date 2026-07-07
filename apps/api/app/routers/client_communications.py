@@ -140,6 +140,26 @@ def _safe_status(value: Any) -> str:
     return str(_value(value) or "").strip().lower()
 
 
+def _communication_status(value: Any) -> str:
+    status = _safe_status(value)
+    if status == "pending":
+        return "draft"
+    if status == "completed":
+        return "reviewed"
+    return status
+
+
+def _storage_status_for_communication_filter(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    status = _safe_status(value)
+    if status == "draft":
+        return "pending"
+    if status == "reviewed":
+        return "completed"
+    return status
+
+
 def _normal_id(value: Any) -> str:
     value = _value(value)
     if value is None:
@@ -328,7 +348,7 @@ def _parse_draft(follow_up: FollowUp) -> Dict[str, Any]:
         "title": title,
         "subject": subject,
         "body": body,
-        "status": _safe_status(getattr(follow_up, "status", None)),
+        "status": _communication_status(getattr(follow_up, "status", None)),
         "channel": getattr(follow_up, "channel", None),
         "created_at": _json_safe(getattr(follow_up, "created_at", None)),
         "updated_at": _json_safe(getattr(follow_up, "updated_at", None)),
@@ -349,7 +369,7 @@ def _lead_payload(session: Session, lead: Lead) -> Dict[str, Any]:
     drafts = _draft_followups_for_lead(session, lead)
     status_counts: Dict[str, int] = {}
     for draft in drafts:
-        status = _safe_status(getattr(draft, "status", None))
+        status = _communication_status(getattr(draft, "status", None))
         status_counts[status] = status_counts.get(status, 0) + 1
 
     existing_templates = []
@@ -411,7 +431,7 @@ def _create_draft(
         "lead_id": getattr(lead, "id", None),
         "channel": "email_draft",
         "message": _draft_message(template_data, request.note),
-        "status": "draft",
+        "status": "pending",
         "due_at": now,
         "created_at": now,
         "updated_at": now,
@@ -448,7 +468,7 @@ def get_client_communication_drafts(
 ):
     drafts = _all_draft_followups(session)
     if status:
-        wanted = _safe_status(status)
+        wanted = _storage_status_for_communication_filter(status)
         drafts = [draft for draft in drafts if _safe_status(getattr(draft, "status", None)) == wanted]
     if lead_id:
         wanted_lead = _normal_id(lead_id)
@@ -559,7 +579,7 @@ def mark_client_communication_draft_reviewed(
             "body": request.body or parsed["body"],
         }
         _set_if_field(draft, "message", _draft_message(template_data, request.note))
-    _set_if_field(draft, "status", "reviewed")
+    _set_if_field(draft, "status", "completed")
     _set_if_field(draft, "updated_at", datetime.utcnow())
 
     session.add(draft)
@@ -574,9 +594,9 @@ def mark_client_communication_draft_reviewed(
 
 def _badge(status: str) -> str:
     status = _safe_status(status)
-    if status == "reviewed":
+    if status in {"reviewed", "completed"}:
         return '<span class="badge good">reviewed</span>'
-    if status == "draft":
+    if status in {"draft", "pending"}:
         return '<span class="badge warn">draft</span>'
     return f'<span class="badge neutral">{status or "-"}</span>'
 
@@ -660,7 +680,8 @@ def client_communications_drafts_admin(
 ):
     drafts = _all_draft_followups(session)
     if status:
-        drafts = [draft for draft in drafts if _safe_status(getattr(draft, "status", None)) == _safe_status(status)]
+        wanted = _storage_status_for_communication_filter(status)
+        drafts = [draft for draft in drafts if _safe_status(getattr(draft, "status", None)) == wanted]
 
     rows = []
     for draft in drafts:
@@ -804,10 +825,10 @@ def admin_mark_client_communication_draft_reviewed(draft_id: str, session: Sessi
 def debug_client_communications():
     return {
         "status": "ok",
-        "version": "v2.6",
+        "version": "v2.6.1",
         "draft_prefix": DRAFT_PREFIX,
         "templates": sorted(TEMPLATES.keys()),
-        "safety_rule": "Drafts only; no automatic sending.",
+        "safety_rule": "Drafts only; no automatic sending. FollowUp.status uses enum-safe pending/completed storage.",
         "routes": [
             "GET /api/v1/client-communications/templates",
             "GET /api/v1/client-communications/drafts",
