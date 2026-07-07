@@ -115,6 +115,25 @@ def _json_safe_value(value: Any) -> Any:
     return value
 
 
+def _uuid_match_key(value: Any) -> str:
+    """Normalize UUID values for SQLite/SQLModel matching.
+
+    SQLite stores SQLAlchemy UUID values as 32-character hex strings, while
+    API paths and JSON responses usually use hyphenated UUID strings. This
+    helper makes informational counts robust across both forms.
+    """
+    value = _value(value)
+    if value is None:
+        return ""
+    if isinstance(value, uuid.UUID):
+        return value.hex
+    raw = str(value).strip()
+    try:
+        return uuid.UUID(raw).hex
+    except ValueError:
+        return raw.replace("-", "").lower()
+
+
 def _application_record_to_dict(app: Any) -> Dict[str, Any]:
     """Serialize ApplicationRecord reliably.
 
@@ -177,9 +196,17 @@ def _records_for_lead(session: Session, lead_id: str):
     truth_claims = session.exec(select(TruthClaim).where(TruthClaim.lead_id == lead_id)).all()
     human_reviews = session.exec(select(HumanReview).where(HumanReview.lead_id == lead_id)).all()
     documents = session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all()
-    # Do not load ApplicationRecord rows for readiness calculations. Older experimental
-    # rows may contain enum-invalid computed stages. Application count is informational only.
+
+    # ApplicationRecord.lead_id is stored by SQLite as a 32-character UUID hex
+    # string, while route/readiness logic may carry uuid.UUID objects or
+    # hyphenated UUID strings. Count application records using a normalized key
+    # rather than a direct equality comparison.
+    lead_key = _uuid_match_key(lead_id)
     application_count = 0
+    for app in session.exec(select(ApplicationRecord)).all():
+        if _uuid_match_key(getattr(app, "lead_id", None)) == lead_key:
+            application_count += 1
+
     return truth_claims, human_reviews, documents, application_count
 
 
@@ -528,7 +555,7 @@ def admin_create_application_draft(lead_id: str, session: Session = Depends(get_
 def debug_application_engine():
     return {
         "status": "ok",
-        "version": "v1.5",
+        "version": "v1.6",
         "routes": [
             "GET /api/v1/applications/queue",
             "GET /api/v1/applications/leads/{lead_id}/readiness",
