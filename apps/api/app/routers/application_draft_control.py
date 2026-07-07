@@ -273,6 +273,24 @@ def create_controlled_application_draft(
             },
         )
 
+    # Application Draft Control v2.2 readiness guard
+    readiness = _calculate_readiness(session, lead)
+    readiness_stage = str(readiness.get("stage") or "")
+    readiness_blockers = readiness.get("blockers") or []
+    readiness_warnings = readiness.get("warnings") or []
+    if readiness_stage != "ready_for_human_approval" or readiness_blockers or readiness_warnings:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Controlled draft creation blocked because the lead is not ready for application drafting.",
+                "blocker": "readiness_not_clear",
+                "readiness_stage": readiness_stage,
+                "blockers": readiness_blockers,
+                "warnings": readiness_warnings,
+                "next_action": readiness.get("next_action", "Complete truth and document prerequisites before creating a draft."),
+            },
+        )
+
     payload = _build_application_payload(lead, request)
     app = ApplicationRecord(**payload)
     session.add(app)

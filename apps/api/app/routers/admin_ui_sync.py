@@ -328,12 +328,14 @@ def _safe_text(value: Any) -> str:
 def _render_create_draft_action(item: Dict[str, Any]) -> str:
     lead = item["lead"]
     lead_id = lead.get("id")
-    if item["can_create_draft"]:
+    if item["can_create_draft"] and item["readiness_stage"] == "ready_for_human_approval":
         return f"""
         <form method="post" action="/api/v1/applications/leads/{lead_id}/controlled-draft" style="display:inline">
           <button type="submit">Create Controlled Draft</button>
         </form>
         """
+    if item["readiness_stage"] != "ready_for_human_approval":
+        return '<button disabled title="Draft blocked until truth and document readiness are clear">Draft Blocked: Not Ready</button>'
     return '<button disabled title="Draft blocked because active/final application already exists">Draft Blocked</button>'
 
 
