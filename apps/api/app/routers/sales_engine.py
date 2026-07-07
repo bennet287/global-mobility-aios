@@ -5,6 +5,7 @@ from typing import Any, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -40,6 +41,11 @@ class ConversionRequest(BaseModel):
     notes: Optional[str] = None
     create_onboarding_follow_up: bool = True
     require_documents_ready: bool = False
+
+
+class SalesReconcileRequest(BaseModel):
+    create_follow_up: bool = False
+    only_problem_statuses: bool = True
 
 
 def _now() -> datetime:
@@ -226,6 +232,8 @@ def _pipeline_item(session: Session, lead: Lead) -> dict[str, Any]:
     else:
         stage = str(_value(getattr(lead, "status", "new")))
 
+    guardrails = _sales_guardrails(session, lead_id)
+
     return {
         "lead": _serialize(lead),
         "stage": stage,
@@ -239,7 +247,8 @@ def _pipeline_item(session: Session, lead: Lead) -> dict[str, Any]:
             "pending_follow_ups": len(pending_followups),
         },
         "next_action": _next_action(stage),
-        "guardrails": _sales_guardrails(session, lead_id),
+        "guardrails": guardrails,
+        "status_integrity": _status_integrity(lead, stage, guardrails),
     }
 
 
@@ -313,6 +322,107 @@ def _raise_if_sales_blocked(session: Session, lead_id: UUID, action: str, *, req
         )
 
 
+
+
+PROBLEM_SALES_STATUSES = {"qualified", "converted"}
+
+
+def _lead_status_text(lead: Lead) -> str:
+    return str(_value(getattr(lead, "status", "new"))).lower()
+
+
+def _recommended_status_for_guardrails(guardrails: dict[str, Any]) -> Optional[str]:
+    blockers = set(guardrails.get("hard_blockers", []))
+    if "truth_claim_rejected" in blockers:
+        return "blocked_truth_rejected"
+    if "truth_claim_needs_review" in blockers or "human_review_pending" in blockers:
+        return "human_review"
+    return None
+
+
+def _status_integrity(lead: Lead, stage: str, guardrails: dict[str, Any]) -> dict[str, Any]:
+    actual_status = _lead_status_text(lead)
+    recommended_status = _recommended_status_for_guardrails(guardrails)
+    is_inconsistent = bool(recommended_status and actual_status in PROBLEM_SALES_STATUSES)
+    return {
+        "actual_status": actual_status,
+        "effective_stage": stage,
+        "recommended_status": recommended_status,
+        "is_inconsistent": is_inconsistent,
+        "reason": (
+            "Lead has a sales-positive status while Truth/Human Review guardrails block sales progression."
+            if is_inconsistent else None
+        ),
+    }
+
+
+def _reconcile_lead_status(
+    session: Session,
+    lead: Lead,
+    *,
+    create_follow_up: bool = False,
+    only_problem_statuses: bool = True,
+) -> dict[str, Any]:
+    lead_id = getattr(lead, "id")
+    before_status = _lead_status_text(lead)
+    guardrails = _sales_guardrails(session, lead_id)
+    recommended_status = _recommended_status_for_guardrails(guardrails)
+
+    if not recommended_status:
+        return {
+            "lead_id": str(lead_id),
+            "action": "noop",
+            "before_status": before_status,
+            "after_status": before_status,
+            "reason": "No hard sales guardrails found.",
+            "guardrails": guardrails,
+            "follow_up": None,
+        }
+
+    if only_problem_statuses and before_status not in PROBLEM_SALES_STATUSES:
+        return {
+            "lead_id": str(lead_id),
+            "action": "noop",
+            "before_status": before_status,
+            "after_status": before_status,
+            "reason": "Status is already not sales-positive; no reconciliation required.",
+            "guardrails": guardrails,
+            "follow_up": None,
+        }
+
+    _set_lead_status(lead, recommended_status)
+    if hasattr(lead, "notes"):
+        existing = getattr(lead, "notes", None) or ""
+        note = (
+            f"Sales status reconciled from '{before_status}' to '{recommended_status}' "
+            "because governance guardrails are active."
+        )
+        setattr(lead, "notes", (existing + "\n" if existing else "") + note)
+    session.add(lead)
+    session.commit()
+    session.refresh(lead)
+
+    follow_up = None
+    if create_follow_up:
+        follow_up = _create_follow_up(
+            session,
+            lead_id,
+            subject="Compliance review required before next sales step",
+            message=_followup_message_for_lead(lead, purpose="blocked"),
+            follow_up_type="sales_guardrail_reconciliation",
+            due_in_days=0,
+        )
+
+    return {
+        "lead_id": str(lead_id),
+        "action": "reconciled",
+        "before_status": before_status,
+        "after_status": _lead_status_text(lead),
+        "recommended_status": recommended_status,
+        "guardrails": guardrails,
+        "follow_up": _serialize(follow_up) if follow_up else None,
+    }
+
 def _get_lead_or_404(session: Session, lead_id: UUID) -> Lead:
     lead = session.get(Lead, lead_id)
     if not lead:
@@ -333,6 +443,70 @@ def get_sales_pipeline(session: Session = Depends(get_session)) -> dict[str, Any
         "items": items,
     }
 
+
+
+
+@router.get("/api/v1/sales/inconsistencies")
+def list_sales_status_inconsistencies(session: Session = Depends(get_session)) -> dict[str, Any]:
+    leads = session.exec(select(Lead)).all()
+    items = [_pipeline_item(session, lead) for lead in leads]
+    inconsistent = [item for item in items if item.get("status_integrity", {}).get("is_inconsistent")]
+    return {
+        "count": len(inconsistent),
+        "items": inconsistent,
+    }
+
+
+@router.post("/api/v1/sales/leads/{lead_id}/reconcile")
+def reconcile_one_sales_lead(
+    lead_id: UUID,
+    payload: SalesReconcileRequest | None = None,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    payload = payload or SalesReconcileRequest()
+    lead = _get_lead_or_404(session, lead_id)
+    result = _reconcile_lead_status(
+        session,
+        lead,
+        create_follow_up=payload.create_follow_up,
+        only_problem_statuses=payload.only_problem_statuses,
+    )
+    return {
+        "status": result["action"],
+        "result": result,
+        "pipeline_item": _pipeline_item(session, lead),
+    }
+
+
+@router.post("/api/v1/sales/reconcile")
+def reconcile_sales_pipeline_statuses(
+    payload: SalesReconcileRequest | None = None,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    payload = payload or SalesReconcileRequest()
+    leads = session.exec(select(Lead)).all()
+    results = [
+        _reconcile_lead_status(
+            session,
+            lead,
+            create_follow_up=payload.create_follow_up,
+            only_problem_statuses=payload.only_problem_statuses,
+        )
+        for lead in leads
+    ]
+    changed = [result for result in results if result.get("action") == "reconciled"]
+    return {
+        "status": "completed",
+        "checked": len(results),
+        "reconciled": len(changed),
+        "results": results,
+    }
+
+
+@router.post("/admin/sales/reconcile", include_in_schema=False)
+def admin_reconcile_sales_statuses(session: Session = Depends(get_session)) -> RedirectResponse:
+    reconcile_sales_pipeline_statuses(SalesReconcileRequest(), session)
+    return RedirectResponse(url="/admin/sales", status_code=303)
 
 @router.get("/api/v1/sales/follow-ups")
 def list_sales_follow_ups(
@@ -492,7 +666,10 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
         lead_id = lead.get("id")
         guardrails = item.get("guardrails", {})
         blocked = bool(guardrails.get("hard_blockers"))
+        integrity = item.get("status_integrity", {})
         blocker_text = ", ".join(guardrails.get("hard_blockers", [])) or "None"
+        status_integrity_text = "MISMATCH" if integrity.get("is_inconsistent") else "OK"
+        recommended_text = integrity.get("recommended_status") or "-"
         disabled = "disabled title='Blocked by Truth Engine/Human Review guardrails'" if blocked else ""
         rows.append(
             "<tr>"
@@ -501,6 +678,7 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
             f"<td>{lead.get('intent') or ''}</td>"
             f"<td>{lead.get('target_country') or ''}</td>"
             f"<td><strong>{item['stage']}</strong></td>"
+            f"<td>{status_integrity_text}<br><small>Recommended: {recommended_text}</small></td>"
             f"<td>{item['next_action']}<br><small>Blockers: {blocker_text}</small></td>"
             f"<td>"
             f"<form method='post' action='/api/v1/sales/leads/{lead_id}/qualify' style='display:inline'><button {disabled}>Qualify</button></form> "
@@ -539,11 +717,15 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
       <h1>Sales Pipeline</h1>
       <p><a href='/admin'>← Back to Admin Dashboard</a> | <a href='/api/v1/sales/pipeline'>Raw Pipeline JSON</a></p>
       <div class='warning'><strong>Governance:</strong> Qualification and conversion are blocked when a lead has rejected truth claims or unresolved human-review items.</div>
+      <form method='post' action='/admin/sales/reconcile' style='margin: 12px 0'>
+        <button>Reconcile blocked sales statuses</button>
+        <small>Use after guardrail changes or imported legacy data.</small>
+      </form>
       <div class='cards'>{stage_cards}</div>
       <table>
         <thead>
           <tr>
-            <th>Lead</th><th>Email</th><th>Intent</th><th>Country</th><th>Stage</th><th>Next Action</th><th>Actions</th>
+            <th>Lead</th><th>Email</th><th>Intent</th><th>Country</th><th>Stage</th><th>Status Integrity</th><th>Next Action</th><th>Actions</th>
           </tr>
         </thead>
         <tbody>{''.join(rows)}</tbody>
@@ -557,7 +739,7 @@ def admin_sales_page(session: Session = Depends(get_session)) -> str:
 def debug_sales_engine() -> dict[str, Any]:
     return {
         "module": "sales_engine",
-        "version": "1.1",
+        "version": "1.2",
         "guardrails": [
             "qualification blocked by rejected truth claim",
             "qualification blocked by pending human review",
@@ -568,6 +750,10 @@ def debug_sales_engine() -> dict[str, Any]:
         "routes": [
             "GET /api/v1/sales/pipeline",
             "GET /api/v1/sales/follow-ups",
+            "GET /api/v1/sales/inconsistencies",
+            "POST /api/v1/sales/leads/{lead_id}/reconcile",
+            "POST /api/v1/sales/reconcile",
+            "POST /admin/sales/reconcile",
             "POST /api/v1/sales/leads/{lead_id}/follow-ups",
             "POST /api/v1/sales/leads/{lead_id}/qualify",
             "POST /api/v1/sales/leads/{lead_id}/convert",
