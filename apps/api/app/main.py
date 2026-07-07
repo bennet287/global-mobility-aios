@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.routers import (
+    truth_resolution,
     application_engine,
     sales_engine,
     document_operations,
@@ -69,3 +70,5 @@ app.include_router(dashboard.router, tags=["dashboard"])
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
 app.include_router(detail_views.router, tags=["lead-detail"])
 app.include_router(document_engine.router, tags=["document-engine"])
+
+app.include_router(truth_resolution.router)
