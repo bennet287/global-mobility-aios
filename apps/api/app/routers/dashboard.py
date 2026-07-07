@@ -557,3 +557,7 @@ loadDashboard();
 </body>
 </html>
 """
+
+# Admin UI Sync v2.0 compatibility alias
+# Prefer /admin/v2 for the synced operations dashboard.
+

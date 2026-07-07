@@ -89,3 +89,7 @@ app.include_router(application_draft_control_router.router)
 from app.routers import authority_decision as authority_decision_router
 app.include_router(authority_decision_router.router)
 
+# Admin UI Sync v2.0
+from app.routers import admin_ui_sync as admin_ui_sync_router
+app.include_router(admin_ui_sync_router.router)
+
