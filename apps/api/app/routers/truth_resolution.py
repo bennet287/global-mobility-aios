@@ -34,7 +34,7 @@ class CorrectedClaimRequest(BaseModel):
     claim: str
     domain: str = "visa"
     country: Optional[str] = None
-    verdict: str = "APPROVED"
+    verdict: str = "verified"
     confidence: float = 0.9
     explanation: str = "Corrected claim created after official-source review."
     create_follow_up: bool = True
@@ -49,6 +49,29 @@ def _value(value: Any) -> Any:
 
 def _safe_status(value: Any) -> str:
     return str(_value(value) or "").strip().lower()
+
+
+def _safe_truth_verdict(value: Any) -> str:
+    # Map user-facing/workflow truth words to local VerificationStatus enum names.
+    # Persist only: verified, rejected, needs_review.
+    status = _safe_status(value)
+    if status in {"verified", "verify", "approved", "approve", "accepted", "valid", "true", "resolved", "superseded", "clear"}:
+        return "verified"
+    if status in {"rejected", "reject", "false", "unsafe", "misleading", "fake", "denied"}:
+        return "rejected"
+    if status in {"needs_review", "need_review", "review", "human_review", "pending", "in_review"}:
+        return "needs_review"
+    return status or "needs_review"
+
+
+def _resolution_note(existing: Any, action: str, note: str) -> str:
+    existing_text = str(existing or "").strip()
+    marker = f"[truth_resolution:{action}] {note}".strip()
+    if marker in existing_text:
+        return existing_text
+    if existing_text:
+        return f"{existing_text}\n\n{marker}"
+    return marker
 
 def _model_fields(model: Any) -> set[str]:
     return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
@@ -232,6 +255,7 @@ def _build_corrected_claim_payload(lead: Lead, request: CorrectedClaimRequest) -
     now = datetime.utcnow()
     lead_id = _lead_id(lead)
     country = request.country or getattr(lead, "target_country", None)
+    safe_verdict = _safe_truth_verdict(request.verdict)
     candidates = {
         "lead_id": lead_id,
         "claim": request.claim,
@@ -240,14 +264,16 @@ def _build_corrected_claim_payload(lead: Lead, request: CorrectedClaimRequest) -
         "domain": request.domain,
         "country": country,
         "target_country": country,
-        "verdict": request.verdict,
-        "status": request.verdict,
+        "verdict": safe_verdict,
+        "status": safe_verdict,
         "confidence": request.confidence,
         "confidence_score": request.confidence,
-        "requires_human_review": False,
+        "requires_human_review": safe_verdict != "verified",
         "explanation": request.explanation,
         "reasoning": request.explanation,
         "notes": request.explanation,
+        "recommended_next_step": "Use this corrected, source-grounded claim instead of the unsafe original claim.",
+        "red_flags_json": "[]",
         "created_at": now,
         "updated_at": now,
     }
@@ -289,26 +315,51 @@ def resolve_truth_claim(
             )
 
     before = _to_dict(claim)
-    for field in ("verdict", "status", "resolution_status"):
-        _set_if_field(claim, field, request.resolution_status)
+    action = _safe_status(request.resolution_status) or "resolved"
+
+    safe_verdict = _safe_truth_verdict(request.resolution_status)
+    if safe_verdict not in {"verified", "rejected", "needs_review"}:
+        safe_verdict = "verified"
+
+    old_explanation = getattr(claim, "explanation", None)
+    old_next_step = getattr(claim, "recommended_next_step", None)
+    note = request.resolution_note
+
+    _set_if_field(claim, "verdict", safe_verdict)
+    _set_if_field(claim, "status", safe_verdict)
     _set_if_field(claim, "requires_human_review", False)
+    _set_if_field(claim, "red_flags_json", "[]")
     _set_if_field(claim, "resolved_at", datetime.utcnow())
     _set_if_field(claim, "updated_at", datetime.utcnow())
-    for field in ("resolution_note", "notes", "explanation"):
-        if _set_if_field(claim, field, request.resolution_note):
-            break
+    _set_if_field(claim, "resolution_status", action)
+    _set_if_field(claim, "resolution_note", note)
+    _set_if_field(claim, "notes", _resolution_note(getattr(claim, "notes", ""), action, note))
+    _set_if_field(claim, "explanation", _resolution_note(old_explanation, action, note))
+    _set_if_field(claim, "recommended_next_step", _resolution_note(old_next_step, action, note))
 
-    session.add(claim)
-    session.commit()
-    session.refresh(claim)
+    try:
+        session.add(claim)
+        session.commit()
+        session.refresh(claim)
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Could not resolve truth claim safely.",
+                "error": str(exc),
+                "safe_verdict": safe_verdict,
+                "requested_resolution_status": request.resolution_status,
+            },
+        ) from exc
 
     follow_up = None
     if request.create_follow_up and lead_id is not None:
-        follow_up = _create_follow_up(session, lead_id, f"Truth claim resolved: {request.resolution_note}")
+        follow_up = _create_follow_up(session, lead_id, f"Truth claim {action}: {request.resolution_note}")
 
     lead = _get_lead(session, lead_id)
     return _json_response({
-        "status": "resolved",
+        "status": action,
         "before": before,
         "claim": _to_dict(claim),
         "follow_up": _to_dict(follow_up) if follow_up else None,
@@ -378,14 +429,27 @@ def close_truth_reviews(
         _set_if_field(review, "status", request.status)
         _set_if_field(review, "resolution_note", request.note)
         _set_if_field(review, "notes", request.note)
+        _set_if_field(review, "reviewer_notes", request.note)
         _set_if_field(review, "updated_at", datetime.utcnow())
         _set_if_field(review, "resolved_at", datetime.utcnow())
         session.add(review)
         updated.append(review)
 
-    session.commit()
-    for review in updated:
-        session.refresh(review)
+    try:
+        session.commit()
+        for review in updated:
+            session.refresh(review)
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Could not close truth human reviews safely.",
+                "error": str(exc),
+                "requested_status": request.status,
+                "updated_count": len(updated),
+            },
+        ) from exc
 
     follow_up = None
     if request.create_follow_up:
@@ -485,7 +549,7 @@ def admin_close_reviews(lead_id: str, session: Session = Depends(get_session)):
 def debug_truth_resolution():
     return {
         "status": "ok",
-        "version": "v1.1",
+        "version": "v1.2",
         "routes": [
             "GET /api/v1/truth/resolution-queue",
             "GET /api/v1/leads/{lead_id}/truth-resolution",
