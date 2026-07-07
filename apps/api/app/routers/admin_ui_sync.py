@@ -408,6 +408,7 @@ def _page_shell(title: str, body: str) -> HTMLResponse:
           <a href="/admin/document-verification">Document Verification</a>
           <a href="/admin/truth-resolution">Truth Resolution</a>
           <a href="/admin/sales">Sales</a>
+          <a href="/admin/post-approval-onboarding">Onboarding</a>
           <a href="/debug/admin-ui-sync">Debug</a>
         </div>
         {body}
