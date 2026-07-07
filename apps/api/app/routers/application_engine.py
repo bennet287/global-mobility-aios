@@ -194,6 +194,7 @@ def _build_application_payload(lead: Lead, request: ApplicationDraftRequest, rea
 
     candidates: Dict[str, Any] = {
         "lead_id": getattr(lead, "id", None),
+        "domain": application_type,
         "application_type": application_type,
         "type": application_type,
         "kind": application_type,
@@ -202,6 +203,7 @@ def _build_application_payload(lead: Lead, request: ApplicationDraftRequest, rea
         "title": title,
         "name": title,
         "status": "draft",
+        "risk_score": 0.5,
         "stage": persisted_workflow_stage,
         "current_stage": persisted_workflow_stage,
         "notes": notes,
@@ -465,7 +467,7 @@ def admin_create_application_draft(lead_id: str, session: Session = Depends(get_
 def debug_application_engine():
     return {
         "status": "ok",
-        "version": "v1.2",
+        "version": "v1.3",
         "routes": [
             "GET /api/v1/applications/queue",
             "GET /api/v1/applications/leads/{lead_id}/readiness",
