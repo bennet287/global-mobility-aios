@@ -97,3 +97,7 @@ app.include_router(admin_ui_sync_router.router)
 from app.routers import post_approval_onboarding as post_approval_onboarding_router
 app.include_router(post_approval_onboarding_router.router)
 
+# Client Communication Drafting v2.6
+from app.routers import client_communications as client_communications_router
+app.include_router(client_communications_router.router)
+
