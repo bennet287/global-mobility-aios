@@ -81,3 +81,7 @@ app.include_router(document_verification_router.router)
 from app.routers import application_lifecycle as application_lifecycle_router
 app.include_router(application_lifecycle_router.router)
 
+# Application Draft Control v1.8
+from app.routers import application_draft_control as application_draft_control_router
+app.include_router(application_draft_control_router.router)
+

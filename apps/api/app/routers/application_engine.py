@@ -385,6 +385,24 @@ def get_application_queue(session: Session = Depends(get_session)):
 
 @router.post("/api/v1/applications/leads/{lead_id}/draft")
 def create_application_draft(lead_id: str, request: ApplicationDraftRequest, session: Session = Depends(get_session)):
+
+    # Application Draft Control v1.8 duplicate guard
+    from fastapi import HTTPException as _V18HTTPException
+    from app.routers.application_draft_control import (
+        active_applications_for_lead as _v18_active_applications_for_lead,
+        serialize_application as _v18_serialize_application,
+    )
+    _v18_existing_apps = _v18_active_applications_for_lead(session, lead_id)
+    if _v18_existing_apps:
+        raise _V18HTTPException(
+            status_code=409,
+            detail={
+                "message": "Draft creation blocked because an active application already exists for this lead.",
+                "blocker": "active_application_exists",
+                "active_applications": [_v18_serialize_application(app) for app in _v18_existing_apps],
+                "next_action": "Use the existing application or cancel duplicate drafts first.",
+            },
+        )
     lead_pk = _uuid_or_404(lead_id, "lead_id")
     lead = session.get(Lead, lead_pk)
     if not lead:
