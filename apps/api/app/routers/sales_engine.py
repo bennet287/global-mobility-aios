@@ -325,6 +325,7 @@ def _raise_if_sales_blocked(session: Session, lead_id: UUID, action: str, *, req
 
 
 PROBLEM_SALES_STATUSES = {"qualified", "converted"}
+INVALID_PERSISTED_SALES_STATUSES = {"blocked_truth_rejected"}
 
 
 def _lead_status_text(lead: Lead) -> str:
@@ -333,8 +334,10 @@ def _lead_status_text(lead: Lead) -> str:
 
 def _recommended_status_for_guardrails(guardrails: dict[str, Any]) -> Optional[str]:
     blockers = set(guardrails.get("hard_blockers", []))
+    # Persist only operational lead statuses. `blocked_truth_rejected` is a computed
+    # pipeline stage, not a safe stored Lead.status value in all DB/model configurations.
     if "truth_claim_rejected" in blockers:
-        return "blocked_truth_rejected"
+        return "human_review"
     if "truth_claim_needs_review" in blockers or "human_review_pending" in blockers:
         return "human_review"
     return None
@@ -343,7 +346,10 @@ def _recommended_status_for_guardrails(guardrails: dict[str, Any]) -> Optional[s
 def _status_integrity(lead: Lead, stage: str, guardrails: dict[str, Any]) -> dict[str, Any]:
     actual_status = _lead_status_text(lead)
     recommended_status = _recommended_status_for_guardrails(guardrails)
-    is_inconsistent = bool(recommended_status and actual_status in PROBLEM_SALES_STATUSES)
+    is_inconsistent = bool(
+        (recommended_status and actual_status in PROBLEM_SALES_STATUSES)
+        or actual_status in INVALID_PERSISTED_SALES_STATUSES
+    )
     return {
         "actual_status": actual_status,
         "effective_stage": stage,
