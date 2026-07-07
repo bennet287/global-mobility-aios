@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.routers import (
+    application_engine,
     sales_engine,
     document_operations,
     document_engine,
@@ -49,6 +50,7 @@ def health() -> dict:
         "environment": settings.app_env,
     }
 
+app.include_router(application_engine.router)
 app.include_router(crm.router, prefix="/api/v1", tags=["crm"])
 app.include_router(truth.router, prefix="/api/v1", tags=["truth-engine"])
 app.include_router(education.router, prefix="/api/v1", tags=["education"])
