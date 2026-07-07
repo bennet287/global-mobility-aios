@@ -1,0 +1,38 @@
+# Add country-by-country official sources here.
+# The Truth Engine should prefer these sources before any unofficial blog, forum, influencer post, or agency article.
+
+germany:
+  visa:
+    - name: Federal Foreign Office
+      url: https://www.auswaertiges-amt.de/
+      type: government
+    - name: Make it in Germany
+      url: https://www.make-it-in-germany.com/
+      type: official_portal
+
+austria:
+  visa:
+    - name: Migration.gv.at
+      url: https://www.migration.gv.at/
+      type: government
+    - name: OeAD Entry and Residence
+      url: https://oead.at/
+      type: official_agency
+
+canada:
+  visa:
+    - name: Immigration, Refugees and Citizenship Canada
+      url: https://www.canada.ca/en/immigration-refugees-citizenship.html
+      type: government
+
+uk:
+  visa:
+    - name: UK Visas and Immigration
+      url: https://www.gov.uk/browse/visas-immigration
+      type: government
+
+australia:
+  visa:
+    - name: Department of Home Affairs
+      url: https://immi.homeaffairs.gov.au/
+      type: government

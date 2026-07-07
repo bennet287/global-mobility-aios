@@ -1,0 +1,272 @@
+:root {
+  --bg: #f2ede3;
+  --ink: #102027;
+  --muted: #475569;
+  --card: #fffaf1;
+  --line: #d6c8ac;
+  --brand: #d6542c;
+  --brand-soft: #ffe3c7;
+  --ok: #177245;
+  --warn: #9a3412;
+  --danger: #b91c1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(1200px 500px at -10% -20%, #ffd0a8 0%, transparent 55%),
+    radial-gradient(900px 460px at 110% 15%, #c8ebe8 0%, transparent 58%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+.container {
+  width: min(1120px, 92vw);
+  margin: 0 auto;
+  padding: 2.2rem 0 3rem;
+}
+
+.hero {
+  border: 2px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(140deg, #fff4e4, #ebfffb 62%);
+  padding: 1.5rem;
+  box-shadow: 0 14px 38px rgba(16, 32, 39, 0.12);
+  animation: rise 480ms ease-out;
+}
+
+.hero h1 {
+  margin: 0;
+  letter-spacing: -0.03em;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+}
+
+.hero p {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.kpi-grid {
+  margin-top: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 22px rgba(16, 32, 39, 0.08);
+}
+
+.card h2,
+.card h3 {
+  margin: 0;
+}
+
+.kpi-value {
+  margin-top: 0.4rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.main-grid {
+  margin-top: 1rem;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: start;
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  border-bottom: 1px solid #eadcc1;
+  text-align: left;
+  padding: 0.55rem 0.4rem;
+  vertical-align: top;
+}
+
+th {
+  color: #334155;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  padding: 0.23rem 0.52rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.badge-pending {
+  background: #fff3d3;
+  color: #8a5700;
+  border-color: #f6d48a;
+}
+
+.badge-approved {
+  background: #daf8e8;
+  color: #14532d;
+  border-color: #92ddbb;
+}
+
+.badge-rejected {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border-color: #fca5a5;
+}
+
+.badge-needs-review {
+  background: #fdebd2;
+  color: #9a3412;
+  border-color: #f7c589;
+}
+
+.badge-verified {
+  background: #d9fbe8;
+  color: #146c43;
+  border-color: #8ce1b8;
+}
+
+.badge-red-flag {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid #d7c7a8;
+  border-radius: 10px;
+  padding: 0.56rem 0.64rem;
+  background: #fffdf8;
+}
+
+textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+form .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+button {
+  background: var(--brand);
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.58rem 0.88rem;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(0.96);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+button.secondary {
+  background: #f0e3c9;
+  color: #4b5563;
+}
+
+.small {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.error {
+  color: #991b1b;
+  font-size: 0.86rem;
+  margin: 0.45rem 0;
+}
+
+.success {
+  color: #146c43;
+  font-size: 0.86rem;
+  margin: 0.45rem 0;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  form .row {
+    grid-template-columns: 1fr;
+  }
+}

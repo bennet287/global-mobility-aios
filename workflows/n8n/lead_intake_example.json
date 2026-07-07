@@ -1,0 +1,74 @@
+{
+  "name": "GMAI Lead Intake Example",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "gmai-lead-intake",
+        "responseMode": "responseNode"
+      },
+      "id": "Webhook",
+      "name": "Webhook - New Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/api/v1/workflows/lead-intake",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}"
+      },
+      "id": "CallAPI",
+      "name": "Call GMAI API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}"
+      },
+      "id": "Respond",
+      "name": "Respond to Lead Source",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        520,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - New Lead": {
+      "main": [
+        [
+          {
+            "node": "Call GMAI API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call GMAI API": {
+      "main": [
+        [
+          {
+            "node": "Respond to Lead Source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# Optional AI dependencies. Install only after the core API is running.
+langgraph>=0.2
+crewai>=0.80
+ollama>=0.4
+sentence-transformers>=3.0
+unstructured>=0.16
+pypdf>=5.0
