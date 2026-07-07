@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import (
     AgentRun,
+    DocumentRecord,
     FollowUp,
     HumanReview,
     Lead,
@@ -42,6 +43,8 @@ def dashboard_summary(session: Session = Depends(get_session)) -> dict:
         "counts": {
             "leads": _count(session, Lead),
             "profiles": _count(session, Profile),
+                "documents": _count(session, DocumentRecord),
+                "documents_needing_review": session.exec(select(func.count()).select_from(DocumentRecord).where(DocumentRecord.status == "needs_review")).one(),
             "truth_claims": _count(session, TruthClaim),
             "human_reviews": _count(session, HumanReview),
             "pending_human_reviews": len(pending_reviews),

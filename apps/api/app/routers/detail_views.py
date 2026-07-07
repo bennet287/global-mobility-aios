@@ -217,6 +217,7 @@ def lead_detail_page(lead_id: UUID) -> str:
   <div class="muted">Lead ID: <code>{lead_id}</code></div>
 
   <button onclick="loadLead()">Refresh Lead Detail</button>
+  <a href="/admin/leads/{lead_id}/documents"><button>Documents</button></a>
   <div id="message"></div>
 
   <div id="leadSummary"></div>
