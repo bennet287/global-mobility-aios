@@ -23,7 +23,15 @@ from app.models.domain import (
 router = APIRouter(tags=["admin-ui-sync-v2"])
 
 
-ACTIVE_APPLICATION_STATUSES = {"draft", "approved", "submitted", "decision_pending"}
+ACTIVE_APPLICATION_STATUSES = {
+    "draft",
+    "approved",
+    "submitted",
+    "decision_pending",
+    "approved_by_authority",
+    "rejected_by_authority",
+    "withdrawn",
+}
 POST_SUBMISSION_STATUSES = {
     "submitted",
     "decision_pending",
@@ -326,7 +334,7 @@ def _render_create_draft_action(item: Dict[str, Any]) -> str:
           <button type="submit">Create Controlled Draft</button>
         </form>
         """
-    return '<button disabled title="Active application exists">Create Draft Disabled</button>'
+    return '<button disabled title="Draft blocked because active/final application already exists">Draft Blocked</button>'
 
 
 def _render_row(item: Dict[str, Any]) -> str:

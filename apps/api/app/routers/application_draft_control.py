@@ -16,7 +16,15 @@ from app.routers.application_engine import _application_record_to_dict, _calcula
 
 router = APIRouter(tags=["application-draft-control"])
 
-ACTIVE_APPLICATION_STATUSES = {"draft", "approved", "submitted"}
+ACTIVE_APPLICATION_STATUSES = {
+    "draft",
+    "approved",
+    "submitted",
+    "decision_pending",
+    "approved_by_authority",
+    "rejected_by_authority",
+    "withdrawn",
+}
 DRAFT_STATUSES = {"draft"}
 INACTIVE_APPLICATION_STATUSES = {
     "cancelled",
