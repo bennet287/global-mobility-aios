@@ -546,6 +546,13 @@ async function loadDashboard() {
 
 loadDashboard();
 </script>
+
+<section style="background:white;border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0;">
+  <h2>Document Operations</h2>
+  <p><a href="/admin/documents">Open Document Operations</a></p>
+  <iframe src="/admin/documents/missing-card" style="width:100%;height:420px;border:0;border-radius:12px;background:white;"></iframe>
+</section>
+
 </body>
 </html>
 """

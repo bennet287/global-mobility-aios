@@ -574,6 +574,13 @@ async function loadLead() {{
 
 loadLead();
 </script>
+
+<section style="background:white;border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0;">
+  <h2>Document Summary</h2>
+  <p><a href="/admin/leads/{lead_id}/documents">Open Document Workspace</a></p>
+  <iframe src="/admin/leads/{lead_id}/documents/summary-card" style="width:100%;height:520px;border:0;border-radius:12px;background:white;"></iframe>
+</section>
+
 </body>
 </html>
 """
