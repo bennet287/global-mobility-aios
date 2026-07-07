@@ -99,6 +99,7 @@ def _lifecycle_stage(app: ApplicationRecord) -> str:
 
 
 def _next_action(stage: str, readiness: Optional[Dict[str, Any]]) -> str:
+    # Authority Decision Tracking v1.9 lifecycle patch
     if stage == "draft":
         if readiness and readiness.get("can_approve"):
             return "Human reviewer can approve this application."
@@ -107,8 +108,17 @@ def _next_action(stage: str, readiness: Optional[Dict[str, Any]]) -> str:
         return "Application has human approval and can be submitted."
     if stage == "submitted":
         return "Application has been submitted. Track authority decision outside readiness checks."
+    if stage == "decision_pending":
+        return "Waiting for authority decision. Record final outcome when received."
+    if stage == "approved_by_authority":
+        return "Authority approved the application. Start post-approval onboarding."
+    if stage == "rejected_by_authority":
+        return "Authority rejected the application. Record reason and prepare appeal/reapplication workflow if appropriate."
+    if stage == "withdrawn":
+        return "Application was withdrawn. Stop active submission actions and preserve audit history."
+    if stage == "cancelled":
+        return "Application was cancelled before authority decision tracking."
     return readiness.get("next_action", "Review lifecycle state.") if readiness else "Review lifecycle state."
-
 
 def _payload(session: Session, app: ApplicationRecord) -> Dict[str, Any]:
     lead = _lead_for_application(session, app)

@@ -85,3 +85,7 @@ app.include_router(application_lifecycle_router.router)
 from app.routers import application_draft_control as application_draft_control_router
 app.include_router(application_draft_control_router.router)
 
+# Authority Decision Tracking v1.9
+from app.routers import authority_decision as authority_decision_router
+app.include_router(authority_decision_router.router)
+
