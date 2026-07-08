@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gmai-postgres-prod
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gmai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-this-postgres-password}
+      POSTGRES_DB: ${POSTGRES_DB:-gmai}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-gmai} -d $${POSTGRES_DB:-gmai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api-migrate:
+    build:
+      context: ./apps/api
+    container_name: gmai-api-migrate-prod
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_AUTO_CREATE_TABLES: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: alembic -c alembic.ini upgrade head
+    restart: "no"
+
+  api:
+    build:
+      context: ./apps/api
+    container_name: gmai-api-prod
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_AUTO_CREATE_TABLES: "false"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_prod_data:
