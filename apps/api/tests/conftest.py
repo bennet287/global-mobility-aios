@@ -38,7 +38,7 @@ def db_session(monkeypatch: pytest.MonkeyPatch) -> Generator[Session, None, None
 
 
 @pytest.fixture()
-def client(db_session: Session) -> Generator[TestClient, None, None]:
+def raw_client(db_session: Session) -> Generator[TestClient, None, None]:
     def override_get_session() -> Generator[Session, None, None]:
         yield db_session
 
@@ -46,6 +46,15 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def client(raw_client: TestClient) -> Generator[TestClient, None, None]:
+    raw_client.headers.update({
+        "X-GMAI-Role": "admin",
+        "X-GMAI-User": "pytest-admin",
+    })
+    yield raw_client
 
 
 def enum_value(value: Any) -> str:

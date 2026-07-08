@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.auth import auth_middleware
 from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.routers import (
+    auth,
     truth_resolution,
     application_engine,
     sales_engine,
@@ -39,6 +41,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.middleware("http")(auth_middleware)
+
 @app.on_event("startup")
 def on_startup() -> None:
     create_db_and_tables()
@@ -51,6 +55,7 @@ def health() -> dict:
         "environment": settings.app_env,
     }
 
+app.include_router(auth.router)
 app.include_router(application_engine.router)
 app.include_router(crm.router, prefix="/api/v1", tags=["crm"])
 app.include_router(truth.router, prefix="/api/v1", tags=["truth-engine"])

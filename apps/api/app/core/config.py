@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
     jwt_secret: str = "change-this-in-production"
+    auth_enabled: bool = True
+    auth_admin_username: str = "admin"
+    auth_admin_password: str = "admin"
+    auth_session_cookie: str = "gmai_session"
+    auth_allow_header_role: bool = True
     truth_engine_strict_mode: bool = True
 
 
