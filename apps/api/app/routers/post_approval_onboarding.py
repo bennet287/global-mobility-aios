@@ -13,6 +13,7 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, FollowUp, Lead
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["post-approval-onboarding"])
@@ -359,6 +360,7 @@ def _complete_follow_up(
             detail="This follow-up is not a post-approval onboarding task.",
         )
 
+    before = _to_dict(follow_up)
     _set_if_field(follow_up, "status", "completed")
     _set_if_field(follow_up, "updated_at", datetime.utcnow())
 
@@ -375,6 +377,18 @@ def _complete_follow_up(
     session.refresh(follow_up)
     if lead:
         session.refresh(lead)
+
+    record_audit(
+        session,
+        action="onboarding_task_completed",
+        entity_type="follow_up",
+        entity_id=getattr(follow_up, "id", None),
+        before_state=before,
+        after_state=_to_dict(follow_up),
+        reason=request.note,
+        source="post_approval_onboarding",
+        commit=True,
+    )
 
     return {
         "status": "completed",
@@ -458,6 +472,7 @@ def generate_post_approval_onboarding(
         )
 
     existing = _onboarding_followups_for_lead(session, lead)
+    before_summary = _onboarding_summary(session, lead)
 
     if request.reset_existing:
         for follow_up in existing:
@@ -492,6 +507,17 @@ def generate_post_approval_onboarding(
     session.add(lead)
     session.commit()
     session.refresh(lead)
+    record_audit(
+        session,
+        action="onboarding_generated",
+        entity_type="lead",
+        entity_id=getattr(lead, "id", None),
+        before_state=before_summary,
+        after_state=_onboarding_summary(session, lead),
+        reason=request.note,
+        source="post_approval_onboarding",
+        commit=True,
+    )
 
     return _json_response({
         "status": "generated",

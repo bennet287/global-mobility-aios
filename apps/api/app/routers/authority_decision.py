@@ -13,6 +13,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, FollowUp, Lead, LeadStatus
 from app.routers.application_engine import _application_record_to_dict, _calculate_readiness
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["authority-decision-tracking"])
@@ -291,10 +292,23 @@ def _set_authority_status(
             f"Authority decision update: application {getattr(app, 'id', None)} is now {target_status}.",
         )
 
+    after = _authority_payload(session, app)
+    record_audit(
+        session,
+        action="authority_decision_recorded",
+        entity_type="application",
+        entity_id=getattr(app, "id", None),
+        before_state=before,
+        after_state=after,
+        reason=request.note or target_status,
+        source="authority_decision",
+        commit=True,
+    )
+
     return {
         "status": target_status,
         "before": before,
-        "after": _authority_payload(session, app),
+        "after": after,
         "follow_up": _to_dict(follow_up) if follow_up else None,
     }
 

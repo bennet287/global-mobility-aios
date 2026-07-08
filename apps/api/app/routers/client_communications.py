@@ -14,6 +14,7 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, FollowUp, Lead
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["client-communication-review"])
@@ -483,6 +484,17 @@ def _create_draft(
     session.add(draft)
     session.commit()
     session.refresh(draft)
+    record_audit(
+        session,
+        action="client_draft_generated",
+        entity_type="follow_up",
+        entity_id=getattr(draft, "id", None),
+        before_state=None,
+        after_state=_draft_payload(session, draft),
+        reason=request.note,
+        source="client_communications",
+        commit=True,
+    )
     return draft
 
 
@@ -715,10 +727,22 @@ def mark_client_communication_draft_reviewed(
     session: Session = Depends(get_session),
 ):
     draft = _get_follow_up(session, draft_id)
+    before = _draft_payload(session, draft)
     _mark_draft_reviewed(draft, request)
     session.add(draft)
     session.commit()
     session.refresh(draft)
+    record_audit(
+        session,
+        action="client_draft_reviewed",
+        entity_type="follow_up",
+        entity_id=getattr(draft, "id", None),
+        before_state=before,
+        after_state=_draft_payload(session, draft),
+        reason=request.note,
+        source="client_communications",
+        commit=True,
+    )
 
     return _json_response({
         "status": "reviewed",
@@ -736,8 +760,10 @@ def mark_all_client_communication_drafts_reviewed(
     drafts = _draft_followups_for_lead(session, lead)
     changed = []
     skipped = []
+    before = []
     for draft in drafts:
         if _communication_status(getattr(draft, "status", None)) == "draft":
+            before.append(_draft_payload(session, draft))
             _mark_draft_reviewed(draft, UpdateDraftRequest(note=request.note))
             session.add(draft)
             changed.append(draft)
@@ -747,6 +773,18 @@ def mark_all_client_communication_drafts_reviewed(
     session.commit()
     for draft in changed:
         session.refresh(draft)
+
+    record_audit(
+        session,
+        action="client_drafts_reviewed",
+        entity_type="lead",
+        entity_id=getattr(lead, "id", None),
+        before_state={"drafts": before},
+        after_state={"drafts": [_draft_payload(session, draft) for draft in changed]},
+        reason=request.note,
+        source="client_communications",
+        commit=True,
+    )
 
     return _json_response({
         "status": "reviewed",

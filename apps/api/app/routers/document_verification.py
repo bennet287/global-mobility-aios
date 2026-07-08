@@ -13,6 +13,7 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, FollowUp, Lead
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["document-verification-actions"])
@@ -287,6 +288,7 @@ def receive_document(
 ):
     doc = _get_document(session, document_id)
     lead_id = getattr(doc, "lead_id", None)
+    before = _to_dict(doc)
     _apply_document_status(
         doc,
         "received",
@@ -302,6 +304,17 @@ def receive_document(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, lead_id, f"Document received: {getattr(doc, 'document_type', 'document')}")
+    record_audit(
+        session,
+        action="document_received",
+        entity_type="document",
+        entity_id=_doc_id(doc),
+        before_state=before,
+        after_state=_to_dict(doc),
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
     return _json_response({"status": "received", "document": _to_dict(doc), "follow_up": _to_dict(follow_up) if follow_up else None})
 
 
@@ -313,6 +326,7 @@ def verify_document(
 ):
     doc = _get_document(session, document_id)
     lead_id = getattr(doc, "lead_id", None)
+    before = _to_dict(doc)
     _apply_document_status(
         doc,
         "verified",
@@ -328,6 +342,17 @@ def verify_document(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, lead_id, f"Document verified: {getattr(doc, 'document_type', 'document')}")
+    record_audit(
+        session,
+        action="document_verified",
+        entity_type="document",
+        entity_id=_doc_id(doc),
+        before_state=before,
+        after_state=_to_dict(doc),
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
     return _json_response({"status": "verified", "document": _to_dict(doc), "follow_up": _to_dict(follow_up) if follow_up else None})
 
 
@@ -339,6 +364,7 @@ def reject_document(
 ):
     doc = _get_document(session, document_id)
     lead_id = getattr(doc, "lead_id", None)
+    before = _to_dict(doc)
     _apply_document_status(
         doc,
         "rejected",
@@ -354,6 +380,17 @@ def reject_document(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, lead_id, f"Document rejected: {getattr(doc, 'document_type', 'document')}. {request.note or ''}".strip())
+    record_audit(
+        session,
+        action="document_rejected",
+        entity_type="document",
+        entity_id=_doc_id(doc),
+        before_state=before,
+        after_state=_to_dict(doc),
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
     return _json_response({"status": "rejected", "document": _to_dict(doc), "follow_up": _to_dict(follow_up) if follow_up else None})
 
 
@@ -368,6 +405,7 @@ def bulk_receive_documents(
     if not docs:
         raise HTTPException(status_code=404, detail="No matching documents found for this lead")
 
+    before = [_to_dict(doc) for doc in docs]
     updated = []
     for doc in docs:
         _apply_document_status(doc, "received", lead_id=_lead_id(lead), action="bulk_receive", note=request.note)
@@ -381,6 +419,18 @@ def bulk_receive_documents(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Bulk document receive completed for {len(updated)} document(s).")
+
+    record_audit(
+        session,
+        action="documents_bulk_received",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"documents": before},
+        after_state={"documents": [_to_dict(doc) for doc in updated]},
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
 
     return _json_response({
         "status": "received",
@@ -402,6 +452,7 @@ def bulk_verify_documents(
     if not docs:
         raise HTTPException(status_code=404, detail="No matching documents found for this lead")
 
+    before = [_to_dict(doc) for doc in docs]
     updated = []
     for doc in docs:
         _apply_document_status(doc, "verified", lead_id=_lead_id(lead), action="bulk_verify", note=request.note)
@@ -415,6 +466,18 @@ def bulk_verify_documents(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Bulk document verification completed for {len(updated)} document(s).")
+
+    record_audit(
+        session,
+        action="documents_bulk_verified",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"documents": before},
+        after_state={"documents": [_to_dict(doc) for doc in updated]},
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
 
     return _json_response({
         "status": "verified",

@@ -18,6 +18,7 @@ from app.models.domain import (
     Lead,
     TruthClaim,
 )
+from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["application-engine"])
 
@@ -444,6 +445,18 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
             f"Application draft created, but action is needed before submission: {readiness['next_action']}",
         )
 
+    record_audit(
+        session,
+        action="application_drafted",
+        entity_type="application",
+        entity_id=_application_id(app),
+        before_state=None,
+        after_state=_application_record_to_dict(app),
+        reason=request.notes,
+        source="application_engine",
+        commit=True,
+    )
+
     return _json_response({
         "status": "created",
         "application": _application_record_to_dict(app),
@@ -455,6 +468,7 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
 @router.post("/api/v1/applications/{application_id}/approve")
 def approve_application(application_id: str, request: ApplicationActionRequest = ApplicationActionRequest(), session: Session = Depends(get_session)):
     app = _get_application(session, application_id)
+    before = _application_record_to_dict(app)
     lead_pk = _uuid_or_404(getattr(app, "lead_id", None), "lead_id")
     lead = session.get(Lead, lead_pk)
     if not lead:
@@ -477,12 +491,24 @@ def approve_application(application_id: str, request: ApplicationActionRequest =
     session.add(app)
     session.commit()
     session.refresh(app)
+    record_audit(
+        session,
+        action="application_approved",
+        entity_type="application",
+        entity_id=_application_id(app),
+        before_state=before,
+        after_state=_application_record_to_dict(app),
+        reason=request.note,
+        source="application_engine",
+        commit=True,
+    )
     return _json_response({"status": "approved", "application": _application_record_to_dict(app), "readiness": readiness})
 
 
 @router.post("/api/v1/applications/{application_id}/submit")
 def submit_application(application_id: str, request: ApplicationActionRequest = ApplicationActionRequest(), session: Session = Depends(get_session)):
     app = _get_application(session, application_id)
+    before = _application_record_to_dict(app)
     lead_pk = _uuid_or_404(getattr(app, "lead_id", None), "lead_id")
     lead = session.get(Lead, lead_pk)
     if not lead:
@@ -515,6 +541,17 @@ def submit_application(application_id: str, request: ApplicationActionRequest = 
     session.add(app)
     session.commit()
     session.refresh(app)
+    record_audit(
+        session,
+        action="application_submitted",
+        entity_type="application",
+        entity_id=_application_id(app),
+        before_state=before,
+        after_state=_application_record_to_dict(app),
+        reason=request.note,
+        source="application_engine",
+        commit=True,
+    )
     return _json_response({"status": "submitted", "application": _application_record_to_dict(app), "readiness": readiness})
 
 

@@ -18,6 +18,7 @@ from app.models.domain import (
     SourceReference,
     TruthClaim,
 )
+from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["truth-resolution"])
 
@@ -358,6 +359,17 @@ def resolve_truth_claim(
         follow_up = _create_follow_up(session, lead_id, f"Truth claim {action}: {request.resolution_note}")
 
     lead = _get_lead(session, lead_id)
+    record_audit(
+        session,
+        action="truth_claim_rejected" if safe_verdict == "rejected" else "truth_claim_resolved",
+        entity_type="truth_claim",
+        entity_id=_claim_id(claim),
+        before_state=before,
+        after_state=_to_dict(claim),
+        reason=request.resolution_note,
+        source="truth_resolution",
+        commit=True,
+    )
     return _json_response({
         "status": action,
         "before": before,
@@ -407,6 +419,18 @@ def create_corrected_claim(
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Corrected truth claim created for {getattr(lead, 'target_country', 'target country')}.")
 
+    record_audit(
+        session,
+        action="truth_claim_corrected",
+        entity_type="truth_claim",
+        entity_id=_claim_id(claim),
+        before_state=None,
+        after_state=_to_dict(claim),
+        reason=request.explanation,
+        source="truth_resolution",
+        commit=True,
+    )
+
     return _json_response({
         "status": "created",
         "claim": _to_dict(claim),
@@ -454,6 +478,18 @@ def close_truth_reviews(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Human reviews closed for truth resolution: {request.note}")
+
+    record_audit(
+        session,
+        action="human_reviews_closed",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"pending_review_count": len(pending_reviews)},
+        after_state={"closed_review_count": len(updated), "reviews": [_to_dict(r) for r in updated]},
+        reason=request.note,
+        source="truth_resolution",
+        commit=True,
+    )
 
     return _json_response({
         "status": "closed",

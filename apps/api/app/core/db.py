@@ -10,6 +10,7 @@ engine = create_engine(settings.database_url, echo=False, connect_args=connect_a
 def register_models() -> None:
     from app.models.domain import (  # noqa: F401
         AgentRun,
+        AuditLog,
         ApplicationRecord,
         DocumentRecord,
         FollowUp,

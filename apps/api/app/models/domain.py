@@ -221,3 +221,18 @@ class ApplicationRecord(SQLModel, table=True):
     status: str = "draft"
     risk_score: float = 0.5
     created_at: datetime = Field(default_factory=now_utc)
+
+
+class AuditLog(SQLModel, table=True):
+    __tablename__ = "audit_logs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    actor: str = Field(default="system", index=True)
+    action: str = Field(index=True)
+    entity_type: str = Field(index=True)
+    entity_id: Optional[str] = Field(default=None, index=True)
+    before_state_json: Optional[str] = None
+    after_state_json: Optional[str] = None
+    reason: Optional[str] = None
+    source: str = Field(default="api", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)

@@ -101,3 +101,7 @@ app.include_router(post_approval_onboarding_router.router)
 from app.routers import client_communications as client_communications_router
 app.include_router(client_communications_router.router)
 
+# Audit Log v2.8
+from app.routers import audit_logs as audit_logs_router
+app.include_router(audit_logs_router.router)
+
