@@ -18,3 +18,5 @@ postgres_data/
 qdrant_data/
 redis_data/
 langfuse_data/
+
+.env.production
