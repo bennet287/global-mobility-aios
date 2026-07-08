@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +9,8 @@ class Settings(BaseSettings):
     app_env: str = "local"
     log_level: str = "INFO"
     database_url: str = "sqlite:///./gmai.db"
+    database_auto_create_tables: Optional[bool] = None
+    database_echo: bool = False
     redis_url: str = "redis://localhost:6379/0"
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "global_mobility_memory"
