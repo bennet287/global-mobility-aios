@@ -9,12 +9,14 @@ from app.core.config import settings
 from app.core.db import get_session
 from app.models.domain import SourceReference, TruthClaim, VerificationAudit
 from app.schemas import SourceReferenceRead, TruthClaimRead, TruthRequest, TruthResponse
+from app.services.official_sources import record_source_check_run, seed_official_sources
 from app.services.truth_engine import TruthEngine
 
 router = APIRouter()
 
 @router.post("/truth/verify", response_model=TruthResponse)
 def verify_claim(payload: TruthRequest, session: Session = Depends(get_session)) -> TruthResponse:
+    seed_official_sources(session, commit=False)
     engine = TruthEngine(strict_mode=settings.truth_engine_strict_mode)
     result = engine.verify(payload)
 
@@ -54,6 +56,14 @@ def verify_claim(payload: TruthRequest, session: Session = Depends(get_session))
                 country=payload.country,
             )
         )
+
+    record_source_check_run(
+        session,
+        truth_claim=truth_claim,
+        request=payload,
+        result=result,
+        commit=False,
+    )
 
     session.commit()
     return result

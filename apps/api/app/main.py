@@ -13,6 +13,7 @@ from app.routers import (
     document_engine,
     detail_views,
     operations,
+    official_sources,
     dashboard,
     agent_runs,
     agents,
@@ -73,6 +74,7 @@ app.include_router(workflows.router, prefix="/api/v1", tags=["workflows"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["dashboard"])
 app.include_router(dashboard.router, tags=["dashboard"])
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
+app.include_router(official_sources.router)
 app.include_router(detail_views.router, tags=["lead-detail"])
 app.include_router(document_engine.router, tags=["document-engine"])
 
