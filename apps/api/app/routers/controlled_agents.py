@@ -32,6 +32,7 @@ PENDING_AGENT_OUTPUT_STATUS = "completed"
 APPROVED_AGENT_OUTPUT_STATUS = "approved"
 REJECTED_AGENT_OUTPUT_STATUS = "rejected"
 CONVERTED_AGENT_OUTPUT_STATUS = "converted"
+CLIENT_COMMUNICATION_DRAFT_PREFIX = "[client_communication_draft:v2.6]"
 REVIEW_STATUSES = {
     "pending": PENDING_AGENT_OUTPUT_STATUS,
     "completed": PENDING_AGENT_OUTPUT_STATUS,
@@ -307,10 +308,14 @@ def _convert_client_draft(session: Session, run: AgentRun, *, actor: str, note: 
     output = _json_loads(run.output_json)
     subject = output.get("draft_subject") or "Client update"
     body = output.get("draft_body") or output.get("summary") or "Approved agent output."
-    message = f"[agent_output_conversion:v4.2]\nSubject: {subject}\n\n{body}"
+    message = (
+        f"{CLIENT_COMMUNICATION_DRAFT_PREFIX} template=agent_client_update "
+        f"title=Agent drafted client update subject={subject} "
+        f"body={body} note={note or 'Converted from approved client drafting agent output.'}"
+    )
     follow_up = FollowUp(
         lead_id=run.lead_id,
-        channel="email",
+        channel="email_draft",
         status="pending",
         message=message,
     )

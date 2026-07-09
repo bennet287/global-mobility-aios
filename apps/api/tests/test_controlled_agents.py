@@ -230,8 +230,18 @@ def test_approved_client_drafting_output_converts_to_pending_followup(
     follow_up = db_session.exec(select(FollowUp)).one()
     assert follow_up.lead_id == lead.id
     assert str(follow_up.status) in {"pending", "FollowUpStatus.pending"}
-    assert "Subject: Safe update" in follow_up.message
+    assert "[client_communication_draft:v2.6]" in follow_up.message
+    assert "subject=Safe update" in follow_up.message
+    assert follow_up.channel == "email_draft"
     assert db_session.get(AgentRun, UUID(run_id)).status == "converted"
+
+    drafts = client.get("/api/v1/client-communications/drafts")
+    assert drafts.status_code == 200
+    draft_payload = drafts.json()
+    assert draft_payload["total_drafts"] == 1
+    assert draft_payload["drafts"][0]["communication"]["status"] == "draft"
+    assert draft_payload["drafts"][0]["communication"]["template_key"] == "agent_client_update"
+    assert draft_payload["drafts"][0]["communication"]["subject"] == "Safe update"
 
     actions = {audit.action for audit in db_session.exec(select(AuditLog)).all()}
     assert "agent_output_converted_to_client_draft" in actions
