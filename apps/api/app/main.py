@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -30,10 +32,18 @@ from app.routers import (
     workflows,
 )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+
 app = FastAPI(
     title="Global Mobility AIOS API",
     version="0.1.0",
     description="Local-first AI operating system for study abroad, jobs, visa guidance, CRM and workflow automation.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -45,10 +55,6 @@ app.add_middleware(
 )
 
 app.middleware("http")(auth_middleware)
-
-@app.on_event("startup")
-def on_startup() -> None:
-    create_db_and_tables()
 
 @app.get("/health", tags=["system"])
 def health() -> dict:
