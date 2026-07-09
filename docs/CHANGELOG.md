@@ -1,5 +1,13 @@
 # Changelog
 
+## v6.1 - MVP Release Bundle Export
+
+- Added `scripts/export_mvp_release_bundle.py`.
+- Added ignored `release_exports/` output storage.
+- Added bundle tests for Markdown content, JSON structure, and ignored export paths.
+- Added `docs/MVP_RELEASE_BUNDLE_EXPORT_V6_1.md`.
+- Included the bundle exporter in local compile coverage.
+
 ## v6.0 - MVP Release Hardening
 
 - Added `scripts/check_mvp_release.py`.

@@ -22,3 +22,6 @@ demo_exports/
 demo-snapshot-*.md
 demo-snapshot-*.json
 .env.production
+release_exports/
+mvp-release-bundle-*.md
+mvp-release-bundle-*.json
