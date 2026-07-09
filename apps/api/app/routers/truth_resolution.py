@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import uuid
 
@@ -24,6 +24,10 @@ router = APIRouter(tags=["truth-resolution"])
 
 REJECTED_TRUTH_STATUSES = {"rejected", "reject", "false", "unsafe", "misleading", "fake"}
 PENDING_REVIEW_STATUSES = {"pending", "open", "needs_review", "human_review", "in_review"}
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 class TruthResolveRequest(BaseModel):
     resolution_note: str = Field(default="Resolved after official-source review.")
@@ -190,7 +194,7 @@ def _claims_for_lead(session: Session, lead_id: Any) -> List[TruthClaim]:
 
 def _create_follow_up(session: Session, lead_id: Any, message: str) -> Optional[FollowUp]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": lead_id,
         "channel": "email",
@@ -256,7 +260,7 @@ def _truth_resolution_summary(session: Session, lead: Lead) -> Dict[str, Any]:
 
 def _build_corrected_claim_payload(lead: Lead, request: CorrectedClaimRequest) -> Dict[str, Any]:
     fields = _model_fields(TruthClaim)
-    now = datetime.utcnow()
+    now = _utcnow()
     lead_id = _lead_id(lead)
     country = request.country or getattr(lead, "target_country", None)
     safe_verdict = _safe_truth_verdict(request.verdict)
@@ -333,8 +337,8 @@ def resolve_truth_claim(
     _set_if_field(claim, "status", safe_verdict)
     _set_if_field(claim, "requires_human_review", False)
     _set_if_field(claim, "red_flags_json", "[]")
-    _set_if_field(claim, "resolved_at", datetime.utcnow())
-    _set_if_field(claim, "updated_at", datetime.utcnow())
+    _set_if_field(claim, "resolved_at", _utcnow())
+    _set_if_field(claim, "updated_at", _utcnow())
     _set_if_field(claim, "resolution_status", action)
     _set_if_field(claim, "resolution_note", note)
     _set_if_field(claim, "notes", _resolution_note(getattr(claim, "notes", ""), action, note))
@@ -457,8 +461,8 @@ def close_truth_reviews(
         _set_if_field(review, "resolution_note", request.note)
         _set_if_field(review, "notes", request.note)
         _set_if_field(review, "reviewer_notes", request.note)
-        _set_if_field(review, "updated_at", datetime.utcnow())
-        _set_if_field(review, "resolved_at", datetime.utcnow())
+        _set_if_field(review, "updated_at", _utcnow())
+        _set_if_field(review, "resolved_at", _utcnow())
         session.add(review)
         updated.append(review)
 

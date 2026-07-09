@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Sequence
 
@@ -44,6 +44,10 @@ DEMO_SOURCE = "demo_v3_0"
 ONBOARDING_PREFIX = "[post_approval_onboarding:v2.4]"
 CLIENT_DRAFT_PREFIX = "[client_communication_draft:v2.6]"
 AGENT_OUTPUT_PREFIX = "[agent_output_demo:v4.4]"
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _j(value: Any) -> str:
@@ -149,7 +153,7 @@ def _add_workflow(session: Session, lead: Lead, *, route: str, status: WorkflowS
         route=route,
         input_json=_j({"source": DEMO_SOURCE}),
         output_json=_j({"demo_stage": route}),
-        completed_at=datetime.utcnow() if status == WorkflowStatus.completed else None,
+        completed_at=_utcnow() if status == WorkflowStatus.completed else None,
     )
     session.add(workflow)
     return workflow
@@ -227,7 +231,7 @@ def _add_follow_up(
         workflow_run_id=getattr(workflow, "id", None),
         channel=channel,
         status=status,
-        due_at=datetime.utcnow() + timedelta(days=due_offset_days),
+        due_at=_utcnow() + timedelta(days=due_offset_days),
         message=message,
     )
     session.add(follow_up)

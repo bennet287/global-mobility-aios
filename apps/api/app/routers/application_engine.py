@@ -1,6 +1,6 @@
 from __future__ import annotations
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,6 +21,10 @@ from app.models.domain import (
 from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["application-engine"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class ApplicationDraftRequest(BaseModel):
@@ -274,7 +278,7 @@ def _calculate_readiness(session: Session, lead: Lead) -> Dict[str, Any]:
 
 def _build_application_payload(lead: Lead, request: ApplicationDraftRequest, readiness: Dict[str, Any]) -> Dict[str, Any]:
     fields = _model_fields(ApplicationRecord)
-    now = datetime.utcnow()
+    now = _utcnow()
     target_country = request.target_country or getattr(lead, "target_country", None)
     application_type = request.application_type or getattr(lead, "intent", "visa")
     readiness_stage = readiness["stage"]
@@ -343,7 +347,7 @@ def _create_application_record(session: Session, lead: Lead, request: Applicatio
 
 def _create_follow_up(session: Session, lead: Lead, message: str) -> Optional[FollowUp]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": getattr(lead, "id", None),
         "channel": "email",
@@ -490,7 +494,7 @@ def approve_application(application_id: str, request: ApplicationActionRequest =
     _set_if_field(app, "current_stage", "approved")
     if request.note and hasattr(app, "notes"):
         app.notes = request.note
-    _set_if_field(app, "updated_at", datetime.utcnow())
+    _set_if_field(app, "updated_at", _utcnow())
     session.add(app)
     session.commit()
     session.refresh(app)
@@ -540,7 +544,7 @@ def submit_application(application_id: str, request: ApplicationActionRequest = 
     _set_if_field(app, "current_stage", "submitted")
     if request.note and hasattr(app, "notes"):
         app.notes = request.note
-    _set_if_field(app, "updated_at", datetime.utcnow())
+    _set_if_field(app, "updated_at", _utcnow())
     session.add(app)
     session.commit()
     session.refresh(app)

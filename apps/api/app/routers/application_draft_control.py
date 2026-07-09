@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,6 +16,10 @@ from app.routers.application_engine import _application_record_to_dict, _calcula
 from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["application-draft-control"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 ACTIVE_APPLICATION_STATUSES = {
     "draft",
@@ -187,7 +191,7 @@ def _duplicate_groups(session: Session) -> List[Dict[str, Any]]:
 
 def _build_application_payload(lead: Lead, request: ControlledDraftRequest) -> Dict[str, Any]:
     fields = _model_fields(ApplicationRecord)
-    now = datetime.utcnow()
+    now = _utcnow()
     domain = request.domain or _safe_status(getattr(lead, "intent", None)) or "general"
     target_country = request.target_country or getattr(lead, "target_country", None)
     payload = {

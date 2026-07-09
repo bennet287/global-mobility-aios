@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -17,6 +17,10 @@ from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["authority-decision-tracking"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 POST_SUBMISSION_STATUSES = {
     "submitted",
@@ -143,7 +147,7 @@ def _create_follow_up(session: Session, lead: Optional[Lead], message: str) -> O
     if not lead:
         return None
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": getattr(lead, "id", None),
         "channel": "email",
@@ -175,7 +179,7 @@ def _append_lead_note(lead: Optional[Lead], message: str) -> None:
         return
     updated = f"{existing}\n\n{message}" if existing else message
     _set_if_field(lead, "notes", updated)
-    _set_if_field(lead, "updated_at", datetime.utcnow())
+    _set_if_field(lead, "updated_at", _utcnow())
 
 
 def _update_lead_business_status(lead: Optional[Lead], target_status: str) -> None:
@@ -185,7 +189,7 @@ def _update_lead_business_status(lead: Optional[Lead], target_status: str) -> No
         _set_if_field(lead, "status", LeadStatus.converted)
     elif target_status in {"rejected_by_authority", "withdrawn"}:
         _set_if_field(lead, "status", LeadStatus.closed)
-    _set_if_field(lead, "updated_at", datetime.utcnow())
+    _set_if_field(lead, "updated_at", _utcnow())
 
 
 def _transition_allowed(current_status: str, target_status: str) -> bool:
@@ -257,7 +261,7 @@ def _set_authority_status(
         "[authority_decision:v1.9]",
         f"application={_json_safe(getattr(app, 'id', None))}",
         f"status={target_status}",
-        f"at={datetime.utcnow().isoformat()}",
+        f"at={_utcnow().isoformat()}",
     ]
     if request.reference_number:
         note_parts.append(f"reference={request.reference_number}")

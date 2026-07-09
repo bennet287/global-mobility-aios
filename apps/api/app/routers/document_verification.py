@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -17,6 +17,10 @@ from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["document-verification-actions"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 DOCUMENT_OK_STATUSES = {"received", "verified"}
 DOCUMENT_PROBLEM_STATUSES = {"missing", "needs_review", "rejected", "expired"}
@@ -162,13 +166,13 @@ def _write_metadata(doc: DocumentRecord, action: str, status: str, note: Optiona
         "action": action,
         "status": status,
         "note": note,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": _utcnow().isoformat(),
         "actor": "document_verification_actions_v1_2",
     })
     meta["verification_actions"] = history
     meta["last_verification_action"] = action
     meta["last_verification_status"] = status
-    meta["last_verification_at"] = datetime.utcnow().isoformat()
+    meta["last_verification_at"] = _utcnow().isoformat()
     setattr(doc, "extracted_metadata_json", json.dumps(meta))
 
 
@@ -212,14 +216,14 @@ def _apply_document_status(
     elif status in {"received", "verified"} and not getattr(doc, "storage_key", None):
         _set_if_field(doc, "storage_key", _default_storage_key(lead_id, doc, status))
 
-    _set_if_field(doc, "updated_at", datetime.utcnow())
+    _set_if_field(doc, "updated_at", _utcnow())
     _write_metadata(doc, action, status, note)
     return doc
 
 
 def _create_follow_up(session: Session, lead_id: Any, message: str) -> Optional[FollowUp]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": lead_id,
         "channel": "email",

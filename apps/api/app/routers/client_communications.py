@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from html import escape
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs
@@ -18,6 +18,10 @@ from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["client-communication-review"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 DRAFT_PREFIX = "[client_communication_draft:v2.6]"
 MODULE_VERSION = "v2.7"
@@ -173,7 +177,7 @@ def _html(value: Any) -> str:
 def _review_note(note: Optional[str] = None) -> str:
     if note:
         return _clean_text(note)
-    return f"Reviewed by human operator at {datetime.utcnow().isoformat()}Z."
+    return f"Reviewed by human operator at {_utcnow().isoformat()}Z."
 
 
 def _communication_status(value: Any) -> str:
@@ -470,7 +474,7 @@ def _create_draft(
         )
 
     template_data = _render_template(lead, template_key, request)
-    now = datetime.utcnow()
+    now = _utcnow()
     fields = _model_fields(FollowUp)
     payload = {
         "lead_id": getattr(lead, "id", None),
@@ -527,7 +531,7 @@ def _update_draft_content(draft: FollowUp, request: UpdateDraftRequest) -> Follo
     }
     note = request.note if request.note is not None else parsed.get("note")
     _set_if_field(draft, "message", _draft_message(template_data, note))
-    _set_if_field(draft, "updated_at", datetime.utcnow())
+    _set_if_field(draft, "updated_at", _utcnow())
     return draft
 
 
@@ -547,7 +551,7 @@ def _mark_draft_reviewed(draft: FollowUp, request: Optional[UpdateDraftRequest] 
     note = _review_note(request.note if request else None)
     _set_if_field(draft, "message", _draft_message(template_data, note))
     _set_if_field(draft, "status", "completed")
-    _set_if_field(draft, "updated_at", datetime.utcnow())
+    _set_if_field(draft, "updated_at", _utcnow())
     return draft
 
 
