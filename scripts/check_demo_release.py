@@ -20,11 +20,11 @@ from sqlmodel import Session  # noqa: E402
 from app.core.db import create_db_and_tables, engine  # noqa: E402
 from scripts.check_demo_readiness import check_demo_readiness  # noqa: E402
 from scripts.check_local_quality import build_quality_commands, run_command  # noqa: E402
-from scripts.export_demo_snapshot import build_demo_snapshot  # noqa: E402
+from scripts.export_demo_snapshot import build_demo_snapshot, default_snapshot_output_path  # noqa: E402
 from scripts.print_demo_runbook import build_demo_runbook  # noqa: E402
 
 
-DEMO_RELEASE_VERSION = "v5.5"
+DEMO_RELEASE_VERSION = "v5.8"
 REQUIRED_FILES = (
     "scripts/check_local_quality.py",
     "scripts/check_demo_readiness.py",
@@ -36,7 +36,17 @@ REQUIRED_FILES = (
     "docs/DEMO_NAVIGATION_POLISH_V5_3.md",
     "docs/DEMO_READINESS_BANNER_V5_4.md",
     "docs/DEMO_RELEASE_V5_5.md",
+    "docs/AGENT_DUPLICATE_OUTPUT_GUARD_V5_6.md",
+    "docs/DEMO_UX_POLISH_V5_7.md",
+    "docs/DEMO_EXPORT_CLEANUP_V5_8.md",
+    "docs/DEMO_RELEASE_STATUS_V5_9.md",
     "docs/CHANGELOG.md",
+)
+REQUIRED_GITIGNORE_ENTRIES = (
+    ".env.production",
+    "demo_exports/",
+    "demo-snapshot-*.md",
+    "demo-snapshot-*.json",
 )
 REQUIRED_URLS = {
     "/admin/v2",
@@ -56,6 +66,35 @@ REQUIRED_SAFETY_TERMS = {
 
 def _missing_files(root: Path = ROOT) -> list[str]:
     return [path for path in REQUIRED_FILES if not (root / path).exists()]
+
+
+def _gitignore_entries(root: Path = ROOT) -> set[str]:
+    gitignore_path = root / ".gitignore"
+    if not gitignore_path.exists():
+        return set()
+    return {
+        line.strip()
+        for line in gitignore_path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+
+def _export_cleanup_status(root: Path = ROOT) -> dict[str, Any]:
+    entries = _gitignore_entries(root)
+    missing_ignores = [entry for entry in REQUIRED_GITIGNORE_ENTRIES if entry not in entries]
+    default_markdown = default_snapshot_output_path("markdown")
+    default_json = default_snapshot_output_path("json")
+    exports_to_demo_folder = (
+        default_markdown.parts[-2:] == ("demo_exports", "demo-snapshot-v5.2.md")
+        and default_json.parts[-2:] == ("demo_exports", "demo-snapshot-v5.2.json")
+    )
+    return {
+        "status": "ready" if not missing_ignores and exports_to_demo_folder else "not_ready",
+        "missing_gitignore_entries": missing_ignores,
+        "default_markdown": str(default_markdown.relative_to(root) if default_markdown.is_absolute() else default_markdown),
+        "default_json": str(default_json.relative_to(root) if default_json.is_absolute() else default_json),
+        "exports_to_demo_folder": exports_to_demo_folder,
+    }
 
 
 def _run_quality(*, full_quality: bool) -> list[dict[str, Any]]:
@@ -91,6 +130,7 @@ def build_demo_release_status(
     readiness = check_demo_readiness(session)
     snapshot = build_demo_snapshot(session)
     runbook = _runbook_status()
+    export_cleanup = _export_cleanup_status()
     missing_files = _missing_files()
     quality_status = "skipped" if quality_results is None else ("passed" if _quality_passed(quality_results) else "failed")
     ok = (
@@ -98,6 +138,7 @@ def build_demo_release_status(
         and readiness["status"] == "ready"
         and snapshot["status"] == "ready"
         and runbook["status"] == "ready"
+        and export_cleanup["status"] == "ready"
         and quality_status in {"passed", "skipped"}
     )
     return {
@@ -113,6 +154,7 @@ def build_demo_release_status(
             "audit_highlights": snapshot["audit_highlights"],
         },
         "runbook": runbook,
+        "export_cleanup": export_cleanup,
         "safety": {
             "auto_send": "disabled",
             "human_review_required": True,
@@ -140,8 +182,11 @@ def main() -> int:
         print(f"demo_readiness={result['demo_readiness']['status']}")
         print(f"snapshot_status={result['snapshot']['status']}")
         print(f"runbook_status={result['runbook']['status']}")
+        print(f"export_cleanup={result['export_cleanup']['status']}")
         if result["missing_files"]:
             print("missing_files=" + ", ".join(result["missing_files"]))
+        if result["export_cleanup"]["missing_gitignore_entries"]:
+            print("missing_gitignore_entries=" + ", ".join(result["export_cleanup"]["missing_gitignore_entries"]))
     return 0 if result["status"] == "ready" else 1
 
 

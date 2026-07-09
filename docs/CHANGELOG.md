@@ -1,5 +1,12 @@
 # Changelog
 
+## v5.9 - Demo Release Status Sync
+
+- Updated `scripts/check_demo_release.py` to validate the v5.8 release state.
+- Added release coverage for v5.6 duplicate-output guard, v5.7 demo UX polish, and v5.8 export cleanup.
+- Added export-cleanup checks for ignored local demo exports and local production env files.
+- Added `docs/DEMO_RELEASE_STATUS_V5_9.md`.
+
 ## v5.5 - Demo Release Checkpoint
 
 - Added `scripts/check_demo_release.py`.
