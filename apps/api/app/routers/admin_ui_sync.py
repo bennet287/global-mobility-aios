@@ -480,6 +480,17 @@ def admin_v2(session: Session = Depends(get_session)):
         <p><strong>Authority:</strong> {authority_counts}</p>
       </div>
       <div class="card">
+        <h2>Demo Quick Links v4.4</h2>
+        <p>
+          <a href="/admin/controlled-agents">Agent Console</a> |
+          <a href="/admin/agent-output-reviews">Agent Review Dashboard</a> |
+          <a href="/admin/client-communications">Client Communications</a> |
+          <a href="/admin/document-uploads">Document Uploads</a> |
+          <a href="/admin/audit-logs">Audit Trail</a>
+        </p>
+        <p><small>Seed demo data with <code>python scripts/seed_demo_data.py --reset-all --yes</code>, then run <code>python scripts/check_demo_readiness.py</code>.</small></p>
+      </div>
+      <div class="card">
         <h2>Lead Operations</h2>
         <table>
           <thead>

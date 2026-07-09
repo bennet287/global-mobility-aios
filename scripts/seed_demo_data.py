@@ -43,6 +43,7 @@ from app.services.audit_log import record_audit  # noqa: E402
 DEMO_SOURCE = "demo_v3_0"
 ONBOARDING_PREFIX = "[post_approval_onboarding:v2.4]"
 CLIENT_DRAFT_PREFIX = "[client_communication_draft:v2.6]"
+AGENT_OUTPUT_PREFIX = "[agent_output_demo:v4.4]"
 
 
 def _j(value: Any) -> str:
@@ -254,6 +255,59 @@ def _audit(session: Session, *, action: str, entity_type: str, entity_id: Any, a
     )
 
 
+def _add_agent_run(
+    session: Session,
+    lead: Lead,
+    *,
+    agent_name: str,
+    task: str,
+    status: str,
+    output: Dict[str, Any],
+    workflow: WorkflowRun | None = None,
+) -> AgentRun:
+    run = AgentRun(
+        workflow_run_id=getattr(workflow, "id", None),
+        lead_id=lead.id,
+        agent_name=agent_name,
+        task=task,
+        status=status,
+        input_json=_j({"source": DEMO_SOURCE, "demo_version": "v4.4", "task": task}),
+        output_json=_j({"demo": True, "version": "v4.4", **output}),
+    )
+    session.add(run)
+    _audit(
+        session,
+        action="controlled_agent_run",
+        entity_type="agent_run",
+        entity_id=run.id,
+        after_state={"agent_name": agent_name, "status": status, "lead_id": str(lead.id)},
+        reason=f"Demo controlled agent output seeded as {status}.",
+    )
+    return run
+
+
+def _add_agent_review_audit(
+    session: Session,
+    run: AgentRun,
+    *,
+    action: str,
+    note: str,
+) -> None:
+    _audit(
+        session,
+        action=action,
+        entity_type="agent_run",
+        entity_id=run.id,
+        after_state={
+            "agent_name": run.agent_name,
+            "agent_run_id": str(run.id),
+            "status": run.status,
+            "note": note,
+        },
+        reason=note,
+    )
+
+
 def _scenario_blocked_visa_claim(session: Session) -> Lead:
     lead = Lead(
         full_name="Demo 1 - Blocked Visa Claim",
@@ -290,6 +344,20 @@ def _scenario_blocked_visa_claim(session: Session) -> Lead:
     _add_documents(session, lead, [("passport", "verified"), ("financial_proof", "missing")])
     _add_follow_up(session, lead, workflow=workflow, message="Explain that visa approval cannot be guaranteed and request official financial proof.")
     _audit(session, action="truth_claim_rejected", entity_type="truth_claim", entity_id=truth.id, after_state={"lead": lead.full_name}, reason="Demo rejected visa claim.")
+    run = _add_agent_run(
+        session,
+        lead,
+        workflow=workflow,
+        agent_name="truth_explanation_agent",
+        task="Explain why the unsafe visa guarantee claim is blocked.",
+        status="rejected",
+        output={
+            "summary": "Unsafe visa guarantee explanation was rejected for client-facing use.",
+            "blocked_actions": ["client_send", "legal_advice"],
+            "conversion_target": "no conversion target",
+        },
+    )
+    _add_agent_review_audit(session, run, action="agent_output_rejected", note="Rejected for demo: explanation requires reviewer rewrite.")
     return lead
 
 
@@ -318,6 +386,19 @@ def _scenario_documents_pending(session: Session) -> Lead:
     _add_documents(session, lead, [("passport", "verified"), ("admission_letter", "missing"), ("financial_proof", "missing"), ("insurance", "needs_review")])
     _add_follow_up(session, lead, workflow=workflow, message="Request admission letter, financial proof, and insurance clarification.")
     _audit(session, action="document_received", entity_type="lead", entity_id=lead.id, after_state={"lead": lead.full_name, "truth_claim_id": str(truth.id)}, reason="Demo documents pending state.")
+    _add_agent_run(
+        session,
+        lead,
+        workflow=workflow,
+        agent_name="document_checklist_agent",
+        task="Summarize missing document blockers for the operator.",
+        status="completed",
+        output={
+            "summary": "Admission letter and financial proof are missing; insurance needs review.",
+            "missing_documents": ["admission_letter", "financial_proof", "insurance"],
+            "conversion_target": "no conversion target",
+        },
+    )
     return lead
 
 
@@ -346,6 +427,23 @@ def _scenario_ready_for_application(session: Session) -> Lead:
     docs = _add_documents(session, lead, [("passport", "verified"), ("admission_letter", "verified"), ("financial_proof", "verified"), ("english_test", "verified")])
     for doc in docs:
         _audit(session, action="document_verified", entity_type="document", entity_id=doc.id, after_state={"document_type": doc.document_type}, reason="Demo ready document.")
+    run = _add_agent_run(
+        session,
+        lead,
+        workflow=workflow,
+        agent_name="application_readiness_agent",
+        task="Explain why this lead is ready for controlled application drafting.",
+        status="approved",
+        output={
+            "summary": "Truth is clear and required documents are verified. Operator may create a controlled draft.",
+            "truth_clear": True,
+            "documents_verified": True,
+            "ready_for_operator_review": True,
+            "ready_for_submission": False,
+            "conversion_target": "no conversion target",
+        },
+    )
+    _add_agent_review_audit(session, run, action="agent_output_approved", note="Approved for demo: readiness explanation is safe for internal use.")
     return lead
 
 
@@ -419,6 +517,39 @@ def _scenario_completed_journey(session: Session) -> Lead:
             message=_client_draft_message(template, title, subject, body),
         )
         _audit(session, action="client_draft_reviewed", entity_type="follow_up", entity_id=draft.id, after_state={"template": template}, reason="Demo communication reviewed.")
+    run = _add_agent_run(
+        session,
+        lead,
+        workflow=workflow,
+        agent_name="client_drafting_agent",
+        task="Draft a final post-approval update for the client.",
+        status="converted",
+        output={
+            "draft_subject": "Your approved application - final travel reminder",
+            "draft_body": "Please keep your approval letter, passport, insurance, and arrival documents ready.",
+            "send_allowed": False,
+            "conversion_target": "client communication draft",
+        },
+    )
+    converted = _add_follow_up(
+        session,
+        lead,
+        workflow=workflow,
+        status=FollowUpStatus.pending,
+        channel="email_draft",
+        message=(
+            f"{AGENT_OUTPUT_PREFIX} source_agent_run={run.id} subject=Your approved application - final travel reminder "
+            "body=Please keep your approval letter, passport, insurance, and arrival documents ready."
+        ),
+    )
+    _audit(
+        session,
+        action="agent_output_converted_to_client_draft",
+        entity_type="follow_up",
+        entity_id=converted.id,
+        after_state={"agent_run_id": str(run.id), "follow_up_status": "pending"},
+        reason="Demo converted approved client drafting output into a pending communication draft.",
+    )
     return lead
 
 
@@ -436,11 +567,22 @@ def seed_demo_data(session: Session, *, reset_demo: bool = True, reset_all: bool
     for lead in leads:
         session.refresh(lead)
 
+    demo_agent_runs = [
+        run for run in session.exec(select(AgentRun)).all()
+        if any(_same_id(getattr(run, "lead_id", None), getattr(lead, "id", None)) for lead in leads)
+    ]
+    agent_status_counts: Dict[str, int] = {}
+    for run in demo_agent_runs:
+        agent_status_counts[run.status] = agent_status_counts.get(run.status, 0) + 1
+
     return {
         "status": "seeded",
         "demo_source": DEMO_SOURCE,
+        "demo_version": "v4.4",
         "deleted_rows": deleted,
         "demo_leads": len(leads),
+        "demo_agent_runs": len(demo_agent_runs),
+        "agent_status_counts": agent_status_counts,
         "lead_ids": [str(lead.id) for lead in leads],
         "scenarios": [
             "blocked_visa_claim",
@@ -452,7 +594,7 @@ def seed_demo_data(session: Session, *, reset_demo: bool = True, reset_all: bool
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Seed Global Mobility AIOS demo data v3.0.")
+    parser = argparse.ArgumentParser(description="Seed Global Mobility AIOS demo data v4.4.")
     parser.add_argument("--no-reset-demo", action="store_true", help="Do not delete existing demo_v3_0 rows before seeding.")
     parser.add_argument("--reset-all", action="store_true", help="Delete all local rows before seeding demo data.")
     parser.add_argument("--yes", action="store_true", help="Required with --reset-all.")
