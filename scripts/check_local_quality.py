@@ -39,6 +39,7 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
                 "scripts/check_database_migrations.py",
                 "scripts/check_docker_profile.py",
                 "scripts/check_local_quality.py",
+                "scripts/check_demo_release.py",
             ),
         ),
         QualityCommand(
