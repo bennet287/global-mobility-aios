@@ -64,6 +64,55 @@ def test_controlled_client_drafting_agent_persists_run_and_blocks_send(
     assert audit.source == "controlled_agents_v4.0"
 
 
+def test_duplicate_pending_client_drafting_output_is_blocked(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+
+    first = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft a safe client update.",
+            "lead_id": str(lead.id),
+            "context": {"subject": "Application update"},
+        },
+    )
+    second = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft another safe client update.",
+            "lead_id": str(lead.id),
+            "context": {"subject": "Application update"},
+        },
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+    assert second.json()["detail"]["existing_run_id"] == first.json()["run_id"]
+    assert second.json()["detail"]["agent_name"] == "client_drafting_agent"
+    assert len(db_session.exec(select(AgentRun)).all()) == 1
+
+    client.post(
+        f"/api/v1/agent-output-reviews/runs/{first.json()['run_id']}/reject",
+        json={"actor": "pytest-reviewer", "note": "Reject duplicate guard setup."},
+    )
+    third = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft after previous output was handled.",
+            "lead_id": str(lead.id),
+            "context": {"subject": "Fresh update"},
+        },
+    )
+
+    assert third.status_code == 200
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+
+
 def test_legacy_agent_endpoint_routes_through_controlled_service(
     client: TestClient,
     db_session: Session,
@@ -139,6 +188,33 @@ def test_agent_operator_console_action_creates_review_gated_run(
     detail = client.get(response.headers["location"])
     assert detail.status_code == 200
     assert "Requires human review" in detail.text
+
+
+def test_agent_operator_console_reuses_pending_client_drafting_run(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+
+    first = client.post(
+        f"/admin/controlled-agents/leads/{lead.id}/run/client_drafting_agent",
+        follow_redirects=False,
+    )
+    second = client.post(
+        f"/admin/controlled-agents/leads/{lead.id}/run/client_drafting_agent",
+        follow_redirects=False,
+    )
+
+    assert first.status_code == 303
+    assert second.status_code == 303
+    assert first.headers["location"] in second.headers["location"]
+    assert "duplicate_guard=1" in second.headers["location"]
+    assert len(db_session.exec(select(AgentRun)).all()) == 1
+
+    detail = client.get(second.headers["location"])
+    assert detail.status_code == 200
+    assert "Duplicate Output Guard" in detail.text
+    assert "Review, reject, or convert this output" in detail.text
 
 
 def test_agent_output_review_queue_approves_and_audits_output(

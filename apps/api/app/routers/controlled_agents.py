@@ -15,7 +15,11 @@ from app.core.db import get_session
 from app.models.domain import AgentRun, ApplicationRecord, AuditLog, DocumentRecord, FollowUp, Lead, TruthClaim
 from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
-from app.services.controlled_agents import list_controlled_agents, run_controlled_agent
+from app.services.controlled_agents import (
+    DuplicatePendingControlledAgentOutput,
+    list_controlled_agents,
+    run_controlled_agent,
+)
 
 router = APIRouter()
 
@@ -543,6 +547,16 @@ def run_controlled_agent_endpoint(
 ) -> ControlledAgentRunResponse:
     try:
         return run_controlled_agent(session, payload)
+    except DuplicatePendingControlledAgentOutput as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": str(exc),
+                "existing_run_id": str(exc.existing_run.id),
+                "agent_name": exc.existing_run.agent_name,
+                "lead_id": str(exc.existing_run.lead_id) if exc.existing_run.lead_id else None,
+            },
+        ) from exc
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -551,10 +565,11 @@ def run_controlled_agent_endpoint(
 def debug_controlled_agents() -> dict:
     return {
         "module": "controlled_ai_agents",
-        "version": "v4.3",
+        "version": "v5.6",
         "send_actions_enabled": False,
         "external_llm_required": False,
         "agent_count": len(list_controlled_agents()),
+        "duplicate_client_draft_guard": True,
         "operator_console": "GET /admin/controlled-agents",
         "review_queue": "GET /admin/agent-output-reviews",
         "dashboard_filters": ["status", "agent_name", "lead_id"],
@@ -890,21 +905,31 @@ def admin_run_controlled_agent_for_lead(
     if agent_name not in LEAD_AGENT_ACTIONS:
         raise HTTPException(status_code=404, detail="Unsupported operator agent action")
 
-    response = run_controlled_agent(
-        session,
-        ControlledAgentRunRequest(
-            agent_name=agent_name,
-            task=_agent_task(agent_name, lead),
-            lead_id=lead.id,
-            context=_lead_context(session, lead),
-            actor="operator_console",
-        ),
-    )
+    try:
+        response = run_controlled_agent(
+            session,
+            ControlledAgentRunRequest(
+                agent_name=agent_name,
+                task=_agent_task(agent_name, lead),
+                lead_id=lead.id,
+                context=_lead_context(session, lead),
+                actor="operator_console",
+            ),
+        )
+    except DuplicatePendingControlledAgentOutput as exc:
+        return RedirectResponse(
+            url=f"/admin/controlled-agents/runs/{exc.existing_run.id}?duplicate_guard=1",
+            status_code=303,
+        )
     return RedirectResponse(url=f"/admin/controlled-agents/runs/{response.run_id}", status_code=303)
 
 
 @router.get("/admin/controlled-agents/runs/{run_id}", response_class=HTMLResponse)
-def admin_controlled_agent_run_detail(run_id: UUID, session: Session = Depends(get_session)) -> HTMLResponse:
+def admin_controlled_agent_run_detail(
+    run_id: UUID,
+    duplicate_guard: str = "",
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
     run = session.get(AgentRun, run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Agent run not found")
@@ -915,8 +940,18 @@ def admin_controlled_agent_run_detail(run_id: UUID, session: Session = Depends(g
     if run.lead_id:
         lead_link = f'<p><a href="/admin/controlled-agents/leads/{run.lead_id}">Back to lead agent console</a></p>'
 
+    duplicate_notice = ""
+    if duplicate_guard:
+        duplicate_notice = """
+          <div class="card">
+            <h2>Duplicate Output Guard</h2>
+            <p>A pending client drafting output already exists for this lead. Review, reject, or convert this output before generating another client draft.</p>
+          </div>
+        """
+
     body = f"""
       <h1>Controlled Agent Run</h1>
+      {duplicate_notice}
       <div class="card">
         <p><strong>Run:</strong> {_escape(run.id)}</p>
         <p><strong>Agent:</strong> {_escape(run.agent_name)}</p>

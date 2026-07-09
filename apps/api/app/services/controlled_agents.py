@@ -3,12 +3,25 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.agents.registry import AGENT_ALIASES, CONTROLLED_AGENT_REGISTRY
 from app.models.domain import AgentRun
 from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
+
+
+PENDING_AGENT_OUTPUT_STATUS = "completed"
+CLIENT_DRAFTING_AGENT = "client_drafting_agent"
+
+
+class DuplicatePendingControlledAgentOutput(Exception):
+    def __init__(self, existing_run: AgentRun):
+        self.existing_run = existing_run
+        super().__init__(
+            "A pending client drafting output already exists for this lead. "
+            "Review, reject, or convert that output before generating another client draft."
+        )
 
 
 def resolve_agent_name(agent_name: str) -> str:
@@ -21,6 +34,18 @@ def list_controlled_agents() -> dict[str, dict[str, Any]]:
 
 def _json_dump(value: Any) -> str:
     return json.dumps(value, default=str, sort_keys=True)
+
+
+def _pending_client_drafting_run(session: Session, payload: ControlledAgentRunRequest) -> AgentRun | None:
+    if not payload.lead_id:
+        return None
+    return session.exec(
+        select(AgentRun)
+        .where(AgentRun.lead_id == payload.lead_id)
+        .where(AgentRun.agent_name == CLIENT_DRAFTING_AGENT)
+        .where(AgentRun.status == PENDING_AGENT_OUTPUT_STATUS)
+        .order_by(AgentRun.created_at.desc())
+    ).first()
 
 
 def _base_output(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
@@ -138,6 +163,10 @@ def run_controlled_agent(session: Session, payload: ControlledAgentRunRequest) -
     resolved_name = resolve_agent_name(payload.agent_name)
     if resolved_name not in CONTROLLED_AGENT_REGISTRY:
         raise ValueError(f"Unknown controlled agent: {payload.agent_name}")
+    if resolved_name == CLIENT_DRAFTING_AGENT:
+        existing_pending_run = _pending_client_drafting_run(session, payload)
+        if existing_pending_run:
+            raise DuplicatePendingControlledAgentOutput(existing_pending_run)
 
     agent = CONTROLLED_AGENT_REGISTRY[resolved_name]
     output = AGENT_HANDLERS[resolved_name](payload, agent)
