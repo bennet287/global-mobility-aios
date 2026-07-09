@@ -11,7 +11,9 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import (
+    AgentRun,
     ApplicationRecord,
+    AuditLog,
     DocumentRecord,
     FollowUp,
     HumanReview,
@@ -48,6 +50,28 @@ DOCUMENT_PROBLEM_STATUSES = {"missing", "needs_review", "rejected", "expired"}
 DOCUMENT_OK_STATUSES = {"received", "verified"}
 TRUTH_REJECTED = {"rejected", "REJECTED"}
 TRUTH_REVIEW = {"needs_review", "NEEDS_REVIEW"}
+DEMO_SOURCE = "demo_v3_0"
+DEMO_NAV_VERSION = "v5.3"
+DEMO_PRIMARY_FLOW = [
+    ("Admin v2", "/admin/v2", "Review the four demo leads and workflow state."),
+    ("Agent Console", "/admin/controlled-agents", "Run controlled internal agents."),
+    ("Agent Review Queue", "/admin/agent-output-reviews", "Approve, reject, and convert agent outputs."),
+    ("Communication Drafts", "/admin/client-communications/drafts", "Preview, edit, and review client drafts."),
+    ("Audit Logs", "/admin/audit-logs", "Verify traceability across the workflow."),
+]
+DEMO_SUPPORT_LINKS = [
+    ("Client Communications", "/admin/client-communications", "Lead-level draft review workflow."),
+    ("Document Uploads", "/admin/document-uploads", "Uploaded document metadata and local storage checks."),
+    ("Official Sources", "/admin/official-sources", "Official-source truth engine scaffolding."),
+    ("Auth", "/admin/auth", "Local role guardrails."),
+]
+DEMO_COMMANDS = [
+    "python scripts/check_local_quality.py",
+    "python scripts/seed_demo_data.py --reset-all --yes",
+    "python scripts/check_demo_readiness.py",
+    "python scripts/print_demo_runbook.py --json",
+    "python scripts/export_demo_snapshot.py --format markdown --output demo-snapshot-v5.2.md",
+]
 
 
 def _value(value: Any) -> Any:
@@ -328,6 +352,65 @@ def _safe_text(value: Any) -> str:
     return str(value)
 
 
+def _link_list(items: List[tuple[str, str, str]]) -> str:
+    rows = []
+    for label, href, purpose in items:
+        rows.append(f"<li><a href=\"{href}\">{label}</a> - {_safe_text(purpose)}</li>")
+    return "<ul>" + "".join(rows) + "</ul>"
+
+
+def _demo_status(session: Session) -> Dict[str, Any]:
+    leads = session.exec(select(Lead)).all()
+    demo_leads = [lead for lead in leads if getattr(lead, "source", None) == DEMO_SOURCE]
+    demo_lead_ids = {_normal_id(getattr(lead, "id", None)) for lead in demo_leads}
+    agent_runs = [
+        run for run in session.exec(select(AgentRun)).all()
+        if _normal_id(getattr(run, "lead_id", None)) in demo_lead_ids
+    ]
+    audit_logs = session.exec(select(AuditLog)).all()
+    draft_followups = [
+        followup for followup in session.exec(select(FollowUp)).all()
+        if _normal_id(getattr(followup, "lead_id", None)) in demo_lead_ids
+        and "[client_communication_draft:v2.6]" in str(getattr(followup, "message", "") or "")
+    ]
+
+    agent_statuses: Dict[str, int] = {}
+    draft_statuses: Dict[str, int] = {}
+    for run in agent_runs:
+        status = _safe_status(getattr(run, "status", None)) or "unknown"
+        agent_statuses[status] = agent_statuses.get(status, 0) + 1
+    for draft in draft_followups:
+        status = _safe_status(getattr(draft, "status", None)) or "unknown"
+        public_status = "draft" if status == "pending" else ("reviewed" if status == "completed" else status)
+        draft_statuses[public_status] = draft_statuses.get(public_status, 0) + 1
+
+    return {
+        "version": DEMO_NAV_VERSION,
+        "demo_source": DEMO_SOURCE,
+        "demo_leads": len(demo_leads),
+        "demo_agent_runs": len(agent_runs),
+        "demo_client_drafts": len(draft_followups),
+        "audit_logs": len(audit_logs),
+        "agent_status_counts": agent_statuses,
+        "client_draft_status_counts": draft_statuses,
+        "primary_flow": [
+            {"label": label, "path": path, "purpose": purpose}
+            for label, path, purpose in DEMO_PRIMARY_FLOW
+        ],
+        "support_links": [
+            {"label": label, "path": path, "purpose": purpose}
+            for label, path, purpose in DEMO_SUPPORT_LINKS
+        ],
+        "commands": DEMO_COMMANDS,
+        "safety_rules": [
+            "Controlled agents create internal operator outputs only.",
+            "Agent output conversion creates reviewable client communication drafts only.",
+            "Client communication drafts require human review.",
+            "No automatic email, WhatsApp, portal message, application submission, or lead conversion is performed.",
+        ],
+    }
+
+
 def _render_create_draft_action(item: Dict[str, Any]) -> str:
     lead = item["lead"]
     lead_id = lead.get("id")
@@ -402,6 +485,7 @@ def _page_shell(title: str, body: str) -> HTMLResponse:
       </head>
       <body>
         <div class="nav">
+          <a href="/admin/demo">Demo Hub</a>
           <a href="/admin">Old Admin</a>
           <a href="/admin/v2">Admin v2</a>
           <a href="/admin/applications">Applications</a>
@@ -459,6 +543,47 @@ def admin_ui_sync_lead_detail(lead_id: str, session: Session = Depends(get_sessi
     return _json_response(_lead_sync_payload(session, lead))
 
 
+@router.get("/api/v1/admin-demo/navigation")
+def admin_demo_navigation(session: Session = Depends(get_session)):
+    return _json_response(_demo_status(session))
+
+
+@router.get("/admin/demo", response_class=HTMLResponse)
+def admin_demo_hub(session: Session = Depends(get_session)):
+    status = _demo_status(session)
+    command_rows = "".join(f"<li><code>{_safe_text(command)}</code></li>" for command in status["commands"])
+    safety_rows = "".join(f"<li>{_safe_text(rule)}</li>" for rule in status["safety_rules"])
+    body = f"""
+      <h1>Demo Command Center {DEMO_NAV_VERSION}</h1>
+      <div class="card">
+        <h2>Current Demo State</h2>
+        <p><strong>Demo source:</strong> {status['demo_source']}</p>
+        <p><strong>Demo leads:</strong> {status['demo_leads']}</p>
+        <p><strong>Demo agent runs:</strong> {status['demo_agent_runs']} {status['agent_status_counts']}</p>
+        <p><strong>Demo client drafts:</strong> {status['demo_client_drafts']} {status['client_draft_status_counts']}</p>
+        <p><strong>Total audit logs:</strong> {status['audit_logs']}</p>
+      </div>
+      <div class="card">
+        <h2>Primary Demo Flow</h2>
+        {_link_list(DEMO_PRIMARY_FLOW)}
+      </div>
+      <div class="card">
+        <h2>Supporting Workspaces</h2>
+        {_link_list(DEMO_SUPPORT_LINKS)}
+      </div>
+      <div class="card">
+        <h2>Local Commands</h2>
+        <ol>{command_rows}</ol>
+      </div>
+      <div class="card">
+        <h2>Safety Rules</h2>
+        <ul>{safety_rows}</ul>
+        <p><a href="/api/v1/admin-demo/navigation">Navigation JSON</a></p>
+      </div>
+    """
+    return _page_shell(f"Demo Command Center {DEMO_NAV_VERSION}", body)
+
+
 @router.get("/admin/v2", response_class=HTMLResponse)
 def admin_v2(session: Session = Depends(get_session)):
     leads = session.exec(select(Lead)).all()
@@ -483,8 +608,9 @@ def admin_v2(session: Session = Depends(get_session)):
         <p><strong>Authority:</strong> {authority_counts}</p>
       </div>
       <div class="card">
-        <h2>Demo Quick Links v4.4</h2>
+        <h2>Demo Quick Links v5.3</h2>
         <p>
+          <a href="/admin/demo">Demo Hub</a> |
           <a href="/admin/controlled-agents">Agent Console</a> |
           <a href="/admin/agent-output-reviews">Agent Review Dashboard</a> |
           <a href="/admin/client-communications">Client Communications</a> |
