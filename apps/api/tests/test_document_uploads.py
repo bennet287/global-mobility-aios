@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
@@ -46,7 +47,7 @@ def test_document_upload_stores_file_and_metadata(
     assert document["file_hash"] == hashlib.sha256(content).hexdigest()
     assert (tmp_path / document["storage_key"]).read_bytes() == content
 
-    stored = db_session.get(DocumentRecord, document["id"])
+    stored = db_session.get(DocumentRecord, UUID(document["id"]))
     assert stored is not None
     assert stored.file_hash == document["file_hash"]
     assert stored.uploaded_at is not None
