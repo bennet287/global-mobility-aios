@@ -272,9 +272,18 @@ class DocumentRecord(SQLModel, table=True):
     document_type: str
     filename: str
     storage_key: Optional[str] = None
+    storage_provider: Optional[str] = Field(default=None, index=True)
+    file_hash: Optional[str] = Field(default=None, index=True)
+    mime_type: Optional[str] = None
+    file_size_bytes: Optional[int] = None
     status: str = "received"
     extracted_metadata_json: Optional[str] = None
+    uploaded_at: Optional[datetime] = None
+    verified_by: Optional[str] = None
+    verified_at: Optional[datetime] = None
+    expiry_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
 
 class ApplicationRecord(SQLModel, table=True):
     __tablename__ = "applications"

@@ -10,6 +10,7 @@ from app.routers import (
     application_engine,
     sales_engine,
     document_operations,
+    document_uploads,
     document_engine,
     detail_views,
     operations,
@@ -64,6 +65,7 @@ app.include_router(education.router, prefix="/api/v1", tags=["education"])
 app.include_router(recruitment.router, prefix="/api/v1", tags=["recruitment"])
 app.include_router(documents.router, prefix="/api/v1", tags=["documents"])
 app.include_router(document_operations.router, tags=["document-operations"])
+app.include_router(document_uploads.router)
 app.include_router(sales_engine.router, prefix="", tags=["sales-engine"])
 app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
 app.include_router(agent_runs.router, prefix="/api/v1", tags=["agent-runs"])

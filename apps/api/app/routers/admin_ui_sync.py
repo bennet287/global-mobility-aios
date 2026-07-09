@@ -406,6 +406,7 @@ def _page_shell(title: str, body: str) -> HTMLResponse:
           <a href="/admin/authority-decision">Authority</a>
           <a href="/admin/application-draft-control">Draft Control</a>
           <a href="/admin/document-verification">Document Verification</a>
+          <a href="/admin/document-uploads">Document Uploads</a>
           <a href="/admin/truth-resolution">Truth Resolution</a>
           <a href="/admin/official-sources">Official Sources</a>
           <a href="/admin/sales">Sales</a>

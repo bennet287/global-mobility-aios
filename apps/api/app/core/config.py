@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     minio_secret_key: str = "minioadmin"
     minio_bucket_documents: str = "gmai-documents"
     minio_secure: bool = False
+    document_storage_backend: str = "local"
+    document_local_storage_dir: str = "storage/documents"
+    document_upload_max_mb: int = 25
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
     jwt_secret: str = "change-this-in-production"

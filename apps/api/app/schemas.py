@@ -138,7 +138,15 @@ class DocumentRead(BaseModel):
     document_type: str
     filename: str
     storage_key: Optional[str]
+    storage_provider: Optional[str] = None
+    file_hash: Optional[str] = None
+    mime_type: Optional[str] = None
+    file_size_bytes: Optional[int] = None
     status: str
+    uploaded_at: Optional[datetime] = None
+    verified_by: Optional[str] = None
+    verified_at: Optional[datetime] = None
+    expiry_date: Optional[datetime] = None
 
 class HumanReviewRead(BaseModel):
     id: UUID
