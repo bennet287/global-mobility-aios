@@ -46,6 +46,7 @@ It verifies:
 For a clean local demo database:
 
 ```powershell
+python scripts/check_local_db_schema.py
 python scripts/seed_demo_data.py --reset-all --yes
 python scripts/check_demo_readiness.py
 ```
@@ -83,5 +84,5 @@ python -m pytest apps/api/tests -q
 Expected:
 
 ```text
-36 passed
+37 passed
 ```
