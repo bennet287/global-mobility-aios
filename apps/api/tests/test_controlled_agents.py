@@ -285,5 +285,80 @@ def test_agent_review_admin_page_loads_pending_outputs(client: TestClient, db_se
     response = client.get("/admin/agent-output-reviews")
 
     assert response.status_code == 200
-    assert "Agent Output Review Queue v4.2" in response.text
+    assert "Agent Output Review Dashboard v4.3" in response.text
     assert "Approve Output" in response.text
+    assert "Apply Filters" in response.text
+
+
+def test_agent_review_dashboard_json_filters_by_status_and_agent(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "sales_summary_agent",
+            "task": "Prepare sales summary.",
+            "lead_id": str(lead.id),
+            "context": {},
+        },
+    )
+    draft_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft client update.",
+            "lead_id": str(lead.id),
+            "context": {},
+        },
+    )
+    client.post(
+        f"/api/v1/agent-output-reviews/runs/{draft_response.json()['run_id']}/approve",
+        json={"actor": "pytest-reviewer", "note": "Approved dashboard filter case."},
+    )
+
+    dashboard = client.get("/api/v1/agent-output-reviews/dashboard?status=approved&agent_name=client_drafting_agent")
+
+    assert dashboard.status_code == 200
+    payload = dashboard.json()
+    assert payload["version"] == "v4.3"
+    assert payload["counts"]["pending"] == 1
+    assert payload["counts"]["approved"] == 1
+    assert len(payload["items"]) == 1
+    assert payload["items"][0]["agent_name"] == "client_drafting_agent"
+    assert payload["items"][0]["conversion_target"] == "client communication draft"
+
+
+def test_agent_review_dashboard_shows_reviewer_note_and_status_badge(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    run_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "sales_summary_agent",
+            "task": "Prepare sales summary.",
+            "lead_id": str(lead.id),
+            "context": {},
+        },
+    )
+    run_id = run_response.json()["run_id"]
+    client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/approve",
+        json={"actor": "pytest-reviewer", "note": "Visible reviewer note."},
+    )
+
+    page = client.get("/admin/agent-output-reviews?status=approved")
+
+    assert page.status_code == 200
+    assert "Visible reviewer note." in page.text
+    assert "internal lead note" in page.text
+    assert "approved" in page.text
+    assert str(lead.id) in page.text
+
+    detail = client.get(f"/admin/agent-output-reviews/runs/{run_id}")
+    assert detail.status_code == 200
+    assert "Review History" in detail.text
+    assert "Visible reviewer note." in detail.text

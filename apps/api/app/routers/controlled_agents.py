@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.core.db import get_session
-from app.models.domain import AgentRun, ApplicationRecord, DocumentRecord, FollowUp, Lead, TruthClaim
+from app.models.domain import AgentRun, ApplicationRecord, AuditLog, DocumentRecord, FollowUp, Lead, TruthClaim
 from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import list_controlled_agents, run_controlled_agent
@@ -32,6 +32,14 @@ PENDING_AGENT_OUTPUT_STATUS = "completed"
 APPROVED_AGENT_OUTPUT_STATUS = "approved"
 REJECTED_AGENT_OUTPUT_STATUS = "rejected"
 CONVERTED_AGENT_OUTPUT_STATUS = "converted"
+REVIEW_STATUSES = {
+    "pending": PENDING_AGENT_OUTPUT_STATUS,
+    "completed": PENDING_AGENT_OUTPUT_STATUS,
+    "approved": APPROVED_AGENT_OUTPUT_STATUS,
+    "rejected": REJECTED_AGENT_OUTPUT_STATUS,
+    "converted": CONVERTED_AGENT_OUTPUT_STATUS,
+    "all": "all",
+}
 
 
 class AgentOutputReviewRequest(BaseModel):
@@ -140,6 +148,103 @@ def _reviewed_agent_runs(session: Session, limit: int = 50) -> list[AgentRun]:
     ]
 
 
+def _all_agent_runs(session: Session) -> list[AgentRun]:
+    return list(session.exec(select(AgentRun).order_by(AgentRun.created_at.desc())).all())
+
+
+def _normal_review_status(status: str | None) -> str:
+    return REVIEW_STATUSES.get(str(status or "all").strip().lower(), "all")
+
+
+def _filter_agent_runs(
+    runs: list[AgentRun],
+    *,
+    status: str | None = None,
+    agent_name: str | None = None,
+    lead_id: str | None = None,
+) -> list[AgentRun]:
+    wanted_status = _normal_review_status(status)
+    filtered = runs
+    if wanted_status != "all":
+        filtered = [run for run in filtered if run.status == wanted_status]
+    if agent_name:
+        filtered = [run for run in filtered if run.agent_name == agent_name]
+    if lead_id:
+        filtered = [run for run in filtered if str(run.lead_id) == str(lead_id)]
+    return filtered
+
+
+def _review_dashboard_counts(runs: list[AgentRun]) -> dict[str, int]:
+    counts = {"pending": 0, "approved": 0, "rejected": 0, "converted": 0, "all": len(runs)}
+    for run in runs:
+        if run.status == PENDING_AGENT_OUTPUT_STATUS:
+            counts["pending"] += 1
+        elif run.status in counts:
+            counts[run.status] += 1
+    return counts
+
+
+def _conversion_target(run: AgentRun) -> str:
+    if run.agent_name == "client_drafting_agent":
+        return "client communication draft"
+    if run.agent_name == "sales_summary_agent":
+        return "internal lead note"
+    return "no conversion target"
+
+
+def _status_label(status: str) -> str:
+    if status == PENDING_AGENT_OUTPUT_STATUS:
+        return "pending review"
+    return status
+
+
+def _status_badge(status: str) -> str:
+    kind = {
+        PENDING_AGENT_OUTPUT_STATUS: "blocked",
+        APPROVED_AGENT_OUTPUT_STATUS: "safe",
+        REJECTED_AGENT_OUTPUT_STATUS: "blocked",
+        CONVERTED_AGENT_OUTPUT_STATUS: "safe",
+    }.get(status, "")
+    return f'<span class="badge {kind}">{_escape(_status_label(status))}</span>'
+
+
+def _lead_link(session: Session, lead_id: UUID | None) -> str:
+    if not lead_id:
+        return "-"
+    lead = session.get(Lead, lead_id)
+    label = lead.full_name if lead else str(lead_id)
+    return f'<a href="/admin/controlled-agents/leads/{lead_id}">{_escape(label)}</a><br><small>{_escape(lead_id)}</small>'
+
+
+def _review_audits_for_run(session: Session, run: AgentRun) -> list[AuditLog]:
+    logs = session.exec(select(AuditLog).order_by(AuditLog.created_at.desc())).all()
+    run_id = str(run.id)
+    review_actions = {
+        "agent_output_approved",
+        "agent_output_rejected",
+        "agent_output_converted_to_client_draft",
+        "agent_output_converted_to_internal_note",
+    }
+    matches = []
+    for log in logs:
+        if log.action not in review_actions:
+            continue
+        if log.entity_type == "agent_run" and log.entity_id == run_id:
+            matches.append(log)
+            continue
+        if run_id in (log.after_state_json or ""):
+            matches.append(log)
+    return matches
+
+
+def _latest_review_note(session: Session, run: AgentRun) -> str:
+    logs = _review_audits_for_run(session, run)
+    if not logs:
+        return "-"
+    latest = logs[0]
+    return latest.reason or "-"
+
+
 def _agent_run_summary(run: AgentRun) -> dict[str, Any]:
     output = _json_loads(run.output_json)
     return {
@@ -150,6 +255,7 @@ def _agent_run_summary(run: AgentRun) -> dict[str, Any]:
         "task": run.task,
         "status": run.status,
         "summary": output.get("summary") or output.get("draft_subject") or output.get("role") or "Output captured",
+        "conversion_target": _conversion_target(run),
         "requires_human_review": True,
         "created_at": run.created_at,
     }
@@ -363,9 +469,9 @@ def _review_action_forms(run: AgentRun) -> str:
     return f'<span class="badge">{_escape(run.status)}</span>'
 
 
-def _review_rows(runs: list[AgentRun]) -> str:
+def _review_rows(session: Session, runs: list[AgentRun]) -> str:
     if not runs:
-        return "<tr><td colspan='6'>No agent outputs in this queue.</td></tr>"
+        return "<tr><td colspan='8'>No agent outputs match these filters.</td></tr>"
     rows = []
     for run in runs:
         summary = _agent_run_summary(run)
@@ -374,14 +480,32 @@ def _review_rows(runs: list[AgentRun]) -> str:
             <tr>
               <td><a href="/admin/agent-output-reviews/runs/{run.id}">{run.id}</a></td>
               <td>{_escape(run.agent_name)}</td>
-              <td>{_escape(run.lead_id)}</td>
-              <td>{_escape(run.status)}</td>
+              <td>{_lead_link(session, run.lead_id)}</td>
+              <td>{_status_badge(run.status)}</td>
+              <td>{_escape(summary["conversion_target"])}</td>
               <td>{_escape(summary["summary"])}</td>
+              <td>{_escape(_latest_review_note(session, run))}</td>
               <td>{_review_action_forms(run)}</td>
             </tr>
             """
         )
     return "".join(rows)
+
+
+def _audit_history_rows(logs: list[AuditLog]) -> str:
+    if not logs:
+        return "<tr><td colspan='4'>No review decisions recorded yet.</td></tr>"
+    return "".join(
+        f"""
+        <tr>
+          <td>{_escape(log.action)}</td>
+          <td>{_escape(log.actor)}</td>
+          <td>{_escape(log.reason)}</td>
+          <td>{_escape(log.created_at)}</td>
+        </tr>
+        """
+        for log in logs
+    )
 
 
 def _lead_action_forms(lead: Lead) -> str:
@@ -422,29 +546,60 @@ def run_controlled_agent_endpoint(
 def debug_controlled_agents() -> dict:
     return {
         "module": "controlled_ai_agents",
-        "version": "v4.2",
+        "version": "v4.3",
         "send_actions_enabled": False,
         "external_llm_required": False,
         "agent_count": len(list_controlled_agents()),
         "operator_console": "GET /admin/controlled-agents",
         "review_queue": "GET /admin/agent-output-reviews",
+        "dashboard_filters": ["status", "agent_name", "lead_id"],
     }
 
 
 @router.get("/api/v1/agent-output-reviews/queue")
-def agent_output_review_queue(session: Session = Depends(get_session)) -> dict:
+def agent_output_review_queue(
+    agent_name: str | None = None,
+    lead_id: str | None = None,
+    session: Session = Depends(get_session),
+) -> dict:
+    items = _filter_agent_runs(_reviewable_agent_runs(session), agent_name=agent_name, lead_id=lead_id)
     return {
-        "version": "v4.2",
+        "version": "v4.3",
         "review_required": True,
-        "items": [_agent_run_summary(run) for run in _reviewable_agent_runs(session)],
+        "filters": {"status": "pending", "agent_name": agent_name, "lead_id": lead_id},
+        "items": [_agent_run_summary(run) for run in items],
     }
 
 
 @router.get("/api/v1/agent-output-reviews/reviewed")
-def agent_output_reviewed(session: Session = Depends(get_session)) -> dict:
+def agent_output_reviewed(
+    status: str = "all",
+    agent_name: str | None = None,
+    lead_id: str | None = None,
+    session: Session = Depends(get_session),
+) -> dict:
+    items = _filter_agent_runs(_reviewed_agent_runs(session), status=status, agent_name=agent_name, lead_id=lead_id)
     return {
-        "version": "v4.2",
-        "items": [_agent_run_summary(run) for run in _reviewed_agent_runs(session)],
+        "version": "v4.3",
+        "filters": {"status": status, "agent_name": agent_name, "lead_id": lead_id},
+        "items": [_agent_run_summary(run) for run in items],
+    }
+
+
+@router.get("/api/v1/agent-output-reviews/dashboard")
+def agent_output_review_dashboard(
+    status: str = "all",
+    agent_name: str | None = None,
+    lead_id: str | None = None,
+    session: Session = Depends(get_session),
+) -> dict:
+    runs = _all_agent_runs(session)
+    filtered = _filter_agent_runs(runs, status=status, agent_name=agent_name, lead_id=lead_id)
+    return {
+        "version": "v4.3",
+        "filters": {"status": status, "agent_name": agent_name, "lead_id": lead_id},
+        "counts": _review_dashboard_counts(runs),
+        "items": [_agent_run_summary(run) for run in filtered],
     }
 
 
@@ -547,32 +702,78 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
 
 
 @router.get("/admin/agent-output-reviews", response_class=HTMLResponse)
-def admin_agent_output_reviews(session: Session = Depends(get_session)) -> HTMLResponse:
-    pending_runs = _reviewable_agent_runs(session)
-    reviewed_runs = _reviewed_agent_runs(session, limit=25)
+def admin_agent_output_reviews(
+    status: str = "pending",
+    agent_name: str = "",
+    lead_id: str = "",
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    all_runs = _all_agent_runs(session)
+    counts = _review_dashboard_counts(all_runs)
+    selected_status = _normal_review_status(status)
+    selected_status_label = status if status in REVIEW_STATUSES else "all"
+    filtered_runs = _filter_agent_runs(
+        all_runs,
+        status=selected_status_label,
+        agent_name=agent_name or None,
+        lead_id=lead_id or None,
+    )
+    status_links = " ".join(
+        f'<a href="/admin/agent-output-reviews?status={label}">{_escape(label)} ({counts.get(label if label != "pending" else "pending", 0)})</a>'
+        for label in ["pending", "approved", "rejected", "converted", "all"]
+    )
+    agent_options = "".join(
+        f'<option value="{_escape(name)}" {"selected" if name == agent_name else ""}>{_escape(name)}</option>'
+        for name in ["", *list(list_controlled_agents().keys())]
+    )
     body = f"""
-      <h1>Agent Output Review Queue v4.2</h1>
+      <h1>Agent Output Review Dashboard v4.3</h1>
       <div class="card">
         <h2>Safety Mode</h2>
         <p><span class="badge safe">Human review required</span> <span class="badge blocked">Unapproved output blocked</span></p>
         <p>Only approved outputs can be converted. Conversion is limited to client drafting outputs and sales summaries.</p>
       </div>
       <div class="card">
-        <h2>Pending Review</h2>
-        <table>
-          <thead><tr><th>Run</th><th>Agent</th><th>Lead</th><th>Status</th><th>Summary</th><th>Review Action</th></tr></thead>
-          <tbody>{_review_rows(pending_runs)}</tbody>
-        </table>
+        <h2>Filters</h2>
+        <p>{status_links}</p>
+        <form method="get" action="/admin/agent-output-reviews">
+          <label>Status
+            <select name="status">
+              <option value="pending" {"selected" if selected_status == PENDING_AGENT_OUTPUT_STATUS else ""}>pending</option>
+              <option value="approved" {"selected" if selected_status == APPROVED_AGENT_OUTPUT_STATUS else ""}>approved</option>
+              <option value="rejected" {"selected" if selected_status == REJECTED_AGENT_OUTPUT_STATUS else ""}>rejected</option>
+              <option value="converted" {"selected" if selected_status == CONVERTED_AGENT_OUTPUT_STATUS else ""}>converted</option>
+              <option value="all" {"selected" if selected_status == "all" else ""}>all</option>
+            </select>
+          </label>
+          <label> Agent
+            <select name="agent_name">{agent_options}</select>
+          </label>
+          <label> Lead ID
+            <input name="lead_id" value="{_escape(lead_id)}" placeholder="optional lead id">
+          </label>
+          <button type="submit">Apply Filters</button>
+        </form>
       </div>
       <div class="card">
-        <h2>Reviewed Outputs</h2>
+        <h2>Summary</h2>
+        <p>
+          <span class="badge blocked">pending {counts["pending"]}</span>
+          <span class="badge safe">approved {counts["approved"]}</span>
+          <span class="badge blocked">rejected {counts["rejected"]}</span>
+          <span class="badge safe">converted {counts["converted"]}</span>
+          <span class="badge">all {counts["all"]}</span>
+        </p>
+      </div>
+      <div class="card">
+        <h2>Filtered Outputs</h2>
         <table>
-          <thead><tr><th>Run</th><th>Agent</th><th>Lead</th><th>Status</th><th>Summary</th><th>Next Action</th></tr></thead>
-          <tbody>{_review_rows(reviewed_runs)}</tbody>
+          <thead><tr><th>Run</th><th>Agent</th><th>Lead</th><th>Status</th><th>Conversion Target</th><th>Summary</th><th>Reviewer Note</th><th>Action</th></tr></thead>
+          <tbody>{_review_rows(session, filtered_runs)}</tbody>
         </table>
       </div>
     """
-    return _page_shell("Agent Output Review Queue v4.2", body)
+    return _page_shell("Agent Output Review Dashboard v4.3", body)
 
 
 @router.get("/admin/agent-output-reviews/runs/{run_id}", response_class=HTMLResponse)
@@ -580,14 +781,24 @@ def admin_agent_output_review_detail(run_id: UUID, session: Session = Depends(ge
     run = _get_agent_run_or_404(session, run_id)
     input_data = _json_loads(run.input_json)
     output_data = _json_loads(run.output_json)
+    audit_rows = _audit_history_rows(_review_audits_for_run(session, run))
     body = f"""
       <h1>Agent Output Review Detail</h1>
       <div class="card">
         <p><strong>Run:</strong> {_escape(run.id)}</p>
         <p><strong>Agent:</strong> {_escape(run.agent_name)}</p>
-        <p><strong>Status:</strong> {_escape(run.status)}</p>
-        <p><strong>Lead:</strong> {_escape(run.lead_id)}</p>
+        <p><strong>Status:</strong> {_status_badge(run.status)}</p>
+        <p><strong>Lead:</strong> {_lead_link(session, run.lead_id)}</p>
+        <p><strong>Conversion target:</strong> {_escape(_conversion_target(run))}</p>
+        <p><strong>Latest reviewer note:</strong> {_escape(_latest_review_note(session, run))}</p>
         {_review_action_forms(run)}
+      </div>
+      <div class="card">
+        <h2>Review History</h2>
+        <table>
+          <thead><tr><th>Action</th><th>Actor</th><th>Note</th><th>Created</th></tr></thead>
+          <tbody>{audit_rows}</tbody>
+        </table>
       </div>
       <div class="card">
         <h2>Input</h2>
