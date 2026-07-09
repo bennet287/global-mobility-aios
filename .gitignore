@@ -21,3 +21,5 @@ langfuse_data/
 demo_exports/
 demo-snapshot-*.md
 demo-snapshot-*.json
+
+.env.production
