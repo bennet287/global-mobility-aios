@@ -12,7 +12,10 @@ def test_demo_hub_lists_operator_flow(client: TestClient, db_session: Session) -
     response = client.get("/admin/demo")
 
     assert response.status_code == 200
-    assert "Demo Command Center v5.3" in response.text
+    assert "Demo Command Center v5.4" in response.text
+    assert "Demo ready" in response.text
+    assert "auto-send disabled" in response.text
+    assert "quality gate: local check required" in response.text
     assert "/admin/controlled-agents" in response.text
     assert "/admin/agent-output-reviews" in response.text
     assert "/admin/client-communications/drafts" in response.text
@@ -28,7 +31,9 @@ def test_demo_navigation_json_reports_seeded_counts(client: TestClient, db_sessi
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["version"] == "v5.3"
+    assert payload["version"] == "v5.4"
+    assert payload["readiness_status"] == "ready"
+    assert payload["auto_send"] == "disabled"
     assert payload["demo_leads"] == 4
     assert payload["demo_agent_runs"] == 4
     assert payload["demo_client_drafts"] >= 5
@@ -39,3 +44,15 @@ def test_demo_navigation_json_reports_seeded_counts(client: TestClient, db_sessi
         "/admin/client-communications/drafts",
         "/admin/audit-logs",
     }
+
+
+def test_admin_v2_shows_demo_readiness_banner(client: TestClient, db_session: Session) -> None:
+    seed_demo_data(db_session, reset_demo=True)
+
+    response = client.get("/admin/v2")
+
+    assert response.status_code == 200
+    assert "Demo ready" in response.text
+    assert "4 leads" in response.text
+    assert "auto-send disabled" in response.text
+    assert "Demo Quick Links v5.4" in response.text

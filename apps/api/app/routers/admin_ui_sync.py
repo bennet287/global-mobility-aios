@@ -51,7 +51,15 @@ DOCUMENT_OK_STATUSES = {"received", "verified"}
 TRUTH_REJECTED = {"rejected", "REJECTED"}
 TRUTH_REVIEW = {"needs_review", "NEEDS_REVIEW"}
 DEMO_SOURCE = "demo_v3_0"
-DEMO_NAV_VERSION = "v5.3"
+DEMO_NAV_VERSION = "v5.4"
+DEMO_REQUIRED_AGENT_STATUSES = {"approved", "completed", "converted", "rejected"}
+DEMO_REQUIRED_AUDIT_ACTIONS = {
+    "controlled_agent_run",
+    "agent_output_approved",
+    "agent_output_rejected",
+    "agent_output_converted_to_client_draft",
+    "client_draft_reviewed",
+}
 DEMO_PRIMARY_FLOW = [
     ("Admin v2", "/admin/v2", "Review the four demo leads and workflow state."),
     ("Agent Console", "/admin/controlled-agents", "Run controlled internal agents."),
@@ -376,6 +384,7 @@ def _demo_status(session: Session) -> Dict[str, Any]:
 
     agent_statuses: Dict[str, int] = {}
     draft_statuses: Dict[str, int] = {}
+    audit_actions: Dict[str, int] = {}
     for run in agent_runs:
         status = _safe_status(getattr(run, "status", None)) or "unknown"
         agent_statuses[status] = agent_statuses.get(status, 0) + 1
@@ -383,9 +392,34 @@ def _demo_status(session: Session) -> Dict[str, Any]:
         status = _safe_status(getattr(draft, "status", None)) or "unknown"
         public_status = "draft" if status == "pending" else ("reviewed" if status == "completed" else status)
         draft_statuses[public_status] = draft_statuses.get(public_status, 0) + 1
+    for audit in audit_logs:
+        action = str(getattr(audit, "action", "") or "")
+        audit_actions[action] = audit_actions.get(action, 0) + 1
+
+    missing_agent_statuses = sorted(DEMO_REQUIRED_AGENT_STATUSES - set(agent_statuses))
+    missing_audit_actions = sorted(DEMO_REQUIRED_AUDIT_ACTIONS - set(audit_actions))
+    readiness_status = "ready"
+    readiness_kind = "good"
+    readiness_reasons: List[str] = []
+    if len(demo_leads) != 4:
+        readiness_reasons.append("expected 4 demo leads")
+    if len(draft_followups) < 5:
+        readiness_reasons.append("expected at least 5 demo client drafts")
+    if missing_agent_statuses:
+        readiness_reasons.append("missing agent statuses: " + ", ".join(missing_agent_statuses))
+    if missing_audit_actions:
+        readiness_reasons.append("missing audit actions: " + ", ".join(missing_audit_actions))
+    if readiness_reasons:
+        readiness_status = "not_ready"
+        readiness_kind = "warn"
 
     return {
         "version": DEMO_NAV_VERSION,
+        "readiness_status": readiness_status,
+        "readiness_kind": readiness_kind,
+        "readiness_reasons": readiness_reasons,
+        "quality_gate": "Run python scripts/check_local_quality.py before presenting.",
+        "auto_send": "disabled",
         "demo_source": DEMO_SOURCE,
         "demo_leads": len(demo_leads),
         "demo_agent_runs": len(agent_runs),
@@ -393,6 +427,7 @@ def _demo_status(session: Session) -> Dict[str, Any]:
         "audit_logs": len(audit_logs),
         "agent_status_counts": agent_statuses,
         "client_draft_status_counts": draft_statuses,
+        "audit_action_counts": audit_actions,
         "primary_flow": [
             {"label": label, "path": path, "purpose": purpose}
             for label, path, purpose in DEMO_PRIMARY_FLOW
@@ -409,6 +444,22 @@ def _demo_status(session: Session) -> Dict[str, Any]:
             "No automatic email, WhatsApp, portal message, application submission, or lead conversion is performed.",
         ],
     }
+
+
+def _demo_readiness_banner(status: Dict[str, Any]) -> str:
+    label = "Demo ready" if status["readiness_status"] == "ready" else "Demo needs attention"
+    reasons = "; ".join(status.get("readiness_reasons") or ["all required demo checks are present"])
+    return f"""
+      <div class="demo-banner {status['readiness_kind']}">
+        <strong>{label}</strong>
+        <span>{status['demo_leads']} leads</span>
+        <span>{status['demo_agent_runs']} agent runs</span>
+        <span>{status['demo_client_drafts']} drafts</span>
+        <span>auto-send {status['auto_send']}</span>
+        <span>quality gate: local check required</span>
+        <small>{_safe_text(reasons)}</small>
+      </div>
+    """
 
 
 def _render_create_draft_action(item: Dict[str, Any]) -> str:
@@ -480,6 +531,9 @@ def _page_shell(title: str, body: str) -> HTMLResponse:
           .warn {{ background: #fef9c3; color: #854d0e; }}
           .bad {{ background: #fee2e2; color: #991b1b; }}
           .neutral {{ background: #e2e8f0; color: #334155; }}
+          .demo-banner {{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; border-radius: 8px; padding: 10px 12px; margin: 14px 0; border: 1px solid #cbd5e1; }}
+          .demo-banner span {{ display: inline-block; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,0.65); font-size: 12px; font-weight: 600; }}
+          .demo-banner small {{ flex-basis: 100%; }}
           pre {{ background: #020617; color: #e2e8f0; padding: 12px; overflow-x: auto; border-radius: 8px; }}
         </style>
       </head>
@@ -554,9 +608,13 @@ def admin_demo_hub(session: Session = Depends(get_session)):
     command_rows = "".join(f"<li><code>{_safe_text(command)}</code></li>" for command in status["commands"])
     safety_rows = "".join(f"<li>{_safe_text(rule)}</li>" for rule in status["safety_rules"])
     body = f"""
+      {_demo_readiness_banner(status)}
       <h1>Demo Command Center {DEMO_NAV_VERSION}</h1>
       <div class="card">
         <h2>Current Demo State</h2>
+        <p><strong>Readiness:</strong> {_badge(status['readiness_status'], status['readiness_kind'])}</p>
+        <p><strong>Quality gate:</strong> {status['quality_gate']}</p>
+        <p><strong>Auto-send:</strong> {status['auto_send']}</p>
         <p><strong>Demo source:</strong> {status['demo_source']}</p>
         <p><strong>Demo leads:</strong> {status['demo_leads']}</p>
         <p><strong>Demo agent runs:</strong> {status['demo_agent_runs']} {status['agent_status_counts']}</p>
@@ -588,6 +646,7 @@ def admin_demo_hub(session: Session = Depends(get_session)):
 def admin_v2(session: Session = Depends(get_session)):
     leads = session.exec(select(Lead)).all()
     items = [_lead_sync_payload(session, lead) for lead in leads]
+    demo_status = _demo_status(session)
 
     readiness_counts: Dict[str, int] = {}
     lifecycle_counts: Dict[str, int] = {}
@@ -599,6 +658,7 @@ def admin_v2(session: Session = Depends(get_session)):
 
     rows = "".join(_render_row(item) for item in items)
     body = f"""
+      {_demo_readiness_banner(demo_status)}
       <h1>Global Mobility AIOS Admin v2.0</h1>
       <div class="card">
         <h2>Synced Operations Snapshot</h2>
@@ -608,7 +668,7 @@ def admin_v2(session: Session = Depends(get_session)):
         <p><strong>Authority:</strong> {authority_counts}</p>
       </div>
       <div class="card">
-        <h2>Demo Quick Links v5.3</h2>
+        <h2>Demo Quick Links v5.4</h2>
         <p>
           <a href="/admin/demo">Demo Hub</a> |
           <a href="/admin/controlled-agents">Agent Console</a> |
