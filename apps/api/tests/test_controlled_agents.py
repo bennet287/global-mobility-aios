@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 from sqlmodel import select
 
-from app.models.domain import AgentRun, AuditLog
+from app.models.domain import AgentRun, AuditLog, FollowUp, Lead
 
 from .conftest import create_lead
 
@@ -138,3 +139,151 @@ def test_agent_operator_console_action_creates_review_gated_run(
     detail = client.get(response.headers["location"])
     assert detail.status_code == 200
     assert "Requires human review" in detail.text
+
+
+def test_agent_output_review_queue_approves_and_audits_output(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    run_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "sales_summary_agent",
+            "task": "Prepare sales summary.",
+            "lead_id": str(lead.id),
+            "context": {},
+            "actor": "pytest-agent",
+        },
+    )
+    run_id = run_response.json()["run_id"]
+
+    queue = client.get("/api/v1/agent-output-reviews/queue")
+    assert queue.status_code == 200
+    assert queue.json()["items"][0]["id"] == run_id
+
+    approve = client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/approve",
+        json={"actor": "pytest-reviewer", "note": "Approved for internal use."},
+    )
+
+    assert approve.status_code == 200
+    assert approve.json()["status"] == "approved"
+    run = db_session.get(AgentRun, UUID(run_id))
+    assert run.status == "approved"
+
+    actions = {audit.action for audit in db_session.exec(select(AuditLog)).all()}
+    assert "controlled_agent_run" in actions
+    assert "agent_output_approved" in actions
+
+
+def test_unapproved_agent_output_cannot_be_converted(client: TestClient, db_session: Session) -> None:
+    lead = create_lead(db_session)
+    run_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft update.",
+            "lead_id": str(lead.id),
+            "context": {},
+        },
+    )
+    run_id = run_response.json()["run_id"]
+
+    convert = client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/convert",
+        json={"actor": "pytest-reviewer", "note": "Should be blocked."},
+    )
+
+    assert convert.status_code == 409
+    assert db_session.exec(select(FollowUp)).all() == []
+
+
+def test_approved_client_drafting_output_converts_to_pending_followup(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    run_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft update.",
+            "lead_id": str(lead.id),
+            "context": {"subject": "Safe update"},
+        },
+    )
+    run_id = run_response.json()["run_id"]
+    client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/approve",
+        json={"actor": "pytest-reviewer", "note": "Approved draft."},
+    )
+
+    convert = client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/convert",
+        json={"actor": "pytest-reviewer", "note": "Convert to draft."},
+    )
+
+    assert convert.status_code == 200
+    payload = convert.json()
+    assert payload["converted_to"] == "client_communication_draft"
+    follow_up = db_session.exec(select(FollowUp)).one()
+    assert follow_up.lead_id == lead.id
+    assert str(follow_up.status) in {"pending", "FollowUpStatus.pending"}
+    assert "Subject: Safe update" in follow_up.message
+    assert db_session.get(AgentRun, UUID(run_id)).status == "converted"
+
+    actions = {audit.action for audit in db_session.exec(select(AuditLog)).all()}
+    assert "agent_output_converted_to_client_draft" in actions
+
+
+def test_approved_sales_summary_converts_to_internal_lead_note(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    run_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "sales_summary_agent",
+            "task": "Prepare sales summary.",
+            "lead_id": str(lead.id),
+            "context": {},
+        },
+    )
+    run_id = run_response.json()["run_id"]
+    client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/approve",
+        json={"actor": "pytest-reviewer", "note": "Approved note."},
+    )
+
+    convert = client.post(
+        f"/api/v1/agent-output-reviews/runs/{run_id}/convert",
+        json={"actor": "pytest-reviewer", "note": "Attach internally."},
+    )
+
+    assert convert.status_code == 200
+    assert convert.json()["converted_to"] == "internal_lead_note"
+    updated_lead = db_session.get(Lead, lead.id)
+    assert "Lead summary prepared for sales-safe follow-up." in updated_lead.notes
+    assert "Attach internally." in updated_lead.notes
+    assert db_session.get(AgentRun, UUID(run_id)).status == "converted"
+
+
+def test_agent_review_admin_page_loads_pending_outputs(client: TestClient, db_session: Session) -> None:
+    lead = create_lead(db_session)
+    client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "sales_summary_agent",
+            "task": "Prepare sales summary.",
+            "lead_id": str(lead.id),
+            "context": {},
+        },
+    )
+
+    response = client.get("/admin/agent-output-reviews")
+
+    assert response.status_code == 200
+    assert "Agent Output Review Queue v4.2" in response.text
+    assert "Approve Output" in response.text
