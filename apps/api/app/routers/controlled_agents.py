@@ -517,9 +517,31 @@ def _audit_history_rows(logs: list[AuditLog]) -> str:
     )
 
 
-def _lead_action_forms(lead: Lead) -> str:
+def _pending_client_drafting_run_for_lead(session: Session, lead_id: UUID) -> AgentRun | None:
+    return session.exec(
+        select(AgentRun)
+        .where(AgentRun.lead_id == lead_id)
+        .where(AgentRun.agent_name == "client_drafting_agent")
+        .where(AgentRun.status == PENDING_AGENT_OUTPUT_STATUS)
+        .order_by(AgentRun.created_at.desc())
+    ).first()
+
+
+def _lead_action_forms(session: Session, lead: Lead) -> str:
     forms = []
     for agent_name, label in LEAD_AGENT_ACTIONS.items():
+        if agent_name == "client_drafting_agent":
+            pending_run = _pending_client_drafting_run_for_lead(session, lead.id)
+            if pending_run:
+                forms.append(
+                    f"""
+                    <a href="/admin/agent-output-reviews/runs/{pending_run.id}" style="display:inline-block; padding:6px 10px; border:1px solid #94a3b8; border-radius:6px; background:#fef3c7; margin:2px 0;">
+                      Review Pending Draft Output
+                    </a>
+                    <small>Duplicate guard active</small>
+                    """
+                )
+                continue
         forms.append(
             f"""
             <form method="post" action="/admin/controlled-agents/leads/{lead.id}/run/{agent_name}" style="display:inline-block">
@@ -688,7 +710,7 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
           <td><a href="/admin/controlled-agents/leads/{lead.id}">{_escape(lead.full_name)}</a><br><small>{lead.id}</small></td>
           <td>{_escape(getattr(lead.intent, "value", lead.intent))}<br>{_escape(lead.target_country)}</td>
           <td>{_escape(getattr(lead.status, "value", lead.status))}</td>
-          <td>{_lead_action_forms(lead)}</td>
+          <td>{_lead_action_forms(session, lead)}</td>
         </tr>
         """
         for lead in leads
@@ -876,7 +898,7 @@ def admin_controlled_agents_lead(lead_id: UUID, session: Session = Depends(get_s
       <h1>Controlled Agents for {_escape(lead.full_name)}</h1>
       <div class="card">
         <h2>Actions</h2>
-        {_lead_action_forms(lead)}
+        {_lead_action_forms(session, lead)}
       </div>
       <div class="card">
         <h2>Generated Context</h2>
@@ -942,10 +964,18 @@ def admin_controlled_agent_run_detail(
 
     duplicate_notice = ""
     if duplicate_guard:
-        duplicate_notice = """
+        review_queue_url = "/admin/agent-output-reviews?status=pending&agent_name=client_drafting_agent"
+        if run.lead_id:
+            review_queue_url = f"{review_queue_url}&lead_id={run.lead_id}"
+        duplicate_notice = f"""
           <div class="card">
             <h2>Duplicate Output Guard</h2>
             <p>A pending client drafting output already exists for this lead. Review, reject, or convert this output before generating another client draft.</p>
+            <p>
+              <a href="/admin/agent-output-reviews/runs/{run.id}">Open this output in Agent Review</a>
+              |
+              <a href="{review_queue_url}">Filtered review queue</a>
+            </p>
           </div>
         """
 

@@ -215,6 +215,36 @@ def test_agent_operator_console_reuses_pending_client_drafting_run(
     assert detail.status_code == 200
     assert "Duplicate Output Guard" in detail.text
     assert "Review, reject, or convert this output" in detail.text
+    assert "Open this output in Agent Review" in detail.text
+    assert "Filtered review queue" in detail.text
+    assert f"lead_id={lead.id}" in detail.text
+
+
+def test_agent_operator_console_shows_pending_draft_review_link(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    run_response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "client_drafting_agent",
+            "task": "Draft a safe client update.",
+            "lead_id": str(lead.id),
+            "context": {"subject": "Application update"},
+        },
+    )
+
+    console = client.get("/admin/controlled-agents")
+    lead_console = client.get(f"/admin/controlled-agents/leads/{lead.id}")
+
+    assert console.status_code == 200
+    assert lead_console.status_code == 200
+    assert "Review Pending Draft Output" in console.text
+    assert "Duplicate guard active" in console.text
+    assert f"/admin/agent-output-reviews/runs/{run_response.json()['run_id']}" in console.text
+    assert "Review Pending Draft Output" in lead_console.text
+    assert "Draft Client Update" not in lead_console.text
 
 
 def test_agent_output_review_queue_approves_and_audits_output(
