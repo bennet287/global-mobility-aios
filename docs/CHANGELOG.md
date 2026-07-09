@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.0 - MVP Release Hardening
+
+- Added `scripts/check_mvp_release.py`.
+- Added release-hardening tests for git cleanliness, required demo tags, demo release status, and quality status.
+- Added `docs/MVP_RELEASE_HARDENING_V6_0.md`.
+- Included the MVP release checker in local compile coverage.
+
 ## v5.9 - Demo Release Status Sync
 
 - Updated `scripts/check_demo_release.py` to validate the v5.8 release state.
