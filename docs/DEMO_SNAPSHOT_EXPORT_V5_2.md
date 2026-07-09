@@ -37,7 +37,7 @@ python scripts/export_demo_snapshot.py --format json
 Export Markdown:
 
 ```powershell
-python scripts/export_demo_snapshot.py --format markdown --output demo-snapshot-v5.2.md
+python scripts/export_demo_snapshot.py --format markdown
 ```
 
 Use a different local URL:
@@ -45,6 +45,15 @@ Use a different local URL:
 ```powershell
 python scripts/export_demo_snapshot.py --base-url http://localhost:9000 --format markdown
 ```
+
+By default, exports are written under ignored `demo_exports/` paths:
+
+```text
+demo_exports/demo-snapshot-v5.2.json
+demo_exports/demo-snapshot-v5.2.md
+```
+
+If you pass a bare filename such as `--output demo-snapshot-local.md`, the exporter still writes it under `demo_exports/`. Use `--stdout` when you want to print the snapshot instead of writing a file.
 
 ## Safety Rules
 

@@ -18,5 +18,6 @@ postgres_data/
 qdrant_data/
 redis_data/
 langfuse_data/
-
-.env.production
+demo_exports/
+demo-snapshot-*.md
+demo-snapshot-*.json

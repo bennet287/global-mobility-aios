@@ -46,6 +46,7 @@ DEMO_FLOW = (
     "Open Communication Drafts and verify Demo 3 appears with status draft.",
     "Preview/Edit the draft, then mark it reviewed.",
     "Open Audit Logs and verify controlled_agent_run, agent_output_approved, agent_output_converted_to_client_draft, and client_draft_reviewed.",
+    "Export a clean demo snapshot with python scripts/export_demo_snapshot.py --format markdown.",
 )
 
 

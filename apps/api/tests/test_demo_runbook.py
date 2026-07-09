@@ -24,6 +24,7 @@ def test_demo_runbook_flow_covers_agent_to_client_draft_path() -> None:
     assert "client_drafting_agent" in flow
     assert "client communication draft" in flow
     assert "Audit Logs" in flow
+    assert "export_demo_snapshot.py" in flow
 
 
 def test_demo_runbook_keeps_safety_rules_explicit() -> None:

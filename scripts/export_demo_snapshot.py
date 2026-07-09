@@ -27,6 +27,7 @@ from scripts.seed_demo_data import CLIENT_DRAFT_PREFIX, DEMO_SOURCE  # noqa: E40
 
 
 SNAPSHOT_VERSION = "v5.2"
+DEFAULT_EXPORT_DIR = ROOT / "demo_exports"
 DEMO_AUDIT_ACTIONS = (
     "controlled_agent_run",
     "agent_output_approved",
@@ -243,10 +244,27 @@ def render_markdown(snapshot: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _write_or_print(text: str, output: str | None) -> None:
+def default_snapshot_output_path(output_format: str) -> Path:
+    extension = "md" if output_format == "markdown" else "json"
+    return DEFAULT_EXPORT_DIR / f"demo-snapshot-{SNAPSHOT_VERSION}.{extension}"
+
+
+def resolve_snapshot_output_path(output: str | None, output_format: str) -> Path | None:
+    if not output:
+        return default_snapshot_output_path(output_format)
+    path = Path(output)
+    if not path.is_absolute() and path.parent == Path("."):
+        return DEFAULT_EXPORT_DIR / path
+    return path
+
+
+def _write_or_print(text: str, output: str | None, output_format: str) -> None:
     if output:
-        Path(output).write_text(text, encoding="utf-8")
-        print(f"Demo snapshot written to {output}")
+        path = resolve_snapshot_output_path(output, output_format)
+        assert path is not None
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        print(f"Demo snapshot written to {path}")
     else:
         print(text)
 
@@ -255,17 +273,27 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Export a current local demo snapshot for Global Mobility AIOS.")
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help="Local API base URL.")
     parser.add_argument("--format", choices=("json", "markdown"), default="json", help="Output format.")
-    parser.add_argument("--output", help="Optional output file path.")
+    parser.add_argument(
+        "--output",
+        default="",
+        help="Optional output file path. Bare filenames are written under demo_exports/.",
+    )
+    parser.add_argument(
+        "--stdout",
+        action="store_true",
+        help="Print to stdout instead of writing to demo_exports/.",
+    )
     args = parser.parse_args()
 
     create_db_and_tables()
     with Session(engine) as session:
         snapshot = build_demo_snapshot(session, args.base_url)
 
+    output = None if args.stdout else args.output or str(default_snapshot_output_path(args.format))
     if args.format == "markdown":
-        _write_or_print(render_markdown(snapshot), args.output)
+        _write_or_print(render_markdown(snapshot), output, args.format)
     else:
-        _write_or_print(json.dumps(snapshot, indent=2, sort_keys=True), args.output)
+        _write_or_print(json.dumps(snapshot, indent=2, sort_keys=True), output, args.format)
     return 0 if snapshot["status"] == "ready" else 1
 
 

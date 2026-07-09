@@ -9,7 +9,12 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.export_demo_snapshot import build_demo_snapshot, render_markdown  # noqa: E402
+from scripts.export_demo_snapshot import (  # noqa: E402
+    build_demo_snapshot,
+    default_snapshot_output_path,
+    render_markdown,
+    resolve_snapshot_output_path,
+)
 from scripts.seed_demo_data import seed_demo_data  # noqa: E402
 
 
@@ -52,3 +57,15 @@ def test_demo_snapshot_markdown_contains_demo_sections(db_session: Session) -> N
     assert "/admin/controlled-agents" in markdown
     assert "/admin/client-communications/drafts" in markdown
     assert "No automatic email" in markdown
+
+
+def test_demo_snapshot_export_paths_use_ignored_demo_exports_folder() -> None:
+    default_markdown = default_snapshot_output_path("markdown")
+    default_json = default_snapshot_output_path("json")
+    bare_markdown = resolve_snapshot_output_path("demo-snapshot-custom.md", "markdown")
+    nested_markdown = resolve_snapshot_output_path("custom_exports/demo-snapshot-custom.md", "markdown")
+
+    assert default_markdown.parts[-2:] == ("demo_exports", "demo-snapshot-v5.2.md")
+    assert default_json.parts[-2:] == ("demo_exports", "demo-snapshot-v5.2.json")
+    assert bare_markdown.parts[-2:] == ("demo_exports", "demo-snapshot-custom.md")
+    assert nested_markdown.parts[-2:] == ("custom_exports", "demo-snapshot-custom.md")

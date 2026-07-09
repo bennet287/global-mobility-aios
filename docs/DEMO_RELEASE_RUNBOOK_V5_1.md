@@ -67,6 +67,20 @@ Or as JSON:
 python scripts/print_demo_runbook.py --json
 ```
 
+## Export Demo Snapshot
+
+Run:
+
+```powershell
+python scripts/export_demo_snapshot.py --format markdown
+```
+
+Expected:
+
+```text
+Demo snapshot written to ...\demo_exports\demo-snapshot-v5.2.md
+```
+
 ## Main URLs
 
 | Page | URL |
@@ -120,6 +134,7 @@ Run:
 python -m compileall apps/api/app apps/api/tests scripts/check_local_quality.py scripts/print_demo_runbook.py
 python scripts/check_repo_policy.py --root .
 python scripts/print_demo_runbook.py --json
+python scripts/export_demo_snapshot.py --format markdown
 python scripts/check_local_quality.py
 ```
 
