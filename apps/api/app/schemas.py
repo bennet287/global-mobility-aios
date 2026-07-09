@@ -11,6 +11,7 @@ from app.models.domain import (
     ReviewStatus,
     VerificationStatus,
     WorkflowStatus,
+    now_utc,
 )
 
 class LeadCreate(BaseModel):
@@ -231,9 +232,30 @@ class LeadIntakeWorkflowResponse(BaseModel):
 class AgentRunRequest(BaseModel):
     agent_name: str
     task: str
-    context: dict = {}
+    context: dict[str, Any] = Field(default_factory=dict)
 
 class AgentRunResponse(BaseModel):
     agent_name: str
     status: str
     output: dict
+    message: str = "Agent run completed."
+    created_at: datetime = Field(default_factory=now_utc)
+
+class ControlledAgentRunRequest(BaseModel):
+    agent_name: str
+    task: str
+    lead_id: Optional[UUID] = None
+    workflow_run_id: Optional[UUID] = None
+    context: dict[str, Any] = Field(default_factory=dict)
+    actor: str = "system"
+
+class ControlledAgentRunResponse(BaseModel):
+    run_id: UUID
+    agent_name: str
+    status: str
+    output: dict[str, Any]
+    guardrails: list[str]
+    requires_human_review: bool
+    persisted: bool = True
+    message: str
+    created_at: datetime

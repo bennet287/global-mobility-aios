@@ -9,6 +9,7 @@ from app.routers import (
     truth_resolution,
     application_engine,
     sales_engine,
+    controlled_agents,
     document_operations,
     document_uploads,
     document_engine,
@@ -68,6 +69,7 @@ app.include_router(document_operations.router, tags=["document-operations"])
 app.include_router(document_uploads.router)
 app.include_router(sales_engine.router, prefix="", tags=["sales-engine"])
 app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
+app.include_router(controlled_agents.router, tags=["controlled-agents"])
 app.include_router(agent_runs.router, prefix="/api/v1", tags=["agent-runs"])
 app.include_router(profiles.router, prefix="/api/v1", tags=["profiles"])
 app.include_router(reviews.router, prefix="/api/v1", tags=["human-reviews"])
