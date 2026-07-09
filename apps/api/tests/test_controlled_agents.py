@@ -96,3 +96,45 @@ def test_unknown_controlled_agent_is_rejected(client: TestClient) -> None:
     )
 
     assert response.status_code == 404
+
+
+def test_agent_operator_console_lists_safe_actions(client: TestClient, db_session: Session) -> None:
+    lead = create_lead(db_session)
+
+    response = client.get("/admin/controlled-agents")
+
+    assert response.status_code == 200
+    assert "Agent Operator Console v4.1" in response.text
+    assert str(lead.id) in response.text
+    assert "Generate Sales Summary" in response.text
+    assert "Auto-send disabled" in response.text
+
+
+def test_agent_operator_console_action_creates_review_gated_run(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+
+    response = client.post(
+        f"/admin/controlled-agents/leads/{lead.id}/run/application_readiness_agent",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert "/admin/controlled-agents/runs/" in response.headers["location"]
+
+    run = db_session.exec(select(AgentRun)).one()
+    assert run.lead_id == lead.id
+    assert run.agent_name == "application_readiness_agent"
+    output = json.loads(run.output_json)
+    assert output["ready_for_submission"] is False
+    assert "application_submission" in output["blocked_actions"]
+
+    audit = db_session.exec(select(AuditLog).where(AuditLog.action == "controlled_agent_run")).one()
+    assert audit.actor == "operator_console"
+    assert audit.source == "controlled_agents_v4.0"
+
+    detail = client.get(response.headers["location"])
+    assert detail.status_code == 200
+    assert "Requires human review" in detail.text
