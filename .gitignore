@@ -26,3 +26,9 @@ release_exports/
 mvp-release-bundle-*.md
 mvp-release-bundle-*.json
 mvp-release-archive-*.zip
+
+# Next.js frontend generated output
+.next/
+apps/web/.next/
+apps/web/out/
+.turbo/

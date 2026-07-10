@@ -1,21 +1,16 @@
-import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const displayFont = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-display",
-});
-
-const monoFont = IBM_Plex_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "500"],
-});
-
 export const metadata: Metadata = {
-  title: "Global Mobility AIOS Dashboard",
-  description: "CRM dashboard and truth review queue",
+  title: "Global Mobility AIOS | Operator Command Center",
+  description:
+    "Modern operator dashboard for controlled global mobility workflows, truth checks, document review, and human-in-the-loop AI operations.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#07111f",
 };
 
 export default function RootLayout({
@@ -25,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${monoFont.variable}`}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
