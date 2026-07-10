@@ -20,6 +20,22 @@ export type Lead = {
   updated_at?: string;
 };
 
+export type Profile = {
+  id: string;
+  lead_id: string;
+  full_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  target_country?: string | null;
+  intent?: string | null;
+  budget?: string | null;
+  timeline?: string | null;
+  language_score?: string | null;
+  raw_intake_json?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type TruthClaim = {
   id: string;
   lead_id?: string | null;
@@ -34,6 +50,75 @@ export type TruthClaim = {
   red_flags_json?: string | null;
   recommended_next_step?: string | null;
   created_at: string;
+};
+
+export type SourceReference = {
+  id: string;
+  url: string;
+  title?: string | null;
+  domain?: string | null;
+  country?: string | null;
+  topic?: string | null;
+  confidence?: number | null;
+  checked_at?: string | null;
+};
+
+export type HumanReview = {
+  id: string;
+  lead_id?: string | null;
+  status: string;
+  reviewer_notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type WorkflowRun = {
+  id: string;
+  lead_id?: string | null;
+  workflow_name?: string | null;
+  status?: string;
+  created_at?: string;
+};
+
+export type AgentRun = {
+  id: string;
+  lead_id?: string | null;
+  agent_name?: string | null;
+  task?: string | null;
+  status?: string;
+  output_json?: string | null;
+  created_at?: string;
+};
+
+export type FollowUp = {
+  id: string;
+  lead_id?: string | null;
+  channel?: string | null;
+  message?: string | null;
+  status?: string;
+  scheduled_at?: string | null;
+  created_at?: string;
+};
+
+export type DocumentRecord = {
+  id: string;
+  lead_id?: string | null;
+  document_type: string;
+  filename: string;
+  status: string;
+  uploaded_at?: string | null;
+  verified_by?: string | null;
+  expiry_date?: string | null;
+};
+
+export type ApplicationRecord = {
+  id: string;
+  lead_id?: string | null;
+  status?: string;
+  authority?: string | null;
+  decision?: string | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type DashboardSummary = {
@@ -89,17 +174,6 @@ export type ApplicationQueue = {
   items: ApplicationQueueItem[];
 };
 
-export type DocumentRecord = {
-  id: string;
-  lead_id?: string | null;
-  document_type: string;
-  filename: string;
-  status: string;
-  uploaded_at?: string | null;
-  verified_by?: string | null;
-  expiry_date?: string | null;
-};
-
 export type DocumentVerificationQueue = {
   count: number;
   documents: DocumentRecord[];
@@ -134,6 +208,30 @@ export type HealthStatus = {
 export type OptionalData<T> = {
   data: T | null;
   error: string | null;
+};
+
+export type LeadDetail = {
+  lead: Lead;
+  profile?: Profile | null;
+  truth_claims: TruthClaim[];
+  source_references: SourceReference[];
+  human_reviews: HumanReview[];
+  workflow_runs: WorkflowRun[];
+  agent_runs: AgentRun[];
+  follow_ups: FollowUp[];
+  documents: DocumentRecord[];
+  applications: ApplicationRecord[];
+};
+
+export type LeadSyncPayload = {
+  lead: Lead;
+  readiness_stage?: string;
+  lifecycle_stage?: string;
+  authority_stage?: string;
+  document_summary?: Record<string, unknown>;
+  truth_summary?: Record<string, unknown>;
+  application_summary?: Record<string, unknown>;
+  next_action?: string;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
@@ -192,6 +290,18 @@ export async function getAgentReviewDashboard(): Promise<OptionalData<AgentRevie
 
 export async function getHealthStatus(): Promise<OptionalData<HealthStatus>> {
   return optionalRequest<HealthStatus>("/health");
+}
+
+export async function getLead(id: string): Promise<Lead> {
+  return request<Lead>(`/api/v1/leads/${id}`);
+}
+
+export async function getLeadDetail(id: string): Promise<LeadDetail> {
+  return request<LeadDetail>(`/api/v1/leads/${id}/detail`);
+}
+
+export async function getLeadSync(id: string): Promise<LeadSyncPayload> {
+  return request<LeadSyncPayload>(`/api/v1/admin-ui-sync/leads/${id}`);
 }
 
 export async function createLead(payload: {

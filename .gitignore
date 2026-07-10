@@ -32,3 +32,4 @@ mvp-release-archive-*.zip
 apps/web/.next/
 apps/web/out/
 .turbo/
+*.tsbuildinfo
