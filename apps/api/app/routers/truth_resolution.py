@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import uuid
 
@@ -18,11 +18,16 @@ from app.models.domain import (
     SourceReference,
     TruthClaim,
 )
+from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["truth-resolution"])
 
 REJECTED_TRUTH_STATUSES = {"rejected", "reject", "false", "unsafe", "misleading", "fake"}
 PENDING_REVIEW_STATUSES = {"pending", "open", "needs_review", "human_review", "in_review"}
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 class TruthResolveRequest(BaseModel):
     resolution_note: str = Field(default="Resolved after official-source review.")
@@ -74,7 +79,10 @@ def _resolution_note(existing: Any, action: str, note: str) -> str:
     return marker
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 def _json_safe(value: Any) -> Any:
     value = _value(value)
@@ -186,7 +194,7 @@ def _claims_for_lead(session: Session, lead_id: Any) -> List[TruthClaim]:
 
 def _create_follow_up(session: Session, lead_id: Any, message: str) -> Optional[FollowUp]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": lead_id,
         "channel": "email",
@@ -252,7 +260,7 @@ def _truth_resolution_summary(session: Session, lead: Lead) -> Dict[str, Any]:
 
 def _build_corrected_claim_payload(lead: Lead, request: CorrectedClaimRequest) -> Dict[str, Any]:
     fields = _model_fields(TruthClaim)
-    now = datetime.utcnow()
+    now = _utcnow()
     lead_id = _lead_id(lead)
     country = request.country or getattr(lead, "target_country", None)
     safe_verdict = _safe_truth_verdict(request.verdict)
@@ -329,8 +337,8 @@ def resolve_truth_claim(
     _set_if_field(claim, "status", safe_verdict)
     _set_if_field(claim, "requires_human_review", False)
     _set_if_field(claim, "red_flags_json", "[]")
-    _set_if_field(claim, "resolved_at", datetime.utcnow())
-    _set_if_field(claim, "updated_at", datetime.utcnow())
+    _set_if_field(claim, "resolved_at", _utcnow())
+    _set_if_field(claim, "updated_at", _utcnow())
     _set_if_field(claim, "resolution_status", action)
     _set_if_field(claim, "resolution_note", note)
     _set_if_field(claim, "notes", _resolution_note(getattr(claim, "notes", ""), action, note))
@@ -358,6 +366,17 @@ def resolve_truth_claim(
         follow_up = _create_follow_up(session, lead_id, f"Truth claim {action}: {request.resolution_note}")
 
     lead = _get_lead(session, lead_id)
+    record_audit(
+        session,
+        action="truth_claim_rejected" if safe_verdict == "rejected" else "truth_claim_resolved",
+        entity_type="truth_claim",
+        entity_id=_claim_id(claim),
+        before_state=before,
+        after_state=_to_dict(claim),
+        reason=request.resolution_note,
+        source="truth_resolution",
+        commit=True,
+    )
     return _json_response({
         "status": action,
         "before": before,
@@ -407,6 +426,18 @@ def create_corrected_claim(
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Corrected truth claim created for {getattr(lead, 'target_country', 'target country')}.")
 
+    record_audit(
+        session,
+        action="truth_claim_corrected",
+        entity_type="truth_claim",
+        entity_id=_claim_id(claim),
+        before_state=None,
+        after_state=_to_dict(claim),
+        reason=request.explanation,
+        source="truth_resolution",
+        commit=True,
+    )
+
     return _json_response({
         "status": "created",
         "claim": _to_dict(claim),
@@ -430,8 +461,8 @@ def close_truth_reviews(
         _set_if_field(review, "resolution_note", request.note)
         _set_if_field(review, "notes", request.note)
         _set_if_field(review, "reviewer_notes", request.note)
-        _set_if_field(review, "updated_at", datetime.utcnow())
-        _set_if_field(review, "resolved_at", datetime.utcnow())
+        _set_if_field(review, "updated_at", _utcnow())
+        _set_if_field(review, "resolved_at", _utcnow())
         session.add(review)
         updated.append(review)
 
@@ -454,6 +485,18 @@ def close_truth_reviews(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Human reviews closed for truth resolution: {request.note}")
+
+    record_audit(
+        session,
+        action="human_reviews_closed",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"pending_review_count": len(pending_reviews)},
+        after_state={"closed_review_count": len(updated), "reviews": [_to_dict(r) for r in updated]},
+        reason=request.note,
+        source="truth_resolution",
+        commit=True,
+    )
 
     return _json_response({
         "status": "closed",

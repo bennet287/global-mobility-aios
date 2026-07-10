@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,9 +13,14 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, FollowUp, Lead, LeadStatus
 from app.routers.application_engine import _application_record_to_dict, _calculate_readiness
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["authority-decision-tracking"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 POST_SUBMISSION_STATUSES = {
     "submitted",
@@ -70,7 +75,10 @@ def _uuid_or_404(value: Any, field_name: str = "id") -> uuid.UUID:
 
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 
 def _json_safe(value: Any) -> Any:
@@ -139,7 +147,7 @@ def _create_follow_up(session: Session, lead: Optional[Lead], message: str) -> O
     if not lead:
         return None
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": getattr(lead, "id", None),
         "channel": "email",
@@ -171,7 +179,7 @@ def _append_lead_note(lead: Optional[Lead], message: str) -> None:
         return
     updated = f"{existing}\n\n{message}" if existing else message
     _set_if_field(lead, "notes", updated)
-    _set_if_field(lead, "updated_at", datetime.utcnow())
+    _set_if_field(lead, "updated_at", _utcnow())
 
 
 def _update_lead_business_status(lead: Optional[Lead], target_status: str) -> None:
@@ -181,7 +189,7 @@ def _update_lead_business_status(lead: Optional[Lead], target_status: str) -> No
         _set_if_field(lead, "status", LeadStatus.converted)
     elif target_status in {"rejected_by_authority", "withdrawn"}:
         _set_if_field(lead, "status", LeadStatus.closed)
-    _set_if_field(lead, "updated_at", datetime.utcnow())
+    _set_if_field(lead, "updated_at", _utcnow())
 
 
 def _transition_allowed(current_status: str, target_status: str) -> bool:
@@ -253,7 +261,7 @@ def _set_authority_status(
         "[authority_decision:v1.9]",
         f"application={_json_safe(getattr(app, 'id', None))}",
         f"status={target_status}",
-        f"at={datetime.utcnow().isoformat()}",
+        f"at={_utcnow().isoformat()}",
     ]
     if request.reference_number:
         note_parts.append(f"reference={request.reference_number}")
@@ -291,10 +299,23 @@ def _set_authority_status(
             f"Authority decision update: application {getattr(app, 'id', None)} is now {target_status}.",
         )
 
+    after = _authority_payload(session, app)
+    record_audit(
+        session,
+        action="authority_decision_recorded",
+        entity_type="application",
+        entity_id=getattr(app, "id", None),
+        before_state=before,
+        after_state=after,
+        reason=request.note or target_status,
+        source="authority_decision",
+        commit=True,
+    )
+
     return {
         "status": target_status,
         "before": before,
-        "after": _authority_payload(session, app),
+        "after": after,
         "follow_up": _to_dict(follow_up) if follow_up else None,
     }
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,8 +18,13 @@ from app.models.domain import (
     Lead,
     TruthClaim,
 )
+from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["application-engine"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class ApplicationDraftRequest(BaseModel):
@@ -55,7 +60,10 @@ def _safe_status(value: Any) -> str:
 
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 
 def _to_dict(obj: Any) -> Dict[str, Any]:
@@ -270,7 +278,7 @@ def _calculate_readiness(session: Session, lead: Lead) -> Dict[str, Any]:
 
 def _build_application_payload(lead: Lead, request: ApplicationDraftRequest, readiness: Dict[str, Any]) -> Dict[str, Any]:
     fields = _model_fields(ApplicationRecord)
-    now = datetime.utcnow()
+    now = _utcnow()
     target_country = request.target_country or getattr(lead, "target_country", None)
     application_type = request.application_type or getattr(lead, "intent", "visa")
     readiness_stage = readiness["stage"]
@@ -339,7 +347,7 @@ def _create_application_record(session: Session, lead: Lead, request: Applicatio
 
 def _create_follow_up(session: Session, lead: Lead, message: str) -> Optional[FollowUp]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": getattr(lead, "id", None),
         "channel": "email",
@@ -444,6 +452,18 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
             f"Application draft created, but action is needed before submission: {readiness['next_action']}",
         )
 
+    record_audit(
+        session,
+        action="application_drafted",
+        entity_type="application",
+        entity_id=_application_id(app),
+        before_state=None,
+        after_state=_application_record_to_dict(app),
+        reason=request.notes,
+        source="application_engine",
+        commit=True,
+    )
+
     return _json_response({
         "status": "created",
         "application": _application_record_to_dict(app),
@@ -455,6 +475,7 @@ def create_application_draft(lead_id: str, request: ApplicationDraftRequest, ses
 @router.post("/api/v1/applications/{application_id}/approve")
 def approve_application(application_id: str, request: ApplicationActionRequest = ApplicationActionRequest(), session: Session = Depends(get_session)):
     app = _get_application(session, application_id)
+    before = _application_record_to_dict(app)
     lead_pk = _uuid_or_404(getattr(app, "lead_id", None), "lead_id")
     lead = session.get(Lead, lead_pk)
     if not lead:
@@ -473,16 +494,28 @@ def approve_application(application_id: str, request: ApplicationActionRequest =
     _set_if_field(app, "current_stage", "approved")
     if request.note and hasattr(app, "notes"):
         app.notes = request.note
-    _set_if_field(app, "updated_at", datetime.utcnow())
+    _set_if_field(app, "updated_at", _utcnow())
     session.add(app)
     session.commit()
     session.refresh(app)
+    record_audit(
+        session,
+        action="application_approved",
+        entity_type="application",
+        entity_id=_application_id(app),
+        before_state=before,
+        after_state=_application_record_to_dict(app),
+        reason=request.note,
+        source="application_engine",
+        commit=True,
+    )
     return _json_response({"status": "approved", "application": _application_record_to_dict(app), "readiness": readiness})
 
 
 @router.post("/api/v1/applications/{application_id}/submit")
 def submit_application(application_id: str, request: ApplicationActionRequest = ApplicationActionRequest(), session: Session = Depends(get_session)):
     app = _get_application(session, application_id)
+    before = _application_record_to_dict(app)
     lead_pk = _uuid_or_404(getattr(app, "lead_id", None), "lead_id")
     lead = session.get(Lead, lead_pk)
     if not lead:
@@ -511,10 +544,21 @@ def submit_application(application_id: str, request: ApplicationActionRequest = 
     _set_if_field(app, "current_stage", "submitted")
     if request.note and hasattr(app, "notes"):
         app.notes = request.note
-    _set_if_field(app, "updated_at", datetime.utcnow())
+    _set_if_field(app, "updated_at", _utcnow())
     session.add(app)
     session.commit()
     session.refresh(app)
+    record_audit(
+        session,
+        action="application_submitted",
+        entity_type="application",
+        entity_id=_application_id(app),
+        before_state=before,
+        after_state=_application_record_to_dict(app),
+        reason=request.note,
+        source="application_engine",
+        commit=True,
+    )
     return _json_response({"status": "submitted", "application": _application_record_to_dict(app), "readiness": readiness})
 
 

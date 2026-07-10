@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,9 +13,14 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, FollowUp, Lead
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["document-verification-actions"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 DOCUMENT_OK_STATUSES = {"received", "verified"}
 DOCUMENT_PROBLEM_STATUSES = {"missing", "needs_review", "rejected", "expired"}
@@ -60,7 +65,10 @@ def _uuid_or_404(value: Any, field_name: str = "id") -> uuid.UUID:
 
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 
 def _json_safe(value: Any) -> Any:
@@ -158,13 +166,13 @@ def _write_metadata(doc: DocumentRecord, action: str, status: str, note: Optiona
         "action": action,
         "status": status,
         "note": note,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": _utcnow().isoformat(),
         "actor": "document_verification_actions_v1_2",
     })
     meta["verification_actions"] = history
     meta["last_verification_action"] = action
     meta["last_verification_status"] = status
-    meta["last_verification_at"] = datetime.utcnow().isoformat()
+    meta["last_verification_at"] = _utcnow().isoformat()
     setattr(doc, "extracted_metadata_json", json.dumps(meta))
 
 
@@ -208,14 +216,14 @@ def _apply_document_status(
     elif status in {"received", "verified"} and not getattr(doc, "storage_key", None):
         _set_if_field(doc, "storage_key", _default_storage_key(lead_id, doc, status))
 
-    _set_if_field(doc, "updated_at", datetime.utcnow())
+    _set_if_field(doc, "updated_at", _utcnow())
     _write_metadata(doc, action, status, note)
     return doc
 
 
 def _create_follow_up(session: Session, lead_id: Any, message: str) -> Optional[FollowUp]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     payload = {
         "lead_id": lead_id,
         "channel": "email",
@@ -287,6 +295,7 @@ def receive_document(
 ):
     doc = _get_document(session, document_id)
     lead_id = getattr(doc, "lead_id", None)
+    before = _to_dict(doc)
     _apply_document_status(
         doc,
         "received",
@@ -302,6 +311,17 @@ def receive_document(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, lead_id, f"Document received: {getattr(doc, 'document_type', 'document')}")
+    record_audit(
+        session,
+        action="document_received",
+        entity_type="document",
+        entity_id=_doc_id(doc),
+        before_state=before,
+        after_state=_to_dict(doc),
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
     return _json_response({"status": "received", "document": _to_dict(doc), "follow_up": _to_dict(follow_up) if follow_up else None})
 
 
@@ -313,6 +333,7 @@ def verify_document(
 ):
     doc = _get_document(session, document_id)
     lead_id = getattr(doc, "lead_id", None)
+    before = _to_dict(doc)
     _apply_document_status(
         doc,
         "verified",
@@ -328,6 +349,17 @@ def verify_document(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, lead_id, f"Document verified: {getattr(doc, 'document_type', 'document')}")
+    record_audit(
+        session,
+        action="document_verified",
+        entity_type="document",
+        entity_id=_doc_id(doc),
+        before_state=before,
+        after_state=_to_dict(doc),
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
     return _json_response({"status": "verified", "document": _to_dict(doc), "follow_up": _to_dict(follow_up) if follow_up else None})
 
 
@@ -339,6 +371,7 @@ def reject_document(
 ):
     doc = _get_document(session, document_id)
     lead_id = getattr(doc, "lead_id", None)
+    before = _to_dict(doc)
     _apply_document_status(
         doc,
         "rejected",
@@ -354,6 +387,17 @@ def reject_document(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, lead_id, f"Document rejected: {getattr(doc, 'document_type', 'document')}. {request.note or ''}".strip())
+    record_audit(
+        session,
+        action="document_rejected",
+        entity_type="document",
+        entity_id=_doc_id(doc),
+        before_state=before,
+        after_state=_to_dict(doc),
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
     return _json_response({"status": "rejected", "document": _to_dict(doc), "follow_up": _to_dict(follow_up) if follow_up else None})
 
 
@@ -368,6 +412,7 @@ def bulk_receive_documents(
     if not docs:
         raise HTTPException(status_code=404, detail="No matching documents found for this lead")
 
+    before = [_to_dict(doc) for doc in docs]
     updated = []
     for doc in docs:
         _apply_document_status(doc, "received", lead_id=_lead_id(lead), action="bulk_receive", note=request.note)
@@ -381,6 +426,18 @@ def bulk_receive_documents(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Bulk document receive completed for {len(updated)} document(s).")
+
+    record_audit(
+        session,
+        action="documents_bulk_received",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"documents": before},
+        after_state={"documents": [_to_dict(doc) for doc in updated]},
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
 
     return _json_response({
         "status": "received",
@@ -402,6 +459,7 @@ def bulk_verify_documents(
     if not docs:
         raise HTTPException(status_code=404, detail="No matching documents found for this lead")
 
+    before = [_to_dict(doc) for doc in docs]
     updated = []
     for doc in docs:
         _apply_document_status(doc, "verified", lead_id=_lead_id(lead), action="bulk_verify", note=request.note)
@@ -415,6 +473,18 @@ def bulk_verify_documents(
     follow_up = None
     if request.create_follow_up:
         follow_up = _create_follow_up(session, _lead_id(lead), f"Bulk document verification completed for {len(updated)} document(s).")
+
+    record_audit(
+        session,
+        action="documents_bulk_verified",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"documents": before},
+        after_state={"documents": [_to_dict(doc) for doc in updated]},
+        reason=request.note,
+        source="document_verification",
+        commit=True,
+    )
 
     return _json_response({
         "status": "verified",

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+from html import escape
 from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qs
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
@@ -12,20 +14,26 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, FollowUp, Lead
+from app.services.audit_log import record_audit
 
 
-router = APIRouter(tags=["client-communication-drafting"])
+router = APIRouter(tags=["client-communication-review"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 DRAFT_PREFIX = "[client_communication_draft:v2.6]"
+MODULE_VERSION = "v2.7"
 APPROVED_AUTHORITY_STATUS = "approved_by_authority"
 
 TEMPLATES: Dict[str, Dict[str, str]] = {
     "approval_confirmation": {
-        "subject": "Your application has been approved — next steps",
+        "subject": "Your application has been approved - next steps",
         "title": "Approval confirmation",
         "body": """Dear {client_name},
 
-Congratulations — your application for {target_country} has been approved by the responsible authority.
+Congratulations - your application for {target_country} has been approved by the responsible authority.
 
 Please note that this message is only an agency support update. You should always follow the official approval letter and instructions from the responsible authority.
 
@@ -132,12 +140,44 @@ class UpdateDraftRequest(BaseModel):
     note: Optional[str] = None
 
 
+class MarkAllReviewedRequest(BaseModel):
+    note: Optional[str] = None
+
+
 def _value(value: Any) -> Any:
     return getattr(value, "value", value)
 
 
 def _safe_status(value: Any) -> str:
     return str(_value(value) or "").strip().lower()
+
+
+def _clean_text(value: Any) -> str:
+    text = str(_value(value) or "")
+    replacements = {
+        "\u00e2\u20ac\u201d": "-",
+        "\u00e2\u20ac\u201c": "-",
+        "\u2014": "-",
+        "\u2013": "-",
+        "\u00e2\u20ac\u02dc": "'",
+        "\u00e2\u20ac\u2122": "'",
+        "\u00e2\u20ac\u0153": '"',
+        "\u00e2\u20ac\ufffd": '"',
+        "\u00a0": " ",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text.replace("\r\n", "\n").replace("\r", "\n").strip()
+
+
+def _html(value: Any) -> str:
+    return escape(str(_value(value) or ""), quote=True)
+
+
+def _review_note(note: Optional[str] = None) -> str:
+    if note:
+        return _clean_text(note)
+    return f"Reviewed by human operator at {_utcnow().isoformat()}Z."
 
 
 def _communication_status(value: Any) -> str:
@@ -178,7 +218,10 @@ def _uuid_or_404(value: Any, field_name: str = "id") -> uuid.UUID:
 
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 
 def _json_safe(value: Any) -> Any:
@@ -309,12 +352,12 @@ def _render_template(lead: Lead, template_key: str, request: Optional[DraftReque
         "client_name": getattr(lead, "full_name", None) or "Client",
         "target_country": getattr(lead, "target_country", None) or "your destination country",
     }
-    subject = template["subject"].format(**context)
-    body = template["body"].format(**context)
+    subject = _clean_text(template["subject"].format(**context))
+    body = _clean_text(template["body"].format(**context))
 
     if request:
-        subject = request.subject_override or subject
-        body = request.body_override or body
+        subject = _clean_text(request.subject_override) if request.subject_override else subject
+        body = _clean_text(request.body_override) if request.body_override else body
 
     return {
         "template_key": template_key,
@@ -325,13 +368,17 @@ def _render_template(lead: Lead, template_key: str, request: Optional[DraftReque
 
 
 def _draft_message(template_data: Dict[str, str], note: Optional[str] = None) -> str:
+    template_key = _clean_text(template_data["template_key"])
+    title = _clean_text(template_data["title"])
+    subject = _clean_text(template_data["subject"])
+    body = _clean_text(template_data["body"])
     message = (
-        f"{DRAFT_PREFIX} template={template_data['template_key']} "
-        f"title={template_data['title']} subject={template_data['subject']} "
-        f"body={template_data['body']}"
+        f"{DRAFT_PREFIX} template={template_key} "
+        f"title={title} subject={subject} "
+        f"body={body}"
     )
     if note:
-        message = f"{message} note={note}"
+        message = f"{message} note={_clean_text(note)}"
     return message
 
 
@@ -343,11 +390,13 @@ def _parse_draft(follow_up: FollowUp) -> Dict[str, Any]:
     body = _extract_between(message, "body=", " note=")
     if body is None:
         body = _extract_between(message, "body=") or ""
+    note = _extract_between(message, " note=")
     return {
-        "template_key": template_key,
-        "title": title,
-        "subject": subject,
-        "body": body,
+        "template_key": _clean_text(template_key),
+        "title": _clean_text(title),
+        "subject": _clean_text(subject),
+        "body": _clean_text(body),
+        "note": _clean_text(note) if note else None,
         "status": _communication_status(getattr(follow_up, "status", None)),
         "channel": getattr(follow_up, "channel", None),
         "created_at": _json_safe(getattr(follow_up, "created_at", None)),
@@ -425,7 +474,7 @@ def _create_draft(
         )
 
     template_data = _render_template(lead, template_key, request)
-    now = datetime.utcnow()
+    now = _utcnow()
     fields = _model_fields(FollowUp)
     payload = {
         "lead_id": getattr(lead, "id", None),
@@ -442,7 +491,88 @@ def _create_draft(
     session.add(draft)
     session.commit()
     session.refresh(draft)
+    record_audit(
+        session,
+        action="client_draft_generated",
+        entity_type="follow_up",
+        entity_id=getattr(draft, "id", None),
+        before_state=None,
+        after_state=_draft_payload(session, draft),
+        reason=request.note,
+        source="client_communications",
+        commit=True,
+    )
     return draft
+
+
+def _ensure_client_communication_draft(draft: FollowUp) -> None:
+    if DRAFT_PREFIX not in str(getattr(draft, "message", "") or ""):
+        raise HTTPException(status_code=404, detail="Client communication draft not found")
+
+
+def _update_draft_content(draft: FollowUp, request: UpdateDraftRequest) -> FollowUp:
+    _ensure_client_communication_draft(draft)
+    if _communication_status(getattr(draft, "status", None)) != "draft":
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Reviewed drafts cannot be edited without a future reopen workflow.",
+                "blocker": "draft_already_reviewed",
+                "next_action": "Create a replacement draft if the reviewed message must change.",
+            },
+        )
+
+    parsed = _parse_draft(draft)
+    template_data = {
+        "template_key": parsed["template_key"],
+        "title": parsed["title"],
+        "subject": request.subject if request.subject is not None else parsed["subject"],
+        "body": request.body if request.body is not None else parsed["body"],
+    }
+    note = request.note if request.note is not None else parsed.get("note")
+    _set_if_field(draft, "message", _draft_message(template_data, note))
+    _set_if_field(draft, "updated_at", _utcnow())
+    return draft
+
+
+def _mark_draft_reviewed(draft: FollowUp, request: Optional[UpdateDraftRequest] = None) -> FollowUp:
+    _ensure_client_communication_draft(draft)
+    parsed = _parse_draft(draft)
+    if _communication_status(getattr(draft, "status", None)) == "draft" and request and (request.subject or request.body):
+        draft = _update_draft_content(draft, request)
+        parsed = _parse_draft(draft)
+
+    template_data = {
+        "template_key": parsed["template_key"],
+        "title": parsed["title"],
+        "subject": parsed["subject"],
+        "body": parsed["body"],
+    }
+    note = _review_note(request.note if request else None)
+    _set_if_field(draft, "message", _draft_message(template_data, note))
+    _set_if_field(draft, "status", "completed")
+    _set_if_field(draft, "updated_at", _utcnow())
+    return draft
+
+
+def _send_blocker_payload(session: Session, draft: FollowUp) -> Dict[str, Any]:
+    _ensure_client_communication_draft(draft)
+    payload = _draft_payload(session, draft)
+    status = payload["communication"]["status"]
+    if status != "reviewed":
+        return {
+            "status": "blocked",
+            "blocker": "human_review_required",
+            "message": "Sending/export is blocked until a human reviews this draft.",
+            "draft": payload,
+        }
+    return {
+        "status": "blocked",
+        "blocker": "automatic_sending_disabled",
+        "message": "This MVP does not send email or WhatsApp messages automatically. Reviewed drafts must be sent manually outside the system.",
+        "manual_send_allowed": True,
+        "draft": payload,
+    }
 
 
 @router.get("/api/v1/client-communications/templates")
@@ -479,12 +609,49 @@ def get_client_communication_drafts(
     })
 
 
+@router.get("/api/v1/client-communications/reviewed")
+def get_reviewed_client_communication_drafts(session: Session = Depends(get_session)):
+    drafts = [
+        draft for draft in _all_draft_followups(session)
+        if _communication_status(getattr(draft, "status", None)) == "reviewed"
+    ]
+    return _json_response({
+        "total_reviewed": len(drafts),
+        "drafts": [_draft_payload(session, draft) for draft in drafts],
+    })
+
+
 @router.get("/api/v1/client-communications/drafts/{draft_id}")
 def get_client_communication_draft(draft_id: str, session: Session = Depends(get_session)):
     draft = _get_follow_up(session, draft_id)
-    if DRAFT_PREFIX not in str(getattr(draft, "message", "") or ""):
-        raise HTTPException(status_code=404, detail="Client communication draft not found")
+    _ensure_client_communication_draft(draft)
     return _json_response(_draft_payload(session, draft))
+
+
+@router.get("/api/v1/client-communications/drafts/{draft_id}/preview")
+def preview_client_communication_draft(draft_id: str, session: Session = Depends(get_session)):
+    draft = _get_follow_up(session, draft_id)
+    _ensure_client_communication_draft(draft)
+    payload = _draft_payload(session, draft)
+    payload["send_blocker"] = _send_blocker_payload(session, draft)
+    return _json_response(payload)
+
+
+@router.patch("/api/v1/client-communications/drafts/{draft_id}")
+def update_client_communication_draft(
+    draft_id: str,
+    request: UpdateDraftRequest,
+    session: Session = Depends(get_session),
+):
+    draft = _get_follow_up(session, draft_id)
+    _update_draft_content(draft, request)
+    session.add(draft)
+    session.commit()
+    session.refresh(draft)
+    return _json_response({
+        "status": "draft_updated",
+        "draft": _draft_payload(session, draft),
+    })
 
 
 @router.get("/api/v1/client-communications/leads/{lead_id}")
@@ -567,29 +734,80 @@ def mark_client_communication_draft_reviewed(
     session: Session = Depends(get_session),
 ):
     draft = _get_follow_up(session, draft_id)
-    if DRAFT_PREFIX not in str(getattr(draft, "message", "") or ""):
-        raise HTTPException(status_code=404, detail="Client communication draft not found")
-
-    parsed = _parse_draft(draft)
-    if request.subject or request.body:
-        template_data = {
-            "template_key": parsed["template_key"],
-            "title": parsed["title"],
-            "subject": request.subject or parsed["subject"],
-            "body": request.body or parsed["body"],
-        }
-        _set_if_field(draft, "message", _draft_message(template_data, request.note))
-    _set_if_field(draft, "status", "completed")
-    _set_if_field(draft, "updated_at", datetime.utcnow())
-
+    before = _draft_payload(session, draft)
+    _mark_draft_reviewed(draft, request)
     session.add(draft)
     session.commit()
     session.refresh(draft)
+    record_audit(
+        session,
+        action="client_draft_reviewed",
+        entity_type="follow_up",
+        entity_id=getattr(draft, "id", None),
+        before_state=before,
+        after_state=_draft_payload(session, draft),
+        reason=request.note,
+        source="client_communications",
+        commit=True,
+    )
 
     return _json_response({
         "status": "reviewed",
         "draft": _draft_payload(session, draft),
     })
+
+
+@router.post("/api/v1/client-communications/leads/{lead_id}/mark-all-reviewed")
+def mark_all_client_communication_drafts_reviewed(
+    lead_id: str,
+    request: MarkAllReviewedRequest = MarkAllReviewedRequest(),
+    session: Session = Depends(get_session),
+):
+    lead = _get_lead(session, lead_id)
+    drafts = _draft_followups_for_lead(session, lead)
+    changed = []
+    skipped = []
+    before = []
+    for draft in drafts:
+        if _communication_status(getattr(draft, "status", None)) == "draft":
+            before.append(_draft_payload(session, draft))
+            _mark_draft_reviewed(draft, UpdateDraftRequest(note=request.note))
+            session.add(draft)
+            changed.append(draft)
+        else:
+            skipped.append(draft)
+
+    session.commit()
+    for draft in changed:
+        session.refresh(draft)
+
+    record_audit(
+        session,
+        action="client_drafts_reviewed",
+        entity_type="lead",
+        entity_id=getattr(lead, "id", None),
+        before_state={"drafts": before},
+        after_state={"drafts": [_draft_payload(session, draft) for draft in changed]},
+        reason=request.note,
+        source="client_communications",
+        commit=True,
+    )
+
+    return _json_response({
+        "status": "reviewed",
+        "reviewed_count": len(changed),
+        "skipped_count": len(skipped),
+        "reviewed_drafts": [_draft_payload(session, draft) for draft in changed],
+        "lead_communications": _lead_payload(session, lead),
+    })
+
+
+@router.post("/api/v1/client-communications/drafts/{draft_id}/send-blocked")
+def client_communication_send_blocker(draft_id: str, session: Session = Depends(get_session)):
+    draft = _get_follow_up(session, draft_id)
+    payload = _send_blocker_payload(session, draft)
+    status_code = 409 if payload["blocker"] == "human_review_required" else 501
+    return JSONResponse(status_code=status_code, content=jsonable_encoder(payload))
 
 
 def _badge(status: str) -> str:
@@ -619,6 +837,9 @@ def _page(title: str, body: str) -> HTMLResponse:
           .neutral {{ background: #e2e8f0; color: #334155; }}
           button {{ padding: 5px 9px; border-radius: 6px; border: 1px solid #94a3b8; }}
           pre {{ white-space: pre-wrap; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; }}
+          input[type=text], textarea {{ width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-family: Arial, sans-serif; }}
+          textarea {{ min-height: 220px; }}
+          .actions form, .actions a {{ margin-right: 8px; }}
           small {{ color: #64748b; }}
         </style>
       </head>
@@ -657,12 +878,12 @@ def client_communications_admin(session: Session = Depends(get_session)):
             """
         )
     body = f"""
-      <h1>Client Communication Drafting v2.6</h1>
+      <h1>Client Communication Review {MODULE_VERSION}</h1>
       <p><a href="/admin/v2">Admin v2</a> | <a href="/debug/client-communications">Debug</a></p>
       <div class="card">
         <p><strong>Safety rule:</strong> Drafts are reviewable only. This module does not send emails automatically.</p>
         <p><a href="/admin/client-communications/drafts?status=draft">Drafts</a> |
-        <a href="/admin/client-communications/drafts?status=reviewed">Reviewed</a> |
+        <a href="/admin/client-communications/reviewed">Reviewed</a> |
         <a href="/api/v1/client-communications/templates">Templates JSON</a></p>
       </div>
       <table>
@@ -670,7 +891,7 @@ def client_communications_admin(session: Session = Depends(get_session)):
         <tbody>{''.join(rows)}</tbody>
       </table>
     """
-    return _page("Client Communication Drafting", body)
+    return _page("Client Communication Review", body)
 
 
 @router.get("/admin/client-communications/drafts", response_class=HTMLResponse)
@@ -688,7 +909,7 @@ def client_communications_drafts_admin(
         lead = _lead_for_draft(session, draft)
         parsed = _parse_draft(draft)
         draft_id = str(getattr(draft, "id", ""))
-        lead_name = getattr(lead, "full_name", "-") if lead else "-"
+        lead_name = _html(getattr(lead, "full_name", "-") if lead else "-")
         action = (
             f"""
             <form method="post" action="/admin/client-communications/drafts/{draft_id}/mark-reviewed" style="display:inline">
@@ -702,20 +923,24 @@ def client_communications_drafts_admin(
             f"""
             <tr>
               <td>{lead_name}</td>
-              <td>{parsed['title']}<br><small>{parsed['template_key']}</small></td>
-              <td>{parsed['subject']}</td>
-              <td><pre>{parsed['body']}</pre></td>
+              <td>{_html(parsed['title'])}<br><small>{_html(parsed['template_key'])}</small></td>
+              <td>{_html(parsed['subject'])}</td>
+              <td><pre>{_html(parsed['body'])}</pre></td>
               <td>{_badge(parsed['status'])}</td>
-              <td>{action}<a href="/api/v1/client-communications/drafts/{draft_id}">JSON</a></td>
+              <td class="actions">
+                <a href="/admin/client-communications/drafts/{draft_id}">Preview/Edit</a>
+                {action}
+                <a href="/api/v1/client-communications/drafts/{draft_id}">JSON</a>
+              </td>
             </tr>
             """
         )
     label = f"Filtered: {status}" if status else "All communication drafts"
     body = f"""
-      <h1>Client Communication Drafts v2.6</h1>
+      <h1>Client Communication Drafts {MODULE_VERSION}</h1>
       <p><a href="/admin/client-communications">Back</a> |
       <a href="/admin/client-communications/drafts?status=draft">Draft</a> |
-      <a href="/admin/client-communications/drafts?status=reviewed">Reviewed</a></p>
+      <a href="/admin/client-communications/reviewed">Reviewed</a></p>
       <div class="card"><strong>{label}</strong> | Total: {len(drafts)}</div>
       <table>
         <thead><tr><th>Lead</th><th>Template</th><th>Subject</th><th>Body</th><th>Status</th><th>Actions</th></tr></thead>
@@ -723,6 +948,74 @@ def client_communications_drafts_admin(
       </table>
     """
     return _page("Client Communication Drafts", body)
+
+
+@router.get("/admin/client-communications/reviewed", response_class=HTMLResponse)
+def client_communications_reviewed_admin(session: Session = Depends(get_session)):
+    return client_communications_drafts_admin(status="reviewed", session=session)
+
+
+@router.get("/admin/client-communications/drafts/{draft_id}", response_class=HTMLResponse)
+def client_communication_draft_preview_admin(draft_id: str, session: Session = Depends(get_session)):
+    draft = _get_follow_up(session, draft_id)
+    _ensure_client_communication_draft(draft)
+    parsed = _parse_draft(draft)
+    lead = _lead_for_draft(session, draft)
+    lead_id = str(getattr(lead, "id", "")) if lead else ""
+    lead_name = getattr(lead, "full_name", None) or lead_id or "-"
+    is_draft = parsed["status"] == "draft"
+    send_blocker = _send_blocker_payload(session, draft)
+
+    edit_form = (
+        f"""
+        <form method="post" action="/admin/client-communications/drafts/{draft_id}/edit">
+          <p><label>Subject<br><input type="text" name="subject" value="{_html(parsed['subject'])}"></label></p>
+          <p><label>Body<br><textarea name="body">{_html(parsed['body'])}</textarea></label></p>
+          <p><label>Operator note<br><input type="text" name="note" value="{_html(parsed.get('note') or '')}"></label></p>
+          <button type="submit">Save Draft Edits</button>
+        </form>
+        """
+        if is_draft
+        else "<p><button disabled>Reviewed drafts are locked</button></p>"
+    )
+    review_form = (
+        f"""
+        <form method="post" action="/admin/client-communications/drafts/{draft_id}/mark-reviewed" style="display:inline">
+          <button type="submit">Mark Reviewed</button>
+        </form>
+        """
+        if is_draft
+        else "<button disabled>Reviewed</button>"
+    )
+
+    body = f"""
+      <h1>Draft Preview {MODULE_VERSION}</h1>
+      <p><a href="/admin/client-communications/drafts">Draft queue</a> |
+      <a href="/admin/client-communications/reviewed">Reviewed queue</a> |
+      <a href="/api/v1/client-communications/drafts/{draft_id}/preview">Preview JSON</a></p>
+      <div class="card">
+        <p><strong>Lead:</strong> {_html(lead_name)}</p>
+        <p><strong>Template:</strong> {_html(parsed['title'])} <small>{_html(parsed['template_key'])}</small></p>
+        <p><strong>Status:</strong> {_badge(parsed['status'])}</p>
+        <p><strong>Send blocker:</strong> {_html(send_blocker['blocker'])} - {_html(send_blocker['message'])}</p>
+      </div>
+      <div class="card">
+        <h2>Preview</h2>
+        <p><strong>Subject:</strong> {_html(parsed['subject'])}</p>
+        <pre>{_html(parsed['body'])}</pre>
+      </div>
+      <div class="card">
+        <h2>Edit Before Review</h2>
+        {edit_form}
+      </div>
+      <div class="card actions">
+        {review_form}
+        <form method="post" action="/api/v1/client-communications/drafts/{draft_id}/send-blocked" style="display:inline">
+          <button type="submit">Send Placeholder</button>
+        </form>
+      </div>
+    """
+    return _page("Client Communication Draft Preview", body)
 
 
 @router.get("/admin/client-communications/leads/{lead_id}", response_class=HTMLResponse)
@@ -748,11 +1041,15 @@ def client_communications_lead_admin(lead_id: str, session: Session = Depends(ge
         rows.append(
             f"""
             <tr>
-              <td>{parsed['title']}<br><small>{parsed['template_key']}</small></td>
-              <td>{parsed['subject']}</td>
-              <td><pre>{parsed['body']}</pre></td>
+              <td>{_html(parsed['title'])}<br><small>{_html(parsed['template_key'])}</small></td>
+              <td>{_html(parsed['subject'])}</td>
+              <td><pre>{_html(parsed['body'])}</pre></td>
               <td>{_badge(parsed['status'])}</td>
-              <td>{action}<a href="/api/v1/client-communications/drafts/{draft_id}">JSON</a></td>
+              <td class="actions">
+                <a href="/admin/client-communications/drafts/{draft_id}">Preview/Edit</a>
+                {action}
+                <a href="/api/v1/client-communications/drafts/{draft_id}">JSON</a>
+              </td>
             </tr>
             """
         )
@@ -770,11 +1067,14 @@ def client_communications_lead_admin(lead_id: str, session: Session = Depends(ge
       <h1>Client Communication: {payload['lead'].get('full_name') or lead_id}</h1>
       <p><a href="/admin/client-communications">Back</a> | <a href="/admin/v2/leads/{lead_id}">Lead v2</a></p>
       <div class="card">
-        <p><strong>Stage:</strong> {summary['stage']}</p>
+        <p><strong>Stage:</strong> {_html(summary['stage'])}</p>
         <p><strong>Drafts:</strong> {summary['draft_count']} | <strong>Status:</strong> {summary['status_counts']}</p>
-        <p><strong>Next action:</strong> {summary['next_action']}</p>
+        <p><strong>Next action:</strong> {_html(summary['next_action'])}</p>
         <form method="post" action="/admin/client-communications/leads/{lead_id}/draft-pack" style="display:inline">
           <button type="submit">Generate Full Draft Pack</button>
+        </form>
+        <form method="post" action="/admin/client-communications/leads/{lead_id}/mark-all-reviewed" style="display:inline">
+          <button type="submit">Mark All Reviewed</button>
         </form>
         <div>{generate_buttons}</div>
       </div>
@@ -811,6 +1111,35 @@ def admin_create_client_communication_draft(
     return RedirectResponse(url=f"/admin/client-communications/leads/{lead_id}", status_code=303)
 
 
+@router.post("/admin/client-communications/leads/{lead_id}/mark-all-reviewed")
+def admin_mark_all_client_communication_drafts_reviewed(lead_id: str, session: Session = Depends(get_session)):
+    mark_all_client_communication_drafts_reviewed(
+        lead_id,
+        MarkAllReviewedRequest(note="Marked all reviewed from admin client communication lead page."),
+        session,
+    )
+    return RedirectResponse(url=f"/admin/client-communications/leads/{lead_id}", status_code=303)
+
+
+@router.post("/admin/client-communications/drafts/{draft_id}/edit")
+async def admin_update_client_communication_draft(
+    draft_id: str,
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    form = parse_qs((await request.body()).decode("utf-8"))
+    update_client_communication_draft(
+        draft_id,
+        UpdateDraftRequest(
+            subject=(form.get("subject") or [""])[0],
+            body=(form.get("body") or [""])[0],
+            note=(form.get("note") or [""])[0] or None,
+        ),
+        session,
+    )
+    return RedirectResponse(url=f"/admin/client-communications/drafts/{draft_id}", status_code=303)
+
+
 @router.post("/admin/client-communications/drafts/{draft_id}/mark-reviewed")
 def admin_mark_client_communication_draft_reviewed(draft_id: str, session: Session = Depends(get_session)):
     mark_client_communication_draft_reviewed(
@@ -818,27 +1147,37 @@ def admin_mark_client_communication_draft_reviewed(draft_id: str, session: Sessi
         UpdateDraftRequest(note="Marked reviewed from admin client communication page."),
         session,
     )
-    return RedirectResponse(url="/admin/client-communications/drafts?status=draft", status_code=303)
+    return RedirectResponse(url=f"/admin/client-communications/drafts/{draft_id}", status_code=303)
 
 
 @router.get("/debug/client-communications")
 def debug_client_communications():
     return {
         "status": "ok",
-        "version": "v2.6.1",
+        "version": MODULE_VERSION,
         "draft_prefix": DRAFT_PREFIX,
         "templates": sorted(TEMPLATES.keys()),
         "safety_rule": "Drafts only; no automatic sending. FollowUp.status uses enum-safe pending/completed storage.",
         "routes": [
             "GET /api/v1/client-communications/templates",
             "GET /api/v1/client-communications/drafts",
+            "GET /api/v1/client-communications/reviewed",
             "GET /api/v1/client-communications/drafts/{draft_id}",
+            "GET /api/v1/client-communications/drafts/{draft_id}/preview",
+            "PATCH /api/v1/client-communications/drafts/{draft_id}",
             "GET /api/v1/client-communications/leads/{lead_id}",
             "POST /api/v1/client-communications/leads/{lead_id}/drafts/{template_key}",
             "POST /api/v1/client-communications/leads/{lead_id}/draft-pack",
             "POST /api/v1/client-communications/drafts/{draft_id}/mark-reviewed",
+            "POST /api/v1/client-communications/leads/{lead_id}/mark-all-reviewed",
+            "POST /api/v1/client-communications/drafts/{draft_id}/send-blocked",
             "GET /admin/client-communications",
             "GET /admin/client-communications/drafts",
+            "GET /admin/client-communications/reviewed",
+            "GET /admin/client-communications/drafts/{draft_id}",
             "GET /admin/client-communications/leads/{lead_id}",
+            "POST /admin/client-communications/drafts/{draft_id}/edit",
+            "POST /admin/client-communications/drafts/{draft_id}/mark-reviewed",
+            "POST /admin/client-communications/leads/{lead_id}/mark-all-reviewed",
         ],
     }

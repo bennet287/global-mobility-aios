@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,8 +13,13 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, Lead
 from app.routers.application_engine import _application_record_to_dict, _calculate_readiness
+from app.services.audit_log import record_audit
 
 router = APIRouter(tags=["application-draft-control"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 ACTIVE_APPLICATION_STATUSES = {
     "draft",
@@ -80,7 +85,10 @@ def _json_response(payload: Dict[str, Any]) -> JSONResponse:
 
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 
 def _json_safe(value: Any) -> Any:
@@ -183,7 +191,7 @@ def _duplicate_groups(session: Session) -> List[Dict[str, Any]]:
 
 def _build_application_payload(lead: Lead, request: ControlledDraftRequest) -> Dict[str, Any]:
     fields = _model_fields(ApplicationRecord)
-    now = datetime.utcnow()
+    now = _utcnow()
     domain = request.domain or _safe_status(getattr(lead, "intent", None)) or "general"
     target_country = request.target_country or getattr(lead, "target_country", None)
     payload = {
@@ -296,6 +304,17 @@ def create_controlled_application_draft(
     session.add(app)
     session.commit()
     session.refresh(app)
+    record_audit(
+        session,
+        action="application_drafted",
+        entity_type="application",
+        entity_id=getattr(app, "id", None),
+        before_state=None,
+        after_state=serialize_application(app),
+        reason=request.note,
+        source="application_draft_control",
+        commit=True,
+    )
 
     return _json_response({
         "status": "draft_created",
@@ -321,10 +340,22 @@ def cancel_application_draft(
             },
         )
 
+    before = serialize_application(app)
     setattr(app, "status", "cancelled")
     session.add(app)
     session.commit()
     session.refresh(app)
+    record_audit(
+        session,
+        action="application_draft_cancelled",
+        entity_type="application",
+        entity_id=getattr(app, "id", None),
+        before_state=before,
+        after_state=serialize_application(app),
+        reason=request.reason,
+        source="application_draft_control",
+        commit=True,
+    )
 
     return _json_response({
         "status": "cancelled",
@@ -360,6 +391,7 @@ def cancel_duplicate_drafts_for_lead(
     else:
         drafts_to_cancel = drafts
 
+    before = [serialize_application(app) for app in drafts_to_cancel]
     for app in drafts_to_cancel:
         setattr(app, "status", "cancelled")
         session.add(app)
@@ -367,6 +399,18 @@ def cancel_duplicate_drafts_for_lead(
     session.commit()
     for app in drafts_to_cancel:
         session.refresh(app)
+
+    record_audit(
+        session,
+        action="duplicate_application_drafts_cancelled",
+        entity_type="lead",
+        entity_id=_lead_id(lead),
+        before_state={"applications": before},
+        after_state={"applications": [serialize_application(app) for app in drafts_to_cancel]},
+        reason=request.reason,
+        source="application_draft_control",
+        commit=True,
+    )
 
     return _json_response({
         "status": "completed",

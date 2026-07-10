@@ -18,3 +18,10 @@ postgres_data/
 qdrant_data/
 redis_data/
 langfuse_data/
+demo_exports/
+demo-snapshot-*.md
+demo-snapshot-*.json
+.env.production
+release_exports/
+mvp-release-bundle-*.md
+mvp-release-bundle-*.json

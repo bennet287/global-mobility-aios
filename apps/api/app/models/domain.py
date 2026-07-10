@@ -129,6 +129,72 @@ class SourceReference(SQLModel, table=True):
     country: Optional[str] = None
     retrieved_at: datetime = Field(default_factory=now_utc)
 
+class OfficialSource(SQLModel, table=True):
+    __tablename__ = "official_sources"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    country: str = Field(index=True)
+    domain: str = Field(default="visa", index=True)
+    name: str
+    url: str = Field(index=True)
+    source_type: str = Field(default="official", index=True)
+    authority: Optional[str] = None
+    active: bool = Field(default=True, index=True)
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+class SourceSnapshot(SQLModel, table=True):
+    __tablename__ = "source_snapshots"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    official_source_id: Optional[UUID] = Field(default=None, index=True, foreign_key="official_sources.id")
+    url: str = Field(index=True)
+    content_hash: Optional[str] = Field(default=None, index=True)
+    status: str = Field(default="referenced", index=True)
+    metadata_json: Optional[str] = None
+    captured_at: datetime = Field(default_factory=now_utc, index=True)
+
+class SourceCheckRun(SQLModel, table=True):
+    __tablename__ = "source_check_runs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    truth_claim_id: Optional[UUID] = Field(default=None, index=True, foreign_key="truth_claims.id")
+    country: Optional[str] = Field(default=None, index=True)
+    domain: str = Field(default="general", index=True)
+    claim: str
+    verdict: str = Field(default="needs_review", index=True)
+    confidence: float = 0.0
+    evidence_count: int = 0
+    matched_sources_json: Optional[str] = None
+    corrected_statement: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+class VerifiedRule(SQLModel, table=True):
+    __tablename__ = "verified_rules"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    country: str = Field(index=True)
+    domain: str = Field(default="visa", index=True)
+    rule_key: str = Field(index=True)
+    statement: str
+    official_source_id: Optional[UUID] = Field(default=None, index=True, foreign_key="official_sources.id")
+    confidence: float = 0.0
+    active: bool = Field(default=True, index=True)
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+class CountryPolicy(SQLModel, table=True):
+    __tablename__ = "country_policies"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    country: str = Field(index=True)
+    domain: str = Field(default="visa", index=True)
+    policy_json: str = "{}"
+    status: str = Field(default="active", index=True)
+    last_reviewed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
 class HumanReview(SQLModel, table=True):
     __tablename__ = "human_reviews"
 
@@ -206,9 +272,18 @@ class DocumentRecord(SQLModel, table=True):
     document_type: str
     filename: str
     storage_key: Optional[str] = None
+    storage_provider: Optional[str] = Field(default=None, index=True)
+    file_hash: Optional[str] = Field(default=None, index=True)
+    mime_type: Optional[str] = None
+    file_size_bytes: Optional[int] = None
     status: str = "received"
     extracted_metadata_json: Optional[str] = None
+    uploaded_at: Optional[datetime] = None
+    verified_by: Optional[str] = None
+    verified_at: Optional[datetime] = None
+    expiry_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
 
 class ApplicationRecord(SQLModel, table=True):
     __tablename__ = "applications"
@@ -221,3 +296,18 @@ class ApplicationRecord(SQLModel, table=True):
     status: str = "draft"
     risk_score: float = 0.5
     created_at: datetime = Field(default_factory=now_utc)
+
+
+class AuditLog(SQLModel, table=True):
+    __tablename__ = "audit_logs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    actor: str = Field(default="system", index=True)
+    action: str = Field(index=True)
+    entity_type: str = Field(index=True)
+    entity_id: Optional[str] = Field(default=None, index=True)
+    before_state_json: Optional[str] = None
+    after_state_json: Optional[str] = None
+    reason: Optional[str] = None
+    source: str = Field(default="api", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)

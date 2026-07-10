@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -13,9 +13,14 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import ApplicationRecord, FollowUp, Lead
+from app.services.audit_log import record_audit
 
 
 router = APIRouter(tags=["post-approval-onboarding"])
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 APPROVED_AUTHORITY_STATUS = "approved_by_authority"
 ONBOARDING_PREFIX = "[post_approval_onboarding:v2.4]"
@@ -96,7 +101,10 @@ def _uuid_or_404(value: Any, field_name: str = "id") -> uuid.UUID:
 
 
 def _model_fields(model: Any) -> set[str]:
-    return set(getattr(model, "model_fields", getattr(model, "__fields__", {})).keys())
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = getattr(model, "__fields__", {})
+    return set(fields.keys())
 
 
 def _json_safe(value: Any) -> Any:
@@ -270,12 +278,12 @@ def _append_lead_note(lead: Lead, message: str) -> None:
         return
     updated = f"{existing}\n\n{message}" if existing else message
     _set_if_field(lead, "notes", updated)
-    _set_if_field(lead, "updated_at", datetime.utcnow())
+    _set_if_field(lead, "updated_at", _utcnow())
 
 
 def _build_followup_payload(lead: Lead, task: Dict[str, Any], request: GenerateOnboardingRequest) -> Dict[str, Any]:
     fields = _model_fields(FollowUp)
-    now = datetime.utcnow()
+    now = _utcnow()
     due_at = now + timedelta(days=int(task.get("offset_days", 0)))
     message = (
         f"{ONBOARDING_PREFIX} task={task['task_key']} title={task['title']} "
@@ -359,8 +367,9 @@ def _complete_follow_up(
             detail="This follow-up is not a post-approval onboarding task.",
         )
 
+    before = _to_dict(follow_up)
     _set_if_field(follow_up, "status", "completed")
-    _set_if_field(follow_up, "updated_at", datetime.utcnow())
+    _set_if_field(follow_up, "updated_at", _utcnow())
 
     lead = _lead_for_follow_up(session, follow_up)
     if lead and request.note:
@@ -375,6 +384,18 @@ def _complete_follow_up(
     session.refresh(follow_up)
     if lead:
         session.refresh(lead)
+
+    record_audit(
+        session,
+        action="onboarding_task_completed",
+        entity_type="follow_up",
+        entity_id=getattr(follow_up, "id", None),
+        before_state=before,
+        after_state=_to_dict(follow_up),
+        reason=request.note,
+        source="post_approval_onboarding",
+        commit=True,
+    )
 
     return {
         "status": "completed",
@@ -458,11 +479,12 @@ def generate_post_approval_onboarding(
         )
 
     existing = _onboarding_followups_for_lead(session, lead)
+    before_summary = _onboarding_summary(session, lead)
 
     if request.reset_existing:
         for follow_up in existing:
             _set_if_field(follow_up, "status", "cancelled")
-            _set_if_field(follow_up, "updated_at", datetime.utcnow())
+            _set_if_field(follow_up, "updated_at", _utcnow())
             session.add(follow_up)
         session.commit()
         existing = []
@@ -484,7 +506,7 @@ def generate_post_approval_onboarding(
 
     note = (
         f"{ONBOARDING_PREFIX} generated={len(created)} skipped={len(skipped)} "
-        f"at={datetime.utcnow().isoformat()}"
+        f"at={_utcnow().isoformat()}"
     )
     if request.note:
         note = f"{note} note={request.note}"
@@ -492,6 +514,17 @@ def generate_post_approval_onboarding(
     session.add(lead)
     session.commit()
     session.refresh(lead)
+    record_audit(
+        session,
+        action="onboarding_generated",
+        entity_type="lead",
+        entity_id=getattr(lead, "id", None),
+        before_state=before_summary,
+        after_state=_onboarding_summary(session, lead),
+        reason=request.note,
+        source="post_approval_onboarding",
+        commit=True,
+    )
 
     return _json_response({
         "status": "generated",
