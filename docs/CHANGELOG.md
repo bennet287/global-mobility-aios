@@ -1,5 +1,14 @@
 # Changelog
 
+## v6.2 - MVP Release Archive Export
+
+- Added `scripts/export_mvp_release_archive.py`.
+- Added ignored release archive zip output under `release_exports/`.
+- Added archive manifest metadata with bundle status, safety rules, tags, and included files.
+- Added tests for archive path handling, manifest content, and zip contents.
+- Added `docs/MVP_RELEASE_ARCHIVE_V6_2.md`.
+- Included the archive exporter in local compile coverage.
+
 ## v6.1 - MVP Release Bundle Export
 
 - Added `scripts/export_mvp_release_bundle.py`.
