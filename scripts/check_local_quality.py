@@ -43,6 +43,7 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
                 "scripts/check_mvp_release.py",
                 "scripts/export_mvp_release_bundle.py",
                 "scripts/export_mvp_release_archive.py",
+                "scripts/check_github_release_ready.py",
             ),
         ),
         QualityCommand(
