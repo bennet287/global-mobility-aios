@@ -1,4 +1,4 @@
-﻿export type LeadStatus =
+export type LeadStatus =
   | "new"
   | "qualified"
   | "needs_documents"
@@ -208,5 +208,3 @@ export async function createLead(payload: {
     body: JSON.stringify(payload),
   });
 }
-
-

@@ -32,6 +32,15 @@ type LeadForm = {
 };
 
 type LoadStatus = "idle" | "loading" | "ready" | "partial" | "offline";
+type Tone = "good" | "warn" | "bad" | "neutral";
+
+type ActionItem = {
+  label: string;
+  title: string;
+  detail: string;
+  tone: Tone;
+  href?: string;
+};
 
 const emptyLeadForm: LeadForm = {
   full_name: "",
@@ -56,34 +65,31 @@ const emptySummary: DashboardSummary = {
 
 const safetyRules = [
   "Client messages remain drafts",
-  "Applications are never submitted automatically",
-  "Operator approval is required",
-  "Visa and job claims use traceable sources",
+  "Applications stay operator controlled",
+  "Human approval gates sensitive actions",
+  "Visa and job claims keep source traceability",
 ];
-
-function normalizeApiBase() {
-  return getApiBaseUrl();
-}
-
-function compactNumber(value: number | undefined | null) {
-  return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value || 0);
-}
 
 function titleCase(value: string | undefined | null) {
   if (!value) return "—";
   return value.replaceAll("_", " ").replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
-function statusTone(value: string | undefined | null) {
+function compactNumber(value: number | undefined | null) {
+  return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value || 0);
+}
+
+function statusTone(value: string | undefined | null): Tone {
   const normalized = (value || "").toLowerCase();
-  if (["verified", "approved", "converted", "completed", "ready", "ready_for_human_approval", "truth_clear", "ok", "good"].includes(normalized)) return "good";
-  if (["pending", "needs_review", "human_review", "human_review_required", "documents_incomplete", "draft", "submitted", "decision_pending", "new", "warn", "partial"].includes(normalized)) return "warn";
-  if (["rejected", "blocked_truth_rejected", "rejected_by_authority", "withdrawn", "failed", "closed", "bad", "offline"].includes(normalized)) return "bad";
+  if (["verified", "approved", "converted", "completed", "ready", "ready_for_human_approval", "truth_clear", "qualified", "ok", "online"].includes(normalized)) return "good";
+  if (["pending", "needs_review", "human_review", "human_review_required", "documents_incomplete", "draft", "submitted", "decision_pending", "new", "partial"].includes(normalized)) return "warn";
+  if (["rejected", "blocked_truth_rejected", "rejected_by_authority", "withdrawn", "failed", "closed", "offline"].includes(normalized)) return "bad";
   return "neutral";
 }
 
 function StatusBadge({ value }: { value: string | undefined | null }) {
-  return <span className={`status-badge ${statusTone(value)}`}>{titleCase(value)}</span>;
+  const tone = statusTone(value);
+  return <span className={`status-badge ${tone}`}>{titleCase(value)}</span>;
 }
 
 function SectionTitle({ label, title, detail }: { label: string; title: string; detail?: string }) {
@@ -96,18 +102,6 @@ function SectionTitle({ label, title, detail }: { label: string; title: string; 
   );
 }
 
-function MetricCard({ label, value, detail, tone = "neutral" }: { label: string; value: number; detail: string; tone?: "good" | "warn" | "bad" | "neutral" }) {
-  return (
-    <article className={`metric-card ${tone}`}>
-      <div>
-        <span>{label}</span>
-        <strong>{compactNumber(value)}</strong>
-      </div>
-      <p>{detail}</p>
-    </article>
-  );
-}
-
 function EmptyState({ title, detail }: { title: string; detail: string }) {
   return (
     <div className="empty-state">
@@ -117,14 +111,18 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
   );
 }
 
-function DataNotice({ label, data }: { label: string; data: OptionalData<unknown> }) {
-  if (!data.error) return null;
+function InlineNotice({ label, detail }: { label: string; detail: string }) {
   return (
     <div className="inline-notice">
       <strong>{label}</strong>
-      <span>{data.error}</span>
+      <span>{detail}</span>
     </div>
   );
+}
+
+function DataNotice({ label, data }: { label: string; data: OptionalData<unknown> }) {
+  if (!data.error) return null;
+  return <InlineNotice label={label} detail={data.error} />;
 }
 
 function LeadIdentity({ lead }: { lead: Lead }) {
@@ -139,14 +137,23 @@ function LeadIdentity({ lead }: { lead: Lead }) {
   );
 }
 
+function MetricPill({ label, value, tone = "neutral" }: { label: string; value: number; tone?: Tone }) {
+  return (
+    <div className={`metric-pill ${tone}`}>
+      <span>{label}</span>
+      <strong>{compactNumber(value)}</strong>
+    </div>
+  );
+}
+
 function QueueStages({ queue }: { queue: TruthResolutionQueue | ApplicationQueue | null }) {
   const stages = Object.entries(queue?.stage_counts || {});
   if (!stages.length) {
-    return <EmptyState title="No stage data" detail="Start the backend and seed demo data to populate this area." />;
+    return <EmptyState title="No stage data" detail="Run demo seed data or create a lead to populate this workflow." />;
   }
   return (
     <div className="stage-list">
-      {stages.slice(0, 7).map(([stage, count]) => (
+      {stages.slice(0, 6).map(([stage, count]) => (
         <div className="stage-row" key={stage}>
           <div>
             <strong>{titleCase(stage)}</strong>
@@ -178,8 +185,78 @@ function TruthClaimCard({ claim }: { claim: TruthClaim }) {
   );
 }
 
+function buildActionQueue({
+  summary,
+  truthQueue,
+  documentQueue,
+  agentDashboard,
+  applicationQueue,
+  apiBase,
+}: {
+  summary: DashboardSummary;
+  truthQueue: OptionalData<TruthResolutionQueue>;
+  documentQueue: OptionalData<DocumentVerificationQueue>;
+  agentDashboard: OptionalData<AgentReviewDashboard>;
+  applicationQueue: OptionalData<ApplicationQueue>;
+  apiBase: string;
+}): ActionItem[] {
+  const actions: ActionItem[] = [];
+
+  for (const lead of summary.recent_leads.filter((lead) => String(lead.status).toLowerCase() === "human_review").slice(0, 2)) {
+    actions.push({
+      label: "Human review",
+      title: lead.full_name,
+      detail: `${lead.target_country || "No country"} · ${titleCase(lead.intent)}`,
+      tone: "warn",
+      href: `${apiBase}/admin/v2`,
+    });
+  }
+
+  for (const item of (truthQueue.data?.items || []).filter((item) => item.stage !== "truth_clear").slice(0, 2)) {
+    actions.push({
+      label: "Truth gate",
+      title: item.lead.full_name,
+      detail: item.next_action,
+      tone: item.stage.includes("blocked") ? "bad" : "warn",
+      href: `${apiBase}/api/v1/leads/${item.lead.id}/truth-resolution`,
+    });
+  }
+
+  for (const doc of (documentQueue.data?.documents || []).slice(0, 2)) {
+    actions.push({
+      label: "Document",
+      title: titleCase(doc.document_type),
+      detail: `${doc.status} · ${doc.filename}`,
+      tone: "warn",
+      href: `${apiBase}/admin/v2`,
+    });
+  }
+
+  for (const item of (agentDashboard.data?.items || []).slice(0, 2)) {
+    actions.push({
+      label: "Agent output",
+      title: titleCase(item.agent_name),
+      detail: item.summary,
+      tone: "warn",
+      href: `${apiBase}/admin/agent-output-reviews`,
+    });
+  }
+
+  for (const item of (applicationQueue.data?.items || []).filter((item) => item.stage !== "ready_for_human_approval").slice(0, 1)) {
+    actions.push({
+      label: "Application",
+      title: item.lead.full_name,
+      detail: item.next_action,
+      tone: statusTone(item.stage),
+      href: `${apiBase}/admin/v2`,
+    });
+  }
+
+  return actions.slice(0, 7);
+}
+
 export default function HomePage() {
-  const apiBase = normalizeApiBase();
+  const apiBase = getApiBaseUrl();
   const adminLinks = useMemo(
     () => [
       { label: "Admin", href: `${apiBase}/admin/v2`, meta: "Lead workflow" },
@@ -237,20 +314,22 @@ export default function HomePage() {
     void load();
   }, [load]);
 
-  const recentLeads = summary.recent_leads.slice(0, 6);
-  const recentTruthClaims = summary.recent_truth_audits.slice(0, 3);
-  const priorityTruthItems = (truthQueue.data?.items || []).filter((item) => item.stage !== "truth_clear").slice(0, 4);
+  const backendOnline = health.data?.status === "ok";
   const documentCount = documentQueue.data?.count || 0;
   const agentCount = agentDashboard.data?.items?.length || 0;
-  const backendOnline = health.data?.status === "ok";
+  const recentLeads = summary.recent_leads.slice(0, 8);
+  const recentTruthClaims = summary.recent_truth_audits.slice(0, 3);
+  const actionQueue = buildActionQueue({ summary, truthQueue, documentQueue, agentDashboard, applicationQueue, apiBase });
+  const readyApplications = applicationQueue.data?.stage_counts?.ready_for_human_approval || 0;
+  const blockedApplications = applicationQueue.data?.stage_counts?.blocked_truth_rejected || 0;
 
   const metrics = [
-    { label: "Leads", value: summary.leads_total, detail: "Total CRM opportunities", tone: "neutral" as const },
-    { label: "New", value: summary.leads_new, detail: "Awaiting qualification", tone: "warn" as const },
-    { label: "Review", value: summary.leads_human_review, detail: "Need operator attention", tone: summary.leads_human_review ? "warn" as const : "good" as const },
-    { label: "Converted", value: summary.leads_converted, detail: "Commercial progress", tone: "good" as const },
-    { label: "Truth", value: summary.truth_queue_pending, detail: "Claims pending", tone: summary.truth_queue_pending ? "bad" as const : "good" as const },
-    { label: "Agents", value: agentCount, detail: "Outputs waiting", tone: agentCount ? "warn" as const : "neutral" as const },
+    { label: "Active leads", value: summary.leads_total, tone: "neutral" as Tone },
+    { label: "Review", value: summary.leads_human_review, tone: summary.leads_human_review ? "warn" as Tone : "good" as Tone },
+    { label: "Converted", value: summary.leads_converted, tone: "good" as Tone },
+    { label: "Truth pending", value: summary.truth_queue_pending, tone: summary.truth_queue_pending ? "bad" as Tone : "good" as Tone },
+    { label: "Documents", value: documentCount, tone: documentCount ? "warn" as Tone : "good" as Tone },
+    { label: "Agent outputs", value: agentCount, tone: agentCount ? "warn" as Tone : "neutral" as Tone },
   ];
 
   async function onCreateLead(event: FormEvent<HTMLFormElement>) {
@@ -283,22 +362,22 @@ export default function HomePage() {
           <span>GM</span>
           <div>
             <strong>Global Mobility AIOS</strong>
-            <small>Agency operations workspace</small>
+            <small>Operator system</small>
           </div>
         </div>
 
         <nav className="side-nav" aria-label="Workspace navigation">
-          <a href="#overview">Overview</a>
+          <a href="#workbench">Workbench</a>
           <a href="#pipeline">Pipeline</a>
-          <a href="#truth">Truth Engine</a>
-          <a href="#documents">Documents</a>
-          <a href="#controls">Controls</a>
+          <a href="#intake">Lead intake</a>
+          <a href="#verification">Verification</a>
+          <a href="#governance">Governance</a>
         </nav>
 
-        <div className={`connection-card ${backendOnline ? "online" : "offline"}`}>
-          <span />
+        <div className="sidebar-status">
+          <div className={`pulse ${backendOnline ? "online" : "offline"}`} />
           <div>
-            <strong>{backendOnline ? "Backend connected" : "Backend not connected"}</strong>
+            <strong>{backendOnline ? "Backend connected" : "Backend offline"}</strong>
             <small>{backendOnline ? health.data?.environment || "local" : apiBase}</small>
           </div>
         </div>
@@ -318,37 +397,101 @@ export default function HomePage() {
           </div>
         </header>
 
-        <section className={`system-banner ${loadStatus}`} id="overview">
-          <div>
-            <span>System status</span>
-            <strong>
-              {loadStatus === "ready" ? "All services reachable" : loadStatus === "partial" ? "Backend online with partial queues" : loadStatus === "loading" ? "Loading workspace data" : "Frontend running in offline view"}
-            </strong>
-            <p>
-              {backendOnline
-                ? "Live data is being loaded from the FastAPI backend. Sensitive actions remain review-gated."
-                : "Start the FastAPI backend to populate live CRM, truth, document, and agent queues. The interface remains usable for layout review."}
-            </p>
+        <section className={`command-strip ${loadStatus}`} id="workbench">
+          <div className="command-copy">
+            <span>System posture</span>
+            <strong>{loadStatus === "ready" ? "All services reachable" : loadStatus === "partial" ? "Backend online with partial queues" : loadStatus === "loading" ? "Loading workspace data" : "Offline workspace preview"}</strong>
+            <p>{backendOnline ? "Live CRM, truth, document, and agent queues are loaded from the FastAPI backend. Sensitive actions remain review-gated." : "Start the FastAPI backend to activate live data. UI remains available for operator review."}</p>
           </div>
-          <div className="status-stack">
+          <div className="command-meta">
             <StatusBadge value={backendOnline ? "online" : "offline"} />
             <code>{apiBase}</code>
           </div>
         </section>
 
-        {summaryError ? (
-          <div className="soft-warning">
-            <strong>CRM summary unavailable.</strong>
-            <span>{summaryError}</span>
-          </div>
-        ) : null}
+        {summaryError ? <InlineNotice label="CRM summary unavailable" detail={summaryError} /> : null}
 
-        <section className="metric-grid" aria-label="Workspace metrics">
-          {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
+        <section className="metric-row" aria-label="Workspace metrics">
+          {metrics.map((metric) => <MetricPill key={metric.label} {...metric} />)}
         </section>
 
-        <section className="layout-grid main-grid" id="pipeline">
-          <article className="panel panel-large">
+        <section className="premium-grid" id="pipeline">
+          <article className="panel pipeline-panel">
+            <div className="panel-header-row">
+              <SectionTitle label="Pipeline" title="Active cases" detail={`${recentLeads.length} visible records`} />
+              <a className="text-link" href={`${apiBase}/admin/v2`} target="_blank" rel="noreferrer">Open backend</a>
+            </div>
+
+            {recentLeads.length ? (
+              <div className="case-table" role="table" aria-label="Recent leads">
+                <div className="case-table-head" role="row">
+                  <span>Client</span>
+                  <span>Pathway</span>
+                  <span>Country</span>
+                  <span>Status</span>
+                </div>
+                {recentLeads.map((lead) => (
+                  <div className="case-row" role="row" key={lead.id}>
+                    <LeadIdentity lead={lead} />
+                    <span>{titleCase(lead.intent)}</span>
+                    <span>{lead.target_country || "—"}</span>
+                    <StatusBadge value={lead.status} />
+                  </div>
+                ))}
+              </div>
+            ) : <EmptyState title="No live leads" detail="Create a lead or run demo seed data after starting the backend." />}
+          </article>
+
+          <aside className="panel action-panel">
+            <SectionTitle label="Today" title="Priority queue" detail={`${actionQueue.length} operator actions`} />
+            {actionQueue.length ? (
+              <div className="action-list">
+                {actionQueue.map((action, index) => (
+                  <a className={`action-card ${action.tone}`} href={action.href || `${apiBase}/admin/v2`} target="_blank" rel="noreferrer" key={`${action.label}-${action.title}-${index}`}>
+                    <span>{action.label}</span>
+                    <strong>{action.title}</strong>
+                    <p>{action.detail}</p>
+                  </a>
+                ))}
+              </div>
+            ) : <EmptyState title="No immediate actions" detail="When reviews, documents, or agent outputs need attention, they will appear here first." />}
+          </aside>
+        </section>
+
+        <section className="ops-grid" id="verification">
+          <article className="panel">
+            <SectionTitle label="Truth Engine" title="Resolution stages" detail={`${summary.truth_queue_resolved} claims resolved`} />
+            <DataNotice label="Truth queue unavailable" data={truthQueue as OptionalData<unknown>} />
+            <QueueStages queue={truthQueue.data} />
+          </article>
+
+          <article className="panel">
+            <SectionTitle label="Applications" title="Readiness" detail={`${readyApplications} ready · ${blockedApplications} blocked`} />
+            <DataNotice label="Application queue unavailable" data={applicationQueue as OptionalData<unknown>} />
+            <QueueStages queue={applicationQueue.data} />
+          </article>
+
+          <article className="panel">
+            <SectionTitle label="Documents" title="Verification" detail={`${documentCount} documents pending`} />
+            <DataNotice label="Document queue unavailable" data={documentQueue as OptionalData<unknown>} />
+            {documentQueue.data?.documents?.length ? (
+              <div className="compact-list">
+                {documentQueue.data.documents.slice(0, 5).map((doc) => (
+                  <div className="compact-row" key={doc.id}>
+                    <div>
+                      <strong>{titleCase(doc.document_type)}</strong>
+                      <span>{doc.filename}</span>
+                    </div>
+                    <StatusBadge value={doc.status} />
+                  </div>
+                ))}
+              </div>
+            ) : <EmptyState title="No document queue" detail="Documents marked received or needs review will appear here." />}
+          </article>
+        </section>
+
+        <section className="workbench-grid">
+          <article className="panel intake-panel" id="intake">
             <SectionTitle label="CRM" title="Lead intake" detail="Capture opportunities without bypassing downstream verification or human review." />
             <form className="intake-form" onSubmit={onCreateLead}>
               <label>
@@ -391,82 +534,11 @@ export default function HomePage() {
               </div>
             </form>
             {leadFormMessage ? <div className="soft-success"><strong>Saved.</strong><span>{leadFormMessage}</span></div> : null}
-            {leadFormError ? <div className="soft-warning"><strong>Lead was not created.</strong><span>{leadFormError}</span></div> : null}
+            {leadFormError ? <InlineNotice label="Lead was not created" detail={leadFormError} /> : null}
           </article>
 
-          <article className="panel">
-            <SectionTitle label="Pipeline" title="Recent leads" detail={`${recentLeads.length} visible records`} />
-            {recentLeads.length ? (
-              <div className="lead-list">
-                {recentLeads.map((lead) => (
-                  <div className="lead-row" key={lead.id}>
-                    <LeadIdentity lead={lead} />
-                    <StatusBadge value={lead.status} />
-                  </div>
-                ))}
-              </div>
-            ) : <EmptyState title="No live leads" detail="Create a lead or run demo seed data after starting the backend." />}
-          </article>
-        </section>
-
-        <section className="layout-grid queue-grid" id="truth">
-          <article className="panel">
-            <SectionTitle label="Truth Engine" title="Resolution stages" detail="Claim checks remain explicit, traceable, and reviewable." />
-            <DataNotice label="Truth queue unavailable" data={truthQueue as OptionalData<unknown>} />
-            <QueueStages queue={truthQueue.data} />
-          </article>
-
-          <article className="panel">
-            <SectionTitle label="Applications" title="Readiness" detail="Application steps stay operator-controlled." />
-            <DataNotice label="Application queue unavailable" data={applicationQueue as OptionalData<unknown>} />
-            <QueueStages queue={applicationQueue.data} />
-          </article>
-
-          <article className="panel" id="documents">
-            <SectionTitle label="Documents" title="Verification" detail={`${documentCount} documents pending`} />
-            <DataNotice label="Document queue unavailable" data={documentQueue as OptionalData<unknown>} />
-            {documentQueue.data?.documents?.length ? (
-              <div className="compact-list">
-                {documentQueue.data.documents.slice(0, 6).map((doc) => (
-                  <div className="compact-row" key={doc.id}>
-                    <div>
-                      <strong>{titleCase(doc.document_type)}</strong>
-                      <span>{doc.filename}</span>
-                    </div>
-                    <StatusBadge value={doc.status} />
-                  </div>
-                ))}
-              </div>
-            ) : <EmptyState title="No document queue" detail="Documents marked received or needs review will appear here." />}
-          </article>
-        </section>
-
-        <section className="layout-grid insight-grid">
-          <article className="panel panel-large">
-            <SectionTitle label="Priority" title="Truth review focus" detail={`${priorityTruthItems.length} active blockers`} />
-            {priorityTruthItems.length ? (
-              <div className="resolution-list">
-                {priorityTruthItems.map((item) => (
-                  <div className="resolution-card" key={item.lead.id}>
-                    <div className="resolution-header">
-                      <LeadIdentity lead={item.lead} />
-                      <StatusBadge value={item.stage} />
-                    </div>
-                    <p>{item.next_action}</p>
-                    <div className="mini-metrics">
-                      <span><strong>{item.counts.truth_claims}</strong> claims</span>
-                      <span><strong>{item.counts.rejected_truth_claims}</strong> rejected</span>
-                      <span><strong>{item.counts.pending_reviews}</strong> reviews</span>
-                    </div>
-                    <a className="text-link" href={`${apiBase}/api/v1/leads/${item.lead.id}/truth-resolution`} target="_blank" rel="noreferrer">Open evidence JSON</a>
-                  </div>
-                ))}
-              </div>
-            ) : <EmptyState title="No active truth blockers" detail="Blocked claims will surface here when present." />}
-          </article>
-
-          <article className="panel">
-            <SectionTitle label="Claims" title="Recent verification signals" />
+          <article className="panel intelligence-panel">
+            <SectionTitle label="Claims" title="Recent verification signals" detail="Latest Truth Engine outputs" />
             {recentTruthClaims.length ? (
               <div className="claim-stack">
                 {recentTruthClaims.map((claim) => <TruthClaimCard claim={claim} key={claim.id} />)}
@@ -475,9 +547,9 @@ export default function HomePage() {
           </article>
         </section>
 
-        <section className="layout-grid controls-grid" id="controls">
+        <section className="governance-grid" id="governance">
           <article className="panel">
-            <SectionTitle label="Governance" title="Safety controls" detail="The product is an operator system, not an autonomous submission engine." />
+            <SectionTitle label="Governance" title="Safety controls" detail="This is an operator system, not an autonomous submission engine." />
             <div className="safety-list">
               {safetyRules.map((rule) => <div key={rule}><span>✓</span><strong>{rule}</strong></div>)}
             </div>
@@ -498,10 +570,10 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            ) : <EmptyState title="No pending agent outputs" detail="Controlled agent recommendations remain reviewable before client use." />}
+            ) : <EmptyState title="No pending agent outputs" detail="Controlled recommendations remain reviewable before client use." />}
           </article>
 
-          <article className="panel panel-wide">
+          <article className="panel shortcuts-panel">
             <SectionTitle label="Shortcuts" title="Backend operator pages" />
             <div className="shortcut-grid">
               {adminLinks.map((link) => (
