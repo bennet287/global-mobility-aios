@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import base64
 import hashlib
@@ -162,6 +162,10 @@ def forbidden_response(role: str, allowed_roles: Set[str]) -> JSONResponse:
 
 
 async def auth_middleware(request: Request, call_next):
+    # Allow browser CORS preflight requests. Real requests still require auth.
+    if request.method.upper() == "OPTIONS":
+        return await call_next(request)
+
     if not settings.auth_enabled or is_public_path(request.url.path):
         return await call_next(request)
 
@@ -175,3 +179,4 @@ async def auth_middleware(request: Request, call_next):
 
     request.state.auth = context
     return await call_next(request)
+

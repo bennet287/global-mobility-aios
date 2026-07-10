@@ -2,15 +2,15 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Global Mobility AIOS | Operator Command Center",
+  title: "Global Mobility AIOS | Operations Workspace",
   description:
-    "Modern operator dashboard for controlled global mobility workflows, truth checks, document review, and human-in-the-loop AI operations.",
+    "A calm operator workspace for global mobility leads, truth checks, document review, and human-controlled AI workflows.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#07111f",
+  themeColor: "#f7f5ef",
 };
 
 export default function RootLayout({
@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

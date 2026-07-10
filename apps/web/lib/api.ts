@@ -1,4 +1,4 @@
-export type LeadStatus =
+﻿export type LeadStatus =
   | "new"
   | "qualified"
   | "needs_documents"
@@ -136,13 +136,19 @@ export type OptionalData<T> = {
   error: string | null;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+
+export function getApiBaseUrl() {
+  return API_BASE.replace(/\/$/, "");
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      "x-gmai-role": "admin",
+      "x-gmai-user": "frontend-operator",
       ...(init?.headers || {}),
     },
     cache: "no-store",
@@ -202,3 +208,5 @@ export async function createLead(payload: {
     body: JSON.stringify(payload),
   });
 }
+
+
