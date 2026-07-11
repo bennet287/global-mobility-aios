@@ -89,7 +89,7 @@ function buildActionQueue({
       title: titleCase(item.agent_name),
       detail: item.summary,
       tone: "warn",
-      href: `${apiBase}/admin/agent-output-reviews`,
+      href: "/agents/review",
     });
   }
 
@@ -111,8 +111,8 @@ export default function HomePage() {
   const adminLinks = useMemo(
     () => [
       { label: "Admin", href: `${apiBase}/admin/v2`, meta: "Lead workflow" },
-      { label: "Agent Console", href: `${apiBase}/admin/controlled-agents`, meta: "Controlled internal agents" },
-      { label: "Review Queue", href: `${apiBase}/admin/agent-output-reviews`, meta: "Human approvals" },
+      { label: "Agent Console", href: "/agents/console", meta: "Controlled internal agents" },
+      { label: "Review Queue", href: "/agents/review", meta: "Human approvals" },
       { label: "Drafts", href: `${apiBase}/admin/client-communications/drafts`, meta: "Client-ready messages" },
       { label: "Audit", href: `${apiBase}/admin/audit-logs`, meta: "Traceability" },
       { label: "API Docs", href: `${apiBase}/docs`, meta: "FastAPI reference" },

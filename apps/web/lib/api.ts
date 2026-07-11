@@ -26,7 +26,13 @@ export type Profile = {
   full_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  profile_type?: string | null;
+  highest_qualification?: string | null;
+  field_of_study?: string | null;
+  current_country?: string | null;
   target_country?: string | null;
+  desired_role?: string | null;
+  budget_eur?: number | null;
   intent?: string | null;
   budget?: string | null;
   timeline?: string | null;
@@ -54,19 +60,23 @@ export type TruthClaim = {
 
 export type SourceReference = {
   id: string;
-  url: string;
+  truth_claim_id?: string | null;
+  source_url: string;
+  source_type?: string | null;
   title?: string | null;
-  domain?: string | null;
   country?: string | null;
-  topic?: string | null;
-  confidence?: number | null;
-  checked_at?: string | null;
+  retrieved_at?: string | null;
 };
 
 export type HumanReview = {
   id: string;
   lead_id?: string | null;
+  truth_claim_id?: string | null;
+  workflow_run_id?: string | null;
+  review_type?: string;
   status: string;
+  priority?: string;
+  reason?: string;
   reviewer_notes?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -114,7 +124,11 @@ export type DocumentRecord = {
 export type ApplicationRecord = {
   id: string;
   lead_id?: string | null;
+  domain: string;
+  target_country?: string | null;
+  target_institution_or_employer?: string | null;
   status?: string;
+  risk_score?: number;
   authority?: string | null;
   decision?: string | null;
   created_at?: string;
@@ -212,10 +226,10 @@ export type OptionalData<T> = {
 
 export type LeadDetail = {
   lead: Lead;
-  profile?: Profile | null;
+  profiles: Profile[];
   truth_claims: TruthClaim[];
   source_references: SourceReference[];
-  human_reviews: HumanReview[];
+  reviews: HumanReview[];
   workflow_runs: WorkflowRun[];
   agent_runs: AgentRun[];
   follow_ups: FollowUp[];
@@ -284,10 +298,6 @@ export async function getDocumentVerificationQueue(): Promise<OptionalData<Docum
   return optionalRequest<DocumentVerificationQueue>("/api/v1/documents/verification-queue");
 }
 
-export async function getAgentReviewDashboard(): Promise<OptionalData<AgentReviewDashboard>> {
-  return optionalRequest<AgentReviewDashboard>("/api/v1/agent-output-reviews/dashboard");
-}
-
 export async function getHealthStatus(): Promise<OptionalData<HealthStatus>> {
   return optionalRequest<HealthStatus>("/health");
 }
@@ -316,5 +326,302 @@ export async function createLead(payload: {
   return request<Lead>("/api/v1/leads", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export type ControlledAgentMeta = {
+  version: string;
+  department: string;
+  role: string;
+  guardrails: string[];
+  role_card: string;
+  output_schema: Record<string, unknown>;
+};
+
+export type ControlledAgentsList = {
+  version: string;
+  mode: string;
+  automatic_actions_enabled: boolean;
+  agents: Record<string, ControlledAgentMeta>;
+};
+
+export type ConsultantDecision = {
+  decision: "propose_action" | "ask_clarification" | "wait_for_human";
+  agent_name: string | null;
+  lead_id: string | null;
+  task_template: string | null;
+  summary: string | null;
+  clarification_question: string | null;
+  escalation_reason: string | null;
+  confidence: "high" | "medium" | "low";
+};
+
+export type AgentChatResponse = {
+  decision: ConsultantDecision;
+  reply: string;
+};
+
+export async function getLeads(): Promise<Lead[]> {
+  return request<Lead[]>("/api/v1/leads");
+}
+
+export async function getControlledAgents(): Promise<ControlledAgentsList> {
+  return request<ControlledAgentsList>("/api/v1/controlled-agents");
+}
+
+export async function runControlledAgent(payload: {
+  agent_name: string;
+  task: string;
+  lead_id?: string;
+  context?: Record<string, unknown>;
+  actor?: string;
+}) {
+  return request<{ run_id: string; status: string; output: Record<string, unknown>; message: string }>(
+    "/api/v1/controlled-agents/run",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function runControlledAgentBatch(payload: {
+  agent_name: string;
+  lead_ids: string[];
+  task_template: string;
+  context_per_lead?: Record<string, Record<string, unknown>>;
+  actor?: string;
+}) {
+  return request<{ batch_id: string; agent_name: string; queued: number; run_ids: string[] }>(
+    "/api/v1/controlled-agents/run-batch",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function getAgentReviewDashboard(params?: {
+  status?: string;
+  agent_name?: string;
+  lead_id?: string;
+}): Promise<AgentReviewDashboard> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.agent_name) search.set("agent_name", params.agent_name);
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  const qs = search.toString();
+  return request<AgentReviewDashboard>(`/api/v1/agent-output-reviews/dashboard${qs ? `?${qs}` : ""}`);
+}
+
+export async function approveAgentRuns(runIds: string[], note?: string) {
+  return request<{ approved: number }>("/api/v1/agent-output-reviews/batch-approve", {
+    method: "POST",
+    body: JSON.stringify({ run_ids: runIds, actor: "operator", note }),
+  });
+}
+
+export async function rejectAgentRuns(runIds: string[], note?: string) {
+  return request<{ rejected: number }>("/api/v1/agent-output-reviews/batch-reject", {
+    method: "POST",
+    body: JSON.stringify({ run_ids: runIds, actor: "operator", note }),
+  });
+}
+
+export async function convertAgentRuns(runIds: string[], note?: string) {
+  return request<{ converted: number }>("/api/v1/agent-output-reviews/batch-convert", {
+    method: "POST",
+    body: JSON.stringify({ run_ids: runIds, actor: "operator", note }),
+  });
+}
+
+export type AgentRunAuditEntry = {
+  id: string;
+  action: string;
+  actor: string;
+  created_at: string;
+  reason?: string | null;
+};
+
+export type AgentRunDetail = {
+  run: AgentRun;
+  audit_history: AgentRunAuditEntry[];
+  latest_review_note: string | null;
+};
+
+export async function getAgentRunDetail(runId: string): Promise<AgentRunDetail> {
+  return request<AgentRunDetail>(`/api/v1/agent-output-reviews/runs/${runId}`);
+}
+
+export async function approveAgentRun(runId: string, note?: string) {
+  return request<{ approved: string; note: string | null }>(`/api/v1/agent-output-reviews/runs/${runId}/approve`, {
+    method: "POST",
+    body: JSON.stringify({ actor: "operator", note }),
+  });
+}
+
+export async function rejectAgentRun(runId: string, note?: string) {
+  return request<{ rejected: string; note: string | null }>(`/api/v1/agent-output-reviews/runs/${runId}/reject`, {
+    method: "POST",
+    body: JSON.stringify({ actor: "operator", note }),
+  });
+}
+
+export async function convertAgentRun(runId: string, note?: string) {
+  return request<{ converted: string; note: string | null }>(`/api/v1/agent-output-reviews/runs/${runId}/convert`, {
+    method: "POST",
+    body: JSON.stringify({ actor: "operator", note }),
+  });
+}
+
+export async function chatWithAgent(
+  message: string,
+  conversationHistory: { role: "user" | "assistant"; content: string }[] = [],
+  leadHint?: string
+): Promise<AgentChatResponse> {
+  return request<AgentChatResponse>("/api/v1/agent-chat", {
+    method: "POST",
+    body: JSON.stringify({
+      message,
+      conversation_history: conversationHistory,
+      lead_hint: leadHint,
+    }),
+  });
+}
+
+export type CommunicationTemplate = {
+  template_key: string;
+  title: string;
+  subject: string;
+};
+
+export type CommunicationDraftParsed = {
+  template_key: string;
+  title: string;
+  subject: string;
+  body: string;
+  note?: string | null;
+  status: string;
+  channel?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CommunicationDraft = {
+  draft: FollowUp;
+  communication: CommunicationDraftParsed;
+  lead: Lead | null;
+};
+
+export type CommunicationDraftList = {
+  total_drafts: number;
+  drafts: CommunicationDraft[];
+};
+
+export type CommunicationLeadSummary = {
+  stage: string;
+  draft_count: number;
+  status_counts: Record<string, number>;
+  existing_templates: string[];
+  missing_templates: string[];
+  next_action: string;
+};
+
+export type LeadCommunications = {
+  lead: Lead;
+  approved_applications: ApplicationRecord[];
+  summary: CommunicationLeadSummary;
+  drafts: CommunicationDraft[];
+};
+
+export async function getCommunicationTemplates(): Promise<{
+  templates: CommunicationTemplate[];
+  safety_rule: string;
+}> {
+  return request("/api/v1/client-communications/templates");
+}
+
+export async function getCommunicationDrafts(params?: {
+  status?: string;
+  lead_id?: string;
+}): Promise<CommunicationDraftList> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  const qs = search.toString();
+  return request<CommunicationDraftList>(`/api/v1/client-communications/drafts${qs ? `?${qs}` : ""}`);
+}
+
+export async function getCommunicationDraft(draftId: string): Promise<CommunicationDraft> {
+  return request<CommunicationDraft>(`/api/v1/client-communications/drafts/${draftId}`);
+}
+
+export async function updateCommunicationDraft(
+  draftId: string,
+  payload: { subject?: string; body?: string; note?: string }
+) {
+  return request<{ status: string; draft: CommunicationDraft }>(
+    `/api/v1/client-communications/drafts/${draftId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function markDraftReviewed(
+  draftId: string,
+  payload: { subject?: string; body?: string; note?: string } = {}
+) {
+  return request<{ status: string; draft: CommunicationDraft }>(
+    `/api/v1/client-communications/drafts/${draftId}/mark-reviewed`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function generateDraft(leadId: string, templateKey: string, payload: { note?: string } = {}) {
+  return request<{ status: string; draft: CommunicationDraft; lead_communications: LeadCommunications }>(
+    `/api/v1/client-communications/leads/${leadId}/drafts/${templateKey}`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function generateDraftPack(
+  leadId: string,
+  payload: { template_keys?: string[]; note?: string; skip_existing?: boolean } = {}
+) {
+  return request<{
+    status: string;
+    created_count: number;
+    skipped_existing_count: number;
+    created_drafts: CommunicationDraft[];
+    skipped_templates: string[];
+    lead_communications: LeadCommunications;
+  }>(`/api/v1/client-communications/leads/${leadId}/draft-pack`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getLeadCommunications(leadId: string): Promise<LeadCommunications> {
+  return request<LeadCommunications>(`/api/v1/client-communications/leads/${leadId}`);
+}
+
+export async function markAllDraftsReviewed(leadId: string, note?: string) {
+  return request<{
+    status: string;
+    reviewed_count: number;
+    skipped_count: number;
+    reviewed_drafts: CommunicationDraft[];
+    lead_communications: LeadCommunications;
+  }>(`/api/v1/client-communications/leads/${leadId}/mark-all-reviewed`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
   });
 }

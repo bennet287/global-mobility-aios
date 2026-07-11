@@ -48,7 +48,9 @@ export function useWorkspaceData(backendOnline: boolean) {
       getTruthResolutionQueue(),
       getApplicationQueue(),
       getDocumentVerificationQueue(),
-      getAgentReviewDashboard(),
+      getAgentReviewDashboard()
+        .then((data) => ({ data, error: null }))
+        .catch((err) => ({ data: null, error: err instanceof Error ? err.message : "Failed to load agent dashboard" })),
     ]);
 
     setSummary(summaryResult.data);

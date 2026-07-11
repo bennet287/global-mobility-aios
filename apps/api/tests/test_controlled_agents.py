@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+from unittest.mock import MagicMock, patch
 from uuid import UUID
 
+import httpx
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 from sqlmodel import select
@@ -478,3 +480,149 @@ def test_agent_review_dashboard_shows_reviewer_note_and_status_badge(
     assert detail.status_code == 200
     assert "Review History" in detail.text
     assert "Visible reviewer note." in detail.text
+
+
+# ---------------------------------------------------------------------------
+# LLM-powered agent tests
+# ---------------------------------------------------------------------------
+
+
+def test_llm_enabled_agent_uses_provider_output(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+    llm_payload = {
+        "summary": "LLM-generated sales summary.",
+        "safe_next_actions": ["Call next week."],
+        "prohibited_claims": ["guaranteed visa"],
+        "blocked_actions": ["lead_conversion"],
+    }
+
+    fake_response = MagicMock()
+    fake_response.status_code = 200
+    fake_response.text = json.dumps(_sample_chat_response(llm_payload))
+    fake_response.json.return_value = _sample_chat_response(llm_payload)
+    fake_response.raise_for_status.return_value = None
+
+    fake_client = MagicMock()
+    fake_client.post.return_value = fake_response
+    fake_client.__enter__ = MagicMock(return_value=fake_client)
+    fake_client.__exit__ = MagicMock(return_value=False)
+
+    with patch("app.services.llm_client.settings") as mock_settings:
+        mock_settings.llm_provider = "deepseek"
+        mock_settings.deepseek_api_key = "ds-key"
+        mock_settings.deepseek_model = "deepseek-chat"
+        mock_settings.deepseek_base_url = "https://api.deepseek.com"
+        mock_settings.llm_temperature = 0.2
+        mock_settings.llm_timeout_seconds = 30
+        mock_settings.llm_fallback_to_template = True
+
+        with patch("httpx.Client", return_value=fake_client):
+            response = client.post(
+                "/api/v1/controlled-agents/run",
+                json={
+                    "agent_name": "sales_summary_agent",
+                    "task": "Summarize this lead for sales follow-up.",
+                    "lead_id": str(lead.id),
+                    "context": {"lead_source": "website"},
+                },
+            )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["output"]["summary"] == "LLM-generated sales summary."
+    assert data["output"]["human_review_required"] is True
+    assert data["output"]["client_facing"] is False
+    assert data["output"]["_llm_meta"]["provider"] == "deepseek"
+    assert data["output"]["_llm_meta"]["model"] == "deepseek-chat"
+
+
+def test_llm_enabled_agent_falls_back_on_provider_error(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session)
+
+    fake_response = MagicMock()
+    fake_response.status_code = 429
+    fake_response.text = "Rate limited"
+    request = httpx.Request("POST", "https://api.deepseek.com/chat/completions")
+    fake_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "Rate limited", request=request, response=fake_response
+    )
+
+    fake_client = MagicMock()
+    fake_client.post.return_value = fake_response
+    fake_client.__enter__ = MagicMock(return_value=fake_client)
+    fake_client.__exit__ = MagicMock(return_value=False)
+
+    with patch("app.services.llm_client.settings") as mock_settings:
+        mock_settings.llm_provider = "deepseek"
+        mock_settings.deepseek_api_key = "ds-key"
+        mock_settings.deepseek_model = "deepseek-chat"
+        mock_settings.deepseek_base_url = "https://api.deepseek.com"
+        mock_settings.llm_temperature = 0.2
+        mock_settings.llm_timeout_seconds = 30
+        mock_settings.llm_fallback_to_template = True
+
+        with patch("httpx.Client", return_value=fake_client):
+            response = client.post(
+                "/api/v1/controlled-agents/run",
+                json={
+                    "agent_name": "sales_summary_agent",
+                    "task": "Summarize this lead.",
+                    "lead_id": str(lead.id),
+                    "context": {},
+                },
+            )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "Lead summary prepared for sales-safe follow-up." in data["output"]["summary"]
+    assert data["output"]["_llm_meta"]["fallback_to_template"] is True
+    assert "429" in data["output"]["_llm_meta"]["fallback_reason"]
+
+
+def _sample_chat_response(content_dict: dict) -> dict:
+    return {
+        "id": "chatcmpl-test",
+        "object": "chat.completion",
+        "model": "deepseek-chat",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": json.dumps(content_dict),
+                },
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {
+            "prompt_tokens": 200,
+            "completion_tokens": 50,
+            "total_tokens": 250,
+        },
+    }
+
+
+def test_get_controlled_agent_providers_when_disabled(client: TestClient) -> None:
+    response = client.get("/api/v1/controlled-agents/providers")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["llm_enabled"] is False
+    assert data["active_provider"] is None
+    assert data["active_model"] is None
+    assert "deepseek" in data["available_providers"]
+    assert "moonshot" in data["available_providers"]
+
+
+def test_debug_controlled_agents_reports_llm_status(client: TestClient) -> None:
+    response = client.get("/debug/controlled-agents")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["send_actions_enabled"] is False
+    assert "llm_provider" in data
+    assert "llm_model" in data

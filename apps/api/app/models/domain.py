@@ -53,6 +53,17 @@ class WorkflowStatus(str, Enum):
     failed = "failed"
     waiting_for_review = "waiting_for_review"
 
+
+class AgentRunStatus(str, Enum):
+    queued = "queued"
+    running = "running"
+    pending_review = "pending_review"
+    completed = "completed"  # legacy synchronous runs
+    approved = "approved"
+    rejected = "rejected"
+    converted = "converted"
+    failed = "failed"
+
 class Lead(SQLModel, table=True):
     __tablename__ = "leads"
 
@@ -233,7 +244,7 @@ class AgentRun(SQLModel, table=True):
     lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
     agent_name: str
     task: str
-    status: str = "completed"
+    status: str = Field(default=AgentRunStatus.completed.value, sa_column_kwargs={"index": True})
     input_json: Optional[str] = None
     output_json: Optional[str] = None
     created_at: datetime = Field(default_factory=now_utc)

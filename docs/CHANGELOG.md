@@ -1,5 +1,16 @@
 # Changelog
 
+## v6.4 - Next.js Operator Workspace Completion
+
+- Added In-House Consultant Agent (`agents/role_cards/inhouse_consultant.md`, `app/services/inhouse_consultant.py`, `app/routers/agent_chat.py`) with LLM-powered routing and deterministic fallback.
+- Added floating chat widget (`apps/web/components/AgentChatWidget.tsx`) integrated into the root layout.
+- Added Next.js Agent Console (`apps/web/app/agents/console/page.tsx`) for single and batch controlled-agent runs.
+- Added Next.js Agent Review Queue (`apps/web/app/agents/review/page.tsx`) with filters, bulk actions, and run detail view.
+- Added `GET /api/v1/agent-output-reviews/runs/{run_id}` endpoint and audit history schema.
+- Enriched `GET /api/v1/leads/{id}/detail` with documents and applications; redesigned Next.js lead detail page with tabs, profiles, source references, and actions.
+- Added Next.js Client Communication Drafts workspace (`apps/web/app/communications/*`) backed by existing `/api/v1/client-communications` endpoints.
+- Updated sidebar navigation with active states for Agents and Communications.
+
 ## v6.3 - GitHub Release Prep
 
 - Added `scripts/check_github_release_ready.py`.

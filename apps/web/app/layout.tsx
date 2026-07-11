@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AgentChatWidget } from "../components/AgentChatWidget";
 
 export const metadata: Metadata = {
   title: "Global Mobility AIOS | Operations Workspace",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <AgentChatWidget />
+      </body>
     </html>
   );
 }

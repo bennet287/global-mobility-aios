@@ -13,10 +13,18 @@ const navItems = [
   { label: "Governance", href: "/#governance" },
 ];
 
+const appItems = [
+  { label: "Agents", href: "/agents/console" },
+  { label: "Review queue", href: "/agents/review" },
+  { label: "Communications", href: "/communications" },
+];
+
 export function Sidebar({ health }: { health: HealthStatus | null }) {
   const pathname = usePathname();
   const backendOnline = health?.status === "ok";
   const apiBase = getApiBaseUrl();
+
+  const isHomeActive = pathname === "/";
 
   return (
     <aside className="sidebar">
@@ -36,7 +44,19 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
 
       <nav className="side-nav" aria-label="Workspace navigation">
         {navItems.map((item) => {
-          const isActive = pathname === "/" && item.href.startsWith("/#");
+          const isActive = isHomeActive && item.href.startsWith("/#");
+          return (
+            <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="sidebar-section-title">Tools</div>
+      <nav className="side-nav" aria-label="Application navigation">
+        {appItems.map((item) => {
+          const isActive = pathname?.startsWith(item.href) ?? false;
           return (
             <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
               {item.label}

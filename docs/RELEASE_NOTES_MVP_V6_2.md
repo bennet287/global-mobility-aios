@@ -92,6 +92,14 @@ GitHub release prep: ready
 working tree clean
 ```
 
+## Added after v6.3 release prep
+
+- In-House Consultant Agent floating chat widget for operator assistance.
+- Next.js Agent Console (`/agents/console`) for running controlled agents.
+- Next.js Agent Review Queue (`/agents/review`) with bulk approve/reject/convert.
+- Next.js Lead Detail Experience (`/leads/[id]`) with profiles, source references, documents, applications, and tabbed workflow history.
+- Next.js Client Communication Drafts workspace (`/communications/*`) for post-approval client messaging.
+
 ## Suggested GitHub Release Title
 
 ```text

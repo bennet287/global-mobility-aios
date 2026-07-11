@@ -21,6 +21,7 @@ from app.routers import (
     dashboard,
     agent_runs,
     agents,
+    agent_chat,
     crm,
     documents,
     education,
@@ -77,6 +78,7 @@ app.include_router(sales_engine.router, prefix="", tags=["sales-engine"])
 app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
 app.include_router(controlled_agents.router, tags=["controlled-agents"])
 app.include_router(agent_runs.router, prefix="/api/v1", tags=["agent-runs"])
+app.include_router(agent_chat.router, tags=["agent-chat"])
 app.include_router(profiles.router, prefix="/api/v1", tags=["profiles"])
 app.include_router(reviews.router, prefix="/api/v1", tags=["human-reviews"])
 app.include_router(followups.router, prefix="/api/v1", tags=["follow-ups"])

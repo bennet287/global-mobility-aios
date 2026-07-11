@@ -1,3 +1,6 @@
+from app.services.role_card_loader import AGENT_OUTPUT_SCHEMA, AGENT_ROLE_CARD_MAP
+
+
 CONTROLLED_AGENT_REGISTRY = {
     "truth_explanation_agent": {
         "version": "v4.0",
@@ -8,6 +11,8 @@ CONTROLLED_AGENT_REGISTRY = {
             "Must preserve official-source and confidence boundaries.",
             "Requires human review before client-facing use.",
         ],
+        "role_card": AGENT_ROLE_CARD_MAP["truth_explanation_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["truth_explanation_agent"],
     },
     "document_checklist_agent": {
         "version": "v4.0",
@@ -18,6 +23,8 @@ CONTROLLED_AGENT_REGISTRY = {
             "Cannot fabricate or alter document metadata.",
             "Requires operator action for upload, expiry, or verification changes.",
         ],
+        "role_card": AGENT_ROLE_CARD_MAP["document_checklist_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["document_checklist_agent"],
     },
     "client_drafting_agent": {
         "version": "v4.0",
@@ -28,6 +35,8 @@ CONTROLLED_AGENT_REGISTRY = {
             "Drafts must remain review-gated.",
             "Cannot promise outcomes, visas, admissions, jobs, or processing times.",
         ],
+        "role_card": AGENT_ROLE_CARD_MAP["client_drafting_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["client_drafting_agent"],
     },
     "sales_summary_agent": {
         "version": "v4.0",
@@ -38,6 +47,8 @@ CONTROLLED_AGENT_REGISTRY = {
             "Cannot bypass truth, readiness, or role guardrails.",
             "Cannot make guaranteed outcome claims.",
         ],
+        "role_card": AGENT_ROLE_CARD_MAP["sales_summary_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["sales_summary_agent"],
     },
     "application_readiness_agent": {
         "version": "v4.0",
@@ -48,6 +59,8 @@ CONTROLLED_AGENT_REGISTRY = {
             "Must respect truth and document readiness gates.",
             "Requires human approval for any application lifecycle action.",
         ],
+        "role_card": AGENT_ROLE_CARD_MAP["application_readiness_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["application_readiness_agent"],
     },
 }
 

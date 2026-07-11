@@ -11,15 +11,27 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
+from app.core.config import settings
 from app.core.db import get_session
-from app.models.domain import AgentRun, ApplicationRecord, AuditLog, DocumentRecord, FollowUp, Lead, TruthClaim
-from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
+from app.models.domain import AgentRun, AgentRunStatus, ApplicationRecord, AuditLog, DocumentRecord, FollowUp, Lead, TruthClaim
+from app.schemas import (
+    AgentRunBatchReviewRequest,
+    AgentRunDetailResponse,
+    ControlledAgentRunBatchRequest,
+    ControlledAgentRunBatchResponse,
+    ControlledAgentRunRequest,
+    ControlledAgentRunResponse,
+)
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import (
+    CONTROLLED_AGENT_REGISTRY,
     DuplicatePendingControlledAgentOutput,
     list_controlled_agents,
+    resolve_agent_name,
     run_controlled_agent,
 )
+from app.services.llm_client import LLMProviderFactory, is_llm_enabled
+from app.tasks import run_agent_task
 
 router = APIRouter()
 
@@ -32,14 +44,19 @@ LEAD_AGENT_ACTIONS = {
     "client_drafting_agent": "Draft Client Update",
 }
 
-PENDING_AGENT_OUTPUT_STATUS = "completed"
-APPROVED_AGENT_OUTPUT_STATUS = "approved"
-REJECTED_AGENT_OUTPUT_STATUS = "rejected"
-CONVERTED_AGENT_OUTPUT_STATUS = "converted"
+PENDING_AGENT_OUTPUT_STATUSES = {
+    AgentRunStatus.completed.value,
+    AgentRunStatus.pending_review.value,
+    AgentRunStatus.queued.value,
+    AgentRunStatus.running.value,
+}
+APPROVED_AGENT_OUTPUT_STATUS = AgentRunStatus.approved.value
+REJECTED_AGENT_OUTPUT_STATUS = AgentRunStatus.rejected.value
+CONVERTED_AGENT_OUTPUT_STATUS = AgentRunStatus.converted.value
 CLIENT_COMMUNICATION_DRAFT_PREFIX = "[client_communication_draft:v2.6]"
 REVIEW_STATUSES = {
-    "pending": PENDING_AGENT_OUTPUT_STATUS,
-    "completed": PENDING_AGENT_OUTPUT_STATUS,
+    "pending": "pending",
+    "completed": "pending",
     "approved": APPROVED_AGENT_OUTPUT_STATUS,
     "rejected": REJECTED_AGENT_OUTPUT_STATUS,
     "converted": CONVERTED_AGENT_OUTPUT_STATUS,
@@ -139,7 +156,7 @@ def _reviewable_agent_runs(session: Session) -> list[AgentRun]:
     return list(
         session.exec(
             select(AgentRun)
-            .where(AgentRun.status == PENDING_AGENT_OUTPUT_STATUS)
+            .where(AgentRun.status.in_(PENDING_AGENT_OUTPUT_STATUSES))
             .order_by(AgentRun.created_at.desc())
         ).all()
     )
@@ -170,7 +187,9 @@ def _filter_agent_runs(
 ) -> list[AgentRun]:
     wanted_status = _normal_review_status(status)
     filtered = runs
-    if wanted_status != "all":
+    if wanted_status == "pending":
+        filtered = [run for run in filtered if run.status in PENDING_AGENT_OUTPUT_STATUSES]
+    elif wanted_status != "all":
         filtered = [run for run in filtered if run.status == wanted_status]
     if agent_name:
         filtered = [run for run in filtered if run.agent_name == agent_name]
@@ -182,7 +201,7 @@ def _filter_agent_runs(
 def _review_dashboard_counts(runs: list[AgentRun]) -> dict[str, int]:
     counts = {"pending": 0, "approved": 0, "rejected": 0, "converted": 0, "all": len(runs)}
     for run in runs:
-        if run.status == PENDING_AGENT_OUTPUT_STATUS:
+        if run.status in PENDING_AGENT_OUTPUT_STATUSES:
             counts["pending"] += 1
         elif run.status in counts:
             counts[run.status] += 1
@@ -198,18 +217,19 @@ def _conversion_target(run: AgentRun) -> str:
 
 
 def _status_label(status: str) -> str:
-    if status == PENDING_AGENT_OUTPUT_STATUS:
+    if status in PENDING_AGENT_OUTPUT_STATUSES:
         return "pending review"
     return status
 
 
 def _status_badge(status: str) -> str:
-    kind = {
-        PENDING_AGENT_OUTPUT_STATUS: "blocked",
-        APPROVED_AGENT_OUTPUT_STATUS: "safe",
-        REJECTED_AGENT_OUTPUT_STATUS: "blocked",
-        CONVERTED_AGENT_OUTPUT_STATUS: "safe",
-    }.get(status, "")
+    kind = ""
+    if status in PENDING_AGENT_OUTPUT_STATUSES:
+        kind = "blocked"
+    elif status == APPROVED_AGENT_OUTPUT_STATUS or status == CONVERTED_AGENT_OUTPUT_STATUS:
+        kind = "safe"
+    elif status == REJECTED_AGENT_OUTPUT_STATUS:
+        kind = "blocked"
     return f'<span class="badge {kind}">{_escape(_status_label(status))}</span>'
 
 
@@ -452,7 +472,7 @@ def _run_rows(runs: list[AgentRun]) -> str:
 
 
 def _review_action_forms(run: AgentRun) -> str:
-    if run.status == PENDING_AGENT_OUTPUT_STATUS:
+    if run.status in PENDING_AGENT_OUTPUT_STATUSES:
         return f"""
         <form method="post" action="/admin/agent-output-reviews/runs/{run.id}/approve">
           <input type="hidden" name="actor" value="operator_console">
@@ -478,15 +498,17 @@ def _review_action_forms(run: AgentRun) -> str:
     return f'<span class="badge">{_escape(run.status)}</span>'
 
 
-def _review_rows(session: Session, runs: list[AgentRun]) -> str:
+def _review_rows(session: Session, runs: list[AgentRun], *, include_checkboxes: bool = False) -> str:
     if not runs:
-        return "<tr><td colspan='8'>No agent outputs match these filters.</td></tr>"
+        return "<tr><td colspan='9'>No agent outputs match these filters.</td></tr>"
     rows = []
     for run in runs:
         summary = _agent_run_summary(run)
+        checkbox = f'<td><input type="checkbox" name="run_ids" value="{run.id}"></td>' if include_checkboxes else ""
         rows.append(
             f"""
             <tr>
+              {checkbox}
               <td><a href="/admin/agent-output-reviews/runs/{run.id}">{run.id}</a></td>
               <td>{_escape(run.agent_name)}</td>
               <td>{_lead_link(session, run.lead_id)}</td>
@@ -522,7 +544,7 @@ def _pending_client_drafting_run_for_lead(session: Session, lead_id: UUID) -> Ag
         select(AgentRun)
         .where(AgentRun.lead_id == lead_id)
         .where(AgentRun.agent_name == "client_drafting_agent")
-        .where(AgentRun.status == PENDING_AGENT_OUTPUT_STATUS)
+        .where(AgentRun.status.in_(PENDING_AGENT_OUTPUT_STATUSES))
         .order_by(AgentRun.created_at.desc())
     ).first()
 
@@ -562,6 +584,27 @@ def get_controlled_agents() -> dict:
     }
 
 
+@router.get("/api/v1/controlled-agents/providers")
+def get_controlled_agent_providers() -> dict:
+    active = LLMProviderFactory.active_provider_name()
+    return {
+        "llm_enabled": is_llm_enabled(),
+        "active_provider": active,
+        "active_model": _active_model(),
+        "available_providers": LLMProviderFactory.available_providers(),
+        "switch_instruction": "Set LLM_PROVIDER in .env to 'deepseek' or 'moonshot' and restart.",
+    }
+
+
+def _active_model() -> str | None:
+    provider = (settings.llm_provider or "").lower().strip()
+    if provider == "deepseek":
+        return settings.deepseek_model
+    if provider == "moonshot":
+        return settings.moonshot_model
+    return None
+
+
 @router.post("/api/v1/controlled-agents/run", response_model=ControlledAgentRunResponse)
 def run_controlled_agent_endpoint(
     payload: ControlledAgentRunRequest,
@@ -583,13 +626,64 @@ def run_controlled_agent_endpoint(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@router.post("/api/v1/controlled-agents/run-batch", response_model=ControlledAgentRunBatchResponse)
+def run_controlled_agent_batch(
+    payload: ControlledAgentRunBatchRequest,
+    session: Session = Depends(get_session),
+) -> ControlledAgentRunBatchResponse:
+    from uuid import uuid4
+
+    resolved_name = resolve_agent_name(payload.agent_name)
+    if resolved_name not in CONTROLLED_AGENT_REGISTRY:
+        raise HTTPException(status_code=404, detail=f"Unknown controlled agent: {payload.agent_name}")
+
+    batch_id = uuid4()
+    run_ids: list[UUID] = []
+
+    for lead_id in payload.lead_ids:
+        context = payload.context_per_lead.get(str(lead_id), {})
+        run = AgentRun(
+            workflow_run_id=None,
+            lead_id=lead_id,
+            agent_name=resolved_name,
+            task=payload.task_template,
+            status=AgentRunStatus.queued.value,
+            input_json=json.dumps(
+                {
+                    "agent_name": payload.agent_name,
+                    "task": payload.task_template,
+                    "context": context,
+                    "actor": payload.actor,
+                    "batch_id": str(batch_id),
+                },
+                default=str,
+                sort_keys=True,
+            ),
+            output_json=json.dumps({"_batch_id": str(batch_id)}),
+        )
+        session.add(run)
+        session.flush()
+        run_ids.append(run.id)
+        run_agent_task.delay(str(run.id))
+
+    session.commit()
+    return ControlledAgentRunBatchResponse(
+        batch_id=batch_id,
+        agent_name=resolved_name,
+        queued=len(run_ids),
+        run_ids=run_ids,
+    )
+
+
 @router.get("/debug/controlled-agents")
 def debug_controlled_agents() -> dict:
     return {
         "module": "controlled_ai_agents",
         "version": "v5.6",
         "send_actions_enabled": False,
-        "external_llm_required": False,
+        "external_llm_required": is_llm_enabled(),
+        "llm_provider": LLMProviderFactory.active_provider_name(),
+        "llm_model": _active_model(),
         "agent_count": len(list_controlled_agents()),
         "duplicate_client_draft_guard": True,
         "operator_console": "GET /admin/controlled-agents",
@@ -645,6 +739,29 @@ def agent_output_review_dashboard(
     }
 
 
+@router.get("/api/v1/agent-output-reviews/runs/{run_id}", response_model=AgentRunDetailResponse)
+def get_agent_output_review_detail(
+    run_id: UUID,
+    session: Session = Depends(get_session),
+) -> AgentRunDetailResponse:
+    run = _get_agent_run_or_404(session, run_id)
+    audits = _review_audits_for_run(session, run)
+    return AgentRunDetailResponse(
+        run=run,
+        audit_history=[
+            {
+                "id": log.id,
+                "action": log.action,
+                "actor": log.actor,
+                "created_at": log.created_at,
+                "reason": log.reason,
+            }
+            for log in audits
+        ],
+        latest_review_note=_latest_review_note(session, run),
+    )
+
+
 @router.post("/api/v1/agent-output-reviews/runs/{run_id}/approve")
 def approve_agent_output(
     run_id: UUID,
@@ -652,7 +769,7 @@ def approve_agent_output(
     session: Session = Depends(get_session),
 ) -> dict:
     run = _get_agent_run_or_404(session, run_id)
-    if run.status != PENDING_AGENT_OUTPUT_STATUS:
+    if run.status not in PENDING_AGENT_OUTPUT_STATUSES:
         raise HTTPException(status_code=409, detail="Only pending agent outputs can be approved")
     run = _update_agent_run_review_status(
         session,
@@ -672,7 +789,7 @@ def reject_agent_output(
     session: Session = Depends(get_session),
 ) -> dict:
     run = _get_agent_run_or_404(session, run_id)
-    if run.status != PENDING_AGENT_OUTPUT_STATUS:
+    if run.status not in PENDING_AGENT_OUTPUT_STATUSES:
         raise HTTPException(status_code=409, detail="Only pending agent outputs can be rejected")
     run = _update_agent_run_review_status(
         session,
@@ -700,6 +817,76 @@ def convert_approved_agent_output(
     raise HTTPException(status_code=409, detail="This agent output type has no conversion target in v4.2")
 
 
+@router.post("/api/v1/agent-output-reviews/batch-approve")
+def batch_approve_agent_outputs(
+    payload: AgentRunBatchReviewRequest,
+    session: Session = Depends(get_session),
+) -> dict:
+    results = []
+    for run_id in payload.run_ids:
+        run = _get_agent_run_or_404(session, run_id)
+        if run.status not in PENDING_AGENT_OUTPUT_STATUSES:
+            results.append({"run_id": str(run_id), "status": "skipped", "reason": "not pending"})
+            continue
+        run = _update_agent_run_review_status(
+            session,
+            run,
+            status=APPROVED_AGENT_OUTPUT_STATUS,
+            action="agent_output_approved",
+            actor=payload.actor,
+            note=payload.note,
+        )
+        results.append({"run_id": str(run_id), "status": run.status})
+    return {"batch_action": "approved", "results": results}
+
+
+@router.post("/api/v1/agent-output-reviews/batch-reject")
+def batch_reject_agent_outputs(
+    payload: AgentRunBatchReviewRequest,
+    session: Session = Depends(get_session),
+) -> dict:
+    results = []
+    for run_id in payload.run_ids:
+        run = _get_agent_run_or_404(session, run_id)
+        if run.status not in PENDING_AGENT_OUTPUT_STATUSES:
+            results.append({"run_id": str(run_id), "status": "skipped", "reason": "not pending"})
+            continue
+        run = _update_agent_run_review_status(
+            session,
+            run,
+            status=REJECTED_AGENT_OUTPUT_STATUS,
+            action="agent_output_rejected",
+            actor=payload.actor,
+            note=payload.note,
+        )
+        results.append({"run_id": str(run_id), "status": run.status})
+    return {"batch_action": "rejected", "results": results}
+
+
+@router.post("/api/v1/agent-output-reviews/batch-convert")
+def batch_convert_agent_outputs(
+    payload: AgentRunBatchReviewRequest,
+    session: Session = Depends(get_session),
+) -> dict:
+    results = []
+    for run_id in payload.run_ids:
+        run = _get_agent_run_or_404(session, run_id)
+        if run.status != APPROVED_AGENT_OUTPUT_STATUS:
+            results.append({"run_id": str(run_id), "status": "skipped", "reason": "not approved"})
+            continue
+        try:
+            if run.agent_name == "client_drafting_agent":
+                converted = _convert_client_draft(session, run, actor=payload.actor, note=payload.note)
+            elif run.agent_name == "sales_summary_agent":
+                converted = _convert_sales_summary(session, run, actor=payload.actor, note=payload.note)
+            else:
+                raise HTTPException(status_code=409, detail="No conversion target")
+            results.append({"run_id": str(run_id), "status": "converted", "converted": converted})
+        except HTTPException as exc:
+            results.append({"run_id": str(run_id), "status": "failed", "reason": exc.detail})
+    return {"batch_action": "converted", "results": results}
+
+
 @router.get("/admin/controlled-agents", response_class=HTMLResponse)
 def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResponse:
     leads = session.exec(select(Lead)).all()
@@ -707,6 +894,7 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
     lead_rows = "".join(
         f"""
         <tr>
+          <td><input type="checkbox" name="lead_ids" value="{lead.id}" form="batch-agent-form"></td>
           <td><a href="/admin/controlled-agents/leads/{lead.id}">{_escape(lead.full_name)}</a><br><small>{lead.id}</small></td>
           <td>{_escape(getattr(lead.intent, "value", lead.intent))}<br>{_escape(lead.target_country)}</td>
           <td>{_escape(getattr(lead.status, "value", lead.status))}</td>
@@ -716,7 +904,21 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
         for lead in leads
     )
     if not lead_rows:
-        lead_rows = "<tr><td colspan='4'>No leads available.</td></tr>"
+        lead_rows = "<tr><td colspan='5'>No leads available.</td></tr>"
+
+    agent_options = "".join(
+        f'<option value="{_escape(name)}">{_escape(label)}</option>'
+        for name, label in LEAD_AGENT_ACTIONS.items()
+    )
+
+    provider = LLMProviderFactory.active_provider_name()
+    provider_badge = (
+        f'<span class="badge safe">{provider}</span>'
+        if provider
+        else '<span class="badge blocked">deterministic templates</span>'
+    )
+    model = _active_model()
+    model_text = f" ({_escape(model)})" if model else ""
 
     body = f"""
       <h1>Agent Operator Console v4.1</h1>
@@ -726,9 +928,28 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
         <p>Controlled agents create internal operator outputs only. They do not verify documents, convert leads, approve applications, submit applications, or send client messages.</p>
       </div>
       <div class="card">
+        <h2>LLM Provider</h2>
+        <p>{provider_badge}{_escape(model_text)}</p>
+        <p>Active provider can be switched via <code>LLM_PROVIDER</code> in <code>.env</code>. Empty provider falls back to deterministic templates.</p>
+      </div>
+      <div class="card">
+        <h2>Batch Agent Actions</h2>
+        <p>Select leads above, choose an agent, and enqueue a batch of tasks. The worker will execute them in the background and place outputs in the review queue.</p>
+        <form id="batch-agent-form" method="post" action="/admin/controlled-agents/run-batch">
+          <label>Agent
+            <select name="agent_name" required>{agent_options}</select>
+          </label>
+          <label>Task template
+            <input name="task_template" value="Execute agent task for selected leads." required style="width:300px">
+          </label>
+          <input type="hidden" name="actor" value="operator_console">
+          <button type="submit">Enqueue Batch</button>
+        </form>
+      </div>
+      <div class="card">
         <h2>Lead Agent Actions</h2>
         <table>
-          <thead><tr><th>Lead</th><th>Intent / Country</th><th>Status</th><th>Controlled Actions</th></tr></thead>
+          <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('input[name=lead_ids]').forEach(cb => cb.checked = this.checked)"></th><th>Lead</th><th>Intent / Country</th><th>Status</th><th>Controlled Actions</th></tr></thead>
           <tbody>{lead_rows}</tbody>
         </table>
       </div>
@@ -741,6 +962,50 @@ def admin_controlled_agents(session: Session = Depends(get_session)) -> HTMLResp
       </div>
     """
     return _page_shell("Agent Operator Console v4.1", body)
+
+
+@router.post("/admin/controlled-agents/run-batch")
+async def admin_run_controlled_agent_batch(
+    request: Request,
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    form = parse_qs((await request.body()).decode())
+    agent_name = form.get("agent_name", [""])[0]
+    task_template = form.get("task_template", [""])[0]
+    actor = form.get("actor", ["operator_console"])[0]
+    lead_ids = [UUID(lid) for lid in form.get("lead_ids", []) if lid]
+
+    if not lead_ids:
+        raise HTTPException(status_code=400, detail="No leads selected")
+
+    resolved_name = resolve_agent_name(agent_name)
+    if resolved_name not in CONTROLLED_AGENT_REGISTRY:
+        raise HTTPException(status_code=404, detail=f"Unknown controlled agent: {agent_name}")
+
+    for lead_id in lead_ids:
+        run = AgentRun(
+            lead_id=lead_id,
+            agent_name=resolved_name,
+            task=task_template,
+            status=AgentRunStatus.queued.value,
+            input_json=json.dumps(
+                {
+                    "agent_name": agent_name,
+                    "task": task_template,
+                    "context": {},
+                    "actor": actor,
+                },
+                default=str,
+                sort_keys=True,
+            ),
+            output_json=json.dumps({}),
+        )
+        session.add(run)
+        session.flush()
+        run_agent_task.delay(str(run.id))
+
+    session.commit()
+    return RedirectResponse(url="/admin/agent-output-reviews", status_code=303)
 
 
 @router.get("/admin/agent-output-reviews", response_class=HTMLResponse)
@@ -781,7 +1046,7 @@ def admin_agent_output_reviews(
         <form method="get" action="/admin/agent-output-reviews">
           <label>Status
             <select name="status">
-              <option value="pending" {"selected" if selected_status == PENDING_AGENT_OUTPUT_STATUS else ""}>pending</option>
+              <option value="pending" {"selected" if selected_status == "pending" else ""}>pending</option>
               <option value="approved" {"selected" if selected_status == APPROVED_AGENT_OUTPUT_STATUS else ""}>approved</option>
               <option value="rejected" {"selected" if selected_status == REJECTED_AGENT_OUTPUT_STATUS else ""}>rejected</option>
               <option value="converted" {"selected" if selected_status == CONVERTED_AGENT_OUTPUT_STATUS else ""}>converted</option>
@@ -808,14 +1073,72 @@ def admin_agent_output_reviews(
         </p>
       </div>
       <div class="card">
+        <h2>Bulk Actions</h2>
+        <p>Select rows below and apply a bulk review decision. Only pending rows are affected by approve/reject; only approved rows are affected by convert.</p>
+        <form method="post" action="/admin/agent-output-reviews/batch-action">
+          <input type="hidden" name="actor" value="operator_console">
+          <label>Reviewer note
+            <textarea name="note" rows="2" style="width:300px" placeholder="Optional batch note"></textarea>
+          </label>
+          <button type="submit" name="action" value="approve">Approve Selected</button>
+          <button type="submit" name="action" value="reject">Reject Selected</button>
+          <button type="submit" name="action" value="convert">Convert Selected</button>
+        </form>
+      </div>
+      <div class="card">
         <h2>Filtered Outputs</h2>
         <table>
-          <thead><tr><th>Run</th><th>Agent</th><th>Lead</th><th>Status</th><th>Conversion Target</th><th>Summary</th><th>Reviewer Note</th><th>Action</th></tr></thead>
-          <tbody>{_review_rows(session, filtered_runs)}</tbody>
+          <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('input[name=run_ids]').forEach(cb => cb.checked = this.checked)"></th><th>Run</th><th>Agent</th><th>Lead</th><th>Status</th><th>Conversion Target</th><th>Summary</th><th>Reviewer Note</th><th>Action</th></tr></thead>
+          <tbody>{_review_rows(session, filtered_runs, include_checkboxes=True)}</tbody>
         </table>
       </div>
     """
     return _page_shell("Agent Output Review Dashboard v4.3", body)
+
+
+@router.post("/admin/agent-output-reviews/batch-action")
+async def admin_batch_action(
+    request: Request,
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    form = parse_qs((await request.body()).decode())
+    run_ids = [UUID(rid) for rid in form.get("run_ids", []) if rid]
+    action = form.get("action", [""])[0]
+    actor = form.get("actor", ["operator_console"])[0]
+    note = form.get("note", [""])[0] or None
+
+    if not run_ids:
+        raise HTTPException(status_code=400, detail="No outputs selected")
+    if action not in {"approve", "reject", "convert"}:
+        raise HTTPException(status_code=400, detail="Invalid batch action")
+
+    for run_id in run_ids:
+        run = _get_agent_run_or_404(session, run_id)
+        if action == "approve" and run.status in PENDING_AGENT_OUTPUT_STATUSES:
+            _update_agent_run_review_status(
+                session,
+                run,
+                status=APPROVED_AGENT_OUTPUT_STATUS,
+                action="agent_output_approved",
+                actor=actor,
+                note=note,
+            )
+        elif action == "reject" and run.status in PENDING_AGENT_OUTPUT_STATUSES:
+            _update_agent_run_review_status(
+                session,
+                run,
+                status=REJECTED_AGENT_OUTPUT_STATUS,
+                action="agent_output_rejected",
+                actor=actor,
+                note=note,
+            )
+        elif action == "convert" and run.status == APPROVED_AGENT_OUTPUT_STATUS:
+            if run.agent_name == "client_drafting_agent":
+                _convert_client_draft(session, run, actor=actor, note=note)
+            elif run.agent_name == "sales_summary_agent":
+                _convert_sales_summary(session, run, actor=actor, note=note)
+
+    return RedirectResponse(url="/admin/agent-output-reviews", status_code=303)
 
 
 @router.get("/admin/agent-output-reviews/runs/{run_id}", response_class=HTMLResponse)

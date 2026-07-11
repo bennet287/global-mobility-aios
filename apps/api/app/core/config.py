@@ -24,6 +24,19 @@ class Settings(BaseSettings):
     document_upload_max_mb: int = 25
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
+
+    # Remote LLM providers (switchable based on active subscription)
+    llm_provider: str = ""  # "deepseek" or "moonshot"; empty = deterministic template only
+    deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-chat"
+    deepseek_base_url: str = "https://api.deepseek.com"
+    moonshot_api_key: str = ""
+    moonshot_model: str = "kimi-k1-5"
+    moonshot_base_url: str = "https://api.moonshot.cn/v1"
+    llm_temperature: float = 0.2
+    llm_timeout_seconds: int = 60
+    llm_fallback_to_template: bool = True
+
     jwt_secret: str = "change-this-in-production"
     auth_enabled: bool = True
     auth_admin_username: str = "admin"

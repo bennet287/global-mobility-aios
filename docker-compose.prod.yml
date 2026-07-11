@@ -33,6 +33,14 @@ services:
     command: alembic -c alembic.ini upgrade head
     restart: "no"
 
+  redis:
+    image: redis:7-alpine
+    container_name: gmai-redis-prod
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_prod_data:/data
+    restart: unless-stopped
+
   api:
     build:
       context: ./apps/api
@@ -46,6 +54,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
       api-migrate:
         condition: service_completed_successfully
     healthcheck:
@@ -55,5 +65,24 @@ services:
       retries: 5
     restart: unless-stopped
 
+  worker:
+    build:
+      context: ./apps/api
+    container_name: gmai-worker-prod
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_AUTO_CREATE_TABLES: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api-migrate:
+        condition: service_completed_successfully
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    restart: unless-stopped
+
 volumes:
   postgres_prod_data:
+  redis_prod_data:

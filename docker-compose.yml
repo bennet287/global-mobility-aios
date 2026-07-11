@@ -16,6 +16,20 @@ services:
       - minio
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+  worker:
+    build:
+      context: ./apps/api
+    container_name: gmai-worker
+    env_file: .env
+    volumes:
+      - ./apps/api:/app
+      - ./knowledge:/knowledge:ro
+    depends_on:
+      - postgres
+      - redis
+      - api
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+
   web:
     build:
       context: ./apps/web

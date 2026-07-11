@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
 from app.models.domain import (
+    AgentRunStatus,
     FollowUpStatus,
     LeadIntent,
     LeadStatus,
@@ -201,7 +202,7 @@ class AgentRunRead(BaseModel):
     lead_id: Optional[UUID]
     agent_name: str
     task: str
-    status: str
+    status: AgentRunStatus
     input_json: Optional[str]
     output_json: Optional[str]
     created_at: datetime
@@ -259,3 +260,60 @@ class ControlledAgentRunResponse(BaseModel):
     persisted: bool = True
     message: str
     created_at: datetime
+
+
+class ControlledAgentRunBatchRequest(BaseModel):
+    agent_name: str
+    lead_ids: List[UUID]
+    task_template: str = "Execute agent task for lead."
+    context_per_lead: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    actor: str = "system"
+
+
+class ControlledAgentRunBatchResponse(BaseModel):
+    batch_id: UUID
+    agent_name: str
+    queued: int
+    run_ids: List[UUID]
+
+
+class AgentRunBatchReviewRequest(BaseModel):
+    run_ids: List[UUID]
+    actor: str = "operator"
+    note: Optional[str] = None
+
+
+class InhouseConsultantDecision(BaseModel):
+    decision: Literal["propose_action", "ask_clarification", "wait_for_human"]
+    agent_name: Optional[str] = None
+    lead_id: Optional[UUID] = None
+    task_template: Optional[str] = None
+    summary: Optional[str] = None
+    clarification_question: Optional[str] = None
+    escalation_reason: Optional[str] = None
+    confidence: Literal["high", "medium", "low"] = "medium"
+
+
+class AgentChatRequest(BaseModel):
+    message: str
+    conversation_history: list[dict[str, str]] = Field(default_factory=list)
+    lead_hint: Optional[str] = None
+
+
+class AgentChatResponse(BaseModel):
+    decision: InhouseConsultantDecision
+    reply: str
+
+
+class AgentRunAuditEntry(BaseModel):
+    id: UUID
+    action: str
+    actor: str
+    created_at: datetime
+    reason: Optional[str] = None
+
+
+class AgentRunDetailResponse(BaseModel):
+    run: AgentRunRead
+    audit_history: List[AgentRunAuditEntry]
+    latest_review_note: Optional[str] = None
