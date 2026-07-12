@@ -82,67 +82,67 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0c1017;
-  --surface: #141a24;
-  --surface-strong: #1d2430;
-  --surface-muted: #10141c;
-  --surface-elevated: #232c3a;
-  --ink: #e9ecf1;
-  --ink-muted: #93a2b8;
-  --ink-soft: #64748b;
-  --ink-placeholder: #475569;
-  --line: #273244;
-  --line-strong: #334155;
-  --line-subtle: rgba(148, 163, 184, 0.10);
+  --bg: #090a0d;
+  --surface: #101216;
+  --surface-strong: #16181e;
+  --surface-muted: #0c0d11;
+  --surface-elevated: #1e2128;
+  --ink: #e8e8ea;
+  --ink-muted: #8a8f9c;
+  --ink-soft: #555b69;
+  --ink-placeholder: #404551;
+  --line: #1e2026;
+  --line-strong: #272a32;
+  --line-subtle: rgba(255, 255, 255, 0.04);
 
-  --green-50: #0b262a;
-  --green-100: #10363a;
-  --green-200: #15474a;
-  --green-700: #2dd4bf;
-  --green-800: #5eead4;
-  --green-900: #a5f3eb;
+  --green-50: #0a1f22;
+  --green-100: #0f2c2f;
+  --green-200: #143b3e;
+  --green-700: #2cc9b8;
+  --green-800: #5ce5d6;
+  --green-900: #a7f3ea;
   --green: var(--green-700);
   --green-strong: var(--green-800);
   --green-soft: var(--green-100);
-  --green-glow: rgba(45, 212, 191, 0.12);
-  --green-shadow: rgba(45, 212, 191, 0.24);
+  --green-glow: rgba(44, 201, 184, 0.10);
+  --green-shadow: rgba(44, 201, 184, 0.22);
 
-  --amber-50: #2a2112;
-  --amber-100: #3b2d15;
+  --amber-50: #221a0d;
+  --amber-100: #2e2311;
   --amber-700: #fbbf24;
   --amber: var(--amber-700);
   --amber-soft: var(--amber-100);
-  --amber-glow: rgba(251, 191, 36, 0.14);
+  --amber-glow: rgba(251, 191, 36, 0.12);
 
-  --red-50: #2a1515;
-  --red-100: #3b1a1a;
+  --red-50: #220f0f;
+  --red-100: #2e1414;
   --red-700: #f87171;
   --red: var(--red-700);
   --red-soft: var(--red-100);
-  --red-glow: rgba(248, 113, 113, 0.14);
+  --red-glow: rgba(248, 113, 113, 0.12);
 
-  --blue-50: #162032;
-  --blue-100: #1d2d45;
+  --blue-50: #111a2b;
+  --blue-100: #16243b;
   --blue-700: #60a5fa;
   --blue: var(--blue-700);
   --blue-soft: var(--blue-100);
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-  --shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.38);
-  --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.55);
-  --focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.22);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.40);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.50);
+  --shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.60);
+  --focus-ring: 0 0 0 3px rgba(44, 201, 184, 0.18);
 }
 
 html[data-theme="dark"] body {
   background:
-    radial-gradient(circle at 18% 0%, rgba(99, 102, 241, 0.10), transparent 42%),
-    radial-gradient(circle at 82% 8%, rgba(45, 212, 191, 0.08), transparent 36%),
-    linear-gradient(180deg, var(--surface) 0%, var(--bg) 52%, #080b10 100%);
+    radial-gradient(circle at 18% 0%, rgba(99, 102, 241, 0.08), transparent 44%),
+    radial-gradient(circle at 82% 8%, rgba(44, 201, 184, 0.06), transparent 38%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg) 52%, #050507 100%);
 }
 
 html[data-theme="dark"] ::selection {
-  background: rgba(45, 212, 191, 0.22);
+  background: rgba(44, 201, 184, 0.18);
   color: var(--green-900);
 }
 
@@ -240,7 +240,7 @@ a {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
   box-shadow: var(--shadow-soft);
 }
 
@@ -448,7 +448,7 @@ a {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background:
-    linear-gradient(120deg, color-mix(in srgb, var(--surface) 94%, transparent), color-mix(in srgb, var(--surface) 78%, transparent)),
+    linear-gradient(120deg, color-mix(in srgb, var(--surface) 94%, transparent), color-mix(in srgb, var(--surface) 72%, transparent)),
     radial-gradient(circle at 86% 20%, var(--green-glow), transparent 32%);
   box-shadow: var(--shadow);
   display: flex;
@@ -1554,7 +1554,7 @@ a {
 [data-theme="dark"] .case-table,
 [data-theme="dark"] .agent-runs-table,
 [data-theme="dark"] .agent-review-table {
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
   border-color: var(--line);
   box-shadow: var(--shadow-soft);
 }
@@ -1567,17 +1567,17 @@ a {
 
 [data-theme="dark"] .topbar,
 [data-theme="dark"] .mobile-header {
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 76%, transparent);
   border-color: var(--line);
 }
 
 [data-theme="dark"] .sidebar {
-  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
   border-color: var(--line);
 }
 
 [data-theme="dark"] .metric-pill {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 80%, transparent), color-mix(in srgb, var(--surface) 80%, transparent));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 74%, transparent), color-mix(in srgb, var(--surface) 76%, transparent));
 }
 
 [data-theme="dark"] .status-badge {
