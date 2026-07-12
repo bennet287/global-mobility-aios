@@ -14,6 +14,38 @@ export const viewport: Viewport = {
   themeColor: "#f7f5ef",
 };
 
+const extensionCleanupScript = `
+  (function() {
+    function strip() {
+      document.querySelectorAll('[bis_skin_checked]').forEach(function(el) {
+        el.removeAttribute('bis_skin_checked');
+      });
+    }
+    strip();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', strip);
+    }
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function(mutations) {
+        var run = false;
+        mutations.forEach(function(m) {
+          if (m.type === 'attributes' && m.attributeName === 'bis_skin_checked') {
+            m.target.removeAttribute('bis_skin_checked');
+          } else if (m.type === 'childList') {
+            run = true;
+          }
+        });
+        if (run) strip();
+      }).observe(document.documentElement, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['bis_skin_checked'],
+        childList: true
+      });
+    }
+  })();
+`;
+
 const themeInitScript = `
   (function() {
     try {
@@ -32,6 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: extensionCleanupScript }} />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body suppressHydrationWarning>
