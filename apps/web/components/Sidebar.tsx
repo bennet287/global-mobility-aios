@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HealthStatus } from "../lib/api";
 import { getApiBaseUrl } from "../lib/api";
+import { useTheme } from "../hooks/useTheme";
 
 const navItems = [
   { label: "Workbench", href: "/#workbench" },
@@ -23,6 +24,7 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
   const pathname = usePathname();
   const backendOnline = health?.status === "ok";
   const apiBase = getApiBaseUrl();
+  const { theme, toggleTheme } = useTheme();
 
   const isHomeActive = pathname === "/";
 
@@ -65,11 +67,23 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
         })}
       </nav>
 
-      <div className="sidebar-status">
-        <div className={`pulse ${backendOnline ? "online" : "offline"}`} />
-        <div>
-          <strong>{backendOnline ? "Backend connected" : "Backend offline"}</strong>
-          <small>{backendOnline ? health?.environment || "local" : apiBase}</small>
+      <div className="sidebar-footer">
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+          title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+        >
+          <span>{theme === "light" ? "🌙" : "☀️"}</span>
+          <small>{theme === "light" ? "Dark mode" : "Light mode"}</small>
+        </button>
+
+        <div className="sidebar-status">
+          <div className={`pulse ${backendOnline ? "online" : "offline"}`} />
+          <div>
+            <strong>{backendOnline ? "Backend connected" : "Backend offline"}</strong>
+            <small>{backendOnline ? health?.environment || "local" : apiBase}</small>
+          </div>
         </div>
       </div>
     </aside>

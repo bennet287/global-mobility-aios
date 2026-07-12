@@ -173,7 +173,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {summaryError ? <InlineNotice label="CRM summary unavailable" detail={summaryError} /> : null}
+      {summaryError ? <InlineNotice label="CRM summary unavailable" tone="bad" detail={summaryError} /> : null}
 
       <section className="metric-row" aria-label="Workspace metrics">
         {loadStatus === "loading" || loadStatus === "idle"
@@ -329,7 +329,7 @@ export default function HomePage() {
               <span>{leadFormMessage}</span>
             </div>
           ) : null}
-          {leadFormError ? <InlineNotice label="Lead was not created" detail={leadFormError} /> : null}
+          {leadFormError ? <InlineNotice label="Lead was not created" tone="bad" detail={leadFormError} /> : null}
         </article>
 
         <article className="panel intelligence-panel">

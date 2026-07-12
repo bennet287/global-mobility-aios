@@ -159,8 +159,8 @@ function ReviewPageContent() {
           title="Review outputs"
           detail="Approve, reject, or convert agent outputs. Only approved outputs can be converted."
         />
-        {error && <InlineNotice label="Error" detail={error} />}
-        {result && <InlineNotice label="Success" detail={result} />}
+        {error && <InlineNotice label="Error" tone="bad" detail={error} />}
+        {result && <InlineNotice label="Success" tone="good" detail={result} />}
 
         <div className="agent-review-filters">
           <label>

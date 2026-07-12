@@ -146,8 +146,8 @@ export default function AgentConsolePage() {
             title="Run agent manually"
             detail="Select one or more leads, choose a controlled agent, and submit a task. All outputs go to the review queue."
           />
-          {error && <InlineNotice label="Error" detail={error} />}
-          {result && <InlineNotice label="Success" detail={result} />}
+          {error && <InlineNotice label="Error" tone="bad" detail={error} />}
+          {result && <InlineNotice label="Success" tone="good" detail={result} />}
 
           <div className="agent-form">
             <label className="full-field">

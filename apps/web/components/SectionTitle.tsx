@@ -2,8 +2,10 @@ export function SectionTitle({ label, title, detail }: { label: string; title: s
   return (
     <div className="section-title">
       <span>{label}</span>
-      <h2>{title}</h2>
-      {detail ? <p>{detail}</p> : null}
+      <div className="section-title-main">
+        <h2>{title}</h2>
+        {detail ? <p>{detail}</p> : null}
+      </div>
     </div>
   );
 }

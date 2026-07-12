@@ -93,8 +93,8 @@ export default function DraftDetailPage() {
         <Link href="/communications">← Communications queue</Link>
       </div>
 
-      {error && <InlineNotice label="Error" detail={error} />}
-      {result && <InlineNotice label="Success" detail={result} />}
+      {error && <InlineNotice label="Error" tone="bad" detail={error} />}
+      {result && <InlineNotice label="Success" tone="good" detail={result} />}
 
       {!draft ? (
         <section className="panel">

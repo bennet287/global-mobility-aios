@@ -90,7 +90,7 @@ function CommunicationsPageContent() {
           title="Client communication queue"
           detail="Review, edit, and approve post-approval client communication drafts. Sending is blocked in the MVP."
         />
-        {error && <InlineNotice label="Error" detail={error} />}
+        {error && <InlineNotice label="Error" tone="bad" detail={error} />}
 
         <div className="agent-review-filters">
           <label>

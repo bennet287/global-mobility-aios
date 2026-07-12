@@ -224,7 +224,7 @@ export default function LeadDetailPage() {
         </div>
       </section>
 
-      {error ? <InlineNotice label="Error" detail={error} /> : null}
+      {error ? <InlineNotice label="Error" tone="bad" detail={error} /> : null}
 
       <nav className="tab-bar">
         {TABS.map((tab) => (

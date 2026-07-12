@@ -14,6 +14,16 @@ export const viewport: Viewport = {
   themeColor: "#f7f5ef",
 };
 
+const themeInitScript = `
+  (function() {
+    try {
+      var stored = localStorage.getItem("gmai-theme");
+      var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    } catch (e) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,6 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body suppressHydrationWarning>
         {children}
         <AgentChatWidget />
