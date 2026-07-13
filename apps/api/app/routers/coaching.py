@@ -97,6 +97,21 @@ def list_eligibility_reviews(lead_id: UUID, session: Session = Depends(get_sessi
     return list(rows)
 
 
+@router.get("/coaching/reviews", response_model=list[CoachReviewRead])
+def list_all_coach_reviews(
+    status: CoachReviewStatus | None = None,
+    target_agent_name: str | None = None,
+    session: Session = Depends(get_session),
+) -> list[CoachReview]:
+    query = select(CoachReview).order_by(CoachReview.created_at.desc())
+    if status:
+        query = query.where(CoachReview.status == status)
+    if target_agent_name:
+        query = query.where(CoachReview.target_agent_name == target_agent_name)
+    rows = session.exec(query).all()
+    return list(rows)
+
+
 @router.post("/coaching/reviews/{review_id}/feedback", response_model=CoachReviewRead)
 def submit_coach_feedback(
     review_id: UUID,

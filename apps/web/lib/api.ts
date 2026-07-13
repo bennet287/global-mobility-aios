@@ -701,6 +701,17 @@ export async function listCoachReviews(leadId: string): Promise<CoachReview[]> {
   return request<CoachReview[]>(`/api/v1/coaching/eligibility/${leadId}/reviews`);
 }
 
+export async function listAllCoachReviews(params?: {
+  status?: "pending" | "approved" | "overridden";
+  target_agent_name?: string;
+}): Promise<CoachReview[]> {
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  if (params?.target_agent_name) qs.set("target_agent_name", params.target_agent_name);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<CoachReview[]>(`/api/v1/coaching/reviews${query}`);
+}
+
 export async function submitCoachFeedback(
   reviewId: string,
   feedback: { operator_feedback: string; override_decision?: "pending" | "approved" | "overridden" }
