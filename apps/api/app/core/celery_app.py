@@ -7,7 +7,7 @@ celery_app = Celery(
     "gmai",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks.agent_tasks"],
+    include=["app.tasks.agent_tasks", "app.tasks.training_tasks"],
 )
 
 celery_app.conf.update(
