@@ -9,6 +9,7 @@ from app.core.db import create_db_and_tables
 from app.routers import (
     auth,
     coaching,
+    public_intake,
     training_cases,
     truth_resolution,
     application_engine,
@@ -89,6 +90,7 @@ app.include_router(dashboard.router, prefix="/api/v1", tags=["dashboard"])
 app.include_router(dashboard.router, tags=["dashboard"])
 app.include_router(coaching.router)
 app.include_router(training_cases.router)
+app.include_router(public_intake.router)
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
 app.include_router(official_sources.router)
 app.include_router(detail_views.router, tags=["lead-detail"])
