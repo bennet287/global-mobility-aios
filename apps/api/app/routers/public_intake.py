@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import IntakeSession, IntakeSessionStatus, Lead, LeadIntent, LeadStatus
 from app.schemas import PublicIntakeCreate, PublicIntakeResponse
+from app.services.auto_communications import generate_auto_communications_for_lead
 
 router = APIRouter(prefix="/api/v1", tags=["public-intake"])
 
@@ -78,6 +79,13 @@ def create_public_intake(payload: PublicIntakeCreate, session: Session = Depends
     session.commit()
     session.refresh(lead)
     session.refresh(intake_session)
+
+    generate_auto_communications_for_lead(
+        session,
+        lead.id,
+        trigger="intake_submitted",
+        context={"return_link": f"/return?token={intake_session.session_token}"},
+    )
 
     return {
         "session_token": intake_session.session_token,

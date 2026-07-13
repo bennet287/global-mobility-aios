@@ -909,6 +909,54 @@ export async function matchOpportunities(leadId: string): Promise<OpportunityMat
   });
 }
 
+export type AutoCommunicationTemplate = {
+  subject: string;
+  body: string;
+};
+
+export type AutoCommunication = {
+  trigger: string;
+  subject: string;
+  body: string;
+  status: string;
+  channel: string;
+  due_at: string | null;
+  created_at: string | null;
+};
+
+export type AutoCommunicationsList = {
+  lead_id: string;
+  total: number;
+  communications: AutoCommunication[];
+};
+
+export async function getAutoCommunicationTemplates(): Promise<{
+  templates: Record<string, AutoCommunicationTemplate>;
+}> {
+  return request<{ templates: Record<string, AutoCommunicationTemplate> }>("/api/v1/auto-communications/templates");
+}
+
+export async function createAutoCommunication(
+  leadId: string,
+  trigger: string,
+  context: Record<string, unknown> = {}
+): Promise<{ status: string; lead_id: string; trigger: string; created_count: number; communications: AutoCommunication[] }> {
+  return request<{
+    status: string;
+    lead_id: string;
+    trigger: string;
+    created_count: number;
+    communications: AutoCommunication[];
+  }>(`/api/v1/auto-communications/leads/${leadId}?trigger=${encodeURIComponent(trigger)}`, {
+    method: "POST",
+    body: JSON.stringify(context),
+  });
+}
+
+export async function listAutoCommunications(leadId: string): Promise<AutoCommunicationsList> {
+  return request<AutoCommunicationsList>(`/api/v1/auto-communications/leads/${leadId}`);
+}
+
 export async function listTrainingCases(params?: {
   country?: string;
   profession?: string;

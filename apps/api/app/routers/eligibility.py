@@ -8,7 +8,9 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import EligibilityAssessment, Lead
+from app.models.domain import IntakeSession
 from app.schemas import EligibilityAssessmentRead, EligibilityEvaluateRequest
+from app.services.auto_communications import generate_auto_communications_for_lead
 from app.services.controlled_agents import run_controlled_agent
 from app.services.eligibility_engine import evaluate_lead_eligibility, persist_eligibility_assessment
 
@@ -54,6 +56,22 @@ def evaluate_eligibility(
         agent_run_id=agent_response.run_id,
         result=assessment_result,
     )
+
+    intake = session.exec(
+        select(IntakeSession).where(IntakeSession.lead_id == payload.lead_id).order_by(IntakeSession.created_at.desc())
+    ).first()
+    return_link = f"/return?token={intake.session_token}" if intake else ""
+    generate_auto_communications_for_lead(
+        session,
+        payload.lead_id,
+        trigger="eligibility_ready",
+        context={
+            "status": assessment_result.get("status", "under review"),
+            "score": str(round(assessment_result.get("overall_score", 0) * 100)),
+            "return_link": return_link,
+        },
+    )
+
     return EligibilityAssessmentRead.from_model(assessment)
 
 

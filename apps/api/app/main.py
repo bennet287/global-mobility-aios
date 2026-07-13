@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.routers import (
     auth,
+    auto_communications,
     client_return,
     coaching,
     public_intake,
@@ -97,6 +98,7 @@ app.include_router(training_cases.router)
 app.include_router(eligibility.router)
 app.include_router(client_return.router)
 app.include_router(opportunities.router)
+app.include_router(auto_communications.router)
 app.include_router(public_intake.router)
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
 app.include_router(official_sources.router)

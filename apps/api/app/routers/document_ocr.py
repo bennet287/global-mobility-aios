@@ -6,12 +6,14 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, Lead
+from app.models.domain import IntakeSession
 from app.schemas import DocumentOcrExtractRequest, DocumentOcrExtractResponse
 from app.services.audit_log import record_audit
+from app.services.auto_communications import generate_auto_communications_for_lead
 
 router = APIRouter(tags=["document-ocr"])
 
@@ -129,6 +131,20 @@ def ocr_extract(payload: DocumentOcrExtractRequest, session: Session = Depends(g
         },
         reason="OCR text extracted from client-uploaded image.",
         source="document_ocr_v7.3",
+    )
+
+    intake = session.exec(
+        select(IntakeSession).where(IntakeSession.lead_id == lead.id).order_by(IntakeSession.created_at.desc())
+    ).first()
+    return_link = f"/return?token={intake.session_token}" if intake else ""
+    generate_auto_communications_for_lead(
+        session,
+        lead.id,
+        trigger="document_uploaded",
+        context={
+            "document_type": payload.document_type,
+            "return_link": return_link,
+        },
     )
 
     return DocumentOcrExtractResponse(
