@@ -74,6 +74,18 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["eligibility_coach"],
         "output_schema": AGENT_OUTPUT_SCHEMA["eligibility_coach"],
     },
+    "eligibility_agent": {
+        "version": "v7.4",
+        "department": "eligibility",
+        "role": "Produces an internal rule-based eligibility assessment, highlighting pathways, gaps, and required documents.",
+        "guardrails": [
+            "Cannot promise a specific immigration outcome.",
+            "Output is internal and requires human review before client use.",
+            "Cannot alter lead data or case status directly.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["eligibility_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["eligibility_agent"],
+    },
 }
 
 AGENT_ALIASES = {

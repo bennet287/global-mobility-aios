@@ -2343,3 +2343,146 @@ a {
   font-size: var(--text-lg);
   margin-bottom: var(--space-2);
 }
+
+/* Eligibility page */
+.eligibility-page,
+.eligibility-header,
+.eligibility-main {
+  width: 100%;
+}
+
+.eligibility-header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.eligibility-main {
+  padding: var(--space-6);
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.eligibility-panel {
+  text-align: center;
+}
+
+.eligibility-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-6);
+  margin: var(--space-6) 0;
+}
+
+.score-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.score-value {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: var(--text-xl);
+  color: var(--ink);
+  background: conic-gradient(var(--green) var(--score), var(--surface-strong) 0);
+  border: 4px solid var(--surface-strong);
+}
+
+.eligibility-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.status-badge.success {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.status-badge.warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.status-badge.info {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.status-badge.error {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.eligibility-summary-text {
+  color: var(--ink-muted);
+  max-width: 640px;
+  margin: 0 auto var(--space-6);
+  line-height: 1.5;
+}
+
+.eligibility-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  text-align: left;
+  margin-bottom: var(--space-5);
+}
+
+.eligibility-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+}
+
+.eligibility-card h2 {
+  font-size: var(--text-md);
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+}
+
+.eligibility-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.eligibility-card.risks {
+  text-align: left;
+  margin-bottom: var(--space-5);
+}
+
+.eligibility-card.risks li {
+  color: #f87171;
+}
+
+.eligibility-link {
+  margin: var(--space-5) 0;
+}
+
+@media (max-width: 720px) {
+  .eligibility-grid {
+    grid-template-columns: 1fr;
+  }
+}

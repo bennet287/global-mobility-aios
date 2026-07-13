@@ -358,6 +358,26 @@ class TrainingCase(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class EligibilityAssessment(SQLModel, table=True):
+    __tablename__ = "eligibility_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    agent_run_id: Optional[UUID] = Field(default=None, index=True, foreign_key="agent_runs.id")
+    target_country: Optional[str] = Field(default=None, index=True)
+    domain: str = Field(default="general", index=True)
+    overall_score: float = Field(default=0.0)
+    confidence: float = Field(default=0.0)
+    status: str = Field(default="insufficient_profile", index=True)
+    summary: Optional[str] = None
+    assessment_json: Optional[str] = None
+    risks_json: Optional[str] = None
+    required_documents_json: Optional[str] = None
+    pathways_json: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class IntakeSessionStatus(str, Enum):
     started = "started"
     completed = "completed"

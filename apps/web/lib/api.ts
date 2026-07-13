@@ -757,6 +757,38 @@ export async function generateTrainingCases(payload: {
   });
 }
 
+export type EligibilityAssessment = {
+  id: string;
+  lead_id: string;
+  agent_run_id: string | null;
+  target_country: string | null;
+  domain: string;
+  overall_score: number;
+  confidence: number;
+  status: "eligible" | "likely_eligible" | "needs_documents" | "insufficient_profile" | "ineligible" | string;
+  summary: string | null;
+  risks: string[];
+  required_documents: string[];
+  pathways: string[];
+  factors: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function evaluateEligibility(
+  leadId: string,
+  profile: Record<string, unknown> = {}
+): Promise<EligibilityAssessment> {
+  return request<EligibilityAssessment>("/api/v1/eligibility/evaluate", {
+    method: "POST",
+    body: JSON.stringify({ lead_id: leadId, profile }),
+  });
+}
+
+export async function getLatestEligibilityAssessment(leadId: string): Promise<EligibilityAssessment> {
+  return request<EligibilityAssessment>(`/api/v1/eligibility/${leadId}/latest`);
+}
+
 export async function listTrainingCases(params?: {
   country?: string;
   profession?: string;

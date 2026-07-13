@@ -11,6 +11,7 @@ from app.models.domain import AgentRun, AgentRunStatus
 from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
 from app.services.eligibility_coach import evaluate_eligibility_output
+from app.services.eligibility_engine import evaluate_lead_eligibility
 from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
 from app.services.role_card_loader import build_system_prompt, get_agent_output_schema
 
@@ -171,6 +172,26 @@ def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]
     return output
 
 
+def _eligibility_agent(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    assessment = payload.context.get("assessment", {})
+    if not assessment:
+        output.update({
+            "overall_score": 0.0,
+            "confidence": 0.0,
+            "status": "insufficient_profile",
+            "summary": "Cannot assess eligibility: no assessment result provided in context.",
+            "risks": ["Eligibility engine result missing."],
+            "required_documents": [],
+            "pathways": [],
+            "factors": {},
+        })
+    else:
+        output.update(assessment)
+    output["blocked_actions"] = ["client_send", "lead_conversion", "guarantee_claim"]
+    return output
+
+
 DETERMINISTIC_HANDLERS = {
     "truth_explanation_agent": _truth_explanation,
     "document_checklist_agent": _document_checklist,
@@ -178,6 +199,7 @@ DETERMINISTIC_HANDLERS = {
     "sales_summary_agent": _sales_summary,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
+    "eligibility_agent": _eligibility_agent,
 }
 
 
@@ -284,6 +306,7 @@ AGENT_HANDLERS = {
     "sales_summary_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
+    "eligibility_agent": _eligibility_agent,
 }
 
 

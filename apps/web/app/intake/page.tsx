@@ -197,8 +197,16 @@ export default function IntakePage() {
               </div>
             )}
 
+            {result.lead_id && (
+              <div className="eligibility-link">
+                <Link className="button primary" href={`/eligibility?lead_id=${result.lead_id}`}>
+                  View eligibility preview
+                </Link>
+              </div>
+            )}
+
             <div className="form-actions">
-              <Link className="button primary" href="/">
+              <Link className="button secondary" href="/">
                 Go to operator workspace
               </Link>
               <button className="button secondary" onClick={() => setResult(null)}>

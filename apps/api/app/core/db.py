@@ -22,6 +22,7 @@ def register_models() -> None:
         CoachReview,
         CountryPolicy,
         DocumentRecord,
+        EligibilityAssessment,
         FollowUp,
         HumanReview,
         IntakeSession,

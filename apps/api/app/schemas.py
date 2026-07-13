@@ -432,3 +432,67 @@ class DocumentOcrExtractResponse(BaseModel):
     extracted_text: str
     parsed_fields: dict[str, Any]
     message: str
+
+
+class EligibilityEvaluateRequest(BaseModel):
+    lead_id: UUID
+    profile: dict[str, Any] = Field(default_factory=dict)
+    actor: str = "system"
+
+
+class EligibilityAssessmentRead(BaseModel):
+    id: UUID
+    lead_id: UUID
+    agent_run_id: Optional[UUID] = None
+    target_country: Optional[str] = None
+    domain: str = "general"
+    overall_score: float
+    confidence: float
+    status: str
+    summary: Optional[str] = None
+    risks: List[str] = []
+    required_documents: List[str] = []
+    pathways: List[str] = []
+    factors: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+    updated_at: datetime
+
+    @classmethod
+    def from_model(cls, assessment: Any) -> "EligibilityAssessmentRead":
+        import json
+
+        def _load(value: str | None) -> list[str]:
+            if not value:
+                return []
+            try:
+                data = json.loads(value)
+                return data if isinstance(data, list) else []
+            except Exception:
+                return []
+
+        def _load_dict(value: str | None) -> dict[str, Any]:
+            if not value:
+                return {}
+            try:
+                data = json.loads(value)
+                return data if isinstance(data, dict) else {}
+            except Exception:
+                return {}
+
+        return cls(
+            id=assessment.id,
+            lead_id=assessment.lead_id,
+            agent_run_id=assessment.agent_run_id,
+            target_country=assessment.target_country,
+            domain=assessment.domain,
+            overall_score=assessment.overall_score,
+            confidence=assessment.confidence,
+            status=assessment.status,
+            summary=assessment.summary,
+            risks=_load(assessment.risks_json),
+            required_documents=_load(assessment.required_documents_json),
+            pathways=_load(assessment.pathways_json),
+            factors=_load_dict(assessment.assessment_json).get("factors", {}),
+            created_at=assessment.created_at,
+            updated_at=assessment.updated_at,
+        )
