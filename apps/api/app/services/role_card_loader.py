@@ -17,6 +17,7 @@ AGENT_ROLE_CARD_MAP = {
     "client_drafting_agent": "Sales_Followup_Agent",
     "sales_summary_agent": "Recruitment_Specialist",
     "application_readiness_agent": "AI_CEO",
+    "eligibility_coach": "Eligibility_Coach",
 }
 
 # Output schema hints that the LLM must produce for each canonical agent.
@@ -56,6 +57,16 @@ AGENT_OUTPUT_SCHEMA = {
         "documents_verified": True,
         "ready_for_operator_review": True,
         "ready_for_submission": False,
+        "safe_next_actions": ["string"],
+        "blocked_actions": ["string"],
+    },
+    "eligibility_coach": {
+        "conclusion_valid": False,
+        "missing_facts": ["string"],
+        "source_issues": ["string"],
+        "corrected_summary": "string",
+        "confidence": "low | medium | high",
+        "human_review_required": True,
         "safe_next_actions": ["string"],
         "blocked_actions": ["string"],
     },

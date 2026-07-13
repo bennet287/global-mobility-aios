@@ -309,6 +309,74 @@ class ApplicationRecord(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc)
 
 
+class CoachReviewStatus(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    overridden = "overridden"
+
+
+class CoachConfidence(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+
+class CoachReview(SQLModel, table=True):
+    __tablename__ = "coach_reviews"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    agent_run_id: Optional[UUID] = Field(default=None, index=True, foreign_key="agent_runs.id")
+    coach_agent_name: str = "eligibility_coach"
+    target_agent_name: str
+    conclusion_valid: bool = False
+    missing_facts_json: Optional[str] = None
+    source_issues_json: Optional[str] = None
+    corrected_summary: Optional[str] = None
+    confidence: CoachConfidence = CoachConfidence.medium
+    operator_feedback: Optional[str] = None
+    operator_override_json: Optional[str] = None
+    status: CoachReviewStatus = CoachReviewStatus.pending
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class TrainingCase(SQLModel, table=True):
+    __tablename__ = "training_cases"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    title: str
+    country: str = Field(index=True)
+    profession: str = Field(index=True)
+    scenario_json: Optional[str] = None
+    expected_outcome_json: Optional[str] = None
+    source: str = "synthetic"
+    times_run: int = 0
+    avg_score: Optional[float] = None
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class IntakeSessionStatus(str, Enum):
+    started = "started"
+    completed = "completed"
+    converted = "converted"
+
+
+class IntakeSession(SQLModel, table=True):
+    __tablename__ = "intake_sessions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    session_token: str = Field(index=True, unique=True)
+    status: IntakeSessionStatus = IntakeSessionStatus.started
+    source: str = "public_intake"
+    answers_json: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

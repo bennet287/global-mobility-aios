@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.models.domain import AgentRun, AgentRunStatus
 from app.schemas import ControlledAgentRunRequest, ControlledAgentRunResponse
 from app.services.audit_log import record_audit
+from app.services.eligibility_coach import evaluate_eligibility_output
 from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
 from app.services.role_card_loader import build_system_prompt, get_agent_output_schema
 
@@ -161,12 +162,22 @@ def _application_readiness(payload: ControlledAgentRunRequest, agent: dict[str, 
     return output
 
 
+def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    lead_data = payload.context.get("lead", {})
+    target_output = payload.context.get("target_output", {})
+    evaluation = evaluate_eligibility_output(target_output, lead_data)
+    output.update(evaluation)
+    return output
+
+
 DETERMINISTIC_HANDLERS = {
     "truth_explanation_agent": _truth_explanation,
     "document_checklist_agent": _document_checklist,
     "client_drafting_agent": _client_drafting,
     "sales_summary_agent": _sales_summary,
     "application_readiness_agent": _application_readiness,
+    "eligibility_coach": _eligibility_coach,
 }
 
 
@@ -272,6 +283,7 @@ AGENT_HANDLERS = {
     "client_drafting_agent": _llm_agent_handler,
     "sales_summary_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
+    "eligibility_coach": _llm_agent_handler,
 }
 
 

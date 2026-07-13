@@ -6,7 +6,10 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.models.domain import (
     AgentRunStatus,
+    CoachConfidence,
+    CoachReviewStatus,
     FollowUpStatus,
+    IntakeSessionStatus,
     LeadIntent,
     LeadStatus,
     ReviewStatus,
@@ -317,3 +320,98 @@ class AgentRunDetailResponse(BaseModel):
     run: AgentRunRead
     audit_history: List[AgentRunAuditEntry]
     latest_review_note: Optional[str] = None
+
+
+class PublicIntakeCreate(BaseModel):
+    full_name: str = Field(..., examples=["Aisha Patel"])
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    goal: str = Field(..., examples=["Work in Germany as a nurse"])
+    nationality: str = Field(..., examples=["India"])
+    profession: str = Field(..., examples=["Registered Nurse"])
+    years_experience: Optional[float] = None
+    target_country: str = Field(..., examples=["Germany"])
+    notes: Optional[str] = None
+
+
+class PublicIntakeResponse(BaseModel):
+    session_token: str
+    lead_id: Optional[UUID] = None
+    status: LeadStatus
+    checklist: List[str] = []
+    message: str
+
+
+class CoachReviewCreate(BaseModel):
+    lead_id: Optional[UUID] = None
+    agent_run_id: Optional[UUID] = None
+    target_agent_name: str
+    conclusion_valid: bool = False
+    missing_facts: List[str] = []
+    source_issues: List[str] = []
+    corrected_summary: Optional[str] = None
+    confidence: CoachConfidence = CoachConfidence.medium
+
+
+class CoachReviewRead(BaseModel):
+    id: UUID
+    lead_id: Optional[UUID]
+    agent_run_id: Optional[UUID]
+    coach_agent_name: str
+    target_agent_name: str
+    conclusion_valid: bool
+    missing_facts_json: Optional[str]
+    source_issues_json: Optional[str]
+    corrected_summary: Optional[str]
+    confidence: CoachConfidence
+    operator_feedback: Optional[str]
+    operator_override_json: Optional[str]
+    status: CoachReviewStatus
+    created_at: datetime
+    updated_at: datetime
+
+
+class CoachReviewFeedback(BaseModel):
+    operator_feedback: str
+    override_decision: Optional[CoachReviewStatus] = None
+
+
+class TrainingCaseCreate(BaseModel):
+    title: str
+    country: str
+    profession: str
+    scenario: dict[str, Any] = Field(default_factory=dict)
+    expected_outcome: dict[str, Any] = Field(default_factory=dict)
+    source: str = "manual"
+
+
+class TrainingCaseRead(BaseModel):
+    id: UUID
+    lead_id: Optional[UUID]
+    title: str
+    country: str
+    profession: str
+    scenario_json: Optional[str]
+    expected_outcome_json: Optional[str]
+    source: str
+    times_run: int
+    avg_score: Optional[float]
+    created_at: datetime
+    updated_at: datetime
+
+
+class TrainingCaseGenerateRequest(BaseModel):
+    count: int = Field(default=5, ge=1, le=50)
+    country: Optional[str] = None
+    profession: Optional[str] = None
+
+
+class IntakeSessionRead(BaseModel):
+    id: UUID
+    lead_id: Optional[UUID]
+    session_token: str
+    status: IntakeSessionStatus
+    source: str
+    answers_json: Optional[str]
+    created_at: datetime
+    updated_at: datetime

@@ -42,6 +42,7 @@ LEAD_AGENT_ACTIONS = {
     "document_checklist_agent": "Summarize Documents",
     "truth_explanation_agent": "Explain Truth Status",
     "client_drafting_agent": "Draft Client Update",
+    "eligibility_coach": "Audit Eligibility Conclusion",
 }
 
 PENDING_AGENT_OUTPUT_STATUSES = {
@@ -149,6 +150,7 @@ def _agent_task(agent_name: str, lead: Lead) -> str:
         "document_checklist_agent": f"Summarize document checklist status for {lead.full_name}.",
         "truth_explanation_agent": f"Explain truth and verification status for {lead.full_name}.",
         "client_drafting_agent": f"Draft a review-gated client update for {lead.full_name}.",
+        "eligibility_coach": f"Audit eligibility/pathway conclusion for {lead.full_name}.",
     }.get(agent_name, f"Run controlled agent for {lead.full_name}.")
 
 

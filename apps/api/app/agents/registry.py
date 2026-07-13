@@ -62,6 +62,18 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["application_readiness_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["application_readiness_agent"],
     },
+    "eligibility_coach": {
+        "version": "v7.3",
+        "department": "coaching",
+        "role": "Audits eligibility and pathway conclusions from operational agents for factual grounding and safety.",
+        "guardrails": [
+            "Cannot change lead data or case status directly.",
+            "Must flag missing facts and source issues explicitly.",
+            "Cannot approve client-facing output; only provides a review verdict.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["eligibility_coach"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["eligibility_coach"],
+    },
 }
 
 AGENT_ALIASES = {
