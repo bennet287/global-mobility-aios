@@ -1983,3 +1983,139 @@ a {
 @media (max-width: 880px) {
   .agent-chat-panel { width: 100vw; max-width: 100vw; right: 0; }
 }
+
+/* Public intake page */
+.intake-page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.intake-header {
+  padding: 20px var(--space-6);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.intake-header .brand-lockup {
+  color: var(--ink);
+}
+
+.intake-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6);
+}
+
+.intake-panel {
+  padding: var(--space-8);
+}
+
+.intake-panel h1 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-3);
+}
+
+.intake-lead {
+  color: var(--ink-muted);
+  margin-bottom: var(--space-6);
+}
+
+.intake-form.public-intake {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.intake-form.public-intake .full-field {
+  grid-column: 1 / -1;
+}
+
+.intake-form.public-intake label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.intake-form.public-intake input,
+.intake-form.public-intake select,
+.intake-form.public-intake textarea {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--ink);
+  font-size: var(--text-base);
+}
+
+.intake-form.public-intake input:focus,
+.intake-form.public-intake select:focus,
+.intake-form.public-intake textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: var(--focus-ring);
+}
+
+.intake-panel.success {
+  text-align: center;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-5);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green-strong);
+  font-size: 28px;
+}
+
+.checklist {
+  text-align: left;
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+}
+
+.checklist h2 {
+  font-size: var(--text-md);
+  margin-bottom: var(--space-3);
+}
+
+.checklist ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 24px;
+  color: var(--ink-muted);
+}
+
+.checklist li::before {
+  content: "☐";
+  position: absolute;
+  left: 0;
+  color: var(--green);
+}
+
+@media (max-width: 880px) {
+  .intake-form.public-intake {
+    grid-template-columns: 1fr;
+  }
+  .intake-form.public-intake .full-field {
+    grid-column: auto;
+  }
+}

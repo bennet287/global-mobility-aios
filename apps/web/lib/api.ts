@@ -625,3 +625,118 @@ export async function markAllDraftsReviewed(leadId: string, note?: string) {
     body: JSON.stringify({ note }),
   });
 }
+
+
+export type PublicIntakePayload = {
+  full_name: string;
+  email?: string;
+  phone?: string;
+  goal: string;
+  nationality: string;
+  profession: string;
+  years_experience?: number;
+  target_country: string;
+  notes?: string;
+};
+
+export type PublicIntakeResponse = {
+  session_token: string;
+  lead_id: string | null;
+  status: string;
+  checklist: string[];
+  message: string;
+};
+
+export type CoachReview = {
+  id: string;
+  lead_id: string | null;
+  agent_run_id: string | null;
+  coach_agent_name: string;
+  target_agent_name: string;
+  conclusion_valid: boolean;
+  missing_facts_json: string | null;
+  source_issues_json: string | null;
+  corrected_summary: string | null;
+  confidence: "low" | "medium" | "high";
+  operator_feedback: string | null;
+  operator_override_json: string | null;
+  status: "pending" | "approved" | "overridden";
+  created_at: string;
+  updated_at: string;
+};
+
+export type TrainingCase = {
+  id: string;
+  lead_id: string | null;
+  title: string;
+  country: string;
+  profession: string;
+  scenario_json: string | null;
+  expected_outcome_json: string | null;
+  source: string;
+  times_run: number;
+  avg_score: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function createPublicIntake(payload: PublicIntakePayload): Promise<PublicIntakeResponse> {
+  return request<PublicIntakeResponse>("/api/v1/public/intake", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getPublicIntake(sessionToken: string): Promise<PublicIntakeResponse> {
+  return request<PublicIntakeResponse>(`/api/v1/public/intake/${sessionToken}`);
+}
+
+export async function runEligibilityCoach(leadId: string): Promise<CoachReview> {
+  return request<CoachReview>(`/api/v1/coaching/eligibility/${leadId}`, {
+    method: "POST",
+  });
+}
+
+export async function listCoachReviews(leadId: string): Promise<CoachReview[]> {
+  return request<CoachReview[]>(`/api/v1/coaching/eligibility/${leadId}/reviews`);
+}
+
+export async function submitCoachFeedback(
+  reviewId: string,
+  feedback: { operator_feedback: string; override_decision?: "pending" | "approved" | "overridden" }
+): Promise<CoachReview> {
+  return request<CoachReview>(`/api/v1/coaching/reviews/${reviewId}/feedback`, {
+    method: "POST",
+    body: JSON.stringify(feedback),
+  });
+}
+
+export async function generateTrainingCases(payload: {
+  count: number;
+  country?: string;
+  profession?: string;
+}): Promise<TrainingCase[]> {
+  return request<TrainingCase[]>("/api/v1/training-cases/generate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listTrainingCases(params?: {
+  country?: string;
+  profession?: string;
+  limit?: number;
+}): Promise<TrainingCase[]> {
+  const qs = new URLSearchParams();
+  if (params?.country) qs.set("country", params.country);
+  if (params?.profession) qs.set("profession", params.profession);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<TrainingCase[]>(`/api/v1/training-cases${query}`);
+}
+
+export async function runTrainingCase(caseId: string): Promise<CoachReview> {
+  return request<CoachReview>(`/api/v1/training-cases/${caseId}/run`, {
+    method: "POST",
+  });
+}
