@@ -496,3 +496,53 @@ class EligibilityAssessmentRead(BaseModel):
             created_at=assessment.created_at,
             updated_at=assessment.updated_at,
         )
+
+
+class ClientLookupRequest(BaseModel):
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    session_token: Optional[str] = None
+
+
+class ClientLookupResult(BaseModel):
+    lead_id: UUID
+    full_name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    target_country: Optional[str] = None
+    status: str
+    updated_at: datetime
+
+
+class ClientDashboardDocument(BaseModel):
+    id: UUID
+    document_type: str
+    filename: str
+    status: str
+    uploaded_at: Optional[datetime] = None
+
+
+class ClientDashboardFollowUp(BaseModel):
+    id: UUID
+    channel: str
+    status: str
+    message: str
+    due_at: Optional[datetime] = None
+
+
+class ClientReturnDashboard(BaseModel):
+    lead_id: UUID
+    full_name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    target_country: Optional[str] = None
+    status: str
+    intent: str
+    checklist: List[str] = []
+    session_token: Optional[str] = None
+    eligibility: Optional[EligibilityAssessmentRead] = None
+    documents: List[ClientDashboardDocument] = []
+    follow_ups: List[ClientDashboardFollowUp] = []
+    application_stage: Optional[str] = None
+    next_action: str
+    updated_at: datetime

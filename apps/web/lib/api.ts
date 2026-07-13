@@ -789,6 +789,67 @@ export async function getLatestEligibilityAssessment(leadId: string): Promise<El
   return request<EligibilityAssessment>(`/api/v1/eligibility/${leadId}/latest`);
 }
 
+export type ClientLookupPayload = {
+  email?: string;
+  phone?: string;
+  session_token?: string;
+};
+
+export type ClientLookupResult = {
+  lead_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  target_country: string | null;
+  status: string;
+  updated_at: string;
+};
+
+export type ClientDashboardDocument = {
+  id: string;
+  document_type: string;
+  filename: string;
+  status: string;
+  uploaded_at: string | null;
+};
+
+export type ClientDashboardFollowUp = {
+  id: string;
+  channel: string;
+  status: string;
+  message: string;
+  due_at: string | null;
+};
+
+export type ClientReturnDashboard = {
+  lead_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  target_country: string | null;
+  status: string;
+  intent: string;
+  checklist: string[];
+  session_token: string | null;
+  eligibility: EligibilityAssessment | null;
+  documents: ClientDashboardDocument[];
+  follow_ups: ClientDashboardFollowUp[];
+  application_stage: string | null;
+  next_action: string;
+  updated_at: string;
+};
+
+export async function lookupClientCases(payload: ClientLookupPayload): Promise<ClientLookupResult[]> {
+  return request<ClientLookupResult[]>("/api/v1/public/lookup", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getClientReturnDashboard(leadId: string): Promise<ClientReturnDashboard> {
+  return request<ClientReturnDashboard>(`/api/v1/public/return/${leadId}`);
+}
+
 export async function listTrainingCases(params?: {
   country?: string;
   profession?: string;

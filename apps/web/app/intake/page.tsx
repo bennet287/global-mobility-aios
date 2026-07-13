@@ -205,6 +205,13 @@ export default function IntakePage() {
               </div>
             )}
 
+            <p className="intake-lead">
+              Save this return link to check your case status later:{" "}
+              <Link href={`/return?token=${result.session_token}`}>
+                Return to my case
+              </Link>
+            </p>
+
             <div className="form-actions">
               <Link className="button secondary" href="/">
                 Go to operator workspace
