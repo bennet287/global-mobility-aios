@@ -850,6 +850,65 @@ export async function getClientReturnDashboard(leadId: string): Promise<ClientRe
   return request<ClientReturnDashboard>(`/api/v1/public/return/${leadId}`);
 }
 
+export type Opportunity = {
+  id: string;
+  title: string;
+  organization: string | null;
+  country: string;
+  domain: string;
+  profession_tags: string[];
+  field_tags: string[];
+  required_years_experience: number | null;
+  language_requirement: string | null;
+  salary_eur: number | null;
+  budget_eur: number | null;
+  description: string | null;
+  source: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OpportunityMatch = {
+  opportunity: Opportunity;
+  match_score: number;
+  confidence: number;
+  reasons: string[];
+  risks: string[];
+};
+
+export type OpportunityMatchResponse = {
+  lead_id: string;
+  matches: OpportunityMatch[];
+  top_opportunity_id: string | null;
+  summary: string;
+};
+
+export async function listOpportunities(params?: {
+  country?: string;
+  domain?: string;
+  active?: boolean;
+}): Promise<Opportunity[]> {
+  const qs = new URLSearchParams();
+  if (params?.country) qs.set("country", params.country);
+  if (params?.domain) qs.set("domain", params.domain);
+  if (params?.active !== undefined) qs.set("active", String(params.active));
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<Opportunity[]>(`/api/v1/opportunities${query}`);
+}
+
+export async function seedOpportunities(): Promise<{ status: string; seeded: number }> {
+  return request<{ status: string; seeded: number }>("/api/v1/opportunities/seed", {
+    method: "POST",
+  });
+}
+
+export async function matchOpportunities(leadId: string): Promise<OpportunityMatchResponse> {
+  return request<OpportunityMatchResponse>(`/api/v1/opportunities/match/${leadId}`, {
+    method: "POST",
+  });
+}
+
 export async function listTrainingCases(params?: {
   country?: string;
   profession?: string;

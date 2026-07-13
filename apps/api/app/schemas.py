@@ -546,3 +546,85 @@ class ClientReturnDashboard(BaseModel):
     application_stage: Optional[str] = None
     next_action: str
     updated_at: datetime
+
+
+class OpportunityCreate(BaseModel):
+    title: str
+    organization: Optional[str] = None
+    country: str
+    domain: str = "work"
+    profession_tags: List[str] = []
+    field_tags: List[str] = []
+    required_years_experience: Optional[float] = None
+    language_requirement: Optional[str] = None
+    salary_eur: Optional[float] = None
+    budget_eur: Optional[float] = None
+    description: Optional[str] = None
+    source: str = "manual"
+    active: bool = True
+
+
+class OpportunityRead(BaseModel):
+    id: UUID
+    title: str
+    organization: Optional[str] = None
+    country: str
+    domain: str
+    profession_tags: List[str] = []
+    field_tags: List[str] = []
+    required_years_experience: Optional[float] = None
+    language_requirement: Optional[str] = None
+    salary_eur: Optional[float] = None
+    budget_eur: Optional[float] = None
+    description: Optional[str] = None
+    source: str
+    active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    @classmethod
+    def from_model(cls, opp: Any) -> "OpportunityRead":
+        import json
+
+        def _load(value: str | None) -> list[str]:
+            if not value:
+                return []
+            try:
+                data = json.loads(value)
+                return data if isinstance(data, list) else []
+            except Exception:
+                return []
+
+        return cls(
+            id=opp.id,
+            title=opp.title,
+            organization=opp.organization,
+            country=opp.country,
+            domain=opp.domain,
+            profession_tags=_load(opp.profession_tags_json),
+            field_tags=_load(opp.field_tags_json),
+            required_years_experience=opp.required_years_experience,
+            language_requirement=opp.language_requirement,
+            salary_eur=opp.salary_eur,
+            budget_eur=opp.budget_eur,
+            description=opp.description,
+            source=opp.source,
+            active=opp.active,
+            created_at=opp.created_at,
+            updated_at=opp.updated_at,
+        )
+
+
+class OpportunityMatchResult(BaseModel):
+    opportunity: OpportunityRead
+    match_score: float
+    confidence: float
+    reasons: List[str]
+    risks: List[str]
+
+
+class OpportunityMatchResponse(BaseModel):
+    lead_id: UUID
+    matches: List[OpportunityMatchResult]
+    top_opportunity_id: Optional[UUID] = None
+    summary: str

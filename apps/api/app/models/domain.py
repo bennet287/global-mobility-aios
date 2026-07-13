@@ -378,6 +378,27 @@ class EligibilityAssessment(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class Opportunity(SQLModel, table=True):
+    __tablename__ = "opportunities"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    title: str
+    organization: Optional[str] = None
+    country: str = Field(index=True)
+    domain: str = Field(default="work", index=True)
+    profession_tags_json: Optional[str] = None
+    field_tags_json: Optional[str] = None
+    required_years_experience: Optional[float] = None
+    language_requirement: Optional[str] = None
+    salary_eur: Optional[float] = None
+    budget_eur: Optional[float] = None
+    description: Optional[str] = None
+    source: str = "manual"
+    active: bool = Field(default=True, index=True)
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class IntakeSessionStatus(str, Enum):
     started = "started"
     completed = "completed"

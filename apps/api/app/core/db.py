@@ -28,6 +28,7 @@ def register_models() -> None:
         IntakeSession,
         Lead,
         OfficialSource,
+        Opportunity,
         Profile,
         SourceCheckRun,
         SourceReference,
