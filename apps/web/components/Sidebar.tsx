@@ -18,6 +18,7 @@ const appItems = [
   { label: "Agents", href: "/agents/console" },
   { label: "Review queue", href: "/agents/review" },
   { label: "Communications", href: "/communications" },
+  { label: "Coaching", href: "/coaching" },
 ];
 
 export function Sidebar({ health }: { health: HealthStatus | null }) {

@@ -27,6 +27,7 @@ def test_controlled_agents_registry_exposes_five_review_gated_agents(client: Tes
         "client_drafting_agent",
         "sales_summary_agent",
         "application_readiness_agent",
+        "eligibility_coach",
     }
 
 
