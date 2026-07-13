@@ -2254,3 +2254,92 @@ a {
     align-items: flex-start;
   }
 }
+
+/* Document OCR uploader */
+.document-ocr-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ocr-dropzone {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: var(--space-5);
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.ocr-dropzone:hover {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+
+.ocr-dropzone input {
+  display: none;
+}
+
+.ocr-controls {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.ocr-controls select {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
+.ocr-result {
+  text-align: left;
+}
+
+.ocr-result h3 {
+  margin-bottom: var(--space-3);
+}
+
+.ocr-parsed-fields {
+  margin-bottom: var(--space-4);
+}
+
+.ocr-parsed-fields strong {
+  display: block;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: var(--space-2);
+}
+
+.ocr-parsed-fields pre,
+.ocr-raw {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.ocr-section {
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+}
+
+.ocr-section h2 {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-2);
+}

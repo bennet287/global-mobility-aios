@@ -691,6 +691,30 @@ export async function getPublicIntake(sessionToken: string): Promise<PublicIntak
   return request<PublicIntakeResponse>(`/api/v1/public/intake/${sessionToken}`);
 }
 
+export type DocumentOcrPayload = {
+  lead_id: string;
+  document_type: string;
+  filename: string;
+  extracted_text: string;
+  language?: string;
+  confidence?: number;
+};
+
+export type DocumentOcrResponse = {
+  document_id: string;
+  document_type: string;
+  extracted_text: string;
+  parsed_fields: Record<string, unknown>;
+  message: string;
+};
+
+export async function submitDocumentOcr(payload: DocumentOcrPayload): Promise<DocumentOcrResponse> {
+  return request<DocumentOcrResponse>("/api/v1/documents/ocr-extract", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function runEligibilityCoach(leadId: string): Promise<CoachReview> {
   return request<CoachReview>(`/api/v1/coaching/eligibility/${leadId}`, {
     method: "POST",

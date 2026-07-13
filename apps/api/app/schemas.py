@@ -415,3 +415,20 @@ class IntakeSessionRead(BaseModel):
     answers_json: Optional[str]
     created_at: datetime
     updated_at: datetime
+
+
+class DocumentOcrExtractRequest(BaseModel):
+    lead_id: UUID
+    document_type: str
+    filename: str
+    extracted_text: str
+    language: str = "eng"
+    confidence: Optional[float] = None
+
+
+class DocumentOcrExtractResponse(BaseModel):
+    document_id: UUID
+    document_type: str
+    extracted_text: str
+    parsed_fields: dict[str, Any]
+    message: str

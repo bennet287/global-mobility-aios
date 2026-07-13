@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createPublicIntake, PublicIntakePayload, PublicIntakeResponse } from "../../lib/api";
+import { DocumentOcrUploader } from "../../components/DocumentOcrUploader";
 
 const GOALS = [
   "Work abroad",
@@ -185,6 +186,16 @@ export default function IntakePage() {
                 ))}
               </ul>
             </div>
+
+            {result.lead_id && (
+              <div className="ocr-section">
+                <h2>Upload a document to auto-fill details</h2>
+                <p className="intake-lead">
+                  Optional: upload an image of your passport, CV, or certificate and we&apos;ll extract text for the consultant.
+                </p>
+                <DocumentOcrUploader leadId={result.lead_id} />
+              </div>
+            )}
 
             <div className="form-actions">
               <Link className="button primary" href="/">

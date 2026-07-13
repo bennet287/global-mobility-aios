@@ -18,6 +18,7 @@ from app.routers import (
     document_operations,
     document_uploads,
     document_engine,
+    document_ocr,
     detail_views,
     operations,
     official_sources,
@@ -95,6 +96,7 @@ app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
 app.include_router(official_sources.router)
 app.include_router(detail_views.router, tags=["lead-detail"])
 app.include_router(document_engine.router, tags=["document-engine"])
+app.include_router(document_ocr.router)
 
 app.include_router(truth_resolution.router)
 
