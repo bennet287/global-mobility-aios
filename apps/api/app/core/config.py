@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     app_env: str = "local"
     log_level: str = "INFO"
+    cors_allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     database_url: str = "sqlite:///./gmai.db"
     database_auto_create_tables: Optional[bool] = None
     database_echo: bool = False
@@ -44,6 +45,16 @@ class Settings(BaseSettings):
     auth_session_cookie: str = "gmai_session"
     auth_allow_header_role: bool = True
     truth_engine_strict_mode: bool = True
+    source_monitor_timeout_seconds: int = 30
+    source_monitor_max_bytes: int = 5_000_000
+    source_monitor_allow_http: bool = False
+
+    def parsed_cors_origins(self) -> list[str]:
+        return [
+            origin.strip().rstrip("/")
+            for origin in self.cors_allowed_origins.split(",")
+            if origin.strip()
+        ]
 
 
 settings = Settings()

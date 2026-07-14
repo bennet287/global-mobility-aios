@@ -31,6 +31,8 @@ services:
       postgres:
         condition: service_healthy
     command: alembic -c alembic.ini upgrade head
+    healthcheck:
+      disable: true
     restart: "no"
 
   redis:
@@ -81,6 +83,28 @@ services:
       api-migrate:
         condition: service_completed_successfully
     command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  beat:
+    build:
+      context: ./apps/api
+    container_name: gmai-beat-prod
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_AUTO_CREATE_TABLES: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api-migrate:
+        condition: service_completed_successfully
+    command: celery -A app.core.celery_app beat --loglevel=info
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
 volumes:

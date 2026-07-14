@@ -15,6 +15,13 @@ const navItems = [
 ];
 
 const appItems = [
+  { label: "Profiles", href: "/profiles" },
+  { label: "Pathways", href: "/pathways" },
+  { label: "Planning", href: "/planning" },
+  { label: "Timelines", href: "/timelines" },
+  { label: "Documents", href: "/document-intelligence" },
+  { label: "Intelligence", href: "/intelligence" },
+  { label: "Global dashboard", href: "/global-intelligence" },
   { label: "Agents", href: "/agents/console" },
   { label: "Review queue", href: "/agents/review" },
   { label: "Communications", href: "/communications" },

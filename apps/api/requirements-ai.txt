@@ -4,4 +4,3 @@ crewai>=0.80
 ollama>=0.4
 sentence-transformers>=3.0
 unstructured>=0.16
-pypdf>=5.0

@@ -58,6 +58,7 @@ def test_agent_role_card_map_covers_all_canonical_agents():
         "sales_summary_agent",
         "application_readiness_agent",
         "eligibility_coach",
+        "eligibility_agent",
     }
     assert set(AGENT_ROLE_CARD_MAP.keys()) == canonical_agents
 
@@ -92,5 +93,6 @@ def test_all_canonical_agents_have_output_schema():
         "sales_summary_agent",
         "application_readiness_agent",
         "eligibility_coach",
+        "eligibility_agent",
     }
     assert set(AGENT_OUTPUT_SCHEMA.keys()) == canonical_agents

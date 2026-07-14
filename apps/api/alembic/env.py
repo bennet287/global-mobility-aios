@@ -1,7 +1,7 @@
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, inspect, pool, text
 from sqlmodel import SQLModel
 
 from app.core.config import settings
@@ -39,6 +39,18 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+
+    # Alembic defaults version_num to VARCHAR(32), but this repository has one
+    # historical revision identifier with 33 characters. Pre-creating the
+    # table keeps the published revision chain intact on strict databases such
+    # as PostgreSQL while remaining compatible with SQLite.
+    with connectable.begin() as connection:
+        if not inspect(connection).has_table("alembic_version"):
+            connection.execute(text(
+                "CREATE TABLE alembic_version ("
+                "version_num VARCHAR(128) NOT NULL PRIMARY KEY"
+                ")"
+            ))
 
     with connectable.connect() as connection:
         context.configure(

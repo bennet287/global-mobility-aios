@@ -92,11 +92,19 @@ def _path_starts(path: str, prefixes: Iterable[str]) -> bool:
 def is_public_path(path: str) -> bool:
     if path in {"/", "/health", "/favicon.ico", "/openapi.json"}:
         return True
-    return _path_starts(path, ("/auth", "/docs", "/redoc", "/debug"))
+    return _path_starts(
+        path,
+        ("/auth", "/docs", "/redoc", "/debug", "/api/v1/public"),
+    )
 
 
 def required_roles(method: str, path: str) -> Set[str]:
     method = method.upper()
+
+    if _path_starts(path, ("/api/v1/document-intelligence",)):
+        if path.endswith("/review"):
+            return {"admin", "reviewer"}
+        return {"admin", "operator", "reviewer"}
 
     if method in {"GET", "HEAD", "OPTIONS"}:
         if path.startswith("/admin") or path.startswith("/api/v1"):
@@ -107,6 +115,12 @@ def required_roles(method: str, path: str) -> Set[str]:
         return {"admin"}
 
     if _path_starts(path, ("/api/v1/truth", "/admin/truth-resolution")):
+        return {"admin", "reviewer"}
+
+    if _path_starts(path, ("/api/v1/regulatory-intelligence",)):
+        return {"admin", "reviewer"}
+
+    if _path_starts(path, ("/api/v1/global-intelligence/registry",)):
         return {"admin", "reviewer"}
 
     if _path_starts(path, ("/api/v1/document-verification", "/admin/document-verification")):

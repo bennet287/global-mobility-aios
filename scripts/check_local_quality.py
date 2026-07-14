@@ -44,6 +44,7 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
                 "scripts/export_mvp_release_bundle.py",
                 "scripts/export_mvp_release_archive.py",
                 "scripts/check_github_release_ready.py",
+                "scripts/seed_global_jurisdiction_registry.py",
             ),
         ),
         QualityCommand(

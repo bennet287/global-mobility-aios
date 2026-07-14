@@ -6,7 +6,8 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import Lead, Opportunity, Profile
+from app.models.domain import Lead, Opportunity
+from app.services.mobility_profiles import current_mobility_profile, profile_facts
 
 
 def _json_loads(value: str | None) -> dict[str, Any]:
@@ -59,21 +60,31 @@ def match_opportunities_for_lead(
     if lead is None:
         raise ValueError(f"Lead {lead_id} not found")
 
-    profile = session.exec(
-        select(Profile).where(Profile.lead_id == lead_id).order_by(Profile.updated_at.desc())
-    ).first()
+    profile = current_mobility_profile(session, lead_id)
+    facts = profile_facts(profile)
+
+    if profile and profile.consent_status == "withdrawn":
+        return {
+            "lead_id": lead_id,
+            "matches": [],
+            "top_opportunity_id": None,
+            "summary": "Opportunity matching is restricted because profile consent was withdrawn.",
+            "profile_id": profile.id,
+            "profile_version": profile.profile_version,
+            "profile_completeness": profile.completeness_score,
+        }
 
     opportunities = list(session.exec(
         select(Opportunity).where(Opportunity.active == True)
     ).all())
 
-    lead_country = _normalize(lead.target_country)
+    lead_country = _normalize(lead.target_country or facts.get("target_country"))
     lead_intent = _normalize(getattr(lead.intent, "value", lead.intent))
     lead_notes = _normalize(lead.notes)
-    profession = _normalize(profile.desired_role if profile else None)
-    field = _normalize(profile.field_of_study if profile else None)
-    years_exp = profile.years_experience if profile and profile.years_experience else _extract_years_experience(lead.notes)
-    budget = profile.budget_eur if profile and profile.budget_eur else None
+    profession = _normalize(facts.get("desired_role"))
+    field = _normalize(facts.get("field_of_study"))
+    years_exp = facts.get("years_experience") or _extract_years_experience(lead.notes)
+    budget = facts.get("budget_eur")
 
     # Expand profession/field from notes if not in profile.
     if not profession:
@@ -93,7 +104,7 @@ def match_opportunities_for_lead(
             score += 0.35
             reasons.append(f"Target country matches {opp.country.title()}")
         elif lead_country:
-            risks.append(f"Opportunity is in {opp.country.title()}, not {lead.target_country.title()}")
+            risks.append(f"Opportunity is in {opp.country.title()}, not {lead_country.title()}")
         else:
             risks.append("Lead target country unknown")
 
@@ -158,6 +169,9 @@ def match_opportunities_for_lead(
             f"Found {len(matches)} active opportunities; "
             f"best match score {top['match_score'] if top else 0}."
         ),
+        "profile_id": profile.id if profile else None,
+        "profile_version": profile.profile_version if profile else None,
+        "profile_completeness": profile.completeness_score if profile else None,
     }
 
 

@@ -156,9 +156,13 @@ apps/web/
 ### Local Development (Docker Compose)
 
 ```bash
-cp .env.example .env
+cp .env.example .env.docker
 docker compose up --build
 ```
+
+The development Compose profile reads `.env.docker`. Keep `.env` available for
+host-only overrides; using Docker service hostnames there breaks local Python
+quality scripts.
 
 Exposed services:
 
@@ -321,6 +325,13 @@ cd apps/api
 celery -A app.core.celery_app worker --loglevel=info --concurrency=2
 ```
 
+Official-source monitor scheduling also requires Celery Beat:
+
+```bash
+cd apps/api
+celery -A app.core.celery_app beat --loglevel=info
+```
+
 API endpoints:
 
 - `POST /api/v1/controlled-agents/run-batch` — enqueue tasks for many leads.
@@ -378,6 +389,8 @@ Admin UI:
 ## Useful Reference Files
 
 - `README.md` — Quick start and MVP-1 API surface
+- `docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md` — Canonical complete product scope and coverage ledger
+- `docs/ROADMAP.md` — Phased delivery plan for the canonical product scope
 - `docs/ARCHITECTURE.md` — Runtime architecture
 - `docs/REPOSITORY_POLICY.md` — Dependency and repository allowlist
 - `docs/SECURITY_AND_COMPLIANCE.md` — Security rules

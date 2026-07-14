@@ -1,4 +1,6 @@
 .env
+.env.docker
+celerybeat-schedule*
 __pycache__/
 *.pyc
 *.pyo

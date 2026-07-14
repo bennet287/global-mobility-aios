@@ -112,4 +112,7 @@ def match_opportunities(
         matches=matches,
         top_opportunity_id=result.get("top_opportunity_id"),
         summary=result["summary"],
+        profile_id=result.get("profile_id"),
+        profile_version=result.get("profile_version"),
+        profile_completeness=result.get("profile_completeness"),
     )

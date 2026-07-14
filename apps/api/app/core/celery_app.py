@@ -7,7 +7,12 @@ celery_app = Celery(
     "gmai",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks.agent_tasks", "app.tasks.training_tasks"],
+    include=[
+        "app.tasks.agent_tasks",
+        "app.tasks.training_tasks",
+        "app.tasks.source_monitor_tasks",
+        "app.tasks.document_extraction_tasks",
+    ],
 )
 
 celery_app.conf.update(
@@ -20,4 +25,11 @@ celery_app.conf.update(
     task_time_limit=300,  # 5 minutes hard limit
     task_soft_time_limit=240,  # 4 minutes soft limit
     result_expires=3600,  # 1 hour
+    beat_schedule={
+        "enqueue-due-official-source-monitors": {
+            "task": "app.tasks.source_monitor_tasks.enqueue_due_source_monitors",
+            "schedule": 300.0,
+            "args": (100,),
+        },
+    },
 )

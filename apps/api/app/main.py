@@ -21,6 +21,7 @@ from app.routers import (
     document_uploads,
     document_engine,
     document_ocr,
+    document_intelligence,
     detail_views,
     operations,
     official_sources,
@@ -34,6 +35,9 @@ from app.routers import (
     eligibility,
     followups,
     opportunities,
+    pathways,
+    mobility_timelines,
+    live_intelligence,
     profiles,
     recruitment,
     reviews,
@@ -57,7 +61,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.parsed_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -98,6 +102,9 @@ app.include_router(training_cases.router)
 app.include_router(eligibility.router)
 app.include_router(client_return.router)
 app.include_router(opportunities.router)
+app.include_router(pathways.router)
+app.include_router(mobility_timelines.router)
+app.include_router(live_intelligence.router)
 app.include_router(auto_communications.router)
 app.include_router(public_intake.router)
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
@@ -105,6 +112,7 @@ app.include_router(official_sources.router)
 app.include_router(detail_views.router, tags=["lead-detail"])
 app.include_router(document_engine.router, tags=["document-engine"])
 app.include_router(document_ocr.router)
+app.include_router(document_intelligence.router)
 
 app.include_router(truth_resolution.router)
 
@@ -139,4 +147,3 @@ app.include_router(client_communications_router.router)
 # Audit Log v2.8
 from app.routers import audit_logs as audit_logs_router
 app.include_router(audit_logs_router.router)
-

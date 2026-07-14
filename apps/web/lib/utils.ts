@@ -23,6 +23,12 @@ export function statusTone(value: string | undefined | null): Tone {
       "qualified",
       "ok",
       "online",
+      "active",
+      "published",
+      "baseline",
+      "unchanged",
+      "not_modified",
+      "low_risk",
     ].includes(normalized)
   ) {
     return "good";
@@ -39,12 +45,17 @@ export function statusTone(value: string | undefined | null): Tone {
       "decision_pending",
       "new",
       "partial",
+      "pending_review",
+      "changed",
+      "medium_risk",
+      "ready_for_review",
+      "needs_profile_review",
     ].includes(normalized)
   ) {
     return "warn";
   }
   if (
-    ["rejected", "blocked_truth_rejected", "rejected_by_authority", "withdrawn", "failed", "closed", "offline"].includes(
+    ["rejected", "blocked_truth_rejected", "rejected_by_authority", "withdrawn", "failed", "error", "closed", "offline", "high_risk", "restricted"].includes(
       normalized
     )
   ) {

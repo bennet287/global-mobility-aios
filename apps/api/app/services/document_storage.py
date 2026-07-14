@@ -79,6 +79,15 @@ class LocalDocumentStorage:
             mime_type=mime_type,
         )
 
+    def get_document(self, storage_key: str) -> bytes:
+        root = self.root_dir.resolve()
+        target = (root / storage_key).resolve()
+        if root != target and root not in target.parents:
+            raise ValueError("Document storage key escapes the configured storage root")
+        if not target.is_file():
+            raise FileNotFoundError("Stored document file was not found")
+        return target.read_bytes()
+
 
 class MinioDocumentStorage:
     provider = "minio"
@@ -124,6 +133,22 @@ class MinioDocumentStorage:
             file_size_bytes=len(content),
             mime_type=mime_type,
         )
+
+    def get_document(self, storage_key: str) -> bytes:
+        from minio import Minio
+
+        client = Minio(
+            settings.minio_endpoint,
+            access_key=settings.minio_access_key,
+            secret_key=settings.minio_secret_key,
+            secure=settings.minio_secure,
+        )
+        response = client.get_object(settings.minio_bucket_documents, storage_key)
+        try:
+            return response.read()
+        finally:
+            response.close()
+            response.release_conn()
 
 
 def document_storage_client():

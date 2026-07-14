@@ -56,7 +56,9 @@ def registry_path(path: str = DEFAULT_REGISTRY_PATH) -> Path:
     candidate = Path(path)
     if candidate.exists():
         return candidate
-    root_candidate = Path(__file__).resolve().parents[5] / path
+    # The registry lives at the project root; official_sources.py is under
+    # apps/api/app/services/, so the project root is 4 parents up.
+    root_candidate = Path(__file__).resolve().parents[4] / path
     if root_candidate.exists():
         return root_candidate
     return candidate

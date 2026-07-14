@@ -16,12 +16,26 @@ This monorepo contains the first runnable foundation for:
 
 > This is not a chatbot project. It is a workflow-first AI organization OS where AI agents are bounded workers inside auditable business workflows.
 
+## Product Direction
+
+The complete long-term scope—including global regulatory monitoring, mobility
+lifecycles, wealth and corporate mobility, intelligence dashboards, document AI,
+platform channels, and scale architecture—is preserved in
+[`docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md`](docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md).
+The phased implementation order is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+The Phase 8 profile foundation is specified in
+[`docs/UNIVERSAL_MOBILITY_PROFILE_V8_0.md`](docs/UNIVERSAL_MOBILITY_PROFILE_V8_0.md).
+The governed pathway catalogue is specified in
+[`docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md`](docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md).
+Pathway cost, risk, alternatives, and evidence explanations are specified in
+[`docs/PATHWAY_COMPARISON_EXPLANATIONS_V8_2.md`](docs/PATHWAY_COMPARISON_EXPLANATIONS_V8_2.md).
+
 ## Quick Start
 
 ### 1. Copy environment
 
 ```bash
-cp .env.example .env
+cp .env.example .env.docker
 ```
 
 ### 2. Start infrastructure + API
@@ -29,6 +43,9 @@ cp .env.example .env
 ```bash
 docker compose up --build
 ```
+
+Compose reads `.env.docker` so host-side Python commands do not accidentally
+inherit Docker-only hostnames such as `postgres` and `redis`.
 
 API docs:
 

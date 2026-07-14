@@ -12,9 +12,10 @@ from app.models.domain import (
     EligibilityAssessment,
     Lead,
     LeadIntent,
-    Profile,
     VerifiedRule,
 )
+from app.services.mobility_profiles import current_mobility_profile, profile_facts
+from app.services.pathway_catalogue import match_pathways_for_lead
 
 
 def _normalize(text: str | None) -> str | None:
@@ -173,22 +174,9 @@ def evaluate_lead_eligibility(
     if lead is None:
         raise ValueError(f"Lead {lead_id} not found")
 
-    # Load latest profile if it exists and merge optional override data.
-    profile_row = session.exec(
-        select(Profile).where(Profile.lead_id == lead_id).order_by(Profile.updated_at.desc())
-    ).first()
-    profile: dict[str, Any] = _json_loads(profile_row.language_scores_json) if profile_row else {}
-    if profile_row:
-        profile.update({
-            "highest_qualification": profile_row.highest_qualification,
-            "field_of_study": profile_row.field_of_study,
-            "desired_role": profile_row.desired_role,
-            "years_experience": profile_row.years_experience,
-            "budget_eur": profile_row.budget_eur,
-            "current_country": profile_row.current_country,
-            "target_country": profile_row.target_country,
-            "skills": _json_loads(profile_row.skills_json).get("skills", []),
-        })
+    # Load the newest immutable profile version and merge request-only scenario data.
+    profile_row = current_mobility_profile(session, lead_id)
+    profile: dict[str, Any] = profile_facts(profile_row)
     if profile_data:
         profile.update(profile_data)
 
@@ -228,7 +216,7 @@ def evaluate_lead_eligibility(
         or _has_any(lead.notes, {"degree", "bachelor", "master", "phd", "diploma", "certificate"})
     )
     has_language_scores = bool(
-        profile.get("language_scores_json")
+        profile.get("languages")
         or profile.get("language_score")
         or "language_certificate" in doc_types
         or _has_any(lead.notes, {"ielts", "toefl", "goethe", "telc", "testdaf", "pte", "language"})
@@ -308,8 +296,37 @@ def evaluate_lead_eligibility(
 
     pathways = _pathways(country, domain)
     required_documents = _required_documents(domain)
+    catalogue_result = match_pathways_for_lead(session, lead_id, limit=5)
+    catalogue_matches = catalogue_result.get("matches", [])
+    pathway_evidence: list[dict[str, Any]] = []
+    if catalogue_matches:
+        pathways = [match["pathway"].name for match in catalogue_matches]
+        for match in catalogue_matches:
+            pathway = match["pathway"]
+            version = pathway.current_version
+            pathway_evidence.append({
+                "pathway_id": str(pathway.id),
+                "pathway_key": pathway.pathway_key,
+                "pathway_version_id": str(version.id) if version else None,
+                "pathway_version": version.version_number if version else None,
+                "official_source_id": str(version.official_source_id) if version and version.official_source_id else None,
+                "source_snapshot_id": str(version.source_snapshot_id) if version and version.source_snapshot_id else None,
+                "verified_rule_ids": [str(value) for value in match.get("verified_rule_ids", [])],
+                "match_score": match.get("match_score"),
+            })
+        top = catalogue_matches[0]
+        for gap in top.get("missing_evidence", []):
+            risks.append(f"Pathway evidence gap: {gap}")
+        version = top["pathway"].current_version
+        if version:
+            required_documents = list(dict.fromkeys(required_documents + version.required_documents))
 
     factors = {
+        "profile_id": str(profile_row.id) if profile_row else None,
+        "profile_version": profile_row.profile_version if profile_row else None,
+        "profile_completeness": profile_row.completeness_score if profile_row else None,
+        "profile_readiness": profile_row.readiness_stage if profile_row else None,
+        "consent_status": profile_row.consent_status if profile_row else "not_recorded",
         "target_country_present": target_country_present,
         "intent_known": intent_known,
         "years_experience": years_experience,
@@ -321,6 +338,8 @@ def evaluate_lead_eligibility(
         "document_types": sorted(doc_types),
         "policy_notes": policy_notes,
         "verified_rules_count": len(rules),
+        "catalogue_pathways_count": len(catalogue_matches),
+        "pathway_evidence": pathway_evidence,
     }
 
     summary = (
@@ -329,7 +348,20 @@ def evaluate_lead_eligibility(
         f"Overall score {score} based on profile factors and uploaded documents."
     )
 
+    if profile_row and profile_row.consent_status == "withdrawn":
+        status = "insufficient_profile"
+        score = 0.0
+        confidence = 1.0
+        pathways = []
+        risks.insert(0, "Consent withdrawn; automated eligibility processing is restricted.")
+        summary = (
+            f"Eligibility processing is restricted for {lead.full_name or 'this lead'} because "
+            "the current universal mobility profile records withdrawn consent."
+        )
+
     return {
+        "profile_id": profile_row.id if profile_row else None,
+        "profile_version": profile_row.profile_version if profile_row else None,
         "target_country": country,
         "domain": domain,
         "overall_score": score,
@@ -361,6 +393,8 @@ def persist_eligibility_assessment(
     assessment = EligibilityAssessment(
         lead_id=lead_id,
         agent_run_id=agent_run_id,
+        profile_id=result.get("profile_id"),
+        profile_version=result.get("profile_version"),
         target_country=result.get("target_country"),
         domain=result.get("domain", "general"),
         overall_score=result.get("overall_score", 0.0),

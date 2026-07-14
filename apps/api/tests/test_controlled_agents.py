@@ -14,7 +14,7 @@ from app.models.domain import AgentRun, AuditLog, FollowUp, Lead
 from .conftest import create_lead
 
 
-def test_controlled_agents_registry_exposes_five_review_gated_agents(client: TestClient) -> None:
+def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClient) -> None:
     response = client.get("/api/v1/controlled-agents")
 
     assert response.status_code == 200
@@ -28,6 +28,7 @@ def test_controlled_agents_registry_exposes_five_review_gated_agents(client: Tes
         "sales_summary_agent",
         "application_readiness_agent",
         "eligibility_coach",
+        "eligibility_agent",
     }
 
 

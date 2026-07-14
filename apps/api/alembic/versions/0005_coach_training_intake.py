@@ -18,9 +18,9 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         "coach_reviews",
-        sa.Column("id", sa.CHAR(32), nullable=False),
-        sa.Column("lead_id", sa.CHAR(32), nullable=True),
-        sa.Column("agent_run_id", sa.CHAR(32), nullable=True),
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("lead_id", sa.Uuid(), nullable=True),
+        sa.Column("agent_run_id", sa.Uuid(), nullable=True),
         sa.Column("coach_agent_name", sa.String(), nullable=False),
         sa.Column("target_agent_name", sa.String(), nullable=False),
         sa.Column("conclusion_valid", sa.Boolean(), nullable=False),
@@ -44,8 +44,8 @@ def upgrade() -> None:
 
     op.create_table(
         "training_cases",
-        sa.Column("id", sa.CHAR(32), nullable=False),
-        sa.Column("lead_id", sa.CHAR(32), nullable=True),
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("lead_id", sa.Uuid(), nullable=True),
         sa.Column("title", sa.String(), nullable=False),
         sa.Column("country", sa.String(), nullable=False),
         sa.Column("profession", sa.String(), nullable=False),
@@ -65,8 +65,8 @@ def upgrade() -> None:
 
     op.create_table(
         "intake_sessions",
-        sa.Column("id", sa.CHAR(32), nullable=False),
-        sa.Column("lead_id", sa.CHAR(32), nullable=True),
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("lead_id", sa.Uuid(), nullable=True),
         sa.Column("session_token", sa.String(), nullable=False),
         sa.Column("status", sa.String(), nullable=False),
         sa.Column("source", sa.String(), nullable=False),

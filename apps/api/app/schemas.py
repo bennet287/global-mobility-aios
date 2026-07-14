@@ -131,6 +131,85 @@ class ProfileRead(ProfileCreate):
     created_at: datetime
     updated_at: datetime
 
+
+class EducationEntry(BaseModel):
+    qualification: str = Field(min_length=1, max_length=200)
+    field_of_study: Optional[str] = Field(default=None, max_length=200)
+    institution: Optional[str] = Field(default=None, max_length=250)
+    country: Optional[str] = Field(default=None, max_length=100)
+    completion_year: Optional[int] = Field(default=None, ge=1900, le=2200)
+
+
+class EmploymentEntry(BaseModel):
+    role: str = Field(min_length=1, max_length=200)
+    employer: Optional[str] = Field(default=None, max_length=250)
+    country: Optional[str] = Field(default=None, max_length=100)
+    years: float = Field(default=0, ge=0, le=80)
+    current: bool = False
+
+
+class LanguageAbility(BaseModel):
+    language: str = Field(min_length=1, max_length=100)
+    level: Optional[str] = Field(default=None, max_length=100)
+    test_name: Optional[str] = Field(default=None, max_length=100)
+    test_score: Optional[str] = Field(default=None, max_length=100)
+
+
+class MobilityGoal(BaseModel):
+    domain: Literal["study", "work", "visa", "settlement", "family", "business"]
+    target_country: str = Field(min_length=2, max_length=100)
+    desired_role_or_program: Optional[str] = Field(default=None, max_length=250)
+    target_date: Optional[datetime] = None
+    priority: Literal["low", "medium", "high"] = "medium"
+
+
+class UniversalMobilityProfileUpsert(BaseModel):
+    current_country: Optional[str] = Field(default=None, max_length=100)
+    education: List[EducationEntry] = Field(default_factory=list)
+    employment: List[EmploymentEntry] = Field(default_factory=list)
+    years_experience: Optional[float] = Field(default=None, ge=0, le=80)
+    skills: List[str] = Field(default_factory=list)
+    languages: List[LanguageAbility] = Field(default_factory=list)
+    family_status: Literal["unknown", "single", "partnered", "dependants"] = "unknown"
+    family: List[dict[str, Any]] = Field(default_factory=list)
+    family_details_confirmed: bool = False
+    finances: dict[str, Any] = Field(default_factory=dict)
+    goals: List[MobilityGoal] = Field(default_factory=list)
+    constraints: List[dict[str, Any]] = Field(default_factory=list)
+    constraints_confirmed: bool = False
+    consent_status: Literal["not_recorded", "granted", "withdrawn"] = "not_recorded"
+    consent_purposes: List[str] = Field(default_factory=list)
+    consent_expires_at: Optional[datetime] = None
+    evidence_document_ids: List[UUID] = Field(default_factory=list)
+
+
+class UniversalMobilityProfileRead(BaseModel):
+    id: UUID
+    lead_id: UUID
+    profile_version: int
+    lifecycle_status: str
+    supersedes_profile_id: Optional[UUID] = None
+    current_country: Optional[str] = None
+    education: List[dict[str, Any]] = Field(default_factory=list)
+    employment: List[dict[str, Any]] = Field(default_factory=list)
+    years_experience: Optional[float] = None
+    skills: List[str] = Field(default_factory=list)
+    languages: List[dict[str, Any]] = Field(default_factory=list)
+    family: dict[str, Any] = Field(default_factory=dict)
+    finances: dict[str, Any] = Field(default_factory=dict)
+    goals: List[dict[str, Any]] = Field(default_factory=list)
+    constraints: dict[str, Any] = Field(default_factory=dict)
+    consent: dict[str, Any] = Field(default_factory=dict)
+    evidence_document_ids: List[UUID] = Field(default_factory=list)
+    completeness_score: float
+    readiness_stage: str
+    consent_status: str
+    missing_sections: List[str] = Field(default_factory=list)
+    activated_at: Optional[datetime] = None
+    updated_by: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
 class DocumentCreate(BaseModel):
     lead_id: Optional[UUID] = None
     document_type: str
@@ -434,6 +513,110 @@ class DocumentOcrExtractResponse(BaseModel):
     message: str
 
 
+class DocumentExtractionRequest(BaseModel):
+    language: str = Field(default="eng", min_length=3, max_length=32, pattern=r"^[a-zA-Z_+\-]+$")
+
+
+class DocumentExtractionReviewRequest(BaseModel):
+    decision: Literal["approved", "rejected"]
+    notes: str = Field(min_length=3, max_length=2000)
+
+
+class DocumentSchemaDefinitionRead(BaseModel):
+    id: UUID
+    schema_key: str
+    document_type: str
+    version_number: int
+    lifecycle_status: str
+    supersedes_schema_id: Optional[UUID] = None
+    json_schema: dict[str, Any]
+    extraction_rules: dict[str, Any]
+    human_review_required: bool
+    approved_by: Optional[str] = None
+    review_notes: Optional[str] = None
+    published_at: Optional[datetime] = None
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class DocumentExtractionJobRead(BaseModel):
+    id: UUID
+    document_id: UUID
+    lead_id: Optional[UUID] = None
+    schema_definition_id: UUID
+    schema_version: int
+    schema_key: str
+    document_type: str
+    status: str
+    engine: str
+    language: str
+    task_id: Optional[str] = None
+    attempt_count: int
+    input_file_hash: Optional[str] = None
+    extracted_text: Optional[str] = None
+    structured_data: dict[str, Any] = Field(default_factory=dict)
+    field_confidence: dict[str, float] = Field(default_factory=dict)
+    warnings: List[str] = Field(default_factory=list)
+    error_code: Optional[str] = None
+    error_message: Optional[str] = None
+    requested_by: str
+    reviewed_by: Optional[str] = None
+    review_notes: Optional[str] = None
+    queued_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    reviewed_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class DocumentConsistencyGenerateRequest(BaseModel):
+    application_id: Optional[UUID] = None
+
+
+class DocumentConsistencyReviewRequest(BaseModel):
+    decision: Literal["approved", "rejected"]
+    notes: str = Field(min_length=3, max_length=2000)
+
+
+class DocumentConsistencyFinding(BaseModel):
+    finding_key: str
+    document_field: str
+    source: Literal["lead", "profile", "application", "system"]
+    source_path: str
+    outcome: Literal["match", "mismatch", "missing_document_value", "missing_source_value", "not_comparable"]
+    severity: Literal["info", "warning", "high"]
+    extracted_value: Any = None
+    source_value: Any = None
+    explanation: str
+
+
+class DocumentConsistencyAssessmentRead(BaseModel):
+    id: UUID
+    extraction_job_id: UUID
+    document_id: UUID
+    lead_id: UUID
+    profile_id: UUID
+    profile_version: int
+    application_id: Optional[UUID] = None
+    result_status: str
+    review_status: str
+    match_count: int
+    mismatch_count: int
+    missing_count: int
+    findings: List[DocumentConsistencyFinding] = Field(default_factory=list)
+    source_facts: dict[str, Any] = Field(default_factory=dict)
+    summary: str
+    human_review_required: bool
+    generated_by: str
+    reviewed_by: Optional[str] = None
+    review_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+
 class EligibilityEvaluateRequest(BaseModel):
     lead_id: UUID
     profile: dict[str, Any] = Field(default_factory=dict)
@@ -444,6 +627,8 @@ class EligibilityAssessmentRead(BaseModel):
     id: UUID
     lead_id: UUID
     agent_run_id: Optional[UUID] = None
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
     target_country: Optional[str] = None
     domain: str = "general"
     overall_score: float
@@ -483,6 +668,8 @@ class EligibilityAssessmentRead(BaseModel):
             id=assessment.id,
             lead_id=assessment.lead_id,
             agent_run_id=assessment.agent_run_id,
+            profile_id=assessment.profile_id,
+            profile_version=assessment.profile_version,
             target_country=assessment.target_country,
             domain=assessment.domain,
             overall_score=assessment.overall_score,
@@ -628,3 +815,350 @@ class OpportunityMatchResponse(BaseModel):
     matches: List[OpportunityMatchResult]
     top_opportunity_id: Optional[UUID] = None
     summary: str
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    profile_completeness: Optional[float] = None
+
+
+PathwayDomain = Literal[
+    "study",
+    "work",
+    "visa",
+    "scholarship",
+    "settlement",
+    "family",
+    "digital_nomad",
+]
+
+
+class PathwayVersionInput(BaseModel):
+    official_source_id: Optional[UUID] = None
+    source_snapshot_id: Optional[UUID] = None
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+    eligibility_criteria: dict[str, Any] = Field(default_factory=dict)
+    required_documents: List[str] = Field(default_factory=list)
+    costs: dict[str, Any] = Field(default_factory=dict)
+    processing_time: dict[str, Any] = Field(default_factory=dict)
+    benefits: List[str] = Field(default_factory=list)
+    risks: List[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+
+
+class PathwayCreate(PathwayVersionInput):
+    pathway_key: str = Field(min_length=3, max_length=160, pattern=r"^[a-z0-9][a-z0-9_-]+$")
+    name: str = Field(min_length=3, max_length=250)
+    country: str = Field(min_length=2, max_length=100)
+    domain: PathwayDomain
+    jurisdiction_id: Optional[UUID] = None
+    description: Optional[str] = Field(default=None, max_length=2000)
+
+
+class PathwayPublishRequest(BaseModel):
+    review_notes: str = Field(min_length=3, max_length=2000)
+
+
+class PathwayRetireRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=2000)
+
+
+class PathwayVersionRead(BaseModel):
+    id: UUID
+    pathway_id: UUID
+    version_number: int
+    lifecycle_status: str
+    supersedes_version_id: Optional[UUID] = None
+    official_source_id: Optional[UUID] = None
+    source_snapshot_id: Optional[UUID] = None
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+    eligibility_criteria: dict[str, Any] = Field(default_factory=dict)
+    required_documents: List[str] = Field(default_factory=list)
+    costs: dict[str, Any] = Field(default_factory=dict)
+    processing_time: dict[str, Any] = Field(default_factory=dict)
+    benefits: List[str] = Field(default_factory=list)
+    risks: List[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+    human_review_required: bool
+    approved_by: Optional[str] = None
+    review_notes: Optional[str] = None
+    published_at: Optional[datetime] = None
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class PathwayRead(BaseModel):
+    id: UUID
+    pathway_key: str
+    name: str
+    country: str
+    domain: str
+    jurisdiction_id: Optional[UUID] = None
+    description: Optional[str] = None
+    catalogue_status: str
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+    current_version: Optional[PathwayVersionRead] = None
+
+
+class PathwayDetail(PathwayRead):
+    versions: List[PathwayVersionRead] = Field(default_factory=list)
+
+
+class PathwayMatchItem(BaseModel):
+    pathway: PathwayRead
+    match_score: float
+    confidence: float
+    reasons: List[str] = Field(default_factory=list)
+    missing_evidence: List[str] = Field(default_factory=list)
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+
+
+class PathwayMatchResponse(BaseModel):
+    lead_id: UUID
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    consent_status: str
+    matches: List[PathwayMatchItem] = Field(default_factory=list)
+    summary: str
+
+
+class PathwayCostExplanation(BaseModel):
+    currency: str = "EUR"
+    one_time_total: Optional[float] = None
+    monthly_total: Optional[float] = None
+    annual_total: Optional[float] = None
+    minimum_funds: Optional[float] = None
+    components: dict[str, float] = Field(default_factory=dict)
+    notes: List[str] = Field(default_factory=list)
+
+
+class PathwayRiskExplanation(BaseModel):
+    level: Literal["low", "medium", "high"]
+    score: float
+    declared_risks: List[str] = Field(default_factory=list)
+    evidence_risks: List[str] = Field(default_factory=list)
+    regulatory_risks: List[str] = Field(default_factory=list)
+
+
+class PathwayComparisonItem(BaseModel):
+    pathway: PathwayRead
+    match_score: float
+    confidence: float
+    reasons: List[str] = Field(default_factory=list)
+    cost: PathwayCostExplanation
+    risk: PathwayRiskExplanation
+    missing_evidence: List[str] = Field(default_factory=list)
+    benefits: List[str] = Field(default_factory=list)
+    tradeoffs: List[str] = Field(default_factory=list)
+    explanation: str
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+
+
+class PathwayComparisonRead(BaseModel):
+    assessment_id: Optional[UUID] = None
+    lead_id: UUID
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    status: str
+    consent_status: str
+    primary: Optional[PathwayComparisonItem] = None
+    alternatives: List[PathwayComparisonItem] = Field(default_factory=list)
+    missing_evidence: List[str] = Field(default_factory=list)
+    summary: str
+    human_review_required: bool = True
+    generated_by: str
+    generated_at: datetime
+
+
+class MobilityTimelineGenerateRequest(BaseModel):
+    target_date: Optional[datetime] = None
+
+
+class MobilityTimelineTransitionRequest(BaseModel):
+    action: Literal["start", "complete", "block", "unblock"]
+    note: Optional[str] = Field(default=None, max_length=2000)
+
+
+class MobilityTimelineMilestoneRead(BaseModel):
+    id: UUID
+    timeline_id: UUID
+    stage_order: int
+    stage_key: str
+    title: str
+    description: Optional[str] = None
+    status: str
+    dependencies: List[str] = Field(default_factory=list)
+    required_evidence: List[str] = Field(default_factory=list)
+    owner_role: str
+    due_at: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    blockers: List[str] = Field(default_factory=list)
+    notes: Optional[str] = None
+    requires_human_approval: bool
+    approved_by: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class MobilityTimelineRead(BaseModel):
+    id: UUID
+    lead_id: UUID
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    comparison_assessment_id: UUID
+    primary_pathway_id: UUID
+    primary_pathway_version_id: UUID
+    title: str
+    status: str
+    current_stage_key: Optional[str] = None
+    target_date: Optional[datetime] = None
+    schedule: dict[str, Any] = Field(default_factory=dict)
+    generated_by: str
+    activated_by: Optional[str] = None
+    activated_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    milestones: List[MobilityTimelineMilestoneRead] = Field(default_factory=list)
+
+
+class JurisdictionCreate(BaseModel):
+    code: str = Field(min_length=2, max_length=32)
+    name: str = Field(min_length=2, max_length=200)
+    jurisdiction_type: Literal["country", "territory", "autonomous_jurisdiction"] = "country"
+    parent_code: Optional[str] = None
+    region: Optional[str] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RegulatoryAuthorityCreate(BaseModel):
+    jurisdiction_id: UUID
+    name: str = Field(min_length=2, max_length=250)
+    authority_type: str = "immigration_authority"
+    website_url: Optional[str] = None
+    domains: List[str] = Field(default_factory=lambda: ["visa"])
+    official_source_ids: List[UUID] = Field(default_factory=list)
+
+
+class SourceMonitorCreate(BaseModel):
+    official_source_id: UUID
+    schedule_minutes: int = Field(default=1440, ge=15, le=525600)
+    fetch_method: Literal["http", "browser", "api", "manual"] = "http"
+    allowed_domains: List[str] = Field(default_factory=list)
+    max_redirects: int = Field(default=3, ge=0, le=10)
+    parser_profile: Literal["generic", "gazette_html_v1", "structured_program_catalog_v1"] = "generic"
+    parser_config: dict[str, Any] = Field(default_factory=dict)
+
+
+class RegulatorySourceOnboardingRequest(BaseModel):
+    jurisdiction_code: str = Field(min_length=2, max_length=32)
+    jurisdiction_name: str = Field(min_length=2, max_length=200)
+    jurisdiction_type: Literal["country", "territory", "autonomous_jurisdiction"] = "country"
+    parent_code: Optional[str] = None
+    region: Optional[str] = None
+    authority_name: str = Field(min_length=2, max_length=250)
+    authority_type: str = Field(default="immigration_authority", min_length=2, max_length=100)
+    authority_website_url: Optional[str] = None
+    authority_domains: List[str] = Field(default_factory=lambda: ["visa"])
+    source_name: str = Field(min_length=2, max_length=250)
+    source_url: str = Field(min_length=8, max_length=2000)
+    source_domain: str = Field(default="visa", min_length=2, max_length=100)
+    source_type: Literal[
+        "government",
+        "official",
+        "official_portal",
+        "official_agency",
+        "gazette",
+    ] = "official"
+    schedule_minutes: int = Field(default=1440, ge=15, le=525600)
+    fetch_method: Literal["http", "browser", "api", "manual"] = "http"
+    allowed_domains: List[str] = Field(default_factory=list)
+    max_redirects: int = Field(default=3, ge=0, le=10)
+    parser_profile: Literal["generic", "gazette_html_v1", "structured_program_catalog_v1"] = "generic"
+    parser_config: dict[str, Any] = Field(default_factory=dict)
+
+
+class SourceSnapshotCaptureRequest(BaseModel):
+    content_text: str = Field(min_length=1)
+    http_status: int = Field(default=200, ge=100, le=599)
+    retrieval_method: Literal["http", "browser", "api", "manual"] = "manual"
+    parser_version: Optional[str] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    change_type: Optional[Literal[
+        "new_program",
+        "rule_change",
+        "program_removed",
+        "processing_time_change",
+        "salary_threshold_change",
+        "investment_threshold_change",
+        "age_limit_change",
+        "occupation_list_change",
+        "quota_change",
+        "policy_change",
+    ]] = None
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    materiality: Literal["informational", "material", "critical"] = "material"
+    effective_at: Optional[datetime] = None
+    actor: str = "source-monitor"
+
+
+class RegulatoryChangeReviewRequest(BaseModel):
+    decision: Literal["approved", "rejected"]
+    reviewer: str = Field(min_length=1)
+    notes: str = Field(min_length=1)
+
+
+class RegulatoryChangePublishRequest(BaseModel):
+    rule_key: str = Field(min_length=2, max_length=200)
+    statement: str = Field(min_length=5)
+    reviewer: str = Field(min_length=1)
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+    supersedes_rule_id: Optional[UUID] = None
+
+
+class VerifiedRuleRetireRequest(BaseModel):
+    reviewer: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    effective_to: Optional[datetime] = None
+
+
+class JurisdictionImmigrationAssessmentProposal(BaseModel):
+    rule_relationship: Literal[
+        "independent",
+        "parent_inherited",
+        "shared_or_coordinated",
+        "not_applicable",
+        "unclear",
+    ]
+    parent_code: Optional[str] = Field(default=None, min_length=2, max_length=12)
+    evidence_url: str = Field(min_length=8, max_length=2000)
+    evidence_title: str = Field(min_length=3, max_length=300)
+    rationale: str = Field(min_length=10, max_length=5000)
+    official_source_id: Optional[UUID] = None
+    source_snapshot_id: Optional[UUID] = None
+
+
+class JurisdictionImmigrationAssessmentReview(BaseModel):
+    decision: Literal["approved", "rejected"]
+    notes: str = Field(min_length=3, max_length=5000)
+
+
+class JurisdictionSourceCertificationProposal(BaseModel):
+    regulatory_authority_id: UUID
+    official_source_id: UUID
+    coverage_domains: List[str] = Field(min_length=1)
+    evidence_notes: str = Field(min_length=10, max_length=5000)
+
+
+class JurisdictionSourceCertificationReview(BaseModel):
+    decision: Literal["approved", "rejected"]
+    notes: str = Field(min_length=3, max_length=5000)

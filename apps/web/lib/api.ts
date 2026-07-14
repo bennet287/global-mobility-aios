@@ -42,6 +42,85 @@ export type Profile = {
   updated_at?: string;
 };
 
+export type EducationEntry = {
+  qualification: string;
+  field_of_study?: string | null;
+  institution?: string | null;
+  country?: string | null;
+  completion_year?: number | null;
+};
+
+export type EmploymentEntry = {
+  role: string;
+  employer?: string | null;
+  country?: string | null;
+  years: number;
+  current: boolean;
+};
+
+export type LanguageAbility = {
+  language: string;
+  level?: string | null;
+  test_name?: string | null;
+  test_score?: string | null;
+};
+
+export type MobilityGoal = {
+  domain: "study" | "work" | "visa" | "settlement" | "family" | "business";
+  target_country: string;
+  desired_role_or_program?: string | null;
+  target_date?: string | null;
+  priority: "low" | "medium" | "high";
+};
+
+export type UniversalMobilityProfileInput = {
+  current_country?: string | null;
+  education: EducationEntry[];
+  employment: EmploymentEntry[];
+  years_experience?: number | null;
+  skills: string[];
+  languages: LanguageAbility[];
+  family_status: "unknown" | "single" | "partnered" | "dependants";
+  family: Record<string, unknown>[];
+  family_details_confirmed: boolean;
+  finances: Record<string, unknown>;
+  goals: MobilityGoal[];
+  constraints: Record<string, unknown>[];
+  constraints_confirmed: boolean;
+  consent_status: "not_recorded" | "granted" | "withdrawn";
+  consent_purposes: string[];
+  consent_expires_at?: string | null;
+  evidence_document_ids: string[];
+};
+
+export type UniversalMobilityProfile = {
+  id: string;
+  lead_id: string;
+  profile_version: number;
+  lifecycle_status: string;
+  supersedes_profile_id?: string | null;
+  current_country?: string | null;
+  education: EducationEntry[];
+  employment: EmploymentEntry[];
+  years_experience?: number | null;
+  skills: string[];
+  languages: LanguageAbility[];
+  family: { status?: string; members?: Record<string, unknown>[]; details_confirmed?: boolean };
+  finances: Record<string, unknown>;
+  goals: MobilityGoal[];
+  constraints: { items?: Record<string, unknown>[]; confirmed?: boolean };
+  consent: { status?: string; purposes?: string[]; expires_at?: string | null; recorded_at?: string };
+  evidence_document_ids: string[];
+  completeness_score: number;
+  readiness_stage: string;
+  consent_status: string;
+  missing_sections: string[];
+  activated_at?: string | null;
+  updated_by?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TruthClaim = {
   id: string;
   lead_id?: string | null;
@@ -119,6 +198,265 @@ export type DocumentRecord = {
   uploaded_at?: string | null;
   verified_by?: string | null;
   expiry_date?: string | null;
+  storage_key?: string | null;
+  storage_provider?: string | null;
+  file_hash?: string | null;
+  mime_type?: string | null;
+};
+
+export type DocumentSchemaDefinition = {
+  id: string;
+  schema_key: string;
+  document_type: string;
+  version_number: number;
+  lifecycle_status: string;
+  json_schema: Record<string, unknown>;
+  extraction_rules: Record<string, unknown>;
+  human_review_required: boolean;
+  approved_by: string | null;
+  review_notes: string | null;
+  published_at: string | null;
+};
+
+export type DocumentExtractionJob = {
+  id: string;
+  document_id: string;
+  lead_id: string | null;
+  schema_definition_id: string;
+  schema_version: number;
+  schema_key: string;
+  document_type: string;
+  status: string;
+  engine: string;
+  language: string;
+  task_id: string | null;
+  attempt_count: number;
+  input_file_hash: string | null;
+  extracted_text: string | null;
+  structured_data: Record<string, unknown>;
+  field_confidence: Record<string, number>;
+  warnings: string[];
+  error_code: string | null;
+  error_message: string | null;
+  requested_by: string;
+  reviewed_by: string | null;
+  review_notes: string | null;
+  queued_at: string;
+  completed_at: string | null;
+  reviewed_at: string | null;
+};
+
+export type DocumentConsistencyFinding = {
+  finding_key: string;
+  document_field: string;
+  source: "lead" | "profile" | "application" | "system";
+  source_path: string;
+  outcome: "match" | "mismatch" | "missing_document_value" | "missing_source_value" | "not_comparable";
+  severity: "info" | "warning" | "high";
+  extracted_value: unknown;
+  source_value: unknown;
+  explanation: string;
+};
+
+export type DocumentConsistencyAssessment = {
+  id: string;
+  extraction_job_id: string;
+  document_id: string;
+  lead_id: string;
+  profile_id: string;
+  profile_version: number;
+  application_id: string | null;
+  result_status: string;
+  review_status: string;
+  match_count: number;
+  mismatch_count: number;
+  missing_count: number;
+  findings: DocumentConsistencyFinding[];
+  source_facts: Record<string, unknown>;
+  summary: string;
+  human_review_required: boolean;
+  generated_by: string;
+  reviewed_by: string | null;
+  review_notes: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GlobalIntelligenceChange = {
+  id: string;
+  jurisdiction_id: string;
+  jurisdiction_code: string | null;
+  country: string;
+  jurisdiction_type: string | null;
+  region: string | null;
+  change_type: string;
+  title: string;
+  summary: string;
+  program_id: string | null;
+  program_name: string | null;
+  domain: string;
+  materiality: string;
+  status: string;
+  source_name: string | null;
+  source_url: string | null;
+  effective_at: string | null;
+  detected_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  published_at: string | null;
+};
+
+export type GlobalIntelligenceDashboard = {
+  generated_at: string;
+  window_days: number;
+  scope: {
+    registered_jurisdictions: number;
+    registered_countries: number;
+    registered_territories: number;
+    registered_autonomous_jurisdictions: number;
+    official_sources: number;
+    active_verified_rules: number;
+    global_coverage_claim_ready: boolean;
+    coverage_warning: string;
+    registry_version: string | null;
+    registry_entries: number;
+    coverage_ready: number;
+  };
+  today: { changes_detected: number; countries_updated: number; country_names: string[] };
+  counts: Record<string, number>;
+  change_type_counts: Record<string, number>;
+  status_counts: Record<string, number>;
+  materiality_counts: Record<string, number>;
+  new_programs: GlobalIntelligenceChange[];
+  immigration_changes: GlobalIntelligenceChange[];
+  processing_times: GlobalIntelligenceChange[];
+  skilled_occupations: GlobalIntelligenceChange[];
+  thresholds: GlobalIntelligenceChange[];
+  country_heatmap: Array<{
+    jurisdiction_id: string; code: string; country: string; jurisdiction_type: string; region: string | null;
+    activity_count: number; activity_level: string; pending_review: number; published: number; critical: number;
+    official_sources: number; active_verified_rules: number; last_detected_at: string | null;
+  }>;
+  opportunity_radar: Array<{
+    jurisdiction_id: string; country: string; region: string | null; activity_score: number; signal_level: string;
+    evidence_count: number; evidence: GlobalIntelligenceChange[]; classification: string; explanation: string;
+  }>;
+  safety: { reviewed_activity_only_for_radar: boolean; predictive: boolean; client_recommendation: boolean; message: string };
+};
+
+export type JurisdictionImmigrationAssessment = {
+  id: string;
+  jurisdiction_id: string;
+  registry_entry_id: string;
+  assessment_version: number;
+  rule_relationship: string;
+  parent_code: string | null;
+  evidence_url: string;
+  evidence_title: string;
+  official_source_id: string | null;
+  source_snapshot_id: string | null;
+  rationale: string;
+  status: string;
+  proposed_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  supersedes_assessment_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JurisdictionSourceCertification = {
+  id: string;
+  jurisdiction_id: string;
+  registry_entry_id: string;
+  regulatory_authority_id: string;
+  official_source_id: string;
+  certification_version: number;
+  certification_scope: string;
+  coverage_domains: string[];
+  evidence_notes: string;
+  status: string;
+  proposed_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  supersedes_certification_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GlobalJurisdictionRegistry = {
+  generated_at?: string;
+  release: null | {
+    id: string;
+    version: string;
+    source_name: string;
+    source_url: string;
+    source_sha256: string;
+    source_retrieved_at: string;
+    released_at: string;
+    released_by: string;
+    status: string;
+  };
+  summary: {
+    registry_entries: number;
+    coverage_required: number;
+    un_members?: number;
+    un_observers?: number;
+    countries?: number;
+    territories?: number;
+    autonomous_jurisdictions?: number;
+    with_authority?: number;
+    with_official_source?: number;
+    with_authority_onboarded?: number;
+    with_official_source_onboarded?: number;
+    with_fresh_monitor?: number;
+    with_verified_rule?: number;
+    coverage_ready?: number;
+    immigration_rule_assessed?: number;
+    assessments_pending_review?: number;
+    source_certifications_pending_review?: number;
+  };
+  release_gate: {
+    registry_complete: boolean;
+    authority_coverage_complete: boolean;
+    source_coverage_complete: boolean;
+    monitor_coverage_complete: boolean;
+    verified_rule_coverage_complete: boolean;
+    immigration_rule_assessment_complete?: boolean;
+    global_coverage_claim_ready: boolean;
+    message?: string;
+  };
+  regions: Array<{ region: string; entries: number; coverage_required: number; coverage_ready: number }>;
+  entries: Array<{
+    id: string;
+    jurisdiction_id: string;
+    alpha2_code: string;
+    alpha3_code: string;
+    m49_code: string;
+    name: string;
+    jurisdiction_type: string;
+    membership_status: string;
+    parent_code: string | null;
+    region: string | null;
+    subregion: string | null;
+    coverage_required: boolean;
+    immigration_rule_status: string;
+    approved_assessment: JurisdictionImmigrationAssessment | null;
+    pending_assessment: JurisdictionImmigrationAssessment | null;
+    has_authority: boolean;
+    has_official_source: boolean;
+    has_reviewed_primary_authority: boolean;
+    has_reviewed_primary_source: boolean;
+    approved_source_certification: JurisdictionSourceCertification | null;
+    pending_source_certification: JurisdictionSourceCertification | null;
+    has_fresh_monitor: boolean;
+    has_verified_rule: boolean;
+    coverage_ready: boolean;
+    missing: string[];
+  }>;
 };
 
 export type ApplicationRecord = {
@@ -255,14 +593,24 @@ export function getApiBaseUrl() {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const useLocalHeaderAuth =
+    process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE === "true" ||
+    (process.env.NODE_ENV === "development" &&
+      process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE !== "false");
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "x-gmai-role": "admin",
-      "x-gmai-user": "frontend-operator",
+      ...(useLocalHeaderAuth
+        ? {
+            "x-gmai-role": process.env.NEXT_PUBLIC_GMAI_ROLE || "admin",
+            "x-gmai-user": process.env.NEXT_PUBLIC_GMAI_USER || "frontend-operator",
+          }
+        : {}),
       ...(init?.headers || {}),
     },
+    credentials: "include",
     cache: "no-store",
   });
 
@@ -363,6 +711,24 @@ export type AgentChatResponse = {
 
 export async function getLeads(): Promise<Lead[]> {
   return request<Lead[]>("/api/v1/leads");
+}
+
+export async function getCurrentMobilityProfile(leadId: string): Promise<UniversalMobilityProfile> {
+  return request<UniversalMobilityProfile>(`/api/v1/profiles/leads/${leadId}/current`);
+}
+
+export async function getMobilityProfileHistory(leadId: string): Promise<UniversalMobilityProfile[]> {
+  return request<UniversalMobilityProfile[]>(`/api/v1/profiles/leads/${leadId}/history`);
+}
+
+export async function replaceCurrentMobilityProfile(
+  leadId: string,
+  payload: UniversalMobilityProfileInput
+): Promise<UniversalMobilityProfile> {
+  return request<UniversalMobilityProfile>(`/api/v1/profiles/leads/${leadId}/current`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function getControlledAgents(): Promise<ControlledAgentsList> {
@@ -973,5 +1339,726 @@ export async function listTrainingCases(params?: {
 export async function runTrainingCase(caseId: string): Promise<CoachReview> {
   return request<CoachReview>(`/api/v1/training-cases/${caseId}/run`, {
     method: "POST",
+  });
+}
+
+export type Jurisdiction = {
+  id: string;
+  code: string;
+  name: string;
+  jurisdiction_type: "country" | "territory" | "autonomous_jurisdiction";
+  parent_code: string | null;
+  region: string | null;
+  active: boolean;
+  metadata_json: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegulatoryAuthority = {
+  id: string;
+  jurisdiction_id: string;
+  name: string;
+  authority_type: string;
+  website_url: string | null;
+  domains_json: string | null;
+  active: boolean;
+};
+
+export type OfficialSourceView = {
+  id: string;
+  jurisdiction_id: string | null;
+  regulatory_authority_id: string | null;
+  country: string;
+  domain: string;
+  name: string;
+  url: string;
+  source_type: string;
+  authority: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegulatoryChange = {
+  id: string;
+  jurisdiction_id: string;
+  official_source_id: string;
+  previous_snapshot_id: string | null;
+  current_snapshot_id: string;
+  domain: string;
+  change_type: string;
+  title: string;
+  summary: string;
+  diff_json: string | null;
+  materiality: "informational" | "material" | "critical";
+  status: "pending_review" | "approved" | "rejected" | "published" | string;
+  effective_at: string | null;
+  detected_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  review_notes: string | null;
+  published_at: string | null;
+};
+
+export type SourceRetrievalRun = {
+  id: string;
+  monitor_id: string;
+  official_source_id: string;
+  status: "running" | "baseline" | "unchanged" | "changed" | "not_modified" | "failed" | string;
+  attempt: number;
+  requested_url: string;
+  final_url: string | null;
+  http_status: number | null;
+  content_type: string | null;
+  bytes_received: number;
+  snapshot_id: string | null;
+  regulatory_change_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  started_at: string;
+  completed_at: string | null;
+};
+
+export type SourceMonitorView = {
+  id: string;
+  official_source_id: string;
+  source_name: string | null;
+  source_url: string | null;
+  country: string | null;
+  domain: string | null;
+  schedule_minutes: number;
+  fetch_method: string;
+  allowed_domains: string[];
+  max_redirects: number;
+  parser_profile: "generic" | "gazette_html_v1" | "structured_program_catalog_v1" | string;
+  parser_config: Record<string, unknown>;
+  status: string;
+  fresh: boolean;
+  last_checked_at: string | null;
+  next_check_at: string | null;
+  last_http_status: number | null;
+  last_error: string | null;
+  etag: string | null;
+  last_modified: string | null;
+};
+
+export type RegulatoryDashboard = {
+  generated_at: string;
+  counts: {
+    jurisdictions: number;
+    authorities: number;
+    official_sources: number;
+    monitors: number;
+    monitors_active: number;
+    monitors_error: number;
+    monitors_due: number;
+    monitors_stale: number;
+    changes_pending_review: number;
+    changes_critical_pending: number;
+    changes_published: number;
+    recent_failed_retrievals: number;
+  };
+  monitors: SourceMonitorView[];
+  recent_failures: SourceRetrievalRun[];
+  coverage: {
+    jurisdictions: Array<{
+      id: string;
+      code: string;
+      name: string;
+      region: string | null;
+      authorities: number;
+      official_sources: number;
+      monitored_sources: number;
+      fresh_monitors: number;
+      stale_monitors: number;
+      pending_changes: number;
+      active_rules: number;
+      domains: string[];
+      monitoring_coverage_percent: number;
+      freshness_percent: number;
+    }>;
+    authorities: Array<{
+      id: string;
+      name: string;
+      authority_type: string;
+      jurisdiction_id: string;
+      jurisdiction_code: string | null;
+      declared_domains: string[];
+      official_sources: number;
+      monitored_sources: number;
+      fresh_monitors: number;
+      monitor_errors: number;
+      monitoring_coverage_percent: number;
+      freshness_percent: number;
+    }>;
+    domains: Array<{
+      domain: string;
+      jurisdictions: number;
+      authorities: number;
+      official_sources: number;
+      monitored_sources: number;
+      fresh_monitors: number;
+      pending_changes: number;
+      active_rules: number;
+      monitoring_coverage_percent: number;
+      freshness_percent: number;
+    }>;
+  };
+};
+
+export type SourceSnapshotView = {
+  id: string;
+  official_source_id: string | null;
+  previous_snapshot_id: string | null;
+  url: string;
+  content_hash: string | null;
+  content_preview: string;
+  http_status: number | null;
+  retrieval_method: string;
+  parser_version: string | null;
+  status: string;
+  metadata: Record<string, unknown>;
+  captured_at: string;
+};
+
+export type VerifiedRule = {
+  id: string;
+  country: string;
+  domain: string;
+  rule_key: string;
+  statement: string;
+  official_source_id: string | null;
+  jurisdiction_id: string | null;
+  regulatory_change_id: string | null;
+  source_snapshot_id: string | null;
+  supersedes_rule_id: string | null;
+  confidence: number;
+  active: boolean;
+  effective_from: string | null;
+  effective_to: string | null;
+  approved_by: string | null;
+  published_at: string | null;
+  retired_at: string | null;
+  retired_by: string | null;
+  retirement_reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PathwayDomain = "study" | "work" | "visa" | "scholarship" | "settlement" | "family" | "digital_nomad";
+
+export type PathwayVersionInput = {
+  official_source_id?: string | null;
+  source_snapshot_id?: string | null;
+  verified_rule_ids: string[];
+  eligibility_criteria: Record<string, unknown>;
+  required_documents: string[];
+  costs: Record<string, unknown>;
+  processing_time: Record<string, unknown>;
+  benefits: string[];
+  risks: string[];
+  metadata?: Record<string, unknown>;
+  effective_from?: string | null;
+  effective_to?: string | null;
+};
+
+export type PathwayVersion = PathwayVersionInput & {
+  id: string;
+  pathway_id: string;
+  version_number: number;
+  lifecycle_status: string;
+  supersedes_version_id: string | null;
+  human_review_required: boolean;
+  approved_by: string | null;
+  review_notes: string | null;
+  published_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MobilityPathway = {
+  id: string;
+  pathway_key: string;
+  name: string;
+  country: string;
+  domain: PathwayDomain;
+  jurisdiction_id: string | null;
+  description: string | null;
+  catalogue_status: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  current_version: PathwayVersion | null;
+};
+
+export type MobilityPathwayDetail = MobilityPathway & { versions: PathwayVersion[] };
+
+export type PathwayCostExplanation = {
+  currency: string;
+  one_time_total: number | null;
+  monthly_total: number | null;
+  annual_total: number | null;
+  minimum_funds: number | null;
+  components: Record<string, number>;
+  notes: string[];
+};
+
+export type PathwayRiskExplanation = {
+  level: "low" | "medium" | "high";
+  score: number;
+  declared_risks: string[];
+  evidence_risks: string[];
+  regulatory_risks: string[];
+};
+
+export type PathwayComparisonItem = {
+  pathway: MobilityPathway;
+  match_score: number;
+  confidence: number;
+  reasons: string[];
+  cost: PathwayCostExplanation;
+  risk: PathwayRiskExplanation;
+  missing_evidence: string[];
+  benefits: string[];
+  tradeoffs: string[];
+  explanation: string;
+  verified_rule_ids: string[];
+};
+
+export type PathwayComparison = {
+  assessment_id: string | null;
+  lead_id: string;
+  profile_id: string | null;
+  profile_version: number | null;
+  status: string;
+  consent_status: string;
+  primary: PathwayComparisonItem | null;
+  alternatives: PathwayComparisonItem[];
+  missing_evidence: string[];
+  summary: string;
+  human_review_required: boolean;
+  generated_by: string;
+  generated_at: string;
+};
+
+export type MobilityTimelineMilestone = {
+  id: string;
+  timeline_id: string;
+  stage_order: number;
+  stage_key: string;
+  title: string;
+  description: string | null;
+  status: string;
+  dependencies: string[];
+  required_evidence: string[];
+  owner_role: string;
+  due_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  blockers: string[];
+  notes: string | null;
+  requires_human_approval: boolean;
+  approved_by: string | null;
+};
+
+export type MobilityTimeline = {
+  id: string;
+  lead_id: string;
+  profile_id: string | null;
+  profile_version: number | null;
+  comparison_assessment_id: string;
+  primary_pathway_id: string;
+  primary_pathway_version_id: string;
+  title: string;
+  status: string;
+  current_stage_key: string | null;
+  target_date: string | null;
+  schedule: Record<string, unknown>;
+  generated_by: string;
+  activated_by: string | null;
+  activated_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  milestones: MobilityTimelineMilestone[];
+};
+
+export async function listOfficialSources(params?: { country?: string; domain?: string }): Promise<{ total: number; sources: OfficialSourceView[] }> {
+  const search = new URLSearchParams();
+  if (params?.country) search.set("country", params.country);
+  if (params?.domain) search.set("domain", params.domain);
+  const query = search.toString();
+  return request<{ total: number; sources: OfficialSourceView[] }>(`/api/v1/official-sources${query ? `?${query}` : ""}`);
+}
+
+export async function listPathways(params?: { country?: string; domain?: string; catalogue_status?: string }): Promise<MobilityPathway[]> {
+  const search = new URLSearchParams();
+  if (params?.country) search.set("country", params.country);
+  if (params?.domain) search.set("domain", params.domain);
+  if (params?.catalogue_status) search.set("catalogue_status", params.catalogue_status);
+  const query = search.toString();
+  return request<MobilityPathway[]>(`/api/v1/pathways${query ? `?${query}` : ""}`);
+}
+
+export async function getPathway(pathwayId: string): Promise<MobilityPathwayDetail> {
+  return request<MobilityPathwayDetail>(`/api/v1/pathways/${pathwayId}`);
+}
+
+export async function createPathway(payload: PathwayVersionInput & {
+  pathway_key: string;
+  name: string;
+  country: string;
+  domain: PathwayDomain;
+  jurisdiction_id?: string | null;
+  description?: string | null;
+}): Promise<MobilityPathway> {
+  return request<MobilityPathway>("/api/v1/pathways", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function createPathwayVersion(pathwayId: string, payload: PathwayVersionInput): Promise<PathwayVersion> {
+  return request<PathwayVersion>(`/api/v1/pathways/${pathwayId}/versions`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function publishPathwayVersion(versionId: string, reviewNotes: string): Promise<MobilityPathway> {
+  return request<MobilityPathway>(`/api/v1/pathways/versions/${versionId}/publish`, {
+    method: "POST",
+    body: JSON.stringify({ review_notes: reviewNotes }),
+  });
+}
+
+export async function retirePathway(pathwayId: string, reason: string): Promise<MobilityPathway> {
+  return request<MobilityPathway>(`/api/v1/pathways/${pathwayId}/retire`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function comparePathways(leadId: string, limit = 5): Promise<PathwayComparison> {
+  return request<PathwayComparison>(`/api/v1/pathways/compare/${leadId}?limit=${limit}`, { method: "POST" });
+}
+
+export async function getLatestPathwayComparison(leadId: string): Promise<PathwayComparison> {
+  return request<PathwayComparison>(`/api/v1/pathways/comparisons/${leadId}/latest`);
+}
+
+export async function getPathwayComparisonHistory(leadId: string): Promise<PathwayComparison[]> {
+  return request<PathwayComparison[]>(`/api/v1/pathways/comparisons/${leadId}`);
+}
+
+export async function listMobilityTimelines(leadId?: string): Promise<MobilityTimeline[]> {
+  return request<MobilityTimeline[]>(`/api/v1/mobility-timelines${leadId ? `?lead_id=${leadId}` : ""}`);
+}
+
+export async function generateMobilityTimeline(assessmentId: string): Promise<MobilityTimeline> {
+  return request<MobilityTimeline>(`/api/v1/mobility-timelines/from-comparison/${assessmentId}`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function activateMobilityTimeline(timelineId: string): Promise<MobilityTimeline> {
+  return request<MobilityTimeline>(`/api/v1/mobility-timelines/${timelineId}/activate`, { method: "POST" });
+}
+
+export async function transitionMobilityMilestone(
+  timelineId: string,
+  milestoneId: string,
+  action: "start" | "complete" | "block" | "unblock",
+  note?: string,
+): Promise<MobilityTimeline> {
+  return request<MobilityTimeline>(`/api/v1/mobility-timelines/${timelineId}/milestones/${milestoneId}/transition`, {
+    method: "POST",
+    body: JSON.stringify({ action, note: note || null }),
+  });
+}
+
+export async function listDocumentSchemas(): Promise<DocumentSchemaDefinition[]> {
+  return request<DocumentSchemaDefinition[]>("/api/v1/document-intelligence/schemas");
+}
+
+export async function seedDocumentSchemas(): Promise<DocumentSchemaDefinition[]> {
+  return request<DocumentSchemaDefinition[]>("/api/v1/document-intelligence/schemas/seed", { method: "POST" });
+}
+
+export async function listDocumentExtractions(params?: { lead_id?: string; document_id?: string; status?: string }): Promise<DocumentExtractionJob[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.document_id) search.set("document_id", params.document_id);
+  if (params?.status) search.set("status", params.status);
+  const query = search.toString();
+  return request<DocumentExtractionJob[]>(`/api/v1/document-intelligence/extractions${query ? `?${query}` : ""}`);
+}
+
+export async function queueDocumentExtraction(documentId: string, language = "eng"): Promise<DocumentExtractionJob> {
+  return request<DocumentExtractionJob>(`/api/v1/document-intelligence/documents/${documentId}/extract`, {
+    method: "POST",
+    body: JSON.stringify({ language }),
+  });
+}
+
+export async function reviewDocumentExtraction(jobId: string, decision: "approved" | "rejected", notes: string): Promise<DocumentExtractionJob> {
+  return request<DocumentExtractionJob>(`/api/v1/document-intelligence/extractions/${jobId}/review`, {
+    method: "POST",
+    body: JSON.stringify({ decision, notes }),
+  });
+}
+
+export async function listDocumentConsistencyAssessments(leadId?: string): Promise<DocumentConsistencyAssessment[]> {
+  return request<DocumentConsistencyAssessment[]>(`/api/v1/document-intelligence/validations${leadId ? `?lead_id=${leadId}` : ""}`);
+}
+
+export async function validateDocumentExtraction(jobId: string, applicationId?: string): Promise<DocumentConsistencyAssessment> {
+  return request<DocumentConsistencyAssessment>(`/api/v1/document-intelligence/extractions/${jobId}/validate`, {
+    method: "POST",
+    body: JSON.stringify({ application_id: applicationId || null }),
+  });
+}
+
+export async function reviewDocumentConsistencyAssessment(
+  assessmentId: string,
+  decision: "approved" | "rejected",
+  notes: string,
+): Promise<DocumentConsistencyAssessment> {
+  return request<DocumentConsistencyAssessment>(`/api/v1/document-intelligence/validations/${assessmentId}/review`, {
+    method: "POST",
+    body: JSON.stringify({ decision, notes }),
+  });
+}
+
+export async function getGlobalIntelligenceDashboard(windowDays = 90): Promise<GlobalIntelligenceDashboard> {
+  return request<GlobalIntelligenceDashboard>(`/api/v1/global-intelligence/dashboard?window_days=${windowDays}`);
+}
+
+export async function getGlobalJurisdictionRegistry(): Promise<GlobalJurisdictionRegistry> {
+  return request<GlobalJurisdictionRegistry>("/api/v1/global-intelligence/registry");
+}
+
+export async function proposeJurisdictionImmigrationAssessment(
+  jurisdictionId: string,
+  payload: {
+    rule_relationship: "independent" | "parent_inherited" | "shared_or_coordinated" | "not_applicable" | "unclear";
+    parent_code?: string | null;
+    evidence_url: string;
+    evidence_title: string;
+    rationale: string;
+    official_source_id?: string | null;
+    source_snapshot_id?: string | null;
+  },
+): Promise<JurisdictionImmigrationAssessment> {
+  return request<JurisdictionImmigrationAssessment>(
+    `/api/v1/global-intelligence/registry/${jurisdictionId}/immigration-assessments`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function reviewJurisdictionImmigrationAssessment(
+  assessmentId: string,
+  decision: "approved" | "rejected",
+  notes: string,
+): Promise<JurisdictionImmigrationAssessment> {
+  return request<JurisdictionImmigrationAssessment>(
+    `/api/v1/global-intelligence/registry/immigration-assessments/${assessmentId}/review`,
+    { method: "POST", body: JSON.stringify({ decision, notes }) },
+  );
+}
+
+export async function proposeJurisdictionSourceCertification(
+  jurisdictionId: string,
+  payload: {
+    regulatory_authority_id: string;
+    official_source_id: string;
+    coverage_domains: string[];
+    evidence_notes: string;
+  },
+): Promise<JurisdictionSourceCertification> {
+  return request<JurisdictionSourceCertification>(
+    `/api/v1/global-intelligence/registry/${jurisdictionId}/source-certifications`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function reviewJurisdictionSourceCertification(
+  certificationId: string,
+  decision: "approved" | "rejected",
+  notes: string,
+): Promise<JurisdictionSourceCertification> {
+  return request<JurisdictionSourceCertification>(
+    `/api/v1/global-intelligence/registry/source-certifications/${certificationId}/review`,
+    { method: "POST", body: JSON.stringify({ decision, notes }) },
+  );
+}
+
+export async function listJurisdictions(): Promise<{ total: number; jurisdictions: Jurisdiction[] }> {
+  return request<{ total: number; jurisdictions: Jurisdiction[] }>(
+    "/api/v1/regulatory-intelligence/jurisdictions"
+  );
+}
+
+export async function listRegulatoryAuthorities(jurisdictionId?: string): Promise<{
+  total: number;
+  authorities: RegulatoryAuthority[];
+}> {
+  const query = jurisdictionId ? `?jurisdiction_id=${encodeURIComponent(jurisdictionId)}` : "";
+  return request<{ total: number; authorities: RegulatoryAuthority[] }>(
+    `/api/v1/regulatory-intelligence/authorities${query}`
+  );
+}
+
+export async function createJurisdiction(payload: {
+  code: string;
+  name: string;
+  jurisdiction_type?: "country" | "territory" | "autonomous_jurisdiction";
+  parent_code?: string;
+  region?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<{ jurisdiction: Jurisdiction }> {
+  return request<{ jurisdiction: Jurisdiction }>("/api/v1/regulatory-intelligence/jurisdictions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function onboardRegulatorySource(payload: {
+  jurisdiction_code: string;
+  jurisdiction_name: string;
+  jurisdiction_type?: "country" | "territory" | "autonomous_jurisdiction";
+  parent_code?: string;
+  region?: string;
+  authority_name: string;
+  authority_type?: string;
+  authority_website_url?: string;
+  authority_domains: string[];
+  source_name: string;
+  source_url: string;
+  source_domain: string;
+  source_type?: "government" | "official" | "official_portal" | "official_agency" | "gazette";
+  schedule_minutes?: number;
+  fetch_method?: "http" | "browser" | "api" | "manual";
+  allowed_domains: string[];
+  max_redirects?: number;
+  parser_profile?: "generic" | "gazette_html_v1" | "structured_program_catalog_v1";
+  parser_config?: Record<string, unknown>;
+}): Promise<{
+  jurisdiction: Jurisdiction;
+  authority: RegulatoryAuthority;
+  official_source: OfficialSourceView;
+  monitor: SourceMonitorView;
+}> {
+  return request("/api/v1/regulatory-intelligence/source-onboarding", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listRegulatoryChanges(status?: string): Promise<{
+  total_returned: number;
+  changes: RegulatoryChange[];
+}> {
+  const query = status ? `?status=${encodeURIComponent(status)}` : "";
+  return request<{ total_returned: number; changes: RegulatoryChange[] }>(
+    `/api/v1/regulatory-intelligence/changes${query}`
+  );
+}
+
+export async function reviewRegulatoryChange(
+  changeId: string,
+  payload: { decision: "approved" | "rejected"; reviewer: string; notes: string }
+): Promise<{ change: RegulatoryChange }> {
+  return request<{ change: RegulatoryChange }>(
+    `/api/v1/regulatory-intelligence/changes/${changeId}/review`,
+    { method: "POST", body: JSON.stringify(payload) }
+  );
+}
+
+export async function publishRegulatoryChange(
+  changeId: string,
+  payload: {
+    rule_key: string;
+    statement: string;
+    reviewer: string;
+    confidence?: number;
+    effective_from?: string;
+    effective_to?: string;
+    supersedes_rule_id?: string;
+  }
+): Promise<{ verified_rule: VerifiedRule }> {
+  return request<{ verified_rule: VerifiedRule }>(
+    `/api/v1/regulatory-intelligence/changes/${changeId}/publish`,
+    { method: "POST", body: JSON.stringify(payload) }
+  );
+}
+
+export async function runSourceMonitor(monitorId: string): Promise<{
+  status: "queued";
+  monitor_id: string;
+  task_id: string | null;
+}> {
+  return request(`/api/v1/regulatory-intelligence/source-monitors/${monitorId}/run`, {
+    method: "POST",
+  });
+}
+
+export async function listSourceRetrievalRuns(params?: {
+  monitor_id?: string;
+  status?: string;
+  limit?: number;
+}): Promise<{ total_returned: number; retrieval_runs: SourceRetrievalRun[] }> {
+  const query = new URLSearchParams();
+  if (params?.monitor_id) query.set("monitor_id", params.monitor_id);
+  if (params?.status) query.set("status", params.status);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/api/v1/regulatory-intelligence/retrieval-runs${suffix}`);
+}
+
+export async function getRegulatoryDashboard(): Promise<RegulatoryDashboard> {
+  return request<RegulatoryDashboard>("/api/v1/regulatory-intelligence/dashboard");
+}
+
+export async function listSourceMonitors(status?: string): Promise<{
+  total: number;
+  monitors: SourceMonitorView[];
+}> {
+  const query = status ? `?status=${encodeURIComponent(status)}` : "";
+  return request(`/api/v1/regulatory-intelligence/source-monitors${query}`);
+}
+
+export async function listSourceSnapshots(params?: {
+  source_id?: string;
+  status?: string;
+  limit?: number;
+}): Promise<{ total_returned: number; snapshots: SourceSnapshotView[] }> {
+  const query = new URLSearchParams();
+  if (params?.source_id) query.set("source_id", params.source_id);
+  if (params?.status) query.set("status", params.status);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/api/v1/regulatory-intelligence/snapshots${suffix}`);
+}
+
+export async function listVerifiedRules(params?: {
+  active?: boolean;
+  jurisdiction_id?: string;
+  domain?: string;
+  limit?: number;
+}): Promise<{ total_returned: number; verified_rules: VerifiedRule[] }> {
+  const query = new URLSearchParams();
+  if (params?.active !== undefined) query.set("active", String(params.active));
+  if (params?.jurisdiction_id) query.set("jurisdiction_id", params.jurisdiction_id);
+  if (params?.domain) query.set("domain", params.domain);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/api/v1/regulatory-intelligence/verified-rules${suffix}`);
+}
+
+export async function retireVerifiedRule(
+  ruleId: string,
+  payload: { reviewer: string; reason: string; effective_to?: string }
+): Promise<{ verified_rule: VerifiedRule }> {
+  return request(`/api/v1/regulatory-intelligence/verified-rules/${ruleId}/retire`, {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
