@@ -9,27 +9,34 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
 import {
+  generateRegulatoryClassificationProposal,
   getHealthStatus,
+  getRegulatoryKnowledgeGraph,
   getRegulatoryDashboard,
   HealthStatus,
   listJurisdictions,
+  listRegulatoryClassificationProposals,
   listRegulatoryChanges,
   listSourceSnapshots,
   listVerifiedRules,
   onboardRegulatorySource,
   publishRegulatoryChange,
   RegulatoryChange,
+  RegulatoryClassificationProposal,
   RegulatoryDashboard,
+  RegulatoryKnowledgeGraph,
   retireVerifiedRule,
+  reviewRegulatoryClassificationProposal,
   reviewRegulatoryChange,
   runSourceMonitor,
+  syncRegulatoryKnowledgeGraph,
   SourceSnapshotView,
   VerifiedRule,
   Jurisdiction,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
 
-const TABS = ["overview", "coverage", "changes", "rules", "evidence", "onboarding"] as const;
+const TABS = ["overview", "coverage", "changes", "graph", "rules", "evidence", "onboarding"] as const;
 type Tab = (typeof TABS)[number];
 
 const INITIAL_ONBOARDING = {
@@ -83,11 +90,14 @@ export default function IntelligencePage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [dashboard, setDashboard] = useState<RegulatoryDashboard | null>(null);
   const [changes, setChanges] = useState<RegulatoryChange[]>([]);
+  const [classificationProposals, setClassificationProposals] = useState<RegulatoryClassificationProposal[]>([]);
+  const [knowledgeGraph, setKnowledgeGraph] = useState<RegulatoryKnowledgeGraph | null>(null);
   const [rules, setRules] = useState<VerifiedRule[]>([]);
   const [snapshots, setSnapshots] = useState<SourceSnapshotView[]>([]);
   const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
   const [selectedChangeId, setSelectedChangeId] = useState<string | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
+  const [proposalNotes, setProposalNotes] = useState("");
   const [ruleKey, setRuleKey] = useState("");
   const [ruleStatement, setRuleStatement] = useState("");
   const [supersedesRuleId, setSupersedesRuleId] = useState("");
@@ -103,10 +113,12 @@ export default function IntelligencePage() {
     setLoading(true);
     setError(null);
     try {
-      const [healthResult, dashboardData, changeData, ruleData, snapshotData, jurisdictionData] = await Promise.all([
+      const [healthResult, dashboardData, changeData, proposalData, graphData, ruleData, snapshotData, jurisdictionData] = await Promise.all([
         getHealthStatus(),
         getRegulatoryDashboard(),
         listRegulatoryChanges(),
+        listRegulatoryClassificationProposals({ limit: 500 }),
+        getRegulatoryKnowledgeGraph({ active: true, limit: 1000 }),
         listVerifiedRules({ limit: 300 }),
         listSourceSnapshots({ limit: 100 }),
         listJurisdictions(),
@@ -114,6 +126,8 @@ export default function IntelligencePage() {
       setHealth(healthResult.data);
       setDashboard(dashboardData);
       setChanges(changeData.changes);
+      setClassificationProposals(proposalData.classification_proposals);
+      setKnowledgeGraph(graphData);
       setRules(ruleData.verified_rules);
       setSnapshots(snapshotData.snapshots);
       setJurisdictions(jurisdictionData.jurisdictions);
@@ -143,6 +157,15 @@ export default function IntelligencePage() {
         rule.domain === selectedChange?.domain
     ),
     [rules, selectedChange]
+  );
+  const selectedProposals = useMemo(
+    () => classificationProposals.filter((proposal) => proposal.regulatory_change_id === selectedChangeId),
+    [classificationProposals, selectedChangeId]
+  );
+  const hasAcceptedClassification = selectedProposals.some((proposal) => proposal.status === "accepted");
+  const graphNodeMap = useMemo(
+    () => new Map((knowledgeGraph?.nodes || []).map((node) => [node.id, node])),
+    [knowledgeGraph]
   );
 
   function updateOnboarding(field: keyof typeof INITIAL_ONBOARDING, value: string) {
@@ -178,6 +201,63 @@ export default function IntelligencePage() {
       setChanges((current) => current.map((item) => item.id === result.change.id ? result.change : item));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not review regulatory change");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleGenerateClassification(useModel: boolean) {
+    if (!selectedChange) return;
+    setBusy(`classify-${selectedChange.id}`);
+    setError(null);
+    try {
+      const result = await generateRegulatoryClassificationProposal(selectedChange.id, {
+        use_model: useModel,
+        actor: "frontend-reviewer",
+      });
+      setMessage(result.classification_proposal.method === "model_assisted"
+        ? "Model-assisted classification proposal created for human review."
+        : "Deterministic classification proposal created; inspect the fallback reason and evidence.");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not generate classification proposal");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleClassificationReview(
+    proposalId: string,
+    decision: "accepted" | "rejected"
+  ) {
+    if (!proposalNotes.trim()) return;
+    setBusy(`classification-review-${proposalId}`);
+    setError(null);
+    try {
+      await reviewRegulatoryClassificationProposal(proposalId, {
+        decision,
+        reviewer: "frontend-reviewer",
+        notes: proposalNotes.trim(),
+      });
+      setProposalNotes("");
+      setMessage(`Classification proposal ${decision}. The regulatory change still requires separate review.`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not review classification proposal");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleGraphSync() {
+    setBusy("knowledge-graph-sync");
+    setError(null);
+    try {
+      const result = await syncRegulatoryKnowledgeGraph({ actor: "frontend-reviewer" });
+      setMessage(`Knowledge graph synchronized from ${result.sync.projected_rules} human-published rules.`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not synchronize the regulatory knowledge graph");
     } finally {
       setBusy(null);
     }
@@ -452,7 +532,49 @@ export default function IntelligencePage() {
                     <pre>{diffLines(selectedChange.diff_json).join("\n") || "No textual diff was stored."}</pre>
                   </div>
 
-                  {selectedChange.status === "pending_review" && (
+                  <div className="classification-workspace">
+                    <div className="classification-workspace-header">
+                      <div><small>Advisory classification ledger</small><strong>Evidence-bound proposals</strong></div>
+                      {selectedChange.status === "pending_review" && (
+                        <div className="form-actions">
+                          <button className="button secondary small" disabled={Boolean(busy)} onClick={() => handleGenerateClassification(false)}>Deterministic proposal</button>
+                          <button className="button primary small" disabled={Boolean(busy)} onClick={() => handleGenerateClassification(true)}>Model-assisted proposal</button>
+                        </div>
+                      )}
+                    </div>
+                    {selectedProposals.length ? selectedProposals.map((proposal) => (
+                      <article className="classification-proposal-card" key={proposal.id}>
+                        <div className="classification-proposal-heading">
+                          <span><StatusBadge value={proposal.status} /><em>{titleCase(proposal.method)}</em></span>
+                          <strong>{Math.round(proposal.confidence * 100)}% proposal confidence</strong>
+                        </div>
+                        <div className="review-meta-grid">
+                          <div><small>Proposed type</small><strong>{titleCase(proposal.proposed_change_type)}</strong></div>
+                          <div><small>Materiality</small><strong>{titleCase(proposal.proposed_materiality)}</strong></div>
+                          <div><small>Provider</small><strong>{proposal.provider || "Deterministic rules"}</strong></div>
+                          <div><small>Prompt</small><strong>{proposal.prompt_version}</strong></div>
+                        </div>
+                        <p>{proposal.proposed_summary}</p>
+                        <small>{proposal.rationale}</small>
+                        {proposal.fallback_reason && <InlineNotice label="Deterministic fallback" detail={proposal.fallback_reason} tone="warn" />}
+                        <div className="classification-evidence">
+                          <small>Cited snapshot evidence</small>
+                          <pre>{proposal.evidence.map((item) => `${item.line_number}: ${item.text}`).join("\n") || "No valid diff evidence was cited."}</pre>
+                        </div>
+                        {proposal.status === "pending_review" && (
+                          <div className="intelligence-form compact-form">
+                            <label>Classification review notes<textarea rows={3} value={proposalNotes} onChange={(event) => setProposalNotes(event.target.value)} placeholder="Explain why the cited evidence supports or contradicts this proposal." /></label>
+                            <div className="form-actions">
+                              <button className="button primary small" disabled={!proposalNotes.trim() || Boolean(busy)} onClick={() => handleClassificationReview(proposal.id, "accepted")}>Accept proposal</button>
+                              <button className="button secondary small" disabled={!proposalNotes.trim() || Boolean(busy)} onClick={() => handleClassificationReview(proposal.id, "rejected")}>Reject proposal</button>
+                            </div>
+                          </div>
+                        )}
+                      </article>
+                    )) : <EmptyState title="No classification proposal" detail="Generate a deterministic or configured model-assisted proposal before regulatory review." />}
+                  </div>
+
+                  {selectedChange.status === "pending_review" && hasAcceptedClassification && (
                     <div className="intelligence-form">
                       <label>Reviewer notes<textarea rows={4} value={reviewNotes} onChange={(event) => setReviewNotes(event.target.value)} placeholder="Describe how the official evidence was validated." /></label>
                       <div className="form-actions">
@@ -460,6 +582,9 @@ export default function IntelligencePage() {
                         <button className="button secondary" disabled={!reviewNotes.trim() || Boolean(busy)} onClick={() => handleReview("rejected")}>Reject</button>
                       </div>
                     </div>
+                  )}
+                  {selectedChange.status === "pending_review" && !hasAcceptedClassification && (
+                    <InlineNotice label="Classification review required" detail="Accept an evidence-bound proposal before approving the regulatory change. Proposal acceptance does not publish a rule." tone="warn" />
                   )}
 
                   {selectedChange.status === "approved" && (
@@ -477,6 +602,49 @@ export default function IntelligencePage() {
               ) : <EmptyState title="Select a change" detail="Choose an event to inspect its snapshot difference and review state." />}
             </section>
           </div>
+        )}
+
+        {tab === "graph" && (
+          <section className="panel intelligence-section">
+            <div className="knowledge-graph-header">
+              <SectionTitle label="Published-rule projection" title="Regulatory knowledge graph" detail="Every edge preserves its verified rule, reviewed change, and immutable snapshot provenance" />
+              <button className="button primary" disabled={Boolean(busy)} onClick={handleGraphSync}>Synchronize published rules</button>
+            </div>
+            {knowledgeGraph ? (
+              <>
+                <div className="intelligence-metrics">
+                  <MetricPill label="Graph nodes" value={knowledgeGraph.counts.nodes} />
+                  <MetricPill label="Graph edges" value={knowledgeGraph.counts.edges} />
+                  <MetricPill label="Published rules" value={knowledgeGraph.counts.verified_rules} />
+                  <MetricPill label="Projection" value={knowledgeGraph.projection_version} />
+                </div>
+                <div className="graph-integrity-row">
+                  <InlineNotice label="Human-published only" detail={knowledgeGraph.human_published_only ? "Graph mutation is restricted to reviewed and published verified rules." : "Graph source restriction failed."} tone={knowledgeGraph.human_published_only ? "good" : "bad"} />
+                  <InlineNotice label="Provenance integrity" detail={knowledgeGraph.provenance_complete ? "Every visible edge links a rule, source snapshot, and regulatory change." : "One or more edges have incomplete provenance."} tone={knowledgeGraph.provenance_complete ? "good" : "bad"} />
+                </div>
+                <div className="knowledge-edge-list">
+                  {knowledgeGraph.edges.length ? knowledgeGraph.edges.map((edge) => {
+                    const source = graphNodeMap.get(edge.source_node_id);
+                    const target = graphNodeMap.get(edge.target_node_id);
+                    return (
+                      <article className="knowledge-edge-card" key={edge.id}>
+                        <div className="knowledge-edge-flow">
+                          <span><small>{titleCase(source?.node_type || "node")}</small><strong>{source?.label || edge.source_node_id.slice(0, 8)}</strong></span>
+                          <em>{titleCase(edge.relation_type)} →</em>
+                          <span><small>{titleCase(target?.node_type || "node")}</small><strong>{target?.label || edge.target_node_id.slice(0, 8)}</strong></span>
+                        </div>
+                        <div className="knowledge-edge-provenance">
+                          <span>Rule {edge.verified_rule_id.slice(0, 8)}</span>
+                          <span>Change {edge.regulatory_change_id.slice(0, 8)}</span>
+                          <span>Snapshot {edge.source_snapshot_id.slice(0, 8)}</span>
+                        </div>
+                      </article>
+                    );
+                  }) : <EmptyState title="No published-rule graph" detail="Publish a human-reviewed regulatory change or synchronize existing verified rules." />}
+                </div>
+              </>
+            ) : <EmptyState title="Knowledge graph unavailable" detail="Refresh after the API and migration are ready." />}
+          </section>
         )}
 
         {tab === "rules" && (

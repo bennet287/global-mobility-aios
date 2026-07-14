@@ -8,13 +8,16 @@ from typing import Any, Optional
 from urllib.parse import urlparse
 from uuid import UUID
 
+from pydantic import BaseModel, Field as PydanticField
 from sqlmodel import Session, select
 
+from app.core.config import settings
 from app.models.domain import (
     HumanReview,
     Jurisdiction,
     OfficialSource,
     RegulatoryAuthority,
+    RegulatoryClassificationProposal,
     RegulatoryChange,
     ReviewStatus,
     SourceMonitor,
@@ -25,6 +28,8 @@ from app.models.domain import (
 from app.schemas import (
     JurisdictionCreate,
     RegulatoryAuthorityCreate,
+    RegulatoryClassificationProposalGenerateRequest,
+    RegulatoryClassificationProposalReviewRequest,
     RegulatoryChangePublishRequest,
     RegulatoryChangeReviewRequest,
     RegulatorySourceOnboardingRequest,
@@ -33,6 +38,7 @@ from app.schemas import (
     VerifiedRuleRetireRequest,
 )
 from app.services.audit_log import record_audit
+from app.services.llm_client import LLMProviderFactory, is_llm_enabled
 from app.services.official_sources import normalize_country, normalize_domain
 
 
@@ -330,21 +336,46 @@ def _normalized_content(content: str) -> str:
     return "\n".join(line.rstrip() for line in content.replace("\r\n", "\n").split("\n")).strip()
 
 
+CLASSIFICATION_TYPES = (
+    "new_program",
+    "rule_change",
+    "program_removed",
+    "processing_time_change",
+    "salary_threshold_change",
+    "investment_threshold_change",
+    "age_limit_change",
+    "occupation_list_change",
+    "quota_change",
+    "policy_change",
+)
+MATERIALITY_LEVELS = ("informational", "material", "critical")
+CLASSIFICATION_PROMPT_VERSION = "regulatory-classifier-v1"
+CLASSIFICATION_KEYWORDS = (
+    ("processing_time_change", ("processing time", "processing days", "processing weeks")),
+    ("salary_threshold_change", ("salary threshold", "minimum salary", "salary requirement")),
+    ("investment_threshold_change", ("investment threshold", "minimum investment", "investor requirement")),
+    ("age_limit_change", ("age limit", "maximum age", "under the age")),
+    ("occupation_list_change", ("occupation list", "shortage occupation", "eligible occupations")),
+    ("quota_change", ("quota", "annual cap", "application cap")),
+    ("program_removed", ("program closed", "program removed", "no longer available")),
+    ("new_program", ("new visa", "new permit", "new program", "introduced")),
+)
+
+
+class _ModelClassificationCandidate(BaseModel):
+    change_type: str
+    materiality: str
+    summary: str = PydanticField(min_length=5, max_length=2000)
+    rationale: str = PydanticField(min_length=5, max_length=5000)
+    confidence: float = PydanticField(ge=0.0, le=1.0)
+    evidence_line_numbers: list[int] = PydanticField(default_factory=list, max_length=25)
+
+
 def _classify_change(old: str, new: str, requested: Optional[str]) -> str:
     if requested:
         return requested
     combined = f"{old}\n{new}".lower()
-    classifiers = (
-        ("processing_time_change", ("processing time", "processing days", "processing weeks")),
-        ("salary_threshold_change", ("salary threshold", "minimum salary", "salary requirement")),
-        ("investment_threshold_change", ("investment threshold", "minimum investment", "investor requirement")),
-        ("age_limit_change", ("age limit", "maximum age", "under the age")),
-        ("occupation_list_change", ("occupation list", "shortage occupation", "eligible occupations")),
-        ("quota_change", ("quota", "annual cap", "application cap")),
-        ("program_removed", ("program closed", "program removed", "no longer available")),
-        ("new_program", ("new visa", "new permit", "new program", "introduced")),
-    )
-    for change_type, keywords in classifiers:
+    for change_type, keywords in CLASSIFICATION_KEYWORDS:
         if any(keyword in combined for keyword in keywords):
             return change_type
     return "rule_change"
@@ -360,6 +391,309 @@ def _diff_payload(old: str, new: str) -> dict[str, Any]:
         n=3,
     ))
     return {"unified_diff": lines[:500], "truncated": len(lines) > 500}
+
+
+def _evidence_from_diff(
+    diff_lines: list[str],
+    line_numbers: Optional[list[int]] = None,
+    keywords: tuple[str, ...] = (),
+) -> list[dict[str, Any]]:
+    requested = set(line_numbers or [])
+    evidence: list[dict[str, Any]] = []
+    for number, line in enumerate(diff_lines, start=1):
+        if line.startswith(("+++", "---", "@@")):
+            continue
+        changed = line.startswith(("+", "-"))
+        keyword_match = any(keyword in line.lower() for keyword in keywords)
+        if (requested and number not in requested) or (not requested and keywords and not keyword_match):
+            continue
+        if not requested and not keywords and not changed:
+            continue
+        evidence.append({
+            "line_number": number,
+            "direction": "added" if line.startswith("+") else "removed" if line.startswith("-") else "context",
+            "text": line[:1000],
+        })
+        if len(evidence) >= 25:
+            break
+    if evidence or requested:
+        return evidence
+    return _evidence_from_diff(diff_lines, keywords=())[:8]
+
+
+def _deterministic_candidate(
+    change: RegulatoryChange,
+    previous: Optional[SourceSnapshot],
+    current: SourceSnapshot,
+) -> dict[str, Any]:
+    old = previous.content_text if previous and previous.content_text else ""
+    new = current.content_text or ""
+    diff_lines = _diff_payload(old, new)["unified_diff"]
+    change_type = _classify_change(old, new, change.change_type if change.change_type in CLASSIFICATION_TYPES else None)
+    keywords = next((values for name, values in CLASSIFICATION_KEYWORDS if name == change_type), ())
+    evidence = _evidence_from_diff(diff_lines, keywords=keywords)
+    if change.change_type in CLASSIFICATION_TYPES:
+        confidence = 0.82
+        rationale = "The deterministic classifier retained the typed change detected by the controlled source pipeline."
+    elif keywords and evidence:
+        confidence = 0.7
+        rationale = f"Deterministic keyword evidence matched the {change_type.replace('_', ' ')} category."
+    else:
+        confidence = 0.4
+        rationale = "No specialised keyword rule matched; the deterministic safe fallback is a general rule change."
+    return {
+        "change_type": change_type,
+        "materiality": change.materiality if change.materiality in MATERIALITY_LEVELS else "material",
+        "summary": change.summary,
+        "rationale": rationale,
+        "confidence": confidence,
+        "evidence": evidence,
+        "method": "deterministic",
+        "provider": None,
+        "model": None,
+        "model_metadata": None,
+        "fallback_reason": None,
+    }
+
+
+def _strip_json_fences(value: str) -> str:
+    content = value.strip()
+    if content.startswith("```"):
+        lines = content.splitlines()[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        content = "\n".join(lines).strip()
+    return content
+
+
+def _classification_candidate(
+    change: RegulatoryChange,
+    previous: Optional[SourceSnapshot],
+    current: SourceSnapshot,
+    *,
+    use_model: bool,
+) -> dict[str, Any]:
+    fallback = _deterministic_candidate(change, previous, current)
+    if not use_model:
+        return fallback
+    if not settings.regulatory_model_classification_enabled:
+        fallback["fallback_reason"] = "Model-assisted regulatory classification is disabled by configuration."
+        return fallback
+    if not is_llm_enabled():
+        fallback["fallback_reason"] = "No supported model provider is configured."
+        return fallback
+
+    old = previous.content_text if previous and previous.content_text else ""
+    new = current.content_text or ""
+    diff_lines = _diff_payload(old, new)["unified_diff"]
+    numbered_diff: list[str] = []
+    prompt_characters = 0
+    for number, line in enumerate(diff_lines, start=1):
+        bounded_line = f"{number}: {line[:1000]}"
+        if prompt_characters + len(bounded_line) > 50_000:
+            break
+        numbered_diff.append(bounded_line)
+        prompt_characters += len(bounded_line)
+    prompt = {
+        "domain": change.domain,
+        "current_classification": change.change_type,
+        "current_materiality": change.materiality,
+        "allowed_change_types": list(CLASSIFICATION_TYPES),
+        "allowed_materiality": list(MATERIALITY_LEVELS),
+        "numbered_unified_diff": numbered_diff,
+        "instructions": (
+            "Return one JSON object only. Classify only what the supplied official-source diff supports. "
+            "Evidence line numbers must refer to the numbered diff. This is an advisory proposal requiring human review."
+        ),
+        "required_fields": [
+            "change_type",
+            "materiality",
+            "summary",
+            "rationale",
+            "confidence",
+            "evidence_line_numbers",
+        ],
+    }
+    try:
+        provider = LLMProviderFactory.get_provider()
+        response = provider.complete(
+            system_prompt=(
+                "You are a controlled regulatory-change classifier. Never invent a rule, date, threshold, "
+                "programme, or authority. Use only supplied diff evidence and express uncertainty in confidence."
+            ),
+            messages=[{"role": "user", "content": json.dumps(prompt, sort_keys=True)}],
+            response_format={"type": "json_object"},
+        )
+        candidate = _ModelClassificationCandidate.model_validate_json(_strip_json_fences(response.content))
+        if candidate.change_type not in CLASSIFICATION_TYPES:
+            raise ValueError("Model returned an unsupported change type")
+        if candidate.materiality not in MATERIALITY_LEVELS:
+            raise ValueError("Model returned an unsupported materiality")
+        evidence = _evidence_from_diff(diff_lines, candidate.evidence_line_numbers)
+        if not evidence:
+            raise ValueError("Model proposal did not cite valid diff evidence")
+        return {
+            "change_type": candidate.change_type,
+            "materiality": candidate.materiality,
+            "summary": candidate.summary,
+            "rationale": candidate.rationale,
+            "confidence": min(candidate.confidence, 0.95),
+            "evidence": evidence,
+            "method": "model_assisted",
+            "provider": response.provider,
+            "model": response.model,
+            "model_metadata": {
+                "finish_reason": response.finish_reason,
+                "prompt_tokens": response.prompt_tokens,
+                "completion_tokens": response.completion_tokens,
+                "total_tokens": response.total_tokens,
+                "estimated_cost_usd": response.estimated_cost_usd,
+            },
+            "fallback_reason": None,
+        }
+    except Exception as exc:
+        fallback["fallback_reason"] = (
+            "Model proposal failed validation or execution; deterministic fallback used "
+            f"({type(exc).__name__})."
+        )
+        return fallback
+
+
+def _create_classification_proposal(
+    session: Session,
+    change: RegulatoryChange,
+    *,
+    use_model: bool,
+    actor: str,
+    supersede_pending: bool = True,
+) -> RegulatoryClassificationProposal:
+    previous = session.get(SourceSnapshot, change.previous_snapshot_id) if change.previous_snapshot_id else None
+    current = session.get(SourceSnapshot, change.current_snapshot_id)
+    if current is None:
+        raise ValueError("Current source snapshot not found")
+    candidate = _classification_candidate(change, previous, current, use_model=use_model)
+    if supersede_pending:
+        pending = session.exec(
+            select(RegulatoryClassificationProposal)
+            .where(RegulatoryClassificationProposal.regulatory_change_id == change.id)
+            .where(RegulatoryClassificationProposal.status == "pending_review")
+        ).all()
+        for existing in pending:
+            existing.status = "superseded"
+            existing.updated_at = now_utc()
+            session.add(existing)
+    proposal = RegulatoryClassificationProposal(
+        regulatory_change_id=change.id,
+        previous_snapshot_id=change.previous_snapshot_id,
+        current_snapshot_id=change.current_snapshot_id,
+        proposed_change_type=candidate["change_type"],
+        proposed_materiality=candidate["materiality"],
+        proposed_summary=candidate["summary"],
+        rationale=candidate["rationale"],
+        evidence_json=json.dumps(candidate["evidence"], default=str, sort_keys=True),
+        confidence=candidate["confidence"],
+        method=candidate["method"],
+        provider=candidate["provider"],
+        model=candidate["model"],
+        prompt_version=CLASSIFICATION_PROMPT_VERSION,
+        model_metadata_json=(
+            json.dumps(candidate["model_metadata"], default=str, sort_keys=True)
+            if candidate["model_metadata"] else None
+        ),
+        fallback_reason=candidate["fallback_reason"],
+        status="pending_review",
+        created_by=actor,
+    )
+    session.add(proposal)
+    session.flush()
+    record_audit(
+        session,
+        action="regulatory_classification_proposed",
+        entity_type="regulatory_classification_proposal",
+        entity_id=proposal.id,
+        after_state=proposal,
+        actor=actor,
+        source="regulatory_intelligence_v10_4",
+    )
+    return proposal
+
+
+def generate_classification_proposal(
+    session: Session,
+    change_id: UUID,
+    payload: RegulatoryClassificationProposalGenerateRequest,
+) -> RegulatoryClassificationProposal:
+    change = session.get(RegulatoryChange, change_id)
+    if change is None:
+        raise ValueError("Regulatory change not found")
+    if change.status != "pending_review":
+        raise ValueError("Classification proposals can only be generated for pending regulatory changes")
+    proposal = _create_classification_proposal(
+        session,
+        change,
+        use_model=payload.use_model,
+        actor=payload.actor,
+    )
+    session.commit()
+    session.refresh(proposal)
+    return proposal
+
+
+def review_classification_proposal(
+    session: Session,
+    proposal_id: UUID,
+    payload: RegulatoryClassificationProposalReviewRequest,
+) -> RegulatoryClassificationProposal:
+    proposal = session.get(RegulatoryClassificationProposal, proposal_id)
+    if proposal is None:
+        raise ValueError("Regulatory classification proposal not found")
+    if proposal.status != "pending_review":
+        raise ValueError(f"Classification proposal cannot be reviewed from status '{proposal.status}'")
+    change = session.get(RegulatoryChange, proposal.regulatory_change_id)
+    if change is None:
+        raise ValueError("Regulatory change not found")
+    if change.status != "pending_review":
+        raise ValueError("The regulatory change is no longer pending review")
+    before = {"proposal_status": proposal.status, "change_type": change.change_type, "materiality": change.materiality}
+    proposal.status = payload.decision
+    proposal.reviewed_by = payload.reviewer
+    proposal.reviewed_at = now_utc()
+    proposal.review_notes = payload.notes
+    proposal.updated_at = now_utc()
+    if payload.decision == "accepted":
+        change.change_type = proposal.proposed_change_type
+        change.materiality = proposal.proposed_materiality
+        change.summary = proposal.proposed_summary
+        session.add(change)
+        other_pending = session.exec(
+            select(RegulatoryClassificationProposal)
+            .where(RegulatoryClassificationProposal.regulatory_change_id == change.id)
+            .where(RegulatoryClassificationProposal.status == "pending_review")
+            .where(RegulatoryClassificationProposal.id != proposal.id)
+        ).all()
+        for other in other_pending:
+            other.status = "superseded"
+            other.updated_at = now_utc()
+            session.add(other)
+    session.add(proposal)
+    record_audit(
+        session,
+        action="regulatory_classification_reviewed",
+        entity_type="regulatory_classification_proposal",
+        entity_id=proposal.id,
+        before_state=before,
+        after_state={
+            "proposal": proposal,
+            "change_type": change.change_type,
+            "materiality": change.materiality,
+        },
+        reason=payload.notes,
+        actor=payload.reviewer,
+        source="regulatory_intelligence_v10_4",
+    )
+    session.commit()
+    session.refresh(proposal)
+    return proposal
 
 
 def _snapshot_metadata(snapshot: Optional[SourceSnapshot]) -> dict[str, Any]:
@@ -531,6 +865,13 @@ def capture_source_snapshot(
                 priority="high" if payload.materiality == "critical" else "medium",
                 reason=f"Validate {detected_change.change_type} detected at {source.url}",
             ))
+            _create_classification_proposal(
+                session,
+                detected_change,
+                use_model=False,
+                actor=payload.actor,
+                supersede_pending=False,
+            )
             record_audit(
                 session,
                 action="regulatory_change_detected",
@@ -567,6 +908,15 @@ def review_regulatory_change(
         raise ValueError("Regulatory change not found")
     if change.status not in {"pending_review", "approved", "rejected"}:
         raise ValueError(f"Regulatory change cannot be reviewed from status '{change.status}'")
+    if payload.decision == "approved":
+        proposals = session.exec(
+            select(RegulatoryClassificationProposal)
+            .where(RegulatoryClassificationProposal.regulatory_change_id == change.id)
+        ).all()
+        if proposals and any(proposal.status == "pending_review" for proposal in proposals):
+            raise ValueError("Resolve the pending classification proposal before approving this change")
+        if proposals and not any(proposal.status == "accepted" for proposal in proposals):
+            raise ValueError("An accepted classification proposal is required before approving this change")
     before = {"status": change.status, "reviewed_by": change.reviewed_by}
     change.status = payload.decision
     change.reviewed_at = now_utc()
@@ -609,6 +959,11 @@ def publish_regulatory_change(
         select(VerifiedRule).where(VerifiedRule.regulatory_change_id == change.id)
     ).first()
     if existing:
+        from app.services.regulatory_knowledge_graph import project_verified_rule
+
+        project_verified_rule(session, existing, actor=existing.approved_by or payload.reviewer)
+        session.commit()
+        session.refresh(existing)
         return existing
     if change.status != "approved":
         raise ValueError("Only an approved regulatory change can be published")
@@ -633,6 +988,10 @@ def publish_regulatory_change(
         superseded_rule.retirement_reason = f"Superseded by regulatory change {change.id}"
         superseded_rule.updated_at = published_at
         session.add(superseded_rule)
+        session.flush()
+        from app.services.regulatory_knowledge_graph import deactivate_rule_projection
+
+        deactivate_rule_projection(session, superseded_rule, actor=payload.reviewer)
         record_audit(
             session,
             action="verified_rule_superseded",
@@ -666,6 +1025,9 @@ def publish_regulatory_change(
     session.add(rule)
     session.add(change)
     session.flush()
+    from app.services.regulatory_knowledge_graph import project_verified_rule
+
+    project_verified_rule(session, rule, actor=payload.reviewer)
     record_audit(
         session,
         action="verified_rule_published",
@@ -700,6 +1062,10 @@ def retire_verified_rule(
     rule.retirement_reason = payload.reason
     rule.updated_at = retired_at
     session.add(rule)
+    session.flush()
+    from app.services.regulatory_knowledge_graph import deactivate_rule_projection
+
+    deactivate_rule_projection(session, rule, actor=payload.reviewer)
     record_audit(
         session,
         action="verified_rule_retired",

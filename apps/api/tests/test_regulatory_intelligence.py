@@ -179,6 +179,10 @@ def test_regulatory_change_is_review_gated_before_rule_publication(
     assert change_payload["status"] == "pending_review"
     assert change_payload["change_type"] == "salary_threshold_change"
     change_id = change_payload["id"]
+    classification_proposal = changed.json()["classification_proposal"]
+    assert classification_proposal["regulatory_change_id"] == change_id
+    assert classification_proposal["method"] == "deterministic"
+    assert classification_proposal["status"] == "pending_review"
 
     early_publish = client.post(
         f"/api/v1/regulatory-intelligence/changes/{change_id}/publish",
@@ -189,6 +193,28 @@ def test_regulatory_change_is_review_gated_before_rule_publication(
         },
     )
     assert early_publish.status_code == 400
+
+    premature_review = client.post(
+        f"/api/v1/regulatory-intelligence/changes/{change_id}/review",
+        json={
+            "decision": "approved",
+            "reviewer": "pytest-reviewer",
+            "notes": "Attempted before classification review.",
+        },
+    )
+    assert premature_review.status_code == 400
+    assert "classification proposal" in premature_review.json()["detail"].lower()
+
+    classification_review = client.post(
+        f"/api/v1/regulatory-intelligence/classification-proposals/{classification_proposal['id']}/review",
+        json={
+            "decision": "accepted",
+            "reviewer": "pytest-classification-reviewer",
+            "notes": "The cited salary lines support this classification.",
+        },
+    )
+    assert classification_review.status_code == 200
+    assert classification_review.json()["classification_proposal"]["status"] == "accepted"
 
     review_response = client.post(
         f"/api/v1/regulatory-intelligence/changes/{change_id}/review",
@@ -225,6 +251,8 @@ def test_regulatory_change_is_review_gated_before_rule_publication(
     assert str(getattr(review.status, "value", review.status)) == "resolved"
     audit_actions = {row.action for row in db_session.exec(select(AuditLog)).all()}
     assert {
+        "regulatory_classification_proposed",
+        "regulatory_classification_reviewed",
         "regulatory_change_detected",
         "regulatory_change_reviewed",
         "verified_rule_published",
@@ -330,6 +358,16 @@ def test_verified_rule_can_be_superseded_and_retired(client: TestClient, db_sess
     assert first_rule.active is False
     assert first_rule.retired_by == "reviewer"
     assert first_rule.effective_to is not None
+    first_history = client.get(
+        "/api/v1/regulatory-intelligence/knowledge-graph",
+        params={"verified_rule_id": first_rule_id, "active": False},
+    ).json()
+    second_active = client.get(
+        "/api/v1/regulatory-intelligence/knowledge-graph",
+        params={"verified_rule_id": second_rule_id, "active": True},
+    ).json()
+    assert first_history["counts"]["edges"] == 6
+    assert "SUPERSEDES" in {edge["relation_type"] for edge in second_active["edges"]}
 
     retire_response = client.post(
         f"/api/v1/regulatory-intelligence/verified-rules/{second_rule_id}/retire",
@@ -338,6 +376,11 @@ def test_verified_rule_can_be_superseded_and_retired(client: TestClient, db_sess
     assert retire_response.status_code == 200
     assert retire_response.json()["verified_rule"]["active"] is False
     assert retire_response.json()["verified_rule"]["retirement_reason"] == "Program closed by the authority."
+    second_history = client.get(
+        "/api/v1/regulatory-intelligence/knowledge-graph",
+        params={"verified_rule_id": second_rule_id, "active": False},
+    ).json()
+    assert second_history["counts"]["edges"] == 7
 
     actions = {row.action for row in db_session.exec(select(AuditLog)).all()}
     assert "verified_rule_superseded" in actions

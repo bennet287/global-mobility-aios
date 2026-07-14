@@ -1115,6 +1115,21 @@ class RegulatoryChangeReviewRequest(BaseModel):
     notes: str = Field(min_length=1)
 
 
+class RegulatoryClassificationProposalGenerateRequest(BaseModel):
+    use_model: bool = False
+    actor: str = Field(default="regulatory-operator", min_length=1, max_length=200)
+
+
+class RegulatoryClassificationProposalReviewRequest(BaseModel):
+    decision: Literal["accepted", "rejected"]
+    reviewer: str = Field(min_length=1, max_length=200)
+    notes: str = Field(min_length=3, max_length=5000)
+
+
+class RegulatoryKnowledgeGraphSyncRequest(BaseModel):
+    actor: str = Field(default="regulatory-graph-operator", min_length=1, max_length=200)
+
+
 class RegulatoryChangePublishRequest(BaseModel):
     rule_key: str = Field(min_length=2, max_length=200)
     statement: str = Field(min_length=5)

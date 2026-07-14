@@ -415,6 +415,70 @@ class RegulatoryChange(SQLModel, table=True):
     review_notes: Optional[str] = None
     published_at: Optional[datetime] = None
 
+
+class RegulatoryClassificationProposal(SQLModel, table=True):
+    __tablename__ = "regulatory_classification_proposals"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    regulatory_change_id: UUID = Field(index=True, foreign_key="regulatory_changes.id")
+    previous_snapshot_id: Optional[UUID] = Field(default=None, index=True, foreign_key="source_snapshots.id")
+    current_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    proposed_change_type: str = Field(index=True)
+    proposed_materiality: str = Field(index=True)
+    proposed_summary: str
+    rationale: str
+    evidence_json: str = "[]"
+    confidence: float = 0.0
+    method: str = Field(default="deterministic", index=True)
+    provider: Optional[str] = Field(default=None, index=True)
+    model: Optional[str] = None
+    prompt_version: str = "regulatory-classifier-v1"
+    model_metadata_json: Optional[str] = None
+    fallback_reason: Optional[str] = None
+    status: str = Field(default="pending_review", index=True)
+    created_by: str = Field(default="source-monitor", index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class RegulatoryKnowledgeNode(SQLModel, table=True):
+    __tablename__ = "regulatory_knowledge_nodes"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    node_key: str = Field(index=True, unique=True)
+    node_type: str = Field(index=True)
+    label: str
+    properties_json: str = "{}"
+    active: bool = Field(default=True, index=True)
+    created_from_verified_rule_id: UUID = Field(index=True, foreign_key="verified_rules.id")
+    last_verified_rule_id: UUID = Field(index=True, foreign_key="verified_rules.id")
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class RegulatoryKnowledgeEdge(SQLModel, table=True):
+    __tablename__ = "regulatory_knowledge_edges"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    edge_key: str = Field(index=True, unique=True)
+    source_node_id: UUID = Field(index=True, foreign_key="regulatory_knowledge_nodes.id")
+    target_node_id: UUID = Field(index=True, foreign_key="regulatory_knowledge_nodes.id")
+    relation_type: str = Field(index=True)
+    verified_rule_id: UUID = Field(index=True, foreign_key="verified_rules.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    regulatory_change_id: UUID = Field(index=True, foreign_key="regulatory_changes.id")
+    projection_version: str = Field(default="regulatory-graph-v1", index=True)
+    active: bool = Field(default=True, index=True)
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+    retired_at: Optional[datetime] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class CountryPolicy(SQLModel, table=True):
     __tablename__ = "country_policies"
 

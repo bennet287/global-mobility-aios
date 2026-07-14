@@ -1401,6 +1401,79 @@ export type RegulatoryChange = {
   published_at: string | null;
 };
 
+export type RegulatoryClassificationEvidence = {
+  line_number: number;
+  direction: "added" | "removed" | "context";
+  text: string;
+};
+
+export type RegulatoryClassificationProposal = {
+  id: string;
+  regulatory_change_id: string;
+  previous_snapshot_id: string | null;
+  current_snapshot_id: string;
+  proposed_change_type: string;
+  proposed_materiality: "informational" | "material" | "critical";
+  proposed_summary: string;
+  rationale: string;
+  evidence: RegulatoryClassificationEvidence[];
+  confidence: number;
+  method: "deterministic" | "model_assisted";
+  provider: string | null;
+  model: string | null;
+  prompt_version: string;
+  model_metadata: Record<string, unknown>;
+  fallback_reason: string | null;
+  status: "pending_review" | "accepted" | "rejected" | "superseded" | string;
+  created_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegulatoryKnowledgeNode = {
+  id: string;
+  node_key: string;
+  node_type: string;
+  label: string;
+  properties: Record<string, unknown>;
+  active: boolean;
+  created_from_verified_rule_id: string;
+  last_verified_rule_id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegulatoryKnowledgeEdge = {
+  id: string;
+  edge_key: string;
+  source_node_id: string;
+  target_node_id: string;
+  relation_type: string;
+  verified_rule_id: string;
+  source_snapshot_id: string;
+  regulatory_change_id: string;
+  projection_version: string;
+  active: boolean;
+  effective_from: string | null;
+  effective_to: string | null;
+  retired_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegulatoryKnowledgeGraph = {
+  projection_version: string;
+  generated_at?: string;
+  human_published_only: boolean;
+  provenance_complete: boolean;
+  counts: { nodes: number; edges: number; verified_rules: number };
+  nodes: RegulatoryKnowledgeNode[];
+  edges: RegulatoryKnowledgeEdge[];
+};
+
 export type SourceRetrievalRun = {
   id: string;
   monitor_id: string;
@@ -1960,6 +2033,69 @@ export async function listRegulatoryChanges(status?: string): Promise<{
   return request<{ total_returned: number; changes: RegulatoryChange[] }>(
     `/api/v1/regulatory-intelligence/changes${query}`
   );
+}
+
+export async function listRegulatoryClassificationProposals(params?: {
+  change_id?: string;
+  status?: string;
+  limit?: number;
+}): Promise<{ total_returned: number; classification_proposals: RegulatoryClassificationProposal[] }> {
+  const query = new URLSearchParams();
+  if (params?.change_id) query.set("change_id", params.change_id);
+  if (params?.status) query.set("status", params.status);
+  if (params?.limit) query.set("limit", String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/api/v1/regulatory-intelligence/classification-proposals${suffix}`);
+}
+
+export async function generateRegulatoryClassificationProposal(
+  changeId: string,
+  payload: { use_model: boolean; actor: string }
+): Promise<{ classification_proposal: RegulatoryClassificationProposal }> {
+  return request(`/api/v1/regulatory-intelligence/changes/${changeId}/classification-proposals`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function reviewRegulatoryClassificationProposal(
+  proposalId: string,
+  payload: { decision: "accepted" | "rejected"; reviewer: string; notes: string }
+): Promise<{ classification_proposal: RegulatoryClassificationProposal }> {
+  return request(`/api/v1/regulatory-intelligence/classification-proposals/${proposalId}/review`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getRegulatoryKnowledgeGraph(params?: {
+  jurisdiction_id?: string;
+  verified_rule_id?: string;
+  active?: boolean;
+  limit?: number;
+}): Promise<RegulatoryKnowledgeGraph> {
+  const query = new URLSearchParams();
+  if (params?.jurisdiction_id) query.set("jurisdiction_id", params.jurisdiction_id);
+  if (params?.verified_rule_id) query.set("verified_rule_id", params.verified_rule_id);
+  if (params?.active !== undefined) query.set("active", String(params.active));
+  if (params?.limit) query.set("limit", String(params.limit));
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return request(`/api/v1/regulatory-intelligence/knowledge-graph${suffix}`);
+}
+
+export async function syncRegulatoryKnowledgeGraph(payload: {
+  actor: string;
+}): Promise<{ sync: {
+  published_rules_considered: number;
+  projected_rules: number;
+  deactivated_edges: number;
+  skipped: { verified_rule_id: string; reason: string }[];
+  projection_version: string;
+} }> {
+  return request("/api/v1/regulatory-intelligence/knowledge-graph/sync", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function reviewRegulatoryChange(

@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     source_monitor_timeout_seconds: int = 30
     source_monitor_max_bytes: int = 5_000_000
     source_monitor_allow_http: bool = False
+    regulatory_model_classification_enabled: bool = False
 
     def parsed_cors_origins(self) -> list[str]:
         return [

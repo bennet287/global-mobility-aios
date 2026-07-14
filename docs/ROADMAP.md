@@ -104,8 +104,8 @@ does not remove any capability from the canonical blueprint.
   occupation lists, quotas, processing times, and policy changes
 - [x] Route every material change through human validation before verified-rule publication
 - [x] Refresh relational intelligence and dashboards from reviewed changes and verified rules
-- [ ] Add controlled model-assisted classification proposals with confidence, evidence, and deterministic fallback
-- [ ] Add a provenance-preserving regulatory knowledge graph updated only from human-published rules
+- [x] Add controlled model-assisted classification proposals with confidence, evidence, and deterministic fallback
+- [x] Add a provenance-preserving regulatory knowledge graph updated only from human-published rules
 - [ ] Link graph updates to affected pathway versions without silently changing client assessments
 
 Target pipeline:
@@ -120,6 +120,20 @@ Government website / official API / gazette
   -> verified rule and knowledge-graph update
   -> global dashboard refresh
 ```
+
+Delivered classification governance: every detected change receives a persisted
+deterministic proposal tied to exact snapshots and diff evidence. Operators can
+request configured model assistance; invalid, unavailable, or disabled model
+execution falls back deterministically with a visible reason. A human must
+accept one proposal before the separate regulatory-change review and verified-
+rule publication gates can proceed. See
+`docs/CONTROLLED_REGULATORY_CLASSIFICATION_V10_4.md`.
+
+Delivered graph governance: human-published verified rules now transactionally
+project typed jurisdiction, domain, authority, source, snapshot, change, and
+rule nodes with per-edge rule/change/snapshot provenance. Supersession and
+retirement preserve history, while controlled synchronization ignores
+unpublished rules. See `docs/REGULATORY_KNOWLEDGE_GRAPH_V10_5.md`.
 
 ### 10B. Global Country and Immigration-Jurisdiction Coverage
 

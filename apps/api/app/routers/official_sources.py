@@ -17,6 +17,7 @@ from app.models.domain import (
     Jurisdiction,
     OfficialSource,
     RegulatoryAuthority,
+    RegulatoryClassificationProposal,
     RegulatoryChange,
     SourceCheckRun,
     SourceMonitor,
@@ -28,22 +29,28 @@ from app.models.domain import (
 from app.schemas import (
     JurisdictionCreate,
     RegulatoryAuthorityCreate,
+    RegulatoryClassificationProposalGenerateRequest,
+    RegulatoryClassificationProposalReviewRequest,
     RegulatoryChangePublishRequest,
     RegulatoryChangeReviewRequest,
+    RegulatoryKnowledgeGraphSyncRequest,
     RegulatorySourceOnboardingRequest,
     SourceMonitorCreate,
     SourceSnapshotCaptureRequest,
     VerifiedRuleRetireRequest,
 )
 from app.services.official_sources import list_sources, seed_official_sources
+from app.services.regulatory_knowledge_graph import knowledge_graph_payload, sync_published_rules
 from app.services.regulatory_intelligence import (
     capture_source_snapshot,
     create_or_update_jurisdiction,
     create_or_update_source_monitor,
     create_regulatory_authority,
+    generate_classification_proposal,
     onboard_regulatory_source,
     publish_regulatory_change,
     retire_verified_rule,
+    review_classification_proposal,
     review_regulatory_change,
 )
 from app.tasks.source_monitor_tasks import run_source_monitor_task
@@ -223,6 +230,14 @@ def _monitor_payload(monitor: SourceMonitor, source: Optional[OfficialSource]) -
         "last_error": monitor.last_error,
         "etag": monitor.etag,
         "last_modified": monitor.last_modified,
+    }
+
+
+def _classification_proposal_payload(proposal: RegulatoryClassificationProposal) -> Dict[str, Any]:
+    return {
+        **proposal.model_dump(exclude={"evidence_json", "model_metadata_json"}),
+        "evidence": _parse_json(proposal.evidence_json) or [],
+        "model_metadata": _parse_json(proposal.model_metadata_json) or {},
     }
 
 
@@ -511,8 +526,23 @@ def api_capture_source_snapshot(
         snapshot, change, unchanged = capture_source_snapshot(session, source_id, payload)
     except (ValueError, TypeError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    classification_proposal = None
+    if change is not None:
+        classification_proposal = session.exec(
+            select(RegulatoryClassificationProposal)
+            .where(RegulatoryClassificationProposal.regulatory_change_id == change.id)
+            .order_by(RegulatoryClassificationProposal.created_at.desc())
+        ).first()
     return _json_response(
-        {"snapshot": snapshot, "change": change, "unchanged": unchanged},
+        {
+            "snapshot": snapshot,
+            "change": change,
+            "classification_proposal": (
+                _classification_proposal_payload(classification_proposal)
+                if classification_proposal else None
+            ),
+            "unchanged": unchanged,
+        },
         status_code=201,
     )
 
@@ -531,6 +561,58 @@ def api_list_regulatory_changes(
         statement = statement.where(RegulatoryChange.jurisdiction_id == jurisdiction_id)
     rows = session.exec(statement.order_by(RegulatoryChange.detected_at.desc()).limit(min(limit, 500))).all()
     return _json_response({"total_returned": len(rows), "changes": rows})
+
+
+@router.get("/api/v1/regulatory-intelligence/classification-proposals")
+def api_list_classification_proposals(
+    change_id: Optional[UUID] = None,
+    status: Optional[str] = None,
+    limit: int = 200,
+    session: Session = Depends(get_session),
+):
+    statement = select(RegulatoryClassificationProposal)
+    if change_id:
+        statement = statement.where(RegulatoryClassificationProposal.regulatory_change_id == change_id)
+    if status:
+        statement = statement.where(RegulatoryClassificationProposal.status == status)
+    rows = session.exec(
+        statement.order_by(RegulatoryClassificationProposal.created_at.desc()).limit(min(max(limit, 1), 500))
+    ).all()
+    return _json_response({
+        "total_returned": len(rows),
+        "classification_proposals": [_classification_proposal_payload(row) for row in rows],
+    })
+
+
+@router.post("/api/v1/regulatory-intelligence/changes/{change_id}/classification-proposals", status_code=201)
+def api_generate_classification_proposal(
+    change_id: UUID,
+    payload: RegulatoryClassificationProposalGenerateRequest,
+    session: Session = Depends(get_session),
+):
+    from fastapi import HTTPException
+    try:
+        proposal = generate_classification_proposal(session, change_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _json_response(
+        {"classification_proposal": _classification_proposal_payload(proposal)},
+        status_code=201,
+    )
+
+
+@router.post("/api/v1/regulatory-intelligence/classification-proposals/{proposal_id}/review")
+def api_review_classification_proposal(
+    proposal_id: UUID,
+    payload: RegulatoryClassificationProposalReviewRequest,
+    session: Session = Depends(get_session),
+):
+    from fastapi import HTTPException
+    try:
+        proposal = review_classification_proposal(session, proposal_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _json_response({"classification_proposal": _classification_proposal_payload(proposal)})
 
 
 @router.post("/api/v1/regulatory-intelligence/changes/{change_id}/review")
@@ -580,6 +662,31 @@ def api_list_verified_rules(
         statement.order_by(VerifiedRule.updated_at.desc()).limit(min(max(limit, 1), 500))
     ).all()
     return _json_response({"total_returned": len(rows), "verified_rules": rows})
+
+
+@router.get("/api/v1/regulatory-intelligence/knowledge-graph")
+def api_regulatory_knowledge_graph(
+    jurisdiction_id: Optional[UUID] = None,
+    verified_rule_id: Optional[UUID] = None,
+    active: Optional[bool] = True,
+    limit: int = 500,
+    session: Session = Depends(get_session),
+):
+    return _json_response(knowledge_graph_payload(
+        session,
+        jurisdiction_id=jurisdiction_id,
+        verified_rule_id=verified_rule_id,
+        active=active,
+        limit=limit,
+    ))
+
+
+@router.post("/api/v1/regulatory-intelligence/knowledge-graph/sync")
+def api_sync_regulatory_knowledge_graph(
+    payload: RegulatoryKnowledgeGraphSyncRequest,
+    session: Session = Depends(get_session),
+):
+    return _json_response({"sync": sync_published_rules(session, actor=payload.actor)})
 
 
 @router.post("/api/v1/regulatory-intelligence/verified-rules/{rule_id}/retire")
