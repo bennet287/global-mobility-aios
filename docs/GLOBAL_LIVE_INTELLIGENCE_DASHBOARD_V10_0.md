@@ -77,3 +77,12 @@ Automated coverage verifies that:
    and review state.
 4. Build global country ranking from the complete reviewed pathway catalogue.
 5. Extend timelines into versioned cross-pathway and multi-country scenarios.
+## v10.11 evidence-filter extension
+
+The dashboard now accepts and displays a single consistent filter scope for source
+freshness, registry coverage, authority, evidence confidence, materiality, and review
+state. The same scope is applied to headline counts, change feeds, heatmap activity,
+and Opportunity Radar evidence. Confidence is never inferred from prose: it comes
+from the linked verified rule or governed classification proposal and remains unknown
+when neither exists. See `GLOBAL_INTELLIGENCE_FILTERS_V10_11.md`.
+

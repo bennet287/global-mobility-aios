@@ -45,7 +45,12 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
                 "scripts/export_mvp_release_archive.py",
                 "scripts/check_github_release_ready.py",
                 "scripts/seed_global_jurisdiction_registry.py",
+                "scripts/validate_global_coverage_evidence_pack.py",
             ),
+        ),
+        QualityCommand(
+            label="coverage_evidence_pack",
+            argv=(sys.executable, "scripts/validate_global_coverage_evidence_pack.py"),
         ),
         QualityCommand(
             label="repo_policy",

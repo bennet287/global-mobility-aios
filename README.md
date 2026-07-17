@@ -29,6 +29,10 @@ The governed pathway catalogue is specified in
 [`docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md`](docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md).
 Pathway cost, risk, alternatives, and evidence explanations are specified in
 [`docs/PATHWAY_COMPARISON_EXPLANATIONS_V8_2.md`](docs/PATHWAY_COMPARISON_EXPLANATIONS_V8_2.md).
+The completed Phase 9 document access boundary is specified in
+[`docs/SIGNED_DOCUMENT_ACCESS_OBJECT_STORAGE_V9_5.md`](docs/SIGNED_DOCUMENT_ACCESS_OBJECT_STORAGE_V9_5.md).
+The completed Phase 10C evidence-filter layer is specified in
+[`docs/GLOBAL_INTELLIGENCE_FILTERS_V10_11.md`](docs/GLOBAL_INTELLIGENCE_FILTERS_V10_11.md).
 
 ## Quick Start
 

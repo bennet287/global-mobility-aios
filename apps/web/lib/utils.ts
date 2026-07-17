@@ -29,6 +29,7 @@ export function statusTone(value: string | undefined | null): Tone {
       "unchanged",
       "not_modified",
       "low_risk",
+      "coverage_ready",
     ].includes(normalized)
   ) {
     return "good";
@@ -50,6 +51,7 @@ export function statusTone(value: string | undefined | null): Tone {
       "medium_risk",
       "ready_for_review",
       "needs_profile_review",
+      "coverage_gap",
     ].includes(normalized)
   ) {
     return "warn";

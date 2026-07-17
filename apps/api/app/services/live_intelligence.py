@@ -4,10 +4,20 @@ import json
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import Jurisdiction, OfficialSource, RegulatoryChange, VerifiedRule, now_utc
+from app.models.domain import (
+    Jurisdiction,
+    OfficialSource,
+    RegulatoryAuthority,
+    RegulatoryChange,
+    RegulatoryClassificationProposal,
+    SourceMonitor,
+    VerifiedRule,
+    now_utc,
+)
 from app.services.jurisdiction_registry import jurisdiction_registry_coverage
 
 
@@ -23,6 +33,12 @@ TRACKED_CHANGE_TYPES = (
     "quota_change",
     "policy_change",
 )
+
+FRESHNESS_FILTERS = ("all", "fresh", "stale", "never_checked", "inactive", "unmonitored")
+COVERAGE_FILTERS = ("all", "ready", "gap", "not_required", "unregistered")
+CONFIDENCE_FILTERS = ("all", "high", "medium", "low", "unknown")
+MATERIALITY_FILTERS = ("all", "informational", "material", "critical")
+REVIEW_STATE_FILTERS = ("all", "pending_review", "approved", "rejected", "published")
 
 
 def _aware(value: datetime | None) -> datetime | None:
@@ -40,13 +56,66 @@ def _load(value: str | None, fallback: Any) -> Any:
         return fallback
 
 
+def _monitor_freshness(monitor: SourceMonitor | None, now: datetime) -> str:
+    if monitor is None:
+        return "unmonitored"
+    if monitor.status != "active":
+        return "inactive"
+    last_checked = _aware(monitor.last_checked_at)
+    if last_checked is None:
+        return "never_checked"
+    freshness_window = timedelta(minutes=max(monitor.schedule_minutes * 2, 1440))
+    return "fresh" if last_checked >= now - freshness_window else "stale"
+
+
+def _confidence_band(value: float | None) -> str:
+    if value is None:
+        return "unknown"
+    if value >= 0.9:
+        return "high"
+    if value >= 0.7:
+        return "medium"
+    return "low"
+
+
+def _coverage_state(entry: dict[str, Any] | None) -> str:
+    if entry is None:
+        return "unregistered"
+    if not entry.get("coverage_required", False):
+        return "not_required"
+    return "ready" if entry.get("coverage_ready", False) else "gap"
+
+
 def _change_payload(
     change: RegulatoryChange,
-    jurisdictions: dict,
-    sources: dict,
+    jurisdictions: dict[Any, Jurisdiction],
+    sources: dict[Any, OfficialSource],
+    authorities: dict[Any, RegulatoryAuthority],
+    monitors: dict[Any, SourceMonitor],
+    coverage_entries: dict[Any, dict[str, Any]],
+    rule_by_change: dict[Any, VerifiedRule],
+    proposal_by_change: dict[Any, RegulatoryClassificationProposal],
+    now: datetime,
 ) -> dict[str, Any]:
     jurisdiction = jurisdictions.get(change.jurisdiction_id)
     source = sources.get(change.official_source_id)
+    authority = authorities.get(source.regulatory_authority_id) if source and source.regulatory_authority_id else None
+    monitor = monitors.get(change.official_source_id)
+    coverage_entry = coverage_entries.get(change.jurisdiction_id)
+    rule = rule_by_change.get(change.id)
+    proposal = proposal_by_change.get(change.id)
+    confidence: float | None = None
+    confidence_source = "unknown"
+    if rule is not None:
+        confidence = rule.confidence
+        confidence_source = "verified_rule"
+    elif proposal is not None:
+        confidence = proposal.confidence
+        confidence_source = (
+            "accepted_classification_proposal"
+            if proposal.status == "accepted"
+            else "classification_proposal"
+        )
     diff = _load(change.diff_json, {})
     program = diff.get("program_change", {}) if isinstance(diff, dict) else {}
     return {
@@ -64,8 +133,19 @@ def _change_payload(
         "domain": change.domain,
         "materiality": change.materiality,
         "status": change.status,
+        "source_id": source.id if source else None,
         "source_name": source.name if source else None,
         "source_url": source.url if source else None,
+        "authority_id": authority.id if authority else None,
+        "authority_name": authority.name if authority else (source.authority if source else None),
+        "freshness": _monitor_freshness(monitor, now),
+        "monitor_status": monitor.status if monitor else None,
+        "last_checked_at": monitor.last_checked_at if monitor else None,
+        "coverage": _coverage_state(coverage_entry),
+        "coverage_gaps": coverage_entry.get("missing", []) if coverage_entry else ["registry_entry"],
+        "confidence": confidence,
+        "confidence_band": _confidence_band(confidence),
+        "confidence_source": confidence_source,
         "effective_at": change.effective_at,
         "detected_at": change.detected_at,
         "reviewed_at": change.reviewed_at,
@@ -86,21 +166,97 @@ def _activity_level(count: int) -> str:
     return "none"
 
 
-def global_intelligence_dashboard(session: Session, *, window_days: int = 90) -> dict[str, Any]:
+def _validate_filter(value: str, allowed: tuple[str, ...], label: str) -> str:
+    normalized = value.strip().lower()
+    if normalized not in allowed:
+        raise ValueError(f"Unsupported {label} filter '{value}'")
+    return normalized
+
+
+def global_intelligence_dashboard(
+    session: Session,
+    *,
+    window_days: int = 90,
+    freshness: str = "all",
+    coverage: str = "all",
+    authority_id: UUID | None = None,
+    confidence: str = "all",
+    materiality: str = "all",
+    review_state: str = "all",
+) -> dict[str, Any]:
+    freshness = _validate_filter(freshness, FRESHNESS_FILTERS, "freshness")
+    coverage = _validate_filter(coverage, COVERAGE_FILTERS, "coverage")
+    confidence = _validate_filter(confidence, CONFIDENCE_FILTERS, "confidence")
+    materiality = _validate_filter(materiality, MATERIALITY_FILTERS, "materiality")
+    review_state = _validate_filter(review_state, REVIEW_STATE_FILTERS, "review state")
+
     now = now_utc()
-    since = now - timedelta(days=max(1, min(window_days, 730)))
+    normalized_window = max(1, min(window_days, 730))
+    since = now - timedelta(days=normalized_window)
     today = now.date()
     jurisdictions_list = list(session.exec(select(Jurisdiction).where(Jurisdiction.active == True)).all())  # noqa: E712
     sources_list = list(session.exec(select(OfficialSource).where(OfficialSource.active == True)).all())  # noqa: E712
-    changes = list(session.exec(
+    authorities_list = list(session.exec(select(RegulatoryAuthority).where(RegulatoryAuthority.active == True)).all())  # noqa: E712
+    monitors_list = list(session.exec(select(SourceMonitor)).all())
+    base_changes = list(session.exec(
         select(RegulatoryChange)
         .where(RegulatoryChange.detected_at >= since.replace(tzinfo=None))
         .order_by(RegulatoryChange.detected_at.desc())
     ).all())
-    rules = list(session.exec(select(VerifiedRule).where(VerifiedRule.active == True)).all())  # noqa: E712
+    active_rules = list(session.exec(select(VerifiedRule).where(VerifiedRule.active == True)).all())  # noqa: E712
+    all_rules = list(session.exec(select(VerifiedRule).order_by(VerifiedRule.updated_at.desc())).all())
+    proposals = list(session.exec(
+        select(RegulatoryClassificationProposal)
+        .order_by(RegulatoryClassificationProposal.updated_at.desc())
+    ).all())
+
     jurisdictions = {row.id: row for row in jurisdictions_list}
     sources = {row.id: row for row in sources_list}
-    payloads = [_change_payload(change, jurisdictions, sources) for change in changes]
+    authorities = {row.id: row for row in authorities_list}
+    monitors = {row.official_source_id: row for row in monitors_list}
+    rule_by_change: dict[Any, VerifiedRule] = {}
+    for rule in all_rules:
+        if rule.regulatory_change_id and rule.regulatory_change_id not in rule_by_change:
+            rule_by_change[rule.regulatory_change_id] = rule
+    proposal_by_change: dict[Any, RegulatoryClassificationProposal] = {}
+    for proposal in proposals:
+        existing = proposal_by_change.get(proposal.regulatory_change_id)
+        if existing is None or (proposal.status == "accepted" and existing.status != "accepted"):
+            proposal_by_change[proposal.regulatory_change_id] = proposal
+
+    registry = jurisdiction_registry_coverage(session)
+    coverage_entries = {row["jurisdiction_id"]: row for row in registry.get("entries", [])}
+    base_pairs = [
+        (
+            change,
+            _change_payload(
+                change,
+                jurisdictions,
+                sources,
+                authorities,
+                monitors,
+                coverage_entries,
+                rule_by_change,
+                proposal_by_change,
+                now,
+            ),
+        )
+        for change in base_changes
+    ]
+
+    def matches(payload: dict[str, Any]) -> bool:
+        return all((
+            freshness == "all" or payload["freshness"] == freshness,
+            coverage == "all" or payload["coverage"] == coverage,
+            authority_id is None or payload["authority_id"] == authority_id,
+            confidence == "all" or payload["confidence_band"] == confidence,
+            materiality == "all" or payload["materiality"] == materiality,
+            review_state == "all" or payload["status"] == review_state,
+        ))
+
+    filtered_pairs = [(change, payload) for change, payload in base_pairs if matches(payload)]
+    changes = [change for change, _payload in filtered_pairs]
+    payloads = [payload for _change, payload in filtered_pairs]
     today_changes = [change for change in changes if (_aware(change.detected_at) or now).date() == today]
     reviewed = [change for change in changes if change.status in {"approved", "published"}]
     published = [change for change in changes if change.status == "published"]
@@ -111,9 +267,18 @@ def global_intelligence_dashboard(session: Session, *, window_days: int = 90) ->
     for change in changes:
         country_activity[change.jurisdiction_id].append(change)
     source_counts = Counter(source.jurisdiction_id for source in sources_list if source.jurisdiction_id)
-    rule_counts = Counter(rule.jurisdiction_id for rule in rules if rule.jurisdiction_id)
+    rule_counts = Counter(rule.jurisdiction_id for rule in active_rules if rule.jurisdiction_id)
+
+    selected_authority = authorities.get(authority_id) if authority_id else None
     heatmap = []
     for jurisdiction in jurisdictions_list:
+        jurisdiction_coverage = _coverage_state(coverage_entries.get(jurisdiction.id))
+        if coverage != "all" and jurisdiction_coverage != coverage:
+            continue
+        if selected_authority and selected_authority.jurisdiction_id != jurisdiction.id:
+            continue
+        if authority_id and selected_authority is None:
+            continue
         rows = country_activity.get(jurisdiction.id, [])
         heatmap.append({
             "jurisdiction_id": jurisdiction.id,
@@ -121,6 +286,7 @@ def global_intelligence_dashboard(session: Session, *, window_days: int = 90) ->
             "country": jurisdiction.name,
             "jurisdiction_type": jurisdiction.jurisdiction_type,
             "region": jurisdiction.region,
+            "coverage": jurisdiction_coverage,
             "activity_count": len(rows),
             "activity_level": _activity_level(len(rows)),
             "pending_review": sum(row.status == "pending_review" for row in rows),
@@ -145,11 +311,12 @@ def global_intelligence_dashboard(session: Session, *, window_days: int = 90) ->
     for change in published:
         if change.change_type in radar_weights:
             radar_by_country[change.jurisdiction_id].append(change)
+    payload_by_id = {payload["id"]: payload for payload in payloads}
     radar = []
     for jurisdiction_id, rows in radar_by_country.items():
         jurisdiction = jurisdictions.get(jurisdiction_id)
         score = sum(radar_weights.get(row.change_type, 0) for row in rows)
-        evidence = [_change_payload(row, jurisdictions, sources) for row in rows[:10]]
+        evidence = [payload_by_id[row.id] for row in rows[:10] if row.id in payload_by_id]
         radar.append({
             "jurisdiction_id": jurisdiction_id,
             "country": jurisdiction.name if jurisdiction else "Unknown",
@@ -175,12 +342,52 @@ def global_intelligence_dashboard(session: Session, *, window_days: int = 90) ->
         if change.jurisdiction_id in jurisdictions
     }
     country_types = Counter(row.jurisdiction_type for row in jurisdictions_list)
-    registry = jurisdiction_registry_coverage(session)
     registry_summary = registry["summary"]
     registry_gate = registry["release_gate"]
+
+    base_payloads = [payload for _change, payload in base_pairs]
+    authority_counts = Counter(payload["authority_id"] for payload in base_payloads if payload["authority_id"])
+    authority_options = [
+        {
+            "id": authority.id,
+            "name": authority.name,
+            "jurisdiction_id": authority.jurisdiction_id,
+            "count": authority_counts[authority.id],
+        }
+        for authority in authorities_list
+        if authority_counts[authority.id]
+    ]
+    authority_options.sort(key=lambda row: row["name"])
+    freshness_options = Counter(payload["freshness"] for payload in base_payloads)
+    coverage_options = Counter(payload["coverage"] for payload in base_payloads)
+    confidence_options = Counter(payload["confidence_band"] for payload in base_payloads)
+    base_materiality_options = Counter(payload["materiality"] for payload in base_payloads)
+    base_review_options = Counter(payload["status"] for payload in base_payloads)
+
     return {
         "generated_at": now,
-        "window_days": max(1, min(window_days, 730)),
+        "window_days": normalized_window,
+        "filters": {
+            "applied": {
+                "freshness": freshness,
+                "coverage": coverage,
+                "authority_id": authority_id,
+                "authority_name": selected_authority.name if selected_authority else None,
+                "confidence": confidence,
+                "materiality": materiality,
+                "review_state": review_state,
+            },
+            "matched_changes": len(changes),
+            "available_changes": len(base_changes),
+            "options": {
+                "authorities": authority_options,
+                "freshness": {value: freshness_options[value] for value in FRESHNESS_FILTERS if value != "all"},
+                "coverage": {value: coverage_options[value] for value in COVERAGE_FILTERS if value != "all"},
+                "confidence": {value: confidence_options[value] for value in CONFIDENCE_FILTERS if value != "all"},
+                "materiality": {value: base_materiality_options[value] for value in MATERIALITY_FILTERS if value != "all"},
+                "review_state": {value: base_review_options[value] for value in REVIEW_STATE_FILTERS if value != "all"},
+            },
+        },
         "scope": {
             "registered_jurisdictions": len(jurisdictions_list),
             "registered_countries": registry_summary.get("countries", country_types["country"]),
@@ -189,7 +396,7 @@ def global_intelligence_dashboard(session: Session, *, window_days: int = 90) ->
                 "autonomous_jurisdictions", country_types["autonomous_jurisdiction"]
             ),
             "official_sources": len(sources_list),
-            "active_verified_rules": len(rules),
+            "active_verified_rules": len(active_rules),
             "global_coverage_claim_ready": registry_gate["global_coverage_claim_ready"],
             "coverage_warning": registry_gate.get(
                 "message",

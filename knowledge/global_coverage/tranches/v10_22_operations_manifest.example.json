@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "name": "Example reviewed evidence tranche operations",
+  "description": "Replace the placeholder batch IDs with existing evidence-batch IDs. This manifest does not contain source claims and creates no legal decision.",
+  "groups": [
+    {
+      "label": "Primary evidence batch",
+      "batch_id": "00000000-0000-0000-0000-000000000001",
+      "alpha2_codes": [
+        "FR",
+        "IT"
+      ]
+    },
+    {
+      "label": "Supplemental domain source batch",
+      "batch_id": "00000000-0000-0000-0000-000000000002",
+      "alpha2_codes": [
+        "FR"
+      ]
+    }
+  ]
+}

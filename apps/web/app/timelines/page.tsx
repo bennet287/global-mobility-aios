@@ -23,6 +23,7 @@ import {
   transitionMobilityMilestone,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
+import { ScenarioWorkspace } from "./ScenarioWorkspace";
 
 export default function TimelinesPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
@@ -144,6 +145,7 @@ export default function TimelinesPage() {
             </aside>
           </div>
         </> : <EmptyState title={comparison ? "No timeline yet" : "Comparison required"} detail={comparison ? "Generate the timeline from this lead's latest comparison." : "Create an evidence-backed pathway comparison in Mobility Planning first."} />}
+        <ScenarioWorkspace leadId={leadId} />
       </div>
     </WorkspaceShell>
   );

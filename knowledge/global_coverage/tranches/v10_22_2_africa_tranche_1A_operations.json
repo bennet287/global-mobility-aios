@@ -1,0 +1,30 @@
+{
+    "schema_version":  "1.0",
+    "name":  "v10.22.2 Africa tranche 1A operations",
+    "description":  "Operational review preparation for the nine-jurisdiction Africa evidence batch. Algeria remains excluded because its official source failed TLS certificate-chain validation.",
+    "groups":  [
+                   {
+                       "label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "alpha2_codes":  [
+                                            "AO",
+                                            "BJ",
+                                            "BW",
+                                            "IO",
+                                            "BF",
+                                            "BI",
+                                            "CV",
+                                            "CM",
+                                            "CF"
+                                        ]
+                   }
+               ],
+    "safety":  {
+                   "creates_evidence_batches":  false,
+                   "creates_review_decisions":  false,
+                   "creates_assertions":  false,
+                   "publishes_verified_rules":  false,
+                   "creates_coverage_claim":  false,
+                   "message":  "This manifest prepares review and readiness receipts only. Independent human review remains mandatory."
+               }
+}

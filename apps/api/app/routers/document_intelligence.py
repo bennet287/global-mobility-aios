@@ -6,12 +6,33 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from app.core.db import get_session
-from app.models.domain import DocumentConsistencyAssessment, DocumentExtractionJob, DocumentSchemaDefinition
+from app.models.domain import (
+    DocumentConsistencyAssessment,
+    DocumentExpiryReminderTask,
+    DocumentFraudRiskAssessment,
+    DocumentExtractionJob,
+    DocumentRequirementAssessment,
+    DocumentSchemaDefinition,
+)
 from app.schemas import (
     DocumentConsistencyAssessmentRead,
     DocumentConsistencyGenerateRequest,
     DocumentConsistencyReviewRequest,
+    DocumentExpiryReminderRead,
+    DocumentExpiryReminderReviewRequest,
+    DocumentExpiryScanRequest,
+    DocumentExpiryScanResult,
+    DocumentFraudRiskAssessmentGenerateRequest,
+    DocumentFraudRiskAssessmentRead,
+    DocumentFraudRiskAssessmentReviewRequest,
+    DocumentFraudRiskScanRequest,
+    DocumentFraudRiskScanResult,
     DocumentExtractionJobRead,
+    DocumentRequirementAssessmentGenerateRequest,
+    DocumentRequirementAssessmentRead,
+    DocumentRequirementAssessmentReviewRequest,
+    DocumentRequirementScanRequest,
+    DocumentRequirementScanResult,
     DocumentExtractionRequest,
     DocumentExtractionReviewRequest,
     DocumentSchemaDefinitionRead,
@@ -20,6 +41,23 @@ from app.services.document_consistency import (
     assessment_read,
     generate_consistency_assessment,
     review_consistency_assessment,
+)
+from app.services.document_expiry_reminders import (
+    reminder_read,
+    review_document_expiry_reminder,
+    scan_document_expiry_reminders,
+)
+from app.services.document_requirement_assessments import (
+    assessment_read as requirement_assessment_read,
+    generate_document_requirement_assessment,
+    review_document_requirement_assessment,
+    scan_document_requirement_assessments,
+)
+from app.services.document_fraud_risk import (
+    assessment_read as fraud_risk_assessment_read,
+    generate_document_fraud_risk_assessment,
+    review_document_fraud_risk_assessment,
+    scan_document_fraud_risk_assessments,
 )
 from app.services.document_intelligence import (
     create_extraction_job,
@@ -198,6 +236,255 @@ def api_review_validation(
             notes=payload.notes,
             actor=_actor(request),
         )
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+@router.post("/expiry-reminders/scan", response_model=DocumentExpiryScanResult)
+def api_scan_expiry_reminders(
+    payload: DocumentExpiryScanRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentExpiryScanResult:
+    result = scan_document_expiry_reminders(
+        session,
+        lead_id=payload.lead_id,
+        actor=_actor(request),
+    )
+    return DocumentExpiryScanResult(**result)
+
+
+@router.get("/expiry-reminders", response_model=list[DocumentExpiryReminderRead])
+def api_list_expiry_reminders(
+    lead_id: UUID | None = None,
+    status: str | None = None,
+    reminder_type: str | None = None,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+) -> list[DocumentExpiryReminderRead]:
+    statement = select(DocumentExpiryReminderTask).order_by(
+        DocumentExpiryReminderTask.status,
+        DocumentExpiryReminderTask.expiry_date,
+        DocumentExpiryReminderTask.created_at.desc(),
+    )
+    if lead_id:
+        statement = statement.where(DocumentExpiryReminderTask.lead_id == lead_id)
+    if status:
+        statement = statement.where(DocumentExpiryReminderTask.status == status)
+    if reminder_type:
+        statement = statement.where(DocumentExpiryReminderTask.reminder_type == reminder_type)
+    rows = session.exec(statement.limit(max(1, min(limit, 500)))).all()
+    return [reminder_read(row) for row in rows]
+
+
+@router.get("/expiry-reminders/{reminder_id}", response_model=DocumentExpiryReminderRead)
+def api_get_expiry_reminder(
+    reminder_id: UUID,
+    session: Session = Depends(get_session),
+) -> DocumentExpiryReminderRead:
+    reminder = session.get(DocumentExpiryReminderTask, reminder_id)
+    if reminder is None:
+        raise HTTPException(status_code=404, detail="Document expiry reminder not found")
+    return reminder_read(reminder)
+
+
+@router.post("/expiry-reminders/{reminder_id}/review", response_model=DocumentExpiryReminderRead)
+def api_review_expiry_reminder(
+    reminder_id: UUID,
+    payload: DocumentExpiryReminderReviewRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentExpiryReminderRead:
+    try:
+        reminder = review_document_expiry_reminder(
+            session,
+            reminder_id,
+            decision=payload.decision,
+            notes=payload.notes,
+            actor=_actor(request),
+        )
+        return reminder_read(reminder)
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+@router.post("/requirement-assessments/generate", response_model=DocumentRequirementAssessmentRead, status_code=201)
+def api_generate_requirement_assessment(
+    payload: DocumentRequirementAssessmentGenerateRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentRequirementAssessmentRead:
+    try:
+        assessment, _ = generate_document_requirement_assessment(
+            session,
+            payload.lead_id,
+            application_id=payload.application_id,
+            pathway_version_id=payload.pathway_version_id,
+            actor=_actor(request),
+        )
+        return DocumentRequirementAssessmentRead(**requirement_assessment_read(assessment))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/requirement-assessments/scan", response_model=DocumentRequirementScanResult)
+def api_scan_requirement_assessments(
+    payload: DocumentRequirementScanRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentRequirementScanResult:
+    try:
+        return DocumentRequirementScanResult(**scan_document_requirement_assessments(
+            session,
+            lead_id=payload.lead_id,
+            actor=_actor(request),
+        ))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/requirement-assessments", response_model=list[DocumentRequirementAssessmentRead])
+def api_list_requirement_assessments(
+    lead_id: UUID | None = None,
+    review_status: str | None = None,
+    result_status: str | None = None,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+) -> list[DocumentRequirementAssessmentRead]:
+    statement = select(DocumentRequirementAssessment).order_by(
+        DocumentRequirementAssessment.review_status,
+        DocumentRequirementAssessment.created_at.desc(),
+    )
+    if lead_id:
+        statement = statement.where(DocumentRequirementAssessment.lead_id == lead_id)
+    if review_status:
+        statement = statement.where(DocumentRequirementAssessment.review_status == review_status)
+    if result_status:
+        statement = statement.where(DocumentRequirementAssessment.result_status == result_status)
+    rows = session.exec(statement.limit(max(1, min(limit, 500)))).all()
+    return [DocumentRequirementAssessmentRead(**requirement_assessment_read(row)) for row in rows]
+
+
+@router.get("/requirement-assessments/{assessment_id}", response_model=DocumentRequirementAssessmentRead)
+def api_get_requirement_assessment(
+    assessment_id: UUID,
+    session: Session = Depends(get_session),
+) -> DocumentRequirementAssessmentRead:
+    assessment = session.get(DocumentRequirementAssessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(status_code=404, detail="Document requirement assessment not found")
+    return DocumentRequirementAssessmentRead(**requirement_assessment_read(assessment))
+
+
+@router.post("/requirement-assessments/{assessment_id}/review", response_model=DocumentRequirementAssessmentRead)
+def api_review_requirement_assessment(
+    assessment_id: UUID,
+    payload: DocumentRequirementAssessmentReviewRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentRequirementAssessmentRead:
+    try:
+        assessment = review_document_requirement_assessment(
+            session,
+            assessment_id,
+            decision=payload.decision,
+            notes=payload.notes,
+            actor=_actor(request),
+        )
+        return DocumentRequirementAssessmentRead(**requirement_assessment_read(assessment))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+
+@router.post("/fraud-risk-assessments/generate", response_model=DocumentFraudRiskAssessmentRead, status_code=201)
+def api_generate_fraud_risk_assessment(
+    payload: DocumentFraudRiskAssessmentGenerateRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentFraudRiskAssessmentRead:
+    try:
+        assessment, _ = generate_document_fraud_risk_assessment(
+            session,
+            payload.lead_id,
+            actor=_actor(request),
+        )
+        return DocumentFraudRiskAssessmentRead(**fraud_risk_assessment_read(assessment))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/fraud-risk-assessments/scan", response_model=DocumentFraudRiskScanResult)
+def api_scan_fraud_risk_assessments(
+    payload: DocumentFraudRiskScanRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentFraudRiskScanResult:
+    try:
+        return DocumentFraudRiskScanResult(**scan_document_fraud_risk_assessments(
+            session,
+            lead_id=payload.lead_id,
+            actor=_actor(request),
+        ))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/fraud-risk-assessments", response_model=list[DocumentFraudRiskAssessmentRead])
+def api_list_fraud_risk_assessments(
+    lead_id: UUID | None = None,
+    review_status: str | None = None,
+    risk_band: str | None = None,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+) -> list[DocumentFraudRiskAssessmentRead]:
+    statement = select(DocumentFraudRiskAssessment).order_by(
+        DocumentFraudRiskAssessment.review_status,
+        DocumentFraudRiskAssessment.high_indicator_count.desc(),
+        DocumentFraudRiskAssessment.created_at.desc(),
+    )
+    if lead_id:
+        statement = statement.where(DocumentFraudRiskAssessment.lead_id == lead_id)
+    if review_status:
+        statement = statement.where(DocumentFraudRiskAssessment.review_status == review_status)
+    if risk_band:
+        statement = statement.where(DocumentFraudRiskAssessment.risk_band == risk_band)
+    rows = session.exec(statement.limit(max(1, min(limit, 500)))).all()
+    return [DocumentFraudRiskAssessmentRead(**fraud_risk_assessment_read(row)) for row in rows]
+
+
+@router.get("/fraud-risk-assessments/{assessment_id}", response_model=DocumentFraudRiskAssessmentRead)
+def api_get_fraud_risk_assessment(
+    assessment_id: UUID,
+    session: Session = Depends(get_session),
+) -> DocumentFraudRiskAssessmentRead:
+    assessment = session.get(DocumentFraudRiskAssessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(status_code=404, detail="Document integrity-risk assessment not found")
+    return DocumentFraudRiskAssessmentRead(**fraud_risk_assessment_read(assessment))
+
+
+@router.post("/fraud-risk-assessments/{assessment_id}/review", response_model=DocumentFraudRiskAssessmentRead)
+def api_review_fraud_risk_assessment(
+    assessment_id: UUID,
+    payload: DocumentFraudRiskAssessmentReviewRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> DocumentFraudRiskAssessmentRead:
+    try:
+        assessment = review_document_fraud_risk_assessment(
+            session,
+            assessment_id,
+            decision=payload.decision,
+            notes=payload.notes,
+            actor=_actor(request),
+        )
+        return DocumentFraudRiskAssessmentRead(**fraud_risk_assessment_read(assessment))
     except ValueError as exc:
         session.rollback()
         raise _error(exc) from exc

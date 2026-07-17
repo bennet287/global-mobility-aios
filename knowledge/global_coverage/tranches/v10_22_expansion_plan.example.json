@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "name": "Example coverage expansion research plan",
+  "generated_at": "2026-07-16T00:00:00Z",
+  "jurisdictions": [
+    {
+      "alpha2_code": "FR",
+      "name": "France",
+      "region": "Europe",
+      "operator_status": "needs_evidence_research",
+      "missing_gates": [
+        "immigration_rule_assessment",
+        "reviewed_primary_authority",
+        "reviewed_primary_source",
+        "fresh_monitor",
+        "verified_rule"
+      ],
+      "evidence": {
+        "relationship": "",
+        "relationship_evidence_url": "",
+        "relationship_evidence_title": "",
+        "relationship_rationale": "",
+        "authority_name": "",
+        "authority_website_url": "",
+        "official_source_name": "",
+        "official_source_url": "",
+        "source_domain": "visa",
+        "coverage_domains": [
+          "visa"
+        ],
+        "evidence_notes": ""
+      }
+    }
+  ],
+  "safety": {
+    "creates_evidence_batches": false,
+    "infers_immigration_relationships": false,
+    "certifies_sources": false,
+    "queues_monitors": false,
+    "publishes_rules": false,
+    "creates_coverage_claim": false
+  }
+}

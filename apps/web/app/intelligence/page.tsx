@@ -620,7 +620,7 @@ export default function IntelligencePage() {
                 </div>
                 <div className="graph-integrity-row">
                   <InlineNotice label="Human-published only" detail={knowledgeGraph.human_published_only ? "Graph mutation is restricted to reviewed and published verified rules." : "Graph source restriction failed."} tone={knowledgeGraph.human_published_only ? "good" : "bad"} />
-                  <InlineNotice label="Provenance integrity" detail={knowledgeGraph.provenance_complete ? "Every visible edge links a rule, source snapshot, and regulatory change." : "One or more edges have incomplete provenance."} tone={knowledgeGraph.provenance_complete ? "good" : "bad"} />
+                  <InlineNotice label="Provenance integrity" detail={knowledgeGraph.provenance_complete ? "Every visible edge links a rule, source snapshot, and reviewed provenance record." : "One or more edges have incomplete provenance."} tone={knowledgeGraph.provenance_complete ? "good" : "bad"} />
                 </div>
                 <div className="knowledge-edge-list">
                   {knowledgeGraph.edges.length ? knowledgeGraph.edges.map((edge) => {
@@ -635,12 +635,12 @@ export default function IntelligencePage() {
                         </div>
                         <div className="knowledge-edge-provenance">
                           <span>Rule {edge.verified_rule_id.slice(0, 8)}</span>
-                          <span>Change {edge.regulatory_change_id.slice(0, 8)}</span>
+                          <span>{edge.regulatory_change_id ? `Change ${edge.regulatory_change_id.slice(0, 8)}` : `Initial assertion ${edge.initial_rule_assertion_id?.slice(0, 8) || "missing"}`}</span>
                           <span>Snapshot {edge.source_snapshot_id.slice(0, 8)}</span>
                         </div>
                       </article>
                     );
-                  }) : <EmptyState title="No published-rule graph" detail="Publish a human-reviewed regulatory change or synchronize existing verified rules." />}
+                  }) : <EmptyState title="No published-rule graph" detail="Publish a human-reviewed regulatory change or initial baseline assertion, or synchronize existing verified rules." />}
                 </div>
               </>
             ) : <EmptyState title="Knowledge graph unavailable" detail="Refresh after the API and migration are ready." />}

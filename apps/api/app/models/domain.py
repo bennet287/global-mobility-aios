@@ -280,6 +280,59 @@ class JurisdictionSourceCertification(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class JurisdictionCoverageEvidenceBatch(SQLModel, table=True):
+    __tablename__ = "jurisdiction_coverage_evidence_batches"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    registry_release_id: UUID = Field(index=True, foreign_key="jurisdiction_registry_releases.id")
+    batch_key: str = Field(index=True, unique=True)
+    name: str = Field(index=True)
+    notes: str
+    item_count: int = 0
+    immigration_assessment_count: int = 0
+    source_certification_count: int = 0
+    source_onboarding_count: int = 0
+    status: str = Field(default="submitted_for_review", index=True)
+    submitted_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class JurisdictionCoverageEvidenceBatchItem(SQLModel, table=True):
+    __tablename__ = "jurisdiction_coverage_evidence_batch_items"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    batch_id: UUID = Field(index=True, foreign_key="jurisdiction_coverage_evidence_batches.id")
+    row_number: int = Field(index=True)
+    jurisdiction_id: UUID = Field(index=True, foreign_key="jurisdictions.id")
+    registry_entry_id: UUID = Field(index=True, foreign_key="jurisdiction_registry_entries.id")
+    alpha2_code: str = Field(index=True)
+    immigration_assessment_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="jurisdiction_immigration_assessments.id",
+    )
+    source_certification_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="jurisdiction_source_certifications.id",
+    )
+    regulatory_authority_id: Optional[UUID] = Field(
+        default=None,
+        foreign_key="regulatory_authorities.id",
+    )
+    official_source_id: Optional[UUID] = Field(
+        default=None,
+        foreign_key="official_sources.id",
+    )
+    source_monitor_id: Optional[UUID] = Field(
+        default=None,
+        foreign_key="source_monitors.id",
+    )
+    payload_sha256: str = Field(index=True)
+    payload_json: str
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
 class RegulatoryAuthority(SQLModel, table=True):
     __tablename__ = "regulatory_authorities"
 
@@ -367,6 +420,40 @@ class SourceCheckRun(SQLModel, table=True):
     corrected_statement: Optional[str] = None
     created_at: datetime = Field(default_factory=now_utc, index=True)
 
+
+class InitialRuleAssertion(SQLModel, table=True):
+    __tablename__ = "initial_rule_assertions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assertion_sha256: str = Field(index=True, unique=True)
+    coverage_batch_item_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="jurisdiction_coverage_evidence_batch_items.id",
+    )
+    jurisdiction_id: UUID = Field(index=True, foreign_key="jurisdictions.id")
+    official_source_id: UUID = Field(index=True, foreign_key="official_sources.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    domain: str = Field(default="visa", index=True)
+    title: str
+    rule_key: str = Field(index=True)
+    statement: str
+    rationale: str
+    evidence_excerpt: str
+    confidence: float = 0.0
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+    status: str = Field(default="pending_review", index=True)
+    proposed_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    published_rule_id: Optional[UUID] = Field(default=None, index=True)
+    published_by: Optional[str] = Field(default=None, index=True)
+    published_at: Optional[datetime] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
 class VerifiedRule(SQLModel, table=True):
     __tablename__ = "verified_rules"
 
@@ -378,6 +465,7 @@ class VerifiedRule(SQLModel, table=True):
     official_source_id: Optional[UUID] = Field(default=None, index=True, foreign_key="official_sources.id")
     jurisdiction_id: Optional[UUID] = Field(default=None, index=True, foreign_key="jurisdictions.id")
     regulatory_change_id: Optional[UUID] = Field(default=None, index=True, foreign_key="regulatory_changes.id")
+    initial_rule_assertion_id: Optional[UUID] = Field(default=None, index=True, foreign_key="initial_rule_assertions.id")
     source_snapshot_id: Optional[UUID] = Field(default=None, index=True, foreign_key="source_snapshots.id")
     supersedes_rule_id: Optional[UUID] = Field(default=None, index=True, foreign_key="verified_rules.id")
     confidence: float = 0.0
@@ -469,12 +557,51 @@ class RegulatoryKnowledgeEdge(SQLModel, table=True):
     relation_type: str = Field(index=True)
     verified_rule_id: UUID = Field(index=True, foreign_key="verified_rules.id")
     source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
-    regulatory_change_id: UUID = Field(index=True, foreign_key="regulatory_changes.id")
+    regulatory_change_id: Optional[UUID] = Field(default=None, index=True, foreign_key="regulatory_changes.id")
+    initial_rule_assertion_id: Optional[UUID] = Field(default=None, index=True, foreign_key="initial_rule_assertions.id")
     projection_version: str = Field(default="regulatory-graph-v1", index=True)
     active: bool = Field(default=True, index=True)
     effective_from: Optional[datetime] = None
     effective_to: Optional[datetime] = None
     retired_at: Optional[datetime] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class PathwayRegulatoryImpact(SQLModel, table=True):
+    __tablename__ = "pathway_regulatory_impacts"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    impact_key: str = Field(index=True, unique=True)
+    pathway_id: UUID = Field(index=True, foreign_key="mobility_pathways.id")
+    pathway_version_id: UUID = Field(index=True, foreign_key="mobility_pathway_versions.id")
+    verified_rule_id: UUID = Field(index=True, foreign_key="verified_rules.id")
+    superseded_rule_id: Optional[UUID] = Field(default=None, index=True, foreign_key="verified_rules.id")
+    regulatory_change_id: UUID = Field(index=True, foreign_key="regulatory_changes.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    graph_rule_node_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="regulatory_knowledge_nodes.id",
+    )
+    graph_projection_version: str = Field(default="regulatory-graph-v1", index=True)
+    impact_type: str = Field(index=True)
+    status: str = Field(default="pending_review", index=True)
+    materiality: str = Field(default="material", index=True)
+    match_basis_json: str = "[]"
+    impact_context_json: str = "{}"
+    client_assessment_count_at_detection: int = 0
+    timeline_count_at_detection: int = 0
+    human_review_required: bool = True
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    replacement_pathway_version_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="mobility_pathway_versions.id",
+    )
+    event_at: datetime = Field(index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
 
@@ -664,6 +791,137 @@ class DocumentConsistencyAssessment(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
 
+class DocumentExpiryReminderTask(SQLModel, table=True):
+    __tablename__ = "document_expiry_reminder_tasks"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    reminder_key: str = Field(index=True, unique=True)
+    document_id: UUID = Field(index=True, foreign_key="documents.id")
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    document_type: str = Field(index=True)
+    filename: str
+    expiry_date: datetime = Field(index=True)
+    reminder_type: str = Field(index=True)
+    threshold_days: int
+    due_at: datetime = Field(index=True)
+    status: str = Field(default="pending", index=True)
+    priority: str = Field(default="normal", index=True)
+    source: str = Field(default="document_record_expiry_date", index=True)
+    human_review_required: bool = True
+    external_delivery_status: str = Field(default="not_sent", index=True)
+    generated_by: str = "document-expiry-monitor"
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    superseded_by_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="document_expiry_reminder_tasks.id",
+    )
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class DocumentRequirementAssessment(SQLModel, table=True):
+    __tablename__ = "document_requirement_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assessment_key: str = Field(index=True, unique=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    pathway_id: Optional[UUID] = Field(default=None, index=True, foreign_key="mobility_pathways.id")
+    pathway_version_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="mobility_pathway_versions.id",
+    )
+    eligibility_assessment_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="eligibility_assessments.id",
+    )
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    profile_version: Optional[int] = Field(default=None, index=True)
+    requirement_source: str = Field(index=True)
+    result_status: str = Field(default="insufficient_context", index=True)
+    review_status: str = Field(default="pending", index=True)
+    required_count: int = 0
+    satisfied_count: int = 0
+    missing_count: int = 0
+    inconsistency_count: int = 0
+    requirements_json: str
+    findings_json: str
+    source_snapshot_json: str
+    document_snapshot_json: str
+    summary: str
+    human_review_required: bool = True
+    generated_by: str = "system"
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class DocumentFraudRiskAssessment(SQLModel, table=True):
+    __tablename__ = "document_fraud_risk_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assessment_key: str = Field(index=True, unique=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    profile_version: Optional[int] = Field(default=None, index=True)
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    result_status: str = Field(default="no_indicators", index=True)
+    review_status: str = Field(default="not_required", index=True)
+    risk_band: str = Field(default="none", index=True)
+    indicator_count: int = 0
+    high_indicator_count: int = 0
+    warning_indicator_count: int = 0
+    indicators_json: str
+    source_snapshot_json: str
+    summary: str
+    human_review_required: bool = False
+    automated_fraud_determination: bool = False
+    adverse_action_taken: bool = False
+    generated_by: str = "system"
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class DocumentAccessGrant(SQLModel, table=True):
+    __tablename__ = "document_access_grants"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    token_hash: str = Field(index=True, unique=True)
+    document_id: UUID = Field(index=True, foreign_key="documents.id")
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    issued_to: str = Field(index=True)
+    issued_role: str = Field(index=True)
+    purpose: str = Field(index=True)
+    status: str = Field(default="active", index=True)
+    expires_at: datetime = Field(index=True)
+    max_uses: int = 1
+    use_count: int = 0
+    document_file_hash: str
+    document_file_size_bytes: int
+    storage_provider: str = Field(index=True)
+    storage_key_hash: str
+    mime_type: Optional[str] = None
+    filename: str
+    created_by: str = Field(index=True)
+    last_accessed_by: Optional[str] = Field(default=None, index=True)
+    last_accessed_at: Optional[datetime] = Field(default=None, index=True)
+    revoked_by: Optional[str] = Field(default=None, index=True)
+    revoked_at: Optional[datetime] = Field(default=None, index=True)
+    revocation_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class ApplicationRecord(SQLModel, table=True):
     __tablename__ = "applications"
 
@@ -840,6 +1098,108 @@ class PathwayComparisonAssessment(SQLModel, table=True):
     summary: Optional[str] = None
     human_review_required: bool = True
     generated_by: str = "system"
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class ReassessmentAcceptance(SQLModel, table=True):
+    __tablename__ = "reassessment_acceptances"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    acceptance_key: str = Field(index=True, unique=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    baseline_assessment_id: UUID = Field(index=True, foreign_key="pathway_comparison_assessments.id")
+    accepted_profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    accepted_profile_version: Optional[int] = Field(default=None, index=True)
+    regulatory_impact_ids_json: str = "[]"
+    accepted_pathway_version_ids_json: str = "[]"
+    explicit_user_acceptance: bool = True
+    user_attestation: str
+    notes: str
+    status: str = Field(default="accepted", index=True)
+    recorded_by: str = Field(index=True)
+    accepted_at: datetime = Field(default_factory=now_utc, index=True)
+    consumed_at: Optional[datetime] = Field(default=None, index=True)
+    generated_assessment_id: Optional[UUID] = Field(default=None, index=True, foreign_key="pathway_comparison_assessments.id")
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class CountryRankingAssessment(SQLModel, table=True):
+    __tablename__ = "country_ranking_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    ranking_key: str = Field(index=True, unique=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    profile_version: Optional[int] = Field(default=None, index=True)
+    status: str = Field(default="reviewed_catalogue_only", index=True)
+    input_sha256: str = Field(index=True)
+    catalogue_version_ids_json: str = "[]"
+    scope_json: str = "{}"
+    ranking_json: str = "[]"
+    explicit_user_acceptance: bool = True
+    user_attestation: str
+    notes: str
+    global_coverage_claim_ready: bool = Field(default=False, index=True)
+    human_review_required: bool = True
+    generated_by: str = Field(index=True)
+    summary: str
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class MobilityScenario(SQLModel, table=True):
+    __tablename__ = "mobility_scenarios"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    scenario_key: str = Field(index=True, unique=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    profile_version: Optional[int] = Field(default=None, index=True)
+    baseline_timeline_id: Optional[UUID] = Field(default=None, index=True, foreign_key="mobility_timelines.id")
+    scenario_version: int = Field(default=1, index=True)
+    supersedes_scenario_id: Optional[UUID] = Field(default=None, index=True, foreign_key="mobility_scenarios.id")
+    title: str
+    status: str = Field(default="human_confirmed", index=True)
+    start_date: datetime = Field(index=True)
+    input_sha256: str = Field(index=True)
+    countries_json: str = "[]"
+    pathway_version_ids_json: str = "[]"
+    verified_rule_ids_json: str = "[]"
+    regulatory_impact_ids_json: str = "[]"
+    explicit_user_acceptance: bool = True
+    user_attestation: str
+    review_notes: str
+    human_confirmation_required: bool = True
+    original_scenario_preserved: bool = True
+    global_coverage_claim_ready: bool = Field(default=False, index=True)
+    warning: str
+    reviewed_by: str = Field(index=True)
+    reviewed_at: datetime = Field(default_factory=now_utc, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class MobilityScenarioStage(SQLModel, table=True):
+    __tablename__ = "mobility_scenario_stages"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    scenario_id: UUID = Field(index=True, foreign_key="mobility_scenarios.id")
+    stage_order: int = Field(index=True)
+    stage_type: str = Field(index=True)
+    title: str
+    country: str = Field(index=True)
+    domain: str = Field(index=True)
+    pathway_id: UUID = Field(index=True, foreign_key="mobility_pathways.id")
+    pathway_version_id: UUID = Field(index=True, foreign_key="mobility_pathway_versions.id")
+    planned_start: datetime = Field(index=True)
+    planned_end: datetime = Field(index=True)
+    duration_months: int
+    gap_months_before: int = 0
+    dependencies_json: str = "[]"
+    verified_rule_ids_json: str = "[]"
+    source_snapshot_ids_json: str = "[]"
+    timing_basis_json: str = "{}"
+    uncertainty_json: str = "{}"
+    human_confirmation_required: bool = True
     created_at: datetime = Field(default_factory=now_utc, index=True)
 
 

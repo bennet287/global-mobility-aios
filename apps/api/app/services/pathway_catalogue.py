@@ -15,6 +15,7 @@ from app.models.domain import (
     MobilityPathwayVersion,
     OfficialSource,
     PathwayComparisonAssessment,
+    Profile,
     SourceSnapshot,
     VerifiedRule,
     now_utc,
@@ -111,6 +112,23 @@ def pathway_read(
         created_at=pathway.created_at,
         updated_at=pathway.updated_at,
         current_version=pathway_version_read(version) if version else None,
+    )
+
+
+def pathway_read_with_version(pathway: MobilityPathway, version: MobilityPathwayVersion) -> PathwayRead:
+    return PathwayRead(
+        id=pathway.id,
+        pathway_key=pathway.pathway_key,
+        name=pathway.name,
+        country=pathway.country,
+        domain=pathway.domain,
+        jurisdiction_id=pathway.jurisdiction_id,
+        description=pathway.description,
+        catalogue_status=pathway.catalogue_status,
+        created_by=pathway.created_by,
+        created_at=pathway.created_at,
+        updated_at=pathway.updated_at,
+        current_version=pathway_version_read(version),
     )
 
 
@@ -387,11 +405,19 @@ def _intent_domain(lead: Lead, facts: dict[str, Any]) -> str:
     return {"study_abroad": "study", "overseas_job": "work"}.get(value, value)
 
 
-def match_pathways_for_lead(session: Session, lead_id: UUID, *, limit: int = 10) -> dict[str, Any]:
+def match_pathways_for_lead(
+    session: Session,
+    lead_id: UUID,
+    *,
+    limit: int = 10,
+    profile_override: Profile | None = None,
+    pathway_version_ids: list[UUID] | None = None,
+    country_scope: str = "target",
+) -> dict[str, Any]:
     lead = session.get(Lead, lead_id)
     if lead is None:
         raise ValueError("Lead not found")
-    profile = current_mobility_profile(session, lead_id)
+    profile = profile_override or current_mobility_profile(session, lead_id)
     facts = profile_facts(profile)
     consent = profile.consent_status if profile else "not_recorded"
     if consent == "withdrawn":
@@ -405,27 +431,59 @@ def match_pathways_for_lead(session: Session, lead_id: UUID, *, limit: int = 10)
         }
 
     country = _normal(facts.get("target_country") or lead.target_country)
+    if country_scope not in {"target", "global"}:
+        raise ValueError("Country scope must be target or global")
     domain = _intent_domain(lead, facts)
     documents = list(session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all())
     document_types = {_normal(document.document_type) for document in documents}
-    candidates = list(session.exec(
-        select(MobilityPathway).where(
-            MobilityPathway.catalogue_status == "active",
-            MobilityPathway.country == country,
-        )
-    ).all()) if country else []
+    candidate_pairs: list[tuple[MobilityPathway, MobilityPathwayVersion]] = []
+    if pathway_version_ids is not None:
+        seen: set[UUID] = set()
+        for version_id in pathway_version_ids:
+            if version_id in seen:
+                continue
+            seen.add(version_id)
+            version = session.get(MobilityPathwayVersion, version_id)
+            pathway = session.get(MobilityPathway, version.pathway_id) if version else None
+            if version is None or pathway is None:
+                raise ValueError("Accepted pathway version provenance is incomplete")
+            if version.lifecycle_status not in {"published", "superseded", "retired"}:
+                raise ValueError("Accepted pathway versions must have completed human-reviewed publication")
+            candidate_pairs.append((pathway, version))
+    elif country_scope == "global":
+        candidates = list(session.exec(
+            select(MobilityPathway).where(MobilityPathway.catalogue_status == "active")
+        ).all())
+        for pathway in candidates:
+            version = current_pathway_version(session, pathway.id, published_only=True)
+            if version is not None:
+                candidate_pairs.append((pathway, version))
+    elif country:
+        candidates = list(session.exec(
+            select(MobilityPathway).where(
+                MobilityPathway.catalogue_status == "active",
+                MobilityPathway.country == country,
+            )
+        ).all())
+        for pathway in candidates:
+            version = current_pathway_version(session, pathway.id, published_only=True)
+            if version is not None:
+                candidate_pairs.append((pathway, version))
     now = now_utc()
     matches: list[dict[str, Any]] = []
-    for pathway in candidates:
-        version = current_pathway_version(session, pathway.id, published_only=True)
-        if version is None:
+    for pathway, version in candidate_pairs:
+        if country_scope == "target" and country and pathway.country != country:
             continue
         if version.effective_from and version.effective_from > now:
             continue
         if version.effective_to and version.effective_to < now:
             continue
         criteria = _load(version.eligibility_criteria_json, {})
-        reasons = [f"Target country matches {pathway.country.title()}"]
+        reasons = [
+            f"Target country matches {pathway.country.title()}"
+            if country_scope == "target"
+            else f"Human-published pathway is available in {pathway.country.title()}"
+        ]
         missing: list[str] = []
         score = 0.35
         if domain == pathway.domain or pathway.domain == "visa":
@@ -492,7 +550,7 @@ def match_pathways_for_lead(session: Session, lead_id: UUID, *, limit: int = 10)
 
         score = round(min(score, 1.0), 2)
         matches.append({
-            "pathway": pathway_read(session, pathway, published_only=True),
+            "pathway": pathway_read_with_version(pathway, version),
             "match_score": score,
             "confidence": round(min(0.55 + score * 0.4, 0.95), 2),
             "reasons": reasons,
@@ -500,14 +558,19 @@ def match_pathways_for_lead(session: Session, lead_id: UUID, *, limit: int = 10)
             "verified_rule_ids": [UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])],
         })
     matches.sort(key=lambda item: item["match_score"], reverse=True)
-    selected = matches[: max(1, min(limit, 50))]
+    maximum = 1000 if country_scope == "global" else 50
+    selected = matches[: max(1, min(limit, maximum))]
     return {
         "lead_id": lead_id,
         "profile_id": profile.id if profile else None,
         "profile_version": profile.profile_version if profile else None,
         "consent_status": consent,
         "matches": selected,
-        "summary": f"Matched {len(selected)} published, evidence-backed pathways for {country.title() if country else 'the selected profile'}.",
+        "summary": (
+            f"Matched {len(selected)} published, evidence-backed pathways across the reviewed catalogue."
+            if country_scope == "global"
+            else f"Matched {len(selected)} published, evidence-backed pathways for {country.title() if country else 'the selected profile'}."
+        ),
     }
 
 
@@ -644,11 +707,14 @@ def generate_pathway_comparison(
     *,
     actor: str,
     limit: int = 5,
+    profile_override: Profile | None = None,
+    pathway_version_ids: list[UUID] | None = None,
+    reassessment_acceptance_id: UUID | None = None,
 ) -> PathwayComparisonRead:
     lead = session.get(Lead, lead_id)
     if lead is None:
         raise ValueError("Lead not found")
-    profile = current_mobility_profile(session, lead_id)
+    profile = profile_override or current_mobility_profile(session, lead_id)
     consent = profile.consent_status if profile else "not_recorded"
     generated_at = now_utc()
     if consent == "withdrawn":
@@ -673,7 +739,13 @@ def generate_pathway_comparison(
             generated_at=generated_at,
         )
 
-    match_result = match_pathways_for_lead(session, lead_id, limit=limit)
+    match_result = match_pathways_for_lead(
+        session,
+        lead_id,
+        limit=limit,
+        profile_override=profile,
+        pathway_version_ids=pathway_version_ids,
+    )
     items = [_comparison_item(session, match) for match in match_result.get("matches", [])]
     primary = items[0] if items else None
     alternatives = items[1:]
@@ -701,6 +773,7 @@ def generate_pathway_comparison(
         "consent_status": consent,
         "primary": primary.model_dump(mode="json") if primary else None,
         "alternatives": [item.model_dump(mode="json") for item in alternatives],
+        "reassessment_acceptance_id": str(reassessment_acceptance_id) if reassessment_acceptance_id else None,
     }
     assessment = PathwayComparisonAssessment(
         lead_id=lead_id,
@@ -734,10 +807,15 @@ def generate_pathway_comparison(
             "primary_pathway_id": str(primary.pathway.id) if primary else None,
             "alternative_count": len(alternatives),
             "missing_evidence_count": len(missing),
+            "reassessment_acceptance_id": str(reassessment_acceptance_id) if reassessment_acceptance_id else None,
         },
-        reason="Generated deterministic pathway cost, risk, alternatives, and evidence comparison",
+        reason=(
+            "Generated explicitly accepted reassessment from pinned profile and regulatory versions"
+            if reassessment_acceptance_id
+            else "Generated deterministic pathway cost, risk, alternatives, and evidence comparison"
+        ),
         actor=actor,
-        source="pathway_comparison_v8_2",
+        source="reassessment_acceptance_v10_12" if reassessment_acceptance_id else "pathway_comparison_v8_2",
     )
     session.commit()
     session.refresh(assessment)

@@ -22,6 +22,7 @@ from app.routers import (
     document_engine,
     document_ocr,
     document_intelligence,
+    document_access,
     detail_views,
     operations,
     official_sources,
@@ -113,6 +114,7 @@ app.include_router(detail_views.router, tags=["lead-detail"])
 app.include_router(document_engine.router, tags=["document-engine"])
 app.include_router(document_ocr.router)
 app.include_router(document_intelligence.router)
+app.include_router(document_access.router)
 
 app.include_router(truth_resolution.router)
 

@@ -1,0 +1,53 @@
+{
+  "pack_version": "v10.21.2",
+  "title": "Canada supplemental visitor-visa source",
+  "verified_at": "2026-07-15",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "supersedes_primary_certification": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack adds a domain-specific supplemental official source. It preserves Canada's approved primary IRCC certification and creates a new pending supplemental certification only."
+  },
+  "batch": {
+    "name": "v10.21.2 Canada supplemental visitor-visa source",
+    "notes": "Adds the official IRCC visitor-visa application page as a supplemental visa source because the broad canada.ca IRCC landing page repeatedly timed out from the monitored Docker environment. The existing approved primary IRCC certification remains unchanged. Independent review, baseline capture, assertion review, and publication are still required.",
+    "items": [
+      {
+        "alpha2_code": "CA",
+        "source_onboarding": {
+          "authority_name": "Immigration, Refugees and Citizenship Canada",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+          "authority_domains": [
+            "visa",
+            "work",
+            "study",
+            "settlement",
+            "family",
+            "citizenship"
+          ],
+          "source_name": "IRCC — Application for a Visitor Visa",
+          "source_url": "https://ircc.canada.ca/english/information/applications/visa.asp",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "ircc.canada.ca"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "supplemental_visa",
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Verified from the official Immigration, Refugees and Citizenship Canada host. The page is titled Application for a Visitor Visa (Temporary Resident Visa - TRV), identifies Government of Canada and IRCC as creator, and provides visa application materials. This is a supplemental visa-only source and must not supersede Canada's approved primary IRCC certification."
+        }
+      }
+    ]
+  }
+}

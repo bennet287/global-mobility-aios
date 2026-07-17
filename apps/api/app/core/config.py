@@ -23,6 +23,18 @@ class Settings(BaseSettings):
     document_storage_backend: str = "local"
     document_local_storage_dir: str = "storage/documents"
     document_upload_max_mb: int = 25
+    document_access_token_secret: str = ""
+    document_access_default_ttl_seconds: int = 300
+    document_access_max_ttl_seconds: int = 900
+    document_access_default_max_uses: int = 1
+    document_access_max_uses: int = 5
+    document_storage_production_strict: bool = False
+    document_storage_allow_local_in_production: bool = False
+    minio_auto_create_bucket: bool = True
+    minio_server_side_encryption: bool = False
+    document_storage_retention_days: int = 0
+    document_storage_backup_strategy: str = ""
+    document_storage_recovery_tested_at: str = ""
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
 
@@ -49,6 +61,8 @@ class Settings(BaseSettings):
     source_monitor_max_bytes: int = 5_000_000
     source_monitor_allow_http: bool = False
     regulatory_model_classification_enabled: bool = False
+    coverage_tranche_assistant_enabled: bool = False
+    coverage_tranche_assistant_max_items: int = 25
 
     def parsed_cors_origins(self) -> list[str]:
         return [

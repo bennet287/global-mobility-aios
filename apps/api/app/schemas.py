@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from app.models.domain import (
     AgentRunStatus,
@@ -221,8 +221,8 @@ class DocumentRead(BaseModel):
     lead_id: Optional[UUID]
     document_type: str
     filename: str
-    storage_key: Optional[str]
     storage_provider: Optional[str] = None
+    storage_reference_present: bool = False
     file_hash: Optional[str] = None
     mime_type: Optional[str] = None
     file_size_bytes: Optional[int] = None
@@ -231,6 +231,8 @@ class DocumentRead(BaseModel):
     verified_by: Optional[str] = None
     verified_at: Optional[datetime] = None
     expiry_date: Optional[datetime] = None
+    signed_access_supported: bool = False
+    storage_key_exposed: bool = False
 
 class HumanReviewRead(BaseModel):
     id: UUID
@@ -617,6 +619,308 @@ class DocumentConsistencyAssessmentRead(BaseModel):
     updated_at: datetime
 
 
+class DocumentExpiryScanRequest(BaseModel):
+    lead_id: Optional[UUID] = None
+
+
+class DocumentExpiryScanResult(BaseModel):
+    as_of: datetime
+    lead_id: Optional[UUID] = None
+    documents_scanned: int
+    created: int
+    existing: int
+    superseded: int
+    outside_window: int
+    reminder_ids: List[str] = Field(default_factory=list)
+    external_messages_sent: int = 0
+
+
+class DocumentExpiryReminderReviewRequest(BaseModel):
+    decision: Literal["acknowledged", "dismissed", "resolved"]
+    notes: str = Field(min_length=3, max_length=2000)
+
+
+class DocumentExpiryReminderRead(BaseModel):
+    id: UUID
+    reminder_key: str
+    document_id: UUID
+    lead_id: Optional[UUID] = None
+    document_type: str
+    filename: str
+    expiry_date: datetime
+    reminder_type: str
+    threshold_days: int
+    due_at: datetime
+    status: str
+    priority: str
+    source: str
+    human_review_required: bool
+    external_delivery_status: str
+    external_message_sent: bool = False
+    generated_by: str
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    review_notes: Optional[str] = None
+    superseded_by_id: Optional[UUID] = None
+    days_until_expiry: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class DocumentRequirementAssessmentGenerateRequest(BaseModel):
+    lead_id: UUID
+    application_id: Optional[UUID] = None
+    pathway_version_id: Optional[UUID] = None
+
+
+class DocumentRequirementAssessmentReviewRequest(BaseModel):
+    decision: Literal["approved", "rejected"]
+    notes: str = Field(min_length=3, max_length=2000)
+
+
+class DocumentRequirementScanRequest(BaseModel):
+    lead_id: Optional[UUID] = None
+
+
+class DocumentRequirementScanResult(BaseModel):
+    lead_id: Optional[UUID] = None
+    leads_scanned: int
+    created: int
+    existing: int
+    skipped: int
+    assessment_ids: List[str] = Field(default_factory=list)
+    documents_created: int = 0
+    external_messages_sent: int = 0
+
+
+class DocumentRequirementFinding(BaseModel):
+    finding_key: str
+    finding_type: Literal["requirement_coverage", "cross_document_inconsistency"]
+    requirement_key: str
+    requirement_label: str
+    expected_document_types: List[str] = Field(default_factory=list)
+    optional: bool = False
+    outcome: Literal[
+        "satisfied",
+        "missing",
+        "optional_missing",
+        "rejected",
+        "expired",
+        "present_unverified",
+        "fact_inconsistency",
+        "duplicate_conflict",
+    ]
+    severity: Literal["info", "warning", "high"]
+    document_ids: List[UUID] = Field(default_factory=list)
+    document_names: List[str] = Field(default_factory=list)
+    explanation: str
+    evidence: dict[str, Any] = Field(default_factory=dict)
+
+
+class DocumentRequirementAssessmentRead(BaseModel):
+    id: UUID
+    assessment_key: str
+    lead_id: UUID
+    application_id: Optional[UUID] = None
+    pathway_id: Optional[UUID] = None
+    pathway_version_id: Optional[UUID] = None
+    eligibility_assessment_id: Optional[UUID] = None
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    requirement_source: str
+    result_status: str
+    review_status: str
+    required_count: int
+    satisfied_count: int
+    missing_count: int
+    inconsistency_count: int
+    requirements: List[dict[str, Any]] = Field(default_factory=list)
+    findings: List[DocumentRequirementFinding] = Field(default_factory=list)
+    source_snapshot: dict[str, Any] = Field(default_factory=dict)
+    document_snapshot: List[dict[str, Any]] = Field(default_factory=list)
+    summary: str
+    human_review_required: bool
+    generated_by: str
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    review_notes: Optional[str] = None
+    source_records_unchanged: bool = True
+    documents_created: int = 0
+    eligibility_changed: bool = False
+    created_at: datetime
+    updated_at: datetime
+
+
+class DocumentFraudRiskAssessmentGenerateRequest(BaseModel):
+    lead_id: UUID
+
+
+class DocumentFraudRiskAssessmentReviewRequest(BaseModel):
+    decision: Literal["cleared", "specialist_review_required", "dismissed"]
+    notes: str = Field(min_length=3, max_length=2000)
+
+
+class DocumentFraudRiskScanRequest(BaseModel):
+    lead_id: Optional[UUID] = None
+
+
+class DocumentFraudRiskScanResult(BaseModel):
+    lead_id: Optional[UUID] = None
+    leads_scanned: int
+    created: int
+    existing: int
+    skipped: int
+    assessment_ids: List[str] = Field(default_factory=list)
+    fraud_determinations: int = 0
+    documents_rejected: int = 0
+    eligibility_changed: bool = False
+    external_actions_triggered: int = 0
+
+
+class DocumentFraudRiskIndicator(BaseModel):
+    indicator_key: str
+    indicator_type: Literal[
+        "exact_file_reuse_across_leads",
+        "same_file_multiple_document_types",
+        "approved_identity_mismatch",
+        "approved_material_fact_mismatch",
+        "conflicting_duplicate_evidence",
+        "approved_cross_document_inconsistency",
+        "rejected_or_invalid_evidence",
+        "extraction_integrity_failure",
+        "approved_identifier_reuse_across_leads",
+    ]
+    severity: Literal["warning", "high"]
+    document_ids: List[UUID] = Field(default_factory=list)
+    document_names: List[str] = Field(default_factory=list)
+    source_record_type: str
+    source_record_ids: List[str] = Field(default_factory=list)
+    explanation: str
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    human_review_required: bool = True
+
+
+class DocumentFraudRiskAssessmentRead(BaseModel):
+    id: UUID
+    assessment_key: str
+    lead_id: UUID
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    application_id: Optional[UUID] = None
+    result_status: str
+    review_status: str
+    risk_band: str
+    indicator_count: int
+    high_indicator_count: int
+    warning_indicator_count: int
+    indicators: List[DocumentFraudRiskIndicator] = Field(default_factory=list)
+    source_snapshot: dict[str, Any] = Field(default_factory=dict)
+    summary: str
+    human_review_required: bool
+    automated_fraud_determination: bool
+    adverse_action_taken: bool
+    generated_by: str
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    review_notes: Optional[str] = None
+    fraud_determined: bool = False
+    documents_rejected: int = 0
+    eligibility_changed: bool = False
+    external_actions_triggered: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class DocumentAccessGrantCreateRequest(BaseModel):
+    lead_id: UUID
+    purpose: Literal[
+        "operator_review",
+        "document_verification",
+        "consistency_review",
+        "application_preparation",
+        "client_request_fulfilment",
+        "legal_compliance_export",
+    ] = "operator_review"
+    ttl_seconds: Optional[int] = Field(default=None, ge=30, le=900)
+    max_uses: Optional[int] = Field(default=None, ge=1, le=5)
+    recipient_username: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    recipient_role: Optional[Literal["admin", "operator", "reviewer", "sales", "read_only"]] = None
+
+
+class DocumentAccessGrantRead(BaseModel):
+    id: UUID
+    document_id: UUID
+    lead_id: UUID
+    issued_to: str
+    issued_role: str
+    purpose: str
+    status: str
+    expires_at: datetime
+    max_uses: int
+    use_count: int
+    remaining_uses: int
+    storage_provider: str
+    filename: str
+    created_by: str
+    last_accessed_by: Optional[str] = None
+    last_accessed_at: Optional[datetime] = None
+    revoked_by: Optional[str] = None
+    revoked_at: Optional[datetime] = None
+    revocation_reason: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    expired: bool
+    token_returned: bool = False
+    storage_key_exposed: bool = False
+
+
+class DocumentAccessGrantIssued(BaseModel):
+    grant: DocumentAccessGrantRead
+    token: str
+    token_type: Literal["gmai_document_access"] = "gmai_document_access"
+    direct_object_url: Optional[str] = None
+    storage_credentials_exposed: bool = False
+    storage_key_exposed: bool = False
+
+
+class DocumentAccessTokenRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=4096)
+
+
+class DocumentAccessGrantRevokeRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=2000)
+
+
+class DocumentAccessExpiryResult(BaseModel):
+    expired: int
+    grant_ids: List[str] = Field(default_factory=list)
+    external_messages_sent: int = 0
+
+
+class DocumentStoragePostureRead(BaseModel):
+    environment: str
+    backend: str
+    strict_mode: bool
+    signed_access_secret_configured: bool
+    signed_access_ttl_seconds: int
+    signed_access_max_ttl_seconds: int
+    minio_tls_enabled: bool
+    minio_default_credentials: bool
+    bucket_auto_create: bool
+    server_side_encryption_enabled: bool
+    retention_days: int
+    backup_strategy_configured: bool
+    recovery_test_recorded: bool
+    local_storage_allowed_in_production: bool
+    failures: List[str] = Field(default_factory=list)
+    ready: bool
+    signed_access_enabled: bool
+    direct_object_urls_enabled: bool
+    storage_credentials_exposed: bool
+    unrestricted_object_keys_exposed: bool
+    allowed_purposes: List[str] = Field(default_factory=list)
+
+
 class EligibilityEvaluateRequest(BaseModel):
     lead_id: UUID
     profile: dict[str, Any] = Field(default_factory=dict)
@@ -863,6 +1167,62 @@ class PathwayRetireRequest(BaseModel):
     reason: str = Field(min_length=3, max_length=2000)
 
 
+class PathwayRegulatoryImpactReviewRequest(BaseModel):
+    decision: Literal[
+        "acknowledged",
+        "no_change_required",
+        "new_version_required",
+        "resolved",
+    ]
+    notes: str = Field(min_length=3, max_length=5000)
+    replacement_pathway_version_id: Optional[UUID] = None
+
+
+class PathwayRegulatoryImpactRead(BaseModel):
+    id: UUID
+    impact_type: str
+    status: str
+    materiality: str
+    event_at: datetime
+    pathway_id: UUID
+    pathway_key: str
+    pathway_name: str
+    pathway_country: str
+    pathway_domain: str
+    pathway_version_id: UUID
+    pathway_version_number: int
+    pathway_version_lifecycle_status: str
+    verified_rule_id: UUID
+    rule_key: str
+    rule_active: bool
+    superseded_rule_id: Optional[UUID] = None
+    regulatory_change_id: UUID
+    change_type: str
+    source_snapshot_id: UUID
+    graph_rule_node_id: Optional[UUID] = None
+    graph_projection_version: str
+    match_basis: List[str] = Field(default_factory=list)
+    impact_context: dict[str, Any] = Field(default_factory=dict)
+    client_assessment_count_at_detection: int
+    timeline_count_at_detection: int
+    client_assessments_unchanged: bool = True
+    human_review_required: bool
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    review_notes: Optional[str] = None
+    replacement_pathway_version_id: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class PathwayRegulatoryImpactList(BaseModel):
+    total_returned: int
+    counts_by_status: dict[str, int] = Field(default_factory=dict)
+    pending_review: int
+    client_assessments_unchanged: bool = True
+    impacts: List[PathwayRegulatoryImpactRead] = Field(default_factory=list)
+
+
 class PathwayVersionRead(BaseModel):
     id: UUID
     pathway_id: UUID
@@ -975,6 +1335,136 @@ class PathwayComparisonRead(BaseModel):
     generated_at: datetime
 
 
+class CountryRankingCreate(BaseModel):
+    explicit_user_acceptance: bool = True
+    user_attestation: str = Field(min_length=10, max_length=2000)
+    notes: str = Field(min_length=3, max_length=4000)
+    limit_countries: int = Field(default=20, ge=1, le=100)
+
+
+class CountryLongTermDependencyRead(BaseModel):
+    stage: Literal["permanent_residence", "citizenship"]
+    status: Literal["recorded", "not_recorded", "not_applicable"]
+    summary: str
+    minimum_years: Optional[float] = None
+    dependencies: List[str] = Field(default_factory=list)
+    pathway_version_id: Optional[UUID] = None
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+    human_reviewed_source: bool = False
+
+
+class CountryRankingUncertaintyRead(BaseModel):
+    level: Literal["low", "medium", "high"]
+    score: float
+    factors: List[str] = Field(default_factory=list)
+    global_coverage_boundary: bool = True
+
+
+class CountryRankingScopeRead(BaseModel):
+    ranking_scope: Literal["complete_global_catalogue", "reviewed_published_catalogue_only"]
+    global_coverage_claim_ready: bool
+    complete_global_ranking_claim_allowed: bool
+    registry_release_version: Optional[str] = None
+    registry_entries: int = 0
+    coverage_required: int = 0
+    coverage_ready: int = 0
+    published_catalogue_countries: int = 0
+    published_pathway_versions: int = 0
+    message: str
+
+
+class CountryRankingItemRead(BaseModel):
+    rank: int
+    country: str
+    ranking_score: float
+    profile_match_score: float
+    confidence: float
+    reviewed_coverage_ready: bool
+    pathway_count: int
+    primary_pathway: PathwayComparisonItem
+    alternative_pathways: List[PathwayComparisonItem] = Field(default_factory=list)
+    tradeoffs: List[str] = Field(default_factory=list)
+    long_term_dependencies: List[CountryLongTermDependencyRead] = Field(default_factory=list)
+    uncertainty: CountryRankingUncertaintyRead
+    explanation: str
+
+
+class CountryRankingRead(BaseModel):
+    assessment_id: Optional[UUID] = None
+    lead_id: UUID
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    status: str
+    consent_status: str
+    scope: CountryRankingScopeRead
+    countries: List[CountryRankingItemRead] = Field(default_factory=list)
+    explicit_user_acceptance: bool = True
+    user_attestation: str
+    notes: str
+    summary: str
+    human_review_required: bool = True
+    generated_by: str
+    generated_at: datetime
+
+
+class ReassessmentRegulatoryChangeRead(BaseModel):
+    impact_id: UUID
+    pathway_id: UUID
+    pathway_name: str
+    affected_pathway_version_id: UUID
+    affected_pathway_version_number: int
+    replacement_pathway_version_id: UUID
+    replacement_pathway_version_number: int
+    verified_rule_id: UUID
+    materiality: str
+    reviewed_by: str
+    reviewed_at: datetime
+    review_notes: str
+
+
+class ReassessmentCandidateRead(BaseModel):
+    lead_id: UUID
+    baseline_assessment_id: UUID
+    baseline_profile_id: Optional[UUID] = None
+    baseline_profile_version: Optional[int] = None
+    current_profile_id: Optional[UUID] = None
+    current_profile_version: Optional[int] = None
+    profile_update_available: bool
+    regulatory_changes: List[ReassessmentRegulatoryChangeRead] = Field(default_factory=list)
+    requires_acceptance: bool
+    pinned_assessment_unchanged: bool = True
+    summary: str
+
+
+class ReassessmentAcceptanceCreate(BaseModel):
+    baseline_assessment_id: UUID
+    accept_profile_version: bool = False
+    regulatory_impact_ids: List[UUID] = Field(default_factory=list)
+    explicit_user_acceptance: bool
+    user_attestation: str = Field(min_length=10, max_length=2000)
+    notes: str = Field(min_length=3, max_length=5000)
+
+
+class ReassessmentAcceptanceRead(BaseModel):
+    id: UUID
+    lead_id: UUID
+    baseline_assessment_id: UUID
+    accepted_profile_id: Optional[UUID] = None
+    accepted_profile_version: Optional[int] = None
+    regulatory_impact_ids: List[UUID] = Field(default_factory=list)
+    accepted_pathway_version_ids: List[UUID] = Field(default_factory=list)
+    explicit_user_acceptance: bool
+    user_attestation: str
+    notes: str
+    status: str
+    recorded_by: str
+    accepted_at: datetime
+    consumed_at: Optional[datetime] = None
+    generated_assessment_id: Optional[UUID] = None
+    created_at: datetime
+    updated_at: datetime
+
+
 class MobilityTimelineGenerateRequest(BaseModel):
     target_date: Optional[datetime] = None
 
@@ -1026,6 +1516,112 @@ class MobilityTimelineRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     milestones: List[MobilityTimelineMilestoneRead] = Field(default_factory=list)
+
+
+class MobilityScenarioStageCreate(BaseModel):
+    stage_type: Literal[
+        "study",
+        "graduate_rights",
+        "work_permit",
+        "skilled_migration",
+        "settlement",
+        "permanent_residence",
+        "citizenship_review",
+    ]
+    pathway_version_id: UUID
+    duration_months: int = Field(ge=1, le=240)
+    gap_months_before: int = Field(default=0, ge=0, le=120)
+    title: Optional[str] = Field(default=None, min_length=3, max_length=250)
+
+
+class MobilityScenarioCreate(BaseModel):
+    lead_id: UUID
+    title: str = Field(min_length=3, max_length=250)
+    start_date: datetime
+    baseline_timeline_id: Optional[UUID] = None
+    stages: List[MobilityScenarioStageCreate] = Field(min_length=2, max_length=20)
+    explicit_user_acceptance: bool
+    user_attestation: str = Field(min_length=10, max_length=2000)
+    review_notes: str = Field(min_length=3, max_length=5000)
+
+
+class MobilityScenarioRecalculateRequest(BaseModel):
+    regulatory_impact_ids: List[UUID] = Field(min_length=1, max_length=50)
+    explicit_user_acceptance: bool
+    user_attestation: str = Field(min_length=10, max_length=2000)
+    review_notes: str = Field(min_length=3, max_length=5000)
+
+
+class MobilityScenarioStageRead(BaseModel):
+    id: UUID
+    scenario_id: UUID
+    stage_order: int
+    stage_type: str
+    title: str
+    country: str
+    domain: str
+    pathway_id: UUID
+    pathway_version_id: UUID
+    planned_start: datetime
+    planned_end: datetime
+    duration_months: int
+    gap_months_before: int
+    dependencies: List[str] = Field(default_factory=list)
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+    source_snapshot_ids: List[UUID] = Field(default_factory=list)
+    timing_basis: dict[str, Any] = Field(default_factory=dict)
+    uncertainty: dict[str, Any] = Field(default_factory=dict)
+    human_confirmation_required: bool
+    created_at: datetime
+
+
+class MobilityScenarioRead(BaseModel):
+    id: UUID
+    lead_id: UUID
+    profile_id: Optional[UUID] = None
+    profile_version: Optional[int] = None
+    baseline_timeline_id: Optional[UUID] = None
+    scenario_version: int
+    supersedes_scenario_id: Optional[UUID] = None
+    title: str
+    status: str
+    start_date: datetime
+    countries: List[str] = Field(default_factory=list)
+    pathway_version_ids: List[UUID] = Field(default_factory=list)
+    verified_rule_ids: List[UUID] = Field(default_factory=list)
+    regulatory_impact_ids: List[UUID] = Field(default_factory=list)
+    explicit_user_acceptance: bool
+    user_attestation: str
+    review_notes: str
+    human_confirmation_required: bool
+    original_scenario_preserved: bool
+    global_coverage_claim_ready: bool
+    warning: str
+    reviewed_by: str
+    reviewed_at: datetime
+    created_at: datetime
+    stages: List[MobilityScenarioStageRead] = Field(default_factory=list)
+
+
+class MobilityScenarioImpactRead(BaseModel):
+    impact_id: UUID
+    pathway_version_id: UUID
+    replacement_pathway_version_id: UUID
+    impact_type: str
+    materiality: str
+    review_notes: Optional[str] = None
+    affected_stage_orders: List[int] = Field(default_factory=list)
+    event_at: datetime
+
+
+class MobilityScenarioRecalculationCandidateRead(BaseModel):
+    scenario_id: UUID
+    scenario_version: int
+    available: bool
+    impacts: List[MobilityScenarioImpactRead] = Field(default_factory=list)
+    message: str
+    original_scenario_preserved: bool = True
+    automatic_recalculation_performed: bool = False
 
 
 class JurisdictionCreate(BaseModel):
@@ -1140,6 +1736,29 @@ class RegulatoryChangePublishRequest(BaseModel):
     supersedes_rule_id: Optional[UUID] = None
 
 
+class InitialRuleAssertionCreateRequest(BaseModel):
+    alpha2_code: str = Field(min_length=2, max_length=2)
+    domain: str = Field(default="visa", min_length=2, max_length=100)
+    title: str = Field(min_length=5, max_length=300)
+    rule_key: str = Field(min_length=2, max_length=200)
+    statement: str = Field(min_length=10, max_length=10000)
+    rationale: str = Field(min_length=10, max_length=5000)
+    evidence_excerpt: str = Field(min_length=10, max_length=5000)
+    confidence: float = Field(default=0.95, ge=0.0, le=1.0)
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+
+
+class InitialRuleAssertionReviewRequest(BaseModel):
+    decision: Literal["approved", "rejected"]
+    notes: str = Field(min_length=3, max_length=5000)
+
+
+class InitialRuleAssertionPublishRequest(BaseModel):
+    attestation: bool
+    publication_notes: str = Field(min_length=3, max_length=5000)
+
+
 class VerifiedRuleRetireRequest(BaseModel):
     reviewer: str = Field(min_length=1)
     reason: str = Field(min_length=1)
@@ -1170,6 +1789,11 @@ class JurisdictionImmigrationAssessmentReview(BaseModel):
 class JurisdictionSourceCertificationProposal(BaseModel):
     regulatory_authority_id: UUID
     official_source_id: UUID
+    certification_scope: str = Field(
+        default="primary_immigration",
+        pattern=r"^(primary_immigration|supplemental_[a-z0-9_]+)$",
+        max_length=100,
+    )
     coverage_domains: List[str] = Field(min_length=1)
     evidence_notes: str = Field(min_length=10, max_length=5000)
 
@@ -1177,3 +1801,82 @@ class JurisdictionSourceCertificationProposal(BaseModel):
 class JurisdictionSourceCertificationReview(BaseModel):
     decision: Literal["approved", "rejected"]
     notes: str = Field(min_length=3, max_length=5000)
+
+
+class JurisdictionSourceOnboardingProposal(BaseModel):
+    authority_name: str = Field(min_length=2, max_length=250)
+    authority_type: str = Field(default="immigration_authority", min_length=2, max_length=100)
+    authority_website_url: Optional[str] = None
+    authority_domains: List[str] = Field(default_factory=lambda: ["visa"])
+    source_name: str = Field(min_length=2, max_length=250)
+    source_url: str = Field(min_length=8, max_length=2000)
+    source_domain: str = Field(default="visa", min_length=2, max_length=100)
+    source_type: Literal[
+        "government",
+        "official",
+        "official_portal",
+        "official_agency",
+        "gazette",
+    ] = "official"
+    schedule_minutes: int = Field(default=1440, ge=15, le=525600)
+    fetch_method: Literal["http", "browser", "api", "manual"] = "http"
+    allowed_domains: List[str] = Field(default_factory=list)
+    max_redirects: int = Field(default=3, ge=0, le=10)
+    parser_profile: Literal["generic", "gazette_html_v1", "structured_program_catalog_v1"] = "generic"
+    parser_config: dict[str, Any] = Field(default_factory=dict)
+    certification_scope: str = Field(
+        default="primary_immigration",
+        pattern=r"^(primary_immigration|supplemental_[a-z0-9_]+)$",
+        max_length=100,
+    )
+    certification_domains: List[str] = Field(min_length=1)
+    evidence_notes: str = Field(min_length=10, max_length=5000)
+
+
+class JurisdictionCoverageEvidenceBatchItemProposal(BaseModel):
+    alpha2_code: str = Field(min_length=2, max_length=2)
+    immigration_assessment: Optional[JurisdictionImmigrationAssessmentProposal] = None
+    source_certification: Optional[JurisdictionSourceCertificationProposal] = None
+    source_onboarding: Optional[JurisdictionSourceOnboardingProposal] = None
+
+    @model_validator(mode="after")
+    def require_evidence_operation(self):
+        if (
+            self.immigration_assessment is None
+            and self.source_certification is None
+            and self.source_onboarding is None
+        ):
+            raise ValueError(
+                "Each coverage batch item must include an immigration assessment, source certification, or source onboarding"
+            )
+        if self.source_certification is not None and self.source_onboarding is not None:
+            raise ValueError(
+                "Use source_onboarding to create its pending certification; do not also provide source_certification"
+            )
+        return self
+
+
+class JurisdictionCoverageEvidenceBatchCreate(BaseModel):
+    name: str = Field(min_length=3, max_length=200)
+    notes: str = Field(min_length=10, max_length=5000)
+    items: List[JurisdictionCoverageEvidenceBatchItemProposal] = Field(min_length=1, max_length=50)
+
+
+class CoverageTrancheAssistantPrepareRequest(BaseModel):
+    alpha2_codes: List[str] = Field(min_length=1, max_length=25)
+    dry_run: bool = True
+    queue_eligible_baselines: bool = False
+    include_candidate_assertions: bool = True
+    max_candidate_lines: int = Field(default=8, ge=1, le=12)
+
+    @model_validator(mode="after")
+    def normalize_codes(self):
+        normalized: list[str] = []
+        for value in self.alpha2_codes:
+            code = value.strip().upper()
+            if len(code) != 2 or not code.isalpha():
+                raise ValueError("Coverage tranche assistant alpha2_codes must contain two-letter codes")
+            if code not in normalized:
+                normalized.append(code)
+        self.alpha2_codes = normalized
+        return self

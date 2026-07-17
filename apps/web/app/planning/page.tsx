@@ -11,14 +11,24 @@ import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
 import {
   comparePathways,
+  generateCountryRanking,
+  createReassessmentAcceptance,
+  executeReassessmentAcceptance,
+  getCountryRankingHistory,
   getHealthStatus,
+  getLatestCountryRanking,
   getLatestPathwayComparison,
   getLeads,
   getPathwayComparisonHistory,
+  getReassessmentCandidate,
+  CountryRanking,
   HealthStatus,
   Lead,
+  listReassessmentAcceptances,
   PathwayComparison,
   PathwayComparisonItem,
+  ReassessmentAcceptance,
+  ReassessmentCandidate,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
 
@@ -66,9 +76,22 @@ export default function PlanningPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadId, setLeadId] = useState("");
   const [comparison, setComparison] = useState<PathwayComparison | null>(null);
+  const [countryRanking, setCountryRanking] = useState<CountryRanking | null>(null);
+  const [countryRankingHistory, setCountryRankingHistory] = useState<CountryRanking[]>([]);
   const [history, setHistory] = useState<PathwayComparison[]>([]);
+  const [candidate, setCandidate] = useState<ReassessmentCandidate | null>(null);
+  const [acceptances, setAcceptances] = useState<ReassessmentAcceptance[]>([]);
+  const [acceptProfile, setAcceptProfile] = useState(false);
+  const [selectedImpacts, setSelectedImpacts] = useState<string[]>([]);
+  const [attestation, setAttestation] = useState("");
+  const [acceptanceNotes, setAcceptanceNotes] = useState("");
+  const [rankingAttestation, setRankingAttestation] = useState("");
+  const [rankingNotes, setRankingNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [executingId, setExecutingId] = useState<string | null>(null);
+  const [rankingRunning, setRankingRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -83,15 +106,24 @@ export default function PlanningPage() {
   useEffect(() => { void load(); }, [load]);
 
   async function chooseLead(selectedLeadId: string) {
-    setLeadId(selectedLeadId); setComparison(null); setHistory([]); setError(null);
+    setLeadId(selectedLeadId); setComparison(null); setHistory([]); setCandidate(null); setAcceptances([]); setCountryRanking(null); setCountryRankingHistory([]); setError(null);
+    setAcceptProfile(false); setSelectedImpacts([]); setAttestation(""); setAcceptanceNotes(""); setRankingAttestation(""); setRankingNotes("");
     if (!selectedLeadId) return;
     setLoading(true);
-    const [latest, rows] = await Promise.allSettled([
+    const [latest, rows, reassessment, acceptanceRows, latestRanking, rankingRows] = await Promise.allSettled([
       getLatestPathwayComparison(selectedLeadId),
       getPathwayComparisonHistory(selectedLeadId),
+      getReassessmentCandidate(selectedLeadId),
+      listReassessmentAcceptances(selectedLeadId),
+      getLatestCountryRanking(selectedLeadId),
+      getCountryRankingHistory(selectedLeadId),
     ]);
     if (latest.status === "fulfilled") setComparison(latest.value);
     if (rows.status === "fulfilled") setHistory(rows.value);
+    if (reassessment.status === "fulfilled") setCandidate(reassessment.value);
+    if (acceptanceRows.status === "fulfilled") setAcceptances(acceptanceRows.value);
+    if (latestRanking.status === "fulfilled") setCountryRanking(latestRanking.value);
+    if (rankingRows.status === "fulfilled") setCountryRankingHistory(rankingRows.value);
     setLoading(false);
   }
 
@@ -102,8 +134,61 @@ export default function PlanningPage() {
       const result = await comparePathways(leadId);
       setComparison(result);
       setHistory(result.assessment_id ? await getPathwayComparisonHistory(leadId) : []);
+      if (result.assessment_id) setCandidate(await getReassessmentCandidate(leadId));
     } catch (err) { setError(err instanceof Error ? err.message : "Could not generate pathway comparison"); }
     finally { setRunning(false); }
+  }
+
+  async function runCountryRanking() {
+    if (!leadId) return;
+    setRankingRunning(true); setError(null);
+    try {
+      const result = await generateCountryRanking(leadId, {
+        explicit_user_acceptance: true,
+        user_attestation: rankingAttestation,
+        notes: rankingNotes,
+        limit_countries: 20,
+      });
+      setCountryRanking(result);
+      setCountryRankingHistory(await getCountryRankingHistory(leadId));
+      setRankingAttestation(""); setRankingNotes("");
+    } catch (err) { setError(err instanceof Error ? err.message : "Could not generate reviewed country ranking"); }
+    finally { setRankingRunning(false); }
+  }
+
+  async function recordAcceptance() {
+    if (!leadId || !candidate) return;
+    setRecording(true); setError(null);
+    try {
+      await createReassessmentAcceptance(leadId, {
+        baseline_assessment_id: candidate.baseline_assessment_id,
+        accept_profile_version: acceptProfile,
+        regulatory_impact_ids: selectedImpacts,
+        explicit_user_acceptance: true,
+        user_attestation: attestation,
+        notes: acceptanceNotes,
+      });
+      setAcceptances(await listReassessmentAcceptances(leadId));
+      setAttestation(""); setAcceptanceNotes("");
+    } catch (err) { setError(err instanceof Error ? err.message : "Could not record reassessment acceptance"); }
+    finally { setRecording(false); }
+  }
+
+  async function executeAcceptance(acceptanceId: string) {
+    if (!leadId) return;
+    setExecutingId(acceptanceId); setError(null);
+    try {
+      const result = await executeReassessmentAcceptance(acceptanceId);
+      setComparison(result);
+      const [rows, reassessment, acceptanceRows] = await Promise.all([
+        getPathwayComparisonHistory(leadId),
+        getReassessmentCandidate(leadId),
+        listReassessmentAcceptances(leadId),
+      ]);
+      setHistory(rows); setCandidate(reassessment); setAcceptances(acceptanceRows);
+      setAcceptProfile(false); setSelectedImpacts([]);
+    } catch (err) { setError(err instanceof Error ? err.message : "Could not execute accepted reassessment"); }
+    finally { setExecutingId(null); }
   }
 
   const selectedLead = leads.find((lead) => lead.id === leadId);
@@ -117,10 +202,55 @@ export default function PlanningPage() {
         <section className="panel planning-selector">
           <div><span className="page-kicker">Reproducible comparison</span><strong>Compare only published, evidence-backed pathways against the current profile.</strong></div>
           <label>Lead<select value={leadId} onChange={(event) => void chooseLead(event.target.value)}><option value="">Choose a lead</option>{leads.map((lead) => <option key={lead.id} value={lead.id}>{lead.full_name} · {lead.target_country || "No target"}</option>)}</select></label>
-          <button className="button primary" disabled={!leadId || running} onClick={() => void runComparison()}>{running ? "Comparing…" : "Generate comparison"}</button>
+          <button className="button primary" disabled={!leadId || running || Boolean(candidate?.requires_acceptance)} onClick={() => void runComparison()}>{running ? "Comparing…" : candidate?.requires_acceptance ? "Acceptance required" : "Generate comparison"}</button>
         </section>
 
+        {leadId && <section className="panel country-ranking-panel">
+          <SectionTitle label="Global user intelligence" title="Reviewed country fit" detail="Ranks only countries represented by human-published pathways and never bypasses the global coverage gate." />
+          <div className="country-ranking-controls">
+            <label>User acceptance attestation<textarea value={rankingAttestation} onChange={(event) => setRankingAttestation(event.target.value)} placeholder="Record the user's explicit acceptance of this exact cross-country assessment." /></label>
+            <label>Operator notes<textarea value={rankingNotes} onChange={(event) => setRankingNotes(event.target.value)} placeholder="Record consultation context and explain that this is not an eligibility guarantee." /></label>
+            <button className="button primary" disabled={rankingRunning || Boolean(candidate?.requires_acceptance) || rankingAttestation.trim().length < 10 || rankingNotes.trim().length < 3} onClick={() => void runCountryRanking()}>{rankingRunning ? "Ranking…" : candidate?.requires_acceptance ? "Resolve reassessment first" : "Generate country ranking"}</button>
+          </div>
+          {countryRanking && <>
+            <InlineNotice label={countryRanking.scope.global_coverage_claim_ready ? "Complete reviewed catalogue" : "Reviewed catalogue only"} detail={countryRanking.scope.message} tone={countryRanking.scope.global_coverage_claim_ready ? "good" : "warn"} />
+            <div className="metric-row country-ranking-metrics">
+              <MetricPill label="Countries ranked" value={countryRanking.countries.length} />
+              <MetricPill label="Published countries" value={countryRanking.scope.published_catalogue_countries} />
+              <MetricPill label="Pathway versions" value={countryRanking.scope.published_pathway_versions} />
+              <MetricPill label="Ranking history" value={countryRankingHistory.length} />
+            </div>
+            <div className="country-ranking-grid">{countryRanking.countries.map((item) => {
+              const pr = item.long_term_dependencies.find((entry) => entry.stage === "permanent_residence");
+              const citizenship = item.long_term_dependencies.find((entry) => entry.stage === "citizenship");
+              return <article key={`${countryRanking.assessment_id}-${item.country}`} className="country-ranking-card">
+                <div className="country-ranking-heading"><span>#{item.rank}</span><div><h3>{titleCase(item.country)}</h3><p>{item.primary_pathway.pathway.name}</p></div><strong>{Math.round(item.ranking_score * 100)}%</strong></div>
+                <p>{item.explanation}</p>
+                <div className="country-ranking-badges"><StatusBadge value={`${item.uncertainty.level}_uncertainty`} /><StatusBadge value={item.reviewed_coverage_ready ? "coverage_ready" : "coverage_gap"} /></div>
+                <dl><div><dt>Profile fit</dt><dd>{Math.round(item.profile_match_score * 100)}%</dd></div><div><dt>Published routes</dt><dd>{item.pathway_count}</dd></div><div><dt>PR dependency</dt><dd>{pr?.status === "recorded" ? pr.summary : "Not recorded"}</dd></div><div><dt>Citizenship dependency</dt><dd>{citizenship?.status === "recorded" ? citizenship.summary : "Not recorded"}</dd></div></dl>
+                <details><summary>Trade-offs and uncertainty</summary><ul>{[...item.tradeoffs, ...item.uncertainty.factors].map((value, index) => <li key={`${value}-${index}`}>{value}</li>)}</ul></details>
+              </article>;
+            })}</div>
+          </>}
+        </section>}
+
         {!leadId ? <EmptyState title="No lead selected" detail="Choose a lead to compare their current profile against published mobility pathways." /> : comparison ? <>
+          {(candidate?.requires_acceptance || acceptances.length > 0) && <section className="panel reassessment-panel">
+            <SectionTitle label="Explicit acceptance" title="Pinned reassessment control" detail="New profile or reviewed regulatory versions never refresh this assessment automatically." />
+            {candidate?.requires_acceptance && <>
+              <InlineNotice label="Assessment remains unchanged" detail={candidate.summary} tone="warn" />
+              <div className="reassessment-options">
+                {candidate.profile_update_available && <label className="profile-check"><input type="checkbox" checked={acceptProfile} onChange={(event) => setAcceptProfile(event.target.checked)} /><span><strong>Accept profile version {candidate.current_profile_version}</strong><small>Baseline remains profile version {candidate.baseline_profile_version} until execution.</small></span></label>}
+                {candidate.regulatory_changes.map((change) => <label className="profile-check" key={change.impact_id}><input type="checkbox" checked={selectedImpacts.includes(change.impact_id)} onChange={(event) => setSelectedImpacts(event.target.checked ? [...selectedImpacts, change.impact_id] : selectedImpacts.filter((id) => id !== change.impact_id))} /><span><strong>{change.pathway_name} version {change.affected_pathway_version_number} → {change.replacement_pathway_version_number}</strong><small>{titleCase(change.materiality)} · reviewed by {change.reviewed_by}</small></span></label>)}
+              </div>
+              <div className="reassessment-form">
+                <label>User acceptance attestation<textarea value={attestation} onChange={(event) => setAttestation(event.target.value)} placeholder="Record how and when the user explicitly accepted these exact versions." /></label>
+                <label>Operator notes<textarea value={acceptanceNotes} onChange={(event) => setAcceptanceNotes(event.target.value)} placeholder="Add consultation and evidence notes." /></label>
+                <button className="button secondary" disabled={recording || (!acceptProfile && selectedImpacts.length === 0) || attestation.trim().length < 10 || acceptanceNotes.trim().length < 3} onClick={() => void recordAcceptance()}>{recording ? "Recording…" : "Record explicit acceptance"}</button>
+              </div>
+            </>}
+            {acceptances.length > 0 && <div className="reassessment-ledger"><strong>Acceptance ledger</strong>{acceptances.map((item) => <article key={item.id}><div><StatusBadge value={item.status} /><span>{item.accepted_profile_version ? `Profile v${item.accepted_profile_version}` : "Pinned profile"} · {item.accepted_pathway_version_ids.length} regulatory replacement{item.accepted_pathway_version_ids.length === 1 ? "" : "s"}</span></div><p>{item.user_attestation}</p><small>{new Date(item.accepted_at).toLocaleString()} · {item.recorded_by}</small>{item.status === "accepted" && <button className="button primary" disabled={executingId === item.id} onClick={() => void executeAcceptance(item.id)}>{executingId === item.id ? "Reassessing…" : "Execute accepted reassessment"}</button>}</article>)}</div>}
+          </section>}
           <div className="metric-row planning-metrics">
             <MetricPill label="Profile version" value={comparison.profile_version || "None"} />
             <MetricPill label="Alternatives" value={comparison.alternatives.length} />

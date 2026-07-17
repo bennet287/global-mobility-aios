@@ -132,6 +132,7 @@ def onboard_regulatory_source(
     payload: RegulatorySourceOnboardingRequest,
     *,
     actor: str,
+    commit: bool = True,
 ) -> tuple[Jurisdiction, RegulatoryAuthority, OfficialSource, SourceMonitor]:
     source_url, source_hostname = _validate_https_url(payload.source_url, label="Official source URL")
     authority_website_url = None
@@ -239,9 +240,10 @@ def onboard_regulatory_source(
         actor=actor,
         source="regulatory_intelligence_v7_2",
     )
-    session.commit()
-    for row in (jurisdiction, authority, source, monitor):
-        session.refresh(row)
+    if commit:
+        session.commit()
+        for row in (jurisdiction, authority, source, monitor):
+            session.refresh(row)
     return jurisdiction, authority, source, monitor
 
 

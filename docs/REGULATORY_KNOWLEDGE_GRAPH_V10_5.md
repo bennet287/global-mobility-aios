@@ -58,9 +58,11 @@ state. No provenance is inferred from labels or free text.
   published rules only; unpublished records are ignored.
 - Graph projection and deactivation actions are audited.
 
-The graph does not update pathway versions or client assessments in v10.5.
-That impact-analysis and explicit pathway-version workflow remains the next
-separate Phase 10A delivery item.
+The graph does not update pathway versions or client assessments. Phase 10A
+v10.6 now consumes graph/rule lifecycle events into a separate immutable,
+review-gated pathway impact ledger; it still cannot rewrite criteria or
+reassess clients automatically. See
+`docs/PATHWAY_REGULATORY_IMPACT_LINKS_V10_6.md`.
 
 ## API
 

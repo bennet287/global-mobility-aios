@@ -8,15 +8,28 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import MobilityPathway, MobilityPathwayVersion, PathwayComparisonAssessment
 from app.schemas import (
+    CountryRankingCreate,
+    CountryRankingRead,
     PathwayCreate,
     PathwayComparisonRead,
     PathwayDetail,
     PathwayMatchResponse,
     PathwayPublishRequest,
     PathwayRead,
+    PathwayRegulatoryImpactList,
+    PathwayRegulatoryImpactRead,
+    PathwayRegulatoryImpactReviewRequest,
     PathwayRetireRequest,
     PathwayVersionInput,
     PathwayVersionRead,
+    ReassessmentAcceptanceCreate,
+    ReassessmentAcceptanceRead,
+    ReassessmentCandidateRead,
+)
+from app.services.country_ranking import (
+    country_ranking_history,
+    generate_country_ranking,
+    latest_country_ranking,
 )
 from app.services.pathway_catalogue import (
     create_pathway,
@@ -29,8 +42,21 @@ from app.services.pathway_catalogue import (
     publish_pathway_version,
     retire_pathway,
 )
+from app.services.pathway_regulatory_impacts import (
+    list_pathway_regulatory_impacts,
+    pathway_regulatory_impact_read,
+    review_pathway_regulatory_impact,
+)
+from app.services.reassessment_acceptance import (
+    create_reassessment_acceptance,
+    ensure_direct_comparison_allowed,
+    execute_reassessment_acceptance,
+    get_reassessment_candidate,
+    list_reassessment_acceptances,
+    reassessment_acceptance_read,
+)
 
-router = APIRouter(prefix="/api/v1/pathways", tags=["mobility-planning-v8.2"])
+router = APIRouter(prefix="/api/v1/pathways", tags=["mobility-planning-v10.13"])
 
 
 def _actor(request: Request) -> str:
@@ -40,7 +66,14 @@ def _actor(request: Request) -> str:
 
 def _bad_request(exc: ValueError) -> HTTPException:
     message = str(exc)
-    status = 404 if message in {"Pathway not found", "Pathway version not found", "Lead not found"} else 400
+    status = 404 if message in {
+        "Pathway not found",
+        "Pathway version not found",
+        "Lead not found",
+        "Pathway regulatory impact not found",
+        "Reassessment acceptance not found",
+        "No country ranking found for this lead",
+    } else 400
     return HTTPException(status_code=status, detail=message)
 
 
@@ -77,6 +110,85 @@ def api_list_pathways(
     return [pathway_read(session, row) for row in rows]
 
 
+@router.get("/regulatory-impacts", response_model=PathwayRegulatoryImpactList)
+def api_list_pathway_regulatory_impacts(
+    status: str | None = None,
+    pathway_id: UUID | None = None,
+    pathway_version_id: UUID | None = None,
+    verified_rule_id: UUID | None = None,
+    impact_type: str | None = None,
+    limit: int = 200,
+    session: Session = Depends(get_session),
+) -> PathwayRegulatoryImpactList:
+    return PathwayRegulatoryImpactList(**list_pathway_regulatory_impacts(
+        session,
+        status=status,
+        pathway_id=pathway_id,
+        pathway_version_id=pathway_version_id,
+        verified_rule_id=verified_rule_id,
+        impact_type=impact_type,
+        limit=limit,
+    ))
+
+
+@router.post(
+    "/regulatory-impacts/{impact_id}/review",
+    response_model=PathwayRegulatoryImpactRead,
+)
+def api_review_pathway_regulatory_impact(
+    impact_id: UUID,
+    payload: PathwayRegulatoryImpactReviewRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> PathwayRegulatoryImpactRead:
+    try:
+        impact = review_pathway_regulatory_impact(
+            session,
+            impact_id,
+            payload,
+            actor=_actor(request),
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise _bad_request(exc) from exc
+    return pathway_regulatory_impact_read(session, impact)
+
+
+@router.post("/country-rankings/{lead_id}", response_model=CountryRankingRead, status_code=201)
+def api_generate_country_ranking(
+    lead_id: UUID,
+    payload: CountryRankingCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> CountryRankingRead:
+    try:
+        ensure_direct_comparison_allowed(session, lead_id)
+        return generate_country_ranking(session, lead_id, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _bad_request(exc) from exc
+
+
+@router.get("/country-rankings/{lead_id}/latest", response_model=CountryRankingRead)
+def api_latest_country_ranking(
+    lead_id: UUID,
+    session: Session = Depends(get_session),
+) -> CountryRankingRead:
+    try:
+        return latest_country_ranking(session, lead_id)
+    except ValueError as exc:
+        raise _bad_request(exc) from exc
+
+
+@router.get("/country-rankings/{lead_id}", response_model=list[CountryRankingRead])
+def api_country_ranking_history(
+    lead_id: UUID,
+    limit: int = 50,
+    session: Session = Depends(get_session),
+) -> list[CountryRankingRead]:
+    return country_ranking_history(session, lead_id, limit=limit)
+
+
 @router.post("/match/{lead_id}", response_model=PathwayMatchResponse)
 def api_match_pathways(
     lead_id: UUID,
@@ -97,9 +209,65 @@ def api_compare_pathways(
     session: Session = Depends(get_session),
 ) -> PathwayComparisonRead:
     try:
+        ensure_direct_comparison_allowed(session, lead_id)
         return generate_pathway_comparison(
             session,
             lead_id,
+            actor=_actor(request),
+            limit=max(1, min(limit, 20)),
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise _bad_request(exc) from exc
+
+
+@router.get("/comparisons/{lead_id}/reassessment", response_model=ReassessmentCandidateRead)
+def api_reassessment_candidate(lead_id: UUID, session: Session = Depends(get_session)) -> ReassessmentCandidateRead:
+    try:
+        return get_reassessment_candidate(session, lead_id)
+    except ValueError as exc:
+        raise _bad_request(exc) from exc
+
+
+@router.get("/comparisons/{lead_id}/reassessment-acceptances", response_model=list[ReassessmentAcceptanceRead])
+def api_list_reassessment_acceptances(
+    lead_id: UUID,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+) -> list[ReassessmentAcceptanceRead]:
+    return list_reassessment_acceptances(session, lead_id, limit=limit)
+
+
+@router.post(
+    "/comparisons/{lead_id}/reassessment-acceptances",
+    response_model=ReassessmentAcceptanceRead,
+    status_code=201,
+)
+def api_create_reassessment_acceptance(
+    lead_id: UUID,
+    payload: ReassessmentAcceptanceCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> ReassessmentAcceptanceRead:
+    try:
+        row = create_reassessment_acceptance(session, lead_id, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _bad_request(exc) from exc
+    return reassessment_acceptance_read(row)
+
+
+@router.post("/reassessment-acceptances/{acceptance_id}/execute", response_model=PathwayComparisonRead)
+def api_execute_reassessment_acceptance(
+    acceptance_id: UUID,
+    request: Request,
+    limit: int = 5,
+    session: Session = Depends(get_session),
+) -> PathwayComparisonRead:
+    try:
+        return execute_reassessment_acceptance(
+            session,
+            acceptance_id,
             actor=_actor(request),
             limit=max(1, min(limit, 20)),
         )

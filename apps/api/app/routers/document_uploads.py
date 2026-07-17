@@ -15,7 +15,7 @@ from app.core.config import settings
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, Lead
 from app.services.audit_log import record_audit
-from app.services.document_storage import document_storage_client, now_utc
+from app.services.document_storage import document_storage_client, now_utc, public_document_metadata
 
 
 router = APIRouter(tags=["document-upload-v3.5"])
@@ -35,24 +35,7 @@ def _parse_datetime(value: Optional[str]) -> Optional[datetime]:
 
 
 def _document_payload(doc: DocumentRecord) -> dict[str, Any]:
-    return {
-        "id": doc.id,
-        "lead_id": doc.lead_id,
-        "document_type": doc.document_type,
-        "filename": doc.filename,
-        "storage_key": doc.storage_key,
-        "storage_provider": doc.storage_provider,
-        "file_hash": doc.file_hash,
-        "mime_type": doc.mime_type,
-        "file_size_bytes": doc.file_size_bytes,
-        "status": doc.status,
-        "uploaded_at": doc.uploaded_at,
-        "verified_by": doc.verified_by,
-        "verified_at": doc.verified_at,
-        "expiry_date": doc.expiry_date,
-        "created_at": doc.created_at,
-        "updated_at": doc.updated_at,
-    }
+    return public_document_metadata(doc)
 
 
 def _lead_or_404(session: Session, lead_id: Optional[UUID]) -> Optional[Lead]:
@@ -149,8 +132,11 @@ def get_document_file_metadata(document_id: UUID, session: Session = Depends(get
         raise HTTPException(status_code=404, detail="Document not found")
     return _json_response({
         "document": _document_payload(document),
-        "download_supported": False,
-        "next_step": "Use storage_key with the configured object storage provider. Signed downloads are planned after upload metadata is stable.",
+        "download_supported": True,
+        "signed_access_required": True,
+        "grant_endpoint": f"/api/v1/document-access/documents/{document.id}/grants",
+        "direct_object_url": None,
+        "storage_key_exposed": False,
     })
 
 
@@ -229,13 +215,15 @@ async def admin_document_upload_redirect(
 def debug_document_uploads():
     return {
         "status": "ok",
-        "version": "v3.5",
+        "version": "v9.5",
         "storage_backend": settings.document_storage_backend,
         "local_storage_dir": settings.document_local_storage_dir,
         "max_upload_mb": settings.document_upload_max_mb,
         "routes": [
             "POST /api/v1/documents/upload",
             "GET /api/v1/documents/{document_id}/file",
+            "POST /api/v1/document-access/documents/{document_id}/grants",
+            "POST /api/v1/document-access/content",
             "GET /admin/document-uploads",
         ],
     }

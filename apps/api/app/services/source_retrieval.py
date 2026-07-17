@@ -419,6 +419,7 @@ def execute_source_monitor(
     session: Session,
     monitor_id: UUID,
     *,
+    retrieval_run_id: UUID | None = None,
     transport: Optional[httpx.BaseTransport] = None,
     resolver: Resolver = socket.getaddrinfo,
 ) -> SourceRetrievalRun:
@@ -428,19 +429,35 @@ def execute_source_monitor(
     source = session.get(OfficialSource, monitor.official_source_id)
     if source is None:
         raise ValueError("Official source not found")
-    prior_attempts = len(session.exec(
-        select(SourceRetrievalRun).where(SourceRetrievalRun.monitor_id == monitor.id)
-    ).all())
-    run = SourceRetrievalRun(
-        monitor_id=monitor.id,
-        official_source_id=source.id,
-        status="running",
-        attempt=prior_attempts + 1,
-        requested_url=source.url,
-    )
-    session.add(run)
-    session.commit()
-    session.refresh(run)
+    if retrieval_run_id is not None:
+        run = session.get(SourceRetrievalRun, retrieval_run_id)
+        if run is None:
+            raise ValueError("Source retrieval run not found")
+        if run.monitor_id != monitor.id or run.official_source_id != source.id:
+            raise ValueError("Source retrieval run does not belong to the selected monitor")
+        if run.status in {"baseline", "unchanged", "changed", "not_modified"}:
+            return run
+        run.status = "running"
+        run.error_code = None
+        run.error_message = None
+        run.completed_at = None
+        session.add(run)
+        session.commit()
+        session.refresh(run)
+    else:
+        prior_attempts = len(session.exec(
+            select(SourceRetrievalRun).where(SourceRetrievalRun.monitor_id == monitor.id)
+        ).all())
+        run = SourceRetrievalRun(
+            monitor_id=monitor.id,
+            official_source_id=source.id,
+            status="running",
+            attempt=prior_attempts + 1,
+            requested_url=source.url,
+        )
+        session.add(run)
+        session.commit()
+        session.refresh(run)
 
     try:
         result = fetch_official_source(monitor, source, transport=transport, resolver=resolver)

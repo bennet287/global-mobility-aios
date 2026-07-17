@@ -114,7 +114,9 @@ def test_extraction_fails_closed_when_stored_file_hash_changes(
             json={"language": "eng"},
         )
     assert queued.status_code == 202
-    (tmp_path / document["storage_key"]).write_bytes(b"tampered")
+    stored_document = db_session.get(DocumentRecord, UUID(document["id"]))
+    assert stored_document is not None and stored_document.storage_key
+    (tmp_path / stored_document.storage_key).write_bytes(b"tampered")
 
     result = run_document_extraction_task.run(queued.json()["id"])
     assert result["status"] == "failed"

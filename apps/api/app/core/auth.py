@@ -106,6 +106,11 @@ def required_roles(method: str, path: str) -> Set[str]:
             return {"admin", "reviewer"}
         return {"admin", "operator", "reviewer"}
 
+    if _path_starts(path, ("/api/v1/document-access",)):
+        if path.endswith("/content"):
+            return set(READ_ROLES)
+        return {"admin", "operator", "reviewer"}
+
     if method in {"GET", "HEAD", "OPTIONS"}:
         if path.startswith("/admin") or path.startswith("/api/v1"):
             return set(READ_ROLES)

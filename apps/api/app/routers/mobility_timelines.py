@@ -6,11 +6,22 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from app.core.db import get_session
-from app.models.domain import MobilityTimeline
+from app.models.domain import MobilityScenario, MobilityTimeline
 from app.schemas import (
+    MobilityScenarioCreate,
+    MobilityScenarioRead,
+    MobilityScenarioRecalculationCandidateRead,
+    MobilityScenarioRecalculateRequest,
     MobilityTimelineGenerateRequest,
     MobilityTimelineRead,
     MobilityTimelineTransitionRequest,
+)
+from app.services.mobility_scenarios import (
+    create_scenario,
+    list_scenarios,
+    recalculation_candidate,
+    recalculate_scenario,
+    scenario_read,
 )
 from app.services.mobility_timelines import (
     activate_timeline,
@@ -63,6 +74,67 @@ def api_list_timelines(
         statement = statement.where(MobilityTimeline.lead_id == lead_id)
     rows = session.exec(statement.limit(max(1, min(limit, 200)))).all()
     return [timeline_read(session, row) for row in rows]
+
+
+@router.post("/scenarios", response_model=MobilityScenarioRead, status_code=201)
+def api_create_scenario(
+    payload: MobilityScenarioCreate,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> MobilityScenarioRead:
+    try:
+        return create_scenario(session, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/scenarios", response_model=list[MobilityScenarioRead])
+def api_list_scenarios(
+    lead_id: UUID | None = None,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+) -> list[MobilityScenarioRead]:
+    return list_scenarios(session, lead_id=lead_id, limit=limit)
+
+
+@router.get("/scenarios/{scenario_id}", response_model=MobilityScenarioRead)
+def api_get_scenario(
+    scenario_id: UUID,
+    session: Session = Depends(get_session),
+) -> MobilityScenarioRead:
+    scenario = session.get(MobilityScenario, scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="Mobility scenario not found")
+    return scenario_read(session, scenario)
+
+
+@router.get(
+    "/scenarios/{scenario_id}/recalculation-candidate",
+    response_model=MobilityScenarioRecalculationCandidateRead,
+)
+def api_scenario_recalculation_candidate(
+    scenario_id: UUID,
+    session: Session = Depends(get_session),
+) -> MobilityScenarioRecalculationCandidateRead:
+    try:
+        return recalculation_candidate(session, scenario_id)
+    except ValueError as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/scenarios/{scenario_id}/recalculate", response_model=MobilityScenarioRead, status_code=201)
+def api_recalculate_scenario(
+    scenario_id: UUID,
+    payload: MobilityScenarioRecalculateRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> MobilityScenarioRead:
+    try:
+        return recalculate_scenario(session, scenario_id, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
 
 
 @router.get("/{timeline_id}", response_model=MobilityTimelineRead)

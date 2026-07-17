@@ -198,10 +198,73 @@ export type DocumentRecord = {
   uploaded_at?: string | null;
   verified_by?: string | null;
   expiry_date?: string | null;
-  storage_key?: string | null;
   storage_provider?: string | null;
+  storage_reference_present?: boolean;
   file_hash?: string | null;
   mime_type?: string | null;
+  file_size_bytes?: number | null;
+  signed_access_supported?: boolean;
+  storage_key_exposed?: boolean;
+};
+
+export type DocumentAccessGrant = {
+  id: string;
+  document_id: string;
+  lead_id: string;
+  issued_to: string;
+  issued_role: string;
+  purpose: string;
+  status: string;
+  expires_at: string;
+  max_uses: number;
+  use_count: number;
+  remaining_uses: number;
+  storage_provider: string;
+  filename: string;
+  created_by: string;
+  last_accessed_by: string | null;
+  last_accessed_at: string | null;
+  revoked_by: string | null;
+  revoked_at: string | null;
+  revocation_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  expired: boolean;
+  token_returned: boolean;
+  storage_key_exposed: boolean;
+};
+
+export type DocumentAccessGrantIssued = {
+  grant: DocumentAccessGrant;
+  token: string;
+  token_type: "gmai_document_access";
+  direct_object_url: null;
+  storage_credentials_exposed: boolean;
+  storage_key_exposed: boolean;
+};
+
+export type DocumentStoragePosture = {
+  environment: string;
+  backend: string;
+  strict_mode: boolean;
+  signed_access_secret_configured: boolean;
+  signed_access_ttl_seconds: number;
+  signed_access_max_ttl_seconds: number;
+  minio_tls_enabled: boolean;
+  minio_default_credentials: boolean;
+  bucket_auto_create: boolean;
+  server_side_encryption_enabled: boolean;
+  retention_days: number;
+  backup_strategy_configured: boolean;
+  recovery_test_recorded: boolean;
+  local_storage_allowed_in_production: boolean;
+  failures: string[];
+  ready: boolean;
+  signed_access_enabled: boolean;
+  direct_object_urls_enabled: boolean;
+  storage_credentials_exposed: boolean;
+  unrestricted_object_keys_exposed: boolean;
+  allowed_purposes: string[];
 };
 
 export type DocumentSchemaDefinition = {
@@ -283,6 +346,163 @@ export type DocumentConsistencyAssessment = {
   updated_at: string;
 };
 
+export type DocumentExpiryReminder = {
+  id: string;
+  reminder_key: string;
+  document_id: string;
+  lead_id: string | null;
+  document_type: string;
+  filename: string;
+  expiry_date: string;
+  reminder_type: string;
+  threshold_days: number;
+  due_at: string;
+  status: string;
+  priority: string;
+  source: string;
+  human_review_required: boolean;
+  external_delivery_status: string;
+  external_message_sent: boolean;
+  generated_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  superseded_by_id: string | null;
+  days_until_expiry: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DocumentExpiryScanResult = {
+  as_of: string;
+  lead_id: string | null;
+  documents_scanned: number;
+  created: number;
+  existing: number;
+  superseded: number;
+  outside_window: number;
+  reminder_ids: string[];
+  external_messages_sent: number;
+};
+
+export type DocumentRequirementFinding = {
+  finding_key: string;
+  finding_type: "requirement_coverage" | "cross_document_inconsistency";
+  requirement_key: string;
+  requirement_label: string;
+  expected_document_types: string[];
+  optional: boolean;
+  outcome: "satisfied" | "missing" | "optional_missing" | "rejected" | "expired" | "present_unverified" | "fact_inconsistency" | "duplicate_conflict";
+  severity: "info" | "warning" | "high";
+  document_ids: string[];
+  document_names: string[];
+  explanation: string;
+  evidence: Record<string, unknown>;
+};
+
+export type DocumentRequirementAssessment = {
+  id: string;
+  assessment_key: string;
+  lead_id: string;
+  application_id: string | null;
+  pathway_id: string | null;
+  pathway_version_id: string | null;
+  eligibility_assessment_id: string | null;
+  profile_id: string | null;
+  profile_version: number | null;
+  requirement_source: string;
+  result_status: string;
+  review_status: string;
+  required_count: number;
+  satisfied_count: number;
+  missing_count: number;
+  inconsistency_count: number;
+  requirements: Array<Record<string, unknown>>;
+  findings: DocumentRequirementFinding[];
+  source_snapshot: Record<string, unknown>;
+  document_snapshot: Array<Record<string, unknown>>;
+  summary: string;
+  human_review_required: boolean;
+  generated_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  source_records_unchanged: boolean;
+  documents_created: number;
+  eligibility_changed: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DocumentRequirementScanResult = {
+  lead_id: string | null;
+  leads_scanned: number;
+  created: number;
+  existing: number;
+  skipped: number;
+  assessment_ids: string[];
+  documents_created: number;
+  external_messages_sent: number;
+};
+
+
+export type DocumentFraudRiskIndicator = {
+  indicator_key: string;
+  indicator_type: "exact_file_reuse_across_leads" | "same_file_multiple_document_types" | "approved_identity_mismatch" | "approved_material_fact_mismatch" | "conflicting_duplicate_evidence" | "approved_cross_document_inconsistency" | "rejected_or_invalid_evidence" | "extraction_integrity_failure" | "approved_identifier_reuse_across_leads";
+  severity: "warning" | "high";
+  document_ids: string[];
+  document_names: string[];
+  source_record_type: string;
+  source_record_ids: string[];
+  explanation: string;
+  evidence: Record<string, unknown>;
+  human_review_required: boolean;
+};
+
+export type DocumentFraudRiskAssessment = {
+  id: string;
+  assessment_key: string;
+  lead_id: string;
+  profile_id: string | null;
+  profile_version: number | null;
+  application_id: string | null;
+  result_status: string;
+  review_status: string;
+  risk_band: string;
+  indicator_count: number;
+  high_indicator_count: number;
+  warning_indicator_count: number;
+  indicators: DocumentFraudRiskIndicator[];
+  source_snapshot: Record<string, unknown>;
+  summary: string;
+  human_review_required: boolean;
+  automated_fraud_determination: boolean;
+  adverse_action_taken: boolean;
+  generated_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  fraud_determined: boolean;
+  documents_rejected: number;
+  eligibility_changed: boolean;
+  external_actions_triggered: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DocumentFraudRiskScanResult = {
+  lead_id: string | null;
+  leads_scanned: number;
+  created: number;
+  existing: number;
+  skipped: number;
+  assessment_ids: string[];
+  fraud_determinations: number;
+  documents_rejected: number;
+  eligibility_changed: boolean;
+  external_actions_triggered: number;
+};
+
 export type GlobalIntelligenceChange = {
   id: string;
   jurisdiction_id: string;
@@ -298,8 +518,19 @@ export type GlobalIntelligenceChange = {
   domain: string;
   materiality: string;
   status: string;
+  source_id: string | null;
   source_name: string | null;
   source_url: string | null;
+  authority_id: string | null;
+  authority_name: string | null;
+  freshness: "fresh" | "stale" | "never_checked" | "inactive" | "unmonitored";
+  monitor_status: string | null;
+  last_checked_at: string | null;
+  coverage: "ready" | "gap" | "not_required" | "unregistered";
+  coverage_gaps: string[];
+  confidence: number | null;
+  confidence_band: "high" | "medium" | "low" | "unknown";
+  confidence_source: string;
   effective_at: string | null;
   detected_at: string;
   reviewed_at: string | null;
@@ -310,6 +541,27 @@ export type GlobalIntelligenceChange = {
 export type GlobalIntelligenceDashboard = {
   generated_at: string;
   window_days: number;
+  filters: {
+    applied: {
+      freshness: string;
+      coverage: string;
+      authority_id: string | null;
+      authority_name: string | null;
+      confidence: string;
+      materiality: string;
+      review_state: string;
+    };
+    matched_changes: number;
+    available_changes: number;
+    options: {
+      authorities: Array<{ id: string; name: string; jurisdiction_id: string; count: number }>;
+      freshness: Record<string, number>;
+      coverage: Record<string, number>;
+      confidence: Record<string, number>;
+      materiality: Record<string, number>;
+      review_state: Record<string, number>;
+    };
+  };
   scope: {
     registered_jurisdictions: number;
     registered_countries: number;
@@ -334,7 +586,7 @@ export type GlobalIntelligenceDashboard = {
   skilled_occupations: GlobalIntelligenceChange[];
   thresholds: GlobalIntelligenceChange[];
   country_heatmap: Array<{
-    jurisdiction_id: string; code: string; country: string; jurisdiction_type: string; region: string | null;
+    jurisdiction_id: string; code: string; country: string; jurisdiction_type: string; region: string | null; coverage: string;
     activity_count: number; activity_level: string; pending_review: number; published: number; critical: number;
     official_sources: number; active_verified_rules: number; last_detected_at: string | null;
   }>;
@@ -385,6 +637,290 @@ export type JurisdictionSourceCertification = {
   supersedes_certification_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type JurisdictionCoverageWorklist = {
+  generated_at?: string;
+  release: GlobalJurisdictionRegistry["release"];
+  filters: { gap: string; region: string; limit: number };
+  total: number;
+  items: Array<{
+    jurisdiction_id: string;
+    registry_entry_id: string;
+    alpha2_code: string;
+    name: string;
+    region: string | null;
+    jurisdiction_type: string;
+    immigration_rule_status: string;
+    missing: string[];
+    has_authority: boolean;
+    has_official_source: boolean;
+    pending_assessment: JurisdictionImmigrationAssessment | null;
+    pending_source_certification: JurisdictionSourceCertification | null;
+  }>;
+  safety: { creates_coverage_claim: boolean; human_review_required: boolean; message: string };
+};
+
+export type JurisdictionCoverageEvidenceBatch = {
+  id: string;
+  registry_release_id: string;
+  batch_key: string;
+  name: string;
+  notes: string;
+  item_count: number;
+  immigration_assessment_count: number;
+  source_certification_count: number;
+  source_onboarding_count: number;
+  status: string;
+  stored_status: string;
+  submitted_by: string;
+  created_at: string;
+  created?: boolean;
+  review_counts: Record<string, number>;
+  items?: Array<{
+    id: string;
+    row_number: number;
+    jurisdiction_id: string;
+    registry_entry_id: string;
+    alpha2_code: string;
+    payload_sha256: string;
+    immigration_assessment: JurisdictionImmigrationAssessment | null;
+    source_certification: JurisdictionSourceCertification | null;
+    source_onboarding: null | {
+      regulatory_authority_id: string | null;
+      authority_name: string | null;
+      official_source_id: string | null;
+      source_name: string | null;
+      source_url: string | null;
+      source_monitor_id: string | null;
+      monitor_status: string | null;
+      next_check_at: string | null;
+    };
+    created_at: string;
+  }>;
+};
+
+export type JurisdictionCoverageBaselineStatus = {
+  batch_id: string;
+  batch_name: string;
+  submitted_by: string;
+  item_count: number;
+  counts: Record<string, number>;
+  eligible_to_queue: number;
+  baseline_ready: number;
+  in_progress: number;
+  failed: number;
+  pending_review: number;
+  queued?: number;
+  queue_failures?: Array<{ retrieval_run_id: string; monitor_id: string; error: string }>;
+  skipped?: Array<{ alpha2_code: string; state: string }>;
+  items: Array<{
+    batch_item_id: string;
+    alpha2_code: string;
+    jurisdiction_id: string;
+    official_source_id: string | null;
+    source_monitor_id: string | null;
+    assessment_status: string;
+    certification_status: string;
+    source_active: boolean;
+    monitor_status: string;
+    state: string;
+    eligible_to_queue: boolean;
+    latest_run: null | {
+      id: string;
+      status: string;
+      attempt: number;
+      started_at: string;
+      completed_at: string | null;
+      error_code: string | null;
+      error_message: string | null;
+    };
+    latest_snapshot: null | {
+      id: string;
+      status: string;
+      content_hash: string | null;
+      captured_at: string;
+      url: string;
+    };
+  }>;
+  safety: {
+    publishes_verified_rule: boolean;
+    creates_coverage_claim: boolean;
+    requires_approved_assessment_and_certification: boolean;
+    message: string;
+  };
+};
+
+export type CoverageTrancheAssistantConfig = {
+  enabled: boolean;
+  max_items: number;
+  defaults: {
+    dry_run: boolean;
+    queue_eligible_baselines: boolean;
+    default_batch_size: number;
+  };
+  safety: {
+    creates_review_records: boolean;
+    approves_evidence: boolean;
+    creates_assertions: boolean;
+    publishes_verified_rules: boolean;
+    creates_coverage_claim: boolean;
+    mutates_immutable_snapshots: boolean;
+    message: string;
+  };
+};
+
+export type CoverageTrancheAssistantResult = {
+  batch_id: string;
+  batch_name: string;
+  actor: string;
+  dry_run: boolean;
+  selected_count: number;
+  selected_codes: string[];
+  would_queue_baselines: string[];
+  queued_baselines: number;
+  queue_result: JurisdictionCoverageBaselineStatus | null;
+  items: Array<{
+    batch_item_id: string;
+    alpha2_code: string;
+    jurisdiction_name: string | null;
+    stage: string;
+    baseline: JurisdictionCoverageBaselineStatus["items"][number];
+    review_packet: {
+      immigration_assessment: null | Record<string, unknown>;
+      source_certification: null | Record<string, unknown>;
+      authority: null | { id: string; name: string; authority_type: string; website_url: string | null; active: boolean };
+      official_source: null | { id: string; name: string; url: string; domain: string; source_type: string; active: boolean };
+      monitor: null | Record<string, unknown>;
+      review_checks: string[];
+    };
+    snapshot_analysis: null | {
+      snapshot_id: string;
+      snapshot_url: string;
+      captured_at: string;
+      content_hash: string | null;
+      content_characters: number;
+      unique_lines: number;
+      navigation_lines: number;
+      navigation_ratio: number;
+      keyword_hits: string[];
+      quality_score: number;
+      classification: string;
+      candidate_excerpt_lines: string[];
+      preview: string;
+    };
+    candidate_assertion: null | {
+      alpha2_code: string;
+      domain: string;
+      title: string;
+      rule_key: string;
+      statement: string;
+      evidence_excerpt: string;
+      rationale: string;
+      confidence: number;
+      requires_human_edit: boolean;
+      creates_pending_assertion: boolean;
+    };
+    existing_assertion: null | {
+      id: string;
+      status: string;
+      title: string;
+      rule_key: string;
+      proposed_by: string;
+      reviewed_by: string | null;
+      published_by: string | null;
+      published_rule_id: string | null;
+    };
+    coverage_receipt: JurisdictionCoverageReceipt;
+    next_action: string;
+  }>;
+  safety: CoverageTrancheAssistantConfig["safety"];
+};
+
+export type InitialRuleAssertion = {
+  id: string;
+  assertion_sha256: string;
+  coverage_batch_item_id: string | null;
+  jurisdiction_id: string;
+  official_source_id: string;
+  source_snapshot_id: string;
+  alpha2_code: string | null;
+  jurisdiction_name: string | null;
+  source_name: string | null;
+  source_url: string | null;
+  domain: string;
+  title: string;
+  rule_key: string;
+  statement: string;
+  rationale: string;
+  evidence_excerpt: string;
+  confidence: number;
+  effective_from: string | null;
+  effective_to: string | null;
+  status: string;
+  proposed_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  published_rule_id: string | null;
+  published_by: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+  snapshot: null | {
+    id: string;
+    status: string;
+    content_hash: string | null;
+    captured_at: string;
+    url: string;
+  };
+  verified_rule: null | {
+    id: string;
+    rule_key: string;
+    active: boolean;
+    published_at: string | null;
+  };
+  safety: {
+    source_change_claimed: boolean;
+    human_review_required: boolean;
+    publishes_automatically: boolean;
+    message: string;
+  };
+  created?: boolean;
+};
+
+export type JurisdictionCoverageReceipt = {
+  registry_release_version: string | null;
+  registry_entry_id: string;
+  jurisdiction_id: string;
+  alpha2_code: string;
+  name: string;
+  coverage_required: boolean;
+  coverage_ready: boolean;
+  status: "ready" | "gap" | "not_required";
+  missing: string[];
+  gates: {
+    immigration_rule_assessment: boolean;
+    reviewed_primary_authority: boolean;
+    reviewed_primary_source: boolean;
+    fresh_monitor: boolean;
+    verified_rule: boolean;
+  };
+  registry_summary: {
+    coverage_ready: number;
+    coverage_required: number;
+    with_verified_rule: number;
+  };
+  global_coverage_claim_ready: boolean;
+};
+
+export type InitialRulePublicationReceipt = {
+  idempotent: boolean;
+  became_ready: boolean;
+  before: JurisdictionCoverageReceipt;
+  after: JurisdictionCoverageReceipt;
+  verified_rule_id: string;
+  message: string;
 };
 
 export type GlobalJurisdictionRegistry = {
@@ -452,6 +988,8 @@ export type GlobalJurisdictionRegistry = {
     has_reviewed_primary_source: boolean;
     approved_source_certification: JurisdictionSourceCertification | null;
     pending_source_certification: JurisdictionSourceCertification | null;
+    approved_supplemental_source_certifications: JurisdictionSourceCertification[];
+    pending_supplemental_source_certifications: JurisdictionSourceCertification[];
     has_fresh_monitor: boolean;
     has_verified_rule: boolean;
     coverage_ready: boolean;
@@ -1454,7 +1992,8 @@ export type RegulatoryKnowledgeEdge = {
   relation_type: string;
   verified_rule_id: string;
   source_snapshot_id: string;
-  regulatory_change_id: string;
+  regulatory_change_id: string | null;
+  initial_rule_assertion_id: string | null;
   projection_version: string;
   active: boolean;
   effective_from: string | null;
@@ -1604,6 +2143,7 @@ export type VerifiedRule = {
   official_source_id: string | null;
   jurisdiction_id: string | null;
   regulatory_change_id: string | null;
+  initial_rule_assertion_id: string | null;
   source_snapshot_id: string | null;
   supersedes_rule_id: string | null;
   confidence: number;
@@ -1668,6 +2208,51 @@ export type MobilityPathway = {
 
 export type MobilityPathwayDetail = MobilityPathway & { versions: PathwayVersion[] };
 
+export type PathwayRegulatoryImpact = {
+  id: string;
+  impact_type: string;
+  status: string;
+  materiality: string;
+  event_at: string;
+  pathway_id: string;
+  pathway_key: string;
+  pathway_name: string;
+  pathway_country: string;
+  pathway_domain: string;
+  pathway_version_id: string;
+  pathway_version_number: number;
+  pathway_version_lifecycle_status: string;
+  verified_rule_id: string;
+  rule_key: string;
+  rule_active: boolean;
+  superseded_rule_id: string | null;
+  regulatory_change_id: string;
+  change_type: string;
+  source_snapshot_id: string;
+  graph_rule_node_id: string | null;
+  graph_projection_version: string;
+  match_basis: string[];
+  impact_context: Record<string, unknown>;
+  client_assessment_count_at_detection: number;
+  timeline_count_at_detection: number;
+  client_assessments_unchanged: boolean;
+  human_review_required: boolean;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  replacement_pathway_version_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PathwayRegulatoryImpactQueue = {
+  total_returned: number;
+  counts_by_status: Record<string, number>;
+  pending_review: number;
+  client_assessments_unchanged: boolean;
+  impacts: PathwayRegulatoryImpact[];
+};
+
 export type PathwayCostExplanation = {
   currency: string;
   one_time_total: number | null;
@@ -1716,6 +2301,120 @@ export type PathwayComparison = {
   generated_at: string;
 };
 
+export type ReassessmentRegulatoryChange = {
+  impact_id: string;
+  pathway_id: string;
+  pathway_name: string;
+  affected_pathway_version_id: string;
+  affected_pathway_version_number: number;
+  replacement_pathway_version_id: string;
+  replacement_pathway_version_number: number;
+  verified_rule_id: string;
+  materiality: string;
+  reviewed_by: string;
+  reviewed_at: string;
+  review_notes: string;
+};
+
+export type ReassessmentCandidate = {
+  lead_id: string;
+  baseline_assessment_id: string;
+  baseline_profile_id: string | null;
+  baseline_profile_version: number | null;
+  current_profile_id: string | null;
+  current_profile_version: number | null;
+  profile_update_available: boolean;
+  regulatory_changes: ReassessmentRegulatoryChange[];
+  requires_acceptance: boolean;
+  pinned_assessment_unchanged: boolean;
+  summary: string;
+};
+
+export type ReassessmentAcceptance = {
+  id: string;
+  lead_id: string;
+  baseline_assessment_id: string;
+  accepted_profile_id: string | null;
+  accepted_profile_version: number | null;
+  regulatory_impact_ids: string[];
+  accepted_pathway_version_ids: string[];
+  explicit_user_acceptance: boolean;
+  user_attestation: string;
+  notes: string;
+  status: string;
+  recorded_by: string;
+  accepted_at: string;
+  consumed_at: string | null;
+  generated_assessment_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CountryLongTermDependency = {
+  stage: "permanent_residence" | "citizenship";
+  status: "recorded" | "not_recorded" | "not_applicable";
+  summary: string;
+  minimum_years: number | null;
+  dependencies: string[];
+  pathway_version_id: string | null;
+  verified_rule_ids: string[];
+  human_reviewed_source: boolean;
+};
+
+export type CountryRankingUncertainty = {
+  level: "low" | "medium" | "high";
+  score: number;
+  factors: string[];
+  global_coverage_boundary: boolean;
+};
+
+export type CountryRankingScope = {
+  ranking_scope: "complete_global_catalogue" | "reviewed_published_catalogue_only";
+  global_coverage_claim_ready: boolean;
+  complete_global_ranking_claim_allowed: boolean;
+  registry_release_version: string | null;
+  registry_entries: number;
+  coverage_required: number;
+  coverage_ready: number;
+  published_catalogue_countries: number;
+  published_pathway_versions: number;
+  message: string;
+};
+
+export type CountryRankingItem = {
+  rank: number;
+  country: string;
+  ranking_score: number;
+  profile_match_score: number;
+  confidence: number;
+  reviewed_coverage_ready: boolean;
+  pathway_count: number;
+  primary_pathway: PathwayComparisonItem;
+  alternative_pathways: PathwayComparisonItem[];
+  tradeoffs: string[];
+  long_term_dependencies: CountryLongTermDependency[];
+  uncertainty: CountryRankingUncertainty;
+  explanation: string;
+};
+
+export type CountryRanking = {
+  assessment_id: string | null;
+  lead_id: string;
+  profile_id: string | null;
+  profile_version: number | null;
+  status: string;
+  consent_status: string;
+  scope: CountryRankingScope;
+  countries: CountryRankingItem[];
+  explicit_user_acceptance: boolean;
+  user_attestation: string;
+  notes: string;
+  summary: string;
+  human_review_required: boolean;
+  generated_by: string;
+  generated_at: string;
+};
+
 export type MobilityTimelineMilestone = {
   id: string;
   timeline_id: string;
@@ -1758,6 +2457,85 @@ export type MobilityTimeline = {
   milestones: MobilityTimelineMilestone[];
 };
 
+export type MobilityScenarioStageType =
+  | "study"
+  | "graduate_rights"
+  | "work_permit"
+  | "skilled_migration"
+  | "settlement"
+  | "permanent_residence"
+  | "citizenship_review";
+
+export type MobilityScenarioStage = {
+  id: string;
+  scenario_id: string;
+  stage_order: number;
+  stage_type: MobilityScenarioStageType;
+  title: string;
+  country: string;
+  domain: string;
+  pathway_id: string;
+  pathway_version_id: string;
+  planned_start: string;
+  planned_end: string;
+  duration_months: number;
+  gap_months_before: number;
+  dependencies: string[];
+  verified_rule_ids: string[];
+  source_snapshot_ids: string[];
+  timing_basis: Record<string, unknown>;
+  uncertainty: Record<string, unknown>;
+  human_confirmation_required: boolean;
+  created_at: string;
+};
+
+export type MobilityScenario = {
+  id: string;
+  lead_id: string;
+  profile_id: string | null;
+  profile_version: number | null;
+  baseline_timeline_id: string | null;
+  scenario_version: number;
+  supersedes_scenario_id: string | null;
+  title: string;
+  status: string;
+  start_date: string;
+  countries: string[];
+  pathway_version_ids: string[];
+  verified_rule_ids: string[];
+  regulatory_impact_ids: string[];
+  explicit_user_acceptance: boolean;
+  user_attestation: string;
+  review_notes: string;
+  human_confirmation_required: boolean;
+  original_scenario_preserved: boolean;
+  global_coverage_claim_ready: boolean;
+  warning: string;
+  reviewed_by: string;
+  reviewed_at: string;
+  created_at: string;
+  stages: MobilityScenarioStage[];
+};
+
+export type MobilityScenarioRecalculationCandidate = {
+  scenario_id: string;
+  scenario_version: number;
+  available: boolean;
+  impacts: Array<{
+    impact_id: string;
+    pathway_version_id: string;
+    replacement_pathway_version_id: string;
+    impact_type: string;
+    materiality: string;
+    review_notes: string | null;
+    affected_stage_orders: number[];
+    event_at: string;
+  }>;
+  message: string;
+  original_scenario_preserved: boolean;
+  automatic_recalculation_performed: boolean;
+};
+
 export async function listOfficialSources(params?: { country?: string; domain?: string }): Promise<{ total: number; sources: OfficialSourceView[] }> {
   const search = new URLSearchParams();
   if (params?.country) search.set("country", params.country);
@@ -1773,6 +2551,39 @@ export async function listPathways(params?: { country?: string; domain?: string;
   if (params?.catalogue_status) search.set("catalogue_status", params.catalogue_status);
   const query = search.toString();
   return request<MobilityPathway[]>(`/api/v1/pathways${query ? `?${query}` : ""}`);
+}
+
+export async function listPathwayRegulatoryImpacts(params?: {
+  status?: string;
+  pathway_id?: string;
+  pathway_version_id?: string;
+  verified_rule_id?: string;
+  impact_type?: string;
+  limit?: number;
+}): Promise<PathwayRegulatoryImpactQueue> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.pathway_id) search.set("pathway_id", params.pathway_id);
+  if (params?.pathway_version_id) search.set("pathway_version_id", params.pathway_version_id);
+  if (params?.verified_rule_id) search.set("verified_rule_id", params.verified_rule_id);
+  if (params?.impact_type) search.set("impact_type", params.impact_type);
+  if (params?.limit) search.set("limit", String(params.limit));
+  const query = search.toString();
+  return request<PathwayRegulatoryImpactQueue>(`/api/v1/pathways/regulatory-impacts${query ? `?${query}` : ""}`);
+}
+
+export async function reviewPathwayRegulatoryImpact(
+  impactId: string,
+  payload: {
+    decision: "acknowledged" | "no_change_required" | "new_version_required" | "resolved";
+    notes: string;
+    replacement_pathway_version_id?: string | null;
+  }
+): Promise<PathwayRegulatoryImpact> {
+  return request<PathwayRegulatoryImpact>(`/api/v1/pathways/regulatory-impacts/${impactId}/review`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function getPathway(pathwayId: string): Promise<MobilityPathwayDetail> {
@@ -1808,6 +2619,29 @@ export async function retirePathway(pathwayId: string, reason: string): Promise<
   });
 }
 
+export async function generateCountryRanking(
+  leadId: string,
+  payload: {
+    explicit_user_acceptance: boolean;
+    user_attestation: string;
+    notes: string;
+    limit_countries?: number;
+  },
+): Promise<CountryRanking> {
+  return request<CountryRanking>(`/api/v1/pathways/country-rankings/${leadId}`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getLatestCountryRanking(leadId: string): Promise<CountryRanking> {
+  return request<CountryRanking>(`/api/v1/pathways/country-rankings/${leadId}/latest`);
+}
+
+export async function getCountryRankingHistory(leadId: string): Promise<CountryRanking[]> {
+  return request<CountryRanking[]>(`/api/v1/pathways/country-rankings/${leadId}`);
+}
+
 export async function comparePathways(leadId: string, limit = 5): Promise<PathwayComparison> {
   return request<PathwayComparison>(`/api/v1/pathways/compare/${leadId}?limit=${limit}`, { method: "POST" });
 }
@@ -1818,6 +2652,37 @@ export async function getLatestPathwayComparison(leadId: string): Promise<Pathwa
 
 export async function getPathwayComparisonHistory(leadId: string): Promise<PathwayComparison[]> {
   return request<PathwayComparison[]>(`/api/v1/pathways/comparisons/${leadId}`);
+}
+
+export async function getReassessmentCandidate(leadId: string): Promise<ReassessmentCandidate> {
+  return request<ReassessmentCandidate>(`/api/v1/pathways/comparisons/${leadId}/reassessment`);
+}
+
+export async function listReassessmentAcceptances(leadId: string): Promise<ReassessmentAcceptance[]> {
+  return request<ReassessmentAcceptance[]>(`/api/v1/pathways/comparisons/${leadId}/reassessment-acceptances`);
+}
+
+export async function createReassessmentAcceptance(
+  leadId: string,
+  payload: {
+    baseline_assessment_id: string;
+    accept_profile_version: boolean;
+    regulatory_impact_ids: string[];
+    explicit_user_acceptance: boolean;
+    user_attestation: string;
+    notes: string;
+  },
+): Promise<ReassessmentAcceptance> {
+  return request<ReassessmentAcceptance>(`/api/v1/pathways/comparisons/${leadId}/reassessment-acceptances`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function executeReassessmentAcceptance(acceptanceId: string): Promise<PathwayComparison> {
+  return request<PathwayComparison>(`/api/v1/pathways/reassessment-acceptances/${acceptanceId}/execute`, {
+    method: "POST",
+  });
 }
 
 export async function listMobilityTimelines(leadId?: string): Promise<MobilityTimeline[]> {
@@ -1845,6 +2710,114 @@ export async function transitionMobilityMilestone(
     method: "POST",
     body: JSON.stringify({ action, note: note || null }),
   });
+}
+
+export async function listMobilityScenarios(leadId?: string): Promise<MobilityScenario[]> {
+  return request<MobilityScenario[]>(`/api/v1/mobility-timelines/scenarios${leadId ? `?lead_id=${leadId}` : ""}`);
+}
+
+export async function createMobilityScenario(payload: {
+  lead_id: string;
+  title: string;
+  start_date: string;
+  baseline_timeline_id?: string | null;
+  stages: Array<{
+    stage_type: MobilityScenarioStageType;
+    pathway_version_id: string;
+    duration_months: number;
+    gap_months_before: number;
+    title?: string | null;
+  }>;
+  explicit_user_acceptance: boolean;
+  user_attestation: string;
+  review_notes: string;
+}): Promise<MobilityScenario> {
+  return request<MobilityScenario>("/api/v1/mobility-timelines/scenarios", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getMobilityScenarioRecalculationCandidate(
+  scenarioId: string,
+): Promise<MobilityScenarioRecalculationCandidate> {
+  return request<MobilityScenarioRecalculationCandidate>(
+    `/api/v1/mobility-timelines/scenarios/${scenarioId}/recalculation-candidate`,
+  );
+}
+
+export async function recalculateMobilityScenario(
+  scenarioId: string,
+  payload: {
+    regulatory_impact_ids: string[];
+    explicit_user_acceptance: boolean;
+    user_attestation: string;
+    review_notes: string;
+  },
+): Promise<MobilityScenario> {
+  return request<MobilityScenario>(`/api/v1/mobility-timelines/scenarios/${scenarioId}/recalculate`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getDocumentStoragePosture(): Promise<DocumentStoragePosture> {
+  return request<DocumentStoragePosture>("/api/v1/document-access/storage-posture");
+}
+
+export async function listDocumentAccessGrants(params?: { lead_id?: string; document_id?: string; status?: string }): Promise<DocumentAccessGrant[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.document_id) search.set("document_id", params.document_id);
+  if (params?.status) search.set("status", params.status);
+  const query = search.toString();
+  return request<DocumentAccessGrant[]>(`/api/v1/document-access/grants${query ? `?${query}` : ""}`);
+}
+
+export async function issueDocumentAccessGrant(
+  documentId: string,
+  leadId: string,
+  purpose = "operator_review",
+): Promise<DocumentAccessGrantIssued> {
+  return request<DocumentAccessGrantIssued>(`/api/v1/document-access/documents/${documentId}/grants`, {
+    method: "POST",
+    body: JSON.stringify({ lead_id: leadId, purpose, ttl_seconds: 120, max_uses: 1 }),
+  });
+}
+
+export async function revokeDocumentAccessGrant(grantId: string, reason: string): Promise<DocumentAccessGrant> {
+  return request<DocumentAccessGrant>(`/api/v1/document-access/grants/${grantId}/revoke`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function downloadDocumentWithAccessToken(token: string): Promise<{ blob: Blob; filename: string }> {
+  const useLocalHeaderAuth =
+    process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE === "true" ||
+    (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE !== "false");
+  const response = await fetch(`${API_BASE}/api/v1/document-access/content`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(useLocalHeaderAuth
+        ? {
+            "x-gmai-role": process.env.NEXT_PUBLIC_GMAI_ROLE || "admin",
+            "x-gmai-user": process.env.NEXT_PUBLIC_GMAI_USER || "frontend-operator",
+          }
+        : {}),
+    },
+    credentials: "include",
+    cache: "no-store",
+    body: JSON.stringify({ token }),
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed: ${response.status}`);
+  }
+  const disposition = response.headers.get("content-disposition") || "";
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  return { blob: await response.blob(), filename: match?.[1] || "document.bin" };
 }
 
 export async function listDocumentSchemas(): Promise<DocumentSchemaDefinition[]> {
@@ -1900,12 +2873,282 @@ export async function reviewDocumentConsistencyAssessment(
   });
 }
 
-export async function getGlobalIntelligenceDashboard(windowDays = 90): Promise<GlobalIntelligenceDashboard> {
-  return request<GlobalIntelligenceDashboard>(`/api/v1/global-intelligence/dashboard?window_days=${windowDays}`);
+export async function listDocumentExpiryReminders(params?: { lead_id?: string; status?: string }): Promise<DocumentExpiryReminder[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.status) search.set("status", params.status);
+  const query = search.toString();
+  return request<DocumentExpiryReminder[]>(`/api/v1/document-intelligence/expiry-reminders${query ? `?${query}` : ""}`);
+}
+
+export async function scanDocumentExpiryReminders(leadId?: string): Promise<DocumentExpiryScanResult> {
+  return request<DocumentExpiryScanResult>("/api/v1/document-intelligence/expiry-reminders/scan", {
+    method: "POST",
+    body: JSON.stringify({ lead_id: leadId || null }),
+  });
+}
+
+export async function reviewDocumentExpiryReminder(
+  reminderId: string,
+  decision: "acknowledged" | "dismissed" | "resolved",
+  notes: string,
+): Promise<DocumentExpiryReminder> {
+  return request<DocumentExpiryReminder>(`/api/v1/document-intelligence/expiry-reminders/${reminderId}/review`, {
+    method: "POST",
+    body: JSON.stringify({ decision, notes }),
+  });
+}
+
+export async function listDocumentRequirementAssessments(params?: { lead_id?: string; review_status?: string; result_status?: string }): Promise<DocumentRequirementAssessment[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.review_status) search.set("review_status", params.review_status);
+  if (params?.result_status) search.set("result_status", params.result_status);
+  const query = search.toString();
+  return request<DocumentRequirementAssessment[]>(`/api/v1/document-intelligence/requirement-assessments${query ? `?${query}` : ""}`);
+}
+
+export async function scanDocumentRequirementAssessments(leadId?: string): Promise<DocumentRequirementScanResult> {
+  return request<DocumentRequirementScanResult>("/api/v1/document-intelligence/requirement-assessments/scan", {
+    method: "POST",
+    body: JSON.stringify({ lead_id: leadId || null }),
+  });
+}
+
+export async function generateDocumentRequirementAssessment(payload: {
+  lead_id: string;
+  application_id?: string | null;
+  pathway_version_id?: string | null;
+}): Promise<DocumentRequirementAssessment> {
+  return request<DocumentRequirementAssessment>("/api/v1/document-intelligence/requirement-assessments/generate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function reviewDocumentRequirementAssessment(
+  assessmentId: string,
+  decision: "approved" | "rejected",
+  notes: string,
+): Promise<DocumentRequirementAssessment> {
+  return request<DocumentRequirementAssessment>(`/api/v1/document-intelligence/requirement-assessments/${assessmentId}/review`, {
+    method: "POST",
+    body: JSON.stringify({ decision, notes }),
+  });
+}
+
+
+export async function listDocumentFraudRiskAssessments(params?: { lead_id?: string; review_status?: string; risk_band?: string }): Promise<DocumentFraudRiskAssessment[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.review_status) search.set("review_status", params.review_status);
+  if (params?.risk_band) search.set("risk_band", params.risk_band);
+  const query = search.toString();
+  return request<DocumentFraudRiskAssessment[]>(`/api/v1/document-intelligence/fraud-risk-assessments${query ? `?${query}` : ""}`);
+}
+
+export async function scanDocumentFraudRiskAssessments(leadId?: string): Promise<DocumentFraudRiskScanResult> {
+  return request<DocumentFraudRiskScanResult>("/api/v1/document-intelligence/fraud-risk-assessments/scan", {
+    method: "POST",
+    body: JSON.stringify({ lead_id: leadId || null }),
+  });
+}
+
+export async function reviewDocumentFraudRiskAssessment(
+  assessmentId: string,
+  decision: "cleared" | "specialist_review_required" | "dismissed",
+  notes: string,
+): Promise<DocumentFraudRiskAssessment> {
+  return request<DocumentFraudRiskAssessment>(`/api/v1/document-intelligence/fraud-risk-assessments/${assessmentId}/review`, {
+    method: "POST",
+    body: JSON.stringify({ decision, notes }),
+  });
+}
+
+export type GlobalIntelligenceFilterParams = {
+  freshness?: string;
+  coverage?: string;
+  authority_id?: string;
+  confidence?: string;
+  materiality?: string;
+  review_state?: string;
+};
+
+export async function getGlobalIntelligenceDashboard(
+  windowDays = 90,
+  filters: GlobalIntelligenceFilterParams = {},
+): Promise<GlobalIntelligenceDashboard> {
+  const params = new URLSearchParams({ window_days: String(windowDays) });
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value && value !== "all") params.set(key, value);
+  });
+  return request<GlobalIntelligenceDashboard>(`/api/v1/global-intelligence/dashboard?${params.toString()}`);
 }
 
 export async function getGlobalJurisdictionRegistry(): Promise<GlobalJurisdictionRegistry> {
   return request<GlobalJurisdictionRegistry>("/api/v1/global-intelligence/registry");
+}
+
+export async function getJurisdictionCoverageWorklist(
+  gap = "all",
+  region = "all",
+  limit = 249,
+): Promise<JurisdictionCoverageWorklist> {
+  const params = new URLSearchParams({ gap, region, limit: String(limit) });
+  return request<JurisdictionCoverageWorklist>(
+    `/api/v1/global-intelligence/registry/coverage-worklist?${params.toString()}`,
+  );
+}
+
+export async function listJurisdictionCoverageBatches(
+  limit = 50,
+): Promise<{ total: number; batches: JurisdictionCoverageEvidenceBatch[] }> {
+  return request<{ total: number; batches: JurisdictionCoverageEvidenceBatch[] }>(
+    `/api/v1/global-intelligence/registry/coverage-batches?limit=${limit}`,
+  );
+}
+
+export async function getCoverageTrancheAssistantConfig(): Promise<CoverageTrancheAssistantConfig> {
+  return request<CoverageTrancheAssistantConfig>(
+    "/api/v1/global-intelligence/registry/coverage-tranche-assistant/config",
+  );
+}
+
+export async function prepareCoverageTranche(
+  batchId: string,
+  payload: {
+    alpha2_codes: string[];
+    dry_run?: boolean;
+    queue_eligible_baselines?: boolean;
+    include_candidate_assertions?: boolean;
+    max_candidate_lines?: number;
+  },
+): Promise<CoverageTrancheAssistantResult> {
+  return request<CoverageTrancheAssistantResult>(
+    `/api/v1/global-intelligence/registry/coverage-batches/${batchId}/assistant/prepare`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function getJurisdictionCoverageBaselineStatus(
+  batchId: string,
+): Promise<JurisdictionCoverageBaselineStatus> {
+  return request<JurisdictionCoverageBaselineStatus>(
+    `/api/v1/global-intelligence/registry/coverage-batches/${batchId}/baseline-status`,
+  );
+}
+
+export async function queueJurisdictionCoverageBaselines(
+  batchId: string,
+): Promise<JurisdictionCoverageBaselineStatus> {
+  return request<JurisdictionCoverageBaselineStatus>(
+    `/api/v1/global-intelligence/registry/coverage-batches/${batchId}/capture-baselines`,
+    { method: "POST" },
+  );
+}
+
+export async function listInitialRuleAssertions(
+  batchId: string,
+): Promise<{ total: number; assertions: InitialRuleAssertion[] }> {
+  return request<{ total: number; assertions: InitialRuleAssertion[] }>(
+    `/api/v1/global-intelligence/registry/coverage-batches/${batchId}/initial-rule-assertions`,
+  );
+}
+
+export async function proposeInitialRuleAssertion(
+  batchId: string,
+  payload: {
+    alpha2_code: string;
+    domain: string;
+    title: string;
+    rule_key: string;
+    statement: string;
+    rationale: string;
+    evidence_excerpt: string;
+    confidence: number;
+    effective_from?: string | null;
+    effective_to?: string | null;
+  },
+): Promise<InitialRuleAssertion> {
+  return request<InitialRuleAssertion>(
+    `/api/v1/global-intelligence/registry/coverage-batches/${batchId}/initial-rule-assertions`,
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export async function reviewInitialRuleAssertion(
+  assertionId: string,
+  decision: "approved" | "rejected",
+  notes: string,
+): Promise<InitialRuleAssertion> {
+  return request<InitialRuleAssertion>(
+    `/api/v1/global-intelligence/registry/initial-rule-assertions/${assertionId}/review`,
+    { method: "POST", body: JSON.stringify({ decision, notes }) },
+  );
+}
+
+export async function publishInitialRuleAssertion(
+  assertionId: string,
+  publicationNotes: string,
+): Promise<{
+  initial_rule_assertion: InitialRuleAssertion;
+  verified_rule: VerifiedRule;
+  coverage_receipt: InitialRulePublicationReceipt;
+}> {
+  return request<{
+    initial_rule_assertion: InitialRuleAssertion;
+    verified_rule: VerifiedRule;
+    coverage_receipt: InitialRulePublicationReceipt;
+  }>(
+    `/api/v1/global-intelligence/registry/initial-rule-assertions/${assertionId}/publish`,
+    { method: "POST", body: JSON.stringify({ attestation: true, publication_notes: publicationNotes }) },
+  );
+}
+
+export async function createJurisdictionCoverageBatch(payload: {
+  name: string;
+  notes: string;
+  items: Array<{
+    alpha2_code: string;
+    immigration_assessment?: {
+      rule_relationship: "independent" | "parent_inherited" | "shared_or_coordinated" | "not_applicable" | "unclear";
+      parent_code?: string | null;
+      evidence_url: string;
+      evidence_title: string;
+      rationale: string;
+      official_source_id?: string | null;
+      source_snapshot_id?: string | null;
+    };
+    source_certification?: {
+      regulatory_authority_id: string;
+      official_source_id: string;
+      coverage_domains: string[];
+      evidence_notes: string;
+    };
+    source_onboarding?: {
+      authority_name: string;
+      authority_type?: string;
+      authority_website_url?: string | null;
+      authority_domains: string[];
+      source_name: string;
+      source_url: string;
+      source_domain: string;
+      source_type?: "government" | "official" | "official_portal" | "official_agency" | "gazette";
+      schedule_minutes?: number;
+      fetch_method?: "http" | "browser" | "api" | "manual";
+      allowed_domains?: string[];
+      max_redirects?: number;
+      parser_profile?: "generic" | "gazette_html_v1" | "structured_program_catalog_v1";
+      parser_config?: Record<string, unknown>;
+      certification_domains: string[];
+      evidence_notes: string;
+    };
+  }>;
+}): Promise<JurisdictionCoverageEvidenceBatch> {
+  return request<JurisdictionCoverageEvidenceBatch>(
+    "/api/v1/global-intelligence/registry/coverage-batches",
+    { method: "POST", body: JSON.stringify(payload) },
+  );
 }
 
 export async function proposeJurisdictionImmigrationAssessment(
@@ -1942,6 +3185,7 @@ export async function proposeJurisdictionSourceCertification(
   payload: {
     regulatory_authority_id: string;
     official_source_id: string;
+    certification_scope?: string;
     coverage_domains: string[];
     evidence_notes: string;
   },

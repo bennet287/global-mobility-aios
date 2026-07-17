@@ -17,6 +17,7 @@ import {
   Jurisdiction,
   listJurisdictions,
   listOfficialSources,
+  listPathwayRegulatoryImpacts,
   listPathways,
   listSourceSnapshots,
   listVerifiedRules,
@@ -24,9 +25,12 @@ import {
   MobilityPathwayDetail,
   OfficialSourceView,
   PathwayDomain,
+  PathwayRegulatoryImpact,
+  PathwayRegulatoryImpactQueue,
   PathwayVersion,
   PathwayVersionInput,
   publishPathwayVersion,
+  reviewPathwayRegulatoryImpact,
   retirePathway,
   SourceSnapshotView,
   VerifiedRule,
@@ -100,6 +104,14 @@ export default function PathwaysPage() {
   const [sources, setSources] = useState<OfficialSourceView[]>([]);
   const [snapshots, setSnapshots] = useState<SourceSnapshotView[]>([]);
   const [rules, setRules] = useState<VerifiedRule[]>([]);
+  const [impactQueue, setImpactQueue] = useState<PathwayRegulatoryImpactQueue>({
+    total_returned: 0,
+    counts_by_status: {},
+    pending_review: 0,
+    client_assessments_unchanged: true,
+    impacts: [],
+  });
+  const [impactNotes, setImpactNotes] = useState<Record<string, string>>({});
   const [form, setForm] = useState<FormState>(EMPTY);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -112,9 +124,10 @@ export default function PathwaysPage() {
     setLoading(true);
     setError(null);
     try {
-      const [healthResult, pathwayRows, jurisdictionRows, sourceRows, snapshotRows, ruleRows] = await Promise.all([
+      const [healthResult, pathwayRows, jurisdictionRows, sourceRows, snapshotRows, ruleRows, impacts] = await Promise.all([
         getHealthStatus(), listPathways(), listJurisdictions(), listOfficialSources(),
         listSourceSnapshots({ limit: 500 }), listVerifiedRules({ active: true, limit: 500 }),
+        listPathwayRegulatoryImpacts({ limit: 200 }),
       ]);
       setHealth(healthResult.data);
       setPathways(pathwayRows);
@@ -122,6 +135,7 @@ export default function PathwaysPage() {
       setSources(sourceRows.sources);
       setSnapshots(snapshotRows.snapshots);
       setRules(ruleRows.verified_rules);
+      setImpactQueue(impacts);
       if (selected) {
         const refreshed = await getPathway(selected.id);
         setSelected(refreshed);
@@ -221,6 +235,32 @@ export default function PathwaysPage() {
     finally { setBusy(null); }
   }
 
+  async function reviewImpact(
+    impact: PathwayRegulatoryImpact,
+    decision: "acknowledged" | "no_change_required" | "new_version_required" | "resolved",
+    replacementPathwayVersionId?: string,
+  ) {
+    const notes = (impactNotes[impact.id] || "").trim();
+    if (notes.length < 3) return;
+    setBusy(`impact-${impact.id}-${decision}`); setError(null); setMessage(null);
+    try {
+      await reviewPathwayRegulatoryImpact(impact.id, {
+        decision,
+        notes,
+        replacement_pathway_version_id: replacementPathwayVersionId || null,
+      });
+      setImpactQueue(await listPathwayRegulatoryImpacts({ limit: 200 }));
+      setImpactNotes((currentNotes) => ({ ...currentNotes, [impact.id]: "" }));
+      setMessage(
+        decision === "resolved"
+          ? "Regulatory impact resolved against a newer human-published pathway version."
+          : "Regulatory impact review recorded without changing client assessments or pathway criteria."
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not review regulatory impact");
+    } finally { setBusy(null); }
+  }
+
   const filteredSnapshots = useMemo(() => snapshots.filter((snapshot) => snapshot.official_source_id === form.sourceId), [snapshots, form.sourceId]);
   const filteredRules = useMemo(() => rules.filter((rule) => rule.country.toLowerCase() === form.country.toLowerCase()), [rules, form.country]);
   const counts = {
@@ -245,7 +285,63 @@ export default function PathwaysPage() {
           <MetricPill label="Retired" value={counts.retired} />
           <MetricPill label="Total versions" value={counts.versions} />
           <MetricPill label="Evidence rules" value={rules.length} tone="good" />
+          <MetricPill label="Pending impacts" value={impactQueue.pending_review} tone={impactQueue.pending_review ? "warn" : "good"} />
         </div>
+
+        <section className="panel pathway-impact-panel">
+          <div className="panel-header-row">
+            <SectionTitle
+              label="Regulatory impact queue"
+              title="Reviewed graph changes linked to exact pathway versions"
+              detail="These records never rewrite published criteria, comparisons, timelines, or client conclusions."
+            />
+            <StatusBadge value={impactQueue.client_assessments_unchanged ? "assessments_unchanged" : "integrity_warning"} />
+          </div>
+          {impactQueue.impacts.length ? <div className="pathway-impact-list">
+            {impactQueue.impacts.map((impact) => {
+              const currentPathway = pathways.find((item) => item.id === impact.pathway_id);
+              const replacement = currentPathway?.current_version;
+              const replacementEligible = Boolean(
+                replacement
+                && replacement.version_number > impact.pathway_version_number
+                && ["published", "superseded"].includes(replacement.lifecycle_status)
+              );
+              const terminal = ["resolved", "no_change_required"].includes(impact.status);
+              return <article key={impact.id} className="pathway-impact-card">
+                <div className="pathway-impact-heading">
+                  <div>
+                    <span className="eyebrow">{titleCase(impact.impact_type)} · {titleCase(impact.materiality)}</span>
+                    <strong>{impact.pathway_name} · version {impact.pathway_version_number}</strong>
+                    <p>{impact.rule_key} · {titleCase(impact.change_type)}</p>
+                  </div>
+                  <StatusBadge value={impact.status} />
+                </div>
+                <div className="pathway-impact-facts">
+                  <span>Graph {impact.graph_projection_version}</span>
+                  <span>{impact.client_assessment_count_at_detection} pinned comparisons</span>
+                  <span>{impact.timeline_count_at_detection} pinned timelines</span>
+                  <span>{impact.match_basis.map(titleCase).join(" · ")}</span>
+                </div>
+                <small>Rule {impact.verified_rule_id.slice(0, 8)} · snapshot {impact.source_snapshot_id.slice(0, 8)} · detected {new Date(impact.event_at).toLocaleString()}</small>
+                {!terminal && <div className="pathway-impact-review">
+                  <textarea
+                    rows={2}
+                    value={impactNotes[impact.id] || ""}
+                    onChange={(event) => setImpactNotes((currentNotes) => ({ ...currentNotes, [impact.id]: event.target.value }))}
+                    placeholder="Record the evidence reviewed and whether a new immutable pathway version is required."
+                  />
+                  <div className="pathway-editor-actions">
+                    <button type="button" className="button secondary small" disabled={(impactNotes[impact.id] || "").trim().length < 3 || Boolean(busy)} onClick={() => void reviewImpact(impact, "acknowledged")}>Acknowledge</button>
+                    <button type="button" className="button secondary small" disabled={(impactNotes[impact.id] || "").trim().length < 3 || Boolean(busy)} onClick={() => void reviewImpact(impact, "no_change_required")}>No change required</button>
+                    <button type="button" className="button primary small" disabled={(impactNotes[impact.id] || "").trim().length < 3 || Boolean(busy)} onClick={() => void reviewImpact(impact, "new_version_required")}>Require new version</button>
+                    {replacementEligible && replacement && <button type="button" className="button primary small" disabled={(impactNotes[impact.id] || "").trim().length < 3 || Boolean(busy)} onClick={() => void reviewImpact(impact, "resolved", replacement.id)}>Resolve with v{replacement.version_number}</button>}
+                  </div>
+                </div>}
+                {impact.review_notes && <p className="pathway-impact-note"><strong>{impact.reviewed_by || "Reviewer"}:</strong> {impact.review_notes}</p>}
+              </article>;
+            })}
+          </div> : <EmptyState title="No regulatory impacts" detail="New human-published rule changes will appear here when they affect a currently published pathway version." />}
+        </section>
 
         <div className="pathway-workspace-grid">
           <section className="panel pathway-list-panel">

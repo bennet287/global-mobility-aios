@@ -325,6 +325,7 @@ def propose_immigration_assessment(
     actor: str,
     official_source_id: Any | None = None,
     source_snapshot_id: Any | None = None,
+    commit: bool = True,
 ) -> JurisdictionImmigrationAssessment:
     allowed = CLEAR_IMMIGRATION_RULE_RELATIONSHIPS | {"unclear"}
     if rule_relationship not in allowed:
@@ -396,8 +397,11 @@ def propose_immigration_assessment(
         supersedes_assessment_id=latest.id if latest and latest.status == "approved" else None,
     )
     session.add(assessment)
-    session.commit()
-    session.refresh(assessment)
+    if commit:
+        session.commit()
+        session.refresh(assessment)
+    else:
+        session.flush()
     return assessment
 
 
@@ -451,6 +455,8 @@ def propose_source_certification(
     coverage_domains: list[str],
     evidence_notes: str,
     actor: str,
+    certification_scope: str = "primary_immigration",
+    commit: bool = True,
 ) -> JurisdictionSourceCertification:
     jurisdiction = session.get(Jurisdiction, jurisdiction_id)
     if jurisdiction is None or not jurisdiction.active:
@@ -479,8 +485,26 @@ def propose_source_certification(
         or source.regulatory_authority_id != authority.id
     ):
         raise ValueError("Active official source does not belong to the selected authority and jurisdiction")
+    scope = certification_scope.strip().lower()
+    if scope != "primary_immigration" and not scope.startswith("supplemental_"):
+        raise ValueError("Certification scope must be primary_immigration or supplemental_<domain>")
+    if scope.startswith("supplemental_"):
+        supplemental_domain = scope.removeprefix("supplemental_")
+        if supplemental_domain != source.domain.lower():
+            raise ValueError("Supplemental certification scope must match the official source domain")
+        approved_primary = session.exec(
+            select(JurisdictionSourceCertification)
+            .where(JurisdictionSourceCertification.jurisdiction_id == jurisdiction.id)
+            .where(JurisdictionSourceCertification.certification_scope == "primary_immigration")
+            .where(JurisdictionSourceCertification.status == "approved")
+            .order_by(JurisdictionSourceCertification.certification_version.desc())
+        ).first()
+        if approved_primary is None:
+            raise ValueError("Supplemental source certification requires an approved primary immigration certification")
+        if approved_primary.regulatory_authority_id != authority.id:
+            raise ValueError("Supplemental source must belong to the independently approved primary authority")
     if not source.url.lower().startswith("https://"):
-        raise ValueError("Primary official source must use HTTPS")
+        raise ValueError("Certified official source must use HTTPS")
     domains = sorted({str(domain).strip().lower() for domain in coverage_domains if str(domain).strip()})
     if not domains:
         raise ValueError("At least one coverage domain is required")
@@ -489,17 +513,17 @@ def propose_source_certification(
     pending = session.exec(
         select(JurisdictionSourceCertification).where(
             JurisdictionSourceCertification.jurisdiction_id == jurisdiction.id,
-            JurisdictionSourceCertification.certification_scope == "primary_immigration",
+            JurisdictionSourceCertification.certification_scope == scope,
             JurisdictionSourceCertification.status == "pending_review",
         )
     ).first()
     if pending:
-        raise ValueError("Jurisdiction already has a primary-source certification pending review")
+        raise ValueError(f"Jurisdiction already has a {scope} source certification pending review")
     latest = session.exec(
         select(JurisdictionSourceCertification)
         .where(
             JurisdictionSourceCertification.jurisdiction_id == jurisdiction.id,
-            JurisdictionSourceCertification.certification_scope == "primary_immigration",
+            JurisdictionSourceCertification.certification_scope == scope,
         )
         .order_by(JurisdictionSourceCertification.certification_version.desc())
     ).first()
@@ -509,7 +533,7 @@ def propose_source_certification(
         regulatory_authority_id=authority.id,
         official_source_id=source.id,
         certification_version=(latest.certification_version + 1) if latest else 1,
-        certification_scope="primary_immigration",
+        certification_scope=scope,
         coverage_domains_json=json.dumps(domains, sort_keys=True),
         evidence_notes=evidence_notes.strip(),
         status="pending_review",
@@ -517,8 +541,11 @@ def propose_source_certification(
         supersedes_certification_id=latest.id if latest and latest.status == "approved" else None,
     )
     session.add(certification)
-    session.commit()
-    session.refresh(certification)
+    if commit:
+        session.commit()
+        session.refresh(certification)
+    else:
+        session.flush()
     return certification
 
 
@@ -617,15 +644,22 @@ def jurisdiction_registry_coverage(session: Session) -> dict[str, Any]:
             approved_assessments[assessment.jurisdiction_id] = assessment
         elif assessment.status == "pending_review" and assessment.jurisdiction_id not in pending_assessments:
             pending_assessments[assessment.jurisdiction_id] = assessment
-    approved_certifications: dict[Any, JurisdictionSourceCertification] = {}
-    pending_certifications: dict[Any, JurisdictionSourceCertification] = {}
+    approved_primary_certifications: dict[Any, JurisdictionSourceCertification] = {}
+    pending_primary_certifications: dict[Any, JurisdictionSourceCertification] = {}
+    approved_supplemental_certifications: dict[Any, list[JurisdictionSourceCertification]] = {}
+    pending_supplemental_certifications: dict[Any, list[JurisdictionSourceCertification]] = {}
     for certification in certifications:
         if certification.registry_entry_id not in active_entry_ids:
             continue
-        if certification.status == "approved" and certification.jurisdiction_id not in approved_certifications:
-            approved_certifications[certification.jurisdiction_id] = certification
-        elif certification.status == "pending_review" and certification.jurisdiction_id not in pending_certifications:
-            pending_certifications[certification.jurisdiction_id] = certification
+        is_primary = certification.certification_scope == "primary_immigration"
+        if certification.status == "approved" and is_primary and certification.jurisdiction_id not in approved_primary_certifications:
+            approved_primary_certifications[certification.jurisdiction_id] = certification
+        elif certification.status == "pending_review" and is_primary and certification.jurisdiction_id not in pending_primary_certifications:
+            pending_primary_certifications[certification.jurisdiction_id] = certification
+        elif certification.status == "approved" and not is_primary:
+            approved_supplemental_certifications.setdefault(certification.jurisdiction_id, []).append(certification)
+        elif certification.status == "pending_review" and not is_primary:
+            pending_supplemental_certifications.setdefault(certification.jurisdiction_id, []).append(certification)
     authority_jurisdictions = {row.jurisdiction_id for row in authorities}
     source_jurisdictions = {row.jurisdiction_id for row in sources if row.jurisdiction_id}
     sources_by_id = {row.id: row for row in sources}
@@ -648,14 +682,17 @@ def jurisdiction_registry_coverage(session: Session) -> dict[str, Any]:
     for entry in entries:
         has_authority = entry.jurisdiction_id in authority_jurisdictions
         has_source = entry.jurisdiction_id in source_jurisdictions
-        approved_certification = approved_certifications.get(entry.jurisdiction_id)
-        pending_certification = pending_certifications.get(entry.jurisdiction_id)
+        approved_certification = approved_primary_certifications.get(entry.jurisdiction_id)
+        pending_primary_certification = pending_primary_certifications.get(entry.jurisdiction_id)
+        approved_supplemental = approved_supplemental_certifications.get(entry.jurisdiction_id, [])
+        pending_supplemental = pending_supplemental_certifications.get(entry.jurisdiction_id, [])
+        pending_certification = pending_primary_certification or (pending_supplemental[0] if pending_supplemental else None)
         has_reviewed_primary_authority = approved_certification is not None
         has_reviewed_primary_source = approved_certification is not None
-        has_fresh_monitor = bool(
-            approved_certification
-            and approved_certification.official_source_id in fresh_monitor_source_ids
-        )
+        approved_monitor_source_ids = {
+            row.official_source_id for row in ([approved_certification] if approved_certification else []) + approved_supplemental
+        }
+        has_fresh_monitor = bool(approved_monitor_source_ids & fresh_monitor_source_ids)
         has_rule = entry.jurisdiction_id in rule_jurisdictions
         approved_assessment = approved_assessments.get(entry.jurisdiction_id)
         pending_assessment = pending_assessments.get(entry.jurisdiction_id)
@@ -695,6 +732,8 @@ def jurisdiction_registry_coverage(session: Session) -> dict[str, Any]:
             "has_reviewed_primary_source": has_reviewed_primary_source,
             "approved_source_certification": source_certification_payload(approved_certification) if approved_certification else None,
             "pending_source_certification": source_certification_payload(pending_certification) if pending_certification else None,
+            "approved_supplemental_source_certifications": [source_certification_payload(row) for row in approved_supplemental],
+            "pending_supplemental_source_certifications": [source_certification_payload(row) for row in pending_supplemental],
             "has_fresh_monitor": has_fresh_monitor,
             "has_verified_rule": has_rule,
             "coverage_ready": entry.coverage_required and not missing,
@@ -768,7 +807,10 @@ def jurisdiction_registry_coverage(session: Session) -> dict[str, Any]:
                 for row in required
             ),
             "assessments_pending_review": len(pending_assessments),
-            "source_certifications_pending_review": len(pending_certifications),
+            "source_certifications_pending_review": (
+                len(pending_primary_certifications)
+                + sum(len(rows) for rows in pending_supplemental_certifications.values())
+            ),
         },
         "release_gate": {
             "registry_complete": registry_complete,
@@ -787,3 +829,42 @@ def jurisdiction_registry_coverage(session: Session) -> dict[str, Any]:
         "regions": regions,
         "entries": rows,
     }
+
+def jurisdiction_coverage_receipt(session: Session, jurisdiction_id: Any) -> dict[str, Any]:
+    """Return the current reviewed evidence-gate posture for one registry jurisdiction."""
+    registry = jurisdiction_registry_coverage(session)
+    entry = next(
+        (row for row in registry.get("entries", []) if row.get("jurisdiction_id") == jurisdiction_id),
+        None,
+    )
+    if entry is None:
+        raise ValueError("Jurisdiction is not present in the active registry release")
+    coverage_ready = bool(entry.get("coverage_ready"))
+    coverage_required = bool(entry.get("coverage_required"))
+    return {
+        "registry_release_version": (registry.get("release") or {}).get("version"),
+        "registry_entry_id": entry.get("id"),
+        "jurisdiction_id": entry.get("jurisdiction_id"),
+        "alpha2_code": entry.get("alpha2_code"),
+        "name": entry.get("name"),
+        "coverage_required": coverage_required,
+        "coverage_ready": coverage_ready,
+        "status": "not_required" if not coverage_required else "ready" if coverage_ready else "gap",
+        "missing": list(entry.get("missing") or []),
+        "gates": {
+            "immigration_rule_assessment": entry.get("immigration_rule_status") in CLEAR_IMMIGRATION_RULE_RELATIONSHIPS,
+            "reviewed_primary_authority": bool(entry.get("has_reviewed_primary_authority")),
+            "reviewed_primary_source": bool(entry.get("has_reviewed_primary_source")),
+            "fresh_monitor": bool(entry.get("has_fresh_monitor")),
+            "verified_rule": bool(entry.get("has_verified_rule")),
+        },
+        "registry_summary": {
+            "coverage_ready": (registry.get("summary") or {}).get("coverage_ready", 0),
+            "coverage_required": (registry.get("summary") or {}).get("coverage_required", 0),
+            "with_verified_rule": (registry.get("summary") or {}).get("with_verified_rule", 0),
+        },
+        "global_coverage_claim_ready": bool(
+            (registry.get("release_gate") or {}).get("global_coverage_claim_ready")
+        ),
+    }
+

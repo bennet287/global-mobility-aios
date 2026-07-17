@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, FollowUp, Lead
+from app.services.document_storage import public_document_metadata
 
 router = APIRouter()
 
@@ -46,16 +47,14 @@ def _doc_label(document_type: str) -> str:
 
 
 def _document_to_dict(doc: DocumentRecord) -> dict[str, Any]:
-    return {
+    payload = public_document_metadata(doc)
+    payload.update({
         "id": str(_safe_value(doc, "id")),
         "lead_id": str(_safe_value(doc, "lead_id")) if _safe_value(doc, "lead_id") else None,
-        "document_type": _safe_value(doc, "document_type"),
         "label": _doc_label(str(_safe_value(doc, "document_type", ""))),
-        "filename": _safe_value(doc, "filename"),
-        "status": _status(doc),
-        "storage_key": _safe_value(doc, "storage_key"),
         "created_at": str(_safe_value(doc, "created_at")) if _safe_value(doc, "created_at") else None,
-    }
+    })
+    return payload
 
 
 def _lead_or_404(session: Session, lead_id: UUID) -> Lead:

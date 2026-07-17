@@ -14,6 +14,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, FollowUp, Lead
 from app.services.audit_log import record_audit
+from app.services.document_storage import public_document_metadata
 
 
 router = APIRouter(tags=["document-verification-actions"])
@@ -83,6 +84,8 @@ def _json_safe(value: Any) -> Any:
 def _to_dict(obj: Any) -> Dict[str, Any]:
     if obj is None:
         return {}
+    if isinstance(obj, DocumentRecord):
+        return {key: _json_safe(value) for key, value in public_document_metadata(obj).items()}
     fields = _model_fields(obj.__class__)
     if fields:
         return {name: _json_safe(getattr(obj, name, None)) for name in fields if hasattr(obj, name)}
@@ -569,7 +572,7 @@ def lead_document_verification_admin(lead_id: str, session: Session = Depends(ge
               <td>{doc.get('document_type')}</td>
               <td>{doc.get('filename') or '-'}</td>
               <td>{doc.get('status')}</td>
-              <td>{doc.get('storage_key') or '-'}</td>
+              <td>{doc.get('storage_provider') or '-'} / signed access</td>
               <td>
                 <form method="post" action="/admin/document-verification/documents/{doc_id}/receive" style="display:inline">
                   <button type="submit">Received</button>

@@ -82,3 +82,29 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
     assert schema_result["status"] == "ok"
     assert schema_result["missing_tables"] == {}
     assert schema_result["missing_columns"] == {}
+
+def test_postgresql_offline_migration_sql_compiles() -> None:
+    env = {
+        **os.environ,
+        "DATABASE_URL": "postgresql+psycopg://gmai:gmai@localhost:5432/gmai",
+    }
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "alembic",
+            "-c",
+            str(ROOT / "alembic.ini"),
+            "upgrade",
+            "0031_global_coverage_source_onboarding:0032_initial_rule_assertions",
+            "--sql",
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
+

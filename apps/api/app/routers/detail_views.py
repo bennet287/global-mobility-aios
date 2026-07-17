@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from sqlmodel import Session, select
 
 from app.core.db import get_session
+from app.services.document_storage import public_document_metadata
 from app.models.domain import (
     AgentRun,
     ApplicationRecord,
@@ -99,7 +100,7 @@ def lead_detail_api(
             "follow_ups": follow_ups,
             "workflow_runs": workflow_runs,
             "agent_runs": agent_runs,
-            "documents": documents,
+            "documents": [public_document_metadata(document) for document in documents],
             "applications": applications,
         }
     )

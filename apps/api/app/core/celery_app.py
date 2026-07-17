@@ -12,6 +12,10 @@ celery_app = Celery(
         "app.tasks.training_tasks",
         "app.tasks.source_monitor_tasks",
         "app.tasks.document_extraction_tasks",
+        "app.tasks.document_expiry_tasks",
+        "app.tasks.document_requirement_tasks",
+        "app.tasks.document_fraud_risk_tasks",
+        "app.tasks.document_access_tasks",
     ],
 )
 
@@ -30,6 +34,22 @@ celery_app.conf.update(
             "task": "app.tasks.source_monitor_tasks.enqueue_due_source_monitors",
             "schedule": 300.0,
             "args": (100,),
+        },
+        "scan-document-expiry-reminders": {
+            "task": "app.tasks.document_expiry_tasks.scan_document_expiry_reminders_task",
+            "schedule": 21600.0,
+        },
+        "scan-document-requirement-assessments": {
+            "task": "app.tasks.document_requirement_tasks.scan_document_requirement_assessments_task",
+            "schedule": 43200.0,
+        },
+        "scan-document-fraud-risk-assessments": {
+            "task": "app.tasks.document_fraud_risk_tasks.scan_document_fraud_risk_assessments_task",
+            "schedule": 43200.0,
+        },
+        "expire-document-access-grants": {
+            "task": "app.tasks.document_access_tasks.expire_document_access_grants_task",
+            "schedule": 3600.0,
         },
     },
 )

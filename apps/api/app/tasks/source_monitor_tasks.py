@@ -12,9 +12,13 @@ from app.services.source_retrieval import execute_source_monitor
 
 
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=60)
-def run_source_monitor_task(self, monitor_id: str) -> dict:
+def run_source_monitor_task(self, monitor_id: str, retrieval_run_id: str | None = None) -> dict:
     with Session(db_module.engine) as session:
-        run = execute_source_monitor(session, UUID(monitor_id))
+        run = execute_source_monitor(
+            session,
+            UUID(monitor_id),
+            retrieval_run_id=UUID(retrieval_run_id) if retrieval_run_id else None,
+        )
         result = {
             "monitor_id": monitor_id,
             "retrieval_run_id": str(run.id),

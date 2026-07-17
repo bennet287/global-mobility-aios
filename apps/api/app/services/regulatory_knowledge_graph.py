@@ -9,6 +9,7 @@ from sqlalchemy import or_
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    InitialRuleAssertion,
     Jurisdiction,
     OfficialSource,
     RegulatoryAuthority,
@@ -44,20 +45,46 @@ def _published_context(session: Session, rule: VerifiedRule) -> dict[str, Any]:
         raise ValueError("Only a human-published verified rule can update the regulatory graph")
     if not rule.jurisdiction_id or not rule.official_source_id or not rule.source_snapshot_id:
         raise ValueError("Published rule provenance is incomplete")
-    if not rule.regulatory_change_id:
-        raise ValueError("Published rule is not linked to a reviewed regulatory change")
+    if bool(rule.regulatory_change_id) == bool(rule.initial_rule_assertion_id):
+        raise ValueError("Published rule must link to exactly one reviewed provenance record")
+
     jurisdiction = session.get(Jurisdiction, rule.jurisdiction_id)
     source = session.get(OfficialSource, rule.official_source_id)
     snapshot = session.get(SourceSnapshot, rule.source_snapshot_id)
-    change = session.get(RegulatoryChange, rule.regulatory_change_id)
-    if not jurisdiction or not source or not snapshot or not change:
+    if not jurisdiction or not source or not snapshot:
         raise ValueError("Published rule provenance records could not be resolved")
-    if change.status != "published" or not change.reviewed_by or not change.reviewed_at:
-        raise ValueError("Regulatory change has not completed human review and publication")
-    if snapshot.official_source_id != source.id or change.current_snapshot_id != snapshot.id:
-        raise ValueError("Published rule snapshot provenance does not match its source change")
-    if change.official_source_id != source.id or change.jurisdiction_id != jurisdiction.id:
-        raise ValueError("Published rule source or jurisdiction provenance is inconsistent")
+    if snapshot.official_source_id != source.id:
+        raise ValueError("Published rule snapshot provenance does not match its source")
+
+    change: Optional[RegulatoryChange] = None
+    assertion: Optional[InitialRuleAssertion] = None
+    if rule.regulatory_change_id:
+        change = session.get(RegulatoryChange, rule.regulatory_change_id)
+        if not change:
+            raise ValueError("Published regulatory change could not be resolved")
+        if change.status != "published" or not change.reviewed_by or not change.reviewed_at:
+            raise ValueError("Regulatory change has not completed human review and publication")
+        if change.current_snapshot_id != snapshot.id:
+            raise ValueError("Published rule snapshot provenance does not match its source change")
+        if change.official_source_id != source.id or change.jurisdiction_id != jurisdiction.id:
+            raise ValueError("Published rule source or jurisdiction provenance is inconsistent")
+    else:
+        assertion = session.get(InitialRuleAssertion, rule.initial_rule_assertion_id)
+        if not assertion:
+            raise ValueError("Published initial rule assertion could not be resolved")
+        if (
+            assertion.status != "published"
+            or not assertion.reviewed_by
+            or not assertion.reviewed_at
+            or not assertion.published_by
+            or not assertion.published_at
+        ):
+            raise ValueError("Initial rule assertion has not completed independent review and publication")
+        if assertion.source_snapshot_id != snapshot.id:
+            raise ValueError("Published rule snapshot provenance does not match its initial assertion")
+        if assertion.official_source_id != source.id or assertion.jurisdiction_id != jurisdiction.id:
+            raise ValueError("Initial rule assertion source or jurisdiction provenance is inconsistent")
+
     authority = (
         session.get(RegulatoryAuthority, source.regulatory_authority_id)
         if source.regulatory_authority_id else None
@@ -67,6 +94,8 @@ def _published_context(session: Session, rule: VerifiedRule) -> dict[str, Any]:
         "source": source,
         "snapshot": snapshot,
         "change": change,
+        "assertion": assertion,
+        "provenance_type": "regulatory_change" if change else "initial_rule_assertion",
         "authority": authority,
     }
 
@@ -126,6 +155,7 @@ def _upsert_edge(
             verified_rule_id=rule.id,
             source_snapshot_id=rule.source_snapshot_id,
             regulatory_change_id=rule.regulatory_change_id,
+            initial_rule_assertion_id=rule.initial_rule_assertion_id,
             projection_version=PROJECTION_VERSION,
             active=rule.active,
             effective_from=rule.effective_from,
@@ -183,13 +213,27 @@ def deactivate_rule_projection(
         session.add(edge)
     session.flush()
     _refresh_node_activity(session, touched_nodes)
+    impact_result = {"created": 0, "existing": 0}
+    if not (rule.retirement_reason or "").startswith("Superseded by regulatory change"):
+        from app.services.pathway_regulatory_impacts import link_rule_to_affected_pathways
+
+        impact_result = link_rule_to_affected_pathways(
+            session,
+            rule,
+            actor=actor,
+            audit=audit,
+        )
     if audit and edges:
         record_audit(
             session,
             action="regulatory_knowledge_graph_deactivated",
             entity_type="verified_rule",
             entity_id=rule.id,
-            after_state={"deactivated_edges": len(edges), "projection_version": PROJECTION_VERSION},
+            after_state={
+                "deactivated_edges": len(edges),
+                "projection_version": PROJECTION_VERSION,
+                "pathway_impacts_created": impact_result["created"],
+            },
             actor=actor,
             source="regulatory_knowledge_graph_v10_5",
         )
@@ -210,7 +254,8 @@ def project_verified_rule(
     jurisdiction: Jurisdiction = context["jurisdiction"]
     source: OfficialSource = context["source"]
     snapshot: SourceSnapshot = context["snapshot"]
-    change: RegulatoryChange = context["change"]
+    change: Optional[RegulatoryChange] = context["change"]
+    assertion: Optional[InitialRuleAssertion] = context["assertion"]
     authority: Optional[RegulatoryAuthority] = context["authority"]
 
     nodes: dict[str, RegulatoryKnowledgeNode] = {}
@@ -261,20 +306,39 @@ def project_verified_rule(
         },
         rule=rule,
     )
-    nodes["change"] = _upsert_node(
-        session,
-        node_key=f"regulatory_change:{change.id}",
-        node_type="regulatory_change",
-        label=change.title,
-        properties={
-            "regulatory_change_id": change.id,
-            "change_type": change.change_type,
-            "materiality": change.materiality,
-            "reviewed_by": change.reviewed_by,
-            "reviewed_at": change.reviewed_at,
-        },
-        rule=rule,
-    )
+    if change is not None:
+        nodes["change"] = _upsert_node(
+            session,
+            node_key=f"regulatory_change:{change.id}",
+            node_type="regulatory_change",
+            label=change.title,
+            properties={
+                "regulatory_change_id": change.id,
+                "change_type": change.change_type,
+                "materiality": change.materiality,
+                "reviewed_by": change.reviewed_by,
+                "reviewed_at": change.reviewed_at,
+            },
+            rule=rule,
+        )
+    elif assertion is not None:
+        nodes["assertion"] = _upsert_node(
+            session,
+            node_key=f"initial_rule_assertion:{assertion.id}",
+            node_type="initial_rule_assertion",
+            label=assertion.title,
+            properties={
+                "initial_rule_assertion_id": assertion.id,
+                "rule_key": assertion.rule_key,
+                "confidence": assertion.confidence,
+                "reviewed_by": assertion.reviewed_by,
+                "reviewed_at": assertion.reviewed_at,
+                "published_by": assertion.published_by,
+                "published_at": assertion.published_at,
+                "source_change_claimed": False,
+            },
+            rule=rule,
+        )
     nodes["rule"] = _upsert_node(
         session,
         node_key=f"verified_rule:{rule.id}",
@@ -309,11 +373,19 @@ def project_verified_rule(
     relations = [
         ("jurisdiction", "HAS_PUBLISHED_RULE", "rule"),
         ("rule", "IN_REGULATORY_DOMAIN", "domain"),
-        ("rule", "DERIVED_FROM_CHANGE", "change"),
-        ("change", "EVIDENCED_BY_SNAPSHOT", "snapshot"),
         ("snapshot", "CAPTURED_FROM_SOURCE", "source"),
         ("source", "OFFICIAL_SOURCE_FOR", "jurisdiction"),
     ]
+    if change is not None:
+        relations.extend([
+            ("rule", "DERIVED_FROM_CHANGE", "change"),
+            ("change", "EVIDENCED_BY_SNAPSHOT", "snapshot"),
+        ])
+    else:
+        relations.extend([
+            ("rule", "DERIVED_FROM_INITIAL_ASSERTION", "assertion"),
+            ("assertion", "EVIDENCED_BY_SNAPSHOT", "snapshot"),
+        ])
     if authority:
         relations.extend([
             ("source", "GOVERNED_BY_AUTHORITY", "authority"),
@@ -349,6 +421,14 @@ def project_verified_rule(
         )
         for source_key, relation, target_key in relations
     ]
+    from app.services.pathway_regulatory_impacts import link_rule_to_affected_pathways
+
+    impact_result = link_rule_to_affected_pathways(
+        session,
+        rule,
+        actor=actor,
+        audit=audit,
+    )
     if audit:
         record_audit(
             session,
@@ -361,11 +441,17 @@ def project_verified_rule(
                 "projection_version": PROJECTION_VERSION,
                 "source_snapshot_id": rule.source_snapshot_id,
                 "regulatory_change_id": rule.regulatory_change_id,
+                "initial_rule_assertion_id": rule.initial_rule_assertion_id,
+                "pathway_impacts_created": impact_result["created"],
             },
             actor=actor,
             source="regulatory_knowledge_graph_v10_5",
         )
-    return {"nodes": len(nodes), "edges": len(edges)}
+    return {
+        "nodes": len(nodes),
+        "edges": len(edges),
+        "pathway_impacts": impact_result["created"],
+    }
 
 
 def sync_published_rules(session: Session, *, actor: str) -> dict[str, Any]:
@@ -450,11 +536,16 @@ def knowledge_graph_payload(
         select(VerifiedRule).where(VerifiedRule.id.in_(rule_ids))
     ).all()) if rule_ids else []
     rules_by_id = {rule.id: rule for rule in rules}
-    change_ids = {edge.regulatory_change_id for edge in edges}
+    change_ids = {edge.regulatory_change_id for edge in edges if edge.regulatory_change_id}
     changes = list(session.exec(
         select(RegulatoryChange).where(RegulatoryChange.id.in_(change_ids))
     ).all()) if change_ids else []
     changes_by_id = {change.id: change for change in changes}
+    assertion_ids = {edge.initial_rule_assertion_id for edge in edges if edge.initial_rule_assertion_id}
+    assertions = list(session.exec(
+        select(InitialRuleAssertion).where(InitialRuleAssertion.id.in_(assertion_ids))
+    ).all()) if assertion_ids else []
+    assertions_by_id = {assertion.id: assertion for assertion in assertions}
     snapshot_ids = {edge.source_snapshot_id for edge in edges}
     snapshots = list(session.exec(
         select(SourceSnapshot).where(SourceSnapshot.id.in_(snapshot_ids))
@@ -467,11 +558,29 @@ def knowledge_graph_payload(
         (rule := rules_by_id.get(edge.verified_rule_id)) is not None
         and rule.source_snapshot_id == edge.source_snapshot_id
         and rule.regulatory_change_id == edge.regulatory_change_id
+        and rule.initial_rule_assertion_id == edge.initial_rule_assertion_id
         and edge.source_snapshot_id in snapshot_id_set
-        and (change := changes_by_id.get(edge.regulatory_change_id)) is not None
-        and change.status == "published"
-        and change.reviewed_by is not None
-        and change.reviewed_at is not None
+        and (
+            (
+                edge.regulatory_change_id is not None
+                and edge.initial_rule_assertion_id is None
+                and (change := changes_by_id.get(edge.regulatory_change_id)) is not None
+                and change.status == "published"
+                and change.reviewed_by is not None
+                and change.reviewed_at is not None
+            )
+            or
+            (
+                edge.initial_rule_assertion_id is not None
+                and edge.regulatory_change_id is None
+                and (assertion := assertions_by_id.get(edge.initial_rule_assertion_id)) is not None
+                and assertion.status == "published"
+                and assertion.reviewed_by is not None
+                and assertion.reviewed_at is not None
+                and assertion.published_by is not None
+                and assertion.published_at is not None
+            )
+        )
         for edge in edges
     )
     return {

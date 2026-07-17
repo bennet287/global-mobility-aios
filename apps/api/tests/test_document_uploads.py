@@ -45,11 +45,14 @@ def test_document_upload_stores_file_and_metadata(
     assert document["mime_type"] == "application/pdf"
     assert document["file_size_bytes"] == len(content)
     assert document["file_hash"] == hashlib.sha256(content).hexdigest()
-    assert (tmp_path / document["storage_key"]).read_bytes() == content
+    assert document["storage_key_exposed"] is False
+    assert "storage_key" not in document
 
     stored = db_session.get(DocumentRecord, UUID(document["id"]))
     assert stored is not None
     assert stored.file_hash == document["file_hash"]
+    assert stored.storage_key is not None
+    assert (tmp_path / stored.storage_key).read_bytes() == content
     assert stored.uploaded_at is not None
 
     audit = db_session.exec(select(AuditLog).where(AuditLog.action == "document_uploaded")).first()
@@ -72,5 +75,8 @@ def test_document_file_metadata_endpoint(client: TestClient, tmp_path: Path, mon
 
     assert metadata.status_code == 200
     payload = metadata.json()
-    assert payload["download_supported"] is False
+    assert payload["download_supported"] is True
+    assert payload["signed_access_required"] is True
+    assert payload["direct_object_url"] is None
+    assert payload["storage_key_exposed"] is False
     assert payload["document"]["id"] == document_id
