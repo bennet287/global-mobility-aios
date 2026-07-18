@@ -18,6 +18,10 @@ export function Topbar({
         <h1>{title}</h1>
       </div>
       <div className="topbar-actions">
+        <span className={`workspace-state ${loadStatus}`}>
+          <i aria-hidden="true" />
+          {loadStatus === "ready" ? "Live workspace" : loadStatus}
+        </span>
         <button className="button secondary" type="button" onClick={onRefresh} disabled={loadStatus === "loading"}>
           {loadStatus === "loading" ? (
             <span className="button-spinner" aria-hidden="true" />

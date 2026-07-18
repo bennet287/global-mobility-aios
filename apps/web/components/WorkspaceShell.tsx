@@ -34,7 +34,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
           <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
       </button>
-      <span className="mobile-title">Global Mobility AIOS</span>
+      <span className="mobile-title">GMAI <small>Mobility operating system</small></span>
     </header>
   );
 }

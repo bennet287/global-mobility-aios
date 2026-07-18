@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Editorial operator UI v10.23
+
+- Reworked the shared web design system around the supplied nature-led editorial references.
+- Added a dark olive navigation rail, calmer off-white content canvas, lime system accents, flatter panels, thinner dividers, and more deliberate typography and spacing.
+- Rebuilt the operations dashboard hero as a connected workflow overview with live pipeline, Truth Engine, controlled-agent, backend, and safety-gate context.
+- Simplified shared metrics, tables, action queues, status badges, buttons, forms, and responsive navigation without changing their underlying behavior.
+- Verified the production Next.js build, TypeScript checks, and static generation for all 21 frontend routes.
+
 ## 2026-07-18 — Phase 10B evidence tranche v10.22.24
 
 - Added current official-source evidence for Hungary, Malta, Liechtenstein, Bosnia and Herzegovina, and Albania.

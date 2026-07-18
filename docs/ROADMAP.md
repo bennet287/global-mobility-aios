@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.23 (2026-07-19)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.23 introduces a reference-led editorial design system for the operator web application: a dark olive navigation rail, quiet off-white workspace canvas, flatter border-led panels, restrained lime status accents, stronger typographic hierarchy, and reduced visual noise.
+- The operations dashboard now opens with a connected-system posture canvas, direct links to active cases and safety gates, an editorial workload introduction, and simplified metric presentation. Shared navigation, topbar, buttons, tables, forms, queue cards, status states, and responsive behavior inherit the new system across all application routes.
+- No backend workflow, review gate, truth control, role boundary, API contract, or database schema changed. The Next.js production build compiles, type-checks, and statically generates all 21 frontend routes successfully.
+
 ## Delivery Status — v10.22.24 (2026-07-18)
 
 Current database migration head: `0032_initial_rule_assertions`.

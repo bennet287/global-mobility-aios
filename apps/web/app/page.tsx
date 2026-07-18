@@ -163,17 +163,52 @@ export default function HomePage() {
 
       <section className={`command-strip ${loadStatus}`} id="workbench">
         <div className="command-copy">
-          <span>System posture</span>
+          <span>Today&apos;s operating picture</span>
           <strong>{postureCopy.headline}</strong>
           <p>{postureCopy.body}</p>
+          <div className="command-actions">
+            <a className="button hero-primary" href="#pipeline">
+              Review active cases
+            </a>
+            <a className="button hero-secondary" href="#verification">
+              View safety gates
+            </a>
+          </div>
         </div>
-        <div className="command-meta">
-          <StatusBadge value={backendOnline ? "online" : "offline"} />
-          <code>{apiBase}</code>
+        <div className="system-canvas" aria-label="Connected workflow overview">
+          <div className="system-card system-card-leads">
+            <span>Pipeline</span>
+            <strong>{summary.leads_total} active leads</strong>
+            <small>{summary.leads_human_review} awaiting review</small>
+          </div>
+          <div className="system-card system-card-truth">
+            <span>Truth Engine</span>
+            <strong>{summary.truth_queue_resolved} resolved</strong>
+            <small>Source-controlled claims</small>
+          </div>
+          <div className="system-card system-card-agents">
+            <span>AI operations</span>
+            <strong>{agentCount} outputs</strong>
+            <small>Human approval required</small>
+          </div>
+          <div className="system-flow system-flow-one" />
+          <div className="system-flow system-flow-two" />
+          <div className="command-meta">
+            <StatusBadge value={backendOnline ? "online" : "offline"} />
+            <code>{apiBase}</code>
+          </div>
         </div>
       </section>
 
       {summaryError ? <InlineNotice label="CRM summary unavailable" tone="bad" detail={summaryError} /> : null}
+
+      <div className="dashboard-section-heading">
+        <div>
+          <span>At a glance</span>
+          <h2>Work that needs attention.</h2>
+        </div>
+        <p>Live workload across the client pipeline, verification queues, documents, and controlled agent output.</p>
+      </div>
 
       <section className="metric-row" aria-label="Workspace metrics">
         {loadStatus === "loading" || loadStatus === "idle"
