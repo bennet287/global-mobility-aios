@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.22.24 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.24 adds a pending-review Europe coverage evidence tranche 1F for Hungary (`HU`), Malta (`MT`), Liechtenstein (`LI`), Bosnia and Herzegovina (`BA`), and Albania (`AL`). The atomic batch onboarded five authorities, five official sources, and five monitors, and created five immigration assessments plus five primary-source certifications in `pending_review`.
+- The controlled API-container retriever returned HTTPS 200 and suitable content-quality scores for all five selected endpoints. Lithuania (`LT`) was excluded after its controlled probe returned HTTP 403; retrieval controls were not weakened.
+- Across v10.22.20 through v10.22.24, 20 assessments and 20 primary-source certifications now await independent decisions. Coverage readiness remains 65/243; no new baseline capture, assertion, publication, regulatory change, or coverage claim was created. The v10.22.24 content-addressed pack, SHA-256 receipt, and submission receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
 ## Delivery Status — v10.22.23 (2026-07-18)
 
 Current database migration head: `0032_initial_rule_assertions`.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-18 — Phase 10B evidence tranche v10.22.24
+
+- Added current official-source evidence for Hungary, Malta, Liechtenstein, Bosnia and Herzegovina, and Albania.
+- Verified all five endpoints through the controlled API-container retriever with HTTPS 200 and suitable content-quality scores.
+- Excluded Lithuania after a fail-closed HTTP 403 response rather than weakening retrieval controls.
+- Submitted an atomic evidence batch containing five pending immigration assessments and five pending primary-source certifications.
+- Left all 40 pending decisions across the current 20 jurisdictions for independent reviewers; readiness remains 65/243.
+
 ## 2026-07-18 — Phase 10B independent-review handoff v10.22.23
 
 - Consolidated the v10.22.20-v10.22.22 batches into one 15-jurisdiction review queue with immutable JSON and CSV operations receipts.
