@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-18 — Phase 10B evidence tranche v10.22.22
+
+- Added current official-source evidence for Namibia, Sierra Leone, Somalia, Senegal, and Tanzania.
+- Verified all five endpoints through the controlled API-container retriever with HTTPS 200 and usable generic-parser output.
+- Kept Senegal's proposal narrowly scoped to the official entry-visa function and flagged broader authority scope for separate evidence and reviewer judgment.
+- Submitted an atomic evidence batch containing five pending immigration assessments and five pending primary-source certifications.
+- Preserved the independent-review, baseline, assertion, publication, and global-coverage gates; readiness remains 65/243.
+
 ## 2026-07-18 — Phase 10B evidence tranche v10.22.21
 
 - Added current official-source evidence for Eswatini, Lesotho, Liberia, Zambia, and Uganda.

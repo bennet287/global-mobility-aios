@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.22.22 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.22 adds a pending-review Africa coverage evidence tranche 2B for Namibia (`NA`), Sierra Leone (`SL`), Somalia (`SO`), Senegal (`SN`), and Tanzania (`TZ`). The atomic batch onboarded five authorities, five official sources, and five monitors, and created five immigration assessments plus five primary-source certifications in `pending_review`.
+- The controlled API-container retriever returned HTTPS 200 with usable content for all five selected endpoints. Senegal's proposal is explicitly limited to the entry-visa function evidenced by the Foreign Ministry page; broader immigration scope requires separate evidence and reviewer judgment.
+- Coverage readiness remains 65/243. No assessment or certification in this tranche has been approved, no baseline capture has been queued, no assertion or rule has been published, and the global coverage claim remains false. The content-addressed evidence pack, SHA-256 receipt, and submission receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
 ## Delivery Status — v10.22.21 (2026-07-18)
 
 Current database migration head: `0032_initial_rule_assertions`.
