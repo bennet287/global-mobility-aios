@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.21",
+  "title": "Africa coverage evidence tranche 2A - Eswatini, Lesotho, Liberia, Zambia, Uganda",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "SZ",
+      "authority_evidence_url": "https://www.gov.sz/index.php/ministries-departments/ministry-of-home-affairs?catid=81%3Ahome-affairs&id=307%3Aimmigration&view=article",
+      "source_url": "https://www.gov.sz/index.php/ministries-departments/ministry-of-home-affairs?catid=81%3Ahome-affairs&id=307%3Aimmigration&view=article",
+      "evidence_summary": "The Government of Eswatini Ministry of Home Affairs page identifies its Immigration Department and describes responsibility for entry and residence permission, visas, permits, border control, citizenship, and travel documents."
+    },
+    {
+      "alpha2_code": "LS",
+      "authority_evidence_url": "https://www.homeaffairs.gov.ls/immigration/",
+      "source_url": "https://www.homeaffairs.gov.ls/immigration/",
+      "evidence_summary": "Lesotho's Ministry of Home Affairs identifies the Department of Immigration Services as responsible for migration, border control, visas, residence permits, citizenship, refugee asylum, and related immigration legislation."
+    },
+    {
+      "alpha2_code": "LR",
+      "authority_evidence_url": "https://www.lis.gov.lr/",
+      "source_url": "https://www.lis.gov.lr/",
+      "evidence_summary": "The Liberia Immigration Service official portal identifies the service as a Ministry of Justice security agency mandated to enforce Liberia's Alien and Nationality Law and manage borders, entry, residence, citizenship, and related immigration services."
+    },
+    {
+      "alpha2_code": "ZM",
+      "authority_evidence_url": "https://www.zambiaimmigration.gov.zm/guide-on-immigration-permits-visas/",
+      "source_url": "https://www.zambiaimmigration.gov.zm/guide-on-immigration-permits-visas/",
+      "evidence_summary": "The Zambia Department of Immigration official guide identifies the department and describes its role in regulating entry, exit, and immigrant stays through visa and immigration-permit services."
+    },
+    {
+      "alpha2_code": "UG",
+      "authority_evidence_url": "https://www.immigration.go.ug/index.php/services/visa-passes",
+      "source_url": "https://www.immigration.go.ug/index.php/services/visa-passes",
+      "evidence_summary": "Uganda's Directorate of Citizenship and Immigration Control official portal describes visas and passes under national immigration law and provides the government's immigration service catalogue."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.21 Africa evidence tranche 2A - SZ, LS, LR, ZM, UG",
+    "notes": "Official-source evidence for Eswatini (SZ), Lesotho (LS), Liberia (LR), Zambia (ZM), and Uganda (UG). All five endpoints were probed on 2026-07-18 through the controlled API-container retriever and returned HTTPS 200 with usable generic-parser content. Algeria (DZ) and The Gambia (GM) were excluded after transport failures, and Nigeria (NG) was excluded after HTTP 403; retrieval controls were not weakened. The tranche is limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "SZ",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.gov.sz/index.php/ministries-departments/ministry-of-home-affairs?catid=81%3Ahome-affairs&id=307%3Aimmigration&view=article",
+          "evidence_title": "Government of Eswatini Ministry of Home Affairs Immigration page",
+          "rationale": "The Government of Eswatini Ministry of Home Affairs page identifies its Immigration Department as responsible for orderly immigration, permission to enter or reside, visas, residence permits, border management, citizenship, and travel documents. This supports a proposal that Eswatini directly administers the relevant immigration services through the Ministry of Home Affairs Immigration Department."
+        },
+        "source_onboarding": {
+          "authority_name": "Eswatini Ministry of Home Affairs Immigration Department",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.gov.sz/index.php/ministries-departments/ministry-of-home-affairs?catid=81%3Ahome-affairs&id=307%3Aimmigration&view=article",
+          "authority_domains": ["visa"],
+          "source_name": "Government of Eswatini Immigration services page",
+          "source_url": "https://www.gov.sz/index.php/ministries-departments/ministry-of-home-affairs?catid=81%3Ahome-affairs&id=307%3Aimmigration&view=article",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.gov.sz"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 9,293 characters of extracted content covering immigration responsibility, visas, residence permits, border control, citizenship, and travel documents. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "LS",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.homeaffairs.gov.ls/immigration/",
+          "evidence_title": "Lesotho Ministry of Home Affairs Immigration Services page",
+          "rationale": "Lesotho's Ministry of Home Affairs states that its Department of Immigration Services manages migration, border control, visas, residence permits, citizenship, refugee asylum, and related immigration legislation. This supports a proposal that Lesotho directly administers the relevant immigration services through the Department of Immigration Services."
+        },
+        "source_onboarding": {
+          "authority_name": "Lesotho Department of Immigration Services",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.homeaffairs.gov.ls/immigration/",
+          "authority_domains": ["visa"],
+          "source_name": "Lesotho Ministry of Home Affairs Immigration Services page",
+          "source_url": "https://www.homeaffairs.gov.ls/immigration/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.homeaffairs.gov.ls"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 10,884 characters of extracted content covering the department's mandate, visas, residence permits, citizenship, asylum, and immigration legislation. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "LR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.lis.gov.lr/",
+          "evidence_title": "Liberia Immigration Service official portal",
+          "rationale": "The Liberia Immigration Service official portal identifies the service as a Ministry of Justice security agency mandated to implement and enforce the Alien and Nationality Law, protect and manage borders, admit foreign nationals, and provide residence and citizenship services. This supports a proposal that Liberia directly administers the relevant immigration services through the Liberia Immigration Service."
+        },
+        "source_onboarding": {
+          "authority_name": "Liberia Immigration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.lis.gov.lr/",
+          "authority_domains": ["visa"],
+          "source_name": "Liberia Immigration Service official portal",
+          "source_url": "https://www.lis.gov.lr/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.lis.gov.lr"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 5,720 characters of extracted content identifying the authority and covering the Alien and Nationality Law mandate, border admission, residence permits, visas on arrival, and citizenship. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "ZM",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.zambiaimmigration.gov.zm/guide-on-immigration-permits-visas/",
+          "evidence_title": "Zambia Department of Immigration guide to immigration permits and visas",
+          "rationale": "The Zambia Department of Immigration official guide identifies the department and states that it facilitates and regulates entry and exit and controls the stay of immigrants and visitors through visa and permit services. This supports a proposal that Zambia directly administers the relevant immigration services through the Department of Immigration."
+        },
+        "source_onboarding": {
+          "authority_name": "Zambia Department of Immigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.zambiaimmigration.gov.zm/guide-on-immigration-permits-visas/",
+          "authority_domains": ["visa"],
+          "source_name": "Zambia Department of Immigration permits and visas guide",
+          "source_url": "https://www.zambiaimmigration.gov.zm/guide-on-immigration-permits-visas/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.zambiaimmigration.gov.zm"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 2,201 characters of extracted content identifying the Zambia Department of Immigration and its visa, permit, entry, exit, and immigrant-stay functions. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "UG",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.immigration.go.ug/index.php/services/visa-passes",
+          "evidence_title": "Uganda Directorate of Citizenship and Immigration Control Visas and Passes page",
+          "rationale": "Uganda's Directorate of Citizenship and Immigration Control official portal states that entry must comply with national immigration law and provides government visa and pass services. This supports a proposal that Uganda directly administers the relevant immigration services through the Directorate of Citizenship and Immigration Control."
+        },
+        "source_onboarding": {
+          "authority_name": "Uganda Directorate of Citizenship and Immigration Control",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.immigration.go.ug/index.php/services/visa-passes",
+          "authority_domains": ["visa"],
+          "source_name": "Uganda Directorate of Citizenship and Immigration Control Visas and Passes page",
+          "source_url": "https://www.immigration.go.ug/index.php/services/visa-passes",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.immigration.go.ug"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 3,656 characters of extracted content identifying the Directorate and providing visa, pass, citizenship, and immigration service information under national immigration law. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}

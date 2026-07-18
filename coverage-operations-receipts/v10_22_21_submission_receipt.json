@@ -1,0 +1,82 @@
+{
+  "pack_version": "v10.22.21",
+  "title": "Africa coverage evidence tranche 2A - Eswatini, Lesotho, Liberia, Zambia, Uganda",
+  "batch_id": "c697ab51-e41b-49d2-8e98-528068642184",
+  "batch_key": "69a9d0c332be290f4716b159dc8a8e5357aa590b65cc679d4562cfd5d96c8d2d",
+  "submitted_at": "2026-07-18T20:34:22.875471+00:00",
+  "submitted_by": "coverage-evidence-proposer-v10-22-21",
+  "status": "pending_review",
+  "stored_status": "submitted_for_review",
+  "coverage_before": 65,
+  "coverage_after": 65,
+  "global_coverage_claim_ready": false,
+  "item_count": 5,
+  "pending_review_count": 10,
+  "approved_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "alpha2_code": "SZ",
+      "item_id": "a5dbe680-f52c-4098-ad5f-2e731bb1ae04",
+      "assessment_id": "1c18f1e7-1f75-404e-852d-1e424efa3b74",
+      "assessment_status": "pending_review",
+      "certification_id": "3fe0a7fc-9e24-40cf-9d44-bd5fa2871b63",
+      "certification_status": "pending_review",
+      "authority_id": "14828cc7-03c0-4c03-9207-c2fee629262a",
+      "official_source_id": "aeea16da-c27a-4642-8388-60a116a1b5ff",
+      "monitor_id": "19974040-43d7-4036-9959-94b426a6c949"
+    },
+    {
+      "alpha2_code": "LS",
+      "item_id": "e68a323b-5e02-48c1-9d12-6b200097c9d8",
+      "assessment_id": "8f6d2243-0d33-43d1-94a0-bcebd6cb930e",
+      "assessment_status": "pending_review",
+      "certification_id": "299dc9d5-c9ee-4b22-be82-cd21d71b3438",
+      "certification_status": "pending_review",
+      "authority_id": "773e1087-e4f1-40b7-835e-e921123b57bc",
+      "official_source_id": "4551c60b-0307-46a1-97a9-f1d8bb8859fa",
+      "monitor_id": "e7bda388-b088-4ff4-93dc-87e4ec256dc0"
+    },
+    {
+      "alpha2_code": "LR",
+      "item_id": "07fcfcbe-160c-4dec-977e-9726c2b8327c",
+      "assessment_id": "04dd2619-3283-49df-b153-4746fbfa118b",
+      "assessment_status": "pending_review",
+      "certification_id": "cf86b3ee-9fea-43b9-8b29-2f47bfcf21d2",
+      "certification_status": "pending_review",
+      "authority_id": "b824ece7-ae42-497c-b28a-96fc63316625",
+      "official_source_id": "ae693ba7-484d-4537-9555-06404a8256c1",
+      "monitor_id": "bd256ab0-6fef-4766-a9ed-4d1214c151e2"
+    },
+    {
+      "alpha2_code": "ZM",
+      "item_id": "c8c2e151-2917-4d7b-86f5-3933758ec143",
+      "assessment_id": "962f360a-a0a2-408a-98f1-816c120b7369",
+      "assessment_status": "pending_review",
+      "certification_id": "83e3c11a-f30f-4429-a6f1-1544ed4a5b8c",
+      "certification_status": "pending_review",
+      "authority_id": "9525da3b-554f-4fec-9e31-2382918d0b6f",
+      "official_source_id": "f2a5e5d9-daf8-40e7-8d1d-40e71cd3c32a",
+      "monitor_id": "891102a2-bb2f-49d7-93d4-6002e4c6b023"
+    },
+    {
+      "alpha2_code": "UG",
+      "item_id": "515c9ae8-dcb8-4c12-8352-74db74bbfde1",
+      "assessment_id": "82dad655-0b30-4693-9bb9-5ec1f9f2b6d4",
+      "assessment_status": "pending_review",
+      "certification_id": "91299958-03f1-4189-92fc-2ebc138f251c",
+      "certification_status": "pending_review",
+      "authority_id": "043e4880-8b7c-4cae-bd65-ed44cd089764",
+      "official_source_id": "5e5a4820-bf36-48e5-99f6-83f054e66004",
+      "monitor_id": "3a413beb-846e-454d-8f0f-17bcfb33d8d9"
+    }
+  ],
+  "safety": {
+    "auto_approved": false,
+    "baseline_capture_queued": false,
+    "assertion_created": false,
+    "rule_published": false,
+    "coverage_claimed": false,
+    "message": "The batch created pending assessment and primary-source certification proposals only. Independent review is required before baseline capture can become eligible."
+  }
+}
