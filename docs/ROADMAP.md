@@ -5,10 +5,110 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
-## Delivery Status — v10.22.1 (2026-07-16)
+## Delivery Status — v10.22.19 (2026-07-18)
 
 Current database migration head: `0032_initial_rule_assertions`.
 
+- v10.22.19 adds the Asia/Americas coverage evidence tranche 1A for Japan (`JP`), Indonesia (`ID`), Philippines (`PH`), Argentina (`AR`) and Brazil (`BR`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 60/243 to 65/243; the global coverage claim remains false.
+- Japan's official source is the Ministry of Justice English portal at `moj.go.jp/EN/`. Indonesia's official source is the Directorate General of Immigration portal at `imigrasi.go.id/`. The Philippines' official source is the Bureau of Immigration portal at `immigration.gov.ph/`. Argentina's official source is the National Migration Directorate page on the government portal at `argentina.gob.ar/interior/migraciones`. Brazil's official source is the Ministry of Justice and Public Security portal at `gov.br/mj/`.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, residence, justice, citizenship or foreigner-related content. The v10.22.19 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.18 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.18 adds the Europe coverage evidence tranche 1E for Romania (`RO`), Bulgaria (`BG`), Luxembourg (`LU`), North Macedonia (`MK`) and Serbia (`RS`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 55/243 to 60/243; the global coverage claim remains false.
+- Romania's official source is the Ministry of Internal Affairs at `mai.gov.ro/`. Bulgaria's official source is the Ministry of the Interior at `mvr.bg/`. Luxembourg's official source is the government administrative portal at `guichet.lu/`, which redirects to `guichet.public.lu/` for service content. North Macedonia's official source is the Ministry of Internal Affairs at `mvr.gov.mk/`. Serbia's official source is the Ministry of Internal Affairs at `mup.gov.rs/`.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, residence, border-control or foreigner-related content. Luxembourg and North Macedonia required source-monitor allowlist remediation for canonical redirects (`www.guichet.lu` -> `guichet.public.lu` and `www.mvr.gov.mk` -> `mvr.gov.mk`); TLS verification was not bypassed. The v10.22.18 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.17 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.17 adds the Europe coverage evidence tranche 1D for Spain (`ES`), Portugal (`PT`), Italy (`IT`), Slovenia (`SI`) and Croatia (`HR`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 50/243 to 55/243; the global coverage claim remains false.
+- Spain's official source is the Ministry of Foreign Affairs, European Union and Cooperation portal at `exteriores.gob.es/`. Portugal's official source is the official government services portal at `eportugal.gov.pt/`, which redirects to `www.gov.pt/` and provides access to services including "Estrangeiros em Portugal" (Foreigners in Portugal). Italy's official source is the Ministry of the Interior at `interno.gov.it/`. Slovenia's official source is the Slovenian Government English portal at `gov.si/en/`. Croatia's official source is the Ministry of the Interior at `mup.gov.hr/`.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable foreigner, immigration, residence, work or migration content. Portugal's initial monitor fetch was blocked because the canonical `eportugal.gov.pt/` endpoint redirects to `www.gov.pt/`; the source monitor allowlist was remediated to include both domains without bypassing TLS verification. The v10.22.17 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.16 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.16 adds the Europe coverage evidence tranche 1C for Estonia (`EE`), Latvia (`LV`), Poland (`PL`), Czech Republic (`CZ`) and Greece (`GR`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 45/243 to 50/243; the global coverage claim remains false.
+- Estonia's official source is the Police and Border Guard Board at `politsei.ee/en/`. Latvia's official source is the Office of Citizenship and Migration Affairs at `pmlp.gov.lv/en/`. Poland's official source is the Office for Foreigners at `gov.pl/web/udsc/`. Czech Republic's official source is the Ministry of the Interior at `mv.gov.cz/mvcren/`. Greece's official source is the Ministry of Migration and Asylum at `migration.gov.gr/`.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable migration, citizenship, asylum or residence content. The v10.22.16 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.15 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.15 adds the Europe coverage evidence tranche 1B for Denmark (`DK`), Netherlands (`NL`), Belgium (`BE`), France (`FR`) and Ireland (`IE`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 40/243 to 45/243; the global coverage claim remains false.
+- Denmark's official source is the Danish Immigration Service portal at `nyidanmark.dk/en-GB/`. Netherlands's official source is the Immigration and Naturalisation Service (IND) at `ind.nl/en/`. Belgium's official source is the FPS Foreign Affairs at `diplomatie.belgium.be/en/`. France's official source is the Ministry for Europe and Foreign Affairs (France Diplomatie) at `diplomatie.gouv.fr/en/`. Ireland's official source is Immigration Service Delivery at `irishimmigration.ie/`.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, visa, residence or travel content. The v10.22.15 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.14 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.14 adds the Europe coverage evidence tranche 1A for Iceland (`IS`), Norway (`NO`), Switzerland (`CH`), Sweden (`SE`) and Finland (`FI`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 35/243 to 40/243; the global coverage claim remains false.
+- Iceland's official source is the Directorate of Immigration page on the Icelandic government portal at `island.is/s/utlendingastofnun`. Norway's official source is the Norwegian Directorate of Immigration English portal at `udi.no/en/`. Switzerland's official source is the State Secretariat for Migration English portal at `sem.admin.ch/sem/en/home.html`. Sweden's official source is the Swedish Migration Agency English portal at `migrationsverket.se/en.html`. Finland's official source is the Finnish Immigration Service English portal at `migri.fi/en`.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration and residence content. The v10.22.14 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.13 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.13 adds the Asia/MENA coverage evidence tranche 1A for Oman (`OM`), Bahrain (`BH`), Georgia (`GE`), Singapore (`SG`) and the United Arab Emirates (`AE`). All five jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 30/243 to 35/243; the global coverage claim remains false.
+- Oman's official source is the Royal Oman Police eVisa portal at `evisa.rop.gov.om/`. Bahrain's official source is the Bahrain Electronic Visa Service at `evisa.gov.bh/`. Georgia's official source is the Ministry of Foreign Affairs e-VISA PORTAL at `evisa.gov.ge/GeoVisa/`. Singapore's official source is the Immigration and Checkpoints Authority portal at `ica.gov.sg/`. The UAE's official source is the Federal Authority for Identity, Citizenship, Customs and Port Security (ICP) English portal at `icp.gov.ae/en/`, which provides federal-level identity and residency content.
+- All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable English-language immigration, visa or residency content. The UAE ICP root path (`https://icp.gov.ae/`) was also reachable, but the English path (`/en/`) provides clearer federal service content, so it was selected as the monitored source.
+- The v10.22.13 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.12 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.12 adds the Africa coverage evidence tranche 1H for South Africa (`ZA`) and Seychelles (`SC`). Both jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 28/243 to 30/243; the global coverage claim remains false. South Africa's official source is the Department of Home Affairs portal at `dha.gov.za`. Seychelles's official source is the Electronic Border System at `seychelles.govtas.com/en`, which identifies itself as the official government website. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/entry content. Gabon (`GA`), Gambia (`GM`), Guinea-Bissau (`GW`), Democratic Republic of the Congo (`CD`), Nigeria (`NG`), South Sudan (`SS`), Tanzania (`TZ`), Togo (`TG`), Uganda (`UG`), and Zambia (`ZM`) remain blocked or deferred. The v10.22.12 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.11 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.11 adds the Africa coverage evidence tranche 1G for Mauritius (`MU`) and Zimbabwe (`ZW`). Both jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 26/243 to 28/243; the global coverage claim remains false. Mauritius's official source is the Passport and Immigration Office portal at `passport.govmu.org/passport`, which describes passport and immigration services under the Director General of Immigration. Zimbabwe's official source is the Zimbabwe eVisa portal at `evisa.gov.zw`, operated by the Zimbabwe Immigration Department. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration content. Gabon (`GA`), Gambia (`GM`), Guinea-Bissau (`GW`), Democratic Republic of the Congo (`CD`), and Zambia (`ZM`) remain blocked or deferred from earlier tranches. The v10.22.11 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.10 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.10 adds the Africa coverage evidence tranche 1F for Madagascar (`MG`), Malawi (`MW`), and Mozambique (`MZ`). All three jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 23/243 to 26/243; the global coverage claim remains false. Madagascar's official source is the eService of Tourism, Immigration and Emigration at `evisamada-mg.com/en/home`, which states it is the only official online visa application site of the Republic of Madagascar. Malawi's official source is the Malawi e-Visa System at `evisa.gov.mw`, operated by the Department of Immigration and Citizenship Services. Mozambique's official source is the eVisa and eTA portal at `evisa.gov.mz`, operated by the National Immigration Service. All endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/visa content. Gabon (`GA`), Gambia (`GM`), Guinea-Bissau (`GW`), and Democratic Republic of the Congo (`CD`) remain blocked or deferred from earlier tranches. The v10.22.10 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.9 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.9 adds the Africa coverage evidence tranche 1E for Kenya (`KE`) and Rwanda (`RW`). Both jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 21/243 to 23/243; the global coverage claim remains false. Kenya's official source is the Electronic Travel Authorization (eTA) portal at `evisa.go.ke`, operated by the Directorate of Immigration Services. Rwanda's official source is the Immigration and Emigration portal at `migration.gov.rw`, operated by the Rwanda Directorate General of Immigration and Emigration. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration content. The Democratic Republic of the Congo (`CD`) was deferred because the official `evisa.gouv.cd` page is a dynamic Inertia.js application with minimal generic-parser text extraction. Gabon (`GA`), Gambia (`GM`), and Guinea-Bissau (`GW`) remain blocked or deferred from earlier tranches. The v10.22.9 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.8 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.8 adds the Africa coverage evidence tranche 1D for Ghana (`GH`) and Guinea (`GN`). Both jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 19/243 to 21/243; the global coverage claim remains false. Ghana's official source is the Ghana Immigration Service e-Visa portal at `evisa.immigration.gov.gh`, which returned structured `GovernmentService` JSON-LD identifying the Ghana Immigration Service as the provider. Guinea's official source is the Police aux Frontieres (PAF) e-Visa page at `paf.gov.gn/visa`. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable content. Gambia (`GM`) and Guinea-Bissau (`GW`) were deferred from this tranche because a confirmed reachable official source was not yet identified; Gabon (`GA`) remains blocked by TLS certificate validation from the previous tranche. The v10.22.8 evidence pack, SHA-256 receipt, and operations receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.7 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.7 adds the Africa coverage evidence tranche 1C for Djibouti (`DJ`), Egypt (`EG`), and Ethiopia (`ET`). All three jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 16/243 to 19/243; the global coverage claim remains false. Egypt required canonical-source remediation from `https://www.visa2egypt.gov.eg/` to `https://www.visa2egypt.gov.eg/eVisa/Home` because the root path only returned a meta-redirect with no usable text; the remediation was applied through the controlled source-remediation path and audited. Gabon (`GA`) was removed from the planned tranche because the official `evisa.dgdi.ga` endpoint fails TLS certificate-chain validation inside the API container; TLS verification was not bypassed. The v10.22.7 evidence pack, operations receipt, and SHA-256 receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.6 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.6 adds the Africa coverage evidence tranche 1B for Chad and Cote d'Ivoire. Both jurisdictions now have independently approved immigration assessments, approved source certifications, immutable baseline snapshots, and active verified rules. Coverage readiness moved from 14/243 to 16/243; the global coverage claim remains false. Algeria remains excluded because of a TLS certificate-chain validation failure; Comoros and Congo (Brazzaville) were deferred from the original plan because a confirmed official source was not yet identified. The v10.22.6 evidence pack, operations manifest, and SHA-256 receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
+## Delivery Status — v10.22.5 (2026-07-17)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.5 completes the Africa tranche 1A evidence review and initial-rule publication cycle for the British Indian Ocean Territory, Angola, Benin, Burkina Faso, Burundi, Cabo Verde, Cameroon, and Central African Republic. All nine tranche 1A jurisdictions now have independently approved assessments and source certifications, immutable baselines, and active verified rules. Coverage readiness moved from 6/243 to 14/243; the global coverage claim remains false.
 - v10.22.1 corrects PowerShell-relative manifest and receipt path resolution in the tranche operations scripts. Paths now resolve from the active PowerShell provider location instead of a stale host-process working directory; no API, database, evidence, review, assertion, publication, snapshot, or coverage state is changed.
 - v10.22 adds safe multi-batch tranche operations: read-only expansion planning, offline manifest validation, mandatory dry-run preflight, consolidated review/baseline/assertion/readiness receipts, and optional confirmation-gated queueing for explicitly selected approved baselines. It creates no review decision, assertion, publication, snapshot mutation, regulatory change, or coverage claim.
 - v10.21.2 adds review-gated supplemental official sources for domains where the approved primary portal is unsuitable for monitoring. Supplemental approvals require the existing approved primary authority/source and relationship, never supersede the primary certification, and can supply fresh evidence for a snapshot-pinned assertion.
@@ -443,6 +543,20 @@ Every phase must include:
 - Backend tests and frontend type/build validation
 - Security, privacy, consent, retention, and operational notes
 - Documentation updates and coverage-ledger status changes
+## v10.22.5 — Africa tranche 1A completion
+
+- Completes independent assessment and source-certification review for the British Indian Ocean Territory (`IO`), Angola (`AO`), Benin (`BJ`), Burkina Faso (`BF`), Burundi (`BI`), Cabo Verde (`CV`), Cameroon (`CM`), and Central African Republic (`CF`).
+- Publishes narrow, snapshot-pinned initial verified rules for all eight jurisdictions through the separate proposer/reviewer/publisher identities.
+- Moves coverage readiness from 6/243 to 14/243 and verified-rule count from 6 to 14.
+- Keeps the global coverage claim false because 229 required jurisdictions remain incomplete.
+- Algeria (`DZ`) remains blocked by official-endpoint TLS validation; TLS verification was not bypassed.
+- Adds v10.22.4 regression tests in `apps/api/tests/test_coverage_v10_22_4_reconciliation.py` covering source-only supplemental assessment reuse, local pending/rejected assessment precedence, mandatory source certification, and snapshot provenance.
+- Replaces deprecated `session.query()` usage in `apps/api/tests/test_eligibility.py` with `session.exec()`.
+- Adds `.gitattributes` for LF/CRLF normalization to reduce line-ending noise on Windows.
+- Makes `apps/api/tests/conftest.py` robust to shallow Docker container directory structures.
+- Updates `docs/ROADMAP.md` and records the operational receipts in the local `coverage-operations-receipts/` folder.
+- No database migration, automatic evidence approval, snapshot mutation, regulatory-change claim, or global coverage claim.
+
 ## v10.22.4 — Supplemental baseline assessment reconciliation
 
 - Baseline eligibility may reuse the latest independently approved jurisdiction assessment when a source-only supplemental batch intentionally omits a duplicate assessment.

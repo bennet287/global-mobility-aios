@@ -1,0 +1,128 @@
+{
+  "pack_version": "v10.22.19",
+  "title": "Asia/Americas coverage evidence tranche 1A - Japan, Indonesia, Philippines, Argentina, Brazil",
+  "batch_id": "86333d9c-a6b0-4396-a9cc-1dfd04e827c2",
+  "batch_key": "38de40cd3059b44b5054d48a580b64669c63665ffcd0b7835a4cb96caa3eabd9",
+  "coverage_before": 60,
+  "coverage_after": 65,
+  "global_coverage_claim_ready": false,
+  "generated_at": "2026-07-18T18:53:06.331533+00:00",
+  "actors": {
+    "evidence_proposer": "coverage-evidence-proposer",
+    "evidence_reviewer": "coverage-evidence-reviewer",
+    "baseline_operator": "coverage-baseline-operator",
+    "rule_proposer": "coverage-rule-proposer",
+    "rule_reviewer": "coverage-rule-reviewer",
+    "rule_publisher": "coverage-rule-publisher"
+  },
+  "jurisdiction_count": 5,
+  "items": [
+    {
+      "alpha2_code": "JP",
+      "name": "Japan",
+      "jurisdiction_id": "68883eed-9c23-449d-bb06-a073696fe360",
+      "immigration_assessment_id": "2f3d6798-daef-4046-9337-de29c54ac495",
+      "source_certification_id": "9c1bb9d5-2b01-4776-9158-3f4fe82f5d2c",
+      "official_source_id": "d8d00199-adb8-4152-9721-d67b9c9cd0b0",
+      "source_monitor_id": "e060faa6-19ff-4efd-946e-a1d8caf62416",
+      "snapshot_id": "27ce894d-d0a6-48a3-9703-2038a2047023",
+      "assertion_id": "b5c5b935-4ef8-4053-97a7-837625ce812b",
+      "rule_id": "e57fed36-5cda-411c-8e45-12e7206b4781",
+      "coverage_ready": true,
+      "gates": {
+        "immigration_rule_assessment": true,
+        "reviewed_primary_authority": true,
+        "reviewed_primary_source": true,
+        "fresh_monitor": true,
+        "verified_rule": true
+      }
+    },
+    {
+      "alpha2_code": "ID",
+      "name": "Indonesia",
+      "jurisdiction_id": "bd8715ae-d61d-4099-b06e-62bb5dd5b771",
+      "immigration_assessment_id": "3a82b714-a0f8-4be8-ac25-9f669a505634",
+      "source_certification_id": "551101ec-ccde-48c6-adf0-4f9479e173f3",
+      "official_source_id": "2e555519-77b0-48c4-882e-f1a84c08218c",
+      "source_monitor_id": "0fbe5db3-702b-485b-b33d-efbf8773bd07",
+      "snapshot_id": "5c3f3a91-c11a-4f93-b2a9-c0de4ce77b49",
+      "assertion_id": "c55e9ff3-4c3e-4493-8dc0-e0af09665003",
+      "rule_id": "f6de9861-2c76-4247-a698-5ad6edf6e668",
+      "coverage_ready": true,
+      "gates": {
+        "immigration_rule_assessment": true,
+        "reviewed_primary_authority": true,
+        "reviewed_primary_source": true,
+        "fresh_monitor": true,
+        "verified_rule": true
+      }
+    },
+    {
+      "alpha2_code": "PH",
+      "name": "Philippines",
+      "jurisdiction_id": "af1a1ed3-faf8-4fb0-ba8b-6ffe3a62bb8a",
+      "immigration_assessment_id": "491220a4-3b4e-4411-9d40-f399c2348899",
+      "source_certification_id": "98217f3c-9c7e-4741-af16-72cb6f712289",
+      "official_source_id": "4390f14b-090d-403d-bb73-6bc6f2651708",
+      "source_monitor_id": "67a4fb76-e351-43df-b5cc-06a8b9700d88",
+      "snapshot_id": "aff6bbca-fc9f-41e3-9a90-1ee09fa27d23",
+      "assertion_id": "47adfd9d-2fa8-41c3-8622-ef0d70f074a6",
+      "rule_id": "3c43af2b-9333-40cd-a6de-7000a625bddc",
+      "coverage_ready": true,
+      "gates": {
+        "immigration_rule_assessment": true,
+        "reviewed_primary_authority": true,
+        "reviewed_primary_source": true,
+        "fresh_monitor": true,
+        "verified_rule": true
+      }
+    },
+    {
+      "alpha2_code": "AR",
+      "name": "Argentina",
+      "jurisdiction_id": "85a6c6a6-54b1-4ab2-a34c-e5af09f2d5b8",
+      "immigration_assessment_id": "be9824bf-7f20-41db-bd6d-9028c5783e30",
+      "source_certification_id": "b80992ef-5a8c-436f-a711-41f4b486a69c",
+      "official_source_id": "637bb275-cdf8-4def-be37-cd27444b4dd6",
+      "source_monitor_id": "6cd915ce-d919-4f25-9632-0970f6667b7b",
+      "snapshot_id": "78fd3476-f4cd-4394-8ac4-cafadbe32b40",
+      "assertion_id": "e3444c95-ef36-4719-a926-d8043c8894d8",
+      "rule_id": "dae7485c-c31e-43cc-a688-276c165b688d",
+      "coverage_ready": true,
+      "gates": {
+        "immigration_rule_assessment": true,
+        "reviewed_primary_authority": true,
+        "reviewed_primary_source": true,
+        "fresh_monitor": true,
+        "verified_rule": true
+      }
+    },
+    {
+      "alpha2_code": "BR",
+      "name": "Brazil",
+      "jurisdiction_id": "1c83f015-c305-4946-9486-cb91a4f49940",
+      "immigration_assessment_id": "f3c49d48-9bea-41fd-9acf-a07ea2fdd05f",
+      "source_certification_id": "2888b060-6e2d-40de-a191-bed4ad10c298",
+      "official_source_id": "26348a03-75f3-4b46-99b6-9b6229739bae",
+      "source_monitor_id": "bdb436ea-f650-41c3-8dc5-2091ca6f78eb",
+      "snapshot_id": "67e5ec54-4a1d-4f00-9337-3e8d4fb428c0",
+      "assertion_id": "b41edc43-bd29-4602-82fd-b18fb373e3b5",
+      "rule_id": "08cd65c1-1c94-4059-8165-f064549b072f",
+      "coverage_ready": true,
+      "gates": {
+        "immigration_rule_assessment": true,
+        "reviewed_primary_authority": true,
+        "reviewed_primary_source": true,
+        "fresh_monitor": true,
+        "verified_rule": true
+      }
+    }
+  ],
+  "safety": {
+    "auto_approved": false,
+    "auto_published": false,
+    "regulatory_change_claimed": false,
+    "global_coverage_claimed": false,
+    "message": "All five jurisdictions completed with independent assessment review, source certification review, controlled baseline capture, independent assertion review, and explicit publication. The global coverage claim remains false."
+  }
+}

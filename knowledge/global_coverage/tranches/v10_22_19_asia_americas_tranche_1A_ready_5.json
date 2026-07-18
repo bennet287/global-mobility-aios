@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.19",
+  "title": "Asia/Americas coverage evidence tranche 1A - Japan, Indonesia, Philippines, Argentina, Brazil",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "JP",
+      "authority_evidence_url": "https://www.moj.go.jp/EN/",
+      "source_url": "https://www.moj.go.jp/EN/",
+      "evidence_summary": "The Japanese Ministry of Justice operates moj.go.jp/EN/ as the official English-language portal covering immigration, residence, citizenship and foreigner-related services."
+    },
+    {
+      "alpha2_code": "ID",
+      "authority_evidence_url": "https://www.imigrasi.go.id/",
+      "source_url": "https://www.imigrasi.go.id/",
+      "evidence_summary": "The Indonesian Directorate General of Immigration operates imigrasi.go.id as the official portal for immigration, residence permits, visas and foreigner-related services."
+    },
+    {
+      "alpha2_code": "PH",
+      "authority_evidence_url": "https://immigration.gov.ph/",
+      "source_url": "https://immigration.gov.ph/",
+      "evidence_summary": "The Philippine Bureau of Immigration operates immigration.gov.ph as the official portal for immigration, visas, alien registration and foreigner-related services."
+    },
+    {
+      "alpha2_code": "AR",
+      "authority_evidence_url": "https://www.argentina.gob.ar/interior/migraciones",
+      "source_url": "https://www.argentina.gob.ar/interior/migraciones",
+      "evidence_summary": "The Argentine National Migration Directorate operates the Argentina.gob.ar Migraciones page as the official portal for immigration, residence, entry/exit control and foreigner-related services."
+    },
+    {
+      "alpha2_code": "BR",
+      "authority_evidence_url": "https://www.gov.br/mj/",
+      "source_url": "https://www.gov.br/mj/",
+      "evidence_summary": "The Brazilian Ministry of Justice and Public Security operates gov.br/mj/ as the official portal for justice, public security, citizenship and immigration-related services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.19 Asia/Americas evidence tranche 1A - JP, ID, PH, AR, BR",
+    "notes": "Official-source evidence for Japan (JP), Indonesia (ID), Philippines (PH), Argentina (AR) and Brazil (BR). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, residence, justice, citizenship or foreigner-related content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "JP",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.moj.go.jp/EN/",
+          "evidence_title": "Japanese Ministry of Justice official English portal",
+          "rationale": "The Japanese Ministry of Justice operates moj.go.jp/EN/ as the official English-language portal covering immigration, residence, citizenship and foreigner-related services. This supports a proposal that Japan directly administers the relevant immigration services through the Ministry of Justice."
+        },
+        "source_onboarding": {
+          "authority_name": "Japanese Ministry of Justice",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.moj.go.jp/EN/",
+          "authority_domains": ["visa"],
+          "source_name": "Japanese Ministry of Justice English portal",
+          "source_url": "https://www.moj.go.jp/EN/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.moj.go.jp"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Japanese Ministry of Justice English portal returned HTTPS 200 with content about immigration, residence, citizenship and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "ID",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.imigrasi.go.id/",
+          "evidence_title": "Indonesian Directorate General of Immigration official portal",
+          "rationale": "The Indonesian Directorate General of Immigration operates imigrasi.go.id as the official portal for immigration, residence permits, visas and foreigner-related services. This supports a proposal that Indonesia directly administers the relevant immigration services through the Directorate General of Immigration."
+        },
+        "source_onboarding": {
+          "authority_name": "Indonesian Directorate General of Immigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.imigrasi.go.id/",
+          "authority_domains": ["visa"],
+          "source_name": "Indonesian Directorate General of Immigration official portal",
+          "source_url": "https://www.imigrasi.go.id/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.imigrasi.go.id"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Indonesian Directorate General of Immigration portal returned HTTPS 200 with content about immigration, residence permits, visas and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "PH",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://immigration.gov.ph/",
+          "evidence_title": "Philippine Bureau of Immigration official portal",
+          "rationale": "The Philippine Bureau of Immigration operates immigration.gov.ph as the official portal for immigration, visas, alien registration and foreigner-related services. This supports a proposal that the Philippines directly administers the relevant immigration services through the Bureau of Immigration."
+        },
+        "source_onboarding": {
+          "authority_name": "Philippine Bureau of Immigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://immigration.gov.ph/",
+          "authority_domains": ["visa"],
+          "source_name": "Philippine Bureau of Immigration official portal",
+          "source_url": "https://immigration.gov.ph/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["immigration.gov.ph"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Philippine Bureau of Immigration portal returned HTTPS 200 with content about immigration, visas, alien registration and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "AR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.argentina.gob.ar/interior/migraciones",
+          "evidence_title": "Argentine National Migration Directorate official portal",
+          "rationale": "The Argentine National Migration Directorate operates the Argentina.gob.ar Migraciones page as the official portal for immigration, residence, entry/exit control and foreigner-related services. This supports a proposal that Argentina directly administers the relevant immigration services through the National Migration Directorate."
+        },
+        "source_onboarding": {
+          "authority_name": "Argentine National Migration Directorate",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.argentina.gob.ar/interior/migraciones",
+          "authority_domains": ["visa"],
+          "source_name": "Argentine National Migration Directorate official portal",
+          "source_url": "https://www.argentina.gob.ar/interior/migraciones",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.argentina.gob.ar"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Argentine National Migration Directorate page returned HTTPS 200 with content about immigration, residence, entry/exit control and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "BR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.gov.br/mj/",
+          "evidence_title": "Brazilian Ministry of Justice and Public Security official portal",
+          "rationale": "The Brazilian Ministry of Justice and Public Security operates gov.br/mj/ as the official portal for justice, public security, citizenship and immigration-related services. This supports a proposal that Brazil directly administers the relevant immigration services through the Ministry of Justice and Public Security."
+        },
+        "source_onboarding": {
+          "authority_name": "Brazilian Ministry of Justice and Public Security",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.gov.br/mj/",
+          "authority_domains": ["visa"],
+          "source_name": "Brazilian Ministry of Justice and Public Security official portal",
+          "source_url": "https://www.gov.br/mj/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.gov.br"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Brazilian Ministry of Justice and Public Security portal returned HTTPS 200 with content about justice, public security, citizenship and immigration-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}
