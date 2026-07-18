@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.22.20 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.20 adds a pending-review Asia/Americas coverage evidence tranche 1B for the Republic of Korea (`KR`), Malaysia (`MY`), Chile (`CL`), Peru (`PE`), and Qatar (`QA`). The atomic batch onboarded five authorities, five official sources, and five monitors, and created five immigration assessments plus five primary-source certifications in `pending_review`.
+- The controlled API-container retriever returned HTTPS 200 with usable content for all five selected endpoints. Thailand (`TH`), Vietnam (`VN`), and Mexico (`MX`) were excluded after controlled probes returned HTTP 403, a transport failure, and challenge-only content respectively; retrieval controls were not weakened.
+- Coverage readiness remains 65/243. No assessment or certification has been approved, no baseline capture has been queued, no assertion or rule has been published, and the global coverage claim remains false. The content-addressed evidence pack, SHA-256 receipt, and submission receipt are stored in `knowledge/global_coverage/tranches/` and `coverage-operations-receipts/`.
+
 ## Delivery Status — v10.22.19 (2026-07-18)
 
 Current database migration head: `0032_initial_rule_assertions`.

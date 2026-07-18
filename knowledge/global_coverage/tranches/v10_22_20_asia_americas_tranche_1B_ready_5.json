@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.20",
+  "title": "Asia/Americas coverage evidence tranche 1B - Republic of Korea, Malaysia, Chile, Peru, Qatar",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "KR",
+      "authority_evidence_url": "https://www.immigration.go.kr/immigration_eng/index.do",
+      "source_url": "https://www.immigration.go.kr/immigration_eng/index.do",
+      "evidence_summary": "The Ministry of Justice Korea Immigration Service operates immigration.go.kr as its official English portal, with visa, immigration, foreigner sojourn, nationality, refugee, and online-service information."
+    },
+    {
+      "alpha2_code": "MY",
+      "authority_evidence_url": "https://www.imi.gov.my/",
+      "source_url": "https://www.imi.gov.my/",
+      "evidence_summary": "The Immigration Department of Malaysia identifies imi.gov.my as its official portal and links immigration, visa, expatriate, residence, and arrival-card services."
+    },
+    {
+      "alpha2_code": "CL",
+      "authority_evidence_url": "https://serviciomigraciones.cl/",
+      "source_url": "https://serviciomigraciones.cl/",
+      "evidence_summary": "Chile's National Migration Service operates serviciomigraciones.cl as a Government of Chile portal covering temporary stay, temporary and permanent residence, nationality, migration procedures, and migration rules."
+    },
+    {
+      "alpha2_code": "PE",
+      "authority_evidence_url": "https://www.gob.pe/migraciones",
+      "source_url": "https://www.gob.pe/migraciones",
+      "evidence_summary": "Peru's National Superintendency of Migration operates the official gob.pe Migraciones portal and identifies itself as the Ministry of Interior body responsible for migration control, travel documents, and nationality."
+    },
+    {
+      "alpha2_code": "QA",
+      "authority_evidence_url": "https://portal.moi.gov.qa/wps/portal/MOIInternet/services/inquiries/visaservices",
+      "source_url": "https://portal.moi.gov.qa/wps/portal/MOIInternet/services/inquiries/visaservices",
+      "evidence_summary": "Qatar's Ministry of Interior operates the official Visa Services page on portal.moi.gov.qa for work and visit visa inquiries, approvals, printing, extensions, and related entry and residence services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.20 Asia/Americas evidence tranche 1B - KR, MY, CL, PE, QA",
+    "notes": "Official-source evidence for the Republic of Korea (KR), Malaysia (MY), Chile (CL), Peru (PE), and Qatar (QA). All five endpoints were probed on 2026-07-18 through the controlled API-container retriever and returned HTTPS 200 with usable generic-parser content. Thailand (TH), Vietnam (VN), and Mexico (MX) were excluded after controlled probes returned HTTP 403, a transport failure, and challenge-only content respectively; retrieval controls were not weakened. The tranche is limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "KR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.immigration.go.kr/immigration_eng/index.do",
+          "evidence_title": "Ministry of Justice Korea Immigration Service official English portal",
+          "rationale": "The Ministry of Justice Korea Immigration Service official portal provides visa, immigration, foreigner sojourn, nationality, refugee, and online-service information. This supports a proposal that the Republic of Korea directly administers the relevant immigration services through the Korea Immigration Service."
+        },
+        "source_onboarding": {
+          "authority_name": "Ministry of Justice Korea Immigration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.immigration.go.kr/immigration_eng/index.do",
+          "authority_domains": ["visa"],
+          "source_name": "Korea Immigration Service official English portal",
+          "source_url": "https://www.immigration.go.kr/immigration_eng/index.do",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.immigration.go.kr"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 5,141 characters of extracted content covering the Ministry of Justice Korea Immigration Service, visas, immigration, foreigner sojourn, nationality, and refugee services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "MY",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.imi.gov.my/",
+          "evidence_title": "Immigration Department of Malaysia official portal",
+          "rationale": "The Immigration Department of Malaysia identifies imi.gov.my as its official portal and links immigration, visa, expatriate, residence, work-pass, and arrival-card services. This supports a proposal that Malaysia directly administers the relevant immigration services through the Immigration Department."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration Department of Malaysia",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.imi.gov.my/",
+          "authority_domains": ["visa"],
+          "source_name": "Immigration Department of Malaysia official portal",
+          "source_url": "https://www.imi.gov.my/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.imi.gov.my"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 2,129 characters of extracted content identifying the official Immigration Department portal and linking visa, expatriate, residence, work-pass, and arrival-card services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "CL",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://serviciomigraciones.cl/",
+          "evidence_title": "Chile National Migration Service official portal",
+          "rationale": "The National Migration Service portal identifies itself as a Government of Chile service and publishes temporary-stay, temporary-residence, permanent-residence, nationality, migration-procedure, and regulatory information. This supports a proposal that Chile directly administers the relevant immigration services through the National Migration Service."
+        },
+        "source_onboarding": {
+          "authority_name": "Chile National Migration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://serviciomigraciones.cl/",
+          "authority_domains": ["visa"],
+          "source_name": "Chile National Migration Service official portal",
+          "source_url": "https://serviciomigraciones.cl/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["serviciomigraciones.cl"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 7,749 characters of extracted content covering temporary stay, temporary and permanent residence, nationality, migration procedures, and migration rules. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "PE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.gob.pe/migraciones",
+          "evidence_title": "Peru National Superintendency of Migration official government portal",
+          "rationale": "The official gob.pe page identifies the National Superintendency of Migration as the Ministry of Interior body responsible for migration control of national and foreign citizens, travel documents, and nationality. This supports a proposal that Peru directly administers the relevant immigration services through the National Superintendency of Migration."
+        },
+        "source_onboarding": {
+          "authority_name": "Peru National Superintendency of Migration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.gob.pe/migraciones",
+          "authority_domains": ["visa"],
+          "source_name": "Peru National Superintendency of Migration official portal",
+          "source_url": "https://www.gob.pe/migraciones",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.gob.pe"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 12,553 characters of extracted content identifying the authority and covering migration control, foreigner documentation, migration status, nationality, permits, and official migration procedures. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "QA",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://portal.moi.gov.qa/wps/portal/MOIInternet/services/inquiries/visaservices",
+          "evidence_title": "Qatar Ministry of Interior Visa Services portal",
+          "rationale": "The Qatar Ministry of Interior Visa Services page provides work and visit visa inquiry, approval tracking, printing, extension, and related entry and residence services. This supports a proposal that Qatar directly administers the relevant immigration services through the Ministry of Interior."
+        },
+        "source_onboarding": {
+          "authority_name": "Qatar Ministry of Interior",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://portal.moi.gov.qa/wps/portal/MOIInternet/services/inquiries/visaservices",
+          "authority_domains": ["visa"],
+          "source_name": "Qatar Ministry of Interior Visa Services portal",
+          "source_url": "https://portal.moi.gov.qa/wps/portal/MOIInternet/services/inquiries/visaservices",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["portal.moi.gov.qa"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 2,021 characters of extracted content identifying Ministry of Interior Visa Services and covering work and visit visa inquiries, approval tracking, printing, extension, and residence-permit inquiries. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}
