@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.8",
+  "generated_at": "2026-07-17T22:35:39.000000Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "88dd3a18-9ab7-4140-a90a-16b7e9937fa9",
+  "batch_name": "v10.22.8 Africa evidence tranche 1D - GH, GN",
+  "registry_summary": {
+    "coverage_ready": 21,
+    "coverage_required": 243,
+    "with_verified_rule": 21,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "GH",
+      "jurisdiction_name": "Ghana",
+      "jurisdiction_id": "66e97985-d394-4221-89ee-28cc0e10163e",
+      "immigration_assessment_id": "5b8849be-e353-4e8e-a168-97336e9ebf6a",
+      "source_certification_id": "aafc7dad-99b6-460b-9674-4534143c6d93",
+      "regulatory_authority_id": "5ed98a8c-4293-4047-b178-8e419a40f726",
+      "official_source_id": "2697f977-b789-49c3-af6f-01cfa9a5ce26",
+      "source_monitor_id": "285d39ca-8a57-4374-a0b2-37fa70a16aba",
+      "source_url": "https://evisa.immigration.gov.gh/",
+      "baseline_snapshot_id": "cf96c853-9fe7-4e7a-a8d0-1b8c6cd880fe",
+      "baseline_snapshot_hash": "4404498fc54e1f084939b9198022fc1d6c03804f53efaf9424b063a1d6f6ba06",
+      "initial_rule_assertion_id": "1a7f2b89-c19a-469a-83c1-99b919aafae0",
+      "rule_key": "gh_evisa_official_information_baseline",
+      "verified_rule_id": "c6db4d1c-6136-4543-8855-3e1ea4c2397d",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "GN",
+      "jurisdiction_name": "Guinea",
+      "jurisdiction_id": "f35d9cbb-6a5a-4a69-9ccc-b21fb6c4cf7b",
+      "immigration_assessment_id": "a9ba0633-9cd3-405c-9f52-ecb8fe6bd4cd",
+      "source_certification_id": "a8cf9529-8eb9-45b0-9b9d-3a733e85898a",
+      "regulatory_authority_id": "5427b8aa-256a-46b7-ae1e-3e34a9216842",
+      "official_source_id": "89f85345-bc89-404a-ba6e-eaa41f0820d7",
+      "source_monitor_id": "acc14286-31ec-4106-a239-4e125578879b",
+      "source_url": "https://www.paf.gov.gn/visa",
+      "baseline_snapshot_id": "f35daffa-a4c4-45c5-ac50-6e2fd90548a5",
+      "baseline_snapshot_hash": "07e18f5fc15da4ba844a8c3168d59ed1035824ff97e9b2789ddac3a947aac9ee",
+      "initial_rule_assertion_id": "4ca997ad-10a4-4b7e-a89d-413a056baf6d",
+      "rule_key": "gn_evisa_official_information_baseline",
+      "verified_rule_id": "c7fe01b2-f470-48e1-bf2e-f373602c7edb",
+      "coverage_ready": true
+    }
+  ],
+  "blocked": [],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records two verified-rule publications for Ghana and Guinea. No jurisdiction was blocked in this tranche. It does not create a global coverage claim."
+  }
+}

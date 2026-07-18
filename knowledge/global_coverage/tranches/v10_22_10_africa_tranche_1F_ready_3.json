@@ -1,0 +1,144 @@
+{
+  "pack_version": "v10.22.10",
+  "title": "Africa coverage evidence tranche 1F - Madagascar, Malawi, Mozambique",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 3,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "MG",
+      "authority_evidence_url": "https://evisamada-mg.com/en/home",
+      "source_url": "https://evisamada-mg.com/en/home",
+      "evidence_summary": "The Republic of Madagascar operates the evisamada-mg.com platform as the official eService of Tourism, Immigration and Emigration for online visa applications."
+    },
+    {
+      "alpha2_code": "MW",
+      "authority_evidence_url": "https://www.evisa.gov.mw/",
+      "source_url": "https://www.evisa.gov.mw/",
+      "evidence_summary": "The Malawi Immigration Department operates the official Malawi e-Visa application portal at evisa.gov.mw."
+    },
+    {
+      "alpha2_code": "MZ",
+      "authority_evidence_url": "https://evisa.gov.mz/",
+      "source_url": "https://evisa.gov.mz/",
+      "evidence_summary": "The Mozambique National Immigration Service operates the official e-Visa portal at evisa.gov.mz."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.10 Africa evidence tranche 1F - MG, MW, MZ",
+    "notes": "Official-source evidence for Madagascar (MG), Malawi (MW), and Mozambique (MZ). Madagascar's official e-visa platform is the eService of Tourism, Immigration and Emigration at evisamada-mg.com. Malawi's official e-Visa portal is operated by the Malawi Immigration Department. Mozambique's official e-Visa portal is operated by the National Immigration Service. All three endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/visa content. Gabon (GA), Gambia (GM), Guinea-Bissau (GW), and Democratic Republic of the Congo (CD) remain blocked or deferred from earlier tranches. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "MG",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisamada-mg.com/en/home",
+          "evidence_title": "Madagascar e-Visa - official eService of Tourism, Immigration and Emigration",
+          "rationale": "The Republic of Madagascar operates the evisamada-mg.com platform as the official eService of Tourism, Immigration and Emigration for online visa applications. This supports a proposal that Madagascar directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Madagascar Ministry of Tourism, Immigration and Emigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisamada-mg.com/en/home",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Madagascar e-Visa Portal",
+          "source_url": "https://evisamada-mg.com/en/home",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisamada-mg.com"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The page states 'The evisamada.gov.mg platform is the only official website of the Republic of Madagascar for the management of online visa applications' and describes itself as 'The one and only official online visa application site'. The reachable canonical endpoint is evisamada-mg.com/en/home. Keep the initial certification limited to the visa and entry functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "MW",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.evisa.gov.mw/",
+          "evidence_title": "Malawi e-Visa - official Immigration Department portal",
+          "rationale": "The Malawi Immigration Department operates the official Malawi e-Visa application portal at evisa.gov.mw. This supports a proposal that Malawi directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Malawi Immigration Department",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.evisa.gov.mw/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Malawi e-Visa Portal",
+          "source_url": "https://www.evisa.gov.mw/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.evisa.gov.mw",
+            "evisa.gov.mw"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Malawi Immigration Department operates the official Malawi e-Visa application portal at evisa.gov.mw. The page identifies itself as the official Malawi e-Visa application and references the Republic of Malawi. Keep the initial certification limited to the visa functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "MZ",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.gov.mz/",
+          "evidence_title": "Mozambique e-Visa - official National Immigration Service portal",
+          "rationale": "The Mozambique National Immigration Service operates the official e-Visa portal at evisa.gov.mz. This supports a proposal that Mozambique directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Mozambique National Immigration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisa.gov.mz/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Mozambique e-Visa Portal",
+          "source_url": "https://evisa.gov.mz/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisa.gov.mz",
+            "www.evisa.gov.mz"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Mozambique National Immigration Service operates the official e-Visa portal at evisa.gov.mz. The page identifies itself as the official Mozambique eVisa and describes visa application services. Keep the initial certification limited to the visa functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

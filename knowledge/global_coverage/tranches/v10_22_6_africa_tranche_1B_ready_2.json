@@ -1,0 +1,102 @@
+{
+  "pack_version": "v10.22.6",
+  "title": "Africa coverage evidence tranche 1B - Chad and Cote d'Ivoire",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 2,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "TD",
+      "authority_evidence_url": "https://evisa.td/",
+      "source_url": "https://evisa.td/",
+      "evidence_summary": "The official e-Visa Tchad portal is the sole online channel for visa applications to Chad and identifies the Ministry of Public Security and Immigration's E-Visa Sub-Directorate as the operating authority."
+    },
+    {
+      "alpha2_code": "CI",
+      "authority_evidence_url": "https://snedai.com/e-visa/",
+      "source_url": "https://snedai.com/e-visa/",
+      "evidence_summary": "SNEDAI is the only company officially recognized and accredited by the State of Cote d'Ivoire for e-visa formalities; its SNEDAI E-visa page is the official online pre-enrollment channel."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.6 Africa evidence tranche 1B - TD, CI",
+    "notes": "Official-source evidence for Chad (TD) and Cote d'Ivoire (CI). Chad's e-Visa Tchad portal is the mandatory online visa channel under the Ministry of Public Security and Immigration. Cote d'Ivoire's e-visa pre-enrollment is operated by SNEDAI as the only state-recognized and accredited provider. Algeria is excluded due to a persistent TLS certificate-chain failure; Comoros and Congo (Brazzaville) are deferred until a reachable official source is confirmed. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "TD",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.td/",
+          "evidence_title": "e-Visa Tchad - official electronic visa portal",
+          "rationale": "The official e-Visa Tchad portal (evisa.td) is the mandatory online channel for visa applications to Chad and is operated under the Ministry of Public Security and Immigration's E-Visa Sub-Directorate. This supports a proposal that Chad directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Ministry of Public Security and Immigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisa.td/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "e-Visa Tchad",
+          "source_url": "https://evisa.td/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisa.td"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The e-Visa Tchad portal is the mandatory online channel for visa applications to Chad, operated under the Ministry of Public Security and Immigration's E-Visa Sub-Directorate. Keep the initial certification limited to the visa and entry functions explicitly described by the portal. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "CI",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://snedai.com/e-visa/",
+          "evidence_title": "SNEDAI E-visa - Cote d'Ivoire official pre-enrollment portal",
+          "rationale": "SNEDAI is the only company officially recognized and accredited by the State of Cote d'Ivoire for e-visa formalities; its SNEDAI E-visa page (snedai.com/e-visa/) is the official online pre-enrollment channel. This supports a proposal that Cote d'Ivoire directly administers the relevant immigration rules through SNEDAI as its official service provider."
+        },
+        "source_onboarding": {
+          "authority_name": "Government of Cote d'Ivoire",
+          "authority_type": "government",
+          "authority_website_url": null,
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "SNEDAI E-visa Cote d'Ivoire",
+          "source_url": "https://snedai.com/e-visa/",
+          "source_domain": "visa",
+          "source_type": "official_portal",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "snedai.com"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The SNEDAI E-visa page states that it is the only website officially recognized and approved by the State of Cote d'Ivoire for visa applications. The source is therefore an official portal operated by a state-accredited provider. Keep the initial certification limited to the e-visa pre-enrollment function explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

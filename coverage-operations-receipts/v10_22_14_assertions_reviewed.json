@@ -1,0 +1,27 @@
+[
+  {
+    "code": "IS",
+    "id": "fdd4894e-18c9-42a6-a085-2e06174c5e25",
+    "status": "approved"
+  },
+  {
+    "code": "NO",
+    "id": "17c11181-0c80-43b5-90b3-e8f5175a059b",
+    "status": "approved"
+  },
+  {
+    "code": "CH",
+    "id": "d1e6548c-dd00-4444-b7f2-d20bda8c6046",
+    "status": "approved"
+  },
+  {
+    "code": "SE",
+    "id": "c6b45587-4312-49c1-a9c6-e122df72decd",
+    "status": "approved"
+  },
+  {
+    "code": "FI",
+    "id": "02970550-4922-460a-bb55-2828bdf9e151",
+    "status": "approved"
+  }
+]

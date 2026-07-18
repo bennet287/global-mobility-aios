@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.13",
+  "title": "Asia/MENA coverage evidence tranche 1A - Oman, Bahrain, Georgia, Singapore, UAE",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "OM",
+      "authority_evidence_url": "https://evisa.rop.gov.om/",
+      "source_url": "https://evisa.rop.gov.om/",
+      "evidence_summary": "The Royal Oman Police operates the eVisa portal at evisa.rop.gov.om as the official online visa service for the Sultanate of Oman."
+    },
+    {
+      "alpha2_code": "BH",
+      "authority_evidence_url": "https://www.evisa.gov.bh/",
+      "source_url": "https://www.evisa.gov.bh/",
+      "evidence_summary": "The Kingdom of Bahrain operates the Bahrain Electronic Visa Service at evisa.gov.bh as the only official website to apply for a visa to Bahrain."
+    },
+    {
+      "alpha2_code": "GE",
+      "authority_evidence_url": "https://www.evisa.gov.ge/GeoVisa/",
+      "source_url": "https://www.evisa.gov.ge/GeoVisa/",
+      "evidence_summary": "The Ministry of Foreign Affairs of Georgia operates the e-VISA PORTAL at evisa.gov.ge/GeoVisa as the official online visa service for short-term visits to Georgia."
+    },
+    {
+      "alpha2_code": "SG",
+      "authority_evidence_url": "https://www.ica.gov.sg/",
+      "source_url": "https://www.ica.gov.sg/",
+      "evidence_summary": "The Immigration and Checkpoints Authority of Singapore operates ica.gov.sg as the official government portal for identity documents and entering, transiting and departing Singapore."
+    },
+    {
+      "alpha2_code": "AE",
+      "authority_evidence_url": "https://icp.gov.ae/en/",
+      "source_url": "https://icp.gov.ae/en/",
+      "evidence_summary": "The Federal Authority for Identity, Citizenship, Customs and Port Security (ICP) operates icp.gov.ae/en/ as the official UAE federal portal for identity, citizenship, residency and port-security services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.13 Asia/MENA evidence tranche 1A - OM, BH, GE, SG, AE",
+    "notes": "Official-source evidence for Oman (OM), Bahrain (BH), Georgia (GE), Singapore (SG) and the United Arab Emirates (AE). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable English-language immigration, visa or residency content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "OM",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.rop.gov.om/",
+          "evidence_title": "Royal Oman Police eVisa official portal",
+          "rationale": "The Royal Oman Police operates the eVisa portal at evisa.rop.gov.om as the official online visa service for the Sultanate of Oman. This supports a proposal that Oman directly administers the relevant visa and immigration services through the Royal Oman Police."
+        },
+        "source_onboarding": {
+          "authority_name": "Royal Oman Police",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisa.rop.gov.om/",
+          "authority_domains": ["visa"],
+          "source_name": "Oman Royal Oman Police eVisa",
+          "source_url": "https://evisa.rop.gov.om/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["evisa.rop.gov.om"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Royal Oman Police eVisa portal returned HTTPS 200 with English content describing online visa services for the Sultanate of Oman. Keep the initial certification limited to the visa services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "BH",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.evisa.gov.bh/",
+          "evidence_title": "Bahrain Electronic Visa Service official portal",
+          "rationale": "The Kingdom of Bahrain operates the Bahrain Electronic Visa Service at evisa.gov.bh as the only official website to apply for a visa to Bahrain. This supports a proposal that Bahrain directly administers its visa services through this official portal."
+        },
+        "source_onboarding": {
+          "authority_name": "Kingdom of Bahrain Electronic Visa Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.evisa.gov.bh/",
+          "authority_domains": ["visa"],
+          "source_name": "Bahrain Electronic Visa Service",
+          "source_url": "https://www.evisa.gov.bh/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.evisa.gov.bh"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Bahrain Electronic Visa Service portal returned HTTPS 200 and includes a disclaimer stating it is the only official website for Bahrain visa applications. Keep the initial certification limited to the visa application functions explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "GE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.evisa.gov.ge/GeoVisa/",
+          "evidence_title": "Georgia e-VISA PORTAL official page",
+          "rationale": "The Ministry of Foreign Affairs of Georgia operates the e-VISA PORTAL at evisa.gov.ge/GeoVisa as the official online visa service for short-term visits to Georgia. This supports a proposal that Georgia directly administers the relevant visa services through this official portal."
+        },
+        "source_onboarding": {
+          "authority_name": "Ministry of Foreign Affairs of Georgia",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.evisa.gov.ge/GeoVisa/",
+          "authority_domains": ["visa"],
+          "source_name": "Georgia e-VISA PORTAL",
+          "source_url": "https://www.evisa.gov.ge/GeoVisa/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["evisa.gov.ge"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Georgia e-VISA PORTAL returned HTTPS 200 with English content describing the three-step e-Visa application process for short-term visits. Keep the initial certification limited to the short-term e-Visa service explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "SG",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.ica.gov.sg/",
+          "evidence_title": "Immigration and Checkpoints Authority of Singapore official portal",
+          "rationale": "The Immigration and Checkpoints Authority of Singapore operates ica.gov.sg as the official government portal for identity documents and entering, transiting and departing Singapore. This supports a proposal that Singapore directly administers the relevant immigration services through ICA."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration and Checkpoints Authority of Singapore",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.ica.gov.sg/",
+          "authority_domains": ["visa"],
+          "source_name": "Immigration and Checkpoints Authority of Singapore",
+          "source_url": "https://www.ica.gov.sg/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["ica.gov.sg"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The ICA official portal returned HTTPS 200 with English content describing identity documents and entering, transiting and departing Singapore. Keep the initial certification limited to the immigration and entry services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "AE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://icp.gov.ae/en/",
+          "evidence_title": "UAE Federal Authority for Identity, Citizenship, Customs and Port Security official portal",
+          "rationale": "The Federal Authority for Identity, Citizenship, Customs and Port Security (ICP) operates icp.gov.ae/en/ as the official UAE federal portal for identity, citizenship, residency and port-security services. This supports a proposal that the UAE directly administers the relevant identity and residency services through ICP."
+        },
+        "source_onboarding": {
+          "authority_name": "Federal Authority for Identity, Citizenship, Customs and Port Security",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://icp.gov.ae/en/",
+          "authority_domains": ["visa"],
+          "source_name": "UAE ICP Federal Authority Portal",
+          "source_url": "https://icp.gov.ae/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["icp.gov.ae"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The UAE ICP English portal returned HTTPS 200 with English content describing the Federal Authority for Identity, Citizenship, Customs and Port Security and its residency services including Golden, Blue and Green Residency. Keep the initial certification limited to the federal identity and residency services explicitly described."
+        }
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.domain import EligibilityAssessment, LeadIntent
 
@@ -53,7 +53,8 @@ def test_evaluate_eligibility_creates_assessment(client: TestClient, db_session:
     assert data["agent_run_id"] is not None
 
     # Assessment is persisted.
-    rows = db_session.query(EligibilityAssessment).where(EligibilityAssessment.lead_id == lead.id).all()
+    statement = select(EligibilityAssessment).where(EligibilityAssessment.lead_id == lead.id)
+    rows = db_session.exec(statement).all()
     assert len(rows) == 1
     assert rows[0].status == data["status"]
 

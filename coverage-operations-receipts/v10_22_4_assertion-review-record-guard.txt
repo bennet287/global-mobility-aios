@@ -1,0 +1,172 @@
+
+FILE: C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\initial_rule_assertions.py
+GUARD LINE: 68
+    1: from __future__ import annotations
+    2: 
+    3: import hashlib
+    4: import json
+    5: from typing import Any, Optional
+    6: from uuid import UUID
+    7: 
+    8: from sqlmodel import Session, select
+    9: 
+   10: from app.models.domain import (
+   11:     InitialRuleAssertion,
+   12:     Jurisdiction,
+   13:     JurisdictionCoverageEvidenceBatch,
+   14:     JurisdictionCoverageEvidenceBatchItem,
+   15:     JurisdictionImmigrationAssessment,
+   16:     JurisdictionSourceCertification,
+   17:     OfficialSource,
+   18:     SourceSnapshot,
+   19:     VerifiedRule,
+   20:     now_utc,
+   21: )
+   22: from app.schemas import (
+   23:     InitialRuleAssertionCreateRequest,
+   24:     InitialRuleAssertionPublishRequest,
+   25:     InitialRuleAssertionReviewRequest,
+   26: )
+   27: from app.services.audit_log import record_audit
+   28: from app.services.jurisdiction_registry import jurisdiction_coverage_receipt
+   29: from app.services.official_sources import normalize_country, normalize_domain
+   30: 
+   31: 
+   32: _MIN_PUBLISH_CONFIDENCE = 0.90
+   33: 
+   34: 
+   35: def _dump(value: Any) -> str:
+   36:     return json.dumps(value, default=str, sort_keys=True, separators=(",", ":"))
+   37: 
+   38: 
+   39: def _normal(value: str) -> str:
+   40:     return " ".join(value.strip().split())
+   41: 
+   42: 
+   43: def _batch_item(
+   44:     session: Session,
+   45:     *,
+   46:     batch_id: UUID,
+   47:     alpha2_code: str,
+   48: ) -> tuple[JurisdictionCoverageEvidenceBatch, JurisdictionCoverageEvidenceBatchItem]:
+   49:     batch = session.get(JurisdictionCoverageEvidenceBatch, batch_id)
+   50:     if batch is None:
+   51:         raise ValueError("Coverage evidence batch not found")
+   52:     code = alpha2_code.strip().upper()
+   53:     item = session.exec(
+   54:         select(JurisdictionCoverageEvidenceBatchItem)
+   55:         .where(JurisdictionCoverageEvidenceBatchItem.batch_id == batch.id)
+   56:         .where(JurisdictionCoverageEvidenceBatchItem.alpha2_code == code)
+   57:     ).first()
+   58:     if item is None:
+   59:         raise ValueError(f"Coverage evidence batch does not contain jurisdiction {code}")
+   60:     return batch, item
+   61: 
+   62: 
+   63: def _approved_item_context(
+   64:     session: Session,
+   65:     item: JurisdictionCoverageEvidenceBatchItem,
+   66: ) -> tuple[Jurisdiction, OfficialSource, SourceSnapshot]:
+   67:     if not item.immigration_assessment_id or not item.source_certification_id:
+   68:         raise ValueError("Initial rule assertion requires both coverage review records")
+   69:     if not item.official_source_id:
+   70:         raise ValueError("Initial rule assertion requires an onboarded official source")
+   71:     assessment = session.get(JurisdictionImmigrationAssessment, item.immigration_assessment_id)
+   72:     certification = session.get(JurisdictionSourceCertification, item.source_certification_id)
+   73:     jurisdiction = session.get(Jurisdiction, item.jurisdiction_id)
+   74:     source = session.get(OfficialSource, item.official_source_id)
+   75:     if not assessment or assessment.status != "approved":
+   76:         raise ValueError("Immigration-rule relationship must be independently approved first")
+   77:     if not certification or certification.status != "approved":
+   78:         raise ValueError("Authority/source certification must be independently approved first")
+   79:     if not jurisdiction or not source:
+   80:         raise ValueError("Coverage item jurisdiction or official source could not be resolved")
+   81:     if assessment.jurisdiction_id != jurisdiction.id or certification.jurisdiction_id != jurisdiction.id:
+   82:         raise ValueError("Coverage review records do not belong to the selected jurisdiction")
+   83:     if (
+   84:         not certification.certification_scope.startswith("supplemental_")
+   85:         and assessment.official_source_id not in {None, source.id}
+   86:     ):
+   87:         raise ValueError("Immigration assessment is linked to a different official source")
+   88:     if certification.official_source_id != source.id:
+   89:         raise ValueError("Source certification is linked to a different official source")
+   90:     if not source.active:
+   91:         raise ValueError("Official source is inactive")
+   92: 
+   93:     snapshot = session.exec(
+   94:         select(SourceSnapshot)
+   95:         .where(SourceSnapshot.official_source_id == source.id)
+   96:         .where(SourceSnapshot.previous_snapshot_id.is_(None))
+   97:         .where(SourceSnapshot.status == "baseline")
+   98:         .order_by(SourceSnapshot.captured_at.desc())
+   99:     ).first()
+  100:     if snapshot is None:
+  101:         raise ValueError("An immutable baseline snapshot is required before proposing an initial rule")
+  102:     if not snapshot.content_hash or not snapshot.content_text:
+  103:         raise ValueError("Baseline snapshot content provenance is incomplete")
+  104:     return jurisdiction, source, snapshot
+  105: 
+  106: 
+  107: def _assertion_hash(
+  108:     *,
+  109:     item: JurisdictionCoverageEvidenceBatchItem,
+  110:     snapshot: SourceSnapshot,
+  111:     payload: InitialRuleAssertionCreateRequest,
+  112: ) -> str:
+  113:     canonical = {
+  114:         "coverage_batch_item_id": str(item.id),
+  115:         "jurisdiction_id": str(item.jurisdiction_id),
+  116:         "official_source_id": str(item.official_source_id),
+  117:         "source_snapshot_id": str(snapshot.id),
+  118:         "source_snapshot_hash": snapshot.content_hash,
+  119:         "domain": normalize_domain(payload.domain),
+  120:         "title": _normal(payload.title),
+  121:         "rule_key": _normal(payload.rule_key).lower().replace(" ", "_"),
+  122:         "statement": _normal(payload.statement),
+  123:         "rationale": _normal(payload.rationale),
+  124:         "evidence_excerpt": _normal(payload.evidence_excerpt),
+  125:         "confidence": round(payload.confidence, 6),
+  126:         "effective_from": payload.effective_from,
+  127:         "effective_to": payload.effective_to,
+  128:     }
+  129:     return hashlib.sha256(_dump(canonical).encode("utf-8")).hexdigest()
+  130: 
+  131: 
+  132: def initial_rule_assertion_payload(
+  133:     session: Session,
+  134:     assertion: InitialRuleAssertion,
+  135: ) -> dict[str, Any]:
+  136:     jurisdiction = session.get(Jurisdiction, assertion.jurisdiction_id)
+  137:     source = session.get(OfficialSource, assertion.official_source_id)
+  138:     snapshot = session.get(SourceSnapshot, assertion.source_snapshot_id)
+  139:     rule = session.get(VerifiedRule, assertion.published_rule_id) if assertion.published_rule_id else None
+  140:     return {
+  141:         **assertion.model_dump(),
+  142:         "alpha2_code": jurisdiction.code if jurisdiction else None,
+  143:         "jurisdiction_name": jurisdiction.name if jurisdiction else None,
+  144:         "source_name": source.name if source else None,
+  145:         "source_url": source.url if source else None,
+  146:         "snapshot": None if snapshot is None else {
+  147:             "id": snapshot.id,
+  148:             "status": snapshot.status,
+  149:             "content_hash": snapshot.content_hash,
+  150:             "captured_at": snapshot.captured_at,
+  151:             "url": snapshot.url,
+  152:         },
+  153:         "verified_rule": None if rule is None else {
+  154:             "id": rule.id,
+  155:             "rule_key": rule.rule_key,
+  156:             "active": rule.active,
+  157:             "published_at": rule.published_at,
+  158:         },
+  159:         "safety": {
+  160:             "source_change_claimed": False,
+  161:             "human_review_required": True,
+  162:             "publishes_automatically": False,
+  163:             "message": "This is a baseline rule assertion, not a detected source change. Publication requires independent review and a separate explicit action.",
+  164:         },
+  165:     }
+  166: 
+  167: 
+  168: def list_initial_rule_assertions(
+  169:     session: Session,

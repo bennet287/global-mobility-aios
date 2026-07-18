@@ -1,0 +1,27 @@
+[
+  {
+    "alpha2_code": "JP",
+    "assertion_id": "b5c5b935-4ef8-4053-97a7-837625ce812b",
+    "status": "pending_review"
+  },
+  {
+    "alpha2_code": "ID",
+    "assertion_id": "c55e9ff3-4c3e-4493-8dc0-e0af09665003",
+    "status": "pending_review"
+  },
+  {
+    "alpha2_code": "PH",
+    "assertion_id": "47adfd9d-2fa8-41c3-8622-ef0d70f074a6",
+    "status": "pending_review"
+  },
+  {
+    "alpha2_code": "AR",
+    "assertion_id": "e3444c95-ef36-4719-a926-d8043c8894d8",
+    "status": "pending_review"
+  },
+  {
+    "alpha2_code": "BR",
+    "assertion_id": "b41edc43-bd29-4602-82fd-b18fb373e3b5",
+    "status": "pending_review"
+  }
+]

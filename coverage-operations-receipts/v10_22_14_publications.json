@@ -1,0 +1,422 @@
+[
+  {
+    "code": "IS",
+    "id": "fdd4894e-18c9-42a6-a085-2e06174c5e25",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "01217cd8-cc41-4f73-b285-518a71885d4e",
+      "retired_by": null,
+      "jurisdiction_id": "098b915b-e63e-4e9a-8005-28881adf1e09",
+      "retirement_reason": null,
+      "statement": "The Icelandic Directorate of Immigration (Útlendingastofnun) publishes its official immigration services on island.is under the /s/utlendingastofnun path.",
+      "active": true,
+      "created_at": "2026-07-18T16:08:02.929813Z",
+      "rule_key": "is_iceland_directorate_immigration_official_baseline",
+      "official_source_id": "dcd46218-cd7d-45f7-8c33-24ca69ef307b",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:08:02.929834Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "iceland",
+      "source_snapshot_id": "90f6c89e-e21c-463c-8f2a-409fd8492516",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "fdd4894e-18c9-42a6-a085-2e06174c5e25",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:08:02.929637"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "ba1ce150-0959-4c3c-b10d-0f818086b910",
+        "jurisdiction_id": "098b915b-e63e-4e9a-8005-28881adf1e09",
+        "alpha2_code": "IS",
+        "name": "Iceland",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 35,
+          "coverage_required": 243,
+          "with_verified_rule": 35
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "ba1ce150-0959-4c3c-b10d-0f818086b910",
+        "jurisdiction_id": "098b915b-e63e-4e9a-8005-28881adf1e09",
+        "alpha2_code": "IS",
+        "name": "Iceland",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 36,
+          "coverage_required": 243,
+          "with_verified_rule": 36
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "01217cd8-cc41-4f73-b285-518a71885d4e",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "NO",
+    "id": "17c11181-0c80-43b5-90b3-e8f5175a059b",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "c9dd3323-92be-4972-8a19-9514acb795f6",
+      "retired_by": null,
+      "jurisdiction_id": "d0ee5378-2edc-41d3-ab08-e5645f1b1396",
+      "retirement_reason": null,
+      "statement": "The Norwegian Directorate of Immigration (UDI) operates udi.no/en as the official English-language portal for immigration to Norway.",
+      "active": true,
+      "created_at": "2026-07-18T16:08:03.017979Z",
+      "rule_key": "no_udi_official_immigration_portal_baseline",
+      "official_source_id": "efff1a67-539a-47dd-adff-c94e2b9a64c5",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:08:03.017991Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "norway",
+      "source_snapshot_id": "4fd3252d-47d7-415f-bba7-a1627b673028",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "17c11181-0c80-43b5-90b3-e8f5175a059b",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:08:03.017819"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "ad4a6f84-ac50-40a7-994f-d280f02cbdc4",
+        "jurisdiction_id": "d0ee5378-2edc-41d3-ab08-e5645f1b1396",
+        "alpha2_code": "NO",
+        "name": "Norway",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 36,
+          "coverage_required": 243,
+          "with_verified_rule": 36
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "ad4a6f84-ac50-40a7-994f-d280f02cbdc4",
+        "jurisdiction_id": "d0ee5378-2edc-41d3-ab08-e5645f1b1396",
+        "alpha2_code": "NO",
+        "name": "Norway",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 37,
+          "coverage_required": 243,
+          "with_verified_rule": 37
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "c9dd3323-92be-4972-8a19-9514acb795f6",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "CH",
+    "id": "d1e6548c-dd00-4444-b7f2-d20bda8c6046",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "9168847b-1681-4195-8e63-1f05939930b4",
+      "retired_by": null,
+      "jurisdiction_id": "f7997e9c-8281-4109-b36f-248899a548aa",
+      "retirement_reason": null,
+      "statement": "The Swiss State Secretariat for Migration (SEM) operates sem.admin.ch as the official federal migration authority website.",
+      "active": true,
+      "created_at": "2026-07-18T16:08:03.191797Z",
+      "rule_key": "ch_sem_official_migration_portal_baseline",
+      "official_source_id": "7cee2043-42f5-42b7-97d1-2a91ae343aa5",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:08:03.191810Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "switzerland",
+      "source_snapshot_id": "0b6ddf5c-a0f2-466d-8002-2c6927861e0f",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "d1e6548c-dd00-4444-b7f2-d20bda8c6046",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:08:03.191634"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "f2aa50e6-4c3a-42b4-8993-18c876623405",
+        "jurisdiction_id": "f7997e9c-8281-4109-b36f-248899a548aa",
+        "alpha2_code": "CH",
+        "name": "Switzerland",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 37,
+          "coverage_required": 243,
+          "with_verified_rule": 37
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "f2aa50e6-4c3a-42b4-8993-18c876623405",
+        "jurisdiction_id": "f7997e9c-8281-4109-b36f-248899a548aa",
+        "alpha2_code": "CH",
+        "name": "Switzerland",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 38,
+          "coverage_required": 243,
+          "with_verified_rule": 38
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "9168847b-1681-4195-8e63-1f05939930b4",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "SE",
+    "id": "c6b45587-4312-49c1-a9c6-e122df72decd",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "0a037e3e-686d-4a26-82ae-e38379c11f62",
+      "retired_by": null,
+      "jurisdiction_id": "37afd9f2-3b10-4df3-a4be-d119c8379986",
+      "retirement_reason": null,
+      "statement": "The Swedish Migration Agency operates migrationsverket.se/en.html as the official English-language portal for visiting or living in Sweden.",
+      "active": true,
+      "created_at": "2026-07-18T16:08:03.279553Z",
+      "rule_key": "se_migrationsverket_official_portal_baseline",
+      "official_source_id": "b7d532a5-8b50-4bf2-ba17-c9f0a95b8a9d",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:08:03.279567Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "sweden",
+      "source_snapshot_id": "55a143ce-1d55-4b68-bd5d-6546eb2710b4",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "c6b45587-4312-49c1-a9c6-e122df72decd",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:08:03.279387"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "b95a3990-6fbe-4382-af22-8f771d9e5f49",
+        "jurisdiction_id": "37afd9f2-3b10-4df3-a4be-d119c8379986",
+        "alpha2_code": "SE",
+        "name": "Sweden",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 38,
+          "coverage_required": 243,
+          "with_verified_rule": 38
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "b95a3990-6fbe-4382-af22-8f771d9e5f49",
+        "jurisdiction_id": "37afd9f2-3b10-4df3-a4be-d119c8379986",
+        "alpha2_code": "SE",
+        "name": "Sweden",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 39,
+          "coverage_required": 243,
+          "with_verified_rule": 39
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "0a037e3e-686d-4a26-82ae-e38379c11f62",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "FI",
+    "id": "02970550-4922-460a-bb55-2828bdf9e151",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "f70c9900-8fb8-4034-a48b-70bdc194cfa8",
+      "retired_by": null,
+      "jurisdiction_id": "7c309df0-febf-4d63-a4ba-dd7e3a66e154",
+      "retirement_reason": null,
+      "statement": "The Finnish Immigration Service (Maahanmuuttovirasto) operates migri.fi/en as the official English-language portal for immigration to Finland.",
+      "active": true,
+      "created_at": "2026-07-18T16:08:03.367828Z",
+      "rule_key": "fi_migri_official_immigration_portal_baseline",
+      "official_source_id": "6fe3b7b5-aaaf-4baa-a582-c0d21cd69392",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:08:03.367840Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "finland",
+      "source_snapshot_id": "4a8bb5fa-1f2b-4aa4-9264-fb23a2cdbf19",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "02970550-4922-460a-bb55-2828bdf9e151",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:08:03.367664"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "30a08feb-057d-4968-b31e-a1367bd64ebb",
+        "jurisdiction_id": "7c309df0-febf-4d63-a4ba-dd7e3a66e154",
+        "alpha2_code": "FI",
+        "name": "Finland",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 39,
+          "coverage_required": 243,
+          "with_verified_rule": 39
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "30a08feb-057d-4968-b31e-a1367bd64ebb",
+        "jurisdiction_id": "7c309df0-febf-4d63-a4ba-dd7e3a66e154",
+        "alpha2_code": "FI",
+        "name": "Finland",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 40,
+          "coverage_required": 243,
+          "with_verified_rule": 40
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "f70c9900-8fb8-4034-a48b-70bdc194cfa8",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  }
+]

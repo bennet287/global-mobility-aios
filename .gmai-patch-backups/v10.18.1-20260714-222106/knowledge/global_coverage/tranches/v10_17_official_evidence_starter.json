@@ -1,0 +1,192 @@
+{
+  "pack_version": "v10.17",
+  "title": "Official immigration evidence starter tranche",
+  "verified_at": "2026-07-14",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "AT",
+      "authority_evidence_url": "https://www.migration.gv.at/en/service-and-links/addresses-and-links/",
+      "source_url": "https://www.migration.gv.at/en/",
+      "evidence_summary": "The official portal identifies Austria's Federal Ministry of the Interior as the highest authority regarding residence and settlement."
+    },
+    {
+      "alpha2_code": "DE",
+      "authority_evidence_url": "https://www.auswaertiges-amt.de/en/visa-service",
+      "source_url": "https://www.auswaertiges-amt.de/en/visa-service",
+      "evidence_summary": "The Federal Foreign Office publishes Germany's official visa information and application services."
+    },
+    {
+      "alpha2_code": "CA",
+      "authority_evidence_url": "https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate.html",
+      "source_url": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+      "evidence_summary": "IRCC's official mandate covers temporary entry, immigrant selection, settlement, citizenship, and passports."
+    },
+    {
+      "alpha2_code": "AU",
+      "authority_evidence_url": "https://immi.homeaffairs.gov.au/",
+      "source_url": "https://immi.homeaffairs.gov.au/",
+      "evidence_summary": "The Australian Department of Home Affairs operates the official immigration and citizenship portal and application services."
+    },
+    {
+      "alpha2_code": "NZ",
+      "authority_evidence_url": "https://www.immigration.govt.nz/about-us/how-we-work/",
+      "source_url": "https://www.immigration.govt.nz/home/",
+      "evidence_summary": "Immigration New Zealand states that it is the operational processing arm of New Zealand's immigration system and grants visas for work, study, visits, and settlement."
+    }
+  ],
+  "batch": {
+    "name": "v10.17 official evidence starter tranche",
+    "notes": "Current official authority and immigration portal evidence for Austria, Germany, Canada, Australia, and New Zealand. Submission creates pending immigration-rule assessments and pending primary-source certifications only; a different reviewer must decide each proposal.",
+    "items": [
+      {
+        "alpha2_code": "AT",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.migration.gv.at/en/service-and-links/addresses-and-links/",
+          "evidence_title": "Migration.gv.at — Federal Ministry of the Interior authority",
+          "rationale": "The official Austrian migration portal states that immigration matters fall under the Federal Ministry of the Interior and that it is the highest authority regarding residence and settlement. This supports a proposal that Austria directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Federal Ministry of the Interior",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.bmi.gv.at/",
+          "authority_domains": ["visa", "work", "settlement", "family"],
+          "source_name": "Migration.gv.at",
+          "source_url": "https://www.migration.gv.at/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["migration.gv.at"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": ["visa", "work", "settlement", "family"],
+          "evidence_notes": "Verified 2026-07-14 from Migration.gv.at and its official authority directory. The portal identifies the Federal Ministry of the Interior as the highest authority for residence and settlement and provides Austria's primary public immigration guidance. Independent reviewer certification is still required."
+        }
+      },
+      {
+        "alpha2_code": "DE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.auswaertiges-amt.de/en/visa-service",
+          "evidence_title": "Federal Foreign Office — Visa & Service",
+          "rationale": "Germany's Federal Foreign Office publishes the national visa requirements and official visa application services for entry to the Federal Republic of Germany. This supports a proposal that Germany directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Federal Foreign Office",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.auswaertiges-amt.de/en",
+          "authority_domains": ["visa", "work", "study", "settlement", "family"],
+          "source_name": "Federal Foreign Office — Visa & Service",
+          "source_url": "https://www.auswaertiges-amt.de/en/visa-service",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["auswaertiges-amt.de"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": ["visa", "work", "study", "settlement", "family"],
+          "evidence_notes": "Verified 2026-07-14 from the Federal Foreign Office Visa & Service pages. The source publishes Germany's official visa requirements and application channels. Independent reviewer certification is still required."
+        }
+      },
+      {
+        "alpha2_code": "CA",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate.html",
+          "evidence_title": "Immigration, Refugees and Citizenship Canada — Mandate",
+          "rationale": "IRCC's official mandate states that it facilitates temporary entry, manages immigrant selection and settlement, grants citizenship, and issues passports. This supports a proposal that Canada directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration, Refugees and Citizenship Canada",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+          "authority_domains": ["visa", "work", "study", "settlement", "family", "citizenship"],
+          "source_name": "Immigration, Refugees and Citizenship Canada",
+          "source_url": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["canada.ca"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": ["visa", "work", "study", "settlement", "family", "citizenship"],
+          "evidence_notes": "Verified 2026-07-14 from IRCC's official department page and mandate. The source is Canada's primary public portal for visiting, working, studying, immigrating, permanent residence, and citizenship. Independent reviewer certification is still required."
+        }
+      },
+      {
+        "alpha2_code": "AU",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://immi.homeaffairs.gov.au/",
+          "evidence_title": "Australian Department of Home Affairs — Immigration and citizenship",
+          "rationale": "The Australian Department of Home Affairs operates the official immigration and citizenship portal, visa application services, status checks, and citizenship guidance. This supports a proposal that Australia directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Department of Home Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.homeaffairs.gov.au/",
+          "authority_domains": ["visa", "work", "study", "settlement", "family", "citizenship"],
+          "source_name": "Department of Home Affairs — Immigration and citizenship",
+          "source_url": "https://immi.homeaffairs.gov.au/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["homeaffairs.gov.au"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": ["visa", "work", "study", "settlement", "family", "citizenship"],
+          "evidence_notes": "Verified 2026-07-14 from the Australian Department of Home Affairs immigration and citizenship portal. The source provides the primary public visa, status, and citizenship services. Independent reviewer certification is still required."
+        }
+      },
+      {
+        "alpha2_code": "NZ",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.immigration.govt.nz/about-us/how-we-work/",
+          "evidence_title": "Immigration New Zealand — How we work",
+          "rationale": "Immigration New Zealand states that it is the operational processing arm of New Zealand's immigration system and grants visas for people who work, visit, study, or settle there. This supports a proposal that New Zealand directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration New Zealand",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.immigration.govt.nz/about-us/",
+          "authority_domains": ["visa", "work", "study", "settlement", "family"],
+          "source_name": "Immigration New Zealand",
+          "source_url": "https://www.immigration.govt.nz/home/",
+          "source_domain": "visa",
+          "source_type": "official_agency",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["immigration.govt.nz"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": ["visa", "work", "study", "settlement", "family"],
+          "evidence_notes": "Verified 2026-07-14 from Immigration New Zealand and MBIE official pages. Immigration New Zealand is the operational processing arm of the national immigration system and its site is the primary public portal for visas and residence routes. Independent reviewer certification is still required."
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.14",
+  "title": "Europe coverage evidence tranche 1A - Iceland, Norway, Switzerland, Sweden, Finland",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "IS",
+      "authority_evidence_url": "https://island.is/s/utlendingastofnun",
+      "source_url": "https://island.is/s/utlendingastofnun",
+      "evidence_summary": "The Icelandic Directorate of Immigration (Útlendingastofnun) publishes its official services on island.is under the /s/utlendingastofnun path."
+    },
+    {
+      "alpha2_code": "NO",
+      "authority_evidence_url": "https://www.udi.no/en/",
+      "source_url": "https://www.udi.no/en/",
+      "evidence_summary": "The Norwegian Directorate of Immigration (UDI) operates udi.no/en as the official English-language portal for immigration to Norway."
+    },
+    {
+      "alpha2_code": "CH",
+      "authority_evidence_url": "https://www.sem.admin.ch/sem/en/home.html",
+      "source_url": "https://www.sem.admin.ch/sem/en/home.html",
+      "evidence_summary": "The Swiss State Secretariat for Migration (SEM) operates sem.admin.ch as the official federal migration authority website."
+    },
+    {
+      "alpha2_code": "SE",
+      "authority_evidence_url": "https://www.migrationsverket.se/en.html",
+      "source_url": "https://www.migrationsverket.se/en.html",
+      "evidence_summary": "The Swedish Migration Agency operates migrationsverket.se/en.html as the official English-language portal for visiting or living in Sweden."
+    },
+    {
+      "alpha2_code": "FI",
+      "authority_evidence_url": "https://migri.fi/en",
+      "source_url": "https://migri.fi/en",
+      "evidence_summary": "The Finnish Immigration Service (Maahanmuuttovirasto) operates migri.fi/en as the official English-language portal for immigration to Finland."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.14 Europe evidence tranche 1A - IS, NO, CH, SE, FI",
+    "notes": "Official-source evidence for Iceland (IS), Norway (NO), Switzerland (CH), Sweden (SE) and Finland (FI). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, residence and permit content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "IS",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://island.is/s/utlendingastofnun",
+          "evidence_title": "Icelandic Directorate of Immigration official island.is page",
+          "rationale": "The Icelandic Directorate of Immigration (Útlendingastofnun) publishes its official services on island.is under the /s/utlendingastofnun path. This supports a proposal that Iceland directly administers the relevant immigration services through the Directorate of Immigration."
+        },
+        "source_onboarding": {
+          "authority_name": "Icelandic Directorate of Immigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://island.is/s/utlendingastofnun",
+          "authority_domains": ["visa"],
+          "source_name": "Icelandic Directorate of Immigration island.is page",
+          "source_url": "https://island.is/s/utlendingastofnun",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["island.is"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Icelandic Directorate of Immigration page on island.is returned HTTPS 200 with content describing immigration services, status tracking, appointments, forms and fees. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "NO",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.udi.no/en/",
+          "evidence_title": "Norwegian Directorate of Immigration official English portal",
+          "rationale": "The Norwegian Directorate of Immigration (UDI) operates udi.no/en as the official English-language portal for immigration to Norway. This supports a proposal that Norway directly administers the relevant immigration services through UDI."
+        },
+        "source_onboarding": {
+          "authority_name": "Norwegian Directorate of Immigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.udi.no/en/",
+          "authority_domains": ["visa"],
+          "source_name": "Norwegian Directorate of Immigration English portal",
+          "source_url": "https://www.udi.no/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.udi.no"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Norwegian Directorate of Immigration English portal returned HTTPS 200 with content describing immigration to Norway and application options. Keep the initial certification limited to the immigration services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "CH",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.sem.admin.ch/sem/en/home.html",
+          "evidence_title": "Swiss State Secretariat for Migration official English homepage",
+          "rationale": "The Swiss State Secretariat for Migration (SEM) operates sem.admin.ch as the official federal migration authority website. This supports a proposal that Switzerland directly administers the relevant migration services through SEM."
+        },
+        "source_onboarding": {
+          "authority_name": "Swiss State Secretariat for Migration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.sem.admin.ch/sem/en/home.html",
+          "authority_domains": ["visa"],
+          "source_name": "Swiss State Secretariat for Migration English portal",
+          "source_url": "https://www.sem.admin.ch/sem/en/home.html",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.sem.admin.ch"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Swiss State Secretariat for Migration English portal returned HTTPS 200 with content identifying the State Secretariat for Migration and the Federal Administration. Keep the initial certification limited to the migration services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "SE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.migrationsverket.se/en.html",
+          "evidence_title": "Swedish Migration Agency official English portal",
+          "rationale": "The Swedish Migration Agency operates migrationsverket.se/en.html as the official English-language portal for visiting or living in Sweden. This supports a proposal that Sweden directly administers the relevant immigration services through the Swedish Migration Agency."
+        },
+        "source_onboarding": {
+          "authority_name": "Swedish Migration Agency",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.migrationsverket.se/en.html",
+          "authority_domains": ["visa"],
+          "source_name": "Swedish Migration Agency English portal",
+          "source_url": "https://www.migrationsverket.se/en.html",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.migrationsverket.se"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Swedish Migration Agency English portal returned HTTPS 200 with content describing permits for visiting or living in Sweden. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "FI",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://migri.fi/en",
+          "evidence_title": "Finnish Immigration Service official English portal",
+          "rationale": "The Finnish Immigration Service (Maahanmuuttovirasto) operates migri.fi/en as the official English-language portal for immigration to Finland. This supports a proposal that Finland directly administers the relevant immigration services through the Finnish Immigration Service."
+        },
+        "source_onboarding": {
+          "authority_name": "Finnish Immigration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://migri.fi/en",
+          "authority_domains": ["visa"],
+          "source_name": "Finnish Immigration Service English portal",
+          "source_url": "https://migri.fi/en",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["migri.fi"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Finnish Immigration Service English portal returned HTTPS 200 with content describing online services, appointments, and applying to come to Finland. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}

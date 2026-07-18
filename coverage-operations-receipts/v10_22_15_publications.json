@@ -1,0 +1,422 @@
+[
+  {
+    "code": "DK",
+    "id": "a40de8d6-dcf0-4b2d-a817-84f03f82c42b",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "42974cdf-1182-4bb8-baca-a870f35c4bfd",
+      "retired_by": null,
+      "jurisdiction_id": "a998c469-7fcb-46bb-a574-b279060e5161",
+      "retirement_reason": null,
+      "statement": "The Danish Immigration Service operates nyidanmark.dk/en-GB as the official English-language portal for foreign nationals who wish to visit, live or work in Denmark or Greenland.",
+      "active": true,
+      "created_at": "2026-07-18T16:13:04.989874Z",
+      "rule_key": "dk_nyidanmark_official_immigration_portal_baseline",
+      "official_source_id": "301e7444-c5f8-4084-97b2-3445bfb7468e",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:13:04.989886Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "denmark",
+      "source_snapshot_id": "35051899-a634-47ad-b864-7dd73e6e6b73",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "a40de8d6-dcf0-4b2d-a817-84f03f82c42b",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:13:04.989726"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "44c6fd8d-2ffa-43a7-8ac3-5c14333ad3fe",
+        "jurisdiction_id": "a998c469-7fcb-46bb-a574-b279060e5161",
+        "alpha2_code": "DK",
+        "name": "Denmark",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 40,
+          "coverage_required": 243,
+          "with_verified_rule": 40
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "44c6fd8d-2ffa-43a7-8ac3-5c14333ad3fe",
+        "jurisdiction_id": "a998c469-7fcb-46bb-a574-b279060e5161",
+        "alpha2_code": "DK",
+        "name": "Denmark",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 41,
+          "coverage_required": 243,
+          "with_verified_rule": 41
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "42974cdf-1182-4bb8-baca-a870f35c4bfd",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "NL",
+    "id": "5f9956f4-b809-4836-ae16-1102bcb2f943",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "f82d489e-0f63-4469-b494-7d2c14de0efa",
+      "retired_by": null,
+      "jurisdiction_id": "81fea222-e0d6-49d2-aaf0-1da1acfb83fd",
+      "retirement_reason": null,
+      "statement": "The Immigration and Naturalisation Service (IND) operates ind.nl/en as the official English-language portal for residency in the Netherlands.",
+      "active": true,
+      "created_at": "2026-07-18T16:13:05.082399Z",
+      "rule_key": "nl_ind_official_residency_portal_baseline",
+      "official_source_id": "3cf8dabd-2c98-4fdf-a1fe-ffab232808ac",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:13:05.082423Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "netherlands (kingdom of the)",
+      "source_snapshot_id": "0f40b0b7-33a7-4803-8bcc-7a0f19d0a7ba",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "5f9956f4-b809-4836-ae16-1102bcb2f943",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:13:05.082139"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "ae68ce5f-4182-4f89-a8d0-d8da60c7dabb",
+        "jurisdiction_id": "81fea222-e0d6-49d2-aaf0-1da1acfb83fd",
+        "alpha2_code": "NL",
+        "name": "Netherlands (Kingdom of the)",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 41,
+          "coverage_required": 243,
+          "with_verified_rule": 41
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "ae68ce5f-4182-4f89-a8d0-d8da60c7dabb",
+        "jurisdiction_id": "81fea222-e0d6-49d2-aaf0-1da1acfb83fd",
+        "alpha2_code": "NL",
+        "name": "Netherlands (Kingdom of the)",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 42,
+          "coverage_required": 243,
+          "with_verified_rule": 42
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "f82d489e-0f63-4469-b494-7d2c14de0efa",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "BE",
+    "id": "ac8436d4-84e7-43eb-9f48-db406ccdb53d",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "7381b371-e1bd-4f0a-87a7-28df85167671",
+      "retired_by": null,
+      "jurisdiction_id": "9121062f-4be3-4d0d-9ff8-d032780e90c4",
+      "retirement_reason": null,
+      "statement": "The Belgian Federal Public Service Foreign Affairs operates diplomatie.belgium.be/en as the official English-language portal for Belgian foreign affairs and consular services.",
+      "active": true,
+      "created_at": "2026-07-18T16:13:05.171116Z",
+      "rule_key": "be_fps_foreign_affairs_official_portal_baseline",
+      "official_source_id": "800afc0f-e52e-4188-bf3e-98d3a777958e",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:13:05.171128Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "belgium",
+      "source_snapshot_id": "cb0df92d-27d6-46bf-8a6c-ada68935b2d7",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "ac8436d4-84e7-43eb-9f48-db406ccdb53d",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:13:05.170965"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "714ec0f7-30d4-446f-ac16-fca2f796c044",
+        "jurisdiction_id": "9121062f-4be3-4d0d-9ff8-d032780e90c4",
+        "alpha2_code": "BE",
+        "name": "Belgium",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 42,
+          "coverage_required": 243,
+          "with_verified_rule": 42
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "714ec0f7-30d4-446f-ac16-fca2f796c044",
+        "jurisdiction_id": "9121062f-4be3-4d0d-9ff8-d032780e90c4",
+        "alpha2_code": "BE",
+        "name": "Belgium",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 43,
+          "coverage_required": 243,
+          "with_verified_rule": 43
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "7381b371-e1bd-4f0a-87a7-28df85167671",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "FR",
+    "id": "360259e5-c20c-48e8-b31d-aa7b8fd19562",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "bfe1decd-0903-45f4-9295-8b2b42b21efa",
+      "retired_by": null,
+      "jurisdiction_id": "d8e5e146-2ae9-45a1-b2c6-5396c75da1fc",
+      "retirement_reason": null,
+      "statement": "The French Ministry for Europe and Foreign Affairs operates diplomatie.gouv.fr/en as the official English-language portal for French foreign affairs and visiting France, including visa services.",
+      "active": true,
+      "created_at": "2026-07-18T16:13:05.261787Z",
+      "rule_key": "fr_diplomatie_official_visa_portal_baseline",
+      "official_source_id": "3d6d1ecf-5ed8-4c4a-a2a5-77a1c8fa081a",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:13:05.261818Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "france",
+      "source_snapshot_id": "060d64d4-3c12-4311-ac5f-6d59a0607ce6",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "360259e5-c20c-48e8-b31d-aa7b8fd19562",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:13:05.261636"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "b2646938-5bcc-4254-903b-b925db0b9ad3",
+        "jurisdiction_id": "d8e5e146-2ae9-45a1-b2c6-5396c75da1fc",
+        "alpha2_code": "FR",
+        "name": "France",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 43,
+          "coverage_required": 243,
+          "with_verified_rule": 43
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "b2646938-5bcc-4254-903b-b925db0b9ad3",
+        "jurisdiction_id": "d8e5e146-2ae9-45a1-b2c6-5396c75da1fc",
+        "alpha2_code": "FR",
+        "name": "France",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 44,
+          "coverage_required": 243,
+          "with_verified_rule": 44
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "bfe1decd-0903-45f4-9295-8b2b42b21efa",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "IE",
+    "id": "9aae245b-de78-4a56-8eae-7b4addb988db",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "0937406a-7414-4008-ae68-a82361379c02",
+      "retired_by": null,
+      "jurisdiction_id": "df0a74c2-137c-4d35-ae29-757d932bc292",
+      "retirement_reason": null,
+      "statement": "The Irish Immigration Service Delivery (ISD) operates irishimmigration.ie as the official portal for immigration to Ireland.",
+      "active": true,
+      "created_at": "2026-07-18T16:13:05.353840Z",
+      "rule_key": "ie_isd_official_immigration_portal_baseline",
+      "official_source_id": "6a75a2ec-341b-4039-9c71-27eda0ffe0fb",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:13:05.353859Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "ireland",
+      "source_snapshot_id": "66b63e7d-79bc-4b2e-9cee-f82f2948a511",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "9aae245b-de78-4a56-8eae-7b4addb988db",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:13:05.353630"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "c260af39-ce57-483e-a9df-ad573052e749",
+        "jurisdiction_id": "df0a74c2-137c-4d35-ae29-757d932bc292",
+        "alpha2_code": "IE",
+        "name": "Ireland",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 44,
+          "coverage_required": 243,
+          "with_verified_rule": 44
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "c260af39-ce57-483e-a9df-ad573052e749",
+        "jurisdiction_id": "df0a74c2-137c-4d35-ae29-757d932bc292",
+        "alpha2_code": "IE",
+        "name": "Ireland",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 45,
+          "coverage_required": 243,
+          "with_verified_rule": 45
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "0937406a-7414-4008-ae68-a82361379c02",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  }
+]

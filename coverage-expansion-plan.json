@@ -1,0 +1,354 @@
+﻿{
+    "schema_version":  "1.0",
+    "name":  "Coverage expansion plan - 2026-07-16",
+    "generated_at":  "2026-07-16T03:19:56.3859594Z",
+    "generated_by":  "coverage-planning-operator",
+    "registry_release":  {
+                             "id":  "89c3947e-2972-4eb3-8290-8143e3c71340",
+                             "version":  "un-m49-2026-07-14-6f7490c3",
+                             "source_name":  "United Nations M49 + ISO 3166-1",
+                             "source_url":  "https://unstats.un.org/unsd/methodology/m49/overview/",
+                             "source_sha256":  "6f7490c38acd9ebc0befb3b92c058671b9cbadb45933f3bed168b006575ec6df",
+                             "source_retrieved_at":  "2026-07-14T01:34:16.059453",
+                             "released_at":  "2026-07-14T01:34:16.498867",
+                             "released_by":  "registry-bootstrap",
+                             "status":  "active"
+                         },
+    "filters":  {
+                    "gap":  "all",
+                    "region":  "all",
+                    "limit":  10
+                },
+    "selected_count":  10,
+    "jurisdictions":  [
+                          {
+                              "alpha2_code":  "DZ",
+                              "name":  "Algeria",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "AO",
+                              "name":  "Angola",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "BJ",
+                              "name":  "Benin",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "BW",
+                              "name":  "Botswana",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "IO",
+                              "name":  "British Indian Ocean Territory",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "territory",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "BF",
+                              "name":  "Burkina Faso",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "BI",
+                              "name":  "Burundi",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "CV",
+                              "name":  "Cabo Verde",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "CM",
+                              "name":  "Cameroon",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          },
+                          {
+                              "alpha2_code":  "CF",
+                              "name":  "Central African Republic",
+                              "region":  "Africa",
+                              "jurisdiction_type":  "country",
+                              "immigration_rule_status":  "unassessed",
+                              "missing_gates":  [
+                                                    "reviewed_primary_authority",
+                                                    "reviewed_primary_source",
+                                                    "fresh_monitor",
+                                                    "verified_rule",
+                                                    "immigration_rule_assessment"
+                                                ],
+                              "pending_assessment":  null,
+                              "pending_source_certification":  null,
+                              "operator_status":  "needs_evidence_research",
+                              "evidence":  {
+                                               "relationship":  "",
+                                               "relationship_evidence_url":  "",
+                                               "relationship_evidence_title":  "",
+                                               "relationship_rationale":  "",
+                                               "authority_name":  "",
+                                               "authority_website_url":  "",
+                                               "official_source_name":  "",
+                                               "official_source_url":  "",
+                                               "source_domain":  "visa",
+                                               "coverage_domains":  [
+                                                                        "visa"
+                                                                    ],
+                                               "evidence_notes":  ""
+                                           }
+                          }
+                      ],
+    "safety":  {
+                   "creates_evidence_batches":  false,
+                   "infers_immigration_relationships":  false,
+                   "certifies_sources":  false,
+                   "queues_monitors":  false,
+                   "publishes_rules":  false,
+                   "creates_coverage_claim":  false,
+                   "message":  "Every blank evidence field requires human research and review before submission."
+               }
+}

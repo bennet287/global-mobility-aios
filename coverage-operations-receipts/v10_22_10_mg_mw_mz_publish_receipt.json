@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.10",
+  "generated_at": "2026-07-17T22:45:00.000000Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "ef2ffaae-82e4-452e-8b00-b8d410277ad4",
+  "batch_name": "v10.22.10 Africa evidence tranche 1F - MG, MW, MZ",
+  "registry_summary": {
+    "coverage_ready": 26,
+    "coverage_required": 243,
+    "with_verified_rule": 26,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "MG",
+      "jurisdiction_name": "Madagascar",
+      "jurisdiction_id": "34a2aa2c-2c87-4d43-a4f0-5ff9c19d9b39",
+      "immigration_assessment_id": "88e83c78-4c01-41da-90ea-d09629150157",
+      "source_certification_id": "87a7db2f-1d2e-4cf5-8873-27d52533df91",
+      "regulatory_authority_id": "5843d5cb-0072-477f-a1b1-bbdd733a1d2b",
+      "official_source_id": "4a6105bc-73bf-499d-a816-00b7635dca78",
+      "source_monitor_id": "00c0a47f-6436-4c80-95d9-bc56184f40c1",
+      "source_url": "https://evisamada-mg.com/en/home",
+      "baseline_snapshot_id": "67f76c3f-a88d-491a-9410-8cb738a399ac",
+      "baseline_snapshot_hash": "2f39eb91081939cd4075333c5714f90549ffea6a5904c52ad945574ec91b4a65",
+      "initial_rule_assertion_id": "fd526a34-bc0d-4a24-a809-5f88b0d4a032",
+      "rule_key": "mg_evisa_official_information_baseline",
+      "verified_rule_id": "d142c554-aa17-4abe-8572-beb74382060d",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "MW",
+      "jurisdiction_name": "Malawi",
+      "jurisdiction_id": "6f91bd5e-42d7-44d4-9b5c-80f0b52e9bc1",
+      "immigration_assessment_id": "47988cc6-fe5b-4fcb-8574-3645bcffe709",
+      "source_certification_id": "eafd5535-462e-4b6e-873f-c81a1cbdd722",
+      "regulatory_authority_id": "3a4f1bd4-d19f-4b6e-b77e-1e895f1908cd",
+      "official_source_id": "eb40ebc1-d363-43f5-8cfc-0f6c6551af93",
+      "source_monitor_id": "bde69a97-c9df-47d6-89e7-d3b48216c6a9",
+      "source_url": "https://www.evisa.gov.mw/",
+      "baseline_snapshot_id": "2df3826a-cd8c-47c7-948c-37a6fda5e809",
+      "baseline_snapshot_hash": "9af9d138e06d0c6c3091a6deb328408b6c1d655319614ae12108d2cb01b0c137",
+      "initial_rule_assertion_id": "42956d21-e253-4569-8151-7c805729cfb3",
+      "rule_key": "mw_evisa_official_information_baseline",
+      "verified_rule_id": "7eb8c84f-45ef-4f04-bd26-d9550a78d95c",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "MZ",
+      "jurisdiction_name": "Mozambique",
+      "jurisdiction_id": "d2e3a0b4-55f8-4a3f-b8a7-8eb1d2b58d78",
+      "immigration_assessment_id": "e6b84c5e-d4a7-4d11-8e11-85c1ce8dca19",
+      "source_certification_id": "4fd748cd-c235-4f11-884c-bc7b16a7651a",
+      "regulatory_authority_id": "ac3353ce-76fa-436c-ad00-8728fcd4b411",
+      "official_source_id": "cb7fb8b6-ba73-40fb-9a1c-768f4fec4d1f",
+      "source_monitor_id": "04d0ec66-6291-4099-94ea-a67753ab05c7",
+      "source_url": "https://evisa.gov.mz/",
+      "baseline_snapshot_id": "ad3d378b-fde1-4301-bed6-3389242e3f0d",
+      "baseline_snapshot_hash": "9de390be66f3949f8c323594f0fe954afc00a360e71c363e906166f1735b401f",
+      "initial_rule_assertion_id": "98a76fc3-6864-485c-9bd4-782e9d7b0746",
+      "rule_key": "mz_evisa_official_information_baseline",
+      "verified_rule_id": "f9208f26-ae2a-4bb8-ba38-127735381517",
+      "coverage_ready": true
+    }
+  ],
+  "blocked": [],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records three verified-rule publications for Madagascar, Malawi, and Mozambique. No jurisdiction was blocked in this tranche. It does not create a global coverage claim."
+  }
+}

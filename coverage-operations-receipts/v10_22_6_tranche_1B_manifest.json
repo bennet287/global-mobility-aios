@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "name": "v10.22.6 Africa tranche 1B operations manifest",
+  "description": "Operations manifest for the v10.22.6 Africa coverage evidence tranche 1B batch containing Chad and Cote d'Ivoire.",
+  "groups": [
+    {
+      "label": "v10.22.6 Africa tranche 1B — TD, CI",
+      "batch_id": "4c59deef-0dfe-441a-bd9c-1058e98af957",
+      "alpha2_codes": ["TD", "CI"]
+    }
+  ]
+}

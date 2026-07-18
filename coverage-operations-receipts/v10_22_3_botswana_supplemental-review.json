@@ -1,0 +1,126 @@
+﻿{
+    "batch_id":  "c506f39d-a137-4701-abd4-ec39080a5b7e",
+    "batch_name":  "v10.22.3 Botswana supplemental visa source",
+    "actor":  "coverage-tranche-operator",
+    "dry_run":  true,
+    "selected_count":  1,
+    "selected_codes":  [
+                           "BW"
+                       ],
+    "would_queue_baselines":  [
+
+                              ],
+    "queued_baselines":  0,
+    "queue_result":  null,
+    "items":  [
+                  {
+                      "batch_item_id":  "7647a9d7-5bbb-4927-8203-841ce001b63b",
+                      "alpha2_code":  "BW",
+                      "jurisdiction_name":  "Botswana",
+                      "stage":  "pending_independent_review",
+                      "baseline":  {
+                                       "batch_item_id":  "7647a9d7-5bbb-4927-8203-841ce001b63b",
+                                       "alpha2_code":  "BW",
+                                       "jurisdiction_id":  "067ac093-f2df-4ffe-9fd7-4d2e8d3f3a48",
+                                       "official_source_id":  "73515fe8-2bd9-469b-af7d-fe62df65616c",
+                                       "source_monitor_id":  "8a15365e-5daf-44c4-a69d-dc1837c977ce",
+                                       "assessment_status":  "missing",
+                                       "certification_status":  "approved",
+                                       "source_active":  true,
+                                       "monitor_status":  "error",
+                                       "state":  "pending_independent_review",
+                                       "eligible_to_queue":  false,
+                                       "latest_run":  {
+                                                          "id":  "89d8f7db-5759-4718-a9b7-4cd35f293b56",
+                                                          "status":  "failed",
+                                                          "attempt":  3,
+                                                          "started_at":  "2026-07-17T01:32:20.816852",
+                                                          "completed_at":  "2026-07-17T01:32:22.161692",
+                                                          "error_code":  "http_error",
+                                                          "error_message":  "Official source returned HTTP 503"
+                                                      },
+                                       "latest_snapshot":  null
+                                   },
+                      "review_packet":  {
+                                            "immigration_assessment":  null,
+                                            "source_certification":  {
+                                                                         "id":  "32b6e08d-d9fb-4114-b483-817e856f770c",
+                                                                         "status":  "approved",
+                                                                         "coverage_domains_json":  "[\"visa\"]",
+                                                                         "evidence_notes":  "Both the authority page and tourism-visa service page returned HTTP 200 over HTTPS during local Docker probing on 2026-07-17. This source replaces the rejected evisa.gov.bw proposal. Certification must remain limited to the reviewed Botswana tourism-visa service content.",
+                                                                         "proposed_by":  "coverage-source-remediation-operator",
+                                                                         "reviewed_by":  "coverage-evidence-reviewer"
+                                                                     },
+                                            "authority":  {
+                                                              "id":  "3f44270d-7141-4a0e-8287-982c21338721",
+                                                              "name":  "Department of Immigration and Citizenship",
+                                                              "authority_type":  "immigration_authority",
+                                                              "website_url":  "https://www.gov.bw/immigration-and-civil-registration",
+                                                              "active":  true
+                                                          },
+                                            "official_source":  {
+                                                                    "id":  "73515fe8-2bd9-469b-af7d-fe62df65616c",
+                                                                    "name":  "Botswana Government tourism visa application service",
+                                                                    "url":  "https://www.gov.bw/visa-applications/visa-application-tourism-visa",
+                                                                    "domain":  "visa",
+                                                                    "source_type":  "government",
+                                                                    "active":  true
+                                                                },
+                                            "monitor":  {
+                                                            "id":  "8a15365e-5daf-44c4-a69d-dc1837c977ce",
+                                                            "status":  "error",
+                                                            "fetch_method":  "http",
+                                                            "last_checked_at":  "2026-07-17T01:32:22.161692",
+                                                            "last_http_status":  null,
+                                                            "last_error":  "Official source returned HTTP 503"
+                                                        },
+                                            "review_checks":  [
+                                                                  "Confirm the authority is responsible for the claimed immigration scope.",
+                                                                  "Confirm the source hostname and page are official and jurisdiction-matched.",
+                                                                  "Confirm the relationship and certification wording do not exceed the evidence.",
+                                                                  "Use a reviewer identity different from the proposer."
+                                                              ]
+                                        },
+                      "snapshot_analysis":  null,
+                      "candidate_assertion":  null,
+                      "existing_assertion":  null,
+                      "coverage_receipt":  {
+                                               "registry_release_version":  "un-m49-2026-07-14-6f7490c3",
+                                               "registry_entry_id":  "ebc1cffd-d8a4-44d4-ae73-8e6f396c5607",
+                                               "jurisdiction_id":  "067ac093-f2df-4ffe-9fd7-4d2e8d3f3a48",
+                                               "alpha2_code":  "BW",
+                                               "name":  "Botswana",
+                                               "coverage_required":  true,
+                                               "coverage_ready":  false,
+                                               "status":  "gap",
+                                               "missing":  [
+                                                               "fresh_monitor",
+                                                               "verified_rule"
+                                                           ],
+                                               "gates":  {
+                                                             "immigration_rule_assessment":  true,
+                                                             "reviewed_primary_authority":  true,
+                                                             "reviewed_primary_source":  true,
+                                                             "fresh_monitor":  false,
+                                                             "verified_rule":  false
+                                                         },
+                                               "registry_summary":  {
+                                                                        "coverage_ready":  5,
+                                                                        "coverage_required":  243,
+                                                                        "with_verified_rule":  5
+                                                                    },
+                                               "global_coverage_claim_ready":  false
+                                           },
+                      "next_action":  "Complete independent assessment and certification review."
+                  }
+              ],
+    "safety":  {
+                   "creates_review_records":  false,
+                   "approves_evidence":  false,
+                   "creates_assertions":  false,
+                   "publishes_verified_rules":  false,
+                   "creates_coverage_claim":  false,
+                   "mutates_immutable_snapshots":  false,
+                   "message":  "The tranche assistant prepares review packets and constrained draft suggestions. It may queue explicitly selected approved baseline captures only when dry_run=false."
+               }
+}

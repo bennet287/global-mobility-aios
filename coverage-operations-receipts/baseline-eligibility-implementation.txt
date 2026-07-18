@@ -1,0 +1,27 @@
+﻿
+Path                                                                                                                           LineNumber Line                                                                                    
+----                                                                                                                           ---------- ----                                                                                    
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\routers\live_intelligence.py                   26     queue_coverage_batch_baselines,                                                     
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\routers\live_intelligence.py                  321 @router.get("/registry/coverage-batches/{batch_id}/baseline-status")                    
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\routers\live_intelligence.py                  322 def api_get_coverage_batch_baseline_status(                                             
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\routers\live_intelligence.py                  332 @router.post("/registry/coverage-batches/{batch_id}/capture-baselines", status_code=202)
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\routers\live_intelligence.py                  333 def api_queue_coverage_batch_baselines(                                                 
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\routers\live_intelligence.py                  339         return queue_coverage_batch_baselines(                                          
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py          82         state = "pending_independent_review"                                            
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         104         "assessment_status": assessment.status if assessment else "missing",            
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         109         "eligible_to_queue": state in {"ready_to_queue", "retrieval_failed"},           
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         152         "eligible_to_queue": sum(1 for item in items if item["eligible_to_queue"]),     
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         156         "pending_review": counts.get("pending_independent_review", 0),                  
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         161             "requires_approved_assessment_and_certification": True,                     
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         167 def queue_coverage_batch_baselines(                                                     
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_baseline_capture.py         185         if not item_status["eligible_to_queue"]:                                        
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_evidence_packs.py            22 _ALLOWED_REVIEW_STATUS = "pending_independent_review"                                   
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_tranche_assistant.py         25     queue_coverage_batch_baselines,                                                     
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_tranche_assistant.py        236             return "assertion_pending_independent_review"                               
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_tranche_assistant.py        355         if baseline_item["eligible_to_queue"]:                                          
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_tranche_assistant.py        390                 if baseline_item["state"] == "pending_independent_review"               
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_tranche_assistant.py        392                 if baseline_item["eligible_to_queue"]                                   
+C:\Users\Bennet Allryn\Downloads\global-mobility-aios\global-mobility-aios\apps\api\app\services\coverage_tranche_assistant.py        411         queue_result = queue_coverage_batch_baselines(                                  
+
+
+

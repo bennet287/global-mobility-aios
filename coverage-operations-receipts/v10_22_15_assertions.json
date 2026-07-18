@@ -1,0 +1,27 @@
+[
+  {
+    "code": "DK",
+    "id": "a40de8d6-dcf0-4b2d-a817-84f03f82c42b",
+    "status": "pending_review"
+  },
+  {
+    "code": "NL",
+    "id": "5f9956f4-b809-4836-ae16-1102bcb2f943",
+    "status": "pending_review"
+  },
+  {
+    "code": "BE",
+    "id": "ac8436d4-84e7-43eb-9f48-db406ccdb53d",
+    "status": "pending_review"
+  },
+  {
+    "code": "FR",
+    "id": "360259e5-c20c-48e8-b31d-aa7b8fd19562",
+    "status": "pending_review"
+  },
+  {
+    "code": "IE",
+    "id": "9aae245b-de78-4a56-8eae-7b4addb988db",
+    "status": "pending_review"
+  }
+]

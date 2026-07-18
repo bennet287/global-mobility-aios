@@ -1,0 +1,182 @@
+{
+  "pack_version": "v10.22.7",
+  "title": "Africa coverage evidence tranche 1C - Djibouti, Egypt, Ethiopia, Gabon",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 4,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "DJ",
+      "authority_evidence_url": "https://www.evisa.gouv.dj/",
+      "source_url": "https://www.evisa.gouv.dj/",
+      "evidence_summary": "The official e-visa portal of the Republic of Djibouti is operated by the Immigration Directorate and enables electronic visa applications."
+    },
+    {
+      "alpha2_code": "EG",
+      "authority_evidence_url": "https://www.visa2egypt.gov.eg/eVisa/Home",
+      "source_url": "https://www.visa2egypt.gov.eg/eVisa/Home",
+      "evidence_summary": "The Egyptian government's official e-visa portal (visa2egypt.gov.eg/eVisa/Home) is the primary online channel for Egypt visa applications."
+    },
+    {
+      "alpha2_code": "ET",
+      "authority_evidence_url": "https://www.evisa.gov.et/",
+      "source_url": "https://www.evisa.gov.et/",
+      "evidence_summary": "The Ethiopian government's official e-visa portal (evisa.gov.et) is the primary online channel for Ethiopian visa applications."
+    },
+    {
+      "alpha2_code": "GA",
+      "authority_evidence_url": "https://evisa.dgdi.ga/",
+      "source_url": "https://evisa.dgdi.ga/",
+      "evidence_summary": "The official Gabon e-visa portal (evisa.dgdi.ga) is operated by the Direction Generale de la Documentation et de l'Immigration (DGDI)."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.7 Africa evidence tranche 1C - DJ, EG, ET, GA",
+    "notes": "Official-source evidence for Djibouti (DJ), Egypt (EG), Ethiopia (ET), and Gabon (GA). Djibouti's e-visa portal is operated by the Immigration Directorate of the Republic of Djibouti. Egypt's e-visa portal was remediated to the canonical eVisa/Home endpoint during baseline capture because the root path returned only a meta-redirect with no usable text. Ethiopia's e-visa portal is the official government channel. Gabon's e-visa portal is operated by the DGDI but baseline retrieval failed because the upstream TLS certificate is not trusted by the container CA; Gabon is therefore blocked pending a certificate remediation path. Algeria, Comoros, and Congo (Brazzaville) remain excluded or deferred due to TLS or source-confirmation issues. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "DJ",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.evisa.gouv.dj/",
+          "evidence_title": "E-visa Djibouti - official immigration directorate portal",
+          "rationale": "The official e-visa portal of the Republic of Djibouti is operated by the Immigration Directorate and enables electronic visa applications. This supports a proposal that Djibouti directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration Directorate of the Republic of Djibouti",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.evisa.gouv.dj/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "E-visa Djibouti",
+          "source_url": "https://www.evisa.gouv.dj/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.evisa.gouv.dj"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The official e-visa portal of the Republic of Djibouti is operated by the Immigration Directorate and enables electronic visa applications. Keep the initial certification limited to the visa and entry functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "EG",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.visa2egypt.gov.eg/eVisa/Home",
+          "evidence_title": "Egypt e-Visa - official e-Visa/Home portal",
+          "rationale": "The Egyptian government's official e-visa portal (visa2egypt.gov.eg/eVisa/Home) is the primary online channel for Egypt visa applications. This supports a proposal that Egypt directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Government of Egypt",
+          "authority_type": "government",
+          "authority_website_url": null,
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Egypt e-Visa",
+          "source_url": "https://www.visa2egypt.gov.eg/eVisa/Home",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.visa2egypt.gov.eg"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Egyptian government's official e-visa portal (visa2egypt.gov.eg) is the primary online channel for Egypt visa applications. Keep the initial certification limited to the visa functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "ET",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.evisa.gov.et/",
+          "evidence_title": "Ethiopian e-Visa - official electronic visa service",
+          "rationale": "The Ethiopian government's official e-visa portal (evisa.gov.et) is the primary online channel for Ethiopian visa applications. This supports a proposal that Ethiopia directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Ministry of Foreign Affairs of Ethiopia",
+          "authority_type": "immigration_authority",
+          "authority_website_url": null,
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Ethiopian e-Visa",
+          "source_url": "https://www.evisa.gov.et/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.evisa.gov.et"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Ethiopian government's official e-visa portal (evisa.gov.et) is the primary online channel for Ethiopian visa applications. Keep the initial certification limited to the visa functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "GA",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.dgdi.ga/",
+          "evidence_title": "Gabon e-Visa - official DGDI portal",
+          "rationale": "The official Gabon e-visa portal (evisa.dgdi.ga) is operated by the Direction Generale de la Documentation et de l'Immigration (DGDI) and enables electronic visa applications. This supports a proposal that Gabon directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Direction Generale de la Documentation et de l'Immigration (DGDI)",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisa.dgdi.ga/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Gabon e-Visa",
+          "source_url": "https://evisa.dgdi.ga/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisa.dgdi.ga"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The official Gabon e-visa portal (evisa.dgdi.ga) is operated by the Direction Generale de la Documentation et de l'Immigration (DGDI) and enables electronic visa applications. Keep the initial certification limited to the visa and entry functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

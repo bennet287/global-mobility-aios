@@ -1,0 +1,167 @@
+{
+  "batch_id": "dedb2974-be97-4dd6-9be3-c001646bcdbe",
+  "batch_name": "v10.22.16 Europe evidence tranche 1C - EE, LV, PL, CZ, GR",
+  "submitted_by": "coverage-evidence-proposer",
+  "item_count": 5,
+  "counts": {
+    "baseline_ready": 5
+  },
+  "eligible_to_queue": 0,
+  "baseline_ready": 5,
+  "in_progress": 0,
+  "failed": 0,
+  "pending_review": 0,
+  "items": [
+    {
+      "batch_item_id": "38774c0d-dd7c-48c1-ad54-cd32e6f0c404",
+      "alpha2_code": "EE",
+      "jurisdiction_id": "38e8c8f9-8f73-4efd-8cb4-ac47a6ccaef5",
+      "official_source_id": "d8fab7e1-4ad7-4cc2-9e46-3f97db62c190",
+      "source_monitor_id": "43c4384f-7006-4455-8efa-bdc9e4c2e63d",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "ae0f3a13-72d1-404a-8b60-b0e1b8e5c434",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:17:06.292607",
+        "completed_at": "2026-07-18T16:17:06.743784",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "f2e69b63-2340-4392-a238-3b088b0e6969",
+        "status": "baseline",
+        "content_hash": "78f4d920135d13ce8e1583d528673f81245ff0057f5f8c1b75d19d1b6f5e91d8",
+        "captured_at": "2026-07-18T16:17:06.737198+00:00",
+        "url": "https://www.politsei.ee/en/"
+      }
+    },
+    {
+      "batch_item_id": "f76ddd70-eedb-4e15-8407-604794843590",
+      "alpha2_code": "LV",
+      "jurisdiction_id": "63b99ba8-cac7-4081-929e-b87c6f6d5e36",
+      "official_source_id": "ce219d68-d3f2-41b9-8dfd-6f43f0607240",
+      "source_monitor_id": "d1abbe56-91b9-476e-81c9-1ed797372d98",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "d987b1de-1d21-4cee-83c2-b0a849db2552",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:17:06.292607",
+        "completed_at": "2026-07-18T16:17:06.942340",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "2b0af1af-e87b-4829-9568-7ad8cb234ee9",
+        "status": "baseline",
+        "content_hash": "2d50fd4feee088c8a445626c8bfabafb7b5988227e0bfe5284815f90e03996d1",
+        "captured_at": "2026-07-18T16:17:06.935235+00:00",
+        "url": "https://www.pmlp.gov.lv/en/"
+      }
+    },
+    {
+      "batch_item_id": "2a3925a5-6af2-46eb-9bbf-2f4e20a87d5d",
+      "alpha2_code": "PL",
+      "jurisdiction_id": "675e33d8-6a04-403f-8925-7d3eda2ad9f3",
+      "official_source_id": "b24b09ae-111c-40af-b1c4-3501106d8c50",
+      "source_monitor_id": "03494e6d-48f1-4988-ad18-5b5eec60d0d7",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "fc8a7e90-d4d6-4d58-ba8a-5f0374f55ec5",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:17:06.292607",
+        "completed_at": "2026-07-18T16:17:06.993218",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "8b74c226-5beb-4b86-94d9-d84863cbe934",
+        "status": "baseline",
+        "content_hash": "a025bb0c182cd6f783c159ff3fdc45255f72b551b2c140204b70083176361407",
+        "captured_at": "2026-07-18T16:17:06.987436+00:00",
+        "url": "https://www.gov.pl/web/udsc/"
+      }
+    },
+    {
+      "batch_item_id": "6c3f0844-f942-49b4-935c-4758ff4afe2f",
+      "alpha2_code": "CZ",
+      "jurisdiction_id": "5e9c4030-d994-46aa-af50-fa044a6a8302",
+      "official_source_id": "1bf606db-b7c9-4ebf-b7df-d982c3586348",
+      "source_monitor_id": "cbd6ec39-717c-4c44-b5c4-cb2678746a9d",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "5fea3b0c-e094-44cd-8130-7308c144f670",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:17:06.292607",
+        "completed_at": "2026-07-18T16:17:07.140292",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "5f7a9bdb-906e-410d-b78f-638c8c88212d",
+        "status": "baseline",
+        "content_hash": "7267bae055bb9bc02897840cb32b9a0e6223a328178b4bd9e5c02f18d5c8a174",
+        "captured_at": "2026-07-18T16:17:07.134277+00:00",
+        "url": "https://mv.gov.cz/mvcren/"
+      }
+    },
+    {
+      "batch_item_id": "7ac64cea-b328-4ecd-bc42-17b634500360",
+      "alpha2_code": "GR",
+      "jurisdiction_id": "c0d7f23f-719b-4969-95c0-98758f37ef46",
+      "official_source_id": "c1dfd42a-19c5-47c6-9b81-9a98f0005e47",
+      "source_monitor_id": "9efa61db-bac7-4743-8b05-d4b0aa9b731e",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "7ca4404a-76b7-4b9e-8641-aa21b5ffac4f",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:17:06.292607",
+        "completed_at": "2026-07-18T16:17:07.450242",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "f05f21d7-bf82-4b42-be7e-6e4e5244d16a",
+        "status": "baseline",
+        "content_hash": "33800014afb107fb77e6d551967c62fd7dc28fedefc364c8508e3c9be0a3c13b",
+        "captured_at": "2026-07-18T16:17:07.441385+00:00",
+        "url": "https://migration.gov.gr/"
+      }
+    }
+  ],
+  "safety": {
+    "publishes_verified_rule": false,
+    "creates_coverage_claim": false,
+    "requires_approved_assessment_and_certification": true,
+    "message": "Baseline capture stores official-source evidence only. It does not approve a rule or make a coverage claim."
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.6",
+  "generated_at": "2026-07-17T21:56:13Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "4c59deef-0dfe-441a-bd9c-1058e98af957",
+  "batch_name": "v10.22.6 Africa evidence tranche 1B - TD, CI",
+  "registry_summary": {
+    "coverage_ready": 16,
+    "coverage_required": 243,
+    "with_verified_rule": 16,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "TD",
+      "jurisdiction_name": "Chad",
+      "jurisdiction_id": "4be1c1fc-d26d-49f0-a920-f18ffdcb574b",
+      "immigration_assessment_id": "faff7db5-cd5b-4540-889f-1dd8431d5a80",
+      "source_certification_id": "1ea00351-725f-412c-b72f-5373429bc68e",
+      "regulatory_authority_id": "2570e41c-abc4-419e-9a36-28613dc8ff8f",
+      "official_source_id": "42d2fafe-b4dd-498b-bdc0-4248c0baec01",
+      "source_monitor_id": "389c188b-4742-47af-8435-945a4da1339a",
+      "source_url": "https://evisa.td/",
+      "baseline_snapshot_id": "b7714920-6943-4f45-8bac-2389437271aa",
+      "baseline_snapshot_hash": "fc7eaa76118f9e8a6bad5a1714b4b00b2f5738c9af74e7572c57835285493dea",
+      "initial_rule_assertion_id": "9ca572b6-4b74-465a-8be7-e8b2e91a1031",
+      "rule_key": "td_visa_official_information_baseline",
+      "verified_rule_id": "7f184da2-92ab-4e31-9860-ecce39b435c7",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "CI",
+      "jurisdiction_name": "Cote d'Ivoire",
+      "jurisdiction_id": "20d22636-dd78-4aee-a6d6-b16abad9e0f1",
+      "immigration_assessment_id": "9bcf3c15-653e-45e0-96fa-6bfc5bebc406",
+      "source_certification_id": "199e75af-ddd8-4f27-8538-ef92493a3e6a",
+      "regulatory_authority_id": "c8ae90e4-009e-4ac0-abc3-32777745aca1",
+      "official_source_id": "61480ab1-9e1c-4238-8de5-c1327710aa60",
+      "source_monitor_id": "baa24f2f-52b6-4d67-8997-5876a0b487f4",
+      "source_url": "https://snedai.com/e-visa/",
+      "baseline_snapshot_id": "4ffa4c1a-7905-40e3-b348-fbaeb17f436a",
+      "baseline_snapshot_hash": "27608ea42d70727c98dc2b4fa396ba6d709b750ccd1a7634449aa0b07ee0c98f",
+      "initial_rule_assertion_id": "ac120f7c-0875-44e0-bd1c-fff01f5deed4",
+      "rule_key": "ci_visa_official_information_baseline",
+      "verified_rule_id": "98b22e5d-d99e-48b5-bb41-afc0565a8401",
+      "coverage_ready": true
+    }
+  ],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records two verified-rule publications. It does not create a global coverage claim. Algeria remains TLS-blocked; Comoros and Congo (Brazzaville) were deferred pending confirmed official sources."
+  }
+}

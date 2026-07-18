@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.12",
+  "generated_at": "2026-07-18T05:12:00.000000Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "6f59cb6c-d14b-466a-83c4-2527fb229557",
+  "batch_name": "v10.22.12 Africa evidence tranche 1H - ZA, SC",
+  "registry_summary": {
+    "coverage_ready": 30,
+    "coverage_required": 243,
+    "with_verified_rule": 30,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "ZA",
+      "jurisdiction_name": "South Africa",
+      "jurisdiction_id": "f5e5d3c1-9b8a-4c2d-8e1f-0a3b4c5d6e7f",
+      "immigration_assessment_id": "36f72545-6a99-4020-907a-c1864c244e57",
+      "source_certification_id": "c23a6799-7e48-40e2-9a3f-a39bdebda286",
+      "regulatory_authority_id": "0826afa5-37f5-4964-a204-5af0966ea3d0",
+      "official_source_id": "e2062cea-a3df-4779-8ac8-0e3ec8af5fdb",
+      "source_monitor_id": "18980940-012f-4c2b-9d5c-9f0caebcdb89",
+      "source_url": "https://www.dha.gov.za/",
+      "baseline_snapshot_id": "e8c857ee-6b71-425e-ac1f-40cbcde53074",
+      "baseline_snapshot_hash": "045f68ef94fd778620d7d42715523021b65cd06733379e08e408ec7428ddf597",
+      "initial_rule_assertion_id": "02eff4b3-72ae-4bdf-8409-c1f694e51bcd",
+      "rule_key": "za_home_affairs_official_information_baseline",
+      "verified_rule_id": "6f47875f-48ab-4f22-998f-dac44a2aec79",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "SC",
+      "jurisdiction_name": "Seychelles",
+      "jurisdiction_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "immigration_assessment_id": "cec5c50f-4999-4e4b-bf83-92c7360b05aa",
+      "source_certification_id": "34faf0a7-e2df-47d5-8137-40bcad46bc5f",
+      "regulatory_authority_id": "9bc32c2b-ee5d-4265-885d-1a8f8ce0a8a8",
+      "official_source_id": "f695291f-e5d6-4fbf-b2b8-e54370b997e2",
+      "source_monitor_id": "6c6b2b31-6f03-45d4-896a-50568d323b7c",
+      "source_url": "https://seychelles.govtas.com/en",
+      "baseline_snapshot_id": "6217ba7d-7ace-40d3-af35-04056cbe1d0d",
+      "baseline_snapshot_hash": "057061bf2cb75ff887c24550e3d0c8e87fa013c17661959b440abcd662910c49",
+      "initial_rule_assertion_id": "5d223e37-99a9-416c-a082-8a4f6b3b6f24",
+      "rule_key": "sc_ebs_official_information_baseline",
+      "verified_rule_id": "961ca5e4-45c8-472e-a713-33fdae17bbc5",
+      "coverage_ready": true
+    }
+  ],
+  "blocked": [],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records two verified-rule publications for South Africa and Seychelles. No jurisdiction was blocked in this tranche. It does not create a global coverage claim."
+  }
+}
