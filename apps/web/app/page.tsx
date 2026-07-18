@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   AgentReviewDashboard,
@@ -35,6 +35,15 @@ const safetyRules = [
   "Human approval gates sensitive actions",
   "Visa and job claims keep source traceability",
 ];
+
+const DASHBOARD_VIEWS = [
+  { id: "cases", label: "Cases", description: "Pipeline and priorities" },
+  { id: "verification", label: "Verification", description: "Truth, applications, documents" },
+  { id: "intake", label: "Intake", description: "Capture and verification signals" },
+  { id: "governance", label: "Governance", description: "Controls, agents, shortcuts" },
+] as const;
+
+type DashboardView = typeof DASHBOARD_VIEWS[number]["id"];
 
 function buildActionQueue({
   summary,
@@ -107,6 +116,7 @@ function buildActionQueue({
 }
 
 export default function HomePage() {
+  const [dashboardView, setDashboardView] = useState<DashboardView>("cases");
   const apiBase = getApiBaseUrl();
   const adminLinks = useMemo(
     () => [
@@ -167,12 +177,12 @@ export default function HomePage() {
           <strong>{postureCopy.headline}</strong>
           <p>{postureCopy.body}</p>
           <div className="command-actions">
-            <a className="button hero-primary" href="#pipeline">
+            <button className="button hero-primary" type="button" onClick={() => setDashboardView("cases")}>
               Review active cases
-            </a>
-            <a className="button hero-secondary" href="#verification">
+            </button>
+            <button className="button hero-secondary" type="button" onClick={() => setDashboardView("verification")}>
               View safety gates
-            </a>
+            </button>
           </div>
         </div>
         <div className="system-canvas" aria-label="Connected workflow overview">
@@ -216,7 +226,14 @@ export default function HomePage() {
           : metrics.map((metric) => <MetricPill key={metric.label} {...metric} />)}
       </section>
 
-      <section className="premium-grid" id="pipeline">
+      <nav className="dashboard-view-tabs" aria-label="Operations workspace">
+        {DASHBOARD_VIEWS.map((view) => <button className={dashboardView === view.id ? "active" : ""} key={view.id} onClick={() => setDashboardView(view.id)}>
+          <span>{view.label}</span>
+          <small>{view.description}</small>
+        </button>)}
+      </nav>
+
+      {dashboardView === "cases" && <section className="premium-grid dashboard-view-panel" id="pipeline">
         <article className="panel pipeline-panel">
           <div className="panel-header-row">
             <SectionTitle label="Pipeline" title="Active cases" detail={`${recentLeads.length} visible records`} />
@@ -245,9 +262,9 @@ export default function HomePage() {
             <EmptyState title="No immediate actions" detail="When reviews, documents, or agent outputs need attention, they will appear here first." />
           )}
         </aside>
-      </section>
+      </section>}
 
-      <section className="ops-grid" id="verification">
+      {dashboardView === "verification" && <section className="ops-grid dashboard-view-panel" id="verification">
         <article className="panel">
           <SectionTitle label="Truth Engine" title="Resolution stages" detail={`${summary.truth_queue_resolved} claims resolved`} />
           <DataNotice label="Truth queue unavailable" data={truthQueue as OptionalData<unknown>} />
@@ -279,9 +296,9 @@ export default function HomePage() {
             <EmptyState title="No document queue" detail="Documents marked received or needs review will appear here." />
           )}
         </article>
-      </section>
+      </section>}
 
-      <section className="workbench-grid">
+      {dashboardView === "intake" && <section className="workbench-grid dashboard-view-panel">
         <article className="panel intake-panel" id="intake">
           <SectionTitle label="CRM" title="Lead intake" detail="Capture opportunities without bypassing downstream verification or human review." />
           <form className="intake-form" onSubmit={onSubmit}>
@@ -379,9 +396,9 @@ export default function HomePage() {
             <EmptyState title="No claim history" detail="Truth Engine audits will appear here after workflows run." />
           )}
         </article>
-      </section>
+      </section>}
 
-      <section className="governance-grid" id="governance">
+      {dashboardView === "governance" && <section className="governance-grid dashboard-view-panel" id="governance">
         <article className="panel">
           <SectionTitle label="Governance" title="Safety controls" detail="This is an operator system, not an autonomous submission engine." />
           <div className="safety-list">
@@ -425,7 +442,7 @@ export default function HomePage() {
             ))}
           </div>
         </article>
-      </section>
+      </section>}
     </WorkspaceShell>
   );
 }

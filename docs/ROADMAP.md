@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.23.1 (2026-07-19)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.23.1 replaces long-form operator pages with task-focused workspace navigation. The home dashboard now exposes Cases, Verification, Intake, and Governance as wired views, displaying one operational context at a time instead of stacking every workflow vertically.
+- Global Intelligence coverage is split into Readiness, Evidence, Rules, and Registry workspaces. Evidence batches use a horizontal review rail, long rule/result lists are internally bounded, shared evidence filters collapse when unused, and the registry remains a dedicated scrollable ledger.
+- The left navigation now uses compact Mobility, Operations, and Engagement groups, eliminating the permanently expanded tool list and the duplicated active home states. The Next.js production build and static generation continue to pass for all 21 routes; backend controls and schemas remain unchanged.
+
 ## Delivery Status — v10.23 (2026-07-19)
 
 Current database migration head: `0032_initial_rule_assertions`.

@@ -7,25 +7,36 @@ import { getApiBaseUrl } from "../lib/api";
 import { useTheme } from "../hooks/useTheme";
 
 const navItems = [
-  { label: "Workbench", href: "/#workbench" },
-  { label: "Pipeline", href: "/#pipeline" },
-  { label: "Lead intake", href: "/#intake" },
-  { label: "Verification", href: "/#verification" },
-  { label: "Governance", href: "/#governance" },
+  { label: "Operations home", href: "/" },
 ];
 
-const appItems = [
-  { label: "Profiles", href: "/profiles" },
-  { label: "Pathways", href: "/pathways" },
-  { label: "Planning", href: "/planning" },
-  { label: "Timelines", href: "/timelines" },
-  { label: "Documents", href: "/document-intelligence" },
-  { label: "Intelligence", href: "/intelligence" },
-  { label: "Global dashboard", href: "/global-intelligence" },
-  { label: "Agents", href: "/agents/console" },
-  { label: "Review queue", href: "/agents/review" },
-  { label: "Communications", href: "/communications" },
-  { label: "Coaching", href: "/coaching" },
+const appGroups = [
+  {
+    label: "Mobility",
+    items: [
+      { label: "Profiles", href: "/profiles" },
+      { label: "Pathways", href: "/pathways" },
+      { label: "Planning", href: "/planning" },
+      { label: "Timelines", href: "/timelines" },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { label: "Documents", href: "/document-intelligence" },
+      { label: "Regulatory intelligence", href: "/intelligence" },
+      { label: "Global coverage", href: "/global-intelligence" },
+      { label: "Agent console", href: "/agents/console" },
+      { label: "Review queue", href: "/agents/review" },
+    ],
+  },
+  {
+    label: "Engagement",
+    items: [
+      { label: "Communications", href: "/communications" },
+      { label: "Coaching", href: "/coaching" },
+    ],
+  },
 ];
 
 export function Sidebar({ health }: { health: HealthStatus | null }) {
@@ -53,7 +64,7 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
 
       <nav className="side-nav" aria-label="Workspace navigation">
         {navItems.map((item) => {
-          const isActive = isHomeActive && item.href.startsWith("/#");
+          const isActive = isHomeActive && item.href === "/";
           return (
             <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
               {item.label}
@@ -63,13 +74,26 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
       </nav>
 
       <div className="sidebar-section-title">Tools</div>
-      <nav className="side-nav" aria-label="Application navigation">
-        {appItems.map((item) => {
-          const isActive = pathname?.startsWith(item.href) ?? false;
+      <nav className="side-nav side-nav-groups" aria-label="Application navigation">
+        {appGroups.map((group) => {
+          const groupActive = group.items.some((item) => pathname?.startsWith(item.href));
           return (
-            <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
-              {item.label}
-            </Link>
+            <details key={group.label} className="side-nav-group" open={groupActive || undefined}>
+              <summary>
+                <span>{group.label}</span>
+                <i aria-hidden="true">+</i>
+              </summary>
+              <div>
+                {group.items.map((item) => {
+                  const isActive = pathname?.startsWith(item.href) ?? false;
+                  return (
+                    <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </details>
           );
         })}
       </nav>

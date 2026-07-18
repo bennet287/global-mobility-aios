@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-19 — Focused workspace UX v10.23.1
+
+- Reorganized the operations home into Cases, Verification, Intake, and Governance views so only one task context is displayed at a time.
+- Split Global Intelligence coverage into Readiness, Evidence, Rules, and Registry workspaces with wired local navigation.
+- Converted evidence-batch history into a horizontal review rail and bounded long operational lists inside their workspace.
+- Collapsed global evidence filters and grouped sidebar tools into Mobility, Operations, and Engagement sections.
+- Removed duplicated active sidebar states and preserved all workflow, review, truth, and publication controls.
+- Verified the production Next.js build, TypeScript checks, and static generation for all 21 routes.
+
 ## 2026-07-19 — Editorial operator UI v10.23
 
 - Reworked the shared web design system around the supplied nature-led editorial references.

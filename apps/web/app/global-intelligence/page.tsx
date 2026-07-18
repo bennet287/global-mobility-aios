@@ -48,6 +48,13 @@ import { titleCase } from "../../lib/utils";
 
 const TABS = ["overview", "coverage", "programmes", "processing", "occupations", "thresholds", "heatmap", "radar"] as const;
 type Tab = typeof TABS[number];
+const COVERAGE_VIEWS = [
+  { id: "readiness", label: "Readiness", description: "Release posture and regional progress" },
+  { id: "evidence", label: "Evidence", description: "Worklist, submissions, and baselines" },
+  { id: "rules", label: "Rules", description: "Assisted preparation and assertions" },
+  { id: "registry", label: "Registry", description: "Jurisdiction ledger and assessments" },
+] as const;
+type CoverageView = typeof COVERAGE_VIEWS[number]["id"];
 type RuleRelationship = "independent" | "parent_inherited" | "shared_or_coordinated" | "not_applicable" | "unclear";
 
 function formatDate(value: string | null | undefined) {
@@ -69,6 +76,7 @@ export default function GlobalIntelligencePage() {
   const [dashboard, setDashboard] = useState<GlobalIntelligenceDashboard | null>(null);
   const [registry, setRegistry] = useState<GlobalJurisdictionRegistry | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
+  const [coverageView, setCoverageView] = useState<CoverageView>("readiness");
   const [windowDays, setWindowDays] = useState(90);
   const [freshnessFilter, setFreshnessFilter] = useState("all");
   const [coverageFilter, setCoverageFilter] = useState("all");
@@ -412,20 +420,23 @@ export default function GlobalIntelligencePage() {
         <div><span className="page-kicker">Self-updating intelligence</span><h2>Official changes become visible here only with provenance and review state.</h2><p>Monitoring views include pending changes. Opportunity signals use human-published events only.</p></div>
         <label>Activity window<select value={windowDays} onChange={(event) => setWindowDays(Number(event.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>365 days</option></select></label>
       </section>
-      {dashboard && <section className="panel global-filter-panel" aria-label="Global intelligence filters">
-        <div className="global-filter-heading">
-          <div><span className="eyebrow">Evidence controls</span><h3>Filter the complete dashboard</h3><p>Every count, change list, heatmap total, and radar signal uses the same selected evidence scope.</p></div>
-          <div><strong>{dashboard.filters.matched_changes}</strong><span>of {dashboard.filters.available_changes} changes</span>{activeFilterCount > 0 && <button className="button secondary" onClick={clearIntelligenceFilters}>Clear {activeFilterCount} filters</button>}</div>
+      {dashboard && <details className="panel global-filter-panel" aria-label="Global intelligence filters">
+        <summary className="global-filter-heading">
+          <div><span className="eyebrow">Evidence controls</span><h3>Filter the complete dashboard</h3><p>Open only when you need to narrow the shared evidence scope.</p></div>
+          <div><strong>{dashboard.filters.matched_changes}</strong><span>of {dashboard.filters.available_changes} changes</span><i aria-hidden="true">+</i></div>
+        </summary>
+        <div className="global-filter-body">
+          <div className="global-filter-grid">
+            <label>Freshness<select value={freshnessFilter} onChange={(event) => setFreshnessFilter(event.target.value)}><option value="all">All freshness</option>{Object.entries(dashboard.filters.options.freshness).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
+            <label>Coverage<select value={coverageFilter} onChange={(event) => setCoverageFilter(event.target.value)}><option value="all">All coverage</option>{Object.entries(dashboard.filters.options.coverage).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
+            <label>Authority<select value={authorityFilter} onChange={(event) => setAuthorityFilter(event.target.value)}><option value="all">All authorities</option>{dashboard.filters.options.authorities.map((authority) => <option key={authority.id} value={authority.id}>{authority.name} ({authority.count})</option>)}</select></label>
+            <label>Confidence<select value={confidenceFilter} onChange={(event) => setConfidenceFilter(event.target.value)}><option value="all">All confidence</option>{Object.entries(dashboard.filters.options.confidence).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
+            <label>Materiality<select value={materialityFilter} onChange={(event) => setMaterialityFilter(event.target.value)}><option value="all">All materiality</option>{Object.entries(dashboard.filters.options.materiality).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
+            <label>Review state<select value={reviewStateFilter} onChange={(event) => setReviewStateFilter(event.target.value)}><option value="all">All review states</option>{Object.entries(dashboard.filters.options.review_state).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
+          </div>
+          {activeFilterCount > 0 && <button className="button secondary" onClick={clearIntelligenceFilters}>Clear {activeFilterCount} filters</button>}
         </div>
-        <div className="global-filter-grid">
-          <label>Freshness<select value={freshnessFilter} onChange={(event) => setFreshnessFilter(event.target.value)}><option value="all">All freshness</option>{Object.entries(dashboard.filters.options.freshness).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
-          <label>Coverage<select value={coverageFilter} onChange={(event) => setCoverageFilter(event.target.value)}><option value="all">All coverage</option>{Object.entries(dashboard.filters.options.coverage).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
-          <label>Authority<select value={authorityFilter} onChange={(event) => setAuthorityFilter(event.target.value)}><option value="all">All authorities</option>{dashboard.filters.options.authorities.map((authority) => <option key={authority.id} value={authority.id}>{authority.name} ({authority.count})</option>)}</select></label>
-          <label>Confidence<select value={confidenceFilter} onChange={(event) => setConfidenceFilter(event.target.value)}><option value="all">All confidence</option>{Object.entries(dashboard.filters.options.confidence).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
-          <label>Materiality<select value={materialityFilter} onChange={(event) => setMaterialityFilter(event.target.value)}><option value="all">All materiality</option>{Object.entries(dashboard.filters.options.materiality).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
-          <label>Review state<select value={reviewStateFilter} onChange={(event) => setReviewStateFilter(event.target.value)}><option value="all">All review states</option>{Object.entries(dashboard.filters.options.review_state).map(([value, count]) => <option key={value} value={value}>{titleCase(value)} ({count})</option>)}</select></label>
-        </div>
-      </section>}
+      </details>}
       {dashboard && <>
         <InlineNotice label={dashboard.scope.global_coverage_claim_ready ? "Global registry ready" : "Coverage expansion in progress"} detail={dashboard.scope.coverage_warning} tone={dashboard.scope.global_coverage_claim_ready ? "good" : "warn"} />
         <div className="metric-row global-intelligence-metrics">
@@ -444,8 +455,14 @@ export default function GlobalIntelligencePage() {
           <section className="panel"><SectionTitle label="Change mix" title={`${dashboard.counts.changes || 0} events in ${dashboard.window_days} days`} detail="Includes pending, reviewed, and published events" /><div className="global-count-grid">{Object.entries(dashboard.change_type_counts).map(([key, value]) => <article key={key}><strong>{value}</strong><span>{titleCase(key)}</span></article>)}</div></section>
           <section className="panel global-overview-wide"><SectionTitle label="Recent immigration intelligence" title="Latest detected changes" detail="Review state remains visible on every event" /><ChangeList items={dashboard.immigration_changes.slice(0, 8)} empty="The monitoring pipeline has not detected changes in this window." /></section>
         </div>}
-        {tab === "coverage" && <div className="global-registry-stack">
-          <section className="panel">
+        {tab === "coverage" && <div className="global-registry-stack" data-coverage-view={coverageView}>
+          <nav className="coverage-view-tabs" aria-label="Coverage workspace">
+            {COVERAGE_VIEWS.map((view) => <button className={coverageView === view.id ? "active" : ""} key={view.id} onClick={() => setCoverageView(view.id)}>
+              <span>{view.label}</span>
+              <small>{view.description}</small>
+            </button>)}
+          </nav>
+          <section className="panel coverage-readiness-panel">
             <SectionTitle label="Canonical registry" title={registry?.release?.version || "No active registry release"} detail="UN M49 country and area scope; immigration coverage is measured separately" />
             {registry && <>
               <div className="global-registry-metrics">
@@ -462,19 +479,25 @@ export default function GlobalIntelligencePage() {
               </div>
             </>}
           </section>
-          <section className="panel">
+          <section className="panel coverage-readiness-panel">
             <SectionTitle label="Regional posture" title="Registry and verified coverage" detail="A listed jurisdiction remains a gap until every evidence gate passes" />
             <div className="registry-region-grid">{registry?.regions.map((region) => <article key={region.region}><strong>{region.region}</strong><span>{region.entries} entries</span><b>{region.coverage_ready}/{region.coverage_required}</b><small>coverage ready</small></article>)}</div>
           </section>
           <section className="panel coverage-operations-panel">
-            <SectionTitle label="Coverage operations" title="Evidence worklist and controlled batch submission" detail="Onboard authorities, official sources, and monitors in the same atomic package while preserving independent certification review" />
+            <SectionTitle
+              label={coverageView === "rules" ? "Rule governance" : "Coverage operations"}
+              title={coverageView === "rules" ? "Prepare and govern verified rules" : "Evidence worklist and controlled batch submission"}
+              detail={coverageView === "rules"
+                ? "Prepare constrained drafts, submit assertions, and preserve independent review and publication gates."
+                : "Onboard authorities, official sources, and monitors in the same atomic package while preserving independent certification review."}
+            />
             <div className="coverage-operations-metrics">
               <article><strong>{coverageWorklist?.total || 0}</strong><span>filtered work items</span></article>
               <article><strong>{registry?.summary.assessments_pending_review || 0}</strong><span>assessments pending</span></article>
               <article><strong>{registry?.summary.source_certifications_pending_review || 0}</strong><span>certifications pending</span></article>
               <article><strong>{coverageBatches.length}</strong><span>recent evidence batches</span></article>
             </div>
-            <div className="coverage-operations-grid">
+            <div className="coverage-operations-grid coverage-evidence-view">
               <div className="coverage-worklist-card">
                 <div className="coverage-card-heading"><div><span>Prioritized queue</span><h3>Remaining Phase 10B evidence work</h3></div><small>First 100 matching jurisdictions</small></div>
                 <div className="coverage-worklist-filters">
@@ -492,11 +515,11 @@ export default function GlobalIntelligencePage() {
                 <small>Source onboarding creates or updates the authority, official source, and monitor atomically. Certification remains pending until a different authenticated reviewer approves it.</small>
               </div>
             </div>
-            <div className="coverage-batch-history">
+            <div className="coverage-batch-history coverage-evidence-view">
               <div className="coverage-card-heading"><div><span>Immutable submissions</span><h3>Recent evidence batches</h3></div><small>{coverageBatches.length} loaded</small></div>
               {coverageBatches.length ? <div className="coverage-batch-list">{coverageBatches.slice(0, 8).map((batch) => { const baseline = coverageBaselineStatuses[batch.id]; return <article key={batch.id}><div><strong>{batch.name}</strong><StatusBadge value={batch.status} /></div><p>{batch.notes}</p><small>{batch.item_count} jurisdictions · {batch.source_onboarding_count || 0} sources onboarded · {batch.immigration_assessment_count} assessments · {batch.source_certification_count} certifications · submitted by {batch.submitted_by}</small><div className="coverage-batch-review-counts"><span>{batch.review_counts.pending_review || 0} pending</span><span>{batch.review_counts.approved || 0} approved</span><span>{batch.review_counts.rejected || 0} rejected</span></div>{baseline && <div className="coverage-baseline-summary"><span>{baseline.baseline_ready} baselines ready</span><span>{baseline.in_progress} running</span><span>{baseline.failed} failed</span><span>{baseline.eligible_to_queue} ready to queue</span><button className="button secondary" disabled={coverageBaselineBusy === batch.id || baseline.eligible_to_queue === 0} onClick={() => void queueCoverageBaselines(batch.id)}>{coverageBaselineBusy === batch.id ? "Queueing…" : "Capture approved baselines"}</button><small>{baseline.safety.message}</small></div>}</article>; })}</div> : <EmptyState title="No evidence batches" detail="Use the controlled evidence package to create the first immutable batch." />}
             </div>
-            <div className="coverage-tranche-assistant">
+            <div className="coverage-tranche-assistant coverage-rules-view">
               <div className="coverage-card-heading"><div><span>Feature-flagged preparation</span><h3>Coverage tranche assistant</h3></div><StatusBadge value={trancheAssistantConfig?.enabled ? "enabled" : "disabled"} /></div>
               <InlineNotice label={trancheAssistantConfig?.enabled ? "Assistive automation enabled" : "Assistive automation disabled"} detail={trancheAssistantConfig?.safety.message || "The assistant prepares review packets and draft suggestions without approving or publishing evidence."} tone={trancheAssistantConfig?.enabled ? "good" : "warn"} />
               <div className="coverage-tranche-assistant-form">
@@ -517,7 +540,7 @@ export default function GlobalIntelligencePage() {
                 </article>)}
               </div>}
             </div>
-            <div className="coverage-initial-rules" ref={initialAssertionSectionRef}>
+            <div className="coverage-initial-rules coverage-rules-view" ref={initialAssertionSectionRef}>
               <div className="coverage-card-heading"><div><span>Baseline rule governance</span><h3>Initial verified-rule assertions</h3></div><StatusBadge value="human_review_required" /></div>
               <InlineNotice label="Not a detected change" detail="Draft only what the immutable baseline snapshot explicitly supports. A different reviewer must approve it, and publication is a separate action." tone="warn" />
               {assistantDraftCopied && <InlineNotice label={`${assistantDraftCopied} draft copied`} detail="The constrained draft is now in the assertion form below. Review and edit every field before submitting it for independent review." tone="good" />}
@@ -556,9 +579,9 @@ export default function GlobalIntelligencePage() {
                 </div>
               </div>
             </div>
-            <InlineNotice label="Coverage claim remains blocked" detail={coverageWorklist?.safety.message || "Evidence proposals require independent human review and do not establish global coverage."} tone="warn" />
+            <div className="coverage-rules-view"><InlineNotice label="Coverage claim remains blocked" detail={coverageWorklist?.safety.message || "Evidence proposals require independent human review and do not establish global coverage."} tone="warn" /></div>
           </section>
-          <section className="panel">
+          <section className="panel coverage-ledger-panel">
             <SectionTitle label="Coverage ledger" title={`${filteredRegistry.length} visible jurisdictions`} detail="Search canonical scope and isolate specific evidence gaps" />
             <div className="registry-filters">
               <input aria-label="Search jurisdictions" placeholder="Search name or code" value={registrySearch} onChange={(event) => setRegistrySearch(event.target.value)} />
