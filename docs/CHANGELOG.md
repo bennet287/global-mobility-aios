@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — Next.js cache-isolation hotfix v10.23.2
+
+- Fixed the Docker development runtime error caused by a host production build replacing chunks in the shared `.next` directory.
+- Configured an environment-selectable Next.js output directory and assigned Docker development to `.next-docker`.
+- Mounted the Docker development cache in an isolated volume and excluded its fallback directory from version control.
+- Recreated the web container and verified HTTP 200 responses for the home and Global Intelligence routes before and after a host production build.
+
 ## 2026-07-19 — Focused workspace UX v10.23.1
 
 - Reorganized the operations home into Cases, Verification, Intake, and Governance views so only one task context is displayed at a time.

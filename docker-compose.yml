@@ -86,11 +86,13 @@ services:
       NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
       NEXT_PUBLIC_GMAI_ROLE: admin
       NEXT_PUBLIC_GMAI_USER: frontend-operator
+      NEXT_DIST_DIR: .next-docker
     ports:
       - "3000:3000"
     volumes:
       - ./apps/web:/app
       - /app/node_modules
+      - /app/.next-docker
     depends_on:
       - api
     command: npm run dev -- --hostname 0.0.0.0 --port 3000

@@ -5,6 +5,13 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.23.2 (2026-07-19)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.23.2 isolates the Docker Next.js development cache at `.next-docker` in its own container volume while host production builds continue to use `.next`. This prevents concurrent dev and build processes from sharing incompatible webpack manifests and chunks.
+- The stale cache responsible for the missing `447.js` runtime module was removed and the web container was recreated. Both `/` and `/global-intelligence` return HTTP 200 before and after an independent host production build, with no module-resolution errors in the container logs.
+
 ## Delivery Status — v10.23.1 (2026-07-19)
 
 Current database migration head: `0032_initial_rule_assertions`.
