@@ -49,8 +49,8 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
             ),
         ),
         QualityCommand(
-            label="coverage_evidence_pack",
-            argv=(sys.executable, "scripts/validate_global_coverage_evidence_pack.py"),
+            label="coverage_evidence_packs",
+            argv=(sys.executable, "scripts/validate_global_coverage_evidence_pack.py", "--all"),
         ),
         QualityCommand(
             label="repo_policy",

@@ -102,7 +102,7 @@ def _lifecycle_stage(app: ApplicationRecord) -> str:
 
 
 def _next_action(stage: str, readiness: Optional[Dict[str, Any]]) -> str:
-    # Authority Decision Tracking v1.9 lifecycle patch
+    # Authority Decision Tracking v1.9.1 lifecycle patch
     if stage == "draft":
         if readiness and readiness.get("can_approve"):
             return "Human reviewer can approve this application."

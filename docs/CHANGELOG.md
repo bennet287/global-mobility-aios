@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-18 — Authority-decision transactional integrity v1.9.1
+
+- Made application status, mapped lead status and audit note, optional follow-up, and authority-decision audit creation atomic.
+- Roll back the complete transition if follow-up construction, audit creation, or the database commit fails.
+- Added regression coverage for successful metadata persistence and simulated audit-failure rollback.
+- Kept the authority-decision routes and database schema unchanged.
+
 ## 2026-07-15 — Supplemental official sources v10.21.2
 
 - Added review-gated `supplemental_<domain>` source certifications without changing the database schema.

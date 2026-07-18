@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 import pytest
 from sqlmodel import Session, select
@@ -20,6 +21,12 @@ from app.services.coverage_evidence_packs import (
 )
 from app.services.coverage_evidence_batches import coverage_batch_payload
 from app.services.jurisdiction_registry import import_un_m49_registry
+from scripts.check_local_quality import build_quality_commands
+from scripts.validate_global_coverage_evidence_pack import (
+    discover_canonical_evidence_packs,
+    validate_pack,
+    validate_sha256_receipt,
+)
 
 
 SAMPLE_M49_STARTER = """
@@ -118,3 +125,37 @@ def test_pack_validator_rejects_approval_or_coverage_claim(tmp_path: Path) -> No
     path.write_text(json.dumps(unsafe), encoding="utf-8")
     with pytest.raises(ValueError, match="pending_independent_review"):
         load_coverage_evidence_pack(path)
+
+
+def test_all_canonical_evidence_packs_and_receipts_validate() -> None:
+    paths = discover_canonical_evidence_packs()
+
+    assert len(paths) >= 2
+    assert any(path.name == "v10_17_official_evidence_starter.json" for path in paths)
+    assert any("_ready_" in path.name for path in paths)
+    for path in paths:
+        summary = validate_pack(path)
+        assert summary["review_status"] == "pending_independent_review"
+        if path.with_name(f"{path.name}.sha256").exists():
+            assert summary["file_sha256"] == validate_sha256_receipt(path)
+
+
+def test_local_quality_gate_validates_all_canonical_evidence_packs() -> None:
+    command = next(
+        command for command in build_quality_commands() if command.label == "coverage_evidence_packs"
+    )
+
+    assert command.argv == (
+        sys.executable,
+        "scripts/validate_global_coverage_evidence_pack.py",
+        "--all",
+    )
+
+
+def test_pack_validator_rejects_mismatched_sha256_receipt(tmp_path: Path) -> None:
+    pack_path = tmp_path / "sample.json"
+    pack_path.write_text("{}", encoding="utf-8")
+    pack_path.with_name("sample.json.sha256").write_text("0" * 64, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="SHA-256 receipt mismatch"):
+        validate_sha256_receipt(pack_path)

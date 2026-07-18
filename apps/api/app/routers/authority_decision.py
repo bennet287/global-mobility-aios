@@ -160,15 +160,9 @@ def _create_follow_up(session: Session, lead: Optional[Lead], message: str) -> O
     payload = {key: value for key, value in payload.items() if key in fields and value is not None}
     if not payload:
         return None
-    try:
-        follow_up = FollowUp(**payload)
-        session.add(follow_up)
-        session.commit()
-        session.refresh(follow_up)
-        return follow_up
-    except Exception:
-        session.rollback()
-        return None
+    follow_up = FollowUp(**payload)
+    session.add(follow_up)
+    return follow_up
 
 
 def _append_lead_note(lead: Optional[Lead], message: str) -> None:
@@ -258,7 +252,7 @@ def _set_authority_status(
     setattr(app, "status", target_status)
 
     note_parts = [
-        "[authority_decision:v1.9]",
+        "[authority_decision:v1.9.1]",
         f"application={_json_safe(getattr(app, 'id', None))}",
         f"status={target_status}",
         f"at={_utcnow().isoformat()}",
@@ -272,14 +266,35 @@ def _set_authority_status(
     _append_lead_note(lead, " ".join(note_parts))
     _update_lead_business_status(lead, target_status)
 
+    follow_up = None
     try:
         session.add(app)
         if lead:
             session.add(lead)
+        if request.create_follow_up:
+            follow_up = _create_follow_up(
+                session,
+                lead,
+                f"Authority decision update: application {getattr(app, 'id', None)} is now {target_status}.",
+            )
+
+        after = _authority_payload(session, app)
+        record_audit(
+            session,
+            action="authority_decision_recorded",
+            entity_type="application",
+            entity_id=getattr(app, "id", None),
+            before_state=before,
+            after_state=after,
+            reason=request.note or target_status,
+            source="authority_decision",
+        )
         session.commit()
         session.refresh(app)
         if lead:
             session.refresh(lead)
+        if follow_up:
+            session.refresh(follow_up)
     except Exception as exc:
         session.rollback()
         raise HTTPException(
@@ -290,27 +305,6 @@ def _set_authority_status(
                 "target_status": target_status,
             },
         ) from exc
-
-    follow_up = None
-    if request.create_follow_up:
-        follow_up = _create_follow_up(
-            session,
-            lead,
-            f"Authority decision update: application {getattr(app, 'id', None)} is now {target_status}.",
-        )
-
-    after = _authority_payload(session, app)
-    record_audit(
-        session,
-        action="authority_decision_recorded",
-        entity_type="application",
-        entity_id=getattr(app, "id", None),
-        before_state=before,
-        after_state=after,
-        reason=request.note or target_status,
-        source="authority_decision",
-        commit=True,
-    )
 
     return {
         "status": target_status,
@@ -456,7 +450,7 @@ def authority_decision_admin(session: Session = Depends(get_session)):
         </style>
       </head>
       <body>
-        <h1>Authority Decision Tracking v1.9</h1>
+        <h1>Authority Decision Tracking v1.9.1</h1>
         <p><a href="/admin">Back to Admin</a> | <a href="/debug/authority-decision">Debug</a></p>
         <table>
           <thead>
@@ -516,7 +510,7 @@ def admin_withdraw(application_id: str, session: Session = Depends(get_session))
 def debug_authority_decision():
     return {
         "status": "ok",
-        "version": "v1.9",
+        "version": "v1.9.1",
         "post_submission_statuses": sorted(POST_SUBMISSION_STATUSES),
         "final_authority_statuses": sorted(FINAL_AUTHORITY_STATUSES),
         "transitions": {target: sorted(sources) for target, sources in TRANSITIONS.items()},
