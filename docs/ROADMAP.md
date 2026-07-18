@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.22.23 (2026-07-18)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.22.23 consolidates the 15 jurisdictions in evidence tranches v10.22.20 through v10.22.22 into one independent-review handoff. The generated operations receipts confirm 15 pending assessments, 15 pending primary-source certifications, and no baseline-eligible item before those human decisions.
+- Read-only snapshot analysis found 13 sources suitable for narrow assertion drafting. Peru (`PE`) and Qatar (`QA`) require narrower monitored evidence; controlled probes identified official remediation candidates scoring 67 and 85 respectively, but neither candidate has been certified or onboarded.
+- Coverage readiness remains 65/243. The handoff creates no review decisions, baseline captures, assertions, publications, regulatory changes, or coverage claim.
+
 ## Delivery Status — v10.22.22 (2026-07-18)
 
 Current database migration head: `0032_initial_rule_assertions`.

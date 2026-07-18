@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-18 — Phase 10B independent-review handoff v10.22.23
+
+- Consolidated the v10.22.20-v10.22.22 batches into one 15-jurisdiction review queue with immutable JSON and CSV operations receipts.
+- Confirmed 15 pending immigration assessments and 15 pending primary-source certifications without creating any review decision.
+- Prepared 13 constrained candidate assertion drafts as non-persistent suggestions.
+- Identified insufficient current snapshot content for Peru and Qatar and recorded narrower official remediation candidates that pass controlled retrieval and content-quality scoring.
+- Preserved all human-review, baseline, assertion, publication, and global-coverage gates; readiness remains 65/243.
+
 ## 2026-07-18 — Phase 10B evidence tranche v10.22.22
 
 - Added current official-source evidence for Namibia, Sierra Leone, Somalia, Senegal, and Tanzania.
