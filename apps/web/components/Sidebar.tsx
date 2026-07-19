@@ -2,39 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HealthStatus } from "../lib/api";
-import { getApiBaseUrl } from "../lib/api";
+import { HealthStatus, getApiBaseUrl } from "../lib/api";
 import { useTheme } from "../hooks/useTheme";
 
-const navItems = [
-  { label: "Operations home", href: "/" },
-];
+type IconName =
+  | "home"
+  | "profiles"
+  | "pathways"
+  | "planning"
+  | "timelines"
+  | "documents"
+  | "intelligence"
+  | "global"
+  | "agents"
+  | "review"
+  | "communications"
+  | "coaching";
 
-const appGroups = [
+const navGroups: { label: string; items: { label: string; href: string; icon: IconName }[] }[] = [
+  {
+    label: "Home",
+    items: [{ label: "Operations home", href: "/", icon: "home" }],
+  },
   {
     label: "Mobility",
     items: [
-      { label: "Profiles", href: "/profiles" },
-      { label: "Pathways", href: "/pathways" },
-      { label: "Planning", href: "/planning" },
-      { label: "Timelines", href: "/timelines" },
+      { label: "Profiles", href: "/profiles", icon: "profiles" },
+      { label: "Pathways", href: "/pathways", icon: "pathways" },
+      { label: "Planning", href: "/planning", icon: "planning" },
+      { label: "Timelines", href: "/timelines", icon: "timelines" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { label: "Documents", href: "/document-intelligence" },
-      { label: "Regulatory intelligence", href: "/intelligence" },
-      { label: "Global coverage", href: "/global-intelligence" },
-      { label: "Agent console", href: "/agents/console" },
-      { label: "Review queue", href: "/agents/review" },
+      { label: "Documents", href: "/document-intelligence", icon: "documents" },
+      { label: "Regulatory intelligence", href: "/intelligence", icon: "intelligence" },
+      { label: "Global coverage", href: "/global-intelligence", icon: "global" },
+      { label: "Agent console", href: "/agents/console", icon: "agents" },
+      { label: "Review queue", href: "/agents/review", icon: "review" },
     ],
   },
   {
     label: "Engagement",
     items: [
-      { label: "Communications", href: "/communications" },
-      { label: "Coaching", href: "/coaching" },
+      { label: "Communications", href: "/communications", icon: "communications" },
+      { label: "Coaching", href: "/coaching", icon: "coaching" },
     ],
   },
 ];
@@ -45,78 +58,99 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
   const apiBase = getApiBaseUrl();
   const { theme, toggleTheme } = useTheme();
 
-  const isHomeActive = pathname === "/";
-
   return (
-    <aside className="sidebar">
-      <Link className="brand-lockup" href="/">
-        <span className="brand-mark">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M8 11.5h16M8 20.5h16M11.5 8v16M20.5 8v16" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
-            <circle cx="20.5" cy="11.5" r="3.2" fill="currentColor" />
-          </svg>
-        </span>
-        <div>
-          <strong>GMAI</strong>
-          <small>Mobility operating system</small>
-        </div>
+    <aside className="sidebar workspace-rail">
+      <Link className="rail-brand" href="/" aria-label="GMAI operations home" data-label="GMAI">
+        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M8 11.5h16M8 20.5h16M11.5 8v16M20.5 8v16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+          <circle cx="20.5" cy="11.5" r="3.2" fill="currentColor" />
+        </svg>
       </Link>
 
-      <nav className="side-nav" aria-label="Workspace navigation">
-        {navItems.map((item) => {
-          const isActive = isHomeActive && item.href === "/";
-          return (
-            <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <div className="rail-navigation">
+        {navGroups.map((group, groupIndex) => (
+          <nav className="rail-group" aria-label={group.label} key={group.label}>
+            {groupIndex > 0 ? <span className="rail-separator" aria-hidden="true" /> : null}
+            {group.items.map((item) => {
+              const active = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
+              return (
+                <Link
+                  className={`rail-link ${active ? "active" : ""}`}
+                  href={item.href}
+                  key={item.href}
+                  aria-label={item.label}
+                  aria-current={active ? "page" : undefined}
+                  data-label={item.label}
+                  title={item.label}
+                >
+                  <NavIcon name={item.icon} />
+                </Link>
+              );
+            })}
+          </nav>
+        ))}
+      </div>
 
-      <div className="sidebar-section-title">Tools</div>
-      <nav className="side-nav side-nav-groups" aria-label="Application navigation">
-        {appGroups.map((group) => {
-          const groupActive = group.items.some((item) => pathname?.startsWith(item.href));
-          return (
-            <details key={group.label} className="side-nav-group" open={groupActive || undefined}>
-              <summary>
-                <span>{group.label}</span>
-                <i aria-hidden="true">+</i>
-              </summary>
-              <div>
-                {group.items.map((item) => {
-                  const isActive = pathname?.startsWith(item.href) ?? false;
-                  return (
-                    <Link className={isActive ? "active" : ""} href={item.href} key={item.href}>
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </details>
-          );
-        })}
-      </nav>
-
-      <div className="sidebar-footer">
+      <div className="rail-footer">
         <button
-          className="theme-toggle"
+          className="rail-action"
           onClick={toggleTheme}
           aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-          title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+          data-label={`${theme === "light" ? "Dark" : "Light"} mode`}
+          title={`${theme === "light" ? "Dark" : "Light"} mode`}
         >
-          <span aria-hidden="true">{theme === "light" ? "◐" : "◑"}</span>
-          <small>{theme === "light" ? "Dark mode" : "Light mode"}</small>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 15.2A8.5 8.5 0 1 1 8.8 4a6.8 6.8 0 0 0 11.2 11.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
-
-        <div className="sidebar-status">
-          <div className={`pulse ${backendOnline ? "online" : "offline"}`} />
-          <div>
-            <strong>{backendOnline ? "Backend connected" : "Backend offline"}</strong>
-            <small>{backendOnline ? health?.environment || "local" : apiBase}</small>
-          </div>
+        <div
+          className={`rail-health ${backendOnline ? "online" : "offline"}`}
+          aria-label={backendOnline ? `Backend connected: ${health?.environment || "local"}` : `Backend offline: ${apiBase}`}
+          data-label={backendOnline ? "Backend connected" : "Backend offline"}
+          title={backendOnline ? "Backend connected" : "Backend offline"}
+        >
+          <span />
         </div>
       </div>
     </aside>
   );
+}
+
+function NavIcon({ name }: { name: IconName }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.7,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+
+  switch (name) {
+    case "home":
+      return <svg {...common}><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9Z" /></svg>;
+    case "profiles":
+      return <svg {...common}><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.6-3.2 2.4-5 5.5-5s4.9 1.8 5.5 5M16 7h5M18.5 4.5v5" /></svg>;
+    case "pathways":
+      return <svg {...common}><circle cx="6" cy="6" r="2" /><circle cx="18" cy="18" r="2" /><path d="M8 6h3a3 3 0 0 1 3 3v6a3 3 0 0 0 3 3M11 12H7a3 3 0 0 0-3 3v3" /></svg>;
+    case "planning":
+      return <svg {...common}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6" /></svg>;
+    case "timelines":
+      return <svg {...common}><path d="M5 5v14M5 8h7M5 16h11" /><circle cx="15" cy="8" r="2" /><circle cx="19" cy="16" r="2" /></svg>;
+    case "documents":
+      return <svg {...common}><path d="M7 3h7l4 4v14H7zM14 3v5h4M10 13h5M10 17h5" /></svg>;
+    case "intelligence":
+      return <svg {...common}><path d="M4 18V9M9 18V5M14 18v-7M19 18V3M3 21h18" /></svg>;
+    case "global":
+      return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg>;
+    case "agents":
+      return <svg {...common}><rect x="4" y="7" width="16" height="12" rx="3" /><path d="M9 12h.01M15 12h.01M9 16h6M12 7V3M9 3h6" /></svg>;
+    case "review":
+      return <svg {...common}><path d="M9 4H5v16h14V4h-4M9 3h6v4H9zM8 12l2 2 5-5M8 18h8" /></svg>;
+    case "communications":
+      return <svg {...common}><path d="M4 5h16v11H8l-4 4V5Z" /><path d="M8 9h8M8 13h5" /></svg>;
+    case "coaching":
+      return <svg {...common}><path d="M12 3 3 8l9 5 9-5-9-5ZM6 10v5c3 3 9 3 12 0v-5M21 8v7" /></svg>;
+  }
 }

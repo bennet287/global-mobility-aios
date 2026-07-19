@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v10.23.3 (2026-07-19)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.23.3 replaces the expanding left navigation groups with a stable 76px workspace rail. Every destination remains directly accessible through a consistent icon, active-state marker, accessible label, hover tooltip, theme control, and backend-health indicator without changing the page layout.
+- The shared interface now uses an original neutral-stone and deep-indigo visual system rather than reproducing the reference palettes. Light and dark themes receive clearer surface hierarchy, restrained shadows, semantic success colors, refined typography, and consistent interaction transitions.
+- The production build, TypeScript validation, and all 21 static/dynamic route generations pass. The running Docker UI returns HTTP 200 for `/`, `/pathways`, and `/global-intelligence` with no runtime errors after the independent host build.
+
 ## Delivery Status — v10.23.2 (2026-07-19)
 
 Current database migration head: `0032_initial_rule_assertions`.

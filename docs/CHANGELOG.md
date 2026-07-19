@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Timeless workspace rail and theme v10.23.3
+
+- Removed the expanding Mobility, Operations, and Engagement sidebar cards.
+- Added a compact fixed workspace rail with custom icons, direct navigation, active markers, accessible labels, tooltips, theme control, and backend status.
+- Replaced the reference-adjacent olive palette with an original neutral-stone and deep-indigo system for both light and dark themes.
+- Refined shared surfaces, typography, buttons, empty states, focus treatment, and motion while reserving green for semantic success.
+- Verified the production build and HTTP 200 responses for the home, Pathways, and Global Intelligence routes without Docker runtime errors.
+
 ## 2026-07-19 — Next.js cache-isolation hotfix v10.23.2
 
 - Fixed the Docker development runtime error caused by a host production build replacing chunks in the shared `.next` directory.
