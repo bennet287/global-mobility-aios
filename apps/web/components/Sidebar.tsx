@@ -22,32 +22,32 @@ type IconName =
 const navGroups: { label: string; items: { label: string; href: string; icon: IconName }[] }[] = [
   {
     label: "Home",
-    items: [{ label: "Operations home", href: "/", icon: "home" }],
+    items: [{ label: "Operations Workspace", href: "/", icon: "home" }],
   },
   {
     label: "Mobility",
     items: [
-      { label: "Profiles", href: "/profiles", icon: "profiles" },
-      { label: "Pathways", href: "/pathways", icon: "pathways" },
-      { label: "Planning", href: "/planning", icon: "planning" },
-      { label: "Timelines", href: "/timelines", icon: "timelines" },
+      { label: "Mobility Profiles", href: "/profiles", icon: "profiles" },
+      { label: "Pathway Catalogue", href: "/pathways", icon: "pathways" },
+      { label: "Mobility Planning", href: "/planning", icon: "planning" },
+      { label: "Mobility Timelines", href: "/timelines", icon: "timelines" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { label: "Documents", href: "/document-intelligence", icon: "documents" },
-      { label: "Regulatory intelligence", href: "/intelligence", icon: "intelligence" },
-      { label: "Global coverage", href: "/global-intelligence", icon: "global" },
-      { label: "Agent console", href: "/agents/console", icon: "agents" },
-      { label: "Review queue", href: "/agents/review", icon: "review" },
+      { label: "Document Intelligence", href: "/document-intelligence", icon: "documents" },
+      { label: "Regulatory Intelligence", href: "/intelligence", icon: "intelligence" },
+      { label: "Global Intelligence", href: "/global-intelligence", icon: "global" },
+      { label: "Agent Console", href: "/agents/console", icon: "agents" },
+      { label: "Agent Review Queue", href: "/agents/review", icon: "review" },
     ],
   },
   {
     label: "Engagement",
     items: [
       { label: "Communications", href: "/communications", icon: "communications" },
-      { label: "Coaching", href: "/coaching", icon: "coaching" },
+      { label: "Agent Coaching", href: "/coaching", icon: "coaching" },
     ],
   },
 ];
@@ -65,6 +65,7 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
           <path d="M8 11.5h16M8 20.5h16M11.5 8v16M20.5 8v16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
           <circle cx="20.5" cy="11.5" r="3.2" fill="currentColor" />
         </svg>
+        <span className="rail-text rail-brand-text">GMAI</span>
       </Link>
 
       <div className="rail-navigation">
@@ -84,6 +85,7 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
                   title={item.label}
                 >
                   <NavIcon name={item.icon} />
+                  <span className="rail-text">{item.label}</span>
                 </Link>
               );
             })}
@@ -102,6 +104,7 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M20 15.2A8.5 8.5 0 1 1 8.8 4a6.8 6.8 0 0 0 11.2 11.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
+          <span className="rail-text">{theme === "light" ? "Dark mode" : "Light mode"}</span>
         </button>
         <div
           className={`rail-health ${backendOnline ? "online" : "offline"}`}
@@ -109,7 +112,8 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
           data-label={backendOnline ? "Backend connected" : "Backend offline"}
           title={backendOnline ? "Backend connected" : "Backend offline"}
         >
-          <span />
+          <span className="rail-health-dot" />
+          <span className="rail-text">{backendOnline ? "Backend online" : "Backend offline"}</span>
         </div>
       </div>
     </aside>

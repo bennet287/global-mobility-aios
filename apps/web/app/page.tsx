@@ -186,26 +186,33 @@ export default function HomePage() {
           </div>
         </div>
         <div className="system-canvas" aria-label="Connected workflow overview">
-          <div className="system-card system-card-leads">
-            <span>Pipeline</span>
-            <strong>{summary.leads_total} active leads</strong>
-            <small>{summary.leads_human_review} awaiting review</small>
-          </div>
-          <div className="system-card system-card-truth">
-            <span>Truth Engine</span>
-            <strong>{summary.truth_queue_resolved} resolved</strong>
-            <small>Source-controlled claims</small>
-          </div>
-          <div className="system-card system-card-agents">
-            <span>AI operations</span>
-            <strong>{agentCount} outputs</strong>
-            <small>Human approval required</small>
-          </div>
-          <div className="system-flow system-flow-one" />
-          <div className="system-flow system-flow-two" />
-          <div className="command-meta">
-            <StatusBadge value={backendOnline ? "online" : "offline"} />
-            <code>{apiBase}</code>
+          <div className="system-panel">
+            <div className="system-panel-heading">
+              <div>
+                <span>System pulse</span>
+                <strong>Controlled workflow</strong>
+              </div>
+              <small>3 connected layers</small>
+            </div>
+            <div className="system-card system-card-leads">
+              <div className="system-card-label"><i /><span>Pipeline</span></div>
+              <strong>{summary.leads_total}</strong>
+              <small>{summary.leads_human_review} awaiting review</small>
+            </div>
+            <div className="system-card system-card-truth">
+              <div className="system-card-label"><i /><span>Truth engine</span></div>
+              <strong>{summary.truth_queue_resolved}</strong>
+              <small>Verified resolutions</small>
+            </div>
+            <div className="system-card system-card-agents">
+              <div className="system-card-label"><i /><span>AI operations</span></div>
+              <strong>{agentCount}</strong>
+              <small>Human-gated outputs</small>
+            </div>
+            <div className="command-meta">
+              <StatusBadge value={backendOnline ? "online" : "offline"} />
+              <code>{apiBase}</code>
+            </div>
           </div>
         </div>
       </section>

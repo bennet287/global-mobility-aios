@@ -4286,106 +4286,119 @@ body {
 .system-canvas {
   position: absolute;
   z-index: 3;
-  top: 36px;
+  top: 50%;
   right: clamp(28px, 4vw, 58px);
-  width: min(43%, 610px);
-  height: 275px;
+  width: min(40%, 520px);
+  transform: translateY(-50%);
+}
+
+.system-panel {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(249, 249, 246, 0.075);
+  box-shadow: 0 24px 70px rgba(5, 6, 14, 0.22);
+  backdrop-filter: blur(18px);
+}
+
+.system-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 17px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.system-panel-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.system-panel-heading span,
+.system-panel-heading small {
+  color: rgba(241, 242, 249, 0.54);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.system-panel-heading strong {
+  color: #f5f5f0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .system-card {
-  position: absolute;
-  width: 176px;
-  padding: 13px;
-  color: #181b14;
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 8px;
-  background: rgba(248, 249, 242, 0.92);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(14px);
+  display: grid;
+  grid-template-columns: minmax(112px, 0.8fr) 52px minmax(120px, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 53px;
+  padding: 9px 17px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  transition: background 180ms ease;
 }
 
-.system-card span {
-  color: #7a806f;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.11em;
+.system-card:hover {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.system-card-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.system-card-label i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #a8abd5;
+  box-shadow: 0 0 0 4px rgba(168, 171, 213, 0.11);
+}
+
+.system-card-label span {
+  color: rgba(246, 246, 241, 0.76);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
 .system-card strong {
-  display: block;
-  margin-top: 10px;
-  font-size: 14px;
-  font-weight: 650;
-  letter-spacing: -0.025em;
+  color: #f8f8f3;
+  font-size: 23px;
+  font-weight: 480;
+  line-height: 1;
+  letter-spacing: -0.055em;
 }
 
 .system-card small {
-  display: block;
-  margin-top: 5px;
-  color: #6e7368;
+  color: rgba(241, 242, 249, 0.55);
   font-size: 9px;
+  line-height: 1.35;
 }
 
-.system-card-leads {
-  left: 2%;
-  top: 54px;
-  transform: rotate(-5deg);
+.system-card-truth .system-card-label i {
+  background: #d5d6ed;
 }
 
-.system-card-truth {
-  left: 35%;
-  top: 9px;
-  z-index: 2;
-  transform: rotate(3deg);
-}
-
-.system-card-agents {
-  right: 0;
-  top: 76px;
-  transform: rotate(5deg);
-}
-
-.system-flow {
-  position: absolute;
-  height: 1px;
-  background: rgba(233, 242, 211, 0.36);
-  transform-origin: left;
-}
-
-.system-flow::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: -2px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #d8e6a9;
-}
-
-.system-flow-one {
-  left: 29%;
-  top: 112px;
-  width: 74px;
-  transform: rotate(-18deg);
-}
-
-.system-flow-two {
-  left: 63%;
-  top: 96px;
-  width: 62px;
-  transform: rotate(17deg);
+.system-card-agents .system-card-label i {
+  background: #7ed0ad;
+  box-shadow: 0 0 0 4px rgba(126, 208, 173, 0.1);
 }
 
 .command-meta {
-  position: absolute;
-  right: 0;
-  bottom: 6px;
   min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  padding: 11px 17px;
 }
 
 .command-meta code {
@@ -4661,8 +4674,8 @@ html[data-theme="dark"] body {
 
   .system-canvas {
     width: 45%;
-    transform: scale(0.88);
-    transform-origin: top right;
+    transform: translateY(-50%) scale(0.9);
+    transform-origin: right center;
   }
 
   .metric-row {
@@ -4765,15 +4778,12 @@ html[data-theme="dark"] body {
   }
 
   .system-card {
-    width: 154px;
+    width: auto;
+    grid-template-columns: minmax(96px, 0.8fr) 44px minmax(100px, 1fr);
   }
 
-  .system-card-truth {
-    left: 29%;
-  }
-
-  .system-card-agents {
-    top: 132px;
+  .system-panel-heading small {
+    display: none;
   }
 
   .metric-row {
@@ -5113,8 +5123,7 @@ html[data-theme="dark"] body {
   }
 
   .system-canvas {
-    top: 25px;
-    height: 245px;
+    top: 50%;
   }
 
   .dashboard-section-heading {
@@ -5152,16 +5161,16 @@ html[data-theme="dark"] body {
 
 /* Timeless workspace refinement v10.23.3 */
 :root {
-  --bg: #eeece8;
-  --surface: #f7f6f3;
-  --surface-strong: #fdfcf9;
-  --surface-muted: #e8e7e4;
-  --surface-elevated: #ffffff;
+  --bg: #eee9df;
+  --surface: #f7f3eb;
+  --surface-strong: #fdfaf3;
+  --surface-muted: #e8e1d7;
+  --surface-elevated: #fffdf8;
   --ink: #15151a;
   --ink-muted: #65656d;
   --ink-soft: #92919a;
-  --line: #d8d6d2;
-  --line-strong: #bbb8b3;
+  --line: #d9d1c4;
+  --line-strong: #bdb3a4;
   --line-subtle: rgba(21, 21, 26, 0.075);
   --accent: #585b91;
   --accent-strong: #34365f;
@@ -5223,11 +5232,11 @@ body {
 }
 
 .app-frame {
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 188px minmax(0, 1fr);
 }
 
 .workspace-rail {
-  width: 76px;
+  width: 188px;
   padding: 16px 10px 13px;
   gap: 14px;
   overflow: visible;
@@ -5245,8 +5254,10 @@ body {
 .rail-health {
   position: relative;
   display: grid;
-  place-items: center;
-  width: 48px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  width: 164px;
   height: 44px;
   margin-inline: auto;
   border: 0;
@@ -5268,6 +5279,15 @@ body {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
 }
 
+.rail-brand,
+.rail-link,
+.rail-action {
+  grid-template-columns: 28px minmax(0, 1fr);
+  place-items: center start;
+  width: 164px;
+  padding: 0 12px;
+}
+
 .rail-brand svg,
 .rail-link svg,
 .rail-action svg {
@@ -5278,6 +5298,24 @@ body {
 .rail-brand svg {
   width: 22px;
   height: 22px;
+}
+
+.rail-text {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 590;
+  letter-spacing: 0.005em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-brand-text {
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: 0.09em;
 }
 
 .rail-navigation {
@@ -5356,10 +5394,20 @@ body {
   transition: opacity 0.14s ease, transform 0.14s ease;
 }
 
+.workspace-rail .rail-brand::after,
+.workspace-rail .rail-link::after,
+.workspace-rail .rail-action::after,
+.workspace-rail .rail-health::after {
+  display: none;
+}
+
 .rail-brand:hover::after,
 .rail-link:hover::after,
 .rail-action:hover::after,
-.rail-health:hover::after {
+.rail-health:hover::after,
+.rail-brand:focus-visible::after,
+.rail-link:focus-visible::after,
+.rail-action:focus-visible::after {
   opacity: 1;
   transform: translate(0, -50%);
 }
@@ -5379,15 +5427,16 @@ body {
   cursor: default;
 }
 
-.rail-health > span {
+.rail-health-dot {
   width: 8px;
   height: 8px;
+  margin-left: 10px;
   border-radius: 50%;
   background: #d66f73;
   box-shadow: 0 0 0 5px rgba(214, 111, 115, 0.11);
 }
 
-.rail-health.online > span {
+.rail-health.online .rail-health-dot {
   background: #6ab58f;
   box-shadow: 0 0 0 5px rgba(106, 181, 143, 0.11);
 }
@@ -5531,6 +5580,43 @@ body {
 .dashboard-view-tabs button,
 .coverage-view-tabs button {
   will-change: transform;
+}
+
+@media (max-width: 1180px) {
+  .app-frame {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .workspace-rail {
+    width: 76px;
+  }
+
+  .rail-brand,
+  .rail-link,
+  .rail-action,
+  .rail-health {
+    grid-template-columns: 1fr;
+    place-items: center;
+    width: 48px;
+    padding: 0;
+  }
+
+  .rail-text {
+    display: none;
+  }
+
+  .rail-health-dot {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 881px) and (max-width: 1180px) {
+  .workspace-rail .rail-brand::after,
+  .workspace-rail .rail-link::after,
+  .workspace-rail .rail-action::after,
+  .workspace-rail .rail-health::after {
+    display: block;
+  }
 }
 
 @media (max-width: 880px) {
