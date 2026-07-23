@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 CorporateAccountStatus = Literal["active", "suspended", "closed"]
-CorporateCaseType = Literal["employee_relocation", "dependant", "sponsor_compliance"]
+CorporateCaseType = Literal["employee_relocation", "dependant", "sponsor_compliance", "entrepreneur_startup"]
 CorporateCaseStatus = Literal["draft", "active", "on_hold", "completed", "closed"]
 
 
@@ -293,6 +293,97 @@ class CorporateRelocationTaskDecisionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     corporate_relocation_task_id: UUID
+    decision: str
+    reason: str
+    reviewer: str
+    created_at: datetime
+
+
+VentureStage = Literal["idea", "pre_seed", "seed", "growth", "established"]
+VentureEvidenceType = Literal[
+    "business_plan", "incorporation", "bank_statement", "investment_commitment",
+    "grant", "revenue", "capitalization", "intellectual_property", "other",
+]
+
+
+class EntrepreneurVentureProfileCreate(BaseModel):
+    founder_lead_id: UUID
+    venture_name: str = Field(min_length=2, max_length=250)
+    venture_stage: VentureStage
+    sector: str = Field(min_length=2, max_length=150)
+    target_country: str = Field(min_length=2, max_length=100)
+    incorporation_country: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    founder_role: str = Field(min_length=2, max_length=150)
+    business_model_summary: str = Field(min_length=20, max_length=5000)
+
+
+class EntrepreneurVentureProfileRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_mobility_case_id: UUID
+    founder_lead_id: UUID
+    venture_name: str
+    venture_stage: str
+    sector: str
+    target_country: str
+    incorporation_country: Optional[str]
+    founder_role: str
+    business_model_summary: str
+    status: str
+    human_review_required: bool
+    submitted_by: Optional[str]
+    submitted_at: Optional[datetime]
+    reviewed_by: Optional[str]
+    reviewed_at: Optional[datetime]
+    review_notes: Optional[str]
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class VentureEvidenceItemCreate(BaseModel):
+    evidence_type: VentureEvidenceType
+    title: str = Field(min_length=2, max_length=250)
+    declared_amount_minor: Optional[int] = Field(default=None, ge=0)
+    currency: Optional[str] = Field(default=None, min_length=3, max_length=3)
+    document_record_id: Optional[UUID] = None
+    notes: Optional[str] = Field(default=None, max_length=5000)
+
+    @model_validator(mode="after")
+    def validate_amount_currency(self):
+        if (self.declared_amount_minor is None) != (self.currency is None):
+            raise ValueError("Declared amount and currency must be provided together")
+        return self
+
+
+class VentureEvidenceItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    venture_profile_id: UUID
+    evidence_type: str
+    title: str
+    declared_amount_minor: Optional[int]
+    currency: Optional[str]
+    document_record_id: Optional[UUID]
+    notes: Optional[str]
+    created_by: str
+    created_at: datetime
+
+
+class VentureReviewSubmission(BaseModel):
+    evidence_complete_attestation: bool
+
+
+class VentureReviewDecisionCreate(BaseModel):
+    decision: Literal["approved", "rejected"]
+    reason: str = Field(min_length=3, max_length=5000)
+
+
+class VentureReviewDecisionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    venture_profile_id: UUID
     decision: str
     reason: str
     reviewer: str

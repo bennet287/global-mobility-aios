@@ -35,6 +35,7 @@ def register_models() -> None:
         DocumentFraudRiskAssessment,
         DocumentRequirementAssessment,
         DocumentRecord,
+        EntrepreneurVentureProfile,
         EligibilityAssessment,
         FollowUp,
         HumanReview,
@@ -70,6 +71,8 @@ def register_models() -> None:
         VerificationAudit,
         VerifiedRule,
         VisaCheck,
+        VentureEvidenceItem,
+        VentureReviewDecision,
         WorkflowRun,
     )
 

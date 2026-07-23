@@ -241,7 +241,7 @@ The following ledger prevents scope loss. Status values are `current`, `next`,
 | Digital nomad programs | planned | Mobility intelligence MVP |
 | Investment migration and HNWI mobility | planned | Business and wealth expansion |
 | Tax residency intelligence | planned | Business and wealth expansion |
-| Corporate mobility | in progress | Corporate case foundation, governed relationships, calendars, and relocation tasks delivered; broader business and wealth expansion remains |
+| Corporate mobility | in progress | Corporate operations and entrepreneur/startup dossier governance delivered; investment and wealth expansion remains |
 | Real-time immigration monitoring | next | Regulatory intelligence foundation |
 | Self-updating regulations | next | Retrieval, change sets, verified-rule publication |
 | New visa detection | next | Regulatory event pipeline |

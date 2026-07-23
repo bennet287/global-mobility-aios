@@ -17,7 +17,10 @@ import {
   CorporateMobilityCase,
   CorporateRelocationTask,
   CorporateSponsorEntity,
+  EntrepreneurVentureProfile,
   Lead,
+  VentureEvidenceItem,
+  addVentureEvidence,
   addCaseDependant,
   assignCorporateSponsor,
   createCorporateAccount,
@@ -25,7 +28,9 @@ import {
   createComplianceEvent,
   createCorporateMobilityCase,
   createRelocationTask,
+  createVentureProfile,
   getLeads,
+  getVentureProfile,
   listCorporateAccounts,
   listCorporateSponsors,
   listCaseDependants,
@@ -33,8 +38,10 @@ import {
   listComplianceEvents,
   listCorporateMobilityCases,
   listRelocationTasks,
+  listVentureEvidence,
   resolveComplianceEvent,
   transitionRelocationTask,
+  submitVentureProfile,
   updateCorporateMobilityCase,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
@@ -52,7 +59,7 @@ const emptyAccountForm = {
 
 const emptyCaseForm = {
   employee_lead_id: "",
-  case_type: "employee_relocation" as "employee_relocation" | "dependant" | "sponsor_compliance",
+  case_type: "employee_relocation" as "employee_relocation" | "dependant" | "sponsor_compliance" | "entrepreneur_startup",
   origin_country: "",
   destination_country: "",
   sponsor_name: "",
@@ -64,6 +71,8 @@ const emptySponsorForm = { legal_name: "", sponsor_type: "employing_entity" as c
 const emptyDependantForm = { dependant_lead_id: "", relationship_to_employee: "spouse" as "spouse" | "partner" | "child" | "parent" | "other", sponsorship_required: false };
 const emptyEventForm = { event_type: "filing_deadline" as "filing_deadline" | "document_expiry" | "permit_renewal" | "registration" | "sponsor_report" | "payroll" | "tax" | "custom", title: "", due_at: "", evidence_required: true };
 const emptyTaskForm = { title: "", category: "relocation" as "immigration" | "relocation" | "payroll" | "tax" | "housing" | "travel" | "onboarding" | "custom", owner_role: "mobility_operator", due_at: "", depends_on_task_id: "", requires_human_approval: false };
+const emptyVentureForm = { founder_lead_id: "", venture_name: "", venture_stage: "idea" as "idea" | "pre_seed" | "seed" | "growth" | "established", sector: "", incorporation_country: "", founder_role: "Founder", business_model_summary: "" };
+const emptyEvidenceForm = { evidence_type: "business_plan" as "business_plan" | "incorporation" | "bank_statement" | "investment_commitment" | "grant" | "revenue" | "capitalization" | "intellectual_property" | "other", title: "", declared_amount_minor: "", currency: "", document_record_id: "" };
 
 
 export default function CorporateMobilityPage() {
@@ -80,10 +89,14 @@ export default function CorporateMobilityPage() {
   const [dependants, setDependants] = useState<CorporateCaseDependant[]>([]);
   const [events, setEvents] = useState<CorporateComplianceEvent[]>([]);
   const [tasks, setTasks] = useState<CorporateRelocationTask[]>([]);
+  const [venture, setVenture] = useState<EntrepreneurVentureProfile | null>(null);
+  const [ventureEvidence, setVentureEvidence] = useState<VentureEvidenceItem[]>([]);
   const [sponsorForm, setSponsorForm] = useState(emptySponsorForm);
   const [dependantForm, setDependantForm] = useState(emptyDependantForm);
   const [eventForm, setEventForm] = useState(emptyEventForm);
   const [taskForm, setTaskForm] = useState(emptyTaskForm);
+  const [ventureForm, setVentureForm] = useState(emptyVentureForm);
+  const [evidenceForm, setEvidenceForm] = useState(emptyEvidenceForm);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -128,13 +141,20 @@ export default function CorporateMobilityPage() {
     const sponsorRows = await listCorporateSponsors(selectedAccountId);
     setSponsors(sponsorRows);
     if (!selectedCase) {
-      setAssignments([]); setDependants([]); setEvents([]); setTasks([]);
+      setAssignments([]); setDependants([]); setEvents([]); setTasks([]); setVenture(null); setVentureEvidence([]);
       return;
     }
     const [assignmentRows, dependantRows, eventRows, taskRows] = await Promise.all([
       listCaseSponsorAssignments(selectedCase.id), listCaseDependants(selectedCase.id), listComplianceEvents(selectedCase.id), listRelocationTasks(selectedCase.id),
     ]);
     setAssignments(assignmentRows); setDependants(dependantRows); setEvents(eventRows); setTasks(taskRows);
+    if (selectedCase.case_type === "entrepreneur_startup") {
+      const ventureRow = await getVentureProfile(selectedCase.id).catch(() => null);
+      setVenture(ventureRow);
+      setVentureEvidence(ventureRow ? await listVentureEvidence(ventureRow.id) : []);
+    } else {
+      setVenture(null); setVentureEvidence([]);
+    }
   }, [selectedAccountId, selectedCase?.id]);
 
   useEffect(() => { void loadRelationships().catch((err) => setError(err instanceof Error ? err.message : "Case relationships could not be loaded")); }, [loadRelationships]);
@@ -281,6 +301,50 @@ export default function CorporateMobilityPage() {
     finally { setWorking(null); }
   }
 
+  async function submitVenture(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedCase || !ventureForm.founder_lead_id) return;
+    setWorking("venture"); setError(null);
+    try {
+      await createVentureProfile(selectedCase.id, {
+        founder_lead_id: ventureForm.founder_lead_id, venture_name: ventureForm.venture_name,
+        venture_stage: ventureForm.venture_stage, sector: ventureForm.sector,
+        founder_role: ventureForm.founder_role, business_model_summary: ventureForm.business_model_summary,
+        target_country: selectedCase.destination_country,
+        ...(ventureForm.incorporation_country ? { incorporation_country: ventureForm.incorporation_country } : {}),
+      });
+      setVentureForm(emptyVentureForm); await loadRelationships();
+      setMessage("Founder venture dossier created with mandatory human review.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Venture dossier could not be created"); }
+    finally { setWorking(null); }
+  }
+
+  async function submitVentureEvidenceItem(event: FormEvent) {
+    event.preventDefault();
+    if (!venture) return;
+    setWorking("venture-evidence"); setError(null);
+    try {
+      await addVentureEvidence(venture.id, {
+        evidence_type: evidenceForm.evidence_type, title: evidenceForm.title,
+        ...(evidenceForm.declared_amount_minor ? { declared_amount_minor: Number(evidenceForm.declared_amount_minor), currency: evidenceForm.currency } : {}),
+        ...(evidenceForm.document_record_id ? { document_record_id: evidenceForm.document_record_id } : {}),
+      });
+      setEvidenceForm(emptyEvidenceForm); await loadRelationships();
+      setMessage("Venture evidence added without making a funding or eligibility claim.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Venture evidence could not be added"); }
+    finally { setWorking(null); }
+  }
+
+  async function sendVentureForReview() {
+    if (!venture) return;
+    setWorking("venture-submit"); setError(null);
+    try {
+      await submitVentureProfile(venture.id); await loadRelationships();
+      setMessage("Venture dossier sent to an independent completeness reviewer.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Venture dossier could not be submitted"); }
+    finally { setWorking(null); }
+  }
+
   return (
     <WorkspaceShell health={health}>
       <Topbar
@@ -383,7 +447,7 @@ export default function CorporateMobilityPage() {
             <form className="corporate-form corporate-case-form" onSubmit={submitCase}>
               <h3>New controlled mobility case</h3>
               <div className="corporate-form-row">
-                <label>Case type<select value={caseForm.case_type} onChange={(event) => setCaseForm({ ...caseForm, case_type: event.target.value as typeof caseForm.case_type })}><option value="employee_relocation">Employee relocation</option><option value="dependant">Dependant</option><option value="sponsor_compliance">Sponsor compliance</option></select></label>
+                <label>Case type<select value={caseForm.case_type} onChange={(event) => setCaseForm({ ...caseForm, case_type: event.target.value as typeof caseForm.case_type })}><option value="employee_relocation">Employee relocation</option><option value="dependant">Dependant</option><option value="sponsor_compliance">Sponsor compliance</option><option value="entrepreneur_startup">Entrepreneur / startup</option></select></label>
                 <label>Employee lead<select value={caseForm.employee_lead_id} onChange={(event) => setCaseForm({ ...caseForm, employee_lead_id: event.target.value })}><option value="">Link later</option>{leads.map((lead) => <option key={lead.id} value={lead.id}>{lead.full_name}</option>)}</select></label>
               </div>
               <div className="corporate-form-row">
@@ -460,6 +524,31 @@ export default function CorporateMobilityPage() {
                 </div>
                 <details className="corporate-task-create"><summary>Add relocation task</summary><form onSubmit={submitTask} className="corporate-mini-form"><div><input required placeholder="Task title" value={taskForm.title} onChange={(event) => setTaskForm({ ...taskForm, title: event.target.value })} /><select value={taskForm.category} onChange={(event) => setTaskForm({ ...taskForm, category: event.target.value as typeof taskForm.category })}><option value="immigration">Immigration</option><option value="relocation">Relocation</option><option value="payroll">Payroll</option><option value="tax">Tax</option><option value="housing">Housing</option><option value="travel">Travel</option><option value="onboarding">Onboarding</option><option value="custom">Custom</option></select></div><div><input required placeholder="Owner role" value={taskForm.owner_role} onChange={(event) => setTaskForm({ ...taskForm, owner_role: event.target.value })} /><input type="datetime-local" value={taskForm.due_at} onChange={(event) => setTaskForm({ ...taskForm, due_at: event.target.value })} /></div><div><select value={taskForm.depends_on_task_id} onChange={(event) => setTaskForm({ ...taskForm, depends_on_task_id: event.target.value })}><option value="">No dependency</option>{tasks.map((item) => <option value={item.id} key={item.id}>{item.title}</option>)}</select><label className="corporate-check"><input type="checkbox" checked={taskForm.requires_human_approval} onChange={(event) => setTaskForm({ ...taskForm, requires_human_approval: event.target.checked })} />Independent completion review</label></div><button className="button primary" disabled={working === "task" || selectedCase.status === "closed"}>Add task</button></form></details>
               </article>
+
+              {selectedCase.case_type === "entrepreneur_startup" ? (
+                <article className="venture-dossier">
+                  <div className="corporate-task-header">
+                    <div><span>Founder dossier</span><h3>{venture?.venture_name || "Entrepreneur venture profile"}</h3><p>Dossier review confirms completeness only. It does not determine visa eligibility or investment qualification.</p></div>
+                    {venture ? <StatusBadge value={venture.status} /> : null}
+                  </div>
+                  {!venture ? (
+                    <form className="venture-form" onSubmit={submitVenture}>
+                      <div><select required value={ventureForm.founder_lead_id} onChange={(event) => setVentureForm({ ...ventureForm, founder_lead_id: event.target.value })}><option value="">Founder lead</option>{leads.map((lead) => <option value={lead.id} key={lead.id}>{lead.full_name}</option>)}</select><input required placeholder="Venture name" value={ventureForm.venture_name} onChange={(event) => setVentureForm({ ...ventureForm, venture_name: event.target.value })} /></div>
+                      <div><select value={ventureForm.venture_stage} onChange={(event) => setVentureForm({ ...ventureForm, venture_stage: event.target.value as typeof ventureForm.venture_stage })}><option value="idea">Idea</option><option value="pre_seed">Pre-seed</option><option value="seed">Seed</option><option value="growth">Growth</option><option value="established">Established</option></select><input required placeholder="Sector" value={ventureForm.sector} onChange={(event) => setVentureForm({ ...ventureForm, sector: event.target.value })} /></div>
+                      <div><input required placeholder="Founder role" value={ventureForm.founder_role} onChange={(event) => setVentureForm({ ...ventureForm, founder_role: event.target.value })} /><input placeholder="Incorporation country" value={ventureForm.incorporation_country} onChange={(event) => setVentureForm({ ...ventureForm, incorporation_country: event.target.value })} /></div>
+                      <textarea required minLength={20} placeholder="Business model summary" value={ventureForm.business_model_summary} onChange={(event) => setVentureForm({ ...ventureForm, business_model_summary: event.target.value })} />
+                      <button className="button primary" disabled={working === "venture" || selectedCase.status === "closed"}>Create review-gated dossier</button>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="venture-summary"><div><span>Founder</span><strong>{leadNames.get(venture.founder_lead_id) || "Linked founder"}</strong></div><div><span>Stage</span><strong>{titleCase(venture.venture_stage)}</strong></div><div><span>Sector</span><strong>{venture.sector}</strong></div><div><span>Target</span><strong>{venture.target_country}</strong></div></div>
+                      <div className="venture-evidence-list">{ventureEvidence.map((item) => <div key={item.id}><span><b>{item.title}</b><small>{titleCase(item.evidence_type)}{item.document_record_id ? " · Controlled document linked" : " · Declaration only"}</small></span>{item.declared_amount_minor !== null ? <strong>{item.currency} {item.declared_amount_minor.toLocaleString()} minor units</strong> : null}</div>)}</div>
+                      {venture.status !== "review_ready" && venture.status !== "reviewed" ? <details className="corporate-task-create"><summary>Add dossier evidence</summary><form className="venture-form" onSubmit={submitVentureEvidenceItem}><div><select value={evidenceForm.evidence_type} onChange={(event) => setEvidenceForm({ ...evidenceForm, evidence_type: event.target.value as typeof evidenceForm.evidence_type })}><option value="business_plan">Business plan</option><option value="incorporation">Incorporation</option><option value="bank_statement">Bank statement</option><option value="investment_commitment">Investment commitment</option><option value="grant">Grant</option><option value="revenue">Revenue</option><option value="capitalization">Capitalization</option><option value="intellectual_property">Intellectual property</option><option value="other">Other</option></select><input required placeholder="Evidence title" value={evidenceForm.title} onChange={(event) => setEvidenceForm({ ...evidenceForm, title: event.target.value })} /></div><div><input type="number" min="0" placeholder="Amount in minor units" value={evidenceForm.declared_amount_minor} onChange={(event) => setEvidenceForm({ ...evidenceForm, declared_amount_minor: event.target.value })} /><input minLength={3} maxLength={3} placeholder="Currency" value={evidenceForm.currency} onChange={(event) => setEvidenceForm({ ...evidenceForm, currency: event.target.value })} /></div><input placeholder="Controlled document UUID" value={evidenceForm.document_record_id} onChange={(event) => setEvidenceForm({ ...evidenceForm, document_record_id: event.target.value })} /><button className="button secondary" disabled={working === "venture-evidence"}>Add evidence</button></form></details> : null}
+                      {venture.status === "evidence_pending" ? <button className="button primary venture-submit" disabled={working === "venture-submit" || !ventureEvidence.some((item) => item.document_record_id)} onClick={() => void sendVentureForReview()}>Submit completeness review</button> : null}
+                    </>
+                  )}
+                </article>
+              ) : null}
             </section>
           ) : null}
         </main>

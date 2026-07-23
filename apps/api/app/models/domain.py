@@ -1415,6 +1415,58 @@ class CorporateRelocationTaskDecision(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc, index=True)
 
 
+class EntrepreneurVentureProfile(SQLModel, table=True):
+    __tablename__ = "entrepreneur_venture_profiles"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_mobility_case_id: UUID = Field(index=True, unique=True, foreign_key="corporate_mobility_cases.id")
+    founder_lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    venture_name: str = Field(index=True)
+    venture_stage: str = Field(index=True)
+    sector: str = Field(index=True)
+    target_country: str = Field(index=True)
+    incorporation_country: Optional[str] = Field(default=None, index=True)
+    founder_role: str
+    business_model_summary: str
+    status: str = Field(default="draft", index=True)
+    human_review_required: bool = True
+    submitted_by: Optional[str] = Field(default=None, index=True)
+    submitted_at: Optional[datetime] = Field(default=None, index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class VentureEvidenceItem(SQLModel, table=True):
+    __tablename__ = "venture_evidence_items"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    venture_profile_id: UUID = Field(index=True, foreign_key="entrepreneur_venture_profiles.id")
+    evidence_type: str = Field(index=True)
+    title: str
+    declared_amount_minor: Optional[int] = None
+    currency: Optional[str] = Field(default=None, index=True)
+    document_record_id: Optional[UUID] = Field(default=None, index=True, foreign_key="documents.id")
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class VentureReviewDecision(SQLModel, table=True):
+    __tablename__ = "venture_review_decisions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    venture_profile_id: UUID = Field(index=True, foreign_key="entrepreneur_venture_profiles.id")
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

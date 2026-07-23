@@ -3448,7 +3448,7 @@ export type CorporateMobilityCase = {
   corporate_account_id: string;
   employee_lead_id: string | null;
   case_reference: string;
-  case_type: "employee_relocation" | "dependant" | "sponsor_compliance" | string;
+  case_type: "employee_relocation" | "dependant" | "sponsor_compliance" | "entrepreneur_startup" | string;
   status: "draft" | "active" | "on_hold" | "completed" | "closed" | string;
   origin_country: string | null;
   destination_country: string;
@@ -3539,7 +3539,7 @@ export async function createCorporateMobilityCase(
   payload: {
     employee_lead_id?: string;
     case_reference?: string;
-    case_type: "employee_relocation" | "dependant" | "sponsor_compliance";
+    case_type: "employee_relocation" | "dependant" | "sponsor_compliance" | "entrepreneur_startup";
     origin_country?: string;
     destination_country: string;
     sponsor_name?: string;
@@ -3680,5 +3680,53 @@ export async function transitionRelocationTask(
 ): Promise<CorporateRelocationTask> {
   return request(`/api/v1/corporate-mobility/relocation-tasks/${taskId}`, {
     method: "PATCH", body: JSON.stringify(payload),
+  });
+}
+
+export type EntrepreneurVentureProfile = {
+  id: string; corporate_mobility_case_id: string; founder_lead_id: string;
+  venture_name: string; venture_stage: string; sector: string; target_country: string;
+  incorporation_country: string | null; founder_role: string; business_model_summary: string;
+  status: "draft" | "evidence_pending" | "review_ready" | "reviewed" | string;
+  human_review_required: boolean; submitted_by: string | null; submitted_at: string | null;
+  reviewed_by: string | null; reviewed_at: string | null; review_notes: string | null;
+  created_by: string; updated_by: string; created_at: string; updated_at: string;
+};
+
+export type VentureEvidenceItem = {
+  id: string; venture_profile_id: string; evidence_type: string; title: string;
+  declared_amount_minor: number | null; currency: string | null; document_record_id: string | null;
+  notes: string | null; created_by: string; created_at: string;
+};
+
+export async function getVentureProfile(caseId: string): Promise<EntrepreneurVentureProfile> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/venture-profile`);
+}
+
+export async function createVentureProfile(caseId: string, payload: {
+  founder_lead_id: string; venture_name: string; venture_stage: "idea" | "pre_seed" | "seed" | "growth" | "established";
+  sector: string; target_country: string; incorporation_country?: string; founder_role: string; business_model_summary: string;
+}): Promise<EntrepreneurVentureProfile> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/venture-profile`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function listVentureEvidence(profileId: string): Promise<VentureEvidenceItem[]> {
+  return request(`/api/v1/corporate-mobility/venture-profiles/${profileId}/evidence`);
+}
+
+export async function addVentureEvidence(profileId: string, payload: {
+  evidence_type: "business_plan" | "incorporation" | "bank_statement" | "investment_commitment" | "grant" | "revenue" | "capitalization" | "intellectual_property" | "other";
+  title: string; declared_amount_minor?: number; currency?: string; document_record_id?: string; notes?: string;
+}): Promise<VentureEvidenceItem> {
+  return request(`/api/v1/corporate-mobility/venture-profiles/${profileId}/evidence`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function submitVentureProfile(profileId: string): Promise<EntrepreneurVentureProfile> {
+  return request(`/api/v1/corporate-mobility/venture-profiles/${profileId}/submit`, {
+    method: "POST", body: JSON.stringify({ evidence_complete_attestation: true }),
   });
 }

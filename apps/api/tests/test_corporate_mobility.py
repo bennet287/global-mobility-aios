@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlmodel import select
 
 from app.models.domain import AuditLog
-from tests.conftest import create_lead
+from tests.conftest import create_document, create_lead
 
 
 def _account(client):
@@ -402,3 +402,146 @@ def test_relocation_task_notes_and_closed_case_controls(client):
     )
     assert blocked.status_code == 400
     assert blocked.json()["detail"] == "Closed corporate mobility cases are immutable"
+
+
+def _entrepreneur_case(client, account, founder, reference="CORP-V113-VENTURE"):
+    response = client.post(
+        f"/api/v1/corporate-mobility/accounts/{account['id']}/cases",
+        json={
+            "case_reference": reference,
+            "case_type": "entrepreneur_startup",
+            "employee_lead_id": str(founder.id),
+            "destination_country": "Portugal",
+        },
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _venture_profile(client, case, founder):
+    response = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/venture-profile",
+        json={
+            "founder_lead_id": str(founder.id),
+            "venture_name": "Atlas Climate Labs",
+            "venture_stage": "seed",
+            "sector": "Climate technology",
+            "target_country": "Portugal",
+            "incorporation_country": "Austria",
+            "founder_role": "Chief executive officer",
+            "business_model_summary": "Software for auditable industrial carbon accounting and supplier reporting.",
+        },
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_venture_profile_is_case_scoped_and_unique(client, db_session):
+    account = _account(client)
+    founder = create_lead(db_session, name="Startup Founder", target_country="Portugal")
+    regular_case = _case(client, account, "CORP-V113-REGULAR")
+    payload = {
+        "founder_lead_id": str(founder.id), "venture_name": "Blocked Venture",
+        "venture_stage": "idea", "sector": "Software", "target_country": "Germany",
+        "founder_role": "Founder", "business_model_summary": "A sufficiently detailed business model summary for validation.",
+    }
+    blocked = client.post(
+        f"/api/v1/corporate-mobility/cases/{regular_case['id']}/venture-profile", json=payload
+    )
+    assert blocked.status_code == 400
+
+    case = _entrepreneur_case(client, account, founder)
+    profile = _venture_profile(client, case, founder)
+    assert profile["status"] == "draft"
+    assert profile["human_review_required"] is True
+    duplicate = client.post(f"/api/v1/corporate-mobility/cases/{case['id']}/venture-profile", json={
+        **payload, "target_country": "Portugal",
+    })
+    assert duplicate.status_code == 400
+
+
+def test_venture_evidence_uses_founder_documents_and_amount_pairs(client, db_session):
+    account = _account(client)
+    founder = create_lead(db_session, name="Evidence Founder", target_country="Portugal")
+    other = create_lead(db_session, name="Other Document Owner", target_country="Portugal")
+    case = _entrepreneur_case(client, account, founder, "CORP-V113-EVIDENCE")
+    profile = _venture_profile(client, case, founder)
+    other_document = create_document(db_session, other, document_type="bank_statement")
+
+    invalid_amount = client.post(
+        f"/api/v1/corporate-mobility/venture-profiles/{profile['id']}/evidence",
+        json={"evidence_type": "bank_statement", "title": "Founder funds", "declared_amount_minor": 2500000},
+    )
+    assert invalid_amount.status_code == 422
+    wrong_owner = client.post(
+        f"/api/v1/corporate-mobility/venture-profiles/{profile['id']}/evidence",
+        json={
+            "evidence_type": "bank_statement", "title": "Founder funds",
+            "declared_amount_minor": 2500000, "currency": "eur",
+            "document_record_id": str(other_document.id),
+        },
+    )
+    assert wrong_owner.status_code == 400
+    assert "founder lead" in wrong_owner.json()["detail"]
+
+
+def test_venture_review_is_independent_and_does_not_claim_eligibility(client, db_session):
+    account = _account(client)
+    founder = create_lead(db_session, name="Reviewed Founder", target_country="Portugal")
+    document = create_document(db_session, founder, document_type="business_plan")
+    case = _entrepreneur_case(client, account, founder, "CORP-V113-REVIEW")
+    profile = _venture_profile(client, case, founder)
+    evidence = client.post(
+        f"/api/v1/corporate-mobility/venture-profiles/{profile['id']}/evidence",
+        json={
+            "evidence_type": "business_plan", "title": "Founder business plan",
+            "document_record_id": str(document.id),
+        },
+    )
+    assert evidence.status_code == 201, evidence.text
+    submitted = client.post(
+        f"/api/v1/corporate-mobility/venture-profiles/{profile['id']}/submit",
+        json={"evidence_complete_attestation": True},
+    )
+    assert submitted.status_code == 200
+    assert submitted.json()["status"] == "review_ready"
+
+    self_review = client.post(
+        f"/api/v1/corporate-mobility/venture-profiles/{profile['id']}/decisions",
+        json={"decision": "approved", "reason": "Dossier complete."},
+    )
+    assert self_review.status_code == 400
+    decision = client.post(
+        f"/api/v1/corporate-mobility/venture-profiles/{profile['id']}/decisions",
+        json={"decision": "approved", "reason": "Dossier completeness independently confirmed."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "venture-reviewer"},
+    )
+    assert decision.status_code == 201, decision.text
+    reviewed = client.get(f"/api/v1/corporate-mobility/cases/{case['id']}/venture-profile")
+    assert reviewed.json()["status"] == "reviewed"
+    assert "eligibility" not in reviewed.json()
+    assert "investment_qualified" not in reviewed.json()
+
+    actions = db_session.exec(select(AuditLog.action).where(AuditLog.source == "corporate_mobility_v11_3")).all()
+    assert "entrepreneur_venture_profile_created" in actions
+    assert "venture_evidence_item_added" in actions
+    assert "entrepreneur_venture_profile_submitted" in actions
+    assert "entrepreneur_venture_profile_reviewed" in actions
+
+
+def test_closed_case_blocks_venture_dossier_creation(client, db_session):
+    account = _account(client)
+    founder = create_lead(db_session, name="Closed Venture Founder", target_country="Portugal")
+    case = _entrepreneur_case(client, account, founder, "CORP-V113-CLOSED")
+    assert client.patch(
+        f"/api/v1/corporate-mobility/cases/{case['id']}", json={"status": "closed"}
+    ).status_code == 200
+    blocked = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/venture-profile",
+        json={
+            "founder_lead_id": str(founder.id), "venture_name": "Closed Venture",
+            "venture_stage": "idea", "sector": "Software", "target_country": "Portugal",
+            "founder_role": "Founder", "business_model_summary": "A complete enough summary that remains safely review gated.",
+        },
+    )
+    assert blocked.status_code == 400

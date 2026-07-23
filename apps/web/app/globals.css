@@ -1738,6 +1738,29 @@ a {
 .corporate-task-create .corporate-mini-form > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .corporate-task-create input,
 .corporate-task-create select { min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--surface-strong); font: inherit; font-size: 9px; }
+.venture-dossier { margin-top: 12px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(135deg, var(--surface-muted), color-mix(in srgb, var(--accent-soft) 36%, var(--surface-strong))); }
+.venture-form { display: grid; max-width: 820px; gap: 8px; margin-top: 15px; }
+.venture-form > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.venture-form input,
+.venture-form select,
+.venture-form textarea { min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--surface-strong); font: inherit; font-size: 9px; }
+.venture-form textarea { min-height: 78px; resize: vertical; line-height: 1.5; }
+.venture-form .button { justify-self: start; }
+.venture-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 15px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.venture-summary > div { min-height: 64px; padding: 12px; border-right: 1px solid var(--line); }
+.venture-summary > div:last-child { border-right: 0; }
+.venture-summary span,
+.venture-summary strong { display: block; }
+.venture-summary span { color: var(--ink-muted); font-size: 8px; text-transform: uppercase; }
+.venture-summary strong { margin-top: 8px; font-size: 11px; }
+.venture-evidence-list { display: grid; margin-top: 12px; border-top: 1px solid var(--line); }
+.venture-evidence-list > div { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 48px; border-bottom: 1px solid var(--line-subtle); }
+.venture-evidence-list b,
+.venture-evidence-list small { display: block; }
+.venture-evidence-list b { font-size: 10px; }
+.venture-evidence-list small { margin-top: 4px; color: var(--ink-muted); font-size: 8px; }
+.venture-evidence-list > div > strong { font-size: 9px; font-weight: 650; }
+.venture-submit { margin-top: 14px; }
 
 @media (max-width: 1100px) {
   .corporate-overview,
@@ -1753,6 +1776,9 @@ a {
   .corporate-task-dependency { grid-column: 2 / -1; }
   .corporate-task-actions { grid-column: 2 / -1; }
   .corporate-task-create .corporate-mini-form > div { grid-template-columns: 1fr; }
+  .venture-form > div,
+  .venture-summary { grid-template-columns: 1fr; }
+  .venture-summary > div { border-right: 0; border-bottom: 1px solid var(--line); }
   .corporate-overview-metrics,
   .corporate-form-row { grid-template-columns: 1fr; }
   .corporate-overview-metrics article { border-right: 0; border-bottom: 1px solid var(--line); }

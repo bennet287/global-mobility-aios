@@ -14,7 +14,11 @@ from app.models.domain import (
     CorporateRelocationTask,
     CorporateRelocationTaskDecision,
     CorporateSponsorEntity,
+    DocumentRecord,
+    EntrepreneurVentureProfile,
     Lead,
+    VentureEvidenceItem,
+    VentureReviewDecision,
 )
 from app.schemas_corporate_mobility import (
     CorporateAccountCreate,
@@ -29,6 +33,10 @@ from app.schemas_corporate_mobility import (
     CorporateRelocationTaskCreate,
     CorporateRelocationTaskDecisionCreate,
     CorporateRelocationTaskTransition,
+    EntrepreneurVentureProfileCreate,
+    VentureEvidenceItemCreate,
+    VentureReviewDecisionCreate,
+    VentureReviewSubmission,
 )
 from app.services.audit_log import record_audit, to_audit_dict
 
@@ -552,6 +560,168 @@ def decide_relocation_task(
     record_audit(session, action="corporate_relocation_task_reviewed", entity_type="corporate_relocation_task",
                  entity_id=task.id, before_state=before, after_state=task, reason=payload.reason.strip(),
                  actor=actor, source="corporate_mobility_v11_2")
+    session.commit()
+    session.refresh(decision)
+    return decision
+
+
+def create_venture_profile(
+    session: Session,
+    case: CorporateMobilityCase,
+    payload: EntrepreneurVentureProfileCreate,
+    *,
+    actor: str,
+) -> EntrepreneurVentureProfile:
+    _assert_case_mutable(case)
+    if case.case_type != "entrepreneur_startup":
+        raise ValueError("Venture profiles require an entrepreneur/startup corporate mobility case")
+    if session.get(Lead, payload.founder_lead_id) is None:
+        raise ValueError("Founder lead not found")
+    if case.employee_lead_id is not None and case.employee_lead_id != payload.founder_lead_id:
+        raise ValueError("Venture founder must match the lead linked to the corporate mobility case")
+    if payload.target_country.strip() != case.destination_country:
+        raise ValueError("Venture target country must match the corporate mobility case destination")
+    existing = session.exec(select(EntrepreneurVentureProfile).where(
+        EntrepreneurVentureProfile.corporate_mobility_case_id == case.id
+    )).first()
+    if existing is not None:
+        raise ValueError("Corporate mobility case already has a venture profile")
+    profile = EntrepreneurVentureProfile(
+        corporate_mobility_case_id=case.id,
+        founder_lead_id=payload.founder_lead_id,
+        venture_name=payload.venture_name.strip(),
+        venture_stage=payload.venture_stage,
+        sector=payload.sector.strip(),
+        target_country=payload.target_country.strip(),
+        incorporation_country=_clean(payload.incorporation_country),
+        founder_role=payload.founder_role.strip(),
+        business_model_summary=payload.business_model_summary.strip(),
+        human_review_required=True,
+        created_by=actor,
+        updated_by=actor,
+    )
+    session.add(profile)
+    session.flush()
+    record_audit(session, action="entrepreneur_venture_profile_created", entity_type="entrepreneur_venture_profile",
+                 entity_id=profile.id, after_state=profile, actor=actor, source="corporate_mobility_v11_3")
+    session.commit()
+    session.refresh(profile)
+    return profile
+
+
+def add_venture_evidence(
+    session: Session,
+    profile: EntrepreneurVentureProfile,
+    case: CorporateMobilityCase,
+    payload: VentureEvidenceItemCreate,
+    *,
+    actor: str,
+) -> VentureEvidenceItem:
+    _assert_case_mutable(case)
+    if profile.status not in {"draft", "evidence_pending"}:
+        raise ValueError("Venture evidence can only be added before review submission")
+    document = None
+    if payload.document_record_id is not None:
+        document = session.get(DocumentRecord, payload.document_record_id)
+        if document is None:
+            raise ValueError("Venture evidence document not found")
+        if document.lead_id != profile.founder_lead_id:
+            raise ValueError("Venture evidence document must belong to the founder lead")
+    evidence = VentureEvidenceItem(
+        venture_profile_id=profile.id,
+        evidence_type=payload.evidence_type,
+        title=payload.title.strip(),
+        declared_amount_minor=payload.declared_amount_minor,
+        currency=payload.currency.upper() if payload.currency else None,
+        document_record_id=document.id if document else None,
+        notes=_clean(payload.notes),
+        created_by=actor,
+    )
+    before = to_audit_dict(profile)
+    profile.status = "evidence_pending"
+    profile.updated_by = actor
+    profile.updated_at = datetime.now(timezone.utc)
+    session.add(evidence)
+    session.add(profile)
+    session.flush()
+    record_audit(session, action="venture_evidence_item_added", entity_type="venture_evidence_item",
+                 entity_id=evidence.id, after_state=evidence, actor=actor, source="corporate_mobility_v11_3")
+    record_audit(session, action="entrepreneur_venture_profile_updated", entity_type="entrepreneur_venture_profile",
+                 entity_id=profile.id, before_state=before, after_state=profile, actor=actor,
+                 source="corporate_mobility_v11_3")
+    session.commit()
+    session.refresh(evidence)
+    return evidence
+
+
+def submit_venture_review(
+    session: Session,
+    profile: EntrepreneurVentureProfile,
+    case: CorporateMobilityCase,
+    payload: VentureReviewSubmission,
+    *,
+    actor: str,
+) -> EntrepreneurVentureProfile:
+    _assert_case_mutable(case)
+    if profile.status not in {"draft", "evidence_pending"}:
+        raise ValueError("Venture profile cannot be submitted from its current status")
+    if not payload.evidence_complete_attestation:
+        raise ValueError("Evidence completeness attestation is required")
+    evidence = list(session.exec(select(VentureEvidenceItem).where(
+        VentureEvidenceItem.venture_profile_id == profile.id
+    )).all())
+    if not evidence:
+        raise ValueError("Venture profile requires evidence before review submission")
+    if not any(item.document_record_id is not None for item in evidence):
+        raise ValueError("Venture profile requires at least one controlled document before review submission")
+    before = to_audit_dict(profile)
+    profile.status = "review_ready"
+    profile.submitted_by = actor
+    profile.submitted_at = datetime.now(timezone.utc)
+    profile.updated_by = actor
+    profile.updated_at = datetime.now(timezone.utc)
+    session.add(profile)
+    record_audit(session, action="entrepreneur_venture_profile_submitted", entity_type="entrepreneur_venture_profile",
+                 entity_id=profile.id, before_state=before, after_state=profile, actor=actor,
+                 source="corporate_mobility_v11_3")
+    session.commit()
+    session.refresh(profile)
+    return profile
+
+
+def decide_venture_review(
+    session: Session,
+    profile: EntrepreneurVentureProfile,
+    case: CorporateMobilityCase,
+    payload: VentureReviewDecisionCreate,
+    *,
+    actor: str,
+) -> VentureReviewDecision:
+    _assert_case_mutable(case)
+    if profile.status != "review_ready":
+        raise ValueError("Venture profile is not ready for review")
+    if profile.submitted_by == actor:
+        raise ValueError("Venture profile requires a different reviewer")
+    before = to_audit_dict(profile)
+    decision = VentureReviewDecision(
+        venture_profile_id=profile.id,
+        decision=payload.decision,
+        reason=payload.reason.strip(),
+        reviewer=actor,
+    )
+    now = datetime.now(timezone.utc)
+    profile.status = "reviewed" if payload.decision == "approved" else "evidence_pending"
+    profile.reviewed_by = actor
+    profile.reviewed_at = now
+    profile.review_notes = payload.reason.strip()
+    profile.updated_by = actor
+    profile.updated_at = now
+    session.add(decision)
+    session.add(profile)
+    session.flush()
+    record_audit(session, action="entrepreneur_venture_profile_reviewed", entity_type="entrepreneur_venture_profile",
+                 entity_id=profile.id, before_state=before, after_state=profile, reason=payload.reason.strip(),
+                 actor=actor, source="corporate_mobility_v11_3")
     session.commit()
     session.refresh(decision)
     return decision

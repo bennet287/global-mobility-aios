@@ -10,6 +10,7 @@ from app.models.domain import (
     CorporateAccount, CorporateCaseDependant, CorporateCaseSponsorAssignment,
     CorporateComplianceEvent, CorporateMobilityCase, CorporateSponsorEntity,
     CorporateRelocationTask, CorporateRelocationTaskDecision,
+    EntrepreneurVentureProfile, VentureEvidenceItem, VentureReviewDecision,
 )
 from app.schemas_corporate_mobility import (
     CorporateAccountCreate,
@@ -27,12 +28,16 @@ from app.schemas_corporate_mobility import (
     CorporateRelocationTaskCreate, CorporateRelocationTaskDecisionCreate,
     CorporateRelocationTaskDecisionRead, CorporateRelocationTaskRead,
     CorporateRelocationTaskTransition,
+    EntrepreneurVentureProfileCreate, EntrepreneurVentureProfileRead,
+    VentureEvidenceItemCreate, VentureEvidenceItemRead,
+    VentureReviewDecisionCreate, VentureReviewDecisionRead, VentureReviewSubmission,
 )
 from app.services.corporate_mobility import (
     add_dependant, assign_sponsor, create_account, create_case, create_compliance_event,
     create_sponsor_entity, remove_dependant, remove_sponsor_assignment, update_account,
     update_case, update_compliance_event, update_sponsor_entity,
     create_relocation_task, decide_relocation_task, transition_relocation_task,
+    add_venture_evidence, create_venture_profile, decide_venture_review, submit_venture_review,
 )
 
 
@@ -57,6 +62,9 @@ def _error(exc: ValueError) -> HTTPException:
         "Corporate compliance event not found",
         "Corporate relocation task not found",
         "Relocation task dependency not found",
+        "Founder lead not found",
+        "Venture evidence document not found",
+        "Entrepreneur venture profile not found",
     } else 400
     return HTTPException(status_code=status, detail=message)
 
@@ -406,3 +414,102 @@ def api_list_relocation_task_decisions(
     return list(session.exec(select(CorporateRelocationTaskDecision).where(
         CorporateRelocationTaskDecision.corporate_relocation_task_id == task_id
     ).order_by(CorporateRelocationTaskDecision.created_at)).all())
+
+
+@router.post("/cases/{case_id}/venture-profile", response_model=EntrepreneurVentureProfileRead, status_code=201)
+def api_create_venture_profile(
+    case_id: UUID, payload: EntrepreneurVentureProfileCreate, request: Request,
+    session: Session = Depends(get_session),
+) -> EntrepreneurVentureProfile:
+    case = session.get(CorporateMobilityCase, case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    try:
+        return create_venture_profile(session, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/cases/{case_id}/venture-profile", response_model=EntrepreneurVentureProfileRead)
+def api_get_venture_profile(
+    case_id: UUID, session: Session = Depends(get_session),
+) -> EntrepreneurVentureProfile:
+    if session.get(CorporateMobilityCase, case_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    profile = session.exec(select(EntrepreneurVentureProfile).where(
+        EntrepreneurVentureProfile.corporate_mobility_case_id == case_id
+    )).first()
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Entrepreneur venture profile not found")
+    return profile
+
+
+@router.post("/venture-profiles/{profile_id}/evidence", response_model=VentureEvidenceItemRead, status_code=201)
+def api_add_venture_evidence(
+    profile_id: UUID, payload: VentureEvidenceItemCreate, request: Request,
+    session: Session = Depends(get_session),
+) -> VentureEvidenceItem:
+    profile = session.get(EntrepreneurVentureProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Entrepreneur venture profile not found")
+    case = session.get(CorporateMobilityCase, profile.corporate_mobility_case_id)
+    try:
+        return add_venture_evidence(session, profile, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/venture-profiles/{profile_id}/evidence", response_model=list[VentureEvidenceItemRead])
+def api_list_venture_evidence(
+    profile_id: UUID, session: Session = Depends(get_session),
+) -> list[VentureEvidenceItem]:
+    if session.get(EntrepreneurVentureProfile, profile_id) is None:
+        raise HTTPException(status_code=404, detail="Entrepreneur venture profile not found")
+    return list(session.exec(select(VentureEvidenceItem).where(
+        VentureEvidenceItem.venture_profile_id == profile_id
+    ).order_by(VentureEvidenceItem.created_at)).all())
+
+
+@router.post("/venture-profiles/{profile_id}/submit", response_model=EntrepreneurVentureProfileRead)
+def api_submit_venture_profile(
+    profile_id: UUID, payload: VentureReviewSubmission, request: Request,
+    session: Session = Depends(get_session),
+) -> EntrepreneurVentureProfile:
+    profile = session.get(EntrepreneurVentureProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Entrepreneur venture profile not found")
+    case = session.get(CorporateMobilityCase, profile.corporate_mobility_case_id)
+    try:
+        return submit_venture_review(session, profile, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/venture-profiles/{profile_id}/decisions", response_model=VentureReviewDecisionRead, status_code=201)
+def api_decide_venture_profile(
+    profile_id: UUID, payload: VentureReviewDecisionCreate, request: Request,
+    session: Session = Depends(get_session),
+) -> VentureReviewDecision:
+    profile = session.get(EntrepreneurVentureProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Entrepreneur venture profile not found")
+    case = session.get(CorporateMobilityCase, profile.corporate_mobility_case_id)
+    try:
+        return decide_venture_review(session, profile, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/venture-profiles/{profile_id}/decisions", response_model=list[VentureReviewDecisionRead])
+def api_list_venture_decisions(
+    profile_id: UUID, session: Session = Depends(get_session),
+) -> list[VentureReviewDecision]:
+    if session.get(EntrepreneurVentureProfile, profile_id) is None:
+        raise HTTPException(status_code=404, detail="Entrepreneur venture profile not found")
+    return list(session.exec(select(VentureReviewDecision).where(
+        VentureReviewDecision.venture_profile_id == profile_id
+    ).order_by(VentureReviewDecision.created_at)).all())

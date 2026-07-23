@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.3 (2026-07-23)
+
+Current database migration head: `0036_entrepreneur_ventures`.
+
+- v11.3 adds entrepreneur/startup case dossiers linked to existing founder leads, controlled venture evidence, optional declared funding metadata, and append-only independent completeness decisions.
+- Venture dossiers are restricted to entrepreneur/startup cases, founder and destination consistency is enforced, linked documents must belong to the founder, and review submission requires an explicit completeness attestation plus at least one controlled document.
+- Review confirms dossier completeness only. The API and workspace expose no visa eligibility, investment qualification, funding verification, program recommendation, or autonomous regulated conclusion.
+
 ## Delivery Status — v11.2 (2026-07-23)
 
 Current database migration head: `0035_relocation_tasks`.
@@ -282,7 +290,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phase 11:** in progress; corporate accounts, review-gated employee cases, sponsor relationships, dependant links, compliance calendars, and relocation task orchestration are complete. Entrepreneur, investment, HNWI, family-office, and tax/treaty controls remain future work.
+- **Phase 11:** in progress; corporate mobility operations and entrepreneur/startup dossier governance are complete. Investment, HNWI, family-office, and tax/treaty controls remain future work.
 - **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -616,7 +624,7 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Corporate account and review-gated employee mobility-case foundation
 - [x] Dedicated dependant relationships, sponsor entities, and compliance calendars
 - [x] Relocation task orchestration
-- [ ] Entrepreneur and startup mobility
+- [x] Entrepreneur and startup mobility
 - [ ] Residency/citizenship by investment
 - [ ] HNWI and family-office mobility
 - [ ] Tax residency and treaty intelligence with specialist-review controls

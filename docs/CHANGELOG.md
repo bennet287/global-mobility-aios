@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-23 — Entrepreneur and startup dossiers v11.3
+
+- Added entrepreneur/startup case type support and one review-gated venture dossier per case.
+- Added founder, destination, stage, sector, incorporation, role, and business-model consistency controls.
+- Added venture evidence items with paired amount/currency declarations and optional founder-owned controlled-document links.
+- Added explicit evidence-completeness submission and append-only decisions with independent-reviewer enforcement.
+- Added Alembic migration `0036_entrepreneur_ventures`, focused tests, and a founder dossier surface in Corporate Mobility.
+- Deliberately excluded eligibility, investment qualification, funding verification, program recommendation, and filing automation.
+
 ## 2026-07-23 — Relocation task orchestration v11.2
 
 - Added case-scoped relocation tasks with categories, accountable owner roles, due dates, and explicit same-case dependencies.
