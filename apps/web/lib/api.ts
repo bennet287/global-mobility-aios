@@ -3563,3 +3563,89 @@ export async function updateCorporateMobilityCase(
     body: JSON.stringify(payload),
   });
 }
+
+export type CorporateSponsorEntity = {
+  id: string; corporate_account_id: string; legal_name: string;
+  sponsor_type: "employing_entity" | "host_entity" | "authorized_agent" | string;
+  country: string; registration_number: string | null; contact_name: string | null;
+  contact_email: string | null; status: "active" | "suspended" | "retired" | string;
+  created_by: string; updated_by: string; created_at: string; updated_at: string;
+};
+
+export type CorporateCaseSponsorAssignment = {
+  id: string; corporate_mobility_case_id: string; sponsor_entity_id: string;
+  status: "active" | "removed" | string; created_by: string; updated_by: string;
+  created_at: string; updated_at: string;
+};
+
+export type CorporateCaseDependant = {
+  id: string; corporate_mobility_case_id: string; dependant_lead_id: string;
+  relationship_to_employee: "spouse" | "partner" | "child" | "parent" | "other" | string;
+  sponsorship_required: boolean; status: "active" | "removed" | string;
+  created_by: string; updated_by: string; created_at: string; updated_at: string;
+};
+
+export type CorporateComplianceEvent = {
+  id: string; corporate_mobility_case_id: string; event_type: string; title: string;
+  due_at: string; status: "open" | "completed" | "waived" | string;
+  evidence_required: boolean; human_review_required: boolean;
+  completion_notes: string | null; completed_by: string | null; completed_at: string | null;
+  created_by: string; updated_by: string; created_at: string; updated_at: string;
+};
+
+export async function listCorporateSponsors(accountId: string): Promise<CorporateSponsorEntity[]> {
+  return request(`/api/v1/corporate-mobility/accounts/${accountId}/sponsors`);
+}
+
+export async function createCorporateSponsor(accountId: string, payload: {
+  legal_name: string; sponsor_type: "employing_entity" | "host_entity" | "authorized_agent";
+  country: string; registration_number?: string; contact_name?: string; contact_email?: string;
+}): Promise<CorporateSponsorEntity> {
+  return request(`/api/v1/corporate-mobility/accounts/${accountId}/sponsors`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function listCaseSponsorAssignments(caseId: string): Promise<CorporateCaseSponsorAssignment[]> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/sponsors`);
+}
+
+export async function assignCorporateSponsor(caseId: string, sponsorEntityId: string): Promise<CorporateCaseSponsorAssignment> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/sponsors`, {
+    method: "POST", body: JSON.stringify({ sponsor_entity_id: sponsorEntityId }),
+  });
+}
+
+export async function listCaseDependants(caseId: string): Promise<CorporateCaseDependant[]> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/dependants`);
+}
+
+export async function addCaseDependant(caseId: string, payload: {
+  dependant_lead_id: string; relationship_to_employee: "spouse" | "partner" | "child" | "parent" | "other";
+  sponsorship_required: boolean;
+}): Promise<CorporateCaseDependant> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/dependants`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function listComplianceEvents(caseId: string): Promise<CorporateComplianceEvent[]> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/compliance-events`);
+}
+
+export async function createComplianceEvent(caseId: string, payload: {
+  event_type: "filing_deadline" | "document_expiry" | "permit_renewal" | "registration" | "sponsor_report" | "payroll" | "tax" | "custom";
+  title: string; due_at: string; evidence_required: boolean;
+}): Promise<CorporateComplianceEvent> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/compliance-events`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function resolveComplianceEvent(
+  eventId: string, status: "completed" | "waived", completionNotes?: string,
+): Promise<CorporateComplianceEvent> {
+  return request(`/api/v1/corporate-mobility/compliance-events/${eventId}`, {
+    method: "PATCH", body: JSON.stringify({ status, completion_notes: completionNotes }),
+  });
+}

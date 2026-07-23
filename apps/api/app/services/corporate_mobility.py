@@ -5,12 +5,25 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Session, select
 
-from app.models.domain import CorporateAccount, CorporateMobilityCase, Lead
+from app.models.domain import (
+    CorporateAccount,
+    CorporateCaseDependant,
+    CorporateCaseSponsorAssignment,
+    CorporateComplianceEvent,
+    CorporateMobilityCase,
+    CorporateSponsorEntity,
+    Lead,
+)
 from app.schemas_corporate_mobility import (
     CorporateAccountCreate,
     CorporateAccountUpdate,
     CorporateMobilityCaseCreate,
     CorporateMobilityCaseUpdate,
+    CorporateCaseDependantCreate,
+    CorporateComplianceEventCreate,
+    CorporateComplianceEventUpdate,
+    CorporateSponsorEntityCreate,
+    CorporateSponsorEntityUpdate,
 )
 from app.services.audit_log import record_audit, to_audit_dict
 
@@ -213,3 +226,196 @@ def update_case(
     session.commit()
     session.refresh(case)
     return case
+
+
+def _assert_case_mutable(case: CorporateMobilityCase) -> None:
+    if case.status == "closed":
+        raise ValueError("Closed corporate mobility cases are immutable")
+
+
+def create_sponsor_entity(
+    session: Session, account: CorporateAccount, payload: CorporateSponsorEntityCreate, *, actor: str
+) -> CorporateSponsorEntity:
+    if account.account_status == "closed":
+        raise ValueError("Closed corporate accounts are immutable")
+    sponsor = CorporateSponsorEntity(
+        corporate_account_id=account.id,
+        legal_name=payload.legal_name.strip(),
+        sponsor_type=payload.sponsor_type,
+        country=payload.country.strip(),
+        registration_number=_clean(payload.registration_number),
+        contact_name=_clean(payload.contact_name),
+        contact_email=str(payload.contact_email) if payload.contact_email else None,
+        created_by=actor,
+        updated_by=actor,
+    )
+    session.add(sponsor)
+    session.flush()
+    record_audit(session, action="corporate_sponsor_entity_created", entity_type="corporate_sponsor_entity",
+                 entity_id=sponsor.id, after_state=sponsor, actor=actor, source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(sponsor)
+    return sponsor
+
+
+def update_sponsor_entity(
+    session: Session, sponsor: CorporateSponsorEntity, payload: CorporateSponsorEntityUpdate, *, actor: str
+) -> CorporateSponsorEntity:
+    changes = payload.model_dump(exclude_unset=True)
+    if sponsor.status == "retired" and changes:
+        raise ValueError("Retired corporate sponsor entities are immutable")
+    before = to_audit_dict(sponsor)
+    for field, value in changes.items():
+        if field == "contact_email" and value is not None:
+            value = str(value)
+        elif isinstance(value, str):
+            value = _clean(value)
+        setattr(sponsor, field, value)
+    sponsor.updated_by = actor
+    sponsor.updated_at = datetime.now(timezone.utc)
+    session.add(sponsor)
+    record_audit(session, action="corporate_sponsor_entity_updated", entity_type="corporate_sponsor_entity",
+                 entity_id=sponsor.id, before_state=before, after_state=sponsor, actor=actor,
+                 source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(sponsor)
+    return sponsor
+
+
+def assign_sponsor(
+    session: Session, case: CorporateMobilityCase, sponsor: CorporateSponsorEntity, *, actor: str
+) -> CorporateCaseSponsorAssignment:
+    _assert_case_mutable(case)
+    if sponsor.corporate_account_id != case.corporate_account_id:
+        raise ValueError("Sponsor entity must belong to the case corporate account")
+    if sponsor.status != "active":
+        raise ValueError("Only active sponsor entities can be assigned")
+    existing = session.exec(select(CorporateCaseSponsorAssignment).where(
+        CorporateCaseSponsorAssignment.corporate_mobility_case_id == case.id,
+        CorporateCaseSponsorAssignment.status == "active",
+    )).first()
+    if existing:
+        raise ValueError("Corporate mobility case already has an active sponsor assignment")
+    assignment = CorporateCaseSponsorAssignment(
+        corporate_mobility_case_id=case.id, sponsor_entity_id=sponsor.id,
+        created_by=actor, updated_by=actor,
+    )
+    session.add(assignment)
+    session.flush()
+    record_audit(session, action="corporate_case_sponsor_assigned", entity_type="corporate_case_sponsor_assignment",
+                 entity_id=assignment.id, after_state=assignment, actor=actor, source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(assignment)
+    return assignment
+
+
+def remove_sponsor_assignment(
+    session: Session, assignment: CorporateCaseSponsorAssignment, case: CorporateMobilityCase, *, actor: str
+) -> CorporateCaseSponsorAssignment:
+    _assert_case_mutable(case)
+    if assignment.status == "removed":
+        raise ValueError("Removed sponsor assignments are immutable")
+    before = to_audit_dict(assignment)
+    assignment.status = "removed"
+    assignment.updated_by = actor
+    assignment.updated_at = datetime.now(timezone.utc)
+    session.add(assignment)
+    record_audit(session, action="corporate_case_sponsor_removed", entity_type="corporate_case_sponsor_assignment",
+                 entity_id=assignment.id, before_state=before, after_state=assignment, actor=actor,
+                 source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(assignment)
+    return assignment
+
+
+def add_dependant(
+    session: Session, case: CorporateMobilityCase, payload: CorporateCaseDependantCreate, *, actor: str
+) -> CorporateCaseDependant:
+    _assert_case_mutable(case)
+    if session.get(Lead, payload.dependant_lead_id) is None:
+        raise ValueError("Dependant lead not found")
+    if case.employee_lead_id == payload.dependant_lead_id:
+        raise ValueError("Employee lead cannot also be a dependant")
+    existing = session.exec(select(CorporateCaseDependant).where(
+        CorporateCaseDependant.corporate_mobility_case_id == case.id,
+        CorporateCaseDependant.dependant_lead_id == payload.dependant_lead_id,
+        CorporateCaseDependant.status == "active",
+    )).first()
+    if existing:
+        raise ValueError("Dependant is already linked to this corporate mobility case")
+    dependant = CorporateCaseDependant(
+        corporate_mobility_case_id=case.id, dependant_lead_id=payload.dependant_lead_id,
+        relationship_to_employee=payload.relationship_to_employee,
+        sponsorship_required=payload.sponsorship_required, created_by=actor, updated_by=actor,
+    )
+    session.add(dependant)
+    session.flush()
+    record_audit(session, action="corporate_case_dependant_added", entity_type="corporate_case_dependant",
+                 entity_id=dependant.id, after_state=dependant, actor=actor, source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(dependant)
+    return dependant
+
+
+def remove_dependant(
+    session: Session, dependant: CorporateCaseDependant, case: CorporateMobilityCase, *, actor: str
+) -> CorporateCaseDependant:
+    _assert_case_mutable(case)
+    if dependant.status == "removed":
+        raise ValueError("Removed dependant links are immutable")
+    before = to_audit_dict(dependant)
+    dependant.status = "removed"
+    dependant.updated_by = actor
+    dependant.updated_at = datetime.now(timezone.utc)
+    session.add(dependant)
+    record_audit(session, action="corporate_case_dependant_removed", entity_type="corporate_case_dependant",
+                 entity_id=dependant.id, before_state=before, after_state=dependant, actor=actor,
+                 source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(dependant)
+    return dependant
+
+
+def create_compliance_event(
+    session: Session, case: CorporateMobilityCase, payload: CorporateComplianceEventCreate, *, actor: str
+) -> CorporateComplianceEvent:
+    _assert_case_mutable(case)
+    event = CorporateComplianceEvent(
+        corporate_mobility_case_id=case.id, event_type=payload.event_type,
+        title=payload.title.strip(), due_at=payload.due_at,
+        evidence_required=payload.evidence_required, human_review_required=True,
+        created_by=actor, updated_by=actor,
+    )
+    session.add(event)
+    session.flush()
+    record_audit(session, action="corporate_compliance_event_created", entity_type="corporate_compliance_event",
+                 entity_id=event.id, after_state=event, actor=actor, source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(event)
+    return event
+
+
+def update_compliance_event(
+    session: Session, event: CorporateComplianceEvent, payload: CorporateComplianceEventUpdate, *, actor: str
+) -> CorporateComplianceEvent:
+    if event.status in {"completed", "waived"}:
+        raise ValueError("Completed or waived compliance events are immutable")
+    if payload.status == "open":
+        raise ValueError("Open compliance events require no status transition")
+    notes = _clean(payload.completion_notes)
+    if payload.status == "waived" and not notes:
+        raise ValueError("Waived compliance events require completion notes")
+    before = to_audit_dict(event)
+    event.status = payload.status
+    event.completion_notes = notes
+    event.completed_by = actor
+    event.completed_at = datetime.now(timezone.utc)
+    event.updated_by = actor
+    event.updated_at = datetime.now(timezone.utc)
+    session.add(event)
+    record_audit(session, action="corporate_compliance_event_resolved", entity_type="corporate_compliance_event",
+                 entity_id=event.id, before_state=before, after_state=event, actor=actor,
+                 source="corporate_mobility_v11_1")
+    session.commit()
+    session.refresh(event)
+    return event

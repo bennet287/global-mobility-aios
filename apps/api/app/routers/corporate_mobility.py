@@ -6,7 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlmodel import Session, select
 
 from app.core.db import get_session
-from app.models.domain import CorporateAccount, CorporateMobilityCase
+from app.models.domain import (
+    CorporateAccount, CorporateCaseDependant, CorporateCaseSponsorAssignment,
+    CorporateComplianceEvent, CorporateMobilityCase, CorporateSponsorEntity,
+)
 from app.schemas_corporate_mobility import (
     CorporateAccountCreate,
     CorporateAccountDetail,
@@ -15,11 +18,20 @@ from app.schemas_corporate_mobility import (
     CorporateMobilityCaseCreate,
     CorporateMobilityCaseRead,
     CorporateMobilityCaseUpdate,
+    CorporateCaseDependantCreate, CorporateCaseDependantRead, CorporateCaseDependantUpdate,
+    CorporateCaseSponsorAssignmentCreate, CorporateCaseSponsorAssignmentRead,
+    CorporateCaseSponsorAssignmentUpdate, CorporateComplianceEventCreate,
+    CorporateComplianceEventRead, CorporateComplianceEventUpdate,
+    CorporateSponsorEntityCreate, CorporateSponsorEntityRead, CorporateSponsorEntityUpdate,
 )
-from app.services.corporate_mobility import create_account, create_case, update_account, update_case
+from app.services.corporate_mobility import (
+    add_dependant, assign_sponsor, create_account, create_case, create_compliance_event,
+    create_sponsor_entity, remove_dependant, remove_sponsor_assignment, update_account,
+    update_case, update_compliance_event, update_sponsor_entity,
+)
 
 
-router = APIRouter(prefix="/api/v1/corporate-mobility", tags=["corporate-mobility-v11.0"])
+router = APIRouter(prefix="/api/v1/corporate-mobility", tags=["corporate-mobility-v11.1"])
 
 
 def _actor(request: Request) -> str:
@@ -33,6 +45,11 @@ def _error(exc: ValueError) -> HTTPException:
         "Corporate account not found",
         "Corporate mobility case not found",
         "Employee lead not found",
+        "Dependant lead not found",
+        "Corporate sponsor entity not found",
+        "Corporate sponsor assignment not found",
+        "Corporate dependant link not found",
+        "Corporate compliance event not found",
     } else 400
     return HTTPException(status_code=status, detail=message)
 
@@ -159,3 +176,147 @@ def api_update_case(
         session.rollback()
         raise _error(exc) from exc
 
+
+@router.post("/accounts/{account_id}/sponsors", response_model=CorporateSponsorEntityRead, status_code=201)
+def api_create_sponsor(account_id: UUID, payload: CorporateSponsorEntityCreate, request: Request,
+                       session: Session = Depends(get_session)) -> CorporateSponsorEntity:
+    account = session.get(CorporateAccount, account_id)
+    if account is None:
+        raise HTTPException(status_code=404, detail="Corporate account not found")
+    try:
+        return create_sponsor_entity(session, account, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/accounts/{account_id}/sponsors", response_model=list[CorporateSponsorEntityRead])
+def api_list_sponsors(account_id: UUID, session: Session = Depends(get_session)) -> list[CorporateSponsorEntity]:
+    if session.get(CorporateAccount, account_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate account not found")
+    return list(session.exec(select(CorporateSponsorEntity).where(
+        CorporateSponsorEntity.corporate_account_id == account_id
+    ).order_by(CorporateSponsorEntity.updated_at.desc())).all())
+
+
+@router.patch("/sponsors/{sponsor_id}", response_model=CorporateSponsorEntityRead)
+def api_update_sponsor(sponsor_id: UUID, payload: CorporateSponsorEntityUpdate, request: Request,
+                       session: Session = Depends(get_session)) -> CorporateSponsorEntity:
+    sponsor = session.get(CorporateSponsorEntity, sponsor_id)
+    if sponsor is None:
+        raise HTTPException(status_code=404, detail="Corporate sponsor entity not found")
+    try:
+        return update_sponsor_entity(session, sponsor, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/cases/{case_id}/sponsors", response_model=CorporateCaseSponsorAssignmentRead, status_code=201)
+def api_assign_sponsor(case_id: UUID, payload: CorporateCaseSponsorAssignmentCreate, request: Request,
+                       session: Session = Depends(get_session)) -> CorporateCaseSponsorAssignment:
+    case = session.get(CorporateMobilityCase, case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    sponsor = session.get(CorporateSponsorEntity, payload.sponsor_entity_id)
+    if sponsor is None:
+        raise HTTPException(status_code=404, detail="Corporate sponsor entity not found")
+    try:
+        return assign_sponsor(session, case, sponsor, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/cases/{case_id}/sponsors", response_model=list[CorporateCaseSponsorAssignmentRead])
+def api_list_case_sponsors(case_id: UUID, session: Session = Depends(get_session)) -> list[CorporateCaseSponsorAssignment]:
+    if session.get(CorporateMobilityCase, case_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    return list(session.exec(select(CorporateCaseSponsorAssignment).where(
+        CorporateCaseSponsorAssignment.corporate_mobility_case_id == case_id
+    ).order_by(CorporateCaseSponsorAssignment.created_at.desc())).all())
+
+
+@router.patch("/sponsor-assignments/{assignment_id}", response_model=CorporateCaseSponsorAssignmentRead)
+def api_remove_sponsor(assignment_id: UUID, payload: CorporateCaseSponsorAssignmentUpdate, request: Request,
+                       session: Session = Depends(get_session)) -> CorporateCaseSponsorAssignment:
+    assignment = session.get(CorporateCaseSponsorAssignment, assignment_id)
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Corporate sponsor assignment not found")
+    case = session.get(CorporateMobilityCase, assignment.corporate_mobility_case_id)
+    try:
+        return remove_sponsor_assignment(session, assignment, case, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/cases/{case_id}/dependants", response_model=CorporateCaseDependantRead, status_code=201)
+def api_add_dependant(case_id: UUID, payload: CorporateCaseDependantCreate, request: Request,
+                      session: Session = Depends(get_session)) -> CorporateCaseDependant:
+    case = session.get(CorporateMobilityCase, case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    try:
+        return add_dependant(session, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/cases/{case_id}/dependants", response_model=list[CorporateCaseDependantRead])
+def api_list_dependants(case_id: UUID, session: Session = Depends(get_session)) -> list[CorporateCaseDependant]:
+    if session.get(CorporateMobilityCase, case_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    return list(session.exec(select(CorporateCaseDependant).where(
+        CorporateCaseDependant.corporate_mobility_case_id == case_id
+    ).order_by(CorporateCaseDependant.created_at.desc())).all())
+
+
+@router.patch("/dependants/{dependant_id}", response_model=CorporateCaseDependantRead)
+def api_remove_dependant(dependant_id: UUID, payload: CorporateCaseDependantUpdate, request: Request,
+                         session: Session = Depends(get_session)) -> CorporateCaseDependant:
+    dependant = session.get(CorporateCaseDependant, dependant_id)
+    if dependant is None:
+        raise HTTPException(status_code=404, detail="Corporate dependant link not found")
+    case = session.get(CorporateMobilityCase, dependant.corporate_mobility_case_id)
+    try:
+        return remove_dependant(session, dependant, case, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/cases/{case_id}/compliance-events", response_model=CorporateComplianceEventRead, status_code=201)
+def api_create_event(case_id: UUID, payload: CorporateComplianceEventCreate, request: Request,
+                     session: Session = Depends(get_session)) -> CorporateComplianceEvent:
+    case = session.get(CorporateMobilityCase, case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    try:
+        return create_compliance_event(session, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/cases/{case_id}/compliance-events", response_model=list[CorporateComplianceEventRead])
+def api_list_events(case_id: UUID, session: Session = Depends(get_session)) -> list[CorporateComplianceEvent]:
+    if session.get(CorporateMobilityCase, case_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    return list(session.exec(select(CorporateComplianceEvent).where(
+        CorporateComplianceEvent.corporate_mobility_case_id == case_id
+    ).order_by(CorporateComplianceEvent.due_at)).all())
+
+
+@router.patch("/compliance-events/{event_id}", response_model=CorporateComplianceEventRead)
+def api_update_event(event_id: UUID, payload: CorporateComplianceEventUpdate, request: Request,
+                     session: Session = Depends(get_session)) -> CorporateComplianceEvent:
+    event = session.get(CorporateComplianceEvent, event_id)
+    if event is None:
+        raise HTTPException(status_code=404, detail="Corporate compliance event not found")
+    try:
+        return update_compliance_event(session, event, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc

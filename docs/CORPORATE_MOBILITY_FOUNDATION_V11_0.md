@@ -47,7 +47,6 @@ Alembic revision `0033_corporate_mobility_foundation` creates `corporate_account
 
 ## Deferred Phase 11 work
 
-Dedicated dependant relationships, sponsor entities, compliance calendar events, business and
-investment pathways, HNWI/family-office structures, and tax/treaty specialist review remain
-future Phase 11 slices.
-
+Dedicated dependant relationships, sponsor entities, and compliance calendar events were
+delivered in v11.1. Business and investment pathways, HNWI/family-office structures, and
+tax/treaty specialist review remain future Phase 11 slices.

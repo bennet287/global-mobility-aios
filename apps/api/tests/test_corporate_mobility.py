@@ -153,3 +153,137 @@ def test_read_only_role_cannot_mutate_corporate_mobility(raw_client):
         json={"legal_name": "Blocked Corp", "primary_country": "Austria"},
     )
     assert response.status_code == 403
+
+
+def _case(client, account, reference="CORP-V111-CASE"):
+    response = client.post(
+        f"/api/v1/corporate-mobility/accounts/{account['id']}/cases",
+        json={"case_reference": reference, "destination_country": "Germany"},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _sponsor(client, account, name="Northstar Austria GmbH"):
+    response = client.post(
+        f"/api/v1/corporate-mobility/accounts/{account['id']}/sponsors",
+        json={"legal_name": name, "sponsor_type": "employing_entity", "country": "Austria"},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_sponsor_assignment_is_account_scoped_and_audited(client, db_session):
+    account = _account(client)
+    other_account = client.post(
+        "/api/v1/corporate-mobility/accounts",
+        json={"legal_name": "Other Sponsor AG", "primary_country": "Switzerland"},
+    ).json()
+    case = _case(client, account)
+    sponsor = _sponsor(client, account)
+    foreign_sponsor = _sponsor(client, other_account, "Other Sponsor Zurich AG")
+
+    blocked = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/sponsors",
+        json={"sponsor_entity_id": foreign_sponsor["id"]},
+    )
+    assert blocked.status_code == 400
+    assert "case corporate account" in blocked.json()["detail"]
+
+    assigned = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/sponsors",
+        json={"sponsor_entity_id": sponsor["id"]},
+    )
+    assert assigned.status_code == 201, assigned.text
+    duplicate = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/sponsors",
+        json={"sponsor_entity_id": sponsor["id"]},
+    )
+    assert duplicate.status_code == 400
+
+    actions = db_session.exec(select(AuditLog.action).where(AuditLog.source == "corporate_mobility_v11_1")).all()
+    assert "corporate_sponsor_entity_created" in actions
+    assert "corporate_case_sponsor_assigned" in actions
+
+
+def test_dependant_links_are_unique_removable_and_audited(client, db_session):
+    account = _account(client)
+    case = _case(client, account, "CORP-V111-DEPENDANT")
+    dependant_lead = create_lead(db_session, name="Corporate Dependant", target_country="Germany")
+    payload = {
+        "dependant_lead_id": str(dependant_lead.id),
+        "relationship_to_employee": "partner",
+        "sponsorship_required": True,
+    }
+    created = client.post(f"/api/v1/corporate-mobility/cases/{case['id']}/dependants", json=payload)
+    assert created.status_code == 201, created.text
+    assert created.json()["status"] == "active"
+    assert client.post(f"/api/v1/corporate-mobility/cases/{case['id']}/dependants", json=payload).status_code == 400
+
+    removed = client.patch(
+        f"/api/v1/corporate-mobility/dependants/{created.json()['id']}", json={"status": "removed"}
+    )
+    assert removed.status_code == 200
+    assert removed.json()["status"] == "removed"
+    assert client.patch(
+        f"/api/v1/corporate-mobility/dependants/{created.json()['id']}", json={"status": "removed"}
+    ).status_code == 400
+
+    actions = db_session.exec(select(AuditLog.action).where(AuditLog.source == "corporate_mobility_v11_1")).all()
+    assert "corporate_case_dependant_added" in actions
+    assert "corporate_case_dependant_removed" in actions
+
+
+def test_compliance_events_are_human_reviewed_and_terminal(client):
+    account = _account(client)
+    case = _case(client, account, "CORP-V111-EVENT")
+    created = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/compliance-events",
+        json={
+            "event_type": "filing_deadline",
+            "title": "Submit residence filing",
+            "due_at": "2026-09-01T09:00:00Z",
+            "evidence_required": True,
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["human_review_required"] is True
+    assert created.json()["status"] == "open"
+
+    missing_reason = client.patch(
+        f"/api/v1/corporate-mobility/compliance-events/{created.json()['id']}", json={"status": "waived"}
+    )
+    assert missing_reason.status_code == 400
+    waived = client.patch(
+        f"/api/v1/corporate-mobility/compliance-events/{created.json()['id']}",
+        json={"status": "waived", "completion_notes": "Human reviewer confirmed not applicable."},
+    )
+    assert waived.status_code == 200
+    assert waived.json()["completed_by"] == "pytest-admin"
+    assert client.patch(
+        f"/api/v1/corporate-mobility/compliance-events/{created.json()['id']}",
+        json={"status": "completed"},
+    ).status_code == 400
+
+
+def test_closed_case_blocks_new_relationships_and_events(client, db_session):
+    account = _account(client)
+    case = _case(client, account, "CORP-V111-CLOSED")
+    sponsor = _sponsor(client, account)
+    dependant = create_lead(db_session, name="Blocked Dependant", target_country="Germany")
+    assert client.patch(
+        f"/api/v1/corporate-mobility/cases/{case['id']}", json={"status": "closed"}
+    ).status_code == 200
+
+    assert client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/sponsors",
+        json={"sponsor_entity_id": sponsor["id"]},
+    ).status_code == 400
+    assert client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/dependants",
+        json={"dependant_lead_id": str(dependant.id), "relationship_to_employee": "child"},
+    ).status_code == 400
+    assert client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/compliance-events",
+        json={"event_type": "tax", "title": "Tax review", "due_at": "2026-10-01T00:00:00Z"},
+    ).status_code == 400

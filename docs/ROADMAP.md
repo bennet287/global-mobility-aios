@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.1 (2026-07-23)
+
+Current database migration head: `0034_corp_relationships`.
+
+- v11.1 adds account-scoped sponsor entities, immutable-history sponsor assignments, dependant links to existing consent-controlled lead profiles, and case compliance events.
+- Every relationship mutation is actor-attributed and audited. Cross-account sponsorship is blocked, duplicate active relationships are rejected, removed links and resolved events are terminal, closed cases cannot receive new relationships, and every compliance event remains explicitly human-review-required.
+- The Corporate Mobility workspace now provides a focused case control plane for sponsor assignment, dependant linking, and compliance scheduling without creating eligibility, sponsorship approval, filing, or autonomous compliance decisions.
+
 ## Delivery Status — v11.0 (2026-07-23)
 
 Current database migration head: `0033_corporate_mobility_foundation`.
@@ -266,7 +274,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phase 11:** in progress; the corporate account and review-gated employee mobility-case foundation is complete, while dependants, sponsor entities, compliance calendars, entrepreneur, investment, HNWI, family-office, and tax/treaty controls remain future work.
+- **Phase 11:** in progress; corporate accounts, review-gated employee cases, sponsor entities and assignments, dependant links, and compliance calendars are complete. Relocation tasks, entrepreneur, investment, HNWI, family-office, and tax/treaty controls remain future work.
 - **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -598,7 +606,8 @@ Historical and predictive analytics remain gated until sufficient verified histo
 ## Phase 11: Business and Wealth Mobility — In Progress
 
 - [x] Corporate account and review-gated employee mobility-case foundation
-- [ ] Dedicated dependant relationships, sponsor entities, relocation tasks, and compliance calendars
+- [x] Dedicated dependant relationships, sponsor entities, and compliance calendars
+- [ ] Relocation task orchestration
 - [ ] Entrepreneur and startup mobility
 - [ ] Residency/citizenship by investment
 - [ ] HNWI and family-office mobility

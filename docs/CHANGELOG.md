@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-23 — Corporate mobility relationships v11.1
+
+- Added account-scoped sponsor entities and audited case-sponsor assignments with cross-account and active-status controls.
+- Added audited dependant links backed by existing lead profiles, including duplicate prevention and terminal removal history.
+- Added human-review-required compliance events with accountable completion or reasoned waiver and immutable terminal states.
+- Added Alembic migration `0034_corp_relationships`, focused API tests, and a Corporate Mobility case control plane for sponsors, dependants, and deadlines.
+- Preserved Truth Engine, consent, evidence, review, role, application, and authority-decision boundaries; no regulated decision or filing is automated.
+
 ## 2026-07-23 — Corporate mobility foundation v11.0
 
 - Added governed corporate accounts and account-scoped corporate mobility cases with optional employee-lead links.

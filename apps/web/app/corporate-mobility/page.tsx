@@ -11,13 +11,26 @@ import { WorkspaceShell } from "../../components/WorkspaceShell";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import {
   CorporateAccount,
+  CorporateCaseDependant,
+  CorporateCaseSponsorAssignment,
+  CorporateComplianceEvent,
   CorporateMobilityCase,
+  CorporateSponsorEntity,
   Lead,
+  addCaseDependant,
+  assignCorporateSponsor,
   createCorporateAccount,
+  createCorporateSponsor,
+  createComplianceEvent,
   createCorporateMobilityCase,
   getLeads,
   listCorporateAccounts,
+  listCorporateSponsors,
+  listCaseDependants,
+  listCaseSponsorAssignments,
+  listComplianceEvents,
   listCorporateMobilityCases,
+  resolveComplianceEvent,
   updateCorporateMobilityCase,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
@@ -43,6 +56,10 @@ const emptyCaseForm = {
   target_start_date: "",
 };
 
+const emptySponsorForm = { legal_name: "", sponsor_type: "employing_entity" as const, country: "" };
+const emptyDependantForm = { dependant_lead_id: "", relationship_to_employee: "spouse" as "spouse" | "partner" | "child" | "parent" | "other", sponsorship_required: false };
+const emptyEventForm = { event_type: "filing_deadline" as "filing_deadline" | "document_expiry" | "permit_renewal" | "registration" | "sponsor_report" | "payroll" | "tax" | "custom", title: "", due_at: "", evidence_required: true };
+
 
 export default function CorporateMobilityPage() {
   const { health } = useBackendStatus();
@@ -52,6 +69,14 @@ export default function CorporateMobilityPage() {
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [accountForm, setAccountForm] = useState(emptyAccountForm);
   const [caseForm, setCaseForm] = useState(emptyCaseForm);
+  const [selectedCaseId, setSelectedCaseId] = useState("");
+  const [sponsors, setSponsors] = useState<CorporateSponsorEntity[]>([]);
+  const [assignments, setAssignments] = useState<CorporateCaseSponsorAssignment[]>([]);
+  const [dependants, setDependants] = useState<CorporateCaseDependant[]>([]);
+  const [events, setEvents] = useState<CorporateComplianceEvent[]>([]);
+  const [sponsorForm, setSponsorForm] = useState(emptySponsorForm);
+  const [dependantForm, setDependantForm] = useState(emptyDependantForm);
+  const [eventForm, setEventForm] = useState(emptyEventForm);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,9 +108,29 @@ export default function CorporateMobilityPage() {
 
   const selectedAccount = accounts.find((account) => account.id === selectedAccountId) || null;
   const selectedCases = cases.filter((item) => item.corporate_account_id === selectedAccountId);
+  const selectedCase = selectedCases.find((item) => item.id === selectedCaseId) || selectedCases[0] || null;
   const leadNames = useMemo(() => new Map(leads.map((lead) => [lead.id, lead.full_name])), [leads]);
   const activeCases = cases.filter((item) => item.status === "active").length;
   const complianceDue = cases.filter((item) => item.compliance_due_date && !["completed", "closed"].includes(item.status)).length;
+
+  const loadRelationships = useCallback(async () => {
+    if (!selectedAccountId) {
+      setSponsors([]);
+      return;
+    }
+    const sponsorRows = await listCorporateSponsors(selectedAccountId);
+    setSponsors(sponsorRows);
+    if (!selectedCase) {
+      setAssignments([]); setDependants([]); setEvents([]);
+      return;
+    }
+    const [assignmentRows, dependantRows, eventRows] = await Promise.all([
+      listCaseSponsorAssignments(selectedCase.id), listCaseDependants(selectedCase.id), listComplianceEvents(selectedCase.id),
+    ]);
+    setAssignments(assignmentRows); setDependants(dependantRows); setEvents(eventRows);
+  }, [selectedAccountId, selectedCase?.id]);
+
+  useEffect(() => { void loadRelationships().catch((err) => setError(err instanceof Error ? err.message : "Case relationships could not be loaded")); }, [loadRelationships]);
 
   async function submitAccount(event: FormEvent) {
     event.preventDefault();
@@ -144,6 +189,62 @@ export default function CorporateMobilityPage() {
     } finally {
       setWorking(null);
     }
+  }
+
+  async function submitSponsor(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedAccountId) return;
+    setWorking("sponsor"); setError(null);
+    try {
+      await createCorporateSponsor(selectedAccountId, sponsorForm);
+      setSponsorForm(emptySponsorForm); await loadRelationships();
+      setMessage("Sponsor entity added to the governed account registry.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Sponsor could not be created"); }
+    finally { setWorking(null); }
+  }
+
+  async function submitAssignment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedCase) return;
+    const sponsorId = new FormData(event.currentTarget).get("sponsor_entity_id")?.toString();
+    if (!sponsorId) return;
+    setWorking("assignment"); setError(null);
+    try {
+      await assignCorporateSponsor(selectedCase.id, sponsorId); await loadRelationships();
+      setMessage("Sponsor assigned with immutable audit history.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Sponsor could not be assigned"); }
+    finally { setWorking(null); }
+  }
+
+  async function submitDependant(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedCase || !dependantForm.dependant_lead_id) return;
+    setWorking("dependant"); setError(null);
+    try {
+      await addCaseDependant(selectedCase.id, dependantForm); setDependantForm(emptyDependantForm);
+      await loadRelationships(); setMessage("Dependant linked to the selected case.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Dependant could not be linked"); }
+    finally { setWorking(null); }
+  }
+
+  async function submitEvent(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedCase) return;
+    setWorking("event"); setError(null);
+    try {
+      await createComplianceEvent(selectedCase.id, eventForm); setEventForm(emptyEventForm);
+      await loadRelationships(); setMessage("Review-gated compliance event scheduled.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Compliance event could not be created"); }
+    finally { setWorking(null); }
+  }
+
+  async function completeEvent(item: CorporateComplianceEvent) {
+    setWorking(item.id); setError(null);
+    try {
+      await resolveComplianceEvent(item.id, "completed", "Completed by a human operator.");
+      await loadRelationships(); setMessage(`${item.title} marked complete by the current operator.`);
+    } catch (err) { setError(err instanceof Error ? err.message : "Compliance event could not be completed"); }
+    finally { setWorking(null); }
   }
 
   return (
@@ -218,7 +319,7 @@ export default function CorporateMobilityPage() {
 
           <div className="corporate-case-list">
             {selectedCases.map((item) => (
-              <article key={item.id}>
+              <article key={item.id} className={selectedCase?.id === item.id ? "selected" : ""} onClick={() => setSelectedCaseId(item.id)}>
                 <div className="corporate-case-heading">
                   <div><span>{titleCase(item.case_type)}</span><strong>{item.case_reference}</strong></div>
                   <StatusBadge value={item.status} />
@@ -264,9 +365,48 @@ export default function CorporateMobilityPage() {
               <button className="button primary" disabled={working === "case"}>{working === "case" ? "Creating…" : "Create review-gated case"}</button>
             </form>
           ) : null}
+
+          {selectedCase ? (
+            <section className="corporate-control-plane">
+              <div className="corporate-control-heading">
+                <div><span>Case control plane</span><h3>{selectedCase.case_reference}</h3></div>
+                <p>Sponsor, family, and deadline records are separately audited and remain human-controlled.</p>
+              </div>
+              <div className="corporate-control-grid">
+                <article>
+                  <span className="eyebrow">Sponsor entity</span>
+                  <strong>{assignments.find((item) => item.status === "active") ? sponsors.find((item) => item.id === assignments.find((row) => row.status === "active")?.sponsor_entity_id)?.legal_name || "Assigned sponsor" : "Not assigned"}</strong>
+                  <small>{sponsors.length} available for this account</small>
+                  <form onSubmit={submitAssignment}>
+                    <select name="sponsor_entity_id" aria-label="Sponsor entity" defaultValue=""><option value="" disabled>Select sponsor</option>{sponsors.filter((item) => item.status === "active").map((item) => <option value={item.id} key={item.id}>{item.legal_name}</option>)}</select>
+                    <button className="button secondary" disabled={working === "assignment" || selectedCase.status === "closed"}>Assign</button>
+                  </form>
+                  <details><summary>Add sponsor entity</summary><form onSubmit={submitSponsor} className="corporate-mini-form"><input required placeholder="Legal name" value={sponsorForm.legal_name} onChange={(event) => setSponsorForm({ ...sponsorForm, legal_name: event.target.value })} /><div><select value={sponsorForm.sponsor_type} onChange={(event) => setSponsorForm({ ...sponsorForm, sponsor_type: event.target.value as typeof sponsorForm.sponsor_type })}><option value="employing_entity">Employing entity</option><option value="host_entity">Host entity</option><option value="authorized_agent">Authorized agent</option></select><input required placeholder="Country" value={sponsorForm.country} onChange={(event) => setSponsorForm({ ...sponsorForm, country: event.target.value })} /></div><button className="button secondary" disabled={working === "sponsor"}>Add to registry</button></form></details>
+                </article>
+
+                <article>
+                  <span className="eyebrow">Dependants</span>
+                  <strong>{dependants.filter((item) => item.status === "active").length} linked</strong>
+                  <small>Existing lead profiles preserve consent and PII controls.</small>
+                  <form className="corporate-mini-form" onSubmit={submitDependant}>
+                    <select required value={dependantForm.dependant_lead_id} onChange={(event) => setDependantForm({ ...dependantForm, dependant_lead_id: event.target.value })}><option value="">Select lead</option>{leads.filter((lead) => lead.id !== selectedCase.employee_lead_id).map((lead) => <option value={lead.id} key={lead.id}>{lead.full_name}</option>)}</select>
+                    <div><select value={dependantForm.relationship_to_employee} onChange={(event) => setDependantForm({ ...dependantForm, relationship_to_employee: event.target.value as typeof dependantForm.relationship_to_employee })}><option value="spouse">Spouse</option><option value="partner">Partner</option><option value="child">Child</option><option value="parent">Parent</option><option value="other">Other</option></select><label className="corporate-check"><input type="checkbox" checked={dependantForm.sponsorship_required} onChange={(event) => setDependantForm({ ...dependantForm, sponsorship_required: event.target.checked })} />Sponsorship</label></div>
+                    <button className="button secondary" disabled={working === "dependant" || selectedCase.status === "closed"}>Link dependant</button>
+                  </form>
+                </article>
+
+                <article>
+                  <span className="eyebrow">Compliance calendar</span>
+                  <strong>{events.filter((item) => item.status === "open").length} open</strong>
+                  <small>Every completion records the responsible human operator.</small>
+                  <div className="corporate-event-list">{events.slice(0, 3).map((item) => <div key={item.id}><span><b>{item.title}</b><small>{new Date(item.due_at).toLocaleDateString()}</small></span><StatusBadge value={item.status} />{item.status === "open" ? <button className="button secondary" disabled={working === item.id} onClick={() => void completeEvent(item)}>Complete</button> : null}</div>)}</div>
+                  <details><summary>Schedule event</summary><form onSubmit={submitEvent} className="corporate-mini-form"><input required placeholder="Event title" value={eventForm.title} onChange={(event) => setEventForm({ ...eventForm, title: event.target.value })} /><div><select value={eventForm.event_type} onChange={(event) => setEventForm({ ...eventForm, event_type: event.target.value as typeof eventForm.event_type })}><option value="filing_deadline">Filing deadline</option><option value="document_expiry">Document expiry</option><option value="permit_renewal">Permit renewal</option><option value="registration">Registration</option><option value="sponsor_report">Sponsor report</option><option value="payroll">Payroll</option><option value="tax">Tax</option><option value="custom">Custom</option></select><input required type="datetime-local" value={eventForm.due_at} onChange={(event) => setEventForm({ ...eventForm, due_at: event.target.value })} /></div><button className="button secondary" disabled={working === "event" || selectedCase.status === "closed"}>Schedule</button></form></details>
+                </article>
+              </div>
+            </section>
+          ) : null}
         </main>
       </section>
     </WorkspaceShell>
   );
 }
-

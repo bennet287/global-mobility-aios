@@ -1314,6 +1314,72 @@ class CorporateMobilityCase(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class CorporateSponsorEntity(SQLModel, table=True):
+    __tablename__ = "corporate_sponsor_entities"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    legal_name: str = Field(index=True)
+    sponsor_type: str = Field(index=True)
+    country: str = Field(index=True)
+    registration_number: Optional[str] = Field(default=None, index=True)
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = Field(default=None, index=True)
+    status: str = Field(default="active", index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class CorporateCaseSponsorAssignment(SQLModel, table=True):
+    __tablename__ = "corporate_case_sponsor_assignments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_mobility_case_id: UUID = Field(index=True, foreign_key="corporate_mobility_cases.id")
+    sponsor_entity_id: UUID = Field(index=True, foreign_key="corporate_sponsor_entities.id")
+    status: str = Field(default="active", index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class CorporateCaseDependant(SQLModel, table=True):
+    __tablename__ = "corporate_case_dependants"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_mobility_case_id: UUID = Field(index=True, foreign_key="corporate_mobility_cases.id")
+    dependant_lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    relationship_to_employee: str = Field(index=True)
+    sponsorship_required: bool = False
+    status: str = Field(default="active", index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class CorporateComplianceEvent(SQLModel, table=True):
+    __tablename__ = "corporate_compliance_events"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_mobility_case_id: UUID = Field(index=True, foreign_key="corporate_mobility_cases.id")
+    event_type: str = Field(index=True)
+    title: str
+    due_at: datetime = Field(index=True)
+    status: str = Field(default="open", index=True)
+    evidence_required: bool = True
+    human_review_required: bool = True
+    completion_notes: Optional[str] = None
+    completed_by: Optional[str] = Field(default=None, index=True)
+    completed_at: Optional[datetime] = Field(default=None, index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

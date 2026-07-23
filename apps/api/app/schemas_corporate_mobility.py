@@ -116,3 +116,124 @@ class CorporateMobilityCaseRead(BaseModel):
 
 class CorporateAccountDetail(CorporateAccountRead):
     cases: list[CorporateMobilityCaseRead] = Field(default_factory=list)
+
+
+SponsorType = Literal["employing_entity", "host_entity", "authorized_agent"]
+SponsorStatus = Literal["active", "suspended", "retired"]
+RelationshipType = Literal["spouse", "partner", "child", "parent", "other"]
+ComplianceEventType = Literal[
+    "filing_deadline", "document_expiry", "permit_renewal", "registration",
+    "sponsor_report", "payroll", "tax", "custom",
+]
+ComplianceEventStatus = Literal["open", "completed", "waived"]
+
+
+class CorporateSponsorEntityCreate(BaseModel):
+    legal_name: str = Field(min_length=2, max_length=250)
+    sponsor_type: SponsorType
+    country: str = Field(min_length=2, max_length=100)
+    registration_number: Optional[str] = Field(default=None, max_length=120)
+    contact_name: Optional[str] = Field(default=None, max_length=200)
+    contact_email: Optional[EmailStr] = None
+
+
+class CorporateSponsorEntityUpdate(BaseModel):
+    legal_name: Optional[str] = Field(default=None, min_length=2, max_length=250)
+    sponsor_type: Optional[SponsorType] = None
+    country: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    registration_number: Optional[str] = Field(default=None, max_length=120)
+    contact_name: Optional[str] = Field(default=None, max_length=200)
+    contact_email: Optional[EmailStr] = None
+    status: Optional[SponsorStatus] = None
+
+
+class CorporateSponsorEntityRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_account_id: UUID
+    legal_name: str
+    sponsor_type: str
+    country: str
+    registration_number: Optional[str]
+    contact_name: Optional[str]
+    contact_email: Optional[str]
+    status: str
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CorporateCaseSponsorAssignmentCreate(BaseModel):
+    sponsor_entity_id: UUID
+
+
+class CorporateCaseSponsorAssignmentUpdate(BaseModel):
+    status: Literal["removed"]
+
+
+class CorporateCaseSponsorAssignmentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_mobility_case_id: UUID
+    sponsor_entity_id: UUID
+    status: str
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CorporateCaseDependantCreate(BaseModel):
+    dependant_lead_id: UUID
+    relationship_to_employee: RelationshipType
+    sponsorship_required: bool = False
+
+
+class CorporateCaseDependantUpdate(BaseModel):
+    status: Literal["removed"]
+
+
+class CorporateCaseDependantRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_mobility_case_id: UUID
+    dependant_lead_id: UUID
+    relationship_to_employee: str
+    sponsorship_required: bool
+    status: str
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CorporateComplianceEventCreate(BaseModel):
+    event_type: ComplianceEventType
+    title: str = Field(min_length=2, max_length=250)
+    due_at: datetime
+    evidence_required: bool = True
+
+
+class CorporateComplianceEventUpdate(BaseModel):
+    status: ComplianceEventStatus
+    completion_notes: Optional[str] = Field(default=None, max_length=5000)
+
+
+class CorporateComplianceEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_mobility_case_id: UUID
+    event_type: str
+    title: str
+    due_at: datetime
+    status: str
+    evidence_required: bool
+    human_review_required: bool
+    completion_notes: Optional[str]
+    completed_by: Optional[str]
+    completed_at: Optional[datetime]
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
