@@ -1467,6 +1467,48 @@ class VentureReviewDecision(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc, index=True)
 
 
+class BusinessMobilityAdvisoryAssessment(SQLModel, table=True):
+    __tablename__ = "business_mobility_advisory_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_mobility_cases.id")
+    primary_intent: str = Field(index=True)
+    situation_text: str
+    input_json: str
+    feasibility_score: float
+    feasibility_band: str = Field(index=True)
+    information_score: float
+    evidence_score: float
+    commercial_fit_score: float
+    pathway_grounding_score: float
+    strategy_options_json: str
+    blockers_json: str
+    next_actions_json: str
+    evidence_basis_json: str
+    risk_flags_json: str
+    escalation_required: bool = True
+    status: str = Field(default="pending_review", index=True)
+    human_review_required: bool = True
+    generated_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class BusinessMobilityAdvisoryReview(SQLModel, table=True):
+    __tablename__ = "business_mobility_advisory_reviews"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assessment_id: UUID = Field(index=True, foreign_key="business_mobility_advisory_assessments.id")
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

@@ -18,7 +18,8 @@ type IconName =
   | "review"
   | "communications"
   | "coaching"
-  | "corporate";
+  | "corporate"
+  | "advisory";
 
 const navGroups: { label: string; items: { label: string; href: string; icon: IconName }[] }[] = [
   {
@@ -46,7 +47,10 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
   },
   {
     label: "Business",
-    items: [{ label: "Corporate Mobility", href: "/corporate-mobility", icon: "corporate" }],
+    items: [
+      { label: "Corporate Mobility", href: "/corporate-mobility", icon: "corporate" },
+      { label: "Business & Wealth Advisor", href: "/business-advisory", icon: "advisory" },
+    ],
   },
   {
     label: "Engagement",
@@ -163,5 +167,7 @@ function NavIcon({ name }: { name: IconName }) {
       return <svg {...common}><path d="M12 3 3 8l9 5 9-5-9-5ZM6 10v5c3 3 9 3 12 0v-5M21 8v7" /></svg>;
     case "corporate":
       return <svg {...common}><path d="M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M8 19h2M17 15h1M17 18h1M2 21h20M7 7V4h4v3" /></svg>;
+    case "advisory":
+      return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="m15.8 8.2-2.1 5.5-5.5 2.1 2.1-5.5 5.5-2.1ZM12 3v2M21 12h-2M12 21v-2M3 12h2" /></svg>;
   }
 }

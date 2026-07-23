@@ -18,6 +18,8 @@ def register_models() -> None:
     from app.models.domain import (  # noqa: F401
         AgentRun,
         AuditLog,
+        BusinessMobilityAdvisoryAssessment,
+        BusinessMobilityAdvisoryReview,
         ApplicationRecord,
         CoachReview,
         CorporateAccount,

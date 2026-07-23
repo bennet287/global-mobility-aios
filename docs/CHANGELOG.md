@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-23 — Business and Wealth advisory v11.4
+
+- Added a narrative Business & Wealth Mobility assessment that ranks three commercially distinct strategy options across startup, expansion, founder, investment, family-office, tax-residency, and asset/family intentions.
+- Added transparent feasibility scoring across information completeness, controlled evidence, commercial fit, and published-pathway grounding; the score is explicitly not an approval probability or professional opinion.
+- Added pathway grounding, evidence ownership checks, risk disclosures, hard blockers, lawful remediation, specialist escalation, immutable assessment records, audit events, and independent human review.
+- Added Alembic migration `0037_business_advisory`, focused transaction and boundary tests, a named navigation destination, and a responsive Business & Wealth Advisor workspace.
+- Deliberately blocked operational guidance for concealment, false documents, sham arrangements, sanctions avoidance, tax evasion, or material misrepresentation while preserving commercially useful lawful alternatives.
+
 ## 2026-07-23 — Entrepreneur and startup dossiers v11.3
 
 - Added entrepreneur/startup case type support and one review-gated venture dossier per case.

@@ -1132,6 +1132,13 @@ PathwayDomain = Literal[
     "settlement",
     "family",
     "digital_nomad",
+    "business",
+    "entrepreneur",
+    "startup",
+    "investment",
+    "wealth",
+    "tax",
+    "corporate",
 ]
 
 

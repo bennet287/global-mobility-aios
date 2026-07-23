@@ -3730,3 +3730,37 @@ export async function submitVentureProfile(profileId: string): Promise<Entrepren
     method: "POST", body: JSON.stringify({ evidence_complete_attestation: true }),
   });
 }
+
+export type BusinessStrategyOption = {
+  strategy_key: string; title: string; fit_score: number; fit_band: string;
+  rationale: string[]; blockers: string[]; next_actions: string[];
+  published_pathways: Array<{ pathway_id: string; pathway_version_id: string; name: string; country: string; domain: string }>;
+  verification_state: string;
+};
+
+export type BusinessAdvisoryAssessment = {
+  id: string; lead_id: string | null; corporate_mobility_case_id: string | null;
+  primary_intent: string; situation_text: string; feasibility_score: number; feasibility_band: string;
+  information_score: number; evidence_score: number; commercial_fit_score: number; pathway_grounding_score: number;
+  strategy_options: BusinessStrategyOption[]; blockers: string[]; next_actions: string[];
+  evidence_basis: Array<Record<string, unknown>>; risk_flags: string[]; escalation_required: boolean;
+  status: string; human_review_required: boolean; generated_by: string; reviewed_by: string | null;
+  reviewed_at: string | null; review_notes: string | null; score_semantics: string;
+  created_at: string; updated_at: string;
+};
+
+export async function listBusinessAdvisories(): Promise<BusinessAdvisoryAssessment[]> {
+  return request("/api/v1/business-mobility-advisory/assessments");
+}
+
+export async function createBusinessAdvisory(payload: {
+  lead_id?: string; corporate_mobility_case_id?: string; primary_intent: string; situation: string;
+  target_countries: string[]; capital_available_minor?: number; net_worth_minor?: number;
+  annual_revenue_minor?: number; currency?: string; employees?: number; business_age_years?: number;
+  founder_experience_years?: number; timeline_months?: number; family_relocation: boolean;
+  lawful_source_of_funds_confirmed: boolean; risk_disclosures: string[]; document_record_ids: string[];
+}): Promise<BusinessAdvisoryAssessment> {
+  return request("/api/v1/business-mobility-advisory/assessments", {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}

@@ -239,9 +239,9 @@ The following ledger prevents scope loss. Status values are `current`, `next`,
 | Overseas jobs | current | Mobility MVP |
 | Immigration and visa intelligence | current | Truth Engine, then regulatory intelligence |
 | Digital nomad programs | planned | Mobility intelligence MVP |
-| Investment migration and HNWI mobility | planned | Business and wealth expansion |
-| Tax residency intelligence | planned | Business and wealth expansion |
-| Corporate mobility | in progress | Corporate operations and entrepreneur/startup dossier governance delivered; investment and wealth expansion remains |
+| Investment migration and HNWI mobility | in progress | Evidence-grounded strategy advisory delivered; regulated investment products and dedicated HNWI controls remain |
+| Tax residency intelligence | in progress | Strategy intake and specialist escalation delivered; treaty evidence and jurisdiction-specific tax rules remain |
+| Corporate mobility | in progress | Corporate operations, entrepreneur/startup dossiers, and Business & Wealth strategy advisory delivered; regulated expansion remains |
 | Real-time immigration monitoring | next | Regulatory intelligence foundation |
 | Self-updating regulations | next | Retrieval, change sets, verified-rule publication |
 | New visa detection | next | Regulatory event pipeline |

@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.4 (2026-07-23)
+
+Current database migration head: `0037_business_advisory`.
+
+- v11.4 adds a Business & Wealth Mobility advisory workspace that converts a detailed commercial situation into three ranked strategy options, explicit blockers, evidence requirements, and a sequenced action plan.
+- The feasibility meter combines information completeness, controlled evidence, commercial fit, and published-pathway grounding. It is decision-support readiness, not an approval probability, legal or tax opinion, investment recommendation, or authority prediction.
+- Assessments are immutable pending-review records with actor attribution and audit events. Material risk indicators trigger specialist escalation; deception, concealment, sham arrangements, evasion, and unlawful circumvention are not operationalized and instead produce blockers plus lawful remediation paths.
+
 ## Delivery Status — v11.3 (2026-07-23)
 
 Current database migration head: `0036_entrepreneur_ventures`.
@@ -290,7 +298,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phase 11:** in progress; corporate mobility operations and entrepreneur/startup dossier governance are complete. Investment, HNWI, family-office, and tax/treaty controls remain future work.
+- **Phase 11:** in progress; corporate mobility operations, entrepreneur/startup dossier governance, and evidence-grounded Business & Wealth advisory are complete. Regulated investment products, dedicated HNWI/family-office case controls, and tax/treaty intelligence remain future work.
 - **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -625,6 +633,7 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Dedicated dependant relationships, sponsor entities, and compliance calendars
 - [x] Relocation task orchestration
 - [x] Entrepreneur and startup mobility
+- [x] Evidence-grounded Business & Wealth advisory with feasibility scoring, ranked lawful strategies, blockers, next actions, and independent human review
 - [ ] Residency/citizenship by investment
 - [ ] HNWI and family-office mobility
 - [ ] Tax residency and treaty intelligence with specialist-review controls
