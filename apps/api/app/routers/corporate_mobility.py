@@ -9,6 +9,7 @@ from app.core.db import get_session
 from app.models.domain import (
     CorporateAccount, CorporateCaseDependant, CorporateCaseSponsorAssignment,
     CorporateComplianceEvent, CorporateMobilityCase, CorporateSponsorEntity,
+    CorporateRelocationTask, CorporateRelocationTaskDecision,
 )
 from app.schemas_corporate_mobility import (
     CorporateAccountCreate,
@@ -23,11 +24,15 @@ from app.schemas_corporate_mobility import (
     CorporateCaseSponsorAssignmentUpdate, CorporateComplianceEventCreate,
     CorporateComplianceEventRead, CorporateComplianceEventUpdate,
     CorporateSponsorEntityCreate, CorporateSponsorEntityRead, CorporateSponsorEntityUpdate,
+    CorporateRelocationTaskCreate, CorporateRelocationTaskDecisionCreate,
+    CorporateRelocationTaskDecisionRead, CorporateRelocationTaskRead,
+    CorporateRelocationTaskTransition,
 )
 from app.services.corporate_mobility import (
     add_dependant, assign_sponsor, create_account, create_case, create_compliance_event,
     create_sponsor_entity, remove_dependant, remove_sponsor_assignment, update_account,
     update_case, update_compliance_event, update_sponsor_entity,
+    create_relocation_task, decide_relocation_task, transition_relocation_task,
 )
 
 
@@ -50,6 +55,8 @@ def _error(exc: ValueError) -> HTTPException:
         "Corporate sponsor assignment not found",
         "Corporate dependant link not found",
         "Corporate compliance event not found",
+        "Corporate relocation task not found",
+        "Relocation task dependency not found",
     } else 400
     return HTTPException(status_code=status, detail=message)
 
@@ -320,3 +327,82 @@ def api_update_event(event_id: UUID, payload: CorporateComplianceEventUpdate, re
     except ValueError as exc:
         session.rollback()
         raise _error(exc) from exc
+
+
+@router.post("/cases/{case_id}/relocation-tasks", response_model=CorporateRelocationTaskRead, status_code=201)
+def api_create_relocation_task(
+    case_id: UUID, payload: CorporateRelocationTaskCreate, request: Request,
+    session: Session = Depends(get_session),
+) -> CorporateRelocationTask:
+    case = session.get(CorporateMobilityCase, case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    try:
+        return create_relocation_task(session, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get("/cases/{case_id}/relocation-tasks", response_model=list[CorporateRelocationTaskRead])
+def api_list_relocation_tasks(
+    case_id: UUID, status: str | None = None, session: Session = Depends(get_session),
+) -> list[CorporateRelocationTask]:
+    if session.get(CorporateMobilityCase, case_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    statement = select(CorporateRelocationTask).where(
+        CorporateRelocationTask.corporate_mobility_case_id == case_id
+    ).order_by(CorporateRelocationTask.created_at)
+    if status:
+        statement = statement.where(CorporateRelocationTask.status == status.strip().lower())
+    return list(session.exec(statement).all())
+
+
+@router.patch("/relocation-tasks/{task_id}", response_model=CorporateRelocationTaskRead)
+def api_transition_relocation_task(
+    task_id: UUID, payload: CorporateRelocationTaskTransition, request: Request,
+    session: Session = Depends(get_session),
+) -> CorporateRelocationTask:
+    task = session.get(CorporateRelocationTask, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Corporate relocation task not found")
+    case = session.get(CorporateMobilityCase, task.corporate_mobility_case_id)
+    try:
+        return transition_relocation_task(session, task, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post(
+    "/relocation-tasks/{task_id}/decisions",
+    response_model=CorporateRelocationTaskDecisionRead,
+    status_code=201,
+)
+def api_decide_relocation_task(
+    task_id: UUID, payload: CorporateRelocationTaskDecisionCreate, request: Request,
+    session: Session = Depends(get_session),
+) -> CorporateRelocationTaskDecision:
+    task = session.get(CorporateRelocationTask, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Corporate relocation task not found")
+    case = session.get(CorporateMobilityCase, task.corporate_mobility_case_id)
+    try:
+        return decide_relocation_task(session, task, case, payload, actor=_actor(request))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.get(
+    "/relocation-tasks/{task_id}/decisions",
+    response_model=list[CorporateRelocationTaskDecisionRead],
+)
+def api_list_relocation_task_decisions(
+    task_id: UUID, session: Session = Depends(get_session),
+) -> list[CorporateRelocationTaskDecision]:
+    if session.get(CorporateRelocationTask, task_id) is None:
+        raise HTTPException(status_code=404, detail="Corporate relocation task not found")
+    return list(session.exec(select(CorporateRelocationTaskDecision).where(
+        CorporateRelocationTaskDecision.corporate_relocation_task_id == task_id
+    ).order_by(CorporateRelocationTaskDecision.created_at)).all())

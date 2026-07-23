@@ -237,3 +237,63 @@ class CorporateComplianceEventRead(BaseModel):
     updated_by: str
     created_at: datetime
     updated_at: datetime
+
+
+RelocationTaskCategory = Literal[
+    "immigration", "relocation", "payroll", "tax", "housing", "travel", "onboarding", "custom",
+]
+RelocationTaskStatus = Literal[
+    "planned", "ready", "in_progress", "blocked", "awaiting_approval", "completed", "cancelled",
+]
+
+
+class CorporateRelocationTaskCreate(BaseModel):
+    title: str = Field(min_length=2, max_length=250)
+    category: RelocationTaskCategory
+    owner_role: str = Field(default="mobility_operator", min_length=2, max_length=100)
+    due_at: Optional[datetime] = None
+    depends_on_task_id: Optional[UUID] = None
+    requires_human_approval: bool = False
+
+
+class CorporateRelocationTaskTransition(BaseModel):
+    status: Literal["ready", "in_progress", "blocked", "completed", "cancelled"]
+    work_notes: Optional[str] = Field(default=None, max_length=5000)
+
+
+class CorporateRelocationTaskDecisionCreate(BaseModel):
+    decision: Literal["approved", "rejected"]
+    reason: str = Field(min_length=3, max_length=5000)
+
+
+class CorporateRelocationTaskRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_mobility_case_id: UUID
+    depends_on_task_id: Optional[UUID]
+    title: str
+    category: str
+    status: str
+    owner_role: str
+    due_at: Optional[datetime]
+    requires_human_approval: bool
+    approval_status: str
+    work_notes: Optional[str]
+    submitted_by: Optional[str]
+    submitted_at: Optional[datetime]
+    completed_by: Optional[str]
+    completed_at: Optional[datetime]
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CorporateRelocationTaskDecisionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    corporate_relocation_task_id: UUID
+    decision: str
+    reason: str
+    reviewer: str
+    created_at: datetime

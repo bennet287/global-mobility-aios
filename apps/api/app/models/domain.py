@@ -1380,6 +1380,41 @@ class CorporateComplianceEvent(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class CorporateRelocationTask(SQLModel, table=True):
+    __tablename__ = "corporate_relocation_tasks"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_mobility_case_id: UUID = Field(index=True, foreign_key="corporate_mobility_cases.id")
+    depends_on_task_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_relocation_tasks.id")
+    title: str
+    category: str = Field(index=True)
+    status: str = Field(default="planned", index=True)
+    owner_role: str = Field(default="mobility_operator", index=True)
+    due_at: Optional[datetime] = Field(default=None, index=True)
+    requires_human_approval: bool = False
+    approval_status: str = Field(default="not_required", index=True)
+    work_notes: Optional[str] = None
+    submitted_by: Optional[str] = Field(default=None, index=True)
+    submitted_at: Optional[datetime] = Field(default=None, index=True)
+    completed_by: Optional[str] = Field(default=None, index=True)
+    completed_at: Optional[datetime] = Field(default=None, index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class CorporateRelocationTaskDecision(SQLModel, table=True):
+    __tablename__ = "corporate_relocation_task_decisions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_relocation_task_id: UUID = Field(index=True, foreign_key="corporate_relocation_tasks.id")
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

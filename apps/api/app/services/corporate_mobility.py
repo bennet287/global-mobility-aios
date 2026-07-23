@@ -11,6 +11,8 @@ from app.models.domain import (
     CorporateCaseSponsorAssignment,
     CorporateComplianceEvent,
     CorporateMobilityCase,
+    CorporateRelocationTask,
+    CorporateRelocationTaskDecision,
     CorporateSponsorEntity,
     Lead,
 )
@@ -24,6 +26,9 @@ from app.schemas_corporate_mobility import (
     CorporateComplianceEventUpdate,
     CorporateSponsorEntityCreate,
     CorporateSponsorEntityUpdate,
+    CorporateRelocationTaskCreate,
+    CorporateRelocationTaskDecisionCreate,
+    CorporateRelocationTaskTransition,
 )
 from app.services.audit_log import record_audit, to_audit_dict
 
@@ -40,6 +45,16 @@ CASE_TRANSITIONS = {
     "on_hold": {"on_hold", "active", "closed"},
     "completed": {"completed", "closed"},
     "closed": {"closed"},
+}
+
+TASK_TRANSITIONS = {
+    "planned": {"ready", "cancelled"},
+    "ready": {"in_progress", "cancelled"},
+    "in_progress": {"blocked", "completed", "cancelled"},
+    "blocked": {"in_progress", "cancelled"},
+    "awaiting_approval": set(),
+    "completed": set(),
+    "cancelled": set(),
 }
 
 
@@ -419,3 +434,124 @@ def update_compliance_event(
     session.commit()
     session.refresh(event)
     return event
+
+
+def create_relocation_task(
+    session: Session, case: CorporateMobilityCase, payload: CorporateRelocationTaskCreate, *, actor: str
+) -> CorporateRelocationTask:
+    _assert_case_mutable(case)
+    dependency = None
+    if payload.depends_on_task_id is not None:
+        dependency = session.get(CorporateRelocationTask, payload.depends_on_task_id)
+        if dependency is None:
+            raise ValueError("Relocation task dependency not found")
+        if dependency.corporate_mobility_case_id != case.id:
+            raise ValueError("Relocation task dependency must belong to the same corporate mobility case")
+    task = CorporateRelocationTask(
+        corporate_mobility_case_id=case.id,
+        depends_on_task_id=dependency.id if dependency else None,
+        title=payload.title.strip(),
+        category=payload.category,
+        owner_role=payload.owner_role.strip(),
+        due_at=payload.due_at,
+        requires_human_approval=payload.requires_human_approval,
+        approval_status="pending" if payload.requires_human_approval else "not_required",
+        created_by=actor,
+        updated_by=actor,
+    )
+    session.add(task)
+    session.flush()
+    record_audit(session, action="corporate_relocation_task_created", entity_type="corporate_relocation_task",
+                 entity_id=task.id, after_state=task, actor=actor, source="corporate_mobility_v11_2")
+    session.commit()
+    session.refresh(task)
+    return task
+
+
+def transition_relocation_task(
+    session: Session,
+    task: CorporateRelocationTask,
+    case: CorporateMobilityCase,
+    payload: CorporateRelocationTaskTransition,
+    *,
+    actor: str,
+) -> CorporateRelocationTask:
+    _assert_case_mutable(case)
+    requested = payload.status
+    if requested not in TASK_TRANSITIONS.get(task.status, set()):
+        raise ValueError(f"Relocation task cannot transition from {task.status} to {requested}")
+    notes = _clean(payload.work_notes)
+    if requested in {"blocked", "cancelled"} and not notes:
+        raise ValueError(f"Relocation task {requested} transition requires work notes")
+    if requested == "ready" and task.depends_on_task_id is not None:
+        dependency = session.get(CorporateRelocationTask, task.depends_on_task_id)
+        if dependency is None or dependency.status != "completed":
+            raise ValueError("Relocation task dependency must be completed before this task becomes ready")
+
+    before = to_audit_dict(task)
+    now = datetime.now(timezone.utc)
+    task.work_notes = notes if notes is not None else task.work_notes
+    if requested == "completed" and task.requires_human_approval:
+        task.status = "awaiting_approval"
+        task.approval_status = "pending"
+        task.submitted_by = actor
+        task.submitted_at = now
+    elif requested == "completed":
+        task.status = "completed"
+        task.completed_by = actor
+        task.completed_at = now
+    else:
+        task.status = requested
+        if requested == "in_progress" and task.approval_status == "rejected":
+            task.approval_status = "pending"
+    task.updated_by = actor
+    task.updated_at = now
+    session.add(task)
+    record_audit(session, action="corporate_relocation_task_transitioned", entity_type="corporate_relocation_task",
+                 entity_id=task.id, before_state=before, after_state=task, actor=actor,
+                 source="corporate_mobility_v11_2")
+    session.commit()
+    session.refresh(task)
+    return task
+
+
+def decide_relocation_task(
+    session: Session,
+    task: CorporateRelocationTask,
+    case: CorporateMobilityCase,
+    payload: CorporateRelocationTaskDecisionCreate,
+    *,
+    actor: str,
+) -> CorporateRelocationTaskDecision:
+    _assert_case_mutable(case)
+    if task.status != "awaiting_approval":
+        raise ValueError("Relocation task is not awaiting approval")
+    if task.submitted_by == actor:
+        raise ValueError("Relocation task completion requires a different reviewer")
+    before = to_audit_dict(task)
+    now = datetime.now(timezone.utc)
+    decision = CorporateRelocationTaskDecision(
+        corporate_relocation_task_id=task.id,
+        decision=payload.decision,
+        reason=payload.reason.strip(),
+        reviewer=actor,
+    )
+    session.add(decision)
+    if payload.decision == "approved":
+        task.status = "completed"
+        task.approval_status = "approved"
+        task.completed_by = task.submitted_by
+        task.completed_at = now
+    else:
+        task.status = "in_progress"
+        task.approval_status = "rejected"
+    task.updated_by = actor
+    task.updated_at = now
+    session.add(task)
+    session.flush()
+    record_audit(session, action="corporate_relocation_task_reviewed", entity_type="corporate_relocation_task",
+                 entity_id=task.id, before_state=before, after_state=task, reason=payload.reason.strip(),
+                 actor=actor, source="corporate_mobility_v11_2")
+    session.commit()
+    session.refresh(decision)
+    return decision

@@ -3649,3 +3649,36 @@ export async function resolveComplianceEvent(
     method: "PATCH", body: JSON.stringify({ status, completion_notes: completionNotes }),
   });
 }
+
+export type CorporateRelocationTask = {
+  id: string; corporate_mobility_case_id: string; depends_on_task_id: string | null;
+  title: string; category: string;
+  status: "planned" | "ready" | "in_progress" | "blocked" | "awaiting_approval" | "completed" | "cancelled" | string;
+  owner_role: string; due_at: string | null; requires_human_approval: boolean;
+  approval_status: string; work_notes: string | null; submitted_by: string | null;
+  submitted_at: string | null; completed_by: string | null; completed_at: string | null;
+  created_by: string; updated_by: string; created_at: string; updated_at: string;
+};
+
+export async function listRelocationTasks(caseId: string): Promise<CorporateRelocationTask[]> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/relocation-tasks`);
+}
+
+export async function createRelocationTask(caseId: string, payload: {
+  title: string;
+  category: "immigration" | "relocation" | "payroll" | "tax" | "housing" | "travel" | "onboarding" | "custom";
+  owner_role: string; due_at?: string; depends_on_task_id?: string; requires_human_approval: boolean;
+}): Promise<CorporateRelocationTask> {
+  return request(`/api/v1/corporate-mobility/cases/${caseId}/relocation-tasks`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function transitionRelocationTask(
+  taskId: string,
+  payload: { status: "ready" | "in_progress" | "blocked" | "completed" | "cancelled"; work_notes?: string },
+): Promise<CorporateRelocationTask> {
+  return request(`/api/v1/corporate-mobility/relocation-tasks/${taskId}`, {
+    method: "PATCH", body: JSON.stringify(payload),
+  });
+}

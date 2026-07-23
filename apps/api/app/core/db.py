@@ -25,6 +25,8 @@ def register_models() -> None:
         CorporateCaseSponsorAssignment,
         CorporateComplianceEvent,
         CorporateMobilityCase,
+        CorporateRelocationTask,
+        CorporateRelocationTaskDecision,
         CorporateSponsorEntity,
         CountryPolicy,
         CountryRankingAssessment,

@@ -287,3 +287,118 @@ def test_closed_case_blocks_new_relationships_and_events(client, db_session):
         f"/api/v1/corporate-mobility/cases/{case['id']}/compliance-events",
         json={"event_type": "tax", "title": "Tax review", "due_at": "2026-10-01T00:00:00Z"},
     ).status_code == 400
+
+
+def _task(client, case, **overrides):
+    payload = {
+        "title": "Prepare employee arrival pack",
+        "category": "onboarding",
+        "owner_role": "mobility_operator",
+        "requires_human_approval": False,
+        **overrides,
+    }
+    response = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/relocation-tasks", json=payload
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_relocation_task_lifecycle_is_controlled_and_audited(client, db_session):
+    account = _account(client)
+    case = _case(client, account, "CORP-V112-TASK")
+    task = _task(client, case)
+    assert task["status"] == "planned"
+
+    invalid = client.patch(
+        f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}", json={"status": "completed"}
+    )
+    assert invalid.status_code == 400
+    for status in ("ready", "in_progress", "completed"):
+        response = client.patch(
+            f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}", json={"status": status}
+        )
+        assert response.status_code == 200, response.text
+    assert response.json()["completed_by"] == "pytest-admin"
+
+    terminal = client.patch(
+        f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}", json={"status": "cancelled", "work_notes": "Late"}
+    )
+    assert terminal.status_code == 400
+    actions = db_session.exec(select(AuditLog.action).where(AuditLog.source == "corporate_mobility_v11_2")).all()
+    assert actions.count("corporate_relocation_task_created") == 1
+    assert actions.count("corporate_relocation_task_transitioned") == 3
+
+
+def test_relocation_task_dependency_must_complete_first(client):
+    account = _account(client)
+    case = _case(client, account, "CORP-V112-DEPENDENCY")
+    predecessor = _task(client, case, title="Secure work authorization", category="immigration")
+    dependent = _task(
+        client, case, title="Book employee travel", category="travel", depends_on_task_id=predecessor["id"]
+    )
+    blocked = client.patch(
+        f"/api/v1/corporate-mobility/relocation-tasks/{dependent['id']}", json={"status": "ready"}
+    )
+    assert blocked.status_code == 400
+    assert "dependency must be completed" in blocked.json()["detail"]
+
+    for status in ("ready", "in_progress", "completed"):
+        assert client.patch(
+            f"/api/v1/corporate-mobility/relocation-tasks/{predecessor['id']}", json={"status": status}
+        ).status_code == 200
+    assert client.patch(
+        f"/api/v1/corporate-mobility/relocation-tasks/{dependent['id']}", json={"status": "ready"}
+    ).status_code == 200
+
+
+def test_sensitive_relocation_task_requires_independent_review(client):
+    account = _account(client)
+    case = _case(client, account, "CORP-V112-REVIEW")
+    task = _task(
+        client, case, title="Confirm sponsor filing pack", category="immigration", requires_human_approval=True
+    )
+    for status in ("ready", "in_progress", "completed"):
+        response = client.patch(
+            f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}",
+            json={"status": status, "work_notes": "Evidence pack checked."},
+        )
+        assert response.status_code == 200, response.text
+    assert response.json()["status"] == "awaiting_approval"
+    assert response.json()["completed_at"] is None
+
+    self_review = client.post(
+        f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}/decisions",
+        json={"decision": "approved", "reason": "Looks complete."},
+    )
+    assert self_review.status_code == 400
+    assert "different reviewer" in self_review.json()["detail"]
+
+    decision = client.post(
+        f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}/decisions",
+        json={"decision": "approved", "reason": "Evidence independently reviewed and accepted."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "independent-reviewer"},
+    )
+    assert decision.status_code == 201, decision.text
+    assert decision.json()["reviewer"] == "independent-reviewer"
+    refreshed = client.get(f"/api/v1/corporate-mobility/cases/{case['id']}/relocation-tasks")
+    assert refreshed.json()[0]["status"] == "completed"
+    assert refreshed.json()[0]["approval_status"] == "approved"
+
+
+def test_relocation_task_notes_and_closed_case_controls(client):
+    account = _account(client)
+    case = _case(client, account, "CORP-V112-CONTROLS")
+    task = _task(client, case)
+    assert client.patch(
+        f"/api/v1/corporate-mobility/relocation-tasks/{task['id']}", json={"status": "cancelled"}
+    ).status_code == 400
+    assert client.patch(
+        f"/api/v1/corporate-mobility/cases/{case['id']}", json={"status": "closed"}
+    ).status_code == 200
+    blocked = client.post(
+        f"/api/v1/corporate-mobility/cases/{case['id']}/relocation-tasks",
+        json={"title": "Blocked task", "category": "custom"},
+    )
+    assert blocked.status_code == 400
+    assert blocked.json()["detail"] == "Closed corporate mobility cases are immutable"

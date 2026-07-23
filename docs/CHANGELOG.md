@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-23 — Relocation task orchestration v11.2
+
+- Added case-scoped relocation tasks with categories, accountable owner roles, due dates, and explicit same-case dependencies.
+- Added controlled task transitions, dependency completion gates, required blocking/cancellation notes, and immutable terminal records.
+- Added human-review-required completion submission and append-only decisions with enforced reviewer separation.
+- Added Alembic migration `0035_relocation_tasks`, focused lifecycle tests, and a relocation task board in the Corporate Mobility case control plane.
+- Preserved source, evidence, consent, role, application, and authority-decision controls; tasks coordinate human work and do not perform regulated actions.
+
 ## 2026-07-23 — Corporate mobility relationships v11.1
 
 - Added account-scoped sponsor entities and audited case-sponsor assignments with cross-account and active-status controls.

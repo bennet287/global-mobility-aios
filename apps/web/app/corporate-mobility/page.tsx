@@ -15,6 +15,7 @@ import {
   CorporateCaseSponsorAssignment,
   CorporateComplianceEvent,
   CorporateMobilityCase,
+  CorporateRelocationTask,
   CorporateSponsorEntity,
   Lead,
   addCaseDependant,
@@ -23,6 +24,7 @@ import {
   createCorporateSponsor,
   createComplianceEvent,
   createCorporateMobilityCase,
+  createRelocationTask,
   getLeads,
   listCorporateAccounts,
   listCorporateSponsors,
@@ -30,7 +32,9 @@ import {
   listCaseSponsorAssignments,
   listComplianceEvents,
   listCorporateMobilityCases,
+  listRelocationTasks,
   resolveComplianceEvent,
+  transitionRelocationTask,
   updateCorporateMobilityCase,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
@@ -59,6 +63,7 @@ const emptyCaseForm = {
 const emptySponsorForm = { legal_name: "", sponsor_type: "employing_entity" as const, country: "" };
 const emptyDependantForm = { dependant_lead_id: "", relationship_to_employee: "spouse" as "spouse" | "partner" | "child" | "parent" | "other", sponsorship_required: false };
 const emptyEventForm = { event_type: "filing_deadline" as "filing_deadline" | "document_expiry" | "permit_renewal" | "registration" | "sponsor_report" | "payroll" | "tax" | "custom", title: "", due_at: "", evidence_required: true };
+const emptyTaskForm = { title: "", category: "relocation" as "immigration" | "relocation" | "payroll" | "tax" | "housing" | "travel" | "onboarding" | "custom", owner_role: "mobility_operator", due_at: "", depends_on_task_id: "", requires_human_approval: false };
 
 
 export default function CorporateMobilityPage() {
@@ -74,9 +79,11 @@ export default function CorporateMobilityPage() {
   const [assignments, setAssignments] = useState<CorporateCaseSponsorAssignment[]>([]);
   const [dependants, setDependants] = useState<CorporateCaseDependant[]>([]);
   const [events, setEvents] = useState<CorporateComplianceEvent[]>([]);
+  const [tasks, setTasks] = useState<CorporateRelocationTask[]>([]);
   const [sponsorForm, setSponsorForm] = useState(emptySponsorForm);
   const [dependantForm, setDependantForm] = useState(emptyDependantForm);
   const [eventForm, setEventForm] = useState(emptyEventForm);
+  const [taskForm, setTaskForm] = useState(emptyTaskForm);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -121,13 +128,13 @@ export default function CorporateMobilityPage() {
     const sponsorRows = await listCorporateSponsors(selectedAccountId);
     setSponsors(sponsorRows);
     if (!selectedCase) {
-      setAssignments([]); setDependants([]); setEvents([]);
+      setAssignments([]); setDependants([]); setEvents([]); setTasks([]);
       return;
     }
-    const [assignmentRows, dependantRows, eventRows] = await Promise.all([
-      listCaseSponsorAssignments(selectedCase.id), listCaseDependants(selectedCase.id), listComplianceEvents(selectedCase.id),
+    const [assignmentRows, dependantRows, eventRows, taskRows] = await Promise.all([
+      listCaseSponsorAssignments(selectedCase.id), listCaseDependants(selectedCase.id), listComplianceEvents(selectedCase.id), listRelocationTasks(selectedCase.id),
     ]);
-    setAssignments(assignmentRows); setDependants(dependantRows); setEvents(eventRows);
+    setAssignments(assignmentRows); setDependants(dependantRows); setEvents(eventRows); setTasks(taskRows);
   }, [selectedAccountId, selectedCase?.id]);
 
   useEffect(() => { void loadRelationships().catch((err) => setError(err instanceof Error ? err.message : "Case relationships could not be loaded")); }, [loadRelationships]);
@@ -244,6 +251,33 @@ export default function CorporateMobilityPage() {
       await resolveComplianceEvent(item.id, "completed", "Completed by a human operator.");
       await loadRelationships(); setMessage(`${item.title} marked complete by the current operator.`);
     } catch (err) { setError(err instanceof Error ? err.message : "Compliance event could not be completed"); }
+    finally { setWorking(null); }
+  }
+
+  async function submitTask(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedCase) return;
+    setWorking("task"); setError(null);
+    try {
+      await createRelocationTask(selectedCase.id, {
+        title: taskForm.title, category: taskForm.category, owner_role: taskForm.owner_role,
+        requires_human_approval: taskForm.requires_human_approval,
+        ...(taskForm.due_at ? { due_at: taskForm.due_at } : {}),
+        ...(taskForm.depends_on_task_id ? { depends_on_task_id: taskForm.depends_on_task_id } : {}),
+      });
+      setTaskForm(emptyTaskForm); await loadRelationships();
+      setMessage("Relocation task added to the governed case plan.");
+    } catch (err) { setError(err instanceof Error ? err.message : "Relocation task could not be created"); }
+    finally { setWorking(null); }
+  }
+
+  async function moveTask(item: CorporateRelocationTask, status: "ready" | "in_progress" | "completed") {
+    setWorking(item.id); setError(null);
+    try {
+      const updated = await transitionRelocationTask(item.id, { status, work_notes: status === "completed" ? "Work submitted by the current operator." : undefined });
+      await loadRelationships();
+      setMessage(updated.status === "awaiting_approval" ? `${item.title} is awaiting an independent reviewer.` : `${item.title} moved to ${titleCase(updated.status)}.`);
+    } catch (err) { setError(err instanceof Error ? err.message : "Relocation task could not be updated"); }
     finally { setWorking(null); }
   }
 
@@ -403,6 +437,29 @@ export default function CorporateMobilityPage() {
                   <details><summary>Schedule event</summary><form onSubmit={submitEvent} className="corporate-mini-form"><input required placeholder="Event title" value={eventForm.title} onChange={(event) => setEventForm({ ...eventForm, title: event.target.value })} /><div><select value={eventForm.event_type} onChange={(event) => setEventForm({ ...eventForm, event_type: event.target.value as typeof eventForm.event_type })}><option value="filing_deadline">Filing deadline</option><option value="document_expiry">Document expiry</option><option value="permit_renewal">Permit renewal</option><option value="registration">Registration</option><option value="sponsor_report">Sponsor report</option><option value="payroll">Payroll</option><option value="tax">Tax</option><option value="custom">Custom</option></select><input required type="datetime-local" value={eventForm.due_at} onChange={(event) => setEventForm({ ...eventForm, due_at: event.target.value })} /></div><button className="button secondary" disabled={working === "event" || selectedCase.status === "closed"}>Schedule</button></form></details>
                 </article>
               </div>
+              <article className="corporate-task-board">
+                <div className="corporate-task-header">
+                  <div><span>Relocation orchestration</span><h3>Accountable task sequence</h3><p>Dependencies must finish in order. Sensitive completions wait for a different reviewer.</p></div>
+                  <div><strong>{tasks.filter((item) => !["completed", "cancelled"].includes(item.status)).length}</strong><small>open tasks</small></div>
+                </div>
+                <div className="corporate-task-list">
+                  {tasks.map((item, index) => (
+                    <div key={item.id}>
+                      <span className="corporate-task-index">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="corporate-task-copy"><b>{item.title}</b><small>{titleCase(item.category)} · {titleCase(item.owner_role)}{item.due_at ? ` · ${new Date(item.due_at).toLocaleDateString()}` : ""}</small></span>
+                      {item.depends_on_task_id ? <span className="corporate-task-dependency">After {tasks.find((row) => row.id === item.depends_on_task_id)?.title || "dependency"}</span> : null}
+                      <StatusBadge value={item.status} />
+                      <div className="corporate-task-actions">
+                        {item.status === "planned" ? <button className="button secondary" disabled={working === item.id} onClick={() => void moveTask(item, "ready")}>Ready</button> : null}
+                        {item.status === "ready" ? <button className="button secondary" disabled={working === item.id} onClick={() => void moveTask(item, "in_progress")}>Start</button> : null}
+                        {item.status === "in_progress" ? <button className="button secondary" disabled={working === item.id} onClick={() => void moveTask(item, "completed")}>{item.requires_human_approval ? "Submit" : "Complete"}</button> : null}
+                      </div>
+                    </div>
+                  ))}
+                  {!tasks.length ? <EmptyState title="No relocation tasks" detail="Build the controlled sequence for this case." /> : null}
+                </div>
+                <details className="corporate-task-create"><summary>Add relocation task</summary><form onSubmit={submitTask} className="corporate-mini-form"><div><input required placeholder="Task title" value={taskForm.title} onChange={(event) => setTaskForm({ ...taskForm, title: event.target.value })} /><select value={taskForm.category} onChange={(event) => setTaskForm({ ...taskForm, category: event.target.value as typeof taskForm.category })}><option value="immigration">Immigration</option><option value="relocation">Relocation</option><option value="payroll">Payroll</option><option value="tax">Tax</option><option value="housing">Housing</option><option value="travel">Travel</option><option value="onboarding">Onboarding</option><option value="custom">Custom</option></select></div><div><input required placeholder="Owner role" value={taskForm.owner_role} onChange={(event) => setTaskForm({ ...taskForm, owner_role: event.target.value })} /><input type="datetime-local" value={taskForm.due_at} onChange={(event) => setTaskForm({ ...taskForm, due_at: event.target.value })} /></div><div><select value={taskForm.depends_on_task_id} onChange={(event) => setTaskForm({ ...taskForm, depends_on_task_id: event.target.value })}><option value="">No dependency</option>{tasks.map((item) => <option value={item.id} key={item.id}>{item.title}</option>)}</select><label className="corporate-check"><input type="checkbox" checked={taskForm.requires_human_approval} onChange={(event) => setTaskForm({ ...taskForm, requires_human_approval: event.target.checked })} />Independent completion review</label></div><button className="button primary" disabled={working === "task" || selectedCase.status === "closed"}>Add task</button></form></details>
+              </article>
             </section>
           ) : null}
         </main>
