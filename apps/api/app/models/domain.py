@@ -1273,6 +1273,47 @@ class IntakeSession(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class CorporateAccount(SQLModel, table=True):
+    __tablename__ = "corporate_accounts"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    legal_name: str = Field(index=True)
+    display_name: Optional[str] = None
+    account_status: str = Field(default="active", index=True)
+    primary_country: str = Field(index=True)
+    registration_number: Optional[str] = Field(default=None, index=True)
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = Field(default=None, index=True)
+    compliance_owner: Optional[str] = None
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class CorporateMobilityCase(SQLModel, table=True):
+    __tablename__ = "corporate_mobility_cases"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    employee_lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    case_reference: str = Field(index=True, unique=True)
+    case_type: str = Field(default="employee_relocation", index=True)
+    status: str = Field(default="draft", index=True)
+    origin_country: Optional[str] = Field(default=None, index=True)
+    destination_country: str = Field(index=True)
+    sponsor_name: Optional[str] = None
+    target_start_date: Optional[datetime] = Field(default=None, index=True)
+    compliance_due_date: Optional[datetime] = Field(default=None, index=True)
+    human_review_required: bool = True
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

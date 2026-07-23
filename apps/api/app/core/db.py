@@ -20,6 +20,8 @@ def register_models() -> None:
         AuditLog,
         ApplicationRecord,
         CoachReview,
+        CorporateAccount,
+        CorporateMobilityCase,
         CountryPolicy,
         CountryRankingAssessment,
         DocumentAccessGrant,

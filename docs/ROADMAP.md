@@ -5,6 +5,22 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.0 (2026-07-23)
+
+Current database migration head: `0033_corporate_mobility_foundation`.
+
+- v11.0 starts Phase 11 with governed corporate accounts and corporate mobility cases linked to existing employee leads. Cases capture relocation, dependant, or sponsor-compliance scope, origin and destination, sponsor context, target dates, and compliance deadlines while remaining human-review-required.
+- All account and case mutations are actor-attributed and audited. State transitions are explicit, closed records are immutable, read-only mutation is forbidden, employee links are validated, and no delete, eligibility, sponsorship approval, application submission, or autonomous compliance-decision path is exposed.
+- The new Corporate Mobility operator workspace supports account onboarding, account-scoped case management, employee linking, compliance dates, and controlled transitions. Backend tests, migration checks, repository policy checks, the production Next.js build, and all 22 frontend route generations pass.
+
+## Delivery Status — v10.23.4 (2026-07-19)
+
+Current database migration head: `0032_initial_rule_assertions`.
+
+- v10.23.4 replaces the tilted dashboard status cards with one aligned System Pulse panel that presents pipeline, Truth Engine, controlled-agent, backend-health, and review-gate state in a calmer operational hierarchy.
+- The desktop workspace rail now keeps destination names visible and matches every label to its page title. At narrower widths it returns to the compact icon rail with accessible hover and keyboard-focus labels.
+- Light-mode surfaces now use a warm ivory system instead of flat white while preserving the deep-indigo contrast palette, semantic status colors, dark theme, and all existing workflow behavior. The production build, TypeScript validation, and all 21 route generations pass.
+
 ## Delivery Status — v10.23.3 (2026-07-19)
 
 Current database migration head: `0032_initial_rule_assertions`.
@@ -250,7 +266,8 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phases 11–13:** not started; all listed capability groups remain future work.
+- **Phase 11:** in progress; the corporate account and review-gated employee mobility-case foundation is complete, while dependants, sponsor entities, compliance calendars, entrepreneur, investment, HNWI, family-office, and tax/treaty controls remain future work.
+- **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
 
@@ -578,9 +595,10 @@ must be re-verified before action. See `docs/MULTI_YEAR_MOBILITY_SCENARIOS_V10_1
 
 Historical and predictive analytics remain gated until sufficient verified history exists.
 
-## Phase 11: Business and Wealth Mobility — Not Started
+## Phase 11: Business and Wealth Mobility — In Progress
 
-- [ ] Corporate accounts, employees, dependants, sponsors, relocations, and compliance
+- [x] Corporate account and review-gated employee mobility-case foundation
+- [ ] Dedicated dependant relationships, sponsor entities, relocation tasks, and compliance calendars
 - [ ] Entrepreneur and startup mobility
 - [ ] Residency/citizenship by investment
 - [ ] HNWI and family-office mobility

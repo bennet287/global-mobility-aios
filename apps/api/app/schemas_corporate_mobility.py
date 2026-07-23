@@ -1,0 +1,118 @@
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Literal, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+
+CorporateAccountStatus = Literal["active", "suspended", "closed"]
+CorporateCaseType = Literal["employee_relocation", "dependant", "sponsor_compliance"]
+CorporateCaseStatus = Literal["draft", "active", "on_hold", "completed", "closed"]
+
+
+def _utc_naive(value: datetime | None) -> datetime | None:
+    if value is None or value.tzinfo is None:
+        return value
+    return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+class CorporateAccountCreate(BaseModel):
+    legal_name: str = Field(min_length=2, max_length=250)
+    display_name: Optional[str] = Field(default=None, max_length=250)
+    primary_country: str = Field(min_length=2, max_length=100)
+    registration_number: Optional[str] = Field(default=None, max_length=120)
+    contact_name: Optional[str] = Field(default=None, max_length=200)
+    contact_email: Optional[EmailStr] = None
+    compliance_owner: Optional[str] = Field(default=None, max_length=200)
+    notes: Optional[str] = Field(default=None, max_length=5000)
+
+
+class CorporateAccountUpdate(BaseModel):
+    display_name: Optional[str] = Field(default=None, max_length=250)
+    account_status: Optional[CorporateAccountStatus] = None
+    primary_country: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    registration_number: Optional[str] = Field(default=None, max_length=120)
+    contact_name: Optional[str] = Field(default=None, max_length=200)
+    contact_email: Optional[EmailStr] = None
+    compliance_owner: Optional[str] = Field(default=None, max_length=200)
+    notes: Optional[str] = Field(default=None, max_length=5000)
+
+
+class CorporateAccountRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    legal_name: str
+    display_name: Optional[str]
+    account_status: str
+    primary_country: str
+    registration_number: Optional[str]
+    contact_name: Optional[str]
+    contact_email: Optional[str]
+    compliance_owner: Optional[str]
+    notes: Optional[str]
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CorporateMobilityCaseCreate(BaseModel):
+    employee_lead_id: Optional[UUID] = None
+    case_reference: Optional[str] = Field(default=None, min_length=3, max_length=80)
+    case_type: CorporateCaseType = "employee_relocation"
+    origin_country: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    destination_country: str = Field(min_length=2, max_length=100)
+    sponsor_name: Optional[str] = Field(default=None, max_length=250)
+    target_start_date: Optional[datetime] = None
+    compliance_due_date: Optional[datetime] = None
+    notes: Optional[str] = Field(default=None, max_length=5000)
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if (
+            self.target_start_date is not None
+            and self.compliance_due_date is not None
+            and _utc_naive(self.compliance_due_date) > _utc_naive(self.target_start_date)
+        ):
+            raise ValueError("Compliance due date cannot be later than the target start date")
+        return self
+
+
+class CorporateMobilityCaseUpdate(BaseModel):
+    status: Optional[CorporateCaseStatus] = None
+    employee_lead_id: Optional[UUID] = None
+    origin_country: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    destination_country: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    sponsor_name: Optional[str] = Field(default=None, max_length=250)
+    target_start_date: Optional[datetime] = None
+    compliance_due_date: Optional[datetime] = None
+    notes: Optional[str] = Field(default=None, max_length=5000)
+
+
+class CorporateMobilityCaseRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    corporate_account_id: UUID
+    employee_lead_id: Optional[UUID]
+    case_reference: str
+    case_type: str
+    status: str
+    origin_country: Optional[str]
+    destination_country: str
+    sponsor_name: Optional[str]
+    target_start_date: Optional[datetime]
+    compliance_due_date: Optional[datetime]
+    human_review_required: bool
+    notes: Optional[str]
+    created_by: str
+    updated_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CorporateAccountDetail(CorporateAccountRead):
+    cases: list[CorporateMobilityCaseRead] = Field(default_factory=list)

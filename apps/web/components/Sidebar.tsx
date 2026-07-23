@@ -17,7 +17,8 @@ type IconName =
   | "agents"
   | "review"
   | "communications"
-  | "coaching";
+  | "coaching"
+  | "corporate";
 
 const navGroups: { label: string; items: { label: string; href: string; icon: IconName }[] }[] = [
   {
@@ -42,6 +43,10 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
       { label: "Agent Console", href: "/agents/console", icon: "agents" },
       { label: "Agent Review Queue", href: "/agents/review", icon: "review" },
     ],
+  },
+  {
+    label: "Business",
+    items: [{ label: "Corporate Mobility", href: "/corporate-mobility", icon: "corporate" }],
   },
   {
     label: "Engagement",
@@ -156,5 +161,7 @@ function NavIcon({ name }: { name: IconName }) {
       return <svg {...common}><path d="M4 5h16v11H8l-4 4V5Z" /><path d="M8 9h8M8 13h5" /></svg>;
     case "coaching":
       return <svg {...common}><path d="M12 3 3 8l9 5 9-5-9-5ZM6 10v5c3 3 9 3 12 0v-5M21 8v7" /></svg>;
+    case "corporate":
+      return <svg {...common}><path d="M4 21V7h10v14M14 11h6v10M8 11h2M8 15h2M8 19h2M17 15h1M17 18h1M2 21h20M7 7V4h4v3" /></svg>;
   }
 }

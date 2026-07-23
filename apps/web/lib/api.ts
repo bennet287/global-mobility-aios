@@ -3442,3 +3442,124 @@ export async function retireVerifiedRule(
     body: JSON.stringify(payload),
   });
 }
+
+export type CorporateMobilityCase = {
+  id: string;
+  corporate_account_id: string;
+  employee_lead_id: string | null;
+  case_reference: string;
+  case_type: "employee_relocation" | "dependant" | "sponsor_compliance" | string;
+  status: "draft" | "active" | "on_hold" | "completed" | "closed" | string;
+  origin_country: string | null;
+  destination_country: string;
+  sponsor_name: string | null;
+  target_start_date: string | null;
+  compliance_due_date: string | null;
+  human_review_required: boolean;
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CorporateAccount = {
+  id: string;
+  legal_name: string;
+  display_name: string | null;
+  account_status: "active" | "suspended" | "closed" | string;
+  primary_country: string;
+  registration_number: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  compliance_owner: string | null;
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CorporateAccountDetail = CorporateAccount & { cases: CorporateMobilityCase[] };
+
+export async function listCorporateAccounts(params?: {
+  status?: string;
+  country?: string;
+}): Promise<CorporateAccount[]> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set("status", params.status);
+  if (params?.country) query.set("country", params.country);
+  const suffix = query.size ? `?${query.toString()}` : "";
+  return request<CorporateAccount[]>(`/api/v1/corporate-mobility/accounts${suffix}`);
+}
+
+export async function getCorporateAccount(id: string): Promise<CorporateAccountDetail> {
+  return request<CorporateAccountDetail>(`/api/v1/corporate-mobility/accounts/${id}`);
+}
+
+export async function createCorporateAccount(payload: {
+  legal_name: string;
+  display_name?: string;
+  primary_country: string;
+  registration_number?: string;
+  contact_name?: string;
+  contact_email?: string;
+  compliance_owner?: string;
+  notes?: string;
+}): Promise<CorporateAccount> {
+  return request<CorporateAccount>("/api/v1/corporate-mobility/accounts", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCorporateAccount(
+  id: string,
+  payload: Partial<Pick<CorporateAccount, "account_status" | "display_name" | "primary_country" | "registration_number" | "contact_name" | "contact_email" | "compliance_owner" | "notes">>,
+): Promise<CorporateAccount> {
+  return request<CorporateAccount>(`/api/v1/corporate-mobility/accounts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listCorporateMobilityCases(params?: {
+  account_id?: string;
+  status?: string;
+}): Promise<CorporateMobilityCase[]> {
+  const query = new URLSearchParams();
+  if (params?.account_id) query.set("account_id", params.account_id);
+  if (params?.status) query.set("status", params.status);
+  const suffix = query.size ? `?${query.toString()}` : "";
+  return request<CorporateMobilityCase[]>(`/api/v1/corporate-mobility/cases${suffix}`);
+}
+
+export async function createCorporateMobilityCase(
+  accountId: string,
+  payload: {
+    employee_lead_id?: string;
+    case_reference?: string;
+    case_type: "employee_relocation" | "dependant" | "sponsor_compliance";
+    origin_country?: string;
+    destination_country: string;
+    sponsor_name?: string;
+    target_start_date?: string;
+    compliance_due_date?: string;
+    notes?: string;
+  },
+): Promise<CorporateMobilityCase> {
+  return request<CorporateMobilityCase>(`/api/v1/corporate-mobility/accounts/${accountId}/cases`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCorporateMobilityCase(
+  id: string,
+  payload: Partial<Pick<CorporateMobilityCase, "status" | "employee_lead_id" | "origin_country" | "destination_country" | "sponsor_name" | "target_start_date" | "compliance_due_date" | "notes">>,
+): Promise<CorporateMobilityCase> {
+  return request<CorporateMobilityCase>(`/api/v1/corporate-mobility/cases/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
