@@ -11,6 +11,8 @@ from app.models.domain import (
     BusinessMobilityAdvisoryReview,
     CorporateMobilityCase,
     DocumentRecord,
+    InvestmentMobilityProgram,
+    InvestmentMobilityProgramVersion,
     Lead,
     MobilityPathway,
     MobilityPathwayVersion,
@@ -102,7 +104,7 @@ def advisory_read(row: BusinessMobilityAdvisoryAssessment) -> BusinessAdvisoryRe
 def _published_pathways(session: Session, countries: list[str]) -> list[dict[str, Any]]:
     normalized = {country.strip().lower() for country in countries}
     pathways = list(session.exec(select(MobilityPathway).where(
-        MobilityPathway.catalogue_status == "published"
+        MobilityPathway.catalogue_status.in_(["active", "published"])
     )).all())
     results: list[dict[str, Any]] = []
     for pathway in pathways:
@@ -123,6 +125,36 @@ def _published_pathways(session: Session, countries: list[str]) -> list[dict[str
             "official_source_id": str(version.official_source_id) if version.official_source_id else None,
             "source_snapshot_id": str(version.source_snapshot_id) if version.source_snapshot_id else None,
             "verified_rule_ids": _load(version.verified_rule_ids_json or "[]", []),
+        })
+    return results
+
+
+def _published_investment_programs(session: Session, countries: list[str]) -> list[dict[str, Any]]:
+    normalized = {country.strip().lower() for country in countries}
+    programs = session.exec(select(InvestmentMobilityProgram).where(
+        InvestmentMobilityProgram.catalogue_status == "active"
+    )).all()
+    results: list[dict[str, Any]] = []
+    for program in programs:
+        if program.country.strip().lower() not in normalized:
+            continue
+        version = session.exec(select(InvestmentMobilityProgramVersion).where(
+            InvestmentMobilityProgramVersion.program_id == program.id,
+            InvestmentMobilityProgramVersion.lifecycle_status == "published",
+        ).order_by(InvestmentMobilityProgramVersion.version_number.desc())).first()
+        if version is None:
+            continue
+        results.append({
+            "program_id": str(program.id),
+            "program_version_id": str(version.id),
+            "name": program.name,
+            "country": program.country,
+            "program_type": program.program_type,
+            "minimum_commitment_minor": version.minimum_commitment_minor,
+            "currency": version.currency,
+            "pathway_version_id": str(version.pathway_version_id),
+            "official_source_id": str(version.official_source_id),
+            "source_snapshot_id": str(version.source_snapshot_id),
         })
     return results
 
@@ -175,6 +207,7 @@ def create_advisory_assessment(
         documents.append(document)
 
     pathways = _published_pathways(session, payload.target_countries)
+    investment_programs = _published_investment_programs(session, payload.target_countries)
     narrative = " ".join([payload.situation, *payload.risk_disclosures]).lower()
     risk_flags: list[str] = []
     if any(signal in narrative for signal in PROHIBITED_SIGNALS):
@@ -198,7 +231,7 @@ def create_advisory_assessment(
     if payload.lawful_source_of_funds_confirmed:
         evidence_score = min(100.0, evidence_score + 15.0)
     commercial_fit_score = _commercial_fit(payload)
-    pathway_grounding_score = min(100.0, len(pathways) * 35.0)
+    pathway_grounding_score = min(100.0, len(pathways) * 30.0 + len(investment_programs) * 25.0)
     if pathways and all(item["source_snapshot_id"] for item in pathways):
         pathway_grounding_score = min(100.0, pathway_grounding_score + 15.0)
 
@@ -243,6 +276,9 @@ def create_advisory_assessment(
         relevant = [item for item in pathways if key.split("_")[0] in item["domain"].lower()]
         if not relevant:
             relevant = pathways[:3]
+        relevant_programs = investment_programs[:3] if key in {
+            "investor_residence", "active_business_investment", "asset_and_family_mobility", "family_office_mobility"
+        } else []
         option_blockers = list(blockers)
         options.append({
             "strategy_key": key,
@@ -256,13 +292,16 @@ def create_advisory_assessment(
             "blockers": option_blockers,
             "next_actions": next_actions[:3],
             "published_pathways": relevant,
-            "verification_state": "published_pathway_grounded" if relevant else "archetype_only_requires_route_verification",
+            "verified_programs": relevant_programs,
+            "verification_state": "published_program_grounded" if relevant_programs else (
+                "published_pathway_grounded" if relevant else "archetype_only_requires_route_verification"
+            ),
         })
 
     evidence_basis = [
         {"document_id": str(item.id), "document_type": item.document_type, "status": item.status}
         for item in documents
-    ] + pathways
+    ] + pathways + investment_programs
     dumped_input = payload.model_dump(mode="json")
     row = BusinessMobilityAdvisoryAssessment(
         lead_id=payload.lead_id,

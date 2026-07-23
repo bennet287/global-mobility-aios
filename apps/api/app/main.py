@@ -19,6 +19,7 @@ from app.routers import (
     controlled_agents,
     corporate_mobility,
     business_advisory,
+    investment_mobility,
     document_operations,
     document_uploads,
     document_engine,
@@ -94,6 +95,7 @@ app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
 app.include_router(controlled_agents.router, tags=["controlled-agents"])
 app.include_router(corporate_mobility.router)
 app.include_router(business_advisory.router)
+app.include_router(investment_mobility.router)
 app.include_router(agent_runs.router, prefix="/api/v1", tags=["agent-runs"])
 app.include_router(agent_chat.router, tags=["agent-chat"])
 app.include_router(profiles.router, prefix="/api/v1", tags=["profiles"])

@@ -2159,7 +2159,7 @@ export type VerifiedRule = {
   updated_at: string;
 };
 
-export type PathwayDomain = "study" | "work" | "visa" | "scholarship" | "settlement" | "family" | "digital_nomad";
+export type PathwayDomain = "study" | "work" | "visa" | "scholarship" | "settlement" | "family" | "digital_nomad" | "business" | "entrepreneur" | "startup" | "investment" | "wealth" | "tax" | "corporate";
 
 export type PathwayVersionInput = {
   official_source_id?: string | null;
@@ -3735,6 +3735,7 @@ export type BusinessStrategyOption = {
   strategy_key: string; title: string; fit_score: number; fit_band: string;
   rationale: string[]; blockers: string[]; next_actions: string[];
   published_pathways: Array<{ pathway_id: string; pathway_version_id: string; name: string; country: string; domain: string }>;
+  verified_programs: Array<{ program_id: string; program_version_id: string; name: string; country: string; program_type: string; minimum_commitment_minor: number; currency: string }>;
   verification_state: string;
 };
 
@@ -3762,5 +3763,54 @@ export async function createBusinessAdvisory(payload: {
 }): Promise<BusinessAdvisoryAssessment> {
   return request("/api/v1/business-mobility-advisory/assessments", {
     method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export type InvestmentProgramVersion = {
+  id: string; program_id: string; version_number: number; lifecycle_status: string;
+  supersedes_version_id: string | null; pathway_version_id: string; official_source_id: string;
+  source_snapshot_id: string; minimum_commitment_minor: number; currency: string;
+  investment_options: Array<Record<string, unknown>>; holding_period_text: string | null;
+  physical_presence_text: string | null; family_scope: string[]; due_diligence: string[];
+  fees: Record<string, unknown>; benefits: string[]; risks: string[];
+  effective_from: string | null; effective_to: string | null; human_review_required: boolean;
+  created_by: string; approved_by: string | null; review_notes: string | null;
+  published_at: string | null; created_at: string; updated_at: string;
+};
+
+export type InvestmentProgram = {
+  id: string; program_key: string; name: string; country: string; program_type: string;
+  pathway_id: string; description: string | null; catalogue_status: string; created_by: string;
+  created_at: string; updated_at: string; current_version: InvestmentProgramVersion | null;
+  versions: InvestmentProgramVersion[];
+};
+
+export type InvestmentProgramInput = {
+  pathway_version_id: string; official_source_id: string; source_snapshot_id: string;
+  minimum_commitment_minor: number; currency: string; investment_options: Array<Record<string, unknown>>;
+  holding_period_text?: string; physical_presence_text?: string; family_scope: string[];
+  due_diligence: string[]; fees: Record<string, unknown>; benefits: string[]; risks: string[];
+  effective_from?: string; effective_to?: string;
+};
+
+export async function listInvestmentPrograms(params?: { country?: string; program_type?: string; catalogue_status?: string }): Promise<InvestmentProgram[]> {
+  const search = new URLSearchParams();
+  if (params?.country) search.set("country", params.country);
+  if (params?.program_type) search.set("program_type", params.program_type);
+  if (params?.catalogue_status) search.set("catalogue_status", params.catalogue_status);
+  return request(`/api/v1/investment-mobility/programs${search.toString() ? `?${search}` : ""}`);
+}
+
+export async function createInvestmentProgram(payload: InvestmentProgramInput & {
+  program_key: string; name: string; country: string;
+  program_type: "residence_by_investment" | "citizenship_by_investment" | "investor_entrepreneur";
+  pathway_id: string; description?: string;
+}): Promise<InvestmentProgram> {
+  return request("/api/v1/investment-mobility/programs", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function publishInvestmentProgramVersion(versionId: string, reviewNotes: string): Promise<InvestmentProgram> {
+  return request(`/api/v1/investment-mobility/versions/${versionId}/publish`, {
+    method: "POST", body: JSON.stringify({ review_notes: reviewNotes }),
   });
 }

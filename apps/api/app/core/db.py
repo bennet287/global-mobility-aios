@@ -43,6 +43,8 @@ def register_models() -> None:
         HumanReview,
         InitialRuleAssertion,
         IntakeSession,
+        InvestmentMobilityProgram,
+        InvestmentMobilityProgramVersion,
         Jurisdiction,
         JurisdictionCoverageEvidenceBatch,
         JurisdictionCoverageEvidenceBatchItem,

@@ -60,6 +60,7 @@ class BusinessStrategyOption(BaseModel):
     blockers: list[str] = Field(default_factory=list)
     next_actions: list[str] = Field(default_factory=list)
     published_pathways: list[dict[str, Any]] = Field(default_factory=list)
+    verified_programs: list[dict[str, Any]] = Field(default_factory=list)
     verification_state: str
 
 

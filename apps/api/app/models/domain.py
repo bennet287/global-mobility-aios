@@ -1509,6 +1509,54 @@ class BusinessMobilityAdvisoryReview(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc, index=True)
 
 
+class InvestmentMobilityProgram(SQLModel, table=True):
+    __tablename__ = "investment_mobility_programs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    program_key: str = Field(index=True, unique=True)
+    name: str = Field(index=True)
+    country: str = Field(index=True)
+    program_type: str = Field(index=True)
+    pathway_id: UUID = Field(index=True, foreign_key="mobility_pathways.id")
+    description: Optional[str] = None
+    catalogue_status: str = Field(default="draft", index=True)
+    created_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class InvestmentMobilityProgramVersion(SQLModel, table=True):
+    __tablename__ = "investment_mobility_program_versions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    program_id: UUID = Field(index=True, foreign_key="investment_mobility_programs.id")
+    version_number: int = Field(default=1, index=True)
+    lifecycle_status: str = Field(default="draft", index=True)
+    supersedes_version_id: Optional[UUID] = Field(default=None, index=True, foreign_key="investment_mobility_program_versions.id")
+    pathway_version_id: UUID = Field(index=True, foreign_key="mobility_pathway_versions.id")
+    official_source_id: UUID = Field(index=True, foreign_key="official_sources.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    minimum_commitment_minor: int
+    currency: str
+    investment_options_json: str
+    holding_period_text: Optional[str] = None
+    physical_presence_text: Optional[str] = None
+    family_scope_json: str
+    due_diligence_json: str
+    fees_json: str
+    benefits_json: str
+    risks_json: str
+    effective_from: Optional[datetime] = None
+    effective_to: Optional[datetime] = None
+    human_review_required: bool = True
+    created_by: str = Field(index=True)
+    approved_by: Optional[str] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    published_at: Optional[datetime] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

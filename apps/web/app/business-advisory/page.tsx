@@ -270,7 +270,7 @@ function AssessmentResult({ assessment }: { assessment: BusinessAdvisoryAssessme
             <div className="strategy-detail"><span>Why it fits</span><ul>{strategy.rationale.slice(1).map((item) => <li key={item}>{item}</li>)}</ul></div>
             <div className="strategy-detail"><span>Next moves</span><ol>{strategy.next_actions.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ol></div>
             {strategy.blockers.length ? <div className="strategy-blockers"><span>Blockers</span>{strategy.blockers.map((item) => <p key={item}>{item}</p>)}</div> : null}
-            <footer>{strategy.published_pathways.length ? `${strategy.published_pathways.length} published pathway${strategy.published_pathways.length === 1 ? "" : "s"} linked` : "No published pathway linked"}</footer>
+            <footer>{strategy.verified_programs?.length ? `${strategy.verified_programs.length} independently published investment program${strategy.verified_programs.length === 1 ? "" : "s"} linked` : strategy.published_pathways.length ? `${strategy.published_pathways.length} published pathway${strategy.published_pathways.length === 1 ? "" : "s"} linked` : "No published pathway linked"}</footer>
           </article>
         ))}
       </div>

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-23 — Governed investment program catalogue v11.5
+
+- Added residence-by-investment, citizenship-by-investment, and investor-entrepreneur catalogue records with immutable versions and explicit thresholds, options, holding/presence context, family scope, due diligence, fees, benefits, and risks.
+- Required every program version to reference an active matching-country pathway, its published version, an active official source, and a content-addressed source snapshot.
+- Added independent publication, previous-version supersession, actor attribution, audit records, role enforcement, and rejection of guaranteed authority-outcome claims.
+- Connected independently published programs to Business & Wealth advisory strategy grounding and added the `/investment-mobility` operator workspace.
+- Added Alembic migration `0038_investment_programs` and focused tests covering transaction boundaries, source consistency, publication separation, version history, role restrictions, and advisory integration.
+
 ## 2026-07-23 — Business and Wealth advisory v11.4
 
 - Added a narrative Business & Wealth Mobility assessment that ranks three commercially distinct strategy options across startup, expansion, founder, investment, family-office, tax-residency, and asset/family intentions.

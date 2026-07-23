@@ -5,6 +5,14 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.5 (2026-07-23)
+
+Current database migration head: `0038_investment_programs`.
+
+- v11.5 adds a governed residence-by-investment, citizenship-by-investment, and investor-entrepreneur program catalogue with immutable versions, recorded capital thresholds, qualifying structures, holding and presence context, family scope, due diligence, fees, benefits, and material risks.
+- Every draft must reference an active business/investment pathway, its published version, an active same-country official source, and a content-addressed snapshot. Publication requires a different authenticated reviewer and supersedes rather than rewrites the previous published version.
+- Published programs now strengthen Business & Wealth advisory grounding for investment-related intentions. Thresholds are not treated as eligibility, capital is not treated as suitability, and the interface rejects guaranteed authority-outcome claims. Jurisdiction-by-jurisdiction program evidence onboarding remains operational work.
+
 ## Delivery Status — v11.4 (2026-07-23)
 
 Current database migration head: `0037_business_advisory`.
@@ -298,7 +306,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phase 11:** in progress; corporate mobility operations, entrepreneur/startup dossier governance, and evidence-grounded Business & Wealth advisory are complete. Regulated investment products, dedicated HNWI/family-office case controls, and tax/treaty intelligence remain future work.
+- **Phase 11:** in progress; corporate mobility operations, entrepreneur/startup dossiers, Business & Wealth advisory, and the governed investment-program workflow are complete. Program evidence onboarding, client suitability/comparison, dedicated HNWI/family-office controls, and tax/treaty intelligence remain.
 - **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -634,7 +642,8 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Relocation task orchestration
 - [x] Entrepreneur and startup mobility
 - [x] Evidence-grounded Business & Wealth advisory with feasibility scoring, ranked lawful strategies, blockers, next actions, and independent human review
-- [ ] Residency/citizenship by investment
+- [x] Governed residency/citizenship-by-investment and investor-entrepreneur catalogue with source-pinned versioning and independent publication
+- [ ] Independently verified jurisdiction program onboarding and client suitability/comparison controls
 - [ ] HNWI and family-office mobility
 - [ ] Tax residency and treaty intelligence with specialist-review controls
 
