@@ -69,6 +69,7 @@ def _publish(client: TestClient, payload: dict) -> dict:
     published = client.post(
         f"/api/v1/pathways/versions/{created.json()['current_version']['id']}/publish",
         json={"review_notes": "Reviewed country-ranking evidence and long-term metadata."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert published.status_code == 200, published.text
     return published.json()

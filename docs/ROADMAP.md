@@ -5,6 +5,16 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.12 (2026-07-23)
+
+Current database migration head: `0042_tax_residency_treaty`.
+
+- v11.12 closes the missing reviewer-separation guard in pathway publication. A pathway draft creator can no longer publish the same version; the affected pathway, ranking, regulatory-impact, reassessment, and investment tests now use an explicitly different reviewer.
+- Austria's replacement Self-employed Key Worker pathway version passed an independent publication review against its active investment-domain official source, immutable snapshot, and four verified rules.
+- A separately proposed investor-entrepreneur program version records the EUR 100,000 capital-transfer indicator as non-exclusive, preserves the official alternative macroeconomic-benefit bases, exposes authority separation, evidence, fees, benefits, and material risks, and makes no eligibility or approval guarantee.
+- A different authenticated reviewer published the program. Austria's investment-program onboarding state is now `published` with no blockers, completing Phase 11's independently verified jurisdiction-program onboarding milestone.
+- The durable publication record is stored at `docs/AUSTRIA_PROGRAM_PUBLICATION_V11_12.md`.
+
 ## Delivery Status — v11.11 (2026-07-23)
 
 Current database migration head: `0042_tax_residency_treaty`.
@@ -397,7 +407,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phase 11:** in progress; corporate mobility, entrepreneur dossiers, Business & Wealth advisory, governed investment programs, client readiness comparison, dedicated HNWI/family-office controls, and the governed tax/treaty intelligence workflow are complete. Real jurisdiction program and tax/treaty evidence onboarding remains operational work.
+- **Phase 11:** complete; corporate mobility, entrepreneur dossiers, Business & Wealth advisory, governed investment programs, client readiness comparison, dedicated HNWI/family-office controls, governed tax/treaty intelligence, and the first independently published jurisdiction program are delivered. Further jurisdiction and treaty evidence onboarding remains ongoing operational expansion.
 - **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -726,7 +736,7 @@ must be re-verified before action. See `docs/MULTI_YEAR_MOBILITY_SCENARIOS_V10_1
 
 Historical and predictive analytics remain gated until sufficient verified history exists.
 
-## Phase 11: Business and Wealth Mobility — In Progress
+## Phase 11: Business and Wealth Mobility — Complete
 
 - [x] Corporate account and review-gated employee mobility-case foundation
 - [x] Dedicated dependant relationships, sponsor entities, and compliance calendars
@@ -734,7 +744,7 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Entrepreneur and startup mobility
 - [x] Evidence-grounded Business & Wealth advisory with feasibility scoring, ranked lawful strategies, blockers, next actions, and independent human review
 - [x] Governed residency/citizenship-by-investment and investor-entrepreneur catalogue with source-pinned versioning and independent publication
-- [ ] Independently verified jurisdiction program onboarding
+- [x] Independently verified jurisdiction program onboarding
 - [x] Jurisdiction program onboarding readiness, blocker diagnosis, and domain-isolated source controls
 - [x] Begin official-source jurisdiction onboarding with Austria evidence and a pending-review pathway draft
 - [x] Immutable source-pinned investment-rule proposals with independent approve/reject decisions and no automatic pathway publication

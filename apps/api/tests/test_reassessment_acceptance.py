@@ -32,6 +32,7 @@ def _baseline(client: TestClient, session: Session):
     published = client.post(
         f"/api/v1/pathways/versions/{created.json()['current_version']['id']}/publish",
         json={"review_notes": "Reviewed baseline evidence."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert published.status_code == 200, published.text
     lead, _, profile_payload = _lead_with_profile(client, session)
@@ -116,6 +117,7 @@ def test_reviewed_regulatory_replacement_is_applied_only_after_acceptance(client
     published = client.post(
         f"/api/v1/pathways/versions/{version_two.json()['id']}/publish",
         json={"review_notes": "Reviewed replacement version."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert published.status_code == 200, published.text
     replacement_id = UUID(version_two.json()["id"])

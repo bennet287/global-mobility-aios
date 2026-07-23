@@ -173,15 +173,23 @@ def test_pathway_version_publication_matching_and_retirement(
     draft = created.json()
     assert draft["current_version"]["version_number"] == 1
 
+    self_review = client.post(
+        f"/api/v1/pathways/versions/{draft['current_version']['id']}/publish",
+        json={"review_notes": "The pathway proposer cannot independently publish this draft."},
+    )
+    assert self_review.status_code == 400
+    assert "independent reviewer" in self_review.json()["detail"].lower()
+
     published = client.post(
         f"/api/v1/pathways/versions/{draft['current_version']['id']}/publish",
         json={"review_notes": "Official snapshot and verified rule reviewed."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert published.status_code == 200, published.text
     pathway = published.json()
     assert pathway["catalogue_status"] == "active"
     assert pathway["current_version"]["lifecycle_status"] == "published"
-    assert pathway["current_version"]["approved_by"] == "pytest-admin"
+    assert pathway["current_version"]["approved_by"] == "pytest-pathway-reviewer"
 
     lead, _, profile_payload = _lead_with_profile(client, db_session)
     matching = client.post(f"/api/v1/pathways/match/{lead.id}")
@@ -218,6 +226,7 @@ def test_pathway_version_publication_matching_and_retirement(
     alternative_published = client.post(
         f"/api/v1/pathways/versions/{alternative.json()['current_version']['id']}/publish",
         json={"review_notes": "Alternative route evidence reviewed."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert alternative_published.status_code == 200, alternative_published.text
 
@@ -323,6 +332,7 @@ def test_pathway_version_publication_matching_and_retirement(
     republished = client.post(
         f"/api/v1/pathways/versions/{version_two.json()['id']}/publish",
         json={"review_notes": "Updated fee reviewed against official evidence."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert republished.status_code == 200, republished.text
     old_version = db_session.get(MobilityPathwayVersion, UUID(draft["current_version"]["id"]))

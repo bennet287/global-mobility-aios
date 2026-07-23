@@ -128,6 +128,7 @@ def _create_published_pathway(client: TestClient, rule: dict) -> dict:
     published = client.post(
         f"/api/v1/pathways/versions/{created.json()['current_version']['id']}/publish",
         json={"review_notes": "Initial official rule and snapshot reviewed."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert published.status_code == 200, published.text
     return published.json()
@@ -264,6 +265,7 @@ def test_rule_supersession_creates_reviewable_impact_without_mutating_client_rec
     published_two = client.post(
         f"/api/v1/pathways/versions/{version_two.json()['id']}/publish",
         json={"review_notes": "Updated salary evidence reviewed against the superseding rule."},
+        headers={"X-GMAI-Role": "admin", "X-GMAI-User": "pytest-pathway-reviewer"},
     )
     assert published_two.status_code == 200, published_two.text
     resolved = client.post(

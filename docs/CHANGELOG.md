@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-23 — Austria program publication v11.12
+
+- Enforced independent reviewer separation for mobility-pathway publication and added regression coverage across all affected pathway consumers.
+- Independently published Austria Self-employed Key Worker pathway version `b62fb1e2-29d8-45cf-9510-1e269f0ea8d2`.
+- Created investor-entrepreneur program `dbd59207-a870-4388-a5bb-131521d25a85` from the published pathway, eligible official source, exact immutable snapshot, and four active verified rules.
+- Independently published program version `11790441-bd7e-4b3b-b1c5-6aa42909fb05`; Austria now reports `published` onboarding readiness with zero blockers.
+- Marked Phase 11 complete while leaving broader jurisdiction and treaty evidence onboarding as ongoing operational expansion.
+
 ## 2026-07-23 — Initial-rule assertion publication v10.22.28
 
 - Published exactly the 17 independently approved assertions after the user's separate authorization; Senegal remained pending and detected-change reviews were not modified.

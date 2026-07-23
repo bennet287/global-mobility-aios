@@ -318,6 +318,8 @@ def publish_pathway_version(
             raise ValueError(f"Verified rule {rule_id} is missing or inactive")
         if _normal(rule.country) != pathway.country or _normal(rule.domain) not in allowed_domains:
             raise ValueError(f"Verified rule {rule_id} does not match the pathway jurisdiction or domain")
+    if version.created_by.strip().lower() == actor.strip().lower():
+        raise ValueError("Pathway publication requires an independent reviewer")
 
     now = now_utc()
     published = list(session.exec(

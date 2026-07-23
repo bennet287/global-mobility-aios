@@ -33,3 +33,11 @@ The EUR 100,000 figure is not treated as automatic eligibility. The draft explic
 - Published investment program: none
 
 The evidence pack is stored at `knowledge/investment_mobility/tranches/v11_8_austria_self_employed_key_worker_pending.json`.
+
+## Later publication outcome
+
+The controlled state above records the original v11.8 onboarding checkpoint. In
+v11.12, a different reviewer independently published the replacement pathway and
+a separately proposed program version. Austria now reports `published` onboarding
+readiness with no blockers. The durable publication receipt is stored at
+`docs/AUSTRIA_PROGRAM_PUBLICATION_V11_12.md`.
