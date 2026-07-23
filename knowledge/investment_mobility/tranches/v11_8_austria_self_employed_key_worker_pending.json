@@ -1,0 +1,90 @@
+{
+  "pack_version": "v11.8",
+  "title": "Austria Self-employed Key Worker evidence proposal",
+  "verified_at": "2026-07-23",
+  "review_status": "pending_independent_review",
+  "requires_separate_reviewer": true,
+  "creates_eligibility_claim": false,
+  "creates_approval_prediction": false,
+  "jurisdiction": {
+    "code": "AT",
+    "name": "Austria",
+    "type": "country",
+    "region": "Europe"
+  },
+  "source_onboarding": {
+    "authority_name": "Austrian Federal Government Migration Platform",
+    "authority_type": "government_migration_portal",
+    "authority_website_url": "https://www.migration.gv.at/",
+    "authority_domains": [
+      "investment",
+      "business",
+      "entrepreneur"
+    ],
+    "source_name": "Austria Self-employed Key Workers",
+    "source_url": "https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/self-employedkeyworkers/",
+    "source_domain": "investment",
+    "source_type": "government",
+    "allowed_domains": [
+      "migration.gv.at"
+    ],
+    "fetch_method": "http",
+    "parser_profile": "generic"
+  },
+  "snapshot_receipt": {
+    "http_status": 200,
+    "retrieval_method": "http",
+    "status": "baseline",
+    "content_sha256": "905a6e47c821be64863efc9037e99b611e31d0d797a6b6799d1fc8b2e5f8ba38",
+    "captured_at": "2026-07-23T14:11:05.394259Z"
+  },
+  "proposed_rules": [
+    {
+      "rule_key": "at-self-employed-key-worker-macroeconomic-benefit",
+      "statement": "The route is for a third-country national whose intended self-employed activity in Austria creates macroeconomic benefit beyond its own operational benefit.",
+      "evidence_scope": "route_core_test"
+    },
+    {
+      "rule_key": "at-self-employed-key-worker-capital-indicator",
+      "statement": "A sustained transfer of investment capital to Austria of at least EUR 100,000 is one stated indicator of macroeconomic benefit; the official source also lists jobs, know-how or new technology, and regional significance as alternative indicators.",
+      "evidence_scope": "indicative_criteria"
+    },
+    {
+      "rule_key": "at-self-employed-key-worker-ams-review",
+      "statement": "The Public Employment Service evaluates the macroeconomic benefit and issues an expertise; the residence authority separately decides the residence application and general requirements still apply.",
+      "evidence_scope": "authority_review"
+    },
+    {
+      "rule_key": "at-self-employed-key-worker-duration",
+      "statement": "If issued, the Red-White-Red Card is valid for 24 months and permits the self-employed activity described in the application.",
+      "evidence_scope": "route_duration"
+    }
+  ],
+  "pathway_draft": {
+    "pathway_key": "at-self-employed-key-worker",
+    "name": "Austria Self-employed Key Worker",
+    "domain": "investment",
+    "route_family": "investor_entrepreneur",
+    "minimum_commitment_minor": 10000000,
+    "currency": "EUR",
+    "application_fee_minor": 21800,
+    "required_evidence": [
+      "Valid travel document",
+      "Current passport photo",
+      "Evidence of health insurance covering all risks",
+      "Business plan with market, competition and location analysis",
+      "Evidence of capital transfer and intended job creation or preservation",
+      "Evidence of qualifications",
+      "Case-specific company agreements or trade authorisations",
+      "Criminal record evidence where requested"
+    ],
+    "material_risks": [
+      "The capital threshold is an indicator, not automatic eligibility",
+      "AMS expertise and residence-authority approval are required",
+      "Capital and business execution remain at risk",
+      "General residence requirements and case-specific evidence apply",
+      "Rules, fees and evidence expectations can change before filing"
+    ],
+    "catalogue_status": "draft"
+  }
+}

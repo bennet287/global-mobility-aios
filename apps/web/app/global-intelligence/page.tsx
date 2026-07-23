@@ -138,6 +138,23 @@ export default function GlobalIntelligencePage() {
   const initialAssertionSectionRef = useRef<HTMLDivElement | null>(null);
   const initialAssertionTitleRef = useRef<HTMLInputElement | null>(null);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedWorkspace = params.get("workspace");
+    if (COVERAGE_VIEWS.some((view) => view.id === requestedWorkspace)) {
+      setTab("coverage");
+      setCoverageView(requestedWorkspace as CoverageView);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "coverage" || coverageView !== "rules" || window.location.hash !== "#initial-rule-assertions") return;
+    const frame = window.requestAnimationFrame(() => {
+      initialAssertionSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [coverageView, initialRuleAssertions.length, tab]);
+
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -215,6 +232,20 @@ export default function GlobalIntelligencePage() {
       return 0;
     }
   }, [coverageBatchJson]);
+  const approvedInitialAssertionCount = initialRuleAssertions.filter((assertion) => assertion.status === "approved").length;
+  const pendingInitialAssertionCount = initialRuleAssertions.filter((assertion) => assertion.status === "pending_review").length;
+
+  function openCoverageWorkspace(view: CoverageView, scrollToAssertions = false) {
+    setTab("coverage");
+    setCoverageView(view);
+    const url = new URL(window.location.href);
+    url.searchParams.set("workspace", view);
+    url.hash = scrollToAssertions ? "initial-rule-assertions" : "";
+    window.history.replaceState(null, "", url);
+    if (scrollToAssertions) {
+      window.setTimeout(() => initialAssertionSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    }
+  }
 
   async function proposeAssessment() {
     if (!selectedRegistryEntry) return;
@@ -418,7 +449,13 @@ export default function GlobalIntelligencePage() {
       {error && <InlineNotice label="Global intelligence error" detail={error} tone="bad" />}
       <section className="panel global-intelligence-hero">
         <div><span className="page-kicker">Self-updating intelligence</span><h2>Official changes become visible here only with provenance and review state.</h2><p>Monitoring views include pending changes. Opportunity signals use human-published events only.</p></div>
-        <label>Activity window<select value={windowDays} onChange={(event) => setWindowDays(Number(event.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>365 days</option></select></label>
+        <div className="global-intelligence-hero-actions">
+          <label>Activity window<select value={windowDays} onChange={(event) => setWindowDays(Number(event.target.value))}><option value={30}>30 days</option><option value={90}>90 days</option><option value={180}>180 days</option><option value={365}>365 days</option></select></label>
+          <a className="button primary" href="?workspace=rules#initial-rule-assertions">
+            Open rule approvals
+            <small>{approvedInitialAssertionCount} approved · {pendingInitialAssertionCount} pending</small>
+          </a>
+        </div>
       </section>
       {dashboard && <details className="panel global-filter-panel" aria-label="Global intelligence filters">
         <summary className="global-filter-heading">
@@ -448,7 +485,14 @@ export default function GlobalIntelligencePage() {
           <MetricPill label="Verified rules" value={dashboard.scope.active_verified_rules} />
           <MetricPill label="Registry entries" value={dashboard.scope.registry_entries} />
         </div>
-        <nav className="intelligence-tabs global-tabs" aria-label="Global intelligence views">{TABS.map((item) => <button className={tab === item ? "active" : ""} key={item} onClick={() => setTab(item)}>{titleCase(item)}</button>)}</nav>
+        <nav className="intelligence-tabs global-tabs" aria-label="Global intelligence views">
+          {TABS.map((item) => item === "coverage"
+            ? <span className="global-tab-group" key={item}>
+              <button className={tab === "coverage" && coverageView !== "rules" ? "active" : ""} onClick={() => openCoverageWorkspace("readiness")}>Coverage</button>
+              <button className={tab === "coverage" && coverageView === "rules" ? "active" : ""} onClick={() => openCoverageWorkspace("rules", true)}>Rule approvals <small>{approvedInitialAssertionCount}</small></button>
+            </span>
+            : <button className={tab === item ? "active" : ""} key={item} onClick={() => setTab(item)}>{titleCase(item)}</button>)}
+        </nav>
 
         {tab === "overview" && <div className="global-overview-grid">
           <section className="panel"><SectionTitle label="Today" title={`${dashboard.today.countries_updated} countries updated`} detail={`${dashboard.today.changes_detected} detected official-source changes`} /><div className="global-country-tags">{dashboard.today.country_names.length ? dashboard.today.country_names.map((country) => <span key={country}>{country}</span>) : <p>No country changes detected today.</p>}</div></section>
@@ -457,7 +501,7 @@ export default function GlobalIntelligencePage() {
         </div>}
         {tab === "coverage" && <div className="global-registry-stack" data-coverage-view={coverageView}>
           <nav className="coverage-view-tabs" aria-label="Coverage workspace">
-            {COVERAGE_VIEWS.map((view) => <button className={coverageView === view.id ? "active" : ""} key={view.id} onClick={() => setCoverageView(view.id)}>
+            {COVERAGE_VIEWS.map((view) => <button className={coverageView === view.id ? "active" : ""} key={view.id} onClick={() => openCoverageWorkspace(view.id)}>
               <span>{view.label}</span>
               <small>{view.description}</small>
             </button>)}
@@ -540,7 +584,7 @@ export default function GlobalIntelligencePage() {
                 </article>)}
               </div>}
             </div>
-            <div className="coverage-initial-rules coverage-rules-view" ref={initialAssertionSectionRef}>
+            <div className="coverage-initial-rules coverage-rules-view" id="initial-rule-assertions" ref={initialAssertionSectionRef}>
               <div className="coverage-card-heading"><div><span>Baseline rule governance</span><h3>Initial verified-rule assertions</h3></div><StatusBadge value="human_review_required" /></div>
               <InlineNotice label="Not a detected change" detail="Draft only what the immutable baseline snapshot explicitly supports. A different reviewer must approve it, and publication is a separate action." tone="warn" />
               {assistantDraftCopied && <InlineNotice label={`${assistantDraftCopied} draft copied`} detail="The constrained draft is now in the assertion form below. Review and edit every field before submitting it for independent review." tone="good" />}

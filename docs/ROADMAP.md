@@ -5,6 +5,61 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.11 (2026-07-23)
+
+Current database migration head: `0042_tax_residency_treaty`.
+
+- v11.11 adds a client-linked tax-residency issue map and a separate source-pinned treaty evidence registry. The registry only accepts active tax-domain official sources and their exact content-addressed snapshots.
+- Treaty records remain unavailable to client assessments until a different authenticated reviewer publishes them. Assessments reject unrelated jurisdiction pairs, unpublished records, and records outside the selected tax year.
+- Readiness is split across dated fact completeness, client-owned controlled evidence, treaty grounding, and specialist coordination. The result exposes domestic-residence, dual-residence, entity/permanent-establishment, employment/payroll, and departure/arrival workstreams without making a tax determination.
+- Every assessment requires a different specialist reviewer. Concealment, sham-residence, tax-evasion, false-return, backdating, or misrepresentation signals prevent operationalization and cap readiness.
+- The new Tax & Treaty workspace combines the client fact pattern, issue matrix, accountable workstreams, source-controlled proposal desk, and independent publication queue.
+
+## Delivery Status — v11.10 (2026-07-23)
+
+Current database migration head: `0041_family_office_mobility`.
+
+- v11.10 adds a dedicated HNWI and family-office mobility control plane instead of leaving private-client work as a generic advisory label.
+- Each immutable assessment links to a principal client and evaluates five transparent workstreams: identity and family, source of wealth and funds, ownership and control, governance/banking/specialists, and source-controlled mobility routes.
+- Client-owned controlled evidence, beneficial-ownership disclosure, PEP/sanctions screening posture, entity inventories, tax and legal adviser coverage, succession continuity, banking readiness, and target-jurisdiction grounding now produce explicit blockers and accountable actions.
+- Concealment, evasion, sanctions-circumvention, false-document, or ownership-misrepresentation signals cap readiness and prevent operationalization. Every assessment remains pending independent human review and makes no eligibility, tax, banking, investment, or asset-protection guarantee.
+- The new Family Office workspace presents the readiness components and workstreams without hiding material gaps behind a single score.
+
+## Delivery Status — v11.9 (2026-07-23)
+
+Current database migration head: `0040_investment_rule_review`.
+
+- v11.9 adds an immutable, source-pinned investment-rule proposal ledger with explicit pending, approved, and rejected decisions.
+- A proposal can only target a draft business, investment, wealth, or entrepreneur pathway backed by an active same-country official source and its exact content-addressed snapshot.
+- Approval requires a different authenticated reviewer. It creates independently verified rules and a replacement pathway draft while superseding the unverified draft; it does not publish the pathway or any investment program.
+- The Investment Programs workspace now exposes pending rule statements, source provenance, decision notes, and separate approve/reject controls. Austria's v11.8 extraction passed independent review on 2026-07-23, producing four active verified rules and a replacement pathway draft; the pathway itself remains unpublished.
+
+## Delivery Status — v11.8 (2026-07-23)
+
+Current database migration head: `0039_investment_suitability`.
+
+- v11.8 starts real jurisdiction program onboarding with Austria's official Self-employed Key Worker route. The controlled retriever returned HTTPS 200 and stored immutable snapshot SHA-256 `905a6e47c821be64863efc9037e99b611e31d0d797a6b6799d1fc8b2e5f8ba38`.
+- A source-grounded Austria investment pathway version now exists as a draft. It records the macroeconomic-benefit test, the EUR 100,000 capital-transfer indicator and its non-exclusive alternatives, required evidence, authority roles, duration context, fees, and material risks.
+- The evidence pack passed independent rule review on 2026-07-23. Four source-pinned rules are active and the unverified pathway draft was superseded by a replacement draft; separate pathway publication review is still required. This does not create eligibility, approval, return, tax, or capital-safety claims, and no investment program is published yet.
+- Investment onboarding readiness now exposes the verified-rule gate separately, preventing a draft pathway from appearing immediately publishable when reviewed rules are still absent.
+
+## Delivery Status — v11.7 (2026-07-23)
+
+Current database migration head: `0039_investment_suitability`.
+
+- v11.7 adds a jurisdiction-level onboarding readiness pipeline across eligible official sources, content-addressed snapshots, independently published pathways, program drafts, and independently published program versions.
+- The Investment Programs workspace now explains why a jurisdiction is blocked and identifies its next controlled action instead of presenting an unexplained empty catalogue.
+- Program grounding now rejects sources from unrelated regulatory domains; a visa-domain source cannot be reused as investment evidence merely because its country matches.
+- The software workflow is complete, but independently verified jurisdiction program data remains operational work and stays unchecked in Phase 11 until real programs pass every gate.
+
+## Delivery Status — v11.6 (2026-07-23)
+
+Current database migration head: `0039_investment_suitability`.
+
+- v11.6 adds client-specific investment-mobility readiness comparisons across independently published program versions. Assessments rank routes using declared capital coverage, controlled evidence, family scope, risk constraints, and currency comparability while preserving the exact program, pathway, source, and snapshot versions used.
+- Currency mismatches fail closed without an invented exchange rate, cross-client evidence is rejected, source-of-funds and capital-preservation constraints become explicit blockers, and concealment or evasion signals cap readiness and prevent operationalization.
+- Every comparison is immutable, audited, pending independent human review, and explicitly disclaims eligibility, approval probability, investment returns, tax treatment, or capital safety. The new Investor Suitability workspace exposes score components, blockers, and controlled next actions.
+
 ## Delivery Status — v11.5 (2026-07-23)
 
 Current database migration head: `0038_investment_programs`.
@@ -52,6 +107,42 @@ Current database migration head: `0033_corporate_mobility_foundation`.
 - v11.0 starts Phase 11 with governed corporate accounts and corporate mobility cases linked to existing employee leads. Cases capture relocation, dependant, or sponsor-compliance scope, origin and destination, sponsor context, target dates, and compliance deadlines while remaining human-review-required.
 - All account and case mutations are actor-attributed and audited. State transitions are explicit, closed records are immutable, read-only mutation is forbidden, employee links are validated, and no delete, eligibility, sponsorship approval, application submission, or autonomous compliance-decision path is exposed.
 - The new Corporate Mobility operator workspace supports account onboarding, account-scoped case management, employee linking, compliance dates, and controlled transitions. Backend tests, migration checks, repository policy checks, the production Next.js build, and all 22 frontend route generations pass.
+
+## Delivery Status — v10.22.28 (2026-07-23)
+
+Current database migration head: `0042_tax_residency_treaty`.
+
+- The user separately authorized publication of the 17 independently approved initial-rule assertions for Albania (`AL`), Bosnia and Herzegovina (`BA`), Liechtenstein (`LI`), Malta (`MT`), Hungary (`HU`), Tanzania (`TZ`), Somalia (`SO`), Sierra Leone (`SL`), Namibia (`NA`), Uganda (`UG`), Zambia (`ZM`), Liberia (`LR`), Lesotho (`LS`), Eswatini (`SZ`), Chile (`CL`), Malaysia (`MY`), and the Republic of Korea (`KR`).
+- All 17 assertions were published under actor `bennet-coverage-publisher` with an explicit provenance attestation. Every publication created an active verified rule and moved its jurisdiction to coverage-ready.
+- Coverage readiness moved from **65/243 to 82/243**. Senegal (`SN`) remains the only pending initial assertion from this packet; the global coverage claim remains false.
+- The durable publication receipt is stored at `coverage-operations-receipts/v10_22_28_assertion_publication/PUBLICATION_RECEIPT.md`.
+
+## Delivery Status — v10.22.27 (2026-07-23)
+
+Current database migration head: `0042_tax_residency_treaty`.
+
+- The user explicitly approved the recommended 17 assertions from the v10.22.26 review packet. Decisions were recorded under independent reviewer `bennet-initial-rule-reviewer`, separate from proposer `coverage-assertion-drafter-v10-22-25`.
+- Senegal (`SN`) remains `pending_review` while its live Foreign Ministry endpoint is unavailable. No review decision was recorded for Senegal.
+- The 17 assertions were approved but remained unpublished at this checkpoint. The later v10.22.28 publication moved readiness from 65/243 to 82/243.
+
+## Delivery Status — v10.22.26 (2026-07-23)
+
+Current database migration head: `0042_tax_residency_treaty`.
+
+- v10.22.26 adds 18 human-edited, source-pinned initial-rule assertions for the baseline-ready items produced by v10.22.25. The constrained assistant was used only for dry-run discovery; navigation-heavy and insufficient automatic drafts were replaced with narrow statements grounded in the immutable snapshots.
+- All 18 records were submitted under proposer `coverage-assertion-drafter-v10-22-25`, with confidence 0.90. The later v10.22.27 decision approved 17 and held Senegal; none were published and coverage readiness remained 65/243.
+- Independent human approval is now required. The recommended decision is to approve 17 and hold Senegal (`SN`) until its live Foreign Ministry endpoint recovers or is replaced, then perform publication as a separate explicit action.
+- The decision-ready packet is stored at `coverage-operations-receipts/v10_22_26_assertion_review/ASSERTION_REVIEW_PACKET.md`.
+
+## Delivery Status — v10.22.25 (2026-07-23)
+
+Current database migration head: `0042_tax_residency_treaty`.
+
+- Independent review is complete for the 20 immigration-authority assessments and 20 primary-source certifications submitted in v10.22.20 through v10.22.24. All 20 narrow authority relationships were approved by an actor different from the proposers.
+- Eighteen source certifications were approved. Peru (`PE`) and Qatar (`QA`) were rejected because their pinned extracts were not sufficiently substantive for controlled baseline assertions; both require a narrower official source, a new immutable snapshot, and a new independent certification.
+- The 18 approved items have current immutable snapshots and are `baseline_ready`. Senegal (`SN`) retains its valid July 18 snapshot, but its live Foreign Ministry endpoint currently returns a Drupal error and must recover or be replaced before newly retrieved content is relied upon.
+- Both pending-review queues are now empty. Coverage readiness remains **65/243** because these jurisdictions still lack independently reviewed and published initial rule assertions. No rule, regulatory change, client eligibility conclusion, or global-coverage claim was created by this review.
+- The durable operational summary is recorded in `coverage-operations-receipts/v10_22_25_independent_review/REVIEW_RECEIPT.md`.
 
 ## Delivery Status — v10.23.4 (2026-07-19)
 
@@ -306,7 +397,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10C:** complete.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
-- **Phase 11:** in progress; corporate mobility operations, entrepreneur/startup dossiers, Business & Wealth advisory, and the governed investment-program workflow are complete. Program evidence onboarding, client suitability/comparison, dedicated HNWI/family-office controls, and tax/treaty intelligence remain.
+- **Phase 11:** in progress; corporate mobility, entrepreneur dossiers, Business & Wealth advisory, governed investment programs, client readiness comparison, dedicated HNWI/family-office controls, and the governed tax/treaty intelligence workflow are complete. Real jurisdiction program and tax/treaty evidence onboarding remains operational work.
 - **Phases 12–13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -643,9 +734,13 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Entrepreneur and startup mobility
 - [x] Evidence-grounded Business & Wealth advisory with feasibility scoring, ranked lawful strategies, blockers, next actions, and independent human review
 - [x] Governed residency/citizenship-by-investment and investor-entrepreneur catalogue with source-pinned versioning and independent publication
-- [ ] Independently verified jurisdiction program onboarding and client suitability/comparison controls
-- [ ] HNWI and family-office mobility
-- [ ] Tax residency and treaty intelligence with specialist-review controls
+- [ ] Independently verified jurisdiction program onboarding
+- [x] Jurisdiction program onboarding readiness, blocker diagnosis, and domain-isolated source controls
+- [x] Begin official-source jurisdiction onboarding with Austria evidence and a pending-review pathway draft
+- [x] Immutable source-pinned investment-rule proposals with independent approve/reject decisions and no automatic pathway publication
+- [x] Client-specific investment-mobility readiness and program comparison with evidence, currency, family, risk, and independent-review controls
+- [x] HNWI and family-office mobility with ownership, wealth-evidence, screening, governance, specialist, banking, succession, route-grounding, and independent-review controls
+- [x] Tax residency and treaty intelligence with specialist-review controls
 
 ## Phase 12: Channels, Ecosystem, and Automation — Not Started
 

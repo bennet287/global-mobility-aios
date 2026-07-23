@@ -3785,6 +3785,29 @@ export type InvestmentProgram = {
   versions: InvestmentProgramVersion[];
 };
 
+export type InvestmentProgramOnboardingItem = {
+  country: string; readiness_state: string; active_official_sources: number;
+  content_addressed_snapshots: number; active_verified_rules: number;
+  draft_pathways: number; published_pathways: number;
+  draft_programs: number; published_programs: number; blockers: string[]; next_action: string;
+};
+
+export type InvestmentProgramOnboardingReadiness = {
+  total_jurisdictions: number; source_ready: number; pathway_ready: number;
+  awaiting_independent_review: number; published: number; blocked: number;
+  items: InvestmentProgramOnboardingItem[];
+};
+
+export type InvestmentRuleProposal = {
+  id: string; pathway_version_id: string; pathway_id: string; pathway_name: string;
+  country: string; domain: string; official_source_id: string; source_snapshot_id: string;
+  source_url: string; source_content_hash: string;
+  rules: Array<{ rule_key: string; statement: string; evidence_scope: string }>;
+  status: string; proposed_by: string; reviewed_by: string | null; reviewed_at: string | null;
+  review_notes: string | null; created_verified_rule_ids: string[];
+  replacement_pathway_version_id: string | null; created_at: string; updated_at: string;
+};
+
 export type InvestmentProgramInput = {
   pathway_version_id: string; official_source_id: string; source_snapshot_id: string;
   minimum_commitment_minor: number; currency: string; investment_options: Array<Record<string, unknown>>;
@@ -3801,6 +3824,25 @@ export async function listInvestmentPrograms(params?: { country?: string; progra
   return request(`/api/v1/investment-mobility/programs${search.toString() ? `?${search}` : ""}`);
 }
 
+export async function getInvestmentProgramOnboardingReadiness(limit = 8): Promise<InvestmentProgramOnboardingReadiness> {
+  return request(`/api/v1/investment-mobility/onboarding/readiness?limit=${limit}`);
+}
+
+export async function listInvestmentRuleProposals(status?: string): Promise<InvestmentRuleProposal[]> {
+  const search = status ? `?status=${encodeURIComponent(status)}` : "";
+  return request(`/api/v1/investment-mobility/rule-proposals${search}`);
+}
+
+export async function reviewInvestmentRuleProposal(
+  proposalId: string,
+  decision: "approved" | "rejected",
+  reason: string,
+): Promise<InvestmentRuleProposal> {
+  return request(`/api/v1/investment-mobility/rule-proposals/${proposalId}/review`, {
+    method: "POST", body: JSON.stringify({ decision, reason }),
+  });
+}
+
 export async function createInvestmentProgram(payload: InvestmentProgramInput & {
   program_key: string; name: string; country: string;
   program_type: "residence_by_investment" | "citizenship_by_investment" | "investor_entrepreneur";
@@ -3812,5 +3854,195 @@ export async function createInvestmentProgram(payload: InvestmentProgramInput & 
 export async function publishInvestmentProgramVersion(versionId: string, reviewNotes: string): Promise<InvestmentProgram> {
   return request(`/api/v1/investment-mobility/versions/${versionId}/publish`, {
     method: "POST", body: JSON.stringify({ review_notes: reviewNotes }),
+  });
+}
+
+export type InvestmentSuitabilityProgramResult = {
+  program_id: string; program_version_id: string; name: string; country: string; program_type: string;
+  minimum_commitment_minor: number; currency: string; readiness_score: number; readiness_band: string;
+  capital_coverage_score: number; evidence_score: number; family_fit_score: number; risk_alignment_score: number;
+  findings: string[]; blockers: string[]; next_actions: string[]; official_source_id: string;
+  source_snapshot_id: string; pathway_version_id: string;
+};
+
+export type InvestmentSuitabilityAssessment = {
+  id: string; lead_id: string; business_advisory_assessment_id: string | null;
+  candidate_program_version_ids: string[]; ranked_programs: InvestmentSuitabilityProgramResult[];
+  blockers: string[]; next_actions: string[]; evidence_basis: Array<Record<string, unknown>>;
+  overall_readiness_score: number; readiness_band: string; status: string; human_review_required: boolean;
+  generated_by: string; reviewed_by: string | null; reviewed_at: string | null; review_notes: string | null;
+  score_semantics: string; created_at: string; updated_at: string;
+};
+
+export async function listInvestmentSuitabilityAssessments(leadId?: string): Promise<InvestmentSuitabilityAssessment[]> {
+  return request(`/api/v1/investment-mobility/suitability/assessments${leadId ? `?lead_id=${encodeURIComponent(leadId)}` : ""}`);
+}
+
+export async function createInvestmentSuitabilityAssessment(payload: {
+  lead_id: string; business_advisory_assessment_id?: string; target_countries: string[]; program_ids: string[];
+  available_capital_minor: number; liquid_capital_minor?: number; net_worth_minor?: number; currency: string;
+  risk_tolerance: "conservative" | "balanced" | "growth"; family_members: number; timeline_months: number;
+  capital_preservation_required: boolean; lawful_source_of_funds_confirmed: boolean;
+  disclosed_constraints: string[]; document_record_ids: string[];
+}): Promise<InvestmentSuitabilityAssessment> {
+  return request("/api/v1/investment-mobility/suitability/assessments", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export type FamilyOfficeStructure = {
+  name: string; structure_type: "operating_company" | "holding_company" | "trust" | "foundation";
+  jurisdiction: string; beneficial_ownership_disclosed: boolean;
+};
+
+export type FamilyOfficeWorkstream = {
+  workstream_key: string; title: string; readiness_score: number; readiness_band: string;
+  findings: string[]; blockers: string[]; next_actions: string[];
+};
+
+export type FamilyOfficeAssessment = {
+  id: string; lead_id: string; business_advisory_assessment_id: string | null;
+  family_office_name: string | null; readiness_score: number; readiness_band: string;
+  identity_score: number; wealth_evidence_score: number; ownership_transparency_score: number;
+  governance_score: number; mobility_grounding_score: number; workstreams: FamilyOfficeWorkstream[];
+  blockers: string[]; next_actions: string[]; evidence_basis: Array<Record<string, unknown>>;
+  grounded_pathway_versions: Array<Record<string, unknown>>;
+  grounded_program_versions: Array<Record<string, unknown>>; escalation_flags: string[];
+  status: string; human_review_required: boolean; generated_by: string;
+  reviewed_by: string | null; reviewed_at: string | null; review_notes: string | null;
+  score_semantics: string; created_at: string; updated_at: string;
+};
+
+export async function listFamilyOfficeAssessments(params?: { lead_id?: string; status?: string }): Promise<FamilyOfficeAssessment[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.status) search.set("status", params.status);
+  return request(`/api/v1/family-office-mobility/assessments${search.toString() ? `?${search}` : ""}`);
+}
+
+export async function createFamilyOfficeAssessment(payload: {
+  lead_id: string; family_office_name?: string; primary_objectives: string[];
+  target_jurisdictions: string[]; current_tax_residencies: string[]; citizenships: string[];
+  family_members: number; structures: FamilyOfficeStructure[]; asset_classes: string[];
+  estimated_net_worth_minor?: number; liquid_assets_minor?: number; currency?: string;
+  source_of_wealth_status: "unconfirmed" | "documented" | "independently_verified";
+  source_of_funds_status: "unconfirmed" | "documented" | "independently_verified";
+  beneficial_ownership_documented: boolean; screening_status: "pending" | "cleared" | "escalated";
+  pep_or_sanctions_exposure_disclosed: boolean; tax_adviser_engaged: boolean;
+  legal_adviser_engaged: boolean; succession_plan_documented: boolean;
+  banking_relationships_confirmed: boolean; disclosed_constraints: string[];
+  document_record_ids: string[];
+}): Promise<FamilyOfficeAssessment> {
+  return request("/api/v1/family-office-mobility/assessments", {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function reviewFamilyOfficeAssessment(
+  assessmentId: string,
+  decision: "approved" | "revision_required",
+  reason: string,
+): Promise<{ id: string; assessment_id: string; decision: string; reason: string; reviewer: string; created_at: string }> {
+  return request(`/api/v1/family-office-mobility/assessments/${assessmentId}/reviews`, {
+    method: "POST", body: JSON.stringify({ decision, reason }),
+  });
+}
+
+export type TaxTreatyEvidence = {
+  id: string; evidence_key: string; jurisdiction_a: string; jurisdiction_b: string;
+  topic: string; title: string; statement: string; official_source_id: string;
+  source_snapshot_id: string; source_url: string; source_content_hash: string;
+  effective_from: string | null; effective_to: string | null; status: string;
+  proposed_by: string; reviewed_by: string | null; reviewed_at: string | null;
+  review_notes: string | null; created_at: string; updated_at: string;
+};
+
+export type TaxResidencyIssue = {
+  issue_key: string; title: string; jurisdictions: string[];
+  severity: "information_gap" | "specialist_review" | "material";
+  rationale: string; evidence_state: string;
+};
+
+export type TaxResidencyWorkstream = {
+  workstream_key: string; title: string; readiness_score: number;
+  readiness_band: string; blockers: string[]; next_actions: string[];
+};
+
+export type TaxResidencyAssessment = {
+  id: string; lead_id: string; family_office_assessment_id: string | null;
+  business_advisory_assessment_id: string | null; tax_year: number;
+  readiness_score: number; readiness_band: string; fact_completeness_score: number;
+  controlled_evidence_score: number; treaty_grounding_score: number;
+  specialist_coordination_score: number; issue_matrix: TaxResidencyIssue[];
+  workstreams: TaxResidencyWorkstream[]; blockers: string[]; next_actions: string[];
+  evidence_basis: Array<Record<string, unknown>>; treaty_evidence_ids: string[];
+  escalation_flags: string[]; status: string; human_review_required: boolean;
+  generated_by: string; reviewed_by: string | null; reviewed_at: string | null;
+  review_notes: string | null; score_semantics: string; created_at: string; updated_at: string;
+};
+
+export async function listTaxTreatyEvidence(params?: {
+  status?: string; jurisdiction?: string;
+}): Promise<TaxTreatyEvidence[]> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.jurisdiction) search.set("jurisdiction", params.jurisdiction);
+  return request(`/api/v1/tax-residency/treaty-evidence${search.toString() ? `?${search}` : ""}`);
+}
+
+export async function createTaxTreatyEvidence(payload: {
+  evidence_key: string; jurisdiction_a: string; jurisdiction_b: string; topic: string;
+  title: string; statement: string; official_source_id: string; source_snapshot_id: string;
+  effective_from?: string; effective_to?: string;
+}): Promise<TaxTreatyEvidence> {
+  return request("/api/v1/tax-residency/treaty-evidence", {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function decideTaxTreatyEvidence(
+  evidenceId: string, decision: "approved" | "rejected", reason: string,
+): Promise<TaxTreatyEvidence> {
+  return request(`/api/v1/tax-residency/treaty-evidence/${evidenceId}/decisions`, {
+    method: "POST", body: JSON.stringify({ decision, reason }),
+  });
+}
+
+export async function listTaxResidencyAssessments(params?: {
+  lead_id?: string; status?: string;
+}): Promise<TaxResidencyAssessment[]> {
+  const search = new URLSearchParams();
+  if (params?.lead_id) search.set("lead_id", params.lead_id);
+  if (params?.status) search.set("status", params.status);
+  return request(`/api/v1/tax-residency/assessments${search.toString() ? `?${search}` : ""}`);
+}
+
+export async function createTaxResidencyAssessment(payload: {
+  lead_id: string; family_office_assessment_id?: string;
+  business_advisory_assessment_id?: string; tax_year: number;
+  current_residencies: string[]; target_residencies: string[]; citizenships: string[];
+  presence_periods: Array<{ jurisdiction: string; days: number }>;
+  available_homes: Array<{
+    jurisdiction: string;
+    home_type: "owned" | "leased" | "family_home" | "employer_provided" | "other";
+    continuously_available: boolean;
+  }>;
+  spouse_or_dependant_jurisdictions: string[]; employment_jurisdictions: string[];
+  director_or_control_jurisdictions: string[]; business_structure_jurisdictions: string[];
+  income_categories: string[]; planned_arrival_date?: string; planned_departure_date?: string;
+  objectives: string[]; disclosed_constraints: string[]; tax_adviser_engaged: boolean;
+  home_jurisdiction_adviser_engaged: boolean; destination_adviser_engaged: boolean;
+  document_record_ids: string[]; treaty_evidence_ids: string[];
+}): Promise<TaxResidencyAssessment> {
+  return request("/api/v1/tax-residency/assessments", {
+    method: "POST", body: JSON.stringify(payload),
+  });
+}
+
+export async function reviewTaxResidencyAssessment(
+  assessmentId: string,
+  decision: "specialist_reviewed" | "revision_required",
+  reason: string,
+): Promise<{ id: string; assessment_id: string; decision: string; reason: string; reviewer: string; created_at: string }> {
+  return request(`/api/v1/tax-residency/assessments/${assessmentId}/reviews`, {
+    method: "POST", body: JSON.stringify({ decision, reason }),
   });
 }

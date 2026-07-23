@@ -103,3 +103,27 @@ class InvestmentProgramRead(BaseModel):
     updated_at: datetime
     current_version: InvestmentProgramVersionRead | None
     versions: list[InvestmentProgramVersionRead] = Field(default_factory=list)
+
+
+class InvestmentProgramOnboardingItem(BaseModel):
+    country: str
+    readiness_state: str
+    active_official_sources: int
+    content_addressed_snapshots: int
+    active_verified_rules: int
+    draft_pathways: int
+    published_pathways: int
+    draft_programs: int
+    published_programs: int
+    blockers: list[str] = Field(default_factory=list)
+    next_action: str
+
+
+class InvestmentProgramOnboardingReadiness(BaseModel):
+    total_jurisdictions: int
+    source_ready: int
+    pathway_ready: int
+    awaiting_independent_review: int
+    published: int
+    blocked: int
+    items: list[InvestmentProgramOnboardingItem] = Field(default_factory=list)

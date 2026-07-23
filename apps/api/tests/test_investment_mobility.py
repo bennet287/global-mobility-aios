@@ -12,10 +12,10 @@ from app.models.domain import (
 )
 
 
-def _grounding(session: Session, *, country: str = "portugal"):
+def _grounding(session: Session, *, country: str = "portugal", source_domain: str = "investment"):
     source = OfficialSource(
         country=country,
-        domain="investment",
+        domain=source_domain,
         name=f"{country.title()} investment authority",
         url=f"https://investment.gov.{country[:2]}/program",
         active=True,
@@ -118,6 +118,51 @@ def test_program_rejects_mismatched_country_source(client: TestClient, db_sessio
     response = client.post("/api/v1/investment-mobility/programs", json=payload)
     assert response.status_code == 400
     assert "country" in response.json()["detail"].lower()
+
+
+def test_program_rejects_source_from_unrelated_regulatory_domain(
+    client: TestClient, db_session: Session,
+):
+    pathway, version, source, snapshot = _grounding(db_session, source_domain="visa")
+    response = client.post(
+        "/api/v1/investment-mobility/programs",
+        json=_payload(pathway, version, source, snapshot),
+    )
+    assert response.status_code == 400
+    assert "source domain" in response.json()["detail"].lower()
+
+
+def test_onboarding_readiness_exposes_review_gate_and_publication_progress(
+    client: TestClient, db_session: Session,
+):
+    pathway, version, source, snapshot = _grounding(db_session)
+    created = client.post(
+        "/api/v1/investment-mobility/programs",
+        json=_payload(pathway, version, source, snapshot),
+    )
+    assert created.status_code == 201, created.text
+
+    pending = client.get("/api/v1/investment-mobility/onboarding/readiness?country=portugal")
+    assert pending.status_code == 200, pending.text
+    pending_body = pending.json()
+    assert pending_body["total_jurisdictions"] == 1
+    assert pending_body["awaiting_independent_review"] == 1
+    assert pending_body["items"][0]["readiness_state"] == "awaiting_program_review"
+    assert pending_body["items"][0]["published_programs"] == 0
+
+    client.headers["X-GMAI-User"] = "pytest-investment-reviewer"
+    published = client.post(
+        f"/api/v1/investment-mobility/versions/{created.json()['current_version']['id']}/publish",
+        json={"review_notes": "Independently verified against the exact pinned source snapshot."},
+    )
+    assert published.status_code == 200, published.text
+
+    ready = client.get("/api/v1/investment-mobility/onboarding/readiness?country=portugal")
+    assert ready.status_code == 200, ready.text
+    ready_body = ready.json()
+    assert ready_body["published"] == 1
+    assert ready_body["blocked"] == 0
+    assert ready_body["items"][0]["readiness_state"] == "published"
 
 
 def test_program_rejects_guaranteed_outcome_claim(client: TestClient, db_session: Session):

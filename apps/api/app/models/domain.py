@@ -1557,6 +1557,216 @@ class InvestmentMobilityProgramVersion(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class InvestmentMobilitySuitabilityAssessment(SQLModel, table=True):
+    __tablename__ = "investment_mobility_suitability_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    business_advisory_assessment_id: Optional[UUID] = Field(default=None, index=True, foreign_key="business_mobility_advisory_assessments.id")
+    input_json: str
+    candidate_program_version_ids_json: str
+    ranked_programs_json: str
+    blockers_json: str
+    next_actions_json: str
+    evidence_basis_json: str
+    overall_readiness_score: float
+    readiness_band: str = Field(index=True)
+    status: str = Field(default="pending_review", index=True)
+    human_review_required: bool = True
+    generated_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class InvestmentMobilitySuitabilityReview(SQLModel, table=True):
+    __tablename__ = "investment_mobility_suitability_reviews"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assessment_id: UUID = Field(index=True, foreign_key="investment_mobility_suitability_assessments.id")
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class FamilyOfficeMobilityAssessment(SQLModel, table=True):
+    __tablename__ = "family_office_mobility_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    business_advisory_assessment_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="business_mobility_advisory_assessments.id",
+    )
+    family_office_name: Optional[str] = Field(default=None, index=True)
+    input_json: str
+    readiness_score: float
+    readiness_band: str = Field(index=True)
+    identity_score: float
+    wealth_evidence_score: float
+    ownership_transparency_score: float
+    governance_score: float
+    mobility_grounding_score: float
+    workstreams_json: str
+    blockers_json: str
+    next_actions_json: str
+    evidence_basis_json: str
+    grounded_pathway_versions_json: str
+    grounded_program_versions_json: str
+    escalation_flags_json: str
+    status: str = Field(default="pending_review", index=True)
+    human_review_required: bool = True
+    generated_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class FamilyOfficeMobilityReview(SQLModel, table=True):
+    __tablename__ = "family_office_mobility_reviews"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assessment_id: UUID = Field(
+        index=True,
+        foreign_key="family_office_mobility_assessments.id",
+    )
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class TaxTreatyEvidence(SQLModel, table=True):
+    __tablename__ = "tax_treaty_evidence"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    evidence_key: str = Field(index=True, unique=True)
+    jurisdiction_a: str = Field(index=True)
+    jurisdiction_b: str = Field(index=True)
+    topic: str = Field(index=True)
+    title: str
+    statement: str
+    official_source_id: UUID = Field(index=True, foreign_key="official_sources.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    effective_from: Optional[datetime] = Field(default=None, index=True)
+    effective_to: Optional[datetime] = Field(default=None, index=True)
+    status: str = Field(default="pending_review", index=True)
+    proposed_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class TaxTreatyEvidenceDecision(SQLModel, table=True):
+    __tablename__ = "tax_treaty_evidence_decisions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    tax_treaty_evidence_id: UUID = Field(
+        index=True,
+        foreign_key="tax_treaty_evidence.id",
+    )
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class TaxResidencyAssessment(SQLModel, table=True):
+    __tablename__ = "tax_residency_assessments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    family_office_assessment_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="family_office_mobility_assessments.id",
+    )
+    business_advisory_assessment_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="business_mobility_advisory_assessments.id",
+    )
+    tax_year: int = Field(index=True)
+    input_json: str
+    readiness_score: float
+    readiness_band: str = Field(index=True)
+    fact_completeness_score: float
+    controlled_evidence_score: float
+    treaty_grounding_score: float
+    specialist_coordination_score: float
+    issue_matrix_json: str
+    workstreams_json: str
+    blockers_json: str
+    next_actions_json: str
+    evidence_basis_json: str
+    treaty_evidence_ids_json: str
+    escalation_flags_json: str
+    status: str = Field(default="specialist_review_required", index=True)
+    human_review_required: bool = True
+    generated_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class TaxResidencyAssessmentReview(SQLModel, table=True):
+    __tablename__ = "tax_residency_assessment_reviews"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    assessment_id: UUID = Field(
+        index=True,
+        foreign_key="tax_residency_assessments.id",
+    )
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class InvestmentMobilityRuleProposal(SQLModel, table=True):
+    __tablename__ = "investment_mobility_rule_proposals"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    pathway_version_id: UUID = Field(index=True, foreign_key="mobility_pathway_versions.id")
+    official_source_id: UUID = Field(index=True, foreign_key="official_sources.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    proposed_rules_json: str
+    status: str = Field(default="pending_review", index=True)
+    proposed_by: str = Field(index=True)
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_notes: Optional[str] = None
+    created_verified_rule_ids_json: str = "[]"
+    replacement_pathway_version_id: Optional[UUID] = Field(
+        default=None,
+        index=True,
+        foreign_key="mobility_pathway_versions.id",
+    )
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class InvestmentMobilityRuleDecision(SQLModel, table=True):
+    __tablename__ = "investment_mobility_rule_decisions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    proposal_id: UUID = Field(index=True, foreign_key="investment_mobility_rule_proposals.id")
+    decision: str = Field(index=True)
+    reason: str
+    reviewer: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

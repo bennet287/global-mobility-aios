@@ -9,15 +9,20 @@ import { WorkspaceShell } from "../../components/WorkspaceShell";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import {
   InvestmentProgram,
+  InvestmentProgramOnboardingReadiness,
+  InvestmentRuleProposal,
   MobilityPathway,
   OfficialSourceView,
   SourceSnapshotView,
   createInvestmentProgram,
+  getInvestmentProgramOnboardingReadiness,
   listInvestmentPrograms,
+  listInvestmentRuleProposals,
   listOfficialSources,
   listPathways,
   listSourceSnapshots,
   publishInvestmentProgramVersion,
+  reviewInvestmentRuleProposal,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
 
@@ -36,12 +41,15 @@ function lines(value: string) { return value.split(/[\n,]/).map((item) => item.t
 export default function InvestmentMobilityPage() {
   const { health } = useBackendStatus();
   const [programs, setPrograms] = useState<InvestmentProgram[]>([]);
+  const [onboarding, setOnboarding] = useState<InvestmentProgramOnboardingReadiness | null>(null);
+  const [ruleProposals, setRuleProposals] = useState<InvestmentRuleProposal[]>([]);
   const [pathways, setPathways] = useState<MobilityPathway[]>([]);
   const [sources, setSources] = useState<OfficialSourceView[]>([]);
   const [snapshots, setSnapshots] = useState<SourceSnapshotView[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [form, setForm] = useState<ProgramForm>(emptyForm);
   const [reviewNotes, setReviewNotes] = useState("");
+  const [ruleReviewNotes, setRuleReviewNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,12 +58,15 @@ export default function InvestmentMobilityPage() {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const [programRows, activePathways, sourceRows] = await Promise.all([
+      const [programRows, activePathways, sourceRows, onboardingRows, proposalRows] = await Promise.all([
         listInvestmentPrograms(), listPathways({ catalogue_status: "active" }), listOfficialSources(),
+        getInvestmentProgramOnboardingReadiness(), listInvestmentRuleProposals("pending_review"),
       ]);
       setPrograms(programRows);
       setPathways(activePathways.filter((item) => ["investment", "wealth", "business", "entrepreneur"].includes(item.domain)));
       setSources(sourceRows.sources.filter((item) => item.active));
+      setOnboarding(onboardingRows);
+      setRuleProposals(proposalRows);
       setSelectedId((current) => current || programRows[0]?.id || "");
     } catch (err) { setError(err instanceof Error ? err.message : "Investment programme catalogue could not be loaded"); }
     finally { setLoading(false); }
@@ -115,6 +126,23 @@ export default function InvestmentMobilityPage() {
     finally { setWorking(null); }
   }
 
+  async function decideRuleProposal(proposal: InvestmentRuleProposal, decision: "approved" | "rejected") {
+    const reason = (ruleReviewNotes[proposal.id] || "").trim();
+    setWorking(`rule-${proposal.id}`); setError(null); setMessage(null);
+    try {
+      const reviewed = await reviewInvestmentRuleProposal(proposal.id, decision, reason);
+      setRuleProposals((current) => current.filter((item) => item.id !== proposal.id));
+      setRuleReviewNotes((current) => {
+        const next = { ...current }; delete next[proposal.id]; return next;
+      });
+      setMessage(decision === "approved"
+        ? `${reviewed.pathway_name} rules were verified and copied into a new controlled pathway draft. Publication still requires a separate decision.`
+        : `${reviewed.pathway_name} rule proposal was rejected without creating verified rules.`);
+      await load();
+    } catch (err) { setError(err instanceof Error ? err.message : "Rule proposal could not be reviewed"); }
+    finally { setWorking(null); }
+  }
+
   return (
     <WorkspaceShell health={health}>
       <Topbar title="Investment Programs" kicker="Phase 11 · Source-controlled programme intelligence" loadStatus={loading ? "loading" : error ? "partial" : "ready"} onRefresh={() => void load()} />
@@ -126,6 +154,56 @@ export default function InvestmentMobilityPage() {
 
       {error ? <InlineNotice label="Catalogue action stopped" detail={error} tone="bad" /> : null}
       {message ? <InlineNotice label="Catalogue updated" detail={message} tone="good" /> : null}
+
+      {onboarding ? <section className="panel investment-onboarding">
+        <header className="investment-onboarding-head">
+          <div><span className="eyebrow">Jurisdiction onboarding</span><h3>Evidence pipeline</h3><p>Every country advances through eligible source, immutable snapshot, published pathway, and independent program review.</p></div>
+          <span>{onboarding.blocked} require work</span>
+        </header>
+        <div className="investment-onboarding-metrics">
+          <div><strong>{onboarding.source_ready}</strong><span>Source snapshots ready</span></div>
+          <div><strong>{onboarding.pathway_ready}</strong><span>Published pathways</span></div>
+          <div><strong>{onboarding.awaiting_independent_review}</strong><span>Awaiting review</span></div>
+          <div><strong>{onboarding.published}</strong><span>Programs published</span></div>
+        </div>
+        <div className="investment-onboarding-list">
+          {onboarding.items.slice(0, 6).map((item) => <article key={item.country}>
+            <div><strong>{titleCase(item.country)}</strong><StatusBadge value={item.readiness_state} /></div>
+            <p>{item.next_action}</p>
+            <small>{item.blockers.length} open gate{item.blockers.length === 1 ? "" : "s"}</small>
+          </article>)}
+        </div>
+        {onboarding.published === 0 ? <p className="investment-onboarding-note">No comparison will be generated until at least one source-grounded program completes independent publication. Existing visa-domain sources cannot be reused as investment evidence.</p> : null}
+      </section> : null}
+
+      <section className="panel investment-rule-review">
+        <header className="investment-onboarding-head">
+          <div><span className="eyebrow">Independent rule review</span><h3>Source-pinned proposals</h3><p>Review extracted rules against the exact official snapshot. Approval creates verified rules and a new pathway draft; it never publishes a client-facing pathway.</p></div>
+          <span>{ruleProposals.length} pending</span>
+        </header>
+        {ruleProposals.length ? <div className="investment-rule-review-list">
+          {ruleProposals.map((proposal) => {
+            const notes = ruleReviewNotes[proposal.id] || "";
+            const busy = working === `rule-${proposal.id}`;
+            return <article key={proposal.id}>
+              <header>
+                <div><strong>{proposal.pathway_name}</strong><small>{titleCase(proposal.country)} · proposed by {proposal.proposed_by}</small></div>
+                <StatusBadge value={proposal.status} />
+              </header>
+              <div className="investment-rule-source">
+                <a href={proposal.source_url} target="_blank" rel="noreferrer">Open official source</a>
+                <code>sha256:{proposal.source_content_hash.slice(0, 16)}…</code>
+              </div>
+              <ul>{proposal.rules.map((rule) => <li key={rule.rule_key}><strong>{titleCase(rule.evidence_scope)}</strong><span>{rule.statement}</span></li>)}</ul>
+              <label className="advisory-field"><span>Independent decision record</span><textarea rows={3} minLength={10} value={notes} onChange={(event) => setRuleReviewNotes((current) => ({ ...current, [proposal.id]: event.target.value }))} placeholder="Record what you verified against the pinned official source, or why the proposal must be corrected." /></label>
+              <div className="investment-rule-actions">
+                <button type="button" className="button secondary" disabled={busy || notes.trim().length < 10} onClick={() => void decideRuleProposal(proposal, "rejected")}>Reject proposal</button>
+                <button type="button" className="button primary" disabled={busy || notes.trim().length < 10} onClick={() => void decideRuleProposal(proposal, "approved")}>{busy ? "Recording…" : "Approve verified rules"}</button>
+              </div>
+            </article>;
+          })}
+        </div> : <div className="investment-rule-empty"><strong>No rule proposals awaiting review</strong><span>New source-pinned extractions will appear here before they can enter a pathway.</span></div>}
+      </section>
 
       <div className="investment-layout">
         <section className="panel investment-ledger">

@@ -20,7 +20,9 @@ type IconName =
   | "coaching"
   | "corporate"
   | "advisory"
-  | "investment";
+  | "investment"
+  | "family"
+  | "tax";
 
 const navGroups: { label: string; items: { label: string; href: string; icon: IconName }[] }[] = [
   {
@@ -52,6 +54,9 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
       { label: "Corporate Mobility", href: "/corporate-mobility", icon: "corporate" },
       { label: "Business & Wealth Advisor", href: "/business-advisory", icon: "advisory" },
       { label: "Investment Programs", href: "/investment-mobility", icon: "investment" },
+      { label: "Investor Suitability", href: "/investment-suitability", icon: "advisory" },
+      { label: "Family Office", href: "/family-office", icon: "family" },
+      { label: "Tax & Treaty", href: "/tax-residency", icon: "tax" },
     ],
   },
   {
@@ -173,5 +178,9 @@ function NavIcon({ name }: { name: IconName }) {
       return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="m15.8 8.2-2.1 5.5-5.5 2.1 2.1-5.5 5.5-2.1ZM12 3v2M21 12h-2M12 21v-2M3 12h2" /></svg>;
     case "investment":
       return <svg {...common}><path d="M4 8.5 12 4l8 4.5-8 4.5-8-4.5ZM6 11v6M10 13v6M14 13v6M18 11v6M4 20h16" /></svg>;
+    case "family":
+      return <svg {...common}><circle cx="9" cy="7" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3.5 20c.5-4 2.3-6 5.5-6s5 2 5.5 6M14 15c3.4-.5 5.5 1.2 6.5 5M4 3h16M4 3v18M20 3v18" /></svg>;
+    case "tax":
+      return <svg {...common}><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4" /><path d="m9 7 1.2 1.2L13 5.5" /></svg>;
   }
 }

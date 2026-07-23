@@ -1660,6 +1660,52 @@ a {
   .advisory-history-list .status-badge { grid-column: 1 / 3; justify-self: start; }
 }
 
+/* Phase 11.6 — client investment-mobility readiness */
+.suitability-hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 40px; align-items: end; margin-bottom: 20px; padding: 38px 40px; overflow: hidden; border: 1px solid rgba(83,86,139,.18); border-radius: 24px; color: #f5f2ea; background: radial-gradient(circle at 82% 12%, rgba(183,186,232,.22), transparent 30%), linear-gradient(132deg, #444776, #252742 55%, #151622); box-shadow: 0 25px 58px rgba(28,29,53,.16); }
+.suitability-hero h2 { max-width: 830px; margin: 8px 0 12px; font-size: clamp(34px, 4vw, 62px); font-weight: 420; letter-spacing: -.058em; line-height: .97; }
+.suitability-hero p { max-width: 730px; margin: 0; color: rgba(255,255,255,.65); line-height: 1.6; }
+.suitability-hero .eyebrow { color: #c2c4ed; }
+.suitability-control { display: grid; gap: 5px; padding: 22px; border: 1px solid rgba(255,255,255,.13); border-radius: 16px; background: rgba(255,255,255,.055); }
+.suitability-control strong { font-size: 43px; font-weight: 430; letter-spacing: -.06em; }
+.suitability-control span { font-size: 10px; font-weight: 700; }
+.suitability-control small { margin-top: 8px; color: rgba(255,255,255,.52); font-size: 8px; }
+.suitability-layout { display: grid; grid-template-columns: minmax(370px, .65fr) minmax(0, 1.35fr); gap: 17px; align-items: start; margin-top: 18px; }
+.suitability-form { position: sticky; top: 18px; display: grid; gap: 14px; padding: 24px; }
+.suitability-money-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.suitability-program-picker { display: grid; gap: 7px; }
+.suitability-program-picker > span { color: var(--ink-muted); font-size: 9px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.suitability-program-picker > label { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; padding: 11px; border: 1px solid var(--line-subtle); border-radius: 10px; cursor: pointer; }
+.suitability-program-picker > label.selected { border-color: var(--accent); background: var(--accent-soft); }
+.suitability-program-picker label > span { display: grid; gap: 3px; }
+.suitability-program-picker strong { font-size: 9px; }
+.suitability-program-picker small { color: var(--ink-soft); font-size: 8px; }
+.suitability-program-picker b { font-size: 9px; font-weight: 600; }
+.suitability-program-picker input { accent-color: var(--accent); }
+.suitability-results { display: grid; gap: 16px; min-width: 0; }
+.suitability-score { padding: 24px; }
+.suitability-score > div:last-child { display: grid; grid-template-columns: 175px 1fr; gap: 24px; align-items: center; margin-top: 18px; }
+.suitability-score .feasibility-meter { width: 155px; height: 155px; }
+.suitability-score .feasibility-meter > div { width: 119px; height: 119px; }
+.suitability-score > div:last-child > p { color: var(--ink-muted); font-size: 10px; line-height: 1.6; }
+.suitability-ranking { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.suitability-program { padding: 19px; }
+.suitability-program > header { display: flex; justify-content: space-between; align-items: center; }
+.suitability-program > header > span { color: var(--ink-soft); font-size: 10px; }
+.suitability-program h3 { margin: 18px 0 5px; font-size: 19px; letter-spacing: -.035em; }
+.suitability-program > p { margin: 0 0 17px; color: var(--ink-soft); font-size: 8px; }
+.suitability-bars { display: grid; gap: 9px; }
+.suitability-bars > div { display: grid; grid-template-columns: 1fr auto; gap: 5px; }
+.suitability-bars span { color: var(--ink-muted); font-size: 8px; font-weight: 700; text-transform: uppercase; }
+.suitability-bars b { font-size: 9px; }
+.suitability-bars i { grid-column: 1 / 3; height: 4px; overflow: hidden; border-radius: 8px; background: var(--line-subtle); }
+.suitability-bars em { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4f538d, #888cc3); }
+.suitability-program > section { margin-top: 16px; padding: 12px; border-radius: 10px; background: var(--amber-soft); }
+.suitability-program > section strong { font-size: 9px; }
+.suitability-program > section p { margin: 6px 0 0; color: var(--ink-muted); font-size: 8px; line-height: 1.45; }
+.suitability-program footer { margin-top: 14px; color: var(--ink-soft); font-size: 8px; }
+@media (max-width: 1160px) { .suitability-hero, .suitability-layout { grid-template-columns: 1fr; } .suitability-form { position: static; } }
+@media (max-width: 720px) { .suitability-hero { padding: 27px 23px; } .suitability-ranking, .suitability-money-grid { grid-template-columns: 1fr; } .suitability-score > div:last-child { grid-template-columns: 1fr; } .suitability-score .feasibility-meter { margin: 0 auto; } }
+
 /* Phase 11.5 — governed investment programme catalogue */
 .investment-hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(380px, .75fr); gap: 40px; align-items: end; margin-bottom: 20px; padding: 38px 40px; border: 1px solid var(--line); border-radius: 24px; background: radial-gradient(circle at 83% 15%, rgba(112,115,176,.13), transparent 29%), linear-gradient(135deg, var(--surface) 0%, var(--surface-muted) 100%); box-shadow: var(--shadow-soft); }
 .investment-hero h2 { max-width: 750px; margin: 8px 0 12px; font-size: clamp(34px, 4.3vw, 66px); font-weight: 420; letter-spacing: -.06em; line-height: .96; }
@@ -1669,6 +1715,143 @@ a {
 .investment-hero-metrics div:last-child { border-right: 0; }
 .investment-hero-metrics strong { font-size: 32px; font-weight: 430; letter-spacing: -.06em; }
 .investment-hero-metrics span { color: var(--ink-soft); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.investment-onboarding { margin-top: 18px; padding: 24px; }
+.investment-onboarding-head { display: flex; justify-content: space-between; gap: 28px; align-items: flex-start; }
+.investment-onboarding-head h3 { margin: 6px 0 5px; font-size: 24px; font-weight: 520; letter-spacing: -.04em; }
+.investment-onboarding-head p { max-width: 720px; margin: 0; color: var(--ink-muted); font-size: 12px; line-height: 1.55; }
+.investment-onboarding-head > span { flex: none; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); font-size: 9px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; }
+.investment-onboarding-metrics { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 20px; border-block: 1px solid var(--line); }
+.investment-onboarding-metrics div { display: grid; gap: 5px; padding: 17px 18px; border-right: 1px solid var(--line); }
+.investment-onboarding-metrics div:last-child { border-right: 0; }
+.investment-onboarding-metrics strong { font-size: 28px; font-weight: 450; letter-spacing: -.05em; }
+.investment-onboarding-metrics span { color: var(--ink-soft); font-size: 8px; font-weight: 780; letter-spacing: .07em; text-transform: uppercase; }
+.investment-onboarding-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 14px; }
+.investment-onboarding-list article { display: grid; gap: 10px; min-height: 120px; padding: 14px; border: 1px solid var(--line-subtle); border-radius: 13px; background: color-mix(in srgb, var(--surface-muted) 72%, transparent); }
+.investment-onboarding-list article > div { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.investment-onboarding-list article strong { font-size: 13px; }
+.investment-onboarding-list article p { margin: 0; color: var(--ink-muted); font-size: 10px; line-height: 1.5; }
+.investment-onboarding-list article small { align-self: end; color: var(--ink-soft); font-size: 8px; font-weight: 750; text-transform: uppercase; letter-spacing: .05em; }
+.investment-onboarding-note { margin: 14px 0 0; padding: 11px 13px; border-left: 2px solid var(--accent); background: var(--surface-muted); color: var(--ink-muted); font-size: 10px; line-height: 1.5; }
+.investment-rule-review { margin-top: 18px; padding: 24px; }
+.investment-rule-review-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+.investment-rule-review-list article { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: color-mix(in srgb, var(--surface-muted) 58%, transparent); }
+.investment-rule-review-list article > header,
+.investment-rule-source,
+.investment-rule-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.investment-rule-review-list article > header div { display: grid; gap: 4px; }
+.investment-rule-review-list article > header strong { font-size: 15px; }
+.investment-rule-review-list article > header small { color: var(--ink-soft); font-size: 9px; }
+.investment-rule-source { padding: 9px 11px; border: 1px solid var(--line-subtle); border-radius: 10px; background: var(--surface); font-size: 9px; }
+.investment-rule-source a { color: var(--accent); font-weight: 700; }
+.investment-rule-source code { color: var(--ink-soft); font-size: 8px; }
+.investment-rule-review-list ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.investment-rule-review-list li { display: grid; grid-template-columns: 145px 1fr; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line-subtle); }
+.investment-rule-review-list li strong { color: var(--ink-soft); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.investment-rule-review-list li span { color: var(--ink-muted); font-size: 10px; line-height: 1.5; }
+.investment-rule-actions { justify-content: flex-end; }
+.investment-rule-empty { display: grid; place-items: center; gap: 6px; min-height: 130px; margin-top: 18px; border: 1px dashed var(--line); border-radius: 13px; color: var(--ink-muted); text-align: center; }
+.investment-rule-empty strong { color: var(--ink); font-size: 13px; }
+.investment-rule-empty span { font-size: 10px; }
+
+/* Phase 11.10 — HNWI and family-office mobility */
+.family-office-hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, .55fr); gap: 34px; align-items: end; margin-bottom: 22px; padding: 42px 46px; border: 1px solid var(--line); border-radius: 26px; background: radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 34%), var(--surface); box-shadow: var(--shadow-soft); }
+.family-office-hero h2 { max-width: 900px; margin: 10px 0 14px; font-size: clamp(42px, 5vw, 76px); font-weight: 430; letter-spacing: -.065em; line-height: .98; }
+.family-office-hero p { max-width: 850px; margin: 0; color: var(--ink-muted); font-size: 14px; line-height: 1.65; }
+.family-office-principles { display: grid; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: color-mix(in srgb, var(--surface-muted) 74%, transparent); }
+.family-office-principles span { padding: 16px 18px; border-bottom: 1px solid var(--line-subtle); color: var(--ink-muted); font-size: 10px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
+.family-office-principles span:last-child { border-bottom: 0; }
+.family-office-principles span::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 10px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 12%, transparent); }
+.family-office-layout { display: grid; grid-template-columns: minmax(380px, .72fr) minmax(0, 1.28fr); gap: 18px; align-items: start; }
+.family-office-form { padding: 26px; }
+.family-office-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.family-office-form-grid .wide { grid-column: 1 / -1; }
+.family-office-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 18px 0; }
+.family-office-checks label { display: flex; gap: 9px; align-items: flex-start; min-height: 46px; padding: 11px; border: 1px solid var(--line-subtle); border-radius: 10px; background: var(--surface-muted); color: var(--ink-muted); font-size: 10px; line-height: 1.35; }
+.family-office-results { display: grid; gap: 14px; }
+.family-office-score { padding: 26px; }
+.family-office-score-body { display: grid; grid-template-columns: 180px 1fr; gap: 30px; align-items: center; margin-top: 18px; }
+.family-office-score > p { margin: 18px 0 0; color: var(--ink-soft); font-size: 9px; line-height: 1.5; }
+.family-office-components { display: grid; gap: 10px; }
+.family-office-components div { display: grid; grid-template-columns: 120px 35px 1fr; gap: 10px; align-items: center; }
+.family-office-components span { color: var(--ink-muted); font-size: 10px; }
+.family-office-components strong { font-size: 11px; text-align: right; }
+.family-office-components i { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line-subtle); }
+.family-office-components em { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.family-office-workstreams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.family-office-workstreams article { position: relative; min-height: 205px; padding: 20px; }
+.family-office-workstreams article:last-child { grid-column: 1 / -1; }
+.family-office-workstreams article header { display: flex; justify-content: space-between; align-items: center; }
+.family-office-workstreams article header > span { color: var(--ink-soft); font-size: 11px; font-weight: 750; }
+.family-office-workstreams article h3 { max-width: 75%; margin: 24px 0 5px; font-size: 20px; font-weight: 520; letter-spacing: -.04em; }
+.family-office-workstreams article > strong { position: absolute; top: 58px; right: 20px; font-size: 25px; font-weight: 430; }
+.family-office-workstreams article ul { display: grid; gap: 5px; margin: 13px 0; padding-left: 17px; color: var(--danger); font-size: 9px; line-height: 1.45; }
+.family-office-workstreams article p,
+.family-office-workstreams article small { color: var(--ink-muted); font-size: 9px; line-height: 1.5; }
+.family-office-workstreams article small { display: block; margin-top: 13px; padding-top: 10px; border-top: 1px solid var(--line-subtle); }
+.family-office-actions { padding: 24px; }
+.family-office-actions ol { display: grid; gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; counter-reset: family-action; }
+.family-office-actions li { counter-increment: family-action; display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; color: var(--ink-muted); font-size: 10px; line-height: 1.5; }
+.family-office-actions li::before { content: counter(family-action, decimal-leading-zero); color: var(--accent); font-size: 9px; font-weight: 800; }
+.family-office-review { display: grid; gap: 12px; padding: 22px; }
+.family-office-review > div { display: flex; justify-content: flex-end; gap: 8px; }
+.family-office-review small { color: var(--ink-soft); font-size: 9px; }
+
+/* Phase 11.11 — tax-residency and treaty coordination */
+.tax-hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(390px, .65fr); gap: 38px; align-items: end; margin-bottom: 18px; padding: 36px 42px; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 24px; background: radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34%), linear-gradient(145deg, color-mix(in srgb, var(--surface) 92%, var(--accent) 8%), var(--surface)); box-shadow: var(--shadow-soft); }
+.tax-hero h2 { max-width: 920px; margin: 9px 0 12px; font-size: clamp(40px, 4.4vw, 66px); font-weight: 420; letter-spacing: -.065em; line-height: .96; }
+.tax-hero p { max-width: 860px; margin: 0; color: var(--ink-muted); font-size: 14px; line-height: 1.65; }
+.tax-hero-ledger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface-muted) 78%, transparent); }
+.tax-hero-ledger div { min-height: 96px; padding: 16px; border-right: 1px solid var(--line); }
+.tax-hero-ledger div:last-child { border-right: 0; }
+.tax-hero-ledger strong { display: block; margin-bottom: 14px; font-size: 30px; font-weight: 430; letter-spacing: -.05em; }
+.tax-hero-ledger span { color: var(--ink-soft); font-size: 8px; font-weight: 760; letter-spacing: .06em; line-height: 1.35; text-transform: uppercase; }
+.tax-layout { display: grid; grid-template-columns: minmax(560px, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.tax-form,
+.tax-evidence-form,
+.tax-review-queue,
+.tax-score,
+.tax-issues { padding: 26px; }
+.tax-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.tax-form-grid .wide { grid-column: 1 / -1; }
+.tax-advisers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.tax-advisers label { display: flex; gap: 9px; align-items: flex-start; min-height: 48px; padding: 11px; border: 1px solid var(--line-subtle); border-radius: 10px; background: var(--surface-muted); color: var(--ink-muted); font-size: 9px; line-height: 1.4; }
+.tax-evidence-picker { display: grid; gap: 7px; margin: 0 0 18px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; }
+.tax-evidence-picker legend { padding: 0 7px; color: var(--ink-soft); font-size: 8px; font-weight: 780; letter-spacing: .07em; text-transform: uppercase; }
+.tax-evidence-picker label { display: flex; gap: 10px; padding: 10px; border-radius: 9px; background: var(--surface-muted); }
+.tax-evidence-picker label span { display: grid; gap: 3px; }
+.tax-evidence-picker label strong { font-size: 10px; }
+.tax-evidence-picker label small,
+.tax-evidence-picker p { margin: 0; color: var(--ink-muted); font-size: 9px; line-height: 1.45; }
+.tax-results { position: sticky; top: 18px; display: grid; gap: 14px; max-height: calc(100vh - 36px); overflow: auto; scrollbar-width: thin; }
+.tax-empty-result { display: grid; gap: 12px; }
+.tax-empty-guide { padding: 22px; }
+.tax-empty-guide header { display: flex; justify-content: space-between; gap: 18px; align-items: baseline; padding-bottom: 14px; border-bottom: 1px solid var(--line-subtle); }
+.tax-empty-guide header strong { font-size: 15px; font-weight: 560; }
+.tax-empty-guide ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.tax-empty-guide li { display: grid; grid-template-columns: 25px 1fr; gap: 9px; min-height: 92px; padding: 13px; border: 1px solid var(--line-subtle); border-radius: 11px; background: var(--surface-muted); }
+.tax-empty-guide li > span { color: var(--accent); font-size: 8px; font-weight: 800; }
+.tax-empty-guide li div { display: grid; gap: 6px; align-content: start; }
+.tax-empty-guide li strong { font-size: 10px; }
+.tax-empty-guide li small { color: var(--ink-muted); font-size: 8px; line-height: 1.45; }
+.tax-score > p { margin: 18px 0 0; color: var(--ink-soft); font-size: 9px; line-height: 1.5; }
+.tax-issues > div { display: grid; gap: 8px; margin-top: 18px; }
+.tax-issues article { padding: 15px; border: 1px solid var(--line-subtle); border-radius: 11px; background: var(--surface-muted); }
+.tax-issues article header { display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; }
+.tax-issues article strong { max-width: 75%; font-size: 12px; font-weight: 620; }
+.tax-issues article p { margin: 9px 0; color: var(--ink-muted); font-size: 9px; line-height: 1.5; }
+.tax-issues article small { color: var(--ink-soft); font-size: 8px; }
+.tax-evidence-desk { display: grid; grid-template-columns: minmax(420px, .85fr) minmax(0, 1.15fr); gap: 18px; align-items: start; margin-top: 18px; }
+.tax-review-queue { position: sticky; top: 18px; }
+.tax-review-queue > .advisory-field { margin: 18px 0 12px; }
+.tax-review-list { display: grid; gap: 9px; }
+.tax-review-list article { padding: 17px; border: 1px solid var(--line-subtle); border-radius: 12px; background: var(--surface-muted); }
+.tax-review-list article > div { display: flex; justify-content: space-between; align-items: center; }
+.tax-review-list article > div > span { color: var(--accent); font-size: 8px; font-weight: 780; letter-spacing: .07em; text-transform: uppercase; }
+.tax-review-list h4 { margin: 14px 0 7px; font-size: 15px; font-weight: 560; letter-spacing: -.025em; }
+.tax-review-list p { margin: 0; color: var(--ink-muted); font-size: 9px; line-height: 1.55; }
+.tax-review-list small { display: block; margin-top: 10px; color: var(--ink-soft); font-size: 8px; }
+.tax-review-list footer { display: flex; justify-content: flex-end; gap: 7px; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line-subtle); }
+.tax-empty { display: grid; min-height: 190px; place-items: center; margin-top: 18px; border: 1px dashed var(--line); border-radius: 12px; color: var(--ink-muted); font-size: 10px; }
 
 .investment-layout { display: grid; grid-template-columns: minmax(300px, .36fr) minmax(0, .64fr); gap: 16px; align-items: start; margin-top: 18px; }
 .investment-ledger { padding: 22px; }
@@ -1723,14 +1906,40 @@ a {
 @media (max-width: 1180px) {
   .investment-hero,
   .investment-layout { grid-template-columns: 1fr; }
+  .investment-onboarding-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .investment-rule-review-list { grid-template-columns: 1fr; }
+  .family-office-hero,
+  .family-office-layout,
+  .tax-hero,
+  .tax-layout,
+  .tax-evidence-desk { grid-template-columns: 1fr; }
+  .tax-results,
+  .tax-review-queue { position: static; max-height: none; overflow: visible; }
   .investment-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 680px) {
   .investment-hero { padding: 27px 23px; }
+  .tax-hero { padding: 27px 23px; }
   .investment-hero-metrics,
+  .investment-onboarding-metrics,
+  .investment-onboarding-list,
   .investment-facts,
   .investment-form-grid { grid-template-columns: 1fr; }
+  .investment-onboarding-head { display: grid; }
+  .investment-rule-review-list li { grid-template-columns: 1fr; gap: 5px; }
+  .family-office-form-grid,
+  .family-office-checks,
+  .family-office-workstreams,
+  .family-office-score-body,
+  .tax-form-grid,
+  .tax-hero-ledger,
+  .tax-empty-guide ol { grid-template-columns: 1fr; }
+  .family-office-workstreams article:last-child { grid-column: auto; }
+  .tax-advisers { grid-template-columns: 1fr; }
+  .tax-form-grid .wide { grid-column: auto; }
+  .tax-hero-ledger div { border-right: 0; border-bottom: 1px solid var(--line); }
+  .tax-hero-ledger div:last-child { border-bottom: 0; }
   .investment-hero-metrics div { border-right: 0; border-bottom: 1px solid var(--line); }
   .investment-provenance > div { grid-template-columns: 1fr; }
 }
@@ -3970,6 +4179,13 @@ a {
 .global-intelligence-hero p { max-width: 720px; margin: 9px 0 0; color: var(--ink-muted); font-size: 12px; line-height: 1.55; }
 .global-intelligence-hero label { display: grid; gap: 7px; color: var(--ink); font-size: 11px; font-weight: 850; }
 .global-intelligence-hero select { width: 100%; padding: 10px 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-muted); color: var(--ink); font: inherit; }
+.global-intelligence-hero-actions { display: grid; gap: 9px; }
+.global-intelligence-hero-actions .button { display: grid; justify-items: start; gap: 3px; width: 100%; text-align: left; }
+.global-intelligence-hero-actions .button small { color: inherit; font-size: 9px; font-weight: 600; opacity: .72; }
+.global-tabs .global-tab-group { display: contents; }
+.global-tabs button small { display: inline-grid; min-width: 18px; margin-left: 4px; padding: 2px 5px; border-radius: 999px; background: var(--surface-muted); color: inherit; font-size: 8px; line-height: 1; }
+.global-tabs button.active small { background: rgba(255, 255, 255, .16); }
+.coverage-initial-rules { scroll-margin-top: 20px; }
 .global-intelligence-metrics { margin-top: 0; }
 .global-filter-panel { display: grid; gap: 14px; }
 .global-filter-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }

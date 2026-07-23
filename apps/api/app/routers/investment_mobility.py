@@ -9,6 +9,7 @@ from app.core.db import get_session
 from app.models.domain import InvestmentMobilityProgram
 from app.schemas_investment_mobility import (
     InvestmentProgramCreate,
+    InvestmentProgramOnboardingReadiness,
     InvestmentProgramPublish,
     InvestmentProgramRead,
     InvestmentProgramVersionInput,
@@ -18,6 +19,7 @@ from app.services.investment_mobility import (
     create_investment_program,
     create_investment_program_version,
     investment_program_read,
+    investment_program_onboarding_readiness,
     investment_version_read,
     publish_investment_program_version,
 )
@@ -61,6 +63,15 @@ def api_list_programs(
     if catalogue_status:
         statement = statement.where(InvestmentMobilityProgram.catalogue_status == catalogue_status.strip().lower())
     return [investment_program_read(session, row) for row in session.exec(statement.limit(limit)).all()]
+
+
+@router.get("/onboarding/readiness", response_model=InvestmentProgramOnboardingReadiness)
+def api_onboarding_readiness(
+    country: str | None = None,
+    limit: int = Query(default=100, ge=1, le=500),
+    session: Session = Depends(get_session),
+):
+    return investment_program_onboarding_readiness(session, country=country, limit=limit)
 
 
 @router.get("/programs/{program_id}", response_model=InvestmentProgramRead)

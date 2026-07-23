@@ -1,5 +1,80 @@
 # Changelog
 
+## 2026-07-23 — Initial-rule assertion publication v10.22.28
+
+- Published exactly the 17 independently approved assertions after the user's separate authorization; Senegal remained pending and detected-change reviews were not modified.
+- Created 17 active, source-pinned verified rules under publisher `bennet-coverage-publisher`.
+- Confirmed that all 17 jurisdictions independently became coverage-ready, moving readiness from 65/243 to 82/243.
+- Preserved the global-coverage block because 161 required jurisdictions remain incomplete.
+- Added a durable publication receipt with every jurisdiction and verified-rule identifier.
+
+## 2026-07-23 — Initial-rule assertion approval v10.22.27
+
+- Recorded the user's explicit approval of the recommended 17 assertions under independent reviewer `bennet-initial-rule-reviewer`.
+- Left Senegal pending without a review decision because its live official endpoint remains unavailable.
+- Preserved the separate publication gate at that checkpoint. The later v10.22.28 publication created the 17 verified rules and moved readiness to 82/243.
+
+## 2026-07-23 — Initial-rule assertion review packet v10.22.26
+
+- Prepared 18 human-edited initial-rule assertions pinned to the approved coverage items, official sources, and immutable baseline snapshots from v10.22.20 through v10.22.24.
+- Replaced unusable assistant wording, including navigation-heavy Tanzania and insufficient Chile drafts, with narrow substantive statements from the stored evidence.
+- Submitted every assertion as `pending_review` under a distinct proposer identity with confidence 0.90; no approval, publication, verified rule, or readiness claim was created.
+- Added a decision-ready human review packet recommending approval of 17 assertions and a hold on Senegal until its live official endpoint recovers or is replaced.
+
+## 2026-07-23 — Coverage independent review v10.22.25
+
+- Completed independent review of 20 pending immigration-authority assessments and 20 pending primary-source certifications from evidence batches v10.22.20 through v10.22.24.
+- Approved all 20 narrow authority relationships and 18 source certifications using a reviewer identity different from every proposer.
+- Rejected Peru and Qatar source certifications because their pinned extracts were not assertion-grade; narrower official sources and fresh independent certification remain required.
+- Recorded Senegal's current official-endpoint failure as a monitoring caveat while preserving its valid immutable July 18 snapshot and narrow entry-visa scope.
+- Cleared both pending-review queues and moved 18 items to baseline-ready without proposing or publishing a rule. Coverage readiness remains 65/243.
+
+## 2026-07-23 — Tax-residency and treaty intelligence v11.11
+
+- Added source-pinned bilateral treaty evidence proposals restricted to active tax-domain official sources and exact content-addressed snapshots.
+- Added independent treaty publication decisions, effective-period enforcement, jurisdiction-pair matching, audit history, and exclusion of unpublished evidence from client work.
+- Added immutable client tax-residency issue maps across dated facts, client-owned evidence, treaty grounding, specialist coordination, domestic residence, entity/permanent-establishment, employment/payroll, and filing sequence.
+- Added prohibited-conduct escalation, independent specialist review, read-only enforcement, migration `0042_tax_residency_treaty`, and focused transaction tests.
+- Added the `/tax-residency` Tax & Treaty workspace with a compact assessment surface, issue matrix, workstreams, treaty proposal desk, and evidence publication queue.
+
+## 2026-07-23 — HNWI and family-office mobility v11.10
+
+- Added immutable principal-linked family-office readiness assessments across identity/family, wealth evidence, ownership/control, governance/specialists, and mobility-route workstreams.
+- Added client-owned document enforcement, source-of-wealth and source-of-funds states, entity and UBO inventories, PEP/sanctions posture, adviser coverage, succession continuity, and banking-readiness controls.
+- Added independently published pathway and investment-program grounding without presenting capital, wealth, or residence outcomes as guaranteed.
+- Added readiness caps and operational blockers for concealment, evasion, sanctions circumvention, false documents, sham structures, and ownership misrepresentation.
+- Added independent assessment review, actor attribution, audit events, read-only enforcement, migration `0041_family_office_mobility`, focused tests, and the `/family-office` operator workspace.
+
+## 2026-07-23 — Independent investment-rule review v11.9
+
+- Added immutable rule proposals pinned to a draft pathway, eligible official source, and exact content-addressed snapshot.
+- Added independent approve/reject decisions with actor attribution, audit history, duplicate-rule protection, and read-only role enforcement.
+- Approval creates active verified rules and a replacement pathway draft while superseding the unverified draft; it never publishes a pathway or investment program.
+- Added the Investment Programs review surface for inspecting proposed statements and provenance, recording a reason, and making the separate human decision.
+- Added migration `0040_investment_rule_review`, focused transaction tests, and an Austria rule proposal based on the v11.8 evidence pack. Independent review subsequently approved four source-pinned rules and created a replacement pathway draft without publishing it.
+
+## 2026-07-23 — Austria investment onboarding tranche v11.8
+
+- Onboarded the Austrian Federal Government migration page for Self-employed Key Workers as an investment-domain official source and active controlled monitor.
+- Captured an HTTPS 200 baseline with immutable SHA-256 `905a6e47c821be64863efc9037e99b611e31d0d797a6b6799d1fc8b2e5f8ba38`.
+- Added a fail-closed evidence pack and review-pending Austria pathway draft without publishing an eligibility or approval claim. Independent rule review subsequently activated four pinned rules and created a replacement draft; pathway publication remains separate.
+- Added evidence-pack regression tests and exposed the active verified-rule gate in jurisdiction onboarding readiness.
+
+## 2026-07-23 — Investment program onboarding readiness v11.7
+
+- Added jurisdiction-level readiness across eligible official sources, immutable snapshots, published pathways, program drafts, and independent publication.
+- Added explicit blocker and next-action reporting to the Investment Programs workspace.
+- Prevented visa-domain and other unrelated sources from grounding investment-mobility programs.
+- Kept jurisdiction program onboarding incomplete until actual source-grounded records pass independent review; no sample program is presented as verified production data.
+
+## 2026-07-23 — Investment mobility suitability v11.6
+
+- Added client-specific comparison across independently published investment-program versions.
+- Added transparent capital-coverage, controlled-evidence, family-fit, and risk-alignment components with explicit blockers and next actions.
+- Added fail-closed currency handling, client-owned document validation, source-of-funds and capital-preservation constraints, and prohibited-conduct caps.
+- Added immutable pending-review assessments, independent review, audit records, role enforcement, and exact program/pathway/source/snapshot provenance.
+- Added migration `0039_investment_suitability`, focused tests, and the `/investment-suitability` workspace.
+
 ## 2026-07-23 — Governed investment program catalogue v11.5
 
 - Added residence-by-investment, citizenship-by-investment, and investor-entrepreneur catalogue records with immutable versions and explicit thresholds, options, holding/presence context, family scope, due diligence, fees, benefits, and risks.
