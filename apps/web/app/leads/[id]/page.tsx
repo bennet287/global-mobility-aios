@@ -33,6 +33,7 @@ import {
   MetricSkeleton,
   ActionCardSkeleton,
 } from "../../../components/Skeleton";
+import { ClientPortalInvite } from "../../../components/ClientPortalInvite";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -215,6 +216,8 @@ export default function LeadDetailPage() {
         </div>
         <StatusBadge value={lead.status} />
       </section>
+
+      <ClientPortalInvite leadId={lead.id} />
 
       <section className="panel">
         <div className="action-grid">

@@ -17,6 +17,7 @@ type IconName =
   | "agents"
   | "review"
   | "communications"
+  | "automation"
   | "coaching"
   | "corporate"
   | "advisory"
@@ -63,6 +64,7 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
     label: "Engagement",
     items: [
       { label: "Communications", href: "/communications", icon: "communications" },
+      { label: "Automation Hub", href: "/automation", icon: "automation" },
       { label: "Agent Coaching", href: "/coaching", icon: "coaching" },
     ],
   },
@@ -170,6 +172,8 @@ function NavIcon({ name }: { name: IconName }) {
       return <svg {...common}><path d="M9 4H5v16h14V4h-4M9 3h6v4H9zM8 12l2 2 5-5M8 18h8" /></svg>;
     case "communications":
       return <svg {...common}><path d="M4 5h16v11H8l-4 4V5Z" /><path d="M8 9h8M8 13h5" /></svg>;
+    case "automation":
+      return <svg {...common}><path d="M6 6h5M13 6h5M6 18h5M13 18h5M6 6v12M18 6v12M9 12h6" /><circle cx="12" cy="6" r="2" /><circle cx="12" cy="18" r="2" /><circle cx="18" cy="12" r="2" /></svg>;
     case "coaching":
       return <svg {...common}><path d="M12 3 3 8l9 5 9-5-9-5ZM6 10v5c3 3 9 3 12 0v-5M21 8v7" /></svg>;
     case "corporate":

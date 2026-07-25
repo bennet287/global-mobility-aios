@@ -7,49 +7,57 @@ from app.core.auth import auth_middleware
 from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.routers import (
-    auth,
-    auto_communications,
-    client_return,
-    coaching,
-    public_intake,
-    training_cases,
-    truth_resolution,
+    agent_chat,
+    agent_runs,
+    agents,
+    agency_submissions,
     application_engine,
-    sales_engine,
+    authority_appointments,
+    authority_checklists,
+    auth,
+    automation,
+    auto_communications,
+    business_advisory,
+    client_return,
+    client_portal,
+    coaching,
     controlled_agents,
     corporate_mobility,
-    business_advisory,
+    crm,
+    dashboard,
+    detail_views,
+    document_access,
+    document_engine,
+    document_intelligence,
+    document_ocr,
+    document_operations,
+    document_uploads,
+    documents,
+    education,
+    ecosystem_portal,
+    eligibility,
+    external_agencies,
+    family_office_mobility,
+    followups,
     investment_mobility,
     investment_rule_review,
     investment_suitability,
-    family_office_mobility,
-    tax_residency,
-    document_operations,
-    document_uploads,
-    document_engine,
-    document_ocr,
-    document_intelligence,
-    document_access,
-    detail_views,
-    operations,
-    official_sources,
-    dashboard,
-    agent_runs,
-    agents,
-    agent_chat,
-    crm,
-    documents,
-    education,
-    eligibility,
-    followups,
-    opportunities,
-    pathways,
-    mobility_timelines,
     live_intelligence,
+    mobility_timelines,
+    official_sources,
+    opportunities,
+    operations,
+    partner_api,
+    pathways,
     profiles,
+    public_intake,
     recruitment,
     reviews,
+    sales_engine,
+    tax_residency,
+    training_cases,
     truth,
+    truth_resolution,
     workflows,
 )
 
@@ -116,10 +124,14 @@ app.include_router(coaching.router)
 app.include_router(training_cases.router)
 app.include_router(eligibility.router)
 app.include_router(client_return.router)
+app.include_router(client_portal.router)
+app.include_router(ecosystem_portal.router)
+app.include_router(partner_api.router)
 app.include_router(opportunities.router)
 app.include_router(pathways.router)
 app.include_router(mobility_timelines.router)
 app.include_router(live_intelligence.router)
+app.include_router(automation.router)
 app.include_router(auto_communications.router)
 app.include_router(public_intake.router)
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])
@@ -147,6 +159,18 @@ app.include_router(application_draft_control_router.router)
 # Authority Decision Tracking v1.9
 from app.routers import authority_decision as authority_decision_router
 app.include_router(authority_decision_router.router)
+
+# Authority Appointment Tracking v12.5
+app.include_router(authority_appointments.router)
+
+# Agency Submission Tracking v12.6
+app.include_router(agency_submissions.router)
+
+# External Agency Assignment Tracking v12.7
+app.include_router(external_agencies.router)
+
+# Authority Submission Checklist v12.8
+app.include_router(authority_checklists.router)
 
 # Admin UI Sync v2.0
 from app.routers import admin_ui_sync as admin_ui_sync_router

@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlmodel import Session, select
 
 from app.core.db import get_session
@@ -13,7 +12,6 @@ from app.models.domain import (
     DocumentRecord,
     EligibilityAssessment,
     FollowUp,
-    IntakeSession,
     Lead,
     LeadIntent,
 )
@@ -28,14 +26,9 @@ from app.schemas import (
 )
 from app.models.domain import now_utc
 from app.services.eligibility_engine import evaluate_lead_eligibility
+from app.services.client_portal import resolve_client_portal_grant
 
 router = APIRouter(prefix="/api/v1/public", tags=["client-return"])
-
-
-def _normalize_phone(value: str | None) -> str | None:
-    if not value:
-        return None
-    return "".join(c for c in value if c.isdigit() or c.isalpha())
 
 
 @router.post("/lookup", response_model=list[ClientLookupResult])
@@ -43,32 +36,18 @@ def lookup_client_cases(
     payload: ClientLookupRequest,
     session: Session = Depends(get_session),
 ) -> list[ClientLookupResult]:
-    if not payload.email and not payload.phone and not payload.session_token:
-        raise HTTPException(status_code=400, detail="Provide email, phone, or session_token")
-
-    lead_ids: set[UUID] = set()
-
-    if payload.email:
-        email = payload.email.strip().lower()
-        rows = session.exec(select(Lead).where(func.lower(Lead.email) == email)).all()
-        lead_ids.update(r.id for r in rows)
-
-    if payload.phone:
-        phone = _normalize_phone(payload.phone)
-        if phone:
-            # Use a simple substring match so that formatted numbers still match.
-            rows = session.exec(select(Lead)).all()
-            for r in rows:
-                if r.phone and phone in _normalize_phone(r.phone):
-                    lead_ids.add(r.id)
-
-    if payload.session_token:
-        token = payload.session_token.strip()
-        intake = session.exec(
-            select(IntakeSession).where(IntakeSession.session_token == token)
-        ).first()
-        if intake and intake.lead_id:
-            lead_ids.add(intake.lead_id)
+    if payload.email or payload.phone:
+        raise HTTPException(
+            status_code=400,
+            detail="Email and phone lookup are disabled. Use an expiring client portal token.",
+        )
+    if not payload.session_token:
+        raise HTTPException(status_code=400, detail="Provide a client portal token")
+    try:
+        grant = resolve_client_portal_grant(session, payload.session_token)
+    except ValueError:
+        return []
+    lead_ids: set[UUID] = {grant.lead_id}
 
     if not lead_ids:
         return []
@@ -95,15 +74,23 @@ def lookup_client_cases(
 @router.get("/return/{lead_id}", response_model=ClientReturnDashboard)
 def get_client_return_dashboard(
     lead_id: UUID,
+    x_gmai_portal_token: str = Header(alias="X-GMAI-Portal-Token"),
     session: Session = Depends(get_session),
 ) -> ClientReturnDashboard:
+    try:
+        resolve_client_portal_grant(
+            session,
+            x_gmai_portal_token,
+            expected_lead_id=lead_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="Client portal access is invalid or unavailable",
+        ) from exc
     lead = session.get(Lead, lead_id)
     if lead is None:
         raise HTTPException(status_code=404, detail="Lead not found")
-
-    intake = session.exec(
-        select(IntakeSession).where(IntakeSession.lead_id == lead_id).order_by(IntakeSession.created_at.desc())
-    ).first()
 
     eligibility_row = session.exec(
         select(EligibilityAssessment)
@@ -194,7 +181,7 @@ def get_client_return_dashboard(
         status=lead.status.value if hasattr(lead.status, "value") else str(lead.status),
         intent=lead.intent.value if hasattr(lead.intent, "value") else str(lead.intent),
         checklist=checklist,
-        session_token=intake.session_token if intake else None,
+        session_token=None,
         eligibility=eligibility,
         documents=[
             ClientDashboardDocument(

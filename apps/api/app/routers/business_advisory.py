@@ -12,8 +12,15 @@ from app.schemas_business_advisory import (
     BusinessAdvisoryRead,
     BusinessAdvisoryReviewCreate,
     BusinessAdvisoryReviewRead,
+    BusinessAdvisorySituationRequest,
+    BusinessAdvisorySolutionResponse,
 )
-from app.services.business_advisory import advisory_read, create_advisory_assessment, review_advisory_assessment
+from app.services.business_advisory import (
+    advise_on_business_mobility_situation,
+    advisory_read,
+    create_advisory_assessment,
+    review_advisory_assessment,
+)
 
 
 router = APIRouter(prefix="/api/v1/business-mobility-advisory", tags=["business-mobility-advisory-v11.4"])
@@ -38,6 +45,19 @@ def api_create_assessment(
 ) -> BusinessAdvisoryRead:
     try:
         return advisory_read(create_advisory_assessment(session, payload, actor=_actor(request)))
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+
+
+@router.post("/advise", response_model=BusinessAdvisorySolutionResponse, status_code=200)
+def api_advise_on_situation(
+    payload: BusinessAdvisorySituationRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> BusinessAdvisorySolutionResponse:
+    try:
+        return advise_on_business_mobility_situation(session, payload, actor=_actor(request))
     except ValueError as exc:
         session.rollback()
         raise _error(exc) from exc

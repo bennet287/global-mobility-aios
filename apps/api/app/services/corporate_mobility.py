@@ -39,6 +39,7 @@ from app.schemas_corporate_mobility import (
     VentureReviewSubmission,
 )
 from app.services.audit_log import record_audit, to_audit_dict
+from app.services.automation import capture_event
 
 
 ACCOUNT_TRANSITIONS = {
@@ -198,6 +199,23 @@ def create_case(
         actor=actor,
         source="corporate_mobility_v11_0",
     )
+    capture_event(
+        session,
+        idempotency_key=f"corporate-case:{case.id}:created",
+        corporate_account_id=account.id,
+        case_id=case.id,
+        event_type="case.created",
+        entity_type="corporate_mobility_case",
+        entity_id=case.id,
+        payload={
+            "case_reference": case.case_reference,
+            "status": case.status,
+            "destination_country": case.destination_country,
+            "case_type": case.case_type,
+        },
+        actor=actor,
+        source="corporate_mobility_v12_3",
+    )
     session.commit()
     session.refresh(case)
     return case
@@ -211,6 +229,7 @@ def update_case(
     actor: str,
 ) -> CorporateMobilityCase:
     before = to_audit_dict(case)
+    previous_status = case.status
     changes = payload.model_dump(exclude_unset=True)
     if case.status == "closed" and changes:
         raise ValueError("Closed corporate mobility cases are immutable")
@@ -246,6 +265,28 @@ def update_case(
         actor=actor,
         source="corporate_mobility_v11_0",
     )
+    if case.status != previous_status:
+        capture_event(
+            session,
+            idempotency_key=(
+                f"corporate-case:{case.id}:status:{previous_status}:{case.status}:"
+                f"{case.updated_at.isoformat()}"
+            ),
+            corporate_account_id=case.corporate_account_id,
+            case_id=case.id,
+            event_type="case.status_changed",
+            entity_type="corporate_mobility_case",
+            entity_id=case.id,
+            payload={
+                "case_reference": case.case_reference,
+                "previous_status": previous_status,
+                "status": case.status,
+                "destination_country": case.destination_country,
+            },
+            actor=actor,
+            source="corporate_mobility_v12_3",
+            occurred_at=case.updated_at,
+        )
     session.commit()
     session.refresh(case)
     return case
@@ -413,6 +454,25 @@ def create_compliance_event(
     session.flush()
     record_audit(session, action="corporate_compliance_event_created", entity_type="corporate_compliance_event",
                  entity_id=event.id, after_state=event, actor=actor, source="corporate_mobility_v11_1")
+    capture_event(
+        session,
+        idempotency_key=f"corporate-compliance:{event.id}:created",
+        corporate_account_id=case.corporate_account_id,
+        case_id=case.id,
+        event_type="compliance.created",
+        entity_type="corporate_compliance_event",
+        entity_id=event.id,
+        payload={
+            "case_reference": case.case_reference,
+            "event_type": event.event_type,
+            "title": event.title,
+            "due_at": event.due_at,
+            "status": event.status,
+            "evidence_required": event.evidence_required,
+        },
+        actor=actor,
+        source="corporate_mobility_v12_3",
+    )
     session.commit()
     session.refresh(event)
     return event
@@ -429,6 +489,7 @@ def update_compliance_event(
     if payload.status == "waived" and not notes:
         raise ValueError("Waived compliance events require completion notes")
     before = to_audit_dict(event)
+    previous_status = event.status
     event.status = payload.status
     event.completion_notes = notes
     event.completed_by = actor
@@ -439,6 +500,31 @@ def update_compliance_event(
     record_audit(session, action="corporate_compliance_event_resolved", entity_type="corporate_compliance_event",
                  entity_id=event.id, before_state=before, after_state=event, actor=actor,
                  source="corporate_mobility_v11_1")
+    case = session.get(CorporateMobilityCase, event.corporate_mobility_case_id)
+    if case is None:
+        raise ValueError("Corporate mobility case not found")
+    capture_event(
+        session,
+        idempotency_key=(
+            f"corporate-compliance:{event.id}:status:{previous_status}:{event.status}:"
+            f"{event.updated_at.isoformat()}"
+        ),
+        corporate_account_id=case.corporate_account_id,
+        case_id=case.id,
+        event_type="compliance.status_changed",
+        entity_type="corporate_compliance_event",
+        entity_id=event.id,
+        payload={
+            "case_reference": case.case_reference,
+            "event_type": event.event_type,
+            "previous_status": previous_status,
+            "status": event.status,
+            "due_at": event.due_at,
+        },
+        actor=actor,
+        source="corporate_mobility_v12_3",
+        occurred_at=event.updated_at,
+    )
     session.commit()
     session.refresh(event)
     return event
@@ -497,6 +583,7 @@ def transition_relocation_task(
             raise ValueError("Relocation task dependency must be completed before this task becomes ready")
 
     before = to_audit_dict(task)
+    previous_status = task.status
     now = datetime.now(timezone.utc)
     task.work_notes = notes if notes is not None else task.work_notes
     if requested == "completed" and task.requires_human_approval:
@@ -518,6 +605,29 @@ def transition_relocation_task(
     record_audit(session, action="corporate_relocation_task_transitioned", entity_type="corporate_relocation_task",
                  entity_id=task.id, before_state=before, after_state=task, actor=actor,
                  source="corporate_mobility_v11_2")
+    capture_event(
+        session,
+        idempotency_key=(
+            f"corporate-task:{task.id}:status:{previous_status}:{task.status}:"
+            f"{task.updated_at.isoformat()}"
+        ),
+        corporate_account_id=case.corporate_account_id,
+        case_id=case.id,
+        event_type="task.status_changed",
+        entity_type="corporate_relocation_task",
+        entity_id=task.id,
+        payload={
+            "case_reference": case.case_reference,
+            "task_title": task.title,
+            "category": task.category,
+            "previous_status": previous_status,
+            "status": task.status,
+            "due_at": task.due_at,
+        },
+        actor=actor,
+        source="corporate_mobility_v12_3",
+        occurred_at=task.updated_at,
+    )
     session.commit()
     session.refresh(task)
     return task

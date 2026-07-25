@@ -935,6 +935,114 @@ class ApplicationRecord(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc)
 
 
+class AuthorityAppointment(SQLModel, table=True):
+    __tablename__ = "authority_appointments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    application_id: UUID = Field(index=True, foreign_key="applications.id")
+    appointment_type: str = Field(index=True)
+    authority_name: str
+    location: Optional[str] = None
+    scheduled_at: datetime = Field(index=True)
+    timezone: Optional[str] = Field(default="UTC")
+    status: str = Field(default="scheduled", index=True)
+    reference_number: Optional[str] = None
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class AgencySubmission(SQLModel, table=True):
+    __tablename__ = "agency_submissions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    application_id: UUID = Field(index=True, foreign_key="applications.id")
+    authority_name: str
+    submission_channel: str = Field(index=True)
+    submitted_at: datetime = Field(index=True)
+    reference_number: Optional[str] = None
+    tracking_url: Optional[str] = None
+    status: str = Field(default="submitted", index=True)
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ExternalAgency(SQLModel, table=True):
+    __tablename__ = "external_agencies"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    name: str = Field(index=True)
+    country: Optional[str] = None
+    city: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    website: Optional[str] = None
+    status: str = Field(default="active", index=True)
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ExternalAgencyAssignment(SQLModel, table=True):
+    __tablename__ = "external_agency_assignments"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    application_id: UUID = Field(index=True, foreign_key="applications.id")
+    external_agency_id: UUID = Field(index=True, foreign_key="external_agencies.id")
+    status: str = Field(default="assigned", index=True)
+    agency_reference_number: Optional[str] = None
+    handoff_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class AuthorityChecklistTemplate(SQLModel, table=True):
+    __tablename__ = "authority_checklist_templates"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    authority_name: str = Field(index=True)
+    country: Optional[str] = None
+    item_key: str = Field(index=True)
+    item_label: str
+    category: str = Field(index=True)
+    is_required: bool = True
+    sort_order: int = 0
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ApplicationAuthorityChecklistItem(SQLModel, table=True):
+    __tablename__ = "application_authority_checklist_items"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    application_id: UUID = Field(index=True, foreign_key="applications.id")
+    template_item_id: Optional[UUID] = Field(default=None, index=True, foreign_key="authority_checklist_templates.id")
+    authority_name: str = Field(index=True)
+    item_key: str = Field(index=True)
+    item_label: str
+    category: str = Field(index=True)
+    is_required: bool = True
+    status: str = Field(default="pending", index=True)
+    notes: Optional[str] = None
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class CoachReviewStatus(str, Enum):
     pending = "pending"
     approved = "approved"
@@ -1270,6 +1378,148 @@ class IntakeSession(SQLModel, table=True):
     source: str = "public_intake"
     answers_json: Optional[str] = None
     created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ClientPortalAccessGrant(SQLModel, table=True):
+    __tablename__ = "client_portal_access_grants"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    token_hash: str = Field(index=True, unique=True)
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    label: str = "Client portal"
+    status: str = Field(default="active", index=True)
+    expires_at: datetime = Field(index=True)
+    created_by: str = Field(index=True)
+    access_count: int = 0
+    last_accessed_at: Optional[datetime] = Field(default=None, index=True)
+    revoked_by: Optional[str] = Field(default=None, index=True)
+    revoked_at: Optional[datetime] = Field(default=None, index=True)
+    revocation_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class EcosystemPortalAccessGrant(SQLModel, table=True):
+    __tablename__ = "ecosystem_portal_access_grants"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    token_hash: str = Field(index=True, unique=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    audience_type: str = Field(index=True)
+    label: str
+    status: str = Field(default="active", index=True)
+    expires_at: datetime = Field(index=True)
+    created_by: str = Field(index=True)
+    access_count: int = 0
+    last_accessed_at: Optional[datetime] = Field(default=None, index=True)
+    revoked_by: Optional[str] = Field(default=None, index=True)
+    revoked_at: Optional[datetime] = Field(default=None, index=True)
+    revocation_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class PartnerApiCredential(SQLModel, table=True):
+    __tablename__ = "partner_api_credentials"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    key_hash: str = Field(index=True, unique=True)
+    key_prefix: str = Field(index=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    label: str
+    scopes: str
+    status: str = Field(default="active", index=True)
+    expires_at: datetime = Field(index=True)
+    created_by: str = Field(index=True)
+    access_count: int = 0
+    last_used_at: Optional[datetime] = Field(default=None, index=True)
+    revoked_by: Optional[str] = Field(default=None, index=True)
+    revoked_at: Optional[datetime] = Field(default=None, index=True)
+    revocation_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class AutomationRule(SQLModel, table=True):
+    __tablename__ = "automation_rules"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    name: str
+    event_type: str = Field(index=True)
+    channels: str
+    destinations_json: Optional[str] = None
+    subject_template: Optional[str] = None
+    body_template: Optional[str] = None
+    requires_human_approval: bool = True
+    status: str = Field(default="active", index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class AutomationEvent(SQLModel, table=True):
+    __tablename__ = "automation_events"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    idempotency_key: str = Field(index=True, unique=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="corporate_mobility_cases.id"
+    )
+    event_type: str = Field(index=True)
+    entity_type: str = Field(index=True)
+    entity_id: str = Field(index=True)
+    source: str = Field(default="domain", index=True)
+    payload_json: str
+    status: str = Field(default="recorded", index=True)
+    occurred_at: datetime = Field(default_factory=now_utc, index=True)
+    created_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class AutomationDelivery(SQLModel, table=True):
+    __tablename__ = "automation_deliveries"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    automation_event_id: UUID = Field(index=True, foreign_key="automation_events.id")
+    automation_rule_id: UUID = Field(index=True, foreign_key="automation_rules.id")
+    connector_config_id: Optional[UUID] = Field(default=None, index=True, foreign_key="automation_connector_configs.id")
+    channel: str = Field(index=True)
+    destination: Optional[str] = None
+    subject: Optional[str] = None
+    payload_json: str
+    status: str = Field(default="pending_review", index=True)
+    requires_human_approval: bool = True
+    reviewed_by: Optional[str] = Field(default=None, index=True)
+    reviewed_at: Optional[datetime] = Field(default=None, index=True)
+    review_reason: Optional[str] = None
+    dispatched_by: Optional[str] = Field(default=None, index=True)
+    dispatched_at: Optional[datetime] = Field(default=None, index=True)
+    provider_message_id: Optional[str] = Field(default=None, index=True)
+    attempt_count: int = 0
+    next_attempt_at: Optional[datetime] = Field(default=None, index=True)
+    last_error: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class AutomationConnectorConfig(SQLModel, table=True):
+    __tablename__ = "automation_connector_configs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    corporate_account_id: UUID = Field(index=True, foreign_key="corporate_accounts.id")
+    channel: str = Field(index=True)
+    provider_type: str = Field(index=True)
+    credentials_json: str
+    from_address: Optional[str] = Field(default=None, index=True)
+    sender_label: Optional[str] = None
+    status: str = Field(default="active", index=True)
+    created_by: str = Field(index=True)
+    updated_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
 
 

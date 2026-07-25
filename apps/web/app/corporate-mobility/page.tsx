@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "../../components/EmptyState";
+import { EcosystemPortalInvite } from "../../components/EcosystemPortalInvite";
 import { InlineNotice } from "../../components/InlineNotice";
 import { SectionTitle } from "../../components/SectionTitle";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -414,6 +415,13 @@ export default function CorporateMobilityPage() {
             />
             {selectedAccount ? <StatusBadge value={selectedAccount.account_status} /> : null}
           </div>
+
+          {selectedAccount ? (
+            <EcosystemPortalInvite
+              accountId={selectedAccount.id}
+              accountName={selectedAccount.display_name || selectedAccount.legal_name}
+            />
+          ) : null}
 
           <div className="corporate-case-list">
             {selectedCases.map((item) => (

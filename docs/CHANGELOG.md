@@ -1,5 +1,115 @@
 # Changelog
 
+## 2026-07-24 — External agency automation bridge v12.8.1
+
+- Extended `AUTOMATION_EVENT_TYPES` to include `external_agency_assignment.status_changed`.
+- Extended `APPLICATION_EVENT_TYPES` in `app/services/automation_bridge.py` to bridge external agency assignment status changes into the governed automation outbox.
+- `app/services/external_agencies.py` now emits an `external_agency_assignment.status_changed` automation event after an assignment status transition when the application's lead is linked to an active corporate mobility case.
+- Event payloads include the `application_id`, `lead_id`, `lead_name`, `case_reference`, and new `status`, scoped by the linked corporate account and case.
+- Added a regression test verifying that an external agency assignment status change creates the corresponding automation event when a corporate link exists.
+- No database migration is required; the bridge reuses the existing `AutomationEvent` and `CorporateMobilityCase` tables from v12.3 and the `ExternalAgencyAssignment` table from v12.7.
+
+## 2026-07-24 — Authority submission checklist v12.8
+
+- Added `AuthorityChecklistTemplate` and `ApplicationAuthorityChecklistItem` tables with migration `0051_authority_submission_checklist`.
+- Added authority checklist template CRUD and template-apply endpoints under `/api/v1/authority-checklist-templates`.
+- Added application checklist item CRUD, status, and delete endpoints under `/api/v1/application-authority-checklist-items` and `/api/v1/applications/{application_id}/authority-checklist`.
+- Enforced business rules: template categories are `document`, `fee`, `form`, or `step`; applying a template is idempotent; item statuses are `pending`, `completed`, or `not_applicable`.
+- Every template creation, item creation, status change, and deletion records an `AuditLog` event with before/after state.
+- Advanced the migration head to `0051_authority_submission_checklist`.
+
+## 2026-07-24 — External agency assignment tracking v12.7
+
+- Added `ExternalAgency` registry and `ExternalAgencyAssignment` tables with migration `0050_external_agency_assignment`.
+- Added external agency CRUD and status endpoints under `/api/v1/external-agencies`.
+- Added assignment CRUD and lifecycle endpoints under `/api/v1/external-agency-assignments` and `/api/v1/applications/{application_id}/external-agency-assignments`.
+- Enforced business rules: only active agencies can receive assignments; only one active assignment per application; forward-only status transitions `assigned → in_progress → handed_off → completed/cancelled`; terminal states are immutable.
+- Recorded `handoff_at` and `completed_at` timestamps automatically when assignments reach those statuses.
+- Every creation and status change records an `AuditLog` event with before/after state.
+- Advanced the migration head to `0050_external_agency_assignment`.
+
+## 2026-07-24 — Application status automation bridge v12.6.1
+
+- Extended `AUTOMATION_EVENT_TYPES` to include `appointment.status_changed` and `submission.status_changed`.
+- Added `app/services/automation_bridge.py` to bridge individual application-level status changes into the governed corporate automation outbox when the application's lead is linked to an active corporate mobility case.
+- Authority appointment status changes now emit `appointment.status_changed` automation events.
+- Agency submission status changes now emit `submission.status_changed` automation events.
+- When no active corporate case is linked to the application's lead, the status change still completes but no automation event is created.
+- Added regression tests verifying event creation when a corporate link exists and omission when it does not.
+
+## 2026-07-24 — Agency submission tracking v12.6
+
+- Added `AgencySubmission` model linked to `applications` with indexed `application_id`, `submission_channel`, `submitted_at`, `status`, and audit actor/timestamp columns.
+- Added Alembic migration `0049_agency_submission_tracking` to create the table and indexes.
+- Added submission CRUD and status-lifecycle endpoints under `/api/v1/agency-submissions`:
+  - `POST /api/v1/agency-submissions`
+  - `GET /api/v1/agency-submissions`
+  - `GET /api/v1/agency-submissions/{submission_id}`
+  - `POST /api/v1/agency-submissions/{submission_id}/status`
+- Enforced business rules: valid submission channels (`online`, `in_person`, `courier`, `agency`); initial status `submitted`; forward-only transitions `submitted → acknowledged → under_review → decision_received/returned`; terminal states are immutable.
+- Every creation and status change records an `AuditLog` event with before/after state.
+- Advanced the migration head to `0049_agency_submission_tracking`.
+
+## 2026-07-24 — Authority appointment tracking v12.5
+
+- Added `AuthorityAppointment` model linked to `applications` with indexed `application_id`, `appointment_type`, `scheduled_at`, `status`, and audit actor/timestamp columns.
+- Added Alembic migration `0048_authority_appointment_tracking` to create the table and indexes.
+- Added appointment CRUD and status-lifecycle endpoints under `/api/v1/authority-appointments`:
+  - `POST /api/v1/authority-appointments`
+  - `GET /api/v1/authority-appointments`
+  - `GET /api/v1/authority-appointments/{appointment_id}`
+  - `POST /api/v1/authority-appointments/{appointment_id}/status`
+- Enforced business rules: valid appointment types (`biometric`, `interview`, `document_submission`, `other`); initial status `scheduled`; transitions only from `scheduled` to `completed`, `cancelled`, or `no_show`; terminal states are immutable.
+- Every creation and status change records an `AuditLog` event with before/after state.
+- Advanced the migration head to `0048_authority_appointment_tracking`.
+
+## 2026-07-24 — Credential-backed automation connectors v12.4
+
+- Added `AutomationConnectorConfig` and linked deliveries to an active account/channel connector config, with `next_attempt_at` for scheduled retry.
+- Added abstract `AutomationProviderAdapter` interface plus `console` (local/test) and `smtp` (STARTTLS email) adapters.
+- Added connector config CRUD endpoints and audit:
+  - `POST /api/v1/automation/connectors`
+  - `GET /api/v1/automation/connectors`
+  - `POST /api/v1/automation/connectors/{config_id}/status`
+- Added per-delivery dispatch endpoint `POST /api/v1/automation/deliveries/{delivery_id}/dispatch` with 3-attempt exponential backoff (60s, 300s, 900s) and audit.
+- Added `dispatch_automation_deliveries_task` Celery task and a 60-second beat schedule to process due `ready` and `retry` deliveries.
+- Fixed the v12.4 migration (`0047_automation_connector_config`) to use SQLite-compatible `batch_alter_table` for foreign-key and index changes.
+- Advanced the migration head to `0047_automation_connector_config`. Provider health checks, delivery reconciliation, and encrypted credential storage remain future hardening.
+
+## 2026-07-23 — Governed automation foundation v12.3
+
+- Added account-scoped automation rules, an idempotent corporate case-event ledger, and a durable email, messaging, calendar, and CRM delivery outbox.
+- Wired case creation and status changes, compliance creation and resolution, and relocation-task transitions into the event ledger in the same transaction as each source mutation.
+- Added tenant-isolated rule matching, minimized payloads, independent external-delivery review, pause/reactivation controls, dispatch-receipt recording, and complete audit events.
+- Added the Automation Hub for rule configuration, review decisions, event visibility, and outbox readiness.
+- Advanced the migration head to `0046_governed_automation_outbox`. Live credential-backed provider adapters, retry/dead-letter workers, and reconciliation remain the next automation slice.
+
+## 2026-07-23 — Versioned public and partner APIs v12.2
+
+- Added unauthenticated, data-free public discovery endpoints under `/api/public/v1` and account-scoped partner resources under `/api/partner/v1`.
+- Added expiring and revocable partner API credentials with explicit read scopes, one-time raw-key delivery, SHA-256 digest persistence, and active-account enforcement.
+- Added stable minimized projections for corporate-account metadata, paginated mobility cases, and paginated compliance events without exposing internal records or caller-selectable tenant identifiers.
+- Added contract-version, no-store, pagination, authentication, scope, revocation, expiry, suspended-account, audit, and cross-tenant regression coverage.
+- Advanced the migration head to `0045_partner_api_credentials` and marked the Phase 12 public/partner API contract item complete.
+
+## 2026-07-23 — Employer and partner portal tenancy v12.1
+
+- Added a dedicated employer and authorized-partner workspace with corporate case, relocation-task, and compliance visibility.
+- Added expiring, revocable grants whose authorization scope is derived from exactly one stored corporate-account relationship and recorded employer or partner audience.
+- Persisted only SHA-256 token digests and kept external tenant access separate from internal RBAC and individual client access.
+- Minimized the external projection by excluding contact data, internal notes, lead identifiers, evidence, reviews, truth claims, audit records, and operator actions.
+- Added a two-tenant leakage regression test plus authentication, expiry, revocation, and audit coverage.
+- Advanced the migration head to `0044_ecosystem_portal_tenancy` and marked the employer/partner tenant-isolation roadmap item complete.
+
+## 2026-07-23 — Client portal foundation v12.0
+
+- Started Phase 12 with a dedicated responsive client portal showing a deliberately client-safe case status, next action, milestones, and document metadata.
+- Added revocable, expiring, lead-scoped access grants whose raw bearer tokens are never persisted; only SHA-256 token digests are stored.
+- Added operator issuance, grant listing, and revocation endpoints plus a token-scoped public dashboard, with audit events for creation, access, expiry, and revocation.
+- Disabled the legacy public email-or-phone case lookup and secured the legacy return route with the same portal token boundary.
+- Integrated initial portal issuance with public intake, added link creation to the lead workspace, hid internal agent controls on client routes, and added focused security and migration coverage.
+- Advanced the migration head to `0043_client_portal_foundation`; native/mobile access and the remaining Phase 12 ecosystem scope are still pending.
+
 ## 2026-07-23 — Austria program publication v11.12
 
 - Enforced independent reviewer separation for mobility-pathway publication and added regression coverage across all affected pathway consumers.
@@ -94,6 +204,7 @@
 ## 2026-07-23 — Business and Wealth advisory v11.4
 
 - Added a narrative Business & Wealth Mobility assessment that ranks three commercially distinct strategy options across startup, expansion, founder, investment, family-office, tax-residency, and asset/family intentions.
+- Added a lightweight `POST /api/v1/business-mobility-advisory/advise` endpoint that returns a single recommended solution with a 0–100 success meter, alternative options, critical factors, and concrete next actions; it uses the configured LLM when available and falls back to deterministic scoring when no LLM is configured or when risk flags are present.
 - Added transparent feasibility scoring across information completeness, controlled evidence, commercial fit, and published-pathway grounding; the score is explicitly not an approval probability or professional opinion.
 - Added pathway grounding, evidence ownership checks, risk disclosures, hard blockers, lawful remediation, specialist escalation, immutable assessment records, audit events, and independent human review.
 - Added Alembic migration `0037_business_advisory`, focused transaction and boundary tests, a named navigation destination, and a responsive Business & Wealth Advisor workspace.

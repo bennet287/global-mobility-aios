@@ -94,7 +94,15 @@ def is_public_path(path: str) -> bool:
         return True
     return _path_starts(
         path,
-        ("/auth", "/docs", "/redoc", "/debug", "/api/v1/public"),
+        (
+            "/auth",
+            "/docs",
+            "/redoc",
+            "/debug",
+            "/api/v1/public",
+            "/api/public/v1",
+            "/api/partner/v1",
+        ),
     )
 
 
@@ -154,6 +162,11 @@ def required_roles(method: str, path: str) -> Set[str]:
     if _path_starts(path, ("/api/v1/client-communications", "/admin/client-communications")):
         return {"admin", "operator", "reviewer"}
 
+    if _path_starts(path, ("/api/v1/automation",)):
+        if "/decision" in path:
+            return {"admin", "reviewer"}
+        return {"admin", "operator"}
+
     return set(DEFAULT_MUTATION_ROLES)
 
 
@@ -198,4 +211,3 @@ async def auth_middleware(request: Request, call_next):
 
     request.state.auth = context
     return await call_next(request)
-

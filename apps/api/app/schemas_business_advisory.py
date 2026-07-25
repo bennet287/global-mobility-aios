@@ -102,9 +102,65 @@ class BusinessAdvisoryReviewCreate(BaseModel):
 
 class BusinessAdvisoryReviewRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     assessment_id: UUID
     decision: str
     reason: str
     reviewer: str
     created_at: datetime
+
+
+class BusinessAdvisorySituationRequest(BaseModel):
+    primary_intent: BusinessMobilityIntent
+    situation: str = Field(min_length=30, max_length=12000)
+    target_countries: list[str] = Field(min_length=1, max_length=5)
+    capital_available_minor: int | None = Field(default=None, ge=0)
+    net_worth_minor: int | None = Field(default=None, ge=0)
+    annual_revenue_minor: int | None = Field(default=None, ge=0)
+    currency: str | None = Field(default=None, min_length=3, max_length=3)
+    employees: int | None = Field(default=None, ge=0, le=1_000_000)
+    business_age_years: float | None = Field(default=None, ge=0, le=500)
+    founder_experience_years: float | None = Field(default=None, ge=0, le=100)
+    timeline_months: int | None = Field(default=None, ge=1, le=240)
+    family_relocation: bool = False
+    lawful_source_of_funds_confirmed: bool = False
+    risk_disclosures: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def validate_financial_currency(self):
+        has_financials = any(
+            value is not None
+            for value in (self.capital_available_minor, self.net_worth_minor, self.annual_revenue_minor)
+        )
+        if has_financials and self.currency is None:
+            raise ValueError("Currency is required when financial amounts are provided")
+        self.target_countries = list(dict.fromkeys(country.strip() for country in self.target_countries if country.strip()))
+        if not self.target_countries:
+            raise ValueError("At least one target country is required")
+        return self
+
+
+class SolutionRecommendation(BaseModel):
+    strategy_key: str
+    title: str
+    success_meter: float = Field(ge=0.0, le=100.0)
+    success_band: str
+    rationale: str
+    actions: list[str] = Field(default_factory=list)
+    estimated_timeline_months: int | None = None
+    estimated_commitment: dict[str, Any] | None = None
+    grounding_pathways: list[dict[str, Any]] = Field(default_factory=list)
+    grounding_programs: list[dict[str, Any]] = Field(default_factory=list)
+    risk_notes: list[str] = Field(default_factory=list)
+
+
+class BusinessAdvisorySolutionResponse(BaseModel):
+    summary: str
+    recommended_solution: SolutionRecommendation
+    alternative_options: list[SolutionRecommendation]
+    critical_factors: list[str]
+    overall_success_meter: float = Field(ge=0.0, le=100.0)
+    risk_flags: list[str]
+    disclaimer: str
+    human_review_required: bool

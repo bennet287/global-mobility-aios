@@ -5,6 +5,113 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v12.8 (2026-07-24)
+
+Current database migration head: `0051_authority_submission_checklist`.
+
+- v12.8 adds authority submission checklists. Operators can define reusable per-authority templates of required documents, fees, forms, and steps, and then apply those templates to individual applications.
+- Checklist items track a status of `pending`, `completed`, or `not_applicable`. Applying a template is idempotent; items already present for an application are not duplicated. Manual items can also be added.
+- Items can be listed per application or across applications and filtered by status. Every template creation, item creation, status change, and deletion is audited with before/after state.
+- See `docs/AUTHORITY_SUBMISSION_CHECKLIST_V12_8.md`. Blocking gates that require checklist completion before submission, and reminders tied to pending items, remain future slices.
+
+## Delivery Status — v12.8.1 (2026-07-24)
+
+Current database migration head: `0051_authority_submission_checklist`.
+
+- v12.8.1 bridges external agency assignment status changes into the governed automation outbox. When an assignment status changes and the application's lead is linked to an active corporate mobility case, an automation event is created (`external_agency_assignment.status_changed`).
+- The event carries the application, lead, case reference, and new status, scoped to the linked corporate account. Existing corporate automation rules can match it and route handoff updates through email, messaging, calendar, or CRM connectors under the same review and retry controls as case, compliance, task, appointment, and submission events.
+- When no corporate case link exists, the status change still completes but no automation event is created, keeping the bridge scoped to the employer/corporate workflow boundary.
+- See `docs/EXTERNAL_AGENCY_ASSIGNMENT_V12_7.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md` for the combined domain description.
+
+## Delivery Status — v12.7 (2026-07-24)
+
+Current database migration head: `0050_external_agency_assignment`.
+
+- v12.7 adds external agency assignment tracking. Operators can maintain a directory of external mobility agencies (name, country, city, contact details, website) and mark each agency as `active`, `suspended`, or `retired`.
+- Applications can be assigned to an active external agency with a controlled handoff lifecycle: `assigned` → `in_progress` → `handed_off` → `completed` or `cancelled`. Terminal states are immutable.
+- Only one active assignment is allowed per application at a time. `handoff_at` and `completed_at` are recorded automatically when the assignment reaches those statuses.
+- Assignments can be listed per application or across the system and filtered by status. Every agency and assignment mutation is audited with before/after state.
+- See `docs/EXTERNAL_AGENCY_ASSIGNMENT_V12_7.md`. Agency portal sync, SLA tracking, and automation outbox integration for handoff events remain future slices.
+
+## Delivery Status — v12.6.1 (2026-07-24)
+
+Current database migration head: `0049_agency_submission_tracking`.
+
+- v12.6.1 bridges authority appointment and agency submission status changes into the governed automation outbox. When an appointment or submission status changes and the application's lead is linked to an active corporate mobility case, an automation event is created (`appointment.status_changed` or `submission.status_changed`).
+- Existing corporate automation rules can now match these events and route notifications through email, messaging, calendar, or CRM connectors under the same review and retry controls as case/compliance/task events.
+- When no corporate case link exists, the status change still completes but no automation event is created, keeping the bridge scoped to the employer/corporate workflow boundary.
+- See `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md` and the appointment/submission feature docs for the combined domain description.
+
+## Delivery Status — v12.6 (2026-07-24)
+
+Current database migration head: `0049_agency_submission_tracking`.
+
+- v12.6 adds agency submission tracking for applications. Operators can record when and how an application was submitted to a government or mobility agency (online, in person, courier, or agency hand-off), including the authority name, reference number, tracking URL, and notes.
+- Submissions move through a forward-only lifecycle: `submitted` → `acknowledged` → `under_review` → `decision_received` or `returned`. Terminal states are immutable.
+- Submissions can be listed for an application and filtered by status. Every creation and status change is recorded in the audit log with the actor and before/after state.
+- See `docs/AGENCY_SUBMISSION_TRACKING_V12_6.md`. Authority-specific submission checklists, external portal sync, and automation outbox integration remain future slices.
+
+## Delivery Status — v12.5 (2026-07-24)
+
+Current database migration head: `0048_authority_appointment_tracking`.
+
+- v12.5 starts Phase 12's government and mobility-agency workflow layer with authority appointment tracking for applications.
+- Operators can schedule application-facing appointments with consulates, visa application centres, biometric collection points, and other agencies. Each appointment records its type (`biometric`, `interview`, `document_submission`, `other`), authority name, location, scheduled time, timezone, and optional reference number.
+- Status transitions are controlled: new appointments are `scheduled`, and operators can move them only to `completed`, `cancelled`, or `no_show`. Terminal states are immutable.
+- Appointments can be listed for an application and filtered by status. Every creation and status change is recorded in the audit log with the actor and before/after state.
+- See `docs/AUTHORITY_APPOINTMENT_TRACKING_V12_5.md`. Calendar sync, reminder notifications, and client-portal visibility remain future slices.
+
+## Delivery Status — v12.4 (2026-07-24)
+
+Current database migration head: `0047_automation_connector_config`.
+
+- v12.4 adds credential-backed connector configs for email, messaging, calendar, and CRM channels. Each config is scoped to one active corporate account and one channel; only one active config is allowed per account/channel pair.
+- Provider adapters follow a minimal abstract interface. The `console` adapter is used for local/test runs; the `smtp` adapter sends real email via STARTTLS using credentials stored in the connector config. Credentials are persisted as JSON and should be encrypted at rest or moved to a secret manager in production.
+- Deliveries now link to an active connector config at creation time and expose `next_attempt_at` for scheduled retry. The `dispatch_automation_deliveries_task` Celery beat worker runs every 60 seconds and dispatches due `ready` or `retry` deliveries.
+- Dispatch attempts are limited to 3 with exponential backoff (60s, 300s, 900s). A missing connector or adapter failure moves the delivery to `retry` and records the error; the final attempt moves it to `failed` with `next_attempt_at` cleared. Every dispatch and retry attempt is audited.
+- Operators can trigger dispatch per delivery via `POST /api/v1/automation/deliveries/{delivery_id}/dispatch`. Connector config management endpoints allow create, list, and status changes with audit.
+- See `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md` for the full automation domain description; the v12.4 additions are appended there.
+
+## Delivery Status — v12.3 (2026-07-23)
+
+Current database migration head: `0046_governed_automation_outbox`.
+
+- v12.3 establishes an account-scoped case-event ledger and governed multichannel outbox for email, messaging, calendar, and CRM actions.
+- Corporate case creation and status changes, compliance creation and resolution, and relocation-task transitions now create idempotent domain events in the same database transaction as the source change.
+- Active rules match only events from their corporate account. They create minimized channel projections without internal notes or contact fields; cross-account rules never receive another tenant's event.
+- Email, messaging, and calendar actions always require a different human reviewer before becoming connector-ready. CRM-only rules may be explicitly approval-free, while dispatch remains separate from provider-receipt recording.
+- The new Automation Hub supports account selection, rule creation, pause/reactivation, immutable event visibility, delivery review, and operational readiness metrics. See `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
+
+## Delivery Status — v12.2 (2026-07-23)
+
+Current database migration head: `0045_partner_api_credentials`.
+
+- v12.2 adds stable path-versioned public metadata and partner data contracts at `/api/public/v1` and `/api/partner/v1`.
+- Partner API credentials are expiring, revocable, scope-limited, and bound to one active corporate account. Raw keys are returned only at issuance and only their SHA-256 digests are persisted.
+- Account, case, and compliance projections derive tenant scope exclusively from the credential. They omit internal notes, contact details, lead identifiers, evidence, reviews, audit records, and operator actions.
+- Every successful partner request is audited. Missing scopes are forbidden, while invalid, expired, revoked, and suspended-account credentials fail closed.
+- Responses identify contract version `1.0`, disable shared caching for tenant data, and use bounded page pagination. See `docs/VERSIONED_PUBLIC_PARTNER_APIS_V12_2.md`.
+
+## Delivery Status — v12.1 (2026-07-23)
+
+Current database migration head: `0044_ecosystem_portal_tenancy`.
+
+- v12.1 adds a dedicated employer and authorized-partner workspace without extending internal operator roles to external users.
+- Every expiring grant is scoped to exactly one corporate account and one recorded audience. Raw tokens are returned once and persisted only as SHA-256 digests.
+- All downstream case, employee-label, task, and compliance queries derive their scope from the resolved grant. The caller cannot supply or switch the tenant identifier.
+- The external projection omits internal notes, lead IDs, contact details, review records, truth claims, controlled evidence, audit records, and operator actions. Suspended or closed accounts fail closed.
+- Operators can issue tenant links from Corporate Mobility; creation, access, expiry, and revocation are audited. See `docs/ECOSYSTEM_PORTAL_TENANCY_V12_1.md`.
+
+## Delivery Status — v12.0 (2026-07-23)
+
+Current database migration head: `0043_client_portal_foundation`.
+
+- v12.0 starts Phase 12 with a dedicated responsive client web portal backed by revocable, expiring, lead-scoped grants. Raw portal tokens are returned once and stored only as SHA-256 digests.
+- The client-safe dashboard exposes status, next action, milestone progress, and document metadata without returning internal notes, truth claims, review queues, agent outputs, or cross-client data.
+- The legacy public email-or-phone lookup is disabled. New intake and operator-issued links use the same portal-token boundary; create, access, expiry, and revocation are audited.
+- The internal lead workspace can issue a one-time portal link, while the client routes remove the token from the address bar, keep it in session storage, and hide internal agent controls.
+- See `docs/CLIENT_PORTAL_FOUNDATION_V12_0.md`. Native/mobile access, partner tenancy, external API contracts, ecosystem automation, and agency workflows remain Phase 12 work.
+
 ## Delivery Status — v11.12 (2026-07-23)
 
 Current database migration head: `0042_tax_residency_treaty`.
@@ -83,6 +190,7 @@ Current database migration head: `0038_investment_programs`.
 Current database migration head: `0037_business_advisory`.
 
 - v11.4 adds a Business & Wealth Mobility advisory workspace that converts a detailed commercial situation into three ranked strategy options, explicit blockers, evidence requirements, and a sequenced action plan.
+- A new `POST /api/v1/business-mobility-advisory/advise` endpoint returns a single recommended solution with a 0–100 success meter, alternative options, critical factors, and concrete next actions. It uses the configured LLM when available and falls back to deterministic scoring when no LLM is configured or when risk flags are present.
 - The feasibility meter combines information completeness, controlled evidence, commercial fit, and published-pathway grounding. It is decision-support readiness, not an approval probability, legal or tax opinion, investment recommendation, or authority prediction.
 - Assessments are immutable pending-review records with actor attribution and audit events. Material risk indicators trigger specialist escalation; deception, concealment, sham arrangements, evasion, and unlawful circumvention are not operationalized and instead produce blockers plus lawful remediation paths.
 
@@ -408,7 +516,8 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
 - **Phase 11:** complete; corporate mobility, entrepreneur dossiers, Business & Wealth advisory, governed investment programs, client readiness comparison, dedicated HNWI/family-office controls, governed tax/treaty intelligence, and the first independently published jurisdiction program are delivered. Further jurisdiction and treaty evidence onboarding remains ongoing operational expansion.
-- **Phases 12–13:** not started; all listed capability groups remain future work.
+- **Phase 12:** in progress; secure responsive client, employer, and partner portals, stable account-scoped external APIs, the governed event/outbox automation foundation, credential-backed provider adapters with retry and scheduled delivery workers, authority appointment tracking, agency submission tracking, automation outbox bridge, external agency assignment tracking, and authority submission checklists are delivered. Native/mobile access, remaining government and agency workflow depth, and additional provider health/reconciliation tooling remain.
+- **Phase 13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
 
@@ -742,7 +851,7 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Dedicated dependant relationships, sponsor entities, and compliance calendars
 - [x] Relocation task orchestration
 - [x] Entrepreneur and startup mobility
-- [x] Evidence-grounded Business & Wealth advisory with feasibility scoring, ranked lawful strategies, blockers, next actions, and independent human review
+- [x] Evidence-grounded Business & Wealth advisory with feasibility scoring, ranked lawful strategies, blockers, next actions, and independent  human review
 - [x] Governed residency/citizenship-by-investment and investor-entrepreneur catalogue with source-pinned versioning and independent publication
 - [x] Independently verified jurisdiction program onboarding
 - [x] Jurisdiction program onboarding readiness, blocker diagnosis, and domain-isolated source controls
@@ -752,12 +861,15 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] HNWI and family-office mobility with ownership, wealth-evidence, screening, governance, specialist, banking, succession, route-grounding, and independent-review controls
 - [x] Tax residency and treaty intelligence with specialist-review controls
 
-## Phase 12: Channels, Ecosystem, and Automation — Not Started
+## Phase 12: Channels, Ecosystem, and Automation — In Progress
 
-- [ ] Dedicated client portal and mobile application
-- [ ] Employer and partner portal with tenant isolation
-- [ ] Versioned public/partner APIs
-- [ ] Email, messaging, calendar, CRM, and case-event automation
+- [x] Dedicated responsive client web portal with expiring lead-scoped access, a client-safe dashboard, revocation, and audit
+- [ ] Native/mobile application and device-specific secure session controls
+- [x] Employer and partner portal with account-derived tenant isolation, expiring access, minimized projections, revocation, and audit
+- [x] Versioned public/partner APIs with stable projections, account-derived tenancy, scoped expiring credentials, revocation, pagination, and audit
+- [x] Email, messaging, calendar, CRM, and case-event automation
+  - [x] Account-scoped idempotent event ledger, rule matching, minimized multichannel outbox, independent review, dispatch receipts, audit, and Automation Hub
+  - [x] Credential-backed email, messaging, calendar, and CRM provider adapters with retry, dead-letter, reconciliation, and scheduled delivery workers
 - [ ] Government and mobility-agency workflows
 
 ## Phase 13: Global Scale Platform — Not Started

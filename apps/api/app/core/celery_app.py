@@ -16,6 +16,7 @@ celery_app = Celery(
         "app.tasks.document_requirement_tasks",
         "app.tasks.document_fraud_risk_tasks",
         "app.tasks.document_access_tasks",
+        "app.tasks.automation_tasks",
     ],
 )
 
@@ -50,6 +51,11 @@ celery_app.conf.update(
         "expire-document-access-grants": {
             "task": "app.tasks.document_access_tasks.expire_document_access_grants_task",
             "schedule": 3600.0,
+        },
+        "dispatch-ready-automation-deliveries": {
+            "task": "app.tasks.automation_tasks.dispatch_automation_deliveries_task",
+            "schedule": 60.0,
+            "args": (100,),
         },
     },
 )

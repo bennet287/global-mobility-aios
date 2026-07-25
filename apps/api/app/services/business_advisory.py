@@ -21,9 +21,13 @@ from app.schemas_business_advisory import (
     BusinessAdvisoryCreate,
     BusinessAdvisoryRead,
     BusinessAdvisoryReviewCreate,
+    BusinessAdvisorySituationRequest,
+    BusinessAdvisorySolutionResponse,
     BusinessStrategyOption,
+    SolutionRecommendation,
 )
 from app.services.audit_log import record_audit, to_audit_dict
+from app.services.llm_client import LLMProviderError, LLMProviderFactory, is_llm_enabled
 
 
 SCORE_SEMANTICS = (
@@ -366,3 +370,253 @@ def review_advisory_assessment(
     session.commit()
     session.refresh(review)
     return review
+
+
+SOLUTION_DISCLAIMER = (
+    "This recommendation is decision-support guidance for business and wealth mobility planning. "
+    "It is not a legal, tax, or immigration opinion, and it does not guarantee authority outcomes. "
+    "Implementation requires licensed advisers and independently verified official sources."
+)
+
+
+SUCCESS_BANDS = [
+    (80, "highly_favourable"),
+    (60, "favourable"),
+    (40, "conditional"),
+    (20, "challenging"),
+    (0, "not_viable"),
+]
+
+
+def _solution_band(score: float) -> str:
+    for threshold, band in SUCCESS_BANDS:
+        if score >= threshold:
+            return band
+    return "not_viable"
+
+
+def _situation_risk_flags(payload: BusinessAdvisorySituationRequest) -> list[str]:
+    narrative = " ".join([payload.situation, *payload.risk_disclosures]).lower()
+    flags: list[str] = []
+    if any(signal in narrative for signal in PROHIBITED_SIGNALS):
+        flags.append("prohibited_conduct_signal")
+    if any(signal in narrative for signal in SPECIALIST_SIGNALS):
+        flags.append("specialist_risk_disclosure")
+    if payload.primary_intent in {
+        "passive_investment", "family_office_relocation", "tax_residency_planning", "asset_and_family_mobility",
+    } and not payload.lawful_source_of_funds_confirmed:
+        flags.append("source_of_funds_unconfirmed")
+    return flags
+
+
+def _build_solution_prompt(
+    payload: BusinessAdvisorySituationRequest,
+    pathways: list[dict[str, Any]],
+    programs: list[dict[str, Any]],
+    risk_flags: list[str],
+) -> str:
+    financials = []
+    if payload.capital_available_minor is not None:
+        financials.append(f"capital available: {payload.capital_available_minor} {payload.currency}")
+    if payload.net_worth_minor is not None:
+        financials.append(f"net worth: {payload.net_worth_minor} {payload.currency}")
+    if payload.annual_revenue_minor is not None:
+        financials.append(f"annual revenue: {payload.annual_revenue_minor} {payload.currency}")
+
+    grounding = {
+        "pathways": pathways,
+        "programs": programs,
+        "risk_flags": risk_flags,
+    }
+
+    return (
+        "You are a senior business and wealth mobility strategist. "
+        "Analyze the client's situation and recommend the strongest lawful mobility solution. "
+        "You must refuse to operationalize concealment, deception, tax evasion, sanctions evasion, "
+        "forgery, or nominee arrangements. If those appear, flag them as prohibited_conduct_signal and "
+        "do not provide a step-by-step plan for the illegal act. You may still describe the lawful "
+        "alternative or remediation route.\n\n"
+        "Primary intent: " + payload.primary_intent.replace("_", " ") + "\n"
+        "Target countries: " + ", ".join(payload.target_countries) + "\n"
+        "Situation: " + payload.situation + "\n"
+        + ("Financials: " + "; ".join(financials) + "\n" if financials else "")
+        + ("Timeline: " + str(payload.timeline_months) + " months\n" if payload.timeline_months else "")
+        + ("Family relocation: yes\n" if payload.family_relocation else "")
+        + "\nPublished grounding data (do not invent programs not listed):\n"
+        + json.dumps(grounding, default=str, indent=2)
+        + "\n\nReturn ONLY a JSON object matching this schema (no markdown):\n"
+        "{\n"
+        '  "summary": "2-3 sentence strategic summary",\n'
+        '  "recommended_solution": {\n'
+        '    "strategy_key": "one of: founder_startup, entrepreneur_operating_business, company_expansion, intra_company_transfer, investor_residence, active_business_investment, asset_and_family_mobility, family_office_mobility, tax_residency_specialist, operating_business_substance",\n'
+        '    "title": "short title",\n'
+        '    "success_meter": 0-100,\n'
+        '    "rationale": "why this fits the situation",\n'
+        '    "actions": ["concrete next step 1", "step 2", "step 3"],\n'
+        '    "estimated_timeline_months": integer or null,\n'
+        '    "estimated_commitment": {"amount_minor": integer, "currency": "3-letter code"} or null,\n'
+        '    "risk_notes": ["risk 1", "risk 2"]\n'
+        '  },\n'
+        '  "alternative_options": [\n'
+        '    { same shape as recommended_solution, at least 1 and at most 2 alternatives }\n'
+        '  ],\n'
+        '  "critical_factors": ["factor 1", "factor 2", "factor 3"],\n'
+        '  "overall_success_meter": 0-100\n'
+        "}"
+    )
+
+
+def _fallback_solution(
+    payload: BusinessAdvisorySituationRequest,
+    pathways: list[dict[str, Any]],
+    programs: list[dict[str, Any]],
+    risk_flags: list[str],
+) -> BusinessAdvisorySolutionResponse:
+    base_score = _commercial_fit_from_situation(payload)
+    pathway_boost = min(25.0, len(pathways) * 8.0 + len(programs) * 6.0)
+    if all(item["source_snapshot_id"] for item in pathways):
+        pathway_boost += 10.0
+    overall = round(max(0.0, min(100.0, base_score * 0.6 + pathway_boost * 0.4 - 15.0 * len(risk_flags))), 1)
+    if not pathways:
+        overall = min(overall, 45.0)
+    if "prohibited_conduct_signal" in risk_flags:
+        overall = min(overall, 15.0)
+
+    strategy_keys = INTENT_STRATEGIES[payload.primary_intent]
+    options: list[SolutionRecommendation] = []
+    for index, key in enumerate(strategy_keys[:3]):
+        score = round(max(0.0, min(100.0, overall - index * 8.0)), 1)
+        relevant = [item for item in pathways if key.split("_")[0] in item["domain"].lower()]
+        if not relevant:
+            relevant = pathways[:3]
+        relevant_programs = programs[:2] if key in {
+            "investor_residence", "active_business_investment", "asset_and_family_mobility", "family_office_mobility",
+        } else []
+        options.append(SolutionRecommendation(
+            strategy_key=key,
+            title=STRATEGY_TITLES[key],
+            success_meter=score,
+            success_band=_solution_band(score),
+            rationale=(
+                f"Matched to the declared intent {payload.primary_intent.replace('_', ' ')}. "
+                f"Commercial fit and grounding produce a {score:.0f}/100 success meter."
+            ),
+            actions=[
+                "Confirm the commercial objective, controlling persons, and timeline with a human adviser.",
+                "Collect identity, ownership, and source-of-funds evidence in the controlled document workspace.",
+                "Map the selected target country to a published pathway or investment program.",
+            ],
+            estimated_timeline_months=payload.timeline_months,
+            estimated_commitment={"amount_minor": payload.capital_available_minor or 0, "currency": payload.currency or "EUR"} if payload.capital_available_minor else None,
+            grounding_pathways=relevant,
+            grounding_programs=relevant_programs,
+            risk_notes=["Requires licensed review before execution."] if not risk_flags else ["Escalate to licensed specialist before proceeding."],
+        ))
+
+    return BusinessAdvisorySolutionResponse(
+        summary=(
+            f"Based on the {payload.primary_intent.replace('_', ' ')} intent and disclosed facts, "
+            f"the strongest route is {options[0].title}. The overall success meter is {overall:.0f}/100."
+        ),
+        recommended_solution=options[0],
+        alternative_options=options[1:],
+        critical_factors=[
+            "Availability of a published, source-controlled pathway for the target country.",
+            "Verified business-performance, capital, and source-of-funds evidence.",
+            "Engagement of licensed legal, tax, and immigration advisers in the target jurisdiction.",
+        ],
+        overall_success_meter=overall,
+        risk_flags=risk_flags,
+        disclaimer=SOLUTION_DISCLAIMER,
+        human_review_required=bool(risk_flags or not pathways or overall < 60),
+    )
+
+
+def _commercial_fit_from_situation(payload: BusinessAdvisorySituationRequest) -> float:
+    score = 25.0
+    if payload.primary_intent in {"launch_startup", "founder_relocation"}:
+        score += min(20.0, (payload.founder_experience_years or 0) * 2)
+        score += 20 if payload.capital_available_minor is not None else 0
+        score += 10 if payload.business_age_years is not None else 0
+    elif payload.primary_intent == "expand_existing_business":
+        score += 15 if (payload.business_age_years or 0) >= 2 else 0
+        score += 20 if payload.annual_revenue_minor is not None else 0
+        score += 15 if (payload.employees or 0) > 0 else 0
+        score += 10 if payload.capital_available_minor is not None else 0
+    elif payload.primary_intent in {"passive_investment", "family_office_relocation", "asset_and_family_mobility"}:
+        score += 25 if payload.capital_available_minor is not None else 0
+        score += 25 if payload.net_worth_minor is not None else 0
+        score += 20 if payload.lawful_source_of_funds_confirmed else 0
+    else:
+        score += 20 if payload.net_worth_minor is not None else 0
+        score += 20 if payload.lawful_source_of_funds_confirmed else 0
+        score += 15 if payload.family_relocation else 0
+    return min(100.0, score)
+
+
+def advise_on_business_mobility_situation(
+    session: Session,
+    payload: BusinessAdvisorySituationRequest,
+    *,
+    actor: str,
+) -> BusinessAdvisorySolutionResponse:
+    pathways = _published_pathways(session, payload.target_countries)
+    programs = _published_investment_programs(session, payload.target_countries)
+    risk_flags = _situation_risk_flags(payload)
+
+    if not is_llm_enabled() or risk_flags:
+        return _fallback_solution(payload, pathways, programs, risk_flags)
+
+    try:
+        provider = LLMProviderFactory.get_provider()
+        prompt = _build_solution_prompt(payload, pathways, programs, risk_flags)
+        response = provider.complete(
+            system_prompt=prompt,
+            messages=[{"role": "user", "content": "Provide the structured recommendation."}],
+            response_format={"type": "json_object"},
+        )
+        data = json.loads(response.content)
+        recommended = SolutionRecommendation(
+            strategy_key=data["recommended_solution"]["strategy_key"],
+            title=data["recommended_solution"]["title"],
+            success_meter=max(0.0, min(100.0, float(data["recommended_solution"]["success_meter"]))),
+            success_band=_solution_band(float(data["recommended_solution"]["success_meter"])),
+            rationale=data["recommended_solution"]["rationale"],
+            actions=data["recommended_solution"]["actions"],
+            estimated_timeline_months=data["recommended_solution"].get("estimated_timeline_months"),
+            estimated_commitment=data["recommended_solution"].get("estimated_commitment"),
+            grounding_pathways=pathways[:3],
+            grounding_programs=programs[:2],
+            risk_notes=data["recommended_solution"].get("risk_notes", []),
+        )
+        alternatives = [
+            SolutionRecommendation(
+                strategy_key=item["strategy_key"],
+                title=item["title"],
+                success_meter=max(0.0, min(100.0, float(item["success_meter"]))),
+                success_band=_solution_band(float(item["success_meter"])),
+                rationale=item["rationale"],
+                actions=item["actions"],
+                estimated_timeline_months=item.get("estimated_timeline_months"),
+                estimated_commitment=item.get("estimated_commitment"),
+                grounding_pathways=pathways[:3],
+                grounding_programs=programs[:2],
+                risk_notes=item.get("risk_notes", []),
+            )
+            for item in data.get("alternative_options", [])[:2]
+        ]
+        overall = max(0.0, min(100.0, float(data.get("overall_success_meter", recommended.success_meter))))
+        if not pathways:
+            overall = min(overall, 45.0)
+        return BusinessAdvisorySolutionResponse(
+            summary=data.get("summary", recommended.rationale),
+            recommended_solution=recommended,
+            alternative_options=alternatives,
+            critical_factors=data.get("critical_factors", []),
+            overall_success_meter=overall,
+            risk_flags=risk_flags,
+            disclaimer=SOLUTION_DISCLAIMER,
+            human_review_required=bool(risk_flags or not pathways or overall < 60),
+        )
+    except (LLMProviderError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return _fallback_solution(payload, pathways, programs, risk_flags)

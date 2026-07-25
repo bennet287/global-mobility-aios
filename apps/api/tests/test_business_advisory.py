@@ -126,3 +126,55 @@ def test_read_only_role_cannot_generate_advisory(raw_client):
     raw_client.headers.update({"X-GMAI-Role": "read_only", "X-GMAI-User": "readonly-user"})
     response = raw_client.post("/api/v1/business-mobility-advisory/assessments", json=BASE_PAYLOAD)
     assert response.status_code == 403
+
+
+ADVISE_PAYLOAD = {
+    "primary_intent": "launch_startup",
+    "situation": "I want to relocate as a founder, launch a software company, and move my family within twelve months.",
+    "target_countries": ["Portugal"],
+    "capital_available_minor": 15000000,
+    "currency": "EUR",
+    "founder_experience_years": 8,
+    "timeline_months": 12,
+    "family_relocation": True,
+    "lawful_source_of_funds_confirmed": True,
+}
+
+
+def test_advise_returns_solution_with_success_meter(client):
+    response = client.post("/api/v1/business-mobility-advisory/advise", json=ADVISE_PAYLOAD)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert "summary" in body
+    assert "recommended_solution" in body
+    assert body["overall_success_meter"] >= 0 and body["overall_success_meter"] <= 100
+    assert body["recommended_solution"]["success_meter"] >= 0
+    assert "success_band" in body["recommended_solution"]
+    assert "actions" in body["recommended_solution"]
+    assert "disclaimer" in body
+    assert "human_review_required" in body
+
+
+def test_advise_grounds_solution_in_published_pathways(client, db_session):
+    pathway, version = _published_business_pathway(db_session)
+    response = client.post("/api/v1/business-mobility-advisory/advise", json=ADVISE_PAYLOAD)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    grounding = body["recommended_solution"]["grounding_pathways"]
+    assert any(item["pathway_id"] == str(pathway.id) for item in grounding)
+    assert body["overall_success_meter"] > 0
+
+
+def test_advise_flags_prohibited_conduct_and_lowers_success_meter(client):
+    response = client.post(
+        "/api/v1/business-mobility-advisory/advise",
+        json={
+            **ADVISE_PAYLOAD,
+            "situation": "I want to use a nominee owner to hide ownership and backdate company records before relocating.",
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert "prohibited_conduct_signal" in body["risk_flags"]
+    assert body["human_review_required"] is True
+    assert body["overall_success_meter"] <= 20

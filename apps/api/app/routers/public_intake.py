@@ -6,12 +6,13 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.core.db import get_session
 from app.models.domain import IntakeSession, IntakeSessionStatus, Lead, LeadIntent, LeadStatus
 from app.schemas import PublicIntakeCreate, PublicIntakeResponse
 from app.services.auto_communications import generate_auto_communications_for_lead
+from app.services.client_portal import issue_client_portal_grant, resolve_client_portal_grant
 
 router = APIRouter(prefix="/api/v1", tags=["public-intake"])
 
@@ -80,15 +81,22 @@ def create_public_intake(payload: PublicIntakeCreate, session: Session = Depends
     session.refresh(lead)
     session.refresh(intake_session)
 
+    _, portal_token = issue_client_portal_grant(
+        session,
+        lead.id,
+        actor="public-intake",
+        label="Initial client portal access",
+        expires_in_days=30,
+    )
     generate_auto_communications_for_lead(
         session,
         lead.id,
         trigger="intake_submitted",
-        context={"return_link": f"/return?token={intake_session.session_token}"},
+        context={"return_link": f"/portal?token={portal_token}"},
     )
 
     return {
-        "session_token": intake_session.session_token,
+        "session_token": portal_token,
         "lead_id": lead.id,
         "status": lead.status,
         "checklist": _checklist(intent, payload.target_country),
@@ -98,16 +106,15 @@ def create_public_intake(payload: PublicIntakeCreate, session: Session = Depends
 
 @router.get("/public/intake/{session_token}", response_model=PublicIntakeResponse)
 def get_public_intake(session_token: str, session: Session = Depends(get_session)) -> dict[str, Any]:
-    intake_session = session.exec(
-        select(IntakeSession).where(IntakeSession.session_token == session_token)
-    ).first()
-    if intake_session is None:
-        raise HTTPException(status_code=404, detail="Intake session not found")
-    lead = session.get(Lead, intake_session.lead_id) if intake_session.lead_id else None
+    try:
+        portal_grant = resolve_client_portal_grant(session, session_token)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="Intake session not found") from exc
+    lead = session.get(Lead, portal_grant.lead_id)
     if lead is None:
         raise HTTPException(status_code=404, detail="Lead not found")
     return {
-        "session_token": intake_session.session_token,
+        "session_token": session_token,
         "lead_id": lead.id,
         "status": lead.status,
         "checklist": _checklist(lead.intent, lead.target_country),

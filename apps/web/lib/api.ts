@@ -1750,8 +1750,159 @@ export async function lookupClientCases(payload: ClientLookupPayload): Promise<C
   });
 }
 
-export async function getClientReturnDashboard(leadId: string): Promise<ClientReturnDashboard> {
-  return request<ClientReturnDashboard>(`/api/v1/public/return/${leadId}`);
+export async function getClientReturnDashboard(
+  leadId: string,
+  portalToken: string
+): Promise<ClientReturnDashboard> {
+  return request<ClientReturnDashboard>(`/api/v1/public/return/${leadId}`, {
+    headers: { "X-GMAI-Portal-Token": portalToken },
+  });
+}
+
+export type ClientPortalGrant = {
+  id: string;
+  lead_id: string;
+  label: string;
+  status: "active" | "expired" | "revoked";
+  expires_at: string;
+  created_by: string;
+  access_count: number;
+  last_accessed_at: string | null;
+  revoked_by: string | null;
+  revoked_at: string | null;
+  revocation_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  expired: boolean;
+};
+
+export type ClientPortalGrantIssued = {
+  grant: ClientPortalGrant;
+  token: string;
+  portal_path: string;
+};
+
+export type ClientPortalDocument = {
+  id: string;
+  document_type: string;
+  filename: string;
+  status: string;
+  uploaded_at: string | null;
+  expiry_date: string | null;
+};
+
+export type ClientPortalMilestone = {
+  key: string;
+  label: string;
+  state: "complete" | "current" | "upcoming";
+};
+
+export type ClientPortalDashboard = {
+  grant_id: string;
+  client_name: string;
+  target_country: string | null;
+  intent: string;
+  case_status: string;
+  application_stage: string | null;
+  next_action: string;
+  documents: ClientPortalDocument[];
+  document_counts: Record<string, number>;
+  milestones: ClientPortalMilestone[];
+  expires_at: string;
+  updated_at: string;
+};
+
+export async function issueClientPortalGrant(
+  leadId: string,
+  expiresInDays = 30
+): Promise<ClientPortalGrantIssued> {
+  return request<ClientPortalGrantIssued>("/api/v1/client-portal/grants", {
+    method: "POST",
+    body: JSON.stringify({
+      lead_id: leadId,
+      label: "Primary client access",
+      expires_in_days: expiresInDays,
+    }),
+  });
+}
+
+export async function getClientPortalDashboard(token: string): Promise<ClientPortalDashboard> {
+  return request<ClientPortalDashboard>("/api/v1/public/client-portal/dashboard", {
+    headers: { "X-GMAI-Portal-Token": token },
+  });
+}
+
+export type EcosystemPortalGrantIssued = {
+  grant: {
+    id: string;
+    corporate_account_id: string;
+    audience_type: "employer" | "partner";
+    label: string;
+    status: "active" | "expired" | "revoked";
+    expires_at: string;
+  };
+  token: string;
+  portal_path: string;
+};
+
+export type EcosystemPortalCase = {
+  case_reference: string;
+  case_type: string;
+  status: string;
+  employee_name: string | null;
+  origin_country: string | null;
+  destination_country: string;
+  target_start_date: string | null;
+  compliance_due_date: string | null;
+  open_compliance_items: number;
+  open_tasks: number;
+  next_action: string;
+  updated_at: string;
+};
+
+export type EcosystemPortalDashboard = {
+  grant_id: string;
+  audience_type: "employer" | "partner";
+  account_name: string;
+  primary_country: string;
+  account_status: string;
+  case_counts: Record<string, number>;
+  cases: EcosystemPortalCase[];
+  upcoming_compliance: Array<{
+    case_reference: string;
+    title: string;
+    event_type: string;
+    due_at: string;
+    status: string;
+    evidence_required: boolean;
+  }>;
+  expires_at: string;
+  updated_at: string;
+};
+
+export async function issueEcosystemPortalGrant(
+  corporateAccountId: string,
+  audienceType: "employer" | "partner",
+  label: string,
+  expiresInDays = 30,
+): Promise<EcosystemPortalGrantIssued> {
+  return request<EcosystemPortalGrantIssued>("/api/v1/ecosystem-portal/grants", {
+    method: "POST",
+    body: JSON.stringify({
+      corporate_account_id: corporateAccountId,
+      audience_type: audienceType,
+      label,
+      expires_in_days: expiresInDays,
+    }),
+  });
+}
+
+export async function getEcosystemPortalDashboard(
+  token: string,
+): Promise<EcosystemPortalDashboard> {
+  return request<EcosystemPortalDashboard>("/api/v1/public/ecosystem-portal/dashboard", {
+    headers: { "X-GMAI-Ecosystem-Token": token },
+  });
 }
 
 export type Opportunity = {
@@ -1859,6 +2010,117 @@ export async function createAutoCommunication(
 
 export async function listAutoCommunications(leadId: string): Promise<AutoCommunicationsList> {
   return request<AutoCommunicationsList>(`/api/v1/auto-communications/leads/${leadId}`);
+}
+
+export type AutomationChannel = "email" | "messaging" | "calendar" | "crm";
+
+export type AutomationRule = {
+  id: string;
+  corporate_account_id: string;
+  name: string;
+  event_type: string;
+  channels: AutomationChannel[];
+  destinations: Record<string, string>;
+  subject_template: string | null;
+  body_template: string | null;
+  requires_human_approval: boolean;
+  status: string;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AutomationEvent = {
+  id: string;
+  idempotency_key: string;
+  corporate_account_id: string;
+  corporate_mobility_case_id: string | null;
+  event_type: string;
+  entity_type: string;
+  entity_id: string;
+  source: string;
+  payload: Record<string, unknown>;
+  status: string;
+  occurred_at: string;
+  created_by: string;
+  created_at: string;
+  delivery_count: number;
+};
+
+export type AutomationDelivery = {
+  id: string;
+  automation_event_id: string;
+  automation_rule_id: string;
+  channel: AutomationChannel;
+  destination: string | null;
+  subject: string | null;
+  payload: Record<string, unknown>;
+  status: string;
+  requires_human_approval: boolean;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_reason: string | null;
+  dispatched_by: string | null;
+  dispatched_at: string | null;
+  provider_message_id: string | null;
+  attempt_count: number;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function listAutomationRules(accountId?: string): Promise<AutomationRule[]> {
+  const suffix = accountId ? `?corporate_account_id=${encodeURIComponent(accountId)}` : "";
+  return request<AutomationRule[]>(`/api/v1/automation/rules${suffix}`);
+}
+
+export async function createAutomationRule(payload: {
+  corporate_account_id: string;
+  name: string;
+  event_type: string;
+  channels: AutomationChannel[];
+  destinations: Record<string, string>;
+  subject_template?: string;
+  body_template?: string;
+  requires_human_approval: boolean;
+}): Promise<AutomationRule> {
+  return request<AutomationRule>("/api/v1/automation/rules", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAutomationRuleStatus(
+  ruleId: string,
+  status: "active" | "paused",
+  reason: string
+): Promise<AutomationRule> {
+  return request<AutomationRule>(`/api/v1/automation/rules/${ruleId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, reason }),
+  });
+}
+
+export async function listAutomationEvents(accountId?: string): Promise<AutomationEvent[]> {
+  const suffix = accountId ? `?corporate_account_id=${encodeURIComponent(accountId)}` : "";
+  return request<AutomationEvent[]>(`/api/v1/automation/events${suffix}`);
+}
+
+export async function listAutomationDeliveries(accountId?: string): Promise<AutomationDelivery[]> {
+  const suffix = accountId ? `?corporate_account_id=${encodeURIComponent(accountId)}` : "";
+  return request<AutomationDelivery[]>(`/api/v1/automation/deliveries${suffix}`);
+}
+
+export async function decideAutomationDelivery(
+  deliveryId: string,
+  decision: "approved" | "rejected",
+  reason: string
+): Promise<AutomationDelivery> {
+  return request<AutomationDelivery>(`/api/v1/automation/deliveries/${deliveryId}/decision`, {
+    method: "POST",
+    body: JSON.stringify({ decision, reason }),
+  });
 }
 
 export async function listTrainingCases(params?: {

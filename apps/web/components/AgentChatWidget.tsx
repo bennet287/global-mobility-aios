@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   AgentChatResponse,
   chatWithAgent,
@@ -15,6 +16,7 @@ type Message =
   | { role: "assistant"; content: string; decision?: ConsultantDecision };
 
 export function AgentChatWidget({ leadHint }: { leadHint?: string }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
@@ -27,6 +29,9 @@ export function AgentChatWidget({ leadHint }: { leadHint?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const clientFacingRoute = pathname.startsWith("/portal")
+    || pathname.startsWith("/return")
+    || pathname.startsWith("/partner-portal");
 
   useEffect(() => {
     if (open && bottomRef.current) {
@@ -89,6 +94,8 @@ export function AgentChatWidget({ leadHint }: { leadHint?: string }) {
       { role: "assistant", content: "Got it. Let me know if you'd like to do something else." },
     ]);
   };
+
+  if (clientFacingRoute) return null;
 
   return (
     <div className={`agent-chat-widget ${open ? "open" : ""}`}>
