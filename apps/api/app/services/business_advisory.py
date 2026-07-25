@@ -264,19 +264,22 @@ def create_advisory_assessment(
     if "prohibited_conduct_signal" in risk_flags:
         blockers.append("The situation includes a concealment, deception, evasion, or circumvention signal that cannot be operationalized.")
 
-    next_actions = [
-        "Validate the commercial objective, controlling persons, family scope, timing, and target-country priorities with a human adviser.",
-        "Collect identity, ownership, business-performance, capital, and lawful source-of-funds evidence in the controlled document workspace.",
-    ]
+    next_actions = list(_SITUATION_ACTIONS.get(payload.primary_intent, _SITUATION_ACTIONS["launch_startup"])[:2])
+    next_actions.append(
+        "Validate the commercial objective, controlling persons, family scope, timing, and target-country priorities with a human adviser."
+    )
     if not pathways:
         next_actions.append("Research and independently publish official-source business pathways before making a country-specific route recommendation.")
     if risk_flags:
         next_actions.append("Resolve disclosed legal, tax, sanctions, ownership, or source-of-funds issues with the appropriate licensed specialist.")
 
     options: list[dict[str, Any]] = []
-    base_fit = commercial_fit_score
+    intent_actions = _SITUATION_ACTIONS.get(payload.primary_intent, _SITUATION_ACTIONS["launch_startup"])
     for index, key in enumerate(INTENT_STRATEGIES[payload.primary_intent]):
-        fit = round(max(0.0, min(100.0, base_fit - index * 9.0)), 1)
+        fit = _strategy_fit_score(key, payload, pathways, investment_programs, commercial_fit_score)
+        fit = round(max(0.0, min(100.0, fit - index * 6.0)), 1)
+        if "prohibited_conduct_signal" in risk_flags:
+            fit = min(fit, 20.0)
         relevant = [item for item in pathways if key.split("_")[0] in item["domain"].lower()]
         if not relevant:
             relevant = pathways[:3]
@@ -284,23 +287,35 @@ def create_advisory_assessment(
             "investor_residence", "active_business_investment", "asset_and_family_mobility", "family_office_mobility"
         } else []
         option_blockers = list(blockers)
+
+        rationale = [
+            f"{STRATEGY_TITLES[key]} fits the '{payload.primary_intent.replace('_', ' ')}' intent.",
+            f"Situation-aware fit is {fit:.0f}/100 based on disclosed facts, target countries ({', '.join(payload.target_countries)}), and available routes.",
+        ]
+        if relevant:
+            rationale.append(f"Grounded in {len(relevant)} published pathway(s) for this archetype.")
+        elif pathways:
+            rationale.append("No directly matching published pathway is available; using the closest published routes for reference.")
+        else:
+            rationale.append("No published, source-controlled pathway is available yet for the selected countries.")
+
         options.append({
             "strategy_key": key,
             "title": STRATEGY_TITLES[key],
             "fit_score": fit,
             "fit_band": _band(fit),
-            "rationale": [
-                f"Aligned to the declared intent: {payload.primary_intent.replace('_', ' ')}.",
-                f"Commercial fact fit is {fit:.0f}/100 based on the supplied business and financial facts.",
-            ],
+            "rationale": rationale,
             "blockers": option_blockers,
-            "next_actions": next_actions[:3],
+            "next_actions": intent_actions[:3],
             "published_pathways": relevant,
             "verified_programs": relevant_programs,
             "verification_state": "published_program_grounded" if relevant_programs else (
                 "published_pathway_grounded" if relevant else "archetype_only_requires_route_verification"
             ),
         })
+
+    # Re-sort so the strongest option is first, then preserve original order for ties.
+    options.sort(key=lambda option: (-option["fit_score"], INTENT_STRATEGIES[payload.primary_intent].index(option["strategy_key"])))
 
     evidence_basis = [
         {"document_id": str(item.id), "document_type": item.document_type, "status": item.status}
