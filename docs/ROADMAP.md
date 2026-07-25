@@ -5,6 +5,15 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v11.4.1 (2026-07-25)
+
+- Enhanced the Business & Wealth Mobility situation-advisory endpoint (`POST /api/v1/business-mobility-advisory/advise`) to deliver situation-aware, commercially specific recommendations with a responsive success meter.
+- Added intent-specific actions and critical factors for startup, expansion, passive investment, family-office relocation, tax-residency planning, and asset-and-family mobility scenarios.
+- Introduced per-strategy fit scoring so the highest-matching lawful option is recommended even when it is not the first archetype in the intent map.
+- Risk-flagged situations now return the strongest lawful alternative plus remediation/specialist guidance instead of a generic refusal; prohibited-conduct signals remain capped and escalated with lawful remediation offered.
+- Updated `docs/BUSINESS_WEALTH_ADVISORY_V11_4.md` and regression tests.
+- See `docs/BUSINESS_WEALTH_ADVISORY_V11_4.md`.
+
 ## Delivery Status — v12.4.1 (2026-07-25)
 
 Current database migration head: `0053_automation_delivery_reconciliation`.

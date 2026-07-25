@@ -178,3 +178,57 @@ def test_advise_flags_prohibited_conduct_and_lowers_success_meter(client):
     assert "prohibited_conduct_signal" in body["risk_flags"]
     assert body["human_review_required"] is True
     assert body["overall_success_meter"] <= 20
+
+
+def test_advise_provides_situation_specific_actions_and_factors(client):
+    response = client.post("/api/v1/business-mobility-advisory/advise", json=ADVISE_PAYLOAD)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["recommended_solution"]["actions"]) >= 3
+    assert len(body["critical_factors"]) >= 3
+    # Actions should reference the specific intent (startup/founder), not be purely generic.
+    action_text = " ".join(body["recommended_solution"]["actions"]).lower()
+    assert any(keyword in action_text for keyword in ["founder", "startup", "operating plan", "substance"])
+
+
+def test_advise_still_recommends_lawful_alternative_for_risky_situation(client):
+    response = client.post(
+        "/api/v1/business-mobility-advisory/advise",
+        json={
+            **ADVISE_PAYLOAD,
+            "situation": "I have a prior visa refusal and want to launch a software company in Portugal with my family.",
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert "specialist_risk_disclosure" in body["risk_flags"]
+    # A recommendation must still be returned, not just a refusal.
+    assert body["recommended_solution"]["success_meter"] > 0
+    assert len(body["alternative_options"]) >= 1
+    assert body["human_review_required"] is True
+
+
+def test_advise_success_meter_responds_to_capital_and_timeline(client):
+    strong_payload = {
+        **ADVISE_PAYLOAD,
+        "capital_available_minor": 5_000_000_00,
+        "net_worth_minor": 10_000_000_00,
+        "lawful_source_of_funds_confirmed": True,
+        "timeline_months": 18,
+    }
+    response = client.post("/api/v1/business-mobility-advisory/advise", json=strong_payload)
+    assert response.status_code == 200, response.text
+    strong = response.json()
+
+    weak_payload = {
+        **ADVISE_PAYLOAD,
+        "capital_available_minor": None,
+        "net_worth_minor": None,
+        "founder_experience_years": 0,
+        "timeline_months": 3,
+    }
+    response = client.post("/api/v1/business-mobility-advisory/advise", json=weak_payload)
+    assert response.status_code == 200, response.text
+    weak = response.json()
+
+    assert strong["overall_success_meter"] > weak["overall_success_meter"]

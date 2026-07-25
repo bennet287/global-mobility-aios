@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-25 — Business and Wealth Mobility advisory v11.4.1
+
+- Enhanced `POST /api/v1/business-mobility-advisory/advise` to be situation-aware and commercially specific.
+- Replaced generic fallback rationales with intent-specific actions, critical factors, and per-strategy fit scoring.
+- Success meter now responds to disclosed capital, net worth, revenue, founder experience, business age, timeline, family relocation, source-of-funds confirmation, and published pathway/program availability.
+- Risk-flagged situations (prior refusals, source-of-funds, sanctions/PEP exposure) now return the strongest lawful alternative plus remediation/specialist guidance, rather than falling back to a generic block.
+- Prohibited-conduct signals remain capped and escalated; the response offers lawful remediation or an alternative route.
+- Updated the LLM prompt to be commercially oriented while preserving the boundary against illegal acts.
+- Added regression tests for situation-specific actions, lawful alternatives for risky situations, and success-meter sensitivity to capital/timeline.
+- Updated `docs/BUSINESS_WEALTH_ADVISORY_V11_4.md`.
+
 ## 2026-07-25 — Automation connector hardening v12.4.1
 
 - Added encrypted credential storage for automation connector configs via `app/services/automation_connector_encryption.py`, using Fernet keyed from `AUTOMATION_ENCRYPTION_KEY` (falling back to `JWT_SECRET` when not set).

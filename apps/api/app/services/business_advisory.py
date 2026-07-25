@@ -375,7 +375,8 @@ def review_advisory_assessment(
 SOLUTION_DISCLAIMER = (
     "This recommendation is decision-support guidance for business and wealth mobility planning. "
     "It is not a legal, tax, or immigration opinion, and it does not guarantee authority outcomes. "
-    "Implementation requires licensed advisers and independently verified official sources."
+    "Execution requires licensed advisers and independently verified official sources; "
+    "risky or complex situations must be reviewed by the appropriate specialist before any action."
 )
 
 
@@ -409,6 +410,154 @@ def _situation_risk_flags(payload: BusinessAdvisorySituationRequest) -> list[str
     return flags
 
 
+def _situation_aware_score(
+    payload: BusinessAdvisorySituationRequest,
+    pathways: list[dict[str, Any]],
+    programs: list[dict[str, Any]],
+    risk_flags: list[str],
+) -> float:
+    """Compute a success meter that reflects facts, pathways, timeline, and disclosed risks."""
+    base = _commercial_fit_from_situation(payload)
+    pathway_boost = min(35.0, len(pathways) * 10.0 + len(programs) * 8.0)
+    if pathways and all(item.get("source_snapshot_id") for item in pathways):
+        pathway_boost += 10.0
+
+    timeline_factor = 0.0
+    if payload.timeline_months:
+        # Tighter timelines reduce the score unless capital is already available.
+        if payload.timeline_months <= 6:
+            timeline_factor = -10.0
+        elif payload.timeline_months <= 12:
+            timeline_factor = -5.0
+        else:
+            timeline_factor = 5.0
+    if payload.capital_available_minor:
+        timeline_factor += 5.0
+
+    risk_penalty = 12.0 * len(risk_flags)
+    if "prohibited_conduct_signal" in risk_flags:
+        risk_penalty += 15.0
+
+    score = base * 0.55 + pathway_boost * 0.35 + timeline_factor * 0.10 - risk_penalty
+    score = max(0.0, min(100.0, score))
+    if not pathways:
+        score = min(score, 45.0)
+    if "prohibited_conduct_signal" in risk_flags:
+        score = min(score, 20.0)
+    return round(score, 1)
+
+
+_SITUATION_ACTIONS = {
+    "launch_startup": [
+        "Incorporate the target-country vehicle and prepare a founder-investor narrative.",
+        "Draft a 12-24 month operating plan that shows local substance (office, hires, revenue).",
+        "Collect proof of capital, founder track record, and lawful source-of-funds documents.",
+    ],
+    "expand_existing_business": [
+        "Prepare audited/reviewed financials and an org chart showing the expansion rationale.",
+        "Identify the transfer mechanism (intra-company assignment, local hire, branch).",
+        "Map the target-country corporate, VAT, payroll, and immigration registration sequence.",
+    ],
+    "founder_relocation": [
+        "Confirm personal and corporate residency requirements for the founder and family.",
+        "Structure the move so the company continues to trade or raises in the new jurisdiction.",
+        "Obtain tax, immigration, and school/housing clearances before the relocation date.",
+    ],
+    "passive_investment": [
+        "Match available capital to the minimum commitment of a published residence/citizenship program.",
+        "Obtain a source-of-funds audit and a clean criminal-record certificate.",
+        "Appoint a licensed local adviser and escrow agent before any capital transfer.",
+    ],
+    "family_office_relocation": [
+        "Catalogue the family balance sheet, asset locations, and existing tax residencies.",
+        "Select a jurisdiction that fits the family's investment, governance, and schooling needs.",
+        "Build a family-constitution draft and engage a multi-jurisdiction tax/estate team.",
+    ],
+    "tax_residency_planning": [
+        "Document current tax residency triggers and any treaty tie-breaker positions.",
+        "Model the 183-day, permanent home, centre of vital interests, and habitual abode tests.",
+        "Implement a substance plan (home, office, board meetings, banking) before year-end.",
+    ],
+    "asset_and_family_mobility": [
+        "Map assets by jurisdiction, ownership structure, and portability.",
+        "Prepare custody, schooling, healthcare, and residence permits for family members.",
+        "Align the asset-protection and succession plan with the new residency structure.",
+    ],
+}
+
+
+_SITUATION_CRITICAL_FACTORS = {
+    "launch_startup": [
+        "Founder experience and capital availability in the target jurisdiction.",
+        "Published startup, entrepreneur, or innovation pathway for the country.",
+        "Local substance plan that satisfies authority review.",
+    ],
+    "expand_existing_business": [
+        "Trading history, revenue, and staffing that justify the expansion.",
+        "Corporate and transfer mechanism matched to a published pathway.",
+        "Local payroll, tax, and immigration registration readiness.",
+    ],
+    "founder_relocation": [
+        "Personal and corporate residency alignment.",
+        "Continuity of the company's operations and funding post-move.",
+        "Family relocation logistics and timelines.",
+    ],
+    "passive_investment": [
+        "Capital amount versus published program minimums.",
+        "Clean source-of-funds evidence and criminal-record status.",
+        "Licensed local adviser and escrow arrangement.",
+    ],
+    "family_office_relocation": [
+        "Complexity of the family balance sheet and asset locations.",
+        "Jurisdiction fit for investment, governance, schooling, and lifestyle.",
+        "Multi-jurisdiction tax and estate planning readiness.",
+    ],
+    "tax_residency_planning": [
+        "Current tax-residency triggers and treaty positions.",
+        "Substance evidence across the 183-day, home, interests, and abode tests.",
+        "Timing relative to the tax year and reporting deadlines.",
+    ],
+    "asset_and_family_mobility": [
+        "Asset portability and ownership-structure complexity.",
+        "Family-member residence, custody, and schooling requirements.",
+        "Alignment of asset protection with the new residency plan.",
+    ],
+}
+
+
+def _strategy_fit_score(
+    strategy_key: str,
+    payload: BusinessAdvisorySituationRequest,
+    pathways: list[dict[str, Any]],
+    programs: list[dict[str, Any]],
+    base_score: float,
+) -> float:
+    """Adjust the base score for how well a given strategy matches the situation."""
+    score = base_score
+    relevant = [p for p in pathways if strategy_key.split("_")[0] in p["domain"].lower()]
+    if relevant:
+        score += 8.0
+    if strategy_key in {
+        "investor_residence", "active_business_investment", "asset_and_family_mobility", "family_office_mobility"
+    } and programs:
+        score += 8.0
+    if payload.primary_intent == "launch_startup" and strategy_key in {"founder_startup", "entrepreneur_operating_business"}:
+        score += 10.0
+    if payload.primary_intent == "expand_existing_business" and strategy_key in {"company_expansion", "intra_company_transfer"}:
+        score += 10.0
+    if payload.primary_intent == "passive_investment" and strategy_key in {"investor_residence", "active_business_investment"}:
+        score += 10.0
+    if payload.primary_intent == "family_office_relocation" and strategy_key in {"family_office_mobility", "investor_residence"}:
+        score += 10.0
+    if payload.primary_intent == "tax_residency_planning" and strategy_key in {"tax_residency_specialist", "operating_business_substance"}:
+        score += 10.0
+    if payload.primary_intent == "asset_and_family_mobility" and strategy_key in {"asset_and_family_mobility", "family_office_mobility"}:
+        score += 10.0
+    if payload.primary_intent == "founder_relocation" and strategy_key in {"founder_startup", "intra_company_transfer"}:
+        score += 10.0
+    return round(max(0.0, min(100.0, score)), 1)
+
+
 def _build_solution_prompt(
     payload: BusinessAdvisorySituationRequest,
     pathways: list[dict[str, Any]],
@@ -429,39 +578,51 @@ def _build_solution_prompt(
         "risk_flags": risk_flags,
     }
 
+    risk_guidance = ""
+    if risk_flags:
+        risk_guidance = (
+            "\nDisclosed risk flags: " + ", ".join(risk_flags) + ". "
+            "Do not ignore these flags. Recommend the strongest LAWFUL alternative, "
+            "explain exactly how to remediate or compartmentalize the issue, and "
+            "name the specialist (legal, tax, sanctions, immigration, or financial-crime) "
+            "who must review before execution. You may describe aggressive-but-lawful planning; "
+            "you must not provide instructions for forgery, fraud, tax evasion, sanctions evasion, "
+            "or nominee concealment.\n"
+        )
+
     return (
-        "You are a senior business and wealth mobility strategist. "
-        "Analyze the client's situation and recommend the strongest lawful mobility solution. "
-        "You must refuse to operationalize concealment, deception, tax evasion, sanctions evasion, "
-        "forgery, or nominee arrangements. If those appear, flag them as prohibited_conduct_signal and "
-        "do not provide a step-by-step plan for the illegal act. You may still describe the lawful "
-        "alternative or remediation route.\n\n"
+        "You are a senior, commercially oriented business and wealth mobility strategist. "
+        "Your client is a business owner, founder, investor, HNWI, or family-office principal. "
+        "Analyze the situation and recommend the strongest, most practical lawful mobility solution. "
+        "Be specific: tie the recommendation to the disclosed facts, target countries, capital, "
+        "timeline, family scope, and published pathways/programs. Do not be generic.\n\n"
         "Primary intent: " + payload.primary_intent.replace("_", " ") + "\n"
         "Target countries: " + ", ".join(payload.target_countries) + "\n"
         "Situation: " + payload.situation + "\n"
         + ("Financials: " + "; ".join(financials) + "\n" if financials else "")
         + ("Timeline: " + str(payload.timeline_months) + " months\n" if payload.timeline_months else "")
         + ("Family relocation: yes\n" if payload.family_relocation else "")
+        + risk_guidance
         + "\nPublished grounding data (do not invent programs not listed):\n"
         + json.dumps(grounding, default=str, indent=2)
         + "\n\nReturn ONLY a JSON object matching this schema (no markdown):\n"
         "{\n"
-        '  "summary": "2-3 sentence strategic summary",\n'
+        '  "summary": "2-3 sentence strategic summary that sounds like advice from a senior strategist",\n'
         '  "recommended_solution": {\n'
         '    "strategy_key": "one of: founder_startup, entrepreneur_operating_business, company_expansion, intra_company_transfer, investor_residence, active_business_investment, asset_and_family_mobility, family_office_mobility, tax_residency_specialist, operating_business_substance",\n'
-        '    "title": "short title",\n'
-        '    "success_meter": 0-100,\n'
-        '    "rationale": "why this fits the situation",\n'
+        '    "title": "short, commercially crisp title",\n'
+        '    "success_meter": 0-100 integer,\n'
+        '    "rationale": "why this exact route fits the client\'s situation and intention",\n'
         '    "actions": ["concrete next step 1", "step 2", "step 3"],\n'
         '    "estimated_timeline_months": integer or null,\n'
         '    "estimated_commitment": {"amount_minor": integer, "currency": "3-letter code"} or null,\n'
-        '    "risk_notes": ["risk 1", "risk 2"]\n'
+        '    "risk_notes": ["specific risk 1", "specific risk 2"]\n'
         '  },\n'
         '  "alternative_options": [\n'
-        '    { same shape as recommended_solution, at least 1 and at most 2 alternatives }\n'
+        '    { same shape as recommended_solution, at least 1 and at most 2 alternatives, each weaker or higher-risk than the primary }\n'
         '  ],\n'
-        '  "critical_factors": ["factor 1", "factor 2", "factor 3"],\n'
-        '  "overall_success_meter": 0-100\n'
+        '  "critical_factors": ["factor that will make or break the primary recommendation", "factor 2", "factor 3"],\n'
+        '  "overall_success_meter": 0-100 integer\n'
         "}"
     )
 
@@ -472,59 +633,69 @@ def _fallback_solution(
     programs: list[dict[str, Any]],
     risk_flags: list[str],
 ) -> BusinessAdvisorySolutionResponse:
-    base_score = _commercial_fit_from_situation(payload)
-    pathway_boost = min(25.0, len(pathways) * 8.0 + len(programs) * 6.0)
-    if all(item["source_snapshot_id"] for item in pathways):
-        pathway_boost += 10.0
-    overall = round(max(0.0, min(100.0, base_score * 0.6 + pathway_boost * 0.4 - 15.0 * len(risk_flags))), 1)
-    if not pathways:
-        overall = min(overall, 45.0)
-    if "prohibited_conduct_signal" in risk_flags:
-        overall = min(overall, 15.0)
-
+    overall = _situation_aware_score(payload, pathways, programs, risk_flags)
     strategy_keys = INTENT_STRATEGIES[payload.primary_intent]
+    base_score = _commercial_fit_from_situation(payload)
+
     options: list[SolutionRecommendation] = []
     for index, key in enumerate(strategy_keys[:3]):
-        score = round(max(0.0, min(100.0, overall - index * 8.0)), 1)
+        score = _strategy_fit_score(key, payload, pathways, programs, base_score)
+        # Rank alternatives lower than the primary by a modest margin.
+        score = round(max(0.0, min(100.0, score - index * 6.0)), 1)
+        if "prohibited_conduct_signal" in risk_flags:
+            score = min(score, 20.0)
         relevant = [item for item in pathways if key.split("_")[0] in item["domain"].lower()]
         if not relevant:
             relevant = pathways[:3]
         relevant_programs = programs[:2] if key in {
             "investor_residence", "active_business_investment", "asset_and_family_mobility", "family_office_mobility",
         } else []
+
+        if risk_flags:
+            risk_notes = [
+                "Disclosed risk flags require licensed specialist review before execution.",
+                "Remediation may include source-of-funds documentation, sanctions/PEP clearance, or lawful restructuring.",
+            ]
+        else:
+            risk_notes = ["Requires licensed review and independently verified official sources before execution."]
+
         options.append(SolutionRecommendation(
             strategy_key=key,
             title=STRATEGY_TITLES[key],
             success_meter=score,
             success_band=_solution_band(score),
             rationale=(
-                f"Matched to the declared intent {payload.primary_intent.replace('_', ' ')}. "
-                f"Commercial fit and grounding produce a {score:.0f}/100 success meter."
+                f"{STRATEGY_TITLES[key]} is matched to the '{payload.primary_intent.replace('_', ' ')}' intent. "
+                f"Given the disclosed facts and target countries ({', '.join(payload.target_countries)}), "
+                f"the situation-aware success meter is {score:.0f}/100."
             ),
-            actions=[
-                "Confirm the commercial objective, controlling persons, and timeline with a human adviser.",
-                "Collect identity, ownership, and source-of-funds evidence in the controlled document workspace.",
-                "Map the selected target country to a published pathway or investment program.",
-            ],
+            actions=_SITUATION_ACTIONS.get(payload.primary_intent, _SITUATION_ACTIONS["launch_startup"])[:3],
             estimated_timeline_months=payload.timeline_months,
             estimated_commitment={"amount_minor": payload.capital_available_minor or 0, "currency": payload.currency or "EUR"} if payload.capital_available_minor else None,
             grounding_pathways=relevant,
             grounding_programs=relevant_programs,
-            risk_notes=["Requires licensed review before execution."] if not risk_flags else ["Escalate to licensed specialist before proceeding."],
+            risk_notes=risk_notes,
         ))
+
+    # Re-sort so the highest-scoring option is recommended, not just the first archetype.
+    options.sort(key=lambda option: option.success_meter, reverse=True)
 
     return BusinessAdvisorySolutionResponse(
         summary=(
-            f"Based on the {payload.primary_intent.replace('_', ' ')} intent and disclosed facts, "
-            f"the strongest route is {options[0].title}. The overall success meter is {overall:.0f}/100."
+            f"For the '{payload.primary_intent.replace('_', ' ')}' goal in {', '.join(payload.target_countries)}, "
+            f"the strongest route is {options[0].title} with a situation-aware success meter of {options[0].success_meter:.0f}/100 "
+            f"(overall {overall:.0f}/100)."
         ),
         recommended_solution=options[0],
         alternative_options=options[1:],
-        critical_factors=[
-            "Availability of a published, source-controlled pathway for the target country.",
-            "Verified business-performance, capital, and source-of-funds evidence.",
-            "Engagement of licensed legal, tax, and immigration advisers in the target jurisdiction.",
-        ],
+        critical_factors=_SITUATION_CRITICAL_FACTORS.get(
+            payload.primary_intent,
+            [
+                "Availability of a published, source-controlled pathway for the target country.",
+                "Verified capital, ownership, and source-of-funds evidence.",
+                "Engagement of licensed legal, tax, and immigration advisers in the target jurisdiction.",
+            ],
+        ),
         overall_success_meter=overall,
         risk_flags=risk_flags,
         disclaimer=SOLUTION_DISCLAIMER,
@@ -564,7 +735,7 @@ def advise_on_business_mobility_situation(
     programs = _published_investment_programs(session, payload.target_countries)
     risk_flags = _situation_risk_flags(payload)
 
-    if not is_llm_enabled() or risk_flags:
+    if not is_llm_enabled():
         return _fallback_solution(payload, pathways, programs, risk_flags)
 
     try:
@@ -608,6 +779,8 @@ def advise_on_business_mobility_situation(
         overall = max(0.0, min(100.0, float(data.get("overall_success_meter", recommended.success_meter))))
         if not pathways:
             overall = min(overall, 45.0)
+        if "prohibited_conduct_signal" in risk_flags:
+            overall = min(overall, 20.0)
         return BusinessAdvisorySolutionResponse(
             summary=data.get("summary", recommended.rationale),
             recommended_solution=recommended,

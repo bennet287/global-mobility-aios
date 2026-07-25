@@ -47,6 +47,33 @@ The system does not provide instructions to conceal ownership or funds, use nomi
 - Read-only roles cannot create or review assessments.
 - Human approval does not convert the assessment into legal, tax, investment, or authority advice; it confirms that a qualified operator reviewed the recorded decision support.
 
+## Situation-aware advisory endpoint
+
+`POST /api/v1/business-mobility-advisory/advise` returns an immediate, structured
+recommendation for a described situation without persisting a formal assessment.
+It is intentionally more commercially oriented than the stored assessment flow:
+
+- The success meter is computed from the actual disclosed facts (capital, net
+  worth, revenue, founder experience, business age, timeline, family relocation,
+  source-of-funds confirmation), the available published pathways and investment
+  programs, and the declared risk disclosures.
+- Recommendations are ranked by a per-strategy fit score so the best option is
+  surfaced even when the first archetype in the intent map is not the strongest.
+- Returned actions and critical factors are intent-specific (startup, expansion,
+  passive investment, family-office relocation, tax-residency planning, etc.)
+  rather than a generic checklist.
+- Disclosed complications (prior refusals, source-of-funds questions, sanctions/PEP
+  exposure) produce a risk flag and mandatory human-review requirement, but the
+  endpoint still returns the strongest lawful alternative and the remediation or
+  specialist path. It does not stop at a generic refusal.
+- Prohibited-conduct signals (concealment, forgery, tax/sanctions evasion,
+  nominee deception, etc.) remain capped at a low score and escalated. The
+  response describes lawful remediation or an alternative route instead of a
+  step-by-step plan for the illegal act.
+
 ## API and interface
 
 The API is exposed under `/api/v1/business-mobility-advisory/assessments` for create, list, read, and independent review operations. The `/business-advisory` workspace provides the narrative brief, commercial facts, feasibility meter, sub-scores, ranked strategies, blockers, execution sequence, escalation state, and assessment ledger.
+
+`POST /api/v1/business-mobility-advisory/advise` provides the situation-aware,
+on-demand recommendation described above.
