@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
 
 from app.core.db import get_session
-from app.models.domain import ApplicationAuthorityChecklistItem, AuthorityChecklistTemplate
+from app.models.domain import ApplicationAuthorityChecklistItem, AuthorityChecklistTemplate, ApplicationRecord
 from app.schemas_authority_checklists import (
     ApplicationChecklistItemCreate,
     ApplicationChecklistItemRead,
@@ -16,11 +17,13 @@ from app.schemas_authority_checklists import (
     AuthorityChecklistTemplateRead,
 )
 from app.services.audit_log import to_audit_dict
+from app.services.automation import event_read
 from app.services.authority_checklists import (
     apply_template_to_application,
     create_checklist_item,
     create_template,
     delete_checklist_item,
+    emit_checklist_reminder_events,
     list_checklist_items,
     list_checklist_items_for_application,
     list_templates,
@@ -126,6 +129,29 @@ def api_list_checklist_items_for_application(
 ) -> list[ApplicationChecklistItemRead]:
     items = list_checklist_items_for_application(session, application_id)
     return [ApplicationChecklistItemRead(**to_audit_dict(item)) for item in items]
+
+
+@router.post(
+    "/api/v1/applications/{application_id}/authority-checklist/reminders",
+    response_model=list[dict[str, Any]],
+    status_code=201,
+)
+def api_create_checklist_reminders(
+    application_id: UUID,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> list[dict[str, Any]]:
+    application = session.get(ApplicationRecord, application_id)
+    if application is None:
+        raise HTTPException(status_code=404, detail="Application not found")
+    try:
+        events = emit_checklist_reminder_events(
+            session, application_id=application_id, actor=_actor(request)
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise _handle_value_error(exc) from exc
+    return [event_read(session, event) for event in events]
 
 
 @router.get(

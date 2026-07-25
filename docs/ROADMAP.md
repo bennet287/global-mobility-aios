@@ -23,6 +23,15 @@ Current database migration head: `0051_authority_submission_checklist`.
 - When no corporate case link exists, the status change still completes but no automation event is created, keeping the bridge scoped to the employer/corporate workflow boundary.
 - See `docs/EXTERNAL_AGENCY_ASSIGNMENT_V12_7.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md` for the combined domain description.
 
+## Delivery Status — v12.8.2 (2026-07-24)
+
+Current database migration head: `0051_authority_submission_checklist`.
+
+- v12.8.2 adds blocking gates and governed reminders to the authority submission checklist. `POST /api/v1/agency-submissions` now rejects submission with `409` when any required checklist item for the target authority is still `pending`. Marking the item `completed` or `not_applicable` satisfies the gate.
+- A new endpoint, `POST /api/v1/applications/{application_id}/authority-checklist/reminders`, emits one `authority_checklist.reminder` automation event per pending checklist item when the application's lead is linked to an active corporate mobility case.
+- Reminder events are idempotent per item per UTC day and flow through the same account-scoped rule matching, human review, retry, and delivery controls as other automation events.
+- See `docs/AUTHORITY_SUBMISSION_CHECKLIST_V12_8.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
+
 ## Delivery Status — v12.7 (2026-07-24)
 
 Current database migration head: `0050_external_agency_assignment`.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-24 — Authority checklist reminders and blocking gates v12.8.2
+
+- Added `authority_checklist.reminder` to `AUTOMATION_EVENT_TYPES` so pending checklist items can trigger governed reminder deliveries.
+- Added a blocking gate in agency submission creation: `POST /api/v1/agency-submissions` now returns `409` when any required checklist item for the target authority is still `pending`.
+- Required items marked `completed` or `not_applicable` satisfy the gate; optional pending items do not block submission.
+- Added `POST /api/v1/applications/{application_id}/authority-checklist/reminders` to emit one `authority_checklist.reminder` automation event per pending checklist item when the application's lead is linked to an active corporate mobility case.
+- Reminder events are idempotent per item per UTC day, include the item key/label, authority name, required flag, and case context, and flow through the same rule-matching, review, and delivery controls as other automation events.
+- Added regression tests for the blocking gate and reminder event creation/omission.
+- No database migration is required; the slice reuses the `ApplicationAuthorityChecklistItem` table from v12.8 and the `AutomationEvent` table from v12.3.
+
 ## 2026-07-24 — External agency automation bridge v12.8.1
 
 - Extended `AUTOMATION_EVENT_TYPES` to include `external_agency_assignment.status_changed`.

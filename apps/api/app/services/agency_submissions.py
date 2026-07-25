@@ -10,6 +10,7 @@ from app.models.domain import AgencySubmission, ApplicationRecord
 from app.schemas_agency_submissions import AgencySubmissionCreate
 from app.services.audit_log import record_audit, to_audit_dict
 from app.services.automation_bridge import capture_application_status_event
+from app.services.authority_checklists import validate_required_checklist_items_complete
 
 
 SUBMISSION_CHANNELS = {"online", "in_person", "courier", "agency"}
@@ -47,6 +48,10 @@ def create_submission(
     application = session.get(ApplicationRecord, payload.application_id)
     if application is None:
         raise ValueError("Application not found")
+
+    validate_required_checklist_items_complete(
+        session, application.id, payload.authority_name
+    )
 
     channel = payload.submission_channel.strip().lower()
     if channel not in SUBMISSION_CHANNELS:

@@ -9,6 +9,7 @@ from app.models.domain import (
     ApplicationAuthorityChecklistItem,
     AuditLog,
     AuthorityChecklistTemplate,
+    AutomationEvent,
 )
 from tests.conftest import create_application, create_lead
 
@@ -216,3 +217,166 @@ def test_audit_log_entries_are_created(client: TestClient, db_session: Session) 
     )
     assert "application_checklist_item_created" in actions
     assert "application_checklist_item_completed" in actions
+
+
+def _create_linked_application(
+    client: TestClient, db_session: Session
+) -> ApplicationRecord:
+    lead = create_lead(db_session, name="Checklist Employee")
+    account = client.post(
+        "/api/v1/corporate-mobility/accounts",
+        json={"legal_name": "Checklist Employer", "primary_country": "Austria"},
+    )
+    assert account.status_code == 201, account.text
+    account_id = account.json()["id"]
+
+    case = client.post(
+        f"/api/v1/corporate-mobility/accounts/{account_id}/cases",
+        json={
+            "case_reference": "CHK-CASE-001",
+            "destination_country": "Germany",
+            "employee_lead_id": str(lead.id),
+        },
+    )
+    assert case.status_code == 201, case.text
+
+    return create_application(db_session, lead, status="approved")
+
+
+def _submission_payload(application_id: str) -> dict:
+    return {
+        "application_id": application_id,
+        "authority_name": "German Consulate Mumbai",
+        "submission_channel": "online",
+        "submitted_at": "2026-08-01T14:00:00Z",
+        "reference_number": "SUB-123",
+        "notes": "Submitted through portal.",
+    }
+
+
+def test_submission_blocked_by_pending_required_checklist_item(
+    client: TestClient, db_session: Session
+) -> None:
+    client.post("/api/v1/authority-checklist-templates", json=_template_payload())
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+
+    applied = client.post(
+        "/api/v1/authority-checklist-templates/apply",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+        },
+    )
+    assert applied.status_code == 201, applied.text
+    item_id = applied.json()[0]["id"]
+
+    blocked = client.post(
+        "/api/v1/agency-submissions", json=_submission_payload(str(application.id))
+    )
+    assert blocked.status_code == 409, blocked.text
+    assert "blocked" in blocked.json()["detail"].lower()
+
+    client.post(
+        f"/api/v1/application-authority-checklist-items/{item_id}/status",
+        json={"status": "completed", "notes": "Ready."},
+    )
+    allowed = client.post(
+        "/api/v1/agency-submissions", json=_submission_payload(str(application.id))
+    )
+    assert allowed.status_code == 201, allowed.text
+
+
+def test_submission_allowed_when_required_item_marked_not_applicable(
+    client: TestClient, db_session: Session
+) -> None:
+    client.post("/api/v1/authority-checklist-templates", json=_template_payload())
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+
+    applied = client.post(
+        "/api/v1/authority-checklist-templates/apply",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+        },
+    )
+    assert applied.status_code == 201
+    item_id = applied.json()[0]["id"]
+
+    client.post(
+        f"/api/v1/application-authority-checklist-items/{item_id}/status",
+        json={"status": "not_applicable"},
+    )
+    allowed = client.post(
+        "/api/v1/agency-submissions", json=_submission_payload(str(application.id))
+    )
+    assert allowed.status_code == 201, allowed.text
+
+
+def test_checklist_reminder_creates_automation_event(
+    client: TestClient, db_session: Session
+) -> None:
+    application = _create_linked_application(client, db_session)
+    item = client.post(
+        "/api/v1/application-authority-checklist-items",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+            "item_key": "passport_copy",
+            "item_label": "Copy of passport",
+            "category": "document",
+            "is_required": True,
+        },
+    )
+    assert item.status_code == 201, item.text
+
+    reminders = client.post(
+        f"/api/v1/applications/{application.id}/authority-checklist/reminders"
+    )
+    assert reminders.status_code == 201, reminders.text
+    data = reminders.json()
+    assert len(data) == 1
+    assert data[0]["event_type"] == "authority_checklist.reminder"
+
+    event = db_session.exec(
+        select(AutomationEvent).where(
+            AutomationEvent.event_type == "authority_checklist.reminder"
+        )
+    ).first()
+    assert event is not None
+    assert event.entity_id == item.json()["id"]
+    assert event.payload_json is not None
+    assert "application_id" in event.payload_json
+
+
+def test_checklist_reminder_omitted_without_corporate_case(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    item = client.post(
+        "/api/v1/application-authority-checklist-items",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+            "item_key": "passport_copy",
+            "item_label": "Copy of passport",
+            "category": "document",
+            "is_required": True,
+        },
+    )
+    assert item.status_code == 201, item.text
+
+    reminders = client.post(
+        f"/api/v1/applications/{application.id}/authority-checklist/reminders"
+    )
+    assert reminders.status_code == 201, reminders.text
+    assert reminders.json() == []
+
+    event = db_session.exec(
+        select(AutomationEvent).where(
+            AutomationEvent.event_type == "authority_checklist.reminder"
+        )
+    ).first()
+    assert event is None

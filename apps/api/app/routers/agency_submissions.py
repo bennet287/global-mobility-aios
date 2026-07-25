@@ -37,7 +37,7 @@ def _handle_value_error(exc: ValueError) -> HTTPException:
     lowered = message.lower()
     if "not found" in lowered:
         return HTTPException(status_code=404, detail=message)
-    if "terminal" in lowered or "transition" in lowered or "cannot" in lowered:
+    if "terminal" in lowered or "transition" in lowered or "cannot" in lowered or "blocked" in lowered:
         return HTTPException(status_code=409, detail=message)
     return HTTPException(status_code=400, detail=message)
 

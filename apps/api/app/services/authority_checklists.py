@@ -10,6 +10,8 @@ from app.models.domain import (
     ApplicationAuthorityChecklistItem,
     ApplicationRecord,
     AuthorityChecklistTemplate,
+    AutomationEvent,
+    Lead,
 )
 from app.schemas_authority_checklists import (
     ApplicationChecklistItemCreate,
@@ -17,10 +19,87 @@ from app.schemas_authority_checklists import (
     AuthorityChecklistTemplateCreate,
 )
 from app.services.audit_log import record_audit, to_audit_dict
+from app.services.automation import capture_event
+from app.services.automation_bridge import _find_corporate_case_for_lead
 
 
 CHECKLIST_CATEGORIES = {"document", "fee", "form", "step"}
 CHECKLIST_STATUSES = {"pending", "completed", "not_applicable"}
+
+
+def validate_required_checklist_items_complete(
+    session: Session,
+    application_id: UUID,
+    authority_name: str,
+) -> None:
+    pending = session.exec(
+        select(ApplicationAuthorityChecklistItem).where(
+            ApplicationAuthorityChecklistItem.application_id == application_id,
+            ApplicationAuthorityChecklistItem.authority_name == authority_name.strip(),
+            ApplicationAuthorityChecklistItem.is_required.is_(True),  # type: ignore[arg-type]
+            ApplicationAuthorityChecklistItem.status == "pending",
+        )
+    ).all()
+    if pending:
+        labels = ", ".join(item.item_label for item in pending)
+        raise ValueError(
+            f"Submission blocked: required checklist items are incomplete for {authority_name}: {labels}"
+        )
+
+
+def emit_checklist_reminder_events(
+    session: Session,
+    application_id: UUID,
+    actor: str,
+) -> list[AutomationEvent]:
+    application = session.get(ApplicationRecord, application_id)
+    if application is None:
+        raise ValueError("Application not found")
+    if application.lead_id is None:
+        return []
+
+    lead = session.get(Lead, application.lead_id)
+    if lead is None:
+        return []
+
+    corporate_case = _find_corporate_case_for_lead(session, lead.id)
+    if corporate_case is None:
+        return []
+
+    today = _now().date().isoformat()
+    items = session.exec(
+        select(ApplicationAuthorityChecklistItem).where(
+            ApplicationAuthorityChecklistItem.application_id == application_id,
+            ApplicationAuthorityChecklistItem.status == "pending",
+        )
+    ).all()
+
+    created_events: list[AutomationEvent] = []
+    for item in items:
+        event, _ = capture_event(
+            session,
+            idempotency_key=f"authority_checklist.reminder:{item.id}:{today}",
+            corporate_account_id=corporate_case.corporate_account_id,
+            case_id=corporate_case.id,
+            event_type="authority_checklist.reminder",
+            entity_type="application_authority_checklist_item",
+            entity_id=item.id,
+            payload={
+                "application_id": str(application.id),
+                "lead_id": str(lead.id),
+                "lead_name": lead.full_name,
+                "case_reference": corporate_case.case_reference,
+                "authority_name": item.authority_name,
+                "item_key": item.item_key,
+                "item_label": item.item_label,
+                "is_required": item.is_required,
+                "status": item.status,
+            },
+            actor=actor,
+            source="authority_checklist_v12_8",
+        )
+        created_events.append(event)
+    return created_events
 
 
 def _now() -> datetime:

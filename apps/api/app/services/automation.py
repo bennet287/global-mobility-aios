@@ -29,6 +29,7 @@ AUTOMATION_EVENT_TYPES = {
     "appointment.status_changed",
     "submission.status_changed",
     "external_agency_assignment.status_changed",
+    "authority_checklist.reminder",
 }
 EXTERNAL_CHANNELS = {"email", "messaging", "calendar"}
 

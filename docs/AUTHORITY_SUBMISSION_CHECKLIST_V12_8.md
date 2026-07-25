@@ -70,6 +70,9 @@ The tables are created by migration `0051_authority_submission_checklist`.
   item for an application.
 - `GET /api/v1/applications/{application_id}/authority-checklist` — List items
   for a specific application.
+- `POST /api/v1/applications/{application_id}/authority-checklist/reminders` —
+  Emit one `authority_checklist.reminder` automation event per pending checklist
+  item for the application, scoped to the linked corporate case.
 - `GET /api/v1/application-authority-checklist-items` — List items across
   applications. Optional query parameters `application_id`, `authority_name`,
   and `status`.
@@ -86,8 +89,11 @@ The tables are created by migration `0051_authority_submission_checklist`.
 3. Applying a template is idempotent; existing items are not duplicated.
 4. Manual checklist items can be added to an application at any time.
 5. Checklist item statuses are `pending`, `completed`, or `not_applicable`.
-6. Creating an item for a non-existent application returns `404`.
-7. Every creation, status change, and deletion is recorded in `audit_logs` with
+6. Required items must be `completed` or `not_applicable` before an agency
+   submission can be created for the same application and authority; otherwise
+   `POST /api/v1/agency-submissions` returns `409`.
+7. Creating an item for a non-existent application returns `404`.
+8. Every creation, status change, and deletion is recorded in `audit_logs` with
    the `application_authority_checklist_item` entity type and the before/after
    state.
 
@@ -103,10 +109,24 @@ The tables are created by migration `0051_authority_submission_checklist`.
 All events use the source `authority_checklist_v12_8` and record the actor from
 the request's authentication context.
 
+## Automation events
+
+When the application's lead is linked to an active corporate mobility case,
+`POST /api/v1/applications/{application_id}/authority-checklist/reminders` emits
+an `AutomationEvent` with type `authority_checklist.reminder` for each pending
+checklist item (added in v12.8.2). The event payload includes the
+`application_id`, `lead_id`, `lead_name`, `case_reference`, `authority_name`,
+`item_key`, `item_label`, `is_required`, and `status`.
+
+Events are idempotent per item per UTC day. They are scoped to the linked
+corporate account and case, so automation rules can route reminder notifications
+through email, messaging, calendar, or CRM connectors under the same review,
+retry, and dispatch controls as other automation events. If no active corporate
+case is linked, the endpoint returns an empty list and no events are created.
+
 ## Scope and future work
 
-This slice intentionally stays narrow: it does not enforce checklist completion
-before submission, block application status changes, or automate reminders.
-Future slices may add blocking gates, link checklist completion to the agency
-submission workflow, and generate reminder notifications through the governed
-automation outbox.
+v12.8.2 adds a submission-blocking gate and governed reminders for pending
+checklist items. Future slices may add scheduled/Celery-driven reminder
+generation, due dates and escalation on individual checklist items, and
+client-portal visibility of pending/completed checklist items.
