@@ -983,6 +983,7 @@ class ExternalAgency(SQLModel, table=True):
     contact_phone: Optional[str] = None
     website: Optional[str] = None
     status: str = Field(default="active", index=True)
+    sla_due_hours: Optional[int] = Field(default=72, index=True)
     notes: Optional[str] = None
     created_by: str = Field(index=True)
     updated_by: str = Field(index=True)
@@ -1000,6 +1001,9 @@ class ExternalAgencyAssignment(SQLModel, table=True):
     agency_reference_number: Optional[str] = None
     handoff_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    sla_due_at: Optional[datetime] = None
+    sla_status: str = Field(default="on_track", index=True)
+    sla_breached_at: Optional[datetime] = None
     notes: Optional[str] = None
     created_by: str = Field(index=True)
     updated_by: str = Field(index=True)
@@ -1502,6 +1506,8 @@ class AutomationDelivery(SQLModel, table=True):
     attempt_count: int = 0
     next_attempt_at: Optional[datetime] = Field(default=None, index=True)
     last_error: Optional[str] = None
+    reconciled: bool = Field(default=False, index=True)
+    reconciled_at: Optional[datetime] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
 

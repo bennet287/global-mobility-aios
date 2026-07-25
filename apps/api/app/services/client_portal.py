@@ -9,9 +9,14 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    AgencySubmission,
+    ApplicationAuthorityChecklistItem,
     ApplicationRecord,
+    AuthorityAppointment,
     ClientPortalAccessGrant,
     DocumentRecord,
+    ExternalAgency,
+    ExternalAgencyAssignment,
     Lead,
     now_utc,
 )
@@ -268,11 +273,44 @@ def client_portal_dashboard(session: Session, token: str) -> dict[str, object]:
         .where(DocumentRecord.lead_id == lead.id)
         .order_by(DocumentRecord.created_at.desc())
     ).all())
-    application = session.exec(
+    applications = list(session.exec(
         select(ApplicationRecord)
         .where(ApplicationRecord.lead_id == lead.id)
         .order_by(ApplicationRecord.created_at.desc())
-    ).first()
+    ).all())
+    application = applications[0] if applications else None
+    application_ids = [app.id for app in applications]
+
+    appointments: list[AuthorityAppointment] = []
+    submissions: list[AgencySubmission] = []
+    assignments: list[tuple[ExternalAgencyAssignment, ExternalAgency]] = []
+    checklist_items: list[ApplicationAuthorityChecklistItem] = []
+    if application_ids:
+        appointments = list(session.exec(
+            select(AuthorityAppointment)
+            .where(AuthorityAppointment.application_id.in_(application_ids))
+            .order_by(AuthorityAppointment.scheduled_at.desc())
+        ).all())
+        submissions = list(session.exec(
+            select(AgencySubmission)
+            .where(AgencySubmission.application_id.in_(application_ids))
+            .order_by(AgencySubmission.submitted_at.desc())
+        ).all())
+        assignments = list(session.exec(
+            select(ExternalAgencyAssignment, ExternalAgency)
+            .join(ExternalAgency, ExternalAgencyAssignment.external_agency_id == ExternalAgency.id)
+            .where(ExternalAgencyAssignment.application_id.in_(application_ids))
+            .order_by(ExternalAgencyAssignment.created_at.desc())
+        ).all())
+        checklist_items = list(session.exec(
+            select(ApplicationAuthorityChecklistItem)
+            .where(ApplicationAuthorityChecklistItem.application_id.in_(application_ids))
+            .order_by(
+                ApplicationAuthorityChecklistItem.authority_name,
+                ApplicationAuthorityChecklistItem.created_at.desc(),
+            )
+        ).all())
+
     document_counts: dict[str, int] = {}
     for document in documents:
         key = document.status.lower().replace(" ", "_")
@@ -319,6 +357,56 @@ def client_portal_dashboard(session: Session, token: str) -> dict[str, object]:
         ],
         "document_counts": document_counts,
         "milestones": _milestones(lead, application, documents),
+        "appointments": [
+            {
+                "id": appointment.id,
+                "authority_name": appointment.authority_name,
+                "appointment_type": appointment.appointment_type,
+                "location": appointment.location,
+                "scheduled_at": appointment.scheduled_at,
+                "timezone": appointment.timezone,
+                "status": appointment.status,
+                "reference_number": appointment.reference_number,
+            }
+            for appointment in appointments
+        ],
+        "submissions": [
+            {
+                "id": submission.id,
+                "authority_name": submission.authority_name,
+                "submission_channel": submission.submission_channel,
+                "submitted_at": submission.submitted_at,
+                "status": submission.status,
+                "reference_number": submission.reference_number,
+                "tracking_url": submission.tracking_url,
+            }
+            for submission in submissions
+        ],
+        "external_agency_assignments": [
+            {
+                "id": assignment.id,
+                "agency_name": agency.name,
+                "status": assignment.status,
+                "agency_reference_number": assignment.agency_reference_number,
+                "handoff_at": assignment.handoff_at,
+                "completed_at": assignment.completed_at,
+                "sla_due_at": assignment.sla_due_at,
+                "sla_status": assignment.sla_status,
+                "sla_breached_at": assignment.sla_breached_at,
+            }
+            for assignment, agency in assignments
+        ],
+        "authority_checklist": [
+            {
+                "id": item.id,
+                "authority_name": item.authority_name,
+                "item_label": item.item_label,
+                "category": item.category,
+                "is_required": item.is_required,
+                "status": item.status,
+            }
+            for item in checklist_items
+        ],
         "expires_at": grant.expires_at,
         "updated_at": lead.updated_at,
     }

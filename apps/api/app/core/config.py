@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     auth_admin_password: str = "admin"
     auth_session_cookie: str = "gmai_session"
     auth_allow_header_role: bool = True
+    automation_encryption_key: str = ""
     truth_engine_strict_mode: bool = True
     source_monitor_timeout_seconds: int = 30
     source_monitor_max_bytes: int = 5_000_000

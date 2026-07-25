@@ -378,7 +378,7 @@ def test_connector_config_crud_and_status_lifecycle(client) -> None:
     assert created["provider_type"] == "smtp"
     assert created["from_address"] == "automation@example.com"
     assert created["status"] == "active"
-    assert created["credentials"] == {"host": "smtp.example.com", "port": 587, "username": "user", "password": "pass"}
+    assert created["credentials"] == {"host": "***", "port": "***", "username": "***", "password": "***"}
 
     listed = client.get(f"/api/v1/automation/connectors?corporate_account_id={account['id']}")
     assert listed.status_code == 200

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Sequence
 from uuid import UUID
 
@@ -29,6 +29,8 @@ ASSIGNMENT_STATUSES = {
     "cancelled",
 }
 TERMINAL_ASSIGNMENT_STATUSES = {"completed", "cancelled"}
+SLA_STATUSES = {"on_track", "due_soon", "breached", "completed"}
+_DUE_SOON_HOURS = 12
 
 # Forward-only transitions.
 _ALLOWED_ASSIGNMENT_TRANSITIONS: dict[str, set[str]] = {
@@ -40,6 +42,73 @@ _ALLOWED_ASSIGNMENT_TRANSITIONS: dict[str, set[str]] = {
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def evaluate_assignment_sla(
+    assignment: ExternalAgencyAssignment,
+    as_of: datetime | None = None,
+) -> None:
+    """Update the assignment's SLA status based on its current state and the
+    provided timestamp (defaults to now)."""
+    if assignment.status in TERMINAL_ASSIGNMENT_STATUSES:
+        if assignment.status == "completed":
+            completed_at = _as_utc(assignment.completed_at) if assignment.completed_at else None
+            due_at = _as_utc(assignment.sla_due_at) if assignment.sla_due_at else None
+            if completed_at and due_at and completed_at > due_at:
+                assignment.sla_status = "breached"
+                if assignment.sla_breached_at is None:
+                    assignment.sla_breached_at = assignment.completed_at
+            else:
+                assignment.sla_status = "completed"
+        else:
+            assignment.sla_status = "completed"
+        return
+
+    if assignment.sla_due_at is None:
+        return
+
+    now = _as_utc(as_of or _now())
+    due_at = _as_utc(assignment.sla_due_at)
+    if now > due_at:
+        assignment.sla_status = "breached"
+        if assignment.sla_breached_at is None:
+            assignment.sla_breached_at = as_of or _now()
+    elif now > due_at - timedelta(hours=_DUE_SOON_HOURS):
+        assignment.sla_status = "due_soon"
+    else:
+        assignment.sla_status = "on_track"
+
+
+def scan_assignment_sla_evaluations(
+    session: Session,
+    *,
+    actor: str = "external-agency-sla-monitor",
+) -> dict[str, int]:
+    """Re-evaluate SLA status for every non-terminal assignment and commit changes."""
+    assignments = session.exec(
+        select(ExternalAgencyAssignment).where(
+            ExternalAgencyAssignment.status.notin_(TERMINAL_ASSIGNMENT_STATUSES)  # type: ignore[arg-type]
+        )
+    ).all()
+    changed = 0
+    for assignment in assignments:
+        before_status = assignment.sla_status
+        evaluate_assignment_sla(assignment)
+        if assignment.sla_status != before_status:
+            assignment.updated_at = _now()
+            session.add(assignment)
+            changed += 1
+
+    if changed:
+        session.commit()
+
+    return {"assignments_evaluated": len(assignments), "sla_status_changes": changed}
 
 
 def create_external_agency(
@@ -55,6 +124,7 @@ def create_external_agency(
         contact_email=payload.contact_email.strip() if payload.contact_email else None,
         contact_phone=payload.contact_phone.strip() if payload.contact_phone else None,
         website=payload.website.strip() if payload.website else None,
+        sla_due_hours=payload.sla_due_hours,
         notes=payload.notes.strip() if payload.notes else None,
         status="active",
         created_by=actor,
@@ -146,6 +216,7 @@ def create_assignment(
     if existing is not None:
         raise ValueError("Application already has an active external agency assignment")
 
+    now = _now()
     assignment = ExternalAgencyAssignment(
         application_id=application.id,
         external_agency_id=agency.id,
@@ -154,9 +225,13 @@ def create_assignment(
         if payload.agency_reference_number
         else None,
         notes=payload.notes.strip() if payload.notes else None,
+        sla_due_at=now + timedelta(hours=agency.sla_due_hours),
         created_by=actor,
         updated_by=actor,
+        created_at=now,
+        updated_at=now,
     )
+    evaluate_assignment_sla(assignment, as_of=now)
     session.add(assignment)
     session.flush()
     record_audit(
@@ -207,6 +282,7 @@ def update_assignment_status(
         assignment.completed_at = now
     if payload.agency_reference_number is not None:
         assignment.agency_reference_number = payload.agency_reference_number.strip()
+    evaluate_assignment_sla(assignment, as_of=now)
     session.add(assignment)
 
     record_audit(

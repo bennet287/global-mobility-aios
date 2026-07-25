@@ -5,6 +5,16 @@ The canonical product scope is defined in
 roadmap turns that complete vision into incremental delivery phases. A later phase
 does not remove any capability from the canonical blueprint.
 
+## Delivery Status — v12.4.1 (2026-07-25)
+
+Current database migration head: `0053_automation_delivery_reconciliation`.
+
+- v12.4.1 hardens the governed automation connector layer before external-provider integrations are enabled. Connector credentials are encrypted at rest using Fernet and masked on every API response and audit-log entry.
+- Provider adapters now expose a `health_check` contract; the `console` adapter reports healthy and the `smtp` adapter verifies login against the configured server. `POST /api/v1/automation/connectors/{config_id}/health-check` runs the check and returns `200` or `503` while always writing an audit record.
+- Delivery reconciliation is introduced for console deliveries: long-dispatched console messages are marked `reconciled` with `reconciled_at` and audited. The `reconcile_automation_deliveries_task` Celery beat task runs once per day.
+- Regression tests cover encryption at rest, credential masking, health-check success and failure, and reconciliation.
+- See `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
+
 ## Delivery Status — v12.8 (2026-07-24)
 
 Current database migration head: `0051_authority_submission_checklist`.
@@ -31,6 +41,40 @@ Current database migration head: `0051_authority_submission_checklist`.
 - A new endpoint, `POST /api/v1/applications/{application_id}/authority-checklist/reminders`, emits one `authority_checklist.reminder` automation event per pending checklist item when the application's lead is linked to an active corporate mobility case.
 - Reminder events are idempotent per item per UTC day and flow through the same account-scoped rule matching, human review, retry, and delivery controls as other automation events.
 - See `docs/AUTHORITY_SUBMISSION_CHECKLIST_V12_8.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
+
+## Delivery Status — v12.8.3 (2026-07-24)
+
+Current database migration head: `0051_authority_submission_checklist`.
+
+- v12.8.3 adds scheduled authority checklist reminders. A Celery beat task runs daily to scan for pending checklist items and emit one `authority_checklist.reminder` automation event per pending item for applications whose lead is linked to an active corporate mobility case.
+- The scan is idempotent per item per UTC day and flows through the same account-scoped rule matching, human review, retry, and delivery controls as other automation events. This removes the need for operators to trigger reminders manually.
+- See `docs/AUTHORITY_SUBMISSION_CHECKLIST_V12_8.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
+
+## Delivery Status — v12.8.4 (2026-07-24)
+
+Current database migration head: `0051_authority_submission_checklist`.
+
+- v12.8.4 extends the client portal dashboard with agency workflow visibility. Clients can now see authority appointments, agency submissions, external agency assignments, and authority checklist items for their lead, scoped by the existing lead-scoped portal grant.
+- Projections remain client-safe: internal notes, actor identities, audit fields, and contact details are omitted. Only status, authority/agency names, reference numbers, scheduled/submitted/handoff/completed timestamps, and checklist labels/categories/status are exposed.
+- The dashboard aggregates workflow data across all applications belonging to the lead.
+- See `docs/CLIENT_PORTAL_FOUNDATION_V12_0.md`.
+
+## Delivery Status — v12.8.5 (2026-07-24)
+
+Current database migration head: `0051_authority_submission_checklist`.
+
+- v12.8.5 adds authority appointment reminders. A Celery beat task runs every hour to scan for scheduled appointments occurring within the next 24 hours and emit one `appointment.reminder` automation event per appointment when the linked application's lead is associated with an active corporate mobility case.
+- Reminder events are idempotent per appointment per UTC day and include authority name, appointment type, scheduled time, location, and reference number. They flow through the same account-scoped rule matching, human review, retry, and delivery controls as other automation events, so corporate automation rules can route them through email, messaging, or calendar connectors.
+- See `docs/AUTHORITY_APPOINTMENT_TRACKING_V12_5.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
+
+## Delivery Status — v12.8.6 (2026-07-24)
+
+Current database migration head: `0052_external_agency_assignment_sla`.
+
+- v12.8.6 adds SLA tracking to external agency assignments. `ExternalAgency` now carries `sla_due_hours` (default 72) and `ExternalAgencyAssignment` carries `sla_due_at`, `sla_status`, and `sla_breached_at`.
+- New assignments inherit the agency's SLA window and start `on_track`. A scheduled Celery task re-evaluates active assignments hourly, marking them `due_soon` within 12 hours of the due time and `breached` once the due time passes. Completed assignments are marked `completed` (or `breached` if finished after the due time); cancelled assignments are marked `completed`.
+- The client portal dashboard exposes `sla_due_at`, `sla_status`, and `sla_breached_at` alongside each external agency assignment.
+- See `docs/EXTERNAL_AGENCY_ASSIGNMENT_V12_7.md`.
 
 ## Delivery Status — v12.7 (2026-07-24)
 

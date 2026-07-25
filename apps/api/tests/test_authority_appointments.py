@@ -1,12 +1,19 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.models.domain import ApplicationRecord, AuditLog, AuthorityAppointment, Lead
+from app.models.domain import (
+    ApplicationRecord,
+    AuditLog,
+    AuthorityAppointment,
+    AutomationEvent,
+    Lead,
+)
+from app.services.authority_appointments import scan_appointment_reminders
 from tests.conftest import create_application, create_lead
 
 
@@ -166,3 +173,137 @@ def test_audit_log_entries_are_created(client: TestClient, db_session: Session) 
     )
     assert "authority_appointment_created" in actions
     assert "authority_appointment_completed" in actions
+
+
+def _create_linked_application(
+    client: TestClient, db_session: Session
+) -> ApplicationRecord:
+    lead = create_lead(db_session, name="Appointment Employee")
+    account = client.post(
+        "/api/v1/corporate-mobility/accounts",
+        json={"legal_name": "Appointment Employer", "primary_country": "Austria"},
+    )
+    assert account.status_code == 201, account.text
+    account_id = account.json()["id"]
+
+    case = client.post(
+        f"/api/v1/corporate-mobility/accounts/{account_id}/cases",
+        json={
+            "case_reference": "APT-CASE-001",
+            "destination_country": "Germany",
+            "employee_lead_id": str(lead.id),
+        },
+    )
+    assert case.status_code == 201, case.text
+
+    return create_application(db_session, lead, status="approved")
+
+
+def test_scan_appointment_reminders_creates_event_for_upcoming_appointment(
+    client: TestClient, db_session: Session
+) -> None:
+    application = _create_linked_application(client, db_session)
+    scheduled_at = datetime.now(timezone.utc) + timedelta(hours=2)
+    appointment = AuthorityAppointment(
+        application_id=application.id,
+        appointment_type="interview",
+        authority_name="German Consulate Mumbai",
+        location="Mumbai",
+        scheduled_at=scheduled_at,
+        timezone="Asia/Kolkata",
+        status="scheduled",
+        created_by="pytest",
+        updated_by="pytest",
+    )
+    db_session.add(appointment)
+    db_session.commit()
+    db_session.refresh(appointment)
+
+    result = scan_appointment_reminders(db_session, actor="test")
+    assert result["appointments_scanned"] == 1
+    assert result["events_created"] == 1
+
+    event = db_session.exec(
+        select(AutomationEvent).where(
+            AutomationEvent.event_type == "appointment.reminder"
+        )
+    ).first()
+    assert event is not None
+    assert event.entity_id == str(appointment.id)
+
+    # Idempotency: a second scan on the same day does not duplicate the event.
+    result2 = scan_appointment_reminders(db_session, actor="test")
+    assert result2["events_created"] == 0
+
+
+def test_scan_appointment_reminders_skips_appointments_outside_window(
+    client: TestClient, db_session: Session
+) -> None:
+    application = _create_linked_application(client, db_session)
+    scheduled_at = datetime.now(timezone.utc) + timedelta(hours=48)
+    appointment = AuthorityAppointment(
+        application_id=application.id,
+        appointment_type="interview",
+        authority_name="German Consulate Mumbai",
+        location="Mumbai",
+        scheduled_at=scheduled_at,
+        timezone="Asia/Kolkata",
+        status="scheduled",
+        created_by="pytest",
+        updated_by="pytest",
+    )
+    db_session.add(appointment)
+    db_session.commit()
+
+    result = scan_appointment_reminders(db_session, actor="test")
+    assert result["appointments_scanned"] == 0
+    assert result["events_created"] == 0
+
+
+def test_scan_appointment_reminders_skips_non_scheduled_appointments(
+    client: TestClient, db_session: Session
+) -> None:
+    application = _create_linked_application(client, db_session)
+    scheduled_at = datetime.now(timezone.utc) + timedelta(hours=2)
+    appointment = AuthorityAppointment(
+        application_id=application.id,
+        appointment_type="interview",
+        authority_name="German Consulate Mumbai",
+        location="Mumbai",
+        scheduled_at=scheduled_at,
+        timezone="Asia/Kolkata",
+        status="completed",
+        created_by="pytest",
+        updated_by="pytest",
+    )
+    db_session.add(appointment)
+    db_session.commit()
+
+    result = scan_appointment_reminders(db_session, actor="test")
+    assert result["appointments_scanned"] == 0
+    assert result["events_created"] == 0
+
+
+def test_scan_appointment_reminders_omits_appointments_without_corporate_case(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    scheduled_at = datetime.now(timezone.utc) + timedelta(hours=2)
+    appointment = AuthorityAppointment(
+        application_id=application.id,
+        appointment_type="interview",
+        authority_name="German Consulate Mumbai",
+        location="Mumbai",
+        scheduled_at=scheduled_at,
+        timezone="Asia/Kolkata",
+        status="scheduled",
+        created_by="pytest",
+        updated_by="pytest",
+    )
+    db_session.add(appointment)
+    db_session.commit()
+
+    result = scan_appointment_reminders(db_session, actor="test")
+    assert result["appointments_scanned"] == 1
+    assert result["events_created"] == 0

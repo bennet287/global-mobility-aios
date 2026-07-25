@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -39,20 +37,14 @@ from app.services.automation import (
     update_rule_status,
 )
 from app.services.automation_connector import (
+    AdapterSendError,
+    _config_read,
     attempt_delivery_dispatch,
+    check_connector_health,
     connector_config_create,
     connector_config_update_status,
 )
 from app.services.audit_log import to_audit_dict
-
-
-def _load(value: str | None, default: Any) -> Any:
-    if not value:
-        return default
-    try:
-        return json.loads(value)
-    except (TypeError, ValueError):
-        return default
 
 
 router = APIRouter(prefix="/api/v1/automation", tags=["governed-automation-v12.4"])
@@ -274,10 +266,7 @@ def api_create_connector(
     except ValueError as exc:
         session.rollback()
         raise _error(exc) from exc
-    return ConnectorConfigRead(**{
-        **to_audit_dict(config),
-        "credentials": _load(config.credentials_json, {}),
-    })
+    return ConnectorConfigRead(**_config_read(config))
 
 
 @router.get("/connectors", response_model=list[ConnectorConfigRead])
@@ -300,10 +289,7 @@ def api_list_connectors(
     if status:
         statement = statement.where(AutomationConnectorConfig.status == status.strip().lower())
     return [
-        ConnectorConfigRead(**{
-            **to_audit_dict(config),
-            "credentials": _load(config.credentials_json, {}),
-        })
+        ConnectorConfigRead(**_config_read(config))
         for config in session.exec(statement.limit(limit)).all()
     ]
 
@@ -329,10 +315,24 @@ def api_update_connector_status(
     except ValueError as exc:
         session.rollback()
         raise _error(exc) from exc
-    return ConnectorConfigRead(**{
-        **to_audit_dict(updated),
-        "credentials": _load(updated.credentials_json, {}),
-    })
+    return ConnectorConfigRead(**_config_read(updated))
+
+
+@router.post("/connectors/{config_id}/health-check")
+def api_connector_health_check(
+    config_id: UUID,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    config = session.get(AutomationConnectorConfig, config_id)
+    if config is None:
+        raise HTTPException(status_code=404, detail="Connector config not found")
+    try:
+        result = check_connector_health(session, config, actor=_actor(request))
+    except AdapterSendError as exc:
+        session.rollback()
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return result
 
 
 @router.post("/deliveries/{delivery_id}/dispatch", response_model=AutomationDeliveryRead)

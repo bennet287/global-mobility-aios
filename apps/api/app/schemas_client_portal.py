@@ -55,6 +55,48 @@ class ClientPortalMilestone(BaseModel):
     state: Literal["complete", "current", "upcoming"]
 
 
+class ClientPortalAppointment(BaseModel):
+    id: UUID
+    authority_name: str
+    appointment_type: str
+    location: str | None = None
+    scheduled_at: datetime | None = None
+    timezone: str
+    status: str
+    reference_number: str | None = None
+
+
+class ClientPortalSubmission(BaseModel):
+    id: UUID
+    authority_name: str
+    submission_channel: str
+    submitted_at: datetime
+    status: str
+    reference_number: str | None = None
+    tracking_url: str | None = None
+
+
+class ClientPortalExternalAgencyAssignment(BaseModel):
+    id: UUID
+    agency_name: str
+    status: str
+    agency_reference_number: str | None = None
+    handoff_at: datetime | None = None
+    completed_at: datetime | None = None
+    sla_due_at: datetime | None = None
+    sla_status: str
+    sla_breached_at: datetime | None = None
+
+
+class ClientPortalAuthorityChecklistItem(BaseModel):
+    id: UUID
+    authority_name: str
+    item_label: str
+    category: str
+    is_required: bool
+    status: str
+
+
 class ClientPortalDashboard(BaseModel):
     grant_id: UUID
     client_name: str
@@ -66,5 +108,13 @@ class ClientPortalDashboard(BaseModel):
     documents: list[ClientPortalDocument] = Field(default_factory=list)
     document_counts: dict[str, int] = Field(default_factory=dict)
     milestones: list[ClientPortalMilestone] = Field(default_factory=list)
+    appointments: list[ClientPortalAppointment] = Field(default_factory=list)
+    submissions: list[ClientPortalSubmission] = Field(default_factory=list)
+    external_agency_assignments: list[ClientPortalExternalAgencyAssignment] = Field(
+        default_factory=list
+    )
+    authority_checklist: list[ClientPortalAuthorityChecklistItem] = Field(
+        default_factory=list
+    )
     expires_at: datetime
     updated_at: datetime

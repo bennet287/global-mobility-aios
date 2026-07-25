@@ -73,7 +73,9 @@ All routes are under `/api/v1/authority-appointments`.
 All events use the source `authority_appointment_v12_5` and record the actor
 from the request's authentication context.
 
-## Automation outbox integration (v12.6.1)
+## Automation outbox integration
+
+### Status changes (v12.6.1)
 
 When an appointment status changes and the linked application's lead is
 associated with an active corporate mobility case, the change is bridged into
@@ -84,9 +86,21 @@ connectors under the same review, retry, and audit controls as case events. If
 no active corporate case link exists, the status change still completes but no
 automation event is created.
 
+### Reminders (v12.8.5)
+
+A scheduled Celery beat task scans for `scheduled` appointments occurring within
+the next 24 hours and emits one `appointment.reminder` automation event per
+appointment when the linked application's lead is associated with an active
+corporate mobility case. Events are idempotent per appointment per UTC day and
+carry authority name, appointment type, scheduled time, location, timezone, and
+reference number. Corporate automation rules can route these reminders through
+email, messaging, or calendar connectors under the same review, retry, and
+audit controls as other automation events.
+
 ## Scope and future work
 
 This slice intentionally stays narrow: it does not handle credential or
-encryption concerns, calendar sync, or automated provider dispatch. Future slices
-may link appointments to the governed-automation outbox, add reminder
-notifications, and expose appointment scheduling in the client portal.
+encryption concerns, direct external calendar provider integration, or automated
+provider dispatch. Future slices may add a calendar-channel adapter that
+produces ICS/event payloads, deeper integration with external calendar APIs,
+and additional reminder windows.

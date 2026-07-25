@@ -76,23 +76,24 @@ language and is available from the named sidebar navigation.
 - `POST /api/v1/automation/connectors`
 - `GET /api/v1/automation/connectors`
 - `POST /api/v1/automation/connectors/{config_id}/status`
+- `POST /api/v1/automation/connectors/{config_id}/health-check`
 - `POST /api/v1/automation/deliveries/{delivery_id}/dispatch`
 
 Rule changes and dispatch recording require operator authority. Delivery
 decisions also permit the reviewer role and enforce a reviewer identity
 different from the event actor. Connector configs require operator authority;
-connector status changes are audited.
+connector status changes and health checks are audited.
 
 ## Remaining provider work
 
-The broad Phase 12 automation item remains in progress. The next slice must
-add connector health checks, delivery reconciliation, provider-specific
-contract tests, and encrypted credential handling. No provider is enabled
-merely by creating an outbox rule.
+The broad Phase 12 automation item remains in progress. Provider-specific
+contract tests, webhook verification, and secret-manager integration remain for
+future slices. No provider is enabled merely by creating an outbox rule.
 
 Database migration `0046_governed_automation_outbox` creates the rule, event,
 and delivery ledgers. Migration `0047_automation_connector_config` adds the
-connector config table and delivery retry columns.
+connector config table and delivery retry columns. Migration
+`0053_automation_delivery_reconciliation` adds the reconciliation columns.
 
 ## Connector configs and provider adapters (v12.4)
 
@@ -126,6 +127,37 @@ The Celery beat task `dispatch_automation_deliveries_task` runs every 60
 seconds and dispatches due `ready` or `retry` deliveries in order of creation.
 Operators can also trigger dispatch per delivery via
 `POST /api/v1/automation/deliveries/{delivery_id}/dispatch`.
+
+## Connector hardening (v12.4.1)
+
+Connector credentials are encrypted at rest using Fernet. The key is read from
+`AUTOMATION_ENCRYPTION_KEY`; when not configured, the key falls back to
+`JWT_SECRET` so local and test environments continue to work. Encrypted
+credentials are decrypted only inside the provider adapter at send or health
+check time and are masked as `***` in every API response and audit-log snapshot.
+Legacy plaintext JSON credentials remain readable through the same decryption
+fallback.
+
+Every provider adapter exposes a `health_check` method:
+
+- `console` always reports `healthy`.
+- `smtp` opens a connection, upgrades with STARTTLS, and logs in using the
+  decrypted credentials.
+
+`POST /api/v1/automation/connectors/{config_id}/health-check` runs the adapter
+health check and returns the status. A failure returns `503` and is audited as
+`automation_connector_health_check_failed`; success is audited as
+`automation_connector_health_check_succeeded`.
+
+Delivery reconciliation marks long-dispatched `console` deliveries as
+`reconciled`, records `reconciled_at`, and writes an audit entry. The
+`reconcile_automation_deliveries_task` Celery beat task runs once per day with a
+24-hour lookback. Reconciliation is intentionally conservative: only console
+adapter deliveries are closed locally until external provider webhooks or query
+APIs are wired in.
+
+Database migration `0053_automation_delivery_reconciliation` adds `reconciled`
+and `reconciled_at` to `automation_deliveries`.
 
 ## Application-status bridge (v12.6.1)
 

@@ -18,6 +18,7 @@ class ExternalAgencyCreate(BaseModel):
     contact_email: str | None = Field(default=None, max_length=240)
     contact_phone: str | None = Field(default=None, max_length=60)
     website: str | None = Field(default=None, max_length=500)
+    sla_due_hours: int = Field(default=72, ge=1, le=8760)
     notes: str | None = Field(default=None, max_length=2000)
 
 
@@ -40,6 +41,7 @@ class ExternalAgencyRead(BaseModel):
     contact_phone: str | None = None
     website: str | None = None
     status: str
+    sla_due_hours: int
     notes: str | None = None
     created_by: str
     updated_by: str
@@ -73,6 +75,9 @@ class ExternalAgencyAssignmentRead(BaseModel):
     agency_reference_number: str | None = None
     handoff_at: datetime | None = None
     completed_at: datetime | None = None
+    sla_due_at: datetime | None = None
+    sla_status: str
+    sla_breached_at: datetime | None = None
     notes: str | None = None
     created_by: str
     updated_by: str

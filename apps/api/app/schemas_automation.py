@@ -110,6 +110,8 @@ class AutomationDeliveryRead(BaseModel):
     attempt_count: int
     next_attempt_at: datetime | None = None
     last_error: str | None = None
+    reconciled: bool = False
+    reconciled_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

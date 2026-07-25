@@ -4,9 +4,11 @@
 
 Phase 12 begins with a dedicated, responsive client web portal. A client can use an
 operator-issued access link to see a deliberately narrow case dashboard containing
-case status, the next action, milestone progress, and client-visible document
-metadata. The portal does not expose internal notes, truth claims, review queues,
-agent outputs, audit records, source registries, or other leads.
+case status, the next action, milestone progress, client-visible document
+metadata, authority appointments, agency submissions, external agency
+assignments, and authority checklist items. The portal does not expose internal
+notes, truth claims, review queues, agent outputs, audit records, source
+registries, or other leads.
 
 This increment replaces the legacy email-or-phone return lookup. Contact details
 are no longer accepted as public access credentials.
@@ -42,7 +44,10 @@ through the versioned API.
 - `POST /api/v1/client-portal/grants`
 - `GET /api/v1/client-portal/grants?lead_id={lead_id}`
 - `POST /api/v1/client-portal/grants/{grant_id}/revoke`
-- `GET /api/v1/public/client-portal/dashboard`
+- `GET /api/v1/public/client-portal/dashboard` — returns a client-safe projection
+  including case status, next action, milestone progress, document metadata,
+  authority appointments, agency submissions, external agency assignments, and
+  authority checklist items.
 
 The dashboard route is public only in the sense that it does not require an
 operator identity; possession of a valid, unexpired, non-revoked lead-scoped token
@@ -58,7 +63,7 @@ production build also include this increment.
 
 ## Remaining Phase 12 scope
 
-This is the client web foundation, not completion of Phase 12. Native/mobile
-application session controls, employer and partner tenancy, stable external API
-contracts, communication/calendar/CRM automation, and government or agency
-workflows remain pending.
+This is the client web foundation plus agency workflow visibility, not completion
+of Phase 12. Native/mobile application session controls, employer and partner
+tenancy, stable external API contracts, communication/calendar/CRM automation,
+and remaining government or agency workflow depth remain pending.

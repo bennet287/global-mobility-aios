@@ -21,7 +21,8 @@ TRANCHE_DIRECTORY = ROOT / "knowledge" / "global_coverage" / "tranches"
 
 
 def discover_canonical_evidence_packs() -> list[Path]:
-    paths = {Path(DEFAULT_COVERAGE_EVIDENCE_PACK).resolve()}
+    default_path = (TRANCHE_DIRECTORY / Path(DEFAULT_COVERAGE_EVIDENCE_PACK).name).resolve()
+    paths = {default_path} if default_path.exists() else set()
     paths.update(path.resolve() for path in TRANCHE_DIRECTORY.glob("*_ready_*.json"))
     return sorted(paths, key=lambda path: path.name)
 

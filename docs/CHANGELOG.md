@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-07-25 — Automation connector hardening v12.4.1
+
+- Added encrypted credential storage for automation connector configs via `app/services/automation_connector_encryption.py`, using Fernet keyed from `AUTOMATION_ENCRYPTION_KEY` (falling back to `JWT_SECRET` when not set).
+- Connector credentials are encrypted before persistence and masked (`***`) on every API read path; plaintext credentials are no longer returned or audit-logged.
+- Added `health_check` to the `AutomationProviderAdapter` contract. Implemented for `console` (always healthy) and `smtp` (connects, STARTTLS, and logs in). Added `POST /api/v1/automation/connectors/{config_id}/health-check` with a `503` response on failure and audit logging of both success and failure.
+- Added delivery reconciliation: `reconcile_automation_deliveries` marks long-dispatched `console` deliveries as `reconciled`, records `reconciled_at`, and audits the action. Added `reconcile_automation_deliveries_task` wired into the Celery beat schedule to run daily.
+- Added `reconciled` and `reconciled_at` columns to `automation_deliveries` via migration `0053_automation_delivery_reconciliation`.
+- Added regression tests verifying credential encryption at rest, API-level credential masking, connector health-check success/failure paths, and delivery reconciliation via both the service routine and the Celery task.
+
+## 2026-07-24 — Authority appointment reminders v12.8.5
+
+- Added `appointment.reminder` to `AUTOMATION_EVENT_TYPES`.
+- Added `scan_appointment_reminders` service routine in `app/services/authority_appointments.py` that finds scheduled appointments occurring within the next 24 hours and emits one `appointment.reminder` automation event per appointment when the linked application's lead is associated with an active corporate mobility case.
+- Added `app/tasks/authority_appointment_tasks.py` with `appointment_reminder_task` and wired it into the Celery beat schedule to run every hour.
+- Reminder events are idempotent per appointment per UTC day, include authority name, appointment type, scheduled time, location, and reference number, and flow through the same account-scoped rule matching, human review, retry, and delivery controls as other automation events.
+- Added regression tests covering upcoming-appointment event creation, idempotency, outside-window skipping, non-scheduled status skipping, and omission without a corporate case.
+- No database migration is required; the task reuses the `AuthorityAppointment` table from v12.5 and the `AutomationEvent` table from v12.3.
+
+## 2026-07-24 — External agency SLA tracking and client portal visibility v12.8.6
+
+- Added `sla_due_hours` to `ExternalAgency` and `sla_due_at`, `sla_status`, and `sla_breached_at` to `ExternalAgencyAssignment` via migration `0052_external_agency_assignment_sla`.
+- New assignments inherit their agency's `sla_due_hours` and start with `sla_status = on_track`.
+- Added `evaluate_assignment_sla` and `scan_assignment_sla_evaluations` routines that compute SLA status (`on_track`, `due_soon`, `breached`, `completed`) based on the assignment's current state and due timestamp.
+- Added `app/tasks/external_agency_sla_tasks.py` with `evaluate_external_agency_assignment_sla_task` and wired it into the Celery beat schedule to run hourly.
+- Completing an assignment after its due date records `sla_status = breached`; completing before the due date or cancelling records `sla_status = completed`.
+- Extended the client portal dashboard's external agency assignment projection to expose `sla_due_at`, `sla_status`, and `sla_breached_at`.
+- Added regression tests for SLA defaults, breach/completed states, the SLA evaluation scan, and portal exposure.
+
+## 2026-07-24 — Client portal agency workflow visibility v12.8.4
+
+- Extended the client portal dashboard (`GET /api/v1/public/client-portal/dashboard`) to expose authority appointments, agency submissions, external agency assignments, and authority checklist items for the granted lead.
+- Portal-safe projections omit internal notes, actor identities, audit fields, and contact details. Only status, authority/agency names, reference numbers, scheduled/submitted/handoff/completed timestamps, and checklist item labels/categories/status are returned.
+- The dashboard now supports leads with multiple applications by aggregating agency workflow data across all of the lead's applications.
+- Added regression test verifying that appointments, submissions, assignments, and checklist items appear in the dashboard and that internal fields remain hidden.
+- No database migration is required; the slice reuses the existing client portal, appointment, submission, assignment, and checklist tables.
+
+## 2026-07-24 — Scheduled authority checklist reminders v12.8.3
+
+- Added `scan_checklist_reminders` service routine that finds every application with at least one pending authority checklist item and emits one `authority_checklist.reminder` automation event per pending item when the application's lead is linked to an active corporate case.
+- Added `app/tasks/authority_checklist_tasks.py` with `scan_checklist_reminders_task` and wired it into the Celery beat schedule to run once per day.
+- Reminder events remain idempotent per checklist item per UTC day, so repeated daily scans never duplicate events.
+- Added regression tests for the scan routine: pending items create events, completed items are skipped, and items without a corporate case are omitted.
+- No database migration is required; the task reuses the `ApplicationAuthorityChecklistItem` table from v12.8 and the `AutomationEvent` table from v12.3.
+
 ## 2026-07-24 — Authority checklist reminders and blocking gates v12.8.2
 
 - Added `authority_checklist.reminder` to `AUTOMATION_EVENT_TYPES` so pending checklist items can trigger governed reminder deliveries.

@@ -7,7 +7,10 @@ from sqlmodel import Session, select
 from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import AutomationDelivery
-from app.services.automation_connector import attempt_delivery_dispatch
+from app.services.automation_connector import (
+    attempt_delivery_dispatch,
+    reconcile_automation_deliveries,
+)
 
 
 MAX_BATCH_SIZE = 100
@@ -45,3 +48,12 @@ def dispatch_automation_deliveries_task(batch_size: int = MAX_BATCH_SIZE) -> dic
                 session.rollback()
                 failed += 1
     return {"processed": len(deliveries), "dispatched": dispatched, "failed": failed}
+
+
+@celery_app.task
+def reconcile_automation_deliveries_task(max_age_hours: int = 24) -> dict[str, int]:
+    with Session(db_module.engine) as session:
+        result = reconcile_automation_deliveries(
+            session, max_age_hours=max_age_hours, actor="automation-worker"
+        )
+    return result

@@ -114,19 +114,23 @@ the request's authentication context.
 When the application's lead is linked to an active corporate mobility case,
 `POST /api/v1/applications/{application_id}/authority-checklist/reminders` emits
 an `AutomationEvent` with type `authority_checklist.reminder` for each pending
-checklist item (added in v12.8.2). The event payload includes the
-`application_id`, `lead_id`, `lead_name`, `case_reference`, `authority_name`,
-`item_key`, `item_label`, `is_required`, and `status`.
+checklist item (added in v12.8.2). In v12.8.3 a daily Celery beat task,
+`app.tasks.authority_checklist_tasks.scan_checklist_reminders_task`, performs the
+same scan automatically across all applications with pending checklist items.
+
+The event payload includes the `application_id`, `lead_id`, `lead_name`,
+`case_reference`, `authority_name`, `item_key`, `item_label`, `is_required`, and
+`status`.
 
 Events are idempotent per item per UTC day. They are scoped to the linked
 corporate account and case, so automation rules can route reminder notifications
 through email, messaging, calendar, or CRM connectors under the same review,
 retry, and dispatch controls as other automation events. If no active corporate
-case is linked, the endpoint returns an empty list and no events are created.
+case is linked, no events are created.
 
 ## Scope and future work
 
-v12.8.2 adds a submission-blocking gate and governed reminders for pending
-checklist items. Future slices may add scheduled/Celery-driven reminder
-generation, due dates and escalation on individual checklist items, and
-client-portal visibility of pending/completed checklist items.
+v12.8.2 and v12.8.3 add a submission-blocking gate, on-demand reminder
+generation, and scheduled daily reminder scanning for pending checklist items.
+Future slices may add due dates and escalation on individual checklist items
+and client-portal visibility of pending/completed checklist items.

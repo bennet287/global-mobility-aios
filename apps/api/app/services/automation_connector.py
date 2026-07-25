@@ -14,6 +14,11 @@ from sqlmodel import Session, select
 from app.models.domain import AutomationConnectorConfig, AutomationDelivery, AutomationEvent, CorporateAccount
 from app.schemas_automation import ConnectorConfigCreate
 from app.services.audit_log import record_audit, to_audit_dict
+from app.services.automation_connector_encryption import (
+    CredentialEncryptionError,
+    decrypt_credentials,
+    encrypt_credentials,
+)
 
 
 MAX_DELIVERY_ATTEMPTS = 3
@@ -38,6 +43,15 @@ def _load(value: str | None, default: Any) -> Any:
         return default
 
 
+def _mask_credentials(value: Any) -> Any:
+    """Return a credentials-shaped structure with every scalar value redacted."""
+    if isinstance(value, dict):
+        return {key: _mask_credentials(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_mask_credentials(item) for item in value]
+    return "***"
+
+
 class AdapterSendError(Exception):
     pass
 
@@ -46,6 +60,14 @@ class AutomationProviderAdapter(ABC):
     @abstractmethod
     def send(self, delivery: AutomationDelivery, config: AutomationConnectorConfig) -> str:
         """Send the delivery and return a provider message identifier."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def health_check(self, config: AutomationConnectorConfig) -> str:
+        """Verify the provider is reachable and the config is usable.
+
+        Returns a short status string or raises AdapterSendError on failure.
+        """
         raise NotImplementedError
 
 
@@ -60,12 +82,18 @@ class ConsoleAdapter(AutomationProviderAdapter):
         )
         return f"console-{uuid4().hex[:12]}"
 
+    def health_check(self, config: AutomationConnectorConfig) -> str:
+        return "healthy"
+
 
 class SmtpAdapter(AutomationProviderAdapter):
     """SMTP email adapter. Credentials must contain host, port, username, password."""
 
+    def _credentials(self, config: AutomationConnectorConfig) -> dict[str, Any]:
+        return decrypt_credentials(config.credentials_json)
+
     def send(self, delivery: AutomationDelivery, config: AutomationConnectorConfig) -> str:
-        credentials = _load(config.credentials_json, {})
+        credentials = self._credentials(config)
         host = credentials.get("host", "")
         port = int(credentials.get("port", 587))
         username = credentials.get("username", "")
@@ -91,6 +119,23 @@ class SmtpAdapter(AutomationProviderAdapter):
 
         return f"smtp-{result.get('to', 'unknown')}"
 
+    def health_check(self, config: AutomationConnectorConfig) -> str:
+        credentials = self._credentials(config)
+        host = credentials.get("host", "")
+        port = int(credentials.get("port", 587))
+        username = credentials.get("username", "")
+        password = credentials.get("password", "")
+        if not host or not username or password is None:
+            raise AdapterSendError("SMTP credentials must include host, username, and password")
+
+        try:
+            with smtplib.SMTP(host, port, timeout=10) as server:
+                server.starttls()
+                server.login(username, password)
+        except Exception as exc:
+            raise AdapterSendError(f"SMTP health check failed: {exc}") from exc
+        return "healthy"
+
 
 _ADAPTERS: dict[str, type[AutomationProviderAdapter]] = {
     "console": ConsoleAdapter,
@@ -108,7 +153,7 @@ def get_adapter(provider_type: str) -> AutomationProviderAdapter:
 def _config_read(config: AutomationConnectorConfig) -> dict[str, Any]:
     return {
         **to_audit_dict(config),
-        "credentials": _load(config.credentials_json, {}),
+        "credentials": _mask_credentials(decrypt_credentials(config.credentials_json)),
     }
 
 
@@ -143,7 +188,7 @@ def connector_config_create(
         corporate_account_id=account.id,
         channel=payload.channel,
         provider_type=payload.provider_type,
-        credentials_json=_dump(payload.credentials),
+        credentials_json=encrypt_credentials(payload.credentials),
         from_address=payload.from_address.strip() if payload.from_address else None,
         sender_label=payload.sender_label.strip() if payload.sender_label else None,
         status="active",
@@ -318,3 +363,83 @@ def attempt_delivery_dispatch(
         session.commit()
         session.refresh(delivery)
         return delivery
+
+
+def check_connector_health(
+    session: Session,
+    config: AutomationConnectorConfig,
+    *,
+    actor: str,
+) -> dict[str, Any]:
+    """Run a provider health check and audit the result."""
+    adapter = get_adapter(config.provider_type)
+    try:
+        status = adapter.health_check(config)
+    except AdapterSendError as exc:
+        record_audit(
+            session,
+            action="automation_connector_health_check_failed",
+            entity_type="automation_connector_config",
+            entity_id=config.id,
+            reason=str(exc),
+            actor=actor,
+            source="automation_v12_4",
+        )
+        session.commit()
+        raise
+
+    record_audit(
+        session,
+        action="automation_connector_health_check_succeeded",
+        entity_type="automation_connector_config",
+        entity_id=config.id,
+        after_state={"status": status, "provider_type": config.provider_type},
+        actor=actor,
+        source="automation_v12_4",
+    )
+    session.commit()
+    return {"status": status, "provider_type": config.provider_type}
+
+
+def reconcile_automation_deliveries(
+    session: Session,
+    *,
+    max_age_hours: int = 24,
+    actor: str = "reconciliation-worker",
+) -> dict[str, int]:
+    """Mark long-dispatched console deliveries as reconciled and audit the action.
+
+    Reconciliation is currently a local best-effort confirmation for console
+    deliveries. Real provider reconciliation will be added per-adapter as
+    integrations mature.
+    """
+    cutoff = _now() - timedelta(hours=max_age_hours)
+    statement = (
+        select(AutomationDelivery)
+        .where(AutomationDelivery.status == "dispatched")
+        .where(AutomationDelivery.dispatched_at <= cutoff)
+        .where(AutomationDelivery.reconciled.is_(False))
+        .where(AutomationDelivery.provider_message_id.like("console-%"))
+        .order_by(AutomationDelivery.dispatched_at)
+    )
+    deliveries = list(session.exec(statement).all())
+    reconciled_count = 0
+    for delivery in deliveries:
+        before = to_audit_dict(delivery)
+        delivery.reconciled = True
+        delivery.reconciled_at = _now()
+        delivery.updated_at = _now()
+        session.add(delivery)
+        record_audit(
+            session,
+            action="automation_delivery_reconciled",
+            entity_type="automation_delivery",
+            entity_id=delivery.id,
+            before_state=before,
+            after_state=to_audit_dict(delivery),
+            actor=actor,
+            source="automation_v12_4",
+        )
+        reconciled_count += 1
+    session.commit()
+    return {"reconciled": reconciled_count}

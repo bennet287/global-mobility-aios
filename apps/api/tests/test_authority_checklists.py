@@ -11,6 +11,7 @@ from app.models.domain import (
     AuthorityChecklistTemplate,
     AutomationEvent,
 )
+from app.services.authority_checklists import scan_checklist_reminders
 from tests.conftest import create_application, create_lead
 
 
@@ -380,3 +381,86 @@ def test_checklist_reminder_omitted_without_corporate_case(
         )
     ).first()
     assert event is None
+
+
+def test_scan_checklist_reminders_creates_event_for_pending_item(
+    client: TestClient, db_session: Session
+) -> None:
+    application = _create_linked_application(client, db_session)
+    item = client.post(
+        "/api/v1/application-authority-checklist-items",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+            "item_key": "passport_copy",
+            "item_label": "Copy of passport",
+            "category": "document",
+            "is_required": True,
+        },
+    )
+    assert item.status_code == 201, item.text
+    item_id = item.json()["id"]
+
+    result = scan_checklist_reminders(db_session, actor="test")
+    assert result == {"applications_scanned": 1, "events_created": 1}
+
+    event = db_session.exec(
+        select(AutomationEvent).where(
+            AutomationEvent.event_type == "authority_checklist.reminder"
+        )
+    ).first()
+    assert event is not None
+    assert event.entity_id == item_id
+
+    # Idempotency: second scan on the same day does not duplicate the event.
+    result2 = scan_checklist_reminders(db_session, actor="test")
+    assert result2 == {"applications_scanned": 1, "events_created": 0}
+
+
+def test_scan_checklist_reminders_skips_completed_items(
+    client: TestClient, db_session: Session
+) -> None:
+    application = _create_linked_application(client, db_session)
+    item = client.post(
+        "/api/v1/application-authority-checklist-items",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+            "item_key": "passport_copy",
+            "item_label": "Copy of passport",
+            "category": "document",
+            "is_required": True,
+        },
+    )
+    assert item.status_code == 201, item.text
+    item_id = item.json()["id"]
+
+    client.post(
+        f"/api/v1/application-authority-checklist-items/{item_id}/status",
+        json={"status": "completed"},
+    )
+
+    result = scan_checklist_reminders(db_session, actor="test")
+    assert result == {"applications_scanned": 0, "events_created": 0}
+
+
+def test_scan_checklist_reminders_omits_items_without_corporate_case(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    item = client.post(
+        "/api/v1/application-authority-checklist-items",
+        json={
+            "application_id": str(application.id),
+            "authority_name": "German Consulate Mumbai",
+            "item_key": "passport_copy",
+            "item_label": "Copy of passport",
+            "category": "document",
+            "is_required": True,
+        },
+    )
+    assert item.status_code == 201, item.text
+
+    result = scan_checklist_reminders(db_session, actor="test")
+    assert result == {"applications_scanned": 1, "events_created": 0}

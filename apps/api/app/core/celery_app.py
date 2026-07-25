@@ -17,6 +17,9 @@ celery_app = Celery(
         "app.tasks.document_fraud_risk_tasks",
         "app.tasks.document_access_tasks",
         "app.tasks.automation_tasks",
+        "app.tasks.authority_checklist_tasks",
+        "app.tasks.authority_appointment_tasks",
+        "app.tasks.external_agency_sla_tasks",
     ],
 )
 
@@ -56,6 +59,23 @@ celery_app.conf.update(
             "task": "app.tasks.automation_tasks.dispatch_automation_deliveries_task",
             "schedule": 60.0,
             "args": (100,),
+        },
+        "reconcile-dispatched-automation-deliveries": {
+            "task": "app.tasks.automation_tasks.reconcile_automation_deliveries_task",
+            "schedule": 86400.0,
+            "args": (24,),
+        },
+        "scan-authority-checklist-reminders": {
+            "task": "app.tasks.authority_checklist_tasks.scan_checklist_reminders_task",
+            "schedule": 86400.0,
+        },
+        "appointment-reminders": {
+            "task": "app.tasks.authority_appointment_tasks.appointment_reminder_task",
+            "schedule": 3600.0,
+        },
+        "evaluate-external-agency-assignment-sla": {
+            "task": "app.tasks.external_agency_sla_tasks.evaluate_external_agency_assignment_sla_task",
+            "schedule": 3600.0,
         },
     },
 )

@@ -27,6 +27,7 @@ AUTOMATION_EVENT_TYPES = {
     "compliance.status_changed",
     "task.status_changed",
     "appointment.status_changed",
+    "appointment.reminder",
     "submission.status_changed",
     "external_agency_assignment.status_changed",
     "authority_checklist.reminder",

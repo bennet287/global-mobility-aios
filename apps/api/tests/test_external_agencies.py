@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.models.domain import AuditLog, ExternalAgency, ExternalAgencyAssignment
+from app.services.external_agencies import (
+    evaluate_assignment_sla,
+    scan_assignment_sla_evaluations,
+)
 from tests.conftest import create_application, create_lead
 
 
@@ -188,3 +193,130 @@ def test_audit_log_entries_are_created(client: TestClient, db_session: Session) 
     )
     assert "external_agency_assignment_created" in actions
     assert "external_agency_assignment_in_progress" in actions
+
+
+def test_agency_create_includes_default_sla_due_hours(
+    client: TestClient, db_session: Session
+) -> None:
+    response = client.post("/api/v1/external-agencies", json=_agency_payload())
+    assert response.status_code == 201, response.text
+    data = response.json()
+    assert data["sla_due_hours"] == 72
+
+
+def test_assignment_creation_sets_sla_due_at_and_on_track(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    agency = client.post("/api/v1/external-agencies", json=_agency_payload())
+    assert agency.status_code == 201
+    agency_id = agency.json()["id"]
+
+    assignment = client.post(
+        "/api/v1/external-agency-assignments",
+        json={"application_id": str(application.id), "external_agency_id": agency_id},
+    )
+    assert assignment.status_code == 201, assignment.text
+    data = assignment.json()
+    assert data["sla_due_at"] is not None
+    assert data["sla_status"] == "on_track"
+    assert data["sla_breached_at"] is None
+
+
+def test_assignment_completed_before_due_is_completed_sla(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    agency = client.post("/api/v1/external-agencies", json=_agency_payload())
+    assert agency.status_code == 201
+    agency_id = agency.json()["id"]
+
+    assignment = client.post(
+        "/api/v1/external-agency-assignments",
+        json={"application_id": str(application.id), "external_agency_id": agency_id},
+    )
+    assert assignment.status_code == 201
+    assignment_id = assignment.json()["id"]
+
+    for status, reason in [
+        ("in_progress", "Agency started processing."),
+        ("handed_off", "Documents handed to authority."),
+        ("completed", "Decision received."),
+    ]:
+        response = client.post(
+            f"/api/v1/external-agency-assignments/{assignment_id}/status",
+            json={"status": status, "reason": reason},
+        )
+        assert response.status_code == 200, response.text
+
+    assert response.json()["sla_status"] == "completed"
+
+
+def test_scan_marks_breached_assignment(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    agency = client.post("/api/v1/external-agencies", json=_agency_payload())
+    assert agency.status_code == 201
+    agency_id = agency.json()["id"]
+
+    assignment_response = client.post(
+        "/api/v1/external-agency-assignments",
+        json={"application_id": str(application.id), "external_agency_id": agency_id},
+    )
+    assert assignment_response.status_code == 201
+    assignment_id = UUID(assignment_response.json()["id"])
+    assignment = db_session.get(ExternalAgencyAssignment, assignment_id)
+    assert assignment is not None
+
+    # Force the SLA due date into the past.
+    assignment.sla_due_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    db_session.add(assignment)
+    db_session.commit()
+
+    result = scan_assignment_sla_evaluations(db_session, actor="test")
+    assert result["sla_status_changes"] >= 1
+
+    db_session.refresh(assignment)
+    assert assignment.sla_status == "breached"
+    assert assignment.sla_breached_at is not None
+
+
+def test_assignment_completed_after_due_is_breached(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session)
+    application = create_application(db_session, lead)
+    agency_record = ExternalAgency(
+        name="Late Agency",
+        status="active",
+        sla_due_hours=1,
+        created_by="pytest",
+        updated_by="pytest",
+    )
+    db_session.add(agency_record)
+    db_session.commit()
+    db_session.refresh(agency_record)
+
+    assignment = ExternalAgencyAssignment(
+        application_id=application.id,
+        external_agency_id=agency_record.id,
+        status="assigned",
+        sla_due_at=datetime.now(timezone.utc) - timedelta(hours=2),
+        created_by="pytest",
+        updated_by="pytest",
+    )
+    db_session.add(assignment)
+    db_session.commit()
+    db_session.refresh(assignment)
+
+    evaluate_assignment_sla(assignment)
+    assert assignment.sla_status == "breached"
+
+    assignment.status = "completed"
+    assignment.completed_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    evaluate_assignment_sla(assignment)
+    assert assignment.sla_status == "breached"

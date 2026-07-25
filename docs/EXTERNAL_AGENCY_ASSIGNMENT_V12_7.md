@@ -26,6 +26,7 @@ assign individual applications to them with a controlled handoff lifecycle.
 | `contact_phone` | string? | Optional phone |
 | `website` | string? | Optional website |
 | `status` | string | Indexed. `active`, `suspended`, or `retired` |
+| `sla_due_hours` | int | Default SLA window (hours) for assignments to this agency |
 | `notes` | string? | Free-text operator notes |
 | `created_by` | string | Indexed actor |
 | `updated_by` | string | Indexed actor |
@@ -43,13 +44,16 @@ assign individual applications to them with a controlled handoff lifecycle.
 | `agency_reference_number` | string? | Optional agency reference number |
 | `handoff_at` | datetime? | Timestamp when status moved to `handed_off` |
 | `completed_at` | datetime? | Timestamp when status moved to `completed` |
+| `sla_due_at` | datetime? | SLA deadline computed from the agency's `sla_due_hours` |
+| `sla_status` | string | Indexed. `on_track`, `due_soon`, `breached`, or `completed` |
+| `sla_breached_at` | datetime? | Timestamp when the SLA was first breached |
 | `notes` | string? | Free-text operator notes |
 | `created_by` | string | Indexed actor |
 | `updated_by` | string | Indexed actor |
 | `created_at` | datetime | Indexed |
 | `updated_at` | datetime | |
 
-The tables are created by migration `0050_external_agency_assignment`.
+The tables are created by migration `0050_external_agency_assignment` and extended with SLA columns by migration `0052_external_agency_assignment_sla`.
 
 ## API surface
 
@@ -83,11 +87,17 @@ The tables are created by migration `0050_external_agency_assignment`.
 5. `completed` and `cancelled` are terminal states.
 6. Moving to `handed_off` records `handoff_at`; moving to `completed` records
    `completed_at`.
-7. Creating an assignment for a non-existent application or agency returns `404`.
-8. Creating an assignment for an inactive agency or an application with an
-   active assignment returns `409`.
-9. Invalid status transitions return `409`.
-10. Every creation and status change is recorded in `audit_logs` with the
+7. New assignments inherit the agency's `sla_due_hours` and receive an
+   `sla_due_at` timestamp and an initial `sla_status` of `on_track`.
+8. SLA status is re-evaluated on every status change and by a scheduled
+   monitor: `due_soon` within 12 hours of `sla_due_at`, `breached` once
+   `sla_due_at` has passed, `completed` for terminal `completed`/`cancelled`
+   states (or `breached` if `completed` after the due time).
+9. Creating an assignment for a non-existent application or agency returns `404`.
+10. Creating an assignment for an inactive agency or an application with an
+    active assignment returns `409`.
+11. Invalid status transitions return `409`.
+12. Every creation and status change is recorded in `audit_logs` with the
     `external_agency` or `external_agency_assignment` entity type and the
     before/after state.
 
@@ -113,6 +123,6 @@ linked, the status change still completes but no automation event is created.
 
 This slice intentionally stays narrow: it does not sync with external agency
 portals or handle agency billing. v12.8.1 links assignment status changes to the
-governed automation outbox for handoff notifications. Future slices may add
-agency-specific SLA tracking and expose agency assignments in the client
-portal.
+governed automation outbox, and v12.8.6 adds agency-specific SLA tracking with
+client-portal visibility. Future slices may add external agency portal sync and
+agency billing.

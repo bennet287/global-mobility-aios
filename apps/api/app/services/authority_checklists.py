@@ -76,7 +76,7 @@ def emit_checklist_reminder_events(
 
     created_events: list[AutomationEvent] = []
     for item in items:
-        event, _ = capture_event(
+        event, created = capture_event(
             session,
             idempotency_key=f"authority_checklist.reminder:{item.id}:{today}",
             corporate_account_id=corporate_case.corporate_account_id,
@@ -98,8 +98,40 @@ def emit_checklist_reminder_events(
             actor=actor,
             source="authority_checklist_v12_8",
         )
-        created_events.append(event)
+        if created:
+            created_events.append(event)
     return created_events
+
+
+def scan_checklist_reminders(
+    session: Session,
+    *,
+    actor: str = "authority-checklist-monitor",
+) -> dict[str, int]:
+    """Emit governed automation events for every pending checklist item that
+    belongs to an application linked to an active corporate mobility case.
+
+    Idempotency keys include the current UTC day, so the scan can run daily
+    without creating duplicate reminder events for the same item.
+    """
+    application_ids = session.exec(
+        select(ApplicationAuthorityChecklistItem.application_id)
+        .where(ApplicationAuthorityChecklistItem.status == "pending")
+        .distinct()
+    ).all()
+
+    total_events = 0
+    for application_id in application_ids:
+        events = emit_checklist_reminder_events(session, application_id, actor)
+        total_events += len(events)
+
+    if total_events:
+        session.commit()
+
+    return {
+        "applications_scanned": len(application_ids),
+        "events_created": total_events,
+    }
 
 
 def _now() -> datetime:
