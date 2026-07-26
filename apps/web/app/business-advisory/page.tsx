@@ -261,6 +261,15 @@ function AssessmentResult({ assessment }: { assessment: BusinessAdvisoryAssessme
         {assessment.escalation_required ? <InlineNotice label="Specialist escalation required" detail="Material risk or verification gaps require qualified human review before this strategy is used." tone="warn" /> : null}
       </div>
 
+      {assessment.strategic_memo ? (
+        <div className="panel advisory-memo">
+          <header className="advisory-panel-head">
+            <div><span className="eyebrow">Strategic read</span><h3>The winning move</h3></div>
+          </header>
+          <p>{assessment.strategic_memo}</p>
+        </div>
+      ) : null}
+
       <div className="strategy-grid">
         {assessment.strategy_options.map((strategy, index) => (
           <article className="panel strategy-card" key={strategy.strategy_key}>

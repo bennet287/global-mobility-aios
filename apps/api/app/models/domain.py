@@ -1743,6 +1743,7 @@ class BusinessMobilityAdvisoryAssessment(SQLModel, table=True):
     next_actions_json: str
     evidence_basis_json: str
     risk_flags_json: str
+    strategic_memo: Optional[str] = None
     escalation_required: bool = True
     status: str = Field(default="pending_review", index=True)
     human_review_required: bool = True

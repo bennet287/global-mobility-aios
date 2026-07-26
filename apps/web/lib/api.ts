@@ -4006,7 +4006,7 @@ export type BusinessAdvisoryAssessment = {
   primary_intent: string; situation_text: string; feasibility_score: number; feasibility_band: string;
   information_score: number; evidence_score: number; commercial_fit_score: number; pathway_grounding_score: number;
   strategy_options: BusinessStrategyOption[]; blockers: string[]; next_actions: string[];
-  evidence_basis: Array<Record<string, unknown>>; risk_flags: string[]; escalation_required: boolean;
+  evidence_basis: Array<Record<string, unknown>>; risk_flags: string[]; strategic_memo: string | null; escalation_required: boolean;
   status: string; human_review_required: boolean; generated_by: string; reviewed_by: string | null;
   reviewed_at: string | null; review_notes: string | null; score_semantics: string;
   created_at: string; updated_at: string;

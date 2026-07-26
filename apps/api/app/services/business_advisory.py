@@ -317,6 +317,10 @@ def create_advisory_assessment(
     # Re-sort so the strongest option is first, then preserve original order for ties.
     options.sort(key=lambda option: (-option["fit_score"], INTENT_STRATEGIES[payload.primary_intent].index(option["strategy_key"])))
 
+    strategic_memo = _generate_strategic_memo(
+        payload, options[0]["title"], feasibility, pathways, investment_programs, risk_flags
+    )
+
     evidence_basis = [
         {"document_id": str(item.id), "document_type": item.document_type, "status": item.status}
         for item in documents
@@ -339,6 +343,7 @@ def create_advisory_assessment(
         next_actions_json=_dump(next_actions),
         evidence_basis_json=_dump(evidence_basis),
         risk_flags_json=_dump(risk_flags),
+        strategic_memo=strategic_memo,
         escalation_required=bool(risk_flags or not pathways or payload.primary_intent == "tax_residency_planning"),
         status="pending_review",
         human_review_required=True,
@@ -464,80 +469,157 @@ def _situation_aware_score(
 
 _SITUATION_ACTIONS = {
     "launch_startup": [
-        "Incorporate the target-country vehicle and prepare a founder-investor narrative.",
-        "Draft a 12-24 month operating plan that shows local substance (office, hires, revenue).",
-        "Collect proof of capital, founder track record, and lawful source-of-funds documents.",
+        "Month 1-2: incorporate the target-country vehicle, open a local business bank account, and deposit seed capital to create payment-trail evidence.",
+        "Month 3-6: lease a small office or co-working contract, hire at least one local employee or contractor, and sign the first two commercial contracts to prove operating substance.",
+        "Month 7-12: file the founder-residence application under the published entrepreneur/innovation pathway, anchored by the operating plan, bank statements, and local tax registrations.",
     ],
     "expand_existing_business": [
-        "Prepare audited/reviewed financials and an org chart showing the expansion rationale.",
-        "Identify the transfer mechanism (intra-company assignment, local hire, branch).",
-        "Map the target-country corporate, VAT, payroll, and immigration registration sequence.",
+        "Month 1-2: prepare a transfer-pricing compliant expansion memo, choose the vehicle (branch vs. subsidiary), and document the commercial reason for the move.",
+        "Month 3-6: execute the intra-company transfer or local hire, register for payroll, VAT, and corporate tax, and establish a physical address with lease/utility evidence.",
+        "Month 7-12: align personal residency with corporate substance; file residence permits for transferred staff and founders under the published business-expansion route.",
     ],
     "founder_relocation": [
-        "Confirm personal and corporate residency requirements for the founder and family.",
-        "Structure the move so the company continues to trade or raises in the new jurisdiction.",
-        "Obtain tax, immigration, and school/housing clearances before the relocation date.",
+        "Month 1-2: decide whether the existing company is transferred, re-domiciled, or kept as a foreign parent; model the tax cost of each option.",
+        "Month 3-6: incorporate the new local operating company, move the founder's economic centre (contracts, banking, board meetings) to the target jurisdiction.",
+        "Month 7-12: file founder and family residence permits, supported by local payroll, housing contract, school enrollment, and tax-residency evidence.",
     ],
     "passive_investment": [
-        "Match available capital to the minimum commitment of a published residence/citizenship program.",
-        "Obtain a source-of-funds audit and a clean criminal-record certificate.",
-        "Appoint a licensed local adviser and escrow agent before any capital transfer.",
+        "Week 1-2: pre-qualify the capital amount against the minimum investment, fund-maintenance period, and acceptable asset classes of each published program.",
+        "Month 1-3: obtain a source-of-funds audit, police-clearance certificate, and health/insurance requirements; appoint a licensed local adviser and escrow structure.",
+        "Month 4-9: execute the qualifying investment, file the residence application, and maintain the holding through the required physical-presence and renewal timeline.",
     ],
     "family_office_relocation": [
-        "Catalogue the family balance sheet, asset locations, and existing tax residencies.",
-        "Select a jurisdiction that fits the family's investment, governance, and schooling needs.",
-        "Build a family-constitution draft and engage a multi-jurisdiction tax/estate team.",
+        "Month 1-3: complete the family balance-sheet map, identify current tax residencies, and shortlist jurisdictions by investment, governance, schooling, and succession fit.",
+        "Month 4-8: set up the family holding structure (trust, foundation, or holding company), open local banking, and execute the qualifying investment or real-estate purchase.",
+        "Month 9-18: relocate family members in tranches, obtain residence permits, align asset protection with the new domicile, and file the first tax-residency declaration.",
     ],
     "tax_residency_planning": [
-        "Document current tax residency triggers and any treaty tie-breaker positions.",
-        "Model the 183-day, permanent home, centre of vital interests, and habitual abode tests.",
-        "Implement a substance plan (home, office, board meetings, banking) before year-end.",
+        "Week 1-4: document existing residency triggers, treaty positions, and the planned move date; identify the tax year in which the switch must happen.",
+        "Month 2-4: establish substance evidence (permanent home, centre of vital interests, habitual abode) before the relevant tax-year deadlines.",
+        "Month 5-12: file tax-residency termination in the old jurisdiction and commencement in the new, supported by leases, payroll, board minutes, and banking records.",
     ],
     "asset_and_family_mobility": [
-        "Map assets by jurisdiction, ownership structure, and portability.",
-        "Prepare custody, schooling, healthcare, and residence permits for family members.",
-        "Align the asset-protection and succession plan with the new residency structure.",
+        "Month 1-2: map every asset by ownership structure, jurisdiction, and portability; identify custody, schooling, and healthcare needs for each family member.",
+        "Month 3-6: restructure or transfer assets to align with the new residency plan; obtain residence permits for the principal applicant first.",
+        "Month 7-12: relocate dependents, update succession documents (will, trust, powers of attorney), and open local banking/investment accounts.",
     ],
 }
 
 
 _SITUATION_CRITICAL_FACTORS = {
     "launch_startup": [
-        "Founder experience and capital availability in the target jurisdiction.",
-        "Published startup, entrepreneur, or innovation pathway for the country.",
-        "Local substance plan that satisfies authority review.",
+        "Whether the founder can prove operating substance (contracts, hires, office, bank activity) before the residence deadline.",
+        "The match between available capital and the published entrepreneur/innovation pathway threshold.",
+        "The sequencing of company setup before personal residence, so authority review sees a real business, not a shell.",
     ],
     "expand_existing_business": [
-        "Trading history, revenue, and staffing that justify the expansion.",
-        "Corporate and transfer mechanism matched to a published pathway.",
-        "Local payroll, tax, and immigration registration readiness.",
+        "Whether the expansion has a defensible commercial rationale that survives transfer-pricing and substance scrutiny.",
+        "The choice between intra-company transfer, local hire, branch, or subsidiary and its residence-permit implications.",
+        "Alignment of personal residency with the corporate presence to avoid a mismatch that triggers tax-residency disputes.",
     ],
     "founder_relocation": [
-        "Personal and corporate residency alignment.",
-        "Continuity of the company's operations and funding post-move.",
-        "Family relocation logistics and timelines.",
+        "The tax cost of transferring or leaving the existing company versus starting a new local entity.",
+        "Proof that the founder's economic centre has genuinely moved (banking, contracts, board meetings, family home).",
+        "Continuity of funding and customers while the business migrates jurisdiction.",
     ],
     "passive_investment": [
-        "Capital amount versus published program minimums.",
-        "Clean source-of-funds evidence and criminal-record status.",
-        "Licensed local adviser and escrow arrangement.",
+        "Whether capital exceeds the program minimum by a safe margin and is from a fully documentable source.",
+        "The holding period, physical-presence, and exit rules of the chosen program.",
+        "Clean criminal, sanctions, and tax records for all adult applicants.",
     ],
     "family_office_relocation": [
-        "Complexity of the family balance sheet and asset locations.",
-        "Jurisdiction fit for investment, governance, schooling, and lifestyle.",
-        "Multi-jurisdiction tax and estate planning readiness.",
+        "The interaction between the new domicile, existing family trusts/foundations, and source-country exit taxes.",
+        "Whether the family's investment style matches the jurisdiction's regulated fund, real-estate, or enterprise options.",
+        "Multi-generational governance: schooling, succession law, and family-office staffing in the target jurisdiction.",
     ],
     "tax_residency_planning": [
-        "Current tax-residency triggers and treaty positions.",
-        "Substance evidence across the 183-day, home, interests, and abode tests.",
-        "Timing relative to the tax year and reporting deadlines.",
+        "The exact tax-year cut-off and whether substance evidence can be completed before that date.",
+        "Treaty tie-breaker positions and the risk of dual residency if substance is challenged.",
+        "The interplay with CFC rules, permanent-establishment exposure, and exit taxation in the old jurisdiction.",
     ],
     "asset_and_family_mobility": [
-        "Asset portability and ownership-structure complexity.",
-        "Family-member residence, custody, and schooling requirements.",
-        "Alignment of asset protection with the new residency plan.",
+        "Asset portability and the cost of restructuring out of the current ownership vehicles.",
+        "The principal applicant's residence status and whether it covers dependents immediately or sequentially.",
+        "Succession-law compatibility and forced-heirship rules in the new jurisdiction.",
     ],
 }
+
+
+def _generate_strategic_memo(
+    payload: BusinessAdvisorySituationRequest,
+    recommended_title: str,
+    overall: float,
+    pathways: list[dict[str, Any]],
+    programs: list[dict[str, Any]],
+    risk_flags: list[str],
+) -> str:
+    """Return a concise, aggressive strategic memo for the situation."""
+    intent_label = payload.primary_intent.replace("_", " ")
+    countries = ", ".join(payload.target_countries)
+    capital_note = ""
+    if payload.capital_available_minor is not None and payload.currency:
+        capital_note = f" With EUR {payload.capital_available_minor / 100:,.0f} declared, "
+    elif payload.net_worth_minor is not None and payload.currency:
+        capital_note = f" With a net worth of EUR {payload.net_worth_minor / 100:,.0f}, "
+
+    route_count = len(pathways)
+    program_count = len(programs)
+    grounding = f"{route_count} published pathway(s) and {program_count} investment program(s) ground the analysis for {countries}."
+
+    if "prohibited_conduct_signal" in risk_flags:
+        return (
+            f"The stated approach contains a concealment, deception, or circumvention signal that cannot be executed lawfully. "
+            f"{capital_note}the strongest lawful pivot is to restructure the plan around transparent ownership, real substance, and specialist review. "
+            f"{grounding} Success meter is capped at {overall:.0f}/100 until the issue is remediated."
+        )
+
+    if payload.primary_intent == "launch_startup":
+        return (
+            f"For a {intent_label} into {countries},{capital_note} the winning move is to front-load corporate substance before applying for founder residence. "
+            f"Authorities reward a real operating company—local bank account, signed contracts, and at least one local hire—more than a large capital deposit. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    if payload.primary_intent == "expand_existing_business":
+        return (
+            f"For {intent_label} into {countries},{capital_note} the route is strongest when the corporate move precedes personal residence and is justified by a transfer-pricing-compliant expansion memo. "
+            f"Intra-company transfer is usually faster than a fresh local hire route, but both require payroll, VAT, and a real office address. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    if payload.primary_intent == "founder_relocation":
+        return (
+            f"For {intent_label} to {countries},{capital_note} the cheapest tax outcome usually comes from moving the economic centre (contracts, banking, board meetings) before the tax-year cut-off. "
+            f"Keeping the old company as a foreign parent can defer exit tax; redomiciling creates instant local substance. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    if payload.primary_intent == "passive_investment":
+        return (
+            f"For {intent_label} in {countries},{capital_note} the best leverage is choosing a published residence-by-investment program whose minimum commitment leaves headroom and whose holding period matches the client's timeline. "
+            f"Source-of-funds clarity and a clean criminal record are bigger differentiators than the investment choice itself. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    if payload.primary_intent == "family_office_relocation":
+        return (
+            f"For {intent_label} to {countries},{capital_note} the decisive factor is aligning the family's investment style, governance needs, and schooling with the jurisdiction's regulated options. "
+            f"Trust/foundation portability and source-country exit tax often matter more than the headline investment minimum. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    if payload.primary_intent == "tax_residency_planning":
+        return (
+            f"For {intent_label} into {countries},{capital_note} timing is everything: substance evidence must be in place before the relevant tax-year cut-off. "
+            f"A treaty tie-breaker position is only as strong as the paper trail—lease, payroll, board minutes, and habitual-abode indicators. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    if payload.primary_intent == "asset_and_family_mobility":
+        return (
+            f"For {intent_label} into {countries},{capital_note} the strategy hinges on moving the principal applicant first and restructuring assets before dependents relocate. "
+            f"Forced-heirship rules and succession-law mismatches can erase the benefit of the move if not addressed early. "
+            f"{grounding} Overall success meter: {overall:.0f}/100."
+        )
+    return (
+        f"For the {intent_label} objective in {countries},{capital_note} the strongest route is {recommended_title}. "
+        f"Execute corporate and personal moves in the right sequence, build substance before applying for residence, and lock in source-of-funds evidence early. "
+        f"{grounding} Overall success meter: {overall:.0f}/100."
+    )
 
 
 def _strategy_fit_score(
@@ -623,6 +705,7 @@ def _build_solution_prompt(
         + "\n\nReturn ONLY a JSON object matching this schema (no markdown):\n"
         "{\n"
         '  "summary": "2-3 sentence strategic summary that sounds like advice from a senior strategist",\n'
+        '  "strategic_memo": "4-6 sentence aggressive, commercially specific memo: state the winning sequencing, the leverage point, the most common failure, and what the client must lock down first. Use jurisdiction and capital specifics where possible.",\n'
         '  "recommended_solution": {\n'
         '    "strategy_key": "one of: founder_startup, entrepreneur_operating_business, company_expansion, intra_company_transfer, investor_residence, active_business_investment, asset_and_family_mobility, family_office_mobility, tax_residency_specialist, operating_business_substance",\n'
         '    "title": "short, commercially crisp title",\n'
@@ -695,12 +778,11 @@ def _fallback_solution(
     # Re-sort so the highest-scoring option is recommended, not just the first archetype.
     options.sort(key=lambda option: option.success_meter, reverse=True)
 
+    summary = _generate_strategic_memo(payload, options[0].title, overall, pathways, programs, risk_flags)
+
     return BusinessAdvisorySolutionResponse(
-        summary=(
-            f"For the '{payload.primary_intent.replace('_', ' ')}' goal in {', '.join(payload.target_countries)}, "
-            f"the strongest route is {options[0].title} with a situation-aware success meter of {options[0].success_meter:.0f}/100 "
-            f"(overall {overall:.0f}/100)."
-        ),
+        summary=summary,
+        strategic_memo=summary,
         recommended_solution=options[0],
         alternative_options=options[1:],
         critical_factors=_SITUATION_CRITICAL_FACTORS.get(
@@ -798,6 +880,7 @@ def advise_on_business_mobility_situation(
             overall = min(overall, 20.0)
         return BusinessAdvisorySolutionResponse(
             summary=data.get("summary", recommended.rationale),
+            strategic_memo=data.get("strategic_memo", data.get("summary", recommended.rationale)),
             recommended_solution=recommended,
             alternative_options=alternatives,
             critical_factors=data.get("critical_factors", []),

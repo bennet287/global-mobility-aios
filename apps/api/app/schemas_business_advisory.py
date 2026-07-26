@@ -83,6 +83,7 @@ class BusinessAdvisoryRead(BaseModel):
     next_actions: list[str]
     evidence_basis: list[dict[str, Any]]
     risk_flags: list[str]
+    strategic_memo: str | None = None
     escalation_required: bool
     status: str
     human_review_required: bool
@@ -164,3 +165,4 @@ class BusinessAdvisorySolutionResponse(BaseModel):
     risk_flags: list[str]
     disclaimer: str
     human_review_required: bool
+    strategic_memo: str | None = None
