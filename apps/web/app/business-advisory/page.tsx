@@ -275,6 +275,7 @@ function AssessmentResult({ assessment }: { assessment: BusinessAdvisoryAssessme
           <article className="panel strategy-card" key={strategy.strategy_key}>
             <header><span>0{index + 1}</span><StatusBadge value={strategy.verification_state} /></header>
             <div className="strategy-title"><h3>{strategy.title}</h3><strong>{Math.round(strategy.fit_score)}<small>/100 fit</small></strong></div>
+            {strategy.visa_route ? <div className="strategy-visa-route"><span>Visa / residence pathway</span><p>{strategy.visa_route}</p></div> : null}
             <p>{strategy.rationale[0] || "A candidate route for human evaluation."}</p>
             <div className="strategy-detail"><span>Why it fits</span><ul>{strategy.rationale.slice(1).map((item) => <li key={item}>{item}</li>)}</ul></div>
             <div className="strategy-detail"><span>Next moves</span><ol>{strategy.next_actions.slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ol></div>

@@ -3999,6 +3999,7 @@ export type BusinessStrategyOption = {
   published_pathways: Array<{ pathway_id: string; pathway_version_id: string; name: string; country: string; domain: string }>;
   verified_programs: Array<{ program_id: string; program_version_id: string; name: string; country: string; program_type: string; minimum_commitment_minor: number; currency: string }>;
   verification_state: string;
+  visa_route: string | null;
 };
 
 export type BusinessAdvisoryAssessment = {

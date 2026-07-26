@@ -71,9 +71,148 @@ SPECIALIST_SIGNALS = {
 
 BUSINESS_DOMAINS = {"business", "entrepreneur", "startup", "investment", "wealth", "tax", "corporate"}
 
+# Visa / residence route hints by country and strategy archetype.
+# These are strategic pointers, not published-pathway claims, and are surfaced with a disclaimer.
+_VISA_ROUTE_HINTS: dict[str, dict[str, str]] = {
+    "portugal": {
+        "founder_startup": "D2 Entrepreneur Visa / Portugal Startup Visa",
+        "entrepreneur_operating_business": "D2 Entrepreneur Visa / Portugal Startup Visa",
+        "company_expansion": "EU Blue Card / ICT permit via Portuguese subsidiary",
+        "intra_company_transfer": "ICT permit",
+        "investor_residence": "Portugal Golden Visa (investment funds / cultural donation)",
+        "active_business_investment": "D2 Entrepreneur Visa based on business investment",
+        "asset_and_family_mobility": "D2 Entrepreneur or Golden Visa for family",
+        "family_office_mobility": "Golden Visa via investment fund / family-office structure",
+        "tax_residency_specialist": "NHR-style tax residency registration",
+        "operating_business_substance": "D2 Entrepreneur Visa via operating substance",
+    },
+    "austria": {
+        "founder_startup": "Red-White-Red Card for Start-up Founders",
+        "entrepreneur_operating_business": "Red-White-Red Card for Self-Employed Key Workers",
+        "company_expansion": "ICT / posted-worker permit via Austrian subsidiary",
+        "intra_company_transfer": "ICT permit",
+        "investor_residence": "Settlement Permit for Self-Employed Persons",
+        "active_business_investment": "Settlement Permit for Self-Employed Persons",
+        "asset_and_family_mobility": "Settlement Permit for Self-Employed Persons + family reunification",
+        "family_office_mobility": "Settlement Permit for Self-Employed Persons",
+        "tax_residency_specialist": "Tax residency certificate / DTA structuring",
+        "operating_business_substance": "Red-White-Red Card for Self-Employed Key Workers",
+    },
+    "uae": {
+        "founder_startup": "Golden Visa (Entrepreneur / Startup)",
+        "entrepreneur_operating_business": "Golden Visa (Entrepreneur)",
+        "company_expansion": "Employment / ICT permit via mainland or free-zone entity",
+        "intra_company_transfer": "Employment / ICT permit",
+        "investor_residence": "Golden Visa (Real estate / Investment)",
+        "active_business_investment": "Golden Visa (Investor in business)",
+        "asset_and_family_mobility": "Golden Visa (Investor) + family sponsorship",
+        "family_office_mobility": "Golden Visa (Investor)",
+        "tax_residency_specialist": "UAE Tax Residency Certificate",
+        "operating_business_substance": "Golden Visa (Entrepreneur) via operating business",
+    },
+    "singapore": {
+        "founder_startup": "EntrePass",
+        "entrepreneur_operating_business": "EntrePass / Employment Pass",
+        "company_expansion": "Employment Pass via Singapore subsidiary",
+        "intra_company_transfer": "Employment Pass (Overseas Networks & Expertise Pass for senior roles)",
+        "investor_residence": "Global Investor Programme (GIP)",
+        "active_business_investment": "Global Investor Programme (GIP)",
+        "asset_and_family_mobility": "EntrePass / GIP + Dependant Pass",
+        "family_office_mobility": "Global Investor Programme (GIP) / Single Family Office",
+        "tax_residency_specialist": "Tax residency certificate / Not Ordinarily Resident scheme",
+        "operating_business_substance": "Employment Pass via operating substance",
+    },
+    "spain": {
+        "founder_startup": "Entrepreneur Visa (Ley de Emprendedores)",
+        "entrepreneur_operating_business": "Entrepreneur Visa / Self-Employed Work Permit",
+        "company_expansion": "ICT / EU Blue Card via Spanish subsidiary",
+        "intra_company_transfer": "ICT permit",
+        "investor_residence": "Golden Visa (real estate / investment)",
+        "active_business_investment": "Golden Visa / Entrepreneur Visa",
+        "asset_and_family_mobility": "Golden Visa / Entrepreneur Visa + family reunification",
+        "family_office_mobility": "Golden Visa / Beckham Law structuring",
+        "tax_residency_specialist": "Beckham Law / tax residency certificate",
+        "operating_business_substance": "Self-Employed Work Permit via operating business",
+    },
+    "malta": {
+        "founder_startup": "Nomad Residence Permit / Malta Startup Residence Programme",
+        "entrepreneur_operating_business": "Malta Startup Residence Programme / Self-employed permit",
+        "company_expansion": "Employment permit via Malta subsidiary",
+        "intra_company_transfer": "Employment permit / ICT",
+        "investor_residence": "MEIN (Malta Exceptional Investor Naturalization) / MPRP",
+        "active_business_investment": "MPRP / MEIN",
+        "asset_and_family_mobility": "MPRP / MEIN + family reunification",
+        "family_office_mobility": "MPRP / MEIN",
+        "tax_residency_specialist": "Tax residency certificate / Malta holding company structure",
+        "operating_business_substance": "Self-Employed / Key Employee permit",
+    },
+    "greece": {
+        "founder_startup": "Golden Visa (business investment) / independent means",
+        "entrepreneur_operating_business": "Golden Visa (business investment) / independent means",
+        "company_expansion": "EU Blue Card / ICT via Greek subsidiary",
+        "intra_company_transfer": "ICT / EU Blue Card",
+        "investor_residence": "Golden Visa",
+        "active_business_investment": "Golden Visa",
+        "asset_and_family_mobility": "Golden Visa + family reunification",
+        "family_office_mobility": "Golden Visa",
+        "tax_residency_specialist": "Non-dom tax residency program",
+        "operating_business_substance": "Independent economic activity permit",
+    },
+    "cyprus": {
+        "investor_residence": "Permanent Residence Permit (investment)",
+        "active_business_investment": "Permanent Residence Permit (investment)",
+        "family_office_mobility": "Permanent Residence Permit (investment)",
+        "asset_and_family_mobility": "Permanent Residence Permit (investment)",
+    },
+    "hungary": {
+        "investor_residence": "Guest Investor Residence Permit",
+        "active_business_investment": "Guest Investor Residence Permit",
+        "family_office_mobility": "Guest Investor Residence Permit",
+        "asset_and_family_mobility": "Guest Investor Residence Permit",
+    },
+}
+
+_VISA_ROUTE_FALLBACK: dict[str, str] = {
+    "founder_startup": "Founder / entrepreneur residence permit",
+    "entrepreneur_operating_business": "Entrepreneur / self-employed residence permit",
+    "company_expansion": "Intra-corporate transfer or local work permit via subsidiary",
+    "intra_company_transfer": "Intra-corporate transfer permit",
+    "investor_residence": "Passive-investor residence permit",
+    "active_business_investment": "Business-investor residence permit",
+    "asset_and_family_mobility": "Investor or entrepreneur residence permit + family reunification",
+    "family_office_mobility": "Family-office / investor residence permit",
+    "tax_residency_specialist": "Tax residency registration / certificate",
+    "operating_business_substance": "Self-employed / entrepreneur residence permit tied to local substance",
+}
+
+_STRATEGY_ARCHETYPE_NOTES: dict[str, str] = {
+    "founder_startup": "Build a new local operating company from the ground up, use the founder/entrepreneur residence route, and relocate family once the business has real substance.",
+    "entrepreneur_operating_business": "Use an existing or newly formed operating company with local substance to sponsor the entrepreneur's residence and transfer value into the target country.",
+    "company_expansion": "Expand the existing foreign company into the target country via a branch or subsidiary, then transfer key personnel under an intra-corporate or local work permit.",
+    "intra_company_transfer": "Transfer the founder or executive from the existing entity to the target-country subsidiary under an intra-corporate transfer permit.",
+    "investor_residence": "Make a qualifying passive investment and obtain residence based on the target country's investor residence program.",
+    "active_business_investment": "Acquire or establish a meaningful active business investment and manage it locally, qualifying for a business/investor residence permit.",
+    "asset_and_family_mobility": "Coordinate the relocation of family and assets with the investment or business vehicle, often through a structured residence plan.",
+    "family_office_mobility": "Use a family-office structure to consolidate investment, residence, and tax coordination across jurisdictions.",
+    "tax_residency_specialist": "Restructure tax residency through a combination of local ties, treaty positions, and specialist advice.",
+    "operating_business_substance": "Create genuine operating company substance in the target country to anchor residence and tax position.",
+}
+
 
 def _dump(value: Any) -> str:
     return json.dumps(value, default=str, sort_keys=True)
+
+
+def _visa_route_for_strategy(strategy_key: str, countries: list[str]) -> str:
+    normalized = [country.strip().lower() for country in countries]
+    hints: list[str] = []
+    for country in normalized:
+        country_hints = _VISA_ROUTE_HINTS.get(country, {})
+        if strategy_key in country_hints:
+            hints.append(f"{country_hints[strategy_key]} ({country.title()})")
+    if hints:
+        return " / ".join(hints)
+    return _VISA_ROUTE_FALLBACK.get(strategy_key, "Residence permit tied to the selected strategy")
 
 
 def _load(value: str, default: Any) -> Any:
@@ -290,8 +429,10 @@ def create_advisory_assessment(
 
         rationale = [
             f"{STRATEGY_TITLES[key]} fits the '{payload.primary_intent.replace('_', ' ')}' intent.",
+            _STRATEGY_ARCHETYPE_NOTES.get(key, ""),
             f"Situation-aware fit is {fit:.0f}/100 based on disclosed facts, target countries ({', '.join(payload.target_countries)}), and available routes.",
         ]
+        rationale = [line for line in rationale if line]
         if relevant:
             rationale.append(f"Grounded in {len(relevant)} published pathway(s) for this archetype.")
         elif pathways:
@@ -312,6 +453,7 @@ def create_advisory_assessment(
             "verification_state": "published_program_grounded" if relevant_programs else (
                 "published_pathway_grounded" if relevant else "archetype_only_requires_route_verification"
             ),
+            "visa_route": _visa_route_for_strategy(key, payload.target_countries),
         })
 
     # Re-sort so the strongest option is first, then preserve original order for ties.
@@ -711,6 +853,7 @@ def _build_solution_prompt(
         '    "title": "short, commercially crisp title",\n'
         '    "success_meter": 0-100 integer,\n'
         '    "rationale": "why this exact route fits the client\'s situation and intention",\n'
+        '    "visa_route": "name the specific visa or residence pathway that matches this strategy (e.g. D2 Entrepreneur Visa, Portugal Startup Visa, EntrePass, Golden Visa)",\n'
         '    "actions": ["concrete next step 1", "step 2", "step 3"],\n'
         '    "estimated_timeline_months": integer or null,\n'
         '    "estimated_commitment": {"amount_minor": integer, "currency": "3-letter code"} or null,\n'
@@ -764,7 +907,8 @@ def _fallback_solution(
             success_band=_solution_band(score),
             rationale=(
                 f"{STRATEGY_TITLES[key]} is matched to the '{payload.primary_intent.replace('_', ' ')}' intent. "
-                f"Given the disclosed facts and target countries ({', '.join(payload.target_countries)}), "
+                + _STRATEGY_ARCHETYPE_NOTES.get(key, "")
+                + f" Given the disclosed facts and target countries ({', '.join(payload.target_countries)}), "
                 f"the situation-aware success meter is {score:.0f}/100."
             ),
             actions=_SITUATION_ACTIONS.get(payload.primary_intent, _SITUATION_ACTIONS["launch_startup"])[:3],
@@ -773,6 +917,7 @@ def _fallback_solution(
             grounding_pathways=relevant,
             grounding_programs=relevant_programs,
             risk_notes=risk_notes,
+            visa_route=_visa_route_for_strategy(key, payload.target_countries),
         ))
 
     # Re-sort so the highest-scoring option is recommended, not just the first archetype.
@@ -856,6 +1001,7 @@ def advise_on_business_mobility_situation(
             grounding_pathways=pathways[:3],
             grounding_programs=programs[:2],
             risk_notes=data["recommended_solution"].get("risk_notes", []),
+            visa_route=data["recommended_solution"].get("visa_route"),
         )
         alternatives = [
             SolutionRecommendation(
@@ -870,6 +1016,7 @@ def advise_on_business_mobility_situation(
                 grounding_pathways=pathways[:3],
                 grounding_programs=programs[:2],
                 risk_notes=item.get("risk_notes", []),
+                visa_route=item.get("visa_route"),
             )
             for item in data.get("alternative_options", [])[:2]
         ]

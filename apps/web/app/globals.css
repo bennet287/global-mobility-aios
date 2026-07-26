@@ -1613,6 +1613,9 @@ a {
 .strategy-title h3 { margin: 0; font-size: 17px; line-height: 1.1; letter-spacing: -.035em; }
 .strategy-title > strong { color: var(--accent); font-size: 24px; font-weight: 500; letter-spacing: -.05em; white-space: nowrap; }
 .strategy-title small { display: block; color: var(--ink-soft); font-size: 7px; letter-spacing: .02em; text-align: right; }
+.strategy-visa-route { margin-top: 12px; padding: 10px 12px; border-left: 2px solid #5b5f9c; background: rgba(91,95,156,.06); border-radius: 0 8px 8px 0; }
+.strategy-visa-route span { display: block; color: #c2c4ed; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.strategy-visa-route p { margin: 5px 0 0; color: var(--ink); font-size: 10px; line-height: 1.45; font-style: italic; }
 .strategy-card > p { min-height: 46px; margin: 13px 0 17px; color: var(--ink-muted); font-size: 10px; line-height: 1.5; }
 .strategy-detail { padding-top: 13px; border-top: 1px solid var(--line-subtle); }
 .strategy-detail > span,

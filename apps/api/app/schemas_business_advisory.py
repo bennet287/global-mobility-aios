@@ -62,6 +62,7 @@ class BusinessStrategyOption(BaseModel):
     published_pathways: list[dict[str, Any]] = Field(default_factory=list)
     verified_programs: list[dict[str, Any]] = Field(default_factory=list)
     verification_state: str
+    visa_route: str | None = None
 
 
 class BusinessAdvisoryRead(BaseModel):
@@ -154,6 +155,7 @@ class SolutionRecommendation(BaseModel):
     grounding_pathways: list[dict[str, Any]] = Field(default_factory=list)
     grounding_programs: list[dict[str, Any]] = Field(default_factory=list)
     risk_notes: list[str] = Field(default_factory=list)
+    visa_route: str | None = None
 
 
 class BusinessAdvisorySolutionResponse(BaseModel):
