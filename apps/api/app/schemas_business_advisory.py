@@ -51,6 +51,11 @@ class BusinessAdvisoryCreate(BaseModel):
         return self
 
 
+class VisaRouteEntry(BaseModel):
+    country: str
+    route: str
+
+
 class BusinessStrategyOption(BaseModel):
     strategy_key: str
     title: str
@@ -63,6 +68,7 @@ class BusinessStrategyOption(BaseModel):
     verified_programs: list[dict[str, Any]] = Field(default_factory=list)
     verification_state: str
     visa_route: str | None = None
+    visa_routes: list[VisaRouteEntry] = Field(default_factory=list)
 
 
 class BusinessAdvisoryRead(BaseModel):
@@ -156,6 +162,7 @@ class SolutionRecommendation(BaseModel):
     grounding_programs: list[dict[str, Any]] = Field(default_factory=list)
     risk_notes: list[str] = Field(default_factory=list)
     visa_route: str | None = None
+    visa_routes: list[VisaRouteEntry] = Field(default_factory=list)
 
 
 class BusinessAdvisorySolutionResponse(BaseModel):

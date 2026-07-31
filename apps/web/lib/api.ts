@@ -3993,6 +3993,8 @@ export async function submitVentureProfile(profileId: string): Promise<Entrepren
   });
 }
 
+export type VisaRouteEntry = { country: string; route: string };
+
 export type BusinessStrategyOption = {
   strategy_key: string; title: string; fit_score: number; fit_band: string;
   rationale: string[]; blockers: string[]; next_actions: string[];
@@ -4000,6 +4002,7 @@ export type BusinessStrategyOption = {
   verified_programs: Array<{ program_id: string; program_version_id: string; name: string; country: string; program_type: string; minimum_commitment_minor: number; currency: string }>;
   verification_state: string;
   visa_route: string | null;
+  visa_routes: VisaRouteEntry[];
 };
 
 export type BusinessAdvisoryAssessment = {

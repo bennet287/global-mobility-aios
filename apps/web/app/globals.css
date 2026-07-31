@@ -1616,6 +1616,10 @@ a {
 .strategy-visa-route { margin-top: 12px; padding: 10px 12px; border-left: 2px solid #5b5f9c; background: rgba(91,95,156,.06); border-radius: 0 8px 8px 0; }
 .strategy-visa-route span { display: block; color: #c2c4ed; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .strategy-visa-route p { margin: 5px 0 0; color: var(--ink); font-size: 10px; line-height: 1.45; font-style: italic; }
+.strategy-visa-route ul { margin: 8px 0 0; padding: 0; list-style: none; }
+.strategy-visa-route li { color: var(--ink); font-size: 10px; line-height: 1.55; }
+.strategy-visa-route li + li { margin-top: 4px; }
+.strategy-visa-route li strong { color: var(--ink-soft); font-weight: 600; }
 .strategy-card > p { min-height: 46px; margin: 13px 0 17px; color: var(--ink-muted); font-size: 10px; line-height: 1.5; }
 .strategy-detail { padding-top: 13px; border-top: 1px solid var(--line-subtle); }
 .strategy-detail > span,

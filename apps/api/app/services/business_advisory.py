@@ -203,16 +203,32 @@ def _dump(value: Any) -> str:
     return json.dumps(value, default=str, sort_keys=True)
 
 
-def _visa_route_for_strategy(strategy_key: str, countries: list[str]) -> str:
+def _visa_route_for_strategy(strategy_key: str, countries: list[str]) -> list[dict[str, str]]:
     normalized = [country.strip().lower() for country in countries]
-    hints: list[str] = []
+    routes: list[dict[str, str]] = []
     for country in normalized:
         country_hints = _VISA_ROUTE_HINTS.get(country, {})
-        if strategy_key in country_hints:
-            hints.append(f"{country_hints[strategy_key]} ({country.title()})")
-    if hints:
-        return " / ".join(hints)
-    return _VISA_ROUTE_FALLBACK.get(strategy_key, "Residence permit tied to the selected strategy")
+        route = country_hints.get(strategy_key)
+        if route is None:
+            route = _VISA_ROUTE_FALLBACK.get(strategy_key, "Residence permit tied to the selected strategy")
+        routes.append({"country": country.title(), "route": route})
+    return routes
+
+
+def _visa_route_string(routes: list[dict[str, str]]) -> str:
+    if not routes:
+        return ""
+    return " / ".join(f"{route['route']} ({route['country']})" for route in routes)
+
+
+def _parse_visa_routes(value: Any) -> list[dict[str, str]]:
+    if isinstance(value, list):
+        return [
+            {"country": str(item.get("country")), "route": str(item.get("route"))}
+            for item in value
+            if isinstance(item, dict) and item.get("country") and item.get("route")
+        ]
+    return []
 
 
 def _load(value: str, default: Any) -> Any:
@@ -453,7 +469,8 @@ def create_advisory_assessment(
             "verification_state": "published_program_grounded" if relevant_programs else (
                 "published_pathway_grounded" if relevant else "archetype_only_requires_route_verification"
             ),
-            "visa_route": _visa_route_for_strategy(key, payload.target_countries),
+            "visa_routes": _visa_route_for_strategy(key, payload.target_countries),
+            "visa_route": _visa_route_string(_visa_route_for_strategy(key, payload.target_countries)),
         })
 
     # Re-sort so the strongest option is first, then preserve original order for ties.
@@ -853,7 +870,7 @@ def _build_solution_prompt(
         '    "title": "short, commercially crisp title",\n'
         '    "success_meter": 0-100 integer,\n'
         '    "rationale": "why this exact route fits the client\'s situation and intention",\n'
-        '    "visa_route": "name the specific visa or residence pathway that matches this strategy (e.g. D2 Entrepreneur Visa, Portugal Startup Visa, EntrePass, Golden Visa)",\n'
+        '    "visa_routes": [{"country": "Austria", "route": "..."}, {"country": "UAE", "route": "..."}],\n'
         '    "actions": ["concrete next step 1", "step 2", "step 3"],\n'
         '    "estimated_timeline_months": integer or null,\n'
         '    "estimated_commitment": {"amount_minor": integer, "currency": "3-letter code"} or null,\n'
@@ -917,7 +934,8 @@ def _fallback_solution(
             grounding_pathways=relevant,
             grounding_programs=relevant_programs,
             risk_notes=risk_notes,
-            visa_route=_visa_route_for_strategy(key, payload.target_countries),
+            visa_routes=_visa_route_for_strategy(key, payload.target_countries),
+            visa_route=_visa_route_string(_visa_route_for_strategy(key, payload.target_countries)),
         ))
 
     # Re-sort so the highest-scoring option is recommended, not just the first archetype.
@@ -989,6 +1007,8 @@ def advise_on_business_mobility_situation(
             response_format={"type": "json_object"},
         )
         data = json.loads(response.content)
+        rec_visa_routes = _parse_visa_routes(data["recommended_solution"].get("visa_routes"))
+        rec_visa_route = data["recommended_solution"].get("visa_route") or _visa_route_string(rec_visa_routes)
         recommended = SolutionRecommendation(
             strategy_key=data["recommended_solution"]["strategy_key"],
             title=data["recommended_solution"]["title"],
@@ -1001,10 +1021,14 @@ def advise_on_business_mobility_situation(
             grounding_pathways=pathways[:3],
             grounding_programs=programs[:2],
             risk_notes=data["recommended_solution"].get("risk_notes", []),
-            visa_route=data["recommended_solution"].get("visa_route"),
+            visa_route=rec_visa_route,
+            visa_routes=rec_visa_routes,
         )
-        alternatives = [
-            SolutionRecommendation(
+        alternatives = []
+        for item in data.get("alternative_options", [])[:2]:
+            alt_visa_routes = _parse_visa_routes(item.get("visa_routes"))
+            alt_visa_route = item.get("visa_route") or _visa_route_string(alt_visa_routes)
+            alternatives.append(SolutionRecommendation(
                 strategy_key=item["strategy_key"],
                 title=item["title"],
                 success_meter=max(0.0, min(100.0, float(item["success_meter"]))),
@@ -1016,10 +1040,9 @@ def advise_on_business_mobility_situation(
                 grounding_pathways=pathways[:3],
                 grounding_programs=programs[:2],
                 risk_notes=item.get("risk_notes", []),
-                visa_route=item.get("visa_route"),
-            )
-            for item in data.get("alternative_options", [])[:2]
-        ]
+                visa_route=alt_visa_route,
+                visa_routes=alt_visa_routes,
+            ))
         overall = max(0.0, min(100.0, float(data.get("overall_success_meter", recommended.success_meter))))
         if not pathways:
             overall = min(overall, 45.0)
