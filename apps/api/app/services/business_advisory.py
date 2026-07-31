@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from typing import Any
 
@@ -231,6 +232,24 @@ def _parse_visa_routes(value: Any) -> list[dict[str, str]]:
     return []
 
 
+def _parse_visa_route_string(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, str) or not value.strip():
+        return []
+    routes: list[dict[str, str]] = []
+    pattern = re.compile(r"^(.*)\s+\(([^()]+)\)$")
+    for segment in value.split(" / "):
+        segment = segment.strip()
+        if not segment:
+            continue
+        match = pattern.match(segment)
+        if match:
+            route = match.group(1).strip()
+            country = match.group(2).strip()
+            if route and country:
+                routes.append({"country": country, "route": route})
+    return routes
+
+
 def _load(value: str, default: Any) -> Any:
     try:
         return json.loads(value)
@@ -249,9 +268,13 @@ def _band(score: float) -> str:
 
 
 def advisory_read(row: BusinessMobilityAdvisoryAssessment) -> BusinessAdvisoryRead:
+    options = _load(row.strategy_options_json, [])
+    for item in options:
+        if not item.get("visa_routes") and item.get("visa_route"):
+            item["visa_routes"] = _parse_visa_route_string(item["visa_route"])
     return BusinessAdvisoryRead(
         **row.model_dump(),
-        strategy_options=[BusinessStrategyOption.model_validate(item) for item in _load(row.strategy_options_json, [])],
+        strategy_options=[BusinessStrategyOption.model_validate(item) for item in options],
         blockers=_load(row.blockers_json, []),
         next_actions=_load(row.next_actions_json, []),
         evidence_basis=_load(row.evidence_basis_json, []),
