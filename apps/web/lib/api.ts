@@ -1044,6 +1044,41 @@ export type AgencySubmission = {
   updated_at: string;
 };
 
+export type ExternalAgency = {
+  id: string;
+  name: string;
+  country: string | null;
+  city: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  website: string | null;
+  status: "active" | "suspended" | "retired";
+  sla_due_hours: number;
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExternalAgencyAssignment = {
+  id: string;
+  application_id: string;
+  external_agency_id: string;
+  status: "assigned" | "in_progress" | "handed_off" | "completed" | "cancelled";
+  agency_reference_number: string | null;
+  handoff_at: string | null;
+  completed_at: string | null;
+  sla_due_at: string | null;
+  sla_status: "on_track" | "due_soon" | "breached" | "completed";
+  sla_breached_at: string | null;
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DashboardSummary = {
   leads_total: number;
   leads_new: number;
@@ -2243,6 +2278,79 @@ export async function updateAgencySubmissionStatus(
   return request<AgencySubmission>(`/api/v1/agency-submissions/${submissionId}/status`, {
     method: "POST",
     body: JSON.stringify({ status, reason }),
+  });
+}
+
+export async function listExternalAgencies(params?: {
+  status?: string;
+}): Promise<ExternalAgency[]> {
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<ExternalAgency[]>(`/api/v1/external-agencies${query}`);
+}
+
+export async function createExternalAgency(payload: {
+  name: string;
+  country?: string;
+  city?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  website?: string;
+  sla_due_hours?: number;
+  notes?: string;
+}): Promise<ExternalAgency> {
+  return request<ExternalAgency>("/api/v1/external-agencies", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateExternalAgencyStatus(
+  agencyId: string,
+  status: ExternalAgency["status"],
+  reason: string
+): Promise<ExternalAgency> {
+  return request<ExternalAgency>(`/api/v1/external-agencies/${agencyId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, reason }),
+  });
+}
+
+export async function listExternalAgencyAssignments(params?: {
+  application_id?: string;
+  external_agency_id?: string;
+  status?: string;
+}): Promise<ExternalAgencyAssignment[]> {
+  const qs = new URLSearchParams();
+  if (params?.application_id) qs.set("application_id", params.application_id);
+  if (params?.external_agency_id) qs.set("external_agency_id", params.external_agency_id);
+  if (params?.status) qs.set("status", params.status);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<ExternalAgencyAssignment[]>(`/api/v1/external-agency-assignments${query}`);
+}
+
+export async function createExternalAgencyAssignment(payload: {
+  application_id: string;
+  external_agency_id: string;
+  agency_reference_number?: string;
+  notes?: string;
+}): Promise<ExternalAgencyAssignment> {
+  return request<ExternalAgencyAssignment>("/api/v1/external-agency-assignments", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateExternalAgencyAssignmentStatus(
+  assignmentId: string,
+  status: ExternalAgencyAssignment["status"],
+  reason: string,
+  agency_reference_number?: string
+): Promise<ExternalAgencyAssignment> {
+  return request<ExternalAgencyAssignment>(`/api/v1/external-agency-assignments/${assignmentId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, reason, agency_reference_number }),
   });
 }
 
