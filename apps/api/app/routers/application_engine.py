@@ -391,6 +391,30 @@ def get_application_queue(session: Session = Depends(get_session)):
     return _json_response({"total_leads": len(leads), "stage_counts": stage_counts, "items": items})
 
 
+@router.get("/api/v1/applications")
+def list_applications(
+    lead_id: str | None = None,
+    domain: str | None = None,
+    status: str | None = None,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+):
+    """Return a lightweight list of application records.
+
+    Used by operator UIs (e.g. authority appointment scheduling) that need to
+    pick an application without loading the full lifecycle queue payload.
+    """
+    query = select(ApplicationRecord).order_by(ApplicationRecord.created_at.desc())
+    if lead_id:
+        query = query.where(ApplicationRecord.lead_id == _uuid_or_404(lead_id, "lead_id"))
+    if domain:
+        query = query.where(ApplicationRecord.domain == domain)
+    if status:
+        query = query.where(ApplicationRecord.status == status)
+    apps = session.exec(query.limit(limit)).all()
+    return _json_response([_application_record_to_dict(app) for app in apps])
+
+
 @router.post("/api/v1/applications/leads/{lead_id}/draft")
 def create_application_draft(lead_id: str, request: ApplicationDraftRequest, session: Session = Depends(get_session)):
 
@@ -644,6 +668,7 @@ def debug_application_engine():
         "status": "ok",
         "version": "v1.6",
         "routes": [
+            "GET /api/v1/applications",
             "GET /api/v1/applications/queue",
             "GET /api/v1/applications/leads/{lead_id}/readiness",
             "POST /api/v1/applications/leads/{lead_id}/draft",

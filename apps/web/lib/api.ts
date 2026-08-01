@@ -1011,6 +1011,23 @@ export type ApplicationRecord = {
   updated_at?: string;
 };
 
+export type AuthorityAppointment = {
+  id: string;
+  application_id: string;
+  appointment_type: "biometric" | "interview" | "document_submission" | "other";
+  authority_name: string;
+  location: string | null;
+  scheduled_at: string;
+  timezone: string | null;
+  status: "scheduled" | "completed" | "cancelled" | "no_show";
+  reference_number: string | null;
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DashboardSummary = {
   leads_total: number;
   leads_new: number;
@@ -2120,6 +2137,59 @@ export async function decideAutomationDelivery(
   return request<AutomationDelivery>(`/api/v1/automation/deliveries/${deliveryId}/decision`, {
     method: "POST",
     body: JSON.stringify({ decision, reason }),
+  });
+}
+
+export async function listApplications(params?: {
+  lead_id?: string;
+  domain?: string;
+  status?: string;
+  limit?: number;
+}): Promise<ApplicationRecord[]> {
+  const qs = new URLSearchParams();
+  if (params?.lead_id) qs.set("lead_id", params.lead_id);
+  if (params?.domain) qs.set("domain", params.domain);
+  if (params?.status) qs.set("status", params.status);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<ApplicationRecord[]>(`/api/v1/applications${query}`);
+}
+
+export async function listAuthorityAppointments(params?: {
+  application_id?: string;
+  status?: string;
+}): Promise<AuthorityAppointment[]> {
+  const qs = new URLSearchParams();
+  if (params?.application_id) qs.set("application_id", params.application_id);
+  if (params?.status) qs.set("status", params.status);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<AuthorityAppointment[]>(`/api/v1/authority-appointments${query}`);
+}
+
+export async function createAuthorityAppointment(payload: {
+  application_id: string;
+  appointment_type: "biometric" | "interview" | "document_submission" | "other";
+  authority_name: string;
+  location?: string;
+  scheduled_at: string;
+  timezone?: string;
+  reference_number?: string;
+  notes?: string;
+}): Promise<AuthorityAppointment> {
+  return request<AuthorityAppointment>("/api/v1/authority-appointments", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAuthorityAppointmentStatus(
+  appointmentId: string,
+  status: "scheduled" | "completed" | "cancelled" | "no_show",
+  reason: string
+): Promise<AuthorityAppointment> {
+  return request<AuthorityAppointment>(`/api/v1/authority-appointments/${appointmentId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, reason }),
   });
 }
 

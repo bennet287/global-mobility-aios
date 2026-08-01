@@ -99,6 +99,25 @@ def test_list_appointments_for_application_and_filter_by_status(
     assert filtered_items[0]["status"] == "completed"
 
 
+def test_list_applications_endpoint(client: TestClient, db_session: Session) -> None:
+    application = _create_application(db_session)
+    lead_id = str(application.lead_id)
+
+    all_apps = client.get("/api/v1/applications")
+    assert all_apps.status_code == 200
+    all_items = all_apps.json()
+    assert len(all_items) >= 1
+    assert any(item["id"] == str(application.id) for item in all_items)
+
+    filtered = client.get(f"/api/v1/applications?lead_id={lead_id}")
+    assert filtered.status_code == 200
+    filtered_items = filtered.json()
+    assert len(filtered_items) == 1
+    assert filtered_items[0]["id"] == str(application.id)
+    assert filtered_items[0]["lead_id"] == lead_id
+    assert filtered_items[0]["domain"] == "visa"
+
+
 def test_update_status_to_completed_with_reason(
     client: TestClient, db_session: Session
 ) -> None:
