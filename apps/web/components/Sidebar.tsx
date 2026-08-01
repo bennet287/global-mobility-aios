@@ -65,6 +65,7 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
     label: "Government",
     items: [
       { label: "Authority Appointments", href: "/authority-appointments", icon: "appointments" },
+      { label: "Agency Submissions", href: "/agency-submissions", icon: "documents" },
     ],
   },
   {

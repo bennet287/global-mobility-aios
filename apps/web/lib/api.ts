@@ -1028,6 +1028,22 @@ export type AuthorityAppointment = {
   updated_at: string;
 };
 
+export type AgencySubmission = {
+  id: string;
+  application_id: string;
+  authority_name: string;
+  submission_channel: "online" | "in_person" | "courier" | "agency";
+  submitted_at: string;
+  reference_number: string | null;
+  tracking_url: string | null;
+  status: "submitted" | "acknowledged" | "under_review" | "decision_received" | "returned";
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DashboardSummary = {
   leads_total: number;
   leads_new: number;
@@ -2188,6 +2204,43 @@ export async function updateAuthorityAppointmentStatus(
   reason: string
 ): Promise<AuthorityAppointment> {
   return request<AuthorityAppointment>(`/api/v1/authority-appointments/${appointmentId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, reason }),
+  });
+}
+
+export async function listAgencySubmissions(params?: {
+  application_id?: string;
+  status?: string;
+}): Promise<AgencySubmission[]> {
+  const qs = new URLSearchParams();
+  if (params?.application_id) qs.set("application_id", params.application_id);
+  if (params?.status) qs.set("status", params.status);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<AgencySubmission[]>(`/api/v1/agency-submissions${query}`);
+}
+
+export async function createAgencySubmission(payload: {
+  application_id: string;
+  authority_name: string;
+  submission_channel: "online" | "in_person" | "courier" | "agency";
+  submitted_at: string;
+  reference_number?: string;
+  tracking_url?: string;
+  notes?: string;
+}): Promise<AgencySubmission> {
+  return request<AgencySubmission>("/api/v1/agency-submissions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAgencySubmissionStatus(
+  submissionId: string,
+  status: AgencySubmission["status"],
+  reason: string
+): Promise<AgencySubmission> {
+  return request<AgencySubmission>(`/api/v1/agency-submissions/${submissionId}/status`, {
     method: "POST",
     body: JSON.stringify({ status, reason }),
   });
