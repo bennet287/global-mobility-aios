@@ -19,7 +19,7 @@ from app.services.audit_log import record_audit, to_audit_dict
 from app.services.automation_connector import find_connector_for_account_channel
 
 
-AUTOMATION_CHANNELS = {"email", "messaging", "calendar", "crm"}
+AUTOMATION_CHANNELS = {"email", "messaging", "calendar", "crm", "webhook"}
 AUTOMATION_EVENT_TYPES = {
     "case.created",
     "case.status_changed",
@@ -32,7 +32,7 @@ AUTOMATION_EVENT_TYPES = {
     "external_agency_assignment.status_changed",
     "authority_checklist.reminder",
 }
-EXTERNAL_CHANNELS = {"email", "messaging", "calendar"}
+EXTERNAL_CHANNELS = {"email", "messaging", "calendar", "webhook"}
 
 
 def _now() -> datetime:
@@ -365,6 +365,58 @@ def record_dispatch(
         entity_id=delivery.id,
         before_state=before,
         after_state=delivery_read(delivery),
+        actor=actor,
+        source="automation_v12_3",
+    )
+    session.commit()
+    session.refresh(delivery)
+    return delivery
+
+
+VALID_RECEIPT_STATUSES = {"delivered", "failed", "bounced"}
+
+
+def record_delivery_receipt(
+    session: Session,
+    delivery: AutomationDelivery,
+    *,
+    provider_message_id: str,
+    status: str,
+    reason: str | None,
+    actor: str,
+) -> AutomationDelivery:
+    status = status.strip().lower()
+    if status not in VALID_RECEIPT_STATUSES:
+        raise ValueError(f"Receipt status must be one of: {', '.join(sorted(VALID_RECEIPT_STATUSES))}")
+    message_id = provider_message_id.strip()
+    if not message_id:
+        raise ValueError("provider_message_id is required")
+
+    # Idempotent: identical receipt does not generate duplicate audit entries.
+    if delivery.status == status and delivery.provider_message_id == message_id:
+        return delivery
+
+    before = delivery_read(delivery)
+    now = _now()
+    delivery.provider_message_id = message_id
+    if status == "delivered":
+        delivery.status = "delivered"
+        delivery.last_error = None
+        delivery.reconciled = True
+        delivery.reconciled_at = now
+    else:
+        delivery.status = "failed"
+        delivery.last_error = reason or f"Provider reported {status}"
+    delivery.updated_at = now
+    session.add(delivery)
+    record_audit(
+        session,
+        action=f"automation_delivery_receipt_{status}",
+        entity_type="automation_delivery",
+        entity_id=delivery.id,
+        before_state=before,
+        after_state=delivery_read(delivery),
+        reason=reason,
         actor=actor,
         source="automation_v12_3",
     )

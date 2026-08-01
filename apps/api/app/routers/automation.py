@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlmodel import Session, select
 
+from app.core.config import settings
 from app.core.db import get_session
 from app.models.domain import (
     AutomationConnectorConfig,
@@ -17,11 +18,13 @@ from app.schemas_automation import (
     AutomationDeliveryDecision,
     AutomationDeliveryDispatch,
     AutomationDeliveryRead,
+    AutomationDeliveryReceipt,
     AutomationEventIngest,
     AutomationEventRead,
     AutomationRuleCreate,
     AutomationRuleRead,
     AutomationRuleStatusUpdate,
+    AutomationWebhookIngest,
     ConnectorConfigCreate,
     ConnectorConfigRead,
     ConnectorConfigStatusUpdate,
@@ -32,6 +35,7 @@ from app.services.automation import (
     decide_delivery,
     delivery_read,
     event_read,
+    record_delivery_receipt,
     record_dispatch,
     rule_read,
     update_rule_status,
@@ -255,6 +259,34 @@ def api_record_dispatch(
     return AutomationDeliveryRead(**delivery_read(updated))
 
 
+@router.post(
+    "/deliveries/{delivery_id}/receipt",
+    response_model=AutomationDeliveryRead,
+)
+def api_record_delivery_receipt(
+    delivery_id: UUID,
+    payload: AutomationDeliveryReceipt,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> AutomationDeliveryRead:
+    delivery = session.get(AutomationDelivery, delivery_id)
+    if delivery is None:
+        raise HTTPException(status_code=404, detail="Automation delivery not found")
+    try:
+        updated = record_delivery_receipt(
+            session,
+            delivery,
+            provider_message_id=payload.provider_message_id,
+            status=payload.status,
+            reason=payload.reason,
+            actor=_actor(request),
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+    return AutomationDeliveryRead(**delivery_read(updated))
+
+
 @router.post("/connectors", response_model=ConnectorConfigRead, status_code=201)
 def api_create_connector(
     payload: ConnectorConfigCreate,
@@ -350,3 +382,44 @@ def api_dispatch_delivery(
         session.rollback()
         raise _error(exc) from exc
     return AutomationDeliveryRead(**delivery_read(updated))
+
+
+def _webhook_secret() -> str:
+    return settings.automation_webhook_secret or settings.jwt_secret or ""
+
+
+@router.post("/webhooks/ingest", response_model=AutomationEventRead, status_code=202)
+def api_ingest_webhook_event(
+    payload: AutomationWebhookIngest,
+    request: Request,
+    x_gmai_webhook_secret: str | None = Header(default=None, alias="X-GMAI-Webhook-Secret"),
+    session: Session = Depends(get_session),
+) -> AutomationEventRead:
+    expected = _webhook_secret()
+    if not expected or x_gmai_webhook_secret != expected:
+        raise HTTPException(status_code=401, detail="Invalid or missing webhook secret")
+
+    case = session.get(CorporateMobilityCase, payload.corporate_mobility_case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Corporate mobility case not found")
+    try:
+        event, created = capture_event(
+            session,
+            idempotency_key=payload.idempotency_key,
+            corporate_account_id=payload.corporate_account_id,
+            case_id=case.id,
+            event_type=payload.event_type,
+            entity_type="corporate_mobility_case",
+            entity_id=case.id,
+            payload=payload.payload,
+            occurred_at=payload.occurred_at,
+            actor=_actor(request),
+            source="webhook",
+        )
+        if created:
+            session.commit()
+            session.refresh(event)
+    except ValueError as exc:
+        session.rollback()
+        raise _error(exc) from exc
+    return AutomationEventRead(**event_read(session, event))

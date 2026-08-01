@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import hmac
+import hashlib
 import json
 import smtplib
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
+
+import httpx
 
 from email.message import EmailMessage
 
@@ -23,7 +27,7 @@ from app.services.automation_connector_encryption import (
 
 MAX_DELIVERY_ATTEMPTS = 3
 RETRY_BACKOFF_SECONDS = (60, 300, 900)
-AUTOMATION_CONNECTOR_CHANNELS = {"email", "messaging", "calendar", "crm"}
+AUTOMATION_CONNECTOR_CHANNELS = {"email", "messaging", "calendar", "crm", "webhook"}
 
 
 def _now() -> datetime:
@@ -137,9 +141,64 @@ class SmtpAdapter(AutomationProviderAdapter):
         return "healthy"
 
 
+class WebhookAdapter(AutomationProviderAdapter):
+    """Generic webhook adapter. Credentials must contain url; secret is optional for HMAC signing."""
+
+    def _credentials(self, config: AutomationConnectorConfig) -> dict[str, Any]:
+        return decrypt_credentials(config.credentials_json)
+
+    def _headers(self, credentials: dict[str, Any], body_bytes: bytes) -> dict[str, str]:
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "gmai-automation/1.0",
+        }
+        secret = credentials.get("secret")
+        if secret:
+            signature = hmac.new(
+                secret.encode("utf-8"), body_bytes, hashlib.sha256
+            ).hexdigest()
+            headers["X-GMAI-Signature"] = signature
+        return headers
+
+    def send(self, delivery: AutomationDelivery, config: AutomationConnectorConfig) -> str:
+        credentials = self._credentials(config)
+        url = credentials.get("url", "").strip()
+        if not url:
+            raise AdapterSendError("Webhook credentials must include url")
+
+        body = delivery.payload_json.encode("utf-8")
+        try:
+            response = httpx.post(
+                url,
+                content=body,
+                headers=self._headers(credentials, body),
+                timeout=30,
+                follow_redirects=False,
+            )
+            response.raise_for_status()
+        except Exception as exc:
+            raise AdapterSendError(f"Webhook POST failed: {exc}") from exc
+
+        return f"webhook-{uuid4().hex[:12]}"
+
+    def health_check(self, config: AutomationConnectorConfig) -> str:
+        credentials = self._credentials(config)
+        url = credentials.get("url", "").strip()
+        if not url:
+            raise AdapterSendError("Webhook credentials must include url")
+
+        try:
+            response = httpx.get(url, timeout=10, follow_redirects=False)
+            response.raise_for_status()
+        except Exception as exc:
+            raise AdapterSendError(f"Webhook health check failed: {exc}") from exc
+        return "healthy"
+
+
 _ADAPTERS: dict[str, type[AutomationProviderAdapter]] = {
     "console": ConsoleAdapter,
     "smtp": SmtpAdapter,
+    "webhook": WebhookAdapter,
 }
 
 
@@ -285,6 +344,46 @@ def _backoff_delay(attempt_count: int) -> int:
     return RETRY_BACKOFF_SECONDS[index]
 
 
+STALE_DISPATCHING_MINUTES = 5
+
+
+def reset_stale_dispatching_deliveries(
+    session: Session,
+    *,
+    max_age_minutes: int = STALE_DISPATCHING_MINUTES,
+    actor: str = "automation-worker",
+) -> int:
+    """Reset deliveries stuck in dispatching back to ready/retry and audit."""
+    cutoff = _now() - timedelta(minutes=max_age_minutes)
+    statement = (
+        select(AutomationDelivery)
+        .where(AutomationDelivery.status == "dispatching")
+        .where(AutomationDelivery.updated_at <= cutoff)
+    )
+    reset_count = 0
+    for delivery in session.exec(statement).all():
+        before = to_audit_dict(delivery)
+        delivery.status = "retry" if delivery.attempt_count < MAX_DELIVERY_ATTEMPTS else "failed"
+        delivery.last_error = "Dispatch lock expired; recovered by worker"
+        delivery.next_attempt_at = None if delivery.status == "failed" else _now()
+        delivery.updated_at = _now()
+        session.add(delivery)
+        record_audit(
+            session,
+            action="automation_delivery_dispatch_lock_recovered",
+            entity_type="automation_delivery",
+            entity_id=delivery.id,
+            before_state=before,
+            after_state=to_audit_dict(delivery),
+            actor=actor,
+            source="automation_v12_4",
+        )
+        reset_count += 1
+    if reset_count:
+        session.commit()
+    return reset_count
+
+
 def attempt_delivery_dispatch(
     session: Session,
     delivery: AutomationDelivery,
@@ -292,8 +391,8 @@ def attempt_delivery_dispatch(
     actor: str,
     max_attempts: int = MAX_DELIVERY_ATTEMPTS,
 ) -> AutomationDelivery:
-    if delivery.status not in {"ready", "retry"}:
-        raise ValueError("Only ready or retry deliveries can be dispatched")
+    if delivery.status not in {"ready", "retry", "dispatching"}:
+        raise ValueError("Only ready, retry, or dispatching deliveries can be dispatched")
 
     config = find_connector_for_delivery(session, delivery)
     if config is None:

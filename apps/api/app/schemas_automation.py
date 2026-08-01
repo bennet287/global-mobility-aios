@@ -7,7 +7,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 
-AutomationChannel = Literal["email", "messaging", "calendar", "crm"]
+AutomationChannel = Literal["email", "messaging", "calendar", "crm", "webhook"]
 AutomationEventType = Literal[
     "case.created",
     "case.status_changed",
@@ -88,6 +88,21 @@ class AutomationDeliveryDecision(BaseModel):
 
 class AutomationDeliveryDispatch(BaseModel):
     provider_message_id: str = Field(min_length=2, max_length=240)
+
+
+class AutomationDeliveryReceipt(BaseModel):
+    provider_message_id: str = Field(min_length=2, max_length=240)
+    status: Literal["delivered", "failed", "bounced"]
+    reason: str | None = Field(default=None, max_length=1000)
+
+
+class AutomationWebhookIngest(BaseModel):
+    corporate_account_id: UUID
+    corporate_mobility_case_id: UUID
+    event_type: AutomationEventType
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    payload: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+    occurred_at: datetime | None = None
 
 
 class AutomationDeliveryRead(BaseModel):
