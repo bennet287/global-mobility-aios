@@ -22,6 +22,16 @@ function formatDate(value: string) {
   });
 }
 
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function ClientPortalPage() {
   const searchParams = useSearchParams();
   const [tokenInput, setTokenInput] = useState("");
@@ -220,6 +230,146 @@ export function ClientPortalPage() {
           ) : (
             <div className="portal-empty-documents">
               Your document room is ready. Requested files will appear here.
+            </div>
+          )}
+        </section>
+
+        <section className="portal-documents">
+          <div className="portal-section-heading">
+            <div>
+              <span className="portal-eyebrow">Agency workflow</span>
+              <h2>Appointments, submissions, and checklists.</h2>
+            </div>
+          </div>
+
+          {dashboard.appointments.length === 0 &&
+          dashboard.submissions.length === 0 &&
+          dashboard.external_agency_assignments.length === 0 &&
+          dashboard.authority_checklist.length === 0 ? (
+            <div className="portal-empty-documents">
+              No agency workflow items are visible yet. Your consultant will update this as your case progresses.
+            </div>
+          ) : (
+            <div className="portal-agency-workflow">
+              {dashboard.appointments.length > 0 && (
+                <div className="portal-workflow-group">
+                  <h3>Authority appointments</h3>
+                  <div className="portal-document-list">
+                    {dashboard.appointments.map((appointment) => (
+                      <article key={appointment.id} className="portal-document-row">
+                        <span className="portal-document-icon">📅</span>
+                        <div>
+                          <strong>{appointment.authority_name}</strong>
+                          <span>
+                            {pretty(appointment.appointment_type)}
+                            {appointment.location ? ` · ${appointment.location}` : ""}
+                          </span>
+                          <span>
+                            {formatDateTime(appointment.scheduled_at)}
+                            {appointment.timezone ? ` (${appointment.timezone})` : ""}
+                            {appointment.reference_number ? ` · Ref: ${appointment.reference_number}` : ""}
+                          </span>
+                        </div>
+                        <span className={`portal-document-status ${appointment.status.toLowerCase()}`}>
+                          {pretty(appointment.status)}
+                        </span>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {dashboard.submissions.length > 0 && (
+                <div className="portal-workflow-group">
+                  <h3>Agency submissions</h3>
+                  <div className="portal-document-list">
+                    {dashboard.submissions.map((submission) => (
+                      <article key={submission.id} className="portal-document-row">
+                        <span className="portal-document-icon">📤</span>
+                        <div>
+                          <strong>{submission.authority_name}</strong>
+                          <span>
+                            {pretty(submission.submission_channel)}
+                            {submission.reference_number ? ` · Ref: ${submission.reference_number}` : ""}
+                          </span>
+                          <span>Submitted {formatDateTime(submission.submitted_at)}</span>
+                        </div>
+                        <span className={`portal-document-status ${submission.status.toLowerCase()}`}>
+                          {pretty(submission.status)}
+                        </span>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {dashboard.external_agency_assignments.length > 0 && (
+                <div className="portal-workflow-group">
+                  <h3>External agency assignments</h3>
+                  <div className="portal-document-list">
+                    {dashboard.external_agency_assignments.map((assignment) => (
+                      <article key={assignment.id} className="portal-document-row">
+                        <span className="portal-document-icon">🏢</span>
+                        <div>
+                          <strong>{assignment.agency_name}</strong>
+                          <span>
+                            Status: {pretty(assignment.status)}
+                            {assignment.sla_status ? ` · SLA ${pretty(assignment.sla_status)}` : ""}
+                            {assignment.agency_reference_number ? ` · Ref: ${assignment.agency_reference_number}` : ""}
+                          </span>
+                          {(assignment.handoff_at || assignment.completed_at) && (
+                            <span>
+                              {assignment.handoff_at ? `Handoff ${formatDate(assignment.handoff_at)}` : ""}
+                              {assignment.handoff_at && assignment.completed_at ? " · " : ""}
+                              {assignment.completed_at ? `Completed ${formatDate(assignment.completed_at)}` : ""}
+                            </span>
+                          )}
+                        </div>
+                        <span className={`portal-document-status ${assignment.status.toLowerCase()}`}>
+                          {pretty(assignment.status)}
+                        </span>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {dashboard.authority_checklist.length > 0 && (
+                <div className="portal-workflow-group">
+                  <h3>Authority checklist</h3>
+                  <div className="portal-document-list">
+                    {Object.entries(
+                      dashboard.authority_checklist.reduce((groups, item) => {
+                        const list = groups[item.authority_name] || [];
+                        list.push(item);
+                        groups[item.authority_name] = list;
+                        return groups;
+                      }, {} as Record<string, typeof dashboard.authority_checklist>)
+                    ).map(([authority, items]) => (
+                      <div key={authority} className="portal-checklist-group">
+                        <h4>{authority}</h4>
+                        {items.map((item) => (
+                          <article key={item.id} className="portal-document-row">
+                            <span className="portal-document-icon">
+                              {item.status === "completed" ? "✓" : item.status === "not_applicable" ? "—" : "○"}
+                            </span>
+                            <div>
+                              <strong>{item.item_label}</strong>
+                              <span>
+                                {pretty(item.category)}
+                                {item.is_required ? " · Required" : " · Optional"}
+                              </span>
+                            </div>
+                            <span className={`portal-document-status ${item.status.toLowerCase()}`}>
+                              {pretty(item.status)}
+                            </span>
+                          </article>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>

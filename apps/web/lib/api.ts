@@ -1897,6 +1897,48 @@ export type ClientPortalMilestone = {
   state: "complete" | "current" | "upcoming";
 };
 
+export type ClientPortalAppointment = {
+  id: string;
+  authority_name: string;
+  appointment_type: string;
+  location: string | null;
+  scheduled_at: string;
+  timezone: string | null;
+  status: string;
+  reference_number: string | null;
+};
+
+export type ClientPortalSubmission = {
+  id: string;
+  authority_name: string;
+  submission_channel: string;
+  submitted_at: string;
+  status: string;
+  reference_number: string | null;
+  tracking_url: string | null;
+};
+
+export type ClientPortalExternalAgencyAssignment = {
+  id: string;
+  agency_name: string;
+  status: string;
+  agency_reference_number: string | null;
+  handoff_at: string | null;
+  completed_at: string | null;
+  sla_due_at: string | null;
+  sla_status: string;
+  sla_breached_at: string | null;
+};
+
+export type ClientPortalAuthorityChecklistItem = {
+  id: string;
+  authority_name: string;
+  item_label: string;
+  category: string;
+  is_required: boolean;
+  status: string;
+};
+
 export type ClientPortalDashboard = {
   grant_id: string;
   client_name: string;
@@ -1908,6 +1950,10 @@ export type ClientPortalDashboard = {
   documents: ClientPortalDocument[];
   document_counts: Record<string, number>;
   milestones: ClientPortalMilestone[];
+  appointments: ClientPortalAppointment[];
+  submissions: ClientPortalSubmission[];
+  external_agency_assignments: ClientPortalExternalAgencyAssignment[];
+  authority_checklist: ClientPortalAuthorityChecklistItem[];
   expires_at: string;
   updated_at: string;
 };

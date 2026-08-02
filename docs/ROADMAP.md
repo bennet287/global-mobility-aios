@@ -59,13 +59,14 @@ Current database migration head: `0051_authority_submission_checklist`.
 - The scan is idempotent per item per UTC day and flows through the same account-scoped rule matching, human review, retry, and delivery controls as other automation events. This removes the need for operators to trigger reminders manually.
 - See `docs/AUTHORITY_SUBMISSION_CHECKLIST_V12_8.md` and `docs/GOVERNED_AUTOMATION_FOUNDATION_V12_3.md`.
 
-## Delivery Status — v12.8.4 (2026-07-24)
+## Delivery Status — v12.8.4 (2026-08-01)
 
 Current database migration head: `0051_authority_submission_checklist`.
 
 - v12.8.4 extends the client portal dashboard with agency workflow visibility. Clients can now see authority appointments, agency submissions, external agency assignments, and authority checklist items for their lead, scoped by the existing lead-scoped portal grant.
 - Projections remain client-safe: internal notes, actor identities, audit fields, and contact details are omitted. Only status, authority/agency names, reference numbers, scheduled/submitted/handoff/completed timestamps, and checklist labels/categories/status are exposed.
 - The dashboard aggregates workflow data across all applications belonging to the lead.
+- The client portal TypeScript types and UI were updated to render the four agency workflow sections (appointments, submissions, external agency assignments, and authority checklist grouped by authority).
 - See `docs/CLIENT_PORTAL_FOUNDATION_V12_0.md`.
 
 ## Delivery Status — v12.8.5 (2026-07-24)
@@ -932,7 +933,13 @@ Historical and predictive analytics remain gated until sufficient verified histo
 - [x] Email, messaging, calendar, CRM, and case-event automation
   - [x] Account-scoped idempotent event ledger, rule matching, minimized multichannel outbox, independent review, dispatch receipts, audit, and Automation Hub
   - [x] Credential-backed email, messaging, calendar, and CRM provider adapters with retry, dead-letter, reconciliation, and scheduled delivery workers
-- [ ] Government and mobility-agency workflows
+- [x] Government and mobility-agency workflows
+  - [x] Authority appointment scheduling and status tracking
+  - [x] Agency submission tracking
+  - [x] External agency assignment lifecycle and SLA tracking
+  - [x] Authority submission checklist templates and per-application checklists
+  - [x] Client portal visibility for appointments, submissions, assignments, and checklists
+  - [x] Reminder automation for appointments and pending checklist items
 
 ## Phase 13: Global Scale Platform — Not Started
 
