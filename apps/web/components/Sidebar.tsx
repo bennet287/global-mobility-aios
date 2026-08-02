@@ -24,12 +24,16 @@ type IconName =
   | "investment"
   | "family"
   | "tax"
-  | "appointments";
+  | "appointments"
+  | "board";
 
 const navGroups: { label: string; items: { label: string; href: string; icon: IconName }[] }[] = [
   {
     label: "Home",
-    items: [{ label: "Operations Workspace", href: "/", icon: "home" }],
+    items: [
+      { label: "Operations Workspace", href: "/", icon: "home" },
+      { label: "Board Room", href: "/board-room", icon: "board" },
+    ],
   },
   {
     label: "Mobility",
@@ -198,5 +202,7 @@ function NavIcon({ name }: { name: IconName }) {
       return <svg {...common}><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4" /><path d="m9 7 1.2 1.2L13 5.5" /></svg>;
     case "appointments":
       return <svg {...common}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6" /><circle cx="17" cy="17" r="2" /></svg>;
+    case "board":
+      return <svg {...common}><path d="M4 20h16M6 20v-8h12v8M8 12V8h8v4M10 8V4h4v4" /><path d="M9 16h6" /></svg>;
   }
 }

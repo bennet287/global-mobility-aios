@@ -4712,3 +4712,54 @@ export async function reviewTaxResidencyAssessment(
     method: "POST", body: JSON.stringify({ decision, reason }),
   });
 }
+
+export type OrganizationPosition = {
+  id: string; position_key: string; title: string; department: string;
+  reports_to_position_key: string | null; role_card_name: string | null;
+  authority_level: string; status: string;
+};
+
+export type OrganizationalWorkItem = {
+  id: string; title: string; objective: string; department: string;
+  authority_level: string; status: string; assigned_position_key: string;
+  risk_level: string; created_at: string;
+};
+
+export type ExecutiveDecision = {
+  id: string; authority_level: string; title: string; question: string;
+  recommendation: string; decision_owner_position: string; status: string;
+  created_at: string;
+};
+
+export type RiskEscalation = {
+  id: string; category: string; severity: string; title: string;
+  description: string; escalated_to_position_key: string;
+  requires_board_attention: boolean; status: string; created_at: string;
+};
+
+export type BoardPacketSnapshot = {
+  generated_at: string;
+  control: { id: string; status: "active" | "paused"; reason: string | null; changed_by: string };
+  metrics: { active_positions: number; queued_work: number; pending_ceo: number; pending_board: number; open_risks: number };
+  positions: OrganizationPosition[];
+  recent_work: OrganizationalWorkItem[];
+  pending_decisions: ExecutiveDecision[];
+  open_risks: RiskEscalation[];
+  recent_packets: Array<{ id: string; packet_type: string; status: string; ceo_summary: string; created_at: string }>;
+};
+
+export async function getBoardPacket(): Promise<BoardPacketSnapshot> {
+  return request("/api/v1/organization/board-packet");
+}
+
+export async function updateOrganizationControl(status: "active" | "paused", reason: string) {
+  return request("/api/v1/organization/control", {
+    method: "POST", body: JSON.stringify({ status, reason }),
+  });
+}
+
+export async function decideBoardItem(decisionId: string, decision: "approved" | "rejected" | "returned", reason: string): Promise<ExecutiveDecision> {
+  return request(`/api/v1/organization/decisions/${decisionId}/board-decision`, {
+    method: "POST", body: JSON.stringify({ decision, reason }),
+  });
+}

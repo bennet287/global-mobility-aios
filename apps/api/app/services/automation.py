@@ -297,6 +297,11 @@ def capture_event(
         actor=actor,
         source="automation_v12_3",
     )
+    # Phase 13 bridge: every governed domain event also becomes durable
+    # organizational work. The autonomous worker executes it after commit.
+    from app.services.organization_governance import route_automation_event
+
+    route_automation_event(session, event, case, actor=actor)
     return event, True
 
 

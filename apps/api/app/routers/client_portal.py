@@ -3,6 +3,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
 
 from app.core.db import get_session
@@ -114,7 +115,7 @@ def get_client_portal_dashboard(
     x_gmai_portal_device: str | None = Header(default=None, alias="X-GMAI-Portal-Device"),
     user_agent: str | None = Header(default=None, alias="User-Agent"),
     session: Session = Depends(get_session),
-) -> ClientPortalDashboard:
+) -> ClientPortalDashboard | JSONResponse:
     try:
         return ClientPortalDashboard(**client_portal_dashboard(
             session,
@@ -127,13 +128,13 @@ def get_client_portal_dashboard(
         session.rollback()
         message = str(exc)
         if message.startswith("device_mismatch"):
-            raise HTTPException(
+            return JSONResponse(
                 status_code=403,
-                detail={
+                content={
                     "action": "request_new_grant",
                     "message": "This secure link is already bound to a different device. Please contact your consultant for a new access link.",
                 },
-            ) from exc
+            )
         raise HTTPException(
             status_code=404,
             detail="Client portal access is invalid or unavailable",

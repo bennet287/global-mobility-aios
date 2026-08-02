@@ -47,6 +47,7 @@ from app.routers import (
     official_sources,
     opportunities,
     operations,
+    organization_governance,
     partner_api,
     pathways,
     profiles,
@@ -132,6 +133,7 @@ app.include_router(pathways.router)
 app.include_router(mobility_timelines.router)
 app.include_router(live_intelligence.router)
 app.include_router(automation.router)
+app.include_router(organization_governance.router)
 app.include_router(auto_communications.router)
 app.include_router(public_intake.router)
 app.include_router(operations.router, prefix="/api/v1", tags=["operations"])

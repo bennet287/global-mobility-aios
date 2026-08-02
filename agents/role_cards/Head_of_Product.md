@@ -54,7 +54,10 @@ The database migration chain under `apps/api/alembic/versions/` is the single so
 - Phase 9-10: Truth Engine, official-source registry, controlled evidence, jurisdiction coverage, canonical URL remediation, reviewed global country ranking.
 - Phase 11: Corporate mobility, entrepreneur/startup dossiers, Business & Wealth advisory, investment programs, investor suitability, family-office mobility, tax/treaty intelligence, Austria program publication.
 - Phase 12: Client portal, ecosystem/employer portal, versioned public/partner APIs, governed automation outbox (email, messaging, calendar, CRM), authority appointment tracking, agency submission tracking, external agency assignment SLA, authority submission checklist, client portal PWA/device-binding.
-- Phase 13: future work, not started.
+- Phase 13: AI Organization Governance and Autonomous Operations is the approved
+  next product direction but is not implemented. The Head of Product position
+  belongs under the future CPO organization and is not operational until it has
+  runtime registration, enforced authority, and an output contract.
 
 If an agent asks you about a feature, name the phase, the doc, the migration, and the canonical agent or router that owns it.
 

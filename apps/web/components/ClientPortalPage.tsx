@@ -49,8 +49,8 @@ function getDeviceLabel(): string {
 
 function isDeviceMismatchError(errorText: string): boolean {
   try {
-    const parsed = JSON.parse(errorText) as { action?: string };
-    return parsed.action === "request_new_grant";
+    const parsed = JSON.parse(errorText) as { action?: string; detail?: { action?: string } };
+    return parsed.action === "request_new_grant" || parsed.detail?.action === "request_new_grant";
   } catch {
     return errorText.includes("request_new_grant");
   }

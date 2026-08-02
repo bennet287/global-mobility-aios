@@ -32,9 +32,19 @@ Dream
   -> Global citizen
 ```
 
-The operating model remains workflow-first and agent-assisted. AI agents are
-bounded workers. Official evidence, human review, audit logs, and permissions
-remain authoritative for regulated or client-facing decisions.
+The target operating model is an AI-operated organization with the human owner
+acting as the Board. A governed CEO Agent coordinates executive, manager, and
+specialist agents through explicit position contracts, authority limits,
+delegation, executive decisions, and risk escalation. Routine work should run at
+the lowest authorized level; Board attention is reserved for material risks,
+emergencies, overrides, and explicitly reserved decisions.
+
+The platform remains workflow-first and policy-controlled. Agent titles or
+prompts never grant authority. Official evidence, deterministic permissions,
+tenant boundaries, human Board controls, audit logs, and review gates remain
+authoritative for regulated, client-facing, financial, legal, contractual, and
+production actions. See
+[`AI_ORGANIZATION_GOVERNANCE_V13_0.md`](AI_ORGANIZATION_GOVERNANCE_V13_0.md).
 
 ## Complete Capability Scope
 

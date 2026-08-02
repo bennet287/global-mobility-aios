@@ -20,6 +20,7 @@ celery_app = Celery(
         "app.tasks.authority_checklist_tasks",
         "app.tasks.authority_appointment_tasks",
         "app.tasks.external_agency_sla_tasks",
+        "app.tasks.organization_tasks",
     ],
 )
 
@@ -76,6 +77,11 @@ celery_app.conf.update(
         "evaluate-external-agency-assignment-sla": {
             "task": "app.tasks.external_agency_sla_tasks.evaluate_external_agency_assignment_sla_task",
             "schedule": 3600.0,
+        },
+        "scan-ai-organization-work": {
+            "task": "app.tasks.organization_tasks.scan_organization_work",
+            "schedule": 30.0,
+            "args": (25,),
         },
     },
 )

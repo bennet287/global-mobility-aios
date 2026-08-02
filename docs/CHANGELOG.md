@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-08-02 — Phase 13 AI Organization governance foundation
+
+- Added versioned organization positions plus durable work, delegation,
+  executive-decision, risk-escalation, Board Packet, and global-control ledgers
+  through migration `0056_ai_organization_governance`.
+- Registered the human Board, CEO, eight executive department heads, Head of
+  Product, and two bounded operating specialists as an executable hierarchy.
+- Added CEO and department-head role cards with explicit reports-to, authority,
+  accountability, and escalation contracts.
+- Added deterministic L1-L4 authority classification, Board-reserved actions,
+  CEO/Board escalation, human-only L4 decisions, audit records, and a global
+  pause/resume control.
+- Connected governed automation events to idempotent organizational work and
+  added a Celery loop that executes queued specialist delegations.
+- Added `/api/v1/organization` governance endpoints and a `/board-room` UI for
+  the organization map, decision inbox, risks, work pulse, and shutdown control.
+- Added Phase 13 regression tests and updated the structured roadmap to show the
+  delivered foundation and remaining expansion work accurately.
+- Standardized the client-portal device-mismatch response as a root-level public
+  error contract while keeping the web client tolerant of the former nested
+  FastAPI detail shape.
+
+## 2026-08-02 — Roadmap restructuring and Phase 13 AI Organization direction
+
+- Reorganized `docs/ROADMAP.md` into current release posture, execution order,
+  active stabilization, ongoing evidence operations, future programmes, completed
+  delivery map, and delivery-governance sections.
+- Removed duplicated release-note detail from the roadmap; historical delivery
+  remains available through this changelog, versioned feature documents, Git
+  history, and Alembic migrations.
+- Recorded the open Phase 12 stabilization gate: runtime database alignment,
+  client-portal session security, device-mismatch error-contract repair, and
+  frontend regression coverage.
+- Defined Phase 13 as AI Organization Governance and Autonomous Operations, with
+  the human owner as the Board and a governed CEO Agent coordinating executive,
+  manager, and specialist agents.
+- Added `docs/AI_ORGANIZATION_GOVERNANCE_V13_0.md` covering the organization tree,
+  position contracts, L1-L4 authority, emergency escalation, required ledgers,
+  CEO responsibilities, Board Packets, Board controls, and the first bounded
+  autonomous workflow.
+- Moved the former global-scale platform programme to Phase 14 so it follows the
+  new organizational governance programme.
+- Updated the canonical product blueprint and Head of Product role card to match
+  the approved direction without claiming that the Phase 13 runtime already
+  exists.
+
 ## 2026-07-25 — Business and Wealth Mobility advisory v11.4.1
 
 - Enhanced `POST /api/v1/business-mobility-advisory/advise` to be situation-aware and commercially specific.

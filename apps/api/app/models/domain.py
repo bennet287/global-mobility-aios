@@ -2027,6 +2027,136 @@ class InvestmentMobilityRuleDecision(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now_utc, index=True)
 
 
+class OrganizationPosition(SQLModel, table=True):
+    __tablename__ = "organization_positions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    position_key: str = Field(index=True)
+    title: str
+    department: str = Field(index=True)
+    reports_to_position_key: Optional[str] = Field(default=None, index=True)
+    role_card_name: Optional[str] = None
+    authority_level: str = Field(index=True)
+    contract_json: str = "{}"
+    status: str = Field(default="active", index=True)
+    version: int = 1
+    created_by: str = Field(default="system", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationalWorkItem(SQLModel, table=True):
+    __tablename__ = "organizational_work_items"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    idempotency_key: str = Field(index=True)
+    automation_event_id: Optional[UUID] = Field(default=None, index=True, foreign_key="automation_events.id")
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_mobility_cases.id")
+    title: str
+    objective: str
+    department: str = Field(index=True)
+    authority_level: str = Field(index=True)
+    status: str = Field(default="queued", index=True)
+    assigned_position_key: str = Field(index=True)
+    risk_level: str = Field(default="routine", index=True)
+    context_json: str = "{}"
+    output_json: str = "{}"
+    created_by: str = Field(default="system", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+    completed_at: Optional[datetime] = Field(default=None, index=True)
+
+
+class DelegationRecord(SQLModel, table=True):
+    __tablename__ = "delegation_records"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    work_item_id: UUID = Field(index=True, foreign_key="organizational_work_items.id")
+    delegator_position_key: str = Field(index=True)
+    delegate_position_key: str = Field(index=True)
+    task: str
+    authority_basis: str
+    status: str = Field(default="queued", index=True)
+    result_ref: Optional[str] = None
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    completed_at: Optional[datetime] = Field(default=None, index=True)
+
+
+class ExecutiveDecision(SQLModel, table=True):
+    __tablename__ = "executive_decisions"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    decision_key: str = Field(index=True)
+    work_item_id: Optional[UUID] = Field(default=None, index=True, foreign_key="organizational_work_items.id")
+    authority_level: str = Field(index=True)
+    requested_by_position: str = Field(index=True)
+    decision_owner_position: str = Field(index=True)
+    title: str
+    question: str
+    recommendation: str
+    alternatives_json: str = "[]"
+    evidence_json: str = "[]"
+    impact_json: str = "{}"
+    status: str = Field(default="pending_ceo", index=True)
+    decided_by: Optional[str] = Field(default=None, index=True)
+    decision_reason: Optional[str] = None
+    decided_at: Optional[datetime] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class RiskEscalation(SQLModel, table=True):
+    __tablename__ = "risk_escalations"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    risk_key: str = Field(index=True)
+    work_item_id: Optional[UUID] = Field(default=None, index=True, foreign_key="organizational_work_items.id")
+    category: str = Field(index=True)
+    severity: str = Field(index=True)
+    title: str
+    description: str
+    evidence_json: str = "[]"
+    containment_json: str = "[]"
+    accountable_position_key: str = Field(index=True)
+    escalated_to_position_key: str = Field(index=True)
+    status: str = Field(default="open", index=True)
+    requires_board_attention: bool = Field(default=False, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+    resolved_at: Optional[datetime] = Field(default=None, index=True)
+
+
+class BoardPacket(SQLModel, table=True):
+    __tablename__ = "board_packets"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    packet_key: str = Field(index=True)
+    packet_type: str = Field(default="on_demand", index=True)
+    period_start: datetime = Field(index=True)
+    period_end: datetime = Field(index=True)
+    ceo_summary: str
+    content_json: str = "{}"
+    status: str = Field(default="draft", index=True)
+    prepared_by_position: str = Field(default="ceo", index=True)
+    published_at: Optional[datetime] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationControl(SQLModel, table=True):
+    __tablename__ = "organization_controls"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    control_key: str = Field(default="global", index=True)
+    status: str = Field(default="active", index=True)
+    reason: Optional[str] = None
+    changed_by: str = Field(default="system", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 
