@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlmodel import Session, select
 
 from app.core.celery_app import celery_app
 from app.core.db import engine
-from app.models.domain import OrganizationalWorkItem
-from app.services.organization_governance import execute_work_item
+from app.models.domain import ExecutiveDecision, OrganizationalWorkItem
+from app.services.organization_governance import escalate_work_item, execute_work_item
 
 
 @celery_app.task(name="app.tasks.organization_tasks.execute_organization_work_item")
@@ -35,3 +36,43 @@ def scan_organization_work_task(limit: int = 25) -> dict:
     for work_id in ids:
         execute_organization_work_item_task.delay(str(work_id))
     return {"queued": len(ids), "work_item_ids": [str(item) for item in ids]}
+
+
+@celery_app.task(name="app.tasks.organization_tasks.scan_organization_deadlines")
+def scan_organization_deadlines_task(overdue_seconds: int = 60, reminder_seconds: int = 30) -> dict:
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    escalated = 0
+    reminded = 0
+    with Session(engine) as session:
+        overdue_work = session.exec(
+            select(OrganizationalWorkItem).where(
+                OrganizationalWorkItem.status.in_(["queued", "running", "pending_ceo", "pending_board"]),
+                OrganizationalWorkItem.due_at < now,
+                OrganizationalWorkItem.escalated_at.is_(None),
+            )
+        ).all()
+        for work in overdue_work:
+            due_at = work.due_at
+            if due_at and due_at.tzinfo:
+                due_at = due_at.replace(tzinfo=None)
+            overdue = due_at and (now - due_at).total_seconds() >= overdue_seconds
+            if work.is_emergency or overdue:
+                try:
+                    escalate_work_item(session, work, reason="Overdue deadline triggered automatic escalation.", actor="organization-deadline-scanner")
+                    escalated += 1
+                except ValueError:
+                    pass
+
+        overdue_decisions = session.exec(
+            select(ExecutiveDecision).where(
+                ExecutiveDecision.status.in_(["pending_ceo", "pending_board"]),
+                ExecutiveDecision.due_at < now,
+                ExecutiveDecision.reminded_at.is_(None),
+            )
+        ).all()
+        for decision in overdue_decisions:
+            decision.reminded_at = now
+            session.add(decision)
+            reminded += 1
+        session.commit()
+    return {"escalated": escalated, "reminded": reminded}

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-02 — Phase 13.2 deadline, reminder, and emergency escalation controls
+
+- Added migration `0058_deadline_emergency_escalation` to track `due_at`,
+  `reminded_at`, `escalated_at`, and `is_emergency` on organizational work and
+  decisions, plus `is_emergency` on risk escalations.
+- Added `POST /api/v1/organization/work-items/{id}/deadline` and
+  `/decisions/{id}/deadline` for the Board to set accountability deadlines.
+- Added `POST /api/v1/organization/work-items/{id}/escalate` to move a work item
+  to its parent position (e.g., COO → CEO) with an audit trail and refreshed
+  risk escalation.
+- Added `POST /api/v1/organization/work-items/{id}/emergency` to mark a work
+  item as emergency and escalate it all the way to the human Board immediately.
+- Added `scan_organization_deadlines_task` Celery task that escalates overdue
+  work and marks overdue decisions as reminded.
+- Added regression tests for work deadlines, decision deadlines, manual escalation,
+  emergency escalation to the Board, and overdue scanner escalation.
+
 ## 2026-08-02 — Phase 13.1 Board override and per-agent suspension controls
 
 - Added migration `0057_position_suspension_tracking` to record when a position is

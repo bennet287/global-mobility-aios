@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import UUID
 
@@ -321,3 +322,138 @@ def test_suspended_position_holds_existing_delegation_during_execution(raw_clien
     ).one()
     assert held_delegation.status == "held"
     assert held_delegation.result_ref == "position:suspended"
+
+
+def test_work_item_deadline_and_decision_deadline(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "deadline-work-001",
+        "title": "Deadline-bound operating review",
+        "objective": "Review operating matter within a deadline.",
+        "department": "Operations",
+        "action": "internal.analysis",
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    due = (datetime.now(timezone.utc) + timedelta(hours=4)).isoformat().replace("+00:00", "Z")
+
+    response = raw_client.post(f"/api/v1/organization/work-items/{work_id}/deadline", json={"due_at": due})
+    assert response.status_code == 200, response.text
+    assert response.json()["due_at"] is not None
+
+    decision = db_session.exec(select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)).first()
+    assert decision is None
+
+
+def test_escalation_moves_work_to_parent_position(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "escalate-work-001",
+        "title": "Operational matter requiring CEO attention",
+        "objective": "Route an operational matter up to the CEO.",
+        "department": "Operations",
+        "action": "internal.analysis",
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work.assigned_position_key == "coo"
+
+    response = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/escalate",
+        json={"reason": "COO requests CEO guidance on operating boundary."},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["assigned_position_key"] == "ceo"
+    assert response.json()["escalated_at"] is not None
+
+    risk = db_session.exec(select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)).one()
+    assert risk.escalated_to_position_key == "ceo"
+    assert risk.is_emergency is False
+
+
+def test_emergency_escalation_reaches_board(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "emergency-work-001",
+        "title": "Potential client harm scenario",
+        "objective": "Emergency scenario must reach the Board immediately.",
+        "department": "Operations",
+        "action": "internal.analysis",
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+
+    raw_client.headers.update(_headers("operator", "department-operator"))
+    forbidden = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/emergency",
+        json={"reason": "Operator attempted emergency escalation."},
+    )
+    assert forbidden.status_code == 403
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    response = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/emergency",
+        json={"reason": "Credible risk of client harm; require Board visibility."},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["is_emergency"] is True
+    assert response.json()["assigned_position_key"] == "board"
+
+    risks = db_session.exec(select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)).all()
+    assert any(risk.is_emergency and risk.requires_board_attention for risk in risks)
+
+    audit = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "organizational_work_item",
+            AuditLog.entity_id == str(work_id),
+            AuditLog.action == "organization_work_emergency_escalated",
+        )
+    ).first()
+    assert audit is not None
+    assert audit.actor == "human-owner"
+
+
+def test_overdue_scanner_escalates_work(raw_client, db_session: Session) -> None:
+    from app.tasks.organization_tasks import scan_organization_deadlines_task
+
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "overdue-work-001",
+        "title": "Overdue operating task",
+        "objective": "Task with a deadline in the past should be escalated by scanner.",
+        "department": "Operations",
+        "action": "internal.analysis",
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    past_due = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
+    deadline = raw_client.post(f"/api/v1/organization/work-items/{work_id}/deadline", json={"due_at": past_due})
+    assert deadline.status_code == 200, deadline.text
+
+    result = scan_organization_deadlines_task(overdue_seconds=0, reminder_seconds=0)
+    assert result["escalated"] >= 1
+
+    db_session.refresh(db_session.get(OrganizationalWorkItem, work_id))
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work.assigned_position_key == "ceo"
+    assert work.escalated_at is not None
+
+
+def test_decision_deadline_sets_reminder_track(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "decision-deadline-001",
+        "title": "CEO decision with deadline",
+        "objective": "Decision requires a deadline.",
+        "department": "Communications",
+        "action": "client.external_send",
+        "risk_level": "high",
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)).one()
+    due = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat().replace("+00:00", "Z")
+    response = raw_client.post(f"/api/v1/organization/decisions/{decision.id}/deadline", json={"due_at": due})
+    assert response.status_code == 200, response.text
+    assert response.json()["due_at"] is not None

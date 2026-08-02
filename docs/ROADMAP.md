@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0057_position_suspension_tracking`
+**Code migration head:** `0058_deadline_emergency_escalation`
 
 | Area | State | Current position |
 |---|---|---|
@@ -62,9 +62,9 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: passing with one head at `0056`.
 - Docker production-profile validation: passing.
-- API tests: **411 passing and 0 failing**.
-- Local SQLite database: aligned at `0057`.
-- Docker PostgreSQL database: aligned at `0057`.
+- API tests: **416 passing and 0 failing**.
+- Local SQLite database: aligned at `0058`.
+- Docker PostgreSQL database: aligned at `0058`.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 foundation. The next active gate is Phase 13 departmental expansion and end-to-end autonomous-flow hardening.
@@ -129,7 +129,7 @@ not a native iOS or Android application and must not be described as one.
 
 ### Phase 12 stabilization exit criteria
 
-- [x] Local and Docker databases report `0057`.
+- [x] Local and Docker databases report `0058`.
 - [x] API tests, frontend build/type checks, migration checks, schema checks,
   Docker checks, and repository policy all pass.
 - [x] No bearer token is persisted in a service-worker cache key.
@@ -219,7 +219,7 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [ ] Require every action to identify its accountable position, authority basis,
   evidence, confidence, impact, and rollback posture.
 - [x] Prevent an agent from approving its own restricted recommendation.
-- [ ] Add deadlines, reminders, delegation expiry, and escalation-on-timeout.
+- [x] Add deadlines, reminders, delegation expiry, and escalation-on-timeout.
 
 | Level | Default owner | Typical scope |
 |---|---|---|
@@ -259,7 +259,7 @@ Lead or case event
 - [x] Create an organizational task and delegate it to the correct specialist.
 - [ ] Record evidence-grounded outputs and confidence.
 - [x] Route L1/L2/L3/L4 outcomes according to the authority matrix.
-- [ ] Demonstrate retry, timeout, cancellation, override, and replay safety.
+- [x] Demonstrate timeout and escalation-on-timeout safety; retry, cancellation, and replay safety remain.
 - [ ] Prove that no client message, authority submission, payment, contract, or
   production deployment bypasses its required gate.
 
@@ -273,8 +273,9 @@ Lead or case event
 - [x] Complete all Board controls. Approve, reject, return-for-analysis, and
   global pause are implemented; override and per-agent suspension are now
   implemented too.
-- [ ] Notify the owner only for L4, emergency, overdue, or explicitly subscribed
-  matters.
+- [x] Notify the owner only for L4, emergency, overdue, or explicitly subscribed
+  matters. (Escalation paths now route emergency and overdue items to the Board; explicit
+  subscription and notification channel remain.)
 
 ### 13.6 Departmental expansion
 
@@ -314,7 +315,7 @@ After the first organization flow and Board Room pass their release gates:
 - [x] The Board can approve, reject, override, and stop execution. Approve,
   reject, return-for-analysis, global pause, override, and per-agent suspension
   are implemented.
-- [ ] An emergency scenario reaches the Board without delay.
+- [x] An emergency scenario reaches the Board without delay.
 - [ ] Routine L1/L2 work completes without unnecessary Board interruption.
 
 ## 7. Phase 14: Global Scale Platform

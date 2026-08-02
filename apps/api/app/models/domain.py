@@ -2064,6 +2064,10 @@ class OrganizationalWorkItem(SQLModel, table=True):
     status: str = Field(default="queued", index=True)
     assigned_position_key: str = Field(index=True)
     risk_level: str = Field(default="routine", index=True)
+    is_emergency: bool = Field(default=False, index=True)
+    due_at: Optional[datetime] = Field(default=None, index=True)
+    reminded_at: Optional[datetime] = Field(default=None, index=True)
+    escalated_at: Optional[datetime] = Field(default=None, index=True)
     context_json: str = "{}"
     output_json: str = "{}"
     created_by: str = Field(default="system", index=True)
@@ -2106,6 +2110,8 @@ class ExecutiveDecision(SQLModel, table=True):
     decided_by: Optional[str] = Field(default=None, index=True)
     decision_reason: Optional[str] = None
     decided_at: Optional[datetime] = Field(default=None, index=True)
+    due_at: Optional[datetime] = Field(default=None, index=True)
+    reminded_at: Optional[datetime] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
 
@@ -2126,6 +2132,7 @@ class RiskEscalation(SQLModel, table=True):
     escalated_to_position_key: str = Field(index=True)
     status: str = Field(default="open", index=True)
     requires_board_attention: bool = Field(default=False, index=True)
+    is_emergency: bool = Field(default=False, index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
     resolved_at: Optional[datetime] = Field(default=None, index=True)

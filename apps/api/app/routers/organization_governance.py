@@ -9,6 +9,9 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import ExecutiveDecision, OrganizationalWorkItem, OrganizationPosition, RiskEscalation
 from app.schemas_organization_governance import (
+    DeadlineRequest,
+    EmergencyRequest,
+    EscalationRequest,
     GovernanceDecisionRequest,
     OrganizationControlUpdate,
     PositionResumeRequest,
@@ -23,9 +26,13 @@ from app.services.organization_governance import (
     classify_authority,
     decide_executive_decision,
     ensure_foundation_positions,
+    escalate_work_item,
     execute_work_item,
+    mark_work_emergency,
     resume_position,
+    set_decision_deadline,
     set_global_control,
+    set_work_deadline,
     suspend_position,
 )
 
@@ -128,6 +135,54 @@ def execute_work(work_item_id: UUID, request: Request, session: Session = Depend
         raise HTTPException(status_code=404, detail="Organizational work item not found")
     try:
         return execute_work_item(session, work, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/work-items/{work_item_id}/deadline")
+def set_work_item_deadline(work_item_id: UUID, payload: DeadlineRequest, request: Request, session: Session = Depends(get_session)) -> OrganizationalWorkItem:
+    _admin(request)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    try:
+        return set_work_deadline(session, work, due_at=payload.due_at, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/work-items/{work_item_id}/escalate")
+def escalate_work_item_endpoint(work_item_id: UUID, payload: EscalationRequest, request: Request, session: Session = Depends(get_session)) -> OrganizationalWorkItem:
+    _admin(request)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    try:
+        return escalate_work_item(session, work, reason=payload.reason, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/work-items/{work_item_id}/emergency")
+def mark_work_item_emergency(work_item_id: UUID, payload: EmergencyRequest, request: Request, session: Session = Depends(get_session)) -> OrganizationalWorkItem:
+    _admin(request)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    try:
+        return mark_work_emergency(session, work, reason=payload.reason, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/decisions/{decision_id}/deadline")
+def set_decision_item_deadline(decision_id: UUID, payload: DeadlineRequest, request: Request, session: Session = Depends(get_session)) -> ExecutiveDecision:
+    _admin(request)
+    decision = session.get(ExecutiveDecision, decision_id)
+    if decision is None:
+        raise HTTPException(status_code=404, detail="Executive decision not found")
+    try:
+        return set_decision_deadline(session, decision, due_at=payload.due_at, actor=_actor(request))
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 

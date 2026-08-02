@@ -250,6 +250,172 @@ def board_override_decision(
     return decision
 
 
+_POSITION_PARENTS = {key: reports_to for key, _, _, reports_to, _, _ in POSITION_SPECS if reports_to is not None}
+
+
+def _parent_position(position_key: str) -> str | None:
+    return _POSITION_PARENTS.get(position_key)
+
+
+def set_work_deadline(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    due_at: datetime,
+    actor: str,
+) -> OrganizationalWorkItem:
+    if work.status in {"completed", "rejected", "returned"}:
+        raise ValueError("Cannot set deadline on a closed work item")
+    work.due_at = due_at
+    work.updated_at = _now()
+    session.add(work)
+    record_audit(
+        session,
+        action="organization_work_deadline_set",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        after_state={"due_at": due_at.isoformat()},
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
+def set_decision_deadline(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    due_at: datetime,
+    actor: str,
+) -> ExecutiveDecision:
+    if decision.status not in {"pending_ceo", "pending_board"}:
+        raise ValueError("Cannot set deadline on a decided decision")
+    decision.due_at = due_at
+    decision.updated_at = _now()
+    session.add(decision)
+    record_audit(
+        session,
+        action="executive_decision_deadline_set",
+        entity_type="executive_decision",
+        entity_id=decision.id,
+        after_state={"due_at": due_at.isoformat()},
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(decision)
+    return decision
+
+
+def escalate_work_item(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    reason: str,
+    actor: str,
+    emergency: bool = False,
+) -> OrganizationalWorkItem:
+    if work.status in {"completed", "rejected", "returned"}:
+        raise ValueError("Cannot escalate a closed work item")
+    current_owner = work.assigned_position_key
+    parent = _parent_position(current_owner)
+    if parent is None:
+        raise ValueError(f"Position {current_owner} has no parent; cannot escalate further")
+    before_owner = current_owner
+    work.assigned_position_key = parent
+    work.escalated_at = _now()
+    work.updated_at = _now()
+    if emergency:
+        work.is_emergency = True
+    session.add(work)
+
+    # Update or create decision ownership if this is L3/L4 work.
+    decision = session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
+    ).first()
+    if decision is not None and decision.status in {"pending_ceo", "pending_board"}:
+        decision.decision_owner_position = parent
+        decision.updated_at = _now()
+        session.add(decision)
+
+    # Open/refresh a risk escalation record.
+    risk = session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id == work.id, RiskEscalation.status == "open")
+    ).first()
+    if risk is None:
+        risk = RiskEscalation(
+            risk_key=f"risk:{work.id}:escalation",
+            work_item_id=work.id,
+            category="governance" if not emergency else "emergency",
+            severity="critical" if emergency else work.risk_level,
+            title=f"{'Emergency escalation' if emergency else 'Escalation'}: {work.title}",
+            description=f"Escalated from {before_owner} to {parent}. Reason: {reason.strip()}",
+            evidence_json=_json([{"from": before_owner, "to": parent, "reason": reason.strip()}]),
+            containment_json=_json(["Awaiting parent position review"]),
+            accountable_position_key=parent,
+            escalated_to_position_key=parent,
+            requires_board_attention=parent == "board" or emergency,
+            is_emergency=emergency,
+        )
+        session.add(risk)
+    else:
+        risk.escalated_to_position_key = parent
+        risk.requires_board_attention = parent == "board" or emergency or risk.requires_board_attention
+        risk.is_emergency = risk.is_emergency or emergency
+        risk.updated_at = _now()
+        session.add(risk)
+
+    record_audit(
+        session,
+        action="organization_work_escalated" if not emergency else "organization_work_emergency_escalated",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        before_state={"assigned_position_key": before_owner},
+        after_state={"assigned_position_key": parent, "is_emergency": work.is_emergency},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
+def mark_work_emergency(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    reason: str,
+    actor: str,
+) -> OrganizationalWorkItem:
+    if work.is_emergency:
+        return work
+    work.is_emergency = True
+    work.updated_at = _now()
+    session.add(work)
+    record_audit(
+        session,
+        action="organization_work_marked_emergency",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        after_state={"is_emergency": True},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    # Escalate all the way to Board immediately.
+    while work.assigned_position_key != "board":
+        try:
+            work = escalate_work_item(session, work, reason=reason, actor=actor, emergency=True)
+        except ValueError:
+            break
+    return work
+
+
 def classify_authority(action: str, payload: dict[str, Any] | None = None) -> tuple[str, str]:
     data = payload or {}
     risk = str(data.get("risk_level") or data.get("severity") or "routine").lower()

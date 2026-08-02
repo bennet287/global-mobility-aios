@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -21,6 +22,18 @@ class PositionResumeRequest(BaseModel):
 class GovernanceDecisionRequest(BaseModel):
     decision: Literal["approved", "rejected", "returned"]
     reason: str = Field(min_length=8, max_length=2000)
+
+
+class DeadlineRequest(BaseModel):
+    due_at: datetime
+
+
+class EmergencyRequest(BaseModel):
+    reason: str = Field(min_length=8, max_length=1000)
+
+
+class EscalationRequest(BaseModel):
+    reason: str = Field(min_length=8, max_length=1000)
 
 
 class WorkItemCreate(BaseModel):
