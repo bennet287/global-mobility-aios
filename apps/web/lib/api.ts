@@ -1079,6 +1079,38 @@ export type ExternalAgencyAssignment = {
   updated_at: string;
 };
 
+export type AuthorityChecklistTemplate = {
+  id: string;
+  authority_name: string;
+  country: string | null;
+  item_key: string;
+  item_label: string;
+  category: "document" | "fee" | "form" | "step";
+  is_required: boolean;
+  sort_order: number;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ApplicationAuthorityChecklistItem = {
+  id: string;
+  application_id: string;
+  template_item_id: string | null;
+  authority_name: string;
+  item_key: string;
+  item_label: string;
+  category: "document" | "fee" | "form" | "step";
+  is_required: boolean;
+  status: "pending" | "completed" | "not_applicable";
+  notes: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DashboardSummary = {
   leads_total: number;
   leads_new: number;
@@ -2351,6 +2383,93 @@ export async function updateExternalAgencyAssignmentStatus(
   return request<ExternalAgencyAssignment>(`/api/v1/external-agency-assignments/${assignmentId}/status`, {
     method: "POST",
     body: JSON.stringify({ status, reason, agency_reference_number }),
+  });
+}
+
+export async function listAuthorityChecklistTemplates(params?: {
+  authority_name?: string;
+  country?: string;
+}): Promise<AuthorityChecklistTemplate[]> {
+  const qs = new URLSearchParams();
+  if (params?.authority_name) qs.set("authority_name", params.authority_name);
+  if (params?.country) qs.set("country", params.country);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<AuthorityChecklistTemplate[]>(`/api/v1/authority-checklist-templates${query}`);
+}
+
+export async function createAuthorityChecklistTemplate(payload: {
+  authority_name: string;
+  country?: string;
+  item_key: string;
+  item_label: string;
+  category: "document" | "fee" | "form" | "step";
+  is_required?: boolean;
+  sort_order?: number;
+}): Promise<AuthorityChecklistTemplate> {
+  return request<AuthorityChecklistTemplate>("/api/v1/authority-checklist-templates", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function applyAuthorityChecklistTemplate(
+  application_id: string,
+  authority_name: string
+): Promise<ApplicationAuthorityChecklistItem[]> {
+  return request<ApplicationAuthorityChecklistItem[]>("/api/v1/authority-checklist-templates/apply", {
+    method: "POST",
+    body: JSON.stringify({ application_id, authority_name }),
+  });
+}
+
+export async function listApplicationAuthorityChecklistItems(params?: {
+  application_id?: string;
+  authority_name?: string;
+  status?: string;
+}): Promise<ApplicationAuthorityChecklistItem[]> {
+  const qs = new URLSearchParams();
+  if (params?.application_id) qs.set("application_id", params.application_id);
+  if (params?.authority_name) qs.set("authority_name", params.authority_name);
+  if (params?.status) qs.set("status", params.status);
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return request<ApplicationAuthorityChecklistItem[]>(`/api/v1/application-authority-checklist-items${query}`);
+}
+
+export async function createApplicationAuthorityChecklistItem(payload: {
+  application_id: string;
+  authority_name: string;
+  item_key: string;
+  item_label: string;
+  category: "document" | "fee" | "form" | "step";
+  is_required?: boolean;
+  notes?: string;
+}): Promise<ApplicationAuthorityChecklistItem> {
+  return request<ApplicationAuthorityChecklistItem>("/api/v1/application-authority-checklist-items", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateApplicationAuthorityChecklistItemStatus(
+  itemId: string,
+  status: ApplicationAuthorityChecklistItem["status"],
+  notes?: string
+): Promise<ApplicationAuthorityChecklistItem> {
+  return request<ApplicationAuthorityChecklistItem>(`/api/v1/application-authority-checklist-items/${itemId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status, notes }),
+  });
+}
+
+export async function deleteApplicationAuthorityChecklistItem(itemId: string): Promise<void> {
+  await request<void>(`/api/v1/application-authority-checklist-items/${itemId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function emitAuthorityChecklistReminders(application_id: string): Promise<{ id: string; type: string }[]> {
+  return request<{ id: string; type: string }[]>(`/api/v1/applications/${application_id}/authority-checklist/reminders`, {
+    method: "POST",
   });
 }
 

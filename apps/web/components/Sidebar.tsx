@@ -67,6 +67,7 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
       { label: "Authority Appointments", href: "/authority-appointments", icon: "appointments" },
       { label: "Agency Submissions", href: "/agency-submissions", icon: "documents" },
       { label: "External Agency Assignments", href: "/external-agency-assignments", icon: "corporate" },
+      { label: "Authority Checklist", href: "/authority-submission-checklist", icon: "documents" },
     ],
   },
   {
