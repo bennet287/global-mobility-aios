@@ -8,16 +8,25 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import ExecutiveDecision, OrganizationalWorkItem, OrganizationPosition, RiskEscalation
-from app.schemas_organization_governance import GovernanceDecisionRequest, OrganizationControlUpdate, WorkItemCreate
+from app.schemas_organization_governance import (
+    GovernanceDecisionRequest,
+    OrganizationControlUpdate,
+    PositionResumeRequest,
+    PositionSuspensionRequest,
+    WorkItemCreate,
+)
 from app.services.audit_log import record_audit
 from app.services.organization_governance import (
     SOURCE,
     board_packet_snapshot,
+    board_override_decision,
     classify_authority,
     decide_executive_decision,
     ensure_foundation_positions,
     execute_work_item,
+    resume_position,
     set_global_control,
+    suspend_position,
 )
 
 
@@ -136,6 +145,42 @@ def board_decision(decision_id: UUID, payload: GovernanceDecisionRequest, reques
         raise HTTPException(status_code=404, detail="Executive decision not found")
     try:
         return decide_executive_decision(session, decision, outcome=payload.decision, reason=payload.reason, actor=_actor(request), board_actor=True)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/decisions/{decision_id}/board-override")
+def board_override_decision_endpoint(decision_id: UUID, payload: GovernanceDecisionRequest, request: Request, session: Session = Depends(get_session)) -> ExecutiveDecision:
+    _admin(request)
+    decision = session.get(ExecutiveDecision, decision_id)
+    if decision is None:
+        raise HTTPException(status_code=404, detail="Executive decision not found")
+    try:
+        return board_override_decision(session, decision, outcome=payload.decision, reason=payload.reason, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/positions/{position_id}/suspend")
+def suspend_position_endpoint(position_id: UUID, payload: PositionSuspensionRequest, request: Request, session: Session = Depends(get_session)) -> OrganizationPosition:
+    _admin(request)
+    position = session.get(OrganizationPosition, position_id)
+    if position is None:
+        raise HTTPException(status_code=404, detail="Position not found")
+    try:
+        return suspend_position(session, position, reason=payload.reason, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/positions/{position_id}/resume")
+def resume_position_endpoint(position_id: UUID, payload: PositionResumeRequest, request: Request, session: Session = Depends(get_session)) -> OrganizationPosition:
+    _admin(request)
+    position = session.get(OrganizationPosition, position_id)
+    if position is None:
+        raise HTTPException(status_code=404, detail="Position not found")
+    try:
+        return resume_position(session, position, reason=payload.reason, actor=_actor(request))
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 

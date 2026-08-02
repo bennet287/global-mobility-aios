@@ -2043,6 +2043,9 @@ class OrganizationPosition(SQLModel, table=True):
     created_by: str = Field(default="system", index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
+    suspended_at: Optional[datetime] = Field(default=None, index=True)
+    suspended_by: Optional[str] = Field(default=None, index=True)
+    suspended_reason: Optional[str] = None
 
 
 class OrganizationalWorkItem(SQLModel, table=True):

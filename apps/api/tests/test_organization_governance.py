@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from uuid import UUID
 
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    AuditLog,
     DelegationRecord,
     ExecutiveDecision,
     OrganizationPosition,
@@ -157,3 +159,165 @@ def test_global_pause_holds_and_resume_requeues_work(raw_client, db_session: Ses
     assert resumed.status_code == 200, resumed.text
     db_session.refresh(work)
     assert work.status == "queued"
+
+
+def test_board_can_override_l3_ceo_decision(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "override-l3-external-send-001",
+        "title": "Send client-facing status update",
+        "objective": "Communicate a routine case milestone to the client under executive oversight.",
+        "department": "Communications",
+        "action": "client.external_send",
+        "risk_level": "high",
+        "context": {"channel": "email", "milestone": "document_received"},
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)).one()
+    assert decision.authority_level == "L3"
+    assert decision.status == "pending_ceo"
+    assert decision.decision_owner_position == "ceo"
+
+    raw_client.headers.update(_headers("operator", "department-operator"))
+    forbidden = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/board-override",
+        json={"decision": "approved", "reason": "Operator attempted Board override."},
+    )
+    assert forbidden.status_code == 403
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    overridden = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/board-override",
+        json={"decision": "approved", "reason": "Board overrides CEO lane and accepts the contractual exposure."},
+    )
+    assert overridden.status_code == 200, overridden.text
+    assert overridden.json()["status"] == "approved"
+    assert overridden.json()["decided_by"] == "human-owner"
+
+    db_session.refresh(decision)
+    audit = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "executive_decision",
+            AuditLog.entity_id == str(decision.id),
+            AuditLog.action == "executive_decision_overridden",
+        )
+    ).one()
+    assert audit.actor == "human-owner"
+
+
+def test_board_override_l4_delegates_to_normal_board_decision(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "override-l4-market-entry-001",
+        "title": "Enter a new jurisdiction",
+        "objective": "Board must approve market entry.",
+        "department": "Executive",
+        "action": "market.entry",
+        "context": {"jurisdiction": "Singapore"},
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)).one()
+    assert decision.authority_level == "L4"
+    assert decision.status == "pending_board"
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    overridden = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/board-override",
+        json={"decision": "approved", "reason": "Board approves market entry via override path."},
+    )
+    assert overridden.status_code == 200, overridden.text
+    assert overridden.json()["status"] == "approved"
+
+
+def test_position_suspend_and_resume(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    raw_client.post("/api/v1/organization/bootstrap")
+    position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "sales_summary")
+    ).one()
+
+    raw_client.headers.update(_headers("operator", "department-operator"))
+    forbidden = raw_client.post(
+        f"/api/v1/organization/positions/{position.id}/suspend",
+        json={"reason": "Operator attempted suspension."},
+    )
+    assert forbidden.status_code == 403
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    suspended = raw_client.post(
+        f"/api/v1/organization/positions/{position.id}/suspend",
+        json={"reason": "Sales intelligence agent paused pending data-quality review."},
+    )
+    assert suspended.status_code == 200, suspended.text
+    assert suspended.json()["status"] == "suspended"
+    assert suspended.json()["suspended_by"] == "human-owner"
+
+    resumed = raw_client.post(
+        f"/api/v1/organization/positions/{position.id}/resume",
+        json={"reason": "Data-quality review completed; agent cleared to operate."},
+    )
+    assert resumed.status_code == 200, resumed.text
+    assert resumed.json()["status"] == "active"
+    assert resumed.json()["suspended_at"] is None
+
+
+def test_suspended_position_is_not_delegated_new_work(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    raw_client.post("/api/v1/organization/bootstrap")
+    position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "sales_summary")
+    ).one()
+    raw_client.post(
+        f"/api/v1/organization/positions/{position.id}/suspend",
+        json={"reason": "Suspend sales intelligence for this test."},
+    )
+
+    account = _account(raw_client)
+    case = _case(raw_client, account["id"])
+    work = db_session.exec(
+        select(OrganizationalWorkItem).where(OrganizationalWorkItem.corporate_mobility_case_id == UUID(case["id"]))
+    ).one()
+    delegations = db_session.exec(select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)).all()
+    delegate_keys = {item.delegate_position_key for item in delegations}
+    assert "sales_summary" not in delegate_keys
+    assert "application_readiness" in delegate_keys
+
+
+def test_suspended_position_holds_existing_delegation_during_execution(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    raw_client.post("/api/v1/organization/bootstrap")
+    account = _account(raw_client)
+    case = _case(raw_client, account["id"])
+    work = db_session.exec(
+        select(OrganizationalWorkItem).where(OrganizationalWorkItem.corporate_mobility_case_id == UUID(case["id"]))
+    ).one()
+    delegations = db_session.exec(select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)).all()
+    assert {item.delegate_position_key for item in delegations} == {"sales_summary", "application_readiness"}
+
+    position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "sales_summary")
+    ).one()
+    raw_client.post(
+        f"/api/v1/organization/positions/{position.id}/suspend",
+        json={"reason": "Suspend sales intelligence after work was already routed."},
+    )
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+    output = json.loads(executed.json()["output_json"])
+    delegated_results = {result["agent"]: result for result in output["delegated_results"]}
+    assert delegated_results["sales_summary_agent"]["status"] == "held"
+    assert delegated_results["application_readiness_agent"]["status"] == "completed"
+
+    db_session.refresh(work)
+    held_delegation = db_session.exec(
+        select(DelegationRecord).where(
+            DelegationRecord.work_item_id == work.id,
+            DelegationRecord.delegate_position_key == "sales_summary",
+        )
+    ).one()
+    assert held_delegation.status == "held"
+    assert held_delegation.result_ref == "position:suspended"

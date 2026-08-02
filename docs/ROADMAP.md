@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0056_ai_organization_governance`
+**Code migration head:** `0057_position_suspension_tracking`
 
 | Area | State | Current position |
 |---|---|---|
@@ -62,9 +62,9 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: passing with one head at `0056`.
 - Docker production-profile validation: passing.
-- API tests: **406 passing and 0 failing**.
-- Local SQLite database: aligned at `0056`.
-- Docker PostgreSQL database: aligned at `0056`.
+- API tests: **411 passing and 0 failing**.
+- Local SQLite database: aligned at `0057`.
+- Docker PostgreSQL database: aligned at `0057`.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 foundation. The next active gate is Phase 13 departmental expansion and end-to-end autonomous-flow hardening.
@@ -129,7 +129,7 @@ not a native iOS or Android application and must not be described as one.
 
 ### Phase 12 stabilization exit criteria
 
-- [x] Local and Docker databases report `0056`.
+- [x] Local and Docker databases report `0057`.
 - [x] API tests, frontend build/type checks, migration checks, schema checks,
   Docker checks, and repository policy all pass.
 - [x] No bearer token is persisted in a service-worker cache key.
@@ -270,8 +270,9 @@ Lead or case event
 - [ ] Generate recurring, on-demand, and incident-triggered Board Packets.
 - [ ] Show the CEO recommendation, evidence, alternatives, expected impact,
   dissenting executive views, cost, urgency, and exact approval requested.
-- [ ] Complete all Board controls. Approve, reject, return-for-analysis, and
-  global pause are implemented; override and per-agent suspension remain.
+- [x] Complete all Board controls. Approve, reject, return-for-analysis, and
+  global pause are implemented; override and per-agent suspension are now
+  implemented too.
 - [ ] Notify the owner only for L4, emergency, overdue, or explicitly subscribed
   matters.
 
@@ -310,9 +311,9 @@ After the first organization flow and Board Room pass their release gates:
 - [x] Restricted actions fail closed.
 - [x] Delegation and escalation are idempotent and traceable.
 - [x] The CEO produces an evidence-backed Board Packet.
-- [ ] The Board can approve, reject, override, and stop execution. Approve,
-  reject, return-for-analysis, and global pause are implemented; override and
-  per-agent suspension remain.
+- [x] The Board can approve, reject, override, and stop execution. Approve,
+  reject, return-for-analysis, global pause, override, and per-agent suspension
+  are implemented.
 - [ ] An emergency scenario reaches the Board without delay.
 - [ ] Routine L1/L2 work completes without unnecessary Board interruption.
 

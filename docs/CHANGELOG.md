@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-02 — Phase 13.1 Board override and per-agent suspension controls
+
+- Added migration `0057_position_suspension_tracking` to record when a position is
+  suspended, by whom, and why.
+- Added `POST /api/v1/organization/decisions/{id}/board-override` so the human
+  Board can override L3 CEO decisions or re-decide L4 Board-reserved matters.
+- Added `POST /api/v1/organization/positions/{id}/suspend` and `/resume` so the
+  Board can pause individual agents while keeping the rest of the organization
+  active.
+- Enforced suspension during work routing (new delegations skip suspended
+  positions) and during execution (existing delegations to a suspended position
+  are held with a clear audit note).
+- Protected the human Board position from being suspended by the organization.
+- Added regression tests for Board override authorization, L3 override, L4
+  override-through-Board-decision, position suspend/resume, and suspension impact
+  on new and in-flight work.
+- Updated `docs/ROADMAP.md` to migration head `0057`, 411 passing API tests, and
+  mark Board override and per-agent suspension as delivered.
+
 ## 2026-08-02 — Phase 13 AI Organization governance foundation
 
 - Added versioned organization positions plus durable work, delegation,

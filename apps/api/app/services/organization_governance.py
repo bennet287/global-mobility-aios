@@ -118,6 +118,138 @@ def ensure_foundation_positions(session: Session, *, actor: str = "system") -> l
     return positions
 
 
+def _position_by_key(session: Session, position_key: str) -> OrganizationPosition | None:
+    return session.exec(
+        select(OrganizationPosition).where(
+            OrganizationPosition.position_key == position_key,
+            OrganizationPosition.version == 1,
+        )
+    ).first()
+
+
+def _is_suspended(position: OrganizationPosition | None) -> bool:
+    return position is not None and position.status == "suspended"
+
+
+def suspend_position(
+    session: Session,
+    position: OrganizationPosition,
+    *,
+    reason: str,
+    actor: str,
+) -> OrganizationPosition:
+    if position.position_key == "board":
+        raise ValueError("The human Board position cannot be suspended by the organization")
+    before = position.status
+    position.status = "suspended"
+    position.suspended_at = _now()
+    position.suspended_by = actor
+    position.suspended_reason = reason.strip()
+    position.updated_at = _now()
+    session.add(position)
+    record_audit(
+        session,
+        action="organization_position_suspended",
+        entity_type="organization_position",
+        entity_id=position.id,
+        before_state={"status": before},
+        after_state={
+            "status": position.status,
+            "suspended_by": actor,
+            "suspended_reason": position.suspended_reason,
+        },
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(position)
+    return position
+
+
+def resume_position(
+    session: Session,
+    position: OrganizationPosition,
+    *,
+    reason: str,
+    actor: str,
+) -> OrganizationPosition:
+    if position.status != "suspended":
+        raise ValueError("Position is not suspended")
+    before = position.status
+    position.status = "active"
+    position.suspended_at = None
+    position.suspended_by = None
+    position.suspended_reason = None
+    position.updated_at = _now()
+    session.add(position)
+    record_audit(
+        session,
+        action="organization_position_resumed",
+        entity_type="organization_position",
+        entity_id=position.id,
+        before_state={"status": before},
+        after_state={"status": position.status},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(position)
+    return position
+
+
+def board_override_decision(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    outcome: str,
+    reason: str,
+    actor: str,
+) -> ExecutiveDecision:
+    if outcome not in {"approved", "rejected", "returned"}:
+        raise ValueError("Unsupported override outcome")
+    if decision.authority_level == "L4":
+        # L4 is Board-reserved; an override is a normal Board decision.
+        return decide_executive_decision(
+            session,
+            decision,
+            outcome=outcome,
+            reason=reason,
+            actor=actor,
+            board_actor=True,
+        )
+    if decision.authority_level != "L3":
+        raise ValueError("Board override applies to L3 executive decisions only")
+    before_status = decision.status
+    decision.status = outcome
+    decision.decided_by = actor
+    decision.decision_reason = reason.strip()
+    decision.decided_at = _now()
+    decision.updated_at = _now()
+    session.add(decision)
+    work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
+    if work is not None:
+        work.status = "completed" if outcome == "approved" else outcome
+        work.completed_at = _now()
+        work.updated_at = _now()
+        session.add(work)
+    record_audit(
+        session,
+        action="executive_decision_overridden",
+        entity_type="executive_decision",
+        entity_id=decision.id,
+        before_state={"status": before_status},
+        after_state={"status": outcome, "decided_by": actor},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(decision)
+    return decision
+
+
 def classify_authority(action: str, payload: dict[str, Any] | None = None) -> tuple[str, str]:
     data = payload or {}
     risk = str(data.get("risk_level") or data.get("severity") or "routine").lower()
@@ -174,10 +306,14 @@ def route_automation_event(
     )
     session.add(work)
     session.flush()
-    for delegate, task in (
+    delegates = (
         ("sales_summary", "Summarize commercial and client context."),
         ("application_readiness", "Assess operational readiness and blockers."),
-    ):
+    )
+    for delegate, task in delegates:
+        position = _position_by_key(session, delegate)
+        if _is_suspended(position):
+            continue
         session.add(DelegationRecord(
             work_item_id=work.id,
             delegator_position_key="coo",
@@ -250,6 +386,18 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
     ).all()
     for delegation in delegations:
         agent_name = f"{delegation.delegate_position_key}_agent"
+        position = _position_by_key(session, delegation.delegate_position_key)
+        if _is_suspended(position):
+            delegation.status = "held"
+            delegation.completed_at = _now()
+            delegation.result_ref = "position:suspended"
+            session.add(delegation)
+            results.append({
+                "agent": agent_name,
+                "status": "held",
+                "note": f"{delegation.delegate_position_key} is suspended; delegation held.",
+            })
+            continue
         if work.lead_id is None:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}
             result_ref = f"work-item:{work.id}"

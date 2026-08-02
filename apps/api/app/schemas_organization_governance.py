@@ -10,6 +10,14 @@ class OrganizationControlUpdate(BaseModel):
     reason: str = Field(min_length=8, max_length=1000)
 
 
+class PositionSuspensionRequest(BaseModel):
+    reason: str = Field(min_length=8, max_length=1000)
+
+
+class PositionResumeRequest(BaseModel):
+    reason: str = Field(min_length=8, max_length=1000)
+
+
 class GovernanceDecisionRequest(BaseModel):
     decision: Literal["approved", "rejected", "returned"]
     reason: str = Field(min_length=8, max_length=2000)
