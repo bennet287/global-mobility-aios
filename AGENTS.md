@@ -180,18 +180,46 @@ docker compose --profile local-ai up ollama
 
 ### Backend (local without Docker)
 
+The project requires **Python 3.12 or 3.13**. Python 3.14 is not yet supported
+because the dependency wheels used by the project are not reliably available for
+it. Use a Miniconda or pyenv Python 3.13 install on Windows, or the system Python
+3.12/3.13 on Linux/macOS.
+
+Create the virtual environment at the project root (so both `apps/api` and the
+quality scripts use the same interpreter):
+
+```bash
+# Use Python 3.13 explicitly; adjust the path to your Python 3.13 executable.
+C:/miniconda3/python.exe -m venv .venv
+
+# On Linux/macOS with pyenv:
+# python3.13 -m venv .venv
+
+# Windows
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r apps\api\requirements.txt
+
+# Linux/macOS
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r apps/api/requirements.txt
+```
+
+VS Code should automatically pick up `.vscode/settings.json`, which pins the
+workspace interpreter to `${workspaceFolder}/.venv/Scripts/python.exe`. If it
+does not, run **Python: Select Interpreter** and choose the project `.venv`.
+
+For SQLite local dev (default settings auto-create tables):
+
 ```bash
 cd apps/api
-python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-pip install -r requirements.txt
-# optionally install AI stack
-pip install -r requirements-ai.txt
-
-# For SQLite local dev (default settings auto-create tables):
 uvicorn app.main:app --reload
+```
 
-# For PostgreSQL, set DATABASE_URL and run migrations first:
+For PostgreSQL, set `DATABASE_URL` and run migrations first:
+
+```bash
+cd apps/api
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
@@ -224,17 +252,16 @@ Startup order in production:
 
 ### Backend Tests
 
-The test suite lives in `apps/api/tests/` and uses **pytest**.
+The test suite lives in `apps/api/tests/` and uses **pytest**. Make sure the
+project-level `.venv` is active and has `apps/api` on `PYTHONPATH`.
 
 ```bash
-cd apps/api
-python -m pytest tests -q
-```
+# Windows
+.\.venv\Scripts\python.exe -m pytest apps/api/tests -q
 
-The project-level quality gate runs pytest with `PYTHONPATH=apps/api`:
-
-```bash
-python -m pytest apps/api/tests -q
+# Linux/macOS
+source .venv/bin/activate
+PYTHONPATH=apps/api python -m pytest apps/api/tests -q
 ```
 
 Key fixtures in `apps/api/tests/conftest.py`:

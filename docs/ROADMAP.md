@@ -62,9 +62,10 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: passing with one head at `0056`.
 - Docker production-profile validation: passing.
-- API tests: 405 passing and 0 failing.
+- API tests: **406 passing and 0 failing**.
 - Local SQLite database: aligned at `0056`.
 - Docker PostgreSQL database: aligned at `0056`.
+- Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 foundation. The next active gate is Phase 13 departmental expansion and end-to-end autonomous-flow hardening.
 
