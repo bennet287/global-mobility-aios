@@ -143,7 +143,7 @@ apps/web/
 
 ### Agents, Workflows, Knowledge, Infrastructure
 
-- `agents/role_cards/*.md` — Human-readable role contracts (AI CEO, Visa Truth Agent, Document Officer, etc.).
+- `agents/role_cards/*.md` — Human-readable role contracts (Head of Product, AI CEO, Visa Truth Agent, Document Officer, etc.).
 - `workflows/langgraph/README.md` — Guidance for stateful human-in-the-loop graphs.
 - `workflows/n8n/lead_intake_example.json` — Example n8n workflow that forwards webhooks to the API.
 - `knowledge/official_sources/sources.yaml` — Canonical registry of authoritative sources used by the Truth Engine.

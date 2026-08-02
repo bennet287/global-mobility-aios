@@ -9,7 +9,8 @@ ROLE_CARDS_DIR = Path(__file__).parents[3] / "agents" / "role_cards"
 
 # Maps canonical agent names to role-card filenames.
 # Cards currently in agents/role_cards/:
-#   AI_CEO, Document_Officer, Recruitment_Specialist,
+#   AI_CEO, Document_Officer, Eligibility_Agent, Eligibility_Coach,
+#   Head_of_Product, Inhouse_Consultant, Recruitment_Specialist,
 #   Sales_Followup_Agent, Study_Abroad_Advisor, Visa_Truth_Agent
 AGENT_ROLE_CARD_MAP = {
     "truth_explanation_agent": "Visa_Truth_Agent",
