@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0055_client_portal_device_binding`
+**Code migration head:** `0056_ai_organization_governance`
 
 | Area | State | Current position |
 |---|---|---|
@@ -58,86 +58,83 @@ The target operating model is defined in
 
 ### Current quality evidence
 
-- Web production build: passing, 34 application routes.
+- Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0055`.
+- Migration-chain integrity: passing with one head at `0056`.
 - Docker production-profile validation: passing.
-- API tests: 399 passing and 1 failing in the Phase 12.8.7 client-portal
-  device-mismatch contract.
-- Local SQLite database: behind code at `0046`.
-- Docker PostgreSQL database: behind code at `0054`.
+- API tests: 405 passing and 0 failing.
+- Local SQLite database: aligned at `0056`.
+- Docker PostgreSQL database: aligned at `0056`.
 
-The repository is not release-ready until the active stabilization gate below is
-complete.
+The repository is release-ready for the Phase 13 foundation. The next active gate is Phase 13 departmental expansion and end-to-end autonomous-flow hardening.
 
 ## 3. Execution Order
 
 Work must proceed in this order. A later programme must not hide an earlier red
 release gate.
 
-1. **Phase 12 stabilization** — restore database/runtime alignment, portal
-   session security, and a fully green quality gate.
-2. **Phase 10B evidence operations** — continue independently reviewed
+1. **Phase 10B evidence operations** — continue independently reviewed
    jurisdiction onboarding without claiming global completeness.
-3. **Phase 13 governance foundation** — introduce the organization hierarchy,
-   authority matrix, executive decision ledger, and Board Room.
-4. **Phase 13 departmental expansion** — add executives and specialist teams only
+2. **Phase 13 governance foundation** — the hierarchy, authority matrix, executive
+   decision ledger, and Board Room are delivered; harden the first autonomous
+   flow and prove end-to-end delegation, escalation, and override.
+3. **Phase 13 departmental expansion** — add executives and specialist teams only
    after the governance loop is proven end to end.
-5. **Phase 14 scale work** — adopt new infrastructure only after measured demand
+4. **Phase 14 scale work** — adopt new infrastructure only after measured demand
    justifies it.
 
-## 4. Active Gate: Phase 12 Stabilization
+## 4. Stabilized: Phase 12
 
-Phase 12 functionality is delivered, but its release gate is still open.
+Phase 12 is delivered and stabilized. The items below were completed before the
+Phase 13 foundation was introduced.
 
-### 12.S1 Runtime database alignment — P0
+### 12.S1 Runtime database alignment — done
 
-- [ ] Back up the local SQLite and Docker PostgreSQL databases.
-- [ ] Upgrade local SQLite from `0046` to `0055` or deliberately rebuild the
-  local demo database.
-- [ ] Upgrade Docker PostgreSQL from `0054` to `0055`.
-- [ ] Confirm registered models and actual columns/tables are aligned.
-- [ ] Confirm the API container reports migration head `0055`.
+- [x] Back up the local SQLite and Docker PostgreSQL databases.
+- [x] Upgrade local SQLite from `0046` to `0056`.
+- [x] Upgrade Docker PostgreSQL from `0054` to `0056`.
+- [x] Confirm registered models and actual columns/tables are aligned.
+- [x] Confirm the API container reports migration head `0056`.
 
-### 12.S2 Secure portal-session correction — P0
+### 12.S2 Secure portal-session correction — done
 
-- [ ] Replace the session-only random pseudo-device identifier with a durable,
+- [x] Replace the session-only random pseudo-device identifier with a durable,
   explicit session design.
-- [ ] Do not cache a portal URL containing a bearer token.
-- [ ] Prefer a one-time token exchange into an HttpOnly, Secure, SameSite cookie.
-- [ ] Define new-device enrolment, session revocation, expiry, recovery, and
+- [x] Do not cache a portal URL containing a bearer token.
+- [x] Prefer a one-time token exchange into an HttpOnly, Secure, SameSite cookie.
+- [x] Define new-device enrolment, session revocation, expiry, recovery, and
   device-list management.
-- [ ] Preserve immediate server-side revocation and lead-scoped projections.
-- [ ] Add an explicit cache and storage purge on sign-out.
+- [x] Preserve immediate server-side revocation and lead-scoped projections.
+- [x] Add an explicit cache and storage purge on sign-out.
 
 The existing Phase 12.8.7 implementation is a PWA/mobile-web foundation. It is
 not a native iOS or Android application and must not be described as one.
 
-### 12.S3 Error-contract and test repair — P0
+### 12.S3 Error-contract and test repair — done
 
-- [ ] Align the client-portal `403` device-mismatch response, frontend parser,
+- [x] Align the client-portal `403` device-mismatch response, frontend parser,
   and API test around one documented response schema.
-- [ ] Restore the full API suite to green.
-- [ ] Run the complete local quality gate after database alignment.
+- [x] Restore the full API suite to green.
+- [x] Run the complete local quality gate after database alignment.
 
-### 12.S4 Frontend regression coverage — P1
+### 12.S4 Frontend regression coverage — done
 
-- [ ] Add browser-level smoke coverage for the client portal and secure-session
+- [x] Add browser-level smoke coverage for the client portal and secure-session
   lifecycle.
-- [ ] Add regression coverage for authority appointments, agency submissions,
+- [x] Add regression coverage for authority appointments, agency submissions,
   external agency assignments, and submission checklists.
-- [ ] Cover primary empty, populated, validation-error, and authorization-error
+- [x] Cover primary empty, populated, validation-error, and authorization-error
   states.
 
 ### Phase 12 stabilization exit criteria
 
-- [ ] Local and Docker databases report `0055`.
-- [ ] API tests, frontend build/type checks, migration checks, schema checks,
+- [x] Local and Docker databases report `0056`.
+- [x] API tests, frontend build/type checks, migration checks, schema checks,
   Docker checks, and repository policy all pass.
-- [ ] No bearer token is persisted in a service-worker cache key.
-- [ ] A legitimate returning client is not locked out merely by closing and
+- [x] No bearer token is persisted in a service-worker cache key.
+- [x] A legitimate returning client is not locked out merely by closing and
   reopening the installed portal.
-- [ ] Revoked and expired portal sessions fail closed online and offline.
+- [x] Revoked and expired portal sessions fail closed online and offline.
 
 ## 5. Ongoing Operational Programme: Phase 10B Coverage
 
@@ -180,11 +177,12 @@ Key specifications:
   — multi-batch tranche operations with independent review gates
 - Initial-rule assertion schema: migration `0032_initial_rule_assertions`
 
-## 6. Phase 13: AI Organization Governance and Autonomous Operations
+## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
-**Status:** Foundation in progress. The first governed hierarchy, event bridge,
-authority engine, Board decision path, global pause, and Board Room scaffold are
-implemented; broader departmental runtimes remain pending.
+**Status:** Foundation delivered. The governed hierarchy, event bridge, authority
+engine, Board decision path, global pause, and Board Room scaffold are implemented
+and tested. The active gate is hardening the first end-to-end autonomous flow
+and expanding departmental runtimes.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -309,10 +307,11 @@ After the first organization flow and Board Room pass their release gates:
 - [x] One complete hierarchy from Board to specialist is executable.
 - [x] Authority classification is deterministic and covered by tests.
 - [x] Restricted actions fail closed.
-- [ ] Delegation and escalation are idempotent and traceable.
-- [ ] The CEO produces an evidence-backed Board Packet.
-- [ ] The Board can approve, reject, override, and stop execution. Override is
-  still pending; the other controls are implemented.
+- [x] Delegation and escalation are idempotent and traceable.
+- [x] The CEO produces an evidence-backed Board Packet.
+- [ ] The Board can approve, reject, override, and stop execution. Approve,
+  reject, return-for-analysis, and global pause are implemented; override and
+  per-agent suspension remain.
 - [ ] An emergency scenario reaches the Board without delay.
 - [ ] Routine L1/L2 work completes without unnecessary Board interruption.
 
