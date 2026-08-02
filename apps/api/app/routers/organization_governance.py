@@ -10,6 +10,7 @@ from app.core.db import get_session
 from app.models.domain import (
     BoardPacket,
     ExecutiveDecision,
+    OrganizationalActionOutput,
     OrganizationalWorkItem,
     OrganizationPosition,
     RiskEscalation,
@@ -102,6 +103,21 @@ def list_board_packets(session: Session = Depends(get_session)) -> list[BoardPac
 @router.get("/work-items")
 def list_work_items(session: Session = Depends(get_session)) -> list[OrganizationalWorkItem]:
     return list(session.exec(select(OrganizationalWorkItem).order_by(OrganizationalWorkItem.created_at.desc()).limit(100)).all())
+
+
+@router.get("/work-items/{work_item_id}/outputs")
+def list_work_item_outputs(
+    work_item_id: UUID,
+    session: Session = Depends(get_session),
+) -> list[OrganizationalActionOutput]:
+    if session.get(OrganizationalWorkItem, work_item_id) is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    query = (
+        select(OrganizationalActionOutput)
+        .where(OrganizationalActionOutput.work_item_id == work_item_id)
+        .order_by(OrganizationalActionOutput.created_at)
+    )
+    return list(session.exec(query).all())
 
 
 @router.post("/work-items", status_code=201)

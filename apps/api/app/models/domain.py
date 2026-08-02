@@ -2091,6 +2091,26 @@ class DelegationRecord(SQLModel, table=True):
     completed_at: Optional[datetime] = Field(default=None, index=True)
 
 
+class OrganizationalActionOutput(SQLModel, table=True):
+    __tablename__ = "organizational_action_outputs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    output_key: str = Field(index=True)
+    work_item_id: UUID = Field(index=True, foreign_key="organizational_work_items.id")
+    delegation_record_id: Optional[UUID] = Field(default=None, index=True, foreign_key="delegation_records.id")
+    accountable_position_key: str = Field(index=True)
+    authority_basis: str
+    evidence_json: str = "[]"
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    confidence_basis: str
+    impact_json: str = "{}"
+    rollback_posture: str
+    output_json: str = "{}"
+    status: str = Field(default="completed", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
 class ExecutiveDecision(SQLModel, table=True):
     __tablename__ = "executive_decisions"
 

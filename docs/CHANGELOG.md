@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-02 — Phase 13.4 evidence-grounded organizational outputs
+
+- Added migration `0059_org_action_outputs` and a durable organizational
+  action-output ledger keyed idempotently to each delegation.
+- Every delegated result now records its accountable position, authority basis,
+  evidence references, normalized confidence and its basis, expected impact,
+  rollback posture, bounded output, and execution status.
+- Added a governed aggregate envelope to each completed work item and linked its
+  exact output IDs and aggregate confidence into the pending executive decision.
+- Added `GET /api/v1/organization/work-items/{id}/outputs` for traceable CEO and
+  Board inspection of the evidence behind organizational work.
+- Preserved the human gate: action outputs remain internal, identify blocked
+  external actions, and do not authorize client-facing or irreversible effects.
+- Added regression coverage for routine output persistence, evidence and impact
+  fields, confidence aggregation, replay protection, missing-ledger handling, and
+  L4 decision evidence linkage.
+
 ## 2026-08-02 — Phase 13.5 governed Board Packet generation
 
 - Added the admin-only `POST /api/v1/organization/board-packets` endpoint and a

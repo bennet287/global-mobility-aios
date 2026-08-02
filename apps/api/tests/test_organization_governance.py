@@ -12,6 +12,7 @@ from app.models.domain import (
     BoardPacket,
     DelegationRecord,
     ExecutiveDecision,
+    OrganizationalActionOutput,
     OrganizationPosition,
     OrganizationalWorkItem,
     RiskEscalation,
@@ -101,8 +102,42 @@ def test_domain_event_routes_delegated_work_and_executes_routine_lane(raw_client
     executed = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
     assert executed.status_code == 200, executed.text
     assert executed.json()["status"] == "completed"
+    output = json.loads(executed.json()["output_json"])
+    governance = output["governance"]
+    assert governance["accountable_position_key"] == "coo"
+    assert governance["authority_level"] == "L1"
+    assert 0.0 < governance["confidence"] <= 1.0
+    assert len(governance["organizational_action_output_ids"]) == 2
+    assert "no external action" in governance["rollback_posture"].lower()
+
+    ledger = raw_client.get(f"/api/v1/organization/work-items/{work.id}/outputs")
+    assert ledger.status_code == 200, ledger.text
+    assert len(ledger.json()) == 2
+    persisted = db_session.exec(
+        select(OrganizationalActionOutput).where(OrganizationalActionOutput.work_item_id == work.id)
+    ).all()
+    assert len(persisted) == 2
+    for action_output in persisted:
+        assert action_output.accountable_position_key == "coo"
+        assert action_output.authority_basis
+        assert 0.0 < action_output.confidence <= 1.0
+        assert action_output.confidence_basis
+        assert json.loads(action_output.evidence_json)
+        assert json.loads(action_output.impact_json)["client_facing"] is False
+        assert "no external side effect" in action_output.rollback_posture.lower()
+
     repeated = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
     assert repeated.status_code == 409
+    db_session.expire_all()
+    assert len(db_session.exec(
+        select(OrganizationalActionOutput).where(OrganizationalActionOutput.work_item_id == work.id)
+    ).all()) == 2
+
+
+def test_missing_work_item_output_ledger_returns_not_found(raw_client) -> None:
+    raw_client.headers.update(_headers())
+    response = raw_client.get(f"/api/v1/organization/work-items/{UUID(int=0)}/outputs")
+    assert response.status_code == 404
 
 
 def test_l4_event_reaches_human_board_and_records_decision(raw_client, db_session: Session) -> None:
@@ -137,6 +172,18 @@ def test_l4_event_reaches_human_board_and_records_decision(raw_client, db_sessio
         json={"decision": "approved", "reason": "Operator attempted reserved approval."},
     )
     assert forbidden.status_code == 403
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_board"
+    db_session.refresh(decision)
+    decision_evidence = json.loads(decision.evidence_json)
+    governed_output_evidence = [
+        item for item in decision_evidence if item.get("type") == "organizational_action_outputs"
+    ]
+    assert len(governed_output_evidence) == 1
+    assert len(governed_output_evidence[0]["ids"]) == 2
+    assert 0.0 < governed_output_evidence[0]["aggregate_confidence"] <= 1.0
 
     raw_client.headers.update(_headers("admin", "human-owner"))
     approved = raw_client.post(

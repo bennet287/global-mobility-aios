@@ -14,6 +14,7 @@ from app.models.domain import (
     DelegationRecord,
     ExecutiveDecision,
     OrganizationControl,
+    OrganizationalActionOutput,
     OrganizationalWorkItem,
     OrganizationPosition,
     RiskEscalation,
@@ -71,6 +72,118 @@ def _load(value: str, fallback: Any) -> Any:
         return json.loads(value)
     except (TypeError, ValueError):
         return fallback
+
+
+def _output_confidence(
+    result: dict[str, Any],
+    evidence: list[dict[str, Any]],
+) -> tuple[float, str]:
+    output = result.get("output") if isinstance(result.get("output"), dict) else result
+    raw = output.get("confidence") if isinstance(output, dict) else None
+    if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+        return (
+            round(max(0.0, min(1.0, float(raw))), 4),
+            "Agent supplied a bounded numeric confidence value.",
+        )
+    if isinstance(raw, str):
+        mapped = {"high": 0.85, "medium": 0.65, "low": 0.35}.get(raw.lower())
+        if mapped is not None:
+            return mapped, f"Mapped the agent's qualitative '{raw.lower()}' confidence label."
+    if result.get("status") == "held":
+        return 0.0, "No analytical result was produced because execution was held."
+    if evidence:
+        return 0.5, "Conservative default: provenance exists but the result supplied no confidence."
+    return 0.25, "Conservative default: neither evidence provenance nor explicit confidence was supplied."
+
+
+def _output_evidence(
+    work: OrganizationalWorkItem,
+    *,
+    result_ref: str,
+) -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
+    if work.automation_event_id:
+        evidence.append({"type": "automation_event", "id": str(work.automation_event_id)})
+    if work.corporate_mobility_case_id:
+        evidence.append({"type": "corporate_mobility_case", "id": str(work.corporate_mobility_case_id)})
+    if work.lead_id:
+        evidence.append({"type": "lead", "id": str(work.lead_id)})
+    if result_ref.startswith("agent-run:"):
+        evidence.append({
+            "type": "agent_run",
+            "id": result_ref.removeprefix("agent-run:"),
+            "review_state": "human_review_required",
+        })
+    return evidence
+
+
+def _record_action_output(
+    session: Session,
+    *,
+    work: OrganizationalWorkItem,
+    delegation: DelegationRecord,
+    result: dict[str, Any],
+    result_ref: str,
+    actor: str,
+) -> OrganizationalActionOutput:
+    output_key = f"organization-output:{delegation.id}"
+    action_output = session.exec(
+        select(OrganizationalActionOutput).where(OrganizationalActionOutput.output_key == output_key)
+    ).first()
+    evidence = _output_evidence(work, result_ref=result_ref)
+    confidence, confidence_basis = _output_confidence(result, evidence)
+    result_payload = result.get("output") if isinstance(result.get("output"), dict) else result
+    blocked_actions = result_payload.get("blocked_actions", []) if isinstance(result_payload, dict) else []
+    impact = {
+        "client_facing": False,
+        "human_review_required": bool(
+            result_payload.get("human_review_required", True)
+            if isinstance(result_payload, dict)
+            else True
+        ),
+        "blocked_actions": blocked_actions,
+        "workflow_effect": "analysis_recorded" if delegation.status == "completed" else "execution_held",
+    }
+    rollback_posture = (
+        "Resume the accountable position and replay this delegation; no external side effect occurred."
+        if delegation.status == "held"
+        else "Discard this internal output and reset the delegation to queued; no external side effect occurred."
+    )
+    if action_output is None:
+        action_output = OrganizationalActionOutput(
+            output_key=output_key,
+            work_item_id=work.id,
+            delegation_record_id=delegation.id,
+            accountable_position_key=delegation.delegator_position_key,
+            authority_basis=delegation.authority_basis,
+            rollback_posture=rollback_posture,
+        )
+    action_output.evidence_json = _json(evidence)
+    action_output.confidence = confidence
+    action_output.confidence_basis = confidence_basis
+    action_output.impact_json = _json(impact)
+    action_output.rollback_posture = rollback_posture
+    action_output.output_json = _json(result)
+    action_output.status = delegation.status
+    action_output.updated_at = _now()
+    session.add(action_output)
+    session.flush()
+    record_audit(
+        session,
+        action="organizational_action_output_recorded",
+        entity_type="organizational_action_output",
+        entity_id=action_output.id,
+        after_state={
+            "work_item_id": str(work.id),
+            "accountable_position_key": action_output.accountable_position_key,
+            "confidence": confidence,
+            "confidence_basis": confidence_basis,
+            "status": action_output.status,
+        },
+        actor=actor,
+        source=SOURCE,
+    )
+    return action_output
 
 
 def ensure_foundation_positions(session: Session, *, actor: str = "system") -> list[OrganizationPosition]:
@@ -549,6 +662,7 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
     session.add(work)
     session.commit()
     results: list[dict[str, Any]] = []
+    action_outputs: list[OrganizationalActionOutput] = []
     delegations = session.exec(
         select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
     ).all()
@@ -565,6 +679,14 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
                 "status": "held",
                 "note": f"{delegation.delegate_position_key} is suspended; delegation held.",
             })
+            action_outputs.append(_record_action_output(
+                session,
+                work=work,
+                delegation=delegation,
+                result=results[-1],
+                result_ref=delegation.result_ref,
+                actor=actor,
+            ))
             continue
         if work.lead_id is None:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}
@@ -577,25 +699,80 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
                 context=_load(work.context_json, {}),
                 actor=actor,
             ))
-            result = {"agent": response.agent_name, "run_id": str(response.run_id), "output": response.output}
+            result = {
+                "agent": response.agent_name,
+                "run_id": str(response.run_id),
+                "status": "completed",
+                "output": response.output,
+            }
             result_ref = f"agent-run:{response.run_id}"
         results.append(result)
         delegation.status = "completed"
         delegation.result_ref = result_ref
         delegation.completed_at = _now()
         session.add(delegation)
+        action_outputs.append(_record_action_output(
+            session,
+            work=work,
+            delegation=delegation,
+            result=result,
+            result_ref=result_ref,
+            actor=actor,
+        ))
 
-    work.output_json = _json({"delegated_results": results})
+    completed_confidences = [item.confidence for item in action_outputs if item.status == "completed"]
+    aggregate_confidence = (
+        round(sum(completed_confidences) / len(completed_confidences), 4)
+        if completed_confidences
+        else 0.0
+    )
+    output_ids = [str(item.id) for item in action_outputs]
+    work.output_json = _json({
+        "delegated_results": results,
+        "governance": {
+            "accountable_position_key": work.assigned_position_key,
+            "authority_level": work.authority_level,
+            "authority_basis": [item.authority_basis for item in action_outputs],
+            "organizational_action_output_ids": output_ids,
+            "confidence": aggregate_confidence,
+            "confidence_basis": "Arithmetic mean of completed delegated action-output confidence values.",
+            "expected_impact": "Bounded internal analysis recorded for the accountable decision owner.",
+            "rollback_posture": "Discard outputs and replay delegations; no external action was authorized.",
+        },
+    })
     work.status = "pending_board" if work.authority_level == "L4" else "pending_ceo" if work.authority_level == "L3" else "completed"
     work.completed_at = _now() if work.status == "completed" else None
     work.updated_at = _now()
     session.add(work)
+    decision = session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
+    ).first()
+    if decision is not None:
+        evidence = _load(decision.evidence_json, [])
+        evidence = [
+            item
+            for item in evidence
+            if not isinstance(item, dict) or item.get("type") != "organizational_action_outputs"
+        ]
+        evidence.append({
+            "type": "organizational_action_outputs",
+            "ids": output_ids,
+            "aggregate_confidence": aggregate_confidence,
+        })
+        decision.evidence_json = _json(evidence)
+        decision.updated_at = _now()
+        session.add(decision)
     record_audit(
         session,
         action="organization_work_executed",
         entity_type="organizational_work_item",
         entity_id=work.id,
-        after_state={"status": work.status, "delegations": len(results)},
+        after_state={
+            "status": work.status,
+            "delegations": len(results),
+            "action_outputs": len(action_outputs),
+            "confidence": aggregate_confidence,
+        },
         actor=actor,
         source=SOURCE,
     )

@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0058_deadline_emergency_escalation`
+**Code migration head:** `0059_org_action_outputs`
 
 | Area | State | Current position |
 |---|---|---|
@@ -60,11 +60,12 @@ The target operating model is defined in
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0058`.
+- Migration-chain integrity: passing with one head at `0059`.
 - Docker production-profile validation: passing.
-- API tests: **420 passing and 0 failing**.
-- Local SQLite database: aligned at `0058`.
-- Docker PostgreSQL database: aligned at `0058`.
+- API tests: **421 passing and 0 failing**.
+- Local SQLite database: aligned at `0059`.
+- Docker PostgreSQL database: runtime not active during this slice; migration
+  `0059` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation and Board
@@ -220,7 +221,9 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [x] Add durable organizational task, delegation, decision, escalation,
   override, and executive-decision ledgers.
 - [ ] Require every action to identify its accountable position, authority basis,
-  evidence, confidence, impact, and rollback posture.
+  evidence, confidence, impact, and rollback posture. Delegated organizational
+  outputs now satisfy this contract; remaining external action paths must still
+  be proven.
 - [x] Prevent an agent from approving its own restricted recommendation.
 - [x] Add deadlines, reminders, delegation expiry, and escalation-on-timeout.
 
@@ -260,7 +263,8 @@ Lead or case event
 
 - [x] Consume an existing governed domain event idempotently.
 - [x] Create an organizational task and delegate it to the correct specialist.
-- [ ] Record evidence-grounded outputs and confidence.
+- [x] Record evidence-grounded outputs and confidence through the durable,
+  idempotently keyed organizational action-output ledger.
 - [x] Route L1/L2/L3/L4 outcomes according to the authority matrix.
 - [x] Demonstrate timeout and escalation-on-timeout safety; retry, cancellation, and replay safety remain.
 - [ ] Prove that no client message, authority submission, payment, contract, or
