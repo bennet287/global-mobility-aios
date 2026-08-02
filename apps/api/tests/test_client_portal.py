@@ -254,3 +254,113 @@ def test_portal_dashboard_exposes_agency_workflows(
         assert "notes" not in data[section][0]
         assert "created_by" not in data[section][0]
         assert "updated_by" not in data[section][0]
+
+
+def test_portal_device_binding_binds_on_first_access_and_rejects_mismatched_device(
+    client, raw_client, db_session: Session
+) -> None:
+    lead = create_lead(db_session, name="Device Bound Client")
+    grant, token = issue_client_portal_grant(
+        db_session,
+        lead.id,
+        actor="pytest-operator",
+    )
+    assert grant.device_fingerprint is None
+
+    # First access binds the device fingerprint.
+    first = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={
+            "X-GMAI-Portal-Token": token,
+            "X-GMAI-Portal-Device": "device-alpha",
+            "User-Agent": "pytest-first-device",
+        },
+    )
+    assert first.status_code == 200, first.text
+    db_session.refresh(grant)
+    assert grant.device_fingerprint == "device-alpha"
+    assert grant.user_agent == "pytest-first-device"
+    actions = {
+        row.action
+        for row in db_session.exec(
+            select(AuditLog).where(AuditLog.entity_id == str(grant.id))
+        ).all()
+    }
+    assert "client_portal_device_bound" in actions
+
+    # Second access with the same fingerprint succeeds.
+    second = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={
+            "X-GMAI-Portal-Token": token,
+            "X-GMAI-Portal-Device": "device-alpha",
+        },
+    )
+    assert second.status_code == 200, second.text
+    db_session.refresh(grant)
+    assert grant.access_count == 2
+
+    # Access with a different fingerprint returns 403 and signals a new-grant request.
+    mismatch = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={
+            "X-GMAI-Portal-Token": token,
+            "X-GMAI-Portal-Device": "device-beta",
+        },
+    )
+    assert mismatch.status_code == 403, mismatch.text
+    data = mismatch.json()
+    assert data.get("action") == "request_new_grant"
+
+    # Access without a device header after binding is also rejected.
+    missing = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={"X-GMAI-Portal-Token": token},
+    )
+    assert missing.status_code == 403, missing.text
+
+
+def test_portal_grant_read_exposes_device_fields_after_binding(
+    client, raw_client, db_session: Session
+) -> None:
+    lead = create_lead(db_session, name="Device Read Client")
+    grant, token = issue_client_portal_grant(
+        db_session,
+        lead.id,
+        actor="pytest-operator",
+    )
+    raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={
+            "X-GMAI-Portal-Token": token,
+            "X-GMAI-Portal-Device": "device-read",
+        },
+    )
+
+    listed = client.get("/api/v1/client-portal/grants")
+    assert listed.status_code == 200, listed.text
+    items = listed.json()
+    matching = [item for item in items if item["id"] == str(grant.id)]
+    assert len(matching) == 1
+    assert matching[0]["device_fingerprint"] == "device-read"
+    assert matching[0]["access_count"] >= 1
+
+
+def test_portal_grant_list_without_device_binding_shows_null_fields(
+    client, db_session: Session
+) -> None:
+    lead = create_lead(db_session, name="Unbound Device Client")
+    grant, _token = issue_client_portal_grant(
+        db_session,
+        lead.id,
+        actor="pytest-operator",
+    )
+    assert grant.device_fingerprint is None
+
+    listed = client.get("/api/v1/client-portal/grants")
+    assert listed.status_code == 200, listed.text
+    matching = [item for item in listed.json() if item["id"] == str(grant.id)]
+    assert len(matching) == 1
+    assert matching[0]["device_fingerprint"] is None
+    assert matching[0]["device_label"] is None
+    assert matching[0]["user_agent"] is None

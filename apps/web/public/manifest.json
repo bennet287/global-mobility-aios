@@ -1,0 +1,19 @@
+{
+  "name": "GMAI Private Mobility Workspace",
+  "short_name": "GMAI Portal",
+  "description": "A secure, expiring view of your mobility case progress and document status.",
+  "start_url": "/portal",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#0d6b53",
+  "orientation": "portrait-primary",
+  "scope": "/portal",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

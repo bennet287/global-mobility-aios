@@ -9,6 +9,95 @@ import {
 
 
 const TOKEN_STORAGE_KEY = "gmai-client-portal-token";
+const DEVICE_STORAGE_KEY = "gmai-client-portal-device";
+
+function getDeviceFingerprint(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  try {
+    let fingerprint = sessionStorage.getItem(DEVICE_STORAGE_KEY);
+    if (fingerprint) {
+      return fingerprint;
+    }
+    const raw = [
+      navigator.userAgent,
+      screen.width,
+      screen.height,
+      screen.colorDepth,
+      navigator.language,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      new Date().getTime(),
+      Math.random(),
+    ].join("|");
+    fingerprint = btoa(raw).replace(/[^a-zA-Z0-9]/g, "").slice(0, 64);
+    sessionStorage.setItem(DEVICE_STORAGE_KEY, fingerprint);
+    return fingerprint;
+  } catch {
+    return "";
+  }
+}
+
+function getDeviceLabel(): string {
+  if (typeof navigator === "undefined") {
+    return "Unknown device";
+  }
+  const platform = navigator.platform || "Unknown";
+  const vendor = navigator.vendor || "";
+  return `${vendor} ${platform}`.trim() || "Browser device";
+}
+
+function isDeviceMismatchError(errorText: string): boolean {
+  try {
+    const parsed = JSON.parse(errorText) as { action?: string };
+    return parsed.action === "request_new_grant";
+  } catch {
+    return errorText.includes("request_new_grant");
+  }
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+function PwaInstallPrompt() {
+  const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      event.preventDefault();
+      setPrompt(event as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  if (!prompt || dismissed) {
+    return null;
+  }
+
+  return (
+    <div className="portal-install-prompt">
+      <span>Add this workspace to your home screen for quick, secure access.</span>
+      <button
+        onClick={async () => {
+          await prompt.prompt();
+          const choice = await prompt.userChoice;
+          if (choice.outcome === "accepted") {
+            setPrompt(null);
+          } else {
+            setDismissed(true);
+          }
+        }}
+      >
+        Install
+      </button>
+      <button onClick={() => setDismissed(true)}>Dismiss</button>
+    </div>
+  );
+}
 
 function pretty(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -48,14 +137,22 @@ export function ClientPortalPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getClientPortalDashboard(clean);
+      const fingerprint = getDeviceFingerprint();
+      const data = await getClientPortalDashboard(clean, fingerprint);
       sessionStorage.setItem(TOKEN_STORAGE_KEY, clean);
       setDashboard(data);
       window.history.replaceState({}, "", "/portal");
-    } catch {
+    } catch (exc) {
       sessionStorage.removeItem(TOKEN_STORAGE_KEY);
       setDashboard(null);
-      setError("This secure link is invalid, expired, or has been revoked.");
+      const errorText = exc instanceof Error ? exc.message : String(exc);
+      if (isDeviceMismatchError(errorText)) {
+        setError(
+          "This secure link is bound to a different device. Please contact your consultant for a new access link."
+        );
+      } else {
+        setError("This secure link is invalid, expired, or has been revoked.");
+      }
     } finally {
       setLoading(false);
     }
@@ -142,12 +239,17 @@ export function ClientPortalPage() {
         </div>
         <div className="portal-session">
           <span className="portal-secure-dot" />
-          Secure session
+          <span>
+            Secure session
+            <small>{getDeviceLabel()}</small>
+          </span>
           <button onClick={signOut}>Close</button>
         </div>
       </header>
 
       <div className="portal-canvas">
+        <PwaInstallPrompt />
+
         <section className="portal-hero">
           <div>
             <span className="portal-eyebrow">Your mobility workspace</span>

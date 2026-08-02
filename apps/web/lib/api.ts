@@ -1972,9 +1972,13 @@ export async function issueClientPortalGrant(
   });
 }
 
-export async function getClientPortalDashboard(token: string): Promise<ClientPortalDashboard> {
+export async function getClientPortalDashboard(token: string, deviceFingerprint?: string): Promise<ClientPortalDashboard> {
+  const headers: Record<string, string> = { "X-GMAI-Portal-Token": token };
+  if (deviceFingerprint) {
+    headers["X-GMAI-Portal-Device"] = deviceFingerprint;
+  }
   return request<ClientPortalDashboard>("/api/v1/public/client-portal/dashboard", {
-    headers: { "X-GMAI-Portal-Token": token },
+    headers,
   });
 }
 

@@ -26,6 +26,9 @@ class ClientPortalGrantRead(BaseModel):
     created_by: str
     access_count: int
     last_accessed_at: datetime | None = None
+    device_fingerprint: str | None = None
+    device_label: str | None = None
+    user_agent: str | None = None
     revoked_by: str | None = None
     revoked_at: datetime | None = None
     revocation_reason: str | None = None

@@ -46,6 +46,9 @@ def _safe_grant(grant: ClientPortalAccessGrant) -> dict[str, object]:
         "created_by": grant.created_by,
         "access_count": grant.access_count,
         "last_accessed_at": grant.last_accessed_at.isoformat() if grant.last_accessed_at else None,
+        "device_fingerprint": grant.device_fingerprint,
+        "device_label": grant.device_label,
+        "user_agent": grant.user_agent,
         "revoked_by": grant.revoked_by,
         "revoked_at": grant.revoked_at.isoformat() if grant.revoked_at else None,
         "revocation_reason": grant.revocation_reason,
@@ -143,6 +146,9 @@ def resolve_client_portal_grant(
     token: str,
     *,
     expected_lead_id: UUID | None = None,
+    device_fingerprint: str | None = None,
+    device_label: str | None = None,
+    user_agent: str | None = None,
 ) -> ClientPortalAccessGrant:
     clean_token = token.strip()
     if not clean_token.startswith("gmai_portal_") or len(clean_token) > 256:
@@ -173,6 +179,39 @@ def resolve_client_portal_grant(
         )
         session.commit()
         raise ValueError("Client portal access is invalid or unavailable")
+
+    # Device binding: first access binds; subsequent accesses must match.
+    normalized_fingerprint = (device_fingerprint or "").strip() or None
+    if grant.device_fingerprint is None:
+        if normalized_fingerprint:
+            grant.device_fingerprint = normalized_fingerprint
+            grant.device_label = (device_label or "").strip()[:120] or None
+            grant.user_agent = (user_agent or "").strip()[:500] or None
+            grant.updated_at = now_utc()
+            session.add(grant)
+            record_audit(
+                session,
+                action="client_portal_device_bound",
+                entity_type="client_portal_access_grant",
+                entity_id=grant.id,
+                after_state={
+                    "grant_id": str(grant.id),
+                    "lead_id": str(grant.lead_id),
+                    "device_fingerprint": grant.device_fingerprint,
+                    "device_label": grant.device_label,
+                    "user_agent": grant.user_agent,
+                },
+                reason="First portal access bound this device to the grant.",
+                actor="client-portal",
+                source=PORTAL_SOURCE,
+            )
+            session.commit()
+            session.refresh(grant)
+    elif not normalized_fingerprint or not hmac.compare_digest(
+        grant.device_fingerprint, normalized_fingerprint
+    ):
+        raise ValueError("device_mismatch: client portal grant is bound to a different device")
+
     return grant
 
 
@@ -263,8 +302,21 @@ def _milestones(lead: Lead, application: ApplicationRecord | None, documents: li
     ]
 
 
-def client_portal_dashboard(session: Session, token: str) -> dict[str, object]:
-    grant = resolve_client_portal_grant(session, token)
+def client_portal_dashboard(
+    session: Session,
+    token: str,
+    *,
+    device_fingerprint: str | None = None,
+    device_label: str | None = None,
+    user_agent: str | None = None,
+) -> dict[str, object]:
+    grant = resolve_client_portal_grant(
+        session,
+        token,
+        device_fingerprint=device_fingerprint,
+        device_label=device_label,
+        user_agent=user_agent,
+    )
     lead = session.get(Lead, grant.lead_id)
     if lead is None:
         raise ValueError("Client portal access is invalid or unavailable")

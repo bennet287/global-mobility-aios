@@ -1397,6 +1397,9 @@ class ClientPortalAccessGrant(SQLModel, table=True):
     created_by: str = Field(index=True)
     access_count: int = 0
     last_accessed_at: Optional[datetime] = Field(default=None, index=True)
+    device_fingerprint: Optional[str] = Field(default=None, index=True)
+    device_label: Optional[str] = None
+    user_agent: Optional[str] = None
     revoked_by: Optional[str] = Field(default=None, index=True)
     revoked_at: Optional[datetime] = Field(default=None, index=True)
     revocation_reason: Optional[str] = None

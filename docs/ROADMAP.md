@@ -69,6 +69,17 @@ Current database migration head: `0051_authority_submission_checklist`.
 - The client portal TypeScript types and UI were updated to render the four agency workflow sections (appointments, submissions, external agency assignments, and authority checklist grouped by authority).
 - See `docs/CLIENT_PORTAL_FOUNDATION_V12_0.md`.
 
+## Delivery Status — v12.8.7 (2026-08-01)
+
+Current database migration head: `0055_client_portal_device_binding`.
+
+- v12.8.7 delivers the Phase 12 native/mobile slice as a PWA/mobile-web foundation with device-specific secure session controls for the client portal.
+- `ClientPortalAccessGrant` now carries `device_fingerprint`, `device_label`, and `user_agent`. The first successful dashboard access binds the presenting device fingerprint to the grant; subsequent accesses require the same fingerprint.
+- A mismatched or missing device fingerprint returns `403` with `action: "request_new_grant"`, and the portal UI explains that the client must contact their consultant for a new access link.
+- The portal gained a Next.js PWA manifest (`/manifest.json`), a minimal offline-aware service worker (`/sw.js`), mobile viewport meta tags, and a browser install prompt. The bound device label is shown in the session header.
+- Existing grants remain usable until first access under the new code binds them, preserving backward compatibility.
+- See `docs/CLIENT_PORTAL_FOUNDATION_V12_0.md`. A full native wrapper remains a future, usage-driven decision.
+
 ## Delivery Status — v12.8.5 (2026-07-24)
 
 Current database migration head: `0051_authority_submission_checklist`.
@@ -579,7 +590,7 @@ Current database migration head: `0032_initial_rule_assertions`.
 - **Phase 10D:** complete.
 - **Phase 10E:** complete.
 - **Phase 11:** complete; corporate mobility, entrepreneur dossiers, Business & Wealth advisory, governed investment programs, client readiness comparison, dedicated HNWI/family-office controls, governed tax/treaty intelligence, and the first independently published jurisdiction program are delivered. Further jurisdiction and treaty evidence onboarding remains ongoing operational expansion.
-- **Phase 12:** in progress; secure responsive client, employer, and partner portals, stable account-scoped external APIs, the governed event/outbox automation foundation, credential-backed provider adapters with retry and scheduled delivery workers, authority appointment tracking, agency submission tracking, automation outbox bridge, external agency assignment tracking, and authority submission checklists are delivered. Native/mobile access, remaining government and agency workflow depth, and additional provider health/reconciliation tooling remain.
+- **Phase 12:** in progress; secure responsive client, employer, and partner portals, stable account-scoped external APIs, the governed event/outbox automation foundation, credential-backed provider adapters with retry and scheduled delivery workers, authority appointment tracking, agency submission tracking, automation outbox bridge, external agency assignment tracking, authority submission checklists, and client portal PWA/mobile device-specific session controls are delivered. Remaining government and agency workflow depth and additional provider health/reconciliation tooling remain.
 - **Phase 13:** not started; all listed capability groups remain future work.
 
 ## Current Baseline: MVP Phases 1-5
@@ -927,7 +938,7 @@ Historical and predictive analytics remain gated until sufficient verified histo
 ## Phase 12: Channels, Ecosystem, and Automation — In Progress
 
 - [x] Dedicated responsive client web portal with expiring lead-scoped access, a client-safe dashboard, revocation, and audit
-- [ ] Native/mobile application and device-specific secure session controls
+- [x] Native/mobile application and device-specific secure session controls
 - [x] Employer and partner portal with account-derived tenant isolation, expiring access, minimized projections, revocation, and audit
 - [x] Versioned public/partner APIs with stable projections, account-derived tenancy, scoped expiring credentials, revocation, pagination, and audit
 - [x] Email, messaging, calendar, CRM, and case-event automation
