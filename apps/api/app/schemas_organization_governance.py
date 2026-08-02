@@ -24,6 +24,10 @@ class GovernanceDecisionRequest(BaseModel):
     reason: str = Field(min_length=8, max_length=2000)
 
 
+class BoardPacketCreateRequest(BaseModel):
+    packet_type: Literal["on_demand", "daily", "weekly", "incident"] = "on_demand"
+
+
 class DeadlineRequest(BaseModel):
     due_at: datetime
 

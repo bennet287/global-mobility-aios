@@ -83,5 +83,15 @@ celery_app.conf.update(
             "schedule": 30.0,
             "args": (25,),
         },
+        "generate-daily-board-packet": {
+            "task": "app.tasks.organization_tasks.generate_recurring_board_packet",
+            "schedule": 86400.0,
+            "args": ("daily",),
+        },
+        "generate-weekly-board-packet": {
+            "task": "app.tasks.organization_tasks.generate_recurring_board_packet",
+            "schedule": 604800.0,
+            "args": ("weekly",),
+        },
     },
 )

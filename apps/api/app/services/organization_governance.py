@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlmodel import Session, func, select
 
@@ -413,6 +413,8 @@ def mark_work_emergency(
             work = escalate_work_item(session, work, reason=reason, actor=actor, emergency=True)
         except ValueError:
             break
+    create_board_packet(session, packet_type="incident", actor=actor, trigger_key=str(work.id))
+    session.refresh(work)
     return work
 
 
@@ -668,6 +670,7 @@ def board_packet_snapshot(session: Session) -> dict[str, Any]:
             "pending_ceo": sum(1 for item in decisions if item.status == "pending_ceo"),
             "pending_board": sum(1 for item in decisions if item.status == "pending_board"),
             "open_risks": len(risks),
+            "emergencies": sum(1 for item in risks if item.is_emergency),
         },
         "positions": positions,
         "recent_work": work,
@@ -675,3 +678,149 @@ def board_packet_snapshot(session: Session) -> dict[str, Any]:
         "open_risks": risks,
         "recent_packets": packets,
     }
+
+
+def create_board_packet(
+    session: Session,
+    *,
+    packet_type: str = "on_demand",
+    actor: str = "ceo",
+    trigger_key: str | None = None,
+) -> BoardPacket:
+    if packet_type not in {"on_demand", "daily", "weekly", "incident"}:
+        raise ValueError("Unsupported Board Packet type")
+
+    ensure_foundation_positions(session)
+    period_end = _now()
+    if packet_type == "daily":
+        period_start = period_end.replace(hour=0, minute=0, second=0, microsecond=0)
+        packet_key = f"packet:daily:{period_start.date().isoformat()}"
+    elif packet_type == "weekly":
+        period_start = (period_end - timedelta(days=period_end.weekday())).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        iso_year, iso_week, _ = period_start.isocalendar()
+        packet_key = f"packet:weekly:{iso_year}-W{iso_week:02d}"
+    elif packet_type == "incident":
+        period_start = period_end
+        packet_key = f"packet:incident:{trigger_key or uuid4()}"
+    else:
+        period_start = period_end
+        packet_key = f"packet:on_demand:{uuid4()}"
+
+    existing = session.exec(select(BoardPacket).where(BoardPacket.packet_key == packet_key)).first()
+    if existing is not None:
+        return existing
+
+    positions = session.exec(select(OrganizationPosition).where(OrganizationPosition.status == "active")).all()
+    pending_decisions = session.exec(select(ExecutiveDecision).where(ExecutiveDecision.status.in_(["pending_ceo", "pending_board"])).order_by(ExecutiveDecision.created_at.desc())).all()
+    open_risks = session.exec(select(RiskEscalation).where(RiskEscalation.status == "open").order_by(RiskEscalation.created_at.desc())).all()
+    recent_work = session.exec(select(OrganizationalWorkItem).order_by(OrganizationalWorkItem.created_at.desc()).limit(20)).all()
+
+    board_decisions = [item for item in pending_decisions if item.status == "pending_board"]
+    ceo_decisions = [item for item in pending_decisions if item.status == "pending_ceo"]
+    emergencies = [item for item in open_risks if item.is_emergency]
+
+    summary_lines = [
+        f"Active positions: {len(positions)}.",
+        f"Pending Board decisions: {len(board_decisions)}.",
+        f"Pending CEO decisions: {len(ceo_decisions)}.",
+        f"Open risks: {len(open_risks)} ({len(emergencies)} emergency).",
+    ]
+    if emergencies:
+        summary_lines.append(f"Emergency attention required: {', '.join(item.title for item in emergencies[:3])}.")
+    if board_decisions:
+        summary_lines.append("Board action is requested on the pending decisions listed below.")
+
+    recommendation = "Review pending Board decisions, confirm emergency containment, and approve or return the proposed actions."
+    if not board_decisions and not emergencies:
+        recommendation = "No Board action required at this time; routine monitoring continues."
+
+    decision_evidence = [
+        {
+            "decision_id": str(item.id),
+            "evidence": _load(item.evidence_json, []),
+            "alternatives": _load(item.alternatives_json, []),
+            "expected_impact": _load(item.impact_json, {}),
+        }
+        for item in board_decisions[:10]
+    ]
+    risk_evidence = [
+        {
+            "risk_id": str(item.id),
+            "evidence": _load(item.evidence_json, []),
+            "containment": _load(item.containment_json, []),
+        }
+        for item in open_risks[:10]
+    ]
+    content = {
+        "period_start": period_start.isoformat(),
+        "period_end": period_end.isoformat(),
+        "executive_summary": " ".join(summary_lines),
+        "ceo_recommendation": recommendation,
+        "approval_requested": (
+            "Decide each item in decisions_for_board and confirm emergency containment."
+            if board_decisions or emergencies
+            else "No approval requested; acknowledge the monitoring update."
+        ),
+        "evidence": {
+            "active_positions": [p.position_key for p in positions],
+            "pending_decisions_count": len(pending_decisions),
+            "open_risks_count": len(open_risks),
+            "recent_work_count": len(recent_work),
+            "decision_evidence": decision_evidence,
+            "risk_evidence": risk_evidence,
+        },
+        "evidence_summary": (
+            f"Grounded in {len(pending_decisions)} pending decision records, "
+            f"{len(open_risks)} open risk records, and {len(recent_work)} recent work items."
+        ),
+        "alternatives": ["approve", "return_for_more_evidence", "reject"],
+        "expected_impact": {
+            "governance": "Board oversight and decision authority exercised.",
+            "operational": "Pending decisions remain held until Board action."
+        },
+        "cost_or_resource_impact": (
+            "Not quantified in the current evidence; Board should return any "
+            "item requiring a cost decision."
+        ),
+        "urgency": "immediate" if emergencies else "routine",
+        "dissenting_views": [],
+        "decisions_for_board": [{
+            "id": str(item.id),
+            "title": item.title,
+            "question": item.question,
+            "authority_level": item.authority_level,
+        } for item in board_decisions[:10]],
+        "emergencies": [{
+            "id": str(item.id),
+            "title": item.title,
+            "severity": item.severity,
+            "work_item_id": str(item.work_item_id) if item.work_item_id else None,
+        } for item in emergencies[:10]],
+    }
+
+    packet = BoardPacket(
+        packet_key=packet_key,
+        packet_type=packet_type,
+        period_start=period_start,
+        period_end=period_end,
+        ceo_summary=" ".join(summary_lines),
+        content_json=_json(content),
+        status="published",
+        prepared_by_position="ceo",
+        published_at=period_end,
+    )
+    session.add(packet)
+    record_audit(
+        session,
+        action="board_packet_created",
+        entity_type="board_packet",
+        entity_id=packet.id,
+        after_state={"packet_type": packet_type, "prepared_by": "ceo"},
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(packet)
+    return packet

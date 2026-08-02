@@ -7,8 +7,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from app.core.db import get_session
-from app.models.domain import ExecutiveDecision, OrganizationalWorkItem, OrganizationPosition, RiskEscalation
+from app.models.domain import (
+    BoardPacket,
+    ExecutiveDecision,
+    OrganizationalWorkItem,
+    OrganizationPosition,
+    RiskEscalation,
+)
 from app.schemas_organization_governance import (
+    BoardPacketCreateRequest,
     DeadlineRequest,
     EmergencyRequest,
     EscalationRequest,
@@ -24,6 +31,7 @@ from app.services.organization_governance import (
     board_packet_snapshot,
     board_override_decision,
     classify_authority,
+    create_board_packet,
     decide_executive_decision,
     ensure_foundation_positions,
     escalate_work_item,
@@ -73,6 +81,22 @@ def list_positions(session: Session = Depends(get_session)) -> list[Organization
 @router.get("/board-packet")
 def get_board_packet(session: Session = Depends(get_session)) -> dict:
     return board_packet_snapshot(session)
+
+
+@router.post("/board-packets", status_code=201)
+def create_board_packet_endpoint(
+    payload: BoardPacketCreateRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> BoardPacket:
+    _admin(request)
+    return create_board_packet(session, packet_type=payload.packet_type, actor=_actor(request))
+
+
+@router.get("/board-packets")
+def list_board_packets(session: Session = Depends(get_session)) -> list[BoardPacket]:
+    query = select(BoardPacket).order_by(BoardPacket.created_at.desc()).limit(50)
+    return list(session.exec(query).all())
 
 
 @router.get("/work-items")

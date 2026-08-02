@@ -52,22 +52,24 @@ The target operating model is defined in
 | Phase 10 evidence operations | Ongoing | Software workflow is complete; jurisdiction evidence onboarding and independent review remain incomplete |
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
-| Phase 12 release posture | Stabilization required | Database alignment, client-session security, one failing API test, and frontend regression coverage remain open |
-| Phase 13 | Foundation in progress | AI Organization Governance and Autonomous Operations |
+| Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
+| Phase 13 | Governance hardening in progress | AI Organization runtime, Board controls, and Board Packet reporting delivered; autonomous-flow hardening remains |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0056`.
+- Migration-chain integrity: passing with one head at `0058`.
 - Docker production-profile validation: passing.
-- API tests: **416 passing and 0 failing**.
+- API tests: **420 passing and 0 failing**.
 - Local SQLite database: aligned at `0058`.
 - Docker PostgreSQL database: aligned at `0058`.
 - Local quality gate: passing.
 
-The repository is release-ready for the Phase 13 foundation. The next active gate is Phase 13 departmental expansion and end-to-end autonomous-flow hardening.
+The repository is release-ready for the Phase 13 governance foundation and Board
+Packet reporting slice. The next active gate is evidence-grounded autonomous-flow
+hardening, followed by controlled departmental expansion.
 
 ## 3. Execution Order
 
@@ -180,10 +182,11 @@ Key specifications:
 
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
-**Status:** Foundation delivered. The governed hierarchy, event bridge, authority
-engine, Board decision path, global pause, and Board Room scaffold are implemented
-and tested. The active gate is hardening the first end-to-end autonomous flow
-and expanding departmental runtimes.
+**Status:** Governance foundation and Board reporting delivered. The hierarchy,
+event bridge, authority engine, Board decision path, global and per-agent controls,
+Board Room, and recurring/on-demand/incident Board Packets are implemented and
+tested. The active gate is hardening evidence-grounded autonomous execution before
+expanding departmental runtimes.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -267,8 +270,8 @@ Lead or case event
 
 - [x] Build a Board Room scaffold with pending Board decisions,
   material risks, organizational health, autonomous actions, and overrides.
-- [ ] Generate recurring, on-demand, and incident-triggered Board Packets.
-- [ ] Show the CEO recommendation, evidence, alternatives, expected impact,
+- [x] Generate recurring, on-demand, and incident-triggered Board Packets.
+- [x] Show the CEO recommendation, evidence, alternatives, expected impact,
   dissenting executive views, cost, urgency, and exact approval requested.
 - [x] Complete all Board controls. Approve, reject, return-for-analysis, and
   global pause are implemented; override and per-agent suspension are now

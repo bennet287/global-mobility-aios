@@ -6,14 +6,18 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.core.celery_app import celery_app
-from app.core.db import engine
+from app.core import db as db_module
 from app.models.domain import ExecutiveDecision, OrganizationalWorkItem
-from app.services.organization_governance import escalate_work_item, execute_work_item
+from app.services.organization_governance import (
+    create_board_packet,
+    escalate_work_item,
+    execute_work_item,
+)
 
 
 @celery_app.task(name="app.tasks.organization_tasks.execute_organization_work_item")
 def execute_organization_work_item_task(work_item_id: str) -> dict:
-    with Session(engine) as session:
+    with Session(db_module.engine) as session:
         work = session.get(OrganizationalWorkItem, UUID(work_item_id))
         if work is None:
             return {"status": "not_found", "work_item_id": work_item_id}
@@ -26,7 +30,7 @@ def execute_organization_work_item_task(work_item_id: str) -> dict:
 
 @celery_app.task(name="app.tasks.organization_tasks.scan_organization_work")
 def scan_organization_work_task(limit: int = 25) -> dict:
-    with Session(engine) as session:
+    with Session(db_module.engine) as session:
         ids = session.exec(
             select(OrganizationalWorkItem.id)
             .where(OrganizationalWorkItem.status == "queued")
@@ -43,7 +47,7 @@ def scan_organization_deadlines_task(overdue_seconds: int = 60, reminder_seconds
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     escalated = 0
     reminded = 0
-    with Session(engine) as session:
+    with Session(db_module.engine) as session:
         overdue_work = session.exec(
             select(OrganizationalWorkItem).where(
                 OrganizationalWorkItem.status.in_(["queued", "running", "pending_ceo", "pending_board"]),
@@ -76,3 +80,14 @@ def scan_organization_deadlines_task(overdue_seconds: int = 60, reminder_seconds
             reminded += 1
         session.commit()
     return {"escalated": escalated, "reminded": reminded}
+
+
+@celery_app.task(name="app.tasks.organization_tasks.generate_recurring_board_packet")
+def generate_recurring_board_packet_task(packet_type: str = "daily") -> dict:
+    with Session(db_module.engine) as session:
+        packet = create_board_packet(
+            session,
+            packet_type=packet_type,
+            actor="organization-board-packet-scheduler",
+        )
+    return {"packet_id": str(packet.id), "packet_type": packet_type, "packet_key": packet.packet_key}

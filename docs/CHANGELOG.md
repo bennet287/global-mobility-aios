@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-02 — Phase 13.5 governed Board Packet generation
+
+- Added the admin-only `POST /api/v1/organization/board-packets` endpoint and a
+  recent-packet ledger for on-demand Board reporting.
+- Added CEO-prepared packet content covering the recommendation, exact approval
+  requested, source-record evidence, alternatives, expected impact, dissent,
+  resource impact, urgency, pending Board decisions, and emergency risks.
+- Added daily and weekly Celery Beat generation with deterministic packet keys,
+  making recurring task retries replay-safe instead of publishing duplicates.
+- Connected emergency escalation to an idempotent incident Board Packet keyed to
+  the affected organizational work item.
+- Corrected organization task database-engine lookup so isolated runtimes and
+  tests always use the active configured engine.
+- Added regression coverage for Board-only creation, packet content and listing,
+  emergency generation, recurring task execution, schedule registration, and
+  recurring-packet replay safety.
+
 ## 2026-08-02 — Phase 13.2 deadline, reminder, and emergency escalation controls
 
 - Added migration `0058_deadline_emergency_escalation` to track `due_at`,

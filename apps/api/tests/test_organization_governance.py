@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     AuditLog,
+    BoardPacket,
     DelegationRecord,
     ExecutiveDecision,
     OrganizationPosition,
@@ -457,3 +458,104 @@ def test_decision_deadline_sets_reminder_track(raw_client, db_session: Session) 
     response = raw_client.post(f"/api/v1/organization/decisions/{decision.id}/deadline", json={"due_at": due})
     assert response.status_code == 200, response.text
     assert response.json()["due_at"] is not None
+
+
+def test_board_can_create_on_demand_board_packet(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "board-packet-market-entry-001",
+        "title": "Enter a new jurisdiction",
+        "objective": "Board must review market entry.",
+        "department": "Executive",
+        "action": "market.entry",
+    })
+    assert created.status_code == 201, created.text
+
+    raw_client.headers.update(_headers("operator", "department-operator"))
+    forbidden = raw_client.post("/api/v1/organization/board-packets", json={"packet_type": "on_demand"})
+    assert forbidden.status_code == 403
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    packet = raw_client.post("/api/v1/organization/board-packets", json={"packet_type": "on_demand"})
+    assert packet.status_code == 201, packet.text
+    assert packet.json()["packet_type"] == "on_demand"
+    assert packet.json()["prepared_by_position"] == "ceo"
+    assert packet.json()["status"] == "published"
+    content = json.loads(packet.json()["content_json"])
+    assert "ceo_recommendation" in content
+    assert "approval_requested" in content
+    assert "evidence_summary" in content
+    assert "alternatives" in content
+    assert "expected_impact" in content
+    assert "dissenting_views" in content
+    assert "cost_or_resource_impact" in content
+    assert "urgency" in content
+    assert "decisions_for_board" in content
+    assert any("market.entry" in item["title"].lower() or "jurisdiction" in item["title"].lower() for item in content["decisions_for_board"])
+
+    listed = raw_client.get("/api/v1/organization/board-packets")
+    assert listed.status_code == 200
+    assert any(item["id"] == packet.json()["id"] for item in listed.json())
+
+    snapshot = raw_client.get("/api/v1/organization/board-packet")
+    assert snapshot.status_code == 200
+    assert snapshot.json()["metrics"]["pending_board"] >= 1
+
+
+def test_emergency_creates_incident_board_packet(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "emergency-board-packet-001",
+        "title": "Client harm risk",
+        "objective": "Emergency must trigger incident Board Packet.",
+        "department": "Operations",
+        "action": "internal.analysis",
+    })
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    response = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/emergency",
+        json={"reason": "Credible client harm risk; escalate to Board and generate incident packet."},
+    )
+    assert response.status_code == 200, response.text
+
+    packets = db_session.exec(select(BoardPacket).where(BoardPacket.packet_type == "incident")).all()
+    assert len(packets) >= 1
+    incident = packets[0]
+    content = json.loads(incident.content_json)
+    assert content["urgency"] == "immediate"
+    assert any(item["work_item_id"] == str(work_id) for item in content["emergencies"])
+
+
+def test_recurring_board_packet_task_publishes_packet(raw_client, db_session: Session) -> None:
+    from app.tasks.organization_tasks import generate_recurring_board_packet_task
+
+    raw_client.headers.update(_headers())
+    raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "recurring-packet-001",
+        "title": "Routine operating review",
+        "objective": "Provide content for a recurring Board Packet.",
+        "department": "Operations",
+        "action": "internal.analysis",
+    })
+
+    result = generate_recurring_board_packet_task("daily")
+    assert "packet_id" in result
+    packet = db_session.get(BoardPacket, UUID(result["packet_id"]))
+    assert packet is not None
+    assert packet.packet_type == "daily"
+    assert packet.status == "published"
+
+    repeated = generate_recurring_board_packet_task("daily")
+    assert repeated["packet_id"] == result["packet_id"]
+    assert len(db_session.exec(select(BoardPacket).where(BoardPacket.packet_type == "daily")).all()) == 1
+
+
+def test_board_packet_recurring_schedules_are_registered() -> None:
+    from app.core.celery_app import celery_app
+
+    schedule = celery_app.conf.beat_schedule
+    assert schedule["generate-daily-board-packet"]["args"] == ("daily",)
+    assert schedule["generate-weekly-board-packet"]["args"] == ("weekly",)
