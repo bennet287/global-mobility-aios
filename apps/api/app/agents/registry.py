@@ -50,6 +50,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["sales_summary_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["sales_summary_agent"],
     },
+    "operations_coordination_agent": {
+        "version": "v13.6",
+        "department": "operations",
+        "role": "Coordinates internal workflow state, dependencies, ownership, and service-level risks.",
+        "guardrails": [
+            "Cannot submit to an authority or change a case lifecycle state.",
+            "Cannot contact clients, agencies, or external providers.",
+            "Can recommend internal sequencing only from recorded workflow facts.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["operations_coordination_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["operations_coordination_agent"],
+    },
+    "business_intelligence_agent": {
+        "version": "v13.6",
+        "department": "business_intelligence",
+        "role": "Produces evidence-backed internal operating signals and decision questions.",
+        "guardrails": [
+            "Cannot invent metrics, forecasts, or causal claims.",
+            "Cannot change pricing, spending, client, or case state.",
+            "Must expose missing evidence and uncertainty.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["business_intelligence_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["business_intelligence_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

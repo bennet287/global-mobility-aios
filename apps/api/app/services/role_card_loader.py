@@ -8,16 +8,16 @@ from typing import Any
 ROLE_CARDS_DIR = Path(__file__).parents[3] / "agents" / "role_cards"
 
 # Maps canonical agent names to role-card filenames.
-# Cards currently in agents/role_cards/:
-#   AI_CEO, Document_Officer, Eligibility_Agent, Eligibility_Coach,
-#   Head_of_Product, Inhouse_Consultant, Recruitment_Specialist,
-#   Sales_Followup_Agent, Study_Abroad_Advisor, Visa_Truth_Agent
+# Canonical runtime mappings intentionally use the position-specific Phase 13
+# cards where available; legacy cards remain loadable for compatibility.
 AGENT_ROLE_CARD_MAP = {
     "truth_explanation_agent": "Visa_Truth_Agent",
     "document_checklist_agent": "Document_Officer",
     "client_drafting_agent": "Sales_Followup_Agent",
-    "sales_summary_agent": "Recruitment_Specialist",
-    "application_readiness_agent": "AI_CEO",
+    "sales_summary_agent": "Sales_Summary_Agent",
+    "operations_coordination_agent": "Operations_Coordination_Agent",
+    "business_intelligence_agent": "Business_Intelligence_Agent",
+    "application_readiness_agent": "Application_Readiness_Agent",
     "eligibility_coach": "Eligibility_Coach",
     "eligibility_agent": "Eligibility_Agent",
 }
@@ -52,6 +52,23 @@ AGENT_OUTPUT_SCHEMA = {
         "summary": "string",
         "safe_next_actions": ["string"],
         "prohibited_claims": ["string"],
+        "blocked_actions": ["string"],
+    },
+    "operations_coordination_agent": {
+        "summary": "string",
+        "workflow_status": "string",
+        "dependencies": ["string"],
+        "service_level_risks": ["string"],
+        "safe_next_actions": ["string"],
+        "confidence": 0.0,
+        "blocked_actions": ["string"],
+    },
+    "business_intelligence_agent": {
+        "summary": "string",
+        "observed_signals": ["string"],
+        "evidence_gaps": ["string"],
+        "recommended_questions": ["string"],
+        "confidence": 0.0,
         "blocked_actions": ["string"],
     },
     "application_readiness_agent": {

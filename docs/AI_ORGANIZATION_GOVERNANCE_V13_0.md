@@ -11,8 +11,9 @@ The human owner is the Board. The CEO Agent is accountable for the organization
 and reports to the Board. Executive, manager, and specialist agents operate
 under versioned position contracts and deterministic authority enforcement.
 
-This is a target specification for Phase 13. It does not claim that the
-organizational runtime exists today.
+This is the canonical specification for Phase 13. The governance foundation,
+Board controls, and bounded Operations runtime now exist; unchecked roadmap items
+remain target-state requirements and must not be represented as operational.
 
 ## Operating Principle
 

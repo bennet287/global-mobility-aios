@@ -50,17 +50,27 @@ def _case(client, account_id: str) -> dict:
     return response.json()
 
 
+OPERATIONS_CASE_DELEGATES = {
+    "sales_summary",
+    "operations_coordination",
+    "business_intelligence",
+    "application_readiness",
+}
+
+
 def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_session: Session) -> None:
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 13
+    assert response.json()["positions_registered"] == 15
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
     assert by_key["ceo"].reports_to_position_key == "board"
     assert by_key["coo"].reports_to_position_key == "ceo"
     assert by_key["sales_summary"].reports_to_position_key == "coo"
+    assert by_key["operations_coordination"].reports_to_position_key == "coo"
+    assert by_key["business_intelligence"].reports_to_position_key == "coo"
     assert by_key["board"].authority_level == "L4"
 
     cards = Path(__file__).parents[3] / "agents" / "role_cards"
@@ -134,7 +144,7 @@ def test_domain_event_routes_delegated_work_and_executes_routine_lane(raw_client
     assert work.authority_level == "L1"
     assert work.status == "queued"
     delegations = db_session.exec(select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)).all()
-    assert {item.delegate_position_key for item in delegations} == {"sales_summary", "application_readiness"}
+    assert {item.delegate_position_key for item in delegations} == OPERATIONS_CASE_DELEGATES
 
     executed = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
     assert executed.status_code == 200, executed.text
@@ -144,18 +154,18 @@ def test_domain_event_routes_delegated_work_and_executes_routine_lane(raw_client
     assert governance["accountable_position_key"] == "coo"
     assert governance["authority_level"] == "L1"
     assert 0.0 < governance["confidence"] <= 1.0
-    assert len(governance["organizational_action_output_ids"]) == 2
+    assert len(governance["organizational_action_output_ids"]) == 4
     assert "no external action" in governance["rollback_posture"].lower()
     assert governance["execution_attempt"] == 1
     assert governance["execution_token"]
 
     ledger = raw_client.get(f"/api/v1/organization/work-items/{work.id}/outputs")
     assert ledger.status_code == 200, ledger.text
-    assert len(ledger.json()) == 2
+    assert len(ledger.json()) == 4
     persisted = db_session.exec(
         select(OrganizationalActionOutput).where(OrganizationalActionOutput.work_item_id == work.id)
     ).all()
-    assert len(persisted) == 2
+    assert len(persisted) == 4
     for action_output in persisted:
         assert action_output.accountable_position_key == "coo"
         assert action_output.authority_basis
@@ -170,7 +180,7 @@ def test_domain_event_routes_delegated_work_and_executes_routine_lane(raw_client
     db_session.expire_all()
     assert len(db_session.exec(
         select(OrganizationalActionOutput).where(OrganizationalActionOutput.work_item_id == work.id)
-    ).all()) == 2
+    ).all()) == 4
     attempts = db_session.exec(
         select(OrganizationExecutionAttempt).where(OrganizationExecutionAttempt.work_item_id == work.id)
     ).all()
@@ -429,7 +439,7 @@ def test_l4_event_reaches_human_board_and_records_decision(raw_client, db_sessio
         item for item in decision_evidence if item.get("type") == "organizational_action_outputs"
     ]
     assert len(governed_output_evidence) == 1
-    assert len(governed_output_evidence[0]["ids"]) == 2
+    assert len(governed_output_evidence[0]["ids"]) == 4
     assert 0.0 < governed_output_evidence[0]["aggregate_confidence"] <= 1.0
 
     raw_client.headers.update(_headers("admin", "human-owner"))
@@ -590,7 +600,7 @@ def test_suspended_position_holds_existing_delegation_during_execution(raw_clien
         select(OrganizationalWorkItem).where(OrganizationalWorkItem.corporate_mobility_case_id == UUID(case["id"]))
     ).one()
     delegations = db_session.exec(select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)).all()
-    assert {item.delegate_position_key for item in delegations} == {"sales_summary", "application_readiness"}
+    assert {item.delegate_position_key for item in delegations} == OPERATIONS_CASE_DELEGATES
 
     position = db_session.exec(
         select(OrganizationPosition).where(OrganizationPosition.position_key == "sales_summary")
@@ -617,6 +627,53 @@ def test_suspended_position_holds_existing_delegation_during_execution(raw_clien
     ).one()
     assert held_delegation.status == "held"
     assert held_delegation.result_ref == "position:suspended"
+
+
+def test_direct_operations_objective_is_idempotently_delegated_and_resolved_by_coo(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers())
+    payload = {
+        "idempotency_key": "operations-objective-001",
+        "title": "Review weekly operating health",
+        "objective": "Prepare a bounded internal operating review for the COO.",
+        "department": "Operations",
+        "action": "internal.analysis",
+        "context": {"period": "weekly", "scope": "mobility operations"},
+    }
+    first = raw_client.post("/api/v1/organization/work-items", json=payload)
+    second = raw_client.post("/api/v1/organization/work-items", json=payload)
+    assert first.status_code == 201, first.text
+    assert second.status_code == 201, second.text
+    assert second.json()["id"] == first.json()["id"]
+
+    work_id = UUID(first.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == {
+        "sales_summary",
+        "operations_coordination",
+        "business_intelligence",
+    }
+    assert all(item.delegator_position_key == "coo" for item in delegations)
+    assert all("L1 internal analysis only" in item.authority_basis for item in delegations)
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+    output = json.loads(executed.json()["output_json"])
+    assert {item["agent"] for item in output["delegated_results"]} == {
+        "sales_summary_agent",
+        "operations_coordination_agent",
+        "business_intelligence_agent",
+    }
+    assert output["governance"]["accountable_position_key"] == "coo"
+    assert output["governance"]["authority_level"] == "L1"
+    assert db_session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)
+    ).all() == []
 
 
 def test_work_item_deadline_and_decision_deadline(raw_client, db_session: Session) -> None:

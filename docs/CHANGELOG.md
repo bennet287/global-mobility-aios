@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-03 — Phase 13.6 bounded Operations department runtime
+
+- Expanded the registered organization from 13 to 15 positions by adding
+  Operations Coordination and Business Intelligence under COO accountability.
+- Added full role and output contracts for Sales Intelligence, Operations
+  Coordination, Business Intelligence, and Application Readiness, correcting the
+  legacy role-card mappings used by controlled-agent prompts.
+- Added deterministic, review-gated Operations Coordination and Business
+  Intelligence handlers that expose evidence gaps, confidence, safe next actions,
+  and blocked external actions.
+- Added an idempotent COO delegation plan: general Operations objectives route to
+  three core specialists, while mobility-case events also route to Application
+  Readiness.
+- Proved routine L1 Operations work completes without CEO or Board interruption,
+  while the existing L3/L4 classification and escalation paths remain unchanged.
+- Expanded hierarchy, role-card, agent-registry, suspension, output-ledger, and
+  direct-objective regression coverage. The full API suite passes with 435 tests.
+
 ## 2026-08-03 — Phase 13.4 fail-closed external-action gates
 
 - Added a central external-action policy registry for client sends, authority

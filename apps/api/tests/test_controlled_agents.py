@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 from uuid import UUID
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 from sqlmodel import select
@@ -26,10 +27,56 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "document_checklist_agent",
         "client_drafting_agent",
         "sales_summary_agent",
+        "operations_coordination_agent",
+        "business_intelligence_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
     }
+
+
+@pytest.mark.parametrize(
+    ("agent_name", "expected_key", "blocked_action"),
+    [
+        ("operations_coordination_agent", "workflow_status", "authority_submission"),
+        ("business_intelligence_agent", "observed_signals", "pricing_change"),
+    ],
+)
+def test_operations_department_agents_produce_bounded_internal_outputs(
+    client: TestClient,
+    db_session: Session,
+    agent_name: str,
+    expected_key: str,
+    blocked_action: str,
+) -> None:
+    lead = create_lead(db_session, name=f"{agent_name} Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": agent_name,
+            "task": "Prepare an evidence-bounded Operations analysis.",
+            "lead_id": str(lead.id),
+            "context": {
+                "facts": {
+                    "status": "active",
+                    "dependencies": ["document review"],
+                    "service_level_risks": ["deadline within five days"],
+                }
+            },
+            "actor": "coo-runtime",
+        },
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["requires_human_review"] is True
+    assert payload["output"]["client_facing"] is False
+    assert expected_key in payload["output"]
+    assert blocked_action in payload["output"]["blocked_actions"]
+    assert 0.0 < payload["output"]["confidence"] <= 1.0
+
+    run = db_session.exec(select(AgentRun).where(AgentRun.agent_name == agent_name)).one()
+    persisted = json.loads(run.output_json)
+    assert persisted[expected_key] == payload["output"][expected_key]
 
 
 def test_controlled_client_drafting_agent_persists_run_and_blocks_send(

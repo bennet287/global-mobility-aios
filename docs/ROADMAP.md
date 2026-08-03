@@ -62,16 +62,17 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: passing with one head at `0060`.
 - Docker production-profile validation: passing.
-- API tests: **428 passing and 0 failing**.
+- API tests: **435 passing and 0 failing**.
 - Local SQLite database: aligned at `0060`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
   `0060` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
-Packet reporting, evidence-output, bounded execution-control, and external-action
-gate slices. The next active gate is controlled departmental expansion, beginning
-with a bounded executive runtime rather than unrestricted agent proliferation.
+Packet reporting, evidence-output, bounded execution-control, external-action
+gates, and the bounded Operations department runtime. The next active gate is CEO
+executive-council coordination over the proven Operations runtime before another
+department is made operational.
 
 ## 3. Execution Order
 
@@ -184,11 +185,11 @@ Key specifications:
 
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
-**Status:** Governance foundation, Board reporting, and the first bounded
-autonomous organization flow are delivered. The hierarchy, event bridge, authority
-engine, Board decision path, global and per-agent controls, Board Room, Board
-Packets, durable execution controls, and fail-closed external-action gates are
-implemented and tested. The active gate is controlled departmental expansion.
+**Status:** Governance foundation, Board reporting, the first bounded autonomous
+organization flow, and the Operations department runtime are delivered. The COO
+now delegates general operating objectives to Sales Intelligence, Operations
+Coordination, and Business Intelligence, and adds Application Readiness for
+mobility-case events. The active gate is bounded CEO executive-council coordination.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -240,9 +241,11 @@ manager, and specialist agents, with the human owner acting as the Board.
 
 - [ ] Implement the CEO Agent as an orchestrator with no unrestricted direct
   action path.
-- [ ] Implement CTO, COO, CPO, and CLO department-head runtimes.
-- [ ] Let executives delegate to registered direct reports and receive structured
-  results.
+- [x] Implement the COO department-head runtime with bounded Operations specialists.
+- [ ] Implement CTO, CPO, and CLO department-head runtimes.
+- [x] Let the COO delegate to registered direct reports and receive structured,
+  evidence-grounded results.
+- [ ] Extend the same delegation contract to the remaining executive runtimes.
 - [ ] Require cross-functional consultation when an action touches multiple
   executive domains.
 - [ ] Escalate only L4 matters, emergency risks, authority conflicts, or unresolved
@@ -295,7 +298,8 @@ After the first organization flow and Board Room pass their release gates:
 
 - [ ] Expand Technology: VP Engineering, Lead Architect, engineering managers,
   technical leads, and engineering members.
-- [ ] Expand Operations: Sales, Operations, and Business Intelligence.
+- [x] Expand Operations: Sales Intelligence, Operations Coordination, Business
+  Intelligence, and case-specific Application Readiness under COO accountability.
 - [ ] Expand Product: Head of Product, Product Managers, and Design.
 - [ ] Add Marketing: CMO, Product Marketing, and Marketing Managers.
 - [ ] Add Finance: CFO, Accounts, M&A, and Investor Relations.

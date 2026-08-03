@@ -41,7 +41,19 @@ POSITION_SPECS = (
     ("clo", "Chief Legal Officer Agent", "Legal", "ceo", "L3", "CLO.md"),
     ("head_of_product", "Head of Product Agent", "Product", "cpo", "L2", "Head_of_Product.md"),
     ("sales_summary", "Sales Intelligence Agent", "Operations", "coo", "L1", "Sales_Summary_Agent.md"),
+    ("operations_coordination", "Operations Coordination Agent", "Operations", "coo", "L1", "Operations_Coordination_Agent.md"),
+    ("business_intelligence", "Business Intelligence Agent", "Operations", "coo", "L1", "Business_Intelligence_Agent.md"),
     ("application_readiness", "Application Readiness Agent", "Operations", "coo", "L1", "Application_Readiness_Agent.md"),
+)
+
+OPERATIONS_DELEGATION_SPECS = (
+    ("sales_summary", "Summarize verified commercial and client context."),
+    ("operations_coordination", "Assess workflow state, dependencies, ownership, and service-level risks."),
+    ("business_intelligence", "Extract evidence-backed operating signals, gaps, and decision questions."),
+)
+APPLICATION_READINESS_DELEGATION = (
+    "application_readiness",
+    "Assess application readiness, dependencies, and blockers.",
 )
 
 BOARD_RESERVED_ACTIONS = {
@@ -244,6 +256,47 @@ def _position_by_key(session: Session, position_key: str) -> OrganizationPositio
             OrganizationPosition.version == 1,
         )
     ).first()
+
+
+def delegate_operations_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    include_application_readiness: bool = False,
+) -> list[DelegationRecord]:
+    """Create the bounded COO specialist plan once for an Operations work item."""
+    if work.department.strip().lower() != "operations":
+        raise ValueError("Operations delegation requires an Operations work item")
+    if work.assigned_position_key != "coo":
+        raise ValueError("Operations delegation requires COO accountability")
+
+    specs = list(OPERATIONS_DELEGATION_SPECS)
+    if include_application_readiness:
+        specs.append(APPLICATION_READINESS_DELEGATION)
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in specs:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        position = _position_by_key(session, delegate)
+        if position is None or _is_suspended(position):
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="coo",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis="COO L3 operating mandate; delegated L1 internal analysis only.",
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
 
 
 def _is_suspended(position: OrganizationPosition | None) -> bool:
@@ -593,21 +646,7 @@ def route_automation_event(
     )
     session.add(work)
     session.flush()
-    delegates = (
-        ("sales_summary", "Summarize commercial and client context."),
-        ("application_readiness", "Assess operational readiness and blockers."),
-    )
-    for delegate, task in delegates:
-        position = _position_by_key(session, delegate)
-        if _is_suspended(position):
-            continue
-        session.add(DelegationRecord(
-            work_item_id=work.id,
-            delegator_position_key="coo",
-            delegate_position_key=delegate,
-            task=task,
-            authority_basis="COO L3 operating mandate; delegated analysis only.",
-        ))
+    delegate_operations_work(session, work, include_application_readiness=True)
 
     if authority in {"L3", "L4"}:
         owner = "board" if authority == "L4" else "ceo"

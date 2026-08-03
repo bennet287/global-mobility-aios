@@ -142,6 +142,60 @@ def _sales_summary(payload: ControlledAgentRunRequest, agent: dict[str, Any]) ->
     return output
 
 
+def _operations_coordination(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    dependencies = facts.get("dependencies", [])
+    service_level_risks = facts.get("service_level_risks", [])
+    output.update(
+        {
+            "summary": "Internal operating sequence prepared from the recorded workflow context.",
+            "workflow_status": str(facts.get("status") or "needs_review"),
+            "dependencies": dependencies if isinstance(dependencies, list) else [],
+            "service_level_risks": service_level_risks if isinstance(service_level_risks, list) else [],
+            "safe_next_actions": [
+                "Confirm the accountable owner for each unresolved dependency.",
+                "Escalate material delay or client-impact risk to the COO.",
+            ],
+            "confidence": 0.6 if facts else 0.35,
+            "blocked_actions": [
+                "case_status_change",
+                "authority_submission",
+                "client_send",
+                "external_provider_action",
+            ],
+        }
+    )
+    return output
+
+
+def _business_intelligence(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    observed = [f"{key}={value}" for key, value in sorted(facts.items()) if value not in (None, "", [], {})]
+    output.update(
+        {
+            "summary": "Evidence-backed operating signals prepared for internal COO review.",
+            "observed_signals": observed,
+            "evidence_gaps": [] if observed else ["No structured operating facts were supplied."],
+            "recommended_questions": [
+                "Which recorded signal materially changes the operating priority?",
+                "What additional evidence is required before an executive decision?",
+            ],
+            "confidence": 0.55 if observed else 0.25,
+            "blocked_actions": [
+                "forecast_as_fact",
+                "pricing_change",
+                "payment_initiation",
+                "client_send",
+            ],
+        }
+    )
+    return output
+
+
 def _application_readiness(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     truth_clear = bool(payload.context.get("truth_clear", False))
@@ -197,6 +251,8 @@ DETERMINISTIC_HANDLERS = {
     "document_checklist_agent": _document_checklist,
     "client_drafting_agent": _client_drafting,
     "sales_summary_agent": _sales_summary,
+    "operations_coordination_agent": _operations_coordination,
+    "business_intelligence_agent": _business_intelligence,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -304,6 +360,8 @@ AGENT_HANDLERS = {
     "document_checklist_agent": _llm_agent_handler,
     "client_drafting_agent": _llm_agent_handler,
     "sales_summary_agent": _llm_agent_handler,
+    "operations_coordination_agent": _llm_agent_handler,
+    "business_intelligence_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

@@ -38,6 +38,7 @@ from app.services.organization_governance import (
     cancel_work_item,
     classify_authority,
     create_board_packet,
+    delegate_operations_work,
     decide_executive_decision,
     ensure_foundation_positions,
     escalate_work_item,
@@ -170,6 +171,8 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
     )
     session.add(work)
     session.flush()
+    if payload.department.strip().lower() == "operations":
+        delegate_operations_work(session, work)
     if authority in {"L3", "L4"}:
         owner = "board" if authority == "L4" else "ceo"
         session.add(ExecutiveDecision(

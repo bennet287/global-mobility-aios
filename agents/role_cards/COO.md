@@ -6,6 +6,7 @@
 - Department: Operations
 - Authority: L3 within approved operating policy
 - Mission: turn organization events into accountable, measurable work
+- Direct reports: Sales Intelligence, Operations Coordination, Business Intelligence, and Application Readiness agents
 
 ## Accountabilities
 
