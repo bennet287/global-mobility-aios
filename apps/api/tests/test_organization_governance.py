@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import UUID
 
+import pytest
 from sqlmodel import Session, select
 
 from app.models.domain import (
@@ -12,12 +13,18 @@ from app.models.domain import (
     BoardPacket,
     DelegationRecord,
     ExecutiveDecision,
+    OrganizationExecutionAttempt,
     OrganizationalActionOutput,
     OrganizationPosition,
     OrganizationalWorkItem,
     RiskEscalation,
 )
+from app.services import organization_governance as organization_service
 from app.services.organization_governance import classify_authority
+from app.tasks.organization_tasks import (
+    execute_organization_work_item_task,
+    scan_organization_work_task,
+)
 
 
 def _headers(role: str = "admin", user: str = "human-owner") -> dict[str, str]:
@@ -109,6 +116,8 @@ def test_domain_event_routes_delegated_work_and_executes_routine_lane(raw_client
     assert 0.0 < governance["confidence"] <= 1.0
     assert len(governance["organizational_action_output_ids"]) == 2
     assert "no external action" in governance["rollback_posture"].lower()
+    assert governance["execution_attempt"] == 1
+    assert governance["execution_token"]
 
     ledger = raw_client.get(f"/api/v1/organization/work-items/{work.id}/outputs")
     assert ledger.status_code == 200, ledger.text
@@ -132,6 +141,214 @@ def test_domain_event_routes_delegated_work_and_executes_routine_lane(raw_client
     assert len(db_session.exec(
         select(OrganizationalActionOutput).where(OrganizationalActionOutput.work_item_id == work.id)
     ).all()) == 2
+    attempts = db_session.exec(
+        select(OrganizationExecutionAttempt).where(OrganizationExecutionAttempt.work_item_id == work.id)
+    ).all()
+    assert len(attempts) == 1
+    assert attempts[0].status == "completed"
+
+
+def test_board_can_cancel_queued_work_and_replay_is_blocked(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "cancel-queued-work-001",
+        "title": "Prepare cancellable internal analysis",
+        "objective": "Verify that the Human Board can stop queued organizational work.",
+        "action": "internal.analysis",
+    })
+    assert created.status_code == 201, created.text
+    work_id = created.json()["id"]
+
+    raw_client.headers.update(_headers("operator", "operations-user"))
+    forbidden = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/cancel",
+        json={"reason": "Operator requested cancellation without Board authority."},
+    )
+    assert forbidden.status_code == 403
+
+    raw_client.headers.update(_headers())
+    cancelled = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/cancel",
+        json={"reason": "Human owner stopped this work before execution began."},
+    )
+    assert cancelled.status_code == 200, cancelled.text
+    assert cancelled.json()["status"] == "cancelled"
+    assert cancelled.json()["cancelled_by"] == "human-owner"
+    assert cancelled.json()["cancel_requested_at"]
+    assert cancelled.json()["cancelled_at"]
+
+    replay = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert replay.status_code == 409
+    attempts = raw_client.get(f"/api/v1/organization/work-items/{work_id}/attempts")
+    assert attempts.status_code == 200
+    assert attempts.json() == []
+
+    audit = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_id == work_id,
+            AuditLog.action == "organization_work_cancelled",
+        )
+    ).one()
+    assert audit.actor == "human-owner"
+
+
+def test_failed_execution_is_bounded_and_retries_without_replaying_completed_work(
+    raw_client,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw_client.headers.update(_headers())
+    account = _account(raw_client)
+    case = _case(raw_client, account["id"])
+    work = db_session.exec(
+        select(OrganizationalWorkItem).where(
+            OrganizationalWorkItem.corporate_mobility_case_id == UUID(case["id"])
+        )
+    ).one()
+    work.max_execution_attempts = 2
+    db_session.add(work)
+    db_session.commit()
+
+    original_record = organization_service._record_action_output
+    calls = 0
+
+    def fail_on_second_output(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("simulated bounded worker failure")
+        return original_record(*args, **kwargs)
+
+    monkeypatch.setattr(organization_service, "_record_action_output", fail_on_second_output)
+    with pytest.raises(RuntimeError, match="simulated bounded worker failure"):
+        organization_service.execute_work_item(db_session, work, actor="test-worker")
+
+    db_session.expire_all()
+    failed = db_session.get(OrganizationalWorkItem, work.id)
+    assert failed is not None
+    assert failed.status == "retry_wait"
+    assert failed.execution_attempts == 1
+    assert failed.next_retry_at is not None
+    assert "simulated bounded worker failure" in (failed.last_error or "")
+    first_attempt = db_session.exec(
+        select(OrganizationExecutionAttempt).where(
+            OrganizationExecutionAttempt.work_item_id == work.id
+        )
+    ).one()
+    assert first_attempt.status == "failed"
+
+    completed_before_retry = db_session.exec(
+        select(DelegationRecord).where(
+            DelegationRecord.work_item_id == work.id,
+            DelegationRecord.status == "completed",
+        )
+    ).all()
+    assert len(completed_before_retry) == 1
+    completed_output_id = db_session.exec(
+        select(OrganizationalActionOutput.id).where(
+            OrganizationalActionOutput.delegation_record_id == completed_before_retry[0].id
+        )
+    ).one()
+
+    early_replay = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
+    assert early_replay.status_code == 409
+    assert "not due" in early_replay.json()["detail"].lower()
+
+    monkeypatch.setattr(organization_service, "_record_action_output", original_record)
+    raw_client.headers.update(_headers("operator", "operations-user"))
+    forbidden = raw_client.post(
+        f"/api/v1/organization/work-items/{work.id}/retry",
+        json={"reason": "Operator attempted to bypass the retry control."},
+    )
+    assert forbidden.status_code == 403
+
+    raw_client.headers.update(_headers())
+    retried = raw_client.post(
+        f"/api/v1/organization/work-items/{work.id}/retry",
+        json={"reason": "Human owner approved one bounded retry after reviewing the failure."},
+    )
+    assert retried.status_code == 200, retried.text
+    assert retried.json()["status"] == "queued"
+    assert retried.json()["execution_attempts"] == 1
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work.id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+    assert executed.json()["execution_attempts"] == 2
+    attempts = raw_client.get(f"/api/v1/organization/work-items/{work.id}/attempts")
+    assert [item["status"] for item in attempts.json()] == ["failed", "completed"]
+
+    db_session.expire_all()
+    completed_output = db_session.get(OrganizationalActionOutput, completed_output_id)
+    assert completed_output is not None
+    assert json.loads(completed_output.output_json)["note"] != "Previously completed delegation reused during retry."
+
+
+def test_retry_ceiling_cannot_be_reset_by_board_endpoint(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers())
+    created = raw_client.post("/api/v1/organization/work-items", json={
+        "idempotency_key": "retry-ceiling-work-001",
+        "title": "Test exhausted work retry",
+        "objective": "Confirm that even the Board endpoint cannot silently reset the retry budget.",
+        "action": "internal.analysis",
+        "max_execution_attempts": 1,
+    })
+    assert created.status_code == 201, created.text
+    work = db_session.get(OrganizationalWorkItem, UUID(created.json()["id"]))
+    assert work is not None
+    work.status = "failed"
+    work.execution_attempts = 1
+    work.last_error = "terminal simulated failure"
+    db_session.add(work)
+    db_session.commit()
+
+    response = raw_client.post(
+        f"/api/v1/organization/work-items/{work.id}/retry",
+        json={"reason": "Human owner inspected the exhausted retry budget."},
+    )
+    assert response.status_code == 409
+    assert "exhausted" in response.json()["detail"].lower()
+
+
+def test_work_scanner_dispatches_only_queued_and_due_retries(
+    raw_client,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw_client.headers.update(_headers())
+    work_ids: list[UUID] = []
+    for suffix in ("queued", "due", "future"):
+        response = raw_client.post("/api/v1/organization/work-items", json={
+            "idempotency_key": f"scanner-work-{suffix}-001",
+            "title": f"Scanner work {suffix}",
+            "objective": "Verify durable retry scheduling selects only eligible organizational work.",
+            "action": "internal.analysis",
+        })
+        assert response.status_code == 201, response.text
+        work_ids.append(UUID(response.json()["id"]))
+
+    due = db_session.get(OrganizationalWorkItem, work_ids[1])
+    future = db_session.get(OrganizationalWorkItem, work_ids[2])
+    assert due is not None and future is not None
+    due.status = "retry_wait"
+    due.execution_attempts = 1
+    due.next_retry_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+    future.status = "retry_wait"
+    future.execution_attempts = 1
+    future.next_retry_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    db_session.add(due)
+    db_session.add(future)
+    db_session.commit()
+
+    dispatched: list[str] = []
+    monkeypatch.setattr(
+        execute_organization_work_item_task,
+        "delay",
+        lambda work_id: dispatched.append(work_id),
+    )
+    result = scan_organization_work_task.run(limit=10)
+    assert result["queued"] == 2
+    assert set(dispatched) == {str(work_ids[0]), str(work_ids[1])}
 
 
 def test_missing_work_item_output_ledger_returns_not_found(raw_client) -> None:

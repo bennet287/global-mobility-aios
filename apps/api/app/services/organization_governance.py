@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
+from sqlalchemy import and_, or_, update
 from sqlmodel import Session, func, select
 
 from app.models.domain import (
@@ -14,6 +15,7 @@ from app.models.domain import (
     DelegationRecord,
     ExecutiveDecision,
     OrganizationControl,
+    OrganizationExecutionAttempt,
     OrganizationalActionOutput,
     OrganizationalWorkItem,
     OrganizationPosition,
@@ -72,6 +74,10 @@ def _load(value: str, fallback: Any) -> Any:
         return json.loads(value)
     except (TypeError, ValueError):
         return fallback
+
+
+class WorkCancellationRequested(RuntimeError):
+    """Internal cooperative stop signal for an in-flight organizational task."""
 
 
 def _output_confidence(
@@ -646,27 +652,292 @@ def route_automation_event(
     return work, True
 
 
-def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: str = "organization-worker") -> OrganizationalWorkItem:
-    if work.status not in {"queued", "failed"}:
-        raise ValueError("Work item is not executable")
+def _claim_work_execution(
+    session: Session,
+    work_item_id: UUID,
+    *,
+    actor: str,
+) -> tuple[OrganizationalWorkItem, OrganizationExecutionAttempt]:
+    now = _now()
+    token = str(uuid4())
+    eligible_status = or_(
+        OrganizationalWorkItem.status == "queued",
+        and_(
+            OrganizationalWorkItem.status == "retry_wait",
+            or_(
+                OrganizationalWorkItem.next_retry_at.is_(None),
+                OrganizationalWorkItem.next_retry_at <= now,
+            ),
+        ),
+    )
+    statement = (
+        update(OrganizationalWorkItem)
+        .where(
+            OrganizationalWorkItem.id == work_item_id,
+            eligible_status,
+            OrganizationalWorkItem.execution_attempts < OrganizationalWorkItem.max_execution_attempts,
+            OrganizationalWorkItem.cancel_requested_at.is_(None),
+        )
+        .values(
+            status="running",
+            execution_attempts=OrganizationalWorkItem.execution_attempts + 1,
+            execution_token=token,
+            execution_started_at=now,
+            next_retry_at=None,
+            last_error=None,
+            updated_at=now,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    result = session.exec(statement)
+    if result.rowcount != 1:
+        session.rollback()
+        current = session.get(OrganizationalWorkItem, work_item_id)
+        if current is None:
+            raise ValueError("Organizational work item not found")
+        if current.cancel_requested_at is not None or current.status == "cancelled":
+            raise ValueError("Work item has been cancelled")
+        if current.execution_attempts >= current.max_execution_attempts:
+            raise ValueError("Work item has exhausted its execution attempts")
+        if current.status == "retry_wait":
+            raise ValueError("Work item retry is not due yet")
+        raise ValueError("Work item is already running or is not executable")
+
+    session.expire_all()
+    claimed = session.get(OrganizationalWorkItem, work_item_id)
+    if claimed is None:
+        session.rollback()
+        raise ValueError("Organizational work item not found")
+    attempt = OrganizationExecutionAttempt(
+        attempt_key=f"organization-attempt:{claimed.id}:{claimed.execution_attempts}",
+        work_item_id=claimed.id,
+        attempt_number=claimed.execution_attempts,
+        execution_token=token,
+        actor=actor,
+    )
+    session.add(attempt)
+    record_audit(
+        session,
+        action="organization_work_execution_started",
+        entity_type="organizational_work_item",
+        entity_id=claimed.id,
+        after_state={
+            "attempt": claimed.execution_attempts,
+            "max_attempts": claimed.max_execution_attempts,
+            "execution_token": token,
+        },
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(claimed)
+    session.refresh(attempt)
+    return claimed, attempt
+
+
+def _raise_if_cancelled(session: Session, work: OrganizationalWorkItem) -> None:
+    session.refresh(work)
+    if work.cancel_requested_at is not None:
+        raise WorkCancellationRequested(work.cancellation_reason or "Cancellation requested")
+
+
+def _mark_execution_cancelled(
+    session: Session,
+    *,
+    work_item_id: UUID,
+    execution_token: str,
+    actor: str,
+) -> OrganizationalWorkItem:
+    session.rollback()
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise ValueError("Organizational work item not found")
+    now = _now()
+    work.status = "cancelled"
+    work.cancelled_at = now
+    work.completed_at = now
+    work.execution_started_at = None
+    work.next_retry_at = None
+    work.updated_at = now
+    session.add(work)
+    attempt = session.exec(
+        select(OrganizationExecutionAttempt).where(
+            OrganizationExecutionAttempt.execution_token == execution_token
+        )
+    ).first()
+    if attempt is not None:
+        attempt.status = "cancelled"
+        attempt.completed_at = now
+        session.add(attempt)
+    delegations = session.exec(
+        select(DelegationRecord).where(
+            DelegationRecord.work_item_id == work.id,
+            DelegationRecord.status.in_(["queued", "running"]),
+        )
+    ).all()
+    for delegation in delegations:
+        delegation.status = "cancelled"
+        delegation.completed_at = now
+        delegation.result_ref = "work-item:cancelled"
+        session.add(delegation)
+    record_audit(
+        session,
+        action="organization_work_cancelled",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        after_state={"status": "cancelled", "attempt": work.execution_attempts},
+        reason=work.cancellation_reason,
+        actor=work.cancelled_by or actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
+def _mark_execution_failed(
+    session: Session,
+    *,
+    work_item_id: UUID,
+    execution_token: str,
+    error: Exception,
+    actor: str,
+) -> OrganizationalWorkItem:
+    session.rollback()
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise error
+    now = _now()
+    error_text = f"{type(error).__name__}: {error}"[:2000]
+    has_attempts_remaining = work.execution_attempts < work.max_execution_attempts
+    retry_delay = min(300, 15 * (2 ** max(0, work.execution_attempts - 1)))
+    work.status = "retry_wait" if has_attempts_remaining else "failed"
+    work.next_retry_at = now + timedelta(seconds=retry_delay) if has_attempts_remaining else None
+    work.last_error = error_text
+    work.execution_started_at = None
+    work.updated_at = now
+    session.add(work)
+    attempt = session.exec(
+        select(OrganizationExecutionAttempt).where(
+            OrganizationExecutionAttempt.execution_token == execution_token
+        )
+    ).first()
+    if attempt is not None:
+        attempt.status = "failed"
+        attempt.completed_at = now
+        attempt.error = error_text
+        session.add(attempt)
+    interrupted_delegations = session.exec(
+        select(DelegationRecord).where(
+            DelegationRecord.work_item_id == work.id,
+            DelegationRecord.status == "running",
+        )
+    ).all()
+    for delegation in interrupted_delegations:
+        delegation.status = "queued"
+        delegation.completed_at = None
+        delegation.result_ref = None
+        session.add(delegation)
+    record_audit(
+        session,
+        action="organization_work_execution_failed",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        after_state={
+            "status": work.status,
+            "attempt": work.execution_attempts,
+            "max_attempts": work.max_execution_attempts,
+            "next_retry_at": work.next_retry_at,
+        },
+        reason=error_text,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
+def execute_work_item(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    actor: str = "organization-worker",
+) -> OrganizationalWorkItem:
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
     if control and control.status == "paused":
+        if work.status not in {"queued", "retry_wait"}:
+            raise ValueError("Work item is not executable")
         work.status = "held"
         work.updated_at = _now()
         session.add(work)
         session.commit()
         return work
 
-    work.status = "running"
-    work.updated_at = _now()
-    session.add(work)
-    session.commit()
+    claimed, attempt = _claim_work_execution(session, work.id, actor=actor)
+    try:
+        return _execute_claimed_work_item(session, claimed, attempt=attempt, actor=actor)
+    except WorkCancellationRequested:
+        return _mark_execution_cancelled(
+            session,
+            work_item_id=claimed.id,
+            execution_token=attempt.execution_token,
+            actor=actor,
+        )
+    except Exception as exc:
+        session.rollback()
+        current = session.get(OrganizationalWorkItem, claimed.id)
+        if current is not None and current.cancel_requested_at is not None:
+            return _mark_execution_cancelled(
+                session,
+                work_item_id=claimed.id,
+                execution_token=attempt.execution_token,
+                actor=actor,
+            )
+        _mark_execution_failed(
+            session,
+            work_item_id=claimed.id,
+            execution_token=attempt.execution_token,
+            error=exc,
+            actor=actor,
+        )
+        raise
+
+
+def _execute_claimed_work_item(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    attempt: OrganizationExecutionAttempt,
+    actor: str,
+) -> OrganizationalWorkItem:
+
     results: list[dict[str, Any]] = []
     action_outputs: list[OrganizationalActionOutput] = []
     delegations = session.exec(
         select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
     ).all()
     for delegation in delegations:
+        _raise_if_cancelled(session, work)
+        if delegation.status == "completed":
+            existing_output = session.exec(
+                select(OrganizationalActionOutput).where(
+                    OrganizationalActionOutput.delegation_record_id == delegation.id
+                )
+            ).first()
+            if existing_output is not None:
+                action_outputs.append(existing_output)
+                results.append(_load(existing_output.output_json, {
+                    "agent": f"{delegation.delegate_position_key}_agent",
+                    "status": "completed",
+                    "note": "Previously completed delegation reused during retry.",
+                }))
+                continue
+            delegation.status = "queued"
+        delegation.status = "running"
+        delegation.completed_at = None
+        session.add(delegation)
+        session.commit()
         agent_name = f"{delegation.delegate_position_key}_agent"
         position = _position_by_key(session, delegation.delegate_position_key)
         if _is_suspended(position):
@@ -687,6 +958,7 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
                 result_ref=delegation.result_ref,
                 actor=actor,
             ))
+            session.commit()
             continue
         if work.lead_id is None:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}
@@ -719,7 +991,9 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
             result_ref=result_ref,
             actor=actor,
         ))
+        session.commit()
 
+    _raise_if_cancelled(session, work)
     completed_confidences = [item.confidence for item in action_outputs if item.status == "completed"]
     aggregate_confidence = (
         round(sum(completed_confidences) / len(completed_confidences), 4)
@@ -738,12 +1012,20 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
             "confidence_basis": "Arithmetic mean of completed delegated action-output confidence values.",
             "expected_impact": "Bounded internal analysis recorded for the accountable decision owner.",
             "rollback_posture": "Discard outputs and replay delegations; no external action was authorized.",
+            "execution_attempt": attempt.attempt_number,
+            "execution_token": attempt.execution_token,
         },
     })
     work.status = "pending_board" if work.authority_level == "L4" else "pending_ceo" if work.authority_level == "L3" else "completed"
     work.completed_at = _now() if work.status == "completed" else None
+    work.execution_started_at = None
+    work.next_retry_at = None
+    work.last_error = None
     work.updated_at = _now()
     session.add(work)
+    attempt.status = "completed"
+    attempt.completed_at = _now()
+    session.add(attempt)
     decision = session.exec(
         select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
     ).first()
@@ -772,7 +1054,96 @@ def execute_work_item(session: Session, work: OrganizationalWorkItem, *, actor: 
             "delegations": len(results),
             "action_outputs": len(action_outputs),
             "confidence": aggregate_confidence,
+            "attempt": attempt.attempt_number,
+            "execution_token": attempt.execution_token,
         },
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
+def cancel_work_item(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    reason: str,
+    actor: str,
+) -> OrganizationalWorkItem:
+    session.refresh(work)
+    if work.status in {"completed", "cancelled", "pending_ceo", "pending_board"}:
+        raise ValueError("Work item can no longer be cancelled")
+    now = _now()
+    work.cancel_requested_at = now
+    work.cancelled_by = actor
+    work.cancellation_reason = reason.strip()
+    work.updated_at = now
+    action = "organization_work_cancellation_requested"
+    if work.status != "running":
+        work.status = "cancelled"
+        work.cancelled_at = now
+        work.completed_at = now
+        work.next_retry_at = None
+        action = "organization_work_cancelled"
+        delegations = session.exec(
+            select(DelegationRecord).where(
+                DelegationRecord.work_item_id == work.id,
+                DelegationRecord.status.in_(["queued", "running"]),
+            )
+        ).all()
+        for delegation in delegations:
+            delegation.status = "cancelled"
+            delegation.completed_at = now
+            delegation.result_ref = "work-item:cancelled"
+            session.add(delegation)
+    session.add(work)
+    record_audit(
+        session,
+        action=action,
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        after_state={"status": work.status, "cancel_requested_at": now},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
+def retry_work_item(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    reason: str,
+    actor: str,
+) -> OrganizationalWorkItem:
+    session.refresh(work)
+    if work.status not in {"failed", "retry_wait"}:
+        raise ValueError("Only failed or waiting work can be retried")
+    if work.cancel_requested_at is not None:
+        raise ValueError("Cancelled work cannot be retried")
+    if work.execution_attempts >= work.max_execution_attempts:
+        raise ValueError("Work item has exhausted its execution attempts")
+    work.status = "queued"
+    work.next_retry_at = None
+    work.updated_at = _now()
+    session.add(work)
+    record_audit(
+        session,
+        action="organization_work_retry_requested",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        before_state={"last_error": work.last_error},
+        after_state={
+            "status": "queued",
+            "next_attempt": work.execution_attempts + 1,
+            "max_attempts": work.max_execution_attempts,
+        },
+        reason=reason,
         actor=actor,
         source=SOURCE,
     )

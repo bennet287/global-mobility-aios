@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID
 
+from sqlalchemy import and_, or_
 from sqlmodel import Session, select
 
 from app.core.celery_app import celery_app
@@ -25,15 +26,38 @@ def execute_organization_work_item_task(work_item_id: str) -> dict:
             result = execute_work_item(session, work)
         except ValueError as exc:
             return {"status": "skipped", "work_item_id": work_item_id, "reason": str(exc)}
+        except Exception as exc:
+            session.expire_all()
+            failed = session.get(OrganizationalWorkItem, UUID(work_item_id))
+            return {
+                "status": failed.status if failed is not None else "failed",
+                "work_item_id": work_item_id,
+                "reason": f"{type(exc).__name__}: {exc}",
+                "next_retry_at": str(failed.next_retry_at) if failed and failed.next_retry_at else None,
+            }
         return {"status": result.status, "work_item_id": str(result.id)}
 
 
 @celery_app.task(name="app.tasks.organization_tasks.scan_organization_work")
 def scan_organization_work_task(limit: int = 25) -> dict:
+    now = datetime.now(timezone.utc)
     with Session(db_module.engine) as session:
         ids = session.exec(
             select(OrganizationalWorkItem.id)
-            .where(OrganizationalWorkItem.status == "queued")
+            .where(
+                or_(
+                    OrganizationalWorkItem.status == "queued",
+                    and_(
+                        OrganizationalWorkItem.status == "retry_wait",
+                        or_(
+                            OrganizationalWorkItem.next_retry_at.is_(None),
+                            OrganizationalWorkItem.next_retry_at <= now,
+                        ),
+                    ),
+                ),
+                OrganizationalWorkItem.execution_attempts < OrganizationalWorkItem.max_execution_attempts,
+                OrganizationalWorkItem.cancel_requested_at.is_(None),
+            )
             .order_by(OrganizationalWorkItem.created_at)
             .limit(max(1, min(limit, 100)))
         ).all()

@@ -212,6 +212,13 @@ deadline, data scope, authority classification, dependencies, and status.
 Records every delegation and return of work, including delegator, delegate,
 authority basis, accepted scope, deadline, and result reference.
 
+### OrganizationExecutionAttempt
+
+Records every claimed execution with a unique token, monotonic attempt number,
+bounded retry budget, actor, timestamps, terminal state, and failure detail.
+Retries must preserve completed delegations, and duplicate worker delivery must
+never create a second concurrent attempt.
+
 ### ExecutiveDecision
 
 Records the question, evidence, recommendation, alternatives, dissent, impact,
@@ -357,6 +364,9 @@ matter creates a Board approval request.
 - The event is consumed idempotently.
 - The responsible position is derived from active organization policy.
 - Every delegation and result is recorded.
+- Every execution attempt is recorded, bounded, and protected from duplicate
+  replay; completed delegations are not repeated during recovery.
+- The Board can cancel queued work immediately and running work cooperatively.
 - Authority cannot be raised or lowered by model output.
 - The specialist cannot approve its own restricted recommendation.
 - Routine work completes without Board involvement.

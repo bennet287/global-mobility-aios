@@ -40,6 +40,14 @@ class EscalationRequest(BaseModel):
     reason: str = Field(min_length=8, max_length=1000)
 
 
+class WorkCancellationRequest(BaseModel):
+    reason: str = Field(min_length=8, max_length=1000)
+
+
+class WorkRetryRequest(BaseModel):
+    reason: str = Field(min_length=8, max_length=1000)
+
+
 class WorkItemCreate(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=200)
     title: str = Field(min_length=3, max_length=300)
@@ -48,4 +56,5 @@ class WorkItemCreate(BaseModel):
     action: str = Field(default="internal.analysis", min_length=3, max_length=100)
     risk_level: str = Field(default="routine", max_length=50)
     requires_board_approval: bool = False
+    max_execution_attempts: int = Field(default=3, ge=1, le=5)
     context: dict = Field(default_factory=dict)

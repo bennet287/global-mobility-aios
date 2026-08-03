@@ -2068,12 +2068,37 @@ class OrganizationalWorkItem(SQLModel, table=True):
     due_at: Optional[datetime] = Field(default=None, index=True)
     reminded_at: Optional[datetime] = Field(default=None, index=True)
     escalated_at: Optional[datetime] = Field(default=None, index=True)
+    execution_attempts: int = Field(default=0, ge=0)
+    max_execution_attempts: int = Field(default=3, ge=1, le=5)
+    execution_token: Optional[str] = Field(default=None, index=True)
+    execution_started_at: Optional[datetime] = Field(default=None, index=True)
+    next_retry_at: Optional[datetime] = Field(default=None, index=True)
+    last_error: Optional[str] = None
+    cancel_requested_at: Optional[datetime] = Field(default=None, index=True)
+    cancelled_at: Optional[datetime] = Field(default=None, index=True)
+    cancelled_by: Optional[str] = Field(default=None, index=True)
+    cancellation_reason: Optional[str] = None
     context_json: str = "{}"
     output_json: str = "{}"
     created_by: str = Field(default="system", index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
     completed_at: Optional[datetime] = Field(default=None, index=True)
+
+
+class OrganizationExecutionAttempt(SQLModel, table=True):
+    __tablename__ = "organization_execution_attempts"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    attempt_key: str = Field(index=True)
+    work_item_id: UUID = Field(index=True, foreign_key="organizational_work_items.id")
+    attempt_number: int = Field(ge=1)
+    execution_token: str = Field(index=True)
+    status: str = Field(default="running", index=True)
+    actor: str = Field(default="organization-worker", index=True)
+    started_at: datetime = Field(default_factory=now_utc, index=True)
+    completed_at: Optional[datetime] = Field(default=None, index=True)
+    error: Optional[str] = None
 
 
 class DelegationRecord(SQLModel, table=True):

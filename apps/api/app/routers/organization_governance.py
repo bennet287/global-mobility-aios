@@ -10,6 +10,7 @@ from app.core.db import get_session
 from app.models.domain import (
     BoardPacket,
     ExecutiveDecision,
+    OrganizationExecutionAttempt,
     OrganizationalActionOutput,
     OrganizationalWorkItem,
     OrganizationPosition,
@@ -24,13 +25,16 @@ from app.schemas_organization_governance import (
     OrganizationControlUpdate,
     PositionResumeRequest,
     PositionSuspensionRequest,
+    WorkCancellationRequest,
     WorkItemCreate,
+    WorkRetryRequest,
 )
 from app.services.audit_log import record_audit
 from app.services.organization_governance import (
     SOURCE,
     board_packet_snapshot,
     board_override_decision,
+    cancel_work_item,
     classify_authority,
     create_board_packet,
     decide_executive_decision,
@@ -39,6 +43,7 @@ from app.services.organization_governance import (
     execute_work_item,
     mark_work_emergency,
     resume_position,
+    retry_work_item,
     set_decision_deadline,
     set_global_control,
     set_work_deadline,
@@ -120,6 +125,21 @@ def list_work_item_outputs(
     return list(session.exec(query).all())
 
 
+@router.get("/work-items/{work_item_id}/attempts")
+def list_work_item_attempts(
+    work_item_id: UUID,
+    session: Session = Depends(get_session),
+) -> list[OrganizationExecutionAttempt]:
+    if session.get(OrganizationalWorkItem, work_item_id) is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    query = (
+        select(OrganizationExecutionAttempt)
+        .where(OrganizationExecutionAttempt.work_item_id == work_item_id)
+        .order_by(OrganizationExecutionAttempt.attempt_number)
+    )
+    return list(session.exec(query).all())
+
+
 @router.post("/work-items", status_code=201)
 def create_work_item(payload: WorkItemCreate, request: Request, session: Session = Depends(get_session)) -> OrganizationalWorkItem:
     existing = session.exec(select(OrganizationalWorkItem).where(OrganizationalWorkItem.idempotency_key == payload.idempotency_key)).first()
@@ -135,6 +155,7 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
         authority_level=authority,
         assigned_position_key="ceo" if payload.department == "Executive" else "coo",
         risk_level=risk,
+        max_execution_attempts=payload.max_execution_attempts,
         context_json=json.dumps({"action": payload.action, **payload.context}, sort_keys=True),
         created_by=_actor(request),
     )
@@ -175,6 +196,40 @@ def execute_work(work_item_id: UUID, request: Request, session: Session = Depend
         raise HTTPException(status_code=404, detail="Organizational work item not found")
     try:
         return execute_work_item(session, work, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/work-items/{work_item_id}/cancel")
+def cancel_work_item_endpoint(
+    work_item_id: UUID,
+    payload: WorkCancellationRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> OrganizationalWorkItem:
+    _admin(request)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    try:
+        return cancel_work_item(session, work, reason=payload.reason, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/work-items/{work_item_id}/retry")
+def retry_work_item_endpoint(
+    work_item_id: UUID,
+    payload: WorkRetryRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> OrganizationalWorkItem:
+    _admin(request)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    try:
+        return retry_work_item(session, work, reason=payload.reason, actor=_actor(request))
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 

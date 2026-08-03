@@ -78,6 +78,7 @@ def register_models() -> None:
         MobilityScenario,
         MobilityScenarioStage,
         OrganizationControl,
+        OrganizationExecutionAttempt,
         OrganizationalActionOutput,
         OrganizationalWorkItem,
         OrganizationPosition,

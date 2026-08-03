@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-03 — Phase 13.4 bounded execution controls
+
+- Added migration `0060_org_execution_controls` with durable execution-attempt
+  records and work-item controls for attempt budgets, claim tokens, retry timing,
+  failure details, and cancellation provenance.
+- Added an atomic claim boundary so duplicate API or Celery delivery cannot run
+  an already-running, completed, cancelled, not-yet-due, or exhausted work item.
+- Added database-scheduled exponential retry backoff capped at five minutes and
+  a configurable, non-resettable one-to-five attempt ceiling.
+- Preserved completed delegation outputs across partial recovery so retrying a
+  failed organizational task does not replay work that already succeeded.
+- Added Human Board-only cancellation and retry endpoints plus an execution
+  attempt ledger endpoint for CEO and Board inspection.
+- Added cooperative running-work cancellation and immediate queued-work
+  cancellation with delegation and audit-state preservation.
+- Expanded regression coverage for cancellation authorization, replay blocking,
+  mid-run failure recovery, retry exhaustion, attempt history, and due-retry
+  scanner selection. The full API suite passes with 425 tests.
+
 ## 2026-08-02 — Phase 13.4 evidence-grounded organizational outputs
 
 - Added migration `0059_org_action_outputs` and a durable organizational

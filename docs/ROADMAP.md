@@ -39,11 +39,11 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-02
+**As of:** 2026-08-03
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0059_org_action_outputs`
+**Code migration head:** `0060_org_execution_controls`
 
 | Area | State | Current position |
 |---|---|---|
@@ -53,24 +53,25 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | AI Organization runtime, Board controls, and Board Packet reporting delivered; autonomous-flow hardening remains |
+| Phase 13 | Governance hardening in progress | AI Organization runtime, Board controls, Board Packet reporting, evidence outputs, and bounded execution controls delivered; external-action gate proof remains |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0059`.
+- Migration-chain integrity: passing with one head at `0060`.
 - Docker production-profile validation: passing.
-- API tests: **421 passing and 0 failing**.
-- Local SQLite database: aligned at `0059`.
+- API tests: **425 passing and 0 failing**.
+- Local SQLite database: aligned at `0060`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0059` will apply through the existing migration job on next startup.
+  `0060` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
-The repository is release-ready for the Phase 13 governance foundation and Board
-Packet reporting slice. The next active gate is evidence-grounded autonomous-flow
-hardening, followed by controlled departmental expansion.
+The repository is release-ready for the Phase 13 governance foundation, Board
+Packet reporting, evidence-output, and bounded execution-control slices. The next
+active gate is proof that every external or irreversible action remains behind
+its required gate, followed by controlled departmental expansion.
 
 ## 3. Execution Order
 
@@ -266,7 +267,9 @@ Lead or case event
 - [x] Record evidence-grounded outputs and confidence through the durable,
   idempotently keyed organizational action-output ledger.
 - [x] Route L1/L2/L3/L4 outcomes according to the authority matrix.
-- [x] Demonstrate timeout and escalation-on-timeout safety; retry, cancellation, and replay safety remain.
+- [x] Demonstrate timeout and escalation-on-timeout safety.
+- [x] Enforce bounded retries, Board-controlled cancellation, durable execution
+  attempts, retry scheduling, and duplicate-delivery/replay safety.
 - [ ] Prove that no client message, authority submission, payment, contract, or
   production deployment bypasses its required gate.
 
@@ -377,7 +380,7 @@ Every software slice must include:
 - **Delivered** means the code exists and focused verification passes.
 - **Complete** means the phase exit criteria and full quality gate pass.
 - **Operationally ongoing** means the software is complete but live evidence,
-  review, monitoring, or data expansion continues.
+e  review, monitoring, or data expansion continues.
 - **Blocked** identifies the exact external or technical dependency; it is not a
   substitute for unfinished work.
 - A UI without its authoritative backend, permissions, audit, and tests is not a
