@@ -21,6 +21,26 @@ PENDING_AGENT_OUTPUT_STATUSES = {
     AgentRunStatus.pending_review.value,
 }
 CLIENT_DRAFTING_AGENT = "client_drafting_agent"
+CONTROLLED_AGENT_SAFETY_FIELDS = {
+    "human_review_required": True,
+    "client_facing": False,
+    "deployment_allowed": False,
+    "external_action_authorized": False,
+    "infrastructure_mutation_allowed": False,
+    "secrets_access_allowed": False,
+}
+TECHNOLOGY_AGENT_CONTROLLED_FIELDS = {
+    "delivery_readiness",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -63,8 +83,7 @@ def _base_output(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> d
         "role": agent["role"],
         "context_keys": sorted(payload.context.keys()),
         "workflow_position": "assistant_worker",
-        "human_review_required": True,
-        "client_facing": False,
+        **CONTROLLED_AGENT_SAFETY_FIELDS,
     }
 
 
@@ -196,6 +215,181 @@ def _business_intelligence(payload: ControlledAgentRunRequest, agent: dict[str, 
     return output
 
 
+def _is_supplied(value: Any) -> bool:
+    return value not in (None, "", [], {})
+
+
+def _first_supplied(facts: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        value = facts.get(key)
+        if _is_supplied(value):
+            return value
+    return None
+
+
+def _technology_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        # Explicit work facts take precedence over the accompanying evidence map.
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _bounded_evidence_confidence(evidence_basis: list[str], required_fields: tuple[str, ...]) -> float:
+    supplied = len(set(evidence_basis).intersection(required_fields))
+    return round(min(0.85, 0.2 + (0.1 * supplied)), 2)
+
+
+def _technology_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "technology_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "technology_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _vp_engineering(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _technology_context(payload)
+    evidence = {
+        "tests": _first_supplied(facts, "tests", "test_evidence", "test_results"),
+        "reliability": _first_supplied(facts, "reliability", "reliability_evidence"),
+        "observability": _first_supplied(facts, "observability", "observability_evidence"),
+        "dependencies": _first_supplied(facts, "dependencies", "delivery_dependencies"),
+        "rollback": _first_supplied(facts, "rollback", "rollback_plan", "rollback_evidence"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dependencies = evidence["dependencies"]
+    if not isinstance(dependencies, list):
+        dependencies = [str(dependencies)] if _is_supplied(dependencies) else []
+    dissent_reason, material_risks = _technology_risk_signals(
+        facts,
+        role_prefix="engineering",
+    )
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Engineering delivery evidence assessed for internal CTO review.",
+            "delivery_readiness": (
+                "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete"
+            ),
+            "test_evidence": evidence["tests"] or {},
+            "reliability_evidence": evidence["reliability"] or {},
+            "observability_evidence": evidence["observability"] or {},
+            "dependencies": dependencies,
+            "rollback_posture": evidence["rollback"] or {},
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cto_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded evidence gap before a delivery recommendation is accepted.",
+                "Escalate production, security, reliability, spend, or contractual action to the CTO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "deployment.production",
+                "production_mutation",
+                "infrastructure_mutation",
+                "secrets_access",
+                "spend_initiation",
+                "contract_signing",
+                "external_action",
+            ],
+        }
+    )
+    return output
+
+
+def _lead_architect(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _technology_context(payload)
+    evidence = {
+        "architecture": _first_supplied(facts, "architecture", "architecture_evidence"),
+        "security": _first_supplied(facts, "security", "security_evidence"),
+        "data_handling": _first_supplied(facts, "data_handling", "data_classification"),
+        "integration": _first_supplied(facts, "integration", "integration_impact"),
+        "reversibility": _first_supplied(
+            facts,
+            "reversibility",
+            "rollback",
+            "rollback_plan",
+            "rollback_evidence",
+        ),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _technology_risk_signals(
+        facts,
+        role_prefix="architecture",
+    )
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Architecture and security evidence assessed for internal CTO review.",
+            "architecture_assessment": evidence["architecture"] or {},
+            "security_assessment": evidence["security"] or {},
+            "data_handling_assessment": evidence["data_handling"] or {},
+            "integration_impact": evidence["integration"] or {},
+            "reversibility": evidence["reversibility"] or {},
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cto_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded architecture, security, data, integration, and provenance gap.",
+                "Escalate irreversible production or material security risk to the CTO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "deployment.production",
+                "architecture_mutation",
+                "infrastructure_mutation",
+                "secrets_access",
+                "spend_initiation",
+                "contract_signing",
+                "external_action",
+            ],
+        }
+    )
+    return output
+
+
 def _application_readiness(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     truth_clear = bool(payload.context.get("truth_clear", False))
@@ -253,6 +447,8 @@ DETERMINISTIC_HANDLERS = {
     "sales_summary_agent": _sales_summary,
     "operations_coordination_agent": _operations_coordination,
     "business_intelligence_agent": _business_intelligence,
+    "vp_engineering_agent": _vp_engineering,
+    "lead_architect_agent": _lead_architect,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -291,11 +487,11 @@ def _merge_with_safety(output: dict[str, Any], base: dict[str, Any]) -> dict[str
     """Ensure every LLM output respects the hard safety invariants."""
     merged = {**base}
     # Allow LLM to add/override agent-specific keys, but never safety-critical keys.
+    immutable_fields = {*CONTROLLED_AGENT_SAFETY_FIELDS, "workflow_position"}
     for key, value in output.items():
-        if key not in {"human_review_required", "client_facing", "workflow_position"}:
+        if key not in immutable_fields:
             merged[key] = value
-    merged["human_review_required"] = True
-    merged["client_facing"] = False
+    merged.update(CONTROLLED_AGENT_SAFETY_FIELDS)
     merged["workflow_position"] = "assistant_worker"
     return merged
 
@@ -327,6 +523,56 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
             raise LLMProviderError("LLM returned non-JSON or malformed JSON.")
 
         output = _merge_with_safety(parsed, base)
+        if resolved_name in {"vp_engineering_agent", "lead_architect_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in TECHNOLOGY_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cto_internal_review"
+            )
+            if resolved_name == "vp_engineering_agent" and must_hold:
+                output["delivery_readiness"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -362,6 +608,8 @@ AGENT_HANDLERS = {
     "sales_summary_agent": _llm_agent_handler,
     "operations_coordination_agent": _llm_agent_handler,
     "business_intelligence_agent": _llm_agent_handler,
+    "vp_engineering_agent": _llm_agent_handler,
+    "lead_architect_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

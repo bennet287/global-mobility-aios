@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0062_ceo_coordination_fencing`
+**Code migration head:** `0063_cto_runtime_contract`
 
 | Area | State | Current position |
 |---|---|---|
@@ -60,18 +60,21 @@ The target operating model is defined in
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0062`.
+- Migration-chain integrity: passing with one head at `0063`.
 - Docker production-profile validation: passing.
-- API tests: **447 passing and 0 failing**.
-- Local SQLite database: aligned at `0062`.
+- API tests: **463 passing and 0 failing**.
+- Local SQLite database: aligned at `0063`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0062` will apply through the existing migration job on next startup.
+  `0063` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
 Packet reporting, evidence-output, bounded execution-control, external-action
-gates, the bounded Operations department runtime, and the CEO coordination loop.
-The next active gate is the first additional executive department runtime,
+gates, the bounded Operations and Technology department runtimes, and the CEO
+coordination loop. The next active gate is the first additional executive
+department runtime beyond Operations and Technology; Product is the most natural
+follow-on because it pairs with the recently hardened Technology runtime and the
+existing Head of Product position.
 starting with a bounded Technology/CTO delegation path.
 
 ## 3. Execution Order
@@ -186,16 +189,19 @@ Key specifications:
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
 **Status:** Governance foundation, Board reporting, the first bounded autonomous
-organization flow, the Operations department runtime, and bounded CEO coordination
-are delivered. The COO
-now delegates general operating objectives to Sales Intelligence, Operations
-Coordination, and Business Intelligence, and adds Application Readiness for
-mobility-case events. Evidence-complete internal L3 matters receive a durable COO
+organization flow, the Operations and Technology department runtimes, and bounded
+CEO coordination are delivered. The COO now delegates general operating
+objectives to Sales Intelligence, Operations Coordination, and Business
+Intelligence, and adds Application Readiness for mobility-case events. The CTO
+delegates technology work to the Vice President of Engineering and Lead Architect
+for delivery-readiness, architecture, security, data-handling, integration, and
+reversibility analysis. Evidence-complete internal L3 matters receive a durable
 consultation and may be closed by the CEO Agent; external actions, L4 matters,
 emergencies, self-approval conflicts, missing consultation, and dissent fail
-closed. Cross-functional consultation requirements are durable and fail closed,
-but the remaining executives do not yet have completion or dissent-submission
-paths. The active gate is a bounded Technology/CTO runtime.
+closed. Cross-functional consultation requirements are durable and fail closed, but
+the remaining executives (CPO, CMO, CFO, CCO, CHRO, CLO) do not yet have
+completion or dissent-submission paths. The active gate is the next bounded
+department-head runtime; Product is the most natural follow-on to Technology.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -248,7 +254,10 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [x] Implement the CEO Agent as an orchestrator with no unrestricted direct
   action path.
 - [x] Implement the COO department-head runtime with bounded Operations specialists.
-- [ ] Implement CTO, CPO, and CLO department-head runtimes.
+- [x] Implement the CTO department-head runtime with bounded Technology specialists
+  (VP Engineering and Lead Architect) for delivery, architecture, security, data,
+  integration, and reversibility analysis.
+- [ ] Implement CPO, CMO, CFO, CCO, CHRO, and CLO department-head runtimes.
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.
 - [ ] Extend the same delegation contract to the remaining executive runtimes.
@@ -304,10 +313,11 @@ Lead or case event
 
 After the first organization flow and Board Room pass their release gates:
 
-- [ ] Expand Technology: VP Engineering, Lead Architect, engineering managers,
-  technical leads, and engineering members.
 - [x] Expand Operations: Sales Intelligence, Operations Coordination, Business
   Intelligence, and case-specific Application Readiness under COO accountability.
+- [x] Expand Technology: VP Engineering, Lead Architect, and hardened CTO
+  delegation contracts under Technology accountability. (Engineering managers,
+  technical leads, and engineering members remain future scale work.)
 - [ ] Expand Product: Head of Product, Product Managers, and Design.
 - [ ] Add Marketing: CMO, Product Marketing, and Marketing Managers.
 - [ ] Add Finance: CFO, Accounts, M&A, and Investor Relations.

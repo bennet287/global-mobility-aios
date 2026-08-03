@@ -74,6 +74,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["business_intelligence_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["business_intelligence_agent"],
     },
+    "vp_engineering_agent": {
+        "version": "v13.6",
+        "department": "technology",
+        "role": "Assesses delivery readiness, tests, reliability, observability, dependencies, and rollback evidence.",
+        "guardrails": [
+            "Cannot deploy software or mutate production infrastructure.",
+            "Cannot access secrets, initiate spend, sign contracts, or authorize external action.",
+            "Must expose missing evidence and keep every recommendation internal and review-gated.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["vp_engineering_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["vp_engineering_agent"],
+    },
+    "lead_architect_agent": {
+        "version": "v13.6",
+        "department": "technology",
+        "role": "Assesses architecture, security, data handling, integration impact, and reversibility evidence.",
+        "guardrails": [
+            "Cannot deploy software or mutate architecture or infrastructure.",
+            "Cannot access secrets, initiate spend, sign contracts, or authorize external action.",
+            "Must distinguish documented controls from recommendations and expose missing evidence.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["lead_architect_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["lead_architect_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

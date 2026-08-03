@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 def now_utc() -> datetime:
@@ -2050,6 +2051,9 @@ class OrganizationPosition(SQLModel, table=True):
 
 class OrganizationalWorkItem(SQLModel, table=True):
     __tablename__ = "organizational_work_items"
+    __table_args__ = (
+        UniqueConstraint("idempotency_key", name="uq_org_work_idempotency"),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     idempotency_key: str = Field(index=True)
@@ -2103,6 +2107,13 @@ class OrganizationExecutionAttempt(SQLModel, table=True):
 
 class DelegationRecord(SQLModel, table=True):
     __tablename__ = "delegation_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "work_item_id",
+            "delegate_position_key",
+            name="uq_delegation_work_delegate",
+        ),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     work_item_id: UUID = Field(index=True, foreign_key="organizational_work_items.id")

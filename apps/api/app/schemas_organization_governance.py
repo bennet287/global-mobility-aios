@@ -48,6 +48,12 @@ class WorkRetryRequest(BaseModel):
     reason: str = Field(min_length=8, max_length=1000)
 
 
+class WorkEvidenceAmendmentRequest(BaseModel):
+    evidence: dict = Field(default_factory=dict)
+    facts: dict = Field(default_factory=dict)
+    reason: str = Field(min_length=8, max_length=1000)
+
+
 class WorkItemCreate(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=200)
     title: str = Field(min_length=3, max_length=300)

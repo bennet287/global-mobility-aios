@@ -4,6 +4,7 @@ import json
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core.db import get_session
@@ -27,6 +28,7 @@ from app.schemas_organization_governance import (
     PositionResumeRequest,
     PositionSuspensionRequest,
     WorkCancellationRequest,
+    WorkEvidenceAmendmentRequest,
     WorkItemCreate,
     WorkRetryRequest,
 )
@@ -34,6 +36,7 @@ from app.services.audit_log import record_audit
 from app.services.external_action_gates import action_gate_manifest
 from app.services.organization_governance import (
     SOURCE,
+    amend_technology_evidence,
     board_packet_snapshot,
     board_override_decision,
     cancel_work_item,
@@ -43,6 +46,7 @@ from app.services.organization_governance import (
     department_executive_owner,
     department_runtime_available,
     delegate_operations_work,
+    delegate_technology_work,
     decide_executive_decision,
     ensure_foundation_positions,
     escalate_work_item,
@@ -164,17 +168,20 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
     if existing:
         return existing
     ensure_foundation_positions(session, actor=_actor(request))
-    authority, risk = classify_authority(payload.action, {"risk_level": payload.risk_level, "requires_board_approval": payload.requires_board_approval})
+    action = payload.action.strip().lower()
+    authority, risk = classify_authority(action, {"risk_level": payload.risk_level, "requires_board_approval": payload.requires_board_approval})
     try:
         accountable_position = department_executive_owner(payload.department)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    runtime_available = department_runtime_available(payload.department)
-    context = {"action": payload.action, **payload.context}
+    runtime_available = department_runtime_available(payload.department, action)
+    context = {**payload.context, "action": action}
     if not runtime_available:
         context["runtime_control"] = {
             "status": "held",
-            "reason": f"The {payload.department} runtime is not yet executable.",
+            "reason": (
+                f"The {payload.department} runtime does not execute action '{action}'."
+            ),
             "external_action_authorized": False,
         }
     work = OrganizationalWorkItem(
@@ -189,7 +196,10 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
         max_execution_attempts=payload.max_execution_attempts,
         last_error=None
         if runtime_available
-        else f"The {payload.department} runtime is registered for governance but is not yet executable.",
+        else (
+            f"The {payload.department} runtime does not execute action '{action}'; "
+            "no organizational execution is authorized."
+        ),
         context_json=json.dumps(context, sort_keys=True),
         created_by=_actor(request),
     )
@@ -197,6 +207,8 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
     session.flush()
     if payload.department.strip().lower() == "operations":
         delegate_operations_work(session, work)
+    elif payload.department.strip().lower() == "technology" and runtime_available:
+        delegate_technology_work(session, work)
     if authority in {"L3", "L4"}:
         owner = "board" if authority == "L4" else "ceo"
         session.add(ExecutiveDecision(
@@ -220,7 +232,18 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
             requires_board_attention=authority == "L4",
         ))
     record_audit(session, action="organization_work_created", entity_type="organizational_work_item", entity_id=work.id, after_state={"authority_level": authority}, actor=_actor(request), source=SOURCE)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        concurrent = session.exec(
+            select(OrganizationalWorkItem).where(
+                OrganizationalWorkItem.idempotency_key == payload.idempotency_key
+            )
+        ).first()
+        if concurrent is not None:
+            return concurrent
+        raise
     session.refresh(work)
     return work
 
@@ -266,6 +289,30 @@ def retry_work_item_endpoint(
         raise HTTPException(status_code=404, detail="Organizational work item not found")
     try:
         return retry_work_item(session, work, reason=payload.reason, actor=_actor(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/work-items/{work_item_id}/technology-evidence")
+def amend_technology_evidence_endpoint(
+    work_item_id: UUID,
+    payload: WorkEvidenceAmendmentRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> OrganizationalWorkItem:
+    _admin(request)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise HTTPException(status_code=404, detail="Organizational work item not found")
+    try:
+        return amend_technology_evidence(
+            session,
+            work,
+            evidence=payload.evidence,
+            facts=payload.facts,
+            reason=payload.reason,
+            actor=_actor(request),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 

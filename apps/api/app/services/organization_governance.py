@@ -11,6 +11,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlmodel import Session, func, select
 
 from app.models.domain import (
+    AgentRun,
     AutomationEvent,
     BoardPacket,
     CorporateMobilityCase,
@@ -35,6 +36,8 @@ POSITION_SPECS = (
     ("board", "Human Board", "Board", None, "L4", None),
     ("ceo", "Chief Executive Officer Agent", "Executive", "board", "L3", "CEO.md"),
     ("cto", "Chief Technology Officer Agent", "Technology", "ceo", "L3", "CTO.md"),
+    ("vp_engineering", "Vice President of Engineering Agent", "Technology", "cto", "L2", "VP_Engineering.md"),
+    ("lead_architect", "Lead Architect Agent", "Technology", "cto", "L2", "Lead_Architect.md"),
     ("coo", "Chief Operating Officer Agent", "Operations", "ceo", "L3", "COO.md"),
     ("cmo", "Chief Marketing Officer Agent", "Marketing", "ceo", "L3", "CMO.md"),
     ("cpo", "Chief Product Officer Agent", "Product", "ceo", "L3", "CPO.md"),
@@ -48,6 +51,19 @@ POSITION_SPECS = (
     ("business_intelligence", "Business Intelligence Agent", "Operations", "coo", "L1", "Business_Intelligence_Agent.md"),
     ("application_readiness", "Application Readiness Agent", "Operations", "coo", "L1", "Application_Readiness_Agent.md"),
 )
+POSITION_SPEC_BY_KEY = {
+    key: {
+        "title": title,
+        "department": department,
+        "reports_to_position_key": reports_to,
+        "authority_level": authority,
+        "role_card_name": role_card,
+    }
+    for key, title, department, reports_to, authority, role_card in POSITION_SPECS
+}
+HARDENED_POSITION_KEYS = frozenset(
+    {"ceo", "cto", "vp_engineering", "lead_architect"}
+)
 
 OPERATIONS_DELEGATION_SPECS = (
     ("sales_summary", "Summarize verified commercial and client context."),
@@ -58,6 +74,56 @@ APPLICATION_READINESS_DELEGATION = (
     "application_readiness",
     "Assess application readiness, dependencies, and blockers.",
 )
+TECHNOLOGY_DELEGATION_SPECS = (
+    (
+        "vp_engineering",
+        "Assess delivery readiness, test evidence, reliability, observability, dependencies, and rollback posture.",
+    ),
+    (
+        "lead_architect",
+        "Assess architecture boundaries, security, data handling, integration impact, and reversibility.",
+    ),
+)
+TECHNOLOGY_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in TECHNOLOGY_DELEGATION_SPECS
+)
+TECHNOLOGY_REQUIRED_EVIDENCE_FIELDS = (
+    "architecture",
+    "data_handling",
+    "dependencies",
+    "integration",
+    "observability",
+    "reliability",
+    "rollback",
+    "security",
+    "sources",
+    "tests",
+)
+TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "vp_engineering": frozenset(
+        {
+            "delivery_readiness",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "lead_architect": frozenset(
+        {
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
 
 BOARD_RESERVED_ACTIONS = {
     "contract.sign",
@@ -66,13 +132,16 @@ BOARD_RESERVED_ACTIONS = {
     "pricing.change",
     "production.irreversible",
     "spend.above_threshold",
+    "vendor.commit",
 }
 EXECUTIVE_ACTIONS = {
     "authority.submit",
     "client.external_send",
     "deployment.production",
+    "infrastructure.mutate",
     "payment.initiate",
     "policy.publish",
+    "secrets.access",
 }
 
 DEPARTMENT_EXECUTIVE_OWNER = {
@@ -90,7 +159,10 @@ EXECUTIVE_COUNCIL_POSITIONS = frozenset(DEPARTMENT_EXECUTIVE_OWNER.values()) - {
 CEO_AUTO_RESOLVABLE_ACTIONS = frozenset({"internal.analysis"})
 CEO_MINIMUM_CONFIDENCE = 0.5
 CEO_COORDINATION_LEASE = timedelta(minutes=5)
-EXECUTABLE_DEPARTMENTS = frozenset({"operations"})
+EXECUTABLE_DEPARTMENT_ACTIONS: dict[str, frozenset[str] | None] = {
+    "operations": None,
+    "technology": frozenset({"internal.analysis"}),
+}
 GOVERNED_EXTERNAL_ACTIONS = frozenset(
     {
         "client.external_send",
@@ -98,6 +170,15 @@ GOVERNED_EXTERNAL_ACTIONS = frozenset(
         "payment.initiate",
         "contract.sign",
         "deployment.production",
+    }
+)
+TECHNOLOGY_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "infrastructure.mutate",
+        "production.irreversible",
+        "secrets.access",
+        "vendor.commit",
     }
 )
 ACTION_EXECUTIVE_CONSULTATIONS = {
@@ -142,8 +223,22 @@ def department_executive_owner(department: str) -> str:
     return owner
 
 
-def department_runtime_available(department: str) -> bool:
-    return department.strip().lower() in EXECUTABLE_DEPARTMENTS
+def department_runtime_available(department: str, action: str | None = None) -> bool:
+    allowed_actions = EXECUTABLE_DEPARTMENT_ACTIONS.get(department.strip().lower())
+    if allowed_actions is None:
+        return department.strip().lower() == "operations"
+    return bool(action) and action.strip().lower() in allowed_actions
+
+
+def _runtime_unavailable_reason(department: str, action: str | None) -> str:
+    normalized_department = department.strip()
+    normalized_action = (action or "unspecified").strip()
+    if normalized_department.lower() == "technology":
+        return (
+            f"The Technology runtime does not execute action '{normalized_action}'; "
+            "only bounded internal.analysis is enabled."
+        )
+    return f"The {normalized_department} runtime is registered for governance but is not yet executable."
 
 
 def _position_contract(position_key: str, authority_level: str) -> dict[str, Any]:
@@ -165,6 +260,75 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                 "external_action_authorized": False,
                 "self_approval_allowed": False,
                 "prohibited_direct_actions": sorted(GOVERNED_EXTERNAL_ACTIONS),
+            }
+        )
+    elif position_key == "cto":
+        contract.update(
+            {
+                "capabilities": [
+                    "delegate_bounded_technology_analysis",
+                    "synthesize_evidence_complete_technology_review",
+                    "escalate_production_security_and_authority_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_specialist_positions": sorted(TECHNOLOGY_REQUIRED_DELEGATES),
+                "required_evidence_fields": list(TECHNOLOGY_REQUIRED_EVIDENCE_FIELDS),
+                "prohibited_direct_actions": sorted(TECHNOLOGY_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "vp_engineering":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_delivery_readiness",
+                    "assess_test_reliability_observability_and_rollback_evidence",
+                    "raise_engineering_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "dependencies",
+                    "observability",
+                    "reliability",
+                    "rollback",
+                    "sources",
+                    "tests",
+                ],
+                "required_output_fields": sorted(
+                    TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS["vp_engineering"]
+                ),
+                "prohibited_direct_actions": sorted(TECHNOLOGY_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "lead_architect":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_architecture_security_data_and_integration_evidence",
+                    "assess_reversibility",
+                    "raise_architecture_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "architecture",
+                    "data_handling",
+                    "integration",
+                    "rollback",
+                    "security",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS["lead_architect"]
+                ),
+                "prohibited_direct_actions": sorted(TECHNOLOGY_PROHIBITED_ACTIONS),
             }
         )
     return contract
@@ -244,6 +408,7 @@ def _record_action_output(
     blocked_actions = result_payload.get("blocked_actions", []) if isinstance(result_payload, dict) else []
     impact = {
         "client_facing": False,
+        "external_action_authorized": False,
         "human_review_required": bool(
             result_payload.get("human_review_required", True)
             if isinstance(result_payload, dict)
@@ -294,6 +459,55 @@ def _record_action_output(
     return action_output
 
 
+def _position_matches_spec(position: OrganizationPosition, position_key: str) -> bool:
+    spec = POSITION_SPEC_BY_KEY[position_key]
+    return (
+        position.title == spec["title"]
+        and position.department == spec["department"]
+        and position.reports_to_position_key == spec["reports_to_position_key"]
+        and position.authority_level == spec["authority_level"]
+        and position.role_card_name == spec["role_card_name"]
+        and _load(position.contract_json, {})
+        == _position_contract(position_key, str(spec["authority_level"]))
+    )
+
+
+def _requeue_position_holds(
+    session: Session,
+    position_key: str,
+    *,
+    result_refs: set[str],
+) -> set[UUID]:
+    requeued_work_ids: set[UUID] = set()
+    held_delegations = session.exec(
+        select(DelegationRecord).where(
+            DelegationRecord.delegate_position_key == position_key,
+            DelegationRecord.status == "held",
+            DelegationRecord.result_ref.in_(sorted(result_refs)),
+        )
+    ).all()
+    for delegation in held_delegations:
+        delegation.status = "queued"
+        delegation.result_ref = None
+        delegation.completed_at = None
+        session.add(delegation)
+        work = session.get(OrganizationalWorkItem, delegation.work_item_id)
+        if (
+            work is not None
+            and work.status == "held"
+            and work.cancel_requested_at is None
+            and work.execution_attempts < work.max_execution_attempts
+            and department_runtime_available(work.department, _work_action(work))
+        ):
+            work.status = "queued"
+            work.output_json = "{}"
+            work.last_error = None
+            work.updated_at = _now()
+            session.add(work)
+            requeued_work_ids.add(work.id)
+    return requeued_work_ids
+
+
 def ensure_foundation_positions(
     session: Session,
     *,
@@ -308,7 +522,8 @@ def ensure_foundation_positions(
                 OrganizationPosition.version == 1,
             )
         ).first()
-        if position is None:
+        created = position is None
+        if created:
             position = OrganizationPosition(
                 position_key=key,
                 title=title,
@@ -330,10 +545,29 @@ def ensure_foundation_positions(
                 actor=actor,
                 source=SOURCE,
             )
-        elif key == "ceo" and repair_contracts:
+            if key in HARDENED_POSITION_KEYS:
+                _requeue_position_holds(
+                    session,
+                    key,
+                    result_refs={"position:unavailable"},
+                )
+        elif key in HARDENED_POSITION_KEYS and repair_contracts:
             expected_contract = _position_contract(key, authority)
-            if _load(position.contract_json, {}) != expected_contract:
-                before_contract = position.contract_json
+            if not _position_matches_spec(position, key):
+                before_state = {
+                    "title": position.title,
+                    "department": position.department,
+                    "reports_to_position_key": position.reports_to_position_key,
+                    "authority_level": position.authority_level,
+                    "role_card_name": position.role_card_name,
+                    "contract_json": position.contract_json,
+                }
+                spec = POSITION_SPEC_BY_KEY[key]
+                position.title = str(spec["title"])
+                position.department = str(spec["department"])
+                position.reports_to_position_key = spec["reports_to_position_key"]
+                position.authority_level = str(spec["authority_level"])
+                position.role_card_name = spec["role_card_name"]
                 position.contract_json = _json(expected_contract)
                 position.updated_at = _now()
                 session.add(position)
@@ -342,11 +576,42 @@ def ensure_foundation_positions(
                     action="organization_position_contract_hardened",
                     entity_type="organization_position",
                     entity_id=position.id,
-                    before_state={"contract_json": before_contract},
-                    after_state={"contract": expected_contract},
+                    before_state=before_state,
+                    after_state={
+                        **spec,
+                        "contract": expected_contract,
+                    },
                     actor=actor,
                     source=SOURCE,
                 )
+                if key in TECHNOLOGY_REQUIRED_DELEGATES:
+                    _requeue_position_holds(
+                        session,
+                        key,
+                        result_refs={"position:contract_mismatch"},
+                    )
+                if key == "cto":
+                    contract_holds = session.exec(
+                        select(OrganizationalWorkItem).where(
+                            OrganizationalWorkItem.assigned_position_key == "cto",
+                            OrganizationalWorkItem.status == "held",
+                            OrganizationalWorkItem.last_error
+                            == "The persisted CTO contract requires Human Board repair before execution.",
+                        )
+                    ).all()
+                    for held_work in contract_holds:
+                        if (
+                            held_work.cancel_requested_at is None
+                            and held_work.execution_attempts < held_work.max_execution_attempts
+                            and department_runtime_available(
+                                held_work.department,
+                                _work_action(held_work),
+                            )
+                        ):
+                            held_work.status = "queued"
+                            held_work.last_error = None
+                            held_work.updated_at = _now()
+                            session.add(held_work)
         positions.append(position)
     control = session.exec(
         select(OrganizationControl).where(OrganizationControl.control_key == "global")
@@ -400,6 +665,44 @@ def delegate_operations_work(
             delegate_position_key=delegate,
             task=task,
             authority_basis="COO L3 operating mandate; delegated L1 internal analysis only.",
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_technology_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CTO review plan once for internal analysis."""
+    if work.department.strip().lower() != "technology":
+        raise ValueError("Technology delegation requires a Technology work item")
+    if work.assigned_position_key != "cto":
+        raise ValueError("Technology delegation requires CTO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("Technology delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in TECHNOLOGY_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="cto",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CTO L3 technology mandate; delegated L2 internal analysis only; "
+                "no deployment, infrastructure mutation, spend, contract, or external action authority."
+            ),
         )
         session.add(delegation)
         delegations.append(delegation)
@@ -462,13 +765,41 @@ def resume_position(
     position.suspended_reason = None
     position.updated_at = _now()
     session.add(position)
+    requeued_work_ids = _requeue_position_holds(
+        session,
+        position.position_key,
+        result_refs={"position:suspended"},
+    )
+
+    accountable_hold_reason = f"The accountable {position.position_key} position is suspended."
+    accountable_work = session.exec(
+        select(OrganizationalWorkItem).where(
+            OrganizationalWorkItem.assigned_position_key == position.position_key,
+            OrganizationalWorkItem.status == "held",
+            OrganizationalWorkItem.last_error == accountable_hold_reason,
+        )
+    ).all()
+    for work in accountable_work:
+        if (
+            work.cancel_requested_at is None
+            and work.execution_attempts < work.max_execution_attempts
+            and department_runtime_available(work.department, _work_action(work))
+        ):
+            work.status = "queued"
+            work.last_error = None
+            work.updated_at = _now()
+            session.add(work)
+            requeued_work_ids.add(work.id)
     record_audit(
         session,
         action="organization_position_resumed",
         entity_type="organization_position",
         entity_id=position.id,
         before_state={"status": before},
-        after_state={"status": position.status},
+        after_state={
+            "status": position.status,
+            "requeued_work_item_ids": sorted(str(item) for item in requeued_work_ids),
+        },
         reason=reason,
         actor=actor,
         source=SOURCE,
@@ -511,11 +842,7 @@ def board_override_decision(
     session.add(decision)
     work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
     if work is not None:
-        work.status = "completed" if outcome == "approved" else outcome
-        work.completed_at = _now()
-        work.updated_at = _now()
-        session.add(work)
-        _resolve_work_risks(session, work, outcome=outcome)
+        _apply_decision_outcome_to_work(session, work, outcome=outcome)
     record_audit(
         session,
         action="executive_decision_overridden",
@@ -833,10 +1160,11 @@ def mark_work_emergency(
 
 def classify_authority(action: str, payload: dict[str, Any] | None = None) -> tuple[str, str]:
     data = payload or {}
+    normalized_action = action.strip().lower()
     risk = str(data.get("risk_level") or data.get("severity") or "routine").lower()
-    if bool(data.get("requires_board_approval")) or action in BOARD_RESERVED_ACTIONS or risk == "critical":
+    if bool(data.get("requires_board_approval")) or normalized_action in BOARD_RESERVED_ACTIONS or risk == "critical":
         return "L4", "critical"
-    if action in EXECUTIVE_ACTIONS or risk in {"high", "material"}:
+    if normalized_action in EXECUTIVE_ACTIONS or risk in {"high", "material"}:
         return "L3", "high"
     if risk in {"medium", "moderate"} or bool(data.get("manager_review_required")):
         return "L2", "moderate"
@@ -1138,37 +1466,104 @@ def _mark_execution_failed(
     return work
 
 
+def _hold_work_without_claim(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    reason: str,
+    action: str,
+    actor: str,
+    audit_action: str,
+) -> OrganizationalWorkItem:
+    if work.status != "held" or work.last_error != reason:
+        work.status = "held"
+        work.completed_at = None
+        work.execution_started_at = None
+        work.next_retry_at = None
+        work.last_error = reason
+        work.updated_at = _now()
+        session.add(work)
+        record_audit(
+            session,
+            action=audit_action,
+            entity_type="organizational_work_item",
+            entity_id=work.id,
+            after_state={
+                "status": "held",
+                "department": work.department,
+                "requested_action": action,
+                "external_action_authorized": False,
+            },
+            reason=reason,
+            actor=actor,
+            source=SOURCE,
+        )
+        session.commit()
+        session.refresh(work)
+    return work
+
+
 def execute_work_item(
     session: Session,
     work: OrganizationalWorkItem,
     *,
     actor: str = "organization-worker",
 ) -> OrganizationalWorkItem:
-    if not department_runtime_available(work.department):
-        if work.status != "held":
-            work.status = "held"
-            work.last_error = (
-                f"The {work.department} runtime is registered for governance but is not yet executable."
-            )
-            work.updated_at = _now()
-            session.add(work)
-            record_audit(
+    action = _work_action(work)
+    if not department_runtime_available(work.department, action):
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason=_runtime_unavailable_reason(work.department, action),
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_runtime_unavailable",
+        )
+
+    accountable_position = _position_by_key(session, work.assigned_position_key)
+    if accountable_position is None:
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason=f"The accountable {work.assigned_position_key} position is not registered.",
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_accountability_unavailable",
+        )
+    if _is_suspended(accountable_position):
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason=f"The accountable {work.assigned_position_key} position is suspended.",
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_accountability_unavailable",
+        )
+    if (
+        work.department.strip().lower() == "technology"
+        and _load(accountable_position.contract_json, {}) != _position_contract("cto", "L3")
+    ):
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason="The persisted CTO contract requires Human Board repair before execution.",
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_contract_mismatch",
+        )
+
+    if work.department.strip().lower() == "technology":
+        delegate_technology_work(session, work)
+        technology_preflight_gap = _technology_preflight_gap(session, work)
+        if technology_preflight_gap:
+            return _hold_work_without_claim(
                 session,
-                action="organization_work_held_runtime_unavailable",
-                entity_type="organizational_work_item",
-                entity_id=work.id,
-                after_state={
-                    "status": "held",
-                    "department": work.department,
-                    "external_action_authorized": False,
-                },
-                reason=work.last_error,
+                work,
+                reason=technology_preflight_gap,
+                action=action,
                 actor=actor,
-                source=SOURCE,
+                audit_action="organization_work_held_technology_preflight",
             )
-            session.commit()
-            session.refresh(work)
-        return work
 
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
     if control and control.status == "paused":
@@ -1210,6 +1605,205 @@ def execute_work_item(
         raise
 
 
+def _technology_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _technology_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _technology_evidence_context(work)
+    aliases = {
+        "architecture": ("architecture", "architecture_evidence"),
+        "data_handling": ("data_handling", "data_classification"),
+        "dependencies": ("dependencies", "delivery_dependencies"),
+        "integration": ("integration", "integration_impact"),
+        "observability": ("observability", "observability_evidence"),
+        "reliability": ("reliability", "reliability_evidence"),
+        "rollback": ("rollback", "reversibility", "rollback_plan", "rollback_evidence"),
+        "security": ("security", "security_evidence"),
+        "sources": ("sources", "source_provenance"),
+        "tests": ("tests", "test_evidence", "test_results"),
+    }
+    return [
+        field
+        for field in TECHNOLOGY_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _technology_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(TECHNOLOGY_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _technology_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "Technology preflight incomplete; " + "; ".join(gaps) + "."
+
+
+def _specialist_output_payload(action_output: OrganizationalActionOutput) -> dict[str, Any]:
+    result = _load(action_output.output_json, {})
+    if not isinstance(result, dict):
+        return {}
+    payload = result.get("output")
+    return payload if isinstance(payload, dict) else {}
+
+
+def _recover_completed_delegation_result(
+    session: Session,
+    delegation: DelegationRecord,
+    work: OrganizationalWorkItem,
+) -> tuple[dict[str, Any], str] | None:
+    result_ref = delegation.result_ref or ""
+    agent_name = f"{delegation.delegate_position_key}_agent"
+    if result_ref.startswith("agent-run:"):
+        try:
+            run_id = UUID(result_ref.removeprefix("agent-run:"))
+        except ValueError:
+            return None
+        run = session.get(AgentRun, run_id)
+        if run is None:
+            return None
+        output = _load(run.output_json, {})
+        output = output if isinstance(output, dict) else {}
+        return (
+            {
+                "agent": run.agent_name,
+                "run_id": str(run.id),
+                "status": "completed",
+                "output": output,
+            },
+            result_ref,
+        )
+    if result_ref == f"work-item:{work.id}":
+        return (
+            {
+                "agent": agent_name,
+                "status": "completed",
+                "note": "Case has no linked lead; organizational context recorded.",
+            },
+            result_ref,
+        )
+    return None
+
+
+def _department_completion_gap(
+    work: OrganizationalWorkItem,
+    delegations: list[DelegationRecord],
+    action_outputs: list[OrganizationalActionOutput],
+) -> str | None:
+    if work.department.strip().lower() != "technology":
+        return None
+
+    by_key = {item.delegate_position_key: item for item in delegations}
+    missing_delegates = sorted(TECHNOLOGY_REQUIRED_DELEGATES - set(by_key))
+    incomplete_delegates = sorted(
+        key
+        for key in TECHNOLOGY_REQUIRED_DELEGATES
+        if key in by_key and by_key[key].status != "completed"
+    )
+    completed_output_delegation_ids = {
+        item.delegation_record_id
+        for item in action_outputs
+        if item.status == "completed" and item.delegation_record_id is not None
+    }
+    output_by_delegation_id = {
+        item.delegation_record_id: item
+        for item in action_outputs
+        if item.delegation_record_id is not None
+    }
+    missing_outputs = sorted(
+        key
+        for key in TECHNOLOGY_REQUIRED_DELEGATES
+        if key in by_key and by_key[key].id not in completed_output_delegation_ids
+    )
+    evidence_gaps = _technology_evidence_gaps(work)
+    specialist_gaps: list[str] = []
+    specialist_dissent: list[str] = []
+    for position_key in sorted(TECHNOLOGY_REQUIRED_DELEGATES):
+        delegation = by_key.get(position_key)
+        action_output = (
+            output_by_delegation_id.get(delegation.id)
+            if delegation is not None
+            else None
+        )
+        if action_output is None or action_output.status != "completed":
+            continue
+        payload = _specialist_output_payload(action_output)
+        required_fields = TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS[position_key]
+        missing_fields = sorted(required_fields - set(payload))
+        reported_gaps = payload.get("evidence_gaps")
+        reported_gaps = reported_gaps if isinstance(reported_gaps, list) else ["invalid evidence_gaps"]
+        if position_key == "vp_engineering" and payload.get("delivery_readiness") != "evidence_complete_for_review":
+            reported_gaps.append("delivery_readiness")
+        if payload.get("recommendation") != "proceed_to_cto_internal_review":
+            reported_gaps.append("recommendation")
+        if payload.get("escalation_required") is not False:
+            reported_gaps.append("escalation_required")
+        if missing_fields or reported_gaps:
+            detail = sorted(set(missing_fields + [str(item) for item in reported_gaps]))
+            specialist_gaps.append(f"{position_key}: {', '.join(detail)}")
+        material_risks = payload.get("material_risks")
+        if payload.get("dissent") is not False or material_risks not in (None, []):
+            specialist_dissent.append(position_key)
+
+    gaps: list[str] = []
+    if missing_delegates:
+        gaps.append(f"missing required delegates: {', '.join(missing_delegates)}")
+    if incomplete_delegates:
+        gaps.append(f"incomplete required delegates: {', '.join(incomplete_delegates)}")
+    if missing_outputs:
+        gaps.append(f"missing completed outputs: {', '.join(missing_outputs)}")
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if specialist_gaps:
+        gaps.append(f"specialist output incomplete: {'; '.join(specialist_gaps)}")
+    if specialist_dissent:
+        gaps.append(
+            "specialist dissent or material risk: "
+            + ", ".join(sorted(specialist_dissent))
+        )
+    if not gaps:
+        return None
+    return "Technology evidence contract incomplete; " + "; ".join(gaps) + "."
+
+
 def _execute_claimed_work_item(
     session: Session,
     work: OrganizationalWorkItem,
@@ -1239,6 +1833,22 @@ def _execute_claimed_work_item(
                     "note": "Previously completed delegation reused during retry.",
                 }))
                 continue
+            recovered = _recover_completed_delegation_result(session, delegation, work)
+            if recovered is not None:
+                result, result_ref = recovered
+                results.append(result)
+                action_outputs.append(
+                    _record_action_output(
+                        session,
+                        work=work,
+                        delegation=delegation,
+                        result=result,
+                        result_ref=result_ref,
+                        actor=actor,
+                    )
+                )
+                session.commit()
+                continue
             delegation.status = "queued"
         delegation.status = "running"
         delegation.completed_at = None
@@ -1246,15 +1856,19 @@ def _execute_claimed_work_item(
         session.commit()
         agent_name = f"{delegation.delegate_position_key}_agent"
         position = _position_by_key(session, delegation.delegate_position_key)
-        if _is_suspended(position):
+        if position is None or _is_suspended(position):
             delegation.status = "held"
             delegation.completed_at = _now()
-            delegation.result_ref = "position:suspended"
+            delegation.result_ref = "position:unavailable" if position is None else "position:suspended"
             session.add(delegation)
             results.append({
                 "agent": agent_name,
                 "status": "held",
-                "note": f"{delegation.delegate_position_key} is suspended; delegation held.",
+                "note": (
+                    f"{delegation.delegate_position_key} is not registered; delegation held."
+                    if position is None
+                    else f"{delegation.delegate_position_key} is suspended; delegation held."
+                ),
             })
             action_outputs.append(_record_action_output(
                 session,
@@ -1266,7 +1880,11 @@ def _execute_claimed_work_item(
             ))
             session.commit()
             continue
-        if work.lead_id is None:
+        runs_from_internal_context = (
+            work.department.strip().lower() == "technology"
+            and delegation.delegate_position_key in TECHNOLOGY_REQUIRED_DELEGATES
+        )
+        if work.lead_id is None and not runs_from_internal_context:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}
             result_ref = f"work-item:{work.id}"
         else:
@@ -1289,6 +1907,7 @@ def _execute_claimed_work_item(
         delegation.result_ref = result_ref
         delegation.completed_at = _now()
         session.add(delegation)
+        session.commit()
         action_outputs.append(_record_action_output(
             session,
             work=work,
@@ -1301,13 +1920,15 @@ def _execute_claimed_work_item(
 
     _raise_if_cancelled(session, work)
     completed_confidences = [item.confidence for item in action_outputs if item.status == "completed"]
-    if not completed_confidences:
+    completion_gap = _department_completion_gap(work, delegations, action_outputs)
+    if completion_gap or not completed_confidences:
+        hold_reason = completion_gap or "No completed, provenance-bearing departmental output is available."
         work.output_json = _json(
             {
                 "delegated_results": results,
                 "governance": {
                     "status": "held",
-                    "reason": "No completed, provenance-bearing departmental output is available.",
+                    "reason": hold_reason,
                     "external_action_authorized": False,
                     "execution_attempt": attempt.attempt_number,
                     "execution_token": attempt.execution_token,
@@ -1317,7 +1938,7 @@ def _execute_claimed_work_item(
         work.status = "held"
         work.execution_started_at = None
         work.next_retry_at = None
-        work.last_error = "No completed, provenance-bearing departmental output is available."
+        work.last_error = hold_reason
         work.updated_at = _now()
         session.add(work)
         attempt.status = "completed"
@@ -1357,6 +1978,7 @@ def _execute_claimed_work_item(
             "confidence_basis": "Arithmetic mean of completed delegated action-output confidence values.",
             "expected_impact": "Bounded internal analysis recorded for the accountable decision owner.",
             "rollback_posture": "Discard outputs and replay delegations; no external action was authorized.",
+            "external_action_authorized": False,
             "execution_attempt": attempt.attempt_number,
             "execution_token": attempt.execution_token,
         },
@@ -1497,6 +2119,101 @@ def retry_work_item(
     return work
 
 
+def amend_technology_evidence(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    evidence: dict[str, Any],
+    facts: dict[str, Any],
+    reason: str,
+    actor: str,
+) -> OrganizationalWorkItem:
+    session.refresh(work)
+    if work.department.strip().lower() != "technology" or _work_action(work) != "internal.analysis":
+        raise ValueError("Evidence amendment is limited to bounded Technology internal analysis")
+    if work.status != "held" or not (work.last_error or "").startswith(
+        ("Technology preflight incomplete;", "Technology evidence contract incomplete;")
+    ):
+        raise ValueError("Only Technology work held for incomplete evidence can be amended")
+    if "specialist dissent or material risk" in (work.last_error or ""):
+        raise ValueError("Specialist dissent or material risk requires a superseding Board-reviewed work item")
+    if work.cancel_requested_at is not None:
+        raise ValueError("Cancelled work cannot be amended")
+    if not evidence and not facts:
+        raise ValueError("Evidence amendment requires evidence or facts")
+
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    authoritative_action = _work_action(work)
+    current_evidence = context.get("evidence")
+    current_evidence = current_evidence if isinstance(current_evidence, dict) else {}
+    current_facts = context.get("facts")
+    current_facts = current_facts if isinstance(current_facts, dict) else {}
+    before_gaps = _technology_evidence_gaps(work)
+    revision = int(context.get("evidence_revision") or 0) + 1
+    context.update(
+        {
+            "action": authoritative_action,
+            "evidence": {**current_evidence, **evidence},
+            "facts": {**current_facts, **facts},
+            "evidence_revision": revision,
+        }
+    )
+    work.context_json = _json(context)
+    after_gaps = _technology_evidence_gaps(work)
+
+    if after_gaps:
+        work.last_error = (
+            "Technology preflight incomplete; missing evidence fields: "
+            + ", ".join(after_gaps)
+            + "."
+        )
+    else:
+        if work.execution_attempts >= work.max_execution_attempts:
+            raise ValueError("Work item has exhausted its execution attempts")
+        delegations = session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+        for delegation in delegations:
+            if delegation.delegate_position_key not in TECHNOLOGY_REQUIRED_DELEGATES:
+                continue
+            delegation.status = "queued"
+            delegation.result_ref = None
+            delegation.completed_at = None
+            session.add(delegation)
+        work.status = "queued"
+        work.output_json = "{}"
+        work.last_error = None
+        work.completed_at = None
+        work.next_retry_at = None
+    work.updated_at = _now()
+    session.add(work)
+    record_audit(
+        session,
+        action="organization_technology_evidence_amended",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        before_state={
+            "evidence_revision": revision - 1,
+            "missing_evidence_fields": before_gaps,
+        },
+        after_state={
+            "evidence_revision": revision,
+            "evidence_keys_added": sorted(evidence),
+            "fact_keys_added": sorted(facts),
+            "missing_evidence_fields": after_gaps,
+            "status": work.status,
+            "external_action_authorized": False,
+        },
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(work)
+    return work
+
+
 def _work_context(work: OrganizationalWorkItem) -> dict[str, Any]:
     context = _load(work.context_json, {})
     return context if isinstance(context, dict) else {}
@@ -1505,7 +2222,9 @@ def _work_context(work: OrganizationalWorkItem) -> dict[str, Any]:
 def _work_action(work: OrganizationalWorkItem) -> str:
     context = _work_context(work)
     facts = context.get("facts") if isinstance(context.get("facts"), dict) else {}
-    return str(context.get("action") or facts.get("action") or context.get("event_type") or "").strip()
+    return str(
+        context.get("action") or facts.get("action") or context.get("event_type") or ""
+    ).strip().lower()
 
 
 def _required_ceo_consultations(
@@ -2221,7 +2940,7 @@ def _coordinate_claimed_ceo_decision(
         decision,
         outcome="approved",
         reason=(
-            "CEO accepted the evidence-complete internal Operations analysis within L3. "
+            f"CEO accepted the evidence-complete internal {work.department} analysis within L3. "
             "No external action was authorized."
         ),
         actor=actor,
@@ -2325,7 +3044,9 @@ def set_global_control(session: Session, *, status: str, reason: str, actor: str
     if status == "active":
         held = session.exec(select(OrganizationalWorkItem).where(OrganizationalWorkItem.status == "held")).all()
         for item in held:
-            if not department_runtime_available(item.department):
+            if not department_runtime_available(item.department, _work_action(item)):
+                continue
+            if item.last_error:
                 continue
             item.status = "queued"
             item.updated_at = _now()
@@ -2358,6 +3079,54 @@ def _resolve_work_risks(
         risk.resolved_at = now
         risk.updated_at = now
         session.add(risk)
+
+
+def _work_has_completed_analysis(session: Session, work: OrganizationalWorkItem) -> bool:
+    delegations = session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+    ).all()
+    if not delegations or any(item.status != "completed" for item in delegations):
+        return False
+    outputs = session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.work_item_id == work.id
+        )
+    ).all()
+    return len(outputs) == len(delegations) and all(item.status == "completed" for item in outputs)
+
+
+def _apply_decision_outcome_to_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    outcome: str,
+) -> None:
+    now = _now()
+    if outcome == "approved":
+        action = _work_action(work)
+        if department_runtime_available(work.department, action) and _work_has_completed_analysis(
+            session,
+            work,
+        ):
+            work.status = "completed"
+            work.completed_at = now
+            work.last_error = None
+            _resolve_work_risks(session, work, outcome=outcome)
+        else:
+            work.status = "held"
+            work.completed_at = None
+            work.last_error = (
+                "Decision approval recorded, but execution remains held until a registered runtime "
+                "produces complete governed analysis; approval is not execution."
+            )
+    else:
+        work.status = outcome
+        work.completed_at = now
+        _resolve_work_risks(session, work, outcome=outcome)
+    work.execution_started_at = None
+    work.next_retry_at = None
+    work.updated_at = now
+    session.add(work)
 
 
 def decide_executive_decision(
@@ -2460,11 +3229,7 @@ def decide_executive_decision(
         session.add(decision)
     work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
     if work is not None:
-        work.status = "completed" if outcome == "approved" else outcome
-        work.completed_at = now
-        work.updated_at = now
-        session.add(work)
-        _resolve_work_risks(session, work, outcome=outcome)
+        _apply_decision_outcome_to_work(session, work, outcome=outcome)
     record_audit(
         session,
         action=f"executive_decision_{outcome}",

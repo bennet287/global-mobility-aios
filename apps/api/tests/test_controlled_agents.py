@@ -29,6 +29,8 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "sales_summary_agent",
         "operations_coordination_agent",
         "business_intelligence_agent",
+        "vp_engineering_agent",
+        "lead_architect_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -77,6 +79,80 @@ def test_operations_department_agents_produce_bounded_internal_outputs(
     run = db_session.exec(select(AgentRun).where(AgentRun.agent_name == agent_name)).one()
     persisted = json.loads(run.output_json)
     assert persisted[expected_key] == payload["output"][expected_key]
+
+
+@pytest.mark.parametrize(
+    ("agent_name", "expected_key"),
+    [
+        ("vp_engineering_agent", "delivery_readiness"),
+        ("lead_architect_agent", "architecture_assessment"),
+    ],
+)
+def test_technology_agents_produce_evidence_aware_fail_closed_outputs(
+    client: TestClient,
+    db_session: Session,
+    agent_name: str,
+    expected_key: str,
+) -> None:
+    lead = create_lead(db_session, name=f"{agent_name} Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": agent_name,
+            "task": "Prepare bounded Technology evidence analysis.",
+            "lead_id": str(lead.id),
+            "context": {
+                "facts": {
+                    "architecture": {"boundary": "API service"},
+                    "tests": {"suite": "focused", "passed": 12},
+                    "security": {"review": "recorded"},
+                    "rollback": {"plan": "documented"},
+                    "observability": {"telemetry": "available"},
+                    "sources": ["test-report:12", "architecture-record:7"],
+                }
+            },
+            "actor": "cto-runtime",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    output = payload["output"]
+    assert expected_key in output
+    assert output["human_review_required"] is True
+    assert output["client_facing"] is False
+    assert output["deployment_allowed"] is False
+    assert output["external_action_authorized"] is False
+    assert output["infrastructure_mutation_allowed"] is False
+    assert output["secrets_access_allowed"] is False
+    assert "deployment.production" in output["blocked_actions"]
+    assert 0.0 < output["confidence"] <= 0.85
+
+    run = db_session.exec(select(AgentRun).where(AgentRun.agent_name == agent_name)).one()
+    persisted = json.loads(run.output_json)
+    assert persisted["evidence_basis"] == output["evidence_basis"]
+
+
+def test_technology_agent_exposes_missing_evidence(client: TestClient, db_session: Session) -> None:
+    lead = create_lead(db_session, name="Evidence Gap Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "vp_engineering_agent",
+            "task": "Assess delivery readiness without inventing evidence.",
+            "lead_id": str(lead.id),
+            "context": {"facts": {"tests": {"passed": 2}}},
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    output = response.json()["output"]
+    assert output["delivery_readiness"] == "evidence_incomplete"
+    assert "tests" in output["evidence_basis"]
+    assert {"reliability", "observability", "rollback", "sources"}.issubset(
+        output["evidence_gaps"]
+    )
+    assert output["confidence"] < 0.5
 
 
 def test_controlled_client_drafting_agent_persists_run_and_blocks_send(
@@ -546,6 +622,12 @@ def test_llm_enabled_agent_uses_provider_output(
         "safe_next_actions": ["Call next week."],
         "prohibited_claims": ["guaranteed visa"],
         "blocked_actions": ["lead_conversion"],
+        "human_review_required": False,
+        "client_facing": True,
+        "deployment_allowed": True,
+        "external_action_authorized": True,
+        "infrastructure_mutation_allowed": True,
+        "secrets_access_allowed": True,
     }
 
     fake_response = MagicMock()
@@ -584,6 +666,10 @@ def test_llm_enabled_agent_uses_provider_output(
     assert data["output"]["summary"] == "LLM-generated sales summary."
     assert data["output"]["human_review_required"] is True
     assert data["output"]["client_facing"] is False
+    assert data["output"]["deployment_allowed"] is False
+    assert data["output"]["external_action_authorized"] is False
+    assert data["output"]["infrastructure_mutation_allowed"] is False
+    assert data["output"]["secrets_access_allowed"] is False
     assert data["output"]["_llm_meta"]["provider"] == "deepseek"
     assert data["output"]["_llm_meta"]["model"] == "deepseek-chat"
 

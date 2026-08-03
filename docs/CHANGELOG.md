@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-08-03 — Phase 13.3 bounded Technology/CTO runtime contract
+
+- Hardened the CTO, VP Engineering, and Lead Architect position contracts through
+  migration `0063_cto_runtime_contract` with explicit capabilities, required
+  evidence fields, required specialist outputs, prohibited direct actions, and a
+  unique work/delegate constraint on delegation records.
+- Added `agents/role_cards/VP_Engineering.md` and
+  `agents/role_cards/Lead_Architect.md` with bounded L2 analysis contracts,
+  required inputs/outputs, and rejection rules for external action, deployment,
+  infrastructure mutation, secret access, spend, and contract authority.
+- Updated `agents/role_cards/CTO.md` to report to the CEO, own Technology
+  accountability, delegate to VP Engineering and Lead Architect, and escalate
+  production, security, financial, contractual, and irreversible decisions.
+- Implemented a fail-closed Technology department-head runtime that delegates only
+  `internal.analysis` work to VP Engineering and Lead Architect, validates
+  required evidence fields, validates required specialist outputs, records
+  dissent and material risks, and fails closed on deployment, infrastructure,
+  secret-access, spend, contract, or external-action requests.
+- Enforced that Technology specialists cannot be invoked for non-Technology work,
+  that CTO work is assigned only to the CTO, and that incomplete evidence or
+  missing outputs are recorded as gaps rather than silently approved.
+- Connected the controlled-agent registry and role-card loader to the Technology
+  specialist contracts so runtime prompts, rejection behavior, and output
+  schemas are consistent with the persisted position contract.
+- Added Technology runtime regression coverage including evidence-field
+  validation, output-field validation, non-Technology rejection, CTO-only
+  assignment, required-delegate completeness, and hardened contract enforcement.
+- Updated `docs/ROADMAP.md` to mark the Technology department runtime as
+  delivered and identify the Product department runtime as the next active gate.
+- Full API suite passes with 463 tests at migration head `0063` and the local
+  quality gate passes.
+
 ## 2026-08-03 — Phase 13.3 bounded CEO and executive-consultation ledger
 
 - Added migration `0061_exec_council_consultations` and a durable consultation
