@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0060_org_execution_controls`
+**Code migration head:** `0062_ceo_coordination_fencing`
 
 | Area | State | Current position |
 |---|---|---|
@@ -53,26 +53,26 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | AI Organization runtime, Board controls, Board Packet reporting, evidence outputs, and bounded execution controls delivered; external-action gate proof remains |
+| Phase 13 | Governance hardening in progress | Board controls, bounded Operations, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0060`.
+- Migration-chain integrity: passing with one head at `0062`.
 - Docker production-profile validation: passing.
-- API tests: **435 passing and 0 failing**.
-- Local SQLite database: aligned at `0060`.
+- API tests: **447 passing and 0 failing**.
+- Local SQLite database: aligned at `0062`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0060` will apply through the existing migration job on next startup.
+  `0062` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
 Packet reporting, evidence-output, bounded execution-control, external-action
-gates, and the bounded Operations department runtime. The next active gate is CEO
-executive-council coordination over the proven Operations runtime before another
-department is made operational.
+gates, the bounded Operations department runtime, and the CEO coordination loop.
+The next active gate is the first additional executive department runtime,
+starting with a bounded Technology/CTO delegation path.
 
 ## 3. Execution Order
 
@@ -186,10 +186,16 @@ Key specifications:
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
 **Status:** Governance foundation, Board reporting, the first bounded autonomous
-organization flow, and the Operations department runtime are delivered. The COO
+organization flow, the Operations department runtime, and bounded CEO coordination
+are delivered. The COO
 now delegates general operating objectives to Sales Intelligence, Operations
 Coordination, and Business Intelligence, and adds Application Readiness for
-mobility-case events. The active gate is bounded CEO executive-council coordination.
+mobility-case events. Evidence-complete internal L3 matters receive a durable COO
+consultation and may be closed by the CEO Agent; external actions, L4 matters,
+emergencies, self-approval conflicts, missing consultation, and dissent fail
+closed. Cross-functional consultation requirements are durable and fail closed,
+but the remaining executives do not yet have completion or dissent-submission
+paths. The active gate is a bounded Technology/CTO runtime.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -239,17 +245,19 @@ manager, and specialist agents, with the human owner acting as the Board.
 
 ### 13.3 CEO and executive council runtime
 
-- [ ] Implement the CEO Agent as an orchestrator with no unrestricted direct
+- [x] Implement the CEO Agent as an orchestrator with no unrestricted direct
   action path.
 - [x] Implement the COO department-head runtime with bounded Operations specialists.
 - [ ] Implement CTO, CPO, and CLO department-head runtimes.
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.
 - [ ] Extend the same delegation contract to the remaining executive runtimes.
-- [ ] Require cross-functional consultation when an action touches multiple
-  executive domains.
-- [ ] Escalate only L4 matters, emergency risks, authority conflicts, or unresolved
-  executive exceptions to the Board.
+- [ ] Complete cross-functional executive consultation when an action touches
+  multiple domains. The durable requirement and fail-closed ledger are delivered;
+  executive completion and dissent-submission paths remain.
+- [x] Escalate L4 matters, emergency risks, CEO self-approval conflicts, and
+  recorded executive dissent to the Board.
+- [ ] Add deadline-based escalation for unresolved executive consultations.
 
 ### 13.4 First autonomous organization flow
 
@@ -333,6 +341,9 @@ After the first organization flow and Board Room pass their release gates:
   are implemented.
 - [x] An emergency scenario reaches the Board without delay.
 - [x] Routine L1/L2 work completes without unnecessary Board interruption.
+- [x] Evidence-complete internal L3 Operations work resolves through a distinct
+  CEO decision receipt without authorizing an external action or interrupting the
+  Board.
 
 ## 7. Phase 14: Global Scale Platform
 

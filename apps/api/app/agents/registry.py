@@ -117,7 +117,6 @@ AGENT_ALIASES = {
     "document_officer": "document_checklist_agent",
     "sales_followup_agent": "sales_summary_agent",
     "study_abroad_advisor": "application_readiness_agent",
-    "ai_ceo": "application_readiness_agent",
     "recruitment_specialist": "sales_summary_agent",
 }
 

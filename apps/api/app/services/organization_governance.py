@@ -6,6 +6,8 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import and_, or_, update
+from sqlalchemy.dialects.postgresql import insert as postgresql_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlmodel import Session, func, select
 
 from app.models.domain import (
@@ -13,6 +15,7 @@ from app.models.domain import (
     BoardPacket,
     CorporateMobilityCase,
     DelegationRecord,
+    ExecutiveCouncilConsultation,
     ExecutiveDecision,
     OrganizationControl,
     OrganizationExecutionAttempt,
@@ -72,6 +75,50 @@ EXECUTIVE_ACTIONS = {
     "policy.publish",
 }
 
+DEPARTMENT_EXECUTIVE_OWNER = {
+    "executive": "ceo",
+    "technology": "cto",
+    "operations": "coo",
+    "marketing": "cmo",
+    "product": "cpo",
+    "finance": "cfo",
+    "communications": "cco",
+    "people": "chro",
+    "legal": "clo",
+}
+EXECUTIVE_COUNCIL_POSITIONS = frozenset(DEPARTMENT_EXECUTIVE_OWNER.values()) - {"ceo"}
+CEO_AUTO_RESOLVABLE_ACTIONS = frozenset({"internal.analysis"})
+CEO_MINIMUM_CONFIDENCE = 0.5
+CEO_COORDINATION_LEASE = timedelta(minutes=5)
+EXECUTABLE_DEPARTMENTS = frozenset({"operations"})
+GOVERNED_EXTERNAL_ACTIONS = frozenset(
+    {
+        "client.external_send",
+        "authority.submit",
+        "payment.initiate",
+        "contract.sign",
+        "deployment.production",
+    }
+)
+ACTION_EXECUTIVE_CONSULTATIONS = {
+    "client.external_send": ("cco",),
+    "authority.submit": ("clo",),
+    "payment.initiate": ("cfo",),
+    "contract.sign": ("clo", "cfo"),
+    "deployment.production": ("cto",),
+    "policy.publish": ("cpo", "clo"),
+}
+POSITION_DOMAINS = {
+    "cto": "technology",
+    "coo": "operations",
+    "cmo": "marketing",
+    "cpo": "product",
+    "cfo": "finance",
+    "cco": "communications",
+    "chro": "people",
+    "clo": "legal",
+}
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -86,6 +133,41 @@ def _load(value: str, fallback: Any) -> Any:
         return json.loads(value)
     except (TypeError, ValueError):
         return fallback
+
+
+def department_executive_owner(department: str) -> str:
+    owner = DEPARTMENT_EXECUTIVE_OWNER.get(department.strip().lower())
+    if owner is None:
+        raise ValueError(f"Unsupported organization department: {department}")
+    return owner
+
+
+def department_runtime_available(department: str) -> bool:
+    return department.strip().lower() in EXECUTABLE_DEPARTMENTS
+
+
+def _position_contract(position_key: str, authority_level: str) -> dict[str, Any]:
+    contract: dict[str, Any] = {
+        "may_act_within": authority_level,
+        "must_escalate_above": authority_level,
+        "evidence_required": True,
+        "audit_required": True,
+    }
+    if position_key == "ceo":
+        contract.update(
+            {
+                "capabilities": [
+                    "coordinate_executive_council",
+                    "resolve_evidence_complete_internal_l3",
+                    "escalate_l4_emergency_and_conflict",
+                ],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "prohibited_direct_actions": sorted(GOVERNED_EXTERNAL_ACTIONS),
+            }
+        )
+    return contract
 
 
 class WorkCancellationRequested(RuntimeError):
@@ -132,6 +214,14 @@ def _output_evidence(
             "id": result_ref.removeprefix("agent-run:"),
             "review_state": "human_review_required",
         })
+    elif result_ref.startswith("work-item:"):
+        evidence.append(
+            {
+                "type": "organizational_work_item",
+                "id": result_ref.removeprefix("work-item:"),
+                "review_state": "internal_context_only",
+            }
+        )
     return evidence
 
 
@@ -204,7 +294,12 @@ def _record_action_output(
     return action_output
 
 
-def ensure_foundation_positions(session: Session, *, actor: str = "system") -> list[OrganizationPosition]:
+def ensure_foundation_positions(
+    session: Session,
+    *,
+    actor: str = "system",
+    repair_contracts: bool = False,
+) -> list[OrganizationPosition]:
     positions: list[OrganizationPosition] = []
     for key, title, department, reports_to, authority, role_card in POSITION_SPECS:
         position = session.exec(
@@ -221,12 +316,7 @@ def ensure_foundation_positions(session: Session, *, actor: str = "system") -> l
                 reports_to_position_key=reports_to,
                 role_card_name=role_card,
                 authority_level=authority,
-                contract_json=_json({
-                    "may_act_within": authority,
-                    "must_escalate_above": authority,
-                    "evidence_required": True,
-                    "audit_required": True,
-                }),
+                contract_json=_json(_position_contract(key, authority)),
                 created_by=actor,
             )
             session.add(position)
@@ -240,6 +330,23 @@ def ensure_foundation_positions(session: Session, *, actor: str = "system") -> l
                 actor=actor,
                 source=SOURCE,
             )
+        elif key == "ceo" and repair_contracts:
+            expected_contract = _position_contract(key, authority)
+            if _load(position.contract_json, {}) != expected_contract:
+                before_contract = position.contract_json
+                position.contract_json = _json(expected_contract)
+                position.updated_at = _now()
+                session.add(position)
+                record_audit(
+                    session,
+                    action="organization_position_contract_hardened",
+                    entity_type="organization_position",
+                    entity_id=position.id,
+                    before_state={"contract_json": before_contract},
+                    after_state={"contract": expected_contract},
+                    actor=actor,
+                    source=SOURCE,
+                )
         positions.append(position)
     control = session.exec(
         select(OrganizationControl).where(OrganizationControl.control_key == "global")
@@ -389,10 +496,12 @@ def board_override_decision(
             outcome=outcome,
             reason=reason,
             actor=actor,
-            board_actor=True,
+            actor_position="board",
         )
     if decision.authority_level != "L3":
         raise ValueError("Board override applies to L3 executive decisions only")
+    if decision.status != "pending_ceo" or decision.decision_owner_position != "ceo":
+        raise ValueError("Board override requires a pending CEO-owned L3 decision")
     before_status = decision.status
     decision.status = outcome
     decision.decided_by = actor
@@ -406,13 +515,18 @@ def board_override_decision(
         work.completed_at = _now()
         work.updated_at = _now()
         session.add(work)
+        _resolve_work_risks(session, work, outcome=outcome)
     record_audit(
         session,
         action="executive_decision_overridden",
         entity_type="executive_decision",
         entity_id=decision.id,
         before_state={"status": before_status},
-        after_state={"status": outcome, "decided_by": actor},
+        after_state={
+            "status": outcome,
+            "decided_by": actor,
+            "external_action_authorized": False,
+        },
         reason=reason,
         actor=actor,
         source=SOURCE,
@@ -462,7 +576,7 @@ def set_decision_deadline(
     due_at: datetime,
     actor: str,
 ) -> ExecutiveDecision:
-    if decision.status not in {"pending_ceo", "pending_board"}:
+    if decision.status not in {"pending_ceo", "coordinating_ceo", "pending_board"}:
         raise ValueError("Cannot set deadline on a decided decision")
     decision.due_at = due_at
     decision.updated_at = _now()
@@ -509,6 +623,10 @@ def escalate_work_item(
     ).first()
     if decision is not None and decision.status in {"pending_ceo", "pending_board"}:
         decision.decision_owner_position = parent
+        if parent == "board" or emergency:
+            decision.status = "pending_board"
+            decision.coordination_token = None
+            decision.coordination_claimed_at = None
         decision.updated_at = _now()
         session.add(decision)
 
@@ -533,9 +651,16 @@ def escalate_work_item(
         )
         session.add(risk)
     else:
+        if emergency:
+            risk.category = "emergency"
+            risk.severity = "critical"
         risk.escalated_to_position_key = parent
         risk.requires_board_attention = parent == "board" or emergency or risk.requires_board_attention
         risk.is_emergency = risk.is_emergency or emergency
+        containment = _load(risk.containment_json, [])
+        if emergency and "Execution held for Human Board review" not in containment:
+            containment.append("Execution held for Human Board review")
+        risk.containment_json = _json(containment)
         risk.updated_at = _now()
         session.add(risk)
 
@@ -562,29 +687,145 @@ def mark_work_emergency(
     reason: str,
     actor: str,
 ) -> OrganizationalWorkItem:
-    if work.is_emergency:
+    session.refresh(work)
+    decision = session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
+    ).first()
+    risk = session.exec(
+        select(RiskEscalation).where(
+            RiskEscalation.work_item_id == work.id,
+            RiskEscalation.status == "open",
+        )
+    ).first()
+    packet = session.exec(
+        select(BoardPacket).where(
+            BoardPacket.packet_key == f"packet:incident:{work.id}"
+        )
+    ).first()
+    invariant_complete = (
+        work.is_emergency
+        and work.authority_level == "L4"
+        and work.assigned_position_key == "board"
+        and work.status == "pending_board"
+        and decision is not None
+        and decision.authority_level == "L4"
+        and decision.decision_owner_position == "board"
+        and decision.status == "pending_board"
+        and risk is not None
+        and risk.is_emergency
+        and risk.severity == "critical"
+        and risk.requires_board_attention
+        and risk.escalated_to_position_key == "board"
+        and packet is not None
+    )
+    if invariant_complete:
         return work
+
+    requesting_position = (
+        decision.requested_by_position if decision is not None else work.assigned_position_key
+    )
+    was_emergency = work.is_emergency
     work.is_emergency = True
+    work.authority_level = "L4"
+    work.risk_level = "critical"
+    work.status = "held"
     work.updated_at = _now()
     session.add(work)
-    record_audit(
-        session,
-        action="organization_work_marked_emergency",
-        entity_type="organizational_work_item",
-        entity_id=work.id,
-        after_state={"is_emergency": True},
-        reason=reason,
-        actor=actor,
-        source=SOURCE,
-    )
+    if not was_emergency:
+        record_audit(
+            session,
+            action="organization_work_marked_emergency",
+            entity_type="organizational_work_item",
+            entity_id=work.id,
+            after_state={"is_emergency": True, "status": "held"},
+            reason=reason,
+            actor=actor,
+            source=SOURCE,
+        )
     session.commit()
     session.refresh(work)
-    # Escalate all the way to Board immediately.
+
+    # Reconcile every parent hop. A replay resumes from the last committed owner.
     while work.assigned_position_key != "board":
         try:
             work = escalate_work_item(session, work, reason=reason, actor=actor, emergency=True)
         except ValueError:
             break
+    if work.assigned_position_key != "board":
+        raise ValueError("Emergency escalation could not reach the Human Board")
+
+    decision = session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
+    ).first()
+    if decision is None:
+        decision = ExecutiveDecision(
+            decision_key=f"decision:{work.id}",
+            work_item_id=work.id,
+            authority_level="L4",
+            requested_by_position=requesting_position,
+            decision_owner_position="board",
+            title=f"Emergency decision required: {work.title}",
+            question="What containment or disposition does the Human Board authorize?",
+            recommendation="Keep execution held while the Human Board reviews the emergency evidence.",
+            alternatives_json=_json(["contain", "return_for_evidence", "reject"]),
+            evidence_json=_json([{"type": "emergency_escalation", "reason": reason.strip()}]),
+            impact_json=_json(
+                {
+                    "risk_level": "critical",
+                    "is_emergency": True,
+                    "external_action_authorized": False,
+                }
+            ),
+            status="pending_board",
+        )
+        session.add(decision)
+    else:
+        decision.authority_level = "L4"
+        decision.decision_owner_position = "board"
+        decision.status = "pending_board"
+        decision.coordination_token = None
+        decision.coordination_claimed_at = None
+        decision.updated_at = _now()
+        session.add(decision)
+
+    risk = session.exec(
+        select(RiskEscalation).where(
+            RiskEscalation.work_item_id == work.id,
+            RiskEscalation.status == "open",
+        )
+    ).first()
+    if risk is None:
+        risk = RiskEscalation(
+            risk_key=f"risk:{work.id}:emergency",
+            work_item_id=work.id,
+            category="emergency",
+            severity="critical",
+            title=f"Emergency escalation: {work.title}",
+            description=reason.strip(),
+            evidence_json=_json([{"reason": reason.strip(), "work_item_id": str(work.id)}]),
+            containment_json=_json(["Execution held for Human Board review"]),
+            accountable_position_key="board",
+            escalated_to_position_key="board",
+            requires_board_attention=True,
+            is_emergency=True,
+        )
+    else:
+        risk.category = "emergency"
+        risk.severity = "critical"
+        risk.accountable_position_key = "board"
+        risk.escalated_to_position_key = "board"
+        risk.requires_board_attention = True
+        risk.is_emergency = True
+        containment = _load(risk.containment_json, [])
+        if "Execution held for Human Board review" not in containment:
+            containment.append("Execution held for Human Board review")
+        risk.containment_json = _json(containment)
+        risk.updated_at = _now()
+    session.add(risk)
+    work.status = "pending_board"
+    work.updated_at = _now()
+    session.add(work)
+    session.commit()
     create_board_packet(session, packet_type="incident", actor=actor, trigger_key=str(work.id))
     session.refresh(work)
     return work
@@ -903,6 +1144,32 @@ def execute_work_item(
     *,
     actor: str = "organization-worker",
 ) -> OrganizationalWorkItem:
+    if not department_runtime_available(work.department):
+        if work.status != "held":
+            work.status = "held"
+            work.last_error = (
+                f"The {work.department} runtime is registered for governance but is not yet executable."
+            )
+            work.updated_at = _now()
+            session.add(work)
+            record_audit(
+                session,
+                action="organization_work_held_runtime_unavailable",
+                entity_type="organizational_work_item",
+                entity_id=work.id,
+                after_state={
+                    "status": "held",
+                    "department": work.department,
+                    "external_action_authorized": False,
+                },
+                reason=work.last_error,
+                actor=actor,
+                source=SOURCE,
+            )
+            session.commit()
+            session.refresh(work)
+        return work
+
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
     if control and control.status == "paused":
         if work.status not in {"queued", "retry_wait"}:
@@ -1034,6 +1301,45 @@ def _execute_claimed_work_item(
 
     _raise_if_cancelled(session, work)
     completed_confidences = [item.confidence for item in action_outputs if item.status == "completed"]
+    if not completed_confidences:
+        work.output_json = _json(
+            {
+                "delegated_results": results,
+                "governance": {
+                    "status": "held",
+                    "reason": "No completed, provenance-bearing departmental output is available.",
+                    "external_action_authorized": False,
+                    "execution_attempt": attempt.attempt_number,
+                    "execution_token": attempt.execution_token,
+                },
+            }
+        )
+        work.status = "held"
+        work.execution_started_at = None
+        work.next_retry_at = None
+        work.last_error = "No completed, provenance-bearing departmental output is available."
+        work.updated_at = _now()
+        session.add(work)
+        attempt.status = "completed"
+        attempt.completed_at = _now()
+        session.add(attempt)
+        record_audit(
+            session,
+            action="organization_work_held_without_output",
+            entity_type="organizational_work_item",
+            entity_id=work.id,
+            after_state={
+                "status": "held",
+                "attempt": attempt.attempt_number,
+                "external_action_authorized": False,
+            },
+            reason=work.last_error,
+            actor=actor,
+            source=SOURCE,
+        )
+        session.commit()
+        session.refresh(work)
+        return work
     aggregate_confidence = (
         round(sum(completed_confidences) / len(completed_confidences), 4)
         if completed_confidences
@@ -1191,6 +1497,820 @@ def retry_work_item(
     return work
 
 
+def _work_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    return context if isinstance(context, dict) else {}
+
+
+def _work_action(work: OrganizationalWorkItem) -> str:
+    context = _work_context(work)
+    facts = context.get("facts") if isinstance(context.get("facts"), dict) else {}
+    return str(context.get("action") or facts.get("action") or context.get("event_type") or "").strip()
+
+
+def _required_ceo_consultations(
+    work: OrganizationalWorkItem,
+    decision: ExecutiveDecision,
+) -> list[str]:
+    required: set[str] = set()
+    if decision.requested_by_position in EXECUTIVE_COUNCIL_POSITIONS:
+        required.add(decision.requested_by_position)
+    department_owner = department_executive_owner(work.department)
+    if department_owner in EXECUTIVE_COUNCIL_POSITIONS:
+        required.add(department_owner)
+    required.update(ACTION_EXECUTIVE_CONSULTATIONS.get(_work_action(work), ()))
+
+    context = _work_context(work)
+    facts = context.get("facts") if isinstance(context.get("facts"), dict) else {}
+    explicit = context.get("required_consultations", facts.get("required_consultations", []))
+    if explicit is None:
+        explicit = []
+    if not isinstance(explicit, list):
+        raise ValueError("required_consultations must be a list of executive positions or departments")
+    for value in explicit:
+        normalized = str(value).strip().lower()
+        position = DEPARTMENT_EXECUTIVE_OWNER.get(normalized, normalized)
+        if position not in EXECUTIVE_COUNCIL_POSITIONS:
+            raise ValueError(f"Unsupported executive consultation: {value}")
+        required.add(position)
+    return sorted(required)
+
+
+def _upsert_executive_consultations(
+    session: Session,
+    *,
+    decision: ExecutiveDecision,
+    work: OrganizationalWorkItem,
+    required_positions: list[str],
+) -> list[ExecutiveCouncilConsultation]:
+    delegations = list(
+        session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    )
+    outputs = list(
+        session.exec(
+            select(OrganizationalActionOutput).where(
+                OrganizationalActionOutput.work_item_id == work.id
+            )
+        ).all()
+    )
+    output_ids = [str(item.id) for item in outputs]
+    all_delegations_completed = bool(delegations) and all(
+        item.status == "completed" for item in delegations
+    )
+    all_outputs_complete = (
+        bool(outputs)
+        and len(outputs) == len(delegations)
+        and all(item.status == "completed" for item in outputs)
+    )
+    aggregate_confidence = (
+        round(sum(item.confidence for item in outputs) / len(outputs), 4) if outputs else 0.0
+    )
+    consultations: list[ExecutiveCouncilConsultation] = []
+    for position_key in required_positions:
+        key = f"consultation:{decision.id}:{position_key}"
+        consultation = session.exec(
+            select(ExecutiveCouncilConsultation).where(
+                ExecutiveCouncilConsultation.consultation_key == key
+            )
+        ).first()
+        if consultation is None:
+            now = _now()
+            values = {
+                "id": uuid4(),
+                "consultation_key": key,
+                "decision_id": decision.id,
+                "work_item_id": work.id,
+                "requested_by_position": "ceo",
+                "consulted_position": position_key,
+                "domain": POSITION_DOMAINS[position_key],
+                "evidence_json": "[]",
+                "confidence": 0.0,
+                "dissent": False,
+                "status": "pending",
+                "created_at": now,
+                "updated_at": now,
+            }
+            table = ExecutiveCouncilConsultation.__table__
+            dialect = session.get_bind().dialect.name
+            if dialect == "sqlite":
+                statement = sqlite_insert(table).values(**values).on_conflict_do_nothing(
+                    index_elements=["consultation_key"]
+                )
+            elif dialect == "postgresql":
+                statement = postgresql_insert(table).values(**values).on_conflict_do_nothing(
+                    index_elements=["consultation_key"]
+                )
+            else:
+                raise RuntimeError(
+                    f"Executive consultation upsert is not configured for {dialect}"
+                )
+            session.exec(statement)
+            consultation = session.exec(
+                select(ExecutiveCouncilConsultation).where(
+                    ExecutiveCouncilConsultation.consultation_key == key
+                )
+            ).one()
+
+        position = _position_by_key(session, position_key)
+        if _is_suspended(position):
+            consultation.status = "held"
+            consultation.recommendation = (
+                f"{position_key} is suspended; the consultation cannot be treated as complete."
+            )
+            consultation.confidence = 0.0
+            consultation.completed_at = None
+        elif (
+            position_key == decision.requested_by_position
+            and position_key == department_executive_owner(work.department)
+            and all_delegations_completed
+            and all_outputs_complete
+        ):
+            consultation.status = "completed"
+            consultation.evidence_json = _json(
+                [
+                    {
+                        "type": "organizational_action_outputs",
+                        "ids": output_ids,
+                        "aggregate_confidence": aggregate_confidence,
+                    }
+                ]
+            )
+            consultation.recommendation = (
+                "Accept the recorded departmental analysis for internal decision-making only; "
+                "no external action is authorized."
+            )
+            consultation.confidence = aggregate_confidence
+            consultation.completed_at = consultation.completed_at or _now()
+        elif consultation.status != "completed":
+            consultation.status = "pending"
+            consultation.recommendation = (
+                f"Awaiting evidence-backed consultation from {position_key}."
+            )
+            consultation.confidence = 0.0
+            consultation.completed_at = None
+        consultation.updated_at = _now()
+        session.add(consultation)
+        consultations.append(consultation)
+    session.flush()
+    return consultations
+
+
+def _sync_consultation_evidence(
+    decision: ExecutiveDecision,
+    consultations: list[ExecutiveCouncilConsultation],
+) -> None:
+    evidence = _load(decision.evidence_json, [])
+    if not isinstance(evidence, list):
+        evidence = []
+    evidence = [
+        item
+        for item in evidence
+        if not isinstance(item, dict) or item.get("type") != "executive_council_consultations"
+    ]
+    evidence.append(
+        {
+            "type": "executive_council_consultations",
+            "items": [
+                {
+                    "id": str(item.id),
+                    "position": item.consulted_position,
+                    "domain": item.domain,
+                    "status": item.status,
+                    "confidence": item.confidence,
+                    "dissent": item.dissent,
+                    "evidence": _load(item.evidence_json, []),
+                }
+                for item in consultations
+            ],
+        }
+    )
+    decision.evidence_json = _json(evidence)
+    decision.updated_at = _now()
+
+
+def _hold_ceo_decision(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    coordination_token: str,
+    reason: str,
+    actor: str,
+) -> ExecutiveDecision:
+    impact = _load(decision.impact_json, {})
+    if not isinstance(impact, dict):
+        impact = {}
+    previous_reason = (
+        impact.get("ceo_coordination", {}).get("reason")
+        if isinstance(impact.get("ceo_coordination"), dict)
+        else None
+    )
+    impact["ceo_coordination"] = {
+        "status": "held",
+        "reason": reason,
+        "external_action_authorized": False,
+    }
+    recommendation = f"CEO coordination held: {reason}"
+    impact_json = _json(impact)
+    now = _now()
+    with session.no_autoflush:
+        held = session.exec(
+            update(ExecutiveDecision)
+            .where(
+                ExecutiveDecision.id == decision.id,
+                ExecutiveDecision.status == "coordinating_ceo",
+                ExecutiveDecision.coordination_token == coordination_token,
+            )
+            .values(
+                status="pending_ceo",
+                coordination_token=None,
+                coordination_claimed_at=None,
+                recommendation=recommendation,
+                evidence_json=decision.evidence_json,
+                impact_json=impact_json,
+                updated_at=now,
+            )
+            .execution_options(synchronize_session=False)
+        )
+    if held.rowcount != 1:
+        session.rollback()
+        raise ValueError("CEO coordination lease was lost before the hold was recorded")
+    session.expire(decision)
+    if previous_reason != reason:
+        record_audit(
+            session,
+            action="ceo_decision_held",
+            entity_type="executive_decision",
+            entity_id=decision.id,
+            after_state={"status": "pending_ceo", "reason": reason},
+            reason=reason,
+            actor=actor,
+            source=SOURCE,
+        )
+    session.commit()
+    session.refresh(decision)
+    return decision
+
+
+def _promote_decision_to_board(
+    session: Session,
+    decision: ExecutiveDecision,
+    work: OrganizationalWorkItem,
+    *,
+    coordination_token: str,
+    reason: str,
+    actor: str,
+) -> ExecutiveDecision:
+    before = {
+        "status": decision.status,
+        "decision_owner_position": decision.decision_owner_position,
+    }
+    now = _now()
+    with session.no_autoflush:
+        promoted = session.exec(
+            update(ExecutiveDecision)
+            .where(
+                ExecutiveDecision.id == decision.id,
+                ExecutiveDecision.status == "coordinating_ceo",
+                ExecutiveDecision.coordination_token == coordination_token,
+            )
+            .values(
+                status="pending_board",
+                coordination_token=None,
+                coordination_claimed_at=None,
+                decision_owner_position="board",
+                recommendation=f"Escalate to the Human Board: {reason}",
+                evidence_json=decision.evidence_json,
+                updated_at=now,
+            )
+            .execution_options(synchronize_session=False)
+        )
+    if promoted.rowcount != 1:
+        session.rollback()
+        raise ValueError("CEO coordination lease was lost before Board escalation")
+    session.expire(decision)
+    work.status = "pending_board"
+    work.escalated_at = work.escalated_at or now
+    work.updated_at = now
+    session.add(work)
+    risk = session.exec(
+        select(RiskEscalation).where(
+            RiskEscalation.work_item_id == work.id,
+            RiskEscalation.status == "open",
+        )
+    ).first()
+    if risk is None:
+        risk = RiskEscalation(
+            risk_key=f"risk:{work.id}:ceo-exception",
+            work_item_id=work.id,
+            category="governance",
+            severity="high",
+            title=f"CEO exception: {work.title}",
+            description=reason,
+            evidence_json=_json([{"decision_id": str(decision.id), "reason": reason}]),
+            containment_json=_json(["Execution held for Human Board review"]),
+            accountable_position_key="ceo",
+            escalated_to_position_key="board",
+            requires_board_attention=True,
+        )
+    else:
+        risk.escalated_to_position_key = "board"
+        risk.requires_board_attention = True
+        risk.updated_at = _now()
+    session.add(risk)
+    record_audit(
+        session,
+        action="ceo_decision_escalated_to_board",
+        entity_type="executive_decision",
+        entity_id=decision.id,
+        before_state=before,
+        after_state={"status": "pending_board", "decision_owner_position": "board"},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(decision)
+    create_board_packet(
+        session,
+        packet_type="incident",
+        actor=actor,
+        trigger_key=f"ceo-exception:{decision.id}",
+    )
+    session.refresh(decision)
+    return decision
+
+
+def _claim_ceo_decision(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    actor: str,
+) -> tuple[ExecutiveDecision, str | None]:
+    now = _now()
+    if decision.status == "coordinating_ceo":
+        stale_before = now - CEO_COORDINATION_LEASE
+        recovered = session.exec(
+            update(ExecutiveDecision)
+            .where(
+                ExecutiveDecision.id == decision.id,
+                ExecutiveDecision.status == "coordinating_ceo",
+                ExecutiveDecision.coordination_claimed_at <= stale_before,
+            )
+            .values(
+                status="pending_ceo",
+                coordination_token=None,
+                coordination_claimed_at=None,
+                updated_at=now,
+            )
+            .execution_options(synchronize_session=False)
+        )
+        if recovered.rowcount == 1:
+            record_audit(
+                session,
+                action="ceo_coordination_stale_claim_recovered",
+                entity_type="executive_decision",
+                entity_id=decision.id,
+                after_state={"status": "pending_ceo"},
+                reason="The previous CEO coordination lease expired before a decision was recorded.",
+                actor=actor,
+                source=SOURCE,
+            )
+            session.commit()
+        else:
+            session.rollback()
+            raise ValueError("CEO coordination is already in progress")
+
+    coordination_token = str(uuid4())
+    claimed = session.exec(
+        update(ExecutiveDecision)
+        .where(
+            ExecutiveDecision.id == decision.id,
+            ExecutiveDecision.status == "pending_ceo",
+            ExecutiveDecision.authority_level == "L3",
+            ExecutiveDecision.decision_owner_position == "ceo",
+        )
+        .values(
+            status="coordinating_ceo",
+            coordination_token=coordination_token,
+            coordination_claimed_at=now,
+            updated_at=now,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    if claimed.rowcount != 1:
+        session.rollback()
+        session.expire_all()
+        current = session.get(ExecutiveDecision, decision.id)
+        if current is not None and current.status == "approved" and current.decided_by == actor:
+            return current, None
+        if current is not None and current.status == "coordinating_ceo":
+            raise ValueError("CEO coordination is already in progress")
+        raise ValueError("Only a CEO-owned pending L3 decision can enter CEO coordination")
+    session.expire_all()
+    current = session.get(ExecutiveDecision, decision.id)
+    if current is None:
+        session.rollback()
+        raise ValueError("Executive decision not found")
+    record_audit(
+        session,
+        action="ceo_coordination_claimed",
+        entity_type="executive_decision",
+        entity_id=current.id,
+        after_state={
+            "status": "coordinating_ceo",
+            "lease_seconds": int(CEO_COORDINATION_LEASE.total_seconds()),
+        },
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+    session.refresh(current)
+    return current, coordination_token
+
+
+def _release_ceo_claim_after_error(
+    session: Session,
+    decision_id: UUID,
+    *,
+    coordination_token: str,
+    actor: str,
+    reason: str,
+) -> None:
+    session.rollback()
+    released = session.exec(
+        update(ExecutiveDecision)
+        .where(
+            ExecutiveDecision.id == decision_id,
+            ExecutiveDecision.status == "coordinating_ceo",
+            ExecutiveDecision.coordination_token == coordination_token,
+        )
+        .values(
+            status="pending_ceo",
+            coordination_token=None,
+            coordination_claimed_at=None,
+            updated_at=_now(),
+        )
+        .execution_options(synchronize_session=False)
+    )
+    if released.rowcount != 1:
+        session.rollback()
+        return
+    record_audit(
+        session,
+        action="ceo_coordination_claim_released",
+        entity_type="executive_decision",
+        entity_id=decision_id,
+        after_state={"status": "pending_ceo"},
+        reason=reason[:1000],
+        actor=actor,
+        source=SOURCE,
+    )
+    session.commit()
+
+
+def _coordinate_claimed_ceo_decision(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    coordination_token: str,
+    actor: str = "ceo-agent",
+) -> ExecutiveDecision:
+    """Resolve only evidence-complete, internal L3 work within the CEO mandate."""
+    session.refresh(decision)
+    if (
+        decision.status != "coordinating_ceo"
+        or decision.coordination_token != coordination_token
+    ):
+        raise ValueError("CEO coordination requires an atomic coordination claim")
+    if decision.authority_level != "L3" or decision.decision_owner_position != "ceo":
+        raise ValueError("CEO coordination cannot decide a Board-owned or non-L3 matter")
+    work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
+    if work is None:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="The decision has no governed work item.",
+            actor=actor,
+        )
+    if decision.requested_by_position == "ceo":
+        return _promote_decision_to_board(
+            session,
+            decision,
+            work,
+            coordination_token=coordination_token,
+            reason="CEO self-approval is prohibited.",
+            actor=actor,
+        )
+    if work.is_emergency:
+        return _promote_decision_to_board(
+            session,
+            decision,
+            work,
+            coordination_token=coordination_token,
+            reason="Emergency matters are reserved for the Human Board.",
+            actor=actor,
+        )
+
+    control = session.exec(
+        select(OrganizationControl).where(OrganizationControl.control_key == "global")
+    ).first()
+    if control is None:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="The Board-governed organization foundation is not bootstrapped.",
+            actor=actor,
+        )
+    if control.status != "active":
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="The organization is globally paused.",
+            actor=actor,
+        )
+    ceo_position = _position_by_key(session, "ceo")
+    if ceo_position is None:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="The Board-governed CEO position is not registered.",
+            actor=actor,
+        )
+    if _load(ceo_position.contract_json, {}) != _position_contract("ceo", "L3"):
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="The persisted CEO contract requires Human Board repair before coordination.",
+            actor=actor,
+        )
+    if _is_suspended(ceo_position):
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="The CEO position is suspended.",
+            actor=actor,
+        )
+
+    try:
+        required_positions = _required_ceo_consultations(work, decision)
+    except ValueError as exc:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason=str(exc),
+            actor=actor,
+        )
+    consultations = _upsert_executive_consultations(
+        session,
+        decision=decision,
+        work=work,
+        required_positions=required_positions,
+    )
+    _sync_consultation_evidence(decision, consultations)
+
+    action = _work_action(work)
+    if action in GOVERNED_EXTERNAL_ACTIONS:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason=(
+                f"{action} remains behind its separate human external-action gate; "
+                "CEO coordination cannot authorize or execute it."
+            ),
+            actor=actor,
+        )
+    if action not in CEO_AUTO_RESOLVABLE_ACTIONS:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason=f"{action or 'Unspecified action'} is outside the CEO auto-resolution allowlist.",
+            actor=actor,
+        )
+    if work.status != "pending_ceo":
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="Departmental analysis is not complete and pending CEO review.",
+            actor=actor,
+        )
+    incomplete = [item.consulted_position for item in consultations if item.status != "completed"]
+    if incomplete:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason=f"Required executive consultations are incomplete: {', '.join(incomplete)}.",
+            actor=actor,
+        )
+    dissenting = [item.consulted_position for item in consultations if item.dissent]
+    if dissenting:
+        return _promote_decision_to_board(
+            session,
+            decision,
+            work,
+            coordination_token=coordination_token,
+            reason=f"Unresolved executive dissent from: {', '.join(dissenting)}.",
+            actor=actor,
+        )
+
+    outputs = list(
+        session.exec(
+            select(OrganizationalActionOutput).where(
+                OrganizationalActionOutput.work_item_id == work.id,
+                OrganizationalActionOutput.status == "completed",
+            )
+        ).all()
+    )
+    if not outputs or any(not _load(item.evidence_json, []) for item in outputs):
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason="Completed, provenance-bearing organizational outputs are required.",
+            actor=actor,
+        )
+    aggregate_confidence = round(
+        sum(item.confidence for item in outputs) / len(outputs), 4
+    )
+    if aggregate_confidence < CEO_MINIMUM_CONFIDENCE:
+        return _hold_ceo_decision(
+            session,
+            decision,
+            coordination_token=coordination_token,
+            reason=(
+                f"Aggregate evidence confidence {aggregate_confidence:.2f} is below the "
+                f"CEO threshold {CEO_MINIMUM_CONFIDENCE:.2f}."
+            ),
+            actor=actor,
+        )
+
+    evidence = _load(decision.evidence_json, [])
+    if not isinstance(evidence, list):
+        evidence = []
+    evidence = [
+        item
+        for item in evidence
+        if not isinstance(item, dict) or item.get("type") != "ceo_coordination_receipt"
+    ]
+    evidence.append(
+        {
+            "type": "ceo_coordination_receipt",
+            "status": "eligible",
+            "action": action,
+            "work_item_id": str(work.id),
+            "requested_by_position": decision.requested_by_position,
+            "consultation_ids": [str(item.id) for item in consultations],
+            "action_output_ids": [str(item.id) for item in outputs],
+            "aggregate_confidence": aggregate_confidence,
+            "external_action_authorized": False,
+        }
+    )
+    decision.evidence_json = _json(evidence)
+    decision.recommendation = (
+        "Approve closure of the bounded internal analysis. This accepts the recorded "
+        "executive position and authorizes no client communication, authority submission, "
+        "payment, contract, or production deployment."
+    )
+    decision.alternatives_json = _json(
+        [
+            {"option": "return", "effect": "Request stronger or newer evidence."},
+            {"option": "reject", "effect": "Do not adopt the internal recommendation."},
+            {"option": "escalate", "effect": "Send only an authority conflict or exception to the Board."},
+        ]
+    )
+    impact = _load(decision.impact_json, {})
+    if not isinstance(impact, dict):
+        impact = {}
+    impact["ceo_coordination"] = {
+        "status": "eligible",
+        "aggregate_confidence": aggregate_confidence,
+        "decision_effect": "close_internal_analysis_only",
+        "external_action_authorized": False,
+        "board_attention_required": False,
+    }
+    decision.impact_json = _json(impact)
+    decision.updated_at = _now()
+    record_audit(
+        session,
+        action="ceo_decision_coordinated",
+        entity_type="executive_decision",
+        entity_id=decision.id,
+        after_state={
+            "action": action,
+            "consultations": [item.consulted_position for item in consultations],
+            "aggregate_confidence": aggregate_confidence,
+            "external_action_authorized": False,
+        },
+        actor=actor,
+        source=SOURCE,
+    )
+    return decide_executive_decision(
+        session,
+        decision,
+        outcome="approved",
+        reason=(
+            "CEO accepted the evidence-complete internal Operations analysis within L3. "
+            "No external action was authorized."
+        ),
+        actor=actor,
+        actor_position="ceo",
+        coordination_token=coordination_token,
+    )
+
+
+def coordinate_ceo_decision(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    actor: str = "ceo-agent",
+) -> ExecutiveDecision:
+    """Atomically coordinate one evidence-complete, internal CEO-owned L3 decision."""
+    session.refresh(decision)
+    if decision.status == "approved" and decision.decided_by == actor:
+        return decision
+    claimed, coordination_token = _claim_ceo_decision(session, decision, actor=actor)
+    if claimed.status == "approved" and claimed.decided_by == actor:
+        return claimed
+    if coordination_token is None:
+        raise ValueError("CEO coordination claim token was not issued")
+    try:
+        return _coordinate_claimed_ceo_decision(
+            session,
+            claimed,
+            coordination_token=coordination_token,
+            actor=actor,
+        )
+    except Exception as exc:
+        _release_ceo_claim_after_error(
+            session,
+            claimed.id,
+            coordination_token=coordination_token,
+            actor=actor,
+            reason=f"{type(exc).__name__}: {exc}",
+        )
+        raise
+
+
+def scan_pending_ceo_decisions(
+    session: Session,
+    *,
+    limit: int = 25,
+    actor: str = "ceo-agent",
+) -> dict[str, Any]:
+    stale_before = _now() - CEO_COORDINATION_LEASE
+    decisions = list(
+        session.exec(
+            select(ExecutiveDecision)
+            .where(
+                or_(
+                    ExecutiveDecision.status == "pending_ceo",
+                    and_(
+                        ExecutiveDecision.status == "coordinating_ceo",
+                        ExecutiveDecision.coordination_claimed_at <= stale_before,
+                    ),
+                )
+            )
+            .order_by(ExecutiveDecision.created_at)
+            .limit(max(1, min(limit, 100)))
+        ).all()
+    )
+    approved: list[str] = []
+    held: list[str] = []
+    escalated: list[str] = []
+    errors: list[dict[str, str]] = []
+    for decision in decisions:
+        try:
+            result = coordinate_ceo_decision(session, decision, actor=actor)
+        except ValueError as exc:
+            errors.append({"decision_id": str(decision.id), "reason": str(exc)})
+            continue
+        if result.status == "approved":
+            approved.append(str(result.id))
+        elif result.status == "pending_board":
+            escalated.append(str(result.id))
+        else:
+            held.append(str(result.id))
+    return {
+        "examined": len(decisions),
+        "approved": approved,
+        "held": held,
+        "escalated": escalated,
+        "errors": errors,
+    }
+
+
 def set_global_control(session: Session, *, status: str, reason: str, actor: str) -> OrganizationControl:
     if status not in {"active", "paused"}:
         raise ValueError("Organization control status must be active or paused")
@@ -1205,6 +2325,8 @@ def set_global_control(session: Session, *, status: str, reason: str, actor: str
     if status == "active":
         held = session.exec(select(OrganizationalWorkItem).where(OrganizationalWorkItem.status == "held")).all()
         for item in held:
+            if not department_runtime_available(item.department):
+                continue
             item.status = "queued"
             item.updated_at = _now()
             session.add(item)
@@ -1214,26 +2336,150 @@ def set_global_control(session: Session, *, status: str, reason: str, actor: str
     return control
 
 
-def decide_executive_decision(session: Session, decision: ExecutiveDecision, *, outcome: str, reason: str, actor: str, board_actor: bool) -> ExecutiveDecision:
+def _resolve_work_risks(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    outcome: str,
+) -> None:
+    if outcome not in {"approved", "rejected"}:
+        return
+    now = _now()
+    risks = session.exec(
+        select(RiskEscalation).where(
+            RiskEscalation.work_item_id == work.id,
+            RiskEscalation.status == "open",
+        )
+    ).all()
+    for risk in risks:
+        if risk.category != "governance" or risk.is_emergency:
+            continue
+        risk.status = "resolved"
+        risk.resolved_at = now
+        risk.updated_at = now
+        session.add(risk)
+
+
+def decide_executive_decision(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    outcome: str,
+    reason: str,
+    actor: str,
+    actor_position: str,
+    coordination_token: str | None = None,
+) -> ExecutiveDecision:
     if outcome not in {"approved", "rejected", "returned"}:
         raise ValueError("Unsupported decision outcome")
-    if decision.status not in {"pending_ceo", "pending_board"}:
+    if decision.status not in {"pending_ceo", "coordinating_ceo", "pending_board"}:
         raise ValueError("Decision is not pending")
-    if decision.status == "pending_board" and not board_actor:
-        raise ValueError("This decision is reserved for the human Board")
-    decision.status = outcome
-    decision.decided_by = actor
-    decision.decision_reason = reason.strip()
-    decision.decided_at = _now()
-    decision.updated_at = _now()
-    session.add(decision)
+    if actor_position == "board":
+        if decision.status != "pending_board" or decision.decision_owner_position != "board":
+            raise ValueError(
+                "Board decision requires a Board-owned pending decision; use the explicit Board override lane for L3"
+            )
+    elif actor_position == "ceo":
+        if (
+            decision.status != "coordinating_ceo"
+            or coordination_token is None
+            or decision.coordination_token != coordination_token
+            or decision.decision_owner_position != "ceo"
+            or decision.authority_level != "L3"
+        ):
+            raise ValueError("CEO may decide only CEO-owned pending L3 matters")
+        if decision.requested_by_position == "ceo":
+            raise ValueError("CEO self-approval is prohibited")
+        evidence = _load(decision.evidence_json, [])
+        receipt = next(
+            (
+                item
+                for item in evidence
+                if isinstance(item, dict)
+                and item.get("type") == "ceo_coordination_receipt"
+                and item.get("status") == "eligible"
+                and item.get("external_action_authorized") is False
+            ),
+            None,
+        )
+        if receipt is None:
+            raise ValueError("CEO decision requires an eligible coordination receipt")
+        work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
+        if work is None or work.status != "pending_ceo" or work.is_emergency:
+            raise ValueError("CEO decision requires completed, non-emergency departmental analysis")
+        if _work_action(work) not in CEO_AUTO_RESOLVABLE_ACTIONS:
+            raise ValueError("CEO direct resolution is limited to allowlisted internal actions")
+        consultations = session.exec(
+            select(ExecutiveCouncilConsultation).where(
+                ExecutiveCouncilConsultation.decision_id == decision.id
+            )
+        ).all()
+        if not consultations or any(
+            item.status != "completed" or item.dissent for item in consultations
+        ):
+            raise ValueError("CEO decision requires complete, non-dissenting executive consultations")
+    else:
+        raise ValueError("Unsupported decision actor position")
+    now = _now()
+    if actor_position == "ceo":
+        with session.no_autoflush:
+            decided = session.exec(
+                update(ExecutiveDecision)
+                .where(
+                    ExecutiveDecision.id == decision.id,
+                    ExecutiveDecision.status == "coordinating_ceo",
+                    ExecutiveDecision.coordination_token == coordination_token,
+                )
+                .values(
+                    status=outcome,
+                    coordination_token=None,
+                    coordination_claimed_at=None,
+                    decided_by=actor,
+                    decision_reason=reason.strip(),
+                    decided_at=now,
+                    recommendation=decision.recommendation,
+                    alternatives_json=decision.alternatives_json,
+                    evidence_json=decision.evidence_json,
+                    impact_json=decision.impact_json,
+                    updated_at=now,
+                )
+                .execution_options(synchronize_session=False)
+            )
+        if decided.rowcount != 1:
+            session.rollback()
+            raise ValueError("CEO coordination lease was lost before the decision was recorded")
+        session.expire(decision)
+    else:
+        decision.status = outcome
+        decision.coordination_token = None
+        decision.coordination_claimed_at = None
+        decision.decided_by = actor
+        decision.decision_reason = reason.strip()
+        decision.decided_at = now
+        decision.updated_at = now
+        session.add(decision)
     work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
     if work is not None:
         work.status = "completed" if outcome == "approved" else outcome
-        work.completed_at = _now()
-        work.updated_at = _now()
+        work.completed_at = now
+        work.updated_at = now
         session.add(work)
-    record_audit(session, action=f"executive_decision_{outcome}", entity_type="executive_decision", entity_id=decision.id, after_state={"status": outcome, "decided_by": actor}, reason=reason, actor=actor, source=SOURCE)
+        _resolve_work_risks(session, work, outcome=outcome)
+    record_audit(
+        session,
+        action=f"executive_decision_{outcome}",
+        entity_type="executive_decision",
+        entity_id=decision.id,
+        after_state={
+            "status": outcome,
+            "decided_by": actor,
+            "actor_position": actor_position,
+            "external_action_authorized": False,
+        },
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
     session.commit()
     session.refresh(decision)
     return decision
@@ -1244,7 +2490,7 @@ def board_packet_snapshot(session: Session) -> dict[str, Any]:
     session.commit()
     positions = session.exec(select(OrganizationPosition).where(OrganizationPosition.status == "active").order_by(OrganizationPosition.department, OrganizationPosition.title)).all()
     work = session.exec(select(OrganizationalWorkItem).order_by(OrganizationalWorkItem.created_at.desc()).limit(12)).all()
-    decisions = session.exec(select(ExecutiveDecision).where(ExecutiveDecision.status.in_(["pending_ceo", "pending_board"])).order_by(ExecutiveDecision.created_at.desc())).all()
+    decisions = session.exec(select(ExecutiveDecision).where(ExecutiveDecision.status.in_(["pending_ceo", "coordinating_ceo", "pending_board"])).order_by(ExecutiveDecision.created_at.desc())).all()
     risks = session.exec(select(RiskEscalation).where(RiskEscalation.status == "open").order_by(RiskEscalation.created_at.desc())).all()
     packets = session.exec(select(BoardPacket).order_by(BoardPacket.created_at.desc()).limit(5)).all()
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).one()
@@ -1254,7 +2500,9 @@ def board_packet_snapshot(session: Session) -> dict[str, Any]:
         "metrics": {
             "active_positions": len(positions),
             "queued_work": session.exec(select(func.count()).select_from(OrganizationalWorkItem).where(OrganizationalWorkItem.status == "queued")).one(),
-            "pending_ceo": sum(1 for item in decisions if item.status == "pending_ceo"),
+            "pending_ceo": sum(
+                1 for item in decisions if item.status in {"pending_ceo", "coordinating_ceo"}
+            ),
             "pending_board": sum(1 for item in decisions if item.status == "pending_board"),
             "open_risks": len(risks),
             "emergencies": sum(1 for item in risks if item.is_emergency),
@@ -1300,13 +2548,28 @@ def create_board_packet(
         return existing
 
     positions = session.exec(select(OrganizationPosition).where(OrganizationPosition.status == "active")).all()
-    pending_decisions = session.exec(select(ExecutiveDecision).where(ExecutiveDecision.status.in_(["pending_ceo", "pending_board"])).order_by(ExecutiveDecision.created_at.desc())).all()
+    pending_decisions = session.exec(select(ExecutiveDecision).where(ExecutiveDecision.status.in_(["pending_ceo", "coordinating_ceo", "pending_board"])).order_by(ExecutiveDecision.created_at.desc())).all()
     open_risks = session.exec(select(RiskEscalation).where(RiskEscalation.status == "open").order_by(RiskEscalation.created_at.desc())).all()
     recent_work = session.exec(select(OrganizationalWorkItem).order_by(OrganizationalWorkItem.created_at.desc()).limit(20)).all()
 
     board_decisions = [item for item in pending_decisions if item.status == "pending_board"]
-    ceo_decisions = [item for item in pending_decisions if item.status == "pending_ceo"]
+    ceo_decisions = [
+        item for item in pending_decisions if item.status in {"pending_ceo", "coordinating_ceo"}
+    ]
     emergencies = [item for item in open_risks if item.is_emergency]
+    board_decision_ids = [item.id for item in board_decisions]
+    council_consultations = (
+        list(
+            session.exec(
+                select(ExecutiveCouncilConsultation).where(
+                    ExecutiveCouncilConsultation.decision_id.in_(board_decision_ids)
+                )
+            ).all()
+        )
+        if board_decision_ids
+        else []
+    )
+    dissenting_consultations = [item for item in council_consultations if item.dissent]
 
     summary_lines = [
         f"Active positions: {len(positions)}.",
@@ -1318,6 +2581,10 @@ def create_board_packet(
         summary_lines.append(f"Emergency attention required: {', '.join(item.title for item in emergencies[:3])}.")
     if board_decisions:
         summary_lines.append("Board action is requested on the pending decisions listed below.")
+    if dissenting_consultations:
+        summary_lines.append(
+            f"Unresolved executive dissent is recorded on {len(dissenting_consultations)} consultation(s)."
+        )
 
     recommendation = "Review pending Board decisions, confirm emergency containment, and approve or return the proposed actions."
     if not board_decisions and not emergencies:
@@ -1372,7 +2639,18 @@ def create_board_packet(
             "item requiring a cost decision."
         ),
         "urgency": "immediate" if emergencies else "routine",
-        "dissenting_views": [],
+        "dissenting_views": [
+            {
+                "consultation_id": str(item.id),
+                "decision_id": str(item.decision_id),
+                "position": item.consulted_position,
+                "domain": item.domain,
+                "recommendation": item.recommendation,
+                "confidence": item.confidence,
+                "evidence": _load(item.evidence_json, []),
+            }
+            for item in dissenting_consultations
+        ],
         "decisions_for_board": [{
             "id": str(item.id),
             "title": item.title,

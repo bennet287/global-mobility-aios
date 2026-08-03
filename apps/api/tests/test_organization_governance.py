@@ -12,6 +12,7 @@ from app.models.domain import (
     AuditLog,
     BoardPacket,
     DelegationRecord,
+    ExecutiveCouncilConsultation,
     ExecutiveDecision,
     OrganizationExecutionAttempt,
     OrganizationalActionOutput,
@@ -24,6 +25,7 @@ from app.services.external_action_gates import assert_registered_executor
 from app.services.organization_governance import classify_authority
 from app.tasks.organization_tasks import (
     execute_organization_work_item_task,
+    scan_ceo_decisions_task,
     scan_organization_work_task,
 )
 
@@ -58,6 +60,28 @@ OPERATIONS_CASE_DELEGATES = {
 }
 
 
+def _high_risk_operations_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": key,
+            "title": "Material operating remediation",
+            "objective": "Coordinate an evidence-backed internal remediation within the CEO mandate.",
+            "department": "Operations",
+            "action": "internal.analysis",
+            "risk_level": "high",
+            "context": {"scope": "internal", "external_action_authorized": False},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = raw_client.get("/api/v1/organization/decisions")
+    assert decision.status_code == 200, decision.text
+    matching = [item for item in decision.json() if item["work_item_id"] == str(work_id)]
+    assert len(matching) == 1
+    return work_id, UUID(matching[0]["id"])
+
+
 def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_session: Session) -> None:
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
@@ -72,6 +96,10 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["operations_coordination"].reports_to_position_key == "coo"
     assert by_key["business_intelligence"].reports_to_position_key == "coo"
     assert by_key["board"].authority_level == "L4"
+    ceo_contract = json.loads(by_key["ceo"].contract_json)
+    assert ceo_contract["external_action_authorized"] is False
+    assert ceo_contract["direct_action_authority"] == []
+    assert ceo_contract["self_approval_allowed"] is False
 
     cards = Path(__file__).parents[3] / "agents" / "role_cards"
     for card in ("CEO.md", "CTO.md", "COO.md", "CMO.md", "CPO.md", "CFO.md", "CCO.md", "CHRO.md", "CLO.md"):
@@ -485,6 +513,18 @@ def test_board_can_override_l3_ceo_decision(raw_client, db_session: Session) -> 
     assert decision.status == "pending_ceo"
     assert decision.decision_owner_position == "ceo"
 
+    board_decision = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/board-decision",
+        json={
+            "decision": "approved",
+            "reason": "Board must use the explicit override path for an L3 CEO decision.",
+        },
+    )
+    assert board_decision.status_code == 409, board_decision.text
+    db_session.refresh(decision)
+    assert decision.status == "pending_ceo"
+    assert decision.decided_by is None
+
     raw_client.headers.update(_headers("operator", "department-operator"))
     forbidden = raw_client.post(
         f"/api/v1/organization/decisions/{decision.id}/board-override",
@@ -676,6 +716,496 @@ def test_direct_operations_objective_is_idempotently_delegated_and_resolved_by_c
     ).all() == []
 
 
+def test_ceo_resolves_evidence_complete_l3_with_coo_consultation(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-coordinate-evidence-complete-001",
+    )
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+
+    raw_client.headers.update(_headers("operator", "department-operator"))
+    forbidden = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert forbidden.status_code == 403, forbidden.text
+
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "approved"
+    assert coordinated.json()["decided_by"] == "ceo-agent"
+    assert coordinated.json()["decision_reason"]
+    assert coordinated.json()["decided_at"] is not None
+
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    assert work is not None and work.status == "completed"
+    assert decision is not None and decision.decision_owner_position == "ceo"
+    decision_evidence = json.loads(decision.evidence_json)
+    assert any(item.get("type") == "organizational_action_outputs" for item in decision_evidence)
+    assert any(item.get("type") == "executive_council_consultations" for item in decision_evidence)
+
+    listed = raw_client.get("/api/v1/organization/executive-consultations")
+    assert listed.status_code == 200, listed.text
+    consultations = [
+        item for item in listed.json() if item["decision_id"] == str(decision_id)
+    ]
+    assert len(consultations) == 1
+    consultation = consultations[0]
+    assert consultation["requested_by_position"] == "ceo"
+    assert consultation["consulted_position"] == "coo"
+    assert consultation["domain"] == "operations"
+    assert consultation["status"] == "completed"
+    assert consultation["recommendation"]
+    assert consultation["confidence"] > 0.0
+    assert json.loads(consultation["evidence_json"])
+
+    risk = db_session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)
+    ).one()
+    assert risk.escalated_to_position_key == "ceo"
+    assert risk.requires_board_attention is False
+    snapshot = raw_client.get("/api/v1/organization/board-packet")
+    assert snapshot.status_code == 200, snapshot.text
+    assert snapshot.json()["metrics"]["pending_ceo"] == 0
+    assert snapshot.json()["metrics"]["pending_board"] == 0
+
+    audit = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "executive_decision",
+            AuditLog.entity_id == str(decision_id),
+            AuditLog.action == "executive_decision_approved",
+        )
+    ).one()
+    assert audit.actor == "ceo-agent"
+
+
+def test_ceo_coordination_before_evidence_remains_pending(raw_client, db_session: Session) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-coordinate-before-evidence-001",
+    )
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "pending_ceo"
+    assert coordinated.json()["decided_by"] is None
+    assert coordinated.json()["decided_at"] is None
+
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    assert work is not None and work.status == "queued"
+    assert decision is not None and decision.status == "pending_ceo"
+    approvals = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "executive_decision",
+            AuditLog.entity_id == str(decision_id),
+            AuditLog.action == "executive_decision_approved",
+        )
+    ).all()
+    assert approvals == []
+
+
+def test_ceo_decision_scanner_approves_only_evidence_ready_l3(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    ready_work_id, ready_decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-scanner-ready-001",
+    )
+    held_work_id, held_decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-scanner-held-001",
+    )
+    executed = raw_client.post(
+        f"/api/v1/organization/work-items/{ready_work_id}/execute"
+    )
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+
+    result = scan_ceo_decisions_task()
+    assert result["examined"] == 2
+    assert result["approved"] == [str(ready_decision_id)]
+    assert result["held"] == [str(held_decision_id)]
+    assert result["escalated"] == []
+    assert result["errors"] == []
+
+    db_session.expire_all()
+    ready = db_session.get(ExecutiveDecision, ready_decision_id)
+    held = db_session.get(ExecutiveDecision, held_decision_id)
+    assert ready is not None and ready.status == "approved"
+    assert ready.decided_by == "ceo-agent"
+    assert held is not None and held.status == "pending_ceo"
+    assert held.decided_by is None
+    held_work = db_session.get(OrganizationalWorkItem, held_work_id)
+    assert held_work is not None and held_work.status == "queued"
+
+
+def test_unimplemented_department_runtime_is_held_without_false_completion(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "technology-runtime-unavailable-001",
+            "title": "Review platform architecture",
+            "objective": "Exercise the registered CTO boundary before its specialist runtime exists.",
+            "department": "Technology",
+            "action": "internal.analysis",
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "cto"
+    assert created.json()["status"] == "held"
+    assert "not yet executable" in created.json()["last_error"]
+
+    work_id = UUID(created.json()["id"])
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert executed.json()["completed_at"] is None
+    assert db_session.exec(
+        select(OrganizationExecutionAttempt).where(
+            OrganizationExecutionAttempt.work_item_id == work_id
+        )
+    ).all() == []
+    assert db_session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.work_item_id == work_id
+        )
+    ).all() == []
+
+
+def test_cross_domain_consultation_is_durable_and_fails_closed(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "ceo-cross-domain-consultation-001",
+            "title": "Review an internal operating position with legal implications",
+            "objective": "Require COO evidence and a distinct Legal executive consultation.",
+            "department": "Operations",
+            "action": "internal.analysis",
+            "risk_level": "high",
+            "context": {"required_consultations": ["Legal"]},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)
+    ).one()
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "pending_ceo"
+    assert "clo" in coordinated.json()["recommendation"]
+    consultations = db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision.id
+        )
+    ).all()
+    assert {item.consulted_position: item.status for item in consultations} == {
+        "coo": "completed",
+        "clo": "pending",
+    }
+
+    replay = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/coordinate-ceo"
+    )
+    assert replay.status_code == 200, replay.text
+    assert replay.json()["status"] == "pending_ceo"
+    assert len(db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision.id
+        )
+    ).all()) == 2
+
+
+def test_ceo_coordination_claim_rejects_overlap_and_recovers_stale_lease(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-coordination-lease-001",
+    )
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    assert decision is not None
+    decision.status = "coordinating_ceo"
+    decision.coordination_token = "active-overlap-token"
+    decision.coordination_claimed_at = datetime.now(timezone.utc)
+    db_session.add(decision)
+    db_session.commit()
+    overlap = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert overlap.status_code == 409, overlap.text
+    assert db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision_id
+        )
+    ).all() == []
+
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    assert decision is not None
+    decision.coordination_claimed_at = datetime.now(timezone.utc) - timedelta(minutes=10)
+    db_session.add(decision)
+    db_session.commit()
+    recovered = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert recovered.status_code == 200, recovered.text
+    assert recovered.json()["status"] == "approved"
+    recovery_audit = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "executive_decision",
+            AuditLog.entity_id == str(decision_id),
+            AuditLog.action == "ceo_coordination_stale_claim_recovered",
+        )
+    ).one()
+    assert recovery_audit.actor == "ceo-agent"
+
+
+def test_reclaimed_ceo_lease_fences_the_old_worker(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-coordination-fencing-001",
+    )
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    assert decision is not None
+
+    claimed, old_token = organization_service._claim_ceo_decision(
+        db_session,
+        decision,
+        actor="ceo-agent-old",
+    )
+    assert old_token
+    claimed.coordination_claimed_at = datetime.now(timezone.utc) - timedelta(minutes=10)
+    db_session.add(claimed)
+    db_session.commit()
+    reclaimed, new_token = organization_service._claim_ceo_decision(
+        db_session,
+        claimed,
+        actor="ceo-agent-new",
+    )
+    assert new_token and new_token != old_token
+
+    organization_service._release_ceo_claim_after_error(
+        db_session,
+        decision_id,
+        coordination_token=old_token,
+        actor="ceo-agent-old",
+        reason="A stale worker must not release its successor's lease.",
+    )
+    db_session.refresh(reclaimed)
+    assert reclaimed.status == "coordinating_ceo"
+    assert reclaimed.coordination_token == new_token
+
+    with pytest.raises(ValueError, match="lease was lost"):
+        organization_service._hold_ceo_decision(
+            db_session,
+            reclaimed,
+            coordination_token=old_token,
+            reason="A stale worker attempted a fenced transition.",
+            actor="ceo-agent-old",
+        )
+    current = db_session.get(ExecutiveDecision, decision_id)
+    assert current is not None
+    assert current.status == "coordinating_ceo"
+    assert current.coordination_token == new_token
+
+    organization_service._release_ceo_claim_after_error(
+        db_session,
+        decision_id,
+        coordination_token=new_token,
+        actor="ceo-agent-new",
+        reason="Test cleanup releases the current lease.",
+    )
+    db_session.expire_all()
+    current = db_session.get(ExecutiveDecision, decision_id)
+    assert current is not None
+    assert current.status == "pending_ceo"
+    assert current.coordination_token is None
+
+
+def test_ceo_runtime_cannot_repair_its_own_contract(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-contract-owner-boundary-001",
+    )
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+
+    ceo = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "ceo")
+    ).one()
+    permissive_contract = json.dumps({"direct_action_authority": ["*"]})
+    ceo.contract_json = permissive_contract
+    db_session.add(ceo)
+    db_session.commit()
+
+    held = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert held.status_code == 200, held.text
+    assert held.json()["status"] == "pending_ceo"
+    assert "Human Board repair" in held.json()["recommendation"]
+    db_session.refresh(ceo)
+    assert ceo.contract_json == permissive_contract
+
+    repaired = raw_client.post("/api/v1/organization/bootstrap")
+    assert repaired.status_code == 201, repaired.text
+    db_session.refresh(ceo)
+    repaired_contract = json.loads(ceo.contract_json)
+    assert repaired_contract["direct_action_authority"] == []
+    assert repaired_contract["self_approval_allowed"] is False
+    approved = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert approved.status_code == 200, approved.text
+    assert approved.json()["status"] == "approved"
+
+
+def test_ceo_self_requested_l3_escalates_to_board_without_approval(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "ceo-direct-self-request-001",
+            "title": "Direct CEO policy request",
+            "objective": "Test that the CEO cannot approve a recommendation it requested itself.",
+            "department": "Executive",
+            "action": "policy.publish",
+            "context": {"scope": "internal operating policy"},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)
+    ).one()
+    assert decision.authority_level == "L3"
+    assert decision.requested_by_position == "ceo"
+    assert decision.decision_owner_position == "ceo"
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "pending_board"
+    assert coordinated.json()["decision_owner_position"] == "board"
+    assert coordinated.json()["decided_by"] is None
+
+    db_session.expire_all()
+    decision = db_session.get(ExecutiveDecision, decision.id)
+    assert decision is not None
+    assert decision.status == "pending_board"
+    assert decision.decision_owner_position == "board"
+    assert decision.decided_by is None
+    assert decision.decided_at is None
+    assert db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision.id
+        )
+    ).all() == []
+    assert db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "executive_decision",
+            AuditLog.entity_id == str(decision.id),
+            AuditLog.action == "executive_decision_approved",
+        )
+    ).all() == []
+    risk = db_session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)
+    ).one()
+    assert risk.requires_board_attention is True
+    assert risk.escalated_to_position_key == "board"
+    packet = db_session.exec(
+        select(BoardPacket).where(BoardPacket.packet_type == "incident")
+    ).one()
+    assert packet.status == "published"
+
+
+def test_ceo_cannot_coordinate_l4_board_reserved_decision(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "ceo-l4-reservation-001",
+            "title": "Enter a material market",
+            "objective": "Prepare a market-entry recommendation reserved for the human Board.",
+            "department": "Executive",
+            "action": "market.entry",
+            "context": {"jurisdiction": "Singapore"},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)
+    ).one()
+    assert decision.authority_level == "L4"
+    assert decision.status == "pending_board"
+    assert decision.decision_owner_position == "board"
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 409, coordinated.text
+
+    db_session.refresh(decision)
+    assert decision.status == "pending_board"
+    assert decision.decision_owner_position == "board"
+    assert decision.decided_by is None
+    assert decision.decided_at is None
+
+
 def test_work_item_deadline_and_decision_deadline(raw_client, db_session: Session) -> None:
     raw_client.headers.update(_headers())
     created = raw_client.post("/api/v1/organization/work-items", json={
@@ -764,6 +1294,156 @@ def test_emergency_escalation_reaches_board(raw_client, db_session: Session) -> 
     ).first()
     assert audit is not None
     assert audit.actor == "human-owner"
+
+
+def test_emergency_promotes_pending_ceo_decision_to_board_idempotently(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-emergency-promotion-001",
+    )
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+
+    first = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/emergency",
+        json={"reason": "Credible client-harm risk requires immediate Board containment."},
+    )
+    assert first.status_code == 200, first.text
+    assert first.json()["is_emergency"] is True
+    assert first.json()["assigned_position_key"] == "board"
+    assert first.json()["status"] == "pending_board"
+
+    audit_count = len(db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "organizational_work_item",
+            AuditLog.entity_id == str(work_id),
+            AuditLog.action.in_([
+                "organization_work_marked_emergency",
+                "organization_work_emergency_escalated",
+            ]),
+        )
+    ).all())
+    second = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/emergency",
+        json={"reason": "Repeated emergency signal must reuse the existing escalation."},
+    )
+    assert second.status_code == 200, second.text
+    assert second.json()["id"] == first.json()["id"]
+
+    db_session.expire_all()
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    assert decision is not None
+    assert decision.authority_level == "L4"
+    assert decision.status == "pending_board"
+    assert decision.decision_owner_position == "board"
+    assert decision.decided_by is None
+    assert decision.decided_at is None
+
+    risks = db_session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)
+    ).all()
+    assert len(risks) == 1
+    assert risks[0].is_emergency is True
+    assert risks[0].requires_board_attention is True
+    assert risks[0].escalated_to_position_key == "board"
+    packets = db_session.exec(
+        select(BoardPacket).where(
+            BoardPacket.packet_key == f"packet:incident:{work_id}"
+        )
+    ).all()
+    assert len(packets) == 1
+    assert len(db_session.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "organizational_work_item",
+            AuditLog.entity_id == str(work_id),
+            AuditLog.action.in_([
+                "organization_work_marked_emergency",
+                "organization_work_emergency_escalated",
+            ]),
+        )
+    ).all()) == audit_count
+
+    refused = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert refused.status_code == 409, refused.text
+
+
+def test_emergency_replay_heals_partial_escalation_and_keeps_risk_open(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_operations_work(
+        raw_client,
+        key="ceo-emergency-partial-replay-001",
+    )
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    risk = db_session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)
+    ).one()
+    assert work is not None and decision is not None
+    work.is_emergency = True
+    work.authority_level = "L4"
+    work.risk_level = "critical"
+    work.assigned_position_key = "ceo"
+    work.status = "held"
+    decision.authority_level = "L4"
+    decision.decision_owner_position = "ceo"
+    decision.status = "pending_board"
+    risk.category = "emergency"
+    risk.severity = "critical"
+    risk.is_emergency = True
+    risk.requires_board_attention = True
+    risk.escalated_to_position_key = "ceo"
+    db_session.add(work)
+    db_session.add(decision)
+    db_session.add(risk)
+    db_session.commit()
+
+    healed = raw_client.post(
+        f"/api/v1/organization/work-items/{work_id}/emergency",
+        json={"reason": "Resume and reconcile the interrupted emergency escalation."},
+    )
+    assert healed.status_code == 200, healed.text
+    assert healed.json()["assigned_position_key"] == "board"
+    assert healed.json()["status"] == "pending_board"
+    db_session.expire_all()
+    decision = db_session.get(ExecutiveDecision, decision_id)
+    risk = db_session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id == work_id)
+    ).one()
+    assert decision is not None
+    assert decision.decision_owner_position == "board"
+    assert decision.status == "pending_board"
+    assert risk.escalated_to_position_key == "board"
+    assert risk.requires_board_attention is True
+    assert db_session.exec(
+        select(BoardPacket).where(
+            BoardPacket.packet_key == f"packet:incident:{work_id}"
+        )
+    ).one()
+
+    decided = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/board-decision",
+        json={
+            "decision": "approved",
+            "reason": "The Board approves containment while the emergency risk remains tracked.",
+        },
+    )
+    assert decided.status_code == 200, decided.text
+    db_session.refresh(risk)
+    assert risk.status == "open"
+    assert risk.resolved_at is None
 
 
 def test_overdue_scanner_escalates_work(raw_client, db_session: Session) -> None:

@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import (
     BoardPacket,
+    ExecutiveCouncilConsultation,
     ExecutiveDecision,
     OrganizationExecutionAttempt,
     OrganizationalActionOutput,
@@ -37,7 +38,10 @@ from app.services.organization_governance import (
     board_override_decision,
     cancel_work_item,
     classify_authority,
+    coordinate_ceo_decision,
     create_board_packet,
+    department_executive_owner,
+    department_runtime_available,
     delegate_operations_work,
     decide_executive_decision,
     ensure_foundation_positions,
@@ -74,7 +78,11 @@ def _admin(request: Request) -> None:
 @router.post("/bootstrap", status_code=201)
 def bootstrap_organization(request: Request, session: Session = Depends(get_session)) -> dict:
     _admin(request)
-    positions = ensure_foundation_positions(session, actor=_actor(request))
+    positions = ensure_foundation_positions(
+        session,
+        actor=_actor(request),
+        repair_contracts=True,
+    )
     session.commit()
     return {"status": "ready", "positions_registered": len(positions)}
 
@@ -157,16 +165,32 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
         return existing
     ensure_foundation_positions(session, actor=_actor(request))
     authority, risk = classify_authority(payload.action, {"risk_level": payload.risk_level, "requires_board_approval": payload.requires_board_approval})
+    try:
+        accountable_position = department_executive_owner(payload.department)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    runtime_available = department_runtime_available(payload.department)
+    context = {"action": payload.action, **payload.context}
+    if not runtime_available:
+        context["runtime_control"] = {
+            "status": "held",
+            "reason": f"The {payload.department} runtime is not yet executable.",
+            "external_action_authorized": False,
+        }
     work = OrganizationalWorkItem(
         idempotency_key=payload.idempotency_key,
         title=payload.title,
         objective=payload.objective,
         department=payload.department,
         authority_level=authority,
-        assigned_position_key="ceo" if payload.department == "Executive" else "coo",
+        status="queued" if runtime_available else "held",
+        assigned_position_key=accountable_position,
         risk_level=risk,
         max_execution_attempts=payload.max_execution_attempts,
-        context_json=json.dumps({"action": payload.action, **payload.context}, sort_keys=True),
+        last_error=None
+        if runtime_available
+        else f"The {payload.department} runtime is registered for governance but is not yet executable.",
+        context_json=json.dumps(context, sort_keys=True),
         created_by=_actor(request),
     )
     session.add(work)
@@ -299,6 +323,44 @@ def list_decisions(session: Session = Depends(get_session)) -> list[ExecutiveDec
     return list(session.exec(select(ExecutiveDecision).order_by(ExecutiveDecision.created_at.desc()).limit(100)).all())
 
 
+@router.get("/executive-consultations")
+def list_executive_consultations(
+    session: Session = Depends(get_session),
+) -> list[ExecutiveCouncilConsultation]:
+    query = (
+        select(ExecutiveCouncilConsultation)
+        .order_by(ExecutiveCouncilConsultation.created_at.desc())
+        .limit(200)
+    )
+    return list(session.exec(query).all())
+
+
+@router.post("/decisions/{decision_id}/coordinate-ceo")
+def coordinate_ceo_decision_endpoint(
+    decision_id: UUID,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> ExecutiveDecision:
+    _admin(request)
+    decision = session.get(ExecutiveDecision, decision_id)
+    if decision is None:
+        raise HTTPException(status_code=404, detail="Executive decision not found")
+    record_audit(
+        session,
+        action="ceo_coordination_requested",
+        entity_type="executive_decision",
+        entity_id=decision.id,
+        after_state={"runtime_actor": "ceo-agent"},
+        actor=_actor(request),
+        source=SOURCE,
+    )
+    session.commit()
+    try:
+        return coordinate_ceo_decision(session, decision, actor="ceo-agent")
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
 @router.post("/decisions/{decision_id}/board-decision")
 def board_decision(decision_id: UUID, payload: GovernanceDecisionRequest, request: Request, session: Session = Depends(get_session)) -> ExecutiveDecision:
     _admin(request)
@@ -306,7 +368,14 @@ def board_decision(decision_id: UUID, payload: GovernanceDecisionRequest, reques
     if decision is None:
         raise HTTPException(status_code=404, detail="Executive decision not found")
     try:
-        return decide_executive_decision(session, decision, outcome=payload.decision, reason=payload.reason, actor=_actor(request), board_actor=True)
+        return decide_executive_decision(
+            session,
+            decision,
+            outcome=payload.decision,
+            reason=payload.reason,
+            actor=_actor(request),
+            actor_position="board",
+        )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 

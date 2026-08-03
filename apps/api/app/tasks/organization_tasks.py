@@ -10,9 +10,11 @@ from app.core.celery_app import celery_app
 from app.core import db as db_module
 from app.models.domain import ExecutiveDecision, OrganizationalWorkItem
 from app.services.organization_governance import (
+    coordinate_ceo_decision,
     create_board_packet,
     escalate_work_item,
     execute_work_item,
+    scan_pending_ceo_decisions,
 )
 
 
@@ -35,7 +37,36 @@ def execute_organization_work_item_task(work_item_id: str) -> dict:
                 "reason": f"{type(exc).__name__}: {exc}",
                 "next_retry_at": str(failed.next_retry_at) if failed and failed.next_retry_at else None,
             }
+        if result.status == "pending_ceo":
+            decision = session.exec(
+                select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == result.id)
+            ).first()
+            if decision is not None:
+                coordinate_ceo_decision_task.delay(str(decision.id))
         return {"status": result.status, "work_item_id": str(result.id)}
+
+
+@celery_app.task(name="app.tasks.organization_tasks.coordinate_ceo_decision")
+def coordinate_ceo_decision_task(decision_id: str) -> dict:
+    with Session(db_module.engine) as session:
+        decision = session.get(ExecutiveDecision, UUID(decision_id))
+        if decision is None:
+            return {"status": "not_found", "decision_id": decision_id}
+        try:
+            result = coordinate_ceo_decision(session, decision, actor="ceo-agent")
+        except ValueError as exc:
+            return {"status": "skipped", "decision_id": decision_id, "reason": str(exc)}
+        return {
+            "status": result.status,
+            "decision_id": str(result.id),
+            "decided_by": result.decided_by,
+        }
+
+
+@celery_app.task(name="app.tasks.organization_tasks.scan_ceo_decisions")
+def scan_ceo_decisions_task(limit: int = 25) -> dict:
+    with Session(db_module.engine) as session:
+        return scan_pending_ceo_decisions(session, limit=limit, actor="ceo-agent")
 
 
 @celery_app.task(name="app.tasks.organization_tasks.scan_organization_work")

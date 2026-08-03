@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-08-03 — Phase 13.3 bounded CEO and executive-consultation ledger
+
+- Added migration `0061_exec_council_consultations` and a durable consultation
+  ledger recording the decision, work item, executive domain, evidence,
+  recommendation, confidence, dissent, status, and completion time.
+- Added migration `0062_ceo_coordination_fencing` with durable claim tokens and
+  claimed-at timestamps; every CEO hold, Board promotion, release, and final
+  decision now uses a token-qualified compare-and-set transition.
+- Implemented a fail-closed CEO coordinator that may approve only
+  evidence-complete `internal.analysis` work at L3 after a distinct COO
+  consultation; its receipt explicitly authorizes no external action.
+- Added immediate event-driven CEO coordination after organizational execution,
+  an atomic coordination lease with stale-claim recovery, a recovery scanner in
+  Celery Beat, an admin trigger that retains the `ceo-agent` runtime identity,
+  and a Board-visible consultation endpoint.
+- Prevented CEO self-approval, blocked CEO handling of L4 and emergency matters,
+  kept registered external actions behind their separate human gates, and made
+  the Board-decision endpoint reject pending CEO matters unless the explicit
+  Board-override lane is used.
+- Corrected emergency promotion so work is removed from the executable queue,
+  upgraded to L4, assigned to the Board, represented by a `pending_board`
+  decision, forward-healed after a partial replay, and reported through one
+  replay-safe incident packet.
+- Held registered departments whose specialist runtime is not yet operational,
+  preventing empty delegation sets from being reported as completed work.
+- Made stored executive dissent renderable in the Board Packet when supplied;
+  cross-functional executive completion and dissent-submission paths remain a
+  later Phase 13 gate.
+- Limited automatic risk closure to non-emergency governance-boundary records;
+  operational and emergency risks retain their own resolution lifecycle.
+- Removed the misleading legacy `ai_ceo` alias to Application Readiness and
+  persisted the CEO's orchestrator-only, no-direct-action position contract
+  through migration or explicit Human Board bootstrap, never the CEO runtime.
+- Added CEO, consultation, owner-boundary, self-approval, L4, scanner, and
+  emergency-idempotency regression coverage. The full API suite passes with
+  447 tests at migration head `0062`.
+
 ## 2026-08-03 — Phase 13.6 bounded Operations department runtime
 
 - Expanded the registered organization from 13 to 15 positions by adding

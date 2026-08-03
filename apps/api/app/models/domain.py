@@ -2152,6 +2152,8 @@ class ExecutiveDecision(SQLModel, table=True):
     evidence_json: str = "[]"
     impact_json: str = "{}"
     status: str = Field(default="pending_ceo", index=True)
+    coordination_token: Optional[str] = Field(default=None, index=True)
+    coordination_claimed_at: Optional[datetime] = Field(default=None, index=True)
     decided_by: Optional[str] = Field(default=None, index=True)
     decision_reason: Optional[str] = None
     decided_at: Optional[datetime] = Field(default=None, index=True)
@@ -2159,6 +2161,26 @@ class ExecutiveDecision(SQLModel, table=True):
     reminded_at: Optional[datetime] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ExecutiveCouncilConsultation(SQLModel, table=True):
+    __tablename__ = "executive_council_consultations"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    consultation_key: str = Field(index=True, unique=True)
+    decision_id: UUID = Field(index=True, foreign_key="executive_decisions.id")
+    work_item_id: UUID = Field(index=True, foreign_key="organizational_work_items.id")
+    requested_by_position: str = Field(index=True)
+    consulted_position: str = Field(index=True)
+    domain: str = Field(index=True)
+    evidence_json: str = "[]"
+    recommendation: Optional[str] = None
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    dissent: bool = Field(default=False, index=True)
+    status: str = Field(default="pending", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+    completed_at: Optional[datetime] = Field(default=None, index=True)
 
 
 class RiskEscalation(SQLModel, table=True):

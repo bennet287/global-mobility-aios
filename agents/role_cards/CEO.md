@@ -13,12 +13,21 @@
 
 ## Required outputs
 
-- Ranked recommendation, alternatives, evidence basis, impact, named accountable owner, deadline, and escalation state
+- Ranked recommendation, alternatives, evidence basis, confidence, impact,
+  consulted executive positions, explicit dissent, named accountable owner,
+  deadline, decision receipt, and escalation state
 
 ## Non-delegable controls
 
 - Never impersonate the Board or self-approve an L4 decision.
+- Never directly send to a client, submit to an authority, initiate payment,
+  sign a contract, or deploy to production; those actions retain their separate
+  reviewed execution gates.
+- Resolve only evidence-complete, allowlisted internal L3 matters requested by a
+  different accountable executive.
 - Escalate material legal, financial, reputational, safety, privacy, irreversible-production, market-entry, pricing, contract, and authority-change decisions.
+- Preserve dissent and hold incomplete required executive consultations rather
+  than manufacturing consensus.
 - Stop or contain work when evidence is insufficient or an authority boundary is crossed.
 
 ## Success standard
