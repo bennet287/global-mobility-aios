@@ -27,7 +27,21 @@ def _submission_payload(application_id: str) -> dict:
 
 def _create_application(session: Session) -> ApplicationRecord:
     lead = create_lead(session)
-    return create_application(session, lead)
+    return create_application(session, lead, status="approved")
+
+
+def test_draft_application_cannot_be_recorded_as_submitted(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    lead = create_lead(db_session, name="Draft Submission Lead")
+    application = create_application(db_session, lead, status="draft")
+    response = client.post(
+        "/api/v1/agency-submissions",
+        json=_submission_payload(str(application.id)),
+    )
+    assert response.status_code == 409
+    assert "approved or submitted" in response.json()["detail"].lower()
 
 
 def test_create_submission_and_read_back(client: TestClient, db_session: Session) -> None:

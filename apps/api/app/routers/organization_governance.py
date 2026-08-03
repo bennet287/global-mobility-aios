@@ -30,6 +30,7 @@ from app.schemas_organization_governance import (
     WorkRetryRequest,
 )
 from app.services.audit_log import record_audit
+from app.services.external_action_gates import action_gate_manifest
 from app.services.organization_governance import (
     SOURCE,
     board_packet_snapshot,
@@ -82,6 +83,14 @@ def list_positions(session: Session = Depends(get_session)) -> list[Organization
     ensure_foundation_positions(session)
     session.commit()
     return list(session.exec(select(OrganizationPosition).where(OrganizationPosition.status == "active").order_by(OrganizationPosition.department, OrganizationPosition.title)).all())
+
+
+@router.get("/action-gates")
+def list_action_gates() -> dict:
+    return {
+        "status": "fail_closed",
+        "actions": action_gate_manifest(),
+    }
 
 
 @router.get("/board-packet")

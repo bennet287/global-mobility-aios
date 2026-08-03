@@ -19,6 +19,7 @@ from app.models.domain import (
     TruthClaim,
 )
 from app.services.audit_log import record_audit
+from app.services.external_action_gates import assert_application_submission_authorized
 
 router = APIRouter(tags=["application-engine"])
 
@@ -546,15 +547,17 @@ def submit_application(application_id: str, request: ApplicationActionRequest = 
         raise HTTPException(status_code=404, detail="Lead for application not found")
     readiness = _calculate_readiness(session, lead)
     app_status = _safe_status(getattr(app, "status", None))
-    if app_status != "approved":
+    try:
+        assert_application_submission_authorized(app)
+    except ValueError as exc:
         raise HTTPException(
             status_code=409,
             detail={
-                "message": "Application submission requires explicit human approval first.",
+                "message": str(exc),
                 "application_status": app_status,
                 "readiness": jsonable_encoder(readiness),
             },
-        )
+        ) from exc
     if not readiness["can_approve"]:
         raise HTTPException(
             status_code=409,

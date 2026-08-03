@@ -62,16 +62,16 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: passing with one head at `0060`.
 - Docker production-profile validation: passing.
-- API tests: **425 passing and 0 failing**.
+- API tests: **428 passing and 0 failing**.
 - Local SQLite database: aligned at `0060`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
   `0060` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
-Packet reporting, evidence-output, and bounded execution-control slices. The next
-active gate is proof that every external or irreversible action remains behind
-its required gate, followed by controlled departmental expansion.
+Packet reporting, evidence-output, bounded execution-control, and external-action
+gate slices. The next active gate is controlled departmental expansion, beginning
+with a bounded executive runtime rather than unrestricted agent proliferation.
 
 ## 3. Execution Order
 
@@ -184,11 +184,11 @@ Key specifications:
 
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
-**Status:** Governance foundation and Board reporting delivered. The hierarchy,
-event bridge, authority engine, Board decision path, global and per-agent controls,
-Board Room, and recurring/on-demand/incident Board Packets are implemented and
-tested. The active gate is hardening evidence-grounded autonomous execution before
-expanding departmental runtimes.
+**Status:** Governance foundation, Board reporting, and the first bounded
+autonomous organization flow are delivered. The hierarchy, event bridge, authority
+engine, Board decision path, global and per-agent controls, Board Room, Board
+Packets, durable execution controls, and fail-closed external-action gates are
+implemented and tested. The active gate is controlled departmental expansion.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -221,10 +221,10 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [x] Add a deterministic authority matrix with L1-L4 classifications.
 - [x] Add durable organizational task, delegation, decision, escalation,
   override, and executive-decision ledgers.
-- [ ] Require every action to identify its accountable position, authority basis,
+- [x] Require every action to identify its accountable position, authority basis,
   evidence, confidence, impact, and rollback posture. Delegated organizational
-  outputs now satisfy this contract; remaining external action paths must still
-  be proven.
+  outputs satisfy this contract, and executable external paths require a durable
+  human-review or approval receipt.
 - [x] Prevent an agent from approving its own restricted recommendation.
 - [x] Add deadlines, reminders, delegation expiry, and escalation-on-timeout.
 
@@ -270,8 +270,10 @@ Lead or case event
 - [x] Demonstrate timeout and escalation-on-timeout safety.
 - [x] Enforce bounded retries, Board-controlled cancellation, durable execution
   attempts, retry scheduling, and duplicate-delivery/replay safety.
-- [ ] Prove that no client message, authority submission, payment, contract, or
-  production deployment bypasses its required gate.
+- [x] Prove that no client message, authority submission, payment, contract, or
+  production deployment bypasses its required gate. Client delivery and authority
+  submission validate durable approval receipts at execution time; payment,
+  contract, and production-deployment executors remain unregistered and fail closed.
 
 ### 13.5 Board Room and executive reporting
 
@@ -326,7 +328,7 @@ After the first organization flow and Board Room pass their release gates:
   reject, return-for-analysis, global pause, override, and per-agent suspension
   are implemented.
 - [x] An emergency scenario reaches the Board without delay.
-- [ ] Routine L1/L2 work completes without unnecessary Board interruption.
+- [x] Routine L1/L2 work completes without unnecessary Board interruption.
 
 ## 7. Phase 14: Global Scale Platform
 

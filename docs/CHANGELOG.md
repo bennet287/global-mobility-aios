@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-03 — Phase 13.4 fail-closed external-action gates
+
+- Added a central external-action policy registry for client sends, authority
+  submissions, payments, contracts, and production deployments, exposed through
+  the governed organization API for Board inspection.
+- Revalidated external automation delivery approval at dispatch time, including
+  the complete review receipt and different-reviewer invariant, so direct state
+  mutation cannot bypass the human gate.
+- Closed an authority-submission tracking gap: an agency submission can now be
+  recorded only for an approved or already-submitted application.
+- Kept payment initiation, contract signature, and production deployment
+  non-executable until dedicated reviewed adapters are explicitly registered.
+- Expanded deterministic authority classification and regression coverage for
+  gate completeness, unknown actions, unavailable executors, application state,
+  and dispatch-state tampering. The full API suite passes with 428 tests and the
+  complete local quality gate passes at migration head `0060`.
+
 ## 2026-08-03 — Phase 13.4 bounded execution controls
 
 - Added migration `0060_org_execution_controls` with durable execution-attempt

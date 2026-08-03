@@ -148,6 +148,53 @@ def test_case_event_creates_review_gated_multichannel_outbox(
     }.issubset(actions)
 
 
+def test_external_delivery_cannot_bypass_review_by_mutating_ready_state(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "automation-author"))
+    account = _account(raw_client, "Tamper Resistant Employer")
+    _rule(
+        raw_client,
+        account["id"],
+        channels=["email"],
+        destinations={"email": "mobility-team"},
+    )
+    _case(raw_client, account["id"], "AUTO-TAMPER-001")
+
+    deliveries = raw_client.get(
+        f"/api/v1/automation/deliveries?corporate_account_id={account['id']}"
+    )
+    assert deliveries.status_code == 200, deliveries.text
+    delivery_id = UUID(deliveries.json()[0]["id"])
+    delivery = db_session.get(AutomationDelivery, delivery_id)
+    assert delivery is not None
+    assert delivery.status == "pending_review"
+
+    delivery.status = "ready"
+    db_session.add(delivery)
+    db_session.commit()
+
+    raw_client.headers.update(_headers("operator", "connector-worker"))
+    dispatched = raw_client.post(
+        f"/api/v1/automation/deliveries/{delivery_id}/dispatch-record",
+        json={"provider_message_id": "tampered-provider-id"},
+    )
+    assert dispatched.status_code == 400
+    assert "human-review receipt" in dispatched.json()["detail"]
+
+    db_session.refresh(delivery)
+    assert delivery.status == "ready"
+    assert delivery.dispatched_at is None
+    assert db_session.exec(
+        select(func.count(AuditLog.id)).where(
+            AuditLog.source == "automation_v12_3",
+            AuditLog.action == "automation_delivery_dispatched",
+            AuditLog.entity_id == str(delivery_id),
+        )
+    ).one() == 0
+
+
 def test_event_ingest_is_idempotent_and_key_conflicts_fail_closed(
     client,
     db_session: Session,

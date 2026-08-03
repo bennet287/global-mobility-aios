@@ -11,6 +11,7 @@ from app.schemas_agency_submissions import AgencySubmissionCreate
 from app.services.audit_log import record_audit, to_audit_dict
 from app.services.automation_bridge import capture_application_status_event
 from app.services.authority_checklists import validate_required_checklist_items_complete
+from app.services.external_action_gates import assert_agency_submission_tracking_authorized
 
 
 SUBMISSION_CHANNELS = {"online", "in_person", "courier", "agency"}
@@ -48,6 +49,8 @@ def create_submission(
     application = session.get(ApplicationRecord, payload.application_id)
     if application is None:
         raise ValueError("Application not found")
+
+    assert_agency_submission_tracking_authorized(application)
 
     validate_required_checklist_items_complete(
         session, application.id, payload.authority_name

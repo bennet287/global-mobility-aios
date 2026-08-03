@@ -20,6 +20,7 @@ from app.models.domain import (
     RiskEscalation,
 )
 from app.services import organization_governance as organization_service
+from app.services.external_action_gates import assert_registered_executor
 from app.services.organization_governance import classify_authority
 from app.tasks.organization_tasks import (
     execute_organization_work_item_task,
@@ -71,8 +72,37 @@ def test_authority_classifier_fails_closed_for_reserved_and_material_actions() -
     assert classify_authority("internal.analysis") == ("L1", "routine")
     assert classify_authority("internal.analysis", {"risk_level": "moderate"}) == ("L2", "moderate")
     assert classify_authority("client.external_send") == ("L3", "high")
+    assert classify_authority("authority.submit") == ("L3", "high")
+    assert classify_authority("payment.initiate") == ("L3", "high")
+    assert classify_authority("deployment.production") == ("L3", "high")
+    assert classify_authority("contract.sign") == ("L4", "critical")
     assert classify_authority("market.entry") == ("L4", "critical")
     assert classify_authority("anything", {"requires_board_approval": True}) == ("L4", "critical")
+
+
+def test_external_action_gate_registry_is_complete_and_fails_closed(raw_client) -> None:
+    raw_client.headers.update(_headers())
+    response = raw_client.get("/api/v1/organization/action-gates")
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["status"] == "fail_closed"
+    actions = payload["actions"]
+    assert set(actions) == {
+        "client.external_send",
+        "authority.submit",
+        "payment.initiate",
+        "contract.sign",
+        "deployment.production",
+    }
+    assert all(policy["fail_closed"] for policy in actions.values())
+    assert actions["client.external_send"]["executable"] is True
+    assert actions["authority.submit"]["executable"] is True
+    for action in ("payment.initiate", "contract.sign", "deployment.production"):
+        assert actions[action]["executable"] is False
+        with pytest.raises(ValueError, match="no registered executor"):
+            assert_registered_executor(action)
+    with pytest.raises(ValueError, match="Unknown governed action"):
+        assert_registered_executor("external.unregistered")
 
 
 def test_direct_reserved_work_also_creates_board_decision(raw_client, db_session: Session) -> None:

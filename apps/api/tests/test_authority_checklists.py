@@ -260,7 +260,7 @@ def test_submission_blocked_by_pending_required_checklist_item(
 ) -> None:
     client.post("/api/v1/authority-checklist-templates", json=_template_payload())
     lead = create_lead(db_session)
-    application = create_application(db_session, lead)
+    application = create_application(db_session, lead, status="approved")
 
     applied = client.post(
         "/api/v1/authority-checklist-templates/apply",
@@ -293,7 +293,7 @@ def test_submission_allowed_when_required_item_marked_not_applicable(
 ) -> None:
     client.post("/api/v1/authority-checklist-templates", json=_template_payload())
     lead = create_lead(db_session)
-    application = create_application(db_session, lead)
+    application = create_application(db_session, lead, status="approved")
 
     applied = client.post(
         "/api/v1/authority-checklist-templates/apply",

@@ -18,6 +18,7 @@ from sqlmodel import Session, select
 from app.models.domain import AutomationConnectorConfig, AutomationDelivery, AutomationEvent, CorporateAccount
 from app.schemas_automation import ConnectorConfigCreate
 from app.services.audit_log import record_audit, to_audit_dict
+from app.services.external_action_gates import assert_delivery_dispatch_authorized
 from app.services.automation_connector_encryption import (
     CredentialEncryptionError,
     decrypt_credentials,
@@ -393,6 +394,8 @@ def attempt_delivery_dispatch(
 ) -> AutomationDelivery:
     if delivery.status not in {"ready", "retry", "dispatching"}:
         raise ValueError("Only ready, retry, or dispatching deliveries can be dispatched")
+
+    assert_delivery_dispatch_authorized(session, delivery)
 
     config = find_connector_for_delivery(session, delivery)
     if config is None:

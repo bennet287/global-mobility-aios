@@ -16,6 +16,7 @@ from app.models.domain import (
 )
 from app.schemas_automation import AutomationRuleCreate
 from app.services.audit_log import record_audit, to_audit_dict
+from app.services.external_action_gates import assert_delivery_dispatch_authorized
 from app.services.automation_connector import find_connector_for_account_channel
 
 
@@ -353,6 +354,7 @@ def record_dispatch(
 ) -> AutomationDelivery:
     if delivery.status != "ready":
         raise ValueError("Only approved or approval-free deliveries can be dispatched")
+    assert_delivery_dispatch_authorized(session, delivery)
     before = delivery_read(delivery)
     now = _now()
     delivery.status = "dispatched"
