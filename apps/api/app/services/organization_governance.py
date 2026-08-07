@@ -41,6 +41,8 @@ POSITION_SPECS = (
     ("coo", "Chief Operating Officer Agent", "Operations", "ceo", "L3", "COO.md"),
     ("cmo", "Chief Marketing Officer Agent", "Marketing", "ceo", "L3", "CMO.md"),
     ("cpo", "Chief Product Officer Agent", "Product", "ceo", "L3", "CPO.md"),
+    ("product_manager", "Product Manager Agent", "Product", "cpo", "L2", "Product_Manager.md"),
+    ("design_agent", "Design Agent Agent", "Product", "cpo", "L2", "Design_Agent.md"),
     ("cfo", "Chief Financial Officer Agent", "Finance", "ceo", "L3", "CFO.md"),
     ("cco", "Chief Communications Officer Agent", "Communications", "ceo", "L3", "CCO.md"),
     ("chro", "Chief Human Resources Officer Agent", "People", "ceo", "L3", "CHRO.md"),
@@ -62,7 +64,7 @@ POSITION_SPEC_BY_KEY = {
     for key, title, department, reports_to, authority, role_card in POSITION_SPECS
 }
 HARDENED_POSITION_KEYS = frozenset(
-    {"ceo", "cto", "vp_engineering", "lead_architect"}
+    {"ceo", "cto", "vp_engineering", "lead_architect", "cpo", "product_manager", "design_agent"}
 )
 
 OPERATIONS_DELEGATION_SPECS = (
@@ -162,6 +164,7 @@ CEO_COORDINATION_LEASE = timedelta(minutes=5)
 EXECUTABLE_DEPARTMENT_ACTIONS: dict[str, frozenset[str] | None] = {
     "operations": None,
     "technology": frozenset({"internal.analysis"}),
+    "product": frozenset({"internal.analysis"}),
 }
 GOVERNED_EXTERNAL_ACTIONS = frozenset(
     {
@@ -179,6 +182,66 @@ TECHNOLOGY_PROHIBITED_ACTIONS = frozenset(
         "production.irreversible",
         "secrets.access",
         "vendor.commit",
+    }
+)
+PRODUCT_DELEGATION_SPECS = (
+    (
+        "product_manager",
+        "Assess product fit, scope, dependencies, roadmap alignment, and success metrics from supplied evidence.",
+    ),
+    (
+        "design_agent",
+        "Assess design quality, UX research, accessibility, and scope fit from supplied evidence.",
+    ),
+)
+PRODUCT_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in PRODUCT_DELEGATION_SPECS
+)
+PRODUCT_REQUIRED_EVIDENCE_FIELDS = (
+    "user_evidence",
+    "market_evidence",
+    "scope",
+    "dependencies",
+    "roadmap_alignment",
+    "success_metrics",
+    "design_principles",
+    "ux_research",
+    "accessibility",
+    "sources",
+    "risks",
+)
+PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "product_manager": frozenset(
+        {
+            "product_fit",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "design_agent": frozenset(
+        {
+            "design_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
+PRODUCT_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "pricing.change",
+        "policy.publish",
+        "production.irreversible",
     }
 )
 ACTION_EXECUTIVE_CONSULTATIONS = {
@@ -236,6 +299,11 @@ def _runtime_unavailable_reason(department: str, action: str | None) -> str:
     if normalized_department.lower() == "technology":
         return (
             f"The Technology runtime does not execute action '{normalized_action}'; "
+            "only bounded internal.analysis is enabled."
+        )
+    if normalized_department.lower() == "product":
+        return (
+            f"The Product runtime does not execute action '{normalized_action}'; "
             "only bounded internal.analysis is enabled."
         )
     return f"The {normalized_department} runtime is registered for governance but is not yet executable."
@@ -329,6 +397,78 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                     TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS["lead_architect"]
                 ),
                 "prohibited_direct_actions": sorted(TECHNOLOGY_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "cpo":
+        contract.update(
+            {
+                "capabilities": [
+                    "delegate_bounded_product_analysis",
+                    "synthesize_evidence_complete_product_review",
+                    "escalate_pricing_policy_and_irreversible_product_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_specialist_positions": sorted(PRODUCT_REQUIRED_DELEGATES),
+                "required_evidence_fields": list(PRODUCT_REQUIRED_EVIDENCE_FIELDS),
+                "prohibited_direct_actions": sorted(PRODUCT_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "product_manager":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_product_fit_scope_and_roadmap_alignment",
+                    "assess_dependencies_and_success_metrics",
+                    "raise_product_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "user_evidence",
+                    "market_evidence",
+                    "scope",
+                    "dependencies",
+                    "roadmap_alignment",
+                    "success_metrics",
+                    "sources",
+                    "risks",
+                ],
+                "required_output_fields": sorted(
+                    PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS["product_manager"]
+                ),
+                "prohibited_direct_actions": sorted(PRODUCT_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "design_agent":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_design_quality_ux_and_accessibility",
+                    "assess_scope_fit_and_dependencies",
+                    "raise_design_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "design_principles",
+                    "ux_research",
+                    "accessibility",
+                    "scope",
+                    "dependencies",
+                    "sources",
+                    "risks",
+                ],
+                "required_output_fields": sorted(
+                    PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS["design_agent"]
+                ),
+                "prohibited_direct_actions": sorted(PRODUCT_PROHIBITED_ACTIONS),
             }
         )
     return contract
@@ -590,6 +730,12 @@ def ensure_foundation_positions(
                         key,
                         result_refs={"position:contract_mismatch"},
                     )
+                if key in PRODUCT_REQUIRED_DELEGATES:
+                    _requeue_position_holds(
+                        session,
+                        key,
+                        result_refs={"position:contract_mismatch"},
+                    )
                 if key == "cto":
                     contract_holds = session.exec(
                         select(OrganizationalWorkItem).where(
@@ -597,6 +743,28 @@ def ensure_foundation_positions(
                             OrganizationalWorkItem.status == "held",
                             OrganizationalWorkItem.last_error
                             == "The persisted CTO contract requires Human Board repair before execution.",
+                        )
+                    ).all()
+                    for held_work in contract_holds:
+                        if (
+                            held_work.cancel_requested_at is None
+                            and held_work.execution_attempts < held_work.max_execution_attempts
+                            and department_runtime_available(
+                                held_work.department,
+                                _work_action(held_work),
+                            )
+                        ):
+                            held_work.status = "queued"
+                            held_work.last_error = None
+                            held_work.updated_at = _now()
+                            session.add(held_work)
+                if key == "cpo":
+                    contract_holds = session.exec(
+                        select(OrganizationalWorkItem).where(
+                            OrganizationalWorkItem.assigned_position_key == "cpo",
+                            OrganizationalWorkItem.status == "held",
+                            OrganizationalWorkItem.last_error
+                            == "The persisted CPO contract requires Human Board repair before execution.",
                         )
                     ).all()
                     for held_work in contract_holds:
@@ -702,6 +870,44 @@ def delegate_technology_work(
             authority_basis=(
                 "CTO L3 technology mandate; delegated L2 internal analysis only; "
                 "no deployment, infrastructure mutation, spend, contract, or external action authority."
+            ),
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_product_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CPO review plan once for internal analysis."""
+    if work.department.strip().lower() != "product":
+        raise ValueError("Product delegation requires a Product work item")
+    if work.assigned_position_key != "cpo":
+        raise ValueError("Product delegation requires CPO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("Product delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in PRODUCT_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="cpo",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CPO L3 product mandate; delegated L2 internal analysis only; "
+                "no pricing change, policy publication, production irreversible decision, or external action authority."
             ),
         )
         session.add(delegation)
@@ -1551,6 +1757,18 @@ def execute_work_item(
             actor=actor,
             audit_action="organization_work_held_contract_mismatch",
         )
+    if (
+        work.department.strip().lower() == "product"
+        and _load(accountable_position.contract_json, {}) != _position_contract("cpo", "L3")
+    ):
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason="The persisted CPO contract requires Human Board repair before execution.",
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_contract_mismatch",
+        )
 
     if work.department.strip().lower() == "technology":
         delegate_technology_work(session, work)
@@ -1563,6 +1781,19 @@ def execute_work_item(
                 action=action,
                 actor=actor,
                 audit_action="organization_work_held_technology_preflight",
+            )
+
+    if work.department.strip().lower() == "product":
+        delegate_product_work(session, work)
+        product_preflight_gap = _product_preflight_gap(session, work)
+        if product_preflight_gap:
+            return _hold_work_without_claim(
+                session,
+                work,
+                reason=product_preflight_gap,
+                action=action,
+                actor=actor,
+                audit_action="organization_work_held_product_preflight",
             )
 
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
@@ -1677,6 +1908,79 @@ def _technology_preflight_gap(
     return "Technology preflight incomplete; " + "; ".join(gaps) + "."
 
 
+def _product_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _product_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _product_evidence_context(work)
+    aliases = {
+        "user_evidence": ("user_evidence", "user_research"),
+        "market_evidence": ("market_evidence", "market_signals"),
+        "scope": ("scope", "proposed_scope"),
+        "dependencies": ("dependencies", "product_dependencies", "design_dependencies"),
+        "roadmap_alignment": ("roadmap_alignment", "roadmap_fit"),
+        "success_metrics": ("success_metrics", "metrics"),
+        "design_principles": ("design_principles", "design_standards"),
+        "ux_research": ("ux_research", "ux_evidence"),
+        "accessibility": ("accessibility", "accessibility_evidence"),
+        "sources": ("sources", "source_provenance"),
+        "risks": ("risks", "known_risks"),
+    }
+    return [
+        field
+        for field in PRODUCT_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _product_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(PRODUCT_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _product_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "Product preflight incomplete; " + "; ".join(gaps) + "."
+
+
 def _specialist_output_payload(action_output: OrganizationalActionOutput) -> dict[str, Any]:
     result = _load(action_output.output_json, {})
     if not isinstance(result, dict):
@@ -1728,14 +2032,32 @@ def _department_completion_gap(
     delegations: list[DelegationRecord],
     action_outputs: list[OrganizationalActionOutput],
 ) -> str | None:
-    if work.department.strip().lower() != "technology":
+    department = work.department.strip().lower()
+    if department == "technology":
+        required_delegates = TECHNOLOGY_REQUIRED_DELEGATES
+        specialist_output_fields = TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS
+        evidence_gaps_fn = _technology_evidence_gaps
+        proceed_recommendation = "proceed_to_cto_internal_review"
+        prefix = "Technology evidence contract incomplete"
+        primary_field_by_position = {"vp_engineering": "delivery_readiness"}
+    elif department == "product":
+        required_delegates = PRODUCT_REQUIRED_DELEGATES
+        specialist_output_fields = PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS
+        evidence_gaps_fn = _product_evidence_gaps
+        proceed_recommendation = "proceed_to_cpo_internal_review"
+        prefix = "Product evidence contract incomplete"
+        primary_field_by_position = {
+            "product_manager": "product_fit",
+            "design_agent": "design_assessment",
+        }
+    else:
         return None
 
     by_key = {item.delegate_position_key: item for item in delegations}
-    missing_delegates = sorted(TECHNOLOGY_REQUIRED_DELEGATES - set(by_key))
+    missing_delegates = sorted(required_delegates - set(by_key))
     incomplete_delegates = sorted(
         key
-        for key in TECHNOLOGY_REQUIRED_DELEGATES
+        for key in required_delegates
         if key in by_key and by_key[key].status != "completed"
     )
     completed_output_delegation_ids = {
@@ -1750,13 +2072,13 @@ def _department_completion_gap(
     }
     missing_outputs = sorted(
         key
-        for key in TECHNOLOGY_REQUIRED_DELEGATES
+        for key in required_delegates
         if key in by_key and by_key[key].id not in completed_output_delegation_ids
     )
-    evidence_gaps = _technology_evidence_gaps(work)
+    evidence_gaps = evidence_gaps_fn(work)
     specialist_gaps: list[str] = []
     specialist_dissent: list[str] = []
-    for position_key in sorted(TECHNOLOGY_REQUIRED_DELEGATES):
+    for position_key in sorted(required_delegates):
         delegation = by_key.get(position_key)
         action_output = (
             output_by_delegation_id.get(delegation.id)
@@ -1766,13 +2088,14 @@ def _department_completion_gap(
         if action_output is None or action_output.status != "completed":
             continue
         payload = _specialist_output_payload(action_output)
-        required_fields = TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS[position_key]
+        required_fields = specialist_output_fields[position_key]
         missing_fields = sorted(required_fields - set(payload))
         reported_gaps = payload.get("evidence_gaps")
         reported_gaps = reported_gaps if isinstance(reported_gaps, list) else ["invalid evidence_gaps"]
-        if position_key == "vp_engineering" and payload.get("delivery_readiness") != "evidence_complete_for_review":
-            reported_gaps.append("delivery_readiness")
-        if payload.get("recommendation") != "proceed_to_cto_internal_review":
+        primary_field = primary_field_by_position.get(position_key)
+        if primary_field and payload.get(primary_field) != "evidence_complete_for_review":
+            reported_gaps.append(primary_field)
+        if payload.get("recommendation") != proceed_recommendation:
             reported_gaps.append("recommendation")
         if payload.get("escalation_required") is not False:
             reported_gaps.append("escalation_required")
@@ -1801,7 +2124,7 @@ def _department_completion_gap(
         )
     if not gaps:
         return None
-    return "Technology evidence contract incomplete; " + "; ".join(gaps) + "."
+    return prefix + "; " + "; ".join(gaps) + "."
 
 
 def _execute_claimed_work_item(
@@ -1883,6 +2206,9 @@ def _execute_claimed_work_item(
         runs_from_internal_context = (
             work.department.strip().lower() == "technology"
             and delegation.delegate_position_key in TECHNOLOGY_REQUIRED_DELEGATES
+        ) or (
+            work.department.strip().lower() == "product"
+            and delegation.delegate_position_key in PRODUCT_REQUIRED_DELEGATES
         )
         if work.lead_id is None and not runs_from_internal_context:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}

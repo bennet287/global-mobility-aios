@@ -41,6 +41,19 @@ TECHNOLOGY_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+PRODUCT_AGENT_CONTROLLED_FIELDS = {
+    "product_fit",
+    "design_assessment",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -390,6 +403,143 @@ def _lead_architect(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -
     return output
 
 
+def _product_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _product_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "product_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "product_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _product_manager(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _product_context(payload)
+    evidence = {
+        "user_evidence": _first_supplied(facts, "user_evidence", "user_research"),
+        "market_evidence": _first_supplied(facts, "market_evidence", "market_signals"),
+        "scope": _first_supplied(facts, "scope", "proposed_scope"),
+        "dependencies": _first_supplied(facts, "dependencies", "product_dependencies"),
+        "roadmap_alignment": _first_supplied(facts, "roadmap_alignment", "roadmap_fit"),
+        "success_metrics": _first_supplied(facts, "success_metrics", "metrics"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dependencies = evidence["dependencies"]
+    if not isinstance(dependencies, list):
+        dependencies = [str(dependencies)] if _is_supplied(dependencies) else []
+    dissent_reason, material_risks = _product_risk_signals(facts, role_prefix="product_manager")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Product fit and scope evidence assessed for internal CPO review.",
+            "product_fit": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "dependencies": dependencies,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cpo_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded product evidence gap before a recommendation is accepted.",
+                "Escalate pricing, policy, roadmap, or external action requests to the CPO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "pricing.change",
+                "policy.publish",
+                "client.external_send",
+                "contract_signing",
+                "external_action",
+            ],
+        }
+    )
+    return output
+
+
+def _design_agent(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _product_context(payload)
+    evidence = {
+        "design_principles": _first_supplied(facts, "design_principles", "design_standards"),
+        "ux_research": _first_supplied(facts, "ux_research", "ux_evidence"),
+        "accessibility": _first_supplied(facts, "accessibility", "accessibility_evidence"),
+        "scope": _first_supplied(facts, "scope", "proposed_scope"),
+        "dependencies": _first_supplied(facts, "dependencies", "design_dependencies"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dependencies = evidence["dependencies"]
+    if not isinstance(dependencies, list):
+        dependencies = [str(dependencies)] if _is_supplied(dependencies) else []
+    dissent_reason, material_risks = _product_risk_signals(facts, role_prefix="design_agent")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Design quality and accessibility evidence assessed for internal CPO review.",
+            "design_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "dependencies": dependencies,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cpo_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded design evidence gap before a recommendation is accepted.",
+                "Escalate production design release or external asset publication to the CPO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "deployment.production",
+                "design.publish",
+                "client.external_send",
+                "external_action",
+            ],
+        }
+    )
+    return output
+
+
 def _application_readiness(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     truth_clear = bool(payload.context.get("truth_clear", False))
@@ -449,6 +599,8 @@ DETERMINISTIC_HANDLERS = {
     "business_intelligence_agent": _business_intelligence,
     "vp_engineering_agent": _vp_engineering,
     "lead_architect_agent": _lead_architect,
+    "product_manager_agent": _product_manager,
+    "design_agent_agent": _design_agent,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -573,6 +725,58 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
             )
             if resolved_name == "vp_engineering_agent" and must_hold:
                 output["delivery_readiness"] = "evidence_incomplete"
+        elif resolved_name in {"product_manager_agent", "design_agent_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in PRODUCT_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cpo_internal_review"
+            )
+            if resolved_name == "product_manager_agent" and must_hold:
+                output["product_fit"] = "evidence_incomplete"
+            if resolved_name == "design_agent_agent" and must_hold:
+                output["design_assessment"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -610,6 +814,8 @@ AGENT_HANDLERS = {
     "business_intelligence_agent": _llm_agent_handler,
     "vp_engineering_agent": _llm_agent_handler,
     "lead_architect_agent": _llm_agent_handler,
+    "product_manager_agent": _llm_agent_handler,
+    "design_agent_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

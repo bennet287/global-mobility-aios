@@ -31,6 +31,8 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "business_intelligence_agent",
         "vp_engineering_agent",
         "lead_architect_agent",
+        "product_manager_agent",
+        "design_agent_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -153,6 +155,61 @@ def test_technology_agent_exposes_missing_evidence(client: TestClient, db_sessio
         output["evidence_gaps"]
     )
     assert output["confidence"] < 0.5
+
+
+@pytest.mark.parametrize(
+    ("agent_name", "expected_key", "blocked_action"),
+    [
+        ("product_manager_agent", "product_fit", "pricing.change"),
+        ("design_agent_agent", "design_assessment", "design.publish"),
+    ],
+)
+def test_product_agents_produce_evidence_aware_fail_closed_outputs(
+    client: TestClient,
+    db_session: Session,
+    agent_name: str,
+    expected_key: str,
+    blocked_action: str,
+) -> None:
+    lead = create_lead(db_session, name=f"{agent_name} Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": agent_name,
+            "task": "Prepare bounded Product evidence analysis.",
+            "lead_id": str(lead.id),
+            "context": {
+                "facts": {
+                    "user_evidence": {"interviews": 3},
+                    "market_evidence": {"competitors": 2},
+                    "scope": {"boundaries": "bounded product review"},
+                    "dependencies": ["role-cards", "controlled-agents"],
+                    "roadmap_alignment": ["phase-13-product"],
+                    "success_metrics": ["adoption", "confidence"],
+                    "design_principles": ["accessibility-first"],
+                    "ux_research": ["operator-workflow-study"],
+                    "accessibility": ["wcag-2.1-aa"],
+                    "sources": ["repository:agents/role_cards"],
+                    "risks": ["evidence gaps must be recorded"],
+                }
+            },
+            "actor": "cpo-runtime",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    output = payload["output"]
+    assert expected_key in output
+    assert output["human_review_required"] is True
+    assert output["client_facing"] is False
+    assert output["external_action_authorized"] is False
+    assert blocked_action in output["blocked_actions"]
+    assert 0.0 < output["confidence"] <= 0.85
+
+    run = db_session.exec(select(AgentRun).where(AgentRun.agent_name == agent_name)).one()
+    persisted = json.loads(run.output_json)
+    assert persisted["evidence_basis"] == output["evidence_basis"]
 
 
 def test_controlled_client_drafting_agent_persists_run_and_blocks_send(

@@ -98,6 +98,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["lead_architect_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["lead_architect_agent"],
     },
+    "product_manager_agent": {
+        "version": "v13.7",
+        "department": "product",
+        "role": "Assesses product fit, scope, dependencies, roadmap alignment, and success metrics from supplied evidence.",
+        "guardrails": [
+            "Cannot change pricing or publish product policy.",
+            "Cannot promise client outcomes or authorize external action.",
+            "Must expose missing evidence and keep every recommendation internal and review-gated.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["product_manager_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["product_manager_agent"],
+    },
+    "design_agent_agent": {
+        "version": "v13.7",
+        "department": "product",
+        "role": "Assesses design quality, UX research, accessibility, and scope fit from supplied evidence.",
+        "guardrails": [
+            "Cannot publish design assets or mutate production experience.",
+            "Cannot authorize external action or present missing evidence as complete.",
+            "Must expose missing evidence and escalate material design risk.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["design_agent_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["design_agent_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

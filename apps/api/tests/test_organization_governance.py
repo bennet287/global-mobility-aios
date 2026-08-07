@@ -60,6 +60,7 @@ OPERATIONS_CASE_DELEGATES = {
     "application_readiness",
 }
 TECHNOLOGY_DELEGATES = {"vp_engineering", "lead_architect"}
+PRODUCT_DELEGATES = {"product_manager", "design_agent"}
 
 
 def _technology_context() -> dict:
@@ -79,6 +80,29 @@ def _technology_context() -> dict:
             "rollback": "Revert the internal configuration and replay the bounded review.",
             "observability": ["audit-ledger", "execution-attempt-ledger"],
             "sources": ["repository:apps/api", "repository:docs/ROADMAP.md"],
+        },
+    }
+
+
+def _product_context() -> dict:
+    return {
+        "product_review_type": "feature_scope",
+        "facts": {
+            "change_scope": "internal product readiness review",
+            "dependencies": ["roadmap-alignment", "design-review"],
+        },
+        "evidence": {
+            "user_evidence": ["user-interview:3", "feedback-ticket:12"],
+            "market_evidence": ["market-note:competitor-comparison"],
+            "scope": ["feature-scope:bounded-product-runtime"],
+            "dependencies": ["controlled-agents", "role-cards"],
+            "roadmap_alignment": ["roadmap:phase-13-product"],
+            "success_metrics": ["metric:adoption", "metric:confidence"],
+            "design_principles": ["design-system:accessibility-first"],
+            "ux_research": ["ux-study:operator-workflow"],
+            "accessibility": ["wcag:2.1-aa-checklist"],
+            "sources": ["repository:agents/role_cards", "repository:docs/ROADMAP.md"],
+            "risks": ["risk:evidence-gaps-must-be-recorded"],
         },
     }
 
@@ -127,21 +151,48 @@ def _high_risk_technology_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
     return work_id, UUID(matching[0]["id"])
 
 
+def _high_risk_product_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": key,
+            "title": "Material product readiness review",
+            "objective": "Coordinate evidence-backed internal Product analysis within the CEO mandate.",
+            "department": "Product",
+            "action": "internal.analysis",
+            "risk_level": "high",
+            "context": _product_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decisions = raw_client.get("/api/v1/organization/decisions")
+    assert decisions.status_code == 200, decisions.text
+    matching = [item for item in decisions.json() if item["work_item_id"] == str(work_id)]
+    assert len(matching) == 1
+    return work_id, UUID(matching[0]["id"])
+
+
 def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_session: Session) -> None:
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 17
+    assert response.json()["positions_registered"] == 19
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
     assert by_key["ceo"].reports_to_position_key == "board"
     assert by_key["coo"].reports_to_position_key == "ceo"
     assert by_key["cto"].reports_to_position_key == "ceo"
+    assert by_key["cpo"].reports_to_position_key == "ceo"
     assert by_key["vp_engineering"].reports_to_position_key == "cto"
     assert by_key["vp_engineering"].authority_level == "L2"
     assert by_key["lead_architect"].reports_to_position_key == "cto"
     assert by_key["lead_architect"].authority_level == "L2"
+    assert by_key["product_manager"].reports_to_position_key == "cpo"
+    assert by_key["product_manager"].authority_level == "L2"
+    assert by_key["design_agent"].reports_to_position_key == "cpo"
+    assert by_key["design_agent"].authority_level == "L2"
     assert by_key["sales_summary"].reports_to_position_key == "coo"
     assert by_key["operations_coordination"].reports_to_position_key == "coo"
     assert by_key["business_intelligence"].reports_to_position_key == "coo"
@@ -156,6 +207,12 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert cto_contract["external_action_authorized"] is False
     assert set(cto_contract["required_specialist_positions"]) == TECHNOLOGY_DELEGATES
     assert "deployment.production" in cto_contract["prohibited_direct_actions"]
+    cpo_contract = json.loads(by_key["cpo"].contract_json)
+    assert cpo_contract["delegated_action_authority"] == ["internal.analysis"]
+    assert cpo_contract["direct_action_authority"] == []
+    assert cpo_contract["external_action_authorized"] is False
+    assert set(cpo_contract["required_specialist_positions"]) == PRODUCT_DELEGATES
+    assert "policy.publish" in cpo_contract["prohibited_direct_actions"]
 
     cards = Path(__file__).parents[3] / "agents" / "role_cards"
     for card in (
@@ -163,9 +220,11 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
         "CTO.md",
         "VP_Engineering.md",
         "Lead_Architect.md",
+        "CPO.md",
+        "Product_Manager.md",
+        "Design_Agent.md",
         "COO.md",
         "CMO.md",
-        "CPO.md",
         "CFO.md",
         "CCO.md",
         "CHRO.md",
@@ -2093,3 +2152,311 @@ def test_board_packet_recurring_schedules_are_registered() -> None:
     schedule = celery_app.conf.beat_schedule
     assert schedule["generate-daily-board-packet"]["args"] == ("daily",)
     assert schedule["generate-weekly-board-packet"]["args"] == ("weekly",)
+
+
+# -----------------------------------------------------------------------------
+# Product / CPO bounded runtime coverage
+# -----------------------------------------------------------------------------
+
+
+def test_product_internal_analysis_runs_required_specialists_without_a_lead(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    payload = {
+        "idempotency_key": "product-internal-analysis-001",
+        "title": "Review product readiness",
+        "objective": "Produce a bounded internal Product review from product evidence.",
+        "department": "Product",
+        "action": "internal.analysis",
+        "context": _product_context(),
+    }
+    first = raw_client.post("/api/v1/organization/work-items", json=payload)
+    second = raw_client.post("/api/v1/organization/work-items", json=payload)
+    assert first.status_code == 201, first.text
+    assert second.status_code == 201, second.text
+    assert second.json()["id"] == first.json()["id"]
+    assert first.json()["status"] == "queued"
+    assert first.json()["assigned_position_key"] == "cpo"
+
+    work_id = UUID(first.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == PRODUCT_DELEGATES
+    assert all(item.delegator_position_key == "cpo" for item in delegations)
+    assert all("L2 internal analysis only" in item.authority_basis for item in delegations)
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+    output = json.loads(executed.json()["output_json"])
+    assert output["governance"]["accountable_position_key"] == "cpo"
+    assert output["governance"]["external_action_authorized"] is False
+    assert {item["agent"] for item in output["delegated_results"]} == {
+        "product_manager_agent",
+        "design_agent_agent",
+    }
+    assert all(item.get("run_id") for item in output["delegated_results"])
+
+    db_session.expire_all()
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert all(item.status == "completed" for item in delegations)
+    assert all(item.result_ref and item.result_ref.startswith("agent-run:") for item in delegations)
+    action_outputs = db_session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.work_item_id == work_id
+        )
+    ).all()
+    assert len(action_outputs) == 2
+    for action_output in action_outputs:
+        assert any(item["type"] == "agent_run" for item in json.loads(action_output.evidence_json))
+        assert json.loads(action_output.impact_json)["external_action_authorized"] is False
+        specialist_output = json.loads(action_output.output_json)["output"]
+        assert specialist_output["external_action_authorized"] is False
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+
+    replay = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert replay.status_code == 409, replay.text
+
+
+
+def test_incomplete_product_evidence_holds_the_whole_work_item(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "product-evidence-incomplete-001",
+            "title": "Review an undocumented product change",
+            "objective": "Expose missing product evidence without approving the change.",
+            "department": "Product",
+            "action": "internal.analysis",
+            "context": {"facts": {"change_scope": "unknown"}, "evidence": {}},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert executed.json()["completed_at"] is None
+    assert "missing evidence fields" in executed.json()["last_error"]
+    assert json.loads(executed.json()["output_json"]) == {}
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+    assert db_session.exec(select(OrganizationalActionOutput)).all() == []
+
+
+
+def test_product_pricing_action_remains_held_without_execution(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "product-pricing-change-001",
+            "title": "Change pricing for a product tier",
+            "objective": "Verify that the CPO analysis runtime cannot execute a pricing change.",
+            "department": "Product",
+            "action": "pricing.change",
+            "context": _product_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["status"] == "held"
+    work_id = UUID(created.json()["id"])
+    decision = db_session.exec(
+        select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work_id)
+    ).one()
+    assert decision.status == "pending_board"
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert "only bounded internal.analysis is enabled" in executed.json()["last_error"]
+    assert db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all() == []
+    assert db_session.exec(
+        select(OrganizationExecutionAttempt).where(
+            OrganizationExecutionAttempt.work_item_id == work_id
+        )
+    ).all() == []
+    assert db_session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.work_item_id == work_id
+        )
+    ).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+
+    approved = raw_client.post(
+        f"/api/v1/organization/decisions/{decision.id}/board-decision",
+        json={
+            "decision": "approved",
+            "reason": "Board approves the pricing proposal, while execution remains separately controlled.",
+        },
+    )
+    assert approved.status_code == 200, approved.text
+    assert approved.json()["status"] == "approved"
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None
+    assert work.status == "held"
+    assert work.completed_at is None
+    assert "approval is not execution" in (work.last_error or "")
+
+
+
+def test_evidence_complete_product_l3_hands_off_from_cpo_to_ceo(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_product_work(
+        raw_client,
+        key="product-ceo-handoff-001",
+    )
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+    assert json.loads(executed.json()["output_json"])["governance"][
+        "external_action_authorized"
+    ] is False
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "approved"
+    assert "Product analysis" in coordinated.json()["decision_reason"]
+    assert "No external action was authorized" in coordinated.json()["decision_reason"]
+
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "completed"
+    consultations = db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision_id
+        )
+    ).all()
+    assert len(consultations) == 1
+    assert consultations[0].consulted_position == "cpo"
+    assert consultations[0].domain == "product"
+    assert consultations[0].status == "completed"
+    assert consultations[0].confidence >= 0.5
+    assert consultations[0].dissent is False
+
+
+
+def test_cpo_contract_mismatch_holds_until_human_board_bootstrap_repairs_it(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    raw_client.post("/api/v1/organization/bootstrap")
+    cpo = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "cpo")
+    ).one()
+    permissive_contract = json.dumps({"direct_action_authority": ["*"]})
+    cpo.contract_json = permissive_contract
+    db_session.add(cpo)
+    db_session.commit()
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "product-contract-repair-001",
+            "title": "Review CPO contract enforcement",
+            "objective": "Confirm that only the Human Board bootstrap can repair the CPO contract.",
+            "department": "Product",
+            "action": "internal.analysis",
+            "context": _product_context(),
+        },
+    )
+    work_id = UUID(created.json()["id"])
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert "Human Board repair" in executed.json()["last_error"]
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    db_session.refresh(cpo)
+    assert cpo.contract_json == permissive_contract
+
+    repaired = raw_client.post("/api/v1/organization/bootstrap")
+    assert repaired.status_code == 201, repaired.text
+    db_session.expire_all()
+    cpo = db_session.get(OrganizationPosition, cpo.id)
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert cpo is not None
+    assert json.loads(cpo.contract_json)["direct_action_authority"] == []
+    assert work is not None and work.status == "queued"
+    completed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert completed.status_code == 200, completed.text
+    assert completed.json()["status"] == "completed"
+
+
+
+def test_suspended_required_product_specialist_holds_then_resumes_work(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    raw_client.post("/api/v1/organization/bootstrap")
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "product-specialist-suspension-001",
+            "title": "Review a reversible product change",
+            "objective": "Require both product reviewers before the CPO accepts the analysis.",
+            "department": "Product",
+            "action": "internal.analysis",
+            "max_execution_attempts": 1,
+            "context": _product_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    design_agent_position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "design_agent")
+    ).one()
+    suspended = raw_client.post(
+        f"/api/v1/organization/positions/{design_agent_position.id}/suspend",
+        json={"reason": "Human Board pauses design review for an independence check."},
+    )
+    assert suspended.status_code == 200, suspended.text
+
+    first_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert first_execution.status_code == 200, first_execution.text
+    assert first_execution.json()["status"] == "held"
+    assert "design_agent" in first_execution.json()["last_error"]
+    db_session.expire_all()
+    by_delegate = {
+        item.delegate_position_key: item
+        for item in db_session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+        ).all()
+    }
+    assert by_delegate["product_manager"].status == "queued"
+    assert by_delegate["design_agent"].status == "held"
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+
+    resumed = raw_client.post(
+        f"/api/v1/organization/positions/{design_agent_position.id}/resume",
+        json={"reason": "Human Board completed the independence check and restored the reviewer."},
+    )
+    assert resumed.status_code == 200, resumed.text
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "queued"
+
+    second_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert second_execution.status_code == 200, second_execution.text
+    assert second_execution.json()["status"] == "completed"
+    assert len(db_session.exec(select(OrganizationExecutionAttempt)).all()) == 1
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+    assert len(db_session.exec(select(OrganizationalActionOutput)).all()) == 2

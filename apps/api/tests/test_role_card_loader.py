@@ -86,6 +86,8 @@ def test_agent_role_card_map_covers_all_canonical_agents():
         "business_intelligence_agent",
         "vp_engineering_agent",
         "lead_architect_agent",
+        "product_manager_agent",
+        "design_agent_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -119,6 +121,15 @@ def test_technology_system_prompts_include_hard_safety_contract(agent_name):
     assert "client_facing" in prompt
 
 
+@pytest.mark.parametrize("agent_name", ["product_manager_agent", "design_agent_agent"])
+def test_product_system_prompts_include_hard_safety_contract(agent_name):
+    prompt = build_system_prompt(agent_name)
+    assert "external_action_authorized" in prompt
+    assert "human_review_required" in prompt
+    assert "client_facing" in prompt
+    assert "blocked_actions" in prompt
+
+
 def test_get_agent_output_schema_returns_expected_keys():
     schema = get_agent_output_schema("client_drafting_agent")
     assert "draft_subject" in schema
@@ -136,6 +147,8 @@ def test_all_canonical_agents_have_output_schema():
         "business_intelligence_agent",
         "vp_engineering_agent",
         "lead_architect_agent",
+        "product_manager_agent",
+        "design_agent_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",

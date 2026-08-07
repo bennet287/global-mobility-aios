@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-08-03 — Phase 13.6 bounded Product/CPO runtime contract
+
+- Expanded the registered organization from 15 to 17 positions by adding Product
+  Manager and Design Agent under CPO accountability.
+- Added full position contracts for the CPO, Product Manager, and Design Agent
+  through migration `0064_product_runtime_contract`, including required
+  evidence fields, required specialist outputs, prohibited direct actions, and a
+  unique work/delegate constraint on Product delegation records.
+- Added `agents/role_cards/Product_Manager.md` and
+  `agents/role_cards/Design_Agent.md` with bounded L2 analysis contracts,
+  required inputs/outputs, and rejection rules for external action, client
+  delivery, deployment, infrastructure mutation, spend, and contract authority.
+- Rewrote `agents/role_cards/CPO.md` to report to the CEO, own Product
+  accountability, delegate to Product Manager and Design Agent, and escalate
+  product strategy, roadmap, market entry, design-system, and irreversible
+  decisions.
+- Implemented a fail-closed Product department-head runtime that delegates only
+  `internal.analysis` work to Product Manager and Design Agent, validates required
+  evidence fields, validates required specialist outputs, records dissent and
+  material risks, and fails closed on external action, deployment, infrastructure,
+  secret-access, spend, contract, or non-Product work requests.
+- Enforced that Product specialists cannot be invoked for non-Product work, that
+  CPO work is assigned only to the CPO, and that incomplete evidence or missing
+  outputs are recorded as gaps rather than silently approved.
+- Connected the controlled-agent registry and role-card loader to the Product
+  specialist contracts so runtime prompts, rejection behavior, and output schemas
+  are consistent with the persisted position contract.
+- Added Product runtime regression coverage including evidence-field validation,
+  output-field validation, non-Product rejection, CPO-only assignment,
+  required-delegate completeness, and hardened contract enforcement.
+- Updated `docs/ROADMAP.md` to mark the Product department runtime as delivered
+  and identify Marketing/Finance/Communications/People/Legal as the remaining
+  held departments.
+- Full API suite passes with 473 tests at migration head `0064` and the local
+  quality gate passes.
+
 ## 2026-08-03 — Phase 13.3 bounded Technology/CTO runtime contract
 
 - Hardened the CTO, VP Engineering, and Lead Architect position contracts through

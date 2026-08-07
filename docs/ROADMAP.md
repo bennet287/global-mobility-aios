@@ -43,7 +43,7 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0063_cto_runtime_contract`
+**Code migration head:** `0064_product_runtime_contract`
 
 | Area | State | Current position |
 |---|---|---|
@@ -53,29 +53,27 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | Board controls, bounded Operations, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
+| Phase 13 | Governance hardening in progress | Board controls, bounded Operations and Technology, the bounded Product/CPO runtime, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0063`.
+- Migration-chain integrity: passing with one head at `0064`.
 - Docker production-profile validation: passing.
-- API tests: **463 passing and 0 failing**.
-- Local SQLite database: aligned at `0063`.
+- API tests: **473 passing and 0 failing**.
+- Local SQLite database: aligned at `0064`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0063` will apply through the existing migration job on next startup.
+  `0064` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
 Packet reporting, evidence-output, bounded execution-control, external-action
-gates, the bounded Operations and Technology department runtimes, and the CEO
-coordination loop. The next active gate is the first additional executive
-department runtime beyond Operations and Technology; Product is the most natural
-follow-on because it pairs with the recently hardened Technology runtime and the
-existing Head of Product position.
-starting with a bounded Technology/CTO delegation path.
+gates, the bounded Operations, Technology, and Product department runtimes, and
+the CEO coordination loop. The next active gate is the next additional
+executive department runtime beyond Operations, Technology, and Product; the
+remaining departments are Marketing, Finance, Communications, People, and Legal.
 
 ## 3. Execution Order
 
@@ -200,8 +198,10 @@ consultation and may be closed by the CEO Agent; external actions, L4 matters,
 emergencies, self-approval conflicts, missing consultation, and dissent fail
 closed. Cross-functional consultation requirements are durable and fail closed, but
 the remaining executives (CPO, CMO, CFO, CCO, CHRO, CLO) do not yet have
-completion or dissent-submission paths. The active gate is the next bounded
-department-head runtime; Product is the most natural follow-on to Technology.
+completion or dissent-submission paths. The Product/CPO bounded runtime is now
+delivered; the active gate is the next additional executive department runtime.
+The remaining departments held and not yet operational are Marketing, Finance,
+Communications, People, and Legal.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -257,10 +257,13 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [x] Implement the CTO department-head runtime with bounded Technology specialists
   (VP Engineering and Lead Architect) for delivery, architecture, security, data,
   integration, and reversibility analysis.
-- [ ] Implement CPO, CMO, CFO, CCO, CHRO, and CLO department-head runtimes.
+- [x] Implement the CPO department-head runtime with bounded Product specialists
+  (Product Manager and Design Agent) for product fit, scope, roadmap alignment,
+  success metrics, design quality, UX research, and accessibility analysis.
+- [ ] Implement the remaining department-head runtimes: CMO, CFO, CCO, CHRO, and CLO.
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.
-- [ ] Extend the same delegation contract to the remaining executive runtimes.
+- [x] Extend the same delegation contract to the CTO and CPO runtimes.
 - [ ] Complete cross-functional executive consultation when an action touches
   multiple domains. The durable requirement and fail-closed ledger are delivered;
   executive completion and dissent-submission paths remain.
@@ -318,7 +321,9 @@ After the first organization flow and Board Room pass their release gates:
 - [x] Expand Technology: VP Engineering, Lead Architect, and hardened CTO
   delegation contracts under Technology accountability. (Engineering managers,
   technical leads, and engineering members remain future scale work.)
-- [ ] Expand Product: Head of Product, Product Managers, and Design.
+- [x] Expand Product: CPO, Product Manager, and Design Agent with bounded
+  delegation, required evidence/output contracts, and hardened role cards under
+  Product accountability.
 - [ ] Add Marketing: CMO, Product Marketing, and Marketing Managers.
 - [ ] Add Finance: CFO, Accounts, M&A, and Investor Relations.
 - [ ] Add Communications: CCO, Communications, PR, and Government Relations.
