@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-08-07 — Phase 13.8 bounded Security/CISO runtime contract
+
+- Expanded the registered organization from 19 to 22 positions by adding the
+  Chief Information Security Officer Agent, Security Lead Agent, and Threat Analyst
+  Agent under CISO accountability.
+- Added full position contracts for the CISO, Security Lead, and Threat Analyst
+  through migration `0065_security_runtime_contract`, including required evidence
+  fields, required specialist outputs, prohibited direct actions, and a unique
+  work/delegate constraint on Security delegation records.
+- Added `agents/role_cards/CISO.md`, `agents/role_cards/Security_Lead.md`, and
+  `agents/role_cards/Threat_Analyst.md` with bounded L2 analysis contracts,
+  required inputs/outputs, and rejection rules for position suspension, contract
+  changes, policy publication, secret access, deployment, infrastructure mutation,
+  spend, and external action authority.
+- Implemented a fail-closed Security department-head runtime that delegates only
+  `internal.analysis` work to Security Lead and Threat Analyst, validates required
+  evidence fields, validates required specialist outputs, records dissent and
+  material risks, detects prompt-injection, jailbreak, data-exfiltration, and
+  compromised-agent signals, and fails closed on external action, deployment,
+  infrastructure mutation, secret access, spend, contract, or non-Security work
+  requests.
+- Enforced that Security specialists cannot be invoked for non-Security work,
+  that CISO work is assigned only to the CISO, and that incomplete evidence or
+  missing outputs are recorded as gaps rather than silently approved.
+- Connected the controlled-agent registry and role-card loader to the Security
+  specialist contracts so runtime prompts, rejection behavior, and output schemas
+  are consistent with the persisted position contract.
+- Added Security runtime regression coverage including evidence-field validation,
+  output-field validation, non-Security rejection, CISO-only assignment,
+  required-delegate completeness, suspended-specialist handling, hardened contract
+  enforcement, and prompt-injection / compromised-agent detection in deterministic
+  handlers.
+- Updated `docs/ROADMAP.md` to mark the Security department runtime as delivered
+  and identify Marketing/Finance/Communications/People/Legal as the remaining held
+  departments.
+- Full API suite passes with the expanded test suite at migration head `0065` and
+  the local quality gate passes.
+
 ## 2026-08-03 — Phase 13.6 bounded Product/CPO runtime contract
 
 - Expanded the registered organization from 15 to 17 positions by adding Product

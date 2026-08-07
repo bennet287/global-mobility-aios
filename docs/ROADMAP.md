@@ -39,11 +39,11 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-03
+**As of:** 2026-08-07
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0064_product_runtime_contract`
+**Code migration head:** `0065_security_runtime_contract`
 
 | Area | State | Current position |
 |---|---|---|
@@ -60,20 +60,19 @@ The target operating model is defined in
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0064`.
+- Migration-chain integrity: passing with one head at `0065`.
 - Docker production-profile validation: passing.
-- API tests: **473 passing and 0 failing**.
-- Local SQLite database: aligned at `0064`.
+- API tests: **passing and 0 failing**.
+- Local SQLite database: aligned at `0065`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0064` will apply through the existing migration job on next startup.
+  `0065` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
 Packet reporting, evidence-output, bounded execution-control, external-action
-gates, the bounded Operations, Technology, and Product department runtimes, and
-the CEO coordination loop. The next active gate is the next additional
-executive department runtime beyond Operations, Technology, and Product; the
-remaining departments are Marketing, Finance, Communications, People, and Legal.
+gates, the bounded Operations, Technology, Product, and Security department
+runtimes, and the CEO coordination loop. The remaining departments held and not
+yet operational are Marketing, Finance, Communications, People, and Legal.
 
 ## 3. Execution Order
 
@@ -187,20 +186,23 @@ Key specifications:
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
 **Status:** Governance foundation, Board reporting, the first bounded autonomous
-organization flow, the Operations and Technology department runtimes, and bounded
-CEO coordination are delivered. The COO now delegates general operating
-objectives to Sales Intelligence, Operations Coordination, and Business
-Intelligence, and adds Application Readiness for mobility-case events. The CTO
-delegates technology work to the Vice President of Engineering and Lead Architect
-for delivery-readiness, architecture, security, data-handling, integration, and
-reversibility analysis. Evidence-complete internal L3 matters receive a durable
-consultation and may be closed by the CEO Agent; external actions, L4 matters,
-emergencies, self-approval conflicts, missing consultation, and dissent fail
-closed. Cross-functional consultation requirements are durable and fail closed, but
-the remaining executives (CPO, CMO, CFO, CCO, CHRO, CLO) do not yet have
-completion or dissent-submission paths. The Product/CPO bounded runtime is now
-delivered; the active gate is the next additional executive department runtime.
-The remaining departments held and not yet operational are Marketing, Finance,
+organization flow, the Operations, Technology, Product, and Security department
+runtimes, and bounded CEO coordination are delivered. The COO now delegates
+general operating objectives to Sales Intelligence, Operations Coordination, and
+Business Intelligence, and adds Application Readiness for mobility-case events.
+The CTO delegates technology work to the Vice President of Engineering and Lead
+Architect for delivery-readiness, architecture, security, data-handling,
+integration, and reversibility analysis. The CPO delegates product work to the
+Product Manager and Design Agent for product fit, scope, roadmap alignment,
+success metrics, design quality, UX research, and accessibility analysis. The
+CISO delegates security work to the Security Lead and Threat Analyst for
+security controls, attack surface, policy alignment, threat intelligence,
+prompt-injection, jailbreak, data-exfiltration, and compromised-agent indicator
+analysis. Evidence-complete internal L3 matters receive a durable consultation
+and may be closed by the CEO Agent; external actions, L4 matters, emergencies,
+self-approval conflicts, missing consultation, and dissent fail closed.
+Cross-functional consultation requirements are durable and fail closed. The
+remaining departments held and not yet operational are Marketing, Finance,
 Communications, People, and Legal.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
@@ -260,6 +262,10 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [x] Implement the CPO department-head runtime with bounded Product specialists
   (Product Manager and Design Agent) for product fit, scope, roadmap alignment,
   success metrics, design quality, UX research, and accessibility analysis.
+- [x] Implement the CISO department-head runtime with bounded Security specialists
+  (Security Lead and Threat Analyst) for security controls, attack surface, policy
+  alignment, threat intelligence, prompt-injection, jailbreak, data-exfiltration,
+  and compromised-agent indicator analysis.
 - [ ] Implement the remaining department-head runtimes: CMO, CFO, CCO, CHRO, and CLO.
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.

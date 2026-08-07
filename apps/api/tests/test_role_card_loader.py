@@ -22,6 +22,9 @@ def test_list_role_cards_finds_all_cards():
         "Business_Intelligence_Agent",
         "VP_Engineering",
         "Lead_Architect",
+        "CISO",
+        "Security_Lead",
+        "Threat_Analyst",
         "Application_Readiness_Agent",
         "Study_Abroad_Advisor",
         "Visa_Truth_Agent",
@@ -46,6 +49,9 @@ def test_list_role_cards_finds_all_cards():
         "Business_Intelligence_Agent",
         "VP_Engineering",
         "Lead_Architect",
+        "CISO",
+        "Security_Lead",
+        "Threat_Analyst",
         "Application_Readiness_Agent",
     ],
 )
@@ -76,6 +82,22 @@ def test_cto_role_card_names_reports_and_prohibits_direct_technology_action():
     assert "authorize an external action" in controls
 
 
+def test_ciso_role_card_names_reports_and_prohibits_direct_security_action():
+    card = load_role_card("CISO")
+    position_contract = card["raw_sections"]["position contract"]
+    controls = card["raw_sections"]["non-delegable controls"]
+
+    assert "Security Lead Agent" in position_contract
+    assert "Threat Analyst Agent" in position_contract
+    assert "Never suspend positions" in controls
+    assert "publish policy" in controls
+    assert "access secrets" in controls
+    assert "deploy" in controls
+    assert "initiate spend" in controls
+    assert "sign a contract" in controls
+    assert "authorize an external action" in controls
+
+
 def test_agent_role_card_map_covers_all_canonical_agents():
     canonical_agents = {
         "truth_explanation_agent",
@@ -88,6 +110,8 @@ def test_agent_role_card_map_covers_all_canonical_agents():
         "lead_architect_agent",
         "product_manager_agent",
         "design_agent_agent",
+        "security_lead_agent",
+        "threat_analyst_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -149,6 +173,8 @@ def test_all_canonical_agents_have_output_schema():
         "lead_architect_agent",
         "product_manager_agent",
         "design_agent_agent",
+        "security_lead_agent",
+        "threat_analyst_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",

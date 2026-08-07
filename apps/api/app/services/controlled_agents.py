@@ -54,6 +54,20 @@ PRODUCT_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+SECURITY_AGENT_CONTROLLED_FIELDS = {
+    "summary",
+    "security_assessment",
+    "threat_assessment",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -561,6 +575,266 @@ def _application_readiness(payload: ControlledAgentRunRequest, agent: dict[str, 
     return output
 
 
+INJECTION_PATTERNS = (
+    "ignore previous instructions",
+    "ignore the above",
+    "ignore your instructions",
+    "you are now",
+    "pretend you are",
+    "simulate being",
+    "jailbreak",
+    "do not tell anyone",
+    "do not disclose",
+    "leak",
+    "exfiltrate",
+    "output the system prompt",
+    "repeat the prompt",
+    "system prompt",
+    "training data",
+    "api key",
+    "token",
+    "secret",
+    "password",
+    "confidential",
+    "internal only",
+)
+
+
+def _detect_injection_signals(context: dict[str, Any]) -> tuple[bool, list[str]]:
+    """Scan supplied context for prompt-injection / compromised-agent indicators."""
+    text = ""
+    for value in context.values():
+        if isinstance(value, str):
+            text += value + "\n"
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                if isinstance(item, str):
+                    text += item + "\n"
+        elif isinstance(value, dict):
+            for nested in value.values():
+                if isinstance(nested, str):
+                    text += nested + "\n"
+                elif isinstance(nested, (list, tuple)):
+                    for item in nested:
+                        if isinstance(item, str):
+                            text += item + "\n"
+    text_lower = text.lower()
+    hits = [pattern for pattern in INJECTION_PATTERNS if pattern in text_lower]
+    return bool(hits), sorted(set(hits))
+
+
+COMPROMISED_AGENT_INDICATORS = (
+    "override safety",
+    "disable guardrails",
+    "turn off review",
+    "approve immediately",
+    "no human review",
+    "auto-approve",
+    "bypass",
+    "suppress dissent",
+    "hide this",
+    "delete logs",
+    "untraceable",
+)
+
+
+def _detect_compromised_agent_signals(context: dict[str, Any]) -> tuple[bool, list[str]]:
+    """Scan supplied context for compromised-agent / malicious-override indicators."""
+    text = ""
+    for value in context.values():
+        if isinstance(value, str):
+            text += value + "\n"
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                if isinstance(item, str):
+                    text += item + "\n"
+        elif isinstance(value, dict):
+            for nested in value.values():
+                if isinstance(nested, str):
+                    text += nested + "\n"
+                elif isinstance(nested, (list, tuple)):
+                    for item in nested:
+                        if isinstance(item, str):
+                            text += item + "\n"
+    text_lower = text.lower()
+    hits = [indicator for indicator in COMPROMISED_AGENT_INDICATORS if indicator in text_lower]
+    return bool(hits), sorted(set(hits))
+
+
+def _security_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _security_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "security_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "security_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _security_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _security_context(payload)
+    evidence = {
+        "controls": _first_supplied(facts, "controls", "security_controls", "control_evidence"),
+        "attack_surface": _first_supplied(facts, "attack_surface", "attack_surface_evidence"),
+        "policy_alignment": _first_supplied(facts, "policy_alignment", "policy_fit", "security_policy"),
+        "impact": _first_supplied(facts, "impact", "security_impact", "impact_assessment"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "security_risks"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _security_risk_signals(facts, role_prefix="security_lead")
+    injection_detected, injection_signals = _detect_injection_signals(payload.context)
+    compromised_detected, compromised_signals = _detect_compromised_agent_signals(payload.context)
+    if injection_detected:
+        material_risks.append(f"prompt-injection signals detected: {', '.join(injection_signals)}")
+    if compromised_detected:
+        material_risks.append(f"compromised-agent indicators detected: {', '.join(compromised_signals)}")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks or injection_detected or compromised_detected)
+    output.update(
+        {
+            "summary": "Security controls and attack-surface evidence assessed for internal CISO review.",
+            "security_assessment": (
+                "evidence_complete_for_review"
+                if not (evidence_gaps or injection_detected or compromised_detected)
+                else "evidence_incomplete"
+            ),
+            "injection_detected": injection_detected,
+            "injection_signals": injection_signals,
+            "compromised_agent_detected": compromised_detected,
+            "compromised_agent_signals": compromised_signals,
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_ciso_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded security evidence gap before a recommendation is accepted.",
+                "Escalate policy change, position suspension, secret access, or external action to the CISO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "position.suspend",
+                "contract.sign",
+                "policy.publish",
+                "secrets.access",
+                "deployment.production",
+                "infrastructure.mutation",
+                "payment.initiate",
+                "client.external_send",
+                "vendor.commit",
+            ],
+        }
+    )
+    return output
+
+
+def _threat_analyst(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _security_context(payload)
+    evidence = {
+        "threat_evidence": _first_supplied(facts, "threat_evidence", "threats", "threat_intelligence"),
+        "signals": _first_supplied(facts, "signals", "suspicious_signals", "security_signals"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _security_risk_signals(facts, role_prefix="threat_analyst")
+    injection_detected, injection_signals = _detect_injection_signals(payload.context)
+    compromised_detected, compromised_signals = _detect_compromised_agent_signals(payload.context)
+    data_exfiltration_detected = any(
+        signal in " ".join(str(v) for v in payload.context.values()).lower()
+        for signal in ("exfiltrate", "leak", "output the system prompt", "repeat the prompt")
+    )
+    if injection_detected:
+        material_risks.append(f"prompt-injection/jailbreak signals detected: {', '.join(injection_signals)}")
+    if compromised_detected:
+        material_risks.append(f"compromised-agent indicators detected: {', '.join(compromised_signals)}")
+    if data_exfiltration_detected:
+        material_risks.append("data-exfiltration indicator detected")
+    must_hold = bool(
+        evidence_gaps
+        or dissent_reason
+        or material_risks
+        or injection_detected
+        or compromised_detected
+        or data_exfiltration_detected
+    )
+    output.update(
+        {
+            "summary": "Threat evidence and compromise indicators assessed for internal CISO review.",
+            "threat_assessment": (
+                "evidence_complete_for_review"
+                if not (evidence_gaps or injection_detected or compromised_detected or data_exfiltration_detected)
+                else "evidence_incomplete"
+            ),
+            "injection_detected": injection_detected,
+            "injection_signals": injection_signals,
+            "compromised_agent_detected": compromised_detected,
+            "compromised_agent_signals": compromised_signals,
+            "data_exfiltration_detected": data_exfiltration_detected,
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_ciso_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Treat every detected injection, jailbreak, or compromise indicator as escalation-worthy.",
+                "Escalate confirmed indicators to the CISO; do not approve external action or policy change.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "position.suspend",
+                "contract.sign",
+                "policy.publish",
+                "secrets.access",
+                "deployment.production",
+                "infrastructure.mutation",
+                "payment.initiate",
+                "client.external_send",
+                "vendor.commit",
+            ],
+        }
+    )
+    return output
+
+
 def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     lead_data = payload.context.get("lead", {})
@@ -601,6 +875,8 @@ DETERMINISTIC_HANDLERS = {
     "lead_architect_agent": _lead_architect,
     "product_manager_agent": _product_manager,
     "design_agent_agent": _design_agent,
+    "security_lead_agent": _security_lead,
+    "threat_analyst_agent": _threat_analyst,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -777,6 +1053,61 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
                 output["product_fit"] = "evidence_incomplete"
             if resolved_name == "design_agent_agent" and must_hold:
                 output["design_assessment"] = "evidence_incomplete"
+        elif resolved_name in {"security_lead_agent", "threat_analyst_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in SECURITY_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+                or output.get("injection_detected") is True
+                or output.get("compromised_agent_detected") is True
+                or output.get("data_exfiltration_detected") is True
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_ciso_internal_review"
+            )
+            if resolved_name == "security_lead_agent" and must_hold:
+                output["security_assessment"] = "evidence_incomplete"
+            if resolved_name == "threat_analyst_agent" and must_hold:
+                output["threat_assessment"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -816,6 +1147,8 @@ AGENT_HANDLERS = {
     "lead_architect_agent": _llm_agent_handler,
     "product_manager_agent": _llm_agent_handler,
     "design_agent_agent": _llm_agent_handler,
+    "security_lead_agent": _llm_agent_handler,
+    "threat_analyst_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,
