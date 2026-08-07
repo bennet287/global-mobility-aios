@@ -26,6 +26,7 @@ Human Owner / Board
   -> CEO Agent
       -> CTO Agent: technology and engineering
       -> COO Agent: operations, sales, and business intelligence
+      -> CISO Agent: security, threat intelligence, and resilience
       -> CMO Agent: marketing and product marketing
       -> CPO Agent: product, design, and product management
       -> CFO Agent: finance, accounts, M&A, and investor relations
@@ -53,7 +54,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | Board controls, bounded Operations and Technology, the bounded Product/CPO runtime, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
+| Phase 13 | Governance hardening in progress | Board controls, bounded Operations, Technology, Product, and Security/CISO runtimes, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -330,6 +331,10 @@ After the first organization flow and Board Room pass their release gates:
 - [x] Expand Product: CPO, Product Manager, and Design Agent with bounded
   delegation, required evidence/output contracts, and hardened role cards under
   Product accountability.
+- [x] Expand Security: CISO, Security Lead, and Threat Analyst with bounded
+  delegation, threat-intelligence/prompt-injection/compromised-agent analysis,
+  required evidence/output contracts, and hardened role cards under Security
+  accountability.
 - [ ] Add Marketing: CMO, Product Marketing, and Marketing Managers.
 - [ ] Add Finance: CFO, Accounts, M&A, and Investor Relations.
 - [ ] Add Communications: CCO, Communications, PR, and Government Relations.
