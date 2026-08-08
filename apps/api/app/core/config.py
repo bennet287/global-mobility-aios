@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     auth_admin_username: str = "admin"
     auth_admin_password: str = "admin"
     auth_session_cookie: str = "gmai_session"
-    auth_allow_header_role: bool = True
+    auth_allow_header_role: bool = False
     automation_encryption_key: str = ""
     automation_webhook_secret: str = ""
     truth_engine_strict_mode: bool = True

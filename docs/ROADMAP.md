@@ -102,7 +102,7 @@ Phase 13 foundation was introduced.
 - [x] Upgrade local SQLite from `0046` to `0056`.
 - [x] Upgrade Docker PostgreSQL from `0054` to `0056`.
 - [x] Confirm registered models and actual columns/tables are aligned.
-- [x] Confirm the API container reports migration head `0056`.
+- [x] Confirm the API container reports migration head `0067`.
 
 ### 12.S2 Secure portal-session correction — done
 
