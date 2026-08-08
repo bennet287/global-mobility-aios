@@ -199,7 +199,7 @@ def test_production_storage_posture_fails_closed_and_public_policy_is_detected(
     posture = client.get("/api/v1/document-access/storage-posture")
     assert posture.status_code == 200
     assert posture.json()["ready"] is False
-    assert "production_strict_requires_minio" in posture.json()["failures"]
+    assert "production_requires_minio" in posture.json()["failures"]
 
     lead = create_lead(db_session)
     doc = DocumentRecord(

@@ -36,3 +36,5 @@ apps/web/.next-docker/
 apps/web/out/
 .turbo/
 *.tsbuildinfo
+# Local patch-application backups; never source-controlled.
+.gmai-patch-backups/

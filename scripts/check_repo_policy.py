@@ -32,7 +32,7 @@ SCAN_EXTENSIONS = {
     ".env",
 }
 
-IGNORE_DIRS = {".git", "__pycache__", ".venv", "node_modules", "dist", "build"}
+IGNORE_DIRS = {".git", ".gmai-patch-backups", "__pycache__", ".venv", "node_modules", "dist", "build"}
 
 ALLOWLIST_FILES = {
     "REPOSITORY_POLICY.md",

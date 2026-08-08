@@ -16,3 +16,6 @@ jobs:
 
       - name: Check repository policy
         run: python scripts/check_repo_policy.py --root .
+
+      - name: Check migration and roadmap consistency
+        run: python scripts/check_release_consistency.py

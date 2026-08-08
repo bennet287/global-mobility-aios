@@ -1,21 +1,17 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import base64
 import hashlib
 import hmac
 import json
 from dataclasses import dataclass
-from typing import Iterable, Optional, Set
+from typing import Optional, Set
 
 from fastapi import Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
+from app.core.auth_policy import ROLES, is_public_path, required_roles
 from app.core.config import settings
-
-
-ROLES = {"admin", "operator", "reviewer", "sales", "read_only"}
-READ_ROLES = frozenset(ROLES)
-DEFAULT_MUTATION_ROLES = {"admin", "operator"}
 
 
 @dataclass(frozen=True)
@@ -84,90 +80,6 @@ def get_auth_context(request: Request) -> Optional[AuthContext]:
         return parse_session_token(token)
     return None
 
-
-def _path_starts(path: str, prefixes: Iterable[str]) -> bool:
-    return any(path == prefix or path.startswith(f"{prefix}/") for prefix in prefixes)
-
-
-def is_public_path(path: str) -> bool:
-    if path in {"/", "/health", "/favicon.ico", "/openapi.json"}:
-        return True
-    return _path_starts(
-        path,
-        (
-            "/auth",
-            "/docs",
-            "/redoc",
-            "/debug",
-            "/api/v1/public",
-            "/api/public/v1",
-            "/api/partner/v1",
-        ),
-    )
-
-
-def required_roles(method: str, path: str) -> Set[str]:
-    method = method.upper()
-
-    if _path_starts(path, ("/api/v1/document-intelligence",)):
-        if path.endswith("/review"):
-            return {"admin", "reviewer"}
-        return {"admin", "operator", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/document-access",)):
-        if path.endswith("/content"):
-            return set(READ_ROLES)
-        return {"admin", "operator", "reviewer"}
-
-    if method in {"GET", "HEAD", "OPTIONS"}:
-        if path.startswith("/admin") or path.startswith("/api/v1"):
-            return set(READ_ROLES)
-        return set(READ_ROLES)
-
-    if "reset" in path or "delete" in path:
-        return {"admin"}
-
-    if _path_starts(path, ("/api/v1/truth", "/admin/truth-resolution")):
-        return {"admin", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/regulatory-intelligence",)):
-        return {"admin", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/global-intelligence/registry",)):
-        return {"admin", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/document-verification", "/admin/document-verification")):
-        return {"admin", "operator", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/sales", "/admin/sales")):
-        return {"admin", "operator", "sales"}
-
-    if _path_starts(path, ("/api/v1/operations/reviews",)):
-        return {"admin", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/applications", "/admin/applications")):
-        if any(marker in path for marker in ("/approve", "/submit")):
-            return {"admin", "reviewer"}
-        return {"admin", "operator", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/application-draft-control", "/admin/application-draft-control")):
-        return {"admin", "operator"}
-
-    if _path_starts(path, ("/api/v1/authority-decision", "/admin/authority-decision")):
-        return {"admin", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/post-approval-onboarding", "/admin/post-approval-onboarding")):
-        return {"admin", "operator", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/client-communications", "/admin/client-communications")):
-        return {"admin", "operator", "reviewer"}
-
-    if _path_starts(path, ("/api/v1/automation",)):
-        if "/decision" in path:
-            return {"admin", "reviewer"}
-        return {"admin", "operator"}
-
-    return set(DEFAULT_MUTATION_ROLES)
 
 
 def unauthorized_response(path: str) -> Response:

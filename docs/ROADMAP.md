@@ -44,6 +44,8 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
+<!-- CURRENT_MIGRATION_HEAD: 0067_marketing_runtime_contract -->
+
 **Code migration head:** `0067_marketing_runtime_contract`
 
 | Area | State | Current position |
@@ -54,27 +56,27 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | Board controls, bounded Operations, Technology, Product, Security/CISO, and Security Operations/SOC runtimes, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
+| Phase 13 | Governance hardening in progress | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, and Marketing runtimes are delivered; runtime registration and platform hardening are implemented while Finance, Communications, People, and Legal remain held |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0067`.
+- Migration-chain integrity: passing with one head at `0067_marketing_runtime_contract`.
 - Docker production-profile validation: passing.
-- API tests: **passing and 0 failing**.
-- Local SQLite database: aligned at `0067`.
+- API tests: **524 passed, 0 failed** for the Phase 13.10.1 hardening release gate.
+- Local SQLite database: last verified aligned at `0067_marketing_runtime_contract`; this hardening slice adds no migration.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0067` will apply through the existing migration job on next startup.
-- Local quality gate: passing.
+  `0067_marketing_runtime_contract` will apply through the existing migration job on next startup.
+- Local quality gate: **passing**; compilation, repository policy, migration/ROADMAP consistency, database/schema checks, Docker-profile validation, router/authorization checks, and the complete API test suite passed.
 
-The repository is release-ready for the Phase 13 governance foundation, Board
-Packet reporting, evidence-output, bounded execution-control, external-action
-gates, the bounded Operations, Technology, Product, Security, Security
-Operations/SOC, and Marketing department runtimes, and the CEO coordination loop.
-The remaining departments held and not yet operational are Finance, Communications,
-People, and Legal.
+The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
+execution-control, external-action gates, bounded Operations, Technology, Product,
+Security, Security Operations/SOC, and Marketing department runtimes, and the CEO
+coordination loop remain implemented. The Phase 13.10.1 hardening slice is
+release-closed with the complete local quality gate passing at migration head
+`0067_marketing_runtime_contract`. Finance, Communications, People, and Legal remain held.
 
 ## 3. Execution Order
 
@@ -331,9 +333,38 @@ Lead or case event
   matters. (Escalation paths now route emergency and overdue items to the Board; explicit
   subscription and notification channel remain.)
 
+### 13.5.1 Platform hardening and runtime registration checkpoint
+
+Before activating another executive department, preserve the autonomy already
+delivered while reducing insecure defaults and central runtime coupling. Marketing
+remains delivered; this checkpoint gates Finance, Communications, People, and Legal.
+
+- [x] Default unsigned header-role authentication to disabled and fail closed at
+  production startup when authentication is disabled, header-role trust is enabled,
+  or production credentials/signing secrets remain missing/default/too short.
+- [x] Require production identity-document storage to use TLS-protected, non-default,
+  pre-provisioned MinIO/S3-compatible storage with server-side encryption; local
+  document storage is prohibited in production.
+- [x] Add shared query ceilings for document/lead list paths that previously
+  performed unbounded reads.
+- [x] Replace inline FastAPI router registration with a declarative `RouterSpec`
+  registry and replace path-role authorization branches with ordered declarative
+  authorization rules.
+- [x] Add a declarative `DepartmentRuntimeSpec` registry and common execution adapter
+  covering Technology, Product, Security, Security Operations/SOC, and Marketing,
+  so another department does not require another central execution/completion branch.
+- [x] Add capability-boundary regression tests proving active departments execute
+  only their explicitly allowed action class and held departments remain unavailable.
+- [x] Add CI migration/roadmap consistency enforcement against the unique Alembic head.
+- [x] Exclude local patch-backup directories from repository policy scans and future
+  source control; existing tracked backups must be removed from the Git index once.
+- [ ] Run one external end-to-end validation with a real mobility user and one
+  professional/operator, then triage the resulting Truth Engine/pathway defects
+  before activating Finance, Communications, People, or Legal.
+
 ### 13.6 Departmental expansion
 
-After the first organization flow and Board Room pass their release gates:
+After the first organization flow and Board Room pass their release gates, and after the hardening checkpoint above:
 
 - [x] Expand Operations: Sales Intelligence, Operations Coordination, Business
   Intelligence, and case-specific Application Readiness under COO accountability.
@@ -353,6 +384,9 @@ After the first organization flow and Board Room pass their release gates:
 - [x] Add Marketing: CMO, Creative Director, and Marketing Manager under CMO
   accountability, with bounded delegation, brand/creative/channel analysis, and
   required evidence/output contracts.
+- [ ] **External-validation gate:** do not activate another executive department
+  until at least one real mobility user and one professional/operator have tested
+  an end-to-end Truth Engine/pathway workflow and the resulting defects are triaged.
 - [ ] Add Finance: CFO, Accounts Lead, and Investor Relations Lead under CFO
   accountability, with bounded delegation, spend/investment/contract analysis,
   and required evidence/output contracts.

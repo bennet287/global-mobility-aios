@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-08-08 — Phase 13.10.1 platform hardening and runtime registration
+
+- Preserved the delivered Phase 13.10 Marketing/CMO runtime at migration head
+  `0067_marketing_runtime_contract`; this hardening slice introduces no schema
+  migration.
+- Wired the existing startup-safety module into application startup and fail closed
+  in production when authentication is disabled, unsigned header-role trust is
+  enabled, or JWT/admin credentials remain missing, default, or too short.
+- Defaulted MinIO server-side encryption to enabled and made production identity-
+  document storage require encrypted, TLS-protected, non-default, pre-provisioned
+  MinIO/S3-compatible storage; local document storage now refuses production use.
+- Added shared query limits and bounded previously unbounded document/lead reads.
+- Replaced inline FastAPI router registration with an ordered `RouterSpec` registry
+  while preserving all 62 registrations, including compatibility registrations.
+- Replaced the hand-written route-role authorization cascade with an ordered,
+  declarative authorization-rule registry while preserving existing role behavior.
+- Added a `DepartmentRuntimeSpec` registry and common execution/completion adapter
+  for Technology, Product, Security, Security Operations/SOC, and Marketing. The
+  delivered Marketing runtime remains active for bounded `internal.analysis`;
+  Finance, Communications, People, and Legal remain explicitly held.
+- Removed repeated executive-contract repair branches in organization governance and
+  route contract recovery through runtime metadata instead.
+- Added capability-boundary, startup fail-closed, pagination, router-registry, and
+  authorization-policy regression tests.
+- Added a migration/ROADMAP consistency check to CI and the local quality gate, using
+  the unique Alembic graph head rather than filename ordering.
+- Added `.gmai-patch-backups/` to ignore/scanner exclusions so local replacement
+  backups no longer slow repository policy checks or belong in future source control.
+- Added an external-validation gate before activating Finance, Communications,
+  People, or Legal: one real mobility user and one professional/operator must first
+  exercise the end-to-end Truth Engine/pathway workflow and resulting defects must
+  be triaged.
+- Release verification completed successfully at migration head
+  `0067_marketing_runtime_contract`: **524 API tests passed, 0 failed**, and the
+  complete local quality gate passed.
+
 ## 2026-08-08 — Phase 13.10 bounded Marketing/CMO runtime contract
 
 - Expanded the registered organization from 22 to 24 positions by adding the

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
@@ -28,6 +29,7 @@ from app.models.domain import (
 from app.schemas import ControlledAgentRunRequest
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import run_controlled_agent
+from app.services.department_runtime import DEPARTMENT_RUNTIMES, department_runtime_spec
 
 
 SOURCE = "ai_organization_v13.0"
@@ -171,30 +173,12 @@ EXECUTIVE_ACTIONS = {
 }
 
 DEPARTMENT_EXECUTIVE_OWNER = {
-    "executive": "ceo",
-    "technology": "cto",
-    "security": "ciso",
-    "security operations": "ciso",
-    "operations": "coo",
-    "marketing": "cmo",
-    "product": "cpo",
-    "finance": "cfo",
-    "communications": "cco",
-    "people": "chro",
-    "legal": "clo",
+    key: spec.executive_position for key, spec in DEPARTMENT_RUNTIMES.items()
 }
 EXECUTIVE_COUNCIL_POSITIONS = frozenset(DEPARTMENT_EXECUTIVE_OWNER.values()) - {"ceo"}
 CEO_AUTO_RESOLVABLE_ACTIONS = frozenset({"internal.analysis"})
 CEO_MINIMUM_CONFIDENCE = 0.5
 CEO_COORDINATION_LEASE = timedelta(minutes=5)
-EXECUTABLE_DEPARTMENT_ACTIONS: dict[str, frozenset[str] | None] = {
-    "operations": None,
-    "technology": frozenset({"internal.analysis"}),
-    "product": frozenset({"internal.analysis"}),
-    "security": frozenset({"internal.analysis"}),
-    "security operations": frozenset({"internal.analysis"}),
-    "marketing": frozenset({"internal.analysis"}),
-}
 GOVERNED_EXTERNAL_ACTIONS = frozenset(
     {
         "client.external_send",
@@ -452,6 +436,14 @@ MARKETING_PROHIBITED_ACTIONS = frozenset(
         "production.irreversible",
     }
 )
+HARDENED_SPECIALIST_POSITION_KEYS = frozenset().union(
+    TECHNOLOGY_REQUIRED_DELEGATES,
+    PRODUCT_REQUIRED_DELEGATES,
+    SECURITY_REQUIRED_DELEGATES,
+    SECURITY_OPERATIONS_REQUIRED_DELEGATES,
+    MARKETING_REQUIRED_DELEGATES,
+)
+
 ACTION_EXECUTIVE_CONSULTATIONS = {
     "client.external_send": ("cco",),
     "authority.submit": ("clo",),
@@ -489,46 +481,29 @@ def _load(value: str, fallback: Any) -> Any:
 
 
 def department_executive_owner(department: str) -> str:
-    owner = DEPARTMENT_EXECUTIVE_OWNER.get(department.strip().lower())
-    if owner is None:
+    spec = department_runtime_spec(department)
+    if spec is None:
         raise ValueError(f"Unsupported organization department: {department}")
-    return owner
+    return spec.executive_position
 
 
 def department_runtime_available(department: str, action: str | None = None) -> bool:
-    allowed_actions = EXECUTABLE_DEPARTMENT_ACTIONS.get(department.strip().lower())
-    if allowed_actions is None:
-        return department.strip().lower() == "operations"
-    return bool(action) and action.strip().lower() in allowed_actions
+    spec = department_runtime_spec(department)
+    if spec is None:
+        return False
+    if spec.allowed_actions is None:
+        return True
+    return bool(action) and action.strip().lower() in spec.allowed_actions
 
 
 def _runtime_unavailable_reason(department: str, action: str | None) -> str:
     normalized_department = department.strip()
     normalized_action = (action or "unspecified").strip()
-    if normalized_department.lower() == "technology":
+    spec = department_runtime_spec(normalized_department)
+    if spec and spec.unavailable_description:
         return (
-            f"The Technology runtime does not execute action '{normalized_action}'; "
-            "only bounded internal.analysis is enabled."
-        )
-    if normalized_department.lower() == "product":
-        return (
-            f"The Product runtime does not execute action '{normalized_action}'; "
-            "only bounded internal.analysis is enabled."
-        )
-    if normalized_department.lower() == "security":
-        return (
-            f"The Security runtime does not execute action '{normalized_action}'; "
-            "only bounded internal.analysis is enabled."
-        )
-    if normalized_department.lower() == "security operations":
-        return (
-            f"The Security Operations runtime does not execute action '{normalized_action}'; "
-            "only bounded internal.analysis is enabled."
-        )
-    if normalized_department.lower() == "marketing":
-        return (
-            f"The Marketing runtime does not execute action '{normalized_action}'; "
-            "only bounded internal.analysis is enabled."
+            f"The {normalized_department} runtime does not execute action '{normalized_action}'; "
+            f"{spec.unavailable_description}."
         )
     return f"The {normalized_department} runtime is registered for governance but is not yet executable."
 
@@ -1055,6 +1030,42 @@ def _requeue_position_holds(
     return requeued_work_ids
 
 
+def _requeue_executive_contract_holds(
+    session: Session,
+    position_key: str,
+) -> None:
+    runtime_specs = [
+        spec
+        for spec in DEPARTMENT_RUNTIMES.values()
+        if spec.contract_position == position_key and spec.contract_repair_label
+    ]
+    if not runtime_specs:
+        return
+
+    expected_reasons = {
+        f"The persisted {spec.contract_repair_label} contract requires Human Board repair before execution."
+        for spec in runtime_specs
+    }
+    contract_holds = session.exec(
+        select(OrganizationalWorkItem).where(
+            OrganizationalWorkItem.assigned_position_key == position_key,
+            OrganizationalWorkItem.status == "held",
+        )
+    ).all()
+    for held_work in contract_holds:
+        if held_work.last_error not in expected_reasons:
+            continue
+        if (
+            held_work.cancel_requested_at is None
+            and held_work.execution_attempts < held_work.max_execution_attempts
+            and department_runtime_available(held_work.department, _work_action(held_work))
+        ):
+            held_work.status = "queued"
+            held_work.last_error = None
+            held_work.updated_at = _now()
+            session.add(held_work)
+
+
 def ensure_foundation_positions(
     session: Session,
     *,
@@ -1131,118 +1142,13 @@ def ensure_foundation_positions(
                     actor=actor,
                     source=SOURCE,
                 )
-                if key in TECHNOLOGY_REQUIRED_DELEGATES:
+                if key in HARDENED_SPECIALIST_POSITION_KEYS:
                     _requeue_position_holds(
                         session,
                         key,
                         result_refs={"position:contract_mismatch"},
                     )
-                if key in PRODUCT_REQUIRED_DELEGATES:
-                    _requeue_position_holds(
-                        session,
-                        key,
-                        result_refs={"position:contract_mismatch"},
-                    )
-                if key in SECURITY_REQUIRED_DELEGATES:
-                    _requeue_position_holds(
-                        session,
-                        key,
-                        result_refs={"position:contract_mismatch"},
-                    )
-                if key in MARKETING_REQUIRED_DELEGATES:
-                    _requeue_position_holds(
-                        session,
-                        key,
-                        result_refs={"position:contract_mismatch"},
-                    )
-                if key == "cto":
-                    contract_holds = session.exec(
-                        select(OrganizationalWorkItem).where(
-                            OrganizationalWorkItem.assigned_position_key == "cto",
-                            OrganizationalWorkItem.status == "held",
-                            OrganizationalWorkItem.last_error
-                            == "The persisted CTO contract requires Human Board repair before execution.",
-                        )
-                    ).all()
-                    for held_work in contract_holds:
-                        if (
-                            held_work.cancel_requested_at is None
-                            and held_work.execution_attempts < held_work.max_execution_attempts
-                            and department_runtime_available(
-                                held_work.department,
-                                _work_action(held_work),
-                            )
-                        ):
-                            held_work.status = "queued"
-                            held_work.last_error = None
-                            held_work.updated_at = _now()
-                            session.add(held_work)
-                if key == "cpo":
-                    contract_holds = session.exec(
-                        select(OrganizationalWorkItem).where(
-                            OrganizationalWorkItem.assigned_position_key == "cpo",
-                            OrganizationalWorkItem.status == "held",
-                            OrganizationalWorkItem.last_error
-                            == "The persisted CPO contract requires Human Board repair before execution.",
-                        )
-                    ).all()
-                    for held_work in contract_holds:
-                        if (
-                            held_work.cancel_requested_at is None
-                            and held_work.execution_attempts < held_work.max_execution_attempts
-                            and department_runtime_available(
-                                held_work.department,
-                                _work_action(held_work),
-                            )
-                        ):
-                            held_work.status = "queued"
-                            held_work.last_error = None
-                            held_work.updated_at = _now()
-                            session.add(held_work)
-                if key == "ciso":
-                    contract_holds = session.exec(
-                        select(OrganizationalWorkItem).where(
-                            OrganizationalWorkItem.assigned_position_key == "ciso",
-                            OrganizationalWorkItem.status == "held",
-                            OrganizationalWorkItem.last_error
-                            == "The persisted CISO contract requires Human Board repair before execution.",
-                        )
-                    ).all()
-                    for held_work in contract_holds:
-                        if (
-                            held_work.cancel_requested_at is None
-                            and held_work.execution_attempts < held_work.max_execution_attempts
-                            and department_runtime_available(
-                                held_work.department,
-                                _work_action(held_work),
-                            )
-                        ):
-                            held_work.status = "queued"
-                            held_work.last_error = None
-                            held_work.updated_at = _now()
-                            session.add(held_work)
-                if key == "cmo":
-                    contract_holds = session.exec(
-                        select(OrganizationalWorkItem).where(
-                            OrganizationalWorkItem.assigned_position_key == "cmo",
-                            OrganizationalWorkItem.status == "held",
-                            OrganizationalWorkItem.last_error
-                            == "The persisted CMO contract requires Human Board repair before execution.",
-                        )
-                    ).all()
-                    for held_work in contract_holds:
-                        if (
-                            held_work.cancel_requested_at is None
-                            and held_work.execution_attempts < held_work.max_execution_attempts
-                            and department_runtime_available(
-                                held_work.department,
-                                _work_action(held_work),
-                            )
-                        ):
-                            held_work.status = "queued"
-                            held_work.last_error = None
-                            held_work.updated_at = _now()
-                            session.add(held_work)
+                _requeue_executive_contract_holds(session, key)
         positions.append(position)
     control = session.exec(
         select(OrganizationControl).where(OrganizationControl.control_key == "global")
@@ -2322,131 +2228,29 @@ def execute_work_item(
             actor=actor,
             audit_action="organization_work_held_accountability_unavailable",
         )
+    runtime_spec = department_runtime_spec(work.department)
     if (
-        work.department.strip().lower() == "technology"
-        and _load(accountable_position.contract_json, {}) != _position_contract("cto", "L3")
+        runtime_spec is not None
+        and runtime_spec.contract_position is not None
+        and runtime_spec.contract_authority_level is not None
+        and _load(accountable_position.contract_json, {})
+        != _position_contract(runtime_spec.contract_position, runtime_spec.contract_authority_level)
     ):
+        contract_label = runtime_spec.contract_repair_label or runtime_spec.contract_position.upper()
         return _hold_work_without_claim(
             session,
             work,
-            reason="The persisted CTO contract requires Human Board repair before execution.",
+            reason=(
+                f"The persisted {contract_label} contract requires Human Board repair "
+                "before execution."
+            ),
             action=action,
             actor=actor,
             audit_action="organization_work_held_contract_mismatch",
         )
-    if (
-        work.department.strip().lower() == "product"
-        and _load(accountable_position.contract_json, {}) != _position_contract("cpo", "L3")
-    ):
-        return _hold_work_without_claim(
-            session,
-            work,
-            reason="The persisted CPO contract requires Human Board repair before execution.",
-            action=action,
-            actor=actor,
-            audit_action="organization_work_held_contract_mismatch",
-        )
-    if (
-        work.department.strip().lower() == "security"
-        and _load(accountable_position.contract_json, {}) != _position_contract("ciso", "L3")
-    ):
-        return _hold_work_without_claim(
-            session,
-            work,
-            reason="The persisted CISO contract requires Human Board repair before execution.",
-            action=action,
-            actor=actor,
-            audit_action="organization_work_held_contract_mismatch",
-        )
-    if (
-        work.department.strip().lower() == "security operations"
-        and _load(accountable_position.contract_json, {}) != _position_contract("ciso", "L3")
-    ):
-        return _hold_work_without_claim(
-            session,
-            work,
-            reason="The persisted CISO contract requires Human Board repair before execution.",
-            action=action,
-            actor=actor,
-            audit_action="organization_work_held_contract_mismatch",
-        )
-    if (
-        work.department.strip().lower() == "marketing"
-        and _load(accountable_position.contract_json, {}) != _position_contract("cmo", "L3")
-    ):
-        return _hold_work_without_claim(
-            session,
-            work,
-            reason="The persisted CMO contract requires Human Board repair before execution.",
-            action=action,
-            actor=actor,
-            audit_action="organization_work_held_contract_mismatch",
-        )
-
-    if work.department.strip().lower() == "technology":
-        delegate_technology_work(session, work)
-        technology_preflight_gap = _technology_preflight_gap(session, work)
-        if technology_preflight_gap:
-            return _hold_work_without_claim(
-                session,
-                work,
-                reason=technology_preflight_gap,
-                action=action,
-                actor=actor,
-                audit_action="organization_work_held_technology_preflight",
-            )
-
-    if work.department.strip().lower() == "product":
-        delegate_product_work(session, work)
-        product_preflight_gap = _product_preflight_gap(session, work)
-        if product_preflight_gap:
-            return _hold_work_without_claim(
-                session,
-                work,
-                reason=product_preflight_gap,
-                action=action,
-                actor=actor,
-                audit_action="organization_work_held_product_preflight",
-            )
-
-    if work.department.strip().lower() == "security":
-        delegate_security_work(session, work)
-        security_preflight_gap = _security_preflight_gap(session, work)
-        if security_preflight_gap:
-            return _hold_work_without_claim(
-                session,
-                work,
-                reason=security_preflight_gap,
-                action=action,
-                actor=actor,
-                audit_action="organization_work_held_security_preflight",
-            )
-
-    if work.department.strip().lower() == "security operations":
-        delegate_security_operations_work(session, work)
-        security_operations_preflight_gap = _security_operations_preflight_gap(session, work)
-        if security_operations_preflight_gap:
-            return _hold_work_without_claim(
-                session,
-                work,
-                reason=security_operations_preflight_gap,
-                action=action,
-                actor=actor,
-                audit_action="organization_work_held_security_operations_preflight",
-            )
-
-    if work.department.strip().lower() == "marketing":
-        delegate_marketing_work(session, work)
-        marketing_preflight_gap = _marketing_preflight_gap(session, work)
-        if marketing_preflight_gap:
-            return _hold_work_without_claim(
-                session,
-                work,
-                reason=marketing_preflight_gap,
-                action=action,
-                actor=actor,
-                audit_action="organization_work_held_marketing_preflight",
-            )
+    runtime_hold = _prepare_department_runtime(session, work, action=action, actor=actor)
+    if runtime_hold is not None:
+        return runtime_hold
 
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
     if control and control.status == "paused":
@@ -2845,6 +2649,120 @@ def _marketing_preflight_gap(
     return "Marketing preflight incomplete; " + "; ".join(gaps) + "."
 
 
+@dataclass(frozen=True)
+class DepartmentExecutionAdapter:
+    delegate: Any
+    preflight_gap: Any
+    required_delegates: frozenset[str]
+    specialist_output_fields: dict[str, frozenset[str]]
+    evidence_gaps: Any
+    proceed_recommendation: str
+    completion_prefix: str
+    primary_field_by_position: dict[str, str]
+
+
+DEPARTMENT_EXECUTION_ADAPTERS: dict[str, DepartmentExecutionAdapter] = {
+    "technology": DepartmentExecutionAdapter(
+        delegate=delegate_technology_work,
+        preflight_gap=_technology_preflight_gap,
+        required_delegates=TECHNOLOGY_REQUIRED_DELEGATES,
+        specialist_output_fields=TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_technology_evidence_gaps,
+        proceed_recommendation="proceed_to_cto_internal_review",
+        completion_prefix="Technology evidence contract incomplete",
+        primary_field_by_position={"vp_engineering": "delivery_readiness"},
+    ),
+    "product": DepartmentExecutionAdapter(
+        delegate=delegate_product_work,
+        preflight_gap=_product_preflight_gap,
+        required_delegates=PRODUCT_REQUIRED_DELEGATES,
+        specialist_output_fields=PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_product_evidence_gaps,
+        proceed_recommendation="proceed_to_cpo_internal_review",
+        completion_prefix="Product evidence contract incomplete",
+        primary_field_by_position={
+            "product_manager": "product_fit",
+            "design_agent": "design_assessment",
+        },
+    ),
+    "security": DepartmentExecutionAdapter(
+        delegate=delegate_security_work,
+        preflight_gap=_security_preflight_gap,
+        required_delegates=SECURITY_REQUIRED_DELEGATES,
+        specialist_output_fields=SECURITY_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_security_evidence_gaps,
+        proceed_recommendation="proceed_to_ciso_internal_review",
+        completion_prefix="Security evidence contract incomplete",
+        primary_field_by_position={
+            "security_lead": "security_assessment",
+            "threat_analyst": "threat_assessment",
+        },
+    ),
+    "security operations": DepartmentExecutionAdapter(
+        delegate=delegate_security_operations_work,
+        preflight_gap=_security_operations_preflight_gap,
+        required_delegates=SECURITY_OPERATIONS_REQUIRED_DELEGATES,
+        specialist_output_fields=SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_security_operations_evidence_gaps,
+        proceed_recommendation="proceed_to_ciso_internal_review",
+        completion_prefix="Security Operations evidence contract incomplete",
+        primary_field_by_position={
+            "soc_lead": "soc_assessment",
+            "soc_analyst": "anomaly_assessment",
+        },
+    ),
+    "marketing": DepartmentExecutionAdapter(
+        delegate=delegate_marketing_work,
+        preflight_gap=_marketing_preflight_gap,
+        required_delegates=MARKETING_REQUIRED_DELEGATES,
+        specialist_output_fields=MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_marketing_evidence_gaps,
+        proceed_recommendation="proceed_to_cmo_internal_review",
+        completion_prefix="Marketing evidence contract incomplete",
+        primary_field_by_position={
+            "creative_director": "creative_assessment",
+            "marketing_manager": "marketing_fit",
+        },
+    ),
+}
+
+
+def _department_execution_adapter(department: str) -> DepartmentExecutionAdapter | None:
+    return DEPARTMENT_EXECUTION_ADAPTERS.get(department.strip().lower())
+
+
+def _prepare_department_runtime(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    action: str,
+    actor: str,
+) -> OrganizationalWorkItem | None:
+    adapter = _department_execution_adapter(work.department)
+    if adapter is None:
+        return None
+
+    adapter.delegate(session, work)
+    gap = adapter.preflight_gap(session, work)
+    if gap is None:
+        return None
+
+    runtime_spec = department_runtime_spec(work.department)
+    audit_action = (
+        runtime_spec.preflight_audit_action
+        if runtime_spec is not None and runtime_spec.preflight_audit_action
+        else "organization_work_held_department_preflight"
+    )
+    return _hold_work_without_claim(
+        session,
+        work,
+        reason=gap,
+        action=action,
+        actor=actor,
+        audit_action=audit_action,
+    )
+
+
 def _specialist_output_payload(action_output: OrganizationalActionOutput) -> dict[str, Any]:
     result = _load(action_output.output_json, {})
     if not isinstance(result, dict):
@@ -2896,56 +2814,16 @@ def _department_completion_gap(
     delegations: list[DelegationRecord],
     action_outputs: list[OrganizationalActionOutput],
 ) -> str | None:
-    department = work.department.strip().lower()
-    if department == "technology":
-        required_delegates = TECHNOLOGY_REQUIRED_DELEGATES
-        specialist_output_fields = TECHNOLOGY_SPECIALIST_REQUIRED_OUTPUT_FIELDS
-        evidence_gaps_fn = _technology_evidence_gaps
-        proceed_recommendation = "proceed_to_cto_internal_review"
-        prefix = "Technology evidence contract incomplete"
-        primary_field_by_position = {"vp_engineering": "delivery_readiness"}
-    elif department == "product":
-        required_delegates = PRODUCT_REQUIRED_DELEGATES
-        specialist_output_fields = PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS
-        evidence_gaps_fn = _product_evidence_gaps
-        proceed_recommendation = "proceed_to_cpo_internal_review"
-        prefix = "Product evidence contract incomplete"
-        primary_field_by_position = {
-            "product_manager": "product_fit",
-            "design_agent": "design_assessment",
-        }
-    elif department == "security":
-        required_delegates = SECURITY_REQUIRED_DELEGATES
-        specialist_output_fields = SECURITY_SPECIALIST_REQUIRED_OUTPUT_FIELDS
-        evidence_gaps_fn = _security_evidence_gaps
-        proceed_recommendation = "proceed_to_ciso_internal_review"
-        prefix = "Security evidence contract incomplete"
-        primary_field_by_position = {
-            "security_lead": "security_assessment",
-            "threat_analyst": "threat_assessment",
-        }
-    elif department == "security operations":
-        required_delegates = SECURITY_OPERATIONS_REQUIRED_DELEGATES
-        specialist_output_fields = SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS
-        evidence_gaps_fn = _security_operations_evidence_gaps
-        proceed_recommendation = "proceed_to_ciso_internal_review"
-        prefix = "Security Operations evidence contract incomplete"
-        primary_field_by_position = {
-            "soc_lead": "soc_assessment",
-            "soc_analyst": "anomaly_assessment",
-        }
-    elif department == "marketing":
-        required_delegates = MARKETING_REQUIRED_DELEGATES
-        specialist_output_fields = MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS
-        evidence_gaps_fn = _marketing_evidence_gaps
-        proceed_recommendation = "proceed_to_cmo_internal_review"
-        prefix = "Marketing evidence contract incomplete"
-        primary_field_by_position = {
-            "creative_director": "creative_assessment",
-            "marketing_manager": "marketing_fit",
-        }
-    else:
+    adapter = _department_execution_adapter(work.department)
+    if adapter is None:
         return None
+
+    required_delegates = adapter.required_delegates
+    specialist_output_fields = adapter.specialist_output_fields
+    evidence_gaps_fn = adapter.evidence_gaps
+    proceed_recommendation = adapter.proceed_recommendation
+    prefix = adapter.completion_prefix
+    primary_field_by_position = adapter.primary_field_by_position
 
     by_key = {item.delegate_position_key: item for item in delegations}
     missing_delegates = sorted(required_delegates - set(by_key))
@@ -3097,21 +2975,10 @@ def _execute_claimed_work_item(
             ))
             session.commit()
             continue
+        runtime_adapter = _department_execution_adapter(work.department)
         runs_from_internal_context = (
-            work.department.strip().lower() == "technology"
-            and delegation.delegate_position_key in TECHNOLOGY_REQUIRED_DELEGATES
-        ) or (
-            work.department.strip().lower() == "product"
-            and delegation.delegate_position_key in PRODUCT_REQUIRED_DELEGATES
-        ) or (
-            work.department.strip().lower() == "security"
-            and delegation.delegate_position_key in SECURITY_REQUIRED_DELEGATES
-        ) or (
-            work.department.strip().lower() == "security operations"
-            and delegation.delegate_position_key in SECURITY_OPERATIONS_REQUIRED_DELEGATES
-        ) or (
-            work.department.strip().lower() == "marketing"
-            and delegation.delegate_position_key in MARKETING_REQUIRED_DELEGATES
+            runtime_adapter is not None
+            and delegation.delegate_position_key in runtime_adapter.required_delegates
         )
         if work.lead_id is None and not runs_from_internal_context:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}

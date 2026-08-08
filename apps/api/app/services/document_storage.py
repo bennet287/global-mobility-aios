@@ -64,15 +64,20 @@ def _is_production() -> bool:
 def document_storage_posture() -> dict[str, Any]:
     backend = settings.document_storage_backend.strip().lower()
     secret = settings.document_access_token_secret.strip()
+    placeholder_secret = not secret or secret.lower().startswith("change-this")
+    minio_access_key = settings.minio_access_key.strip()
+    minio_secret_key = settings.minio_secret_key.strip()
     default_credentials = (
-        settings.minio_access_key.strip() in {"", "minioadmin"}
-        or settings.minio_secret_key.strip() in {"", "minioadmin"}
+        minio_access_key in {"", "minioadmin"}
+        or minio_secret_key in {"", "minioadmin"}
+        or minio_access_key.lower().startswith("change-this")
+        or minio_secret_key.lower().startswith("change-this")
     )
     controls = {
         "environment": settings.app_env,
         "backend": backend,
         "strict_mode": settings.document_storage_production_strict,
-        "signed_access_secret_configured": bool(secret),
+        "signed_access_secret_configured": not placeholder_secret,
         "signed_access_ttl_seconds": settings.document_access_default_ttl_seconds,
         "signed_access_max_ttl_seconds": settings.document_access_max_ttl_seconds,
         "minio_tls_enabled": bool(settings.minio_secure),
@@ -82,28 +87,34 @@ def document_storage_posture() -> dict[str, Any]:
         "retention_days": settings.document_storage_retention_days,
         "backup_strategy_configured": bool(settings.document_storage_backup_strategy.strip()),
         "recovery_test_recorded": bool(settings.document_storage_recovery_tested_at.strip()),
-        "local_storage_allowed_in_production": bool(settings.document_storage_allow_local_in_production),
+        "local_storage_allowed_in_production": False,
     }
     failures: list[str] = []
-    if _is_production() and settings.document_storage_production_strict:
-        if backend != "minio" and not settings.document_storage_allow_local_in_production:
-            failures.append("production_strict_requires_minio")
+    if _is_production():
+        # Production identity-document storage has a mandatory security baseline
+        # even when the optional extended strict posture is disabled.
+        if backend != "minio":
+            failures.append("production_requires_minio")
         if backend == "minio" and not settings.minio_secure:
             failures.append("minio_tls_required")
         if backend == "minio" and default_credentials:
             failures.append("non_default_minio_credentials_required")
         if backend == "minio" and settings.minio_auto_create_bucket:
             failures.append("production_bucket_must_be_preprovisioned")
-        if not secret:
-            failures.append("separate_document_access_secret_required")
-        if settings.document_access_max_ttl_seconds > 900:
-            failures.append("document_access_max_ttl_must_not_exceed_900_seconds")
-        if settings.document_storage_retention_days <= 0:
-            failures.append("retention_policy_required")
-        if not settings.document_storage_backup_strategy.strip():
-            failures.append("backup_strategy_required")
-        if not settings.document_storage_recovery_tested_at.strip():
-            failures.append("recovery_test_record_required")
+        if backend == "minio" and not settings.minio_server_side_encryption:
+            failures.append("minio_server_side_encryption_required")
+
+        if settings.document_storage_production_strict:
+            if placeholder_secret:
+                failures.append("separate_document_access_secret_required")
+            if settings.document_access_max_ttl_seconds > 900:
+                failures.append("document_access_max_ttl_must_not_exceed_900_seconds")
+            if settings.document_storage_retention_days <= 0:
+                failures.append("retention_policy_required")
+            if not settings.document_storage_backup_strategy.strip():
+                failures.append("backup_strategy_required")
+            if not settings.document_storage_recovery_tested_at.strip():
+                failures.append("recovery_test_record_required")
     controls["failures"] = failures
     controls["ready"] = not failures
     return controls
@@ -179,6 +190,10 @@ class LocalDocumentStorage:
     provider = "local"
 
     def __init__(self, root_dir: Optional[str] = None) -> None:
+        if _is_production():
+            raise RuntimeError(
+                "Local document storage is prohibited in production; configure encrypted MinIO/S3 storage."
+            )
         self.root_dir = Path(root_dir or settings.document_local_storage_dir)
 
     def put_document(

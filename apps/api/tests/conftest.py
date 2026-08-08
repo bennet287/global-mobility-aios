@@ -18,6 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.core import db as db_module  # noqa: E402
+from app.core.config import settings  # noqa: E402
 from app.core.db import get_session  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.domain import ApplicationRecord, DocumentRecord, Lead, LeadIntent, TruthClaim  # noqa: E402
@@ -42,10 +43,16 @@ def db_session(monkeypatch: pytest.MonkeyPatch) -> Generator[Session, None, None
 
 
 @pytest.fixture()
-def raw_client(db_session: Session) -> Generator[TestClient, None, None]:
+def raw_client(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[TestClient, None, None]:
     def override_get_session() -> Generator[Session, None, None]:
         yield db_session
 
+    # Header-role auth is an explicit test/local shortcut; production defaults
+    # fail closed and never trust these headers.
+    monkeypatch.setattr(settings, "auth_allow_header_role", True)
     app.dependency_overrides[get_session] = override_get_session
     with TestClient(app) as test_client:
         yield test_client
