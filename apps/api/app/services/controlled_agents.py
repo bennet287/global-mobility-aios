@@ -68,6 +68,20 @@ SECURITY_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+SOC_AGENT_CONTROLLED_FIELDS = {
+    "summary",
+    "soc_assessment",
+    "anomaly_assessment",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -835,6 +849,180 @@ def _threat_analyst(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -
     return output
 
 
+def _soc_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _soc_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "soc_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "soc_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _soc_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _soc_context(payload)
+    evidence = {
+        "agent_activity": _first_supplied(facts, "agent_activity", "agent_behavior"),
+        "audit_logs": _first_supplied(facts, "audit_logs", "logs"),
+        "incident_history": _first_supplied(facts, "incident_history", "incidents"),
+        "monitored_signals": _first_supplied(facts, "monitored_signals", "signals"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _soc_risk_signals(facts, role_prefix="soc_lead")
+    injection_detected, injection_signals = _detect_injection_signals(payload.context)
+    compromised_detected, compromised_signals = _detect_compromised_agent_signals(payload.context)
+    if injection_detected:
+        material_risks.append(f"prompt-injection signals detected: {', '.join(injection_signals)}")
+    if compromised_detected:
+        material_risks.append(f"compromised-agent indicators detected: {', '.join(compromised_signals)}")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks or injection_detected or compromised_detected)
+    output.update(
+        {
+            "summary": "SOC posture and anomaly triage assessed for internal CISO review.",
+            "soc_assessment": (
+                "evidence_complete_for_review"
+                if not (evidence_gaps or injection_detected or compromised_detected)
+                else "evidence_incomplete"
+            ),
+            "injection_detected": injection_detected,
+            "injection_signals": injection_signals,
+            "compromised_agent_detected": compromised_detected,
+            "compromised_agent_signals": compromised_signals,
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_ciso_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Correlate every detected anomaly with recorded audit logs before triage closure.",
+                "Escalate confirmed injection, compromise, or incident indicators to the CISO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "position.suspend",
+                "contract.sign",
+                "policy.publish",
+                "secrets.access",
+                "deployment.production",
+                "infrastructure.mutation",
+                "payment.initiate",
+                "client.external_send",
+                "vendor.commit",
+            ],
+        }
+    )
+    return output
+
+
+def _soc_analyst(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _soc_context(payload)
+    evidence = {
+        "agent_outputs": _first_supplied(facts, "agent_outputs", "outputs"),
+        "audit_logs": _first_supplied(facts, "audit_logs", "logs"),
+        "signals": _first_supplied(facts, "signals", "suspicious_signals", "security_signals"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _soc_risk_signals(facts, role_prefix="soc_analyst")
+    injection_detected, injection_signals = _detect_injection_signals(payload.context)
+    compromised_detected, compromised_signals = _detect_compromised_agent_signals(payload.context)
+    data_exfiltration_detected = any(
+        signal in " ".join(str(v) for v in payload.context.values()).lower()
+        for signal in ("exfiltrate", "leak", "output the system prompt", "repeat the prompt")
+    )
+    if injection_detected:
+        material_risks.append(f"prompt-injection/jailbreak signals detected: {', '.join(injection_signals)}")
+    if compromised_detected:
+        material_risks.append(f"compromised-agent indicators detected: {', '.join(compromised_signals)}")
+    if data_exfiltration_detected:
+        material_risks.append("data-exfiltration indicator detected")
+    must_hold = bool(
+        evidence_gaps
+        or dissent_reason
+        or material_risks
+        or injection_detected
+        or compromised_detected
+        or data_exfiltration_detected
+    )
+    output.update(
+        {
+            "summary": "Agent-output and audit-log anomaly analysis assessed for internal CISO review.",
+            "anomaly_assessment": (
+                "evidence_complete_for_review"
+                if not (evidence_gaps or injection_detected or compromised_detected or data_exfiltration_detected)
+                else "evidence_incomplete"
+            ),
+            "injection_detected": injection_detected,
+            "injection_signals": injection_signals,
+            "compromised_agent_detected": compromised_detected,
+            "compromised_agent_signals": compromised_signals,
+            "data_exfiltration_detected": data_exfiltration_detected,
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_ciso_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Treat every detected injection, jailbreak, or compromise indicator as escalation-worthy.",
+                "Correlate anomalies with audit-trail provenance before any disposition.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "position.suspend",
+                "contract.sign",
+                "policy.publish",
+                "secrets.access",
+                "deployment.production",
+                "infrastructure.mutation",
+                "payment.initiate",
+                "client.external_send",
+                "vendor.commit",
+            ],
+        }
+    )
+    return output
+
+
 def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     lead_data = payload.context.get("lead", {})
@@ -877,6 +1065,8 @@ DETERMINISTIC_HANDLERS = {
     "design_agent_agent": _design_agent,
     "security_lead_agent": _security_lead,
     "threat_analyst_agent": _threat_analyst,
+    "soc_lead_agent": _soc_lead,
+    "soc_analyst_agent": _soc_analyst,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -1108,6 +1298,58 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
                 output["security_assessment"] = "evidence_incomplete"
             if resolved_name == "threat_analyst_agent" and must_hold:
                 output["threat_assessment"] = "evidence_incomplete"
+        elif resolved_name in {"soc_lead_agent", "soc_analyst_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in SOC_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_ciso_internal_review"
+            )
+            if resolved_name == "soc_lead_agent" and must_hold:
+                output["soc_assessment"] = "evidence_incomplete"
+            if resolved_name == "soc_analyst_agent" and must_hold:
+                output["anomaly_assessment"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -1149,6 +1391,8 @@ AGENT_HANDLERS = {
     "design_agent_agent": _llm_agent_handler,
     "security_lead_agent": _llm_agent_handler,
     "threat_analyst_agent": _llm_agent_handler,
+    "soc_lead_agent": _llm_agent_handler,
+    "soc_analyst_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

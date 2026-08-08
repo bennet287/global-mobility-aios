@@ -25,6 +25,8 @@ def test_list_role_cards_finds_all_cards():
         "CISO",
         "Security_Lead",
         "Threat_Analyst",
+        "SOC_Lead",
+        "SOC_Analyst",
         "Application_Readiness_Agent",
         "Study_Abroad_Advisor",
         "Visa_Truth_Agent",
@@ -52,6 +54,8 @@ def test_list_role_cards_finds_all_cards():
         "CISO",
         "Security_Lead",
         "Threat_Analyst",
+        "SOC_Lead",
+        "SOC_Analyst",
         "Application_Readiness_Agent",
     ],
 )
@@ -89,6 +93,8 @@ def test_ciso_role_card_names_reports_and_prohibits_direct_security_action():
 
     assert "Security Lead Agent" in position_contract
     assert "Threat Analyst Agent" in position_contract
+    assert "SOC Lead Agent" in position_contract
+    assert "SOC Analyst Agent" in position_contract
     assert "Never suspend positions" in controls
     assert "publish policy" in controls
     assert "access secrets" in controls
@@ -112,6 +118,8 @@ def test_agent_role_card_map_covers_all_canonical_agents():
         "design_agent_agent",
         "security_lead_agent",
         "threat_analyst_agent",
+        "soc_lead_agent",
+        "soc_analyst_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -175,6 +183,8 @@ def test_all_canonical_agents_have_output_schema():
         "design_agent_agent",
         "security_lead_agent",
         "threat_analyst_agent",
+        "soc_lead_agent",
+        "soc_analyst_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",

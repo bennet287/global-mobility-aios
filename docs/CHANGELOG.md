@@ -38,6 +38,43 @@
 - Full API suite passes with the expanded test suite at migration head `0065` and
   the local quality gate passes.
 
+## 2026-08-07 — Phase 13.9 bounded Security Operations/SOC runtime contract
+
+- Added the Security Operations (SOC) department under the CISO with two bounded
+  L2 specialists: SOC Lead and SOC Analyst.
+- Hardened the SOC Lead and SOC Analyst position contracts through migration
+  `0066_soc_runtime_contract`, including required evidence fields, required
+  specialist outputs, prohibited direct actions, and a unique work/delegate
+  constraint on Security Operations delegation records.
+- Added `agents/role_cards/SOC_Lead.md` and `agents/role_cards/SOC_Analyst.md`
+  with bounded L2 analysis contracts for agent-behavior monitoring, audit-log
+  triage, incident coordination, and anomaly detection.
+- Updated `agents/role_cards/CISO.md` to name the SOC Lead and SOC Analyst as
+  direct reports alongside Security Lead and Threat Analyst.
+- Implemented a fail-closed Security Operations department-head runtime that
+  delegates only `internal.analysis` work to SOC Lead and SOC Analyst, validates
+  required evidence fields, validates required specialist outputs, records dissent
+  and material risks, and fails closed on position suspension, policy publication,
+  secret access, deployment, infrastructure mutation, spend, contract, or
+  external-action requests.
+- Enforced that SOC specialists cannot be invoked for non-Security-Operations
+  work, that Security Operations work is assigned only to the CISO, and that
+  incomplete evidence or missing outputs are recorded as gaps rather than
+  silently approved.
+- Connected the controlled-agent registry and role-card loader to the SOC
+  specialist contracts so runtime prompts, rejection behavior, and output
+  schemas are consistent with the persisted position contract.
+- Added SOC runtime regression coverage including evidence-field validation,
+  output-field validation, non-SOC rejection, CISO-only assignment,
+  required-delegate completeness, suspended-specialist resume, prohibited-action
+  enforcement, and prompt-injection / compromised-agent / data-exfiltration
+  detection.
+- Updated `docs/ROADMAP.md` to mark the Security Operations/SOC runtime as
+  delivered and identify Marketing/Finance/Communications/People/Legal as the
+  remaining held departments.
+- Full API suite passes with 500+ tests at migration head `0066` and the local
+  quality gate passes.
+
 ## 2026-08-03 — Phase 13.6 bounded Product/CPO runtime contract
 
 - Expanded the registered organization from 15 to 17 positions by adding Product

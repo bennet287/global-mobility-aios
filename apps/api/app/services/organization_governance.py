@@ -41,6 +41,8 @@ POSITION_SPECS = (
     ("ciso", "Chief Information Security Officer Agent", "Security", "ceo", "L3", "CISO.md"),
     ("security_lead", "Security Lead Agent", "Security", "ciso", "L2", "Security_Lead.md"),
     ("threat_analyst", "Threat Analyst Agent", "Security", "ciso", "L2", "Threat_Analyst.md"),
+    ("soc_lead", "SOC Lead Agent", "Security Operations", "ciso", "L2", "SOC_Lead.md"),
+    ("soc_analyst", "SOC Analyst Agent", "Security Operations", "ciso", "L2", "SOC_Analyst.md"),
     ("coo", "Chief Operating Officer Agent", "Operations", "ceo", "L3", "COO.md"),
     ("cmo", "Chief Marketing Officer Agent", "Marketing", "ceo", "L3", "CMO.md"),
     ("cpo", "Chief Product Officer Agent", "Product", "ceo", "L3", "CPO.md"),
@@ -78,6 +80,8 @@ HARDENED_POSITION_KEYS = frozenset(
         "ciso",
         "security_lead",
         "threat_analyst",
+        "soc_lead",
+        "soc_analyst",
     }
 )
 
@@ -165,6 +169,7 @@ DEPARTMENT_EXECUTIVE_OWNER = {
     "executive": "ceo",
     "technology": "cto",
     "security": "ciso",
+    "security operations": "ciso",
     "operations": "coo",
     "marketing": "cmo",
     "product": "cpo",
@@ -182,6 +187,7 @@ EXECUTABLE_DEPARTMENT_ACTIONS: dict[str, frozenset[str] | None] = {
     "technology": frozenset({"internal.analysis"}),
     "product": frozenset({"internal.analysis"}),
     "security": frozenset({"internal.analysis"}),
+    "security operations": frozenset({"internal.analysis"}),
 }
 GOVERNED_EXTERNAL_ACTIONS = frozenset(
     {
@@ -322,6 +328,65 @@ SECURITY_PROHIBITED_ACTIONS = frozenset(
         "vendor.commit",
     }
 )
+SECURITY_OPERATIONS_DELEGATION_SPECS = (
+    (
+        "soc_lead",
+        "Monitor agent behavior and audit trails, triage anomalies, and assess SOC posture from supplied evidence.",
+    ),
+    (
+        "soc_analyst",
+        "Analyze agent outputs and audit logs for anomalies, prompt-injection, jailbreak, data-exfiltration, and compromised-agent indicators.",
+    ),
+)
+SECURITY_OPERATIONS_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in SECURITY_OPERATIONS_DELEGATION_SPECS
+)
+SECURITY_OPERATIONS_REQUIRED_EVIDENCE_FIELDS = (
+    "agent_activity",
+    "agent_outputs",
+    "audit_logs",
+    "incident_history",
+    "monitored_signals",
+    "signals",
+    "sources",
+)
+SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "soc_lead": frozenset(
+        {
+            "soc_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "soc_analyst": frozenset(
+        {
+            "anomaly_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
+SECURITY_OPERATIONS_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "infrastructure.mutate",
+        "policy.publish",
+        "position.suspend",
+        "production.irreversible",
+        "secrets.access",
+        "vendor.commit",
+    }
+)
 ACTION_EXECUTIVE_CONSULTATIONS = {
     "client.external_send": ("cco",),
     "authority.submit": ("clo",),
@@ -388,6 +453,11 @@ def _runtime_unavailable_reason(department: str, action: str | None) -> str:
     if normalized_department.lower() == "security":
         return (
             f"The Security runtime does not execute action '{normalized_action}'; "
+            "only bounded internal.analysis is enabled."
+        )
+    if normalized_department.lower() == "security operations":
+        return (
+            f"The Security Operations runtime does not execute action '{normalized_action}'; "
             "only bounded internal.analysis is enabled."
         )
     return f"The {normalized_department} runtime is registered for governance but is not yet executable."
@@ -619,6 +689,55 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                     SECURITY_SPECIALIST_REQUIRED_OUTPUT_FIELDS["threat_analyst"]
                 ),
                 "prohibited_direct_actions": sorted(SECURITY_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "soc_lead":
+        contract.update(
+            {
+                "capabilities": [
+                    "monitor_agent_behavior_and_audit_trails",
+                    "triage_security_incidents_and_anomalies",
+                    "raise_soc_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "agent_activity",
+                    "audit_logs",
+                    "incident_history",
+                    "monitored_signals",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS["soc_lead"]
+                ),
+                "prohibited_direct_actions": sorted(SECURITY_OPERATIONS_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "soc_analyst":
+        contract.update(
+            {
+                "capabilities": [
+                    "analyze_audit_logs_for_anomalies",
+                    "detect_compromised_agent_and_prompt_injection_indicators",
+                    "raise_soc_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "agent_outputs",
+                    "audit_logs",
+                    "signals",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS["soc_analyst"]
+                ),
+                "prohibited_direct_actions": sorted(SECURITY_OPERATIONS_PROHIBITED_ACTIONS),
             }
         )
     return contract
@@ -1123,6 +1242,44 @@ def delegate_security_work(
             task=task,
             authority_basis=(
                 "CISO L3 security mandate; delegated L2 internal analysis only; "
+                "no position suspension, policy publication, secret access, deployment, infrastructure mutation, spend, contract, or external action authority."
+            ),
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_security_operations_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CISO SOC review plan once for internal analysis."""
+    if work.department.strip().lower() != "security operations":
+        raise ValueError("Security Operations delegation requires a Security Operations work item")
+    if work.assigned_position_key != "ciso":
+        raise ValueError("Security Operations delegation requires CISO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("Security Operations delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in SECURITY_OPERATIONS_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="ciso",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CISO L3 security mandate; delegated L2 Security Operations internal analysis only; "
                 "no position suspension, policy publication, secret access, deployment, infrastructure mutation, spend, contract, or external action authority."
             ),
         )
@@ -1997,6 +2154,18 @@ def execute_work_item(
             actor=actor,
             audit_action="organization_work_held_contract_mismatch",
         )
+    if (
+        work.department.strip().lower() == "security operations"
+        and _load(accountable_position.contract_json, {}) != _position_contract("ciso", "L3")
+    ):
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason="The persisted CISO contract requires Human Board repair before execution.",
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_contract_mismatch",
+        )
 
     if work.department.strip().lower() == "technology":
         delegate_technology_work(session, work)
@@ -2035,6 +2204,19 @@ def execute_work_item(
                 action=action,
                 actor=actor,
                 audit_action="organization_work_held_security_preflight",
+            )
+
+    if work.department.strip().lower() == "security operations":
+        delegate_security_operations_work(session, work)
+        security_operations_preflight_gap = _security_operations_preflight_gap(session, work)
+        if security_operations_preflight_gap:
+            return _hold_work_without_claim(
+                session,
+                work,
+                reason=security_operations_preflight_gap,
+                action=action,
+                actor=actor,
+                audit_action="organization_work_held_security_operations_preflight",
             )
 
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
@@ -2293,6 +2475,75 @@ def _security_preflight_gap(
     return "Security preflight incomplete; " + "; ".join(gaps) + "."
 
 
+def _security_operations_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _security_operations_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _security_operations_evidence_context(work)
+    aliases = {
+        "agent_activity": ("agent_activity", "agent_behavior"),
+        "agent_outputs": ("agent_outputs", "outputs"),
+        "audit_logs": ("audit_logs", "logs"),
+        "incident_history": ("incident_history", "incidents"),
+        "monitored_signals": ("monitored_signals", "signals"),
+        "signals": ("signals", "suspicious_signals", "security_signals"),
+        "sources": ("sources", "source_provenance"),
+    }
+    return [
+        field
+        for field in SECURITY_OPERATIONS_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _security_operations_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(SECURITY_OPERATIONS_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _security_operations_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "Security Operations preflight incomplete; " + "; ".join(gaps) + "."
+
+
 def _specialist_output_payload(action_output: OrganizationalActionOutput) -> dict[str, Any]:
     result = _load(action_output.output_json, {})
     if not isinstance(result, dict):
@@ -2371,6 +2622,16 @@ def _department_completion_gap(
         primary_field_by_position = {
             "security_lead": "security_assessment",
             "threat_analyst": "threat_assessment",
+        }
+    elif department == "security operations":
+        required_delegates = SECURITY_OPERATIONS_REQUIRED_DELEGATES
+        specialist_output_fields = SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS
+        evidence_gaps_fn = _security_operations_evidence_gaps
+        proceed_recommendation = "proceed_to_ciso_internal_review"
+        prefix = "Security Operations evidence contract incomplete"
+        primary_field_by_position = {
+            "soc_lead": "soc_assessment",
+            "soc_analyst": "anomaly_assessment",
         }
     else:
         return None
@@ -2534,6 +2795,9 @@ def _execute_claimed_work_item(
         ) or (
             work.department.strip().lower() == "security"
             and delegation.delegate_position_key in SECURITY_REQUIRED_DELEGATES
+        ) or (
+            work.department.strip().lower() == "security operations"
+            and delegation.delegate_position_key in SECURITY_OPERATIONS_REQUIRED_DELEGATES
         )
         if work.lead_id is None and not runs_from_internal_context:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}

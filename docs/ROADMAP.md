@@ -54,7 +54,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | Board controls, bounded Operations, Technology, Product, and Security/CISO runtimes, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
+| Phase 13 | Governance hardening in progress | Board controls, bounded Operations, Technology, Product, Security/CISO, and Security Operations/SOC runtimes, external-action gates, the executive-consultation ledger, and evidence-backed CEO coordination are delivered; remaining executive departments are held and not yet operational |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -187,23 +187,25 @@ Key specifications:
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
 **Status:** Governance foundation, Board reporting, the first bounded autonomous
-organization flow, the Operations, Technology, Product, and Security department
-runtimes, and bounded CEO coordination are delivered. The COO now delegates
-general operating objectives to Sales Intelligence, Operations Coordination, and
-Business Intelligence, and adds Application Readiness for mobility-case events.
-The CTO delegates technology work to the Vice President of Engineering and Lead
-Architect for delivery-readiness, architecture, security, data-handling,
-integration, and reversibility analysis. The CPO delegates product work to the
-Product Manager and Design Agent for product fit, scope, roadmap alignment,
-success metrics, design quality, UX research, and accessibility analysis. The
-CISO delegates security work to the Security Lead and Threat Analyst for
-security controls, attack surface, policy alignment, threat intelligence,
+organization flow, the Operations, Technology, Product, Security, and Security
+Operations/SOC department runtimes, and bounded CEO coordination are delivered.
+The COO now delegates general operating objectives to Sales Intelligence,
+Operations Coordination, and Business Intelligence, and adds Application Readiness
+for mobility-case events. The CTO delegates technology work to the Vice President
+of Engineering and Lead Architect for delivery-readiness, architecture, security,
+data-handling, integration, and reversibility analysis. The CPO delegates product
+work to the Product Manager and Design Agent for product fit, scope, roadmap
+alignment, success metrics, design quality, UX research, and accessibility
+analysis. The CISO delegates security work to the Security Lead and Threat Analyst
+for security controls, attack surface, policy alignment, threat intelligence,
 prompt-injection, jailbreak, data-exfiltration, and compromised-agent indicator
-analysis. Evidence-complete internal L3 matters receive a durable consultation
-and may be closed by the CEO Agent; external actions, L4 matters, emergencies,
-self-approval conflicts, missing consultation, and dissent fail closed.
-Cross-functional consultation requirements are durable and fail closed. The
-remaining departments held and not yet operational are Marketing, Finance,
+analysis, and delegates Security Operations work to the SOC Lead and SOC Analyst
+for agent-behavior monitoring, audit-log triage, incident coordination, and
+anomaly analysis. Evidence-complete internal L3 matters receive a durable
+consultation and may be closed by the CEO Agent; external actions, L4 matters,
+emergencies, self-approval conflicts, missing consultation, and dissent fail
+closed. Cross-functional consultation requirements are durable and fail closed.
+The remaining departments held and not yet operational are Marketing, Finance,
 Communications, People, and Legal.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
@@ -267,6 +269,9 @@ manager, and specialist agents, with the human owner acting as the Board.
   (Security Lead and Threat Analyst) for security controls, attack surface, policy
   alignment, threat intelligence, prompt-injection, jailbreak, data-exfiltration,
   and compromised-agent indicator analysis.
+- [x] Implement the Security Operations/SOC runtime under the CISO with bounded
+  SOC specialists (SOC Lead and SOC Analyst) for agent-behavior monitoring, audit-log
+  triage, incident coordination, and anomaly analysis.
 - [ ] Implement the remaining department-head runtimes: CMO, CFO, CCO, CHRO, and CLO.
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.
@@ -335,6 +340,9 @@ After the first organization flow and Board Room pass their release gates:
   delegation, threat-intelligence/prompt-injection/compromised-agent analysis,
   required evidence/output contracts, and hardened role cards under Security
   accountability.
+- [x] Expand Security Operations (SOC): SOC Lead and SOC Analyst under CISO
+  accountability, with bounded delegation, agent-behavior and audit-log analysis,
+  required evidence/output contracts, and hardened role cards.
 - [ ] Add Marketing: CMO, Product Marketing, and Marketing Managers.
 - [ ] Add Finance: CFO, Accounts, M&A, and Investor Relations.
 - [ ] Add Communications: CCO, Communications, PR, and Government Relations.

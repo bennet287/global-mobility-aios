@@ -62,6 +62,7 @@ OPERATIONS_CASE_DELEGATES = {
 TECHNOLOGY_DELEGATES = {"vp_engineering", "lead_architect"}
 PRODUCT_DELEGATES = {"product_manager", "design_agent"}
 SECURITY_DELEGATES = {"security_lead", "threat_analyst"}
+SECURITY_OPERATIONS_DELEGATES = {"soc_lead", "soc_analyst"}
 
 
 def _technology_context() -> dict:
@@ -127,6 +128,47 @@ def _security_context() -> dict:
             "threat_evidence": ["threat:prompt-injection-attempt"],
         },
     }
+
+
+def _security_operations_context() -> dict:
+    return {
+        "soc_review_type": "agent_behavior_and_audit_review",
+        "facts": {
+            "change_scope": "internal SOC posture review",
+            "dependencies": ["soc-lead", "soc-analyst"],
+        },
+        "evidence": {
+            "agent_activity": ["activity:agent-run-count", "activity:delegation-count"],
+            "agent_outputs": ["output:client-drafting-agent", "output:eligibility-agent"],
+            "audit_logs": ["audit:controlled-agent-runs", "audit:position-suspension"],
+            "incident_history": ["incident:none-recent"],
+            "monitored_signals": ["signal:anomalous-delegation-request"],
+            "signals": ["signal:repeated-failed-login"],
+            "sources": ["repository:audit-logs", "repository:agent-runs"],
+        },
+    }
+
+
+def _high_risk_security_operations_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": key,
+            "title": "Material SOC review",
+            "objective": "Coordinate evidence-backed internal Security Operations analysis within the CEO mandate.",
+            "department": "Security Operations",
+            "action": "internal.analysis",
+            "risk_level": "high",
+            "context": _security_operations_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decisions = raw_client.get("/api/v1/organization/decisions")
+    assert decisions.status_code == 200, decisions.text
+    matching = [item for item in decisions.json() if item["work_item_id"] == str(work_id)]
+    assert len(matching) == 1
+    return work_id, UUID(matching[0]["id"])
 
 
 def _high_risk_operations_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
@@ -221,7 +263,7 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 22
+    assert response.json()["positions_registered"] == 24
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
@@ -238,6 +280,10 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["security_lead"].authority_level == "L2"
     assert by_key["threat_analyst"].reports_to_position_key == "ciso"
     assert by_key["threat_analyst"].authority_level == "L2"
+    assert by_key["soc_lead"].reports_to_position_key == "ciso"
+    assert by_key["soc_lead"].authority_level == "L2"
+    assert by_key["soc_analyst"].reports_to_position_key == "ciso"
+    assert by_key["soc_analyst"].authority_level == "L2"
     assert by_key["product_manager"].reports_to_position_key == "cpo"
     assert by_key["product_manager"].authority_level == "L2"
     assert by_key["design_agent"].reports_to_position_key == "cpo"
@@ -2827,6 +2873,279 @@ def test_security_prohibited_action_enforcement(
                 "department": "Security",
                 "action": prohibited_action,
                 "context": _security_context(),
+            },
+        )
+        assert created.status_code == 201, created.text
+        assert created.json()["status"] == "held"
+        work_id = UUID(created.json()["id"])
+
+        executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+        assert executed.status_code == 200, executed.text
+        assert executed.json()["status"] == "held"
+        assert "only bounded internal.analysis is enabled" in executed.json()["last_error"]
+
+
+def test_security_operations_internal_analysis_runs_required_specialists_without_a_lead(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    payload = {
+        "idempotency_key": "security-operations-internal-analysis-001",
+        "title": "Review SOC posture",
+        "objective": "Produce a bounded internal Security Operations review from SOC evidence.",
+        "department": "Security Operations",
+        "action": "internal.analysis",
+        "context": _security_operations_context(),
+    }
+    first = raw_client.post("/api/v1/organization/work-items", json=payload)
+    second = raw_client.post("/api/v1/organization/work-items", json=payload)
+    assert first.status_code == 201, first.text
+    assert second.status_code == 201, second.text
+    assert second.json()["id"] == first.json()["id"]
+    assert first.json()["status"] == "queued"
+    assert first.json()["assigned_position_key"] == "ciso"
+
+    work_id = UUID(first.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == SECURITY_OPERATIONS_DELEGATES
+    assert all(item.delegator_position_key == "ciso" for item in delegations)
+    assert all("L2 Security Operations internal analysis only" in item.authority_basis for item in delegations)
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+    output = json.loads(executed.json()["output_json"])
+    assert output["governance"]["accountable_position_key"] == "ciso"
+    assert output["governance"]["external_action_authorized"] is False
+    assert {item["agent"] for item in output["delegated_results"]} == {
+        "soc_lead_agent",
+        "soc_analyst_agent",
+    }
+    assert all(item.get("run_id") for item in output["delegated_results"])
+
+    db_session.expire_all()
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert all(item.status == "completed" for item in delegations)
+    assert all(item.result_ref and item.result_ref.startswith("agent-run:") for item in delegations)
+    action_outputs = db_session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.work_item_id == work_id
+        )
+    ).all()
+    assert len(action_outputs) == 2
+    for action_output in action_outputs:
+        assert any(item["type"] == "agent_run" for item in json.loads(action_output.evidence_json))
+        assert json.loads(action_output.impact_json)["external_action_authorized"] is False
+        specialist_output = json.loads(action_output.output_json)["output"]
+        assert specialist_output["external_action_authorized"] is False
+        assert "position.suspend" in specialist_output["blocked_actions"]
+        assert "policy.publish" in specialist_output["blocked_actions"]
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+
+    replay = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert replay.status_code == 409, replay.text
+
+
+def test_incomplete_security_operations_evidence_holds_the_whole_work_item(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "security-operations-evidence-incomplete-001",
+            "title": "Review an undocumented SOC change",
+            "objective": "Expose missing Security Operations evidence without approving the change.",
+            "department": "Security Operations",
+            "action": "internal.analysis",
+            "context": {"facts": {"change_scope": "unknown"}, "evidence": {}},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert executed.json()["completed_at"] is None
+    assert "missing evidence fields" in executed.json()["last_error"]
+    assert json.loads(executed.json()["output_json"]) == {}
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+    assert db_session.exec(select(OrganizationalActionOutput)).all() == []
+
+
+def test_suspended_required_soc_specialist_holds_then_resumes_work(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    raw_client.post("/api/v1/organization/bootstrap")
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "soc-specialist-suspension-001",
+            "title": "Review a reversible SOC change",
+            "objective": "Require both SOC reviewers before the CISO accepts the analysis.",
+            "department": "Security Operations",
+            "action": "internal.analysis",
+            "max_execution_attempts": 1,
+            "context": _security_operations_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    soc_analyst_position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "soc_analyst")
+    ).one()
+    suspended = raw_client.post(
+        f"/api/v1/organization/positions/{soc_analyst_position.id}/suspend",
+        json={"reason": "Human Board pauses SOC analysis for an independence check."},
+    )
+    assert suspended.status_code == 200, suspended.text
+
+    first_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert first_execution.status_code == 200, first_execution.text
+    assert first_execution.json()["status"] == "held"
+    assert "soc_analyst" in first_execution.json()["last_error"]
+    db_session.expire_all()
+    by_delegate = {
+        item.delegate_position_key: item
+        for item in db_session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+        ).all()
+    }
+    assert by_delegate["soc_lead"].status == "queued"
+    assert by_delegate["soc_analyst"].status == "held"
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+
+    resumed = raw_client.post(
+        f"/api/v1/organization/positions/{soc_analyst_position.id}/resume",
+        json={"reason": "Human Board completed the independence check and restored the reviewer."},
+    )
+    assert resumed.status_code == 200, resumed.text
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "queued"
+
+    second_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert second_execution.status_code == 200, second_execution.text
+    assert second_execution.json()["status"] == "completed"
+    assert len(db_session.exec(select(OrganizationExecutionAttempt)).all()) == 1
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+    assert len(db_session.exec(select(OrganizationalActionOutput)).all()) == 2
+
+
+def test_evidence_complete_security_operations_l3_hands_off_from_ciso_to_ceo(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_security_operations_work(
+        raw_client,
+        key="security-operations-ceo-handoff-001",
+    )
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+    assert json.loads(executed.json()["output_json"])["governance"][
+        "external_action_authorized"
+    ] is False
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "approved"
+    assert "Security Operations analysis" in coordinated.json()["decision_reason"]
+    assert "No external action was authorized" in coordinated.json()["decision_reason"]
+
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "completed"
+    consultations = db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision_id
+        )
+    ).all()
+    assert len(consultations) == 1
+    assert consultations[0].consulted_position == "ciso"
+    assert consultations[0].domain == "security"
+    assert consultations[0].status == "completed"
+    assert consultations[0].confidence >= 0.5
+    assert consultations[0].dissent is False
+
+
+def test_soc_specialists_cannot_be_invoked_for_non_soc_work(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "soc-specialist-non-soc-001",
+            "title": "Route non-SOC work to Security Operations",
+            "objective": "SOC specialists must reject non-SOC work at delegation time.",
+            "department": "Technology",
+            "action": "internal.analysis",
+            "context": _security_operations_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "cto"
+    work_id = UUID(created.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == TECHNOLOGY_DELEGATES
+    for delegation in delegations:
+        assert delegation.delegate_position_key not in SECURITY_OPERATIONS_DELEGATES
+
+
+def test_ciso_only_assignment_for_security_operations_work(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "ciso-only-soc-assignment-001",
+            "title": "Security Operations work is assigned to CISO",
+            "objective": "Confirm Security Operations work is owned by the CISO position.",
+            "department": "Security Operations",
+            "action": "internal.analysis",
+            "context": _security_operations_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "ciso"
+
+
+def test_security_operations_prohibited_action_enforcement(
+    raw_client,
+    db_session: Session,
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    for prohibited_action in ("secrets.access", "policy.publish", "position.suspend"):
+        created = raw_client.post(
+            "/api/v1/organization/work-items",
+            json={
+                "idempotency_key": f"soc-prohibited-{prohibited_action.replace('.', '-')}-001",
+                "title": f"Security Operations prohibited action: {prohibited_action}",
+                "objective": "Verify Security Operations runtime fails closed on prohibited actions.",
+                "department": "Security Operations",
+                "action": prohibited_action,
+                "context": _security_operations_context(),
             },
         )
         assert created.status_code == 201, created.text
