@@ -63,6 +63,7 @@ TECHNOLOGY_DELEGATES = {"vp_engineering", "lead_architect"}
 PRODUCT_DELEGATES = {"product_manager", "design_agent"}
 SECURITY_DELEGATES = {"security_lead", "threat_analyst"}
 SECURITY_OPERATIONS_DELEGATES = {"soc_lead", "soc_analyst"}
+MARKETING_DELEGATES = {"creative_director", "marketing_manager"}
 
 
 def _technology_context() -> dict:
@@ -145,6 +146,28 @@ def _security_operations_context() -> dict:
             "monitored_signals": ["signal:anomalous-delegation-request"],
             "signals": ["signal:repeated-failed-login"],
             "sources": ["repository:audit-logs", "repository:agent-runs"],
+        },
+    }
+
+
+def _marketing_context() -> dict:
+    return {
+        "marketing_review_type": "brand_and_campaign_readiness",
+        "facts": {
+            "change_scope": "internal marketing readiness review",
+            "dependencies": ["creative_director", "marketing_manager"],
+        },
+        "evidence": {
+            "audience_evidence": ["audience:founders", "audience:enterprise"],
+            "brand_guidelines": ["brand:voice-and-tone-v3"],
+            "budget_constraints": ["budget:annual-marketing-allocation"],
+            "campaign_plan": ["campaign:q3-launch-outline"],
+            "channel_strategy": ["channel:linkedin", "channel:webinars"],
+            "creative_assets": ["asset:hero-creative-v2"],
+            "messaging": ["messaging:value-proposition-v4"],
+            "risks": ["risk:brand-approval-pending"],
+            "sources": ["repository:agents/role_cards", "repository:docs/ROADMAP.md"],
+            "success_metrics": ["metric:lead-quality", "metric:brand-awareness"],
         },
     }
 
@@ -259,11 +282,33 @@ def _high_risk_security_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
     return work_id, UUID(matching[0]["id"])
 
 
+def _high_risk_marketing_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": key,
+            "title": "Material marketing readiness review",
+            "objective": "Coordinate evidence-backed internal Marketing analysis within the CEO mandate.",
+            "department": "Marketing",
+            "action": "internal.analysis",
+            "risk_level": "high",
+            "context": _marketing_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decisions = raw_client.get("/api/v1/organization/decisions")
+    assert decisions.status_code == 200, decisions.text
+    matching = [item for item in decisions.json() if item["work_item_id"] == str(work_id)]
+    assert len(matching) == 1
+    return work_id, UUID(matching[0]["id"])
+
+
 def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_session: Session) -> None:
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 24
+    assert response.json()["positions_registered"] == 26
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
@@ -272,6 +317,7 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["cto"].reports_to_position_key == "ceo"
     assert by_key["ciso"].reports_to_position_key == "ceo"
     assert by_key["cpo"].reports_to_position_key == "ceo"
+    assert by_key["cmo"].reports_to_position_key == "ceo"
     assert by_key["vp_engineering"].reports_to_position_key == "cto"
     assert by_key["vp_engineering"].authority_level == "L2"
     assert by_key["lead_architect"].reports_to_position_key == "cto"
@@ -288,6 +334,10 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["product_manager"].authority_level == "L2"
     assert by_key["design_agent"].reports_to_position_key == "cpo"
     assert by_key["design_agent"].authority_level == "L2"
+    assert by_key["creative_director"].reports_to_position_key == "cmo"
+    assert by_key["creative_director"].authority_level == "L2"
+    assert by_key["marketing_manager"].reports_to_position_key == "cmo"
+    assert by_key["marketing_manager"].authority_level == "L2"
     assert by_key["sales_summary"].reports_to_position_key == "coo"
     assert by_key["operations_coordination"].reports_to_position_key == "coo"
     assert by_key["business_intelligence"].reports_to_position_key == "coo"
@@ -315,6 +365,13 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert set(ciso_contract["required_specialist_positions"]) == SECURITY_DELEGATES
     assert "position.suspend" in ciso_contract["prohibited_direct_actions"]
     assert "policy.publish" in ciso_contract["prohibited_direct_actions"]
+    cmo_contract = json.loads(by_key["cmo"].contract_json)
+    assert cmo_contract["delegated_action_authority"] == ["internal.analysis"]
+    assert cmo_contract["direct_action_authority"] == []
+    assert cmo_contract["external_action_authorized"] is False
+    assert set(cmo_contract["required_specialist_positions"]) == MARKETING_DELEGATES
+    assert "policy.publish" in cmo_contract["prohibited_direct_actions"]
+    assert "pricing.change" in cmo_contract["prohibited_direct_actions"]
 
     cards = Path(__file__).parents[3] / "agents" / "role_cards"
     for card in (
@@ -334,6 +391,8 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
         "CCO.md",
         "CHRO.md",
         "CLO.md",
+        "Creative_Director.md",
+        "Marketing_Manager.md",
     ):
         assert (cards / card).is_file()
 
@@ -1123,15 +1182,15 @@ def test_still_unimplemented_department_runtime_is_held_without_false_completion
     created = raw_client.post(
         "/api/v1/organization/work-items",
         json={
-            "idempotency_key": "marketing-runtime-unavailable-001",
-            "title": "Review market positioning",
+            "idempotency_key": "finance-runtime-unavailable-001",
+            "title": "Review financial positioning",
             "objective": "Exercise a registered department whose specialist runtime is not yet available.",
-            "department": "Marketing",
+            "department": "Finance",
             "action": "internal.analysis",
         },
     )
     assert created.status_code == 201, created.text
-    assert created.json()["assigned_position_key"] == "cmo"
+    assert created.json()["assigned_position_key"] == "cfo"
     assert created.json()["status"] == "held"
     assert "does not execute" in created.json()["last_error"]
 
@@ -3156,3 +3215,318 @@ def test_security_operations_prohibited_action_enforcement(
         assert executed.status_code == 200, executed.text
         assert executed.json()["status"] == "held"
         assert "only bounded internal.analysis is enabled" in executed.json()["last_error"]
+
+
+# -----------------------------------------------------------------------------
+# Marketing / CMO bounded runtime coverage
+# -----------------------------------------------------------------------------
+
+
+def test_marketing_internal_analysis_runs_required_specialists_without_a_lead(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    payload = {
+        "idempotency_key": "marketing-internal-analysis-001",
+        "title": "Review marketing readiness",
+        "objective": "Produce a bounded internal Marketing review from marketing evidence.",
+        "department": "Marketing",
+        "action": "internal.analysis",
+        "context": _marketing_context(),
+    }
+    first = raw_client.post("/api/v1/organization/work-items", json=payload)
+    second = raw_client.post("/api/v1/organization/work-items", json=payload)
+    assert first.status_code == 201, first.text
+    assert second.status_code == 201, second.text
+    assert second.json()["id"] == first.json()["id"]
+    assert first.json()["status"] == "queued"
+    assert first.json()["assigned_position_key"] == "cmo"
+
+    work_id = UUID(first.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == MARKETING_DELEGATES
+    assert all(item.delegator_position_key == "cmo" for item in delegations)
+    assert all("L2 internal analysis only" in item.authority_basis for item in delegations)
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+    output = json.loads(executed.json()["output_json"])
+    assert output["governance"]["accountable_position_key"] == "cmo"
+    assert output["governance"]["external_action_authorized"] is False
+    assert {item["agent"] for item in output["delegated_results"]} == {
+        "creative_director_agent",
+        "marketing_manager_agent",
+    }
+    assert all(item.get("run_id") for item in output["delegated_results"])
+
+    db_session.expire_all()
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert all(item.status == "completed" for item in delegations)
+    assert all(item.result_ref and item.result_ref.startswith("agent-run:") for item in delegations)
+    action_outputs = db_session.exec(
+        select(OrganizationalActionOutput).where(
+            OrganizationalActionOutput.work_item_id == work_id
+        )
+    ).all()
+    assert len(action_outputs) == 2
+    for action_output in action_outputs:
+        assert any(item["type"] == "agent_run" for item in json.loads(action_output.evidence_json))
+        assert json.loads(action_output.impact_json)["external_action_authorized"] is False
+        specialist_output = json.loads(action_output.output_json)["output"]
+        assert specialist_output["external_action_authorized"] is False
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+
+    replay = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert replay.status_code == 409, replay.text
+
+
+def test_incomplete_marketing_evidence_holds_the_whole_work_item(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "marketing-evidence-incomplete-001",
+            "title": "Review an undocumented marketing change",
+            "objective": "Expose missing marketing evidence without approving the change.",
+            "department": "Marketing",
+            "action": "internal.analysis",
+            "context": {"facts": {"change_scope": "unknown"}, "evidence": {}},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert executed.json()["completed_at"] is None
+    assert "missing evidence fields" in executed.json()["last_error"]
+    assert json.loads(executed.json()["output_json"]) == {}
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+    assert db_session.exec(select(OrganizationalActionOutput)).all() == []
+
+
+def test_suspended_required_marketing_specialist_holds_then_resumes_work(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    raw_client.post("/api/v1/organization/bootstrap")
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "marketing-specialist-suspension-001",
+            "title": "Review a reversible marketing change",
+            "objective": "Require both marketing reviewers before the CMO accepts the analysis.",
+            "department": "Marketing",
+            "action": "internal.analysis",
+            "max_execution_attempts": 1,
+            "context": _marketing_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    marketing_manager_position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "marketing_manager")
+    ).one()
+    suspended = raw_client.post(
+        f"/api/v1/organization/positions/{marketing_manager_position.id}/suspend",
+        json={"reason": "Human Board pauses marketing management review for an independence check."},
+    )
+    assert suspended.status_code == 200, suspended.text
+
+    first_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert first_execution.status_code == 200, first_execution.text
+    assert first_execution.json()["status"] == "held"
+    assert "marketing_manager" in first_execution.json()["last_error"]
+    db_session.expire_all()
+    by_delegate = {
+        item.delegate_position_key: item
+        for item in db_session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+        ).all()
+    }
+    assert by_delegate["creative_director"].status == "queued"
+    assert by_delegate["marketing_manager"].status == "held"
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+
+    resumed = raw_client.post(
+        f"/api/v1/organization/positions/{marketing_manager_position.id}/resume",
+        json={"reason": "Human Board completed the independence check and restored the reviewer."},
+    )
+    assert resumed.status_code == 200, resumed.text
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "queued"
+
+    second_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert second_execution.status_code == 200, second_execution.text
+    assert second_execution.json()["status"] == "completed"
+    assert len(db_session.exec(select(OrganizationExecutionAttempt)).all()) == 1
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+    assert len(db_session.exec(select(OrganizationalActionOutput)).all()) == 2
+
+
+def test_evidence_complete_marketing_l3_hands_off_from_cmo_to_ceo(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_marketing_work(
+        raw_client,
+        key="marketing-ceo-handoff-001",
+    )
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+    assert json.loads(executed.json()["output_json"])["governance"][
+        "external_action_authorized"
+    ] is False
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "approved"
+    assert "Marketing analysis" in coordinated.json()["decision_reason"]
+    assert "No external action was authorized" in coordinated.json()["decision_reason"]
+
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "completed"
+    consultations = db_session.exec(
+        select(ExecutiveCouncilConsultation).where(
+            ExecutiveCouncilConsultation.decision_id == decision_id
+        )
+    ).all()
+    assert len(consultations) == 1
+    assert consultations[0].consulted_position == "cmo"
+    assert consultations[0].domain == "marketing"
+    assert consultations[0].status == "completed"
+    assert consultations[0].confidence >= 0.5
+    assert consultations[0].dissent is False
+
+
+def test_cmo_contract_mismatch_holds_until_human_board_bootstrap_repairs_it(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    raw_client.post("/api/v1/organization/bootstrap")
+    cmo = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == "cmo")
+    ).one()
+    permissive_contract = json.dumps({"direct_action_authority": ["*"]})
+    cmo.contract_json = permissive_contract
+    db_session.add(cmo)
+    db_session.commit()
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "marketing-contract-repair-001",
+            "title": "Review CMO contract enforcement",
+            "objective": "Confirm that only the Human Board bootstrap can repair the CMO contract.",
+            "department": "Marketing",
+            "action": "internal.analysis",
+            "context": _marketing_context(),
+        },
+    )
+    work_id = UUID(created.json()["id"])
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert "Human Board repair" in executed.json()["last_error"]
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    db_session.refresh(cmo)
+    assert cmo.contract_json == permissive_contract
+
+    repaired = raw_client.post("/api/v1/organization/bootstrap")
+    assert repaired.status_code == 201, repaired.text
+    db_session.expire_all()
+    cmo = db_session.get(OrganizationPosition, cmo.id)
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert cmo is not None
+    assert json.loads(cmo.contract_json)["direct_action_authority"] == []
+    assert work is not None and work.status == "queued"
+    completed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert completed.status_code == 200, completed.text
+    assert completed.json()["status"] == "completed"
+
+
+def test_marketing_prohibited_action_enforcement(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    for prohibited_action in ("pricing.change", "policy.publish"):
+        created = raw_client.post(
+            "/api/v1/organization/work-items",
+            json={
+                "idempotency_key": f"marketing-prohibited-{prohibited_action.replace('.', '-')}-001",
+                "title": f"Marketing prohibited action: {prohibited_action}",
+                "objective": "Verify Marketing runtime fails closed on prohibited actions.",
+                "department": "Marketing",
+                "action": prohibited_action,
+                "context": _marketing_context(),
+            },
+        )
+        assert created.status_code == 201, created.text
+        assert created.json()["status"] == "held"
+        work_id = UUID(created.json()["id"])
+
+        executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+        assert executed.status_code == 200, executed.text
+        assert executed.json()["status"] == "held"
+        assert "only bounded internal.analysis is enabled" in executed.json()["last_error"]
+
+
+def test_marketing_specialists_cannot_be_invoked_for_non_marketing_work(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "marketing-specialist-non-marketing-001",
+            "title": "Route non-Marketing work to Marketing",
+            "objective": "Marketing specialists must reject non-Marketing work at delegation time.",
+            "department": "Technology",
+            "action": "internal.analysis",
+            "context": _marketing_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "cto"
+    work_id = UUID(created.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == TECHNOLOGY_DELEGATES
+    for delegation in delegations:
+        assert delegation.delegate_position_key not in MARKETING_DELEGATES
+
+
+def test_cmo_only_assignment_for_marketing_work(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "cmo-only-assignment-001",
+            "title": "Marketing work is assigned to CMO",
+            "objective": "Confirm Marketing work is owned by the CMO position.",
+            "department": "Marketing",
+            "action": "internal.analysis",
+            "context": _marketing_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "cmo"

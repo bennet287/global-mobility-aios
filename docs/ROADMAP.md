@@ -40,11 +40,11 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-07
+**As of:** 2026-08-08
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-**Code migration head:** `0065_security_runtime_contract`
+**Code migration head:** `0067_marketing_runtime_contract`
 
 | Area | State | Current position |
 |---|---|---|
@@ -61,19 +61,20 @@ The target operating model is defined in
 
 - Web production build: passing, 35 application routes.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0065`.
+- Migration-chain integrity: passing with one head at `0067`.
 - Docker production-profile validation: passing.
 - API tests: **passing and 0 failing**.
-- Local SQLite database: aligned at `0065`.
+- Local SQLite database: aligned at `0067`.
 - Docker PostgreSQL database: runtime not active during this slice; migration
-  `0065` will apply through the existing migration job on next startup.
+  `0067` will apply through the existing migration job on next startup.
 - Local quality gate: passing.
 
 The repository is release-ready for the Phase 13 governance foundation, Board
 Packet reporting, evidence-output, bounded execution-control, external-action
-gates, the bounded Operations, Technology, Product, and Security department
-runtimes, and the CEO coordination loop. The remaining departments held and not
-yet operational are Marketing, Finance, Communications, People, and Legal.
+gates, the bounded Operations, Technology, Product, Security, Security
+Operations/SOC, and Marketing department runtimes, and the CEO coordination loop.
+The remaining departments held and not yet operational are Finance, Communications,
+People, and Legal.
 
 ## 3. Execution Order
 
@@ -187,9 +188,9 @@ Key specifications:
 ## 6. Active Gate: Phase 13 — AI Organization Governance and Autonomous Operations
 
 **Status:** Governance foundation, Board reporting, the first bounded autonomous
-organization flow, the Operations, Technology, Product, Security, and Security
-Operations/SOC department runtimes, and bounded CEO coordination are delivered.
-The COO now delegates general operating objectives to Sales Intelligence,
+organization flow, the Operations, Technology, Product, Security, Security
+Operations/SOC, and Marketing department runtimes, and bounded CEO coordination are
+delivered. The COO now delegates general operating objectives to Sales Intelligence,
 Operations Coordination, and Business Intelligence, and adds Application Readiness
 for mobility-case events. The CTO delegates technology work to the Vice President
 of Engineering and Lead Architect for delivery-readiness, architecture, security,
@@ -201,12 +202,14 @@ for security controls, attack surface, policy alignment, threat intelligence,
 prompt-injection, jailbreak, data-exfiltration, and compromised-agent indicator
 analysis, and delegates Security Operations work to the SOC Lead and SOC Analyst
 for agent-behavior monitoring, audit-log triage, incident coordination, and
-anomaly analysis. Evidence-complete internal L3 matters receive a durable
-consultation and may be closed by the CEO Agent; external actions, L4 matters,
-emergencies, self-approval conflicts, missing consultation, and dissent fail
-closed. Cross-functional consultation requirements are durable and fail closed.
-The remaining departments held and not yet operational are Marketing, Finance,
-Communications, People, and Legal.
+anomaly analysis. The CMO delegates marketing work to the Creative Director and
+Marketing Manager for brand fit, creative quality, messaging, audience alignment,
+channel fit, campaign plan, growth metrics, and budget-constraint analysis.
+Evidence-complete internal L3 matters receive a durable consultation and may be
+closed by the CEO Agent; external actions, L4 matters, emergencies, self-approval
+conflicts, missing consultation, and dissent fail closed. Cross-functional
+consultation requirements are durable and fail closed. The remaining departments
+held and not yet operational are Finance, Communications, People, and Legal.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -272,7 +275,11 @@ manager, and specialist agents, with the human owner acting as the Board.
 - [x] Implement the Security Operations/SOC runtime under the CISO with bounded
   SOC specialists (SOC Lead and SOC Analyst) for agent-behavior monitoring, audit-log
   triage, incident coordination, and anomaly analysis.
-- [ ] Implement the remaining department-head runtimes: CMO, CFO, CCO, CHRO, and CLO.
+- [x] Implement the CMO department-head runtime with bounded Marketing specialists
+  (Creative Director and Marketing Manager) for brand fit, creative quality,
+  messaging, audience alignment, channel fit, campaign plan, growth metrics, and
+  budget-constraint analysis.
+- [ ] Implement the remaining department-head runtimes: CFO, CCO, CHRO, and CLO.
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.
 - [x] Extend the same delegation contract to the CTO and CPO runtimes.
@@ -343,11 +350,21 @@ After the first organization flow and Board Room pass their release gates:
 - [x] Expand Security Operations (SOC): SOC Lead and SOC Analyst under CISO
   accountability, with bounded delegation, agent-behavior and audit-log analysis,
   required evidence/output contracts, and hardened role cards.
-- [ ] Add Marketing: CMO, Product Marketing, and Marketing Managers.
-- [ ] Add Finance: CFO, Accounts, M&A, and Investor Relations.
-- [ ] Add Communications: CCO, Communications, PR, and Government Relations.
-- [ ] Add People: CHRO, HR, Culture, and Recruitment.
-- [ ] Add Legal: CLO, General Counsel, Public Policy, and Compliance.
+- [x] Add Marketing: CMO, Creative Director, and Marketing Manager under CMO
+  accountability, with bounded delegation, brand/creative/channel analysis, and
+  required evidence/output contracts.
+- [ ] Add Finance: CFO, Accounts Lead, and Investor Relations Lead under CFO
+  accountability, with bounded delegation, spend/investment/contract analysis,
+  and required evidence/output contracts.
+- [ ] Add Communications: CCO, Communications Lead, and PR/Government Relations Lead
+  under CCO accountability, with bounded delegation, message/channel/stakeholder
+  analysis, and required evidence/output contracts.
+- [ ] Add People: CHRO, HR Lead, and Culture/Recruitment Lead under CHRO
+  accountability, with bounded delegation, workforce/talent/policy analysis, and
+  required evidence/output contracts.
+- [ ] Add Legal: CLO, General Counsel, and Public Policy/Compliance Lead under
+  CLO accountability, with bounded delegation, risk/authority/policy analysis,
+  and required evidence/output contracts.
 - [ ] Add time-bounded cross-functional programmes with one accountable executive
   sponsor and explicit participating positions.
 
@@ -378,6 +395,9 @@ After the first organization flow and Board Room pass their release gates:
 - [x] Evidence-complete internal L3 Operations work resolves through a distinct
   CEO decision receipt without authorizing an external action or interrupting the
   Board.
+- [x] Evidence-complete internal L3 Marketing work resolves through a distinct
+  CEO decision receipt that consults the CMO, without authorizing an external
+  action or interrupting the Board.
 
 ## 7. Phase 14: Global Scale Platform
 
@@ -409,6 +429,7 @@ After the first organization flow and Board Room pass their release gates:
 | 10C-10E | Global dashboards, reviewed ranking, and immutable multi-year mobility scenarios | [MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md](MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md) |
 | 11 | Corporate, business, wealth, investment, family-office, and tax/treaty mobility | [BUSINESS_WEALTH_ADVISORY_V11_4.md](BUSINESS_WEALTH_ADVISORY_V11_4.md) |
 | 12 | Client/ecosystem portals, partner APIs, governed automation, appointments, submissions, assignments, checklists, and reminders | [GOVERNED_AUTOMATION_FOUNDATION_V12_3.md](GOVERNED_AUTOMATION_FOUNDATION_V12_3.md) |
+| 13.0-13.10 | AI organization governance, Board Room, executive-decision ledger, bounded Operations, Technology, Product, Security, SOC, and Marketing runtimes | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md) |
 
 ## 9. Delivery Governance
 

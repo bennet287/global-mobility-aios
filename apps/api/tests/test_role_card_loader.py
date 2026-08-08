@@ -30,6 +30,9 @@ def test_list_role_cards_finds_all_cards():
         "Application_Readiness_Agent",
         "Study_Abroad_Advisor",
         "Visa_Truth_Agent",
+        "Creative_Director",
+        "Marketing_Manager",
+        "Head_of_Product",
     }
     assert expected.issubset(set(cards.keys()))
     for path in cards.values():
@@ -57,6 +60,8 @@ def test_list_role_cards_finds_all_cards():
         "SOC_Lead",
         "SOC_Analyst",
         "Application_Readiness_Agent",
+        "Creative_Director",
+        "Marketing_Manager",
     ],
 )
 def test_load_role_card_parses_sections(card_name):
@@ -120,6 +125,8 @@ def test_agent_role_card_map_covers_all_canonical_agents():
         "threat_analyst_agent",
         "soc_lead_agent",
         "soc_analyst_agent",
+        "creative_director_agent",
+        "marketing_manager_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -185,6 +192,8 @@ def test_all_canonical_agents_have_output_schema():
         "threat_analyst_agent",
         "soc_lead_agent",
         "soc_analyst_agent",
+        "creative_director_agent",
+        "marketing_manager_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",

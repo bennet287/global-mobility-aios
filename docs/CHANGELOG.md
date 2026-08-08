@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-08-08 — Phase 13.10 bounded Marketing/CMO runtime contract
+
+- Expanded the registered organization from 22 to 24 positions by adding the
+  Chief Marketing Officer Agent, Creative Director Agent, and Marketing Manager
+  Agent under CEO and CMO accountability.
+- Added full position contracts for the CMO, Creative Director, and Marketing
+  Manager through migration `0067_marketing_runtime_contract`, including required
+  evidence fields, required specialist outputs, prohibited direct actions, and a
+  unique work/delegate constraint on Marketing delegation records.
+- Added `agents/role_cards/CMO.md`, `agents/role_cards/Creative_Director.md`, and
+  `agents/role_cards/Marketing_Manager.md` with bounded L3/L2 analysis contracts
+  for brand fit, creative quality, messaging, audience alignment, channel fit,
+  campaign plan, growth metrics, and budget constraints.
+- Implemented a fail-closed Marketing department-head runtime that delegates only
+  `internal.analysis` work to the Creative Director and Marketing Manager,
+  validates required evidence fields, validates required specialist outputs,
+  records dissent and material risks, and fails closed on pricing changes,
+  policy publication, external messaging, spend, contracts, external action,
+  campaign launch, or non-Marketing work requests.
+- Enforced that Marketing specialists cannot be invoked for non-Marketing work,
+  that Marketing work is assigned only to the CMO, and that incomplete evidence
+  or missing outputs are recorded as gaps rather than silently approved.
+- Connected the controlled-agent registry and role-card loader to the Marketing
+  specialist contracts so runtime prompts, rejection behavior, and output schemas
+  are consistent with the persisted position contract.
+- Added Marketing runtime regression coverage including evidence-field validation,
+  output-field validation, non-Marketing rejection, CMO-only assignment,
+  required-delegate completeness, suspended-specialist resume, hardened contract
+  enforcement, and evidence-aware fail-closed controlled-agent outputs.
+- Updated `docs/ROADMAP.md` to mark the Marketing department runtime as delivered
+  and identify Finance, Communications, People, and Legal as the remaining held
+  departments.
+- Full API suite passes with the expanded test suite at migration head `0067` and
+  the local quality gate passes.
+
 ## 2026-08-07 — Phase 13.8 bounded Security/CISO runtime contract
 
 - Expanded the registered organization from 19 to 22 positions by adding the

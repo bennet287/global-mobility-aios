@@ -170,6 +170,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["soc_analyst_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["soc_analyst_agent"],
     },
+    "creative_director_agent": {
+        "version": "v13.10",
+        "department": "marketing",
+        "role": "Assesses brand fit, creative quality, messaging, and audience alignment from supplied evidence.",
+        "guardrails": [
+            "Cannot publish creative assets, launch campaigns, or send external messages.",
+            "Cannot change pricing or publish policy, spend, sign contracts, or authorize external action.",
+            "Must expose missing evidence and escalate material brand or creative risk.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["creative_director_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["creative_director_agent"],
+    },
+    "marketing_manager_agent": {
+        "version": "v13.10",
+        "department": "marketing",
+        "role": "Assesses channel fit, campaign plan, growth metrics, budget constraints, and dependencies from supplied evidence.",
+        "guardrails": [
+            "Cannot launch campaigns, change pricing, or send external messages.",
+            "Cannot publish policy, commit spend, sign contracts, or authorize external action.",
+            "Must expose missing evidence and escalate material channel or spend risk.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["marketing_manager_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["marketing_manager_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

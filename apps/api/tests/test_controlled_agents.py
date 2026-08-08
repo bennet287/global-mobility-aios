@@ -37,6 +37,8 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "threat_analyst_agent",
         "soc_lead_agent",
         "soc_analyst_agent",
+        "creative_director_agent",
+        "marketing_manager_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -1077,6 +1079,91 @@ def test_soc_agent_exposes_missing_evidence(
     assert output["soc_assessment"] == "evidence_incomplete"
     assert "audit_logs" in output["evidence_basis"]
     assert {"agent_activity", "incident_history", "monitored_signals", "sources"}.issubset(
+        output["evidence_gaps"]
+    )
+    assert output["confidence"] < 0.5
+
+
+# -----------------------------------------------------------------------------
+# Marketing / CMO controlled-agent coverage
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("agent_name", "expected_key", "blocked_action"),
+    [
+        ("creative_director_agent", "creative_assessment", "campaign.launch"),
+        ("marketing_manager_agent", "marketing_fit", "pricing.change"),
+    ],
+)
+def test_marketing_agents_produce_evidence_aware_fail_closed_outputs(
+    client: TestClient,
+    db_session: Session,
+    agent_name: str,
+    expected_key: str,
+    blocked_action: str,
+) -> None:
+    lead = create_lead(db_session, name=f"{agent_name} Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": agent_name,
+            "task": "Prepare bounded Marketing evidence analysis.",
+            "lead_id": str(lead.id),
+            "context": {
+                "facts": {
+                    "audience_evidence": ["audience:founders", "audience:enterprise"],
+                    "brand_guidelines": ["brand:voice-and-tone-v3"],
+                    "budget_constraints": ["budget:annual-marketing-allocation"],
+                    "campaign_plan": ["campaign:q3-launch-outline"],
+                    "channel_strategy": ["channel:linkedin", "channel:webinars"],
+                    "creative_assets": ["asset:hero-creative-v2"],
+                    "messaging": ["messaging:value-proposition-v4"],
+                    "risks": ["risk:brand-approval-pending"],
+                    "sources": ["repository:agents/role_cards", "repository:docs/ROADMAP.md"],
+                    "success_metrics": ["metric:lead-quality", "metric:brand-awareness"],
+                }
+            },
+            "actor": "cmo-runtime",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    output = payload["output"]
+    assert expected_key in output
+    assert output["human_review_required"] is True
+    assert output["client_facing"] is False
+    assert output["external_action_authorized"] is False
+    assert blocked_action in output["blocked_actions"]
+    assert "policy.publish" in output["blocked_actions"]
+    assert "client.external_send" in output["blocked_actions"]
+    assert 0.0 < output["confidence"] <= 0.85
+
+    run = db_session.exec(select(AgentRun).where(AgentRun.agent_name == agent_name)).one()
+    persisted = json.loads(run.output_json)
+    assert persisted["evidence_basis"] == output["evidence_basis"]
+
+
+def test_marketing_agent_exposes_missing_evidence(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session, name="Marketing Gap Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "creative_director_agent",
+            "task": "Assess brand readiness without inventing evidence.",
+            "lead_id": str(lead.id),
+            "context": {"facts": {"brand_guidelines": ["brand:voice-and-tone-v3"]}},
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    output = response.json()["output"]
+    assert output["creative_assessment"] == "evidence_incomplete"
+    assert "brand_guidelines" in output["evidence_basis"]
+    assert {"audience_evidence", "creative_assets", "messaging", "sources"}.issubset(
         output["evidence_gaps"]
     )
     assert output["confidence"] < 0.5

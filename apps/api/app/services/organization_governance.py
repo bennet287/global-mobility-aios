@@ -45,6 +45,8 @@ POSITION_SPECS = (
     ("soc_analyst", "SOC Analyst Agent", "Security Operations", "ciso", "L2", "SOC_Analyst.md"),
     ("coo", "Chief Operating Officer Agent", "Operations", "ceo", "L3", "COO.md"),
     ("cmo", "Chief Marketing Officer Agent", "Marketing", "ceo", "L3", "CMO.md"),
+    ("creative_director", "Creative Director Agent", "Marketing", "cmo", "L2", "Creative_Director.md"),
+    ("marketing_manager", "Marketing Manager Agent", "Marketing", "cmo", "L2", "Marketing_Manager.md"),
     ("cpo", "Chief Product Officer Agent", "Product", "ceo", "L3", "CPO.md"),
     ("product_manager", "Product Manager Agent", "Product", "cpo", "L2", "Product_Manager.md"),
     ("design_agent", "Design Agent Agent", "Product", "cpo", "L2", "Design_Agent.md"),
@@ -82,6 +84,9 @@ HARDENED_POSITION_KEYS = frozenset(
         "threat_analyst",
         "soc_lead",
         "soc_analyst",
+        "cmo",
+        "creative_director",
+        "marketing_manager",
     }
 )
 
@@ -188,6 +193,7 @@ EXECUTABLE_DEPARTMENT_ACTIONS: dict[str, frozenset[str] | None] = {
     "product": frozenset({"internal.analysis"}),
     "security": frozenset({"internal.analysis"}),
     "security operations": frozenset({"internal.analysis"}),
+    "marketing": frozenset({"internal.analysis"}),
 }
 GOVERNED_EXTERNAL_ACTIONS = frozenset(
     {
@@ -387,6 +393,65 @@ SECURITY_OPERATIONS_PROHIBITED_ACTIONS = frozenset(
         "vendor.commit",
     }
 )
+MARKETING_DELEGATION_SPECS = (
+    (
+        "creative_director",
+        "Assess brand fit, creative quality, messaging, and audience alignment from supplied evidence.",
+    ),
+    (
+        "marketing_manager",
+        "Assess channel fit, campaign plan, growth metrics, budget constraints, and dependencies from supplied evidence.",
+    ),
+)
+MARKETING_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in MARKETING_DELEGATION_SPECS
+)
+MARKETING_REQUIRED_EVIDENCE_FIELDS = (
+    "audience_evidence",
+    "brand_guidelines",
+    "budget_constraints",
+    "campaign_plan",
+    "channel_strategy",
+    "creative_assets",
+    "messaging",
+    "risks",
+    "sources",
+    "success_metrics",
+)
+MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "creative_director": frozenset(
+        {
+            "creative_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "marketing_manager": frozenset(
+        {
+            "marketing_fit",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
+MARKETING_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "policy.publish",
+        "pricing.change",
+        "production.irreversible",
+    }
+)
 ACTION_EXECUTIVE_CONSULTATIONS = {
     "client.external_send": ("cco",),
     "authority.submit": ("clo",),
@@ -458,6 +523,11 @@ def _runtime_unavailable_reason(department: str, action: str | None) -> str:
     if normalized_department.lower() == "security operations":
         return (
             f"The Security Operations runtime does not execute action '{normalized_action}'; "
+            "only bounded internal.analysis is enabled."
+        )
+    if normalized_department.lower() == "marketing":
+        return (
+            f"The Marketing runtime does not execute action '{normalized_action}'; "
             "only bounded internal.analysis is enabled."
         )
     return f"The {normalized_department} runtime is registered for governance but is not yet executable."
@@ -623,6 +693,74 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                     PRODUCT_SPECIALIST_REQUIRED_OUTPUT_FIELDS["design_agent"]
                 ),
                 "prohibited_direct_actions": sorted(PRODUCT_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "cmo":
+        contract.update(
+            {
+                "capabilities": [
+                    "delegate_bounded_marketing_analysis",
+                    "synthesize_evidence_complete_marketing_review",
+                    "escalate_pricing_policy_and_external_messaging_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_specialist_positions": sorted(MARKETING_REQUIRED_DELEGATES),
+                "required_evidence_fields": list(MARKETING_REQUIRED_EVIDENCE_FIELDS),
+                "prohibited_direct_actions": sorted(MARKETING_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "creative_director":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_brand_creative_and_messaging_fit",
+                    "assess_audience_and_creative_quality",
+                    "raise_creative_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "audience_evidence",
+                    "brand_guidelines",
+                    "creative_assets",
+                    "messaging",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS["creative_director"]
+                ),
+                "prohibited_direct_actions": sorted(MARKETING_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "marketing_manager":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_channel_fit_and_campaign_plan",
+                    "assess_growth_metrics_and_dependencies",
+                    "raise_marketing_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "budget_constraints",
+                    "campaign_plan",
+                    "channel_strategy",
+                    "risks",
+                    "sources",
+                    "success_metrics",
+                ],
+                "required_output_fields": sorted(
+                    MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS["marketing_manager"]
+                ),
+                "prohibited_direct_actions": sorted(MARKETING_PROHIBITED_ACTIONS),
             }
         )
     elif position_key == "ciso":
@@ -1011,6 +1149,12 @@ def ensure_foundation_positions(
                         key,
                         result_refs={"position:contract_mismatch"},
                     )
+                if key in MARKETING_REQUIRED_DELEGATES:
+                    _requeue_position_holds(
+                        session,
+                        key,
+                        result_refs={"position:contract_mismatch"},
+                    )
                 if key == "cto":
                     contract_holds = session.exec(
                         select(OrganizationalWorkItem).where(
@@ -1062,6 +1206,28 @@ def ensure_foundation_positions(
                             OrganizationalWorkItem.status == "held",
                             OrganizationalWorkItem.last_error
                             == "The persisted CISO contract requires Human Board repair before execution.",
+                        )
+                    ).all()
+                    for held_work in contract_holds:
+                        if (
+                            held_work.cancel_requested_at is None
+                            and held_work.execution_attempts < held_work.max_execution_attempts
+                            and department_runtime_available(
+                                held_work.department,
+                                _work_action(held_work),
+                            )
+                        ):
+                            held_work.status = "queued"
+                            held_work.last_error = None
+                            held_work.updated_at = _now()
+                            session.add(held_work)
+                if key == "cmo":
+                    contract_holds = session.exec(
+                        select(OrganizationalWorkItem).where(
+                            OrganizationalWorkItem.assigned_position_key == "cmo",
+                            OrganizationalWorkItem.status == "held",
+                            OrganizationalWorkItem.last_error
+                            == "The persisted CMO contract requires Human Board repair before execution.",
                         )
                     ).all()
                     for held_work in contract_holds:
@@ -1281,6 +1447,44 @@ def delegate_security_operations_work(
             authority_basis=(
                 "CISO L3 security mandate; delegated L2 Security Operations internal analysis only; "
                 "no position suspension, policy publication, secret access, deployment, infrastructure mutation, spend, contract, or external action authority."
+            ),
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_marketing_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CMO review plan once for internal analysis."""
+    if work.department.strip().lower() != "marketing":
+        raise ValueError("Marketing delegation requires a Marketing work item")
+    if work.assigned_position_key != "cmo":
+        raise ValueError("Marketing delegation requires CMO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("Marketing delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in MARKETING_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="cmo",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CMO L3 marketing mandate; delegated L2 internal analysis only; "
+                "no pricing change, policy publication, campaign launch, external messaging, spend, contract, or external action authority."
             ),
         )
         session.add(delegation)
@@ -2166,6 +2370,18 @@ def execute_work_item(
             actor=actor,
             audit_action="organization_work_held_contract_mismatch",
         )
+    if (
+        work.department.strip().lower() == "marketing"
+        and _load(accountable_position.contract_json, {}) != _position_contract("cmo", "L3")
+    ):
+        return _hold_work_without_claim(
+            session,
+            work,
+            reason="The persisted CMO contract requires Human Board repair before execution.",
+            action=action,
+            actor=actor,
+            audit_action="organization_work_held_contract_mismatch",
+        )
 
     if work.department.strip().lower() == "technology":
         delegate_technology_work(session, work)
@@ -2217,6 +2433,19 @@ def execute_work_item(
                 action=action,
                 actor=actor,
                 audit_action="organization_work_held_security_operations_preflight",
+            )
+
+    if work.department.strip().lower() == "marketing":
+        delegate_marketing_work(session, work)
+        marketing_preflight_gap = _marketing_preflight_gap(session, work)
+        if marketing_preflight_gap:
+            return _hold_work_without_claim(
+                session,
+                work,
+                reason=marketing_preflight_gap,
+                action=action,
+                actor=actor,
+                audit_action="organization_work_held_marketing_preflight",
             )
 
     control = session.exec(select(OrganizationControl).where(OrganizationControl.control_key == "global")).first()
@@ -2544,6 +2773,78 @@ def _security_operations_preflight_gap(
     return "Security Operations preflight incomplete; " + "; ".join(gaps) + "."
 
 
+def _marketing_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _marketing_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _marketing_evidence_context(work)
+    aliases = {
+        "audience_evidence": ("audience_evidence", "audience_research", "audience_signals"),
+        "brand_guidelines": ("brand_guidelines", "brand_standards", "brand_policy"),
+        "budget_constraints": ("budget_constraints", "budget", "budget_limit"),
+        "campaign_plan": ("campaign_plan", "campaign"),
+        "channel_strategy": ("channel_strategy", "channels"),
+        "creative_assets": ("creative_assets", "assets", "creative"),
+        "messaging": ("messaging", "messaging_drafts", "copy"),
+        "risks": ("risks", "known_risks", "marketing_risks"),
+        "sources": ("sources", "source_provenance"),
+        "success_metrics": ("success_metrics", "metrics", "growth_metrics"),
+    }
+    return [
+        field
+        for field in MARKETING_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _marketing_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(MARKETING_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _marketing_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "Marketing preflight incomplete; " + "; ".join(gaps) + "."
+
+
 def _specialist_output_payload(action_output: OrganizationalActionOutput) -> dict[str, Any]:
     result = _load(action_output.output_json, {})
     if not isinstance(result, dict):
@@ -2632,6 +2933,16 @@ def _department_completion_gap(
         primary_field_by_position = {
             "soc_lead": "soc_assessment",
             "soc_analyst": "anomaly_assessment",
+        }
+    elif department == "marketing":
+        required_delegates = MARKETING_REQUIRED_DELEGATES
+        specialist_output_fields = MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS
+        evidence_gaps_fn = _marketing_evidence_gaps
+        proceed_recommendation = "proceed_to_cmo_internal_review"
+        prefix = "Marketing evidence contract incomplete"
+        primary_field_by_position = {
+            "creative_director": "creative_assessment",
+            "marketing_manager": "marketing_fit",
         }
     else:
         return None
@@ -2798,6 +3109,9 @@ def _execute_claimed_work_item(
         ) or (
             work.department.strip().lower() == "security operations"
             and delegation.delegate_position_key in SECURITY_OPERATIONS_REQUIRED_DELEGATES
+        ) or (
+            work.department.strip().lower() == "marketing"
+            and delegation.delegate_position_key in MARKETING_REQUIRED_DELEGATES
         )
         if work.lead_id is None and not runs_from_internal_context:
             result = {"agent": agent_name, "status": "completed", "note": "Case has no linked lead; organizational context recorded."}

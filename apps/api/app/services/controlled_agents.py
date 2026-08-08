@@ -82,6 +82,20 @@ SOC_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+MARKETING_AGENT_CONTROLLED_FIELDS = {
+    "summary",
+    "creative_assessment",
+    "marketing_fit",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -880,6 +894,37 @@ def _soc_risk_signals(
     return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
 
 
+def _marketing_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _marketing_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "marketing_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "marketing_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
 def _soc_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     facts = _soc_context(payload)
@@ -1023,6 +1068,105 @@ def _soc_analyst(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> d
     return output
 
 
+def _creative_director(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _marketing_context(payload)
+    evidence = {
+        "audience_evidence": _first_supplied(facts, "audience_evidence", "audience_research", "audience_signals"),
+        "brand_guidelines": _first_supplied(facts, "brand_guidelines", "brand_standards", "brand_policy"),
+        "creative_assets": _first_supplied(facts, "creative_assets", "assets", "creative"),
+        "messaging": _first_supplied(facts, "messaging", "messaging_drafts", "copy"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _marketing_risk_signals(facts, role_prefix="creative_director")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Brand, creative, and messaging evidence assessed for internal CMO review.",
+            "creative_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cmo_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded creative evidence gap before a recommendation is accepted.",
+                "Escalate creative-asset publication, external messaging, or brand-policy claims to the CMO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "pricing.change",
+                "policy.publish",
+                "client.external_send",
+                "contract.sign",
+                "deployment.production",
+                "external_action",
+                "campaign.launch",
+            ],
+        }
+    )
+    return output
+
+
+def _marketing_manager(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _marketing_context(payload)
+    evidence = {
+        "budget_constraints": _first_supplied(facts, "budget_constraints", "budget", "budget_limit"),
+        "campaign_plan": _first_supplied(facts, "campaign_plan", "campaign"),
+        "channel_strategy": _first_supplied(facts, "channel_strategy", "channels"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "marketing_risks"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "success_metrics": _first_supplied(facts, "success_metrics", "metrics", "growth_metrics"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _marketing_risk_signals(facts, role_prefix="marketing_manager")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Channel, campaign, and growth evidence assessed for internal CMO review.",
+            "marketing_fit": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cmo_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded campaign and channel evidence gap before a recommendation is accepted.",
+                "Escalate campaign launch, spend, pricing, or external messaging decisions to the CMO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "pricing.change",
+                "policy.publish",
+                "client.external_send",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "campaign.launch",
+            ],
+        }
+    )
+    return output
+
+
 def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     lead_data = payload.context.get("lead", {})
@@ -1067,6 +1211,8 @@ DETERMINISTIC_HANDLERS = {
     "threat_analyst_agent": _threat_analyst,
     "soc_lead_agent": _soc_lead,
     "soc_analyst_agent": _soc_analyst,
+    "creative_director_agent": _creative_director,
+    "marketing_manager_agent": _marketing_manager,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -1350,6 +1496,58 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
                 output["soc_assessment"] = "evidence_incomplete"
             if resolved_name == "soc_analyst_agent" and must_hold:
                 output["anomaly_assessment"] = "evidence_incomplete"
+        elif resolved_name in {"creative_director_agent", "marketing_manager_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in MARKETING_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cmo_internal_review"
+            )
+            if resolved_name == "creative_director_agent" and must_hold:
+                output["creative_assessment"] = "evidence_incomplete"
+            if resolved_name == "marketing_manager_agent" and must_hold:
+                output["marketing_fit"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -1393,6 +1591,8 @@ AGENT_HANDLERS = {
     "threat_analyst_agent": _llm_agent_handler,
     "soc_lead_agent": _llm_agent_handler,
     "soc_analyst_agent": _llm_agent_handler,
+    "creative_director_agent": _llm_agent_handler,
+    "marketing_manager_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,
