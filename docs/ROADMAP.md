@@ -40,7 +40,7 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-08
+**As of:** 2026-08-09
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
@@ -65,9 +65,9 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: **passing** at the unique head `0068_external_validation_framework`.
 - Docker production-profile validation: passing.
-- API tests: **532 passed, 0 failed** for the Phase 13.10.2 software release gate.
+- API tests: **534 passed, 0 failed** after the Phase 13.10.2.1 PostgreSQL migration-portability hardening.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
-- Docker PostgreSQL database: migration `0068_external_validation_framework` will apply through the existing migration job on next startup.
+- Docker PostgreSQL database: **passing** at `0068_external_validation_framework` after a backed-up persistent database upgraded transactionally from `0056_ai_organization_governance`; governed data remained intact with 292 jurisdictions, 89 official sources, 521 source snapshots, 86 verified rules, 1 mobility pathway, and 2 mobility pathway versions.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
@@ -387,6 +387,35 @@ repeatable, auditable infrastructure rather than an informal feedback exercise.
 The framework is described in
 [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md).
 
+### 13.10.2.1 PostgreSQL migration portability hardening
+
+The Phase 13.10.2 validation dry run exercised the persistent PostgreSQL
+database and exposed migration portability defects that the SQLite development
+path had not detected. The schema head remains
+`0068_external_validation_framework`; this slice corrects historical migration
+execution without introducing a new schema revision.
+
+- [x] Back up the persistent PostgreSQL database before migration repair.
+- [x] Replace PostgreSQL-incompatible integer Boolean defaults in
+  `0058_deadline_emergency_escalation` with dialect-safe `sa.false()`.
+- [x] Preserve native UUID binding for `organization_positions.id` in
+  `0065_security_runtime_contract`, `0066_soc_runtime_contract`, and
+  `0067_marketing_runtime_contract`.
+- [x] Add regression coverage preventing integer Boolean migration defaults and
+  VARCHAR bindings for the UUID organization-position identifier.
+- [x] Upgrade the historical PostgreSQL database transactionally from
+  `0056_ai_organization_governance` through
+  `0068_external_validation_framework`.
+- [x] Confirm the governed data set survives unchanged: 292 jurisdictions,
+  89 official sources, 521 source snapshots, 86 verified rules,
+  1 mobility pathway, and 2 mobility pathway versions.
+- [x] Confirm the unique Alembic head remains
+  `0068_external_validation_framework`.
+- [x] Run the complete release gate: **534 tests passed, 0 failed** and the
+  complete local quality gate passed.
+- [x] Release-close the portability hardening before resuming the Austria
+  external-mobility validation run.
+
 ### 13.6 Departmental expansion
 
 After the first organization flow and Board Room pass their release gates, and after the hardening checkpoint above:
@@ -488,7 +517,7 @@ After the first organization flow and Board Room pass their release gates, and a
 | 10C-10E | Global dashboards, reviewed ranking, and immutable multi-year mobility scenarios | [MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md](MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md) |
 | 11 | Corporate, business, wealth, investment, family-office, and tax/treaty mobility | [BUSINESS_WEALTH_ADVISORY_V11_4.md](BUSINESS_WEALTH_ADVISORY_V11_4.md) |
 | 12 | Client/ecosystem portals, partner APIs, governed automation, appointments, submissions, assignments, checklists, and reminders | [GOVERNED_AUTOMATION_FOUNDATION_V12_3.md](GOVERNED_AUTOMATION_FOUNDATION_V12_3.md) |
-| 13.0-13.10.2 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
+| 13.0-13.10.2.1 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
 
 ## 9. Delivery Governance
 

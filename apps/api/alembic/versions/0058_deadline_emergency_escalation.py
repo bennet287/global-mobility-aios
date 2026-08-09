@@ -16,7 +16,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("organizational_work_items", sa.Column("is_emergency", sa.Boolean(), nullable=False, server_default=sa.text("0")))
+    op.add_column("organizational_work_items", sa.Column("is_emergency", sa.Boolean(), nullable=False, server_default=sa.false()))
     op.add_column("organizational_work_items", sa.Column("due_at", sa.DateTime(timezone=True), nullable=True))
     op.add_column("organizational_work_items", sa.Column("reminded_at", sa.DateTime(timezone=True), nullable=True))
     op.add_column("organizational_work_items", sa.Column("escalated_at", sa.DateTime(timezone=True), nullable=True))
@@ -28,7 +28,7 @@ def upgrade() -> None:
     op.add_column("executive_decisions", sa.Column("reminded_at", sa.DateTime(timezone=True), nullable=True))
     op.create_index("ix_exec_decision_due_at", "executive_decisions", ["due_at"])
 
-    op.add_column("risk_escalations", sa.Column("is_emergency", sa.Boolean(), nullable=False, server_default=sa.text("0")))
+    op.add_column("risk_escalations", sa.Column("is_emergency", sa.Boolean(), nullable=False, server_default=sa.false()))
     op.create_index("ix_risk_is_emergency", "risk_escalations", ["is_emergency"])
 
 

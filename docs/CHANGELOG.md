@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-09 - Phase 13.10.2.1 PostgreSQL migration portability hardening
+
+- Corrected PostgreSQL-incompatible Boolean defaults in
+  `0058_deadline_emergency_escalation` by replacing integer defaults with
+  dialect-safe `sa.false()`.
+- Corrected Security, SOC, and Marketing migration bindings for
+  `organization_positions.id` so native PostgreSQL UUID columns are bound as
+  UUID rather than VARCHAR.
+- Added regression coverage preventing integer Boolean migration defaults and
+  string bindings for the UUID organization-position identifier.
+- Verified the corrections against a backed-up persistent PostgreSQL database
+  and upgraded it transactionally from `0056_ai_organization_governance` to
+  the unchanged unique head `0068_external_validation_framework`.
+- Confirmed governed data survived intact: 292 jurisdictions, 89 official
+  sources, 521 source snapshots, 86 verified rules, 1 mobility pathway, and
+  2 mobility pathway versions.
+- Focused migration regression coverage passed with **4 tests passed**.
+- Complete Phase 13.10.2.1 verification passed with **534 tests passed,
+  0 failed** and the complete local quality gate green.
+- The external-human validation gate remains held; this hardening does not
+  substitute for the required mobility-user and independent-professional run.
+
 ## 2026-08-08 — Phase 13.10.2 external mobility validation framework
 
 - Added migration `0068_external_validation_framework` with durable validation scenarios,

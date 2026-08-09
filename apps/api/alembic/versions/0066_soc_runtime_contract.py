@@ -142,7 +142,7 @@ def _insert_position(position_key: str) -> None:
     now = datetime.now(timezone.utc)
     positions = sa.table(
         "organization_positions",
-        sa.column("id", sa.String()),
+        sa.column("id", sa.Uuid(as_uuid=False)),
         sa.column("position_key", sa.String()),
         sa.column("title", sa.String()),
         sa.column("department", sa.String()),
