@@ -1887,3 +1887,226 @@ class CoverageTrancheAssistantPrepareRequest(BaseModel):
                 normalized.append(code)
         self.alpha2_codes = normalized
         return self
+
+
+ExternalValidationReviewerType = Literal["mobility_user", "professional_operator"]
+ExternalValidationSeverity = Literal["critical", "high", "medium", "low"]
+ExternalValidationFindingStatus = Literal["open", "triaged", "resolved", "accepted_risk"]
+ExternalValidationEvidenceType = Literal[
+    "truth_claim",
+    "verified_rule",
+    "official_source",
+    "source_snapshot",
+    "pathway",
+    "pathway_version",
+    "pathway_comparison",
+    "document",
+    "operator_note",
+]
+
+
+class ExternalValidationScenarioCreate(BaseModel):
+    scenario_key: str = Field(min_length=3, max_length=160, pattern=r"^[a-z0-9][a-z0-9_-]+$")
+    title: str = Field(min_length=3, max_length=250)
+    jurisdiction_code: str = Field(min_length=2, max_length=12)
+    domain: str = Field(min_length=2, max_length=100)
+    persona: dict[str, Any] = Field(default_factory=dict)
+    objectives: List[str] = Field(default_factory=list, min_length=1, max_length=25)
+    required_evidence_types: List[ExternalValidationEvidenceType] = Field(
+        default_factory=lambda: [
+            "truth_claim",
+            "verified_rule",
+            "official_source",
+            "source_snapshot",
+            "pathway_version",
+            "pathway_comparison",
+        ]
+    )
+
+
+class ExternalValidationScenarioRead(BaseModel):
+    id: UUID
+    scenario_key: str
+    title: str
+    jurisdiction_code: str
+    domain: str
+    persona: dict[str, Any] = Field(default_factory=dict)
+    objectives: List[str] = Field(default_factory=list)
+    required_evidence_types: List[str] = Field(default_factory=list)
+    status: str
+    source_fixture: Optional[str] = None
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ExternalValidationRunCreate(BaseModel):
+    run_key: Optional[str] = Field(default=None, min_length=3, max_length=180, pattern=r"^[a-zA-Z0-9][a-zA-Z0-9_.:-]+$")
+    scenario_id: UUID
+    lead_id: UUID
+    pathway_comparison_assessment_id: UUID
+    founder_intervention_count: int = Field(default=0, ge=0, le=10000)
+    workflow_started_at: Optional[datetime] = None
+
+
+class ExternalValidationRunUpdate(BaseModel):
+    founder_intervention_count: Optional[int] = Field(default=None, ge=0, le=10000)
+    workflow_completed_at: Optional[datetime] = None
+
+
+class ExternalValidationReviewCreate(BaseModel):
+    reviewer_type: ExternalValidationReviewerType
+    reviewer_name: str = Field(min_length=2, max_length=200)
+    reviewer_organization: Optional[str] = Field(default=None, max_length=250)
+    reviewer_origin: Literal["external_human"] = "external_human"
+    external_human_attestation: bool
+    workflow_completed: bool
+    understanding_rating: Optional[int] = Field(default=None, ge=1, le=5)
+    usefulness_rating: int = Field(ge=1, le=5)
+    jurisdiction_pathway_correct: Optional[bool] = None
+    material_rule_traceability_percent: Optional[float] = Field(default=None, ge=0.0, le=100.0)
+    unsupported_legal_certainty_count: Optional[int] = Field(default=None, ge=0)
+    missing_critical_document_count: Optional[int] = Field(default=None, ge=0)
+    feedback: str = Field(min_length=3, max_length=10000)
+
+    @model_validator(mode="after")
+    def validate_reviewer_specific_metrics(self):
+        if not self.external_human_attestation:
+            raise ValueError("External human attestation is required")
+        if self.reviewer_type == "mobility_user" and self.understanding_rating is None:
+            raise ValueError("Mobility-user review requires understanding_rating")
+        if self.reviewer_type == "professional_operator":
+            required = {
+                "jurisdiction_pathway_correct": self.jurisdiction_pathway_correct,
+                "material_rule_traceability_percent": self.material_rule_traceability_percent,
+                "unsupported_legal_certainty_count": self.unsupported_legal_certainty_count,
+                "missing_critical_document_count": self.missing_critical_document_count,
+            }
+            missing = [key for key, value in required.items() if value is None]
+            if missing:
+                raise ValueError(
+                    "Professional/operator review requires: " + ", ".join(sorted(missing))
+                )
+        return self
+
+
+class ExternalValidationReviewRead(BaseModel):
+    id: UUID
+    run_id: UUID
+    reviewer_type: str
+    reviewer_name: str
+    reviewer_organization: Optional[str] = None
+    reviewer_origin: str
+    external_human_attestation: bool
+    workflow_completed: bool
+    understanding_rating: Optional[int] = None
+    usefulness_rating: Optional[int] = None
+    jurisdiction_pathway_correct: Optional[bool] = None
+    material_rule_traceability_percent: Optional[float] = None
+    unsupported_legal_certainty_count: Optional[int] = None
+    missing_critical_document_count: Optional[int] = None
+    feedback: str
+    submitted_by: str
+    submitted_at: datetime
+
+
+class ExternalValidationFindingCreate(BaseModel):
+    review_id: Optional[UUID] = None
+    severity: ExternalValidationSeverity
+    category: str = Field(min_length=2, max_length=100)
+    title: str = Field(min_length=3, max_length=250)
+    description: str = Field(min_length=3, max_length=10000)
+
+
+class ExternalValidationFindingTriage(BaseModel):
+    status: Literal["triaged", "resolved"]
+    remediation_notes: str = Field(min_length=3, max_length=10000)
+
+
+class ExternalValidationBoardAcceptance(BaseModel):
+    attestation: bool
+    reason: str = Field(min_length=10, max_length=10000)
+
+
+class ExternalValidationFindingRead(BaseModel):
+    id: UUID
+    run_id: UUID
+    review_id: Optional[UUID] = None
+    severity: str
+    category: str
+    title: str
+    description: str
+    status: str
+    remediation_notes: Optional[str] = None
+    resolved_by: Optional[str] = None
+    resolved_at: Optional[datetime] = None
+    board_acceptance_reason: Optional[str] = None
+    board_accepted_by: Optional[str] = None
+    board_accepted_at: Optional[datetime] = None
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ExternalValidationEvidenceCreate(BaseModel):
+    finding_id: Optional[UUID] = None
+    evidence_type: ExternalValidationEvidenceType
+    entity_id: Optional[UUID] = None
+    label: str = Field(min_length=2, max_length=300)
+    source_url: Optional[str] = Field(default=None, max_length=2000)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def require_entity_for_governed_evidence(self):
+        if self.evidence_type != "operator_note" and self.entity_id is None:
+            raise ValueError(f"{self.evidence_type} evidence requires entity_id")
+        return self
+
+
+class ExternalValidationEvidenceRead(BaseModel):
+    id: UUID
+    run_id: UUID
+    finding_id: Optional[UUID] = None
+    evidence_type: str
+    entity_id: Optional[UUID] = None
+    label: str
+    source_url: Optional[str] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    added_by: str
+    created_at: datetime
+
+
+class ExternalValidationGateRead(BaseModel):
+    status: Literal["held", "failed", "passed"]
+    reasons: List[str] = Field(default_factory=list)
+    required_reviewer_types: List[str] = Field(default_factory=lambda: ["mobility_user", "professional_operator"])
+    completed_reviewer_types: List[str] = Field(default_factory=list)
+    required_evidence_types: List[str] = Field(default_factory=list)
+    captured_evidence_types: List[str] = Field(default_factory=list)
+    founder_intervention_count: int
+    critical_open: int = 0
+    high_open: int = 0
+    medium_low_untriaged: int = 0
+
+
+class ExternalValidationRunRead(BaseModel):
+    id: UUID
+    run_key: str
+    scenario_id: UUID
+    lead_id: Optional[UUID] = None
+    pathway_comparison_assessment_id: Optional[UUID] = None
+    status: str
+    gate_status: str
+    gate_reasons: List[str] = Field(default_factory=list)
+    founder_intervention_count: int
+    workflow_started_at: Optional[datetime] = None
+    workflow_completed_at: Optional[datetime] = None
+    evaluated_at: Optional[datetime] = None
+    created_by: str
+    created_at: datetime
+    updated_at: datetime
+    scenario: ExternalValidationScenarioRead
+    reviews: List[ExternalValidationReviewRead] = Field(default_factory=list)
+    findings: List[ExternalValidationFindingRead] = Field(default_factory=list)
+    evidence: List[ExternalValidationEvidenceRead] = Field(default_factory=list)
+    gate: ExternalValidationGateRead

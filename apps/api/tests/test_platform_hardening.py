@@ -68,13 +68,23 @@ def test_auth_policy_registry_preserves_sensitive_role_boundaries() -> None:
         "sales",
         "read_only",
     }
+    assert required_roles("POST", "/api/v1/external-validation/runs/example/reviews") == {
+        "admin",
+        "operator",
+        "reviewer",
+    }
+    assert required_roles(
+        "POST",
+        "/api/v1/external-validation/findings/example/board-acceptance",
+    ) == {"admin"}
 
 
 def test_router_registry_contains_compatibility_and_security_critical_routes() -> None:
     features = [spec.feature for spec in ROUTER_SPECS]
-    assert len(features) == 62
+    assert len(features) == 63
     assert "auth" in features
     assert "organization-governance" in features
+    assert "external-validation" in features
     assert "document-access" in features
     assert "audit-logs" in features
     assert features.count("dashboard-api") == 1

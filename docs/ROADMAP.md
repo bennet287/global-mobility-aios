@@ -44,9 +44,9 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-<!-- CURRENT_MIGRATION_HEAD: 0067_marketing_runtime_contract -->
+<!-- CURRENT_MIGRATION_HEAD: 0068_external_validation_framework -->
 
-**Code migration head:** `0067_marketing_runtime_contract`
+**Code migration head:** `0068_external_validation_framework`
 
 | Area | State | Current position |
 |---|---|---|
@@ -56,27 +56,29 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Governance hardening in progress | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, and Marketing runtimes are delivered; runtime registration and platform hardening are implemented while Finance, Communications, People, and Legal remain held |
+| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, and Marketing runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run and Finance, Communications, People, and Legal remain held |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
-- Web production build: passing, 35 application routes.
+- Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: passing with one head at `0067_marketing_runtime_contract`.
+- Migration-chain integrity: **passing** at the unique head `0068_external_validation_framework`.
 - Docker production-profile validation: passing.
-- API tests: **524 passed, 0 failed** for the Phase 13.10.1 hardening release gate.
-- Local SQLite database: last verified aligned at `0067_marketing_runtime_contract`; this hardening slice adds no migration.
-- Docker PostgreSQL database: runtime not active during this slice; migration
-  `0067_marketing_runtime_contract` will apply through the existing migration job on next startup.
-- Local quality gate: **passing**; compilation, repository policy, migration/ROADMAP consistency, database/schema checks, Docker-profile validation, router/authorization checks, and the complete API test suite passed.
+- API tests: **532 passed, 0 failed** for the Phase 13.10.2 software release gate.
+- Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
+- Docker PostgreSQL database: migration `0068_external_validation_framework` will apply through the existing migration job on next startup.
+- Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
 execution-control, external-action gates, bounded Operations, Technology, Product,
 Security, Security Operations/SOC, and Marketing department runtimes, and the CEO
-coordination loop remain implemented. The Phase 13.10.1 hardening slice is
-release-closed with the complete local quality gate passing at migration head
-`0067_marketing_runtime_contract`. Finance, Communications, People, and Legal remain held.
+coordination loop remain implemented. Phase 13.10.1 is release-closed. Phase
+13.10.2 adds durable external-validation scenarios, runs, evidence, external-human
+reviews, findings, Board risk acceptance for medium/low findings, and a deterministic
+gate at migration head `0068_external_validation_framework`. The external gate remains
+held until one real mobility user and one independent professional/operator complete the
+workflow successfully. Finance, Communications, People, and Legal remain held.
 
 ## 3. Execution Order
 
@@ -358,9 +360,32 @@ remains delivered; this checkpoint gates Finance, Communications, People, and Le
 - [x] Add CI migration/roadmap consistency enforcement against the unique Alembic head.
 - [x] Exclude local patch-backup directories from repository policy scans and future
   source control; existing tracked backups must be removed from the Git index once.
-- [ ] Run one external end-to-end validation with a real mobility user and one
-  professional/operator, then triage the resulting Truth Engine/pathway defects
-  before activating Finance, Communications, People, or Legal.
+### 13.5.2 External mobility validation framework
+
+Phase 13.10.2 turns the pre-department-expansion customer-validation requirement into
+repeatable, auditable infrastructure rather than an informal feedback exercise.
+
+- [x] Persist versionable validation scenarios without embedding the expected legal answer.
+- [x] Persist validation runs pinned to the scenario, lead, and exact pathway comparison shown to testers.
+- [x] Capture durable evidence references for Truth Claims, Verified Rules, Official Sources,
+  immutable Source Snapshots, pathway versions, pathway comparisons, documents, and notes.
+- [x] Fail closed when the pinned comparison, primary pathway version, verified-rule set,
+  jurisdiction/domain, official-source lineage, source snapshots, or lead-scoped Truth Claim
+  do not form one coherent governed evidence graph.
+- [x] Capture external-human mobility-user and professional/operator reviews separately from
+  the internal actor who records them. AI agents cannot self-create the required review pair.
+- [x] Record Critical/High/Medium/Low findings with explicit triage and remediation state.
+- [x] Enforce that Critical and High findings must be resolved; only Medium/Low findings may
+  receive explicit Human Board risk acceptance.
+- [x] Calculate a deterministic `held` / `failed` / `passed` gate receipt and record founder
+  intervention count as an autonomy metric.
+- [x] Add a small operator validation workspace and an Austria first-scenario fixture/template.
+- [ ] Complete the first real external run and attach the external reviewer evidence.
+- [ ] Resolve/retest every Critical/High issue, triage remaining Medium/Low issues, and record
+  a PASS receipt.
+
+The framework is described in
+[EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md).
 
 ### 13.6 Departmental expansion
 
@@ -463,7 +488,7 @@ After the first organization flow and Board Room pass their release gates, and a
 | 10C-10E | Global dashboards, reviewed ranking, and immutable multi-year mobility scenarios | [MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md](MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md) |
 | 11 | Corporate, business, wealth, investment, family-office, and tax/treaty mobility | [BUSINESS_WEALTH_ADVISORY_V11_4.md](BUSINESS_WEALTH_ADVISORY_V11_4.md) |
 | 12 | Client/ecosystem portals, partner APIs, governed automation, appointments, submissions, assignments, checklists, and reminders | [GOVERNED_AUTOMATION_FOUNDATION_V12_3.md](GOVERNED_AUTOMATION_FOUNDATION_V12_3.md) |
-| 13.0-13.10 | AI organization governance, Board Room, executive-decision ledger, bounded Operations, Technology, Product, Security, SOC, and Marketing runtimes | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md) |
+| 13.0-13.10.2 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
 
 ## 9. Delivery Governance
 

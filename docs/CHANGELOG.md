@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-08 — Phase 13.10.2 external mobility validation framework
+
+- Added migration `0068_external_validation_framework` with durable validation scenarios,
+  runs, external-human reviews, findings, and evidence references.
+- Added a deterministic `held` / `failed` / `passed` validation gate requiring one real
+  mobility user and one distinct independent professional/operator.
+- Added acceptance thresholds for user understanding/usefulness, professional operational
+  usefulness, jurisdiction/pathway correctness, 100% material-rule traceability, zero
+  unsupported legal-certainty statements, and zero missing critical document requirements.
+- Added Critical/High/Medium/Low finding triage. Critical and High findings must be resolved;
+  only Medium/Low findings can receive explicit Human Board risk acceptance.
+- Added durable evidence pinning to Truth Claims, Verified Rules, Official Sources, immutable
+  Source Snapshots, pathway versions, pathway comparisons, documents, and operator notes.
+- Added founder-intervention count to each run as an autonomy metric without allowing that
+  metric to override correctness/evidence requirements.
+- Added an Austria skilled-employment discovery scenario and external-review templates that
+  deliberately do not encode an expected pathway or legal threshold.
+- Added `/api/v1/external-validation` endpoints, declarative auth rules, router registration,
+  regression tests, and a small operator validation workspace.
+- Finance, Communications, People, and Legal remain held. The code framework does not satisfy
+  the external-validation gate; a real user + professional/operator PASS receipt is still
+  required before another executive department is activated.
+- Phase 13.10.2 software release verification completed successfully at migration head
+  `0068_external_validation_framework`: **532 API tests passed, 0 failed**, the
+  `/validation` production build passed, and the complete local quality gate passed.
+  The external-human validation gate itself remains held until a real mobility user and
+  an independent professional/operator produce a qualifying PASS run.
+
 ## 2026-08-08 — Phase 13.10.1 platform hardening and runtime registration
 
 - Preserved the delivered Phase 13.10 Marketing/CMO runtime at migration head

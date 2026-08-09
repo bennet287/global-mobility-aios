@@ -1,0 +1,30 @@
+{
+  "scenario_key": "at-skilled-worker-discovery-v1",
+  "title": "Austria skilled-employment pathway discovery",
+  "jurisdiction_code": "AT",
+  "domain": "work",
+  "persona": {
+    "profile_kind": "hypothetical_validation_persona",
+    "current_country": "India",
+    "citizenship_group": "third_country_national",
+    "goal": "work_and_reside_in_austria",
+    "employment_context": "skilled_employment",
+    "instruction": "Do not tell the system which pathway to select. Supply only the persona facts captured by the tester and let the governed pathway workflow determine candidates from reviewed evidence."
+  },
+  "objectives": [
+    "Run the Truth Engine and pathway workflow end to end without pre-selecting the answer.",
+    "Confirm that every material immigration rule used by the result is traceable to reviewed official-source evidence.",
+    "Confirm that uncertainty and missing facts are explicit rather than converted into unsupported legal certainty.",
+    "Confirm that critical document requirements are not silently omitted.",
+    "Measure whether a real mobility user understands the recommendation and whether a professional/operator considers it operationally useful.",
+    "Record founder intervention count for the ordinary workflow."
+  ],
+  "required_evidence_types": [
+    "truth_claim",
+    "verified_rule",
+    "official_source",
+    "source_snapshot",
+    "pathway_version",
+    "pathway_comparison"
+  ]
+}

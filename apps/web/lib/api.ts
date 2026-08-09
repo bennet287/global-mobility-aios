@@ -4763,3 +4763,224 @@ export async function decideBoardItem(decisionId: string, decision: "approved" |
     method: "POST", body: JSON.stringify({ decision, reason }),
   });
 }
+
+export type ExternalValidationScenario = {
+  id: string;
+  scenario_key: string;
+  title: string;
+  jurisdiction_code: string;
+  domain: string;
+  persona: Record<string, unknown>;
+  objectives: string[];
+  required_evidence_types: string[];
+  status: string;
+  source_fixture: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExternalValidationReview = {
+  id: string;
+  run_id: string;
+  reviewer_type: "mobility_user" | "professional_operator" | string;
+  reviewer_name: string;
+  reviewer_organization: string | null;
+  reviewer_origin: string;
+  external_human_attestation: boolean;
+  workflow_completed: boolean;
+  understanding_rating: number | null;
+  usefulness_rating: number | null;
+  jurisdiction_pathway_correct: boolean | null;
+  material_rule_traceability_percent: number | null;
+  unsupported_legal_certainty_count: number | null;
+  missing_critical_document_count: number | null;
+  feedback: string;
+  submitted_by: string;
+  submitted_at: string;
+};
+
+export type ExternalValidationFinding = {
+  id: string;
+  run_id: string;
+  review_id: string | null;
+  severity: "critical" | "high" | "medium" | "low" | string;
+  category: string;
+  title: string;
+  description: string;
+  status: string;
+  remediation_notes: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  board_acceptance_reason: string | null;
+  board_accepted_by: string | null;
+  board_accepted_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExternalValidationEvidence = {
+  id: string;
+  run_id: string;
+  finding_id: string | null;
+  evidence_type: string;
+  entity_id: string | null;
+  label: string;
+  source_url: string | null;
+  metadata: Record<string, unknown>;
+  added_by: string;
+  created_at: string;
+};
+
+export type ExternalValidationGate = {
+  status: "held" | "failed" | "passed";
+  reasons: string[];
+  required_reviewer_types: string[];
+  completed_reviewer_types: string[];
+  required_evidence_types: string[];
+  captured_evidence_types: string[];
+  founder_intervention_count: number;
+  critical_open: number;
+  high_open: number;
+  medium_low_untriaged: number;
+};
+
+export type ExternalValidationRun = {
+  id: string;
+  run_key: string;
+  scenario_id: string;
+  lead_id: string | null;
+  pathway_comparison_assessment_id: string | null;
+  status: string;
+  gate_status: "held" | "failed" | "passed" | string;
+  gate_reasons: string[];
+  founder_intervention_count: number;
+  workflow_started_at: string | null;
+  workflow_completed_at: string | null;
+  evaluated_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  scenario: ExternalValidationScenario;
+  reviews: ExternalValidationReview[];
+  findings: ExternalValidationFinding[];
+  evidence: ExternalValidationEvidence[];
+  gate: ExternalValidationGate;
+};
+
+export async function seedExternalValidationScenario(): Promise<ExternalValidationScenario> {
+  return request("/api/v1/external-validation/scenarios/seed-defaults", { method: "POST" });
+}
+
+export async function listExternalValidationScenarios(): Promise<ExternalValidationScenario[]> {
+  return request("/api/v1/external-validation/scenarios");
+}
+
+export async function listExternalValidationRuns(): Promise<ExternalValidationRun[]> {
+  return request("/api/v1/external-validation/runs");
+}
+
+export async function createExternalValidationRun(payload: {
+  scenario_id: string;
+  lead_id: string;
+  pathway_comparison_assessment_id: string;
+  founder_intervention_count?: number;
+}): Promise<ExternalValidationRun> {
+  return request("/api/v1/external-validation/runs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateExternalValidationRun(
+  runId: string,
+  payload: { founder_intervention_count?: number; workflow_completed_at?: string },
+): Promise<ExternalValidationRun> {
+  return request(`/api/v1/external-validation/runs/${runId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function evaluateExternalValidationRun(runId: string): Promise<ExternalValidationRun> {
+  return request(`/api/v1/external-validation/runs/${runId}/evaluate`, { method: "POST" });
+}
+
+export async function submitExternalValidationReview(
+  runId: string,
+  payload: {
+    reviewer_type: "mobility_user" | "professional_operator";
+    reviewer_name: string;
+    reviewer_organization?: string | null;
+    reviewer_origin?: "external_human";
+    external_human_attestation: boolean;
+    workflow_completed: boolean;
+    understanding_rating?: number | null;
+    usefulness_rating: number;
+    jurisdiction_pathway_correct?: boolean | null;
+    material_rule_traceability_percent?: number | null;
+    unsupported_legal_certainty_count?: number | null;
+    missing_critical_document_count?: number | null;
+    feedback: string;
+  },
+): Promise<ExternalValidationReview> {
+  return request(`/api/v1/external-validation/runs/${runId}/reviews`, {
+    method: "POST",
+    body: JSON.stringify({ reviewer_origin: "external_human", ...payload }),
+  });
+}
+
+export async function addExternalValidationFinding(
+  runId: string,
+  payload: {
+    review_id?: string | null;
+    severity: "critical" | "high" | "medium" | "low";
+    category: string;
+    title: string;
+    description: string;
+  },
+): Promise<ExternalValidationFinding> {
+  return request(`/api/v1/external-validation/runs/${runId}/findings`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function triageExternalValidationFinding(
+  findingId: string,
+  status: "triaged" | "resolved",
+  remediationNotes: string,
+): Promise<ExternalValidationFinding> {
+  return request(`/api/v1/external-validation/findings/${findingId}/triage`, {
+    method: "POST",
+    body: JSON.stringify({ status, remediation_notes: remediationNotes }),
+  });
+}
+
+export async function boardAcceptExternalValidationFinding(
+  findingId: string,
+  reason: string,
+): Promise<ExternalValidationFinding> {
+  return request(`/api/v1/external-validation/findings/${findingId}/board-acceptance`, {
+    method: "POST",
+    body: JSON.stringify({ attestation: true, reason }),
+  });
+}
+
+export async function addExternalValidationEvidence(
+  runId: string,
+  payload: {
+    finding_id?: string | null;
+    evidence_type: "truth_claim" | "verified_rule" | "official_source" | "source_snapshot" | "pathway" | "pathway_version" | "pathway_comparison" | "document" | "operator_note";
+    entity_id?: string | null;
+    label: string;
+    source_url?: string | null;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<ExternalValidationEvidence> {
+  return request(`/api/v1/external-validation/runs/${runId}/evidence`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}

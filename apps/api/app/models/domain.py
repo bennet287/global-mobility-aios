@@ -2245,6 +2245,109 @@ class OrganizationControl(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class ExternalValidationScenario(SQLModel, table=True):
+    __tablename__ = "external_validation_scenarios"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    scenario_key: str = Field(index=True, unique=True)
+    title: str
+    jurisdiction_code: str = Field(index=True)
+    domain: str = Field(index=True)
+    persona_json: str = "{}"
+    objectives_json: str = "[]"
+    required_evidence_types_json: str = "[]"
+    status: str = Field(default="active", index=True)
+    source_fixture: Optional[str] = None
+    created_by: str = Field(default="system", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ExternalValidationRun(SQLModel, table=True):
+    __tablename__ = "external_validation_runs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    run_key: str = Field(index=True, unique=True)
+    scenario_id: UUID = Field(index=True, foreign_key="external_validation_scenarios.id")
+    lead_id: UUID = Field(index=True, foreign_key="leads.id")
+    pathway_comparison_assessment_id: UUID = Field(
+        index=True,
+        foreign_key="pathway_comparison_assessments.id",
+    )
+    status: str = Field(default="draft", index=True)
+    gate_status: str = Field(default="held", index=True)
+    gate_reasons_json: str = "[]"
+    founder_intervention_count: int = Field(default=0, ge=0)
+    workflow_started_at: Optional[datetime] = Field(default=None, index=True)
+    workflow_completed_at: Optional[datetime] = Field(default=None, index=True)
+    evaluated_at: Optional[datetime] = Field(default=None, index=True)
+    created_by: str = Field(default="system", index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ExternalValidationReview(SQLModel, table=True):
+    __tablename__ = "external_validation_reviews"
+    __table_args__ = (
+        UniqueConstraint("run_id", "reviewer_type", name="uq_external_validation_run_reviewer_type"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    run_id: UUID = Field(index=True, foreign_key="external_validation_runs.id")
+    reviewer_type: str = Field(index=True)
+    reviewer_name: str = Field(index=True)
+    reviewer_organization: Optional[str] = None
+    reviewer_origin: str = Field(default="external_human", index=True)
+    external_human_attestation: bool = False
+    workflow_completed: bool = False
+    understanding_rating: Optional[int] = Field(default=None, ge=1, le=5)
+    usefulness_rating: Optional[int] = Field(default=None, ge=1, le=5)
+    jurisdiction_pathway_correct: Optional[bool] = None
+    material_rule_traceability_percent: Optional[float] = Field(default=None, ge=0.0, le=100.0)
+    unsupported_legal_certainty_count: Optional[int] = Field(default=None, ge=0)
+    missing_critical_document_count: Optional[int] = Field(default=None, ge=0)
+    feedback: str
+    submitted_by: str = Field(index=True)
+    submitted_at: datetime = Field(default_factory=now_utc, index=True)
+
+
+class ExternalValidationFinding(SQLModel, table=True):
+    __tablename__ = "external_validation_findings"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    run_id: UUID = Field(index=True, foreign_key="external_validation_runs.id")
+    review_id: Optional[UUID] = Field(default=None, index=True, foreign_key="external_validation_reviews.id")
+    severity: str = Field(index=True)
+    category: str = Field(index=True)
+    title: str
+    description: str
+    status: str = Field(default="open", index=True)
+    remediation_notes: Optional[str] = None
+    resolved_by: Optional[str] = Field(default=None, index=True)
+    resolved_at: Optional[datetime] = Field(default=None, index=True)
+    board_acceptance_reason: Optional[str] = None
+    board_accepted_by: Optional[str] = Field(default=None, index=True)
+    board_accepted_at: Optional[datetime] = Field(default=None, index=True)
+    created_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class ExternalValidationEvidence(SQLModel, table=True):
+    __tablename__ = "external_validation_evidence"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    run_id: UUID = Field(index=True, foreign_key="external_validation_runs.id")
+    finding_id: Optional[UUID] = Field(default=None, index=True, foreign_key="external_validation_findings.id")
+    evidence_type: str = Field(index=True)
+    entity_id: Optional[UUID] = Field(default=None, index=True)
+    label: str
+    source_url: Optional[str] = None
+    metadata_json: str = "{}"
+    added_by: str = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc, index=True)
+
+
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_logs"
 

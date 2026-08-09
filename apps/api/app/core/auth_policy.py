@@ -78,6 +78,20 @@ AUTH_RULES: tuple[PathRoleRule, ...] = (
         prefixes=("/api/v1/document-access",),
     ),
     PathRoleRule(roles=READ_ROLES, methods=READ_METHODS),
+    PathRoleRule(
+        roles=frozenset({"admin"}),
+        prefixes=("/api/v1/external-validation",),
+        contains=("/board-acceptance",),
+    ),
+    PathRoleRule(
+        roles=frozenset({"admin", "operator", "reviewer"}),
+        prefixes=("/api/v1/external-validation",),
+        contains_any=("/reviews", "/findings"),
+    ),
+    PathRoleRule(
+        roles=frozenset({"admin", "operator"}),
+        prefixes=("/api/v1/external-validation",),
+    ),
     PathRoleRule(roles=frozenset({"admin"}), contains_any=("reset", "delete")),
     PathRoleRule(
         roles=frozenset({"admin", "reviewer"}),

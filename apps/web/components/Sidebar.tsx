@@ -33,6 +33,7 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
     items: [
       { label: "Operations Workspace", href: "/", icon: "home" },
       { label: "Board Room", href: "/board-room", icon: "board" },
+      { label: "External Validation", href: "/validation", icon: "review" },
     ],
   },
   {
