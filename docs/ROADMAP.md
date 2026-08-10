@@ -548,6 +548,37 @@ e  review, monitoring, or data expansion continues.
 - A role card without runtime registration, authority enforcement, and an output
   contract is not an operational agent.
 
+### 13.10.2.2 Controlled official-source authority remediation
+
+- [x] Add a bounded, audited official-source authority-reassignment API for correcting
+  duplicate authority ownership discovered during external mobility validation.
+- [x] Require the target authority to be the jurisdiction's independently approved
+  `primary_immigration` authority and fail closed on cross-jurisdiction moves.
+- [x] Refuse reassignment when the source already has a pending or approved source
+  certification, preserving certification provenance.
+- [x] Preserve the official-source identity and therefore existing monitor, retrieval,
+  and immutable snapshot lineage; only the source-to-authority relationship changes.
+- [x] Make retries idempotent when the source is already attached to the approved
+  primary authority.
+- [ ] Complete the live Austria remediation, submit `supplemental_visa` certification
+  for the Skilled Workers in Shortage Occupations source, and obtain independent review.
+
+### 13.10.2.3 Existing-source baseline linkage hardening
+
+- [x] Persist authority, official-source, and existing-monitor linkage when a
+  coverage batch certifies an already-onboarded source without repeating source
+  onboarding.
+- [x] Resolve legacy certification-only batch items read-only from their immutable
+  source certification so baseline status can reuse existing evidence.
+- [x] Preserve existing source, monitor, retrieval, and immutable-snapshot identity;
+  no replacement evidence is created by linkage resolution.
+- [x] Add regression coverage for the certification-only legacy batch condition
+  discovered during Austria skilled-employment validation.
+- [x] Add an audited, idempotent reconciliation operation for legacy
+  certification-only batch items; conflicting non-null linkage fails closed.
+- [x] Reconcile the existing live Austria batch-item linkage and confirm it resolves
+  to the already captured immutable baseline before initial-rule assertions.
+
 ## 10. Historical Evidence
 
 - Release-level history: [CHANGELOG.md](CHANGELOG.md)

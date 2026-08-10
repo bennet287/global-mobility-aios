@@ -35,6 +35,7 @@ from app.schemas import (
     RegulatoryChangeReviewRequest,
     RegulatoryKnowledgeGraphSyncRequest,
     RegulatorySourceOnboardingRequest,
+    RegulatorySourceAuthorityReassignmentRequest,
     SourceMonitorCreate,
     SourceSnapshotCaptureRequest,
     VerifiedRuleRetireRequest,
@@ -49,6 +50,7 @@ from app.services.regulatory_intelligence import (
     generate_classification_proposal,
     onboard_regulatory_source,
     publish_regulatory_change,
+    reassign_official_source_authority,
     retire_verified_rule,
     review_classification_proposal,
     review_regulatory_change,
@@ -187,6 +189,35 @@ def api_list_authorities(jurisdiction_id: Optional[UUID] = None, session: Sessio
         statement = statement.where(RegulatoryAuthority.jurisdiction_id == jurisdiction_id)
     rows = session.exec(statement.order_by(RegulatoryAuthority.name)).all()
     return _json_response({"total": len(rows), "authorities": rows})
+
+
+@router.post("/api/v1/regulatory-intelligence/official-sources/{source_id}/reassign-authority")
+def api_reassign_official_source_authority(
+    source_id: UUID,
+    payload: RegulatorySourceAuthorityReassignmentRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    from fastapi import HTTPException
+
+    context = getattr(request.state, "auth", None)
+    actor = getattr(context, "username", "api-operator")
+    try:
+        source, target_authority, changed = reassign_official_source_authority(
+            session,
+            source_id,
+            payload,
+            actor=actor,
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return _json_response({
+        "official_source": _source_payload(source),
+        "target_authority": target_authority,
+        "changed": changed,
+    })
 
 
 @router.post("/api/v1/regulatory-intelligence/source-monitors", status_code=201)

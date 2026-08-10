@@ -69,10 +69,51 @@ def _item_state(session: Session, item: JurisdictionCoverageEvidenceBatchItem) -
         if item.source_certification_id
         else None
     )
-    source = session.get(OfficialSource, item.official_source_id) if item.official_source_id else None
-    monitor = session.get(SourceMonitor, item.source_monitor_id) if item.source_monitor_id else None
-    latest_snapshot = _latest_snapshot(session, source.id) if source else None
-    latest_run = _latest_run(session, monitor.id) if monitor else None
+
+    # Certification-only items created before v13.10.2.3 may have
+    # null denormalized linkage columns. Resolve them read-only from
+    # the immutable source certification.
+    effective_source_id = item.official_source_id or (
+        certification.official_source_id if certification else None
+    )
+    effective_authority_id = item.regulatory_authority_id or (
+        certification.regulatory_authority_id if certification else None
+    )
+
+    source = (
+        session.get(OfficialSource, effective_source_id)
+        if effective_source_id
+        else None
+    )
+
+    if item.source_monitor_id:
+        monitor = session.get(
+            SourceMonitor,
+            item.source_monitor_id,
+        )
+    elif source is not None:
+        monitor = session.exec(
+            select(SourceMonitor).where(
+                SourceMonitor.official_source_id == source.id
+            )
+        ).first()
+    else:
+        monitor = None
+
+    effective_monitor_id = (
+        item.source_monitor_id
+        or (monitor.id if monitor else None)
+    )
+
+    latest_snapshot = _latest_snapshot(
+        session,
+        source.id,
+    ) if source else None
+
+    latest_run = _latest_run(
+        session,
+        monitor.id,
+    ) if monitor else None
 
     supplemental_scope = bool(
         certification
@@ -87,14 +128,14 @@ def _item_state(session: Session, item: JurisdictionCoverageEvidenceBatchItem) -
             supplemental_scope
             or source_only_supplement
             or assessment.official_source_id is None
-            or assessment.official_source_id == item.official_source_id
+            or assessment.official_source_id == effective_source_id
         )
     )
     certification_approved = bool(
         certification
         and certification.status == "approved"
-        and certification.official_source_id == item.official_source_id
-        and certification.regulatory_authority_id == item.regulatory_authority_id
+        and certification.official_source_id == effective_source_id
+        and certification.regulatory_authority_id == effective_authority_id
     )
     source_active = bool(source and source.active)
     monitor_active = bool(monitor and monitor.status in {"active", "error"})
@@ -120,8 +161,8 @@ def _item_state(session: Session, item: JurisdictionCoverageEvidenceBatchItem) -
         "batch_item_id": item.id,
         "alpha2_code": item.alpha2_code,
         "jurisdiction_id": item.jurisdiction_id,
-        "official_source_id": item.official_source_id,
-        "source_monitor_id": item.source_monitor_id,
+        "official_source_id": effective_source_id,
+        "source_monitor_id": effective_monitor_id,
         "assessment_status": assessment.status if assessment else "missing",
         "certification_status": certification.status if certification else "missing",
         "source_active": source_active,

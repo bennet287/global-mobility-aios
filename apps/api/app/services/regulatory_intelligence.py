@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.models.domain import (
     HumanReview,
     Jurisdiction,
+    JurisdictionSourceCertification,
     OfficialSource,
     RegulatoryAuthority,
     RegulatoryClassificationProposal,
@@ -33,6 +34,7 @@ from app.schemas import (
     RegulatoryChangePublishRequest,
     RegulatoryChangeReviewRequest,
     RegulatorySourceOnboardingRequest,
+    RegulatorySourceAuthorityReassignmentRequest,
     SourceMonitorCreate,
     SourceSnapshotCaptureRequest,
     VerifiedRuleRetireRequest,
@@ -297,6 +299,90 @@ def create_regulatory_authority(session: Session, payload: RegulatoryAuthorityCr
     session.commit()
     session.refresh(authority)
     return authority
+
+
+def reassign_official_source_authority(
+    session: Session,
+    source_id: UUID,
+    payload: RegulatorySourceAuthorityReassignmentRequest,
+    *,
+    actor: str,
+) -> tuple[OfficialSource, RegulatoryAuthority, bool]:
+    """Reassign one official source to the already-approved primary authority.
+
+    This is a controlled remediation operation. It changes only the source's
+    authority relationship; monitor, retrieval, snapshot, and source identity
+    remain unchanged.
+    """
+    reason = payload.reason.strip()
+    if len(reason) < 10:
+        raise ValueError("Reassignment reason must contain at least 10 non-whitespace characters")
+
+    source = session.get(OfficialSource, source_id)
+    if source is None or not source.active:
+        raise ValueError("Active official source not found")
+    if source.jurisdiction_id is None:
+        raise ValueError("Official source is not attached to a jurisdiction")
+
+    target = session.get(RegulatoryAuthority, payload.target_regulatory_authority_id)
+    if target is None or not target.active:
+        raise ValueError("Active target regulatory authority not found")
+    if target.jurisdiction_id != source.jurisdiction_id:
+        raise ValueError("Target regulatory authority does not belong to the official source jurisdiction")
+
+    approved_primary = session.exec(
+        select(JurisdictionSourceCertification)
+        .where(JurisdictionSourceCertification.jurisdiction_id == source.jurisdiction_id)
+        .where(JurisdictionSourceCertification.certification_scope == "primary_immigration")
+        .where(JurisdictionSourceCertification.status == "approved")
+        .order_by(JurisdictionSourceCertification.certification_version.desc())
+    ).first()
+    if approved_primary is None:
+        raise ValueError("Source authority reassignment requires an approved primary immigration certification")
+    if approved_primary.regulatory_authority_id != target.id:
+        raise ValueError("Target authority is not the independently approved primary immigration authority")
+
+    if source.regulatory_authority_id == target.id:
+        return source, target, False
+
+    blocking_certification = session.exec(
+        select(JurisdictionSourceCertification).where(
+            JurisdictionSourceCertification.official_source_id == source.id,
+            JurisdictionSourceCertification.status.in_(["pending_review", "approved"]),
+        )
+    ).first()
+    if blocking_certification is not None:
+        raise ValueError(
+            "Official source with a pending or approved source certification cannot be reassigned"
+        )
+
+    before = {
+        "official_source_id": source.id,
+        "jurisdiction_id": source.jurisdiction_id,
+        "regulatory_authority_id": source.regulatory_authority_id,
+    }
+    source.regulatory_authority_id = target.id
+    session.add(source)
+    session.flush()
+
+    record_audit(
+        session,
+        action="regulatory_source_authority_reassigned",
+        entity_type="official_source",
+        entity_id=source.id,
+        before_state=before,
+        after_state={
+            "official_source_id": source.id,
+            "jurisdiction_id": source.jurisdiction_id,
+            "regulatory_authority_id": target.id,
+        },
+        reason=reason,
+        actor=(actor or "api-operator"),
+        source="regulatory_intelligence_v13_10_2_2",
+    )
+    session.commit()
+    session.refresh(source)
+    return source, target, True
 
 
 def create_or_update_source_monitor(session: Session, payload: SourceMonitorCreate) -> SourceMonitor:

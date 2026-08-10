@@ -20,6 +20,7 @@ from app.services.coverage_evidence_batches import (
     create_coverage_evidence_batch,
     jurisdiction_coverage_worklist,
     list_coverage_evidence_batches,
+    reconcile_coverage_batch_existing_source_linkage,
 )
 from app.services.coverage_baseline_capture import (
     coverage_batch_baseline_status,
@@ -318,6 +319,28 @@ def api_create_global_coverage_batch(
     return result
 
 
+@router.post(
+    "/registry/coverage-batches/{batch_id}/reconcile-existing-source-linkage"
+)
+def api_reconcile_coverage_batch_existing_source_linkage(
+    batch_id: UUID,
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    try:
+        return reconcile_coverage_batch_existing_source_linkage(
+            session,
+            batch_id,
+            actor=_actor(request),
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+
 @router.get("/registry/coverage-batches/{batch_id}/baseline-status")
 def api_get_coverage_batch_baseline_status(
     batch_id: UUID,
@@ -438,4 +461,3 @@ def api_publish_initial_rule_assertion(
         "verified_rule": rule,
         "coverage_receipt": coverage_receipt,
     }
-

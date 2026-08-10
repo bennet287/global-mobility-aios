@@ -101,3 +101,72 @@ def test_local_login_sets_session_cookie(raw_client: TestClient) -> None:
     assert response.headers["location"] == "/admin/v2"
     assert "gmai_session=" in response.headers.get("set-cookie", "")
 
+def test_source_authority_reassignment_is_admin_or_reviewer_only(
+    raw_client: TestClient,
+) -> None:
+    source_id = uuid.uuid4()
+    payload = {
+        "target_regulatory_authority_id": str(uuid.uuid4()),
+        "reason": "Authorization boundary regression test for controlled source remediation.",
+    }
+
+    raw_client.headers.update({
+        "X-GMAI-Role": "operator",
+        "X-GMAI-User": "operator",
+    })
+    blocked = raw_client.post(
+        f"/api/v1/regulatory-intelligence/official-sources/{source_id}/reassign-authority",
+        json=payload,
+    )
+    assert blocked.status_code == 403
+    assert blocked.json()["allowed_roles"] == ["admin", "reviewer"]
+
+    raw_client.headers.update({
+        "X-GMAI-Role": "admin",
+        "X-GMAI-User": "admin",
+    })
+    allowed = raw_client.post(
+        f"/api/v1/regulatory-intelligence/official-sources/{source_id}/reassign-authority",
+        json=payload,
+    )
+    assert allowed.status_code == 400
+    assert "Active official source not found" in allowed.json()["detail"]
+
+def test_coverage_batch_linkage_reconciliation_is_admin_or_reviewer_only(
+    raw_client: TestClient,
+) -> None:
+    batch_id = uuid.uuid4()
+
+    raw_client.headers.update({
+        "X-GMAI-Role": "operator",
+        "X-GMAI-User": "operator",
+    })
+
+    blocked = raw_client.post(
+        f"/api/v1/global-intelligence/registry/"
+        f"coverage-batches/{batch_id}/"
+        "reconcile-existing-source-linkage"
+    )
+
+    assert blocked.status_code == 403
+    assert blocked.json()["allowed_roles"] == [
+        "admin",
+        "reviewer",
+    ]
+
+    raw_client.headers.update({
+        "X-GMAI-Role": "admin",
+        "X-GMAI-User": "admin",
+    })
+
+    allowed = raw_client.post(
+        f"/api/v1/global-intelligence/registry/"
+        f"coverage-batches/{batch_id}/"
+        "reconcile-existing-source-linkage"
+    )
+
+    assert allowed.status_code == 400
+    assert (
+        "Coverage evidence batch not found"
+        in allowed.json()["detail"]
+    )

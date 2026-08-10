@@ -1649,6 +1649,11 @@ class RegulatoryAuthorityCreate(BaseModel):
     official_source_ids: List[UUID] = Field(default_factory=list)
 
 
+class RegulatorySourceAuthorityReassignmentRequest(BaseModel):
+    target_regulatory_authority_id: UUID
+    reason: str = Field(min_length=10, max_length=2000)
+
+
 class SourceMonitorCreate(BaseModel):
     official_source_id: UUID
     schedule_minutes: int = Field(default=1440, ge=15, le=525600)

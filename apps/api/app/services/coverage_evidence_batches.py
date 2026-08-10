@@ -126,6 +126,243 @@ def _derived_status(statuses: list[str]) -> str:
     return "reviewed_with_mixed_outcomes"
 
 
+def reconcile_coverage_batch_existing_source_linkage(
+    session: Session,
+    batch_id: Any,
+    *,
+    actor: str,
+    commit: bool = True,
+) -> dict[str, Any]:
+    """Backfill derived linkage for certification-only coverage batch items.
+
+    This operation never changes the certification, source, monitor,
+    retrieval history, immutable snapshots, or original batch payload.
+    Existing non-null linkage must already agree with the approved
+    certification or the operation fails closed.
+    """
+
+    batch = session.get(
+        JurisdictionCoverageEvidenceBatch,
+        batch_id,
+    )
+    if batch is None:
+        raise ValueError("Coverage evidence batch not found")
+
+    items = session.exec(
+        select(JurisdictionCoverageEvidenceBatchItem)
+        .where(
+            JurisdictionCoverageEvidenceBatchItem.batch_id
+            == batch.id
+        )
+        .order_by(
+            JurisdictionCoverageEvidenceBatchItem.row_number
+        )
+    ).all()
+
+    changes: list[dict[str, Any]] = []
+
+    for item in items:
+        if item.source_certification_id is None:
+            continue
+
+        certification = session.get(
+            JurisdictionSourceCertification,
+            item.source_certification_id,
+        )
+        if certification is None:
+            raise ValueError(
+                f"Coverage batch item {item.id} references "
+                "a missing source certification"
+            )
+
+        if certification.status != "approved":
+            raise ValueError(
+                f"Source certification for {item.alpha2_code} "
+                "is not independently approved"
+            )
+
+        if certification.jurisdiction_id != item.jurisdiction_id:
+            raise ValueError(
+                f"Source certification for {item.alpha2_code} "
+                "belongs to a different jurisdiction"
+            )
+
+        expected_authority_id = (
+            certification.regulatory_authority_id
+        )
+        expected_source_id = certification.official_source_id
+
+        if (
+            item.regulatory_authority_id is not None
+            and item.regulatory_authority_id
+            != expected_authority_id
+        ):
+            raise ValueError(
+                f"Stored authority linkage for {item.alpha2_code} "
+                "conflicts with the approved certification"
+            )
+
+        if (
+            item.official_source_id is not None
+            and item.official_source_id != expected_source_id
+        ):
+            raise ValueError(
+                f"Stored source linkage for {item.alpha2_code} "
+                "conflicts with the approved certification"
+            )
+
+        authority = session.get(
+            RegulatoryAuthority,
+            expected_authority_id,
+        )
+        if (
+            authority is None
+            or not authority.active
+            or authority.jurisdiction_id
+            != item.jurisdiction_id
+        ):
+            raise ValueError(
+                f"Certified authority for {item.alpha2_code} "
+                "is not active in the batch jurisdiction"
+            )
+
+        source = session.get(
+            OfficialSource,
+            expected_source_id,
+        )
+        if (
+            source is None
+            or not source.active
+            or source.jurisdiction_id
+            != item.jurisdiction_id
+        ):
+            raise ValueError(
+                f"Certified source for {item.alpha2_code} "
+                "is not active in the batch jurisdiction"
+            )
+
+        if (
+            source.regulatory_authority_id
+            != authority.id
+        ):
+            raise ValueError(
+                f"Certified source for {item.alpha2_code} "
+                "is not attached to the certified authority"
+            )
+
+        monitor = session.exec(
+            select(SourceMonitor).where(
+                SourceMonitor.official_source_id
+                == source.id
+            )
+        ).first()
+
+        if monitor is None:
+            raise ValueError(
+                f"Certified source for {item.alpha2_code} "
+                "does not have an existing source monitor"
+            )
+
+        if (
+            item.source_monitor_id is not None
+            and item.source_monitor_id != monitor.id
+        ):
+            raise ValueError(
+                f"Stored monitor linkage for {item.alpha2_code} "
+                "conflicts with the certified source"
+            )
+
+        before = {
+            "batch_item_id": item.id,
+            "regulatory_authority_id":
+                item.regulatory_authority_id,
+            "official_source_id":
+                item.official_source_id,
+            "source_monitor_id":
+                item.source_monitor_id,
+        }
+
+        after = {
+            "batch_item_id": item.id,
+            "regulatory_authority_id":
+                authority.id,
+            "official_source_id":
+                source.id,
+            "source_monitor_id":
+                monitor.id,
+        }
+
+        if before == after:
+            continue
+
+        item.regulatory_authority_id = authority.id
+        item.official_source_id = source.id
+        item.source_monitor_id = monitor.id
+
+        session.add(item)
+
+        changes.append({
+            "before": before,
+            "after": after,
+        })
+
+    if changes:
+        session.flush()
+
+        record_audit(
+            session,
+            action=(
+                "jurisdiction_coverage_existing_source_"
+                "linkage_reconciled"
+            ),
+            entity_type=(
+                "jurisdiction_coverage_evidence_batch"
+            ),
+            entity_id=batch.id,
+            before_state={
+                "items": [
+                    change["before"]
+                    for change in changes
+                ]
+            },
+            after_state={
+                "items": [
+                    change["after"]
+                    for change in changes
+                ]
+            },
+            reason=(
+                "Backfill derived authority, official-source, "
+                "and monitor linkage for certification-only "
+                "coverage batch items. Certification, source, "
+                "retrieval, snapshot, and payload provenance "
+                "remain unchanged."
+            ),
+            actor=actor,
+            source="global_intelligence_v13_10_2_3",
+        )
+
+        if commit:
+            session.commit()
+
+    return {
+        "batch_id": batch.id,
+        "changed": len(changes),
+        "items": [
+            change["after"]
+            for change in changes
+        ],
+        "safety": {
+            "changes_certification": False,
+            "changes_source": False,
+            "changes_snapshot": False,
+            "changes_payload": False,
+            "creates_coverage_claim": False,
+            "publishes_verified_rule": False,
+        },
+    }
+
+
 def coverage_batch_payload(
     session: Session,
     batch: JurisdictionCoverageEvidenceBatch,
@@ -314,6 +551,50 @@ def create_coverage_evidence_batch(
                     commit=False,
                     **item["source_certification"],
                 )
+
+                # Certification-only batches reference an already-onboarded
+                # official source. Resolve its existing governed linkage so
+                # the batch item does not persist null denormalized IDs.
+                authority = session.get(
+                    RegulatoryAuthority,
+                    certification.regulatory_authority_id,
+                )
+                source = session.get(
+                    OfficialSource,
+                    certification.official_source_id,
+                )
+
+                if (
+                    authority is None
+                    or not authority.active
+                    or authority.jurisdiction_id != jurisdiction.id
+                ):
+                    raise ValueError(
+                        f"Certified authority for {entry.alpha2_code} is not active "
+                        "in the batch jurisdiction"
+                    )
+
+                if (
+                    source is None
+                    or not source.active
+                    or source.jurisdiction_id != jurisdiction.id
+                ):
+                    raise ValueError(
+                        f"Certified source for {entry.alpha2_code} is not active "
+                        "in the batch jurisdiction"
+                    )
+
+                if source.regulatory_authority_id != authority.id:
+                    raise ValueError(
+                        f"Certified source for {entry.alpha2_code} is not attached "
+                        "to the certified regulatory authority"
+                    )
+
+                monitor = session.exec(
+                    select(SourceMonitor).where(
+                        SourceMonitor.official_source_id == source.id
+                    )
+                ).first()
             if (
                 assessment is None
                 and certification is not None

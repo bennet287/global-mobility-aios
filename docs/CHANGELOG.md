@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-08-10 - Existing-source baseline linkage hardening
+
+- Live PostgreSQL verification reconciled the Austria skilled-employment batch
+  to its existing approved authority, official source, and source monitor while
+  preserving the certification ID, batch payload hash, retrieval run, immutable
+  snapshot ID, and snapshot content hash. A repeated reconciliation changed zero
+  rows, confirming idempotency.
+
+- Fixed certification-only coverage batches so already-onboarded sources persist
+  their existing regulatory-authority, official-source, and monitor linkage.
+- Added backward-compatible baseline resolution for certification-only batch items
+  created before the linkage fix.
+- Existing immutable source snapshots are reused when present; the fix does not
+  create a coverage claim or publish a verified rule.
+- Added regression coverage reproducing the Austria external-validation linkage gap.
+- Added an audited, idempotent batch-linkage reconciliation operation that fills only missing derived authority/source/monitor foreign keys and rejects conflicting stored provenance.
+
+
+## 2026-08-09 — Controlled official-source authority remediation
+
+- Added an audited API to reassign an existing official source to the jurisdiction's
+  independently approved primary immigration authority without replacing the source,
+  monitor, retrieval history, or immutable snapshots.
+- Reassignment fails closed across jurisdictions and for sources with pending or approved
+  certifications, and it is idempotent once the approved authority is already attached.
+- This hardening closes the duplicate-authority remediation gap discovered while preparing
+  Austria skilled-employment external validation evidence; no schema migration is required.
+
+
 ## 2026-08-09 - Phase 13.10.2.1 PostgreSQL migration portability hardening
 
 - Corrected PostgreSQL-incompatible Boolean defaults in
