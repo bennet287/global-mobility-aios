@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
+from sqlalchemy import Index, text
 from sqlmodel import Field, SQLModel
 
 def now_utc() -> datetime:
@@ -257,6 +258,36 @@ class JurisdictionImmigrationAssessment(SQLModel, table=True):
 
 class JurisdictionSourceCertification(SQLModel, table=True):
     __tablename__ = "jurisdiction_source_certifications"
+
+    __table_args__ = (
+        Index(
+            "uq_jsc_primary_scope_version",
+            "jurisdiction_id",
+            "certification_scope",
+            "certification_version",
+            unique=True,
+            sqlite_where=text(
+                "certification_scope = 'primary_immigration'"
+            ),
+            postgresql_where=text(
+                "certification_scope = 'primary_immigration'"
+            ),
+        ),
+        Index(
+            "uq_jsc_supplemental_source_scope_version",
+            "jurisdiction_id",
+            "official_source_id",
+            "certification_scope",
+            "certification_version",
+            unique=True,
+            sqlite_where=text(
+                "certification_scope <> 'primary_immigration'"
+            ),
+            postgresql_where=text(
+                "certification_scope <> 'primary_immigration'"
+            ),
+        ),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     jurisdiction_id: UUID = Field(index=True, foreign_key="jurisdictions.id")

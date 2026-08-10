@@ -446,6 +446,37 @@ def review_immigration_assessment(
     return assessment
 
 
+def _source_certification_lineage_filters(
+    *,
+    jurisdiction_id: Any,
+    certification_scope: str,
+    official_source_id: Any,
+) -> tuple[Any, ...]:
+    """Return the deterministic certification-lineage filters.
+
+    Primary immigration certification remains jurisdiction-scoped because it
+    establishes the jurisdiction's primary immigration authority/source
+    relationship.
+
+    Supplemental certification is source-scoped so multiple independent
+    official sources in the same jurisdiction/domain may coexist without
+    superseding one another.
+    """
+    filters: list[Any] = [
+        JurisdictionSourceCertification.jurisdiction_id == jurisdiction_id,
+        JurisdictionSourceCertification.certification_scope
+        == certification_scope,
+    ]
+
+    if certification_scope.startswith("supplemental_"):
+        filters.append(
+            JurisdictionSourceCertification.official_source_id
+            == official_source_id
+        )
+
+    return tuple(filters)
+
+
 def propose_source_certification(
     session: Session,
     *,
@@ -510,22 +541,37 @@ def propose_source_certification(
         raise ValueError("At least one coverage domain is required")
     if source.domain.lower() not in domains:
         raise ValueError("The official source domain must be included in coverage domains")
+    lineage_filters = _source_certification_lineage_filters(
+        jurisdiction_id=jurisdiction.id,
+        certification_scope=scope,
+        official_source_id=source.id,
+    )
+
     pending = session.exec(
-        select(JurisdictionSourceCertification).where(
-            JurisdictionSourceCertification.jurisdiction_id == jurisdiction.id,
-            JurisdictionSourceCertification.certification_scope == scope,
-            JurisdictionSourceCertification.status == "pending_review",
+        select(JurisdictionSourceCertification)
+        .where(*lineage_filters)
+        .where(
+            JurisdictionSourceCertification.status == "pending_review"
         )
     ).first()
+
     if pending:
-        raise ValueError(f"Jurisdiction already has a {scope} source certification pending review")
+        if scope.startswith("supplemental_"):
+            raise ValueError(
+                f"Official source already has a {scope} certification "
+                "pending review"
+            )
+        raise ValueError(
+            f"Jurisdiction already has a {scope} source certification "
+            "pending review"
+        )
+
     latest = session.exec(
         select(JurisdictionSourceCertification)
-        .where(
-            JurisdictionSourceCertification.jurisdiction_id == jurisdiction.id,
-            JurisdictionSourceCertification.certification_scope == scope,
+        .where(*lineage_filters)
+        .order_by(
+            JurisdictionSourceCertification.certification_version.desc()
         )
-        .order_by(JurisdictionSourceCertification.certification_version.desc())
     ).first()
     certification = JurisdictionSourceCertification(
         jurisdiction_id=jurisdiction.id,
@@ -571,13 +617,43 @@ def review_source_certification(
         source = session.get(OfficialSource, certification.official_source_id)
         if authority is None or not authority.active or source is None or not source.active:
             raise ValueError("Authority and source must remain active at review time")
+        lineage_filters = _source_certification_lineage_filters(
+            jurisdiction_id=certification.jurisdiction_id,
+            certification_scope=certification.certification_scope,
+            official_source_id=certification.official_source_id,
+        )
+
+        # A pending supplemental certification created before source-scoped
+        # lineage hardening may incorrectly point at another official source.
+        # Clear only that invalid derived lineage pointer; preserve the
+        # certification identity, audit history, and version number.
+        if (
+            certification.certification_scope.startswith("supplemental_")
+            and certification.supersedes_certification_id is not None
+        ):
+            superseded = session.get(
+                JurisdictionSourceCertification,
+                certification.supersedes_certification_id,
+            )
+
+            if (
+                superseded is None
+                or superseded.official_source_id
+                != certification.official_source_id
+            ):
+                certification.supersedes_certification_id = None
+
         previous = session.exec(
-            select(JurisdictionSourceCertification).where(
-                JurisdictionSourceCertification.jurisdiction_id == certification.jurisdiction_id,
-                JurisdictionSourceCertification.certification_scope == certification.certification_scope,
-                JurisdictionSourceCertification.status == "approved",
+            select(JurisdictionSourceCertification)
+            .where(*lineage_filters)
+            .where(
+                JurisdictionSourceCertification.status == "approved"
+            )
+            .order_by(
+                JurisdictionSourceCertification.certification_version.desc()
             )
         ).all()
+
         for row in previous:
             row.status = "superseded"
             row.updated_at = now_utc()

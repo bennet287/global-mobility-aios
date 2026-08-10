@@ -44,9 +44,9 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-<!-- CURRENT_MIGRATION_HEAD: 0068_external_validation_framework -->
+<!-- CURRENT_MIGRATION_HEAD: 0069_source_certification_multiplicity -->
 
-**Code migration head:** `0068_external_validation_framework`
+**Code migration head:** `0069_source_certification_multiplicity`
 
 | Area | State | Current position |
 |---|---|---|
@@ -63,7 +63,7 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: **passing** at the unique head `0068_external_validation_framework`.
+- Migration-chain integrity: **pending verification** at the new unique head `0069_source_certification_multiplicity`.
 - Docker production-profile validation: passing.
 - API tests: **534 passed, 0 failed** after the Phase 13.10.2.1 PostgreSQL migration-portability hardening.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
@@ -578,6 +578,71 @@ e  review, monitoring, or data expansion continues.
   certification-only batch items; conflicting non-null linkage fails closed.
 - [x] Reconcile the existing live Austria batch-item linkage and confirm it resolves
   to the already captured immutable baseline before initial-rule assertions.
+
+### 13.10.2.4 Supplemental source-certification multiplicity hardening
+
+#### Validation evidence
+
+- [x] Isolated SQLite migration smoke test passed through
+  `0068_external_validation_framework -> 0069_source_certification_multiplicity`,
+  downgrade to `0068`, and re-upgrade to `0069`.
+- [x] PostgreSQL production-shape database migrated successfully to
+  `0069_source_certification_multiplicity`.
+- [x] PostgreSQL now enforces separate partial unique indexes for
+  jurisdiction-scoped `primary_immigration` certification and
+  source-scoped supplemental certification lineages.
+- [x] Historical `uq_jsc_scope_version` database constraint was removed.
+- [x] Pre-migration PostgreSQL backup created at
+  `gmai-postgres-before-0069-20260810-040926.dump`
+  with SHA-256
+  `26BEA6AD1D83BB5E4B453141FD921797F05000A6B20E5D8C47086C475996E535`.
+- [x] Live Austria verification proved three supplemental visa source
+  lineages can coexist: the existing skilled-worker source remains approved,
+  the Austria-wide 2026 source remains pending review, and the regional 2026
+  source was independently created as version 1 with no supersession pointer.
+- [x] Regional 2026 certification
+  `f4cf5f04-0519-4cad-b5c2-88ec1183ded5` is linked to coverage batch
+  `0bd5b76d-49f5-4dbd-ba54-feeb4591676c` and monitor
+  `09295bbc-8b68-45e8-9387-4184b7172d8a`.
+- [x] Behavioral regression proves approving one supplemental source does
+  not mutate independently approved or pending sources, while a later
+  version of the same source supersedes only its own lineage.
+- [x] Focused certification/linkage suite: **18 passed**.
+- [x] Complete API suite: **552 passed**, with one non-blocking
+  Starlette/httpx deprecation warning.
+- [ ] Austria-wide and regional 2026 certifications remain pending genuine
+  independent human review; this hardening does not satisfy that review gate.
+
+- [x] Add Alembic migration
+  `0069_source_certification_multiplicity` to replace the historical
+  jurisdiction/scope/version uniqueness constraint with explicit primary and
+  supplemental lineage invariants.
+- [x] Preserve database-enforced jurisdiction-scoped version uniqueness for
+  `primary_immigration`.
+- [x] Enforce source-scoped version uniqueness for supplemental certifications
+  so independently governed sources in the same jurisdiction/domain may
+  coexist.
+- [x] Mirror both partial unique indexes in SQLModel metadata so fresh test
+  databases and Alembic-managed databases express the same invariant.
+- [x] Add regression coverage proving two supplemental sources can both start
+  at version 1 while duplicate versions within one source remain blocked.
+
+- [x] Preserve jurisdiction-scoped versioning and supersession for
+  `primary_immigration` certification.
+- [x] Scope `supplemental_<domain>` pending-review guards, version lineage, and
+  supersession to the exact official source so multiple independently reviewed
+  sources may coexist within one jurisdiction/domain.
+- [x] Prevent approval of one supplemental visa source from superseding approved
+  supplemental visa certifications belonging to other official sources.
+- [x] Clear legacy cross-source `supersedes_certification_id` pointers at review
+  time without replacing certification, source, monitor, retrieval, or snapshot
+  identity.
+- [x] Add regression coverage for primary-vs-supplemental lineage semantics.
+- [ ] Re-verify the live Austria 2026 Austria-wide certification, submit the
+  regional 2026 certification concurrently, and confirm the previously approved
+  skilled-worker source certification remains approved.
+- [ ] Obtain genuine independent review of both 2026 shortage-list source
+  certifications before proposing regulatory assertions.
 
 ## 10. Historical Evidence
 

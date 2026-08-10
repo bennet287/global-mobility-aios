@@ -20,6 +20,7 @@ from app.services.initial_rule_assertions import propose_initial_rule_assertion
 from app.services.jurisdiction_registry import (
     import_un_m49_registry,
     jurisdiction_coverage_receipt,
+    propose_source_certification,
     review_immigration_assessment,
     review_source_certification,
 )
@@ -303,6 +304,220 @@ def test_supplemental_batch_requires_existing_approved_relationship(db_session: 
         assert "requires an approved immigration assessment" in str(exc)
     else:
         raise AssertionError("Supplemental source onboarding unexpectedly succeeded without an approved relationship")
+
+
+
+def test_multiple_supplemental_sources_have_isolated_review_lineages(
+    db_session: Session,
+) -> None:
+    """Independent supplemental sources must never supersede each other."""
+
+    _, primary, _ = _primary_batch(db_session)
+
+    # Source A: establish one already-approved supplemental source.
+    batch_a = _supplemental_batch(db_session)
+    item_a = coverage_batch_payload(
+        db_session,
+        batch_a,
+    )["items"][0]
+
+    source_a = review_source_certification(
+        db_session,
+        certification_id=item_a["source_certification"]["id"],
+        decision="approved",
+        notes="Supplemental source A independently reviewed.",
+        actor="supplemental-reviewer-a",
+    )
+
+    assert source_a.status == "approved"
+    assert source_a.certification_version == 1
+    assert source_a.supersedes_certification_id is None
+
+    def create_other_supplemental(
+        *,
+        label: str,
+        source_name: str,
+        source_url: str,
+        hostname: str,
+        actor: str,
+    ):
+        batch, created = create_coverage_evidence_batch(
+            db_session,
+            name=f"Canada supplemental {label}",
+            notes=(
+                "Independent supplemental source used to prove "
+                "source-scoped certification lineage."
+            ),
+            items=[
+                {
+                    "alpha2_code": "CA",
+                    "source_onboarding": {
+                        "authority_name":
+                            "Immigration, Refugees and Citizenship Canada",
+                        "authority_type": "immigration_authority",
+                        "authority_website_url":
+                            "https://www.canada.ca/en/"
+                            "immigration-refugees-citizenship.html",
+                        "authority_domains": ["visa"],
+                        "source_name": source_name,
+                        "source_url": source_url,
+                        "source_domain": "visa",
+                        "source_type": "government",
+                        "schedule_minutes": 1440,
+                        "fetch_method": "http",
+                        "allowed_domains": [hostname],
+                        "max_redirects": 3,
+                        "parser_profile": "generic",
+                        "parser_config": {},
+                        "certification_scope":
+                            "supplemental_visa",
+                        "certification_domains": ["visa"],
+                        "evidence_notes": (
+                            "Independent supplemental visa source "
+                            "requires separate source certification."
+                        ),
+                    },
+                }
+            ],
+            actor=actor,
+        )
+
+        assert created is True
+
+        return (
+            batch,
+            coverage_batch_payload(
+                db_session,
+                batch,
+            )["items"][0],
+        )
+
+    # Sources B and C must be allowed to coexist while both are pending.
+    batch_b, item_b = create_other_supplemental(
+        label="services source B",
+        source_name="IRCC services source B",
+        source_url=(
+            "https://www.canada.ca/en/"
+            "immigration-refugees-citizenship/services/"
+            "visit-canada.html"
+        ),
+        hostname="www.canada.ca",
+        actor="supplemental-proposer-b",
+    )
+
+    batch_c, item_c = create_other_supplemental(
+        label="services source C",
+        source_name="IRCC services source C",
+        source_url=(
+            "https://www.canada.ca/en/"
+            "immigration-refugees-citizenship/services/"
+            "application.html"
+        ),
+        hostname="www.canada.ca",
+        actor="supplemental-proposer-c",
+    )
+
+    del batch_b, batch_c
+
+    source_b_id = item_b["source_certification"]["id"]
+    source_c_id = item_c["source_certification"]["id"]
+
+    source_b_pending = db_session.get(
+        JurisdictionSourceCertification,
+        source_b_id,
+    )
+    source_c = db_session.get(
+        JurisdictionSourceCertification,
+        source_c_id,
+    )
+
+    assert source_b_pending is not None
+    assert source_c is not None
+
+    # Each independent source begins its own version lineage.
+    assert source_b_pending.certification_version == 1
+    assert source_c.certification_version == 1
+    assert source_b_pending.status == "pending_review"
+    assert source_c.status == "pending_review"
+    assert source_b_pending.supersedes_certification_id is None
+    assert source_c.supersedes_certification_id is None
+
+    # Simulate the exact pre-hardening legacy corruption:
+    # B incorrectly points at approved source A.
+    source_b_pending.supersedes_certification_id = source_a.id
+    db_session.add(source_b_pending)
+    db_session.commit()
+
+    source_b = review_source_certification(
+        db_session,
+        certification_id=source_b_pending.id,
+        decision="approved",
+        notes=(
+            "Supplemental source B independently reviewed; "
+            "legacy cross-source lineage must be discarded."
+        ),
+        actor="supplemental-reviewer-b",
+    )
+
+    db_session.refresh(source_a)
+    db_session.refresh(source_c)
+    db_session.refresh(primary)
+
+    # Approving B must not alter A or pending C.
+    assert source_a.status == "approved"
+    assert source_b.status == "approved"
+    assert source_c.status == "pending_review"
+    assert primary.status == "approved"
+
+    # Legacy cross-source pointer was removed rather than preserved.
+    assert source_b.supersedes_certification_id is None
+
+    assert source_a.official_source_id != source_b.official_source_id
+    assert source_b.official_source_id != source_c.official_source_id
+    assert source_a.official_source_id != source_c.official_source_id
+
+    # A later version of source B must supersede only B v1.
+    source_b_v2 = propose_source_certification(
+        db_session,
+        jurisdiction_id=source_b.jurisdiction_id,
+        regulatory_authority_id=source_b.regulatory_authority_id,
+        official_source_id=source_b.official_source_id,
+        coverage_domains=["visa"],
+        evidence_notes=(
+            "Second independently reviewed version of source B."
+        ),
+        actor="supplemental-proposer-b-v2",
+        certification_scope="supplemental_visa",
+    )
+
+    assert source_b_v2.certification_version == 2
+    assert source_b_v2.status == "pending_review"
+    assert source_b_v2.supersedes_certification_id == source_b.id
+
+    source_b_v2 = review_source_certification(
+        db_session,
+        certification_id=source_b_v2.id,
+        decision="approved",
+        notes="Source B version 2 independently reviewed.",
+        actor="supplemental-reviewer-b-v2",
+    )
+
+    db_session.refresh(source_a)
+    db_session.refresh(source_b)
+    db_session.refresh(source_c)
+    db_session.refresh(primary)
+
+    assert source_a.status == "approved"
+    assert source_b.status == "superseded"
+    assert source_b_v2.status == "approved"
+    assert source_c.status == "pending_review"
+    assert primary.status == "approved"
+
+    assert source_b_v2.supersedes_certification_id == source_b.id
+
+    # No cross-source certification was mutated by B's v2 review.
+    assert source_a.supersedes_certification_id is None
+    assert source_c.supersedes_certification_id is None
 
 
 def test_canada_supplemental_pack_is_pending_review_and_primary_safe() -> None:

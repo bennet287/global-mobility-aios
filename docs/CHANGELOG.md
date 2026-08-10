@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-08-10 - Supplemental source-certification multiplicity hardening
+
+Validation:
+- SQLite upgrade/downgrade/re-upgrade migration smoke test passed.
+- PostgreSQL migrated successfully to
+  `0069_source_certification_multiplicity`; the new primary and supplemental
+  partial unique indexes were verified directly in PostgreSQL.
+- Live Austria regression created the regional 2026 supplemental
+  certification as independent version 1 while preserving the existing
+  approved skilled-worker certification and pending Austria-wide 2026
+  certification.
+- Added database-backed review-isolation coverage, including same-source
+  version supersession and legacy cross-source supersession-pointer cleanup.
+- Focused suite: 18 passed.
+- Complete API suite: 552 passed, 1 non-blocking deprecation warning.
+- The external-human validation gate and the two 2026 source-certification
+  review gates remain held.
+
+- Fixed supplemental source-certification lineage so multiple official sources
+  in the same jurisdiction and domain can be independently pending, versioned,
+  approved, and superseded.
+- Primary immigration certification remains jurisdiction-scoped and unchanged.
+- Supplemental certification lineage is now scoped by jurisdiction,
+  certification scope, and official-source identity.
+- Approval of one supplemental source no longer supersedes approved
+  certifications for other sources in the same domain.
+- Added bounded cleanup for legacy cross-source supersession pointers created
+  before this hardening while preserving certification identity and history.
+- Added focused regression coverage.
+- Added Alembic migration
+  `0069_source_certification_multiplicity` because the historical database
+  constraint still enforced jurisdiction/scope-wide supplemental versioning.
+- Database uniqueness now preserves jurisdiction-scoped primary certification
+  while allowing source-scoped supplemental certification version lineages.
+- SQLModel metadata mirrors the migrated database invariant.
+- The external-human validation gate remains held.
+
+
 ## 2026-08-10 - Existing-source baseline linkage hardening
 
 - Live PostgreSQL verification reconciled the Austria skilled-employment batch
