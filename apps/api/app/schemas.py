@@ -1717,6 +1717,74 @@ class RegulatorySourceOnboardingRequest(BaseModel):
     parser_config: dict[str, Any] = Field(default_factory=dict)
 
 
+ShortageOccupationScope = Literal["national", "regional"]
+
+
+class ShortageOccupationMaterializeRequest(BaseModel):
+    source_snapshot_id: UUID
+    year: int = Field(ge=2000, le=2200)
+    scope: ShortageOccupationScope
+    expected_group_count: int = Field(ge=1, le=500)
+    parser_profile: Literal["austria_migration_shortage_v1"] = "austria_migration_shortage_v1"
+
+
+class ShortageOccupationEntryRead(BaseModel):
+    id: UUID
+    jurisdiction_id: UUID
+    official_source_id: UUID
+    source_snapshot_id: UUID
+    source_snapshot_content_hash: Optional[str] = None
+    source_url: Optional[str] = None
+    year: int
+    scope: ShortageOccupationScope
+    source_ordinal: int
+    occupation_group: str
+    normalized_occupation_group: str
+    occupation_aliases: List[str] = Field(default_factory=list)
+    province_codes: List[str] = Field(default_factory=list)
+    province_names: List[str] = Field(default_factory=list)
+    extraction_version: str
+    entry_sha256: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class ShortageOccupationMaterializationRead(BaseModel):
+    jurisdiction_id: UUID
+    official_source_id: UUID
+    source_snapshot_id: UUID
+    source_snapshot_content_hash: Optional[str] = None
+    year: int
+    scope: ShortageOccupationScope
+    extraction_version: str
+    entry_set_sha256: str
+    created_count: int
+    existing_count: int
+    entry_count: int
+    entries: List[ShortageOccupationEntryRead] = Field(default_factory=list)
+
+
+class ShortageOccupationLookupRead(BaseModel):
+    jurisdiction_id: UUID
+    year: int
+    occupation: str
+    normalized_occupation: str
+    province_code: Optional[str] = None
+    status: Literal[
+        "matched",
+        "not_found",
+        "province_required",
+        "not_applicable_in_province",
+        "ambiguous",
+    ]
+    list_applicability: Optional[bool] = None
+    governance_ready: bool = False
+    certification_statuses: dict[str, str] = Field(default_factory=dict)
+    match_count: int = 0
+    matches: List[ShortageOccupationEntryRead] = Field(default_factory=list)
+    warning: str
+
+
 class SourceSnapshotCaptureRequest(BaseModel):
     content_text: str = Field(min_length=1)
     http_status: int = Field(default=200, ge=100, le=599)

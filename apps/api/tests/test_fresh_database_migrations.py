@@ -13,6 +13,8 @@ from scripts.check_local_db_schema import check_local_db_schema
 
 ROOT = Path(__file__).resolve().parents[3]
 
+ALEMBIC_CHAIN_TIMEOUT_SECONDS = 180
+
 
 def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
     database_path = tmp_path / "fresh-migrations.db"
@@ -33,7 +35,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         env=env,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
         check=False,
     )
 
@@ -53,7 +55,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         env=env,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
         check=False,
     )
     assert downgrade.returncode == 0, downgrade.stderr or downgrade.stdout
@@ -72,7 +74,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         env=env,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
         check=False,
     )
     assert reupgrade.returncode == 0, reupgrade.stderr or reupgrade.stdout

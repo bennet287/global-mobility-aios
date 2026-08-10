@@ -1,5 +1,59 @@
 # Changelog
 
+## 2026-08-10 - Structured shortage-occupation evidence
+
+- Added migration `0071_structured_shortage_occupation_evidence` and normalized
+  `shortage_occupation_entries` for deterministic year/scope/category/province
+  projections of immutable shortage-occupation source snapshots.
+- Added the bounded `austria_migration_shortage_v1` parser for the official
+  migration.gv.at Austria-wide and regional shortage-occupation pages. The parser
+  requires exact source/snapshot provenance, one declared year, contiguous numbered
+  groups, an operator-pinned expected group count, and recognized Austrian province
+  names for regional rows.
+- Preserves exact source category labels and source-listed occupation aliases while
+  normalizing only presentation differences; no fuzzy, semantic, translated, or LLM
+  occupation classification is introduced.
+- Materialization is immutable and idempotent. Reprocessing the same snapshot reuses
+  deterministic entry hashes; conflicting derived content for an immutable snapshot
+  fails closed instead of being silently rewritten.
+- Added exact lookup states for national and province-specific list applicability,
+  including explicit `ambiguous` and `province_required` outcomes.
+- Lookup reports source-certification governance readiness separately from list
+  applicability and warns that a structured source-list match is not case eligibility
+  or a prediction of authority outcome.
+- Added regulatory-intelligence endpoints for controlled materialization and read-only
+  lookup, plus focused regressions for parser boundaries, province handling,
+  idempotency, audit receipts, ambiguity, and certification state.
+- Hardened the fresh-database Alembic regression on slower Windows hosts by raising
+  the upgrade/downgrade/re-upgrade subprocess budget from 60 to 180 seconds. This
+  changes test-harness timing only and does not alter migration or production behavior.
+- Persistent PostgreSQL remains at `0070_pathway_version_evidence_provenance` until
+  this incremental patch passes focused/full verification and a fresh pre-`0071`
+  backup is taken. The Austria-wide and regional 2026 source certifications and the
+  external-human validation gate remain held.
+
+
+
+- Persistent PostgreSQL was backed up before `0071` to
+  `gmai-postgres-before-0071-20260810-135554.dump` (3,637,418 bytes;
+  SHA-256 `7355C9A9C18A61E2FD261AF9333FDEC4B0FDDBAAF660F3CA0996458758C95FB6`).
+- Validation passed with **39 focused tests** and **571 complete API tests**;
+  the complete local quality gate passed. The single warning is the existing
+  Starlette TestClient/httpx deprecation warning.
+- Austria 2026 materialization produced **64 national groups** with entry-set
+  SHA-256
+  `43f1b9fad49777a89da280395124a6d3e4608219b835d144765f47e148d00301`
+  and **66 regional groups** with entry-set SHA-256
+  `5fd467b7bb3d1681dcf90f604d648af83483dfec443e4ae1d6bc5faf8e7bc238`.
+- Idempotency was verified by a second materialization: zero new rows were
+  created, all 64 national and 66 regional rows were recognized as existing,
+  and both entry-set hashes remained identical.
+- Deterministic lookups confirmed list applicability while retaining
+  `governance_ready = false`; both exact 2026 supplemental certifications
+  remain `pending_review`.
+- Austria skilled-worker pathway versions 1 and 2 remain draft, unapproved,
+  and unpublished. Materialization created or published no pathway version.
+
 ## 2026-08-10 - Pathway multi-source evidence provenance
 
 - Added migration `0070_pathway_version_evidence_provenance` and normalized

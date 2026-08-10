@@ -44,9 +44,9 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-<!-- CURRENT_MIGRATION_HEAD: 0070_pathway_version_evidence_provenance -->
+<!-- CURRENT_MIGRATION_HEAD: 0071_structured_shortage_occupation_evidence -->
 
-**Code migration head:** `0070_pathway_version_evidence_provenance`
+**Code migration head:** `0071_structured_shortage_occupation_evidence`
 
 | Area | State | Current position |
 |---|---|---|
@@ -63,11 +63,11 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: code advances to `0070_pathway_version_evidence_provenance`; SQLite/PostgreSQL upgrade verification is required when this incremental patch is applied.
+- Migration-chain integrity: code advances to `0071_structured_shortage_occupation_evidence`; persistent PostgreSQL is verified at `0070_pathway_version_evidence_provenance` and requires a backed-up `0070` -> `0071` upgrade after this incremental patch passes tests.
 - Docker production-profile validation: passing.
-- API regression baseline before Phase 13.10.2.5: **552 passed, 0 failed** at `0069_source_certification_multiplicity`; the `0070` patch adds focused multi-source provenance tests and requires the complete suite after application.
+- API regression baseline before Phase 13.10.2.6: **560 passed, 0 failed** at `0070_pathway_version_evidence_provenance`; the `0071` patch adds structured shortage-occupation extraction/lookup regressions and requires the complete suite after application.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
-- Docker PostgreSQL database: **passing** at `0068_external_validation_framework` after a backed-up persistent database upgraded transactionally from `0056_ai_organization_governance`; governed data remained intact with 292 jurisdictions, 89 official sources, 521 source snapshots, 86 verified rules, 1 mobility pathway, and 2 mobility pathway versions.
+- Docker PostgreSQL database: **passing** at `0070_pathway_version_evidence_provenance`; the backed-up `0069` -> `0070` upgrade reported zero missing core-route backfills and preserved the live Austria pathway/certification hold state.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
@@ -700,6 +700,87 @@ e  review, monitoring, or data expansion continues.
 - [ ] Create a future Austria pathway version only after the two 2026 evidence links
   are deliberately attached and the publication gate can evaluate their real
   certification state after genuine independent review.
+
+### 13.10.2.6 Structured 2026 shortage-occupation evidence
+
+- [x] Add normalized `shortage_occupation_entries` derived from immutable official
+  source snapshots rather than encoding hundreds of occupation labels as
+  `VerifiedRule` statements.
+- [x] Add Alembic migration `0071_structured_shortage_occupation_evidence` with
+  source/jurisdiction/snapshot foreign keys, deterministic source ordinals, exact
+  extraction hashes, and snapshot/year/scope uniqueness.
+- [x] Add a bounded `austria_migration_shortage_v1` parser for the official
+  migration.gv.at Austria-wide and regional shortage-occupation pages. Extraction
+  requires one declared year, contiguous numbered groups, an operator-pinned expected
+  group count, and exact official source URL/scope provenance.
+- [x] Preserve source category titles and exact source-listed occupation aliases;
+  normalize only Unicode, dash, spacing, slash, and comma presentation differences.
+  No translation, fuzzy classification, embedding similarity, or LLM inference is
+  allowed in deterministic lookup.
+- [x] Model regional applicability with official Austrian federal-province codes
+  (`AT-1` through `AT-9`) and fail closed when a regional source group has no
+  recognized province list.
+- [x] Make materialization immutable and idempotent: a repeated extraction from the
+  same snapshot/year/scope reuses the same entry hashes, while any conflicting
+  derived projection for an immutable snapshot is rejected rather than overwritten.
+- [x] Add exact occupation lookup states for `matched`, `not_found`,
+  `province_required`, `not_applicable_in_province`, and `ambiguous`; multiple exact
+  source matches fail closed as ambiguous.
+- [x] Keep source-list applicability separate from governance readiness. Lookup may
+  report that a label is present in an immutable list while still returning
+  `governance_ready = false` when that source has no approved certification; it never
+  asserts case eligibility, qualification equivalence, job-offer sufficiency, or an
+  authority outcome.
+- [x] Add regulatory-intelligence API routes for controlled snapshot materialization
+  and read-only exact lookup, plus regression coverage for national/regional parsing,
+  province applicability, year/ordinal fail-closed behavior, ambiguity, idempotency,
+  audit receipts, and pending-vs-approved certification state.
+- [x] Harden the fresh-database Alembic regression for slower Windows hosts by
+  increasing the subprocess wall-clock budget for the upgrade/downgrade/re-upgrade
+  chain from 60 to 180 seconds. This is test-harness resilience only; it does not
+  change migration logic, runtime database timeouts, or production behavior.
+- [ ] Apply the incremental patch to the `fbe4796` base, run focused and complete API
+  verification, and record the resulting test counts.
+- [ ] Back up persistent PostgreSQL immediately before the `0070` -> `0071` migration,
+  apply `0071`, and verify the new table/index/constraint shape without modifying
+  existing pathway versions or source certifications.
+- [ ] Materialize the live Austria 2026 Austria-wide snapshot
+  `a1032556-81f1-49bf-acd6-fa8f43e45341` and regional snapshot
+  `7a3503f3-dc9d-4ded-bf31-7a80738b7434`; record entry counts and deterministic
+  entry-set hashes from those exact immutable snapshots.
+- [ ] Confirm the Austria-wide and regional 2026 source certifications remain
+  `pending_review` after structuring. Structured extraction is not source approval.
+- [ ] Do not create or publish a new Austria skilled-worker pathway version in this
+  slice; the external-human validation gate and genuine independent-review gates
+  remain held.
+
+
+- [x] Applied `0071_structured_shortage_occupation_evidence` to persistent
+  PostgreSQL after verified custom-format backup
+  `C:\Users\Bennet Allryn\Downloads\gmai-postgres-before-0071-20260810-135554.dump`
+  (3,637,418 bytes; SHA-256
+  `7355C9A9C18A61E2FD261AF9333FDEC4B0FDDBAAF660F3CA0996458758C95FB6`).
+- [x] Post-patch validation passed with **39 focused tests** and **571 complete
+  API tests**, with one existing Starlette TestClient/httpx deprecation warning;
+  the complete local quality gate passed.
+- [x] Materialized immutable Austria 2026 shortage evidence into **64 national**
+  and **66 regional** structured occupation groups.
+- [x] National entry-set SHA-256:
+  `43f1b9fad49777a89da280395124a6d3e4608219b835d144765f47e148d00301`.
+- [x] Regional entry-set SHA-256:
+  `5fd467b7bb3d1681dcf90f604d648af83483dfec443e4ae1d6bc5faf8e7bc238`.
+- [x] Idempotency re-run confirmed zero duplicate writes:
+  national `created_count = 0`, `existing_count = 64`; regional
+  `created_count = 0`, `existing_count = 66`; both entry-set hashes remained
+  unchanged.
+- [x] Deterministic lookup smokes returned `matched` and
+  `list_applicability = true` while correctly retaining
+  `governance_ready = false`.
+- [x] Both Austria-wide and regional 2026 source certifications remain
+  `pending_review`; structured materialization grants no source approval.
+- [x] Re-verified the Austria skilled-worker pathway after materialization:
+  versions 1 and 2 remain `draft`, unapproved, and unpublished. No pathway
+  version was created or published by this slice.
 
 ## 10. Historical Evidence
 

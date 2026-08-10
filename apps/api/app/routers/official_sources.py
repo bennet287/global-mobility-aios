@@ -36,11 +36,18 @@ from app.schemas import (
     RegulatoryKnowledgeGraphSyncRequest,
     RegulatorySourceOnboardingRequest,
     RegulatorySourceAuthorityReassignmentRequest,
+    ShortageOccupationLookupRead,
+    ShortageOccupationMaterializationRead,
+    ShortageOccupationMaterializeRequest,
     SourceMonitorCreate,
     SourceSnapshotCaptureRequest,
     VerifiedRuleRetireRequest,
 )
 from app.services.official_sources import list_sources, seed_official_sources
+from app.services.shortage_occupations import (
+    lookup_shortage_occupation,
+    materialize_shortage_occupation_snapshot,
+)
 from app.services.regulatory_knowledge_graph import knowledge_graph_payload, sync_published_rules
 from app.services.regulatory_intelligence import (
     capture_source_snapshot,
@@ -429,6 +436,63 @@ def api_list_source_monitors(status: Optional[str] = None, session: Session = De
         "total": len(monitors),
         "monitors": [_monitor_payload(monitor, sources.get(monitor.official_source_id)) for monitor in monitors],
     })
+
+
+@router.post(
+    "/api/v1/regulatory-intelligence/shortage-occupations/materialize",
+    response_model=ShortageOccupationMaterializationRead,
+    status_code=201,
+)
+def api_materialize_shortage_occupations(
+    payload: ShortageOccupationMaterializeRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> ShortageOccupationMaterializationRead:
+    from fastapi import HTTPException
+
+    context = getattr(request.state, "auth", None)
+    actor = getattr(context, "username", "api-operator")
+    try:
+        return materialize_shortage_occupation_snapshot(
+            session,
+            payload,
+            actor=actor,
+        )
+    except ValueError as exc:
+        session.rollback()
+        message = str(exc)
+        status_code = 404 if message in {
+            "Source snapshot not found",
+            "Official source jurisdiction not found",
+        } else 400
+        raise HTTPException(status_code=status_code, detail=message) from exc
+
+
+@router.get(
+    "/api/v1/regulatory-intelligence/shortage-occupations/lookup",
+    response_model=ShortageOccupationLookupRead,
+)
+def api_lookup_shortage_occupation(
+    jurisdiction_id: UUID,
+    year: int,
+    occupation: str,
+    province_code: Optional[str] = None,
+    session: Session = Depends(get_session),
+) -> ShortageOccupationLookupRead:
+    from fastapi import HTTPException
+
+    try:
+        return lookup_shortage_occupation(
+            session,
+            jurisdiction_id=jurisdiction_id,
+            year=year,
+            occupation=occupation,
+            province_code=province_code,
+        )
+    except ValueError as exc:
+        message = str(exc)
+        status_code = 404 if message == "Jurisdiction not found" else 400
+        raise HTTPException(status_code=status_code, detail=message) from exc
 
 
 @router.get("/api/v1/regulatory-intelligence/dashboard")

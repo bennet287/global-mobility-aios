@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlalchemy import Index, text
 from sqlmodel import Field, SQLModel
 
@@ -436,6 +436,52 @@ class SourceSnapshot(SQLModel, table=True):
     status: str = Field(default="referenced", index=True)
     metadata_json: Optional[str] = None
     captured_at: datetime = Field(default_factory=now_utc, index=True)
+
+class ShortageOccupationEntry(SQLModel, table=True):
+    __tablename__ = "shortage_occupation_entries"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_snapshot_id",
+            "year",
+            "scope",
+            "source_ordinal",
+            name="uq_shortage_occupation_snapshot_scope_ordinal",
+        ),
+        UniqueConstraint(
+            "entry_sha256",
+            name="uq_shortage_occupation_entry_sha256",
+        ),
+        CheckConstraint(
+            "scope IN ('national', 'regional')",
+            name="ck_shortage_occupation_scope",
+        ),
+        CheckConstraint(
+            "year BETWEEN 2000 AND 2200",
+            name="ck_shortage_occupation_year",
+        ),
+        CheckConstraint(
+            "source_ordinal > 0",
+            name="ck_shortage_occupation_source_ordinal",
+        ),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    jurisdiction_id: UUID = Field(index=True, foreign_key="jurisdictions.id")
+    official_source_id: UUID = Field(index=True, foreign_key="official_sources.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    year: int = Field(index=True)
+    scope: str = Field(index=True)
+    source_ordinal: int = Field(index=True)
+    occupation_group: str
+    normalized_occupation_group: str = Field(index=True)
+    occupation_aliases_json: str = "[]"
+    province_codes_json: str = "[]"
+    province_names_json: str = "[]"
+    extraction_version: str
+    entry_sha256: str = Field(index=True)
+    metadata_json: str = "{}"
+    created_at: datetime = Field(default_factory=now_utc)
+
 
 class SourceCheckRun(SQLModel, table=True):
     __tablename__ = "source_check_runs"
