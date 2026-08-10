@@ -10,9 +10,11 @@ from sqlmodel import Session, select
 from app.models.domain import (
     DocumentRecord,
     Jurisdiction,
+    JurisdictionSourceCertification,
     Lead,
     MobilityPathway,
     MobilityPathwayVersion,
+    MobilityPathwayVersionEvidence,
     OfficialSource,
     PathwayComparisonAssessment,
     Profile,
@@ -27,11 +29,18 @@ from app.schemas import (
     PathwayCreate,
     PathwayRead,
     PathwayRiskExplanation,
+    PathwayVersionEvidenceInput,
+    PathwayVersionEvidenceRead,
     PathwayVersionInput,
     PathwayVersionRead,
 )
 from app.services.audit_log import record_audit
 from app.services.mobility_profiles import current_mobility_profile, profile_facts
+from app.services.pathway_evidence import (
+    CORE_EVIDENCE_ROLE,
+    pathway_version_evidence_pairs,
+    pathway_version_evidence_rows,
+)
 
 
 def _dump(value: Any) -> str:
@@ -51,7 +60,23 @@ def _normal(value: str | None) -> str:
     return (value or "").strip().lower()
 
 
-def pathway_version_read(version: MobilityPathwayVersion) -> PathwayVersionRead:
+def pathway_version_read(
+    session: Session,
+    version: MobilityPathwayVersion,
+) -> PathwayVersionRead:
+    evidence_links = [
+        PathwayVersionEvidenceRead(
+            id=row.id,
+            pathway_version_id=row.pathway_version_id,
+            evidence_role=row.evidence_role,
+            official_source_id=row.official_source_id,
+            source_snapshot_id=row.source_snapshot_id,
+            required_for_publication=row.required_for_publication,
+            metadata=_load(row.metadata_json, {}),
+            created_at=row.created_at,
+        )
+        for row in pathway_version_evidence_rows(session, version)
+    ]
     return PathwayVersionRead(
         id=version.id,
         pathway_id=version.pathway_id,
@@ -60,6 +85,7 @@ def pathway_version_read(version: MobilityPathwayVersion) -> PathwayVersionRead:
         supersedes_version_id=version.supersedes_version_id,
         official_source_id=version.official_source_id,
         source_snapshot_id=version.source_snapshot_id,
+        evidence_links=evidence_links,
         verified_rule_ids=[UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])],
         eligibility_criteria=_load(version.eligibility_criteria_json, {}),
         required_documents=_load(version.required_documents_json, []),
@@ -78,7 +104,6 @@ def pathway_version_read(version: MobilityPathwayVersion) -> PathwayVersionRead:
         created_at=version.created_at,
         updated_at=version.updated_at,
     )
-
 
 def current_pathway_version(
     session: Session,
@@ -111,11 +136,15 @@ def pathway_read(
         created_by=pathway.created_by,
         created_at=pathway.created_at,
         updated_at=pathway.updated_at,
-        current_version=pathway_version_read(version) if version else None,
+        current_version=pathway_version_read(session, version) if version else None,
     )
 
 
-def pathway_read_with_version(pathway: MobilityPathway, version: MobilityPathwayVersion) -> PathwayRead:
+def pathway_read_with_version(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> PathwayRead:
     return PathwayRead(
         id=pathway.id,
         pathway_key=pathway.pathway_key,
@@ -128,30 +157,256 @@ def pathway_read_with_version(pathway: MobilityPathway, version: MobilityPathway
         created_by=pathway.created_by,
         created_at=pathway.created_at,
         updated_at=pathway.updated_at,
-        current_version=pathway_version_read(version),
+        current_version=pathway_version_read(session, version),
     )
+
+
+def _resolved_evidence_inputs(
+    payload: PathwayVersionInput,
+) -> tuple[UUID | None, UUID | None, list[PathwayVersionEvidenceInput]]:
+    if bool(payload.official_source_id) != bool(payload.source_snapshot_id):
+        raise ValueError("Official source and source snapshot must be provided together")
+
+    links = list(payload.evidence_links)
+    core_links = [link for link in links if link.evidence_role == CORE_EVIDENCE_ROLE]
+    if len(core_links) > 1:
+        raise ValueError("A pathway version may declare only one core_route evidence link")
+
+    legacy_source_id = payload.official_source_id
+    legacy_snapshot_id = payload.source_snapshot_id
+    if core_links:
+        core = core_links[0]
+        if not core.required_for_publication:
+            raise ValueError("core_route evidence must be required for publication")
+        if legacy_source_id and (
+            core.official_source_id != legacy_source_id
+            or core.source_snapshot_id != legacy_snapshot_id
+        ):
+            raise ValueError("core_route evidence must match the legacy official source/snapshot pair")
+        legacy_source_id = legacy_source_id or core.official_source_id
+        legacy_snapshot_id = legacy_snapshot_id or core.source_snapshot_id
+    elif legacy_source_id and legacy_snapshot_id:
+        links.insert(
+            0,
+            PathwayVersionEvidenceInput(
+                evidence_role=CORE_EVIDENCE_ROLE,
+                official_source_id=legacy_source_id,
+                source_snapshot_id=legacy_snapshot_id,
+                required_for_publication=True,
+                metadata={},
+            ),
+        )
+
+    seen: set[tuple[str, UUID, UUID]] = set()
+    for link in links:
+        identity = (
+            link.evidence_role,
+            link.official_source_id,
+            link.source_snapshot_id,
+        )
+        if identity in seen:
+            raise ValueError("Duplicate pathway evidence link")
+        seen.add(identity)
+
+    return legacy_source_id, legacy_snapshot_id, links
+
+
+def _validate_evidence_reference(
+    session: Session,
+    pathway: MobilityPathway,
+    link: PathwayVersionEvidenceInput,
+) -> None:
+    source = session.get(OfficialSource, link.official_source_id)
+    if source is None or not source.active:
+        raise ValueError(f"Evidence role {link.evidence_role} requires an active official source")
+    if _normal(source.country) != _normal(pathway.country):
+        raise ValueError(f"Evidence role {link.evidence_role} source country does not match the pathway")
+    if pathway.jurisdiction_id:
+        if link.evidence_role != CORE_EVIDENCE_ROLE and source.jurisdiction_id != pathway.jurisdiction_id:
+            raise ValueError(
+                f"Evidence role {link.evidence_role} source jurisdiction does not match the pathway"
+            )
+        if (
+            link.evidence_role == CORE_EVIDENCE_ROLE
+            and source.jurisdiction_id
+            and source.jurisdiction_id != pathway.jurisdiction_id
+        ):
+            raise ValueError(
+                f"Evidence role {link.evidence_role} source jurisdiction does not match the pathway"
+            )
+    snapshot = session.get(SourceSnapshot, link.source_snapshot_id)
+    if snapshot is None:
+        raise ValueError(f"Evidence role {link.evidence_role} source snapshot not found")
+    if snapshot.official_source_id != source.id:
+        raise ValueError(f"Evidence role {link.evidence_role} snapshot does not belong to its official source")
 
 
 def _validate_draft_evidence(
     session: Session,
     pathway: MobilityPathway,
     payload: PathwayVersionInput,
-) -> None:
+) -> tuple[UUID | None, UUID | None, list[PathwayVersionEvidenceInput]]:
     if pathway.jurisdiction_id and session.get(Jurisdiction, pathway.jurisdiction_id) is None:
         raise ValueError("Jurisdiction not found")
-    source = session.get(OfficialSource, payload.official_source_id) if payload.official_source_id else None
-    if payload.official_source_id and source is None:
-        raise ValueError("Official source not found")
-    if source and _normal(source.country) != _normal(pathway.country):
-        raise ValueError("Official source country does not match the pathway")
-    snapshot = session.get(SourceSnapshot, payload.source_snapshot_id) if payload.source_snapshot_id else None
-    if payload.source_snapshot_id and snapshot is None:
-        raise ValueError("Source snapshot not found")
-    if snapshot and payload.official_source_id and snapshot.official_source_id != payload.official_source_id:
-        raise ValueError("Source snapshot does not belong to the selected official source")
+
+    legacy_source_id, legacy_snapshot_id, links = _resolved_evidence_inputs(payload)
+    for link in links:
+        _validate_evidence_reference(session, pathway, link)
+
     for rule_id in payload.verified_rule_ids:
         if session.get(VerifiedRule, rule_id) is None:
             raise ValueError(f"Verified rule {rule_id} not found")
+
+    return legacy_source_id, legacy_snapshot_id, links
+
+
+def _persist_version_evidence(
+    session: Session,
+    version: MobilityPathwayVersion,
+    links: list[PathwayVersionEvidenceInput],
+) -> None:
+    for link in links:
+        session.add(
+            MobilityPathwayVersionEvidence(
+                pathway_version_id=version.id,
+                evidence_role=link.evidence_role,
+                official_source_id=link.official_source_id,
+                source_snapshot_id=link.source_snapshot_id,
+                required_for_publication=link.required_for_publication,
+                metadata_json=_dump(link.metadata),
+                created_at=version.created_at,
+            )
+        )
+    session.flush()
+
+
+def _source_certifications(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> list[JurisdictionSourceCertification]:
+    statement = select(JurisdictionSourceCertification).where(
+        JurisdictionSourceCertification.official_source_id == source_id
+    )
+    if jurisdiction_id:
+        statement = statement.where(
+            JurisdictionSourceCertification.jurisdiction_id == jurisdiction_id
+        )
+    return list(session.exec(statement).all())
+
+
+def _source_has_approved_certification(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> bool:
+    return any(
+        row.status == "approved"
+        for row in _source_certifications(
+            session,
+            source_id=source_id,
+            jurisdiction_id=jurisdiction_id,
+        )
+    )
+
+
+def _version_evidence_audit_state(
+    session: Session,
+    version: MobilityPathwayVersion,
+) -> list[dict[str, Any]]:
+    return [
+        row.model_dump(mode="json")
+        for row in pathway_version_evidence_rows(session, version)
+    ]
+
+
+def _validate_publication_evidence(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> None:
+    evidence_rows = pathway_version_evidence_rows(session, version)
+    if not evidence_rows:
+        raise ValueError("At least one official source evidence link is required before publication")
+    core_rows = [row for row in evidence_rows if row.evidence_role == CORE_EVIDENCE_ROLE]
+    if len(core_rows) != 1:
+        raise ValueError("Exactly one core_route evidence link is required before publication")
+    if not core_rows[0].required_for_publication:
+        raise ValueError("core_route evidence must be required for publication")
+
+    for row in evidence_rows:
+        link = PathwayVersionEvidenceInput(
+            evidence_role=row.evidence_role,
+            official_source_id=row.official_source_id,
+            source_snapshot_id=row.source_snapshot_id,
+            required_for_publication=row.required_for_publication,
+            metadata=_load(row.metadata_json, {}),
+        )
+        _validate_evidence_reference(session, pathway, link)
+        certifications = _source_certifications(
+            session,
+            source_id=row.official_source_id,
+            jurisdiction_id=pathway.jurisdiction_id,
+        )
+        approved_certification = any(item.status == "approved" for item in certifications)
+        if row.evidence_role == CORE_EVIDENCE_ROLE:
+            # Legacy pathways predate source certification. Preserve those rows,
+            # but once a source enters the certification workflow it must not be
+            # publishable while only pending/rejected/superseded certification exists.
+            if certifications and not approved_certification:
+                raise ValueError(
+                    "core_route source has certification history but no approved source certification"
+                )
+        elif row.required_for_publication and not approved_certification:
+            raise ValueError(
+                f"Required evidence role {row.evidence_role} needs an approved source certification before publication"
+            )
+
+    evidence_pairs = pathway_version_evidence_pairs(session, version)
+    rule_ids = [UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])]
+    if not rule_ids:
+        raise ValueError("At least one active verified rule is required before publication")
+    allowed_domains = _relevant_rule_domains(pathway.domain)
+    for rule_id in rule_ids:
+        rule = session.get(VerifiedRule, rule_id)
+        if (
+            rule is None
+            or not rule.active
+            or not rule.approved_by
+            or not rule.published_at
+            or not rule.official_source_id
+            or not rule.source_snapshot_id
+        ):
+            raise ValueError(
+                f"Verified rule {rule_id} must be active, human-published, and pinned to source provenance"
+            )
+        if _normal(rule.country) != pathway.country or _normal(rule.domain) not in allowed_domains:
+            raise ValueError(f"Verified rule {rule_id} does not match the pathway jurisdiction or domain")
+        rule_pair = (rule.official_source_id, rule.source_snapshot_id)
+        if rule_pair not in evidence_pairs:
+            raise ValueError(
+                f"Verified rule {rule_id} source/snapshot provenance is not declared by the pathway version"
+            )
+        matching_rows = [
+            row
+            for row in evidence_rows
+            if (row.official_source_id, row.source_snapshot_id) == rule_pair
+        ]
+        if not any(row.evidence_role == CORE_EVIDENCE_ROLE for row in matching_rows):
+            if not any(row.required_for_publication for row in matching_rows):
+                raise ValueError(
+                    f"Verified rule {rule_id} non-core provenance must be required for publication"
+                )
+            if not _source_has_approved_certification(
+                session,
+                source_id=rule.official_source_id,
+                jurisdiction_id=pathway.jurisdiction_id,
+            ):
+                raise ValueError(
+                    f"Verified rule {rule_id} non-core provenance needs an approved source certification"
+                )
 
 
 def _create_version_row(
@@ -161,7 +416,9 @@ def _create_version_row(
     *,
     actor: str,
 ) -> MobilityPathwayVersion:
-    _validate_draft_evidence(session, pathway, payload)
+    legacy_source_id, legacy_snapshot_id, evidence_links = _validate_draft_evidence(
+        session, pathway, payload
+    )
     existing = list(session.exec(
         select(MobilityPathwayVersion)
         .where(MobilityPathwayVersion.pathway_id == pathway.id)
@@ -175,8 +432,8 @@ def _create_version_row(
         version_number=max((item.version_number for item in existing), default=0) + 1,
         lifecycle_status="draft",
         supersedes_version_id=previous.id if previous else None,
-        official_source_id=payload.official_source_id,
-        source_snapshot_id=payload.source_snapshot_id,
+        official_source_id=legacy_source_id,
+        source_snapshot_id=legacy_snapshot_id,
         verified_rule_ids_json=_dump(dumped["verified_rule_ids"]),
         eligibility_criteria_json=_dump(payload.eligibility_criteria),
         required_documents_json=_dump(payload.required_documents),
@@ -194,6 +451,7 @@ def _create_version_row(
     )
     session.add(version)
     session.flush()
+    _persist_version_evidence(session, version, evidence_links)
     return version
 
 
@@ -232,6 +490,7 @@ def create_pathway(
         after_state={
             "pathway": pathway.model_dump(mode="json"),
             "version": version.model_dump(mode="json"),
+            "evidence_links": _version_evidence_audit_state(session, version),
         },
         reason="Created governed pathway with draft version 1",
         actor=actor,
@@ -263,7 +522,10 @@ def create_pathway_version(
         action="mobility_pathway_version_created",
         entity_type="mobility_pathway_version",
         entity_id=version.id,
-        after_state=version,
+        after_state={
+            "version": version.model_dump(mode="json"),
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
         reason=f"Created immutable draft version {version.version_number}",
         actor=actor,
         source="pathway_catalogue_v8_1",
@@ -300,24 +562,7 @@ def publish_pathway_version(
     pathway = session.get(MobilityPathway, version.pathway_id)
     if pathway is None or pathway.catalogue_status == "retired":
         raise ValueError("Pathway is not publishable")
-    source = session.get(OfficialSource, version.official_source_id) if version.official_source_id else None
-    if source is None or not source.active:
-        raise ValueError("An active official source is required before publication")
-    if _normal(source.country) != pathway.country:
-        raise ValueError("Official source country no longer matches the pathway")
-    snapshot = session.get(SourceSnapshot, version.source_snapshot_id) if version.source_snapshot_id else None
-    if snapshot is None or snapshot.official_source_id != source.id:
-        raise ValueError("A snapshot from the selected official source is required before publication")
-    rule_ids = [UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])]
-    if not rule_ids:
-        raise ValueError("At least one active verified rule is required before publication")
-    allowed_domains = _relevant_rule_domains(pathway.domain)
-    for rule_id in rule_ids:
-        rule = session.get(VerifiedRule, rule_id)
-        if rule is None or not rule.active:
-            raise ValueError(f"Verified rule {rule_id} is missing or inactive")
-        if _normal(rule.country) != pathway.country or _normal(rule.domain) not in allowed_domains:
-            raise ValueError(f"Verified rule {rule_id} does not match the pathway jurisdiction or domain")
+    _validate_publication_evidence(session, pathway, version)
     if version.created_by.strip().lower() == actor.strip().lower():
         raise ValueError("Pathway publication requires an independent reviewer")
 
@@ -347,7 +592,10 @@ def publish_pathway_version(
         entity_type="mobility_pathway_version",
         entity_id=version.id,
         before_state={"lifecycle_status": "draft"},
-        after_state=version,
+        after_state={
+            "version": version.model_dump(mode="json"),
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
         reason=review_notes,
         actor=actor,
         source="pathway_catalogue_v8_1",
@@ -552,7 +800,7 @@ def match_pathways_for_lead(
 
         score = round(min(score, 1.0), 2)
         matches.append({
-            "pathway": pathway_read_with_version(pathway, version),
+            "pathway": pathway_read_with_version(session, pathway, version),
             "match_score": score,
             "confidence": round(min(0.55 + score * 0.4, 0.95), 2),
             "reasons": reasons,
@@ -642,16 +890,32 @@ def _risk_explanation(
             regulatory.append(f"Verified rule {rule_id} is no longer active; re-review is required.")
         elif rule.confidence < 0.9:
             regulatory.append(f"Verified rule {rule.rule_key} has confidence below 0.90.")
-    snapshot = session.get(SourceSnapshot, version.source_snapshot_id) if version.source_snapshot_id else None
-    if snapshot is None:
-        regulatory.append("The published pathway has no retrievable source snapshot.")
-    else:
-        age_days = max(0, (now_utc() - _utc(snapshot.captured_at)).days)
-        if age_days > 180:
-            regulatory.append(f"Official-source snapshot is {age_days} days old and should be refreshed.")
-    source = session.get(OfficialSource, version.official_source_id) if version.official_source_id else None
-    if source is None or not source.active:
-        regulatory.append("The linked official source is inactive or unavailable.")
+    if not version.evidence_links:
+        regulatory.append("The published pathway has no retrievable source evidence.")
+    for evidence_link in version.evidence_links:
+        snapshot = session.get(SourceSnapshot, evidence_link.source_snapshot_id)
+        source = session.get(OfficialSource, evidence_link.official_source_id)
+        role = evidence_link.evidence_role
+        if snapshot is None or snapshot.official_source_id != evidence_link.official_source_id:
+            regulatory.append(f"Evidence role {role} has no valid retrievable source snapshot.")
+        else:
+            age_days = max(0, (now_utc() - _utc(snapshot.captured_at)).days)
+            if age_days > 180:
+                regulatory.append(
+                    f"Evidence role {role} snapshot is {age_days} days old and should be refreshed."
+                )
+        if source is None or not source.active:
+            regulatory.append(f"Evidence role {role} official source is inactive or unavailable.")
+        elif (
+            evidence_link.required_for_publication
+            and role != CORE_EVIDENCE_ROLE
+            and not _source_has_approved_certification(
+                session,
+                source_id=evidence_link.official_source_id,
+                jurisdiction_id=source.jurisdiction_id,
+            )
+        ):
+            regulatory.append(f"Evidence role {role} no longer has an approved source certification.")
     score = min(1.0, len(declared) * 0.12 + len(evidence) * 0.1 + len(regulatory) * 0.25)
     level = "high" if score >= 0.65 else "medium" if score >= 0.3 else "low"
     return PathwayRiskExplanation(

@@ -21,6 +21,10 @@ from app.models.domain import (
 )
 from app.schemas import PathwayRegulatoryImpactRead, PathwayRegulatoryImpactReviewRequest
 from app.services.audit_log import record_audit
+from app.services.pathway_evidence import (
+    pathway_version_evidence_snapshot_ids,
+    pathway_version_evidence_source_ids,
+)
 
 
 GRAPH_PROJECTION_VERSION = "regulatory-graph-v1"
@@ -122,7 +126,8 @@ def _candidate_versions(
             match_basis.append("direct_rule_reference")
         if rule.supersedes_rule_id and rule.supersedes_rule_id in version_rule_ids:
             match_basis.append("superseded_rule_reference")
-        if version.official_source_id and version.official_source_id == rule.official_source_id:
+        evidence_source_ids = set(pathway_version_evidence_source_ids(session, version))
+        if rule.official_source_id and rule.official_source_id in evidence_source_ids:
             match_basis.append("official_source_match")
         candidates.append((version, pathway, match_basis))
     return candidates
@@ -202,6 +207,14 @@ def link_rule_to_affected_pathways(
                 "pathway_rule_ids": [str(value) for value in sorted(_version_rule_ids(version), key=str)],
                 "pathway_official_source_id": version.official_source_id,
                 "pathway_source_snapshot_id": version.source_snapshot_id,
+                "pathway_evidence_source_ids": [
+                    str(value)
+                    for value in pathway_version_evidence_source_ids(session, version)
+                ],
+                "pathway_evidence_snapshot_ids": [
+                    str(value)
+                    for value in pathway_version_evidence_snapshot_ids(session, version)
+                ],
                 "rule_key": rule.rule_key,
                 "rule_statement": rule.statement,
                 "rule_active_at_detection": rule.active,

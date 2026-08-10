@@ -1220,6 +1220,31 @@ class MobilityPathwayVersion(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=now_utc)
 
 
+class MobilityPathwayVersionEvidence(SQLModel, table=True):
+    __tablename__ = "mobility_pathway_version_evidence"
+    __table_args__ = (
+        UniqueConstraint(
+            "pathway_version_id",
+            "evidence_role",
+            "official_source_id",
+            "source_snapshot_id",
+            name="uq_pathway_version_evidence_identity",
+        ),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    pathway_version_id: UUID = Field(
+        index=True,
+        foreign_key="mobility_pathway_versions.id",
+    )
+    evidence_role: str = Field(default="supporting", index=True)
+    official_source_id: UUID = Field(index=True, foreign_key="official_sources.id")
+    source_snapshot_id: UUID = Field(index=True, foreign_key="source_snapshots.id")
+    required_for_publication: bool = Field(default=True, index=True)
+    metadata_json: str = "{}"
+    created_at: datetime = Field(default_factory=now_utc)
+
+
 class PathwayComparisonAssessment(SQLModel, table=True):
     __tablename__ = "pathway_comparison_assessments"
 

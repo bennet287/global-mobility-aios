@@ -12,6 +12,7 @@ from app.models.domain import (
     Jurisdiction,
     MobilityPathway,
     MobilityPathwayVersion,
+    MobilityPathwayVersionEvidence,
     MobilityScenario,
     MobilityScenarioStage,
     OfficialSource,
@@ -171,7 +172,7 @@ def test_multi_country_scenario_is_human_confirmed_immutable_and_idempotent(
     db_session: Session,
 ) -> None:
     lead, _, _ = _lead_with_profile(client, db_session)
-    _, study, _, _ = _published_pathway(
+    study_pathway, study, _, _ = _published_pathway(
         db_session,
         code="AT",
         country="Austria",
@@ -179,6 +180,40 @@ def test_multi_country_scenario_is_human_confirmed_immutable_and_idempotent(
         pathway_key="at-reviewed-study",
         name="Austria Reviewed Study Route",
     )
+    supporting_source = OfficialSource(
+        jurisdiction_id=study_pathway.jurisdiction_id,
+        country="austria",
+        domain="study",
+        name="Austria study supporting evidence",
+        url="https://at.example.gov/study/supporting",
+        source_type="government",
+        active=True,
+    )
+    db_session.add(supporting_source)
+    db_session.commit()
+    db_session.refresh(supporting_source)
+    supporting_snapshot = SourceSnapshot(
+        official_source_id=supporting_source.id,
+        url=supporting_source.url,
+        content_hash="at-reviewed-study-supporting-snapshot",
+        content_text="Additional reviewed study evidence.",
+        retrieval_method="http",
+        status="captured",
+    )
+    db_session.add(supporting_snapshot)
+    db_session.commit()
+    db_session.refresh(supporting_snapshot)
+    db_session.add(
+        MobilityPathwayVersionEvidence(
+            pathway_version_id=study.id,
+            evidence_role="supporting",
+            official_source_id=supporting_source.id,
+            source_snapshot_id=supporting_snapshot.id,
+            required_for_publication=False,
+            metadata_json="{}",
+        )
+    )
+    db_session.commit()
     _, work, _, _ = _published_pathway(
         db_session,
         code="DE2",
@@ -204,6 +239,7 @@ def test_multi_country_scenario_is_human_confirmed_immutable_and_idempotent(
     assert "not eligibility guarantees" in scenario["warning"]
     assert len(scenario["stages"]) == 5
     assert scenario["stages"][0]["planned_start"].startswith("2026-09-01")
+    assert str(supporting_snapshot.id) in scenario["stages"][0]["source_snapshot_ids"]
     assert scenario["stages"][1]["planned_start"].startswith("2028-09-01")
     assert scenario["stages"][2]["planned_start"].startswith("2029-10-01")
     assert scenario["stages"][4]["uncertainty"]["future_eligibility_guaranteed"] is False

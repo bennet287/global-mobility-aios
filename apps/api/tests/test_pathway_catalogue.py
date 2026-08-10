@@ -17,6 +17,7 @@ from app.models.domain import (
     PathwayComparisonAssessment,
     SourceSnapshot,
     VerifiedRule,
+    now_utc,
 )
 
 
@@ -59,6 +60,7 @@ def _evidence(session: Session) -> tuple[Jurisdiction, OfficialSource, SourceSna
         confidence=0.98,
         active=True,
         approved_by="pytest-reviewer",
+        published_at=now_utc(),
     )
     session.add(rule)
     session.commit()

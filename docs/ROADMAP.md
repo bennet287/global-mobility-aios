@@ -40,13 +40,13 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-09
+**As of:** 2026-08-10
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-<!-- CURRENT_MIGRATION_HEAD: 0069_source_certification_multiplicity -->
+<!-- CURRENT_MIGRATION_HEAD: 0070_pathway_version_evidence_provenance -->
 
-**Code migration head:** `0069_source_certification_multiplicity`
+**Code migration head:** `0070_pathway_version_evidence_provenance`
 
 | Area | State | Current position |
 |---|---|---|
@@ -63,9 +63,9 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: **pending verification** at the new unique head `0069_source_certification_multiplicity`.
+- Migration-chain integrity: code advances to `0070_pathway_version_evidence_provenance`; SQLite/PostgreSQL upgrade verification is required when this incremental patch is applied.
 - Docker production-profile validation: passing.
-- API tests: **534 passed, 0 failed** after the Phase 13.10.2.1 PostgreSQL migration-portability hardening.
+- API regression baseline before Phase 13.10.2.5: **552 passed, 0 failed** at `0069_source_certification_multiplicity`; the `0070` patch adds focused multi-source provenance tests and requires the complete suite after application.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
 - Docker PostgreSQL database: **passing** at `0068_external_validation_framework` after a backed-up persistent database upgraded transactionally from `0056_ai_organization_governance`; governed data remained intact with 292 jurisdictions, 89 official sources, 521 source snapshots, 86 verified rules, 1 mobility pathway, and 2 mobility pathway versions.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
@@ -643,6 +643,63 @@ e  review, monitoring, or data expansion continues.
   skilled-worker source certification remains approved.
 - [ ] Obtain genuine independent review of both 2026 shortage-list source
   certifications before proposing regulatory assertions.
+
+### 13.10.2.5 Pathway multi-source evidence provenance
+
+- [x] Add normalized `mobility_pathway_version_evidence` records so one immutable
+  pathway version can declare multiple official source/snapshot pairs with explicit
+  evidence roles.
+- [x] Preserve the historical `official_source_id` / `source_snapshot_id` fields as
+  the backward-compatible `core_route` pair rather than performing a disruptive
+  pathway API rewrite.
+- [x] Add Alembic migration `0070_pathway_version_evidence_provenance` and backfill
+  every historical version that already has a source/snapshot pair into a
+  `core_route` evidence row without database-specific UUID generation.
+- [x] Add input/read schemas for evidence links and persist normalized links on new
+  pathway drafts.
+- [x] Fail closed on duplicate or mismatched core evidence, cross-country evidence,
+  cross-jurisdiction evidence, and source/snapshot mismatch.
+- [x] Require every human-published Verified Rule referenced by a published pathway
+  version to have its exact source/snapshot pair declared by that version.
+- [x] Require non-core evidence marked `required_for_publication` to have an approved
+  certification for that exact official source before pathway publication. Drafts
+  may still carry pending evidence so governance review is not bypassed.
+- [x] Prevent certification bypass by requiring any non-core evidence used by a
+  referenced Verified Rule to be publication-required and certified, and hold a
+  `core_route` source when it has entered certification but has no approved state.
+- [x] Extend multi-year mobility scenarios to pin every pathway evidence snapshot,
+  not only the legacy core snapshot.
+- [x] Extend pathway risk analysis across every declared evidence source/snapshot and
+  surface stale, missing, inactive, or certification-regressed evidence by role.
+- [x] Extend regulatory-impact source matching and impact receipts across every
+  declared pathway evidence source/snapshot.
+- [x] Add focused regression coverage for required supplemental certification,
+  undeclared rule provenance, legacy core fallback, multi-source risk inspection,
+  and regulatory-impact source matching.
+- [x] Applied `0070` to the persistent PostgreSQL database after a verified
+  custom-format backup:
+  `C:\\Users\\Bennet Allryn\\Downloads\\gmai-postgres-before-0070-20260810-124945.dump`
+  (3,631,344 bytes; SHA-256
+  `7EC3E2E5E350A59EC21D4345662AC1B6E36B9F172C422BFA454675025FEB7E5C`).
+- [x] Verified the PostgreSQL `0069` -> `0070` migration transactionally:
+  `missing_core_backfills = 0`, four historical `core_route` evidence rows were
+  created, and the database revision is
+  `0070_pathway_version_evidence_provenance`.
+- [x] Complete post-migration validation passed: focused Phase 13.10.2.5 suite
+  **14 passed, 1 warning**; complete API suite **560 passed, 1 warning**;
+  repository policy, release consistency, database migration, Docker production
+  profile, and local database-schema checks all passed.
+- [x] Re-verified live Austria integrity after migration: skilled-worker pathway
+  versions 1 and 2 remain `draft`, unpublished and unapproved; both retain matching
+  `core_route` source/snapshot evidence and no national/regional evidence links were
+  introduced by migration.
+- [x] Confirmed the existing general skilled-worker supplemental source certification
+  remains `approved`, while the Austria-wide and regional 2026 shortage-list source
+  certifications remain `pending_review`. The historical Austria-wide cross-source
+  supersedes pointer remains untouched for controlled cleanup during genuine review.
+- [ ] Create a future Austria pathway version only after the two 2026 evidence links
+  are deliberately attached and the publication gate can evaluate their real
+  certification state after genuine independent review.
 
 ## 10. Historical Evidence
 

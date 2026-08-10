@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-08-10 - Pathway multi-source evidence provenance
+
+- Added migration `0070_pathway_version_evidence_provenance` and normalized
+  `mobility_pathway_version_evidence` records for role-aware multi-source pathway
+  provenance.
+- Backfills the existing singular pathway source/snapshot pair as `core_route` while
+  retaining the legacy columns for compatibility.
+- Pathway drafts can declare multiple immutable source/snapshot pairs. Publication
+  now requires every referenced human-published rule's exact provenance to be
+  represented in the pathway evidence set.
+- Required non-core evidence must have an approved source certification before a
+  pathway can be published; pending source evidence may remain attached to drafts.
+- Rule-bearing non-core evidence cannot be marked optional to bypass certification,
+  and a core source with certification history cannot publish while no approved
+  certification exists.
+- Multi-year scenarios now pin all declared pathway evidence snapshots. Pathway risk
+  analysis and regulatory-impact source matching inspect all declared evidence rather
+  than only the historical core source.
+- Added focused regressions for multi-source publication gating, rule-provenance
+  containment, legacy core fallback, risk inspection, and regulatory-impact matching.
+- Persistent PostgreSQL was backed up immediately before migration to
+  `0070_pathway_version_evidence_provenance`; backup:
+  `gmai-postgres-before-0070-20260810-124945.dump`, 3,631,344 bytes,
+  SHA-256 `7EC3E2E5E350A59EC21D4345662AC1B6E36B9F172C422BFA454675025FEB7E5C`.
+- PostgreSQL migration validation reported `missing_core_backfills = 0` and four
+  historical `core_route` evidence rows. The Austria skilled-worker pathway versions
+  remained draft/unpublished with exact matching core source/snapshot provenance.
+- Post-migration validation passed with **14 focused tests** and **560 complete API
+  tests**; repository policy, release consistency, database migrations, Docker
+  production profile, and local schema checks also passed. The single warning is the
+  existing Starlette TestClient/httpx deprecation warning.
+- The existing Austria general skilled-worker supplemental certification remains
+  approved. The Austria-wide and regional 2026 source certifications and the
+  external-human validation gate remain held; this change grants no regulatory
+  approval and creates no national/regional pathway evidence automatically.
+
+
 ## 2026-08-10 - Supplemental source-certification multiplicity hardening
 
 Validation:

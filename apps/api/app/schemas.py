@@ -1142,9 +1142,22 @@ PathwayDomain = Literal[
 ]
 
 
+class PathwayVersionEvidenceInput(BaseModel):
+    evidence_role: str = Field(
+        min_length=3,
+        max_length=80,
+        pattern=r"^[a-z0-9][a-z0-9_-]+$",
+    )
+    official_source_id: UUID
+    source_snapshot_id: UUID
+    required_for_publication: bool = True
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
 class PathwayVersionInput(BaseModel):
     official_source_id: Optional[UUID] = None
     source_snapshot_id: Optional[UUID] = None
+    evidence_links: List[PathwayVersionEvidenceInput] = Field(default_factory=list)
     verified_rule_ids: List[UUID] = Field(default_factory=list)
     eligibility_criteria: dict[str, Any] = Field(default_factory=dict)
     required_documents: List[str] = Field(default_factory=list)
@@ -1230,6 +1243,17 @@ class PathwayRegulatoryImpactList(BaseModel):
     impacts: List[PathwayRegulatoryImpactRead] = Field(default_factory=list)
 
 
+class PathwayVersionEvidenceRead(BaseModel):
+    id: UUID
+    pathway_version_id: UUID
+    evidence_role: str
+    official_source_id: UUID
+    source_snapshot_id: UUID
+    required_for_publication: bool
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
 class PathwayVersionRead(BaseModel):
     id: UUID
     pathway_id: UUID
@@ -1238,6 +1262,7 @@ class PathwayVersionRead(BaseModel):
     supersedes_version_id: Optional[UUID] = None
     official_source_id: Optional[UUID] = None
     source_snapshot_id: Optional[UUID] = None
+    evidence_links: List[PathwayVersionEvidenceRead] = Field(default_factory=list)
     verified_rule_ids: List[UUID] = Field(default_factory=list)
     eligibility_criteria: dict[str, Any] = Field(default_factory=dict)
     required_documents: List[str] = Field(default_factory=list)

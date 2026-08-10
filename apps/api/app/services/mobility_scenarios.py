@@ -32,6 +32,7 @@ from app.schemas import (
 from app.services.audit_log import record_audit
 from app.services.jurisdiction_registry import jurisdiction_registry_coverage
 from app.services.mobility_profiles import current_mobility_profile
+from app.services.pathway_evidence import pathway_version_evidence_snapshot_ids
 
 SCENARIO_WARNING = (
     "All dates are human-confirmed planning estimates, not eligibility guarantees. "
@@ -146,7 +147,9 @@ def _stage_basis(
     if not rule_ids:
         raise ValueError("Every scenario stage requires at least one human-published verified rule")
     rules: list[VerifiedRule] = []
-    snapshots: list[UUID] = [version.source_snapshot_id]
+    snapshots: list[UUID] = pathway_version_evidence_snapshot_ids(session, version)
+    if not snapshots:
+        raise ValueError("Every scenario stage requires pathway-version source evidence")
     for rule_id in rule_ids:
         rule = session.get(VerifiedRule, rule_id)
         if rule is None or not rule.active or not rule.approved_by or not rule.published_at or not rule.source_snapshot_id:

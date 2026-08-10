@@ -338,7 +338,7 @@ def api_create_pathway_version(
     except ValueError as exc:
         session.rollback()
         raise _bad_request(exc) from exc
-    return pathway_version_read(version)
+    return pathway_version_read(session, version)
 
 
 @router.post("/{pathway_id}/retire", response_model=PathwayRead)
@@ -376,5 +376,5 @@ def api_get_pathway(
     ).all()
     return PathwayDetail(
         **pathway_read(session, pathway).model_dump(),
-        versions=[pathway_version_read(version) for version in versions],
+        versions=[pathway_version_read(session, version) for version in versions],
     )
