@@ -27,10 +27,11 @@
 - Hardened the fresh-database Alembic regression on slower Windows hosts by raising
   the upgrade/downgrade/re-upgrade subprocess budget from 60 to 180 seconds. This
   changes test-harness timing only and does not alter migration or production behavior.
-- Persistent PostgreSQL remains at `0070_pathway_version_evidence_provenance` until
-  this incremental patch passes focused/full verification and a fresh pre-`0071`
-  backup is taken. The Austria-wide and regional 2026 source certifications and the
-  external-human validation gate remain held.
+- Before the live migration, persistent PostgreSQL remained at
+  `0070_pathway_version_evidence_provenance`; the controlled pre-`0071` backup and
+  migration were performed only after focused/full verification passed. The
+  Austria-wide and regional 2026 source certifications and the external-human
+  validation gate remained held throughout.
 
 
 

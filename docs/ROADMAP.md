@@ -739,18 +739,18 @@ e  review, monitoring, or data expansion continues.
   increasing the subprocess wall-clock budget for the upgrade/downgrade/re-upgrade
   chain from 60 to 180 seconds. This is test-harness resilience only; it does not
   change migration logic, runtime database timeouts, or production behavior.
-- [ ] Apply the incremental patch to the `fbe4796` base, run focused and complete API
+- [x] Apply the incremental patch to the `fbe4796` base, run focused and complete API
   verification, and record the resulting test counts.
-- [ ] Back up persistent PostgreSQL immediately before the `0070` -> `0071` migration,
+- [x] Back up persistent PostgreSQL immediately before the `0070` -> `0071` migration,
   apply `0071`, and verify the new table/index/constraint shape without modifying
   existing pathway versions or source certifications.
-- [ ] Materialize the live Austria 2026 Austria-wide snapshot
+- [x] Materialize the live Austria 2026 Austria-wide snapshot
   `a1032556-81f1-49bf-acd6-fa8f43e45341` and regional snapshot
   `7a3503f3-dc9d-4ded-bf31-7a80738b7434`; record entry counts and deterministic
   entry-set hashes from those exact immutable snapshots.
-- [ ] Confirm the Austria-wide and regional 2026 source certifications remain
+- [x] Confirm the Austria-wide and regional 2026 source certifications remain
   `pending_review` after structuring. Structured extraction is not source approval.
-- [ ] Do not create or publish a new Austria skilled-worker pathway version in this
+- [x] Do not create or publish a new Austria skilled-worker pathway version in this
   slice; the external-human validation gate and genuine independent-review gates
   remain held.
 
