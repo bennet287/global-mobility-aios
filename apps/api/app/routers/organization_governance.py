@@ -45,6 +45,7 @@ from app.services.organization_governance import (
     create_board_packet,
     delegate_communications_work,
     delegate_finance_work,
+    delegate_people_work,
     delegate_marketing_work,
     delegate_operations_work,
     delegate_product_work,
@@ -227,6 +228,8 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
         delegate_finance_work(session, work)
     elif payload.department.strip().lower() == "communications" and runtime_available:
         delegate_communications_work(session, work)
+    elif payload.department.strip().lower() == "people" and runtime_available:
+        delegate_people_work(session, work)
     if authority in {"L3", "L4"}:
         owner = "board" if authority == "L4" else "ceo"
         session.add(ExecutiveDecision(

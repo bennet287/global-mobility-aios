@@ -242,6 +242,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["government_relations_lead_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["government_relations_lead_agent"],
     },
+    "hr_lead_agent": {
+        "version": "v13.13",
+        "department": "people",
+        "role": "Assesses workforce planning, talent pipeline, headcount forecasting, organizational design, compensation framework, performance data, compliance requirements, and people risks from supplied evidence.",
+        "guardrails": [
+            "Cannot make hiring decisions, change compensation, terminate employment, or publish HR policy.",
+            "Cannot contact candidates, employees, or external HR providers, or authorize external action.",
+            "Must expose missing evidence and escalate material compliance or workforce risk to the CHRO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["hr_lead_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["hr_lead_agent"],
+    },
+    "culture_recruitment_lead_agent": {
+        "version": "v13.13",
+        "department": "people",
+        "role": "Assesses employer value proposition, recruitment plan, culture metrics, retention data, diversity and inclusion plan, onboarding plan, training plan, employee feedback, and culture/recruitment risks from supplied evidence.",
+        "guardrails": [
+            "Cannot extend job offers, hire candidates, change benefits, or publish culture policy.",
+            "Cannot contact candidates, employees, or external recruiters, or authorize external action.",
+            "Must expose missing evidence and escalate material culture or compliance risk to the CHRO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["culture_recruitment_lead_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["culture_recruitment_lead_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

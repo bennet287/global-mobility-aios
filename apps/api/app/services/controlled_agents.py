@@ -124,6 +124,20 @@ COMMUNICATIONS_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+PEOPLE_AGENT_CONTROLLED_FIELDS = {
+    "summary",
+    "people_assessment",
+    "culture_recruitment_assessment",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -1462,6 +1476,146 @@ def _government_relations_lead(payload: ControlledAgentRunRequest, agent: dict[s
     return output
 
 
+def _people_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _people_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "people_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "people_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _hr_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _people_context(payload)
+    evidence = {
+        "workforce_plan": _first_supplied(facts, "workforce_plan", "workforce"),
+        "talent_pipeline": _first_supplied(facts, "talent_pipeline", "talent"),
+        "headcount_forecast": _first_supplied(facts, "headcount_forecast", "headcount"),
+        "org_design": _first_supplied(facts, "org_design", "organization_design"),
+        "compensation_framework": _first_supplied(facts, "compensation_framework", "compensation"),
+        "performance_data": _first_supplied(facts, "performance_data", "performance"),
+        "compliance_requirements": _first_supplied(facts, "compliance_requirements", "compliance"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "people_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _people_risk_signals(facts, role_prefix="hr_lead")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Workforce, talent, compensation, and compliance evidence assessed for internal CHRO review.",
+            "people_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_chro_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded people evidence gap before a recommendation is accepted.",
+                "Escalate hiring decisions, compensation changes, terminations, policy publication, or contracts to the CHRO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "client.external_send",
+                "policy.publish",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "hiring.decision",
+                "compensation.change",
+                "termination.action",
+            ],
+        }
+    )
+    return output
+
+
+def _culture_recruitment_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _people_context(payload)
+    evidence = {
+        "employer_value_proposition": _first_supplied(facts, "employer_value_proposition", "evp"),
+        "recruitment_plan": _first_supplied(facts, "recruitment_plan", "recruitment"),
+        "culture_metrics": _first_supplied(facts, "culture_metrics", "culture"),
+        "retention_data": _first_supplied(facts, "retention_data", "retention"),
+        "diversity_inclusion_plan": _first_supplied(facts, "diversity_inclusion_plan", "diversity_inclusion"),
+        "onboarding_plan": _first_supplied(facts, "onboarding_plan", "onboarding"),
+        "training_plan": _first_supplied(facts, "training_plan", "training"),
+        "employee_feedback": _first_supplied(facts, "employee_feedback", "feedback"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "culture_recruitment_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _people_risk_signals(facts, role_prefix="culture_recruitment_lead")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Culture, recruitment, retention, and employer-brand evidence assessed for internal CHRO review.",
+            "culture_recruitment_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_chro_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded culture and recruitment evidence gap before a recommendation is accepted.",
+                "Escalate job offers, hiring decisions, benefits changes, policy publication, or external candidate contact to the CHRO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "client.external_send",
+                "policy.publish",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "hiring.decision",
+                "compensation.change",
+                "termination.action",
+            ],
+        }
+    )
+    return output
+
+
 def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     lead_data = payload.context.get("lead", {})
@@ -1512,6 +1666,8 @@ DETERMINISTIC_HANDLERS = {
     "accounting_lead_agent": _accounting_lead,
     "pr_comms_lead_agent": _pr_comms_lead,
     "government_relations_lead_agent": _government_relations_lead,
+    "hr_lead_agent": _hr_lead,
+    "culture_recruitment_lead_agent": _culture_recruitment_lead,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -1951,6 +2107,58 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
                 output["communications_assessment"] = "evidence_incomplete"
             if resolved_name == "government_relations_lead_agent" and must_hold:
                 output["government_relations_assessment"] = "evidence_incomplete"
+        elif resolved_name in {"hr_lead_agent", "culture_recruitment_lead_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in PEOPLE_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_chro_internal_review"
+            )
+            if resolved_name == "hr_lead_agent" and must_hold:
+                output["people_assessment"] = "evidence_incomplete"
+            if resolved_name == "culture_recruitment_lead_agent" and must_hold:
+                output["culture_recruitment_assessment"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -2000,6 +2208,8 @@ AGENT_HANDLERS = {
     "accounting_lead_agent": _llm_agent_handler,
     "pr_comms_lead_agent": _llm_agent_handler,
     "government_relations_lead_agent": _llm_agent_handler,
+    "hr_lead_agent": _llm_agent_handler,
+    "culture_recruitment_lead_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

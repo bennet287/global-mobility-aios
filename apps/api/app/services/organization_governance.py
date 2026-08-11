@@ -59,6 +59,8 @@ POSITION_SPECS = (
     ("pr_comms_lead", "PR / Communications Lead Agent", "Communications", "cco", "L2", "PR_Comms_Lead.md"),
     ("government_relations_lead", "Government Relations Lead Agent", "Communications", "cco", "L2", "Government_Relations_Lead.md"),
     ("chro", "Chief Human Resources Officer Agent", "People", "ceo", "L3", "CHRO.md"),
+    ("hr_lead", "HR Lead Agent", "People", "chro", "L2", "HR_Lead.md"),
+    ("culture_recruitment_lead", "Culture / Recruitment Lead Agent", "People", "chro", "L2", "Culture_Recruitment_Lead.md"),
     ("clo", "Chief Legal Officer Agent", "Legal", "ceo", "L3", "CLO.md"),
     ("head_of_product", "Head of Product Agent", "Product", "cpo", "L2", "Head_of_Product.md"),
     ("sales_summary", "Sales Intelligence Agent", "Operations", "coo", "L1", "Sales_Summary_Agent.md"),
@@ -99,6 +101,9 @@ HARDENED_POSITION_KEYS = frozenset(
         "cco",
         "pr_comms_lead",
         "government_relations_lead",
+        "chro",
+        "hr_lead",
+        "culture_recruitment_lead",
     }
 )
 
@@ -585,6 +590,82 @@ COMMUNICATIONS_PROHIBITED_ACTIONS = frozenset(
         "vendor.commit",
     }
 )
+PEOPLE_DELEGATION_SPECS = (
+    (
+        "hr_lead",
+        "Assess workforce planning, talent pipeline, headcount forecasting, organizational design, compensation framework, performance data, compliance requirements, and people risks from supplied evidence.",
+    ),
+    (
+        "culture_recruitment_lead",
+        "Assess employer value proposition, recruitment plan, culture metrics, retention data, diversity and inclusion plan, onboarding plan, training plan, employee feedback, and culture/recruitment risks from supplied evidence.",
+    ),
+)
+PEOPLE_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in PEOPLE_DELEGATION_SPECS
+)
+PEOPLE_REQUIRED_EVIDENCE_FIELDS = (
+    "brand_guidelines",
+    "compliance_requirements",
+    "culture_metrics",
+    "diversity_inclusion_plan",
+    "employee_feedback",
+    "employer_value_proposition",
+    "headcount_forecast",
+    "onboarding_plan",
+    "org_design",
+    "performance_data",
+    "recruitment_plan",
+    "retention_data",
+    "risks",
+    "sources",
+    "talent_pipeline",
+    "training_plan",
+    "workforce_plan",
+)
+PEOPLE_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "hr_lead": frozenset(
+        {
+            "people_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "dissent_reason",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "culture_recruitment_lead": frozenset(
+        {
+            "culture_recruitment_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "dissent_reason",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
+PEOPLE_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "infrastructure.mutate",
+        "policy.publish",
+        "position.suspend",
+        "pricing.change",
+        "production.irreversible",
+        "secrets.access",
+        "spend.above_threshold",
+        "vendor.commit",
+        "hiring.decision",
+        "compensation.change",
+        "termination.action",
+    }
+)
 HARDENED_SPECIALIST_POSITION_KEYS = frozenset().union(
     TECHNOLOGY_REQUIRED_DELEGATES,
     PRODUCT_REQUIRED_DELEGATES,
@@ -593,6 +674,7 @@ HARDENED_SPECIALIST_POSITION_KEYS = frozenset().union(
     MARKETING_REQUIRED_DELEGATES,
     FINANCE_REQUIRED_DELEGATES,
     COMMUNICATIONS_REQUIRED_DELEGATES,
+    PEOPLE_REQUIRED_DELEGATES,
 )
 
 ACTION_EXECUTIVE_CONSULTATIONS = {
@@ -1027,6 +1109,81 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                     COMMUNICATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS["government_relations_lead"]
                 ),
                 "prohibited_direct_actions": sorted(COMMUNICATIONS_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "chro":
+        contract.update(
+            {
+                "capabilities": [
+                    "delegate_bounded_people_analysis",
+                    "synthesize_evidence_complete_people_review",
+                    "escalate_workforce_compliance_recruitment_and_culture_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_specialist_positions": sorted(PEOPLE_REQUIRED_DELEGATES),
+                "required_evidence_fields": list(PEOPLE_REQUIRED_EVIDENCE_FIELDS),
+                "prohibited_direct_actions": sorted(PEOPLE_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "hr_lead":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_workforce_planning_and_talent_pipeline",
+                    "assess_compensation_compliance_and_performance_risk",
+                    "raise_people_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "compensation_framework",
+                    "compliance_requirements",
+                    "headcount_forecast",
+                    "org_design",
+                    "performance_data",
+                    "risks",
+                    "sources",
+                    "talent_pipeline",
+                    "workforce_plan",
+                ],
+                "required_output_fields": sorted(
+                    PEOPLE_SPECIALIST_REQUIRED_OUTPUT_FIELDS["hr_lead"]
+                ),
+                "prohibited_direct_actions": sorted(PEOPLE_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "culture_recruitment_lead":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_employer_value_proposition_and_recruitment_plan",
+                    "assess_culture_retention_and_development_risk",
+                    "raise_culture_recruitment_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "culture_metrics",
+                    "diversity_inclusion_plan",
+                    "employee_feedback",
+                    "employer_value_proposition",
+                    "onboarding_plan",
+                    "recruitment_plan",
+                    "retention_data",
+                    "sources",
+                    "training_plan",
+                ],
+                "required_output_fields": sorted(
+                    PEOPLE_SPECIALIST_REQUIRED_OUTPUT_FIELDS["culture_recruitment_lead"]
+                ),
+                "prohibited_direct_actions": sorted(PEOPLE_PROHIBITED_ACTIONS),
             }
         )
     elif position_key == "ciso":
@@ -1758,6 +1915,44 @@ def delegate_communications_work(
             authority_basis=(
                 "CCO L3 communications mandate; delegated L2 internal analysis only; "
                 "no external messaging, public statement, press release, policy publication, spend, contract, or external action authority."
+            ),
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_people_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CHRO review plan once for internal analysis."""
+    if work.department.strip().lower() != "people":
+        raise ValueError("People delegation requires a People work item")
+    if work.assigned_position_key != "chro":
+        raise ValueError("People delegation requires CHRO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("People delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in PEOPLE_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="chro",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CHRO L3 people mandate; delegated L2 internal analysis only; "
+                "no hiring decision, compensation change, termination, policy publication, external offer, employment commitment, or external action authority."
             ),
         )
         session.add(delegation)
@@ -3167,6 +3362,85 @@ def _communications_preflight_gap(
     return "Communications preflight incomplete; " + "; ".join(gaps) + "."
 
 
+def _people_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _people_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _people_evidence_context(work)
+    aliases = {
+        "brand_guidelines": ("brand_guidelines", "brand_standards", "brand_policy"),
+        "compliance_requirements": ("compliance_requirements", "compliance"),
+        "culture_metrics": ("culture_metrics", "culture"),
+        "diversity_inclusion_plan": ("diversity_inclusion_plan", "diversity_inclusion"),
+        "employee_feedback": ("employee_feedback", "feedback"),
+        "employer_value_proposition": ("employer_value_proposition", "evp"),
+        "headcount_forecast": ("headcount_forecast", "headcount"),
+        "onboarding_plan": ("onboarding_plan", "onboarding"),
+        "org_design": ("org_design", "organization_design"),
+        "performance_data": ("performance_data", "performance"),
+        "recruitment_plan": ("recruitment_plan", "recruitment"),
+        "retention_data": ("retention_data", "retention"),
+        "risks": ("risks", "known_risks", "people_risks"),
+        "sources": ("sources", "source_provenance"),
+        "talent_pipeline": ("talent_pipeline", "talent"),
+        "training_plan": ("training_plan", "training"),
+        "workforce_plan": ("workforce_plan", "workforce"),
+    }
+    return [
+        field
+        for field in PEOPLE_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _people_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(PEOPLE_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _people_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "People preflight incomplete; " + "; ".join(gaps) + "."
+
+
 @dataclass(frozen=True)
 class DepartmentExecutionAdapter:
     delegate: Any
@@ -3266,6 +3540,19 @@ DEPARTMENT_EXECUTION_ADAPTERS: dict[str, DepartmentExecutionAdapter] = {
         primary_field_by_position={
             "pr_comms_lead": "communications_assessment",
             "government_relations_lead": "government_relations_assessment",
+        },
+    ),
+    "people": DepartmentExecutionAdapter(
+        delegate=delegate_people_work,
+        preflight_gap=_people_preflight_gap,
+        required_delegates=PEOPLE_REQUIRED_DELEGATES,
+        specialist_output_fields=PEOPLE_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_people_evidence_gaps,
+        proceed_recommendation="proceed_to_chro_internal_review",
+        completion_prefix="People evidence contract incomplete",
+        primary_field_by_position={
+            "hr_lead": "people_assessment",
+            "culture_recruitment_lead": "culture_recruitment_assessment",
         },
     ),
 }

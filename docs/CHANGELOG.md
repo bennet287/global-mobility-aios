@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-08-11 - Phase 13.13 People/CHRO bounded department runtime
+
+- Enabled the People department runtime for bounded `internal.analysis` only.
+- Added `HR Lead` and `Culture / Recruitment Lead` L2 specialist positions
+  under the CHRO, with role cards, controlled-agent handlers, registry entries,
+  output schemas, and hardened position contracts.
+- Added People evidence fields: brand guidelines, compliance requirements,
+  culture metrics, diversity and inclusion plan, employee feedback, employer
+  value proposition, headcount forecast, onboarding plan, organizational design,
+  performance data, recruitment plan, retention data, risks, sources, talent
+  pipeline, training plan, and workforce plan.
+- Blocked People specialists from hiring decisions, compensation changes,
+  terminations, policy publication, employment offers, external candidate or
+  employee contact, and any external action.
+- Added `delegate_people_work` and integrated People into the department
+  execution adapter so the CHRO delegates to both specialists and the CEO
+  receives an evidence-backed L3 decision receipt on completion.
+- Added People work-item routing so People work is assigned to the CHRO and
+  runs through the same bounded execution path as other hardened departments.
+- Added focused regressions for People internal analysis, incomplete evidence
+  hold, suspended specialist resume, CEO handoff, CHRO contract assertions,
+  prohibited-action enforcement, specialist isolation, and CHRO-only assignment.
+- Updated the foundation bootstrap position count to 32 and verified the
+  CHRO/People reporting line.
+- Updated `test_still_unimplemented_department_runtime_is_held_without_false_completion`
+  to use the still-held `Legal` department, since People is now implemented.
+- Kept Alembic at `0071_structured_shortage_occupation_evidence`; no schema
+  migration was introduced.
+- Complete verification passed with **613 API tests, 0 failed**, with only the
+  existing Starlette TestClient/httpx deprecation warning. Web production build
+  passed with 37 routes. Legal remains held.
+
 ## 2026-08-11 - Phase 13.12 Communications/CCO bounded department runtime
 
 - Enabled the Communications department runtime for bounded `internal.analysis` only.

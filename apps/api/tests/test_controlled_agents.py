@@ -43,6 +43,8 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "accounting_lead_agent",
         "pr_comms_lead_agent",
         "government_relations_lead_agent",
+        "hr_lead_agent",
+        "culture_recruitment_lead_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
