@@ -14,6 +14,7 @@ from app.schemas import (
     JurisdictionImmigrationAssessmentReview,
     JurisdictionSourceCertificationProposal,
     JurisdictionSourceCertificationReview,
+    SourceCertificationReviewPackRead,
 )
 from app.services.coverage_evidence_batches import (
     coverage_batch_payload,
@@ -48,6 +49,7 @@ from app.services.jurisdiction_registry import (
     review_source_certification,
     source_certification_payload,
 )
+from app.services.source_certification_review import source_certification_review_pack
 from app.services.live_intelligence import global_intelligence_dashboard
 
 router = APIRouter(prefix="/api/v1/global-intelligence", tags=["global-live-intelligence-v10.0"])
@@ -209,6 +211,25 @@ def api_propose_source_certification(
     return source_certification_payload(certification)
 
 
+@router.get(
+    "/registry/source-certifications/{certification_id}/review-pack",
+    response_model=SourceCertificationReviewPackRead,
+)
+def api_source_certification_review_pack(
+    certification_id: UUID,
+    source_snapshot_id: UUID | None = Query(default=None),
+    session: Session = Depends(get_session),
+) -> SourceCertificationReviewPackRead:
+    try:
+        return source_certification_review_pack(
+            session,
+            certification_id,
+            source_snapshot_id=source_snapshot_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.post("/registry/source-certifications/{certification_id}/review")
 def api_review_source_certification(
     certification_id: UUID,
@@ -223,11 +244,15 @@ def api_review_source_certification(
             decision=payload.decision,
             notes=payload.notes,
             actor=_actor(request),
+            evidence_pack_sha256=payload.evidence_pack_sha256,
+            source_snapshot_id=payload.source_snapshot_id,
+            independent_human_attestation=payload.independent_human_attestation,
         )
     except ValueError as exc:
         session.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return source_certification_payload(certification)
+
 
 @router.get("/registry/coverage-worklist")
 def api_global_coverage_worklist(

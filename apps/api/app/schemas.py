@@ -1936,6 +1936,28 @@ class JurisdictionSourceCertificationProposal(BaseModel):
 class JurisdictionSourceCertificationReview(BaseModel):
     decision: Literal["approved", "rejected"]
     notes: str = Field(min_length=3, max_length=5000)
+    evidence_pack_sha256: Optional[str] = Field(
+        default=None,
+        pattern=r"^[0-9a-fA-F]{64}$",
+    )
+    source_snapshot_id: Optional[UUID] = None
+    independent_human_attestation: bool = False
+
+
+class SourceCertificationReviewPackRead(BaseModel):
+    pack_version: str
+    evidence_pack_sha256: str
+    certification_id: UUID
+    certification_status: str
+    proposed_by: str
+    jurisdiction: dict[str, Any]
+    regulatory_authority: dict[str, Any]
+    official_source: dict[str, Any]
+    source_snapshot: dict[str, Any]
+    source_content_text: str
+    structured_projection: dict[str, Any]
+    structured_entries: List[dict[str, Any]] = Field(default_factory=list)
+    review_checklist: List[str] = Field(default_factory=list)
 
 
 class JurisdictionSourceOnboardingProposal(BaseModel):

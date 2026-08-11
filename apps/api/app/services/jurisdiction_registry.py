@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import html
 import json
 from collections import Counter
@@ -23,6 +24,11 @@ from app.models.domain import (
     SourceSnapshot,
     VerifiedRule,
     now_utc,
+)
+from app.services.audit_log import record_audit
+from app.services.source_certification_review import (
+    source_certification_requires_structured_review_pack,
+    source_certification_review_pack,
 )
 
 
@@ -602,16 +608,47 @@ def review_source_certification(
     decision: str,
     notes: str,
     actor: str,
+    evidence_pack_sha256: str | None = None,
+    source_snapshot_id: Any | None = None,
+    independent_human_attestation: bool = False,
 ) -> JurisdictionSourceCertification:
     certification = session.get(JurisdictionSourceCertification, certification_id)
     if certification is None:
         raise ValueError("Source certification not found")
     if certification.status != "pending_review":
         raise ValueError("Only pending source certifications can be reviewed")
-    if certification.proposed_by == actor:
+    if certification.proposed_by.strip().casefold() == actor.strip().casefold():
         raise ValueError("Source certification reviewer must be different from the proposer")
     if decision not in {"approved", "rejected"}:
         raise ValueError("Review decision must be approved or rejected")
+
+    structured_review_required = source_certification_requires_structured_review_pack(
+        session, certification
+    )
+    review_pack = None
+    if structured_review_required:
+        if not independent_human_attestation:
+            raise ValueError(
+                "Independent-human attestation is required for structured source certification review"
+            )
+        if not evidence_pack_sha256:
+            raise ValueError(
+                "Structured source certification review requires an evidence-pack SHA-256"
+            )
+        review_pack = source_certification_review_pack(
+            session,
+            certification.id,
+            source_snapshot_id=source_snapshot_id,
+        )
+        if not hmac.compare_digest(
+            evidence_pack_sha256.strip().lower(),
+            review_pack.evidence_pack_sha256.lower(),
+        ):
+            raise ValueError(
+                "Reviewer evidence-pack SHA-256 does not match the current deterministic review pack"
+            )
+
+    before_state = certification.model_dump(mode="json")
     if decision == "approved":
         authority = session.get(RegulatoryAuthority, certification.regulatory_authority_id)
         source = session.get(OfficialSource, certification.official_source_id)
@@ -666,6 +703,39 @@ def review_source_certification(
     certification.review_notes = notes.strip()
     certification.updated_at = now_utc()
     session.add(certification)
+
+    review_evidence = {
+        "decision": decision,
+        "structured_review_pack_required": structured_review_required,
+        "independent_human_attestation": bool(
+            structured_review_required and independent_human_attestation
+        ),
+    }
+    if review_pack is not None:
+        review_evidence.update(
+            {
+                "evidence_pack_sha256": review_pack.evidence_pack_sha256,
+                "pack_version": review_pack.pack_version,
+                "source_snapshot_id": str(
+                    review_pack.source_snapshot.get("id", "")
+                ),
+                "structured_projection": review_pack.structured_projection,
+            }
+        )
+    record_audit(
+        session,
+        action="jurisdiction_source_certification_reviewed",
+        entity_type="jurisdiction_source_certification",
+        entity_id=certification.id,
+        before_state=before_state,
+        after_state={
+            "certification": certification.model_dump(mode="json"),
+            "review_evidence": review_evidence,
+        },
+        reason=notes.strip(),
+        actor=actor,
+        source="source_certification_review_v13_10_2_8",
+    )
     session.commit()
     session.refresh(certification)
     return certification

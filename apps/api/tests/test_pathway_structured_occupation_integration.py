@@ -296,6 +296,8 @@ def test_structured_occupation_integration_creates_idempotent_draft_and_holds_pu
     assert readiness["evidence_certification_statuses"]["national_occupation_list"] == "pending_review"
     assert readiness["evidence_certification_statuses"]["regional_occupation_list"] == "pending_review"
     assert "approved source certification" in " ".join(readiness["blockers"]).lower()
+    assert any("national_occupation_list" in blocker for blocker in readiness["blockers"])
+    assert any("regional_occupation_list" in blocker for blocker in readiness["blockers"])
 
     again = client.post(
         f"/api/v1/pathways/{pathway_id}/structured-occupation-draft",

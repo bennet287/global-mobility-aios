@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-08-11 - Independent source-review readiness
+
+- Added deterministic reviewer-facing evidence packs for source certifications backed by
+  structured shortage-occupation evidence. Each pack pins certification/source/authority
+  identity, the immutable source snapshot, exact projection identity, and every structured
+  occupation row while also exposing the source text for human comparison.
+- Added stable evidence-pack SHA-256 generation and fail-closed snapshot selection when a
+  source has more than one structured projection.
+- Structured source reviews now require the exact pack SHA-256 plus an explicit
+  independent-human attestation. Proposer/reviewer identity separation is enforced
+  case-insensitively, and pack generation itself never changes certification state.
+- Review evidence is recorded in the existing durable audit log with the pack version/hash,
+  pinned snapshot, projection identity, reviewer decision, and attestation. No schema
+  migration is required; Alembic remains at `0071_structured_shortage_occupation_evidence`.
+- Historical/non-structured certifications keep their existing review behavior.
+- Pathway publication readiness now aggregates deterministic evidence blockers so Austria
+  v3 can expose both pending national and regional certification blockers simultaneously.
+- Added focused regressions for pack determinism, source-text/entry projection content,
+  attestation/hash enforcement, case-insensitive reviewer separation, multi-projection
+  snapshot pinning, audit evidence, API enforcement, legacy compatibility, and aggregate
+  pathway blockers.
+- This code slice does not approve or reject either live Austria 2026 source, publish the
+  pathway, or release the external-human validation gate. Live reviewer-pack generation is
+  a read-only post-verification step.
+
+
 ## 2026-08-11 - Austria structured-evidence pathway integration
 
 - Reserved `national_occupation_list` and `regional_occupation_list` pathway evidence

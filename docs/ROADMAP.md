@@ -63,9 +63,9 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.7 adds no schema migration and must preserve this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.8 adds no schema migration and must preserve this head.
 - Docker production-profile validation: passing.
-- API regression baseline before Phase 13.10.2.7: **571 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the integration patch adds structured-evidence/pathway-governance regressions and requires the complete suite after application.
+- API regression baseline before Phase 13.10.2.8: **577 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the independent-review readiness patch adds deterministic review-pack, attestation, audit, and blocker-aggregation regressions and requires the complete suite after application.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
 - Docker PostgreSQL database: **passing** at `0071_structured_shortage_occupation_evidence`; Austria 2026 materialization is idempotent at 64 national and 66 regional groups while both source certifications remain `pending_review`.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
@@ -856,6 +856,77 @@ e  review, monitoring, or data expansion continues.
 - [x] Neither 2026 supplemental source was approved, no pathway version was
   published, and the genuine independent-review/external-validation gates
   remain held.
+
+### 13.10.2.8 Independent review readiness and certification evidence packs
+
+- [x] Add a deterministic reviewer-facing evidence pack for source certifications that
+  have structured shortage-occupation projections. The pack binds the certification,
+  jurisdiction, authority, official source, immutable source snapshot, declared
+  year/scope, extraction version, entry count, entry-set SHA-256, and every structured
+  occupation row without inferring case eligibility.
+- [x] Include the immutable source text alongside the structured rows so a reviewer can
+  perform a source-to-projection comparison. The deterministic pack SHA-256 is computed
+  from canonical evidence identity/content rather than from mutable review status.
+- [x] Fail closed when a source has multiple structured projections unless the reviewer
+  pins the exact `source_snapshot_id`; a certification review must not silently choose
+  among multiple years or snapshots.
+- [x] Require an explicit independent-human attestation plus the exact deterministic
+  evidence-pack SHA-256 before any certification backed by structured occupation data can
+  be approved or rejected. Reviewer/proposer identity separation is case-insensitive.
+- [x] Preserve the existing review path for certifications with no structured projection,
+  avoiding an unrelated migration or forced retrofit of historical source reviews.
+- [x] Record structured review evidence in the durable audit log, including reviewer,
+  decision, pack version/hash, pinned source snapshot, structured projection identity,
+  and human attestation. The source certification remains the only explicit approval
+  action; generating a review pack grants no approval.
+- [x] Aggregate pathway publication-readiness blockers instead of exposing only the first
+  source-certification failure. Austria v3 can therefore report both national and
+  regional pending-review blockers at the same time while remaining fail-closed.
+- [x] Keep Alembic head at `0071_structured_shortage_occupation_evidence`; this slice
+  changes review/readiness behavior and requires no database migration.
+- [ ] Apply the incremental patch to clean base `b61ddd7`, run focused tests, then run the
+  complete API/local quality gate before restarting the host API.
+- [ ] Restart the host API and materialize read-only reviewer packs for the live Austria
+  2026 national and regional certifications. Record each exact pack SHA-256 and confirm
+  the packs pin the already materialized 64/66-entry projections.
+- [ ] Confirm both live 2026 certifications remain `pending_review`, Austria pathway v3
+  remains draft/unapproved/unpublished, and publication readiness reports both structured
+  certification blockers after pack generation.
+- [ ] Do not submit the independent-human attestation, approve/reject either certification,
+  publish v3, or release the external-validation gate unless a genuine separate human
+  reviewer personally performs the review.
+
+#### Phase 13.10.2.8 closure evidence
+
+- [x] Focused and complete verification passed. The complete API suite reached
+  **583 passed**, with only the existing Starlette TestClient/httpx deprecation
+  warning, and the complete local quality gate passed.
+- [x] No database migration or live regulatory write was required. Persistent
+  PostgreSQL remained at `0071_structured_shortage_occupation_evidence`.
+- [x] Generated a deterministic independent-review evidence pack for Austria's
+  2026 national shortage-occupation source certification
+  `599f7ce7-b85e-4d02-b3ca-ea17b75aba84`, covering all **64** structured
+  national entries.
+- [x] National independent-review pack SHA-256
+  `b8073504eef684a1d02c5e99efb16c9bf1225c89c807196ce103b0bb9b9cffe7`.
+- [x] Generated a deterministic independent-review evidence pack for Austria's
+  2026 regional shortage-occupation source certification
+  `f4cf5f04-0519-4cad-b5c2-88ec1183ded5`, covering all **66** structured
+  regional entries.
+- [x] Regional independent-review pack SHA-256
+  `46f4b74a379aaea9a3bd90f1da14166a1ea408842020cf2b700059ff8687920d`.
+- [x] Review-pack generation remained read-only. Both exact certifications
+  remained `pending_review`; no independent-human attestation was submitted.
+- [x] Austria skilled-worker pathway version 3
+  `35412414-2cfd-489b-8731-c375d41d6f52` remained `draft`, unapproved and
+  unpublished.
+- [x] Publication readiness remained fail-closed with
+  `ready = false` and `requires_independent_reviewer = true`. Readiness now
+  aggregates both outstanding required-evidence blockers:
+  `national_occupation_list` and `regional_occupation_list`.
+- [x] The generated review packs are preparation artifacts only. Certification
+  approval remains reserved for a genuine separate human reviewer who personally
+  reviews the exact evidence pack.
 
 
 ## 10. Historical Evidence

@@ -393,25 +393,33 @@ def _version_evidence_audit_state(
     ]
 
 
-def _validate_publication_evidence(
+def _publication_evidence_blockers(
     session: Session,
     pathway: MobilityPathway,
     version: MobilityPathwayVersion,
-) -> None:
+) -> list[str]:
+    blockers: list[str] = []
+
+    def add(message: str) -> None:
+        if message not in blockers:
+            blockers.append(message)
+
     evidence_rows = pathway_version_evidence_rows(session, version)
     if not evidence_rows:
-        raise ValueError("At least one official source evidence link is required before publication")
+        add("At least one official source evidence link is required before publication")
+        return blockers
+
     core_rows = [row for row in evidence_rows if row.evidence_role == CORE_EVIDENCE_ROLE]
     if len(core_rows) != 1:
-        raise ValueError("Exactly one core_route evidence link is required before publication")
-    if not core_rows[0].required_for_publication:
-        raise ValueError("core_route evidence must be required for publication")
+        add("Exactly one core_route evidence link is required before publication")
+    elif not core_rows[0].required_for_publication:
+        add("core_route evidence must be required for publication")
 
     required_roles = PATHWAY_REQUIRED_EVIDENCE_ROLES.get(pathway.pathway_key, set())
     present_roles = {row.evidence_role for row in evidence_rows}
     missing_roles = sorted(required_roles - present_roles)
     if missing_roles:
-        raise ValueError(
+        add(
             f"Pathway {pathway.pathway_key} requires structured evidence roles before publication: "
             + ", ".join(missing_roles)
         )
@@ -424,7 +432,11 @@ def _validate_publication_evidence(
             required_for_publication=row.required_for_publication,
             metadata=_load(row.metadata_json, {}),
         )
-        _validate_evidence_reference(session, pathway, link)
+        try:
+            _validate_evidence_reference(session, pathway, link)
+        except ValueError as exc:
+            add(str(exc))
+
         certifications = _source_certifications(
             session,
             source_id=row.official_source_id,
@@ -436,18 +448,20 @@ def _validate_publication_evidence(
             # but once a source enters the certification workflow it must not be
             # publishable while only pending/rejected/superseded certification exists.
             if certifications and not approved_certification:
-                raise ValueError(
+                add(
                     "core_route source has certification history but no approved source certification"
                 )
         elif row.required_for_publication and not approved_certification:
-            raise ValueError(
+            add(
                 f"Required evidence role {row.evidence_role} needs an approved source certification before publication"
             )
 
     evidence_pairs = pathway_version_evidence_pairs(session, version)
     rule_ids = [UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])]
     if not rule_ids:
-        raise ValueError("At least one active verified rule is required before publication")
+        add("At least one active verified rule is required before publication")
+        return blockers
+
     allowed_domains = _relevant_rule_domains(pathway.domain)
     for rule_id in rule_ids:
         rule = session.get(VerifiedRule, rule_id)
@@ -459,16 +473,19 @@ def _validate_publication_evidence(
             or not rule.official_source_id
             or not rule.source_snapshot_id
         ):
-            raise ValueError(
+            add(
                 f"Verified rule {rule_id} must be active, human-published, and pinned to source provenance"
             )
+            continue
         if _normal(rule.country) != pathway.country or _normal(rule.domain) not in allowed_domains:
-            raise ValueError(f"Verified rule {rule_id} does not match the pathway jurisdiction or domain")
+            add(f"Verified rule {rule_id} does not match the pathway jurisdiction or domain")
+            continue
         rule_pair = (rule.official_source_id, rule.source_snapshot_id)
         if rule_pair not in evidence_pairs:
-            raise ValueError(
+            add(
                 f"Verified rule {rule_id} source/snapshot provenance is not declared by the pathway version"
             )
+            continue
         matching_rows = [
             row
             for row in evidence_rows
@@ -476,18 +493,29 @@ def _validate_publication_evidence(
         ]
         if not any(row.evidence_role == CORE_EVIDENCE_ROLE for row in matching_rows):
             if not any(row.required_for_publication for row in matching_rows):
-                raise ValueError(
+                add(
                     f"Verified rule {rule_id} non-core provenance must be required for publication"
                 )
-            if not _source_has_approved_certification(
+            elif not _source_has_approved_certification(
                 session,
                 source_id=rule.official_source_id,
                 jurisdiction_id=pathway.jurisdiction_id,
             ):
-                raise ValueError(
+                add(
                     f"Verified rule {rule_id} non-core provenance needs an approved source certification"
                 )
 
+    return blockers
+
+
+def _validate_publication_evidence(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> None:
+    blockers = _publication_evidence_blockers(session, pathway, version)
+    if blockers:
+        raise ValueError(blockers[0])
 
 def _create_version_row(
     session: Session,
@@ -672,10 +700,7 @@ def pathway_publication_readiness(
                 "source_snapshot_content_hash": metadata.get("source_snapshot_content_hash"),
             }
 
-    try:
-        _validate_publication_evidence(session, pathway, version)
-    except ValueError as exc:
-        message = str(exc)
+    for message in _publication_evidence_blockers(session, pathway, version):
         if message not in blockers:
             blockers.append(message)
 
