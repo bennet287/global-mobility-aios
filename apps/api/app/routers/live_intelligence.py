@@ -15,6 +15,8 @@ from app.schemas import (
     JurisdictionSourceCertificationProposal,
     JurisdictionSourceCertificationReview,
     SourceCertificationReviewPackRead,
+    SourceCertificationReviewQueueRead,
+    SourceCertificationReviewWorkspaceRead,
 )
 from app.services.coverage_evidence_batches import (
     coverage_batch_payload,
@@ -49,7 +51,11 @@ from app.services.jurisdiction_registry import (
     review_source_certification,
     source_certification_payload,
 )
-from app.services.source_certification_review import source_certification_review_pack
+from app.services.source_certification_review import (
+    source_certification_review_pack,
+    source_certification_review_queue,
+    source_certification_review_workspace,
+)
 from app.services.live_intelligence import global_intelligence_dashboard
 
 router = APIRouter(prefix="/api/v1/global-intelligence", tags=["global-live-intelligence-v10.0"])
@@ -58,6 +64,11 @@ router = APIRouter(prefix="/api/v1/global-intelligence", tags=["global-live-inte
 def _actor(request: Request) -> str:
     context = getattr(request.state, "auth", None)
     return getattr(context, "username", "api-operator")
+
+
+def _role(request: Request) -> str:
+    context = getattr(request.state, "auth", None)
+    return getattr(context, "role", "read_only")
 
 
 @router.get("/dashboard")
@@ -209,6 +220,43 @@ def api_propose_source_certification(
         session.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return source_certification_payload(certification)
+
+
+@router.get(
+    "/registry/source-certifications/review-queue",
+    response_model=SourceCertificationReviewQueueRead,
+)
+def api_source_certification_review_queue(
+    request: Request,
+    session: Session = Depends(get_session),
+) -> SourceCertificationReviewQueueRead:
+    return source_certification_review_queue(
+        session,
+        reviewer_identity=_actor(request),
+        reviewer_role=_role(request),
+    )
+
+
+@router.get(
+    "/registry/source-certifications/{certification_id}/review-workspace",
+    response_model=SourceCertificationReviewWorkspaceRead,
+)
+def api_source_certification_review_workspace(
+    certification_id: UUID,
+    request: Request,
+    source_snapshot_id: UUID | None = Query(default=None),
+    session: Session = Depends(get_session),
+) -> SourceCertificationReviewWorkspaceRead:
+    try:
+        return source_certification_review_workspace(
+            session,
+            certification_id,
+            reviewer_identity=_actor(request),
+            reviewer_role=_role(request),
+            source_snapshot_id=source_snapshot_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get(

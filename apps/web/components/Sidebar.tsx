@@ -51,6 +51,7 @@ const navGroups: { label: string; items: { label: string; href: string; icon: Ic
       { label: "Document Intelligence", href: "/document-intelligence", icon: "documents" },
       { label: "Regulatory Intelligence", href: "/intelligence", icon: "intelligence" },
       { label: "Global Intelligence", href: "/global-intelligence", icon: "global" },
+      { label: "Independent Source Review", href: "/source-certification-review", icon: "review" },
       { label: "Agent Console", href: "/agents/console", icon: "agents" },
       { label: "Agent Review Queue", href: "/agents/review", icon: "review" },
     ],

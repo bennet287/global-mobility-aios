@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-08-11 - Independent source-review workflow UX and audit closure
+
+- Added a dedicated `/source-certification-review` workspace for genuine independent
+  human review of structured source certifications, with a bounded pending queue and
+  exact immutable projection selection.
+- Added read-only review-queue and review-workspace APIs. They expose certification,
+  jurisdiction, authority, source, projection, deterministic review-pack identity,
+  authenticated reviewer/proposer conflict state, submission requirements, and durable
+  audit history without mutating certification state.
+- Multi-projection sources remain fail-closed until an exact `source_snapshot_id` is
+  selected. The review workspace never silently chooses among years or snapshots.
+- The reviewer UI shows immutable source text and every structured entry side-by-side,
+  supports downloading the exact JSON pack, and requires explicit 64-character pack-hash
+  confirmation, substantive notes, and independent-human attestation before submission.
+- Durable review receipts are rendered from the existing audit log after a decision;
+  certification decisions remain distinct from pathway publication and external product
+  validation.
+- Added focused regressions for queue determinism, read-only state, case-insensitive
+  proposer/reviewer blocking, snapshot pinning, audit-history reconstruction, and
+  authenticated review-workspace API behavior.
+- Added the reviewer workspace to navigation and responsive styling. No database
+  migration is introduced; Alembic remains at `0071_structured_shortage_occupation_evidence`.
+- This patch does not approve/reject the live Austria 2026 certifications, publish
+  pathway v3, or release the external-human validation gate.
+
+- Complete verification passed with **589 API tests** plus the complete local
+  quality gate; only the existing Starlette TestClient/httpx deprecation warning
+  remained.
+- This slice required no database migration or live regulatory write;
+  PostgreSQL remained at `0071_structured_shortage_occupation_evidence`.
+- Added the `/source-certification-review` reviewer workspace with queue,
+  immutable evidence-pack inspection, source/projection comparison, deterministic
+  hash confirmation, download, role-aware submission controls, independent-human
+  attestation, and audit-history presentation.
+- Read-only live workspace validation reported exactly two pending structured
+  Austria certifications.
+- National certification `599f7ce7-b85e-4d02-b3ca-ea17b75aba84` remained
+  `pending_review`, with **64 entries**, pack state `ready`, zero review-history
+  records, and SHA-256
+  `b8073504eef684a1d02c5e99efb16c9bf1225c89c807196ce103b0bb9b9cffe7`.
+- Regional certification `f4cf5f04-0519-4cad-b5c2-88ec1183ded5` remained
+  `pending_review`, with **66 entries**, pack state `ready`, zero review-history
+  records, and SHA-256
+  `46f4b74a379aaea9a3bd90f1da14166a1ea408842020cf2b700059ff8687920d`.
+- Austria pathway version 3 remained draft and publication readiness remained
+  false. Both national and regional certification blockers were returned and an
+  independent reviewer remained required.
+- Pre/post smoke database checks matched exactly. No certification review,
+  approval, pathway publication, or external-validation release occurred.
+
+
 ## 2026-08-11 - Independent source-review readiness
 
 - Added deterministic reviewer-facing evidence packs for source certifications backed by
@@ -24,6 +75,17 @@
 - This code slice does not approve or reject either live Austria 2026 source, publish the
   pathway, or release the external-human validation gate. Live reviewer-pack generation is
   a read-only post-verification step.
+
+- Post-patch validation completed with **583 passed** and the complete local quality gate
+  green; only the existing Starlette TestClient/httpx deprecation warning remained.
+- Read-only live review-pack generation pinned the national certification
+  `599f7ce7-b85e-4d02-b3ca-ea17b75aba84` to **64** entries with pack SHA-256
+  `b8073504eef684a1d02c5e99efb16c9bf1225c89c807196ce103b0bb9b9cffe7`, and the
+  regional certification `f4cf5f04-0519-4cad-b5c2-88ec1183ded5` to **66** entries with
+  pack SHA-256 `46f4b74a379aaea9a3bd90f1da14166a1ea408842020cf2b700059ff8687920d`.
+- Both live certifications remained `pending_review`; Austria pathway v3 remained draft,
+  unapproved, and unpublished, and publication readiness remained held with both required
+  structured-evidence blockers visible. No independent-human attestation was submitted.
 
 
 ## 2026-08-11 - Austria structured-evidence pathway integration

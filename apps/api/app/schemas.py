@@ -1960,6 +1960,63 @@ class SourceCertificationReviewPackRead(BaseModel):
     review_checklist: List[str] = Field(default_factory=list)
 
 
+class SourceCertificationReviewProjectionOption(BaseModel):
+    source_snapshot_id: UUID
+    year: int
+    scope: str
+    entry_count: int
+    entry_set_sha256: str
+    extraction_version: str
+    source_snapshot_content_hash: str
+
+
+class SourceCertificationReviewQueueItem(BaseModel):
+    certification: dict[str, Any]
+    jurisdiction: dict[str, Any]
+    regulatory_authority: dict[str, Any]
+    official_source: dict[str, Any]
+    review_pack_state: Literal["ready", "snapshot_pin_required", "unavailable"]
+    available_projections: List[SourceCertificationReviewProjectionOption] = Field(default_factory=list)
+    evidence_pack_sha256: Optional[str] = None
+    selected_source_snapshot_id: Optional[UUID] = None
+    reviewer_identity_conflict: bool = False
+    can_submit_review: bool = False
+
+
+class SourceCertificationReviewQueueRead(BaseModel):
+    reviewer_identity: str
+    reviewer_role: str
+    total: int
+    items: List[SourceCertificationReviewQueueItem] = Field(default_factory=list)
+    safety_message: str
+
+
+class SourceCertificationReviewHistoryEntry(BaseModel):
+    id: UUID
+    actor: str
+    decision: Optional[str] = None
+    notes: Optional[str] = None
+    evidence_pack_sha256: Optional[str] = None
+    pack_version: Optional[str] = None
+    source_snapshot_id: Optional[UUID] = None
+    independent_human_attestation: bool = False
+    structured_projection: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class SourceCertificationReviewWorkspaceRead(BaseModel):
+    certification: dict[str, Any]
+    reviewer_identity: str
+    reviewer_role: str
+    reviewer_identity_conflict: bool
+    review_pack_state: Literal["ready", "snapshot_pin_required", "unavailable"]
+    can_submit_review: bool
+    submission_requirements: List[str] = Field(default_factory=list)
+    available_projections: List[SourceCertificationReviewProjectionOption] = Field(default_factory=list)
+    review_pack: Optional[SourceCertificationReviewPackRead] = None
+    review_history: List[SourceCertificationReviewHistoryEntry] = Field(default_factory=list)
+
+
 class JurisdictionSourceOnboardingProposal(BaseModel):
     authority_name: str = Field(min_length=2, max_length=250)
     authority_type: str = Field(default="immigration_authority", min_length=2, max_length=100)

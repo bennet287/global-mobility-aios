@@ -40,7 +40,7 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-10
+**As of:** 2026-08-11
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
@@ -63,9 +63,9 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.8 adds no schema migration and must preserve this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.9 adds no schema migration and must preserve this head.
 - Docker production-profile validation: passing.
-- API regression baseline before Phase 13.10.2.8: **577 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the independent-review readiness patch adds deterministic review-pack, attestation, audit, and blocker-aggregation regressions and requires the complete suite after application.
+- API regression baseline before Phase 13.10.2.9: **583 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the review-workspace patch adds deterministic queue/workspace, snapshot-selection, audit-history, identity-separation, and frontend regressions and requires the complete suite after application.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
 - Docker PostgreSQL database: **passing** at `0071_structured_shortage_occupation_evidence`; Austria 2026 materialization is idempotent at 64 national and 66 regional groups while both source certifications remain `pending_review`.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
@@ -884,15 +884,15 @@ e  review, monitoring, or data expansion continues.
   regional pending-review blockers at the same time while remaining fail-closed.
 - [x] Keep Alembic head at `0071_structured_shortage_occupation_evidence`; this slice
   changes review/readiness behavior and requires no database migration.
-- [ ] Apply the incremental patch to clean base `b61ddd7`, run focused tests, then run the
+- [x] Apply the incremental patch to clean base `b61ddd7`, run focused tests, then run the
   complete API/local quality gate before restarting the host API.
-- [ ] Restart the host API and materialize read-only reviewer packs for the live Austria
+- [x] Restart the host API and materialize read-only reviewer packs for the live Austria
   2026 national and regional certifications. Record each exact pack SHA-256 and confirm
   the packs pin the already materialized 64/66-entry projections.
-- [ ] Confirm both live 2026 certifications remain `pending_review`, Austria pathway v3
+- [x] Confirm both live 2026 certifications remain `pending_review`, Austria pathway v3
   remains draft/unapproved/unpublished, and publication readiness reports both structured
   certification blockers after pack generation.
-- [ ] Do not submit the independent-human attestation, approve/reject either certification,
+- [x] Do not submit the independent-human attestation, approve/reject either certification,
   publish v3, or release the external-validation gate unless a genuine separate human
   reviewer personally performs the review.
 
@@ -927,6 +927,85 @@ e  review, monitoring, or data expansion continues.
 - [x] The generated review packs are preparation artifacts only. Certification
   approval remains reserved for a genuine separate human reviewer who personally
   reviews the exact evidence pack.
+
+
+### 13.10.2.9 Independent review workflow UX and audit closure
+
+- [x] Add a dedicated `/source-certification-review` operator workspace for structured
+  source certifications instead of forcing independent reviewers through generic
+  registry controls.
+- [x] Add a deterministic read-only structured certification review queue that exposes
+  pending certification identity, jurisdiction/authority/source provenance, available
+  immutable projections, exact pack readiness, authenticated reviewer identity conflict,
+  and whether submission is currently allowed.
+- [x] Add a bounded review-workspace API that returns the exact deterministic evidence
+  pack plus explicit submission requirements and durable review history from the existing
+  audit log. The workspace performs no certification mutation.
+- [x] Preserve fail-closed multi-projection behavior in the UX: when more than one
+  structured projection exists, no review pack or submission is available until the
+  reviewer pins an exact `source_snapshot_id`.
+- [x] Require the reviewer UI to confirm the exact 64-character deterministic pack
+  SHA-256, enter substantive review notes, and explicitly attest genuine independent
+  human review before the existing certification-review endpoint can be submitted.
+- [x] Display immutable source text and structured entries side-by-side, expose the
+  source ordinal/aliases/province mapping/entry hash, and allow downloading the exact
+  JSON review pack for offline inspection without changing review state.
+- [x] Surface durable review audit receipts in the same workspace after a decision,
+  including actor, decision, notes, attestation state, exact pack hash, snapshot, and
+  structured projection identity.
+- [x] Keep certification approval and pathway publication separate. A successful source
+  review does not publish Austria pathway v3 or release the external-validation gate.
+- [x] Keep Alembic at `0071_structured_shortage_occupation_evidence`; reuse the existing
+  certification and audit-log tables rather than introducing a migration for presentation
+  or derived review state.
+- [ ] Apply the incremental patch to clean base `934b073` and run focused API tests plus
+  the complete API/local quality gate including the Next.js production build.
+- [ ] Restart the host API and perform a read-only live smoke of the Austria 2026 review
+  queue/workspaces. Confirm the national pack hash remains
+  `b8073504eef684a1d02c5e99efb16c9bf1225c89c807196ce103b0bb9b9cffe7` and the regional
+  pack hash remains `46f4b74a379aaea9a3bd90f1da14166a1ea408842020cf2b700059ff8687920d`.
+- [ ] Confirm the live smoke leaves both certifications `pending_review`, pathway v3
+  `draft`, and the publication/external-validation gates held.
+- [ ] Do not use the new submission UI to approve or reject either live Austria source
+  unless a genuine separate human reviewer personally completes the exact pack review.
+
+#### Phase 13.10.2.9 closure evidence
+
+- [x] Complete verification passed with **589 API tests** and the complete local
+  quality gate. The only warning remained the existing Starlette
+  TestClient/httpx deprecation warning.
+- [x] No schema migration or live regulatory write was introduced. Persistent
+  PostgreSQL remained at `0071_structured_shortage_occupation_evidence`.
+- [x] Added the dedicated `/source-certification-review` workspace with
+  structured-review queue, deterministic evidence-pack inspection, exact
+  source/projection comparison, pack download, reviewer identity controls,
+  explicit pack-hash confirmation, human attestation controls, and review
+  history/audit presentation.
+- [x] Read-only Austria reviewer-workspace smoke passed with exactly two pending
+  structured source certifications in the queue.
+- [x] National certification
+  `599f7ce7-b85e-4d02-b3ca-ea17b75aba84` remained `pending_review`; its
+  workspace reported pack state `ready`, **64 entries**, zero review-history
+  entries, and deterministic pack SHA-256
+  `b8073504eef684a1d02c5e99efb16c9bf1225c89c807196ce103b0bb9b9cffe7`.
+- [x] Regional certification
+  `f4cf5f04-0519-4cad-b5c2-88ec1183ded5` remained `pending_review`; its
+  workspace reported pack state `ready`, **66 entries**, zero review-history
+  entries, and deterministic pack SHA-256
+  `46f4b74a379aaea9a3bd90f1da14166a1ea408842020cf2b700059ff8687920d`.
+- [x] Austria skilled-worker pathway version 3
+  `35412414-2cfd-489b-8731-c375d41d6f52` remained `draft`, with
+  `publication_ready = false` and `requires_independent_reviewer = true`.
+- [x] Publication readiness continued to expose both outstanding required
+  evidence blockers: `national_occupation_list` and
+  `regional_occupation_list`, while `core_route` remained approved.
+- [x] Pre-smoke and post-smoke database hold-state checks were identical:
+  national 2026 structured entries remained **64**, regional remained **66**,
+  both certifications remained `pending_review`, and pathway version 3
+  remained draft.
+- [x] The smoke performed no certification review, source approval, pathway
+  publication, or external-validation release. A live decision remains reserved
+  for a genuine separate human reviewer who personally reviews the exact pack.
 
 
 ## 10. Historical Evidence

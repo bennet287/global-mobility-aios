@@ -639,6 +639,87 @@ export type JurisdictionSourceCertification = {
   updated_at: string;
 };
 
+export type SourceCertificationReviewProjectionOption = {
+  source_snapshot_id: string;
+  year: number;
+  scope: string;
+  entry_count: number;
+  entry_set_sha256: string;
+  extraction_version: string;
+  source_snapshot_content_hash: string;
+};
+
+export type SourceCertificationReviewPack = {
+  pack_version: string;
+  evidence_pack_sha256: string;
+  certification_id: string;
+  certification_status: string;
+  proposed_by: string;
+  jurisdiction: Record<string, unknown>;
+  regulatory_authority: Record<string, unknown>;
+  official_source: Record<string, unknown>;
+  source_snapshot: Record<string, unknown>;
+  source_content_text: string;
+  structured_projection: Record<string, unknown>;
+  structured_entries: Array<{
+    source_ordinal: number;
+    occupation_group: string;
+    normalized_occupation_group: string;
+    occupation_aliases: string[];
+    province_codes: string[];
+    province_names: string[];
+    entry_sha256: string;
+  }>;
+  review_checklist: string[];
+};
+
+export type SourceCertificationReviewHistoryEntry = {
+  id: string;
+  actor: string;
+  decision: string | null;
+  notes: string | null;
+  evidence_pack_sha256: string | null;
+  pack_version: string | null;
+  source_snapshot_id: string | null;
+  independent_human_attestation: boolean;
+  structured_projection: Record<string, unknown>;
+  created_at: string;
+};
+
+export type SourceCertificationReviewQueueItem = {
+  certification: JurisdictionSourceCertification;
+  jurisdiction: { id: string; code: string; name: string };
+  regulatory_authority: { id: string; name: string; authority_type?: string | null };
+  official_source: { id: string; name: string; url: string; domain: string; source_type?: string | null };
+  review_pack_state: "ready" | "snapshot_pin_required" | "unavailable";
+  available_projections: SourceCertificationReviewProjectionOption[];
+  evidence_pack_sha256: string | null;
+  selected_source_snapshot_id: string | null;
+  reviewer_identity_conflict: boolean;
+  can_submit_review: boolean;
+};
+
+export type SourceCertificationReviewQueue = {
+  reviewer_identity: string;
+  reviewer_role: string;
+  total: number;
+  items: SourceCertificationReviewQueueItem[];
+  safety_message: string;
+};
+
+export type SourceCertificationReviewWorkspace = {
+  certification: JurisdictionSourceCertification;
+  reviewer_identity: string;
+  reviewer_role: string;
+  reviewer_identity_conflict: boolean;
+  review_pack_state: "ready" | "snapshot_pin_required" | "unavailable";
+  can_submit_review: boolean;
+  submission_requirements: string[];
+  available_projections: SourceCertificationReviewProjectionOption[];
+  review_pack: SourceCertificationReviewPack | null;
+  review_history: SourceCertificationReviewHistoryEntry[];
+};
+
 export type JurisdictionCoverageWorklist = {
   generated_at?: string;
   release: GlobalJurisdictionRegistry["release"];
@@ -3858,14 +3939,37 @@ export async function proposeJurisdictionSourceCertification(
   );
 }
 
+export async function getSourceCertificationReviewQueue(): Promise<SourceCertificationReviewQueue> {
+  return request<SourceCertificationReviewQueue>(
+    "/api/v1/global-intelligence/registry/source-certifications/review-queue",
+  );
+}
+
+export async function getSourceCertificationReviewWorkspace(
+  certificationId: string,
+  sourceSnapshotId?: string | null,
+): Promise<SourceCertificationReviewWorkspace> {
+  const query = sourceSnapshotId
+    ? `?source_snapshot_id=${encodeURIComponent(sourceSnapshotId)}`
+    : "";
+  return request<SourceCertificationReviewWorkspace>(
+    `/api/v1/global-intelligence/registry/source-certifications/${certificationId}/review-workspace${query}`,
+  );
+}
+
 export async function reviewJurisdictionSourceCertification(
   certificationId: string,
   decision: "approved" | "rejected",
   notes: string,
+  reviewEvidence?: {
+    evidence_pack_sha256?: string;
+    source_snapshot_id?: string;
+    independent_human_attestation?: boolean;
+  },
 ): Promise<JurisdictionSourceCertification> {
   return request<JurisdictionSourceCertification>(
     `/api/v1/global-intelligence/registry/source-certifications/${certificationId}/review`,
-    { method: "POST", body: JSON.stringify({ decision, notes }) },
+    { method: "POST", body: JSON.stringify({ decision, notes, ...(reviewEvidence || {}) }) },
   );
 }
 
