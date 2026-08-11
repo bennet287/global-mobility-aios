@@ -1282,6 +1282,36 @@ class PathwayVersionRead(BaseModel):
     updated_at: datetime
 
 
+class PathwayStructuredOccupationIntegrationRequest(BaseModel):
+    source_version_id: UUID
+    year: int = Field(ge=2000, le=2200)
+    national_source_snapshot_id: UUID
+    regional_source_snapshot_id: UUID
+    expected_national_entry_count: int = Field(ge=1, le=500)
+    expected_regional_entry_count: int = Field(ge=1, le=500)
+    expected_national_entry_set_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    expected_regional_entry_set_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    expected_national_snapshot_content_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    expected_regional_snapshot_content_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class PathwayPublicationReadinessRead(BaseModel):
+    pathway_id: UUID
+    pathway_version_id: UUID
+    lifecycle_status: str
+    ready: bool
+    blockers: List[str] = Field(default_factory=list)
+    requires_independent_reviewer: bool = True
+    evidence_certification_statuses: dict[str, str] = Field(default_factory=dict)
+    structured_occupation_evidence: dict[str, Any] = Field(default_factory=dict)
+
+
+class PathwayStructuredOccupationIntegrationRead(BaseModel):
+    created: bool
+    pathway_version: PathwayVersionRead
+    publication_readiness: PathwayPublicationReadinessRead
+
+
 class PathwayRead(BaseModel):
     id: UUID
     pathway_key: str

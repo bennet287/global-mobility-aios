@@ -176,6 +176,75 @@ def _entry_set_hash(entries: Iterable[ParsedShortageOccupation]) -> str:
     return hashlib.sha256(_dump(values).encode("utf-8")).hexdigest()
 
 
+def shortage_occupation_projection_summary(
+    session: Session,
+    *,
+    source_snapshot_id: UUID,
+    year: int,
+    scope: str,
+) -> dict[str, Any]:
+    """Return the deterministic identity of an already materialized projection.
+
+    This helper never parses or creates rows. It verifies the persisted projection is
+    internally consistent and returns the exact immutable identity that downstream
+    pathway evidence must pin.
+    """
+    if scope not in SUPPORTED_SCOPES:
+        raise ValueError("Shortage-occupation scope must be national or regional")
+    rows = list(
+        session.exec(
+            select(ShortageOccupationEntry)
+            .where(
+                ShortageOccupationEntry.source_snapshot_id == source_snapshot_id,
+                ShortageOccupationEntry.year == year,
+                ShortageOccupationEntry.scope == scope,
+            )
+            .order_by(ShortageOccupationEntry.source_ordinal)
+        ).all()
+    )
+    if not rows:
+        raise ValueError(
+            f"No structured shortage-occupation projection exists for snapshot {source_snapshot_id}, "
+            f"year {year}, scope {scope}"
+        )
+
+    expected_ordinals = list(range(1, len(rows) + 1))
+    actual_ordinals = [row.source_ordinal for row in rows]
+    if actual_ordinals != expected_ordinals:
+        raise ValueError("Structured shortage-occupation projection has non-contiguous source ordinals")
+
+    jurisdiction_ids = {row.jurisdiction_id for row in rows}
+    source_ids = {row.official_source_id for row in rows}
+    extraction_versions = {row.extraction_version for row in rows}
+    if len(jurisdiction_ids) != 1 or len(source_ids) != 1 or len(extraction_versions) != 1:
+        raise ValueError("Structured shortage-occupation projection has inconsistent provenance")
+
+    snapshot = session.get(SourceSnapshot, source_snapshot_id)
+    if snapshot is None or not snapshot.content_hash:
+        raise ValueError("Structured shortage-occupation projection snapshot provenance is unavailable")
+    source_id = next(iter(source_ids))
+    jurisdiction_id = next(iter(jurisdiction_ids))
+    if snapshot.official_source_id != source_id:
+        raise ValueError("Structured shortage-occupation projection source does not match its snapshot")
+    source = session.get(OfficialSource, source_id)
+    if source is None or source.jurisdiction_id != jurisdiction_id:
+        raise ValueError("Structured shortage-occupation projection jurisdiction does not match its official source")
+
+    values = [row.entry_sha256 for row in rows]
+    entry_set_sha256 = hashlib.sha256(_dump(values).encode("utf-8")).hexdigest()
+    return {
+        "jurisdiction_id": jurisdiction_id,
+        "official_source_id": source_id,
+        "source_snapshot_id": source_snapshot_id,
+        "source_snapshot_content_hash": snapshot.content_hash,
+        "year": year,
+        "scope": scope,
+        "entry_count": len(rows),
+        "entry_set_sha256": entry_set_sha256,
+        "extraction_version": next(iter(extraction_versions)),
+    }
+
+
 def _validate_parser_source(
     jurisdiction: Jurisdiction,
     source: OfficialSource,

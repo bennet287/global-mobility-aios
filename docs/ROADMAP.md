@@ -63,11 +63,11 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
 - Repository policy: passing.
-- Migration-chain integrity: code advances to `0071_structured_shortage_occupation_evidence`; persistent PostgreSQL is verified at `0070_pathway_version_evidence_provenance` and requires a backed-up `0070` -> `0071` upgrade after this incremental patch passes tests.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.7 adds no schema migration and must preserve this head.
 - Docker production-profile validation: passing.
-- API regression baseline before Phase 13.10.2.6: **560 passed, 0 failed** at `0070_pathway_version_evidence_provenance`; the `0071` patch adds structured shortage-occupation extraction/lookup regressions and requires the complete suite after application.
+- API regression baseline before Phase 13.10.2.7: **571 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the integration patch adds structured-evidence/pathway-governance regressions and requires the complete suite after application.
 - Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
-- Docker PostgreSQL database: **passing** at `0070_pathway_version_evidence_provenance`; the backed-up `0069` -> `0070` upgrade reported zero missing core-route backfills and preserved the live Austria pathway/certification hold state.
+- Docker PostgreSQL database: **passing** at `0071_structured_shortage_occupation_evidence`; Austria 2026 materialization is idempotent at 64 national and 66 regional groups while both source certifications remain `pending_review`.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
@@ -781,6 +781,82 @@ e  review, monitoring, or data expansion continues.
 - [x] Re-verified the Austria skilled-worker pathway after materialization:
   versions 1 and 2 remain `draft`, unapproved, and unpublished. No pathway
   version was created or published by this slice.
+
+### 13.10.2.7 Austria pathway integration of structured 2026 evidence
+
+- [x] Reserve `national_occupation_list` and `regional_occupation_list` pathway
+  evidence roles for canonical structured shortage-occupation projections. These
+  roles must be `required_for_publication` and cannot be used as optional evidence
+  to bypass source-certification governance.
+- [x] Require each structured occupation evidence link to pin the exact materialized
+  projection identity: year, scope, entry count, entry-set SHA-256, extraction
+  version, and immutable source-snapshot content hash. Draft creation fails closed
+  when any pinned value differs from the persisted projection.
+- [x] Add a controlled structured-occupation integration workflow that clones the
+  current immutable pathway version into a new draft, preserves its core route and
+  Verified Rules, and adds canonical national/regional occupation-list evidence.
+- [x] Require the Austria `at-rwr-skilled-worker-shortage-occupation` pathway to carry
+  both structured occupation-list evidence roles before any version can publish. This
+  keeps historical core-only drafts v1/v2 fail-closed instead of leaving an older
+  publication path around the new evidence gate.
+- [x] Make the integration idempotent by persisting a deterministic integration
+  signature in pathway-version metadata. Repeating the same integration returns the
+  existing draft instead of creating another version. A stale source-version branch
+  is rejected rather than silently forking pathway history.
+- [x] Add a read-only pathway publication-readiness endpoint that reports the
+  deterministic evidence blocker plus certification status by evidence role without
+  mutating or approving the pathway. Independent human review remains a separate
+  publication requirement even when evidence readiness becomes green.
+- [x] Add focused regressions for canonical projection binding, operator-pinned hash
+  mismatch, required-for-publication enforcement, idempotency, stale-source rejection,
+  pending certification hold state, and synthetic post-certification publication.
+- [x] Keep Alembic head at `0071_structured_shortage_occupation_evidence`; this slice
+  changes pathway integration/governance behavior and requires no database migration.
+- [x] Apply the incremental patch to the clean `8eb84af` base and run focused plus
+  complete API/local quality verification before any live pathway write.
+- [x] Back up persistent PostgreSQL immediately before the live Austria pathway-draft
+  integration even though this slice has no schema migration.
+- [x] Create or idempotently reuse Austria skilled-worker pathway version 3 from
+  source version `cb17657f-be9f-4ea9-b7ce-795cf0e1b1d5`, binding the existing
+  `core_route` plus the immutable 2026 national and regional occupation projections.
+- [x] Verify live version 3 remains `draft`, unapproved and unpublished, and that
+  publication readiness is held while both 2026 supplemental source certifications
+  remain `pending_review`.
+- [x] Do not approve either 2026 source, publish the pathway, or release the external
+  validation gate in this slice. Genuine independent review remains required.
+
+#### Phase 13.10.2.7 closure evidence
+
+- [x] Focused verification passed with **14 tests**. Complete API verification
+  passed with **577 tests**, with only the existing Starlette TestClient/httpx
+  deprecation warning; the complete local quality gate passed.
+- [x] No schema migration was introduced. Persistent PostgreSQL remained at
+  `0071_structured_shortage_occupation_evidence`.
+- [x] The canonical PostgreSQL backup immediately before the first successful
+  live pathway-v3 write is
+  `C:\Users\Bennet Allryn\Downloads\gmai-postgres-before-at-pathway-v3-20260811-022050.dump`
+  (3,673,174 bytes; SHA-256
+  `590342DB52783D804034D3F5C36F97B9910897F482E7E6FCB794682DDA494383`).
+- [x] Created Austria skilled-worker pathway version 3
+  `35412414-2cfd-489b-8731-c375d41d6f52` from version 2
+  `cb17657f-be9f-4ea9-b7ce-795cf0e1b1d5`. Version 3 remains `draft`,
+  with no `approved_by` value and no `published_at` value.
+- [x] Version 3 carries exactly three required publication evidence roles:
+  `core_route`, `national_occupation_list`, and `regional_occupation_list`.
+  The structured roles pin the existing immutable 2026 national snapshot
+  `a1032556-81f1-49bf-acd6-fa8f43e45341` and regional snapshot
+  `7a3503f3-dc9d-4ded-bf31-7a80738b7434`.
+- [x] Publication-readiness evaluation remains fail-closed:
+  `ready = false` and `requires_independent_reviewer = true`.
+  `core_route` is approved, while both `national_occupation_list` and
+  `regional_occupation_list` remain `pending_review`.
+- [x] Idempotency re-run returned `created = false` for the same version
+  `35412414-2cfd-489b-8731-c375d41d6f52`. A direct database check confirmed
+  exactly three pathway versions exist; no version 4 was created.
+- [x] Neither 2026 supplemental source was approved, no pathway version was
+  published, and the genuine independent-review/external-validation gates
+  remain held.
+
 
 ## 10. Historical Evidence
 

@@ -1,5 +1,58 @@
 # Changelog
 
+## 2026-08-11 - Austria structured-evidence pathway integration
+
+- Reserved `national_occupation_list` and `regional_occupation_list` pathway evidence
+  roles for canonical structured shortage-occupation projections. Structured roles
+  must be required for publication and must pin the exact materialized year, scope,
+  entry count, entry-set hash, extraction version, and source-snapshot content hash.
+- Added an idempotent pathway integration workflow that clones the current immutable
+  pathway version, preserves core route/rules/content, and adds national plus regional
+  structured occupation evidence without mutating the source version. Stale-source
+  branching fails closed.
+- The Austria `at-rwr-skilled-worker-shortage-occupation` pathway now requires both
+  structured occupation-list roles before publication, so historical core-only drafts
+  cannot bypass the new evidence gate.
+- Added read-only pathway publication readiness reporting, including source
+  certification status by evidence role, so pending structured evidence can be
+  attached to a draft while publication remains deterministically held.
+- Added regressions for projection identity mismatch, optional-evidence bypass,
+  idempotent integration, stale-source rejection, pending certification blockers, and
+  synthetic publication only after both supplemental certifications are approved.
+- No database migration is introduced; Alembic remains at
+  `0071_structured_shortage_occupation_evidence`.
+- The code patch did not create Austria pathway version 3 automatically. The live
+  integration was intentionally deferred until focused/full validation passed and a
+  fresh PostgreSQL backup was verified. The Austria-wide and regional 2026 source
+  certifications remained `pending_review` throughout.
+
+- Focused verification passed with **14 tests** and the complete API suite passed
+  with **577 tests**; the complete local quality gate passed. The only warning was
+  the existing Starlette TestClient/httpx deprecation warning.
+- Persistent PostgreSQL remained at
+  `0071_structured_shortage_occupation_evidence`; this slice required no migration.
+- The canonical pre-write backup was
+  `gmai-postgres-before-at-pathway-v3-20260811-022050.dump`
+  (3,673,174 bytes; SHA-256
+  `590342DB52783D804034D3F5C36F97B9910897F482E7E6FCB794682DDA494383`).
+- The live integration created Austria skilled-worker pathway version 3
+  `35412414-2cfd-489b-8731-c375d41d6f52` from version 2
+  `cb17657f-be9f-4ea9-b7ce-795cf0e1b1d5`. Version 3 remains draft,
+  unapproved, and unpublished.
+- Version 3 binds `core_route`, `national_occupation_list`, and
+  `regional_occupation_list` as required publication evidence, preserving the
+  exact immutable 2026 national and regional source snapshots.
+- Publication readiness remains `false` and an independent reviewer remains
+  required. The core route is approved while both 2026 occupation-list
+  certifications remain `pending_review`.
+- A second controlled integration returned `created = false` and reused the same
+  version-3 ID. Direct PostgreSQL verification confirmed exactly three pathway
+  versions exist, proving that no version 4 was created.
+- No 2026 source certification was approved, no pathway was published, and the
+  external-human validation gate remains held.
+
+
+
 ## 2026-08-10 - Structured shortage-occupation evidence
 
 - Added migration `0071_structured_shortage_occupation_evidence` and normalized

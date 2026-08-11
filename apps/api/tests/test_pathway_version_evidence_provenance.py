@@ -140,7 +140,7 @@ def test_multi_source_pathway_publication_requires_certified_required_supplement
             "source_snapshot_id": str(core_snapshot.id),
             "evidence_links": [
                 {
-                    "evidence_role": "national_occupation_list",
+                    "evidence_role": "supporting",
                     "official_source_id": str(supplemental_source.id),
                     "source_snapshot_id": str(supplemental_snapshot.id),
                     "required_for_publication": True,
@@ -162,7 +162,7 @@ def test_multi_source_pathway_publication_requires_certified_required_supplement
     assert version["source_snapshot_id"] == str(core_snapshot.id)
     assert {item["evidence_role"] for item in version["evidence_links"]} == {
         "core_route",
-        "national_occupation_list",
+        "supporting",
     }
 
     blocked = client.post(
@@ -368,11 +368,11 @@ def test_regulatory_impact_source_match_uses_any_declared_evidence_source(
     db_session.add(
         MobilityPathwayVersionEvidence(
             pathway_version_id=version.id,
-            evidence_role="national_occupation_list",
+            evidence_role="supporting",
             official_source_id=supplemental_source.id,
             source_snapshot_id=supplemental_snapshot.id,
             required_for_publication=True,
-            metadata_json='{"year": 2026}',
+            metadata_json='{"purpose": "regulatory-impact-source-match"}',
         )
     )
     db_session.commit()

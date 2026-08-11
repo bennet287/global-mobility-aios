@@ -15,11 +15,14 @@ from app.schemas import (
     PathwayDetail,
     PathwayMatchResponse,
     PathwayPublishRequest,
+    PathwayPublicationReadinessRead,
     PathwayRead,
     PathwayRegulatoryImpactList,
     PathwayRegulatoryImpactRead,
     PathwayRegulatoryImpactReviewRequest,
     PathwayRetireRequest,
+    PathwayStructuredOccupationIntegrationRead,
+    PathwayStructuredOccupationIntegrationRequest,
     PathwayVersionInput,
     PathwayVersionRead,
     ReassessmentAcceptanceCreate,
@@ -35,9 +38,11 @@ from app.services.pathway_catalogue import (
     create_pathway,
     create_pathway_version,
     generate_pathway_comparison,
+    integrate_structured_occupation_evidence,
     match_pathways_for_lead,
     pathway_read,
     pathway_comparison_read,
+    pathway_publication_readiness,
     pathway_version_read,
     publish_pathway_version,
     retire_pathway,
@@ -69,6 +74,7 @@ def _bad_request(exc: ValueError) -> HTTPException:
     status = 404 if message in {
         "Pathway not found",
         "Pathway version not found",
+        "Source pathway version not found",
         "Lead not found",
         "Pathway regulatory impact not found",
         "Reassessment acceptance not found",
@@ -304,6 +310,44 @@ def api_pathway_comparison_history(
         .limit(max(1, min(limit, 200)))
     ).all()
     return [pathway_comparison_read(row) for row in rows]
+
+
+@router.get(
+    "/versions/{version_id}/publication-readiness",
+    response_model=PathwayPublicationReadinessRead,
+)
+def api_pathway_publication_readiness(
+    version_id: UUID,
+    session: Session = Depends(get_session),
+) -> PathwayPublicationReadinessRead:
+    try:
+        return pathway_publication_readiness(session, version_id)
+    except ValueError as exc:
+        raise _bad_request(exc) from exc
+
+
+@router.post(
+    "/{pathway_id}/structured-occupation-draft",
+    response_model=PathwayStructuredOccupationIntegrationRead,
+    status_code=201,
+)
+def api_integrate_structured_occupation_evidence(
+    pathway_id: UUID,
+    payload: PathwayStructuredOccupationIntegrationRequest,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> PathwayStructuredOccupationIntegrationRead:
+    try:
+        result = integrate_structured_occupation_evidence(
+            session,
+            pathway_id,
+            payload,
+            actor=_actor(request),
+        )
+    except ValueError as exc:
+        session.rollback()
+        raise _bad_request(exc) from exc
+    return result
 
 
 @router.post("/versions/{version_id}/publish", response_model=PathwayRead)

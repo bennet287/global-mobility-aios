@@ -29,6 +29,9 @@ from app.schemas import (
     PathwayCreate,
     PathwayRead,
     PathwayRiskExplanation,
+    PathwayPublicationReadinessRead,
+    PathwayStructuredOccupationIntegrationRead,
+    PathwayStructuredOccupationIntegrationRequest,
     PathwayVersionEvidenceInput,
     PathwayVersionEvidenceRead,
     PathwayVersionInput,
@@ -41,6 +44,21 @@ from app.services.pathway_evidence import (
     pathway_version_evidence_pairs,
     pathway_version_evidence_rows,
 )
+from app.services.shortage_occupations import shortage_occupation_projection_summary
+
+
+STRUCTURED_OCCUPATION_EVIDENCE_ROLES = {
+    "national_occupation_list": "national",
+    "regional_occupation_list": "regional",
+}
+STRUCTURED_OCCUPATION_PROJECTION_TYPE = "structured_shortage_occupation"
+STRUCTURED_OCCUPATION_INTEGRATION_VERSION = "v13_10_2_7"
+PATHWAY_REQUIRED_EVIDENCE_ROLES = {
+    "at-rwr-skilled-worker-shortage-occupation": {
+        "national_occupation_list",
+        "regional_occupation_list",
+    },
+}
 
 
 def _dump(value: Any) -> str:
@@ -211,6 +229,54 @@ def _resolved_evidence_inputs(
     return legacy_source_id, legacy_snapshot_id, links
 
 
+def _structured_occupation_evidence_summary(
+    session: Session,
+    link: PathwayVersionEvidenceInput,
+) -> dict[str, Any] | None:
+    scope = STRUCTURED_OCCUPATION_EVIDENCE_ROLES.get(link.evidence_role)
+    if scope is None:
+        return None
+    if not link.required_for_publication:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} must be required for publication"
+        )
+    metadata = link.metadata or {}
+    if metadata.get("projection_type") != STRUCTURED_OCCUPATION_PROJECTION_TYPE:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} must declare projection_type "
+            f"{STRUCTURED_OCCUPATION_PROJECTION_TYPE}"
+        )
+    year = metadata.get("year")
+    if not isinstance(year, int):
+        raise ValueError(f"Evidence role {link.evidence_role} must declare an integer year")
+    if metadata.get("scope") != scope:
+        raise ValueError(f"Evidence role {link.evidence_role} must declare scope {scope}")
+
+    summary = shortage_occupation_projection_summary(
+        session,
+        source_snapshot_id=link.source_snapshot_id,
+        year=year,
+        scope=scope,
+    )
+    expected_values = {
+        "entry_count": summary["entry_count"],
+        "entry_set_sha256": summary["entry_set_sha256"],
+        "extraction_version": summary["extraction_version"],
+        "source_snapshot_content_hash": summary["source_snapshot_content_hash"],
+    }
+    for key, expected in expected_values.items():
+        if metadata.get(key) != expected:
+            raise ValueError(
+                f"Evidence role {link.evidence_role} metadata {key} does not match "
+                "the materialized immutable shortage-occupation projection"
+            )
+    if summary["official_source_id"] != link.official_source_id:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} structured projection does not belong to its official source"
+        )
+    return summary
+
+
 def _validate_evidence_reference(
     session: Session,
     pathway: MobilityPathway,
@@ -239,6 +305,11 @@ def _validate_evidence_reference(
         raise ValueError(f"Evidence role {link.evidence_role} source snapshot not found")
     if snapshot.official_source_id != source.id:
         raise ValueError(f"Evidence role {link.evidence_role} snapshot does not belong to its official source")
+    summary = _structured_occupation_evidence_summary(session, link)
+    if summary is not None and pathway.jurisdiction_id and summary["jurisdiction_id"] != pathway.jurisdiction_id:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} structured projection jurisdiction does not match the pathway"
+        )
 
 
 def _validate_draft_evidence(
@@ -335,6 +406,15 @@ def _validate_publication_evidence(
         raise ValueError("Exactly one core_route evidence link is required before publication")
     if not core_rows[0].required_for_publication:
         raise ValueError("core_route evidence must be required for publication")
+
+    required_roles = PATHWAY_REQUIRED_EVIDENCE_ROLES.get(pathway.pathway_key, set())
+    present_roles = {row.evidence_role for row in evidence_rows}
+    missing_roles = sorted(required_roles - present_roles)
+    if missing_roles:
+        raise ValueError(
+            f"Pathway {pathway.pathway_key} requires structured evidence roles before publication: "
+            + ", ".join(missing_roles)
+        )
 
     for row in evidence_rows:
         link = PathwayVersionEvidenceInput(
@@ -533,6 +613,279 @@ def create_pathway_version(
     session.commit()
     session.refresh(version)
     return version
+
+
+def _source_certification_status_label(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> str:
+    rows = _source_certifications(
+        session,
+        source_id=source_id,
+        jurisdiction_id=jurisdiction_id,
+    )
+    if any(row.status == "approved" for row in rows):
+        return "approved"
+    if not rows:
+        return "not_certified"
+    return max(rows, key=lambda row: row.certification_version).status
+
+
+def pathway_publication_readiness(
+    session: Session,
+    version_id: UUID,
+) -> PathwayPublicationReadinessRead:
+    version = session.get(MobilityPathwayVersion, version_id)
+    if version is None:
+        raise ValueError("Pathway version not found")
+    pathway = session.get(MobilityPathway, version.pathway_id)
+    if pathway is None:
+        raise ValueError("Pathway not found")
+
+    blockers: list[str] = []
+    if version.lifecycle_status != "draft":
+        blockers.append("Only draft pathway versions can be published")
+    if pathway.catalogue_status == "retired":
+        blockers.append("Pathway is not publishable")
+
+    evidence_statuses: dict[str, str] = {}
+    structured: dict[str, Any] = {}
+    for row in pathway_version_evidence_rows(session, version):
+        evidence_statuses[row.evidence_role] = _source_certification_status_label(
+            session,
+            source_id=row.official_source_id,
+            jurisdiction_id=pathway.jurisdiction_id,
+        )
+        scope = STRUCTURED_OCCUPATION_EVIDENCE_ROLES.get(row.evidence_role)
+        if scope:
+            metadata = _load(row.metadata_json, {})
+            structured[row.evidence_role] = {
+                "official_source_id": str(row.official_source_id),
+                "source_snapshot_id": str(row.source_snapshot_id),
+                "year": metadata.get("year"),
+                "scope": metadata.get("scope"),
+                "entry_count": metadata.get("entry_count"),
+                "entry_set_sha256": metadata.get("entry_set_sha256"),
+                "extraction_version": metadata.get("extraction_version"),
+                "source_snapshot_content_hash": metadata.get("source_snapshot_content_hash"),
+            }
+
+    try:
+        _validate_publication_evidence(session, pathway, version)
+    except ValueError as exc:
+        message = str(exc)
+        if message not in blockers:
+            blockers.append(message)
+
+    return PathwayPublicationReadinessRead(
+        pathway_id=pathway.id,
+        pathway_version_id=version.id,
+        lifecycle_status=version.lifecycle_status,
+        ready=not blockers,
+        blockers=blockers,
+        requires_independent_reviewer=True,
+        evidence_certification_statuses=evidence_statuses,
+        structured_occupation_evidence=structured,
+    )
+
+
+def _canonical_structured_occupation_link(
+    summary: dict[str, Any],
+    *,
+    evidence_role: str,
+) -> PathwayVersionEvidenceInput:
+    return PathwayVersionEvidenceInput(
+        evidence_role=evidence_role,
+        official_source_id=summary["official_source_id"],
+        source_snapshot_id=summary["source_snapshot_id"],
+        required_for_publication=True,
+        metadata={
+            "projection_type": STRUCTURED_OCCUPATION_PROJECTION_TYPE,
+            "year": summary["year"],
+            "scope": summary["scope"],
+            "entry_count": summary["entry_count"],
+            "entry_set_sha256": summary["entry_set_sha256"],
+            "extraction_version": summary["extraction_version"],
+            "source_snapshot_content_hash": summary["source_snapshot_content_hash"],
+        },
+    )
+
+
+def _integration_signature(
+    payload: PathwayStructuredOccupationIntegrationRequest,
+) -> dict[str, Any]:
+    return {
+        "integration_version": STRUCTURED_OCCUPATION_INTEGRATION_VERSION,
+        "source_version_id": str(payload.source_version_id),
+        "year": payload.year,
+        "national_source_snapshot_id": str(payload.national_source_snapshot_id),
+        "regional_source_snapshot_id": str(payload.regional_source_snapshot_id),
+        "national_entry_count": payload.expected_national_entry_count,
+        "regional_entry_count": payload.expected_regional_entry_count,
+        "national_entry_set_sha256": payload.expected_national_entry_set_sha256,
+        "regional_entry_set_sha256": payload.expected_regional_entry_set_sha256,
+        "national_snapshot_content_hash": payload.expected_national_snapshot_content_hash,
+        "regional_snapshot_content_hash": payload.expected_regional_snapshot_content_hash,
+    }
+
+
+def integrate_structured_occupation_evidence(
+    session: Session,
+    pathway_id: UUID,
+    payload: PathwayStructuredOccupationIntegrationRequest,
+    *,
+    actor: str,
+) -> PathwayStructuredOccupationIntegrationRead:
+    pathway = session.get(MobilityPathway, pathway_id)
+    if pathway is None:
+        raise ValueError("Pathway not found")
+    if pathway.catalogue_status == "retired":
+        raise ValueError("Retired pathways cannot receive new versions")
+    source_version = session.get(MobilityPathwayVersion, payload.source_version_id)
+    if source_version is None or source_version.pathway_id != pathway.id:
+        raise ValueError("Source pathway version not found")
+    if source_version.lifecycle_status == "retired":
+        raise ValueError("Retired pathway versions cannot be used as integration sources")
+
+    national = shortage_occupation_projection_summary(
+        session,
+        source_snapshot_id=payload.national_source_snapshot_id,
+        year=payload.year,
+        scope="national",
+    )
+    regional = shortage_occupation_projection_summary(
+        session,
+        source_snapshot_id=payload.regional_source_snapshot_id,
+        year=payload.year,
+        scope="regional",
+    )
+    if pathway.jurisdiction_id and (
+        national["jurisdiction_id"] != pathway.jurisdiction_id
+        or regional["jurisdiction_id"] != pathway.jurisdiction_id
+    ):
+        raise ValueError("Structured shortage-occupation evidence jurisdiction does not match the pathway")
+
+    expected = {
+        "national entry count": (payload.expected_national_entry_count, national["entry_count"]),
+        "regional entry count": (payload.expected_regional_entry_count, regional["entry_count"]),
+        "national entry-set hash": (
+            payload.expected_national_entry_set_sha256,
+            national["entry_set_sha256"],
+        ),
+        "regional entry-set hash": (
+            payload.expected_regional_entry_set_sha256,
+            regional["entry_set_sha256"],
+        ),
+        "national snapshot content hash": (
+            payload.expected_national_snapshot_content_hash,
+            national["source_snapshot_content_hash"],
+        ),
+        "regional snapshot content hash": (
+            payload.expected_regional_snapshot_content_hash,
+            regional["source_snapshot_content_hash"],
+        ),
+    }
+    for label, (pinned, actual) in expected.items():
+        if pinned != actual:
+            raise ValueError(f"Operator-pinned {label} does not match the materialized immutable projection")
+
+    signature = _integration_signature(payload)
+    versions = list(
+        session.exec(
+            select(MobilityPathwayVersion)
+            .where(MobilityPathwayVersion.pathway_id == pathway.id)
+            .order_by(MobilityPathwayVersion.version_number.desc())
+        ).all()
+    )
+    for existing in versions:
+        metadata = _load(existing.metadata_json, {})
+        if metadata.get("structured_occupation_integration") == signature:
+            return PathwayStructuredOccupationIntegrationRead(
+                created=False,
+                pathway_version=pathway_version_read(session, existing),
+                publication_readiness=pathway_publication_readiness(session, existing.id),
+            )
+
+    latest = versions[0] if versions else None
+    if latest is None or latest.id != source_version.id:
+        raise ValueError(
+            "Source pathway version is not the current latest version; refresh before creating a new immutable draft"
+        )
+
+    source_evidence = pathway_version_evidence_rows(session, source_version)
+    preserved_links = [
+        PathwayVersionEvidenceInput(
+            evidence_role=row.evidence_role,
+            official_source_id=row.official_source_id,
+            source_snapshot_id=row.source_snapshot_id,
+            required_for_publication=row.required_for_publication,
+            metadata=_load(row.metadata_json, {}),
+        )
+        for row in source_evidence
+        if row.evidence_role not in STRUCTURED_OCCUPATION_EVIDENCE_ROLES
+    ]
+    preserved_links.extend(
+        [
+            _canonical_structured_occupation_link(
+                national,
+                evidence_role="national_occupation_list",
+            ),
+            _canonical_structured_occupation_link(
+                regional,
+                evidence_role="regional_occupation_list",
+            ),
+        ]
+    )
+
+    metadata = _load(source_version.metadata_json, {})
+    metadata["structured_occupation_integration"] = signature
+    version_payload = PathwayVersionInput(
+        official_source_id=source_version.official_source_id,
+        source_snapshot_id=source_version.source_snapshot_id,
+        evidence_links=preserved_links,
+        verified_rule_ids=[
+            UUID(str(value))
+            for value in _load(source_version.verified_rule_ids_json, [])
+        ],
+        eligibility_criteria=_load(source_version.eligibility_criteria_json, {}),
+        required_documents=_load(source_version.required_documents_json, []),
+        costs=_load(source_version.costs_json, {}),
+        processing_time=_load(source_version.processing_time_json, {}),
+        benefits=_load(source_version.benefits_json, []),
+        risks=_load(source_version.risks_json, []),
+        metadata=metadata,
+        effective_from=source_version.effective_from,
+        effective_to=source_version.effective_to,
+    )
+    version = create_pathway_version(
+        session,
+        pathway.id,
+        version_payload,
+        actor=actor,
+    )
+    record_audit(
+        session,
+        action="pathway_structured_occupation_evidence_integrated",
+        entity_type="mobility_pathway_version",
+        entity_id=version.id,
+        before_state={"source_version_id": str(source_version.id)},
+        after_state={
+            "integration_signature": signature,
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
+        reason="Created a new immutable draft that binds materialized national and regional occupation-list provenance.",
+        actor=actor,
+        source="pathway_structured_occupation_integration_v13_10_2_7",
+    )
+    session.commit()
+    session.refresh(version)
+    return PathwayStructuredOccupationIntegrationRead(
+        created=True,
+        pathway_version=pathway_version_read(session, version),
+        publication_readiness=pathway_publication_readiness(session, version.id),
+    )
 
 
 def _relevant_rule_domains(pathway_domain: str) -> set[str]:
