@@ -39,6 +39,8 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "soc_analyst_agent",
         "creative_director_agent",
         "marketing_manager_agent",
+        "financial_analyst_agent",
+        "accounting_lead_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",

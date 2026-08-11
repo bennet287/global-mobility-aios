@@ -194,6 +194,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["marketing_manager_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["marketing_manager_agent"],
     },
+    "financial_analyst_agent": {
+        "version": "v13.11",
+        "department": "finance",
+        "role": "Assesses cost structure, pricing sensitivity, revenue model, unit economics, budget constraints, and financial scenarios from supplied evidence.",
+        "guardrails": [
+            "Cannot move funds, change live pricing, commit spend, or sign contracts.",
+            "Cannot make tax or regulatory representations or authorize external action.",
+            "Must expose missing evidence and escalate material budget, runway, or pricing risk to the CFO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["financial_analyst_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["financial_analyst_agent"],
+    },
+    "accounting_lead_agent": {
+        "version": "v13.11",
+        "department": "finance",
+        "role": "Assesses books, accounts payable/receivable posture, audit readiness, reconciliation status, and tax/treaty implications from supplied evidence.",
+        "guardrails": [
+            "Cannot move funds, record journal entries, change tax positions, or sign representations.",
+            "Cannot contact tax authorities, auditors, banks, or external parties, or authorize external action.",
+            "Must expose missing evidence and escalate material accounting or compliance risk to the CFO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["accounting_lead_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["accounting_lead_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

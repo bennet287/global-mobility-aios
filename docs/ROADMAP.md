@@ -56,29 +56,30 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, and Marketing runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run and Finance, Communications, People, and Legal remain held |
+| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing, and Finance/CFO runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run and Communications, People, and Legal remain held |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
-- Web production build: **passing**; the Next.js production build completes successfully with the Phase 13.10.2 `/validation` workspace included.
+- Web production build: **passing**; the Next.js production build completes successfully with 37 routes including the Phase 13.10.2 `/validation` and `/source-certification-review` workspaces.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.9 adds no schema migration and must preserve this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.11 adds no schema migration and preserves this head.
 - Docker production-profile validation: passing.
-- API regression baseline before Phase 13.10.2.9: **583 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the review-workspace patch adds deterministic queue/workspace, snapshot-selection, audit-history, identity-separation, and frontend regressions and requires the complete suite after application.
+- API regression baseline: **597 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.11 patch adds bounded Finance/CFO runtime, Financial Analyst, Accounting Lead, and focused governance regressions.
 - SQLite migration compatibility: **passing through current migration head `0071_structured_shortage_occupation_evidence`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - Persistent Docker PostgreSQL: **passing at `0071_structured_shortage_occupation_evidence`**; live Austria structured occupation evidence and pathway-v3 hold state are preserved.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
 execution-control, external-action gates, bounded Operations, Technology, Product,
-Security, Security Operations/SOC, and Marketing department runtimes, and the CEO
-coordination loop remain implemented. Phase 13.10.1 is release-closed. Phase
-13.10.2 adds durable external-validation scenarios, runs, evidence, external-human
+Security, Security Operations/SOC, Marketing, and Finance/CFO department runtimes,
+and the CEO coordination loop remain implemented. Phase 13.10.1 is release-closed.
+Phase 13.10.2 adds durable external-validation scenarios, runs, evidence, external-human
 reviews, findings, Board risk acceptance for medium/low findings, and a deterministic
-gate at migration head `0068_external_validation_framework`. The external gate remains
-held until one real mobility user and one independent professional/operator complete the
-workflow successfully. Finance, Communications, People, and Legal remain held.
+gate. Phase 13.11 adds the bounded Finance/CFO runtime with Financial Analyst and
+Accounting Lead specialists. The external gate remains held until one real mobility user
+and one independent professional/operator complete the workflow successfully.
+Communications, People, and Legal remain held.
 
 ## 3. Execution Order
 
@@ -486,6 +487,9 @@ After the first organization flow and Board Room pass their release gates, and a
 - [x] Evidence-complete internal L3 Marketing work resolves through a distinct
   CEO decision receipt that consults the CMO, without authorizing an external
   action or interrupting the Board.
+- [x] Evidence-complete internal L3 Finance work resolves through a distinct
+  CEO decision receipt that consults the CFO, without authorizing funds movement,
+  pricing changes, spend commitments, contracts, or interrupting the Board.
 
 ## 7. Phase 14: Global Scale Platform
 
@@ -517,7 +521,7 @@ After the first organization flow and Board Room pass their release gates, and a
 | 10C-10E | Global dashboards, reviewed ranking, and immutable multi-year mobility scenarios | [MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md](MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md) |
 | 11 | Corporate, business, wealth, investment, family-office, and tax/treaty mobility | [BUSINESS_WEALTH_ADVISORY_V11_4.md](BUSINESS_WEALTH_ADVISORY_V11_4.md) |
 | 12 | Client/ecosystem portals, partner APIs, governed automation, appointments, submissions, assignments, checklists, and reminders | [GOVERNED_AUTOMATION_FOUNDATION_V12_3.md](GOVERNED_AUTOMATION_FOUNDATION_V12_3.md) |
-| 13.0-13.10.2.1 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
+| 13.0-13.11 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing/Finance runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
 
 ## 9. Delivery Governance
 
@@ -1006,6 +1010,45 @@ e  review, monitoring, or data expansion continues.
 - [x] The smoke performed no certification review, source approval, pathway
   publication, or external-validation release. A live decision remains reserved
   for a genuine separate human reviewer who personally reviews the exact pack.
+
+
+### 13.11 Finance/CFO bounded department runtime
+
+- [x] Enable the Finance department runtime for bounded `internal.analysis` only.
+- [x] Add `Financial Analyst` and `Accounting Lead` L2 specialist positions
+  reporting to the CFO, with role cards, controlled-agent handlers, output
+  schemas, and registry entries.
+- [x] Harden the CFO position contract with required specialists, required
+  evidence fields, and explicit prohibited actions.
+- [x] Require financial evidence for cost structure, pricing model, revenue
+  model, budget constraints, scenario parameters, AP/AR aging, reconciliation,
+  audit trail, chart of accounts, compliance controls, and tax/treaty implications.
+- [x] Block Finance specialists from funds movement, pricing changes, spend
+  commitments, contract signing, tax/regulatory representations, journal
+  entries, external sends, and any external action.
+- [x] Add `delegate_finance_work` and `DEPARTMENT_EXECUTION_ADAPTERS` integration
+  so the CFO delegates to both specialists and the CEO receives an evidence-backed
+  L3 decision receipt when the review is complete.
+- [x] Add router and governance integration so Finance work items are assigned
+  to the CFO and routed through the same bounded execution path as other
+  hardened departments.
+- [x] Add focused regressions for Finance internal analysis, incomplete evidence
+  hold, suspended specialist resume, CEO handoff, CFO contract-mismatch repair,
+  prohibited-action enforcement, specialist isolation, and CFO-only assignment.
+- [x] Update the foundation bootstrap position count to 28 and verify the
+  CFO/Finance reporting line.
+- [x] Keep Alembic at `0071_structured_shortage_occupation_evidence`; this slice
+  introduces no schema migration.
+
+#### Phase 13.11 closure evidence
+
+- [x] Complete verification passed with **597 API tests, 0 failed**, with only
+  the existing Starlette TestClient/httpx deprecation warning.
+- [x] Web production build passed with 37 routes.
+- [x] No schema migration or live financial write was introduced.
+- [x] Communications, People, and Legal remain held runtimes.
+- [x] The Austria 2026 source certifications, pathway v3, and external-validation
+  gate remain unchanged and held.
 
 
 ## 10. Historical Evidence

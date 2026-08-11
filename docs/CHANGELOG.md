@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-08-11 - Phase 13.11 Finance/CFO bounded department runtime
+
+- Enabled the Finance department runtime for bounded `internal.analysis` only.
+- Added `Financial Analyst` and `Accounting Lead` L2 specialist positions
+  reporting to the CFO, with role cards, controlled-agent handlers, output
+  schemas, and registry entries.
+- Hardened the CFO position contract with required specialists, required
+  evidence fields, and explicit prohibited actions.
+- Added finance evidence fields: cost structure, pricing model, revenue model,
+  budget constraints, scenario parameters, AP/AR aging, reconciliation,
+  audit trail, chart of accounts, compliance controls, and tax/treaty implications.
+- Blocked Finance specialists from funds movement, pricing changes, spend
+  commitments, contract signing, tax/regulatory representations, journal
+  entries, external sends, and any external action.
+- Added `delegate_finance_work` and integrated Finance into the department
+  execution adapter so the CFO delegates to both specialists and the CEO
+  receives an evidence-backed L3 decision receipt on completion.
+- Added Finance work-item routing so Finance work is assigned to the CFO and
+  runs through the same bounded execution path as other hardened departments.
+- Added focused regressions for Finance internal analysis, incomplete evidence
+  hold, suspended specialist resume, CEO handoff, CFO contract-mismatch repair,
+  prohibited-action enforcement, specialist isolation, and CFO-only assignment.
+- Updated the foundation bootstrap position count to 28 and verified the
+  CFO/Finance reporting line.
+- Kept Alembic at `0071_structured_shortage_occupation_evidence`; no schema
+  migration was introduced.
+- Complete verification passed with **597 API tests, 0 failed**, with only the
+  existing Starlette TestClient/httpx deprecation warning. Web production build
+  passed with 37 routes. Communications, People, and Legal remain held.
+
 ## 2026-08-11 - Independent source-review workflow UX and audit closure
 
 - Added a dedicated `/source-certification-review` workspace for genuine independent

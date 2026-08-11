@@ -53,6 +53,8 @@ POSITION_SPECS = (
     ("product_manager", "Product Manager Agent", "Product", "cpo", "L2", "Product_Manager.md"),
     ("design_agent", "Design Agent Agent", "Product", "cpo", "L2", "Design_Agent.md"),
     ("cfo", "Chief Financial Officer Agent", "Finance", "ceo", "L3", "CFO.md"),
+    ("financial_analyst", "Financial Analyst Agent", "Finance", "cfo", "L2", "Financial_Analyst.md"),
+    ("accounting_lead", "Accounting Lead Agent", "Finance", "cfo", "L2", "Accounting_Lead.md"),
     ("cco", "Chief Communications Officer Agent", "Communications", "ceo", "L3", "CCO.md"),
     ("chro", "Chief Human Resources Officer Agent", "People", "ceo", "L3", "CHRO.md"),
     ("clo", "Chief Legal Officer Agent", "Legal", "ceo", "L3", "CLO.md"),
@@ -89,6 +91,9 @@ HARDENED_POSITION_KEYS = frozenset(
         "cmo",
         "creative_director",
         "marketing_manager",
+        "cfo",
+        "financial_analyst",
+        "accounting_lead",
     }
 )
 
@@ -436,12 +441,82 @@ MARKETING_PROHIBITED_ACTIONS = frozenset(
         "production.irreversible",
     }
 )
+FINANCE_DELEGATION_SPECS = (
+    (
+        "financial_analyst",
+        "Assess cost structure, pricing sensitivity, revenue model, unit economics, budget constraints, and financial scenarios from supplied evidence.",
+    ),
+    (
+        "accounting_lead",
+        "Assess books, accounts payable/receivable posture, audit readiness, reconciliation, tax/treaty implications, and compliance controls from supplied evidence.",
+    ),
+)
+FINANCE_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in FINANCE_DELEGATION_SPECS
+)
+FINANCE_REQUIRED_EVIDENCE_FIELDS = (
+    "ap_ar_aging",
+    "audit_trail",
+    "budget_constraints",
+    "chart_of_accounts",
+    "compliance_controls",
+    "cost_structure",
+    "pricing_model",
+    "reconciliation",
+    "revenue_model",
+    "risks",
+    "scenario_parameters",
+    "sources",
+    "tax_treaty_implications",
+)
+FINANCE_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "financial_analyst": frozenset(
+        {
+            "financial_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "dissent_reason",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "accounting_lead": frozenset(
+        {
+            "accounting_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "dissent_reason",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
+FINANCE_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "infrastructure.mutate",
+        "policy.publish",
+        "position.suspend",
+        "pricing.change",
+        "production.irreversible",
+        "secrets.access",
+        "spend.above_threshold",
+        "vendor.commit",
+    }
+)
 HARDENED_SPECIALIST_POSITION_KEYS = frozenset().union(
     TECHNOLOGY_REQUIRED_DELEGATES,
     PRODUCT_REQUIRED_DELEGATES,
     SECURITY_REQUIRED_DELEGATES,
     SECURITY_OPERATIONS_REQUIRED_DELEGATES,
     MARKETING_REQUIRED_DELEGATES,
+    FINANCE_REQUIRED_DELEGATES,
 )
 
 ACTION_EXECUTIVE_CONSULTATIONS = {
@@ -736,6 +811,75 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                     MARKETING_SPECIALIST_REQUIRED_OUTPUT_FIELDS["marketing_manager"]
                 ),
                 "prohibited_direct_actions": sorted(MARKETING_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "cfo":
+        contract.update(
+            {
+                "capabilities": [
+                    "delegate_bounded_finance_analysis",
+                    "synthesize_evidence_complete_finance_review",
+                    "escalate_funds_pricing_spend_and_financial_commitment_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_specialist_positions": sorted(FINANCE_REQUIRED_DELEGATES),
+                "required_evidence_fields": list(FINANCE_REQUIRED_EVIDENCE_FIELDS),
+                "prohibited_direct_actions": sorted(FINANCE_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "financial_analyst":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_cost_structure_and_unit_economics",
+                    "assess_pricing_sensitivity_and_budget_constraints",
+                    "raise_financial_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "budget_constraints",
+                    "cost_structure",
+                    "pricing_model",
+                    "revenue_model",
+                    "scenario_parameters",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    FINANCE_SPECIALIST_REQUIRED_OUTPUT_FIELDS["financial_analyst"]
+                ),
+                "prohibited_direct_actions": sorted(FINANCE_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "accounting_lead":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_books_ap_ar_and_reconciliation",
+                    "assess_audit_readiness_and_compliance_controls",
+                    "raise_accounting_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "ap_ar_aging",
+                    "audit_trail",
+                    "chart_of_accounts",
+                    "compliance_controls",
+                    "reconciliation",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    FINANCE_SPECIALIST_REQUIRED_OUTPUT_FIELDS["accounting_lead"]
+                ),
+                "prohibited_direct_actions": sorted(FINANCE_PROHIBITED_ACTIONS),
             }
         )
     elif position_key == "ciso":
@@ -1391,6 +1535,44 @@ def delegate_marketing_work(
             authority_basis=(
                 "CMO L3 marketing mandate; delegated L2 internal analysis only; "
                 "no pricing change, policy publication, campaign launch, external messaging, spend, contract, or external action authority."
+            ),
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_finance_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CFO review plan once for internal analysis."""
+    if work.department.strip().lower() != "finance":
+        raise ValueError("Finance delegation requires a Finance work item")
+    if work.assigned_position_key != "cfo":
+        raise ValueError("Finance delegation requires CFO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("Finance delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in FINANCE_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="cfo",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CFO L3 finance mandate; delegated L2 internal analysis only; "
+                "no funds movement, pricing change, spend commitment, contract, tax/regulatory representation, external send, or external action authority."
             ),
         )
         session.add(delegation)
@@ -2649,6 +2831,81 @@ def _marketing_preflight_gap(
     return "Marketing preflight incomplete; " + "; ".join(gaps) + "."
 
 
+def _finance_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _finance_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _finance_evidence_context(work)
+    aliases = {
+        "ap_ar_aging": ("ap_ar_aging", "ap_ar", "receivables_payables"),
+        "audit_trail": ("audit_trail", "audit_evidence"),
+        "budget_constraints": ("budget_constraints", "budget", "budget_limit"),
+        "chart_of_accounts": ("chart_of_accounts", "accounts"),
+        "compliance_controls": ("compliance_controls", "controls"),
+        "cost_structure": ("cost_structure", "costs"),
+        "pricing_model": ("pricing_model", "pricing"),
+        "reconciliation": ("reconciliation", "reconciliation_status"),
+        "revenue_model": ("revenue_model", "revenue", "fee_model"),
+        "risks": ("risks", "known_risks", "finance_risks", "accounting_risks"),
+        "scenario_parameters": ("scenario_parameters", "scenarios"),
+        "sources": ("sources", "source_provenance"),
+        "tax_treaty_implications": ("tax_treaty_implications", "tax_treaty"),
+    }
+    return [
+        field
+        for field in FINANCE_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _finance_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(FINANCE_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _finance_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "Finance preflight incomplete; " + "; ".join(gaps) + "."
+
+
 @dataclass(frozen=True)
 class DepartmentExecutionAdapter:
     delegate: Any
@@ -2722,6 +2979,19 @@ DEPARTMENT_EXECUTION_ADAPTERS: dict[str, DepartmentExecutionAdapter] = {
         primary_field_by_position={
             "creative_director": "creative_assessment",
             "marketing_manager": "marketing_fit",
+        },
+    ),
+    "finance": DepartmentExecutionAdapter(
+        delegate=delegate_finance_work,
+        preflight_gap=_finance_preflight_gap,
+        required_delegates=FINANCE_REQUIRED_DELEGATES,
+        specialist_output_fields=FINANCE_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_finance_evidence_gaps,
+        proceed_recommendation="proceed_to_cfo_internal_review",
+        completion_prefix="Finance evidence contract incomplete",
+        primary_field_by_position={
+            "financial_analyst": "financial_assessment",
+            "accounting_lead": "accounting_assessment",
         },
     ),
 }
