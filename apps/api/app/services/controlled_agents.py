@@ -110,6 +110,20 @@ FINANCE_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+COMMUNICATIONS_AGENT_CONTROLLED_FIELDS = {
+    "summary",
+    "communications_assessment",
+    "government_relations_assessment",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -1313,6 +1327,141 @@ def _accounting_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) 
     return output
 
 
+def _communications_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _communications_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "communications_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "communications_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _pr_comms_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _communications_context(payload)
+    evidence = {
+        "messaging": _first_supplied(facts, "messaging", "messaging_drafts", "copy"),
+        "stakeholder_map": _first_supplied(facts, "stakeholder_map", "stakeholders"),
+        "media_plan": _first_supplied(facts, "media_plan", "pr_plan", "media_relations"),
+        "channel_strategy": _first_supplied(facts, "channel_strategy", "channels"),
+        "brand_guidelines": _first_supplied(facts, "brand_guidelines", "brand_standards"),
+        "crisis_scenarios": _first_supplied(facts, "crisis_scenarios", "crisis"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "communications_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _communications_risk_signals(facts, role_prefix="pr_comms_lead")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Messaging, media, and stakeholder evidence assessed for internal CCO review.",
+            "communications_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cco_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded communications evidence gap before a recommendation is accepted.",
+                "Escalate external publication, media outreach, client send, crisis statements, or contracts to the CCO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "client.external_send",
+                "policy.publish",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "media.outreach",
+                "crisis.publish",
+            ],
+        }
+    )
+    return output
+
+
+def _government_relations_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _communications_context(payload)
+    evidence = {
+        "policy_landscape": _first_supplied(facts, "policy_landscape", "policy"),
+        "regulatory_agenda": _first_supplied(facts, "regulatory_agenda", "regulatory"),
+        "government_stakeholder_map": _first_supplied(facts, "government_stakeholder_map", "government_stakeholders"),
+        "engagement_plan": _first_supplied(facts, "engagement_plan", "engagement"),
+        "legislative_timeline": _first_supplied(facts, "legislative_timeline", "timeline"),
+        "jurisdiction_scope": _first_supplied(facts, "jurisdiction_scope", "jurisdiction"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "government_relations_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _communications_risk_signals(facts, role_prefix="government_relations_lead")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Policy, regulatory, and government-affairs evidence assessed for internal CCO review.",
+            "government_relations_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cco_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded government-relations evidence gap before a recommendation is accepted.",
+                "Escalate government contact, regulatory submission, policy commitment, or confidential disclosure to the CCO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "client.external_send",
+                "policy.publish",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "government.contact",
+                "regulatory.submission",
+            ],
+        }
+    )
+    return output
+
+
 def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     lead_data = payload.context.get("lead", {})
@@ -1361,6 +1510,8 @@ DETERMINISTIC_HANDLERS = {
     "marketing_manager_agent": _marketing_manager,
     "financial_analyst_agent": _financial_analyst,
     "accounting_lead_agent": _accounting_lead,
+    "pr_comms_lead_agent": _pr_comms_lead,
+    "government_relations_lead_agent": _government_relations_lead,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -1748,6 +1899,58 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
                 output["financial_assessment"] = "evidence_incomplete"
             if resolved_name == "accounting_lead_agent" and must_hold:
                 output["accounting_assessment"] = "evidence_incomplete"
+        elif resolved_name in {"pr_comms_lead_agent", "government_relations_lead_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in COMMUNICATIONS_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_cco_internal_review"
+            )
+            if resolved_name == "pr_comms_lead_agent" and must_hold:
+                output["communications_assessment"] = "evidence_incomplete"
+            if resolved_name == "government_relations_lead_agent" and must_hold:
+                output["government_relations_assessment"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -1795,6 +1998,8 @@ AGENT_HANDLERS = {
     "marketing_manager_agent": _llm_agent_handler,
     "financial_analyst_agent": _llm_agent_handler,
     "accounting_lead_agent": _llm_agent_handler,
+    "pr_comms_lead_agent": _llm_agent_handler,
+    "government_relations_lead_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

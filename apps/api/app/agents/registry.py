@@ -218,6 +218,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["accounting_lead_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["accounting_lead_agent"],
     },
+    "pr_comms_lead_agent": {
+        "version": "v13.12",
+        "department": "communications",
+        "role": "Assesses messaging, media relations, public-statement readiness, stakeholder alignment, and crisis-communication posture from supplied evidence.",
+        "guardrails": [
+            "Cannot publish statements, contact media, or send external communications.",
+            "Cannot approve crisis statements, policy positions, contracts, or authorize external action.",
+            "Must expose missing evidence and escalate material reputational or timing risk to the CCO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["pr_comms_lead_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["pr_comms_lead_agent"],
+    },
+    "government_relations_lead_agent": {
+        "version": "v13.12",
+        "department": "communications",
+        "role": "Assesses policy engagement, regulatory liaison, government-affairs strategy, legislative timing, and stakeholder alignment from supplied evidence.",
+        "guardrails": [
+            "Cannot contact government officials, submit policy positions, or make regulatory representations.",
+            "Cannot sign commitments, disclose confidential information, or authorize external action.",
+            "Must expose missing evidence and escalate material policy or regulatory risk to the CCO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["government_relations_lead_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["government_relations_lead_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

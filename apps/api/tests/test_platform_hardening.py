@@ -103,6 +103,7 @@ def test_department_runtime_registry_keeps_active_and_held_departments_explicit(
     marketing = department_runtime_spec("Marketing")
     operations = department_runtime_spec("Operations")
     finance = department_runtime_spec("Finance")
+    communications = department_runtime_spec("Communications")
 
     assert technology is not None and technology.allowed_actions == frozenset({"internal.analysis"})
     assert technology.executive_position == "cto"
@@ -111,6 +112,8 @@ def test_department_runtime_registry_keeps_active_and_held_departments_explicit(
     assert operations is not None and operations.allowed_actions is None
     assert finance is not None and finance.allowed_actions == frozenset({"internal.analysis"})
     assert finance.executive_position == "cfo"
+    assert communications is not None and communications.allowed_actions == frozenset({"internal.analysis"})
+    assert communications.executive_position == "cco"
 
 
 def test_capability_boundary_denies_prohibited_department_actions() -> None:
@@ -124,3 +127,6 @@ def test_capability_boundary_denies_prohibited_department_actions() -> None:
     assert department_runtime_available("Finance", "internal.analysis") is True
     assert department_runtime_available("Finance", "client.external_send") is False
     assert department_runtime_available("Finance", "payment.initiate") is False
+    assert department_runtime_available("Communications", "internal.analysis") is True
+    assert department_runtime_available("Communications", "client.external_send") is False
+    assert department_runtime_available("Communications", "policy.publish") is False

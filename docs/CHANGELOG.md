@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-08-11 - Phase 13.12 Communications/CCO bounded department runtime
+
+- Enabled the Communications department runtime for bounded `internal.analysis` only.
+- Added `PR / Communications Lead` and `Government Relations Lead` L2 specialist
+  positions under the CCO, with role cards, controlled-agent handlers, registry
+  entries, output schemas, and hardened position contracts.
+- Added Communications evidence fields: brand guidelines, channel strategy,
+  crisis scenarios, engagement plan, government stakeholder map, jurisdiction
+  scope, legislative timeline, media plan, messaging, policy landscape,
+  regulatory agenda, risks, sources, and stakeholder map.
+- Blocked Communications specialists from external messaging, public statements,
+  press releases, policy publication, spend commitments, contracts, and any external
+  action.
+- Added `delegate_communications_work` and integrated Communications into the
+  department execution adapter so the CCO delegates to both specialists and the
+  CEO receives an evidence-backed L3 decision receipt on completion.
+- Added Communications work-item routing so Communications work is assigned to the
+  CCO and runs through the same bounded execution path as other hardened departments.
+- Added focused regressions for Communications internal analysis, incomplete evidence
+  hold, suspended specialist resume, CEO handoff, CCO contract assertions,
+  prohibited-action enforcement, specialist isolation, and CCO-only assignment.
+- Updated the foundation bootstrap position count to 30 and verified the
+  CCO/Communications reporting line.
+- Updated `test_still_unimplemented_department_runtime_is_held_without_false_completion`
+  to use the still-held `People` department, since Communications is now implemented.
+- Kept Alembic at `0071_structured_shortage_occupation_evidence`; no schema
+  migration was introduced.
+- Complete verification passed with **605 API tests, 0 failed**, with only the
+  existing Starlette TestClient/httpx deprecation warning. Web production build
+  passed with 37 routes. People and Legal remain held.
+
 ## 2026-08-11 - Phase 13.11 Finance/CFO bounded department runtime
 
 - Enabled the Finance department runtime for bounded `internal.analysis` only.

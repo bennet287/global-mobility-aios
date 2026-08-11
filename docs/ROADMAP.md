@@ -56,30 +56,31 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing, and Finance/CFO runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run and Communications, People, and Legal remain held |
+| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO, and Communications/CCO runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run and People and Legal remain held |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: **passing**; the Next.js production build completes successfully with 37 routes including the Phase 13.10.2 `/validation` and `/source-certification-review` workspaces.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.11 adds no schema migration and preserves this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.12 adds no schema migration and preserves this head.
 - Docker production-profile validation: passing.
-- API regression baseline: **597 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.11 patch adds bounded Finance/CFO runtime, Financial Analyst, Accounting Lead, and focused governance regressions.
+- API regression baseline: **605 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.12 patch adds bounded Communications/CCO runtime, PR / Communications Lead, Government Relations Lead, and focused governance regressions.
 - SQLite migration compatibility: **passing through current migration head `0071_structured_shortage_occupation_evidence`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - Persistent Docker PostgreSQL: **passing at `0071_structured_shortage_occupation_evidence`**; live Austria structured occupation evidence and pathway-v3 hold state are preserved.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
 execution-control, external-action gates, bounded Operations, Technology, Product,
-Security, Security Operations/SOC, Marketing, and Finance/CFO department runtimes,
-and the CEO coordination loop remain implemented. Phase 13.10.1 is release-closed.
-Phase 13.10.2 adds durable external-validation scenarios, runs, evidence, external-human
-reviews, findings, Board risk acceptance for medium/low findings, and a deterministic
-gate. Phase 13.11 adds the bounded Finance/CFO runtime with Financial Analyst and
-Accounting Lead specialists. The external gate remains held until one real mobility user
-and one independent professional/operator complete the workflow successfully.
-Communications, People, and Legal remain held.
+Security, Security Operations/SOC, Marketing/CMO, Finance/CFO, and Communications/CCO
+department runtimes, and the CEO coordination loop remain implemented. Phase 13.10.1 is
+release-closed. Phase 13.10.2 adds durable external-validation scenarios, runs, evidence,
+external-human reviews, findings, Board risk acceptance for medium/low findings, and a
+deterministic gate. Phase 13.11 adds the bounded Finance/CFO runtime with Financial Analyst
+and Accounting Lead specialists. Phase 13.12 adds the bounded Communications/CCO runtime
+with PR / Communications Lead and Government Relations Lead specialists. The external
+gate remains held until one real mobility user and one independent professional/operator
+complete the workflow successfully. People and Legal remain held.
 
 ## 3. Execution Order
 
@@ -194,27 +195,32 @@ Key specifications:
 
 **Status:** Governance foundation, Board reporting, the first bounded autonomous
 organization flow, the Operations, Technology, Product, Security, Security
-Operations/SOC, and Marketing department runtimes, and bounded CEO coordination are
-delivered. The COO now delegates general operating objectives to Sales Intelligence,
-Operations Coordination, and Business Intelligence, and adds Application Readiness
-for mobility-case events. The CTO delegates technology work to the Vice President
-of Engineering and Lead Architect for delivery-readiness, architecture, security,
-data-handling, integration, and reversibility analysis. The CPO delegates product
-work to the Product Manager and Design Agent for product fit, scope, roadmap
-alignment, success metrics, design quality, UX research, and accessibility
-analysis. The CISO delegates security work to the Security Lead and Threat Analyst
-for security controls, attack surface, policy alignment, threat intelligence,
-prompt-injection, jailbreak, data-exfiltration, and compromised-agent indicator
-analysis, and delegates Security Operations work to the SOC Lead and SOC Analyst
-for agent-behavior monitoring, audit-log triage, incident coordination, and
+Operations/SOC, Marketing, Finance/CFO, and Communications/CCO department runtimes,
+and bounded CEO coordination are delivered. The COO delegates general operating
+objectives to Sales Intelligence, Operations Coordination, and Business Intelligence,
+and adds Application Readiness for mobility-case events. The CTO delegates technology
+work to the Vice President of Engineering and Lead Architect for delivery-readiness,
+architecture, security, data-handling, integration, and reversibility analysis. The
+CPO delegates product work to the Product Manager and Design Agent for product fit,
+scope, roadmap alignment, success metrics, design quality, UX research, and
+accessibility analysis. The CISO delegates security work to the Security Lead and
+Threat Analyst for security controls, attack surface, policy alignment, threat
+intelligence, prompt-injection, jailbreak, data-exfiltration, and compromised-agent
+indicator analysis, and delegates Security Operations work to the SOC Lead and SOC
+Analyst for agent-behavior monitoring, audit-log triage, incident coordination, and
 anomaly analysis. The CMO delegates marketing work to the Creative Director and
 Marketing Manager for brand fit, creative quality, messaging, audience alignment,
-channel fit, campaign plan, growth metrics, and budget-constraint analysis.
-Evidence-complete internal L3 matters receive a durable consultation and may be
-closed by the CEO Agent; external actions, L4 matters, emergencies, self-approval
-conflicts, missing consultation, and dissent fail closed. Cross-functional
-consultation requirements are durable and fail closed. The remaining departments
-held and not yet operational are Finance, Communications, People, and Legal.
+channel fit, campaign plan, growth metrics, and budget-constraint analysis. The CFO
+delegates finance work to the Financial Analyst and Accounting Lead for cost
+structure, pricing sensitivity, revenue model, unit economics, budget constraints,
+and financial-scenario analysis. The CCO delegates communications work to the PR /
+Communications Lead and Government Relations Lead for messaging, media relations,
+crisis readiness, policy landscape, regulatory agenda, stakeholder alignment, and
+government-affairs strategy analysis. Evidence-complete internal L3 matters receive a
+durable consultation and may be closed by the CEO Agent; external actions, L4 matters,
+emergencies, self-approval conflicts, missing consultation, and dissent fail closed.
+Cross-functional consultation requirements are durable and fail closed. The remaining
+departments held and not yet operational are People and Legal.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -445,9 +451,10 @@ After the first organization flow and Board Room pass their release gates, and a
 - [ ] Add Finance: CFO, Accounts Lead, and Investor Relations Lead under CFO
   accountability, with bounded delegation, spend/investment/contract analysis,
   and required evidence/output contracts.
-- [ ] Add Communications: CCO, Communications Lead, and PR/Government Relations Lead
-  under CCO accountability, with bounded delegation, message/channel/stakeholder
-  analysis, and required evidence/output contracts.
+- [x] Add Communications/CCO: CCO, PR / Communications Lead, and Government Relations
+  Lead under CCO accountability, with bounded delegation, messaging/media/crisis
+  and policy/regulatory/stakeholder analysis, required evidence/output contracts,
+  and fail-closed prohibited-action enforcement.
 - [ ] Add People: CHRO, HR Lead, and Culture/Recruitment Lead under CHRO
   accountability, with bounded delegation, workforce/talent/policy analysis, and
   required evidence/output contracts.
@@ -1047,6 +1054,35 @@ e  review, monitoring, or data expansion continues.
 - [x] Web production build passed with 37 routes.
 - [x] No schema migration or live financial write was introduced.
 - [x] Communications, People, and Legal remain held runtimes.
+- [x] The Austria 2026 source certifications, pathway v3, and external-validation
+  gate remain unchanged and held.
+
+
+### 13.12 Communications/CCO bounded department runtime
+
+- [x] Enable the Communications department runtime for bounded `internal.analysis` only.
+- [x] Add `PR / Communications Lead` and `Government Relations Lead` L2 specialist
+  positions under the CCO, with role cards, controlled-agent handlers, registry
+  entries, output schemas, and hardened position contracts.
+- [x] Add `COMMUNICATIONS_DELEGATION_SPECS`, required evidence fields, specialist
+  output fields, prohibited actions, preflight checks, and the `delegate_communications_work`
+  execution adapter in `organization_governance.py`.
+- [x] Wire `delegate_communications_work` into the `/work-items` create endpoint.
+- [x] Add Communications regression tests mirroring Finance/Marketing coverage:
+  required-delegate execution, incomplete evidence hold, suspended specialist
+  hold/resume, prohibited-action enforcement, non-department rejection, CCO-only
+  assignment, and L3 CEO handoff.
+- [x] Update platform-hardening tests for the Communications runtime and prohibited
+  actions.
+- [x] Update controlled-agent and role-card-loader canonical agent sets.
+
+#### Phase 13.12 closure evidence
+
+- [x] Complete verification passed with **605 API tests, 0 failed**, with only
+  the existing Starlette TestClient/httpx deprecation warning.
+- [x] Web production build passed with 37 routes.
+- [x] No schema migration or live external communication was introduced.
+- [x] People and Legal remain held runtimes.
 - [x] The Austria 2026 source certifications, pathway v3, and external-validation
   gate remain unchanged and held.
 
