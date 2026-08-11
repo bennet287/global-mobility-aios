@@ -66,8 +66,8 @@ The target operating model is defined in
 - Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.9 adds no schema migration and must preserve this head.
 - Docker production-profile validation: passing.
 - API regression baseline before Phase 13.10.2.9: **583 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the review-workspace patch adds deterministic queue/workspace, snapshot-selection, audit-history, identity-separation, and frontend regressions and requires the complete suite after application.
-- Local SQLite database: schema check **passing** after upgrade to `0068_external_validation_framework`.
-- Docker PostgreSQL database: **passing** at `0071_structured_shortage_occupation_evidence`; Austria 2026 materialization is idempotent at 64 national and 66 regional groups while both source certifications remain `pending_review`.
+- SQLite migration compatibility: **passing through current migration head `0071_structured_shortage_occupation_evidence`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
+- Persistent Docker PostgreSQL: **passing at `0071_structured_shortage_occupation_evidence`**; live Austria structured occupation evidence and pathway-v3 hold state are preserved.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
