@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-12 - Phase 13.15 external-validation operational run initiated
+
+- Verified the Phase 13.5.2 external-validation framework end-to-end:
+  `apps/api/tests/test_external_validation.py` passes with **8 passed, 0 failed**.
+- Confirmed the External Validation router is registered through the declarative
+  `RouterSpec` registry and the `/validation` workspace is part of the web build.
+- Created `docs/EXTERNAL_VALIDATION_RUNBOOK_V13_15.md`, the operational guide for
+  executing the first real external validation run with one mobility user and one
+  independent professional/operator using the `at-skilled-worker-discovery-v1`
+  Austria scenario.
+- Updated `docs/ROADMAP.md` to mark Phase 13.15 as in progress and reference the
+  runbook, the scenario fixture, and the validation workspace.
+- The deterministic gate remains `held` until real human reviews, required evidence
+  references, and issue triage are recorded; Critical/High findings must be
+  resolved before the gate can evaluate to `passed`.
+- No schema migration was introduced; Alembic remains at
+  `0071_structured_shortage_occupation_evidence`.
+
 ## 2026-08-11 - Phase 13.14 Legal/CLO bounded department runtime
 
 - Enabled the Legal department runtime for bounded `internal.analysis` only.

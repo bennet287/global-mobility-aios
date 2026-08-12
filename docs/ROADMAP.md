@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO, Communications/CCO, People/CHRO, and Legal/CLO runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run remains held |
+| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO, Communications/CCO, People/CHRO, and Legal/CLO runtimes are delivered; Phase 13.15 external-validation operational run is in progress; the real-user/professional validation run remains the active gate before cross-functional programmes or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -82,9 +82,12 @@ Financial Analyst and Accounting Lead specialists. Phase 13.12 adds the bounded
 Communications/CCO runtime with PR / Communications Lead and Government Relations Lead
 specialists. Phase 13.13 adds the bounded People/CHRO runtime with HR Lead and Culture /
 Recruitment Lead specialists. Phase 13.14 adds the bounded Legal/CLO runtime with
-General Counsel and Public Policy / Compliance Lead specialists. The external gate
-remains held until one real mobility user and one independent professional/operator
-complete the workflow successfully.
+General Counsel and Public Policy / Compliance Lead specialists. Phase 13.15 is the
+operational external-validation run using the `at-skilled-worker-discovery-v1` scenario;
+see [EXTERNAL_VALIDATION_RUNBOOK_V13_15.md](EXTERNAL_VALIDATION_RUNBOOK_V13_15.md) for
+the runbook. The external gate remains held until one real mobility user and one
+independent professional/operator complete the workflow successfully and the deterministic
+gate evaluates to `passed`.
 
 ## 3. Execution Order
 
@@ -1161,6 +1164,33 @@ e  review, monitoring, or data expansion continues.
   Communications/CCO, People/CHRO, and Legal/CLO) are now delivered.
 - [x] The Austria 2026 source certifications, pathway v3, and external-validation
   gate remain unchanged and held.
+
+
+### 13.15 External-validation operational run
+
+Execute the first real external validation run using the `at-skilled-worker-discovery-v1`
+Austria scenario. The framework is delivered and regression-tested; this phase is the
+operational execution with real humans.
+
+- [ ] Recruit one distinct mobility user and one independent professional/operator for
+  the Austria skilled-employment workflow.
+- [ ] Seed the Austria scenario in `/validation`, create a run pinned to a real lead and
+  pathway comparison, and attach the required evidence references.
+- [ ] Run both testers through the end-to-end workflow while counting founder interventions.
+- [ ] Record both external reviews in the validation ledger.
+- [ ] Record all defects as findings with severity and category.
+- [ ] Resolve or retest every Critical/High finding; triage, resolve, or Board-accept every
+  Medium/Low finding.
+- [ ] Evaluate the deterministic gate and confirm it evaluates to `passed`.
+- [ ] Update `docs/ROADMAP.md` and `docs/CHANGELOG.md` with the Phase 13.15 closure
+  evidence.
+
+#### Phase 13.15 operational guide
+
+- [EXTERNAL_VALIDATION_RUNBOOK_V13_15.md](EXTERNAL_VALIDATION_RUNBOOK_V13_15.md)
+- Scenario fixture: `apps/api/validation/scenarios/austria_skilled_worker_v1.json`
+- Validation workspace: `/validation`
+- Gate evaluation endpoint: `POST /api/v1/external-validation/runs/{run_id}/evaluate`
 
 
 ## 10. Historical Evidence
