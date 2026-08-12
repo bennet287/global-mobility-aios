@@ -56,16 +56,16 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO, Communications/CCO, and People/CHRO runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run and Legal remain held |
+| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO, Communications/CCO, People/CHRO, and Legal/CLO runtimes are delivered; the Phase 13.10.2 external-validation framework is implemented while the real-user/professional validation run remains held |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: **passing**; the Next.js production build completes successfully with 37 routes including the Phase 13.10.2 `/validation` and `/source-certification-review` workspaces.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.12 adds no schema migration and preserves this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.14 adds no schema migration and preserves this head.
 - Docker production-profile validation: passing.
-- API regression baseline: **613 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.13 patch adds bounded People/CHRO runtime, HR Lead, Culture / Recruitment Lead, and focused governance regressions.
+- API regression baseline: **627 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.14 patch adds bounded Legal/CLO runtime, General Counsel, Public Policy / Compliance Lead, and focused governance regressions.
 - SQLite migration compatibility: **passing through current migration head `0071_structured_shortage_occupation_evidence`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - Persistent Docker PostgreSQL: **passing at `0071_structured_shortage_occupation_evidence`**; live Austria structured occupation evidence and pathway-v3 hold state are preserved.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
@@ -73,16 +73,18 @@ The target operating model is defined in
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
 execution-control, external-action gates, bounded Operations, Technology, Product,
 Security, Security Operations/SOC, Marketing/CMO, Finance/CFO, Communications/CCO,
-and People/CHRO department runtimes, and the CEO coordination loop remain implemented.
+People/CHRO, and Legal/CLO department runtimes, and the CEO coordination loop remain
+implemented.
 Phase 13.10.1 is release-closed. Phase 13.10.2 adds durable external-validation scenarios,
 runs, evidence, external-human reviews, findings, Board risk acceptance for medium/low
 findings, and a deterministic gate. Phase 13.11 adds the bounded Finance/CFO runtime with
 Financial Analyst and Accounting Lead specialists. Phase 13.12 adds the bounded
 Communications/CCO runtime with PR / Communications Lead and Government Relations Lead
 specialists. Phase 13.13 adds the bounded People/CHRO runtime with HR Lead and Culture /
-Recruitment Lead specialists. The external gate remains held until one real mobility user
-and one independent professional/operator complete the workflow successfully. Legal remains
-held.
+Recruitment Lead specialists. Phase 13.14 adds the bounded Legal/CLO runtime with
+General Counsel and Public Policy / Compliance Lead specialists. The external gate
+remains held until one real mobility user and one independent professional/operator
+complete the workflow successfully.
 
 ## 3. Execution Order
 
@@ -221,11 +223,17 @@ crisis readiness, policy landscape, regulatory agenda, stakeholder alignment, an
 government-affairs strategy analysis. The CHRO delegates people work to the HR Lead
 and Culture / Recruitment Lead for workforce planning, talent pipeline, compensation
 and compliance, recruitment, culture, retention, onboarding, training, and
-employee-feedback analysis. Evidence-complete internal L3 matters receive a durable
+employee-feedback analysis. The CLO delegates legal work to the General Counsel and
+Public Policy / Compliance Lead for legal exposure, contract portfolio, regulatory
+interpretation, litigation and disputes, corporate governance, jurisdiction scope,
+policy landscape, compliance framework, regulatory-change register, ethics and
+integrity controls, training records, audit findings, and government-relations context
+analysis. Evidence-complete internal L3 matters receive a durable
 consultation and may be closed by the CEO Agent; external actions, L4 matters,
 emergencies, self-approval conflicts, missing consultation, and dissent fail closed.
-Cross-functional consultation requirements are durable and fail closed. The remaining
-department held and not yet operational is Legal.
+Cross-functional consultation requirements are durable and fail closed. All
+planned executive department runtimes are now implemented; the remaining held gate is
+external validation.
 
 **Goal:** Operate Global Mobility AIOS through a governed hierarchy of executive,
 manager, and specialist agents, with the human owner acting as the Board.
@@ -297,7 +305,8 @@ manager, and specialist agents, with the human owner acting as the Board.
   budget-constraint analysis.
 - [x] Implement the Finance/CFO bounded department runtime.
 - [x] Implement the Communications/CCO bounded department runtime.
-- [ ] Implement the remaining department-head runtimes: CHRO and CLO.
+- [x] Implement the CHRO department-head runtime with bounded People specialists (HR Lead and Culture / Recruitment Lead).
+- [x] Implement the CLO department-head runtime with bounded Legal specialists (General Counsel and Public Policy / Compliance Lead).
 - [x] Let the COO delegate to registered direct reports and receive structured,
   evidence-grounded results.
 - [x] Extend the same delegation contract to the CTO and CPO runtimes.
@@ -452,9 +461,10 @@ After the first organization flow and Board Room pass their release gates, and a
 - [x] Add Marketing: CMO, Creative Director, and Marketing Manager under CMO
   accountability, with bounded delegation, brand/creative/channel analysis, and
   required evidence/output contracts.
-- [ ] **External-validation gate:** do not activate another executive department
-  until at least one real mobility user and one professional/operator have tested
-  an end-to-end Truth Engine/pathway workflow and the resulting defects are triaged.
+- [ ] **External-validation gate:** do not activate time-bounded cross-functional
+  programmes or advance to Phase 14 until at least one real mobility user and one
+  professional/operator have tested an end-to-end Truth Engine/pathway workflow
+  and the resulting defects are triaged.
 - [ ] Add Finance: CFO, Accounts Lead, and Investor Relations Lead under CFO
   accountability, with bounded delegation, spend/investment/contract analysis,
   and required evidence/output contracts.
@@ -466,7 +476,7 @@ After the first organization flow and Board Room pass their release gates, and a
   accountability, with bounded delegation, workforce/talent/compensation/compliance
   and culture/recruitment/retention analysis, required evidence/output contracts,
   and fail-closed prohibited-action enforcement.
-- [ ] Add Legal: CLO, General Counsel, and Public Policy/Compliance Lead under
+- [x] Add Legal: CLO, General Counsel, and Public Policy/Compliance Lead under
   CLO accountability, with bounded delegation, risk/authority/policy analysis,
   and required evidence/output contracts.
 - [ ] Add time-bounded cross-functional programmes with one accountable executive
@@ -1119,6 +1129,36 @@ e  review, monitoring, or data expansion continues.
 - [x] Web production build passed with 37 routes.
 - [x] No schema migration or live employment action was introduced.
 - [x] Legal remains the only held runtime.
+- [x] The Austria 2026 source certifications, pathway v3, and external-validation
+  gate remain unchanged and held.
+
+
+### 13.14 Legal/CLO bounded department runtime
+
+- [x] Enable the Legal department runtime for bounded `internal.analysis` only.
+- [x] Add `General Counsel` and `Public Policy / Compliance Lead` L2 specialist
+  positions under the CLO, with role cards, controlled-agent handlers, registry
+  entries, output schemas, and hardened position contracts.
+- [x] Add `LEGAL_DELEGATION_SPECS`, required evidence fields, specialist output
+  fields, prohibited actions, preflight checks, and the `delegate_legal_work`
+  execution adapter in `organization_governance.py`.
+- [x] Wire `delegate_legal_work` into the `/work-items` create endpoint.
+- [x] Add Legal regression tests mirroring People coverage: required-delegate
+  execution, incomplete evidence hold, suspended specialist hold/resume,
+  prohibited-action enforcement, non-department rejection, CLO-only assignment,
+  and L3 CEO handoff.
+- [x] Update platform-hardening tests for the Legal runtime and prohibited actions.
+- [x] Update controlled-agent and role-card-loader canonical agent sets.
+
+#### Phase 13.14 closure evidence
+
+- [x] Complete verification passed with **627 API tests, 0 failed**, with only
+  the existing Starlette TestClient/httpx deprecation warning.
+- [x] Web production build passed with 37 routes.
+- [x] No schema migration or live legal action was introduced.
+- [x] All executive department runtimes (Operations, Technology, Product,
+  Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO,
+  Communications/CCO, People/CHRO, and Legal/CLO) are now delivered.
 - [x] The Austria 2026 source certifications, pathway v3, and external-validation
   gate remain unchanged and held.
 

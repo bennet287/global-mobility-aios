@@ -266,6 +266,30 @@ CONTROLLED_AGENT_REGISTRY = {
         "role_card": AGENT_ROLE_CARD_MAP["culture_recruitment_lead_agent"],
         "output_schema": AGENT_OUTPUT_SCHEMA["culture_recruitment_lead_agent"],
     },
+    "general_counsel_agent": {
+        "version": "v13.14",
+        "department": "legal",
+        "role": "Assesses legal exposure, contractual posture, regulatory interpretation, litigation risk, corporate governance, and authority-boundary compliance from supplied evidence.",
+        "guardrails": [
+            "Cannot sign contracts, submit to authorities, or provide final legal opinions to clients.",
+            "Cannot waive rights, settle disputes, publish legal positions, or authorize external action.",
+            "Must expose missing evidence and escalate material legal or regulatory exposure to the CLO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["general_counsel_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["general_counsel_agent"],
+    },
+    "public_policy_compliance_lead_agent": {
+        "version": "v13.14",
+        "department": "legal",
+        "role": "Assesses public-policy landscape, compliance-program maturity, regulatory-change impact, ethics-and-integrity controls, and government-relations risk from supplied evidence.",
+        "guardrails": [
+            "Cannot publish policy, make regulatory representations, or certify compliance to third parties.",
+            "Cannot disclose privileged information, authorize external action, or present missing evidence as complete.",
+            "Must expose missing evidence and escalate material compliance or public-policy risk to the CLO.",
+        ],
+        "role_card": AGENT_ROLE_CARD_MAP["public_policy_compliance_lead_agent"],
+        "output_schema": AGENT_OUTPUT_SCHEMA["public_policy_compliance_lead_agent"],
+    },
     "application_readiness_agent": {
         "version": "v4.0",
         "department": "applications",

@@ -33,6 +33,8 @@ def test_list_role_cards_finds_all_cards():
         "Creative_Director",
         "Marketing_Manager",
         "Head_of_Product",
+        "General_Counsel",
+        "Public_Policy_Compliance_Lead",
     }
     assert expected.issubset(set(cards.keys()))
     for path in cards.values():
@@ -62,6 +64,8 @@ def test_list_role_cards_finds_all_cards():
         "Application_Readiness_Agent",
         "Creative_Director",
         "Marketing_Manager",
+        "General_Counsel",
+        "Public_Policy_Compliance_Lead",
     ],
 )
 def test_load_role_card_parses_sections(card_name):
@@ -109,6 +113,21 @@ def test_ciso_role_card_names_reports_and_prohibits_direct_security_action():
     assert "authorize an external action" in controls
 
 
+def test_clo_role_card_names_reports_and_prohibits_direct_legal_action():
+    card = load_role_card("CLO")
+    position_contract = card["raw_sections"]["position contract"]
+    controls = card["raw_sections"]["non-delegable controls"]
+
+    assert "General Counsel Agent" in position_contract
+    assert "Public Policy / Compliance Lead Agent" in position_contract
+    assert "Never sign a contract" in controls
+    assert "Never submit to an authority" in controls
+    assert "Never issue a final legal opinion" in controls
+    assert "Never certify compliance" in controls
+    assert "initiate spend" in controls
+    assert "authorize an external action" in controls
+
+
 def test_agent_role_card_map_covers_all_canonical_agents():
     canonical_agents = {
         "truth_explanation_agent",
@@ -133,6 +152,8 @@ def test_agent_role_card_map_covers_all_canonical_agents():
         "government_relations_lead_agent",
         "hr_lead_agent",
         "culture_recruitment_lead_agent",
+        "general_counsel_agent",
+        "public_policy_compliance_lead_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -206,6 +227,8 @@ def test_all_canonical_agents_have_output_schema():
         "government_relations_lead_agent",
         "hr_lead_agent",
         "culture_recruitment_lead_agent",
+        "general_counsel_agent",
+        "public_policy_compliance_lead_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",

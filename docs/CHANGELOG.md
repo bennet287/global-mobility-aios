@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-08-11 - Phase 13.14 Legal/CLO bounded department runtime
+
+- Enabled the Legal department runtime for bounded `internal.analysis` only.
+- Added `General Counsel` and `Public Policy / Compliance Lead` L2 specialist
+  positions under the CLO, with role cards, controlled-agent handlers, registry
+  entries, output schemas, and hardened position contracts.
+- Added Legal evidence fields: audit findings, compliance framework, contract
+  portfolio, corporate governance, ethics and integrity controls, government
+  relations context, jurisdiction scope, legal exposure, litigation and disputes,
+  policy landscape, regulatory interpretation, regulatory change register, risks,
+  sources, and training records.
+- Blocked Legal specialists from final legal opinions, settlement commitments,
+  compliance certification, privileged disclosure, authority submissions, contract
+  signatures, secrets access, infrastructure mutation, spend above threshold,
+  vendor commitments, pricing changes, irreversible production changes, position
+  suspension, and any external action.
+- Added `delegate_legal_work` and integrated Legal into the department execution
+  adapter so the CLO delegates to both specialists and the CEO receives an
+  evidence-backed L3 decision receipt on completion.
+- Added Legal work-item routing so Legal work is assigned to the CLO and runs
+  through the same bounded execution path as other hardened departments.
+- Added focused regressions for Legal internal analysis, incomplete evidence
+  hold, suspended specialist resume, CEO handoff, CLO contract assertions,
+  prohibited-action enforcement, specialist isolation, and CLO-only assignment.
+- Updated the foundation bootstrap position count to 34 and verified the
+  CLO/Legal reporting line.
+- Updated `test_still_unimplemented_department_runtime_is_held_without_false_completion`
+  to use the delivered `Legal` department with an unsupported external action
+  (`contract.sign`), since all executive departments are now implemented.
+- Kept Alembic at `0071_structured_shortage_occupation_evidence`; no schema
+  migration was introduced.
+- Complete verification passed with **627 API tests, 0 failed**, with only the
+  existing Starlette TestClient/httpx deprecation warning. Web production build
+  passed with 37 routes. All executive department runtimes are now delivered.
+
 ## 2026-08-11 - Phase 13.13 People/CHRO bounded department runtime
 
 - Enabled the People department runtime for bounded `internal.analysis` only.

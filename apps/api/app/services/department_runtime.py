@@ -106,7 +106,16 @@ DEPARTMENT_RUNTIMES: dict[str, DepartmentRuntimeSpec] = {
         unavailable_description="only bounded internal.analysis is enabled",
         preflight_audit_action="organization_work_held_people_preflight",
     ),
-    "legal": DepartmentRuntimeSpec("legal", "clo"),
+    "legal": DepartmentRuntimeSpec(
+        "legal",
+        "clo",
+        allowed_actions=_INTERNAL_ANALYSIS,
+        contract_position="clo",
+        contract_authority_level="L3",
+        contract_repair_label="CLO",
+        unavailable_description="only bounded internal.analysis is enabled",
+        preflight_audit_action="organization_work_held_legal_preflight",
+    ),
 }
 
 

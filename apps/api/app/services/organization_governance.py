@@ -62,6 +62,8 @@ POSITION_SPECS = (
     ("hr_lead", "HR Lead Agent", "People", "chro", "L2", "HR_Lead.md"),
     ("culture_recruitment_lead", "Culture / Recruitment Lead Agent", "People", "chro", "L2", "Culture_Recruitment_Lead.md"),
     ("clo", "Chief Legal Officer Agent", "Legal", "ceo", "L3", "CLO.md"),
+    ("general_counsel", "General Counsel Agent", "Legal", "clo", "L2", "General_Counsel.md"),
+    ("public_policy_compliance_lead", "Public Policy / Compliance Lead Agent", "Legal", "clo", "L2", "Public_Policy_Compliance_Lead.md"),
     ("head_of_product", "Head of Product Agent", "Product", "cpo", "L2", "Head_of_Product.md"),
     ("sales_summary", "Sales Intelligence Agent", "Operations", "coo", "L1", "Sales_Summary_Agent.md"),
     ("operations_coordination", "Operations Coordination Agent", "Operations", "coo", "L1", "Operations_Coordination_Agent.md"),
@@ -104,6 +106,9 @@ HARDENED_POSITION_KEYS = frozenset(
         "chro",
         "hr_lead",
         "culture_recruitment_lead",
+        "clo",
+        "general_counsel",
+        "public_policy_compliance_lead",
     }
 )
 
@@ -666,6 +671,80 @@ PEOPLE_PROHIBITED_ACTIONS = frozenset(
         "termination.action",
     }
 )
+LEGAL_DELEGATION_SPECS = (
+    (
+        "general_counsel",
+        "Assess legal exposure, contract portfolio, regulatory interpretation, litigation/disputes, corporate governance, and jurisdiction scope from supplied evidence.",
+    ),
+    (
+        "public_policy_compliance_lead",
+        "Assess policy landscape, compliance framework, regulatory change register, ethics and integrity controls, training records, audit findings, and government relations context from supplied evidence.",
+    ),
+)
+LEGAL_REQUIRED_DELEGATES = frozenset(
+    delegate for delegate, _ in LEGAL_DELEGATION_SPECS
+)
+LEGAL_REQUIRED_EVIDENCE_FIELDS = (
+    "audit_findings",
+    "compliance_framework",
+    "contract_portfolio",
+    "corporate_governance",
+    "ethics_integrity_controls",
+    "government_relations_context",
+    "jurisdiction_scope",
+    "legal_exposure",
+    "litigation_disputes",
+    "policy_landscape",
+    "regulatory_interpretation",
+    "regulatory_change_register",
+    "risks",
+    "sources",
+    "training_records",
+)
+LEGAL_SPECIALIST_REQUIRED_OUTPUT_FIELDS = {
+    "general_counsel": frozenset(
+        {
+            "legal_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "dissent_reason",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+    "public_policy_compliance_lead": frozenset(
+        {
+            "compliance_assessment",
+            "evidence_basis",
+            "evidence_gaps",
+            "recommendation",
+            "dissent",
+            "dissent_reason",
+            "material_risks",
+            "escalation_required",
+            "confidence",
+        }
+    ),
+}
+LEGAL_PROHIBITED_ACTIONS = frozenset(
+    GOVERNED_EXTERNAL_ACTIONS
+    | {
+        "infrastructure.mutate",
+        "position.suspend",
+        "pricing.change",
+        "production.irreversible",
+        "secrets.access",
+        "spend.above_threshold",
+        "vendor.commit",
+        "legal.opinion.final",
+        "settlement.commit",
+        "compliance.certify",
+        "privileged.disclosure",
+    }
+)
 HARDENED_SPECIALIST_POSITION_KEYS = frozenset().union(
     TECHNOLOGY_REQUIRED_DELEGATES,
     PRODUCT_REQUIRED_DELEGATES,
@@ -675,6 +754,7 @@ HARDENED_SPECIALIST_POSITION_KEYS = frozenset().union(
     FINANCE_REQUIRED_DELEGATES,
     COMMUNICATIONS_REQUIRED_DELEGATES,
     PEOPLE_REQUIRED_DELEGATES,
+    LEGAL_REQUIRED_DELEGATES,
 )
 
 ACTION_EXECUTIVE_CONSULTATIONS = {
@@ -1299,6 +1379,80 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                     SECURITY_OPERATIONS_SPECIALIST_REQUIRED_OUTPUT_FIELDS["soc_analyst"]
                 ),
                 "prohibited_direct_actions": sorted(SECURITY_OPERATIONS_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "clo":
+        contract.update(
+            {
+                "capabilities": [
+                    "delegate_bounded_legal_analysis",
+                    "synthesize_evidence_complete_legal_review",
+                    "escalate_contract_authority_settlement_and_policy_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_specialist_positions": sorted(LEGAL_REQUIRED_DELEGATES),
+                "required_evidence_fields": list(LEGAL_REQUIRED_EVIDENCE_FIELDS),
+                "prohibited_direct_actions": sorted(LEGAL_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "general_counsel":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_legal_exposure_contracts_and_regulatory_interpretation",
+                    "assess_litigation_governance_and_jurisdiction_risk",
+                    "raise_legal_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "contract_portfolio",
+                    "corporate_governance",
+                    "jurisdiction_scope",
+                    "legal_exposure",
+                    "litigation_disputes",
+                    "regulatory_interpretation",
+                    "risks",
+                    "sources",
+                ],
+                "required_output_fields": sorted(
+                    LEGAL_SPECIALIST_REQUIRED_OUTPUT_FIELDS["general_counsel"]
+                ),
+                "prohibited_direct_actions": sorted(LEGAL_PROHIBITED_ACTIONS),
+            }
+        )
+    elif position_key == "public_policy_compliance_lead":
+        contract.update(
+            {
+                "capabilities": [
+                    "assess_policy_landscape_and_compliance_framework",
+                    "assess_regulatory_change_ethics_and_audit_findings",
+                    "raise_compliance_dissent_and_material_risk",
+                ],
+                "delegated_action_authority": ["internal.analysis"],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": [
+                    "audit_findings",
+                    "compliance_framework",
+                    "ethics_integrity_controls",
+                    "government_relations_context",
+                    "policy_landscape",
+                    "regulatory_change_register",
+                    "risks",
+                    "sources",
+                    "training_records",
+                ],
+                "required_output_fields": sorted(
+                    LEGAL_SPECIALIST_REQUIRED_OUTPUT_FIELDS["public_policy_compliance_lead"]
+                ),
+                "prohibited_direct_actions": sorted(LEGAL_PROHIBITED_ACTIONS),
             }
         )
     return contract
@@ -1953,6 +2107,44 @@ def delegate_people_work(
             authority_basis=(
                 "CHRO L3 people mandate; delegated L2 internal analysis only; "
                 "no hiring decision, compensation change, termination, policy publication, external offer, employment commitment, or external action authority."
+            ),
+        )
+        session.add(delegation)
+        delegations.append(delegation)
+    return delegations
+
+
+def delegate_legal_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> list[DelegationRecord]:
+    """Create the complete, bounded CLO review plan once for internal analysis."""
+    if work.department.strip().lower() != "legal":
+        raise ValueError("Legal delegation requires a Legal work item")
+    if work.assigned_position_key != "clo":
+        raise ValueError("Legal delegation requires CLO accountability")
+    if _work_action(work).lower() != "internal.analysis":
+        raise ValueError("Legal delegation is limited to internal.analysis")
+
+    existing = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    delegations: list[DelegationRecord] = []
+    for delegate, task in LEGAL_DELEGATION_SPECS:
+        if delegate in existing:
+            delegations.append(existing[delegate])
+            continue
+        delegation = DelegationRecord(
+            work_item_id=work.id,
+            delegator_position_key="clo",
+            delegate_position_key=delegate,
+            task=task,
+            authority_basis=(
+                "CLO L3 legal mandate; delegated L2 internal analysis only; "
+                "no contract signature, authority submission, settlement, waiver, policy publication, compliance certification, privileged disclosure, or external action authority."
             ),
         )
         session.add(delegation)
@@ -3441,6 +3633,83 @@ def _people_preflight_gap(
     return "People preflight incomplete; " + "; ".join(gaps) + "."
 
 
+def _legal_evidence_context(work: OrganizationalWorkItem) -> dict[str, Any]:
+    context = _load(work.context_json, {})
+    context = context if isinstance(context, dict) else {}
+    facts = context.get("facts")
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = context.get("evidence")
+    evidence = evidence if isinstance(evidence, dict) else {}
+    return {**evidence, **facts}
+
+
+def _legal_evidence_gaps(work: OrganizationalWorkItem) -> list[str]:
+    evidence = _legal_evidence_context(work)
+    aliases = {
+        "audit_findings": ("audit_findings", "audit"),
+        "compliance_framework": ("compliance_framework", "compliance"),
+        "contract_portfolio": ("contract_portfolio", "contracts"),
+        "corporate_governance": ("corporate_governance", "governance"),
+        "ethics_integrity_controls": ("ethics_integrity_controls", "ethics"),
+        "government_relations_context": ("government_relations_context", "gov_relations"),
+        "jurisdiction_scope": ("jurisdiction_scope", "jurisdiction"),
+        "legal_exposure": ("legal_exposure", "exposure"),
+        "litigation_disputes": ("litigation_disputes", "litigation", "disputes"),
+        "policy_landscape": ("policy_landscape", "policy"),
+        "regulatory_interpretation": ("regulatory_interpretation", "regulatory"),
+        "regulatory_change_register": ("regulatory_change_register", "regulatory_changes"),
+        "risks": ("risks", "known_risks", "legal_risks", "compliance_risks"),
+        "sources": ("sources", "source_provenance"),
+        "training_records": ("training_records", "training"),
+    }
+    return [
+        field
+        for field in LEGAL_REQUIRED_EVIDENCE_FIELDS
+        if not any(evidence.get(alias) not in (None, "", [], {}) for alias in aliases[field])
+    ]
+
+
+def _legal_preflight_gap(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> str | None:
+    delegations = {
+        item.delegate_position_key: item
+        for item in session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work.id)
+        ).all()
+    }
+    position_gaps: list[str] = []
+    for position_key in sorted(LEGAL_REQUIRED_DELEGATES):
+        delegation = delegations.get(position_key)
+        position = _position_by_key(session, position_key)
+        result_ref: str | None = None
+        if position is None:
+            result_ref = "position:unavailable"
+            position_gaps.append(f"{position_key} is not registered")
+        elif _is_suspended(position):
+            result_ref = "position:suspended"
+            position_gaps.append(f"{position_key} is suspended")
+        elif not _position_matches_spec(position, position_key):
+            result_ref = "position:contract_mismatch"
+            position_gaps.append(f"{position_key} contract or reporting line requires Human Board repair")
+        if delegation is not None and result_ref is not None:
+            delegation.status = "held"
+            delegation.result_ref = result_ref
+            delegation.completed_at = _now()
+            session.add(delegation)
+
+    evidence_gaps = _legal_evidence_gaps(work)
+    gaps: list[str] = []
+    if position_gaps:
+        gaps.append("; ".join(position_gaps))
+    if evidence_gaps:
+        gaps.append(f"missing evidence fields: {', '.join(evidence_gaps)}")
+    if not gaps:
+        return None
+    return "Legal preflight incomplete; " + "; ".join(gaps) + "."
+
+
 @dataclass(frozen=True)
 class DepartmentExecutionAdapter:
     delegate: Any
@@ -3553,6 +3822,19 @@ DEPARTMENT_EXECUTION_ADAPTERS: dict[str, DepartmentExecutionAdapter] = {
         primary_field_by_position={
             "hr_lead": "people_assessment",
             "culture_recruitment_lead": "culture_recruitment_assessment",
+        },
+    ),
+    "legal": DepartmentExecutionAdapter(
+        delegate=delegate_legal_work,
+        preflight_gap=_legal_preflight_gap,
+        required_delegates=LEGAL_REQUIRED_DELEGATES,
+        specialist_output_fields=LEGAL_SPECIALIST_REQUIRED_OUTPUT_FIELDS,
+        evidence_gaps=_legal_evidence_gaps,
+        proceed_recommendation="proceed_to_clo_internal_review",
+        completion_prefix="Legal evidence contract incomplete",
+        primary_field_by_position={
+            "general_counsel": "legal_assessment",
+            "public_policy_compliance_lead": "compliance_assessment",
         },
     ),
 }

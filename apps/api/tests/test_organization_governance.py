@@ -67,6 +67,7 @@ MARKETING_DELEGATES = {"creative_director", "marketing_manager"}
 FINANCE_DELEGATES = {"financial_analyst", "accounting_lead"}
 COMMUNICATIONS_DELEGATES = {"pr_comms_lead", "government_relations_lead"}
 PEOPLE_DELEGATES = {"hr_lead", "culture_recruitment_lead"}
+LEGAL_DELEGATES = {"general_counsel", "public_policy_compliance_lead"}
 
 
 def _technology_context() -> dict:
@@ -252,6 +253,33 @@ def _people_context() -> dict:
             "talent_pipeline": ["talent:shortlist-visa-specialists"],
             "training_plan": ["training:compliance-2026"],
             "workforce_plan": ["workforce:plan-2026"],
+        },
+    }
+
+
+def _legal_context() -> dict:
+    return {
+        "legal_review_type": "legal_and_compliance_readiness",
+        "facts": {
+            "change_scope": "internal legal and compliance readiness review",
+            "dependencies": ["general_counsel", "public_policy_compliance_lead"],
+        },
+        "evidence": {
+            "audit_findings": ["audit:contract-review-q3"],
+            "compliance_framework": ["compliance:gdpr", "compliance:immigration-advice"],
+            "contract_portfolio": ["contract:client-terms-v3", "contract:vendor-dpa"],
+            "corporate_governance": ["governance:board-charter"],
+            "ethics_integrity_controls": ["ethics:conflict-of-interest-policy"],
+            "government_relations_context": ["gov_relations:regulatory-liaison-plan"],
+            "jurisdiction_scope": ["jurisdiction:AT", "jurisdiction:DE"],
+            "legal_exposure": ["exposure:client-liability-assessment"],
+            "litigation_disputes": ["litigation:none-active"],
+            "policy_landscape": ["policy:skilled-migration-policy"],
+            "regulatory_interpretation": ["regulatory:labour-market-authority-guidance"],
+            "regulatory_change_register": ["regulatory_change:q4-2026-watchlist"],
+            "risks": ["risk:unqualified-immigration-advice"],
+            "sources": ["repository:agents/role_cards", "repository:docs/ROADMAP.md"],
+            "training_records": ["training:compliance-certification-2026"],
         },
     }
 
@@ -454,11 +482,33 @@ def _high_risk_people_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
     return work_id, UUID(matching[0]["id"])
 
 
+def _high_risk_legal_work(raw_client, *, key: str) -> tuple[UUID, UUID]:
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": key,
+            "title": "Material legal readiness review",
+            "objective": "Coordinate evidence-backed internal Legal analysis within the CEO mandate.",
+            "department": "Legal",
+            "action": "internal.analysis",
+            "risk_level": "high",
+            "context": _legal_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    decisions = raw_client.get("/api/v1/organization/decisions")
+    assert decisions.status_code == 200, decisions.text
+    matching = [item for item in decisions.json() if item["work_item_id"] == str(work_id)]
+    assert len(matching) == 1
+    return work_id, UUID(matching[0]["id"])
+
+
 def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_session: Session) -> None:
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 32
+    assert response.json()["positions_registered"] == 34
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
@@ -563,6 +613,21 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert "hiring.decision" in chro_contract["prohibited_direct_actions"]
     assert "compensation.change" in chro_contract["prohibited_direct_actions"]
     assert "termination.action" in chro_contract["prohibited_direct_actions"]
+    assert by_key["clo"].reports_to_position_key == "ceo"
+    assert by_key["clo"].authority_level == "L3"
+    assert by_key["general_counsel"].reports_to_position_key == "clo"
+    assert by_key["general_counsel"].authority_level == "L2"
+    assert by_key["public_policy_compliance_lead"].reports_to_position_key == "clo"
+    assert by_key["public_policy_compliance_lead"].authority_level == "L2"
+    clo_contract = json.loads(by_key["clo"].contract_json)
+    assert clo_contract["delegated_action_authority"] == ["internal.analysis"]
+    assert clo_contract["direct_action_authority"] == []
+    assert clo_contract["external_action_authorized"] is False
+    assert set(clo_contract["required_specialist_positions"]) == LEGAL_DELEGATES
+    assert "contract.sign" in clo_contract["prohibited_direct_actions"]
+    assert "authority.submit" in clo_contract["prohibited_direct_actions"]
+    assert "legal.opinion.final" in clo_contract["prohibited_direct_actions"]
+    assert "compliance.certify" in clo_contract["prohibited_direct_actions"]
 
     cards = Path(__file__).parents[3] / "agents" / "role_cards"
     for card in (
@@ -582,6 +647,8 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
         "CCO.md",
         "CHRO.md",
         "CLO.md",
+        "General_Counsel.md",
+        "Public_Policy_Compliance_Lead.md",
         "Creative_Director.md",
         "Marketing_Manager.md",
         "Financial_Analyst.md",
@@ -1381,9 +1448,9 @@ def test_still_unimplemented_department_runtime_is_held_without_false_completion
         json={
             "idempotency_key": "legal-runtime-unavailable-001",
             "title": "Review legal positioning",
-            "objective": "Exercise a registered department whose specialist runtime is not yet available.",
+            "objective": "Exercise a registered department whose action is outside the bounded runtime.",
             "department": "Legal",
-            "action": "internal.analysis",
+            "action": "contract.sign",
         },
     )
     assert created.status_code == 201, created.text
@@ -4491,3 +4558,226 @@ def test_chro_only_assignment_for_people_work(
     )
     assert created.status_code == 201, created.text
     assert created.json()["assigned_position_key"] == "chro"
+
+
+def test_legal_internal_analysis_runs_required_specialists_without_a_lead(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    payload = {
+        "idempotency_key": "legal-internal-analysis-001",
+        "title": "Internal Legal readiness review",
+        "objective": "Coordinate evidence-backed internal Legal analysis within the CEO mandate.",
+        "department": "Legal",
+        "action": "internal.analysis",
+        "context": _legal_context(),
+    }
+    first = raw_client.post("/api/v1/organization/work-items", json=payload)
+    second = raw_client.post("/api/v1/organization/work-items", json=payload)
+    assert first.status_code == 201, first.text
+    assert second.status_code == 201, second.text
+
+    work_id = UUID(first.json()["id"])
+    assert first.json()["id"] == second.json()["id"]
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == LEGAL_DELEGATES
+    assert all(item.delegator_position_key == "clo" for item in delegations)
+    assert all("L2 internal analysis only" in item.authority_basis for item in delegations)
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "completed"
+
+
+def test_incomplete_legal_evidence_holds_the_whole_work_item(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "legal-evidence-incomplete-001",
+            "title": "Review undocumented legal change",
+            "objective": "Expose missing legal evidence without approving the change.",
+            "department": "Legal",
+            "action": "internal.analysis",
+            "context": {"facts": {"change_scope": "unknown"}, "evidence": {}},
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "held"
+    assert executed.json()["completed_at"] is None
+    assert "missing evidence fields" in executed.json()["last_error"]
+    assert json.loads(executed.json()["output_json"]) == {}
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+    assert db_session.exec(select(OrganizationalActionOutput)).all() == []
+
+
+@pytest.mark.parametrize("suspended_position", LEGAL_DELEGATES)
+def test_suspended_required_legal_specialist_holds_then_resumes_work(
+    raw_client, db_session: Session, suspended_position
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    raw_client.post("/api/v1/organization/bootstrap")
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": f"legal-suspend-{suspended_position}-001",
+            "title": "Legal review with suspended specialist",
+            "objective": "Confirm a suspended legal specialist holds the work item.",
+            "department": "Legal",
+            "action": "internal.analysis",
+            "max_execution_attempts": 1,
+            "context": _legal_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    work_id = UUID(created.json()["id"])
+    specialist_position = db_session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.position_key == suspended_position)
+    ).one()
+    suspended = raw_client.post(
+        f"/api/v1/organization/positions/{specialist_position.id}/suspend",
+        json={"reason": "Human Board pauses legal review for an independence check."},
+    )
+    assert suspended.status_code == 200, suspended.text
+
+    first_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert first_execution.status_code == 200, first_execution.text
+    assert first_execution.json()["status"] == "held"
+    assert suspended_position in first_execution.json()["last_error"]
+    db_session.expire_all()
+    by_delegate = {
+        item.delegate_position_key: item
+        for item in db_session.exec(
+            select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+        ).all()
+    }
+    other_delegate = next(iter(LEGAL_DELEGATES - {suspended_position}))
+    assert by_delegate[other_delegate].status == "queued"
+    assert by_delegate[suspended_position].status == "held"
+    assert db_session.exec(select(OrganizationExecutionAttempt)).all() == []
+    assert db_session.exec(select(AgentRun)).all() == []
+
+    resumed = raw_client.post(
+        f"/api/v1/organization/positions/{specialist_position.id}/resume",
+        json={"reason": "Human Board completed the independence check and restored the reviewer."},
+    )
+    assert resumed.status_code == 200, resumed.text
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "queued"
+
+    second_execution = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert second_execution.status_code == 200, second_execution.text
+    assert second_execution.json()["status"] == "completed"
+    assert len(db_session.exec(select(OrganizationExecutionAttempt)).all()) == 1
+    assert len(db_session.exec(select(AgentRun)).all()) == 2
+    assert len(db_session.exec(select(OrganizationalActionOutput)).all()) == 2
+
+
+def test_evidence_complete_legal_l3_hands_off_from_clo_to_ceo(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    work_id, decision_id = _high_risk_legal_work(
+        raw_client,
+        key="legal-ceo-handoff-001",
+    )
+
+    executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+    assert executed.status_code == 200, executed.text
+    assert executed.json()["status"] == "pending_ceo"
+    assert json.loads(executed.json()["output_json"])["governance"][
+        "external_action_authorized"
+    ] is False
+
+    coordinated = raw_client.post(
+        f"/api/v1/organization/decisions/{decision_id}/coordinate-ceo"
+    )
+    assert coordinated.status_code == 200, coordinated.text
+    assert coordinated.json()["status"] == "approved"
+    assert "Legal analysis" in coordinated.json()["decision_reason"]
+    assert "No external action was authorized" in coordinated.json()["decision_reason"]
+
+    db_session.expire_all()
+    work = db_session.get(OrganizationalWorkItem, work_id)
+    assert work is not None and work.status == "completed"
+
+
+def test_legal_prohibited_action_enforcement(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    for prohibited_action in ("contract.sign", "authority.submit", "legal.opinion.final"):
+        created = raw_client.post(
+            "/api/v1/organization/work-items",
+            json={
+                "idempotency_key": f"legal-prohibited-{prohibited_action}-001",
+                "title": f"Legal prohibited action {prohibited_action}",
+                "objective": "Confirm Legal runtime holds prohibited actions.",
+                "department": "Legal",
+                "action": prohibited_action,
+                "context": _legal_context(),
+            },
+        )
+        assert created.status_code == 201, created.text
+        assert created.json()["status"] == "held"
+        work_id = UUID(created.json()["id"])
+
+        executed = raw_client.post(f"/api/v1/organization/work-items/{work_id}/execute")
+        assert executed.status_code == 200, executed.text
+        assert executed.json()["status"] == "held"
+        assert "only bounded internal.analysis is enabled" in executed.json()["last_error"]
+
+
+def test_legal_specialists_cannot_be_invoked_for_non_legal_work(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "legal-specialist-non-legal-001",
+            "title": "Route non-Legal work to Legal",
+            "objective": "Legal specialists must reject non-Legal work at delegation time.",
+            "department": "Technology",
+            "action": "internal.analysis",
+            "context": _legal_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "cto"
+    work_id = UUID(created.json()["id"])
+    delegations = db_session.exec(
+        select(DelegationRecord).where(DelegationRecord.work_item_id == work_id)
+    ).all()
+    assert {item.delegate_position_key for item in delegations} == TECHNOLOGY_DELEGATES
+    for delegation in delegations:
+        assert delegation.delegate_position_key not in LEGAL_DELEGATES
+
+
+def test_clo_only_assignment_for_legal_work(
+    raw_client, db_session: Session
+) -> None:
+    raw_client.headers.update(_headers("admin", "human-owner"))
+    created = raw_client.post(
+        "/api/v1/organization/work-items",
+        json={
+            "idempotency_key": "clo-only-assignment-001",
+            "title": "Legal work is assigned to CLO",
+            "objective": "Confirm Legal work is owned by the CLO position.",
+            "department": "Legal",
+            "action": "internal.analysis",
+            "context": _legal_context(),
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["assigned_position_key"] == "clo"

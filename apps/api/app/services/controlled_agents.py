@@ -138,6 +138,20 @@ PEOPLE_AGENT_CONTROLLED_FIELDS = {
     "confidence",
     "blocked_actions",
 }
+LEGAL_AGENT_CONTROLLED_FIELDS = {
+    "summary",
+    "legal_assessment",
+    "compliance_assessment",
+    "evidence_basis",
+    "evidence_gaps",
+    "recommendation",
+    "dissent",
+    "dissent_reason",
+    "material_risks",
+    "escalation_required",
+    "confidence",
+    "blocked_actions",
+}
 
 
 class DuplicatePendingControlledAgentOutput(Exception):
@@ -1616,6 +1630,144 @@ def _culture_recruitment_lead(payload: ControlledAgentRunRequest, agent: dict[st
     return output
 
 
+def _legal_context(payload: ControlledAgentRunRequest) -> dict[str, Any]:
+    facts = payload.context.get("facts", {})
+    facts = facts if isinstance(facts, dict) else {}
+    evidence = payload.context.get("evidence", {})
+    if isinstance(evidence, dict):
+        return {**evidence, **facts}
+    if isinstance(evidence, list) and evidence:
+        return {**facts, "sources": evidence}
+    return facts
+
+
+def _legal_risk_signals(
+    facts: dict[str, Any],
+    *,
+    role_prefix: str,
+) -> tuple[str | None, list[str]]:
+    dissent_reason = _first_supplied(
+        facts,
+        f"{role_prefix}_dissent_reason",
+        "legal_dissent_reason",
+    )
+    material_risks = _first_supplied(
+        facts,
+        f"{role_prefix}_material_risks",
+        "legal_material_risks",
+    )
+    if not isinstance(material_risks, list):
+        material_risks = [str(material_risks)] if _is_supplied(material_risks) else []
+    return str(dissent_reason) if _is_supplied(dissent_reason) else None, material_risks
+
+
+def _general_counsel(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _legal_context(payload)
+    evidence = {
+        "legal_exposure": _first_supplied(facts, "legal_exposure", "exposure"),
+        "contract_portfolio": _first_supplied(facts, "contract_portfolio", "contracts"),
+        "regulatory_interpretation": _first_supplied(facts, "regulatory_interpretation", "regulatory"),
+        "litigation_disputes": _first_supplied(facts, "litigation_disputes", "litigation", "disputes"),
+        "corporate_governance": _first_supplied(facts, "corporate_governance", "governance"),
+        "jurisdiction_scope": _first_supplied(facts, "jurisdiction_scope", "jurisdiction"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "legal_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _legal_risk_signals(facts, role_prefix="general_counsel")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Legal exposure, contracts, regulatory interpretation, and governance evidence assessed for internal CLO review.",
+            "legal_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_clo_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded legal evidence gap before a recommendation is accepted.",
+                "Escalate contract signature, authority submission, settlement, waiver, or policy publication to the CLO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "client.external_send",
+                "policy.publish",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "authority.submit",
+                "legal.opinion.final",
+                "settlement.commit",
+            ],
+        }
+    )
+    return output
+
+
+def _public_policy_compliance_lead(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
+    output = _base_output(payload, agent)
+    facts = _legal_context(payload)
+    evidence = {
+        "policy_landscape": _first_supplied(facts, "policy_landscape", "policy"),
+        "compliance_framework": _first_supplied(facts, "compliance_framework", "compliance"),
+        "regulatory_change_register": _first_supplied(facts, "regulatory_change_register", "regulatory_changes"),
+        "ethics_integrity_controls": _first_supplied(facts, "ethics_integrity_controls", "ethics"),
+        "training_records": _first_supplied(facts, "training_records", "training"),
+        "audit_findings": _first_supplied(facts, "audit_findings", "audit"),
+        "government_relations_context": _first_supplied(facts, "government_relations_context", "gov_relations"),
+        "sources": _first_supplied(facts, "sources", "source_provenance"),
+        "risks": _first_supplied(facts, "risks", "known_risks", "compliance_risks"),
+    }
+    evidence_basis = [key for key, value in evidence.items() if _is_supplied(value)]
+    evidence_gaps = [key for key, value in evidence.items() if not _is_supplied(value)]
+    required = tuple(evidence)
+    dissent_reason, material_risks = _legal_risk_signals(facts, role_prefix="public_policy_compliance_lead")
+    must_hold = bool(evidence_gaps or dissent_reason or material_risks)
+    output.update(
+        {
+            "summary": "Public policy, compliance, ethics, and regulatory-change evidence assessed for internal CLO review.",
+            "compliance_assessment": "evidence_complete_for_review" if not evidence_gaps else "evidence_incomplete",
+            "evidence_basis": evidence_basis,
+            "evidence_gaps": evidence_gaps,
+            "recommendation": (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_clo_internal_review"
+            ),
+            "dissent": dissent_reason is not None,
+            "dissent_reason": dissent_reason,
+            "material_risks": material_risks,
+            "escalation_required": must_hold,
+            "safe_next_actions": [
+                "Resolve every recorded compliance evidence gap before a recommendation is accepted.",
+                "Escalate policy publication, regulatory submission, compliance certification, or privileged disclosure to the CLO.",
+            ],
+            "confidence": _bounded_evidence_confidence(evidence_basis, required),
+            "blocked_actions": [
+                "client.external_send",
+                "policy.publish",
+                "contract.sign",
+                "payment.initiate",
+                "external_action",
+                "authority.submit",
+                "compliance.certify",
+                "privileged.disclosure",
+            ],
+        }
+    )
+    return output
+
+
 def _eligibility_coach(payload: ControlledAgentRunRequest, agent: dict[str, Any]) -> dict[str, Any]:
     output = _base_output(payload, agent)
     lead_data = payload.context.get("lead", {})
@@ -1668,6 +1820,8 @@ DETERMINISTIC_HANDLERS = {
     "government_relations_lead_agent": _government_relations_lead,
     "hr_lead_agent": _hr_lead,
     "culture_recruitment_lead_agent": _culture_recruitment_lead,
+    "general_counsel_agent": _general_counsel,
+    "public_policy_compliance_lead_agent": _public_policy_compliance_lead,
     "application_readiness_agent": _application_readiness,
     "eligibility_coach": _eligibility_coach,
     "eligibility_agent": _eligibility_agent,
@@ -2159,6 +2313,58 @@ def _llm_agent_handler(payload: ControlledAgentRunRequest, agent: dict[str, Any]
                 output["people_assessment"] = "evidence_incomplete"
             if resolved_name == "culture_recruitment_lead_agent" and must_hold:
                 output["culture_recruitment_assessment"] = "evidence_incomplete"
+        elif resolved_name in {"general_counsel_agent", "public_policy_compliance_lead_agent"}:
+            deterministic = DETERMINISTIC_HANDLERS[resolved_name](payload, agent)
+            for key in LEGAL_AGENT_CONTROLLED_FIELDS:
+                if key in deterministic:
+                    output[key] = deterministic[key]
+            model_gaps = parsed.get("evidence_gaps")
+            model_gaps = model_gaps if isinstance(model_gaps, list) else []
+            output["evidence_gaps"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("evidence_gaps", []), *model_gaps]
+                    if str(item).strip()
+                }
+            )
+            model_risks = parsed.get("material_risks")
+            model_risks = model_risks if isinstance(model_risks, list) else []
+            output["material_risks"] = sorted(
+                {
+                    str(item)
+                    for item in [*output.get("material_risks", []), *model_risks]
+                    if str(item).strip()
+                }
+            )
+            model_dissent = parsed.get("dissent") is True
+            if model_dissent:
+                output["dissent"] = True
+                model_reason = parsed.get("dissent_reason")
+                if isinstance(model_reason, str) and model_reason.strip():
+                    output["dissent_reason"] = model_reason.strip()
+            model_confidence = parsed.get("confidence")
+            if isinstance(model_confidence, (int, float)) and not isinstance(model_confidence, bool):
+                output["confidence"] = round(
+                    max(0.0, min(float(output["confidence"]), float(model_confidence))),
+                    2,
+                )
+            must_hold = bool(
+                output["evidence_gaps"]
+                or output["material_risks"]
+                or output.get("dissent") is True
+                or parsed.get("escalation_required") is True
+                or parsed.get("recommendation") == "hold_for_evidence_or_risk"
+            )
+            output["escalation_required"] = must_hold
+            output["recommendation"] = (
+                "hold_for_evidence_or_risk"
+                if must_hold
+                else "proceed_to_clo_internal_review"
+            )
+            if resolved_name == "general_counsel_agent" and must_hold:
+                output["legal_assessment"] = "evidence_incomplete"
+            if resolved_name == "public_policy_compliance_lead_agent" and must_hold:
+                output["compliance_assessment"] = "evidence_incomplete"
         output["_llm_meta"] = {
             "provider": llm_response.provider,
             "model": llm_response.model,
@@ -2210,6 +2416,8 @@ AGENT_HANDLERS = {
     "government_relations_lead_agent": _llm_agent_handler,
     "hr_lead_agent": _llm_agent_handler,
     "culture_recruitment_lead_agent": _llm_agent_handler,
+    "general_counsel_agent": _llm_agent_handler,
+    "public_policy_compliance_lead_agent": _llm_agent_handler,
     "application_readiness_agent": _llm_agent_handler,
     "eligibility_coach": _llm_agent_handler,
     "eligibility_agent": _eligibility_agent,

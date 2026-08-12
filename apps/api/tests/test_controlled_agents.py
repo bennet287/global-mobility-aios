@@ -45,6 +45,8 @@ def test_controlled_agents_registry_exposes_review_gated_agents(client: TestClie
         "government_relations_lead_agent",
         "hr_lead_agent",
         "culture_recruitment_lead_agent",
+        "general_counsel_agent",
+        "public_policy_compliance_lead_agent",
         "application_readiness_agent",
         "eligibility_coach",
         "eligibility_agent",
@@ -1170,6 +1172,97 @@ def test_marketing_agent_exposes_missing_evidence(
     assert output["creative_assessment"] == "evidence_incomplete"
     assert "brand_guidelines" in output["evidence_basis"]
     assert {"audience_evidence", "creative_assets", "messaging", "sources"}.issubset(
+        output["evidence_gaps"]
+    )
+    assert output["confidence"] < 0.5
+
+
+
+@pytest.mark.parametrize(
+    ("agent_name", "expected_key", "blocked_action"),
+    [
+        ("general_counsel_agent", "legal_assessment", "contract.sign"),
+        ("public_policy_compliance_lead_agent", "compliance_assessment", "policy.publish"),
+    ],
+)
+def test_legal_agents_produce_evidence_aware_fail_closed_outputs(
+    client: TestClient,
+    db_session: Session,
+    agent_name: str,
+    expected_key: str,
+    blocked_action: str,
+) -> None:
+    lead = create_lead(db_session, name=f"{agent_name} Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": agent_name,
+            "task": "Prepare bounded Legal evidence analysis.",
+            "lead_id": str(lead.id),
+            "context": {
+                "facts": {
+                    "legal_exposure": ["exposure:client-liability-assessment"],
+                    "contract_portfolio": ["contract:client-terms-v3"],
+                    "regulatory_interpretation": ["regulatory:labour-market-authority-guidance"],
+                    "litigation_disputes": ["litigation:none-active"],
+                    "corporate_governance": ["governance:board-charter"],
+                    "jurisdiction_scope": ["jurisdiction:AT", "jurisdiction:DE"],
+                    "policy_landscape": ["policy:skilled-migration-policy"],
+                    "compliance_framework": ["compliance:gdpr"],
+                    "regulatory_change_register": ["regulatory_change:q4-2026-watchlist"],
+                    "ethics_integrity_controls": ["ethics:conflict-of-interest-policy"],
+                    "training_records": ["training:compliance-certification-2026"],
+                    "audit_findings": ["audit:contract-review-q3"],
+                    "government_relations_context": ["gov_relations:regulatory-liaison-plan"],
+                    "risks": ["risk:unqualified-immigration-advice"],
+                    "sources": ["repository:agents/role_cards", "repository:docs/ROADMAP.md"],
+                }
+            },
+            "actor": "clo-runtime",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    output = payload["output"]
+    assert expected_key in output
+    assert output["human_review_required"] is True
+    assert output["client_facing"] is False
+    assert output["external_action_authorized"] is False
+    assert blocked_action in output["blocked_actions"]
+    assert "authority.submit" in output["blocked_actions"]
+    if agent_name == "general_counsel_agent":
+        assert "legal.opinion.final" in output["blocked_actions"]
+        assert "settlement.commit" in output["blocked_actions"]
+    if agent_name == "public_policy_compliance_lead_agent":
+        assert "compliance.certify" in output["blocked_actions"]
+        assert "privileged.disclosure" in output["blocked_actions"]
+    assert 0.0 < output["confidence"] <= 0.85
+
+    run = db_session.exec(select(AgentRun).where(AgentRun.agent_name == agent_name)).one()
+    persisted = json.loads(run.output_json)
+    assert persisted["evidence_basis"] == output["evidence_basis"]
+
+
+def test_general_counsel_exposes_missing_evidence(
+    client: TestClient, db_session: Session
+) -> None:
+    lead = create_lead(db_session, name="Legal Gap Lead")
+    response = client.post(
+        "/api/v1/controlled-agents/run",
+        json={
+            "agent_name": "general_counsel_agent",
+            "task": "Assess legal exposure without inventing evidence.",
+            "lead_id": str(lead.id),
+            "context": {"facts": {"legal_exposure": ["exposure:client-liability-assessment"]}},
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    output = response.json()["output"]
+    assert output["legal_assessment"] == "evidence_incomplete"
+    assert "legal_exposure" in output["evidence_basis"]
+    assert {"contract_portfolio", "regulatory_interpretation", "sources"}.issubset(
         output["evidence_gaps"]
     )
     assert output["confidence"] < 0.5
