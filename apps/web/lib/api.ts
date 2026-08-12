@@ -1721,6 +1721,10 @@ export type PublicIntakePayload = {
   profession: string;
   years_experience?: number;
   target_country: string;
+  current_country?: string;
+  job_offer_status?: string;
+  qualification_recognition?: string;
+  language_level?: string;
   notes?: string;
 };
 

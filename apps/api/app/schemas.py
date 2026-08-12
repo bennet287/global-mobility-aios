@@ -412,6 +412,10 @@ class PublicIntakeCreate(BaseModel):
     profession: str = Field(..., examples=["Registered Nurse"])
     years_experience: Optional[float] = None
     target_country: str = Field(..., examples=["Germany"])
+    current_country: Optional[str] = Field(default=None, examples=["India"])
+    job_offer_status: Optional[str] = Field(default=None, examples=["none"])
+    qualification_recognition: Optional[str] = Field(default=None, examples=["unknown"])
+    language_level: Optional[str] = Field(default=None, examples=["B1"])
     notes: Optional[str] = None
 
 

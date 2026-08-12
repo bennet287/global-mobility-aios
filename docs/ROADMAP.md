@@ -63,9 +63,9 @@ The target operating model is defined in
 
 - Web production build: **passing**; the Next.js production build completes successfully with 37 routes including the Phase 13.10.2 `/validation` and `/source-certification-review` workspaces.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.14 adds no schema migration and preserves this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.10 adds no schema migration and preserves this head.
 - Docker production-profile validation: passing.
-- API regression baseline: **627 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.14 patch adds bounded Legal/CLO runtime, General Counsel, Public Policy / Compliance Lead, and focused governance regressions.
+- API regression baseline: **628 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.10.2.10 patch adds Austria public-intake destination support, skilled-employment case-fact capture, and the first simulated pre-validation finding remediation.
 - SQLite migration compatibility: **passing through current migration head `0071_structured_shortage_occupation_evidence`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - Persistent Docker PostgreSQL: **passing at `0071_structured_shortage_occupation_evidence`**; live Austria structured occupation evidence and pathway-v3 hold state are preserved.
 - Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
@@ -441,6 +441,38 @@ execution without introducing a new schema revision.
   complete local quality gate passed.
 - [x] Release-close the portability hardening before resuming the Austria
   external-mobility validation run.
+
+### 13.10.2.10 Austria intake and shadow-validation unblocking
+
+The first strict simulated pre-validation run exposed that the Austria
+skilled-employment scenario cannot be reached through the public-intake front door.
+This slice fixes the immediate blocker while keeping the Austria pathway version in
+its existing `draft` state and without approving any pending source certifications.
+
+- [x] Add Austria as a first-class target-country option in the public-intake form.
+- [x] Normalize Austria selection to jurisdiction `AT` on intake submission.
+- [x] Capture skilled-employment case facts in public intake:
+  current country, job-offer status, qualification-recognition state, and language level.
+- [x] Store the structured case facts in the lead notes and intake-session answers.
+- [x] Provide an Austria-specific success message and checklist while keeping the
+  pathway explicitly in `draft` / internal-review state.
+- [x] Add regression tests proving Austria intake normalizes to jurisdiction `AT`
+  and persists the new case facts.
+- [ ] Re-run both simulated testers from a fresh Austria intake without founder hints.
+- [ ] Address the next set of findings in the screens now reachable after intake.
+
+#### Phase 13.10.2.10 closure evidence
+
+- [x] Complete verification passed with **628 API tests, 0 failed**, with only the
+  existing Starlette TestClient/httpx deprecation warning.
+- [x] Web production build passed with 37 routes.
+- [x] No schema migration or pathway publication was introduced.
+- [x] Simulated pre-validation findings are recorded in the external-validation
+  ledger as internal-only; no external human reviews were created and the external
+  gate remains `held`.
+- [x] The Austria 2026 source certifications, pathway v3, and external-validation
+  gate remain unchanged and held.
+
 
 ### 13.6 Departmental expansion
 

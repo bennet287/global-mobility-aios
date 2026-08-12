@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-12 - Phase 13.10.2.10 Austria intake and shadow-validation unblocking
+
+- Fixed the first simulated pre-validation blocker: Austria is now a first-class
+  target-country option in the public-intake form.
+- Added Austria jurisdiction normalization on intake submission; selecting Austria
+  creates or reuses the `AT` jurisdiction record.
+- Added skilled-employment case-fact capture to public intake: current country,
+  job-offer status, qualification-recognition state, and German language level.
+- Stored the new structured case facts in both the lead notes and intake-session
+  answers so the mobility profile and lead agree on Austria and the captured facts.
+- Provided an Austria-specific success message and checklist while keeping the
+  Austria pathway version in `draft`; no pathway was published and no 2026 source
+  certification was approved.
+- Added `scripts/record_simulated_prevalidation_findings.py` to durably record
+  simulated/internal pre-validation findings in the external-validation ledger as
+  internal-only baselines, without creating external human reviews.
+- Recorded the first simulated pre-validation findings for the Austria
+  skilled-employment scenario: one critical, two high, and three medium findings
+  covering intake country coverage, missing case facts, source provenance,
+  pathway-version transparency, and occupation evidence visibility.
+- Added regression tests in `apps/api/tests/test_public_intake.py` proving Austria
+  intake normalizes to jurisdiction `AT` and persists the new case facts.
+- No schema migration was introduced; Alembic remains at
+  `0071_structured_shortage_occupation_evidence`.
+- Complete verification passed with **628 API tests, 0 failed**, with only the
+  existing Starlette TestClient/httpx deprecation warning. Web production build
+  passed with 37 routes.
+
 ## 2026-08-12 - Phase 13.15 external-validation operational run initiated
 
 - Verified the Phase 13.5.2 external-validation framework end-to-end:

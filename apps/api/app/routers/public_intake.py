@@ -6,10 +6,17 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.core.db import get_session
-from app.models.domain import IntakeSession, IntakeSessionStatus, Lead, LeadIntent, LeadStatus
+from app.models.domain import (
+    IntakeSession,
+    IntakeSessionStatus,
+    Jurisdiction,
+    Lead,
+    LeadIntent,
+    LeadStatus,
+)
 from app.schemas import PublicIntakeCreate, PublicIntakeResponse
 from app.services.auto_communications import generate_auto_communications_for_lead
 from app.services.client_portal import issue_client_portal_grant, resolve_client_portal_grant
@@ -28,6 +35,35 @@ def _intent_from_goal(goal: str) -> LeadIntent:
     return LeadIntent.unknown
 
 
+COUNTRY_CODE_ALIASES: dict[str, str] = {
+    "austria": "AT",
+}
+
+
+def _ensure_target_jurisdiction(session: Session, target_country: str | None) -> None:
+    """Ensure a canonical jurisdiction row exists for supported intake destinations."""
+    if not target_country:
+        return
+    normalized = target_country.strip().lower()
+    code = COUNTRY_CODE_ALIASES.get(normalized)
+    if code is None:
+        return
+    existing = session.exec(
+        select(Jurisdiction).where(Jurisdiction.code == code)
+    ).first()
+    if existing is None:
+        session.add(
+            Jurisdiction(
+                code=code,
+                name=target_country.strip(),
+                jurisdiction_type="country",
+                region="Europe" if code == "AT" else None,
+                active=True,
+            )
+        )
+        session.commit()
+
+
 def _checklist(intent: LeadIntent, target_country: str | None) -> list[str]:
     items = ["Upload passport"]
     if intent == LeadIntent.study_abroad:
@@ -38,6 +74,9 @@ def _checklist(intent: LeadIntent, target_country: str | None) -> list[str]:
         items.extend(["Upload supporting financial documents", "State purpose of travel"])
     if target_country:
         items.append(f"Review {target_country} eligibility rules")
+    if target_country and target_country.strip().lower() == "austria":
+        items.append("Confirm Austria occupation and job-offer status")
+        items.append("Confirm qualification recognition status for Austria")
     items.append("Wait for consultant review")
     return items
 
@@ -45,9 +84,22 @@ def _checklist(intent: LeadIntent, target_country: str | None) -> list[str]:
 @router.post("/public/intake", response_model=PublicIntakeResponse)
 def create_public_intake(payload: PublicIntakeCreate, session: Session = Depends(get_session)) -> dict[str, Any]:
     intent = _intent_from_goal(payload.goal)
-    notes = f"Goal: {payload.goal}. Nationality: {payload.nationality}. Profession: {payload.profession}."
+    _ensure_target_jurisdiction(session, payload.target_country)
+
+    structured_notes = {
+        "goal": payload.goal,
+        "nationality": payload.nationality,
+        "profession": payload.profession,
+        "years_experience": payload.years_experience,
+        "target_country": payload.target_country,
+        "current_country": payload.current_country,
+        "job_offer_status": payload.job_offer_status,
+        "qualification_recognition": payload.qualification_recognition,
+        "language_level": payload.language_level,
+    }
+    notes = f"Intake: {json.dumps(structured_notes, default=str, sort_keys=True)}"
     if payload.notes:
-        notes += f" Notes: {payload.notes}"
+        notes += f" Additional notes: {payload.notes}"
 
     lead = Lead(
         full_name=payload.full_name,
@@ -68,6 +120,10 @@ def create_public_intake(payload: PublicIntakeCreate, session: Session = Depends
         "profession": payload.profession,
         "years_experience": payload.years_experience,
         "target_country": payload.target_country,
+        "current_country": payload.current_country,
+        "job_offer_status": payload.job_offer_status,
+        "qualification_recognition": payload.qualification_recognition,
+        "language_level": payload.language_level,
     }
     intake_session = IntakeSession(
         lead_id=lead.id,
@@ -95,12 +151,18 @@ def create_public_intake(payload: PublicIntakeCreate, session: Session = Depends
         context={"return_link": f"/portal?token={portal_token}"},
     )
 
+    is_austria = payload.target_country and payload.target_country.strip().lower() == "austria"
     return {
         "session_token": portal_token,
         "lead_id": lead.id,
         "status": lead.status,
         "checklist": _checklist(intent, payload.target_country),
-        "message": "Your case has been received. A consultant will review it shortly.",
+        "message": (
+            "Your Austria skilled-employment case has been received. The next step is an evidence-backed pathway review. "
+            "You will receive a draft recommendation for your review before any external action is taken."
+            if is_austria
+            else "Your case has been received. A consultant will review it shortly."
+        ),
     }
 
 

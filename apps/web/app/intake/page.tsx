@@ -13,7 +13,33 @@ const GOALS = [
   "Not sure yet",
 ];
 
-const COUNTRIES = ["Germany", "Canada", "Australia", "UK", "USA", "Other"];
+const COUNTRIES = ["Austria", "Germany", "Canada", "Australia", "UK", "USA", "Other"];
+
+const JOB_OFFER_OPTIONS = [
+  { value: "", label: "Select..." },
+  { value: "none", label: "I do not have a job offer" },
+  { value: "pending", label: "I have a pending offer" },
+  { value: "signed", label: "I have a signed offer" },
+];
+
+const QUALIFICATION_OPTIONS = [
+  { value: "", label: "Select..." },
+  { value: "not_started", label: "Not started" },
+  { value: "in_progress", label: "In progress" },
+  { value: "recognized", label: "Recognized" },
+  { value: "unknown", label: "I am unsure" },
+];
+
+const LANGUAGE_OPTIONS = [
+  { value: "", label: "Select..." },
+  { value: "A1", label: "A1 - Beginner" },
+  { value: "A2", label: "A2 - Elementary" },
+  { value: "B1", label: "B1 - Intermediate" },
+  { value: "B2", label: "B2 - Upper intermediate" },
+  { value: "C1", label: "C1 - Advanced" },
+  { value: "C2", label: "C2 - Proficient" },
+  { value: "unknown", label: "I do not know" },
+];
 
 export default function IntakePage() {
   const [form, setForm] = useState<PublicIntakePayload>({
@@ -25,11 +51,17 @@ export default function IntakePage() {
     profession: "",
     years_experience: undefined,
     target_country: "Germany",
+    current_country: "",
+    job_offer_status: "",
+    qualification_recognition: "",
+    language_level: "",
     notes: "",
   });
   const [result, setResult] = useState<PublicIntakeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isAustria = form.target_country === "Austria";
 
   const update = <K extends keyof PublicIntakePayload>(key: K, value: PublicIntakePayload[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -121,6 +153,15 @@ export default function IntakePage() {
               </label>
 
               <label>
+                Current country
+                <input
+                  value={form.current_country || ""}
+                  onChange={(e) => update("current_country", e.target.value)}
+                  placeholder="e.g., India"
+                />
+              </label>
+
+              <label>
                 Profession
                 <input
                   required
@@ -152,6 +193,37 @@ export default function IntakePage() {
                   ))}
                 </select>
               </label>
+
+              {isAustria && (
+                <>
+                  <label className="full-field">
+                    Austria job-offer status
+                    <select value={form.job_offer_status || ""} onChange={(e) => update("job_offer_status", e.target.value)}>
+                      {JOB_OFFER_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="full-field">
+                    Qualification recognition status for Austria
+                    <select value={form.qualification_recognition || ""} onChange={(e) => update("qualification_recognition", e.target.value)}>
+                      {QUALIFICATION_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="full-field">
+                    German language level
+                    <select value={form.language_level || ""} onChange={(e) => update("language_level", e.target.value)}>
+                      {LANGUAGE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
 
               <label className="full-field">
                 Anything else we should know?
