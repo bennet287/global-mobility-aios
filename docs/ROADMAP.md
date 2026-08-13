@@ -40,13 +40,13 @@ The target operating model is defined in
 
 ## 2. Current Release Posture
 
-**As of:** 2026-08-11
+**As of:** 2026-08-13
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-<!-- CURRENT_MIGRATION_HEAD: 0071_structured_shortage_occupation_evidence -->
+<!-- CURRENT_MIGRATION_HEAD: 0073_austria_candidate_integrity -->
 
-**Code migration head:** `0071_structured_shortage_occupation_evidence`
+**Code migration head:** `0073_austria_candidate_integrity`
 
 | Area | State | Current position |
 |---|---|---|
@@ -56,19 +56,23 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | External validation gate active | Board controls and bounded Operations, Technology, Product, Security/CISO, Security Operations/SOC, Marketing/CMO, Finance/CFO, Communications/CCO, People/CHRO, and Legal/CLO runtimes are delivered; Phase 13.15 external-validation operational run is in progress; the real-user/professional validation run remains the active gate before cross-functional programmes or Phase 14 |
+| Phase 13 | Correctness-to-experience gate active | Board controls and bounded department runtimes are delivered; Phase 13.10.2.15 is closed after its rendered pass; a fresh Round 6 shadow-validation correctness disposition is the next gate before Phase 13.16; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: **passing**; the Next.js production build completes successfully with 37 routes including the Phase 13.10.2 `/validation` and `/source-certification-review` workspaces.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0071_structured_shortage_occupation_evidence`; Phase 13.10.2.10 adds no schema migration and preserves this head.
+- Migration-chain integrity: code and persistent PostgreSQL are verified at `0073_austria_candidate_integrity`; Phase 13.10.2.13 persists the structured Austria case facts used by decision services.
 - Docker production-profile validation: passing.
-- API regression baseline: **628 passed, 0 failed** at `0071_structured_shortage_occupation_evidence`; the Phase 13.10.2.10 patch adds Austria public-intake destination support, skilled-employment case-fact capture, and the first simulated pre-validation finding remediation.
-- SQLite migration compatibility: **passing through current migration head `0071_structured_shortage_occupation_evidence`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
-- Persistent Docker PostgreSQL: **passing at `0071_structured_shortage_occupation_evidence`**; live Austria structured occupation evidence and pathway-v3 hold state are preserved.
-- Local quality gate: **passing**; compilation, evidence-pack validation, repository policy, release consistency, migrations, local schema, Docker-profile validation, frontend production build, and the complete API test suite are green.
+- API regression baseline: **661 passed, 0 failed** at `0073_austria_candidate_integrity`; the closed Phase 13.10.2.15 eligibility-preview and authenticated CORS gates pass.
+- SQLite migration compatibility: **passing through current migration head `0073_austria_candidate_integrity`** via the 4-test fresh-database upgrade/downgrade/re-upgrade regression suite.
+- Persistent Docker PostgreSQL: **passing at `0073_austria_candidate_integrity`**; the immutable Austria v4 draft links the 2026 national/regional evidence while both certifications remain pending review.
+- Local quality gate: compilation, evidence-pack validation, repository policy,
+  release consistency, migrations, Docker-profile validation, frontend production
+  build, and the complete API test suite pass. The disposable/test databases are
+  current; the preserved developer SQLite file still has pre-existing 0072/0073
+  schema drift and was not reset during this hardening slice.
 
 The Phase 13 governance foundation, Board Packet reporting, evidence-output, bounded
 execution-control, external-action gates, bounded Operations, Technology, Product,
@@ -82,12 +86,13 @@ Financial Analyst and Accounting Lead specialists. Phase 13.12 adds the bounded
 Communications/CCO runtime with PR / Communications Lead and Government Relations Lead
 specialists. Phase 13.13 adds the bounded People/CHRO runtime with HR Lead and Culture /
 Recruitment Lead specialists. Phase 13.14 adds the bounded Legal/CLO runtime with
-General Counsel and Public Policy / Compliance Lead specialists. Phase 13.15 is the
-operational external-validation run using the `at-skilled-worker-discovery-v1` scenario;
-see [EXTERNAL_VALIDATION_RUNBOOK_V13_15.md](EXTERNAL_VALIDATION_RUNBOOK_V13_15.md) for
-the runbook. The external gate remains held until one real mobility user and one
-independent professional/operator complete the workflow successfully and the deterministic
-gate evaluates to `passed`.
+General Counsel and Public Policy / Compliance Lead specialists. Phase 13.15 is now
+the validation programme and correctness gate: its historical Austria runbook remains
+useful operational evidence, but the next action is a fresh Round 6 mobility-user and
+professional shadow review after the Phase 13.10.2.15 rendered pass. A good-enough
+Round 6 correctness disposition unlocks Phase 13.16, not Phase 13 closure. Genuine
+external-human acceptance moves to Phase 13.17 after the shared experience layer is
+ready; the external-human gate remains held until then.
 
 ## 3. Execution Order
 
@@ -95,14 +100,26 @@ Work must proceed in this order. A later programme must not hide an earlier red
 release gate.
 
 1. **Phase 10B evidence operations** — continue independently reviewed
-   jurisdiction onboarding without claiming global completeness.
-2. **Phase 13 governance foundation** — the hierarchy, authority matrix, executive
-   decision ledger, and Board Room are delivered; harden the first autonomous
-   flow and prove end-to-end delegation, escalation, and override.
-3. **Phase 13 departmental expansion** — add executives and specialist teams only
-   after the governance loop is proven end to end.
-4. **Phase 14 scale work** — adopt new infrastructure only after measured demand
-   justifies it.
+   jurisdiction onboarding without claiming global completeness; this may proceed
+   operationally without weakening the active product-validation gates.
+2. **Phase 13.15 / Round 6 correctness disposition** — run one fresh comparable
+   mobility-user shadow review and one fresh professional shadow review. Do not mix
+   implementation or remediation inspection into either review session.
+3. **Phase 13.16.0 design-system and information-architecture foundation** — begin
+   only if Round 6 has no Critical/High correctness finding or unsupported legal
+   certainty. Establish the shared visual and experience grammar first.
+4. **Phase 13.16.1 durable contribution and activity model** — establish the
+   outcome-oriented source of truth before building observatory dashboards.
+5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
+   owner observatory, department workspaces, dependencies, owner inbox, mobility-user
+   and operator experiences, and consolidated evidence/provenance presentation.
+6. **Phase 13.16.10 responsive/accessibility and integrated acceptance** — validate
+   the three experience architectures and critical rendered journeys as one system.
+7. **Phase 13.17 genuine external-human acceptance** — one distinct mobility user
+   and one independent professional/operator validate the revised end-to-end product;
+   deterministic findings and Board disposition govern Phase 13 closure.
+8. **Phase 14 scale work** — adopt new infrastructure only after Phase 13 acceptance
+   and measured demand justify it.
 
 ## 4. Stabilized: Phase 12
 
@@ -473,6 +490,387 @@ its existing `draft` state and without approving any pending source certificatio
 - [x] The Austria 2026 source certifications, pathway v3, and external-validation
   gate remain unchanged and held.
 
+### 13.10.2.12 Intake persistence and case continuity
+
+The first end-to-end Round 3 attempt reached the public-intake persistence boundary
+and exposed a schema-validation break before router execution: optional blank email
+was serialized as an empty string and rejected by `EmailStr`. This slice repairs that
+boundary and carries the resulting durable Lead through the downstream workflow
+without weakening production email semantics or publishing draft pathway evidence.
+
+- [x] Normalize blank optional contact values in the frontend request and backend
+  pre-validation path while retaining strict malformed-email rejection.
+- [x] Commit exactly one Lead and one linked IntakeSession atomically and return the
+  durable Lead ID explicitly with a human-readable case reference.
+- [x] Add a frontend-generated submission key plus backend request fingerprint and
+  unique database guarantee for idempotent replay and duplicate protection.
+- [x] Add migration `0072_intake_submission_idempotency`.
+- [x] Preserve normalized Austria target country and submitted case facts.
+- [x] Add a successful case-created screen with a `Continue your case` handoff to
+  `/eligibility?lead_id=<id>`.
+- [x] Propagate `lead_id` to Mobility Profiles, Mobility Planning, and External
+  Validation and auto-select the same Lead in each workspace.
+- [x] Replace the normal External Validation raw-UUID interaction with a named Lead
+  selector while retaining manual UUID entry as an advanced/debug fallback.
+- [x] Preserve published-pathway-only production matching; internal draft simulation
+  remains explicit, labelled, and non-publishing.
+- [x] Add false-success, email-boundary, persistence, fact-retention, list-visibility,
+  idempotency, and conflicting-key regression coverage.
+- [x] Complete automated verification: **648 API tests**, **13 focused tests**,
+  **4 fresh-migration tests**, TypeScript, Next.js production build, and diff check.
+- [x] Back up live PostgreSQL and migrate it transactionally from 0071 to 0072.
+- [x] Restart the API on 8002 and frontend on 3000 with the local API override; API
+  health and authenticated Lead listing return successfully.
+- [x] Complete the authorized one-case rendered intake-to-downstream continuity
+  smoke after browser-harness recovery. The same named Austria case reached
+  Eligibility and auto-selected in Profiles, Planning, and External Validation;
+  normal workflow navigation required no raw Lead UUID.
+
+#### Phase 13.10.2.12 live release evidence
+
+- [x] Pre-migration PostgreSQL backup created and SHA-256 recorded in release handoff.
+- [x] Direct Alembic and PostgreSQL checks report
+  `0072_intake_submission_idempotency`.
+- [x] Post-migration `/health` returns `ok`; authenticated `/api/v1/leads` is reachable.
+- [x] One synthetic Austria submission creates one durable Lead and one linked
+  IntakeSession and reaches the same named case in Eligibility, Profiles, Planning,
+  and External Validation without a required raw UUID.
+- [x] Close Phase 13.10.2.12 after the rendered smoke passes. Direct PostgreSQL
+  verification confirms exactly one Lead and one linked IntakeSession for case
+  reference `AT-64A2DA29`; no validation round was started.
+
+### 13.10.2.13 Austria candidate integrity and occupation resolution
+
+Round 4 proved that durable case continuity was working but recommendation quality
+was not yet defensible: a country-only self-employment route could lead a skilled-
+employment case, structured intake facts did not drive the assessment, occupation
+applicability was flattened, and the rendered comparison could report zero meaningful
+gaps. This slice repairs that decision boundary before Phase 13.16 begins.
+
+- [x] Persist nationality, current country, occupation, experience, job-offer state,
+  qualification-recognition state, German level, and employment province on Lead;
+  backfill them from durable IntakeSession answers without parsing free-text notes.
+- [x] Merge Lead, IntakeSession, and profile facts deterministically for eligibility
+  and pathway comparison, preserving explicit intake facts when profile fields are blank.
+- [x] Add candidate compatibility and machine recommendation states; skilled-employment
+  cases retain self-employment routes as `EXCLUDED` with an audit-visible reason and a
+  zero ranking score rather than silently recommending or deleting them.
+- [x] Add structured Austria occupation assessment with exact, normalized-exact,
+  inferred, ambiguous, no-match, and insufficient-information qualities; national and
+  regional scope, province, entry, source snapshot, source certification, and
+  qualification mapping remain separate, and the result never establishes eligibility.
+- [x] Rebuild the skilled-worker assessment around categorized fact, evidence,
+  document, regulatory, and certification gaps; a missing binding job offer is a
+  material blocking fact, and a claimed A2 level is not a language certificate.
+- [x] Scope the governed EUR 218 value to the government application fee only;
+  estimated total cost and processing time remain `not_established` absent governed data.
+- [x] Enable explicitly requested local internal simulation for authenticated
+  admin/operator/reviewer roles while production remains fail-closed unless its feature
+  flag is enabled; require an explicit context and audit actor, role, Lead, draft version,
+  timestamp, simulation flag, and reason.
+- [x] Create the next immutable Austria skilled-worker draft through the existing
+  structured-evidence integration path. It pins core, national-2026, and regional-2026
+  evidence; certification remains pending, publication readiness remains false, and no
+  production recommendation or publication occurs.
+- [x] Render candidate status, exclusion reasons, draft/non-reliance warnings,
+  occupation ambiguity, categorized gaps, sourced application-fee semantics,
+  unestablished timing, and case-driven next actions in Mobility Planning.
+- [x] Add legal-certainty and decision-integrity regressions, including structured
+  fact propagation, goal incompatibility, occupation ambiguity/scope, pending
+  certification, nonzero case gaps, missing-job-offer treatment, fee provenance,
+  missing timing, safe wording, production-only default matching, simulation audit,
+  and unauthorized-role rejection.
+- [x] Verification passes with **650 API tests**, **4 fresh-migration tests**, Python
+  compilation, the 37-route Next.js production build, and `git diff --check`.
+- [x] Back up live PostgreSQL, migrate it transactionally to
+  `0073_austria_candidate_integrity`, and create immutable Austria pathway v4
+  `4f02f390-1e22-4ac3-9237-8a67f6551807`. Re-running the integration returns the
+  same version with `created=false`.
+- [x] Complete authenticated live simulation verification against the persisted
+  Austria smoke case: v4 is the non-production simulation candidate; Self-employed
+  Key Worker is excluded for goal mismatch; `Software Engineer` resolves as
+  `AMBIGUOUS` across two national governed entries while regional scope remains a
+  distinct `NO_MATCH`; the absent job offer and 14 categorized gaps are rendered;
+  fee/timing semantics remain bounded; and the full simulation context is audited.
+- [x] Verify ordinary live matching returns published versions only and zero draft
+  versions. No certification state or publication lifecycle was changed.
+- [x] Complete the fresh case-specific Round 5 mobility-user and professional shadow
+  assessment. Its decisive disposition requires Phase 13.10.2.14 before Phase 13.16;
+  no certification approval or pathway publication was authorized.
+
+### 13.10.2.14 Assessment consistency and conditionality hardening
+
+Round 5 found that the candidate boundary was close but not professionally
+defensible: a stale raw fee could render as EUR 21,800, unknown province could be
+flattened to regional no-match, trace provenance required reconstruction, excluded
+self-employment documents could contaminate a skilled-employment preview, and the
+rendered evidence-gap/profile provenance could diverge from the canonical response.
+
+- [x] Normalize monetary inputs by explicit unit semantics, let the governed
+  source-pinned application-fee rule override stale application-fee aliases once,
+  and clear payable cost components from excluded routes.
+- [x] Preserve regional candidate conditionality for unknown, applicable,
+  non-applicable, and truly absent province/evidence states.
+- [x] Expose complete material-conclusion provenance in Mobility Planning, including
+  full rule/source/snapshot/certification identifiers, official sources, deterministic
+  evidence-pack hashes, and exact certification-review navigation without changing
+  certification state.
+- [x] Isolate eligibility documents to compatible routes so self-employment
+  requirements cannot leak into a skilled-employment assessment.
+- [x] Persist the structured assessment input as Mobility Profile v1, and use the
+  canonical categorized gap list for the response, explanation, tradeoffs, and UI.
+- [x] Complete focused, adjacent, full API, fresh-migration, TypeScript, production-
+  build, repository, release, migration, Docker-profile, compilation, and whitespace
+  verification. No schema migration was added; Alembic remains at 0073.
+- [x] Complete live integration against existing case `AT-7811EDF4`: Profile v1,
+  the canonical 14 gaps, EUR 218 fee, conditional regional candidate, full evidence
+  traces, excluded-route cost isolation, draft lifecycle, and pending certification
+  states are confirmed in the persistent PostgreSQL environment.
+- [ ] Complete the focused rendered smoke. Both frontend routes return HTTP 200, but
+  this session exposed no browser surface for visual/interactive inspection.
+- [ ] Execute a fresh case-specific Round 6 mobility-user shadow review followed by
+  a separate professional shadow review and correctness disposition. Phase 13.16
+  remains paused; source certification, publication, and broader redesign remain
+  outside this slice.
+
+### 13.10.2.15 Eligibility preview consistency
+
+The manual Phase 13.10.2.14 rendered smoke found two bounded consistency defects:
+Eligibility was still rendering documents from an excluded self-employment route
+and presenting a binding Austrian job offer as optional, while Planning repeated a
+legacy sentence that treated linked but pending 2026 occupation evidence as absent.
+
+**Status: COMPLETE — manual rendered gate PASS.** Findings `R5A-002`,
+`13.10.2.15-F01`, and `13.10.2.15-F03` are resolved. Austria v4 remains draft and
+both national/regional certifications remain `pending_review`.
+
+- [x] Restrict eligibility-preview documents, material requirements, and costs to
+  compatible pathway candidates while retaining excluded candidates for audit and
+  explanation with an explicitly empty preview contribution.
+- [x] Represent the binding Austrian job offer as a required, missing, blocking
+  material fact, separate from the employer-declaration document requirement; remove
+  the generic `if available` job-offer wording.
+- [x] Reconcile legacy occupation-risk wording with the national/regional evidence
+  roles currently linked to v4 and their `pending_review` certification states.
+- [x] Preserve the Phase 13.10.2.14 fee, total-cost, processing-time, profile-version,
+  14-gap, occupation-conditionality, exclusion, traceability, certification,
+  lifecycle, publication-readiness, and production/draft-boundary invariants.
+- [x] Complete focused, adjacent, full API, clean migration-cycle, TypeScript,
+  production-build, compilation, repository, release, migration, Docker-profile,
+  and whitespace verification. No migration was added; Alembic remains at 0073.
+- [x] Record rendered gate **FAIL**, finding `13.10.2.15-F01`: GET latest and POST
+  evaluate both returned 401 without `x-gmai-role`/`x-gmai-user`; Eligibility
+  business content was not assessed. API runtime/auth and the other operator
+  workspaces remained healthy.
+- [x] Remediate the centralized client configuration boundary so an explicitly
+  enabled role/user configuration or an unset configuration with a loopback API
+  receives local header-role auth. Explicit false and non-loopback production remain
+  fail-closed; credentials/CORS behavior is unchanged and no Eligibility-specific
+  auth implementation was introduced.
+- [x] Record that the first F01 remediation failed its manual retest: GET latest and
+  POST evaluate remained 401 and both browser auth headers remained absent.
+- [x] Replace the inline client-header expression with one native-`Headers` final
+  request builder and add runtime mocked-fetch coverage through the actual exported
+  Eligibility functions. Four tests prove enabled local GET/POST headers, explicit-
+  false removal, non-loopback production fail-closed behavior, credentials, and
+  request-specific header preservation.
+- [x] Record that the second F01 remediation also failed rendered verification after
+  a deleted `.next` output, clean frontend restart, and fresh tab: both calls remained
+  401 and both headers remained absent. Stale client/runtime state is ruled out.
+- [x] Resolve browser-visible auth settings in a Next.js-compiled TypeScript module
+  using direct static `NEXT_PUBLIC_*` references and pass the resolved configuration
+  into the environment-agnostic request builder. Add a compiled Eligibility-client
+  regression that proves the local API base, enabled flag, role, and user are embedded
+  on the same real GET/POST browser code path, while retaining the final-fetch tests.
+- [x] Close F01's client-side diagnosis: loopback browser instrumentation proves the
+  resolved configuration, request builder output, and final native-fetch input all
+  contain `x-gmai-role: admin` and `x-gmai-user: frontend-operator`. Keep the temporary
+  redacted diagnostic until the rendered Eligibility gate passes.
+- [x] Record `13.10.2.15-F03`: Eligibility remains unusable in the browser because
+  auth-generated responses bypassed CORS decoration. OPTIONS itself already returned
+  200 with the configured local origin and requested headers; authentication was the
+  outer middleware, causing its 401/403 responses to omit CORS response headers.
+- [x] Make CORS the outer response boundary and explicitly allow the approved browser
+  headers. Regressions prove successful local GET/POST preflight, authenticated route
+  reachability, retained unauthorized-request rejection, and unapproved-origin denial.
+  Production authentication and configured-origin boundaries remain fail-closed.
+- [x] Pass the final manual rendered gate. Eligibility shows the missing blocking
+  binding Austrian job offer and separate employer declaration without excluded
+  self-employment documents or obsolete optional wording. Planning accurately states
+  that linked 2026 national/regional evidence remains pending independent certification.
+- [x] Resolve `R5A-002`, `13.10.2.15-F01`, and `13.10.2.15-F03`; remove the temporary
+  browser diagnostic, global debug object, diagnostic revision marker, and diagnostic-
+  only test while retaining the permanent centralized request/auth and CORS fixes.
+- [x] Prepare the existing live case for that retest by persisting new audited
+  Eligibility and Planning assessments with the corrected projections; all older
+  assessments remain in history.
+
+### 13.16 Organization Observatory & Experience Layer
+
+**State: PAUSED.** The track remains gated until the fresh Round 6 mobility-user and
+professional correctness evidence is evaluated.
+
+#### Canonical validation sequence from Round 6 onward
+
+This sequence supersedes older roadmap examples that referred to Round 3/4,
+Phase 13.10.2.12, Austria pathway v3, migration 0072, or a proposed Phase 13.11 UX
+track. Those references remain historical evidence; they are not the current plan.
+
+```text
+Phase 13.10.2.15 rendered gate                 PASS / CLOSED
+                    ↓
+Round 6 mobility-user shadow review             NEXT
+                    ↓
+Round 6 independent professional shadow review  NEXT
+                    ↓
+Round 6 correctness disposition
+  ├─ correctness gate fails → bounded 13.10.2.x correction + fresh round
+  └─ correctness gate passes → unlock Phase 13.16.0
+                    ↓
+13.16.0 Design System & Information Architecture Foundation
+                    ↓
+13.16.1 Durable Contribution & Activity Model
+                    ↓
+13.16.2-13.16.9 role-based experience and observatory delivery
+                    ↓
+13.16.10 integrated responsive/accessibility acceptance
+                    ↓
+13.17 genuine external-human acceptance and Phase 13 disposition
+                    ↓
+Phase 14 only when Phase 13 acceptance and measured scale demand justify it
+```
+
+Round 6 is a clean correctness gate, not genuine external-human acceptance. Use the
+same comparable Austria skilled-employment persona in a fresh synthetic case for the
+mobility-user session, then conduct a separate professional shadow session. Round 6
+passes the correctness gate only when there are no Critical or High correctness
+findings, unsupported legal certainty is zero, the candidate family and occupation
+conditionality are safe, material gaps and costs are credible, lifecycle/certification
+state is accurate, the production/draft boundary is intact, and material conclusions
+remain traceable. Pending review is not itself broken traceability when the evidence
+chain is complete and the pending decision is accurately exposed.
+
+Medium/Low experience findings do not automatically block Phase 13.16; they become
+prioritized inputs to the experience track. Critical/High correctness findings return
+to a bounded decision-pipeline correction and require another fresh validation round.
+Neither outcome authorizes certification approval or Austria v4 publication.
+
+#### 13.16.0 Design System & Information Architecture Foundation
+
+**State: NOT STARTED — mandatory first Phase 13.16 slice after Round 6.** This
+foundation must be completed before Organization Observatory dashboard development.
+It addresses the typography, sizing, spacing, density, card, and information-hierarchy
+drift accumulated while backend and governance capabilities expanded. This is a
+presentation and interaction-system refactor: it must preserve every material safety,
+governance, lifecycle, certification, evidence, and non-reliance warning.
+
+- [ ] Adopt Geist Sans as the primary product typeface. Restrict Geist Mono to
+  technical identifiers, hashes, audit IDs, source IDs, and code-like values.
+- [ ] Define shared typography tokens for page titles, section titles, card titles,
+  body copy, secondary copy, labels, statuses, and technical metadata. Remove
+  excessive uppercase styling and labels rendered at microscopic sizes.
+- [ ] Establish project-wide layout and component foundations for spacing, responsive
+  container widths, cards, form controls, badges, tables, empty states, loading states,
+  and error states.
+- [ ] Apply one primary information hierarchy across decision workspaces:
+  **decision/context → blockers → next actions → supporting evidence → technical
+  provenance**.
+- [ ] Keep raw UUIDs, hashes, source identifiers, and audit metadata out of dominant
+  primary-screen positions when they are not the user's immediate task. Preserve
+  access to them in appropriately labelled expandable technical details.
+- [ ] Refactor Mobility Profiles, Eligibility, Planning, Validation, Board Room,
+  Agent Console, department views, and the remaining operator pages onto the shared
+  tokens, components, density rules, and hierarchy.
+- [ ] Define distinct but visually related information architectures for the
+  **Mobility User**, **Professional/Operator**, and **Owner/Board** experiences, with
+  role-appropriate navigation, disclosure depth, terminology, and decision emphasis.
+- [ ] Preserve material governance and safety content in every experience. Improve
+  its prioritization, grouping, progressive disclosure, and readability without
+  hiding warnings or weakening certification, draft/production, evidence, or human-
+  review boundaries.
+- [ ] Meet responsive acceptance criteria across small mobile, tablet, standard
+  desktop, and wide desktop layouts: no clipped actions or critical content, no
+  horizontal page overflow, usable tables or responsive alternatives, stable reading
+  order, and task controls reachable without precision interaction.
+- [ ] Meet accessibility acceptance criteria: semantic landmarks and heading order,
+  full keyboard operation, visible focus, labelled controls, non-color-only states,
+  sufficient text and UI contrast, scalable text, reduced-motion support, accessible
+  validation/error announcements, and screen-reader names for disclosure controls.
+- [ ] Add representative rendered/regression coverage for shared foundations and the
+  three experience architectures, then complete mobility-user, professional/operator,
+  and owner/board review before unlocking Organization Observatory dashboards.
+
+Phase 13.10.2.15 closure did not start this work. Its implementation gate opens only
+after the fresh Round 6 disposition confirms that the decision pipeline is correct
+enough to proceed.
+
+#### 13.16 delivery sequence
+
+The attached concept correctly prioritizes outcomes over agent activity noise. The
+implementation order below improves it by establishing design/IA and authoritative
+contribution data before any dashboard attempts to summarize the organization.
+
+| Slice | Outcome | Exit condition |
+|---|---|---|
+| **13.16.0** | Design System & Information Architecture Foundation | Shared tokens, components, hierarchy, accessibility rules, and three experience architectures accepted |
+| **13.16.1** | Durable Contribution & Activity Model | Common contribution, work item, activity, decision, blocker, and human-action contracts are durable, attributable, auditable, and linked to evidence |
+| **13.16.2** | Role-based application shells and navigation | Mobility User, Professional/Operator, and Owner/Board see distinct but related navigation and disclosure depth |
+| **13.16.3** | Unified Owner Control Center | Company health, meaningful work, contributions, blockers, decisions, validation state, and human attention derive from authoritative records rather than invented summaries |
+| **13.16.4** | Department workspaces | Each department exposes objectives, current work, contributions, blockers, decisions, evidence, authority, and runtime health consistently |
+| **13.16.5** | Cross-department dependencies and blocker view | Outcome dependencies, accountable owners, gating state, and critical paths are first-class and auditable |
+| **13.16.6** | Owner decision and escalation inbox | Only genuine Board/owner decisions, approvals, exceptions, and external-human actions reach the attention queue |
+| **13.16.7** | Mobility User experience | Case-centric journey exposes progress, blockers, documents, next actions, and safe decision context without operator or backend noise |
+| **13.16.8** | Professional/Operator experience | Case operations, comparison, evidence, validation, timelines, and authority work are efficient while retaining appropriate provenance |
+| **13.16.9** | Evidence and provenance UX consolidation | Evidence, certification, lifecycle, source, and audit detail use progressive disclosure without weakening material warnings or traceability |
+| **13.16.10** | Responsive, accessibility, polish, and integrated acceptance | Critical journeys pass rendered mobile/desktop, keyboard, screen-reader, contrast, loading/error/empty-state, and cross-role acceptance checks |
+
+##### 13.16.1 authoritative model requirements
+
+- [ ] Define separate durable records or explicitly versioned event contracts for
+  **activity**, **contribution**, **decision**, **blocker**, **work item**, and
+  **human action**; do not treat them as interchangeable counters.
+- [ ] Make every meaningful contribution attributable to a department/position,
+  related objective or phase, affected entity, authority level, evidence, status,
+  impact, timestamps, and human-action requirement.
+- [ ] Prefer outcome metrics over tool-call or agent-message volume. The observatory
+  may expose execution telemetry as technical detail, but must not present activity
+  volume as organizational contribution.
+- [ ] Link contribution and dependency records to existing provenance, audit,
+  validation, agent-output, decision, case, pathway, evidence, and lifecycle records
+  instead of copying or silently reinterpreting their truth.
+- [ ] Define idempotency, ordering, correction/supersession, retention, authorization,
+  tenant isolation, and audit semantics before dashboard aggregation is accepted.
+
+##### 13.16.2 navigation and experience-shell baseline
+
+- [ ] Owner/Board navigation groups the product into **Overview**, **Organization**
+  (Departments, Contributions, Activity, Decisions, Owner Inbox), **Mobility
+  Operations** (Cases, Profiles, Planning, Timelines, Documents), **Intelligence**
+  (Pathways, Regulatory Intelligence, Sources & Evidence, Occupation Evidence),
+  **Validation**, **Governance**, and **Settings**.
+- [ ] Mobility User navigation remains case-centric: case overview, profile,
+  pathways/eligibility, documents, progress, and next action. It must not expose
+  phase numbers, backend health, raw UUIDs, publication controls, or certification
+  administration as primary navigation.
+- [ ] Professional/Operator navigation prioritizes cases, pathway comparison,
+  eligibility, documents, evidence, timelines, authority workflow, and validation,
+  with provenance and governance visible at the depth needed for professional work.
+- [ ] Existing routes remain reachable during migration through the correct shell;
+  route consolidation must be incremental and preserve authorization boundaries.
+
+##### 13.16 experience constraints
+
+- [ ] Do not add more departments merely to populate the observatory. Make existing
+  departments visible, measurable, governable, and useful first.
+- [ ] Keep existing deep routes available during incremental migration, but stop
+  presenting all routes as equal top-level navigation choices.
+- [ ] Owner views must distinguish company health, active work, contributions,
+  decisions, risks/blockers, external validation, and human attention.
+- [ ] Department and global timelines must represent governed business events and
+  outcomes, with raw agent/tool execution available only as supporting telemetry.
+- [ ] Observatory summaries must be reproducible from authoritative records and must
+  never infer completion, impact, readiness, or publication state from UI activity.
+
 
 ### 13.6 Departmental expansion
 
@@ -550,6 +948,13 @@ After the first organization flow and Board Room pass their release gates, and a
 - [x] Evidence-complete internal L3 Finance work resolves through a distinct
   CEO decision receipt that consults the CFO, without authorizing funds movement,
   pricing changes, spend commitments, contracts, or interrupting the Board.
+- [ ] Round 6 confirms the current Austria decision pipeline has no Critical/High
+  correctness finding or unsupported legal certainty before experience work begins.
+- [ ] Phase 13.16 delivers the shared design/IA foundation, authoritative contribution
+  model, role-based experiences, Organization Observatory, and integrated responsive/
+  accessibility acceptance without weakening governance or evidence boundaries.
+- [ ] Phase 13.17 passes genuine external-human mobility-user and independent
+  professional/operator acceptance and records the deterministic Phase 13 disposition.
 
 ## 7. Phase 14: Global Scale Platform
 
@@ -581,7 +986,7 @@ After the first organization flow and Board Room pass their release gates, and a
 | 10C-10E | Global dashboards, reviewed ranking, and immutable multi-year mobility scenarios | [MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md](MULTI_YEAR_MOBILITY_SCENARIOS_V10_14.md) |
 | 11 | Corporate, business, wealth, investment, family-office, and tax/treaty mobility | [BUSINESS_WEALTH_ADVISORY_V11_4.md](BUSINESS_WEALTH_ADVISORY_V11_4.md) |
 | 12 | Client/ecosystem portals, partner APIs, governed automation, appointments, submissions, assignments, checklists, and reminders | [GOVERNED_AUTOMATION_FOUNDATION_V12_3.md](GOVERNED_AUTOMATION_FOUNDATION_V12_3.md) |
-| 13.0-13.11 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing/Finance runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
+| 13.0-13.14 software | AI organization governance, Board Room, bounded Operations/Technology/Product/Security/SOC/Marketing/Finance/Communications/People/Legal runtimes, platform hardening, and durable external-mobility validation infrastructure | [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md), [EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md](EXTERNAL_MOBILITY_VALIDATION_V13_10_2.md) |
 
 ## 9. Delivery Governance
 
@@ -1198,31 +1603,65 @@ e  review, monitoring, or data expansion continues.
   gate remain unchanged and held.
 
 
-### 13.15 External-validation operational run
+### 13.15 Validation programme and Round 6 correctness gate
 
-Execute the first real external validation run using the `at-skilled-worker-discovery-v1`
-Austria scenario. The framework is delivered and regression-tested; this phase is the
-operational execution with real humans.
+The original Phase 13.15 plan described the first external-human operational run.
+Subsequent shadow rounds exposed and corrected the Austria decision pipeline through
+Phase 13.10.2.15. The current Phase 13.15 task is therefore a fresh Round 6 correctness
+disposition before experience-layer work. Genuine external-human acceptance is Phase
+13.17 and must not be claimed from shadow sessions.
 
-- [ ] Recruit one distinct mobility user and one independent professional/operator for
-  the Austria skilled-employment workflow.
-- [ ] Seed the Austria scenario in `/validation`, create a run pinned to a real lead and
-  pathway comparison, and attach the required evidence references.
-- [ ] Run both testers through the end-to-end workflow while counting founder interventions.
-- [ ] Record both external reviews in the validation ledger.
-- [ ] Record all defects as findings with severity and category.
-- [ ] Resolve or retest every Critical/High finding; triage, resolve, or Board-accept every
-  Medium/Low finding.
-- [ ] Evaluate the deterministic gate and confirm it evaluates to `passed`.
-- [ ] Update `docs/ROADMAP.md` and `docs/CHANGELOG.md` with the Phase 13.15 closure
-  evidence.
+- [x] Deliver and regression-test the versioned validation scenario/run/review/finding
+  framework, deterministic gate, and operator workspace.
+- [x] Preserve all earlier shadow-round findings, remediation history, comparisons,
+  and audit evidence without rewriting prior assessments.
+- [x] Close Phase 13.10.2.15 after the rendered Eligibility and Planning gate passes.
+- [ ] Create one fresh synthetic Austria skilled-employment case for the Round 6
+  mobility-user shadow session; do not reuse the engineering-history-heavy Round 5 case.
+- [ ] Use the comparable persona: India to Austria, skilled employment, Software
+  Engineer, four years' experience, no Austrian job offer, qualification recognition
+  unknown, German A2, and province unknown.
+- [ ] Conduct a separate fresh professional shadow review against the resulting case
+  and assess legal certainty, traceability, lifecycle, and decision integrity.
+- [ ] Categorize findings as correctness, experience/presentation, or operational
+  evidence so UX debt does not obscure correctness and vice versa.
+- [ ] Require zero Critical/High correctness findings and zero unsupported legal
+  certainty before unlocking Phase 13.16.0. Confirm candidate family, occupation
+  conditionality, material gaps, costs, lifecycle/certification state, production/draft
+  boundary, and material traceability are safe.
+- [ ] If the correctness gate fails, open only the bounded correction needed and run
+  another fresh numbered validation round. Do not begin Phase 13.16.
+- [ ] If the correctness gate passes, record the Round 6 disposition and unlock
+  Phase 13.16.0. Medium/Low UX findings become inputs to Phase 13.16 rather than an
+  automatic correctness veto.
 
-#### Phase 13.15 operational guide
+#### Phase 13.15 retained operational assets
 
-- [EXTERNAL_VALIDATION_RUNBOOK_V13_15.md](EXTERNAL_VALIDATION_RUNBOOK_V13_15.md)
+- Historical runbook: [EXTERNAL_VALIDATION_RUNBOOK_V13_15.md](EXTERNAL_VALIDATION_RUNBOOK_V13_15.md)
 - Scenario fixture: `apps/api/validation/scenarios/austria_skilled_worker_v1.json`
 - Validation workspace: `/validation`
 - Gate evaluation endpoint: `POST /api/v1/external-validation/runs/{run_id}/evaluate`
+
+### 13.17 Genuine external-human acceptance and Phase 13 disposition
+
+After Phase 13.16.10 passes integrated acceptance, validate the revised product with
+people who are genuinely independent of implementation and shadow-review history.
+
+- [ ] Recruit one distinct mobility user and one independent professional/operator.
+- [ ] Run both through the end-to-end role-appropriate experience while recording
+  founder interventions, task completion, comprehension, accessibility barriers, and
+  confidence in material decision and evidence boundaries.
+- [ ] Pin reviews to the exact case, profile, assessment, pathway comparison, evidence,
+  UI release, and scenario shown to each participant.
+- [ ] Record all findings with severity and category in the validation ledger.
+- [ ] Resolve and retest every Critical/High correctness, safety, governance, security,
+  accessibility, or task-completion finding. Board acceptance may apply only where the
+  existing policy explicitly permits it.
+- [ ] Confirm no experience layer obscures draft/production state, pending
+  certification, material blockers, non-reliance warnings, or evidence provenance.
+- [ ] Evaluate the deterministic external gate and record the Phase 13 disposition.
+- [ ] Do not unlock Phase 14 or time-bounded cross-functional programmes until the
+  Phase 13 external-human gate passes.
 
 
 ## 10. Historical Evidence

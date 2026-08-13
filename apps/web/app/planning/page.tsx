@@ -34,37 +34,97 @@ import { titleCase } from "../../lib/utils";
 
 function money(value: number | null, currency: string) {
   if (value == null) return "Not recorded";
-  return new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("en", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function ComparisonCard({ item, primary = false }: { item: PathwayComparisonItem; primary?: boolean }) {
   const version = item.pathway.current_version;
+  const isDraft = item.lifecycle_status === "draft" || item.simulation_only;
+  const excluded = item.recommendation_status === "excluded";
   return (
-    <article className={`planning-comparison-card ${primary ? "primary" : ""}`}>
+    <article className={`planning-comparison-card ${primary ? "primary" : ""} ${isDraft ? "draft-simulation" : ""} ${excluded ? "excluded" : ""}`}>
       <div className="planning-card-heading">
         <div>
-          <span>{primary ? "Leading option" : "Alternative"}</span>
+          <span>{excluded ? "Excluded route" : primary ? "Leading potential pathway" : "Other assessed route"}</span>
           <h3>{item.pathway.name}</h3>
           <p>{titleCase(item.pathway.country)} · {titleCase(item.pathway.domain)} · version {version?.version_number || "—"}</p>
+          {isDraft && (
+            <div className="draft-governance-badge">
+              <strong>DRAFT · INTERNAL SIMULATION ONLY · NOT PUBLISHED</strong>
+              <span>Not a production recommendation. Do not rely on this assessment for an application.</span>
+              <strong>INTERNAL CANDIDATE — NOT PUBLISHED</strong>
+              <span>Lifecycle: {item.lifecycle_status}</span>
+              <span>Publication ready: {item.publication_ready ? "yes" : "no"}</span>
+              {item.publication_blockers.length > 0 && (
+                <span>Blockers: {item.publication_blockers.join("; ")}</span>
+              )}
+            </div>
+          )}
         </div>
-        <div className="planning-score"><strong>{Math.round(item.match_score * 100)}%</strong><small>profile match</small></div>
+        <div className="planning-score"><strong>{item.compatibility_status.replaceAll("_", " ")}</strong><small>candidate status</small></div>
       </div>
+      {excluded && <InlineNotice label="EXCLUDED" detail={item.exclusion_reasons.join(" ")} tone="warn" />}
       <p className="planning-explanation">{item.explanation}</p>
       <div className="planning-card-metrics">
-        <div><small>Upfront fees</small><strong>{money(item.cost.one_time_total, item.cost.currency)}</strong></div>
+        <div><small>Government application fee</small><strong>{money(item.cost.government_application_fee, item.cost.currency)}</strong></div>
+        <div><small>Estimated total cost</small><strong>{item.cost.estimated_total_status === "established" ? money(item.cost.one_time_total, item.cost.currency) : "Not established"}</strong></div>
+        <div><small>Processing time</small><strong>{item.processing_evidence_status === "established" ? "Governed range recorded" : "Not established from governed evidence"}</strong></div>
         <div><small>Minimum funds</small><strong>{money(item.cost.minimum_funds, item.cost.currency)}</strong></div>
         <div><small>Risk</small><StatusBadge value={`${item.risk.level}_risk`} /></div>
-        <div><small>Evidence gaps</small><strong>{item.missing_evidence.length}</strong></div>
+        <div><small>Evidence gaps</small><strong>{item.evidence_gaps.length || item.missing_evidence.length}</strong></div>
       </div>
+      {item.occupation_assessment && <section className="planning-occupation-assessment">
+        <strong>Occupation assessment · {item.occupation_assessment.match_quality}</strong>
+        <p>{item.occupation_assessment.occupation_input} · qualification mapping {item.occupation_assessment.qualification_mapping.toLowerCase()} · job offer {item.occupation_assessment.job_offer_status.toLowerCase()}</p>
+        <p>{item.occupation_assessment.conclusion}</p>
+        <details><summary>National and regional governed candidates</summary>
+          <p><strong>National {item.occupation_assessment.year}:</strong> {item.occupation_assessment.national.match_quality} · {item.occupation_assessment.national.reason}</p>
+          <ul>{item.occupation_assessment.national.candidates.map((candidate) => <li key={candidate.id}>{candidate.occupation_group}</li>)}</ul>
+          <p><strong>Regional {item.occupation_assessment.year}:</strong> {item.occupation_assessment.regional.match_quality} · {item.occupation_assessment.regional.reason}</p>
+          <ul>{item.occupation_assessment.regional.candidates.map((candidate) => <li key={candidate.id}>{candidate.occupation_group}</li>)}</ul>
+        </details>
+      </section>}
+      {item.evidence_gaps.length > 0 && <section className="planning-gap-assessment">
+        <strong>Case-specific gaps</strong>
+        <div className="planning-detail-grid">{(["FACT", "EVIDENCE", "DOCUMENT", "REGULATORY", "CERTIFICATION"] as const).map((category) => {
+          const gaps = item.evidence_gaps.filter((gap) => gap.category === category);
+          return gaps.length ? <div key={category}><strong>{category}</strong><ul>{gaps.map((gap) => <li key={gap.code}><b>{gap.label}: {gap.status}</b> — {gap.detail}</li>)}</ul></div> : null;
+        })}</div>
+      </section>}
+      {item.next_actions.length > 0 && <section className="planning-next-actions"><strong>Case-driven next actions</strong><ul>{item.next_actions.map((action) => <li key={action.code}><b>{titleCase(action.category)} · {action.title}</b>: {action.detail}</li>)}</ul></section>}
       <div className="planning-detail-grid">
-        <div><strong>Why it matches</strong><ul>{item.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></div>
+        <div><strong>Compatibility evidence</strong><ul>{item.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></div>
         <div><strong>Tradeoffs</strong><ul>{item.tradeoffs.map((tradeoff) => <li key={tradeoff}>{tradeoff}</li>)}</ul></div>
         <div><strong>Benefits</strong>{item.benefits.length ? <ul>{item.benefits.map((benefit) => <li key={benefit}>{benefit}</li>)}</ul> : <p>No reviewed benefits recorded.</p>}</div>
         <div><strong>Risks and evidence</strong><ul>{[...item.risk.declared_risks, ...item.risk.regulatory_risks, ...item.missing_evidence].map((risk, index) => <li key={`${risk}-${index}`}>{risk}</li>)}</ul></div>
       </div>
+      {item.evidence_trace.length > 0 && <details className="planning-evidence-trace">
+        <summary>Inspect material evidence chain ({item.evidence_trace.length})</summary>
+        <div className="planning-evidence-trace-list">{item.evidence_trace.map((trace, index) => <article key={`${trace.trace_type}-${trace.evidence_role || trace.verified_rule_id}-${index}`}>
+          <div><strong>{trace.requirement}</strong><StatusBadge value={trace.certification_status} /></div>
+          {trace.verified_rule_statement && <p><b>Verified rule:</b> {trace.verified_rule_statement}</p>}
+          {trace.evidence_role && <p><b>Pathway evidence role:</b> {trace.evidence_role}</p>}
+          {trace.occupation_entry_titles.length > 0 && <p><b>Governed occupation entries:</b> {trace.occupation_entry_titles.join("; ")}</p>}
+          <p><b>Official source:</b> {trace.official_source_title}{trace.authority ? ` · ${trace.authority}` : ""}</p>
+          <p><b>Source identifier:</b> <code>{trace.official_source_id}</code></p>
+          <p><b>Snapshot:</b> <code>{trace.source_snapshot_id}</code> · {new Date(trace.source_snapshot_captured_at).toLocaleString()}</p>
+          {trace.evidence_year && <p><b>Applicable evidence year:</b> {trace.evidence_year}</p>}
+          {trace.source_snapshot_content_hash && <p><b>Snapshot hash:</b> <code>{trace.source_snapshot_content_hash}</code></p>}
+          {trace.certification_id && <p><b>Certification:</b> <code>{trace.certification_id}</code> · {titleCase(trace.certification_status)}</p>}
+          {trace.structured_pack_sha256 && <p><b>Structured review pack:</b> <code>{trace.structured_pack_sha256}</code></p>}
+          <div className="planning-trace-actions">
+            <a className="button secondary" href={trace.official_source_url} target="_blank" rel="noreferrer">Inspect official evidence</a>
+            {trace.review_workspace_path && <Link className="button secondary" href={trace.review_workspace_path}>Inspect review pack</Link>}
+          </div>
+        </article>)}</div>
+      </details>}
       <div className="planning-provenance">
-        <span>Source {version?.official_source_id?.slice(0, 8) || "missing"}</span>
-        <span>Snapshot {version?.source_snapshot_id?.slice(0, 8) || "missing"}</span>
+        <span>Pathway version {version?.id || "missing"}</span>
         <span>{item.verified_rule_ids.length} verified rule{item.verified_rule_ids.length === 1 ? "" : "s"}</span>
       </div>
     </article>
@@ -75,6 +135,7 @@ export default function PlanningPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadId, setLeadId] = useState("");
+  const [includeDraftPathways, setIncludeDraftPathways] = useState(false);
   const [comparison, setComparison] = useState<PathwayComparison | null>(null);
   const [countryRanking, setCountryRanking] = useState<CountryRanking | null>(null);
   const [countryRankingHistory, setCountryRankingHistory] = useState<CountryRanking[]>([]);
@@ -99,6 +160,26 @@ export default function PlanningPage() {
     try {
       const [healthResult, leadRows] = await Promise.all([getHealthStatus(), getLeads()]);
       setHealth(healthResult.data); setLeads(leadRows);
+      const requestedLeadId = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("lead_id") || ""
+        : "";
+      if (requestedLeadId && leadRows.some((lead) => lead.id === requestedLeadId)) {
+        setLeadId(requestedLeadId);
+        const [latest, rows, reassessment, acceptanceRows, latestRanking, rankingRows] = await Promise.allSettled([
+          getLatestPathwayComparison(requestedLeadId),
+          getPathwayComparisonHistory(requestedLeadId),
+          getReassessmentCandidate(requestedLeadId),
+          listReassessmentAcceptances(requestedLeadId),
+          getLatestCountryRanking(requestedLeadId),
+          getCountryRankingHistory(requestedLeadId),
+        ]);
+        if (latest.status === "fulfilled") setComparison(latest.value);
+        if (rows.status === "fulfilled") setHistory(rows.value);
+        if (reassessment.status === "fulfilled") setCandidate(reassessment.value);
+        if (acceptanceRows.status === "fulfilled") setAcceptances(acceptanceRows.value);
+        if (latestRanking.status === "fulfilled") setCountryRanking(latestRanking.value);
+        if (rankingRows.status === "fulfilled") setCountryRankingHistory(rankingRows.value);
+      }
     } catch (err) { setError(err instanceof Error ? err.message : "Could not load mobility planning"); }
     finally { setLoading(false); }
   }, []);
@@ -131,7 +212,7 @@ export default function PlanningPage() {
     if (!leadId) return;
     setRunning(true); setError(null);
     try {
-      const result = await comparePathways(leadId);
+      const result = await comparePathways(leadId, { include_draft_pathways: includeDraftPathways });
       setComparison(result);
       setHistory(result.assessment_id ? await getPathwayComparisonHistory(leadId) : []);
       if (result.assessment_id) setCandidate(await getReassessmentCandidate(leadId));
@@ -202,6 +283,10 @@ export default function PlanningPage() {
         <section className="panel planning-selector">
           <div><span className="page-kicker">Reproducible comparison</span><strong>Compare only published, evidence-backed pathways against the current profile.</strong></div>
           <label>Lead<select value={leadId} onChange={(event) => void chooseLead(event.target.value)}><option value="">Choose a lead</option>{leads.map((lead) => <option key={lead.id} value={lead.id}>{lead.full_name} · {lead.target_country || "No target"}</option>)}</select></label>
+          <label className="profile-check">
+            <input type="checkbox" checked={includeDraftPathways} onChange={(event) => setIncludeDraftPathways(event.target.checked)} />
+            <span><strong>Include internal/draft pathways</strong><small>Simulation only; draft candidates are not published or client-facing.</small></span>
+          </label>
           <button className="button primary" disabled={!leadId || running || Boolean(candidate?.requires_acceptance)} onClick={() => void runComparison()}>{running ? "Comparing…" : candidate?.requires_acceptance ? "Acceptance required" : "Generate comparison"}</button>
         </section>
 
@@ -252,9 +337,10 @@ export default function PlanningPage() {
             {acceptances.length > 0 && <div className="reassessment-ledger"><strong>Acceptance ledger</strong>{acceptances.map((item) => <article key={item.id}><div><StatusBadge value={item.status} /><span>{item.accepted_profile_version ? `Profile v${item.accepted_profile_version}` : "Pinned profile"} · {item.accepted_pathway_version_ids.length} regulatory replacement{item.accepted_pathway_version_ids.length === 1 ? "" : "s"}</span></div><p>{item.user_attestation}</p><small>{new Date(item.accepted_at).toLocaleString()} · {item.recorded_by}</small>{item.status === "accepted" && <button className="button primary" disabled={executingId === item.id} onClick={() => void executeAcceptance(item.id)}>{executingId === item.id ? "Reassessing…" : "Execute accepted reassessment"}</button>}</article>)}</div>}
           </section>}
           <div className="metric-row planning-metrics">
-            <MetricPill label="Profile version" value={comparison.profile_version || "None"} />
+            <MetricPill label="Profile" value={selectedLead?.full_name || comparison.profile_id || "Not pinned"} />
+            <MetricPill label="Profile version" value={comparison.profile_version ?? "Not pinned"} />
             <MetricPill label="Alternatives" value={comparison.alternatives.length} />
-            <MetricPill label="Evidence gaps" value={comparison.missing_evidence.length} tone={comparison.missing_evidence.length ? "warn" : "good"} />
+            <MetricPill label="Evidence gaps" value={primary?.evidence_gaps.length || comparison.missing_evidence.length} tone={(primary?.evidence_gaps.length || comparison.missing_evidence.length) ? "warn" : "good"} />
             <MetricPill label="History" value={history.length} />
             <div className="metric-pill"><span>Plan status</span><strong className="profile-status-value">{titleCase(comparison.status)}</strong></div>
             <div className="metric-pill"><span>Consent</span><strong className="profile-status-value">{titleCase(comparison.consent_status)}</strong></div>
@@ -264,7 +350,7 @@ export default function PlanningPage() {
             <main className="planning-results"><ComparisonCard item={primary} primary />{comparison.alternatives.length > 0 && <section><SectionTitle label="Alternatives" title="Other plausible routes" detail="Ranked against the same immutable profile version" /><div className="planning-alternatives">{comparison.alternatives.map((item) => <ComparisonCard key={item.pathway.id} item={item} />)}</div></section>}</main>
             <aside className="planning-side">
               <section className="panel"><SectionTitle label="Evidence" title="Cross-pathway gaps" detail="Resolve these before a consultant recommendation" /><div className="planning-gap-list">{comparison.missing_evidence.length ? comparison.missing_evidence.map((gap) => <span key={gap}>{gap}</span>) : <p>No common evidence gaps were detected.</p>}</div></section>
-              <section className="panel"><SectionTitle label="Audit" title="Comparison history" detail={`${history.length} immutable assessment${history.length === 1 ? "" : "s"}`} /><div className="planning-history">{history.map((item) => <article key={item.assessment_id || item.generated_at}><div><strong>{titleCase(item.status)}</strong><StatusBadge value={item.primary?.risk.level ? `${item.primary.risk.level}_risk` : item.status} /></div><p>Profile v{item.profile_version || "—"} · {item.alternatives.length} alternatives</p><small>{new Date(item.generated_at).toLocaleString()} · {item.generated_by}</small></article>)}</div></section>
+              <section className="panel"><SectionTitle label="Audit" title="Comparison history" detail={`${history.length} immutable assessment${history.length === 1 ? "" : "s"}`} /><div className="planning-history">{history.map((item) => <article key={item.assessment_id || item.generated_at}><div><strong>{titleCase(item.status)}</strong><StatusBadge value={item.primary?.risk.level ? `${item.primary.risk.level}_risk` : item.status} /></div><p>{item.profile_version != null ? `Profile v${item.profile_version}` : "Legacy comparison · profile input not pinned"} · {item.alternatives.length} alternatives</p><small>{new Date(item.generated_at).toLocaleString()} · {item.generated_by}</small></article>)}</div></section>
               <div className="planning-links"><Link className="button secondary" href="/profiles">Update profile</Link><Link className="button secondary" href="/pathways">Manage catalogue</Link>{selectedLead && <Link className="button secondary" href={`/leads/${selectedLead.id}`}>Open lead</Link>}</div>
             </aside>
           </div> : <EmptyState title={comparison.status === "restricted" ? "Comparison restricted" : "No published pathway matches"} detail={comparison.summary} />}

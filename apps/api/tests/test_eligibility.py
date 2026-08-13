@@ -46,7 +46,8 @@ def test_evaluate_eligibility_creates_assessment(client: TestClient, db_session:
     assert data["target_country"] == "germany"
     assert data["domain"] == "work"
     assert data["overall_score"] > 0
-    assert data["status"] in {"eligible", "likely_eligible"}
+    assert data["status"] in {"needs_documents", "insufficient_information"}
+    assert "not an eligibility decision" in data["summary"].lower()
     assert len(data["required_documents"]) > 0
     assert len(data["pathways"]) > 0
     assert "agent_run_id" in data
@@ -73,7 +74,7 @@ def test_evaluate_eligibility_missing_country(client: TestClient, db_session: Se
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "insufficient_profile"
+    assert data["status"] == "insufficient_information"
     assert data["overall_score"] == 0.0
     assert any("Target country is missing" in r for r in data["risks"])
 

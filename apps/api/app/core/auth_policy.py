@@ -60,6 +60,17 @@ class PathRoleRule:
 
 AUTH_RULES: tuple[PathRoleRule, ...] = (
     PathRoleRule(
+        roles=frozenset({"admin", "operator", "reviewer"}),
+        prefixes=("/api/v1/pathways",),
+        methods=frozenset({"POST"}),
+        contains_any=("/match/", "/compare/"),
+    ),
+    PathRoleRule(
+        roles=frozenset({"admin", "operator", "reviewer"}),
+        prefixes=("/api/v1/eligibility/evaluate",),
+        methods=frozenset({"POST"}),
+    ),
+    PathRoleRule(
         roles=frozenset({"admin", "reviewer"}),
         prefixes=("/api/v1/document-intelligence",),
         suffixes=("/review",),

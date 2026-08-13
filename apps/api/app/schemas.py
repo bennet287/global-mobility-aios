@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.models.domain import (
     AgentRunStatus,
@@ -25,6 +25,14 @@ class LeadCreate(BaseModel):
     source: str = "manual"
     intent: LeadIntent = LeadIntent.unknown
     target_country: Optional[str] = None
+    nationality: Optional[str] = None
+    current_country: Optional[str] = None
+    occupation_title: Optional[str] = None
+    years_experience: Optional[float] = None
+    job_offer_status: Optional[str] = None
+    qualification_recognition: Optional[str] = None
+    german_level: Optional[str] = None
+    employment_province: Optional[str] = None
     notes: Optional[str] = None
 
 class LeadRead(BaseModel):
@@ -35,6 +43,14 @@ class LeadRead(BaseModel):
     source: str
     intent: LeadIntent
     target_country: Optional[str]
+    nationality: Optional[str] = None
+    current_country: Optional[str] = None
+    occupation_title: Optional[str] = None
+    years_experience: Optional[float] = None
+    job_offer_status: Optional[str] = None
+    qualification_recognition: Optional[str] = None
+    german_level: Optional[str] = None
+    employment_province: Optional[str] = None
     status: LeadStatus
     notes: Optional[str]
 
@@ -417,14 +433,24 @@ class PublicIntakeCreate(BaseModel):
     qualification_recognition: Optional[str] = Field(default=None, examples=["unknown"])
     language_level: Optional[str] = Field(default=None, examples=["B1"])
     notes: Optional[str] = None
+    submission_key: Optional[str] = Field(default=None, min_length=16, max_length=128)
+
+    @field_validator("email", "phone", mode="before")
+    @classmethod
+    def normalize_blank_contact_fields(cls, value: Any) -> Any:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
 
 class PublicIntakeResponse(BaseModel):
     session_token: str
-    lead_id: Optional[UUID] = None
+    lead_id: UUID
     status: LeadStatus
     checklist: List[str] = []
     message: str
+    case_reference: str
+    idempotent_replay: bool = False
 
 
 class CoachReviewCreate(BaseModel):
@@ -929,6 +955,8 @@ class EligibilityEvaluateRequest(BaseModel):
     lead_id: UUID
     profile: dict[str, Any] = Field(default_factory=dict)
     actor: str = "system"
+    include_draft_pathways: bool = False
+    simulation_context: Optional[str] = Field(default=None, min_length=8, max_length=500)
 
 
 class EligibilityAssessmentRead(BaseModel):
@@ -1342,6 +1370,28 @@ class PathwayMatchItem(BaseModel):
     reasons: List[str] = Field(default_factory=list)
     missing_evidence: List[str] = Field(default_factory=list)
     verified_rule_ids: List[UUID] = Field(default_factory=list)
+    candidate_status: str = "published"
+    lifecycle_status: str = "published"
+    production_recommendation: bool = False
+    simulation_only: bool = False
+    publication_ready: bool = False
+    requires_independent_reviewer: bool = True
+    certification_statuses: dict[str, str] = Field(default_factory=dict)
+    publication_blockers: List[str] = Field(default_factory=list)
+    recommendation_status: Literal[
+        "excluded",
+        "insufficient_information",
+        "potential",
+        "simulation_candidate",
+        "production_candidate",
+    ] = "insufficient_information"
+    compatibility_status: Literal[
+        "MATCH", "POTENTIAL_MATCH", "INSUFFICIENT_INFORMATION", "EXCLUDED", "INTERNAL_SIMULATION_ONLY"
+    ] = "INSUFFICIENT_INFORMATION"
+    exclusion_reasons: List[str] = Field(default_factory=list)
+    occupation_assessment: Optional["OccupationResolutionRead"] = None
+    evidence_gaps: List["PathwayEvidenceGapRead"] = Field(default_factory=list)
+    next_actions: List["CaseNextActionRead"] = Field(default_factory=list)
 
 
 class PathwayMatchResponse(BaseModel):
@@ -1361,6 +1411,10 @@ class PathwayCostExplanation(BaseModel):
     minimum_funds: Optional[float] = None
     components: dict[str, float] = Field(default_factory=dict)
     notes: List[str] = Field(default_factory=list)
+    estimated_total_status: Literal["established", "not_established"] = "not_established"
+    government_application_fee: Optional[float] = None
+    government_application_fee_scope: Optional[str] = None
+    government_application_fee_source_rule_id: Optional[UUID] = None
 
 
 class PathwayRiskExplanation(BaseModel):
@@ -1369,6 +1423,31 @@ class PathwayRiskExplanation(BaseModel):
     declared_risks: List[str] = Field(default_factory=list)
     evidence_risks: List[str] = Field(default_factory=list)
     regulatory_risks: List[str] = Field(default_factory=list)
+
+
+class PathwayEvidenceTraceRead(BaseModel):
+    trace_type: Literal["verified_rule", "pathway_evidence"]
+    requirement: str
+    pathway_version_id: UUID
+    evidence_role: Optional[str] = None
+    verified_rule_id: Optional[UUID] = None
+    verified_rule_title: Optional[str] = None
+    verified_rule_statement: Optional[str] = None
+    occupation_entry_ids: List[UUID] = Field(default_factory=list)
+    occupation_entry_titles: List[str] = Field(default_factory=list)
+    official_source_id: UUID
+    official_source_title: str
+    official_source_url: str
+    authority: Optional[str] = None
+    source_snapshot_id: UUID
+    source_snapshot_captured_at: datetime
+    source_snapshot_content_hash: Optional[str] = None
+    evidence_year: Optional[int] = None
+    structured_projection: dict[str, Any] = Field(default_factory=dict)
+    certification_id: Optional[UUID] = None
+    certification_status: str
+    structured_pack_sha256: Optional[str] = None
+    review_workspace_path: Optional[str] = None
 
 
 class PathwayComparisonItem(BaseModel):
@@ -1383,6 +1462,30 @@ class PathwayComparisonItem(BaseModel):
     tradeoffs: List[str] = Field(default_factory=list)
     explanation: str
     verified_rule_ids: List[UUID] = Field(default_factory=list)
+    candidate_status: str = "published"
+    lifecycle_status: str = "published"
+    production_recommendation: bool = False
+    simulation_only: bool = False
+    publication_ready: bool = False
+    requires_independent_reviewer: bool = True
+    certification_statuses: dict[str, str] = Field(default_factory=dict)
+    publication_blockers: List[str] = Field(default_factory=list)
+    recommendation_status: Literal[
+        "excluded",
+        "insufficient_information",
+        "potential",
+        "simulation_candidate",
+        "production_candidate",
+    ] = "insufficient_information"
+    compatibility_status: Literal[
+        "MATCH", "POTENTIAL_MATCH", "INSUFFICIENT_INFORMATION", "EXCLUDED", "INTERNAL_SIMULATION_ONLY"
+    ] = "INSUFFICIENT_INFORMATION"
+    exclusion_reasons: List[str] = Field(default_factory=list)
+    occupation_assessment: Optional["OccupationResolutionRead"] = None
+    evidence_gaps: List["PathwayEvidenceGapRead"] = Field(default_factory=list)
+    next_actions: List["CaseNextActionRead"] = Field(default_factory=list)
+    evidence_trace: List[PathwayEvidenceTraceRead] = Field(default_factory=list)
+    processing_evidence_status: Literal["established", "not_established"] = "not_established"
 
 
 class PathwayComparisonRead(BaseModel):
@@ -1817,6 +1920,56 @@ class ShortageOccupationLookupRead(BaseModel):
     match_count: int = 0
     matches: List[ShortageOccupationEntryRead] = Field(default_factory=list)
     warning: str
+
+
+OccupationMatchQuality = Literal[
+    "EXACT",
+    "NORMALIZED_EXACT",
+    "INFERRED",
+    "AMBIGUOUS",
+    "NO_MATCH",
+    "INSUFFICIENT_INFORMATION",
+]
+
+
+class OccupationScopeAssessmentRead(BaseModel):
+    scope: ShortageOccupationScope
+    year: int
+    match_quality: OccupationMatchQuality
+    province_code: Optional[str] = None
+    qualification_mapping: Literal["RESOLVED", "UNRESOLVED", "NOT_APPLICABLE"] = "UNRESOLVED"
+    applicability_status: Literal["POSSIBLE", "NOT_ESTABLISHED", "NOT_FOUND"] = "NOT_ESTABLISHED"
+    candidates: List[ShortageOccupationEntryRead] = Field(default_factory=list)
+    certification_statuses: dict[str, str] = Field(default_factory=dict)
+    reason: str
+
+
+class OccupationResolutionRead(BaseModel):
+    occupation_input: str
+    year: int
+    match_quality: OccupationMatchQuality
+    qualification_mapping: Literal["RESOLVED", "UNRESOLVED", "NOT_APPLICABLE"] = "UNRESOLVED"
+    employment_province: Optional[str] = None
+    job_offer_status: Literal["PRESENT", "ABSENT", "UNKNOWN"] = "UNKNOWN"
+    national: OccupationScopeAssessmentRead
+    regional: OccupationScopeAssessmentRead
+    conclusion: str
+    establishes_pathway_eligibility: Literal[False] = False
+
+
+class PathwayEvidenceGapRead(BaseModel):
+    category: Literal["FACT", "EVIDENCE", "DOCUMENT", "REGULATORY", "CERTIFICATION"]
+    code: str
+    label: str
+    status: Literal["MISSING", "BLOCKING", "UNRESOLVED", "UNKNOWN", "NOT_PROVIDED", "PENDING_REVIEW"]
+    detail: str
+
+
+class CaseNextActionRead(BaseModel):
+    category: Literal["required_now", "required_later", "conditional", "not_yet_applicable"]
+    code: str
+    title: str
+    detail: str
 
 
 class SourceSnapshotCaptureRequest(BaseModel):

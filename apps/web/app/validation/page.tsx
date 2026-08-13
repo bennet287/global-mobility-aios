@@ -10,13 +10,16 @@ import {
   ExternalValidationFinding,
   ExternalValidationRun,
   ExternalValidationScenario,
+  Lead,
   addExternalValidationEvidence,
   addExternalValidationFinding,
   boardAcceptExternalValidationFinding,
+  comparePathways,
   createExternalValidationRun,
   evaluateExternalValidationRun,
   listExternalValidationRuns,
   listExternalValidationScenarios,
+  getLeads,
   seedExternalValidationScenario,
   submitExternalValidationReview,
   triageExternalValidationFinding,
@@ -44,10 +47,12 @@ export default function ExternalValidationPage() {
   const { health } = useBackendStatus();
   const [scenarios, setScenarios] = useState<ExternalValidationScenario[]>([]);
   const [runs, setRuns] = useState<ExternalValidationRun[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scenarioId, setScenarioId] = useState("");
   const [leadId, setLeadId] = useState("");
   const [comparisonId, setComparisonId] = useState("");
+  const [includeDraftPathways, setIncludeDraftPathways] = useState(false);
   const [founderInterventions, setFounderInterventions] = useState("0");
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
@@ -63,12 +68,20 @@ export default function ExternalValidationPage() {
     setLoading(true);
     setError(null);
     try {
-      const [scenarioRows, runRows] = await Promise.all([
+      const [scenarioRows, runRows, leadRows] = await Promise.all([
         listExternalValidationScenarios(),
         listExternalValidationRuns(),
+        getLeads(),
       ]);
       setScenarios(scenarioRows);
       setRuns(runRows);
+      setLeads(leadRows);
+      const requestedLeadId = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("lead_id") || ""
+        : "";
+      if (requestedLeadId && leadRows.some((lead) => lead.id === requestedLeadId)) {
+        setLeadId(requestedLeadId);
+      }
       if (!scenarioId && scenarioRows[0]) setScenarioId(scenarioRows[0].id);
       if (!selectedId && runRows[0]) setSelectedId(runRows[0].id);
     } catch (err) {
@@ -99,7 +112,7 @@ export default function ExternalValidationPage() {
 
   async function createRun() {
     if (!scenarioId) { setError("Choose or seed a validation scenario first."); return; }
-    if (!leadId.trim()) { setError("A lead UUID is required so the external run is pinned to one workflow."); return; }
+    if (!leadId.trim()) { setError("Choose a lead so the external run is pinned to one workflow."); return; }
     if (!comparisonId.trim()) { setError("A pathway comparison UUID is required so the external run is pinned to the result shown to testers."); return; }
     const count = Number.parseInt(founderInterventions || "0", 10);
     if (!Number.isFinite(count) || count < 0) { setError("Founder intervention count must be zero or greater."); return; }
@@ -112,6 +125,14 @@ export default function ExternalValidationPage() {
       });
       setSelectedId(run.id);
     }, "External validation run created. Attach the exact Truth Engine/pathway evidence shown to testers.");
+  }
+
+  async function generateDraftSimulationComparison() {
+    if (!leadId.trim()) { setError("Choose a lead to generate a draft-simulation comparison."); return; }
+    await act(async () => {
+      const result = await comparePathways(leadId.trim(), { include_draft_pathways: true });
+      setComparisonId(result.assessment_id || "");
+    }, "Draft-simulation comparison generated. The comparison UUID is pinned; it is not client-facing.");
   }
 
   async function setInterventions() {
@@ -251,8 +272,22 @@ export default function ExternalValidationPage() {
 
       <div className="panel validation-create-card">
         <header><div><span className="eyebrow">Run</span><h3>Pin the real workflow</h3></div></header>
-        <label>Lead UUID <input value={leadId} onChange={(event) => setLeadId(event.target.value)} placeholder="Existing real/test lead" /></label>
+        <label>Lead
+          <select value={leads.some((lead) => lead.id === leadId) ? leadId : ""} onChange={(event) => setLeadId(event.target.value)}>
+            <option value="">Choose a lead</option>
+            {leads.map((lead) => <option key={lead.id} value={lead.id}>{lead.full_name} · {lead.target_country || "No target"} · {lead.intent.replaceAll("_", " ")}</option>)}
+          </select>
+        </label>
+        <details>
+          <summary>Advanced: enter a Lead UUID</summary>
+          <label>Lead UUID <input value={leadId} onChange={(event) => setLeadId(event.target.value)} placeholder="Operational/debug fallback" /></label>
+        </details>
         <label>Pathway comparison UUID <input value={comparisonId} onChange={(event) => setComparisonId(event.target.value)} placeholder="Pinned comparison shown to testers" /></label>
+        <label className="profile-check">
+          <input type="checkbox" checked={includeDraftPathways} onChange={(event) => setIncludeDraftPathways(event.target.checked)} />
+          <span><strong>Simulate with internal/draft pathways</strong><small>Used for internal discovery only; external validation still requires published primary versions.</small></span>
+        </label>
+        <button className="button" disabled={working || !leadId.trim()} onClick={() => void generateDraftSimulationComparison()}>Generate draft-simulation comparison</button>
         <label>Founder interventions <input type="number" min="0" value={founderInterventions} onChange={(event) => setFounderInterventions(event.target.value)} /></label>
         <button className="button" disabled={working || !scenarioId || !leadId.trim() || !comparisonId.trim()} onClick={() => void createRun()}>Create validation run</button>
       </div>

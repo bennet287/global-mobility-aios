@@ -3,14 +3,16 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from app.core.db import get_session
+from app.core.draft_simulation_gate import require_draft_simulation_allowed
 from app.models.domain import EligibilityAssessment, Lead
 from app.models.domain import IntakeSession
 from app.schemas import EligibilityAssessmentRead, EligibilityEvaluateRequest
 from app.services.auto_communications import generate_auto_communications_for_lead
+from app.services.audit_log import record_audit
 from app.services.controlled_agents import run_controlled_agent
 from app.services.eligibility_engine import evaluate_lead_eligibility, persist_eligibility_assessment
 
@@ -20,17 +22,48 @@ router = APIRouter(prefix="/api/v1", tags=["eligibility"])
 @router.post("/eligibility/evaluate", response_model=EligibilityAssessmentRead)
 def evaluate_eligibility(
     payload: EligibilityEvaluateRequest,
+    request: Request,
     session: Session = Depends(get_session),
 ) -> EligibilityAssessment:
     lead = session.get(Lead, payload.lead_id)
     if lead is None:
         raise HTTPException(status_code=404, detail="Lead not found")
 
+    require_draft_simulation_allowed(
+        request,
+        requested=payload.include_draft_pathways,
+        simulation_context=payload.simulation_context,
+    )
+
     assessment_result = evaluate_lead_eligibility(
         session,
         payload.lead_id,
         profile_data=payload.profile,
+        include_draft_pathways=payload.include_draft_pathways,
     )
+    if payload.include_draft_pathways:
+        auth = getattr(request.state, "auth", None)
+        pathway_evidence = assessment_result.get("factors", {}).get("pathway_evidence", [])
+        record_audit(
+            session,
+            action="internal_draft_eligibility_simulation_generated",
+            entity_type="lead",
+            entity_id=payload.lead_id,
+            after_state={
+                "simulation": True,
+                "actor": getattr(auth, "username", payload.actor),
+                "role": getattr(auth, "role", None),
+                "context": payload.simulation_context,
+                "draft_pathway_version_ids": [
+                    item["pathway_version_id"]
+                    for item in pathway_evidence
+                    if item.get("lifecycle_status") == "draft" and item.get("pathway_version_id")
+                ],
+            },
+            reason=f"Authorized internal eligibility simulation: {payload.simulation_context}",
+            actor=getattr(auth, "username", payload.actor),
+            source="eligibility_preview_consistency_v13_10_2_15",
+        )
 
     agent_payload = {
         "agent_name": "eligibility_agent",

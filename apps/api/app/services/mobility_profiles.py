@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import DocumentRecord, Lead, Profile, now_utc
+from app.models.domain import DocumentRecord, IntakeSession, Lead, Profile, now_utc
 from app.schemas import UniversalMobilityProfileRead, UniversalMobilityProfileUpsert
 from app.services.audit_log import record_audit
 
@@ -92,6 +92,107 @@ def profile_facts(profile: Profile | None) -> dict[str, Any]:
         "consent": consent,
         "evidence_document_ids": evidence,
     }
+
+
+def case_facts(session: Session, lead: Lead, profile: Profile | None = None) -> dict[str, Any]:
+    """Merge durable intake facts with an optional profile without parsing Lead.notes.
+
+    Intake facts remain authoritative when a profile has not yet captured the same
+    field. Explicit profile values may refine them, but blank profile fields never
+    erase a structured intake fact.
+    """
+    intake = session.exec(
+        select(IntakeSession)
+        .where(IntakeSession.lead_id == lead.id)
+        .order_by(IntakeSession.updated_at.desc())
+    ).first()
+    answers = _load(intake.answers_json, {}) if intake else {}
+    profile_values = profile_facts(profile)
+    goal = answers.get("goal")
+    lead_goal = "skilled_employment" if getattr(lead.intent, "value", lead.intent) == "overseas_job" else getattr(lead.intent, "value", lead.intent)
+    job_offer_status = lead.job_offer_status or answers.get("job_offer_status")
+    has_job_offer = None
+    if job_offer_status:
+        normalized_offer = str(job_offer_status).strip().casefold()
+        if normalized_offer in {"yes", "present", "signed", "binding", "confirmed", "accepted", "available"}:
+            has_job_offer = True
+        elif normalized_offer in {"none", "no", "absent", "not_available"}:
+            has_job_offer = False
+
+    facts: dict[str, Any] = {
+        "lead_id": lead.id,
+        "nationality": lead.nationality or answers.get("nationality"),
+        "current_country": lead.current_country or answers.get("current_country"),
+        "target_country": lead.target_country or answers.get("target_country"),
+        "goal": lead_goal,
+        "goal_text": goal,
+        "occupation_title": lead.occupation_title or answers.get("profession"),
+        "desired_role": lead.occupation_title or answers.get("profession"),
+        "years_experience": lead.years_experience if lead.years_experience is not None else answers.get("years_experience"),
+        "job_offer_status": job_offer_status,
+        "has_job_offer": has_job_offer,
+        "qualification_recognition": lead.qualification_recognition or answers.get("qualification_recognition"),
+        "german_level": lead.german_level or answers.get("language_level"),
+        "employment_province": lead.employment_province or answers.get("employment_province"),
+    }
+    for key, value in profile_values.items():
+        if value not in (None, "", [], {}):
+            facts[key] = value
+    # A profile desired role may refine the intake occupation, but retain both names.
+    facts["occupation_title"] = profile_values.get("desired_role") or facts.get("occupation_title")
+    return facts
+
+
+def ensure_case_mobility_profile(
+    session: Session,
+    lead: Lead,
+    *,
+    actor: str,
+) -> Profile:
+    """Pin structured intake facts to an immutable profile before comparison.
+
+    A comparison may refine these facts later through a user-created profile
+    version, but it must never be persisted with anonymous/``None`` input
+    provenance. Consent remains explicitly not recorded; this helper does not
+    infer or grant it.
+    """
+    existing = current_mobility_profile(session, lead.id)
+    if existing is not None:
+        return existing
+
+    facts = case_facts(session, lead)
+    occupation = str(facts.get("occupation_title") or "").strip()
+    current_country = str(facts.get("current_country") or "").strip() or None
+    target_country = str(facts.get("target_country") or "").strip()
+    years_experience = facts.get("years_experience")
+    german_level = str(facts.get("german_level") or "").strip()
+    goal_domain = {
+        "skilled_employment": "work",
+        "overseas_job": "work",
+        "study_abroad": "study",
+    }.get(str(facts.get("goal") or "").strip().casefold(), "visa")
+
+    payload = UniversalMobilityProfileUpsert(
+        current_country=current_country,
+        employment=[{
+            "role": occupation,
+            "country": current_country,
+            "years": float(years_experience or 0),
+            "current": True,
+        }] if occupation else [],
+        years_experience=years_experience,
+        languages=[{
+            "language": "German",
+            "level": german_level,
+        }] if german_level else [],
+        goals=[{
+            "domain": goal_domain,
+            "target_country": target_country,
+            "desired_role_or_program": occupation or None,
+        }] if target_country else [],
+        consent_status="not_recorded",
+    )
+    return create_mobility_profile_version(session, lead.id, payload, actor=actor)
 
 
 def _completeness(payload: UniversalMobilityProfileUpsert) -> tuple[float, str, list[str]]:

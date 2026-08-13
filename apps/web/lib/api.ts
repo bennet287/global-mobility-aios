@@ -1,3 +1,6 @@
+import { createApiFetch } from "./request-client.mjs";
+import { CLIENT_API_CONFIG } from "./client-api-config.ts";
+
 export type LeadStatus =
   | "new"
   | "qualified"
@@ -14,6 +17,14 @@ export type Lead = {
   source: string;
   intent: string;
   target_country: string | null;
+  nationality?: string | null;
+  current_country?: string | null;
+  occupation_title?: string | null;
+  years_experience?: number | null;
+  job_offer_status?: string | null;
+  qualification_recognition?: string | null;
+  german_level?: string | null;
+  employment_province?: string | null;
   status: LeadStatus | string;
   notes: string | null;
   created_at?: string;
@@ -1305,36 +1316,35 @@ export type LeadSyncPayload = {
   next_action?: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE = CLIENT_API_CONFIG.apiBase;
+const apiFetch = createApiFetch(CLIENT_API_CONFIG);
 
 export function getApiBaseUrl() {
   return API_BASE.replace(/\/$/, "");
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const useLocalHeaderAuth =
-    process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE === "true" ||
-    (process.env.NODE_ENV === "development" &&
-      process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE !== "false");
-
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(useLocalHeaderAuth
-        ? {
-            "x-gmai-role": process.env.NEXT_PUBLIC_GMAI_ROLE || "admin",
-            "x-gmai-user": process.env.NEXT_PUBLIC_GMAI_USER || "frontend-operator",
-          }
-        : {}),
-      ...(init?.headers || {}),
-    },
-    credentials: "include",
-    cache: "no-store",
-  });
+  const response = await apiFetch(path, init);
 
   if (!response.ok) {
-    const message = await response.text();
+    const rawMessage = await response.text();
+    let message = rawMessage;
+    try {
+      const parsed = JSON.parse(rawMessage) as { detail?: string | Array<{ loc?: Array<string | number>; msg?: string }> };
+      if (typeof parsed.detail === "string") {
+        message = parsed.detail;
+      } else if (Array.isArray(parsed.detail)) {
+        message = parsed.detail
+          .map((item) => {
+            const field = item.loc?.filter((part) => part !== "body").join(".");
+            return [field, item.msg].filter(Boolean).join(": ");
+          })
+          .filter(Boolean)
+          .join(" ");
+      }
+    } catch {
+      // Keep a non-JSON server message intact.
+    }
     throw new Error(message || `Request failed: ${response.status}`);
   }
 
@@ -1726,14 +1736,17 @@ export type PublicIntakePayload = {
   qualification_recognition?: string;
   language_level?: string;
   notes?: string;
+  submission_key?: string;
 };
 
 export type PublicIntakeResponse = {
   session_token: string;
-  lead_id: string | null;
+  lead_id: string;
   status: string;
   checklist: string[];
   message: string;
+  case_reference: string;
+  idempotent_replay: boolean;
 };
 
 export type CoachReview = {
@@ -1770,9 +1783,19 @@ export type TrainingCase = {
 };
 
 export async function createPublicIntake(payload: PublicIntakePayload): Promise<PublicIntakeResponse> {
+  const normalizedPayload: PublicIntakePayload = {
+    ...payload,
+    email: payload.email?.trim() || undefined,
+    phone: payload.phone?.trim() || undefined,
+    current_country: payload.current_country?.trim() || undefined,
+    job_offer_status: payload.job_offer_status?.trim() || undefined,
+    qualification_recognition: payload.qualification_recognition?.trim() || undefined,
+    language_level: payload.language_level?.trim() || undefined,
+    notes: payload.notes?.trim() || undefined,
+  };
   return request<PublicIntakeResponse>("/api/v1/public/intake", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(normalizedPayload),
   });
 }
 
@@ -1859,18 +1882,30 @@ export type EligibilityAssessment = {
   risks: string[];
   required_documents: string[];
   pathways: string[];
-  factors: Record<string, unknown>;
+  factors: Record<string, unknown> & {
+    eligibility_preview_version?: string;
+    eligibility_requirements?: Array<{
+      code: string;
+      label: string;
+      kind: "material_fact" | string;
+      required: boolean;
+      blocking: boolean;
+      status: "missing" | "satisfied" | string;
+      detail: string;
+    }>;
+  };
   created_at: string;
   updated_at: string;
 };
 
 export async function evaluateEligibility(
   leadId: string,
-  profile: Record<string, unknown> = {}
+  profile: Record<string, unknown> = {},
+  includeDraftPathways = false
 ): Promise<EligibilityAssessment> {
   return request<EligibilityAssessment>("/api/v1/eligibility/evaluate", {
     method: "POST",
-    body: JSON.stringify({ lead_id: leadId, profile }),
+    body: JSON.stringify({ lead_id: leadId, profile, include_draft_pathways: includeDraftPathways }),
   });
 }
 
@@ -3008,6 +3043,50 @@ export type PathwayCostExplanation = {
   minimum_funds: number | null;
   components: Record<string, number>;
   notes: string[];
+  estimated_total_status: "established" | "not_established";
+  government_application_fee: number | null;
+  government_application_fee_scope: string | null;
+  government_application_fee_source_rule_id: string | null;
+};
+
+export type PathwayEvidenceGap = {
+  category: "FACT" | "EVIDENCE" | "DOCUMENT" | "REGULATORY" | "CERTIFICATION";
+  code: string;
+  label: string;
+  status: "MISSING" | "BLOCKING" | "UNRESOLVED" | "UNKNOWN" | "NOT_PROVIDED" | "PENDING_REVIEW";
+  detail: string;
+};
+
+export type CaseNextAction = {
+  category: "required_now" | "required_later" | "conditional" | "not_yet_applicable";
+  code: string;
+  title: string;
+  detail: string;
+};
+
+export type OccupationScopeAssessment = {
+  scope: "national" | "regional";
+  year: number;
+  match_quality: "EXACT" | "NORMALIZED_EXACT" | "INFERRED" | "AMBIGUOUS" | "NO_MATCH" | "INSUFFICIENT_INFORMATION";
+  province_code: string | null;
+  qualification_mapping: "RESOLVED" | "UNRESOLVED" | "NOT_APPLICABLE";
+  applicability_status: "POSSIBLE" | "NOT_ESTABLISHED" | "NOT_FOUND";
+  candidates: Array<{ id: string; occupation_group: string; source_snapshot_id: string; scope: string; province_names: string[] }>;
+  certification_statuses: Record<string, string>;
+  reason: string;
+};
+
+export type OccupationResolution = {
+  occupation_input: string;
+  year: number;
+  match_quality: OccupationScopeAssessment["match_quality"];
+  qualification_mapping: "RESOLVED" | "UNRESOLVED" | "NOT_APPLICABLE";
+  employment_province: string | null;
+  job_offer_status: "PRESENT" | "ABSENT" | "UNKNOWN";
+  national: OccupationScopeAssessment;
+  regional: OccupationScopeAssessment;
+  conclusion: string;
+  establishes_pathway_eligibility: false;
 };
 
 export type PathwayRiskExplanation = {
@@ -3016,6 +3095,31 @@ export type PathwayRiskExplanation = {
   declared_risks: string[];
   evidence_risks: string[];
   regulatory_risks: string[];
+};
+
+export type PathwayEvidenceTrace = {
+  trace_type: "verified_rule" | "pathway_evidence";
+  requirement: string;
+  pathway_version_id: string;
+  evidence_role: string | null;
+  verified_rule_id: string | null;
+  verified_rule_title: string | null;
+  verified_rule_statement: string | null;
+  occupation_entry_ids: string[];
+  occupation_entry_titles: string[];
+  official_source_id: string;
+  official_source_title: string;
+  official_source_url: string;
+  authority: string | null;
+  source_snapshot_id: string;
+  source_snapshot_captured_at: string;
+  source_snapshot_content_hash: string | null;
+  evidence_year: number | null;
+  structured_projection: Record<string, unknown>;
+  certification_id: string | null;
+  certification_status: string;
+  structured_pack_sha256: string | null;
+  review_workspace_path: string | null;
 };
 
 export type PathwayComparisonItem = {
@@ -3030,6 +3134,22 @@ export type PathwayComparisonItem = {
   tradeoffs: string[];
   explanation: string;
   verified_rule_ids: string[];
+  candidate_status: string;
+  lifecycle_status: string;
+  production_recommendation: boolean;
+  simulation_only: boolean;
+  publication_ready: boolean;
+  requires_independent_reviewer: boolean;
+  certification_statuses: Record<string, string>;
+  publication_blockers: string[];
+  recommendation_status: "excluded" | "insufficient_information" | "potential" | "simulation_candidate" | "production_candidate";
+  compatibility_status: "MATCH" | "POTENTIAL_MATCH" | "INSUFFICIENT_INFORMATION" | "EXCLUDED" | "INTERNAL_SIMULATION_ONLY";
+  exclusion_reasons: string[];
+  occupation_assessment: OccupationResolution | null;
+  evidence_gaps: PathwayEvidenceGap[];
+  next_actions: CaseNextAction[];
+  evidence_trace: PathwayEvidenceTrace[];
+  processing_evidence_status: "established" | "not_established";
 };
 
 export type PathwayComparison = {
@@ -3389,8 +3509,20 @@ export async function getCountryRankingHistory(leadId: string): Promise<CountryR
   return request<CountryRanking[]>(`/api/v1/pathways/country-rankings/${leadId}`);
 }
 
-export async function comparePathways(leadId: string, limit = 5): Promise<PathwayComparison> {
-  return request<PathwayComparison>(`/api/v1/pathways/compare/${leadId}?limit=${limit}`, { method: "POST" });
+export async function comparePathways(
+  leadId: string,
+  options: { limit?: number; include_draft_pathways?: boolean } = {}
+): Promise<PathwayComparison> {
+  const params = new URLSearchParams();
+  const limit = options.limit ?? 5;
+  params.set("limit", String(limit));
+  if (options.include_draft_pathways) {
+    params.set("include_draft_pathways", "true");
+    params.set("simulation_mode", "internal");
+    params.set("simulation_context", "Rendered operator case-specific pathway comparison");
+  }
+  const query = params.toString();
+  return request<PathwayComparison>(`/api/v1/pathways/compare/${leadId}?${query}`, { method: "POST" });
 }
 
 export async function getLatestPathwayComparison(leadId: string): Promise<PathwayComparison> {
@@ -3540,22 +3672,8 @@ export async function revokeDocumentAccessGrant(grantId: string, reason: string)
 }
 
 export async function downloadDocumentWithAccessToken(token: string): Promise<{ blob: Blob; filename: string }> {
-  const useLocalHeaderAuth =
-    process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE === "true" ||
-    (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE !== "false");
-  const response = await fetch(`${API_BASE}/api/v1/document-access/content`, {
+  const response = await apiFetch("/api/v1/document-access/content", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(useLocalHeaderAuth
-        ? {
-            "x-gmai-role": process.env.NEXT_PUBLIC_GMAI_ROLE || "admin",
-            "x-gmai-user": process.env.NEXT_PUBLIC_GMAI_USER || "frontend-operator",
-          }
-        : {}),
-    },
-    credentials: "include",
-    cache: "no-store",
     body: JSON.stringify({ token }),
   });
   if (!response.ok) {

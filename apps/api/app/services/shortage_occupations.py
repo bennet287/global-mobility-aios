@@ -20,6 +20,8 @@ from app.models.domain import (
     now_utc,
 )
 from app.schemas import (
+    OccupationResolutionRead,
+    OccupationScopeAssessmentRead,
     ShortageOccupationEntryRead,
     ShortageOccupationLookupRead,
     ShortageOccupationMaterializationRead,
@@ -58,6 +60,11 @@ _STOP_MARKERS = {
     "quickcheck",
     "footer:",
     "top",
+}
+_GENERIC_OCCUPATION_TOKENS = {
+    "engineer", "engineers", "engineering", "technician", "technicians",
+    "specialist", "specialists", "manager", "managers", "worker", "workers",
+    "graduate", "graduates", "higher", "level", "training",
 }
 _DASH_TRANSLATION = str.maketrans({
     "–": "-",
@@ -651,4 +658,216 @@ def lookup_shortage_occupation(
             "Structured source-list matching is exact and deterministic. It does not establish case eligibility, "
             "qualification equivalence, job-offer sufficiency, or authority outcome."
         ),
+    )
+
+
+def _raw_label(value: str) -> str:
+    return unicodedata.normalize("NFKC", value or "").strip().casefold()
+
+
+def _unqualified_label(value: str) -> str:
+    """Remove only a trailing qualification marker; never infer an occupation family."""
+    stripped = (value or "").strip()
+    while _FINAL_PARENS_RE.search(stripped):
+        stripped = _FINAL_PARENS_RE.sub("", stripped).strip()
+    return normalize_occupation(stripped)
+
+
+def _has_distinctive_lexical_overlap(query: str, label: str) -> bool:
+    """Return a cautious lexical inference without inventing a regulatory alias.
+
+    This is intentionally narrower than semantic matching. It only recognizes a
+    distinctive token already present in both strings (including compounds such
+    as ``softwareentwickler``). Generic profession words never establish a match.
+    """
+    query_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", normalize_occupation(query))
+        if len(token) >= 5 and token not in _GENERIC_OCCUPATION_TOKENS
+    }
+    normalized_label = normalize_occupation(label)
+    return any(token in normalized_label for token in query_tokens)
+
+
+def _scope_resolution(
+    session: Session,
+    *,
+    rows: list[ShortageOccupationEntry],
+    scope: str,
+    occupation: str,
+    year: int,
+    province_code: str | None,
+) -> OccupationScopeAssessmentRead:
+    raw_query = _raw_label(occupation)
+    normalized_query = normalize_occupation(occupation)
+    exact: list[ShortageOccupationEntry] = []
+    normalized: list[ShortageOccupationEntry] = []
+    inferred: list[ShortageOccupationEntry] = []
+    lexical: list[ShortageOccupationEntry] = []
+    for row in rows:
+        labels = [row.occupation_group, *_load(row.occupation_aliases_json, [])]
+        if any(raw_query == _raw_label(label) for label in labels):
+            exact.append(row)
+        elif any(normalized_query == normalize_occupation(label) for label in labels):
+            normalized.append(row)
+        elif any(normalized_query == _unqualified_label(label) for label in labels):
+            inferred.append(row)
+        elif any(_has_distinctive_lexical_overlap(occupation, label) for label in labels):
+            lexical.append(row)
+
+    candidates = exact or normalized or inferred or lexical
+    base_quality = (
+        "AMBIGUOUS" if len(candidates) > 1
+        else "EXACT" if exact
+        else "NORMALIZED_EXACT" if normalized
+        else "INFERRED" if inferred or lexical
+        else "NO_MATCH"
+    )
+    reason = {
+        "AMBIGUOUS": (
+            "The supplied occupation title overlaps multiple governed occupation entries "
+            "with potentially different qualification or regional implications."
+        ),
+        "EXACT": "The supplied title exactly matches one governed occupation label.",
+        "NORMALIZED_EXACT": "The supplied title matches one governed label after presentation-only normalization.",
+        "INFERRED": (
+            "The supplied title has a cautious lexical overlap with governed occupation labels; "
+            "the occupation and qualification mapping still requires confirmation."
+        ),
+        "NO_MATCH": "No governed occupation entry matches the supplied title.",
+    }[base_quality]
+    quality = base_quality
+
+    certification_statuses: dict[str, str] = {}
+    for source_id in dict.fromkeys(row.official_source_id for row in candidates):
+        status, _ = _source_certification_status(
+            session,
+            jurisdiction_id=rows[0].jurisdiction_id if rows else candidates[0].jurisdiction_id,
+            source_id=source_id,
+        )
+        certification_statuses[str(source_id)] = status
+
+    normalized_province = province_code.strip().upper() if province_code else None
+    applicability = "NOT_FOUND" if quality == "NO_MATCH" else "NOT_ESTABLISHED"
+    if candidates and scope == "national" and quality in {"EXACT", "NORMALIZED_EXACT"}:
+        applicability = "POSSIBLE"
+    elif candidates and scope == "regional":
+        if not normalized_province:
+            quality = "INSUFFICIENT_INFORMATION"
+            applicability = "NOT_ESTABLISHED"
+            reason = (
+                "Potential governed regional occupation entries are present, but the employment province is unknown. "
+                "Regional shortage applicability cannot yet be determined."
+            )
+        else:
+            province_candidates = [
+                row for row in candidates
+                if normalized_province in {str(value).upper() for value in _load(row.province_codes_json, [])}
+            ]
+            candidates = province_candidates
+            if not province_candidates:
+                quality = "NO_MATCH"
+                applicability = "NOT_FOUND"
+                reason = "Relevant governed occupation entries do not apply to the supplied province."
+            elif len(province_candidates) > 1:
+                quality = "AMBIGUOUS"
+                applicability = "NOT_ESTABLISHED"
+                reason = (
+                    "Multiple governed occupation entries apply in the supplied province, "
+                    "and the qualification mapping is unresolved."
+                )
+            else:
+                quality = base_quality
+                applicability = "POSSIBLE" if quality in {"EXACT", "NORMALIZED_EXACT"} else "NOT_ESTABLISHED"
+
+    return OccupationScopeAssessmentRead(
+        scope=scope,
+        year=year,
+        match_quality=quality,
+        province_code=normalized_province,
+        qualification_mapping="RESOLVED" if quality in {"EXACT", "NORMALIZED_EXACT"} and len(candidates) == 1 else "UNRESOLVED",
+        applicability_status=applicability,
+        candidates=[shortage_occupation_entry_read(session, row) for row in candidates],
+        certification_statuses=certification_statuses,
+        reason=reason,
+    )
+
+
+def resolve_austria_occupation(
+    session: Session,
+    *,
+    jurisdiction_id: UUID,
+    occupation: str | None,
+    year: int = 2026,
+    province_code: str | None = None,
+    has_job_offer: bool | None = None,
+) -> OccupationResolutionRead:
+    """Return a governed, non-eligibility occupation assessment for an Austria case."""
+    value = (occupation or "").strip()
+    rows = list(session.exec(
+        select(ShortageOccupationEntry)
+        .where(
+            ShortageOccupationEntry.jurisdiction_id == jurisdiction_id,
+            ShortageOccupationEntry.year == year,
+        )
+        .order_by(ShortageOccupationEntry.scope, ShortageOccupationEntry.source_ordinal)
+    ).all())
+    national_rows = [row for row in rows if row.scope == "national"]
+    regional_rows = [row for row in rows if row.scope == "regional"]
+    if not value:
+        empty_reason = "Occupation title is required before governed occupation evidence can be assessed."
+        national = OccupationScopeAssessmentRead(
+            scope="national", year=year, match_quality="INSUFFICIENT_INFORMATION",
+            applicability_status="NOT_ESTABLISHED", reason=empty_reason,
+        )
+        regional = OccupationScopeAssessmentRead(
+            scope="regional", year=year, match_quality="INSUFFICIENT_INFORMATION",
+            province_code=province_code, applicability_status="NOT_ESTABLISHED", reason=empty_reason,
+        )
+        overall = "INSUFFICIENT_INFORMATION"
+    else:
+        national = _scope_resolution(
+            session, rows=national_rows, scope="national", occupation=value,
+            year=year, province_code=None,
+        )
+        regional = _scope_resolution(
+            session, rows=regional_rows, scope="regional", occupation=value,
+            year=year, province_code=province_code,
+        )
+        qualities = {national.match_quality, regional.match_quality}
+        if "AMBIGUOUS" in qualities:
+            overall = "AMBIGUOUS"
+        elif "INFERRED" in qualities:
+            overall = "INFERRED"
+        elif "NORMALIZED_EXACT" in qualities:
+            overall = "NORMALIZED_EXACT"
+        elif "EXACT" in qualities:
+            overall = "EXACT"
+        elif qualities == {"NO_MATCH"}:
+            overall = "NO_MATCH"
+        else:
+            overall = "INSUFFICIENT_INFORMATION"
+
+    job_status = "PRESENT" if has_job_offer is True else "ABSENT" if has_job_offer is False else "UNKNOWN"
+    qualification_mapping = (
+        "RESOLVED"
+        if national.qualification_mapping == "RESOLVED" or regional.qualification_mapping == "RESOLVED"
+        else "UNRESOLVED"
+    )
+    return OccupationResolutionRead(
+        occupation_input=value,
+        year=year,
+        match_quality=overall,
+        qualification_mapping=qualification_mapping,
+        employment_province=province_code,
+        job_offer_status=job_status,
+        national=national,
+        regional=regional,
+        conclusion=(
+            "Occupation-list applicability is not established. This assessment does not establish pathway eligibility."
+            if overall in {"AMBIGUOUS", "INFERRED", "INSUFFICIENT_INFORMATION"}
+            else "A governed occupation label was found, but pathway eligibility is not established."
+            if overall in {"EXACT", "NORMALIZED_EXACT"}
+            else "No governed occupation match was found. This does not determine eligibility for other pathways."
+        ),
+        establishes_pathway_eligibility=False,
     )

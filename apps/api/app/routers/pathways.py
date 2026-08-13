@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from app.core.db import get_session
+from app.core.draft_simulation_gate import require_draft_simulation_allowed
 from app.models.domain import MobilityPathway, MobilityPathwayVersion, PathwayComparisonAssessment
 from app.schemas import (
     CountryRankingCreate,
@@ -34,6 +35,7 @@ from app.services.country_ranking import (
     generate_country_ranking,
     latest_country_ranking,
 )
+from app.services.audit_log import record_audit
 from app.services.pathway_catalogue import (
     create_pathway,
     create_pathway_version,
@@ -198,11 +200,48 @@ def api_country_ranking_history(
 @router.post("/match/{lead_id}", response_model=PathwayMatchResponse)
 def api_match_pathways(
     lead_id: UUID,
+    request: Request,
+    include_draft_pathways: bool = False,
+    simulation_mode: str | None = None,
+    simulation_context: str | None = None,
     limit: int = 10,
     session: Session = Depends(get_session),
 ) -> PathwayMatchResponse:
+    requested = include_draft_pathways or simulation_mode == "internal"
+    require_draft_simulation_allowed(
+        request, requested=requested, simulation_context=simulation_context,
+    )
     try:
-        return PathwayMatchResponse(**match_pathways_for_lead(session, lead_id, limit=limit))
+        result = PathwayMatchResponse(**match_pathways_for_lead(
+            session,
+            lead_id,
+            limit=limit,
+            include_draft_pathways=requested,
+        ))
+        if requested:
+            auth = getattr(request.state, "auth", None)
+            record_audit(
+                session,
+                action="internal_draft_pathway_simulation_matched",
+                entity_type="lead",
+                entity_id=lead_id,
+                after_state={
+                    "simulation": True,
+                    "actor": _actor(request),
+                    "role": getattr(auth, "role", None),
+                    "context": simulation_context,
+                    "draft_pathway_version_ids": [
+                        str(item.pathway.current_version.id)
+                        for item in result.matches
+                        if item.lifecycle_status == "draft" and item.pathway.current_version
+                    ],
+                },
+                reason=f"Authorized internal draft match simulation: {simulation_context}",
+                actor=_actor(request),
+                source="austria_candidate_integrity_v13_10_2_13",
+            )
+            session.commit()
+        return result
     except ValueError as exc:
         raise _bad_request(exc) from exc
 
@@ -211,9 +250,16 @@ def api_match_pathways(
 def api_compare_pathways(
     lead_id: UUID,
     request: Request,
+    include_draft_pathways: bool = False,
+    simulation_mode: str | None = None,
+    simulation_context: str | None = None,
     limit: int = 5,
     session: Session = Depends(get_session),
 ) -> PathwayComparisonRead:
+    requested = include_draft_pathways or simulation_mode == "internal"
+    require_draft_simulation_allowed(
+        request, requested=requested, simulation_context=simulation_context,
+    )
     try:
         ensure_direct_comparison_allowed(session, lead_id)
         return generate_pathway_comparison(
@@ -221,6 +267,9 @@ def api_compare_pathways(
             lead_id,
             actor=_actor(request),
             limit=max(1, min(limit, 20)),
+            include_draft_pathways=requested,
+            simulation_role=getattr(getattr(request.state, "auth", None), "role", None),
+            simulation_context=simulation_context,
         )
     except ValueError as exc:
         session.rollback()

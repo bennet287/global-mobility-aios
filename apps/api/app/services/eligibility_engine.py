@@ -14,8 +14,11 @@ from app.models.domain import (
     LeadIntent,
     VerifiedRule,
 )
-from app.services.mobility_profiles import current_mobility_profile, profile_facts
+from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.pathway_catalogue import match_pathways_for_lead
+
+
+ELIGIBILITY_PREVIEW_VERSION = "v13_10_2_15"
 
 
 def _normalize(text: str | None) -> str | None:
@@ -119,7 +122,6 @@ def _required_documents(domain: str) -> list[str]:
             "Degree or professional certificate",
             "Language test results or proof of language ability",
             "Proof of financial means (bank statements or salary proof)",
-            "Employment contract or job offer (if available)",
         ])
     elif domain == "study":
         base.extend([
@@ -145,6 +147,42 @@ def _required_documents(domain: str) -> list[str]:
     return base
 
 
+def _compatible_pathway_match(match: dict[str, Any]) -> bool:
+    return (
+        str(match.get("recommendation_status") or "").casefold() != "excluded"
+        and str(match.get("compatibility_status") or "").casefold() != "excluded"
+    )
+
+
+def _pathway_material_requirements(
+    match: dict[str, Any],
+    *,
+    has_job_offer: bool,
+) -> list[dict[str, Any]]:
+    """Project only explicit, material requirements from a compatible route."""
+    if not _compatible_pathway_match(match):
+        return []
+    version = match["pathway"].current_version
+    if version is None:
+        return []
+    requirements: list[dict[str, Any]] = []
+    if version.eligibility_criteria.get("binding_job_offer_in_austria_required") is True:
+        requirements.append({
+            "code": "binding_austrian_job_offer",
+            "label": "Binding Austrian job offer",
+            "kind": "material_fact",
+            "required": True,
+            "blocking": True,
+            "status": "satisfied" if has_job_offer else "missing",
+            "detail": (
+                "A binding Austrian job offer is recorded."
+                if has_job_offer
+                else "A binding Austrian job offer is required and is currently missing."
+            ),
+        })
+    return requirements
+
+
 def _country_policy_notes(policy: CountryPolicy | None) -> list[str]:
     if policy is None:
         return ["No country policy on file; assessment uses generic rules."]
@@ -165,6 +203,8 @@ def evaluate_lead_eligibility(
     session: Session,
     lead_id: UUID,
     profile_data: dict[str, Any] | None = None,
+    *,
+    include_draft_pathways: bool = False,
 ) -> dict[str, Any]:
     """Return a deterministic eligibility assessment for a lead.
 
@@ -176,7 +216,7 @@ def evaluate_lead_eligibility(
 
     # Load the newest immutable profile version and merge request-only scenario data.
     profile_row = current_mobility_profile(session, lead_id)
-    profile: dict[str, Any] = profile_facts(profile_row)
+    profile: dict[str, Any] = case_facts(session, lead, profile_row)
     if profile_data:
         profile.update(profile_data)
 
@@ -185,8 +225,6 @@ def evaluate_lead_eligibility(
 
     country = _normalize(lead.target_country or profile.get("target_country"))
     domain = _intent_domain(lead.intent)
-    notes_lower = (lead.notes or "").lower()
-
     # Fetch country-specific data.
     policy = session.exec(
         select(CountryPolicy).where(
@@ -204,31 +242,25 @@ def evaluate_lead_eligibility(
     ).all())
 
     # Factors.
-    years_experience = lead.notes and _extract_years_experience(lead.notes)
-    if years_experience is None:
-        years_experience = profile.get("years_experience")
+    years_experience = profile.get("years_experience")
     years_experience = float(years_experience) if years_experience is not None else 0.0
 
     has_qualification = bool(
         profile.get("highest_qualification")
         or "degree" in doc_types
         or "language_certificate" in doc_types
-        or _has_any(lead.notes, {"degree", "bachelor", "master", "phd", "diploma", "certificate"})
+        or _normalize(profile.get("qualification_recognition")) not in {None, "unknown", "unresolved"}
     )
     has_language_scores = bool(
         profile.get("languages")
         or profile.get("language_score")
         or "language_certificate" in doc_types
-        or _has_any(lead.notes, {"ielts", "toefl", "goethe", "telc", "testdaf", "pte", "language"})
     )
     budget_eur = profile.get("budget_eur")
     has_financial_proof = bool(
         budget_eur and budget_eur > 0
-        or _has_any(lead.notes, {"budget", "savings", "bank", "financial", "fund"})
     )
-    has_job_offer = bool(
-        _has_any(lead.notes, {"job offer", "contract", "employer", "sponsor", "offer letter"})
-    )
+    has_job_offer = profile.get("has_job_offer") is True
     has_passport = "passport" in doc_types
 
     # Scoring (max 1.0).
@@ -284,27 +316,44 @@ def evaluate_lead_eligibility(
         risks.extend([f"Verified rule: {s}" for s in rule_statements])
 
     if not target_country_present or not intent_known:
-        status = "insufficient_profile"
-    elif score >= 0.75:
-        status = "eligible"
-    elif score >= 0.55:
-        status = "likely_eligible"
-    elif score >= 0.35:
-        status = "needs_documents"
+        status = "insufficient_information"
+    elif not has_job_offer and domain == "work":
+        status = "insufficient_information"
     else:
-        status = "ineligible"
+        status = "needs_documents"
 
     pathways = _pathways(country, domain)
     required_documents = _required_documents(domain)
-    catalogue_result = match_pathways_for_lead(session, lead_id, limit=5)
+    catalogue_result = match_pathways_for_lead(
+        session,
+        lead_id,
+        limit=5,
+        include_draft_pathways=include_draft_pathways,
+    )
     catalogue_matches = catalogue_result.get("matches", [])
+    compatible_matches = [match for match in catalogue_matches if _compatible_pathway_match(match)]
+    compatible_ids = {id(match) for match in compatible_matches}
+    material_requirements: list[dict[str, Any]] = []
+    compatible_documents: list[str] = []
+    for match in compatible_matches:
+        material_requirements.extend(
+            _pathway_material_requirements(match, has_job_offer=has_job_offer)
+        )
+        version = match["pathway"].current_version
+        if version:
+            compatible_documents.extend(version.required_documents)
+    material_requirements = list({item["code"]: item for item in material_requirements}.values())
     pathway_evidence: list[dict[str, Any]] = []
     if catalogue_matches:
-        pathways = [match["pathway"].name for match in catalogue_matches]
+        pathways = [
+            match["pathway"].name
+            for match in compatible_matches
+        ]
         for match in catalogue_matches:
             pathway = match["pathway"]
             version = pathway.current_version
-            pathway_evidence.append({
+            contributes = id(match) in compatible_ids and version is not None
+            evidence = {
                 "pathway_id": str(pathway.id),
                 "pathway_key": pathway.pathway_key,
                 "pathway_version_id": str(version.id) if version else None,
@@ -313,15 +362,42 @@ def evaluate_lead_eligibility(
                 "source_snapshot_id": str(version.source_snapshot_id) if version and version.source_snapshot_id else None,
                 "verified_rule_ids": [str(value) for value in match.get("verified_rule_ids", [])],
                 "match_score": match.get("match_score"),
-            })
-        top = catalogue_matches[0]
-        for gap in top.get("missing_evidence", []):
-            risks.append(f"Pathway evidence gap: {gap}")
-        version = top["pathway"].current_version
-        if version:
-            required_documents = list(dict.fromkeys(required_documents + version.required_documents))
+                "eligibility_preview_contribution": {
+                    "required_documents": list(version.required_documents) if contributes else [],
+                    "eligibility_requirements": (
+                        _pathway_material_requirements(match, has_job_offer=has_job_offer)
+                        if contributes else []
+                    ),
+                    "costs": dict(version.costs) if contributes else {},
+                },
+            }
+            for key in (
+                "candidate_status",
+                "lifecycle_status",
+                "production_recommendation",
+                "simulation_only",
+                "publication_ready",
+                "requires_independent_reviewer",
+                "certification_statuses",
+                "publication_blockers",
+                "recommendation_status",
+                "compatibility_status",
+                "exclusion_reasons",
+                "occupation_assessment",
+                "evidence_gaps",
+                "next_actions",
+            ):
+                if key in match:
+                    evidence[key] = match[key]
+            pathway_evidence.append(evidence)
+        if compatible_matches:
+            top = compatible_matches[0]
+            for gap in top.get("missing_evidence", []):
+                risks.append(f"Pathway evidence gap: {gap}")
+            required_documents = list(dict.fromkeys(required_documents + compatible_documents))
 
     factors = {
+        "eligibility_preview_version": ELIGIBILITY_PREVIEW_VERSION,
         "profile_id": str(profile_row.id) if profile_row else None,
         "profile_version": profile_row.profile_version if profile_row else None,
         "profile_completeness": profile_row.completeness_score if profile_row else None,
@@ -340,16 +416,17 @@ def evaluate_lead_eligibility(
         "verified_rules_count": len(rules),
         "catalogue_pathways_count": len(catalogue_matches),
         "pathway_evidence": pathway_evidence,
+        "eligibility_requirements": material_requirements,
     }
 
     summary = (
-        f"{status.replace('_', ' ').title()} assessment for {lead.full_name or 'lead'} "
-        f"interested in {domain}-related options{f' in {country.title()}' if country else ''}. "
-        f"Overall score {score} based on profile factors and uploaded documents."
+        f"Potential {domain}-pathway assessment for {lead.full_name or 'this case'}"
+        f"{f' in {country.title()}' if country else ''}. Information and documentary evidence remain "
+        "subject to governed route checks and human verification; this is not an eligibility decision."
     )
 
     if profile_row and profile_row.consent_status == "withdrawn":
-        status = "insufficient_profile"
+        status = "insufficient_information"
         score = 0.0
         confidence = 1.0
         pathways = []

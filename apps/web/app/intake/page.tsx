@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { createPublicIntake, PublicIntakePayload, PublicIntakeResponse } from "../../lib/api";
 import { DocumentOcrUploader } from "../../components/DocumentOcrUploader";
@@ -60,6 +60,7 @@ export default function IntakePage() {
   const [result, setResult] = useState<PublicIntakeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submissionKey = useRef("");
 
   const isAustria = form.target_country === "Austria";
 
@@ -72,7 +73,10 @@ export default function IntakePage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await createPublicIntake(form);
+      if (!submissionKey.current) {
+        submissionKey.current = crypto.randomUUID();
+      }
+      const response = await createPublicIntake({ ...form, submission_key: submissionKey.current });
       setResult(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -247,7 +251,9 @@ export default function IntakePage() {
         ) : (
           <section className="panel intake-panel success">
             <div className="success-icon">✓</div>
-            <h1>Case started</h1>
+            <h1>Your case has been created.</h1>
+            <p><strong>{form.target_country} · {form.goal}</strong></p>
+            <p>Case reference: <strong>{result.case_reference}</strong></p>
             <p>{result.message}</p>
 
             <div className="checklist">
@@ -272,8 +278,11 @@ export default function IntakePage() {
             {result.lead_id && (
               <div className="eligibility-link">
                 <Link className="button primary" href={`/eligibility?lead_id=${result.lead_id}`}>
-                  View eligibility preview
+                  Continue your case
                 </Link>
+                <Link className="button secondary" href={`/profiles?lead_id=${result.lead_id}`}>Open mobility profile</Link>
+                <Link className="button secondary" href={`/planning?lead_id=${result.lead_id}`}>Open mobility planning</Link>
+                <Link className="button secondary" href={`/validation?lead_id=${result.lead_id}`}>Open external validation</Link>
               </div>
             )}
 
@@ -288,7 +297,7 @@ export default function IntakePage() {
               <Link className="button secondary" href="/">
                 Go to operator workspace
               </Link>
-              <button className="button secondary" onClick={() => setResult(null)}>
+              <button className="button secondary" onClick={() => { submissionKey.current = ""; setResult(null); }}>
                 Start another case
               </button>
             </div>

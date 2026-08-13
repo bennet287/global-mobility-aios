@@ -1,5 +1,238 @@
 # Changelog
 
+## 2026-08-13 - Phase 13.10.2.15 eligibility preview consistency
+
+- Corrected the eligibility candidate-contribution boundary so excluded or
+  incompatible pathway families contribute no preview documents, material
+  requirements, or costs. Their audit-visible candidate records remain intact.
+- Removed the generic optional job-offer document wording. For the compatible
+  Austria shortage-worker simulation candidate, a binding Austrian job offer is
+  now exposed separately as a required, currently missing, blocking material fact;
+  the employer declaration remains a distinct document requirement.
+- Added a structured eligibility-preview contribution and version marker to the
+  already-persisted assessment factors. No new table or column was required.
+- Reconciled Planning risk prose with linked pathway evidence. When national and
+  regional 2026 occupation roles are present and pending review, the comparison
+  states that evidence is linked but pending independent certification instead of
+  claiming it is absent. Pending status remains a publication blocker.
+- Added focused regressions for excluded-family isolation, blocking job-offer
+  semantics, linked/pending evidence wording, and the complete Phase 13.10.2.14
+  monetary, occupation, gap-count, lifecycle, certification, and trace invariants.
+- Verification passes with **11 focused eligibility/integrity tests**, **27 adjacent
+  eligibility/catalogue/profile tests**, **661 API tests**, and **4 fresh-migration
+  tests**, plus Python compilation, TypeScript checking, the 37-route Next.js
+  production build, repository policy, release consistency, migration integrity,
+  Docker-profile validation, and `git diff --check`.
+- No migration was added; Alembic remains at `0073_austria_candidate_integrity`.
+  The preserved developer SQLite drift was not modified. Rendered validation must
+  be manually repeated before this phase closes or Round 6 begins.
+- Refreshed the latest live Eligibility and Planning assessments for existing case
+  `AT-7811EDF4` without deleting prior history. API-level live checks confirm no
+  excluded-route documents/costs/requirements, a missing blocking job-offer fact,
+  linked-and-pending occupation wording, and all 13.10.2.14 invariants. The two-page
+  manual rendered retest remains deliberately unclaimed and pending.
+- Recorded rendered-smoke finding `13.10.2.15-F01`: both Eligibility GET-latest and
+  POST-evaluate requests returned 401 before business content loaded because the
+  local production bundle had no embedded header-role flag. Eligibility business-
+  content remediation was therefore not assessed and the rendered gate failed.
+- Hardened the one centralized frontend request helper used by Eligibility,
+  Profiles, and Planning. Explicit `NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE=true/false`
+  remains authoritative; when unset, loopback API URLs receive the same local-only
+  header behavior as development. Non-loopback production stays fail-closed, and
+  configured role/user values plus credentials/CORS behavior are preserved. The
+  duplicate document-download auth implementation was removed.
+- Rebuilt the production frontend without embedding the auth flag and verified the
+  compiled bundle contains one centralized header implementation used by both
+  Eligibility requests. Manual rendered retest remains required; this does not
+  close the gate.
+- The subsequent manual retest proved that first F01 remediation insufficient:
+  both Eligibility requests still returned 401 and the final browser request still
+  lacked both authentication headers. Bundle-string presence is no longer accepted
+  as runtime evidence.
+- Replaced inline header-object construction with one canonical fetch module that
+  builds a native `Headers` instance, merges request-specific headers, applies or
+  removes local header-role authentication deterministically, and enforces included
+  credentials/no-store behavior immediately before native `fetch()`.
+- Added a four-test runtime request regression. It imports the actual exported
+  Eligibility GET/POST functions with mocked native `fetch` and verifies their final
+  URLs, methods, credentials, role/user headers, explicit-false behavior,
+  non-loopback production fail-closed behavior, and request-header preservation.
+- The second F01 remediation also failed rendered verification after a clean Next.js
+  restart, deleted `.next` output, and a fresh browser tab. GET latest and POST
+  evaluate both remained 401, and DevTools still showed neither `x-gmai-role` nor
+  `x-gmai-user`. This rules out stale chunks/process state and leaves F01 open.
+- Moved all browser-visible public-auth resolution into a Next.js-compiled TypeScript
+  configuration module with direct static `process.env.NEXT_PUBLIC_*` references.
+  The deterministic request builder now receives resolved values and performs no
+  environment discovery; explicit false, loopback-local enablement, non-loopback
+  production fail-closed behavior, credentials, no-store, and request headers remain
+  covered.
+- Added a compiled-client regression that builds the real Eligibility browser path
+  under the local test configuration and asserts that its API base, enabled flag,
+  role, and user resolve to `127.0.0.1:8002`, `true`, `admin`, and
+  `frontend-operator`. This complements, rather than replaces, the final-fetch tests.
+  Manual rendered verification is still required and the rendered gate is not passed.
+- Browser-runtime instrumentation subsequently proved F01's client configuration,
+  header builder, and final fetch arguments are resolved: both role/user headers are
+  present immediately before native fetch. The temporary loopback-development-only,
+  redacted diagnostic remains in place until rendered Eligibility passes.
+- Recorded `13.10.2.15-F03`: Chrome masked the Eligibility response behind a missing
+  CORS header. Direct reproduction showed both local authenticated preflights already
+  returned 200 with the expected origin, headers, methods, and credentials; the exact
+  server defect was middleware ordering. Authentication wrapped CORS, so any 401/403
+  produced at the auth boundary escaped without CORS response headers.
+- Made CORS the outer response boundary, retained unauthenticated preflight handling,
+  and replaced the wildcard request-header policy with an explicit browser header
+  allowlist including content type and the two local GMAI headers. Approved origins
+  remain configuration-bound, unapproved origins remain denied, actual requests still
+  require valid auth, and production header-role authentication remains fail-closed.
+- Added focused GET/POST preflight, authenticated route reachability, unauthorized
+  actual-request, and unapproved-origin regressions. The rendered gate remains blocked
+  pending an API restart and manual Eligibility retest; business content is unassessed.
+- The final manual rendered gate passed. Eligibility loads; the binding Austrian job
+  offer is required, missing, and blocking; the employer declaration remains a separate
+  required document; and no self-employment-only business plan, capital-transfer/job-
+  creation evidence, company agreements, or trade authorisations contaminate the
+  skilled-employment preview. The obsolete `job offer if available` wording is absent.
+- Planning now states that linked 2026 national/regional occupation evidence remains
+  pending independent certification. Both evidence roles remain linked and
+  `pending_review`; no certification was approved and Austria v4 remains unpublished.
+- Closed Phase 13.10.2.15 with rendered status **PASS** and resolved `R5A-002`,
+  `13.10.2.15-F01`, and `13.10.2.15-F03`. Removed the temporary development browser
+  diagnostic, `window.__GMAI_REQUEST_DEBUG`, its diagnostic-only regression, and its
+  revision marker while retaining the centralized request/auth and CORS corrections.
+  Round 6 and Phase 13.16 were not started by this closure.
+
+## 2026-08-13 - Phase 13.10.2.14 assessment consistency and conditionality hardening
+
+- Made monetary normalization unit-explicit and currency-generic. Plain catalogue
+  values remain major units, explicitly typed minor units convert exactly once, and
+  the active source-pinned application-fee rule overrides stale fee aliases without
+  inheriting costs from an excluded route.
+- Preserved regional occupation conditionality: governed regional candidates with
+  no province now return `INSUFFICIENT_INFORMATION`; an applicable province can
+  remain `AMBIGUOUS`; a supplied non-applicable province or a true absence of
+  governed entries returns `NO_MATCH`.
+- Added conclusion-level evidence traces to Mobility Planning with full pathway,
+  rule, source, snapshot, certification, evidence-pack, and official-link provenance.
+  Certification review links now open the exact certification and source snapshot;
+  pending certifications remain pending and no approval or publication is implied.
+- Prevented required documents from excluded self-employment routes from leaking
+  into skilled-employment eligibility previews.
+- Pinned structured Lead/intake facts to an immutable Mobility Profile v1 before a
+  comparison is generated, and made the canonical 14 categorized evidence gaps the
+  single count used by the response and rendered assessment.
+- Added regressions for generic governed-fee parsing, explicit major/minor money
+  units, regional province states, real German occupation aliases, exact gap counts,
+  trace provenance, profile versioning, and excluded-route document/cost isolation.
+- Verification passes with **654 API tests**, the **6-test focused integrity suite**,
+  the **4-test fresh-migration gate**, Python compilation, TypeScript checking, the
+  37-route Next.js production build, repository policy, release consistency,
+  migration integrity, Docker-profile validation, and `git diff --check`.
+- The developer SQLite file remains deliberately untouched after the local schema
+  check reported its pre-existing 0072/0073 drift.
+- Live integration against existing case `AT-7811EDF4` passes: v4 remains draft,
+  Profile v1 is pinned, 14 canonical gaps are retained, EUR 218 is rendered once,
+  regional scope remains conditional with one governed candidate, all 16 material
+  traces carry full provenance, both occupation certifications remain
+  `pending_review`, and the excluded route carries no payable cost.
+- Both production frontend routes return HTTP 200, but the focused rendered smoke
+  remains pending because this session exposed no in-app browser surface. Round 6
+  and Phase 13.16 therefore remain gated.
+
+## 2026-08-13 - Phase 13.10.2.13 Austria candidate integrity and occupation resolution
+
+- Added migration `0073_austria_candidate_integrity` and durable Lead columns for
+  the structured Austria facts consumed downstream; existing intake sessions are
+  backfilled without reconstructing facts from Lead notes.
+- Made structured Lead/IntakeSession facts authoritative inputs to eligibility and
+  pathway comparison, with nonblank profile facts able to refine rather than erase
+  the intake state.
+- Added explicit compatibility and recommendation statuses. A skilled-employment
+  case now retains Austria Self-employed Key Worker as `EXCLUDED` with the goal-
+  mismatch reason and cannot rank it from country match alone.
+- Added a governed occupation-resolution result that preserves exact, normalized,
+  inferred, ambiguous, no-match, and insufficient-information qualities separately
+  across national and regional 2026 evidence, including province, entry, snapshot,
+  source-certification, and qualification-mapping state. It explicitly does not
+  establish pathway eligibility.
+- Replaced zero/flat gap presentation for the Austria skilled-worker route with
+  categorized fact, evidence, document, regulatory, and certification gaps. The
+  binding job offer is a blocking fact; a claimed language level remains separate
+  from documentary proof.
+- Scoped the governed EUR 218 value to a source-linked government application fee;
+  estimated total cost and processing time remain not established when governed
+  evidence does not establish them.
+- Repaired the rendered local internal-simulation mismatch without weakening
+  production safeguards. Simulation requires a permitted authenticated role, an
+  explicit request and audit context, and records the Lead, draft pathway versions,
+  actor, role, timestamp, reason, and simulation flag.
+- Advanced the existing immutable structured-evidence integration contract to
+  `v13_10_2_13`; the successor Austria draft pins core plus national/regional 2026
+  evidence and says those occupation sources are linked but pending independent
+  certification. It remains draft, publication-unready, and excluded from ordinary
+  production matching.
+- Updated Mobility Planning to render exclusion reasons, safe draft/non-reliance
+  labels, occupation ambiguity, categorized gaps, case-driven next actions, source-
+  linked application-fee semantics, and unestablished total cost/timing.
+- Added decision-integrity and legal-certainty regressions. Verification passes with
+  **650 API tests**, **4 fresh-migration tests**, Python compilation, the 37-route
+  Next.js production build, and `git diff --check`.
+- Created a recoverable 3,691,504-byte pre-migration PostgreSQL backup (SHA-256
+  `CE4207B7DD89B1E4E3B305F00C4042A39EBF53C5A26EA9F2BA6DBD149989D23C`), migrated
+  the live database to `0073_austria_candidate_integrity`, and idempotently created
+  immutable Austria v4 `4f02f390-1e22-4ac3-9237-8a67f6551807`.
+- Live authenticated simulation confirms v4 as an internal-only candidate, two
+  governed national Software Engineer candidates and an `AMBIGUOUS` result, a
+  separate regional `NO_MATCH`, an absent binding job offer, 14 gaps spanning all
+  five categories, source-scoped EUR 218 application fee, unestablished total cost
+  and timing, explicit self-employment exclusion, and a complete durable audit.
+- Live ordinary matching returns no draft versions. Core-route evidence remains
+  approved; national and regional occupation-source certifications remain
+  `pending_review`; v4 remains unpublished and publication-unready.
+- Phase 13.16 remains paused pending a fresh case-specific Round 5. No source
+  certification was approved and no pathway version was published.
+
+## 2026-08-13 - Phase 13.10.2.12 intake persistence and case continuity
+
+- Normalized blank optional email and phone values on both the public-intake
+  frontend boundary and the backend pre-validation boundary while preserving
+  strict `EmailStr` validation for malformed non-blank addresses.
+- Made public intake return `201 Created` with an explicit durable `lead_id` and
+  human-readable case reference after atomically committing one `Lead` and one
+  linked `IntakeSession`.
+- Added persisted submission keys and request fingerprints with a unique database
+  guarantee so retries reuse the original Lead and changed-payload key reuse fails
+  closed instead of creating duplicates.
+- Added migration `0072_intake_submission_idempotency` for the intake-session
+  idempotency columns and unique submission-key index.
+- Added readable persistence/validation errors so failed writes cannot render a
+  false case-created state or expose raw FastAPI validation JSON in the UI.
+- Added post-intake case continuity through Eligibility, Mobility Profiles,
+  Mobility Planning, and External Validation using `?lead_id=`, including automatic
+  Lead selection and a named External Validation Lead selector. Manual UUID entry
+  remains available only as an advanced operational fallback.
+- Preserved the explicit internal/draft simulation boundary; production pathway
+  matching remains published-pathway-only unless the internal simulation control
+  is deliberately enabled. No source certification or pathway publication was
+  performed.
+- Added regressions for omitted/blank/whitespace/valid/malformed email, atomic
+  Lead and IntakeSession persistence, Austria fact preservation, `/api/v1/leads`
+  visibility, idempotent replay, key-conflict rejection, and failed-write handling.
+- Verification passed with **648 API tests, 0 failed**, **13 focused tests**, the
+  **4-test fresh-migration gate**, TypeScript checking, the 37-route Next.js
+  production build, and `git diff --check`.
+- Backed up the live PostgreSQL database before migration and upgraded it
+  transactionally from `0071_structured_shortage_occupation_evidence` to
+  `0072_intake_submission_idempotency`; direct PostgreSQL verification confirms
+  `0072_intake_submission_idempotency` is live.
+- The post-migration API and frontend are healthy on ports 8002 and 3000. After a
+  full host restart recovered the browser harness, the authorized rendered smoke
+  created exactly one synthetic Austria Lead and one linked IntakeSession. The
+  same named case reached Eligibility and auto-selected in Profiles, Planning,
+  and External Validation without requiring raw UUID entry. This was release
+  verification only; no validation round was started.
+
 ## 2026-08-12 - Phase 13.10.2.10 Austria intake and shadow-validation unblocking
 
 - Fixed the first simulated pre-validation blocker: Austria is now a first-class

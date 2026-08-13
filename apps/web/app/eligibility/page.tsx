@@ -35,6 +35,7 @@ function EligibilityContent() {
   const [assessment, setAssessment] = useState<EligibilityAssessment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const materialRequirements = assessment?.factors.eligibility_requirements || [];
 
   useEffect(() => {
     if (!leadId) {
@@ -123,6 +124,17 @@ function EligibilityContent() {
           {assessment.summary && <p className="eligibility-summary-text">{assessment.summary}</p>}
 
           <div className="eligibility-grid">
+            {materialRequirements.length > 0 && <div className="eligibility-card">
+              <h2>Material requirements</h2>
+              <ul>
+                {materialRequirements.map((requirement) => (
+                  <li key={requirement.code}>
+                    <strong>{requirement.label}</strong>: {requirement.detail}
+                    {requirement.blocking && requirement.status === "missing" ? " Blocking prerequisite." : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>}
             <div className="eligibility-card">
               <h2>Required documents</h2>
               <ul>
@@ -154,8 +166,14 @@ function EligibilityContent() {
           )}
 
           <div className="form-actions">
-            <Link className="button primary" href="/">
-              Go to operator workspace
+            <Link className="button primary" href={`/profiles?lead_id=${leadId}`}>
+              Continue to mobility profile
+            </Link>
+            <Link className="button secondary" href={`/planning?lead_id=${leadId}`}>
+              Open mobility planning
+            </Link>
+            <Link className="button secondary" href={`/validation?lead_id=${leadId}`}>
+              Open external validation
             </Link>
             <Link className="button secondary" href="/intake">
               Start another case

@@ -41,6 +41,14 @@ export default function SourceCertificationReviewPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedCertificationId = params.get("certification_id");
+    const requestedSnapshotId = params.get("source_snapshot_id");
+    if (requestedCertificationId) setSelectedId(requestedCertificationId);
+    if (requestedSnapshotId) setSnapshotId(requestedSnapshotId);
+  }, []);
+
   const loadQueue = useCallback(async () => {
     const [healthResult, queueResult] = await Promise.all([
       getHealthStatus(),

@@ -76,6 +76,14 @@ class Lead(SQLModel, table=True):
     source: str = "manual"
     intent: LeadIntent = LeadIntent.unknown
     target_country: Optional[str] = None
+    nationality: Optional[str] = None
+    current_country: Optional[str] = None
+    occupation_title: Optional[str] = None
+    years_experience: Optional[float] = None
+    job_offer_status: Optional[str] = None
+    qualification_recognition: Optional[str] = None
+    german_level: Optional[str] = None
+    employment_province: Optional[str] = None
     status: LeadStatus = LeadStatus.new
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=now_utc)
@@ -1481,6 +1489,8 @@ class IntakeSession(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
     session_token: str = Field(index=True, unique=True)
+    submission_key: Optional[str] = Field(default=None, index=True, unique=True)
+    submission_fingerprint: Optional[str] = None
     status: IntakeSessionStatus = IntakeSessionStatus.started
     source: str = "public_intake"
     answers_json: Optional[str] = None

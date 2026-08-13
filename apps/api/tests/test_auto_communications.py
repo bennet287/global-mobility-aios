@@ -67,7 +67,7 @@ def test_intake_creates_welcome_communication(client, db_session: Session) -> No
             "target_country": "Germany",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     lead_id = response.json()["lead_id"]
 
     follow_ups = list_auto_communications(db_session, lead_id)

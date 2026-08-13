@@ -148,7 +148,7 @@ def test_withdrawn_consent_restricts_eligibility_and_matching(
     eligibility = client.post("/api/v1/eligibility/evaluate", json={"lead_id": str(lead.id)})
     assert eligibility.status_code == 200, eligibility.text
     assessment = eligibility.json()
-    assert assessment["status"] == "insufficient_profile"
+    assert assessment["status"] == "insufficient_information"
     assert assessment["overall_score"] == 0.0
     assert assessment["pathways"] == []
     assert assessment["profile_id"] == profile["id"]

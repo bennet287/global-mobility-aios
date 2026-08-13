@@ -158,7 +158,7 @@ export default function ProfilesPage() {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const loadLead = useCallback(async (selectedLeadId: string) => {
+  const loadLead = useCallback(async (selectedLeadId: string, availableLeads: Lead[] = leads) => {
     if (!selectedLeadId) {
       setProfile(null);
       setHistory([]);
@@ -178,7 +178,7 @@ export default function ProfilesPage() {
       setForm(formFromProfile(currentResult.value));
     } else {
       setProfile(null);
-      const lead = leads.find((item) => item.id === selectedLeadId);
+      const lead = availableLeads.find((item) => item.id === selectedLeadId);
       setForm({ ...EMPTY_FORM, targetCountry: lead?.target_country || "" });
     }
     setHistory(historyResult.status === "fulfilled" ? historyResult.value : []);
@@ -196,7 +196,16 @@ export default function ProfilesPage() {
       const [healthResult, leadRows] = await Promise.all([getHealthStatus(), getLeads()]);
       setHealth(healthResult.data);
       setLeads(leadRows);
-      if (leadId) await loadLead(leadId);
+      const requestedLeadId = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("lead_id") || ""
+        : "";
+      const selectedLeadId = requestedLeadId && leadRows.some((lead) => lead.id === requestedLeadId)
+        ? requestedLeadId
+        : leadId;
+      if (selectedLeadId) {
+        setLeadId(selectedLeadId);
+        await loadLead(selectedLeadId, leadRows);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load profiles workspace");
     } finally {

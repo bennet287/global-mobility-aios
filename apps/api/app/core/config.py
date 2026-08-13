@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     regulatory_model_classification_enabled: bool = False
     coverage_tranche_assistant_enabled: bool = False
     coverage_tranche_assistant_max_items: int = 25
+    allow_internal_draft_pathway_simulation: bool = False
 
     def is_production(self) -> bool:
         return self.app_env.strip().lower() in {"production", "prod"}

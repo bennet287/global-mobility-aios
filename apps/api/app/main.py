@@ -28,15 +28,26 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Authentication remains responsible for application requests, but CORS must be
+# the outer response boundary so preflight and auth-generated 401/403 responses
+# are consistently decorated for an explicitly approved browser origin.
+app.middleware("http")(auth_middleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.parsed_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Authorization",
+        "Content-Language",
+        "Content-Type",
+        "X-GMAI-Role",
+        "X-GMAI-User",
+    ],
 )
-
-app.middleware("http")(auth_middleware)
 
 
 @app.get("/health", tags=["system"])
