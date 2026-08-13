@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import BigInteger, CheckConstraint, Column, Enum as SQLAlchemyEnum, ForeignKeyConstraint, Numeric, UniqueConstraint
 from sqlalchemy import Index, text
 from sqlmodel import Field, SQLModel
 
@@ -65,6 +66,165 @@ class AgentRunStatus(str, Enum):
     rejected = "rejected"
     converted = "converted"
     failed = "failed"
+
+
+class OrganizationActorType(str, Enum):
+    human = "human"
+    agent = "agent"
+    worker = "worker"
+    system = "system"
+    external_human = "external_human"
+
+
+class OrganizationActivityClass(str, Enum):
+    domain = "domain"
+    work = "work"
+    decision = "decision"
+    blocker = "blocker"
+    human_action = "human_action"
+    contribution = "contribution"
+    operational = "operational"
+
+
+class OrganizationContributionRecordKind(str, Enum):
+    outcome = "outcome"
+    supersession = "supersession"
+    retraction = "retraction"
+
+
+class OrganizationContributionVerificationMethod(str, Enum):
+    domain_transition = "domain_transition"
+    human_attestation = "human_attestation"
+    deterministic_gate = "deterministic_gate"
+
+
+class OrganizationContributionImpactKind(str, Enum):
+    state_change = "state_change"
+    risk_reduction = "risk_reduction"
+    milestone = "milestone"
+    delivery = "delivery"
+    validation = "validation"
+    knowledge = "knowledge"
+
+
+class OrganizationWorkPriority(str, Enum):
+    low = "low"
+    normal = "normal"
+    high = "high"
+    critical = "critical"
+
+
+class OrganizationDependencyType(str, Enum):
+    blocks = "blocks"
+    requires = "requires"
+    informs = "informs"
+
+
+class OrganizationDependencyStatus(str, Enum):
+    active = "active"
+    satisfied = "satisfied"
+    waived = "waived"
+    superseded = "superseded"
+
+
+class OrganizationDecisionType(str, Enum):
+    operational = "operational"
+    policy = "policy"
+    risk = "risk"
+    exception = "exception"
+    board_reserved = "board_reserved"
+
+
+class OrganizationBlockerType(str, Enum):
+    evidence = "evidence"
+    dependency = "dependency"
+    authority = "authority"
+    human_input = "human_input"
+    external = "external"
+    safety = "safety"
+    technical = "technical"
+
+
+class OrganizationBlockerStatus(str, Enum):
+    open = "open"
+    mitigated = "mitigated"
+    resolved = "resolved"
+    waived = "waived"
+    superseded = "superseded"
+
+
+class OrganizationHumanActionRequestType(str, Enum):
+    review = "review"
+    decision = "decision"
+    attestation = "attestation"
+    acknowledgement = "acknowledgement"
+    provide_information = "provide_information"
+    approval = "approval"
+    exception = "exception"
+
+
+class OrganizationHumanActionRequestStatus(str, Enum):
+    required = "required"
+    acknowledged = "acknowledged"
+    in_progress = "in_progress"
+    completed = "completed"
+    declined = "declined"
+    cancelled = "cancelled"
+    expired = "expired"
+
+
+class OrganizationHumanActionType(str, Enum):
+    reviewed = "reviewed"
+    approved = "approved"
+    rejected = "rejected"
+    requested_changes = "requested_changes"
+    attested = "attested"
+    acknowledged = "acknowledged"
+    assigned = "assigned"
+    reassigned = "reassigned"
+    resolved = "resolved"
+    declined = "declined"
+    cancelled = "cancelled"
+
+
+class OrganizationReferenceRole(str, Enum):
+    authoritative_outcome = "authoritative_outcome"
+    affected_subject = "affected_subject"
+    evidence = "evidence"
+    caused_by = "caused_by"
+    supports = "supports"
+    contradicts = "contradicts"
+
+
+class OrganizationReferenceTargetType(str, Enum):
+    lead = "lead"
+    profile = "profile"
+    application = "application"
+    corporate_mobility_case = "corporate_mobility_case"
+    pathway_comparison_assessment = "pathway_comparison_assessment"
+    eligibility_assessment = "eligibility_assessment"
+    source_snapshot = "source_snapshot"
+    official_source = "official_source"
+    external_validation_run = "external_validation_run"
+    external_validation_finding = "external_validation_finding"
+    agent_run = "agent_run"
+    automation_event = "automation_event"
+    audit_log = "audit_log"
+    regulatory_change = "regulatory_change"
+    verified_rule = "verified_rule"
+    mobility_pathway_version = "mobility_pathway_version"
+    agency_submission = "agency_submission"
+    corporate_compliance_event = "corporate_compliance_event"
+    mobility_timeline_milestone = "mobility_timeline_milestone"
+
+
+def _string_enum(enum_type: type[Enum]) -> SQLAlchemyEnum:
+    return SQLAlchemyEnum(
+        enum_type,
+        native_enum=False,
+        create_constraint=False,
+        values_callable=lambda members: [member.value for member in members],
+    )
 
 class Lead(SQLModel, table=True):
     __tablename__ = "leads"
@@ -2165,14 +2325,44 @@ class OrganizationalWorkItem(SQLModel, table=True):
     __tablename__ = "organizational_work_items"
     __table_args__ = (
         UniqueConstraint("idempotency_key", name="uq_org_work_idempotency"),
+        UniqueConstraint("tenant_key", "id", name="uq_org_work_tenant_id"),
+        ForeignKeyConstraint(
+            ["tenant_key", "parent_work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_work_parent_tenant",
+        ),
+        CheckConstraint("priority IN ('low','normal','high','critical')", name="ck_org_work_priority"),
+        CheckConstraint("parent_work_item_id IS NULL OR parent_work_item_id <> id", name="ck_org_work_not_self_parent"),
+        Index("ix_org_work_tenant_status_due", "tenant_key", "status", "due_at"),
+        Index("ix_org_work_tenant_department_status", "tenant_key", "department", "status"),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     idempotency_key: str = Field(index=True)
+    idempotency_fingerprint: Optional[str] = Field(default=None, max_length=64, index=True)
+    tenant_key: str = Field(default="default", index=True)
+    work_type: str = Field(default="organizational", index=True)
+    objective_key: Optional[str] = Field(default=None, index=True)
+    phase_key: Optional[str] = Field(default=None, index=True)
+    priority: OrganizationWorkPriority = Field(
+        default=OrganizationWorkPriority.normal,
+        sa_column=Column(_string_enum(OrganizationWorkPriority), nullable=False, index=True),
+    )
+    parent_work_item_id: Optional[UUID] = Field(default=None, index=True)
     automation_event_id: Optional[UUID] = Field(default=None, index=True, foreign_key="automation_events.id")
     lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
     corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
     corporate_mobility_case_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_mobility_cases.id")
+    source_object_type: Optional[str] = Field(default=None, index=True)
+    source_object_id: Optional[str] = Field(default=None, index=True)
+    source_object_version: Optional[str] = None
+    requested_by_type: Optional[OrganizationActorType] = Field(
+        default=None,
+        sa_column=Column(_string_enum(OrganizationActorType), nullable=True, index=True),
+    )
+    requested_by_id: Optional[str] = Field(default=None, index=True)
     title: str
     objective: str
     department: str = Field(index=True)
@@ -2261,10 +2451,48 @@ class OrganizationalActionOutput(SQLModel, table=True):
 
 class ExecutiveDecision(SQLModel, table=True):
     __tablename__ = "executive_decisions"
+    __table_args__ = (
+        UniqueConstraint("decision_key", name="uq_executive_decision_key"),
+        UniqueConstraint("tenant_key", "id", name="uq_exec_decision_tenant_id"),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_exec_decision_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "supersedes_decision_id"],
+            ["executive_decisions.tenant_key", "executive_decisions.id"],
+            name="fk_exec_decision_supersedes_tenant",
+        ),
+        CheckConstraint(
+            "decision_type IN ('operational','policy','risk','exception','board_reserved')",
+            name="ck_exec_decision_type",
+        ),
+        CheckConstraint(
+            "supersedes_decision_id IS NULL OR supersedes_decision_id <> id",
+            name="ck_exec_decision_not_self_superseding",
+        ),
+        Index("ix_exec_decision_tenant_status_due", "tenant_key", "status", "due_at"),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     decision_key: str = Field(index=True)
+    tenant_key: str = Field(default="default", index=True)
+    decision_type: OrganizationDecisionType = Field(
+        default=OrganizationDecisionType.operational,
+        sa_column=Column(_string_enum(OrganizationDecisionType), nullable=False, index=True),
+    )
+    record_fingerprint: Optional[str] = Field(default=None, max_length=64, index=True)
     work_item_id: Optional[UUID] = Field(default=None, index=True, foreign_key="organizational_work_items.id")
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_mobility_cases.id")
+    source_object_type: Optional[str] = Field(default=None, index=True)
+    source_object_id: Optional[str] = Field(default=None, index=True)
+    source_object_version: Optional[str] = None
+    supersedes_decision_id: Optional[UUID] = Field(default=None, index=True)
     authority_level: str = Field(index=True)
     requested_by_position: str = Field(index=True)
     decision_owner_position: str = Field(index=True)
@@ -2274,6 +2502,8 @@ class ExecutiveDecision(SQLModel, table=True):
     alternatives_json: str = "[]"
     evidence_json: str = "[]"
     impact_json: str = "{}"
+    conditions_json: str = "[]"
+    effect_summary: Optional[str] = None
     status: str = Field(default="pending_ceo", index=True)
     coordination_token: Optional[str] = Field(default=None, index=True)
     coordination_claimed_at: Optional[datetime] = Field(default=None, index=True)
@@ -2281,9 +2511,735 @@ class ExecutiveDecision(SQLModel, table=True):
     decision_reason: Optional[str] = None
     decided_at: Optional[datetime] = Field(default=None, index=True)
     due_at: Optional[datetime] = Field(default=None, index=True)
+    expires_at: Optional[datetime] = Field(default=None, index=True)
     reminded_at: Optional[datetime] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=now_utc, index=True)
     updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationActivityStream(SQLModel, table=True):
+    __tablename__ = "organization_activity_streams"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "stream_key", name="uq_org_activity_stream_tenant_key"),
+        UniqueConstraint("tenant_key", "id", name="uq_org_activity_stream_tenant_id"),
+        CheckConstraint("last_sequence >= 0", name="ck_org_activity_stream_sequence_nonnegative"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_key: str = Field(index=True)
+    stream_key: str = Field(index=True)
+    last_sequence: int = Field(default=0, sa_column=Column(BigInteger(), nullable=False))
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationActivity(SQLModel, table=True):
+    __tablename__ = "organization_activities"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_activity_tenant_id"),
+        UniqueConstraint("tenant_key", "activity_key", name="uq_org_activity_tenant_key"),
+        UniqueConstraint("activity_stream_id", "stream_sequence", name="uq_org_activity_stream_sequence"),
+        ForeignKeyConstraint(
+            ["tenant_key", "activity_stream_id"],
+            ["organization_activity_streams.tenant_key", "organization_activity_streams.id"],
+            name="fk_org_activity_stream_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_activity_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "causation_activity_id"],
+            ["organization_activities.tenant_key", "organization_activities.id"],
+            name="fk_org_activity_causation_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "supersedes_activity_id"],
+            ["organization_activities.tenant_key", "organization_activities.id"],
+            name="fk_org_activity_supersedes_tenant",
+        ),
+        CheckConstraint("stream_sequence >= 1", name="ck_org_activity_sequence_positive"),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_activity_fingerprint_length"),
+        CheckConstraint(
+            "activity_class IN ('domain','work','decision','blocker','human_action','contribution','operational')",
+            name="ck_org_activity_class",
+        ),
+        CheckConstraint(
+            "actor_type IN ('human','agent','worker','system','external_human')",
+            name="ck_org_activity_actor_type",
+        ),
+        CheckConstraint("authority_level IS NULL OR authority_level <> ''", name="ck_org_activity_authority"),
+        CheckConstraint(
+            "causation_activity_id IS NULL OR causation_activity_id <> id",
+            name="ck_org_activity_not_self_caused",
+        ),
+        CheckConstraint(
+            "supersedes_activity_id IS NULL OR supersedes_activity_id <> id",
+            name="ck_org_activity_not_self_superseding",
+        ),
+        Index("ix_org_activity_tenant_occurred", "tenant_key", "occurred_at"),
+        Index("ix_org_activity_tenant_department_occurred", "tenant_key", "department", "occurred_at"),
+        Index("ix_org_activity_tenant_type_occurred", "tenant_key", "activity_type", "occurred_at"),
+        Index("ix_org_activity_tenant_source", "tenant_key", "source_object_type", "source_object_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    activity_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str = Field(index=True)
+    activity_stream_id: UUID
+    stream_sequence: int = Field(sa_column=Column(BigInteger(), nullable=False))
+    activity_class: OrganizationActivityClass = Field(
+        sa_column=Column(_string_enum(OrganizationActivityClass), nullable=False)
+    )
+    activity_type: str = Field(index=True)
+    title: str
+    summary: str
+    department: Optional[str] = Field(default=None, index=True)
+    position_key: Optional[str] = None
+    authority_level: Optional[str] = None
+    actor_type: OrganizationActorType = Field(
+        sa_column=Column(_string_enum(OrganizationActorType), nullable=False)
+    )
+    actor_id: str = Field(index=True)
+    work_item_id: Optional[UUID] = Field(default=None, index=True)
+    execution_attempt_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="organization_execution_attempts.id"
+    )
+    agent_run_id: Optional[UUID] = Field(default=None, index=True, foreign_key="agent_runs.id")
+    automation_event_id: Optional[UUID] = Field(default=None, index=True, foreign_key="automation_events.id")
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="corporate_mobility_cases.id"
+    )
+    source_object_type: str = Field(index=True)
+    source_object_id: str = Field(index=True)
+    source_object_version: Optional[str] = None
+    correlation_key: Optional[str] = Field(default=None, index=True)
+    causation_activity_id: Optional[UUID] = Field(default=None, index=True)
+    supersedes_activity_id: Optional[UUID] = Field(default=None, index=True)
+    payload_json: str = "{}"
+    occurred_at: datetime = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc)
+    created_by: str
+
+
+class OrganizationContribution(SQLModel, table=True):
+    __tablename__ = "organization_contributions"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_contribution_tenant_id"),
+        UniqueConstraint("tenant_key", "contribution_key", name="uq_org_contribution_tenant_key"),
+        UniqueConstraint(
+            "tenant_key", "supersedes_contribution_id", "record_kind", name="uq_org_contribution_correction"
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_contribution_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "decision_id"],
+            ["executive_decisions.tenant_key", "executive_decisions.id"],
+            name="fk_org_contribution_decision_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "supersedes_contribution_id"],
+            ["organization_contributions.tenant_key", "organization_contributions.id"],
+            name="fk_org_contribution_supersedes_tenant",
+        ),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_contribution_fingerprint_length"),
+        CheckConstraint(
+            "actor_type IN ('human','agent','worker','system','external_human')",
+            name="ck_org_contribution_actor_type",
+        ),
+        CheckConstraint(
+            "verification_method IN ('domain_transition','human_attestation','deterministic_gate')",
+            name="ck_org_contribution_verification_method",
+        ),
+        CheckConstraint(
+            "record_kind IN ('outcome','supersession','retraction')",
+            name="ck_org_contribution_record_kind",
+        ),
+        CheckConstraint(
+            "impact_kind IN ('state_change','risk_reduction','milestone','delivery','validation','knowledge')",
+            name="ck_org_contribution_impact_kind",
+        ),
+        CheckConstraint(
+            "human_review_state IN ('not_required','completed')",
+            name="ck_org_contribution_human_review_state",
+        ),
+        CheckConstraint(
+            "source_object_type NOT IN ('agent_run','workflow_run','organization_execution_attempt',"
+            "'organizational_action_output','audit_log','tool_call','message')",
+            name="ck_org_contribution_authoritative_source",
+        ),
+        CheckConstraint(
+            "(measured_value IS NULL AND baseline_value IS NULL AND target_value IS NULL) "
+            "OR measurement_unit IS NOT NULL",
+            name="ck_org_contribution_measurement_unit",
+        ),
+        CheckConstraint(
+            "(record_kind = 'outcome' AND supersedes_contribution_id IS NULL AND retraction_reason IS NULL) OR "
+            "(record_kind = 'supersession' AND supersedes_contribution_id IS NOT NULL AND retraction_reason IS NULL) OR "
+            "(record_kind = 'retraction' AND supersedes_contribution_id IS NOT NULL AND retraction_reason IS NOT NULL)",
+            name="ck_org_contribution_correction_shape",
+        ),
+        CheckConstraint(
+            "supersedes_contribution_id IS NULL OR supersedes_contribution_id <> id",
+            name="ck_org_contribution_not_self_superseding",
+        ),
+        Index("ix_org_contribution_tenant_kind_effective", "tenant_key", "record_kind", "effective_at"),
+        Index("ix_org_contribution_tenant_department_effective", "tenant_key", "department", "effective_at"),
+        Index("ix_org_contribution_tenant_type_effective", "tenant_key", "contribution_type", "effective_at"),
+        Index(
+            "ix_org_contribution_tenant_source",
+            "tenant_key",
+            "source_object_type",
+            "source_object_id",
+            "source_object_version",
+        ),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    contribution_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str = Field(index=True)
+    contribution_type: str = Field(index=True)
+    title: str
+    outcome_summary: str
+    actor_type: OrganizationActorType = Field(
+        sa_column=Column(_string_enum(OrganizationActorType), nullable=False)
+    )
+    actor_id: str = Field(index=True)
+    department: str = Field(index=True)
+    accountable_position_key: str
+    authority_level: str
+    objective_key: Optional[str] = Field(default=None, index=True)
+    phase_key: Optional[str] = Field(default=None, index=True)
+    work_item_id: Optional[UUID] = Field(default=None, index=True)
+    decision_id: Optional[UUID] = Field(default=None, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="corporate_mobility_cases.id"
+    )
+    source_object_type: str = Field(index=True)
+    source_object_id: str = Field(index=True)
+    source_object_version: str
+    source_state: str
+    verification_method: OrganizationContributionVerificationMethod = Field(
+        sa_column=Column(_string_enum(OrganizationContributionVerificationMethod), nullable=False)
+    )
+    record_kind: OrganizationContributionRecordKind = Field(
+        default=OrganizationContributionRecordKind.outcome,
+        sa_column=Column(_string_enum(OrganizationContributionRecordKind), nullable=False),
+    )
+    verified_by: str
+    verified_at: datetime
+    human_review_state: str
+    impact_kind: OrganizationContributionImpactKind = Field(
+        sa_column=Column(_string_enum(OrganizationContributionImpactKind), nullable=False)
+    )
+    measured_value: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(18, 4), nullable=True))
+    baseline_value: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(18, 4), nullable=True))
+    target_value: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(18, 4), nullable=True))
+    measurement_unit: Optional[str] = None
+    impact_json: str = "{}"
+    evidence_summary_json: str = "[]"
+    human_action_required: bool = False
+    effective_at: datetime = Field(index=True)
+    supersedes_contribution_id: Optional[UUID] = Field(default=None, index=True)
+    retraction_reason: Optional[str] = None
+    created_by: str
+    created_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationWorkItemDependency(SQLModel, table=True):
+    __tablename__ = "organization_work_item_dependencies"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_work_dependency_tenant_id"),
+        UniqueConstraint("tenant_key", "dependency_key", name="uq_org_work_dependency_tenant_key"),
+        UniqueConstraint(
+            "tenant_key", "work_item_id", "depends_on_work_item_id", "dependency_type",
+            name="uq_org_work_dependency_edge",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_work_dependency_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "depends_on_work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_work_dependency_depends_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "satisfied_by_contribution_id"],
+            ["organization_contributions.tenant_key", "organization_contributions.id"],
+            name="fk_org_work_dependency_contribution_tenant",
+        ),
+        CheckConstraint("work_item_id <> depends_on_work_item_id", name="ck_org_work_dependency_not_self"),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_work_dependency_fingerprint_length"),
+        CheckConstraint("dependency_type IN ('blocks','requires','informs')", name="ck_org_work_dependency_type"),
+        CheckConstraint(
+            "status IN ('active','satisfied','waived','superseded')", name="ck_org_work_dependency_status"
+        ),
+        CheckConstraint(
+            "status <> 'waived' OR (waived_by_human_id IS NOT NULL AND waiver_reason IS NOT NULL AND waived_at IS NOT NULL)",
+            name="ck_org_work_dependency_waiver",
+        ),
+        Index("ix_org_work_dependency_tenant_status", "tenant_key", "status"),
+        Index("ix_org_work_dependency_forward", "tenant_key", "work_item_id"),
+        Index("ix_org_work_dependency_reverse", "tenant_key", "depends_on_work_item_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    dependency_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str
+    work_item_id: UUID
+    depends_on_work_item_id: UUID
+    dependency_type: OrganizationDependencyType = Field(
+        sa_column=Column(_string_enum(OrganizationDependencyType), nullable=False)
+    )
+    status: OrganizationDependencyStatus = Field(
+        default=OrganizationDependencyStatus.active,
+        sa_column=Column(_string_enum(OrganizationDependencyStatus), nullable=False),
+    )
+    satisfied_by_contribution_id: Optional[UUID] = None
+    waived_by_human_id: Optional[str] = None
+    waiver_reason: Optional[str] = None
+    waived_at: Optional[datetime] = None
+    created_by: str
+    updated_by: str
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationBlocker(SQLModel, table=True):
+    __tablename__ = "organization_blockers"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_blocker_tenant_id"),
+        UniqueConstraint("tenant_key", "blocker_key", name="uq_org_blocker_tenant_key"),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_blocker_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "decision_id"],
+            ["executive_decisions.tenant_key", "executive_decisions.id"],
+            name="fk_org_blocker_decision_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "contribution_id"],
+            ["organization_contributions.tenant_key", "organization_contributions.id"],
+            name="fk_org_blocker_contribution_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "supersedes_blocker_id"],
+            ["organization_blockers.tenant_key", "organization_blockers.id"],
+            name="fk_org_blocker_supersedes_tenant",
+        ),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_blocker_fingerprint_length"),
+        CheckConstraint(
+            "blocker_type IN ('evidence','dependency','authority','human_input','external','safety','technical')",
+            name="ck_org_blocker_type",
+        ),
+        CheckConstraint("severity IN ('low','medium','high','critical')", name="ck_org_blocker_severity"),
+        CheckConstraint(
+            "status IN ('open','mitigated','resolved','waived','superseded')", name="ck_org_blocker_status"
+        ),
+        CheckConstraint(
+            "work_item_id IS NOT NULL OR decision_id IS NOT NULL OR contribution_id IS NOT NULL OR lead_id IS NOT NULL "
+            "OR profile_id IS NOT NULL OR application_id IS NOT NULL OR corporate_account_id IS NOT NULL "
+            "OR corporate_mobility_case_id IS NOT NULL",
+            name="ck_org_blocker_has_target",
+        ),
+        CheckConstraint(
+            "status <> 'resolved' OR (resolved_at IS NOT NULL AND resolution_summary IS NOT NULL "
+            "AND resolving_actor_type IS NOT NULL AND resolving_actor_id IS NOT NULL)",
+            name="ck_org_blocker_resolution",
+        ),
+        CheckConstraint(
+            "status <> 'waived' OR (waived_by_human_id IS NOT NULL AND waiver_reason IS NOT NULL AND waived_at IS NOT NULL)",
+            name="ck_org_blocker_waiver",
+        ),
+        CheckConstraint("supersedes_blocker_id IS NULL OR supersedes_blocker_id <> id", name="ck_org_blocker_not_self"),
+        Index("ix_org_blocker_tenant_status_severity_due", "tenant_key", "status", "severity", "due_at"),
+        Index("ix_org_blocker_tenant_department_status", "tenant_key", "department", "status"),
+        Index("ix_org_blocker_tenant_source", "tenant_key", "source_object_type", "source_object_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    blocker_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str = Field(index=True)
+    blocker_type: OrganizationBlockerType = Field(
+        sa_column=Column(_string_enum(OrganizationBlockerType), nullable=False)
+    )
+    severity: str = Field(index=True)
+    title: str
+    description: str
+    status: OrganizationBlockerStatus = Field(
+        default=OrganizationBlockerStatus.open,
+        sa_column=Column(_string_enum(OrganizationBlockerStatus), nullable=False, index=True),
+    )
+    department: Optional[str] = Field(default=None, index=True)
+    accountable_position_key: Optional[str] = None
+    authority_level: Optional[str] = None
+    work_item_id: Optional[UUID] = Field(default=None, index=True)
+    decision_id: Optional[UUID] = Field(default=None, index=True)
+    contribution_id: Optional[UUID] = Field(default=None, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="corporate_mobility_cases.id"
+    )
+    risk_escalation_id: Optional[UUID] = Field(default=None, index=True, foreign_key="risk_escalations.id")
+    external_validation_finding_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="external_validation_findings.id"
+    )
+    source_object_type: Optional[str] = Field(default=None, index=True)
+    source_object_id: Optional[str] = Field(default=None, index=True)
+    source_object_version: Optional[str] = None
+    requires_human_action: bool = False
+    opened_at: datetime = Field(default_factory=now_utc)
+    due_at: Optional[datetime] = Field(default=None, index=True)
+    mitigated_at: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
+    resolution_summary: Optional[str] = None
+    resolving_actor_type: Optional[OrganizationActorType] = Field(
+        default=None,
+        sa_column=Column(_string_enum(OrganizationActorType), nullable=True),
+    )
+    resolving_actor_id: Optional[str] = None
+    waived_by_human_id: Optional[str] = None
+    waiver_reason: Optional[str] = None
+    waived_at: Optional[datetime] = None
+    supersedes_blocker_id: Optional[UUID] = Field(default=None, index=True)
+    created_by: str
+    updated_by: str
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationHumanActionRequest(SQLModel, table=True):
+    __tablename__ = "organization_human_action_requests"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_human_request_tenant_id"),
+        UniqueConstraint("tenant_key", "request_key", name="uq_org_human_request_tenant_key"),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_human_request_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "decision_id"],
+            ["executive_decisions.tenant_key", "executive_decisions.id"],
+            name="fk_org_human_request_decision_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "blocker_id"],
+            ["organization_blockers.tenant_key", "organization_blockers.id"],
+            name="fk_org_human_request_blocker_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "contribution_id"],
+            ["organization_contributions.tenant_key", "organization_contributions.id"],
+            name="fk_org_human_request_contribution_tenant",
+        ),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_human_request_fingerprint_length"),
+        CheckConstraint(
+            "request_type IN ('review','decision','attestation','acknowledgement','provide_information','approval','exception')",
+            name="ck_org_human_request_type",
+        ),
+        CheckConstraint(
+            "status IN ('required','acknowledged','in_progress','completed','declined','cancelled','expired')",
+            name="ck_org_human_request_status",
+        ),
+        CheckConstraint("priority IN ('low','normal','high','critical')", name="ck_org_human_request_priority"),
+        CheckConstraint(
+            "work_item_id IS NOT NULL OR decision_id IS NOT NULL OR blocker_id IS NOT NULL OR contribution_id IS NOT NULL "
+            "OR lead_id IS NOT NULL OR profile_id IS NOT NULL OR application_id IS NOT NULL "
+            "OR corporate_account_id IS NOT NULL OR corporate_mobility_case_id IS NOT NULL",
+            name="ck_org_human_request_has_target",
+        ),
+        CheckConstraint(
+            "status <> 'completed' OR (completed_at IS NOT NULL AND completed_by_human_id IS NOT NULL AND outcome IS NOT NULL)",
+            name="ck_org_human_request_completed",
+        ),
+        CheckConstraint(
+            "status <> 'declined' OR (declined_at IS NOT NULL AND declined_by_human_id IS NOT NULL AND outcome IS NOT NULL)",
+            name="ck_org_human_request_declined",
+        ),
+        CheckConstraint(
+            "status <> 'cancelled' OR (cancelled_at IS NOT NULL AND cancelled_by_actor_id IS NOT NULL AND outcome IS NOT NULL)",
+            name="ck_org_human_request_cancelled",
+        ),
+        CheckConstraint("status <> 'expired' OR expired_at IS NOT NULL", name="ck_org_human_request_expired"),
+        Index("ix_org_human_request_tenant_status_priority_due", "tenant_key", "status", "priority", "due_at"),
+        Index("ix_org_human_request_assignee_status_due", "assigned_human_id", "status", "due_at"),
+        Index("ix_org_human_request_tenant_source", "tenant_key", "source_object_type", "source_object_id"),
+        Index("ix_org_human_request_corporate_case", "corporate_mobility_case_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    request_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str = Field(index=True)
+    request_type: OrganizationHumanActionRequestType = Field(
+        sa_column=Column(_string_enum(OrganizationHumanActionRequestType), nullable=False)
+    )
+    title: str
+    instructions: str
+    status: OrganizationHumanActionRequestStatus = Field(
+        default=OrganizationHumanActionRequestStatus.required,
+        sa_column=Column(_string_enum(OrganizationHumanActionRequestStatus), nullable=False, index=True),
+    )
+    priority: OrganizationWorkPriority = Field(
+        default=OrganizationWorkPriority.normal,
+        sa_column=Column(_string_enum(OrganizationWorkPriority), nullable=False, index=True),
+    )
+    required_role: str = Field(index=True)
+    assigned_human_id: Optional[str] = Field(default=None, index=True)
+    requested_by_type: OrganizationActorType = Field(
+        sa_column=Column(_string_enum(OrganizationActorType), nullable=False)
+    )
+    requested_by_id: str
+    authority_level: Optional[str] = None
+    work_item_id: Optional[UUID] = Field(default=None, index=True)
+    decision_id: Optional[UUID] = Field(default=None, index=True)
+    blocker_id: Optional[UUID] = Field(default=None, index=True)
+    contribution_id: Optional[UUID] = Field(default=None, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(
+        default=None, foreign_key="corporate_mobility_cases.id"
+    )
+    source_object_type: Optional[str] = Field(default=None, index=True)
+    source_object_id: Optional[str] = Field(default=None, index=True)
+    source_object_version: Optional[str] = None
+    requested_at: datetime = Field(default_factory=now_utc)
+    due_at: Optional[datetime] = Field(default=None, index=True)
+    acknowledged_at: Optional[datetime] = None
+    acknowledged_by_human_id: Optional[str] = None
+    started_at: Optional[datetime] = None
+    started_by_human_id: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    completed_by_human_id: Optional[str] = None
+    declined_at: Optional[datetime] = None
+    declined_by_human_id: Optional[str] = None
+    cancelled_at: Optional[datetime] = None
+    cancelled_by_actor_id: Optional[str] = None
+    expired_at: Optional[datetime] = None
+    outcome: Optional[str] = None
+    completion_notes: Optional[str] = None
+    created_by: str
+    updated_by: str
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
+
+
+class OrganizationHumanAction(SQLModel, table=True):
+    __tablename__ = "organization_human_actions"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_human_action_tenant_id"),
+        UniqueConstraint("tenant_key", "action_key", name="uq_org_human_action_tenant_key"),
+        ForeignKeyConstraint(
+            ["tenant_key", "human_action_request_id"],
+            ["organization_human_action_requests.tenant_key", "organization_human_action_requests.id"],
+            name="fk_org_human_action_request_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_human_action_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "decision_id"],
+            ["executive_decisions.tenant_key", "executive_decisions.id"],
+            name="fk_org_human_action_decision_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "blocker_id"],
+            ["organization_blockers.tenant_key", "organization_blockers.id"],
+            name="fk_org_human_action_blocker_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "contribution_id"],
+            ["organization_contributions.tenant_key", "organization_contributions.id"],
+            name="fk_org_human_action_contribution_tenant",
+        ),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_human_action_fingerprint_length"),
+        CheckConstraint("actor_type = 'human'", name="ck_org_human_action_actor_human"),
+        CheckConstraint(
+            "action_type IN ('reviewed','approved','rejected','requested_changes','attested','acknowledged',"
+            "'assigned','reassigned','resolved','declined','cancelled')",
+            name="ck_org_human_action_type",
+        ),
+        CheckConstraint(
+            "human_action_request_id IS NOT NULL OR work_item_id IS NOT NULL OR decision_id IS NOT NULL "
+            "OR blocker_id IS NOT NULL OR contribution_id IS NOT NULL OR lead_id IS NOT NULL OR profile_id IS NOT NULL "
+            "OR application_id IS NOT NULL OR corporate_account_id IS NOT NULL OR corporate_mobility_case_id IS NOT NULL",
+            name="ck_org_human_action_has_target",
+        ),
+        Index("ix_org_human_action_tenant_occurred", "tenant_key", "occurred_at"),
+        Index("ix_org_human_action_actor_occurred", "human_actor_id", "occurred_at"),
+        Index("ix_org_human_action_type_occurred", "action_type", "occurred_at"),
+        Index("ix_org_human_action_tenant_source", "tenant_key", "source_object_type", "source_object_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    action_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str = Field(index=True)
+    human_action_request_id: Optional[UUID] = Field(default=None, index=True)
+    action_type: OrganizationHumanActionType = Field(
+        sa_column=Column(_string_enum(OrganizationHumanActionType), nullable=False)
+    )
+    actor_type: OrganizationActorType = Field(
+        default=OrganizationActorType.human,
+        sa_column=Column(_string_enum(OrganizationActorType), nullable=False),
+    )
+    human_actor_id: str = Field(index=True)
+    actor_role: Optional[str] = None
+    actor_position_key: Optional[str] = None
+    actor_department: Optional[str] = None
+    authority_level: Optional[str] = None
+    work_item_id: Optional[UUID] = Field(default=None, index=True)
+    decision_id: Optional[UUID] = Field(default=None, index=True)
+    blocker_id: Optional[UUID] = Field(default=None, index=True)
+    contribution_id: Optional[UUID] = Field(default=None, index=True)
+    lead_id: Optional[UUID] = Field(default=None, index=True, foreign_key="leads.id")
+    profile_id: Optional[UUID] = Field(default=None, index=True, foreign_key="profiles.id")
+    application_id: Optional[UUID] = Field(default=None, index=True, foreign_key="applications.id")
+    corporate_account_id: Optional[UUID] = Field(default=None, index=True, foreign_key="corporate_accounts.id")
+    corporate_mobility_case_id: Optional[UUID] = Field(
+        default=None, index=True, foreign_key="corporate_mobility_cases.id"
+    )
+    source_object_type: Optional[str] = Field(default=None, index=True)
+    source_object_id: Optional[str] = Field(default=None, index=True)
+    source_object_version: Optional[str] = None
+    outcome: str
+    reason: Optional[str] = None
+    metadata_json: str = "{}"
+    occurred_at: datetime = Field(index=True)
+    created_at: datetime = Field(default_factory=now_utc)
+    created_by: str
+
+
+class OrganizationRecordReference(SQLModel, table=True):
+    __tablename__ = "organization_record_references"
+    __table_args__ = (
+        UniqueConstraint("tenant_key", "id", name="uq_org_record_reference_tenant_id"),
+        UniqueConstraint("tenant_key", "reference_key", name="uq_org_record_reference_tenant_key"),
+        ForeignKeyConstraint(
+            ["tenant_key", "activity_id"],
+            ["organization_activities.tenant_key", "organization_activities.id"],
+            name="fk_org_reference_activity_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "contribution_id"],
+            ["organization_contributions.tenant_key", "organization_contributions.id"],
+            name="fk_org_reference_contribution_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "work_item_id"],
+            ["organizational_work_items.tenant_key", "organizational_work_items.id"],
+            name="fk_org_reference_work_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "decision_id"],
+            ["executive_decisions.tenant_key", "executive_decisions.id"],
+            name="fk_org_reference_decision_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "blocker_id"],
+            ["organization_blockers.tenant_key", "organization_blockers.id"],
+            name="fk_org_reference_blocker_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "human_action_request_id"],
+            ["organization_human_action_requests.tenant_key", "organization_human_action_requests.id"],
+            name="fk_org_reference_human_request_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "human_action_id"],
+            ["organization_human_actions.tenant_key", "organization_human_actions.id"],
+            name="fk_org_reference_human_action_tenant",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "supersedes_reference_id"],
+            ["organization_record_references.tenant_key", "organization_record_references.id"],
+            name="fk_org_reference_supersedes_tenant",
+        ),
+        CheckConstraint("length(record_fingerprint) = 64", name="ck_org_record_reference_fingerprint_length"),
+        CheckConstraint(
+            "reference_role IN ('authoritative_outcome','affected_subject','evidence','caused_by','supports','contradicts')",
+            name="ck_org_record_reference_role",
+        ),
+        CheckConstraint(
+            "target_type IN ('lead','profile','application','corporate_mobility_case','pathway_comparison_assessment',"
+            "'eligibility_assessment','source_snapshot','official_source','external_validation_run',"
+            "'external_validation_finding','agent_run','automation_event','audit_log','regulatory_change','verified_rule',"
+            "'mobility_pathway_version','agency_submission','corporate_compliance_event','mobility_timeline_milestone')",
+            name="ck_org_record_reference_target_type",
+        ),
+        CheckConstraint(
+            "(CASE WHEN activity_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN contribution_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN work_item_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN decision_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN blocker_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN human_action_request_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN human_action_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
+            name="ck_org_record_reference_one_owner",
+        ),
+        CheckConstraint(
+            "supersedes_reference_id IS NULL OR supersedes_reference_id <> id",
+            name="ck_org_record_reference_not_self",
+        ),
+        Index("ix_org_record_reference_tenant_target", "tenant_key", "target_type", "target_id"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    reference_key: str
+    record_fingerprint: str = Field(max_length=64)
+    tenant_key: str = Field(index=True)
+    activity_id: Optional[UUID] = Field(default=None, index=True)
+    contribution_id: Optional[UUID] = Field(default=None, index=True)
+    work_item_id: Optional[UUID] = Field(default=None, index=True)
+    decision_id: Optional[UUID] = Field(default=None, index=True)
+    blocker_id: Optional[UUID] = Field(default=None, index=True)
+    human_action_request_id: Optional[UUID] = Field(default=None, index=True)
+    human_action_id: Optional[UUID] = Field(default=None, index=True)
+    reference_role: OrganizationReferenceRole = Field(
+        sa_column=Column(_string_enum(OrganizationReferenceRole), nullable=False)
+    )
+    target_type: OrganizationReferenceTargetType = Field(
+        sa_column=Column(_string_enum(OrganizationReferenceTargetType), nullable=False, index=True)
+    )
+    target_id: str = Field(index=True)
+    target_version: Optional[str] = None
+    target_state: Optional[str] = None
+    content_hash: Optional[str] = None
+    label: Optional[str] = None
+    source_url: Optional[str] = None
+    metadata_json: str = "{}"
+    supersedes_reference_id: Optional[UUID] = Field(default=None, index=True)
+    created_by: str
+    created_at: datetime = Field(default_factory=now_utc)
 
 
 class ExecutiveCouncilConsultation(SQLModel, table=True):

@@ -44,9 +44,9 @@ The target operating model is defined in
 
 **Development branch:** `roadmap/global-mobility-aios-v11`
 
-<!-- CURRENT_MIGRATION_HEAD: 0073_austria_candidate_integrity -->
+<!-- CURRENT_MIGRATION_HEAD: 0074_durable_contribution_activity_model -->
 
-**Code migration head:** `0073_austria_candidate_integrity`
+**Code migration head:** `0074_durable_contribution_activity_model`
 
 | Area | State | Current position |
 |---|---|---|
@@ -56,18 +56,18 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is unlocked but not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with its persistence foundation complete and service/API integration not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
 
 - Web production build: **passing**; the Next.js production build completes successfully with 37 routes including the Phase 13.10.2 `/validation` and `/source-certification-review` workspaces.
 - Repository policy: passing.
-- Migration-chain integrity: code and persistent PostgreSQL are verified at `0073_austria_candidate_integrity`; Phase 13.10.2.13 persists the structured Austria case facts used by decision services.
+- Migration-chain integrity: code, fresh SQLite, and isolated fresh PostgreSQL migration cycles are verified at `0074_durable_contribution_activity_model`; the preserved PostgreSQL environment remains intentionally unchanged at `0073_austria_candidate_integrity`.
 - Docker production-profile validation: passing.
-- API regression baseline: **661 passed, 0 failed** at `0073_austria_candidate_integrity`; the closed Phase 13.10.2.15 eligibility-preview and authenticated CORS gates pass.
-- SQLite migration compatibility: **passing through current migration head `0073_austria_candidate_integrity`** via the 4-test fresh-database upgrade/downgrade/re-upgrade regression suite.
-- Persistent Docker PostgreSQL: **passing at `0073_austria_candidate_integrity`**; the immutable Austria v4 draft links the 2026 national/regional evidence while both certifications remain pending review.
+- API regression baseline: **672 passed, 0 failed** with the Phase 13.16.1A persistence foundation; the closed Phase 13.10.2.15 eligibility-preview and authenticated CORS gates pass.
+- SQLite migration compatibility: **passing through current migration head `0074_durable_contribution_activity_model`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
+- PostgreSQL: the isolated fresh database passes the full chain and `0074 -> 0073 -> 0074` cycle with empty new ledgers; the preserved Docker database remains **passing and untouched at `0073_austria_candidate_integrity`** with the immutable Austria v4 draft unchanged.
 - Local quality gate: compilation, evidence-pack validation, repository policy,
   release consistency, migrations, Docker-profile validation, frontend production
   build, and the complete API test suite pass. The disposable/test databases are
@@ -91,7 +91,10 @@ validation programme and correctness gate: its historical Austria runbook remain
 useful operational evidence, and the fresh Round 6 mobility-user and professional
 shadow reviews produced a [PASS correctness disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md).
 Phase 13.16.0 is **CLOSED / PASS**: implementation is complete and independent
-internal rendered acceptance passed. Phase 13.16.1 is **UNLOCKED / NOT STARTED**.
+internal rendered acceptance passed. Phase 13.16.1 is **IMPLEMENTATION IN PROGRESS —
+PERSISTENCE FOUNDATION COMPLETE / SERVICE AND API INTEGRATION NOT STARTED**; its
+implementation contract is recorded in
+[DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
 This closure does not satisfy genuine external-human acceptance, which remains Phase
 13.17 after the shared experience layer is ready; the external-human gate remains held.
 
@@ -111,7 +114,8 @@ release gate.
    acceptance passed.
 4. **Phase 13.16.1 durable contribution and activity model** — establish the
    outcome-oriented source of truth before building observatory dashboards.
-   **UNLOCKED / NOT STARTED**.
+   **IMPLEMENTATION IN PROGRESS — PERSISTENCE FOUNDATION COMPLETE; SERVICE/API,
+   CONTRIBUTION EMITTER, AND READ-MODEL WORK NOT STARTED**.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
    owner observatory, department workspaces, dependencies, owner inbox, mobility-user
    and operator experiences, and consolidated evidence/provenance presentation.
@@ -710,7 +714,8 @@ both national/regional certifications remain `pending_review`.
 
 ### 13.16 Organization Observatory & Experience Layer
 
-**State: IN PROGRESS — 13.16.0 CLOSED / PASS; 13.16.1 UNLOCKED / NOT STARTED.** The
+**State: IN PROGRESS — 13.16.0 CLOSED / PASS; 13.16.1 PERSISTENCE FOUNDATION
+COMPLETE / SERVICE AND API INTEGRATION NOT STARTED.** The
 fresh Round 6 mobility-user and professional shadow reviews passed the correctness
 gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
 are complete. Phase 13.17 external-human acceptance is not satisfied.
@@ -744,8 +749,8 @@ Phase 13.16.0 final disposition is **CLOSED / PASS**:
 - Implementation: **COMPLETE**.
 - Independent internal rendered acceptance: **PASS**.
 - Overall Phase 13.16.0 state: **CLOSED**.
-- Next slice: Phase 13.16.1 Durable Contribution & Activity Model — **UNLOCKED /
-  NOT STARTED**.
+- Next slice: Phase 13.16.1 Durable Contribution & Activity Model — **IN PROGRESS;
+  PERSISTENCE FOUNDATION COMPLETE / SERVICE AND API INTEGRATION NOT STARTED**.
 - Phase 13.17 genuine external-human acceptance: **still required**.
 - Phase 14: **locked**.
 
@@ -817,7 +822,7 @@ Round 6 correctness disposition                 PASS / CLOSED
                                                      CLOSED / PASS
                     ↓
 13.16.1 Durable Contribution & Activity Model
-                                       UNLOCKED / NOT STARTED
+              PERSISTENCE COMPLETE / SERVICE AND API NOT STARTED
                     ↓
 13.16.2-13.16.9 role-based experience and observatory delivery
                     ↓
@@ -917,7 +922,8 @@ Round 6 supplies these formal acceptance inputs:
 The implementation is documented in
 [DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md).
 Automated checks and independent internal rendered inspection pass. Phase 13.16.0 is
-closed; Phase 13.16.1 is unlocked but has not started.
+closed; Phase 13.16.1 design and persistence foundation are complete, while service,
+API, emitter, and read-model implementation has not started.
 
 #### 13.16 delivery sequence
 
@@ -941,19 +947,36 @@ contribution data before any dashboard attempts to summarize the organization.
 
 ##### 13.16.1 authoritative model requirements
 
-- [ ] Define separate durable records or explicitly versioned event contracts for
+**Status: IMPLEMENTATION IN PROGRESS — DESIGN AND PERSISTENCE FOUNDATION COMPLETE;
+SERVICE/API, CONTRIBUTION EMITTERS, AND READ MODELS NOT STARTED.** The current-state
+inventory, six canonical contracts, exact proposed database model, migration plan,
+API/service direction, observatory aggregation boundary, backfill policy, and test
+matrix are defined in
+[DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
+Migration `0074_durable_contribution_activity_model`, registered SQLModel entities,
+portable controlled-value checks, tenant-fenced relationships, and focused persistence
+tests now establish the durable schema. The unchecked items below remain service,
+integration, aggregation, and experience exit criteria; persistence completion does
+not claim that services, routes, emitters, read models, or UI exist.
+
+Remaining implementation order: implement typed ledger services and Activity-only
+agent integration; enable reviewed
+authoritative contribution adapters; then add read APIs and aggregate reconciliation.
+Phase 13.16.2 remains locked until that sequence and the 13.16.1 exit criteria pass.
+
+- [x] Define separate durable records or explicitly versioned event contracts for
   **activity**, **contribution**, **decision**, **blocker**, **work item**, and
   **human action**; do not treat them as interchangeable counters.
-- [ ] Make every meaningful contribution attributable to a department/position,
+- [x] Make every meaningful contribution attributable to a department/position,
   related objective or phase, affected entity, authority level, evidence, status,
   impact, timestamps, and human-action requirement.
 - [ ] Prefer outcome metrics over tool-call or agent-message volume. The observatory
   may expose execution telemetry as technical detail, but must not present activity
   volume as organizational contribution.
-- [ ] Link contribution and dependency records to existing provenance, audit,
+- [x] Link contribution and dependency records to existing provenance, audit,
   validation, agent-output, decision, case, pathway, evidence, and lifecycle records
   instead of copying or silently reinterpreting their truth.
-- [ ] Define idempotency, ordering, correction/supersession, retention, authorization,
+- [x] Define idempotency, ordering, correction/supersession, retention, authorization,
   tenant isolation, and audit semantics before dashboard aggregation is accepted.
 
 ##### 13.16.2 navigation and experience-shell baseline

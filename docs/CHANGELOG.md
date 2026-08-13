@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-08-13 - Phase 13.16.1A durable persistence foundation
+
+- Added migration `0074_durable_contribution_activity_model` and registered portable
+  SQLModel persistence for ordered Activity streams, append-only Activity,
+  Contribution, HumanAction, and evidence references, plus durable dependency,
+  Blocker, and HumanActionRequest lifecycle records.
+- Reused and compatibility-safely extended `OrganizationalWorkItem` and
+  `ExecutiveDecision`; added composite tenant fences, deterministic key/fingerprint
+  constraints, controlled string-backed values, direct provenance relationships, and
+  non-cascading authoritative-history foreign keys.
+- Added focused persistence and fresh SQLite migration-cycle coverage. No API,
+  service, workflow/agent emitter, Observatory read model, UI, semantic history
+  backfill, or automatic AgentRun-to-Contribution behavior was added. Phase 13.16.1
+  remains **IN PROGRESS**; its persistence foundation is complete.
+
+## 2026-08-13 - Phase 13.16.1 durable model design complete
+
+- Completed the repository-backed design for durable Activity, Contribution,
+  WorkItem, Decision, Blocker, and HumanAction contracts, including authoritative
+  source boundaries, lifecycle, attribution, evidence, idempotency, ordering,
+  tenant isolation, retention, observatory aggregation, migration, backfill, API,
+  and test requirements.
+- Reuses `OrganizationalWorkItem` and `ExecutiveDecision`; preserves AgentRun,
+  execution attempts, organizational outputs, AuditLog, automation, validation, and
+  domain records in their existing authoritative roles. Agent success is Activity
+  only and can never automatically become a Contribution.
+- Phase 13.16.1 is **DESIGN COMPLETE / IMPLEMENTATION NOT STARTED**. This entry adds
+  documentation only: no runtime code, model, migration, API, worker, or UI behavior
+  changed. Phase 13.17 external-human acceptance remains required and Phase 14 stays
+  locked.
+
 ## 2026-08-13 - Phase 13.16.0 closed / pass
 
 - Closed Phase 13.16.0 with implementation **COMPLETE**, independent internal
