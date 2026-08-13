@@ -93,7 +93,7 @@ export function Sidebar({ health }: { health: HealthStatus | null }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <aside className="sidebar workspace-rail">
+    <aside id="workspace-navigation" className="sidebar workspace-rail" aria-label="Workspace navigation">
       <Link className="rail-brand" href="/" aria-label="GMAI operations home" data-label="GMAI">
         <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
           <path d="M8 11.5h16M8 20.5h16M11.5 8v16M20.5 8v16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />

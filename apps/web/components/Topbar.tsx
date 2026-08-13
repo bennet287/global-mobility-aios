@@ -18,9 +18,9 @@ export function Topbar({
         <h1>{title}</h1>
       </div>
       <div className="topbar-actions">
-        <span className={`workspace-state ${loadStatus}`}>
+        <span className={`workspace-state ${loadStatus}`} role="status" aria-live="polite">
           <i aria-hidden="true" />
-          {loadStatus === "ready" ? "Live workspace" : loadStatus}
+          {loadStatus === "ready" ? "Workspace ready" : loadStatus === "partial" ? "Needs attention" : loadStatus}
         </span>
         <button className="button secondary" type="button" onClick={onRefresh} disabled={loadStatus === "loading"}>
           {loadStatus === "loading" ? (

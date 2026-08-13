@@ -1,5 +1,130 @@
 # Changelog
 
+## 2026-08-13 - Phase 13.16.0 closed / pass
+
+- Closed Phase 13.16.0 with implementation **COMPLETE**, independent internal
+  rendered acceptance **PASS**, and overall state **CLOSED**. Phase 13.16.1 Durable
+  Contribution & Activity Model is **UNLOCKED / NOT STARTED**; Phase 13.17 genuine
+  external-human acceptance remains required and Phase 14 remains locked.
+- Accepted the Geist Sans and Geist Mono typography contract; shared typography,
+  spacing, surface, semantic-state, layout, shell, card, form, badge, table, empty,
+  loading, notice, and technical-provenance foundations; and the shared hierarchy
+  **decision/context → blockers → next actions → supporting evidence → technical
+  provenance** across Mobility User, Professional/Operator, and Owner/Board
+  presentation foundations.
+- Recorded `RV-01` through `RV-08` as **RESOLVED / PASS**: Eligibility hierarchy and
+  plain-language state, Board Room acronyms, Agent Console Leads, Validation checkbox,
+  Planning mobile summary/control, Agent Console mobile history/shell isolation, and
+  the duplicate `/icon.svg` conflict. The canonical App Router icon returns HTTP 200.
+- Recorded the final Planning country-ranking lookup defect as **RESOLVED / PASS**.
+  Planning had redundantly requested ranking history and the latest-record endpoint;
+  for a valid lead with zero rankings, the backend correctly returned 404 while the
+  handled request still produced a repeatable console error. Planning now derives the
+  optional latest ranking from `history[0]`, or `null` when history is empty, without
+  changing backend latest-record semantics.
+- Independent internal rendered verification passed the desktop surfaces; Eligibility,
+  Planning, and Agent Console at 390px; Eligibility and Planning dark themes; Board
+  acronyms; Validation control; Agent Console Leads and Recent agent runs; technical
+  provenance focus, Enter/Space activation, and identifier wrapping; narrow-surface
+  overflow checks; normal Agent Console console state; and the final Planning console
+  re-check.
+- Preserved Round 6 **PASS** and every safety boundary: Austria v4 remains draft,
+  unpublished, `simulation_candidate`, `INTERNAL_SIMULATION_ONLY`, production
+  recommendation false, simulation-only true, and publication-ready false. National
+  and regional occupation certifications remain `pending_review`; EUR 218, 14 evidence
+  gaps, the absent/blocking binding job offer, ambiguous occupation assessment,
+  insufficient regional information with unknown province, unresolved qualification
+  mapping, and required human review remain unchanged.
+- This closure records internal rendered acceptance only. It does not claim genuine
+  external-human validation or satisfy Phase 13.17.
+
+## 2026-08-13 - Phase 13.16.0 final Planning request correction
+
+- Classified the final Planning console 404 as a bounded client defect: the page
+  redundantly requested both the latest country ranking and the descending ranking
+  history when the Round 6 case legitimately had no ranking assessment.
+- Planning now derives the optional latest ranking from the already-requested history,
+  preserving empty-state behavior while avoiding the unnecessary expected-absence 404.
+- Added a deterministic source-contract check. Rendered acceptance remains pending
+  final confirmation; Phase 13.16.0 is not closed.
+
+## 2026-08-13 - Phase 13.16.0 final bounded rendered remediation
+
+- Remediated `13.16.0-RV-06` by giving the Planning profile, plan status, and consent
+  full-width mobile rows; retaining two-column compact metrics; restoring normal name
+  wrapping; and giving the internal/draft simulation checkbox a stable control column.
+- Remediated `13.16.0-RV-07` by fully hiding the closed off-canvas rail, removing the
+  mobile header's overlapping sticky layer, constraining Agent Console history rows to
+  the viewport, and reserving mobile workspace space for the floating chat control.
+- Remediated `13.16.0-RV-08` by removing the duplicate identical `public/icon.svg`;
+  the supported App Router `app/icon.svg` remains the branded first-party icon.
+- Extended the dependency-free foundation checks for Planning mobile structure,
+  mobile shell/history isolation, and App Router icon uniqueness. Final rendered
+  acceptance remains pending one independent spot check.
+
+## 2026-08-13 - Phase 13.16.0 desktop rendered-findings remediation
+
+- Recorded the successful clean-runtime desktop render and remediated findings
+  `13.16.0-RV-01` through `13.16.0-RV-05` without changing regulated behavior.
+- Moved Eligibility next actions directly after the primary blocker, moved the full
+  additional-gap inventory into supporting evidence, translated raw gap states into
+  plain mobility-user language, and retained raw values in Technical provenance.
+  National and regional pending-certification warnings remain visible in the primary
+  reading flow.
+- Restored conventional Board executive acronyms, introduced stable responsive
+  checkbox/avatar/content/status columns for Agent Console leads, and corrected the
+  Validation simulation checkbox selector and label/helper layout.
+- Added lightweight source-contract checks for ordering, plain-language state
+  presentation, executive acronyms, lead-row structure, and checkbox association.
+- Final rendered acceptance remains pending: the corrected desktop findings,
+  mobile/narrow layout, dark theme, keyboard focus/disclosure, identifier wrapping,
+  and persistent material warnings still require independent verification.
+
+## 2026-08-13 - Phase 13.16.0 design-system and information-architecture implementation
+
+- Implemented the Phase 13.16.0 presentation foundation with Geist Sans as the
+  product font and Geist Mono restricted to technical identifiers and code-like
+  provenance. No raw font binaries or component framework were added.
+- Added shared typography, spacing, container, grid, shape, elevation, focus, and
+  semantic state tokens across the existing light and dark themes.
+- Normalized the existing workspace shell, top bar, panels, buttons, badges,
+  notices, empty states, loading skeletons, form controls, and responsive table
+  behavior. Added a skip link, main landmark, accessible mobile-menu state,
+  Escape-to-close behavior, live status semantics, and reduced-motion support.
+- Added a reusable native `details`/`summary` technical-provenance disclosure with
+  copyable, wrapping Geist Mono identifiers. Material lifecycle, publication, and
+  pending-certification warnings remain visible outside the disclosure.
+- Reframed Eligibility around decision context, blockers, next actions, supporting
+  evidence, and technical provenance. The unchanged 35% and 60% values are labelled
+  as internal assessment signals and explicitly not approval probabilities.
+- Reframed Planning so production catalogue and internal simulation contexts are
+  visually distinct, an active simulation has a persistent accessible warning,
+  blockers/actions precede evidence inventories, and excluded routes are separated
+  from potential alternatives without changing their scores or exclusion logic.
+- Applied the shared foundation to Mobility Profiles, Eligibility, Planning,
+  Validation, Board Room, and Agent Console. Defined—but did not implement—the later
+  Mobility User, Professional/Operator, and Owner/Board application architectures in
+  [DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md).
+- Added four dependency-free design-foundation contract tests. The existing four
+  authenticated Eligibility request-client tests remain green, TypeScript validation
+  passes, and the 37-route Next.js production build passes.
+- Preserved authentication, CORS, API contracts, calculations, matching, evidence
+  gaps, fees, sources, snapshots, audit behavior, certification decisions, pathway
+  lifecycle, simulation authorization, and publication state. No backend, database,
+  or migration change was made.
+- Round 6 findings `R6-MU-01` through `R6-MU-04` and `R6-PRO-002` are addressed in
+  code with rendered verification pending. `R6-PRO-001` remains open until the
+  focused professional/operator rendered review occurs.
+- The first manual rendered attempt exposed mixed generated output after a
+  long-running Next.js development server shared `.next` with a production build:
+  Planning and Profiles returned server errors, while Eligibility referenced missing
+  CSS/core chunks. Clearing only `.next` and restarting the development server
+  restored all three routes and their referenced assets to HTTP 200. No application
+  source correction was required; rendered re-test remains required.
+- Phase 13.16.0 is **IMPLEMENTED / RENDERED ACCEPTANCE PENDING** and is not closed.
+  Phase 13.16.1 has not started; Phase 13.17 remains required and Phase 14 remains
+  locked.
+
 ## 2026-08-13 - Phase 13.15 Round 6 correctness disposition
 
 - Recorded **ROUND 6 CORRECTNESS DISPOSITION: PASS** for fresh synthetic case

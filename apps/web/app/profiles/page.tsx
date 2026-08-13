@@ -136,7 +136,7 @@ function SectionMarker({ number, title, detail }: { number: string; title: strin
   return (
     <div className="form-section-title">
       <span>{number}</span>
-      <div><strong>{title}</strong><small>{detail}</small></div>
+      <div><h3>{title}</h3><small>{detail}</small></div>
     </div>
   );
 }
@@ -281,7 +281,7 @@ export default function ProfilesPage() {
   return (
     <WorkspaceShell health={health}>
       <Topbar title="Mobility Profiles" kicker="Universal client facts" loadStatus={loadStatus} onRefresh={loadWorkspace} />
-      <div className="page-pad profiles-page">
+      <div className="page-pad profiles-page" aria-busy={loading}>
         {error && <InlineNotice label="Profile workspace error" detail={error} tone="bad" />}
         {message && <InlineNotice label="Profile version created" detail={message} tone="good" />}
 

@@ -280,7 +280,7 @@ export default function AutomationPage() {
           </form>
         </aside>
 
-        <main className="automation-stream">
+        <section className="automation-stream" aria-label="Automation activity">
           <section className="panel">
             <SectionTitle
               label="Delivery review"
@@ -347,7 +347,7 @@ export default function AutomationPage() {
               </div>
             </div>
           </section>
-        </main>
+        </section>
       </section>
     </WorkspaceShell>
   );

@@ -209,20 +209,21 @@ export default function AgentConsolePage() {
               {leads.map((lead) => (
                 <label key={lead.id} className="agent-lead-row">
                   <input
+                    className="agent-lead-select"
                     type="checkbox"
                     checked={selected.has(lead.id)}
                     onChange={() => toggleLead(lead.id)}
+                    aria-label={`Select ${lead.full_name}`}
                   />
-                  <span className="lead-identity">
-                    <span>{lead.full_name.charAt(0)}</span>
-                    <span>
-                      <strong>{lead.full_name}</strong>
-                      <small>
-                        {lead.email || "no email"} · {lead.target_country || "no country"} · {lead.intent}
-                      </small>
+                  <span className="agent-lead-avatar" aria-hidden="true">{lead.full_name.charAt(0)}</span>
+                  <span className="agent-lead-content">
+                    <strong className="agent-lead-name">{lead.full_name}</strong>
+                    <span className="agent-lead-meta">
+                      <small>{lead.email || "No email recorded"}</small>
+                      <small>{lead.target_country || "No target country"} · {titleCase(lead.intent)}</small>
                     </span>
                   </span>
-                  <StatusBadge value={lead.status} />
+                  <span className="agent-lead-status"><StatusBadge value={lead.status} /></span>
                 </label>
               ))}
             </div>
@@ -235,7 +236,7 @@ export default function AgentConsolePage() {
         {!dashboard || dashboard.items.length === 0 ? (
           <EmptyState title="No runs" detail="No agent runs yet." />
         ) : (
-          <div className="agent-runs-table">
+          <div className="agent-runs-table responsive-table-region" role="region" aria-label="Recent controlled-agent runs" tabIndex={0}>
             <div className="agent-runs-head">
               <span>Run</span>
               <span>Agent</span>
@@ -248,7 +249,7 @@ export default function AgentConsolePage() {
               <div key={run.id} className="agent-runs-row">
                 <span className="monospace">{run.id.slice(0, 8)}</span>
                 <span>{titleCase(run.agent_name)}</span>
-                <span>{run.lead_id ? run.lead_id.slice(0, 8) : "—"}</span>
+                <span className="technical-value">{run.lead_id ? run.lead_id.slice(0, 8) : "—"}</span>
                 <span>
                   <StatusBadge value={run.status} />
                 </span>

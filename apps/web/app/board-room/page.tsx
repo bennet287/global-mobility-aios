@@ -7,6 +7,14 @@ import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { BoardPacketSnapshot, decideBoardItem, getBoardPacket, updateOrganizationControl } from "../../lib/api";
+import { titleCase } from "../../lib/utils";
+
+const executiveAcronyms = new Set(["cco", "cfo", "clo", "cmo", "coo", "chro", "cpo", "ciso", "cto"]);
+
+function executivePositionLabel(positionKey: string): string {
+  const normalized = positionKey.toLowerCase();
+  return executiveAcronyms.has(normalized) ? normalized.toUpperCase() : titleCase(positionKey);
+}
 
 export default function BoardRoomPage() {
   const { health } = useBackendStatus();
@@ -88,7 +96,7 @@ export default function BoardRoomPage() {
       <div className="org-connector" />
       <div className="org-ceo-node"><span>Executive integrator</span><strong>CEO Agent</strong><small>L3 · reports to Board</small></div>
       <div className="org-executives">
-        {executives.map((position) => <article key={position.id}><span>{position.department}</span><strong>{position.position_key.toUpperCase()}</strong><small>{position.authority_level} · {position.role_card_name}</small></article>)}
+        {executives.map((position) => <article key={position.id}><span>{position.department}</span><strong>{executivePositionLabel(position.position_key)}</strong><small>{position.authority_level} · {position.role_card_name}</small></article>)}
       </div>
     </section>
 

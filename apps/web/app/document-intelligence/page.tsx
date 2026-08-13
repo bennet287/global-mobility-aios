@@ -315,7 +315,7 @@ export default function DocumentIntelligencePage() {
         </div>
 
         {!leadId ? <EmptyState title="No lead selected" detail="Choose a lead to inspect stored documents and extraction history." /> : <div className="document-intelligence-layout">
-          <main className="document-intelligence-main">
+          <section className="document-intelligence-main" aria-label="Document intelligence workspace">
             <section className="panel">
               <div className="document-jobs-heading"><SectionTitle label="Integrity indicators" title="Human-reviewed document risk queue" detail="Explainable, source-linked signals from immutable hashes and already-reviewed evidence" /><button className="button secondary" disabled={working === "fraud-risk-scan"} onClick={() => void scanFraudRisks()}>Scan now</button></div>
               <InlineNotice label="No fraud determination" detail="Indicators are triage signals only. The system cannot declare fraud, reject evidence, change eligibility, or initiate external action." tone="warn" />
@@ -398,7 +398,7 @@ export default function DocumentIntelligencePage() {
                 {assessment.reviewed_by && <small className="document-review-ledger">Reviewed by {assessment.reviewed_by} · {assessment.review_notes}</small>}
               </article>) : <EmptyState title="No consistency assessments" detail="Approve an extraction, then validate it against the current profile and application context." />}</div>
             </section>
-          </main>
+          </section>
           <aside className="panel document-schema-side"><SectionTitle label="Structured schemas" title="Published baseline" detail="Exact schema versions remain attached to every job" /><div>{schemas.map((schema) => <article key={schema.id}><div><strong>{titleCase(schema.document_type)}</strong><StatusBadge value={schema.lifecycle_status} /></div><p>{schema.schema_key} · version {schema.version_number}</p><small>{Object.keys((schema.json_schema.properties as Record<string, unknown>) || {}).length} structured fields · approved by {schema.approved_by}</small></article>)}</div><InlineNotice label="Verification boundary" detail="Approving extracted fields does not verify authenticity, eligibility, or consistency with profile facts." tone="warn" /><div className="planning-links"><Link className="button secondary" href={leadId ? `/leads/${leadId}` : "/"}>Open lead</Link><Link className="button secondary" href="/profiles">Open profile</Link></div></aside>
         </div>}
       </div>

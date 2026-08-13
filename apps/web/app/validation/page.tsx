@@ -283,9 +283,9 @@ export default function ExternalValidationPage() {
           <label>Lead UUID <input value={leadId} onChange={(event) => setLeadId(event.target.value)} placeholder="Operational/debug fallback" /></label>
         </details>
         <label>Pathway comparison UUID <input value={comparisonId} onChange={(event) => setComparisonId(event.target.value)} placeholder="Pinned comparison shown to testers" /></label>
-        <label className="profile-check">
-          <input type="checkbox" checked={includeDraftPathways} onChange={(event) => setIncludeDraftPathways(event.target.checked)} />
-          <span><strong>Simulate with internal/draft pathways</strong><small>Used for internal discovery only; external validation still requires published primary versions.</small></span>
+        <label className="profile-check validation-simulation-control">
+          <input type="checkbox" checked={includeDraftPathways} disabled={working} aria-describedby="validation-simulation-help" onChange={(event) => setIncludeDraftPathways(event.target.checked)} />
+          <span><strong>Simulate with internal/draft pathways</strong><small id="validation-simulation-help">Used for internal discovery only; external validation still requires published primary versions.</small></span>
         </label>
         <button className="button" disabled={working || !leadId.trim()} onClick={() => void generateDraftSimulationComparison()}>Generate draft-simulation comparison</button>
         <label>Founder interventions <input type="number" min="0" value={founderInterventions} onChange={(event) => setFounderInterventions(event.target.value)} /></label>
@@ -293,11 +293,11 @@ export default function ExternalValidationPage() {
       </div>
     </section>
 
-    <section className="validation-workspace">
+    <section className="validation-workspace" aria-busy={loading}>
       <aside className="panel validation-run-list">
         <header><div><span className="eyebrow">Runs</span><h3>Validation ledger</h3></div><strong>{runs.length}</strong></header>
         {!runs.length ? <div className="board-empty"><strong>No external runs yet</strong><span>Seed the Austria scenario and create one.</span></div> : runs.map((run) =>
-          <button key={run.id} className={selected?.id === run.id ? "active" : ""} onClick={() => setSelectedId(run.id)}>
+          <button key={run.id} className={selected?.id === run.id ? "active" : ""} aria-pressed={selected?.id === run.id} onClick={() => setSelectedId(run.id)}>
             <span>{run.scenario.jurisdiction_code} · {run.run_key}</span>
             <strong>{run.gate.status}</strong>
             <small>{run.reviews.length}/2 reviewers · {run.findings.length} findings</small>
@@ -329,7 +329,7 @@ export default function ExternalValidationPage() {
           <div className="validation-two-column">
             <section className="panel validation-evidence-panel">
               <header><div><span className="eyebrow">Provenance</span><h3>Evidence references</h3></div><strong>{selected.evidence.length}</strong></header>
-              {!selected.evidence.length ? <div className="board-empty"><strong>No evidence pinned</strong><span>Attach the actual Truth Engine, source, and pathway records used.</span></div> : selected.evidence.map((item) => <article key={item.id}><span>{item.evidence_type}</span><strong>{item.label}</strong><small>{item.entity_id || "operator note"}</small></article>)}
+              {!selected.evidence.length ? <div className="board-empty"><strong>No evidence pinned</strong><span>Attach the actual Truth Engine, source, and pathway records used.</span></div> : selected.evidence.map((item) => <article key={item.id}><span>{item.evidence_type}</span><strong>{item.label}</strong><small><code>{item.entity_id || "operator note"}</code></small></article>)}
             </section>
 
             <section className="panel validation-review-panel">

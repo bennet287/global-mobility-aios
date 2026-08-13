@@ -1,5 +1,5 @@
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`skeleton ${className}`} />;
+  return <div className={`skeleton ${className}`} aria-hidden="true" />;
 }
 
 export function MetricSkeleton() {

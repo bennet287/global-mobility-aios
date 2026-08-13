@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation unlocked | Board controls and bounded department runtimes are delivered; Phase 13.10.2.15 is closed after its rendered pass; the fresh Round 6 shadow-validation correctness disposition is PASS; Phase 13.16.0 is unlocked but not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is unlocked but not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -90,10 +90,10 @@ General Counsel and Public Policy / Compliance Lead specialists. Phase 13.15 is 
 validation programme and correctness gate: its historical Austria runbook remains
 useful operational evidence, and the fresh Round 6 mobility-user and professional
 shadow reviews produced a [PASS correctness disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md).
-Phase 13.16.0 is therefore unlocked and is the next slice, but it has not started.
-The Round 6 Medium/Low experience findings are formal Phase 13.16 inputs, not a
-Phase 13 closure. Genuine external-human acceptance remains Phase 13.17 after the
-shared experience layer is ready; the external-human gate remains held until then.
+Phase 13.16.0 is **CLOSED / PASS**: implementation is complete and independent
+internal rendered acceptance passed. Phase 13.16.1 is **UNLOCKED / NOT STARTED**.
+This closure does not satisfy genuine external-human acceptance, which remains Phase
+13.17 after the shared experience layer is ready; the external-human gate remains held.
 
 ## 3. Execution Order
 
@@ -107,10 +107,11 @@ release gate.
    separate mobility-user and professional shadow reviews found no Critical/High
    correctness issue and no unsupported legal certainty.
 3. **Phase 13.16.0 design-system and information-architecture foundation** —
-   **NEXT; UNLOCKED / NOT STARTED**. Establish the shared visual and experience
-   grammar first, using the Round 6 Medium/Low findings as formal inputs.
+   **CLOSED / PASS**. Implementation is complete and independent internal rendered
+   acceptance passed.
 4. **Phase 13.16.1 durable contribution and activity model** — establish the
    outcome-oriented source of truth before building observatory dashboards.
+   **UNLOCKED / NOT STARTED**.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
    owner observatory, department workspaces, dependencies, owner inbox, mobility-user
    and operator experiences, and consolidated evidence/provenance presentation.
@@ -709,9 +710,93 @@ both national/regional certifications remain `pending_review`.
 
 ### 13.16 Organization Observatory & Experience Layer
 
-**State: UNLOCKED / NOT STARTED.** The fresh Round 6 mobility-user and professional
-shadow reviews passed the correctness gate. Phase 13.16.0 is the next slice; this
-status does not start implementation or satisfy Phase 13.17 external-human acceptance.
+**State: IN PROGRESS — 13.16.0 CLOSED / PASS; 13.16.1 UNLOCKED / NOT STARTED.** The
+fresh Round 6 mobility-user and professional shadow reviews passed the correctness
+gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
+are complete. Phase 13.17 external-human acceptance is not satisfied.
+The first manual rendered attempt failed because a long-running Next.js development
+server was using `.next` while a production build replaced that generated output.
+A bounded cache clear and development-server restart restored the affected routes and
+assets; an independent rendered re-test is still required.
+The subsequent clean-runtime desktop review rendered successfully and identified
+`13.16.0-RV-01` through `13.16.0-RV-05`: Eligibility action ordering and plain-language
+gap presentation, conventional Board executive acronyms, Agent Console lead-row
+layout, and the Validation simulation checkbox. Bounded presentation remediation is
+implemented. Desktop re-test of those corrections plus mobile/narrow, dark-theme,
+keyboard/focus, provenance-disclosure, identifier-wrapping, and warning-visibility
+acceptance remain pending.
+The final bounded acceptance remediation also addresses `13.16.0-RV-06` through
+`13.16.0-RV-08`: the Planning mobile summary and simulation control now have explicit
+narrow-layout structure; the closed mobile rail and Agent Console run history are
+isolated from one another; and the duplicate `public/icon.svg` route conflict is
+removed in favor of the App Router icon. Independent re-inspection confirmed all
+eight rendered findings are resolved and pass.
+That spot check found one repeatable Planning console 404 from a redundant optional
+country-ranking `latest` lookup. The backend correctly represented the Round 6 case's
+absence of ranking assessments, but the page already fetched descending ranking
+history and could derive the latest item from it. The bounded client correction removes
+the duplicate lookup and retains an empty ranking state when history is empty. Final
+inspection confirmed the repeated console 404 is resolved without changing backend
+latest-record semantics.
+
+Phase 13.16.0 final disposition is **CLOSED / PASS**:
+
+- Implementation: **COMPLETE**.
+- Independent internal rendered acceptance: **PASS**.
+- Overall Phase 13.16.0 state: **CLOSED**.
+- Next slice: Phase 13.16.1 Durable Contribution & Activity Model — **UNLOCKED /
+  NOT STARTED**.
+- Phase 13.17 genuine external-human acceptance: **still required**.
+- Phase 14: **locked**.
+
+The accepted foundation establishes Geist Sans for product text, Geist Mono for
+technical values, shared typography, spacing, surfaces, semantic states, layouts,
+cards, forms, badges, tables, empty/loading states, inline notices, technical
+provenance disclosure, a consistent responsive workspace shell, and the hierarchy
+**decision/context → blockers → next actions → supporting evidence → technical
+provenance**. Mobility User, Professional/Operator, and Owner/Board presentation
+foundations now share this grammar while preserving governance and safety warnings.
+
+Rendered finding disposition:
+
+- `RV-01` Eligibility hierarchy — **RESOLVED / PASS**.
+- `RV-02` raw internal vocabulary in primary Eligibility presentation — **RESOLVED /
+  PASS**.
+- `RV-03` Board Room executive acronym casing — **RESOLVED / PASS**.
+- `RV-04` Agent Console lead layout — **RESOLVED / PASS**.
+- `RV-05` Validation checkbox layout — **RESOLVED / PASS**.
+- `RV-06` Planning mobile summary and simulation control — **RESOLVED / PASS**.
+- `RV-07` Agent Console mobile shell/history overlap — **RESOLVED / PASS**.
+- `RV-08` duplicate `/icon.svg` HTTP 500 — **RESOLVED / PASS**; `/icon.svg` returns
+  HTTP 200 from the canonical App Router asset.
+- Final Planning country-ranking lookup defect — **RESOLVED / PASS**. Planning no
+  longer redundantly requests both history and `/country-rankings/{lead_id}/latest`;
+  optional latest state is derived from `history[0]`, or `null` for empty history.
+
+Independent internal rendered acceptance matrix:
+
+| Surface or behavior | Result |
+|---|---|
+| Desktop acceptance surfaces | PASS |
+| Eligibility responsive at 390px | PASS |
+| Planning responsive at 390px | PASS |
+| Agent Console responsive at 390px | PASS |
+| Planning dark theme | PASS |
+| Eligibility dark theme | PASS |
+| Board Room acronyms | PASS |
+| Validation form control | PASS |
+| Agent Console Leads | PASS |
+| Agent Console Recent agent runs | PASS |
+| Technical provenance visible focus | PASS |
+| Technical provenance keyboard activation with Enter/Space | PASS |
+| Technical provenance identifier wrapping | PASS |
+| Page-level horizontal overflow in tested narrow surfaces | NONE / PASS |
+| `/icon.svg` | HTTP 200 / PASS |
+| Normal Agent Console console state | No errors / PASS |
+| Final Planning redundant country-ranking 404 | RESOLVED / PASS |
+
+This is internal rendered acceptance only. It is not genuine external-human
+acceptance and does not satisfy Phase 13.17.
 
 #### Canonical validation sequence from Round 6 onward
 
@@ -729,9 +814,10 @@ Round 6 independent professional shadow review  PASS / COMPLETE
 Round 6 correctness disposition                 PASS / CLOSED
                     ↓
 13.16.0 Design System & Information Architecture Foundation
-                                                 NEXT / UNLOCKED / NOT STARTED
+                                                     CLOSED / PASS
                     ↓
 13.16.1 Durable Contribution & Activity Model
+                                       UNLOCKED / NOT STARTED
                     ↓
 13.16.2-13.16.9 role-based experience and observatory delivery
                     ↓
@@ -759,7 +845,7 @@ certification remains approved.
 
 #### 13.16.0 Design System & Information Architecture Foundation
 
-**State: UNLOCKED / NOT STARTED — next Phase 13 slice after Round 6 PASS.** This
+**State: CLOSED / PASS — IMPLEMENTATION COMPLETE / RENDERED ACCEPTANCE PASS.** This
 foundation must be completed before Organization Observatory dashboard development.
 It addresses the typography, sizing, spacing, density, card, and information-hierarchy
 drift accumulated while backend and governance capabilities expanded. This is a
@@ -768,58 +854,70 @@ governance, lifecycle, certification, evidence, and non-reliance warning.
 
 Round 6 supplies these formal acceptance inputs:
 
-- [ ] Clarify that the 35% overall score and 60% confidence are decision-support
-  signals, not approval probabilities (`R6-MU-01`, Medium).
-- [ ] Create a plain-language hierarchy for draft, simulation, certification, and
-  publication state without weakening any warning (`R6-MU-02`, Medium).
-- [ ] Separate internal simulation behavior from production availability around the
-  draft toggle and published-only messaging (`R6-MU-03`, Low).
-- [ ] Prioritize the binding job-offer blocker and next actions before the long
-  document inventory (`R6-MU-04`, Low).
-- [ ] Include a focused professional rendered check during experience acceptance
-  (`R6-PRO-001`, Low operational-evidence finding).
-- [ ] Separate excluded self-employment from plausible alternative routes, or rename
-  that presentation so exclusion cannot imply plausibility (`R6-PRO-002`, Low).
+- [x] Clarify that the 35% overall score and 60% confidence are internal assessment
+  signals, not approval probabilities (`R6-MU-01`, Medium); rendered verification
+  passed.
+- [x] Create a plain-language hierarchy for draft, simulation, certification, and
+  publication state without weakening any warning (`R6-MU-02`, Medium); rendered
+  verification passed.
+- [x] Separate internal simulation behavior from production availability around the
+  draft toggle and published-only messaging (`R6-MU-03`, Low); rendered verification
+  passed.
+- [x] Prioritize the binding job-offer blocker and next actions before the long
+  document inventory (`R6-MU-04`, Low); rendered verification passed.
+- [x] Include a focused professional rendered check during experience acceptance
+  (`R6-PRO-001`, Low operational-evidence finding); rendered verification passed.
+- [x] Separate excluded self-employment from plausible alternative routes and retain
+  it under explicitly excluded assessed routes (`R6-PRO-002`, Low); rendered
+  verification passed.
 
-- [ ] Adopt Geist Sans as the primary product typeface. Restrict Geist Mono to
+- [x] Adopt Geist Sans as the primary product typeface. Restrict Geist Mono to
   technical identifiers, hashes, audit IDs, source IDs, and code-like values.
-- [ ] Define shared typography tokens for page titles, section titles, card titles,
+- [x] Define shared typography tokens for page titles, section titles, card titles,
   body copy, secondary copy, labels, statuses, and technical metadata. Remove
   excessive uppercase styling and labels rendered at microscopic sizes.
-- [ ] Establish project-wide layout and component foundations for spacing, responsive
+- [x] Establish project-wide layout and component foundations for spacing, responsive
   container widths, cards, form controls, badges, tables, empty states, loading states,
   and error states.
-- [ ] Apply one primary information hierarchy across decision workspaces:
+- [x] Apply one primary information hierarchy across decision workspaces:
   **decision/context → blockers → next actions → supporting evidence → technical
   provenance**.
-- [ ] Keep raw UUIDs, hashes, source identifiers, and audit metadata out of dominant
+- [x] Keep raw UUIDs, hashes, source identifiers, and audit metadata out of dominant
   primary-screen positions when they are not the user's immediate task. Preserve
   access to them in appropriately labelled expandable technical details.
 - [ ] Refactor Mobility Profiles, Eligibility, Planning, Validation, Board Room,
   Agent Console, department views, and the remaining operator pages onto the shared
-  tokens, components, density rules, and hierarchy.
-- [ ] Define distinct but visually related information architectures for the
+  tokens, components, density rules, and hierarchy. The shared foundation and six
+  critical routes are implemented; full later-role experience work remains deferred.
+- [x] Define distinct but visually related information architectures for the
   **Mobility User**, **Professional/Operator**, and **Owner/Board** experiences, with
   role-appropriate navigation, disclosure depth, terminology, and decision emphasis.
-- [ ] Preserve material governance and safety content in every experience. Improve
+- [x] Preserve material governance and safety content in every experience. Improve
   its prioritization, grouping, progressive disclosure, and readability without
   hiding warnings or weakening certification, draft/production, evidence, or human-
   review boundaries.
 - [ ] Meet responsive acceptance criteria across small mobile, tablet, standard
   desktop, and wide desktop layouts: no clipped actions or critical content, no
   horizontal page overflow, usable tables or responsive alternatives, stable reading
-  order, and task controls reachable without precision interaction.
+  order, and task controls reachable without precision interaction. Responsive code
+  is implemented; the Phase 13.16.0 desktop and 390px acceptance surfaces pass, while
+  broader cross-role integrated acceptance remains scheduled for Phase 13.16.10.
 - [ ] Meet accessibility acceptance criteria: semantic landmarks and heading order,
   full keyboard operation, visible focus, labelled controls, non-color-only states,
   sufficient text and UI contrast, scalable text, reduced-motion support, accessible
   validation/error announcements, and screen-reader names for disclosure controls.
+  The code foundation and bounded keyboard/focus/provenance checks pass; broader
+  assistive and cross-role review remains scheduled for Phase 13.16.10.
 - [ ] Add representative rendered/regression coverage for shared foundations and the
   three experience architectures, then complete mobility-user, professional/operator,
   and owner/board review before unlocking Organization Observatory dashboards.
+  Deterministic foundation checks and the Phase 13.16.0 internal rendered review pass;
+  broader experience-architecture coverage remains scheduled for later slices.
 
-Phase 13.10.2.15 closure and the Round 6 disposition did not start this work. Round 6
-confirmed that the decision pipeline is correct enough to proceed, so the
-implementation gate is open and 13.16.0 remains the next unstarted slice.
+The implementation is documented in
+[DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md).
+Automated checks and independent internal rendered inspection pass. Phase 13.16.0 is
+closed; Phase 13.16.1 is unlocked but has not started.
 
 #### 13.16 delivery sequence
 

@@ -162,7 +162,7 @@ export function ScenarioWorkspace({ leadId }: { leadId: string }) {
       </div>
       <InlineNotice label="Non-guarantee boundary" detail={scenario.warning} tone="warn" />
       <div className="scenario-layout">
-        <main className="scenario-stage-list">
+        <section className="scenario-stage-list" aria-label="Scenario stages">
           <section className="panel scenario-heading">
             <SectionTitle label="Human-confirmed scenario" title={scenario.title} detail={`Profile v${scenario.profile_version || "—"} · reviewed by ${scenario.reviewed_by}`} />
             <StatusBadge value={scenario.status} />
@@ -175,7 +175,7 @@ export function ScenarioWorkspace({ leadId }: { leadId: string }) {
               <div className="scenario-stage-badges"><span>{titleCase(stage.domain)}</span><span>Pathway {stage.pathway_version_id.slice(0, 8)}</span><span>{stage.verified_rule_ids.length} reviewed rule(s)</span><span>Human confirmation required</span></div>
             </div>
           </article>)}
-        </main>
+        </section>
         <aside className="panel scenario-history">
           <SectionTitle label="Immutable versions" title="Scenario history" detail="Recalculation creates a new version and never rewrites earlier dates or evidence." />
           {scenarios.map((row) => <button className={row.id === scenario.id ? "active" : ""} onClick={() => setScenario(row)} key={row.id}><strong>v{row.scenario_version} · {row.title}</strong><span>{new Date(row.created_at).toLocaleString()} · {row.countries.join(" → ")}</span></button>)}

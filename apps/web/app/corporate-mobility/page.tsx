@@ -406,7 +406,7 @@ export default function CorporateMobilityPage() {
           </form>
         </aside>
 
-        <main className="panel corporate-case-panel">
+        <section className="panel corporate-case-panel" aria-label="Corporate mobility case">
           <div className="panel-header-row">
             <SectionTitle
               label="Relocation ledger"
@@ -559,7 +559,7 @@ export default function CorporateMobilityPage() {
               ) : null}
             </section>
           ) : null}
-        </main>
+        </section>
       </section>
     </WorkspaceShell>
   );

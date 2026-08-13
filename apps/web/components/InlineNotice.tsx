@@ -2,7 +2,7 @@ import { Tone } from "../lib/utils";
 
 export function InlineNotice({ label, detail, tone = "warn" }: { label: string; detail: string; tone?: Tone }) {
   return (
-    <div className={`inline-notice ${tone}`}>
+    <div className={`inline-notice ${tone}`} role={tone === "bad" ? "alert" : "status"} aria-live={tone === "bad" ? "assertive" : "polite"}>
       <strong>{label}</strong>
       <span>{detail}</span>
     </div>
