@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Correctness-to-experience gate active | Board controls and bounded department runtimes are delivered; Phase 13.10.2.15 is closed after its rendered pass; a fresh Round 6 shadow-validation correctness disposition is the next gate before Phase 13.16; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation unlocked | Board controls and bounded department runtimes are delivered; Phase 13.10.2.15 is closed after its rendered pass; the fresh Round 6 shadow-validation correctness disposition is PASS; Phase 13.16.0 is unlocked but not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -86,13 +86,14 @@ Financial Analyst and Accounting Lead specialists. Phase 13.12 adds the bounded
 Communications/CCO runtime with PR / Communications Lead and Government Relations Lead
 specialists. Phase 13.13 adds the bounded People/CHRO runtime with HR Lead and Culture /
 Recruitment Lead specialists. Phase 13.14 adds the bounded Legal/CLO runtime with
-General Counsel and Public Policy / Compliance Lead specialists. Phase 13.15 is now
-the validation programme and correctness gate: its historical Austria runbook remains
-useful operational evidence, but the next action is a fresh Round 6 mobility-user and
-professional shadow review after the Phase 13.10.2.15 rendered pass. A good-enough
-Round 6 correctness disposition unlocks Phase 13.16, not Phase 13 closure. Genuine
-external-human acceptance moves to Phase 13.17 after the shared experience layer is
-ready; the external-human gate remains held until then.
+General Counsel and Public Policy / Compliance Lead specialists. Phase 13.15 is the
+validation programme and correctness gate: its historical Austria runbook remains
+useful operational evidence, and the fresh Round 6 mobility-user and professional
+shadow reviews produced a [PASS correctness disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md).
+Phase 13.16.0 is therefore unlocked and is the next slice, but it has not started.
+The Round 6 Medium/Low experience findings are formal Phase 13.16 inputs, not a
+Phase 13 closure. Genuine external-human acceptance remains Phase 13.17 after the
+shared experience layer is ready; the external-human gate remains held until then.
 
 ## 3. Execution Order
 
@@ -102,12 +103,12 @@ release gate.
 1. **Phase 10B evidence operations** — continue independently reviewed
    jurisdiction onboarding without claiming global completeness; this may proceed
    operationally without weakening the active product-validation gates.
-2. **Phase 13.15 / Round 6 correctness disposition** — run one fresh comparable
-   mobility-user shadow review and one fresh professional shadow review. Do not mix
-   implementation or remediation inspection into either review session.
-3. **Phase 13.16.0 design-system and information-architecture foundation** — begin
-   only if Round 6 has no Critical/High correctness finding or unsupported legal
-   certainty. Establish the shared visual and experience grammar first.
+2. **Phase 13.15 / Round 6 correctness disposition** — **COMPLETE / PASS**. The
+   separate mobility-user and professional shadow reviews found no Critical/High
+   correctness issue and no unsupported legal certainty.
+3. **Phase 13.16.0 design-system and information-architecture foundation** —
+   **NEXT; UNLOCKED / NOT STARTED**. Establish the shared visual and experience
+   grammar first, using the Round 6 Medium/Low findings as formal inputs.
 4. **Phase 13.16.1 durable contribution and activity model** — establish the
    outcome-oriented source of truth before building observatory dashboards.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
@@ -628,10 +629,11 @@ rendered evidence-gap/profile provenance could diverge from the canonical respon
   states are confirmed in the persistent PostgreSQL environment.
 - [ ] Complete the focused rendered smoke. Both frontend routes return HTTP 200, but
   this session exposed no browser surface for visual/interactive inspection.
-- [ ] Execute a fresh case-specific Round 6 mobility-user shadow review followed by
-  a separate professional shadow review and correctness disposition. Phase 13.16
-  remains paused; source certification, publication, and broader redesign remain
-  outside this slice.
+- [x] Execute a fresh case-specific Round 6 mobility-user shadow review followed by
+  a separate professional shadow review and record the
+  [PASS correctness disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md).
+  Phase 13.16.0 is unlocked but not started; source certification and publication
+  remain outside this slice.
 
 ### 13.10.2.15 Eligibility preview consistency
 
@@ -707,8 +709,9 @@ both national/regional certifications remain `pending_review`.
 
 ### 13.16 Organization Observatory & Experience Layer
 
-**State: PAUSED.** The track remains gated until the fresh Round 6 mobility-user and
-professional correctness evidence is evaluated.
+**State: UNLOCKED / NOT STARTED.** The fresh Round 6 mobility-user and professional
+shadow reviews passed the correctness gate. Phase 13.16.0 is the next slice; this
+status does not start implementation or satisfy Phase 13.17 external-human acceptance.
 
 #### Canonical validation sequence from Round 6 onward
 
@@ -719,15 +722,14 @@ track. Those references remain historical evidence; they are not the current pla
 ```text
 Phase 13.10.2.15 rendered gate                 PASS / CLOSED
                     ↓
-Round 6 mobility-user shadow review             NEXT
+Round 6 mobility-user shadow review             PASS / COMPLETE
                     ↓
-Round 6 independent professional shadow review  NEXT
+Round 6 independent professional shadow review  PASS / COMPLETE
                     ↓
-Round 6 correctness disposition
-  ├─ correctness gate fails → bounded 13.10.2.x correction + fresh round
-  └─ correctness gate passes → unlock Phase 13.16.0
+Round 6 correctness disposition                 PASS / CLOSED
                     ↓
 13.16.0 Design System & Information Architecture Foundation
+                                                 NEXT / UNLOCKED / NOT STARTED
                     ↓
 13.16.1 Durable Contribution & Activity Model
                     ↓
@@ -740,29 +742,44 @@ Round 6 correctness disposition
 Phase 14 only when Phase 13 acceptance and measured scale demand justify it
 ```
 
-Round 6 is a clean correctness gate, not genuine external-human acceptance. Use the
-same comparable Austria skilled-employment persona in a fresh synthetic case for the
-mobility-user session, then conduct a separate professional shadow session. Round 6
-passes the correctness gate only when there are no Critical or High correctness
-findings, unsupported legal certainty is zero, the candidate family and occupation
-conditionality are safe, material gaps and costs are credible, lifecycle/certification
-state is accurate, the production/draft boundary is intact, and material conclusions
-remain traceable. Pending review is not itself broken traceability when the evidence
-chain is complete and the pending decision is accurately exposed.
+Round 6 was a clean correctness gate, not genuine external-human acceptance. The
+same comparable Austria skilled-employment persona was used in a fresh synthetic case
+for a mobility-user session and a separate professional shadow session. The
+[deterministic disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md) records zero
+Critical/High correctness findings and zero unsupported legal certainty, with safe
+candidate-family and occupation conditionality, credible material gaps and costs,
+accurate lifecycle/certification state, an intact production/draft boundary, and
+traceable material conclusions.
 
-Medium/Low experience findings do not automatically block Phase 13.16; they become
-prioritized inputs to the experience track. Critical/High correctness findings return
-to a bounded decision-pipeline correction and require another fresh validation round.
-Neither outcome authorizes certification approval or Austria v4 publication.
+The Medium/Low experience findings are prioritized inputs to the experience track.
+This PASS does not authorize certification approval or Austria v4 publication: v4
+remains draft, unpublished, and not publication-ready; the national and regional
+occupation certifications remain `pending_review`, while the distinct core pathway
+certification remains approved.
 
 #### 13.16.0 Design System & Information Architecture Foundation
 
-**State: NOT STARTED — mandatory first Phase 13.16 slice after Round 6.** This
+**State: UNLOCKED / NOT STARTED — next Phase 13 slice after Round 6 PASS.** This
 foundation must be completed before Organization Observatory dashboard development.
 It addresses the typography, sizing, spacing, density, card, and information-hierarchy
 drift accumulated while backend and governance capabilities expanded. This is a
 presentation and interaction-system refactor: it must preserve every material safety,
 governance, lifecycle, certification, evidence, and non-reliance warning.
+
+Round 6 supplies these formal acceptance inputs:
+
+- [ ] Clarify that the 35% overall score and 60% confidence are decision-support
+  signals, not approval probabilities (`R6-MU-01`, Medium).
+- [ ] Create a plain-language hierarchy for draft, simulation, certification, and
+  publication state without weakening any warning (`R6-MU-02`, Medium).
+- [ ] Separate internal simulation behavior from production availability around the
+  draft toggle and published-only messaging (`R6-MU-03`, Low).
+- [ ] Prioritize the binding job-offer blocker and next actions before the long
+  document inventory (`R6-MU-04`, Low).
+- [ ] Include a focused professional rendered check during experience acceptance
+  (`R6-PRO-001`, Low operational-evidence finding).
+- [ ] Separate excluded self-employment from plausible alternative routes, or rename
+  that presentation so exclusion cannot imply plausibility (`R6-PRO-002`, Low).
 
 - [ ] Adopt Geist Sans as the primary product typeface. Restrict Geist Mono to
   technical identifiers, hashes, audit IDs, source IDs, and code-like values.
@@ -800,9 +817,9 @@ governance, lifecycle, certification, evidence, and non-reliance warning.
   three experience architectures, then complete mobility-user, professional/operator,
   and owner/board review before unlocking Organization Observatory dashboards.
 
-Phase 13.10.2.15 closure did not start this work. Its implementation gate opens only
-after the fresh Round 6 disposition confirms that the decision pipeline is correct
-enough to proceed.
+Phase 13.10.2.15 closure and the Round 6 disposition did not start this work. Round 6
+confirmed that the decision pipeline is correct enough to proceed, so the
+implementation gate is open and 13.16.0 remains the next unstarted slice.
 
 #### 13.16 delivery sequence
 
@@ -948,8 +965,9 @@ After the first organization flow and Board Room pass their release gates, and a
 - [x] Evidence-complete internal L3 Finance work resolves through a distinct
   CEO decision receipt that consults the CFO, without authorizing funds movement,
   pricing changes, spend commitments, contracts, or interrupting the Board.
-- [ ] Round 6 confirms the current Austria decision pipeline has no Critical/High
-  correctness finding or unsupported legal certainty before experience work begins.
+- [x] Round 6 confirms the current Austria decision pipeline has no Critical/High
+  correctness finding and no unsupported legal certainty; Phase 13.16.0 is unlocked
+  but not started.
 - [ ] Phase 13.16 delivers the shared design/IA foundation, authoritative contribution
   model, role-based experiences, Organization Observatory, and integrated responsive/
   accessibility acceptance without weakening governance or evidence boundaries.
@@ -1607,37 +1625,44 @@ e  review, monitoring, or data expansion continues.
 
 The original Phase 13.15 plan described the first external-human operational run.
 Subsequent shadow rounds exposed and corrected the Austria decision pipeline through
-Phase 13.10.2.15. The current Phase 13.15 task is therefore a fresh Round 6 correctness
-disposition before experience-layer work. Genuine external-human acceptance is Phase
-13.17 and must not be claimed from shadow sessions.
+Phase 13.10.2.15.
+
+**Status: COMPLETE — ROUND 6 CORRECTNESS DISPOSITION: PASS.** The fresh Round 6
+shadow reviews found zero Critical/High correctness findings and zero unsupported
+legal certainty. Phase 13.16.0 is unlocked but not started. Genuine external-human
+acceptance is Phase 13.17 and must not be claimed from these shadow sessions.
 
 - [x] Deliver and regression-test the versioned validation scenario/run/review/finding
   framework, deterministic gate, and operator workspace.
 - [x] Preserve all earlier shadow-round findings, remediation history, comparisons,
   and audit evidence without rewriting prior assessments.
 - [x] Close Phase 13.10.2.15 after the rendered Eligibility and Planning gate passes.
-- [ ] Create one fresh synthetic Austria skilled-employment case for the Round 6
+- [x] Create one fresh synthetic Austria skilled-employment case for the Round 6
   mobility-user shadow session; do not reuse the engineering-history-heavy Round 5 case.
-- [ ] Use the comparable persona: India to Austria, skilled employment, Software
+- [x] Use the comparable persona: India to Austria, skilled employment, Software
   Engineer, four years' experience, no Austrian job offer, qualification recognition
   unknown, German A2, and province unknown.
-- [ ] Conduct a separate fresh professional shadow review against the resulting case
+- [x] Conduct a separate fresh professional shadow review against the resulting case
   and assess legal certainty, traceability, lifecycle, and decision integrity.
-- [ ] Categorize findings as correctness, experience/presentation, or operational
+- [x] Categorize findings as correctness, experience/presentation, or operational
   evidence so UX debt does not obscure correctness and vice versa.
-- [ ] Require zero Critical/High correctness findings and zero unsupported legal
+- [x] Confirm zero Critical/High correctness findings and zero unsupported legal
   certainty before unlocking Phase 13.16.0. Confirm candidate family, occupation
   conditionality, material gaps, costs, lifecycle/certification state, production/draft
   boundary, and material traceability are safe.
-- [ ] If the correctness gate fails, open only the bounded correction needed and run
-  another fresh numbered validation round. Do not begin Phase 13.16.
-- [ ] If the correctness gate passes, record the Round 6 disposition and unlock
-  Phase 13.16.0. Medium/Low UX findings become inputs to Phase 13.16 rather than an
-  automatic correctness veto.
+- [ ] If a future correctness gate fails, open only the bounded correction needed
+  and run another fresh numbered validation round. Do not begin gated experience
+  work on a failed correctness result. This conditional branch was not triggered
+  by Round 6.
+- [x] Record the
+  [Round 6 PASS disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md) and unlock
+  Phase 13.16.0 without starting it. Medium/Low experience findings are formal
+  Phase 13.16 inputs rather than an automatic correctness veto.
 
 #### Phase 13.15 retained operational assets
 
 - Historical runbook: [EXTERNAL_VALIDATION_RUNBOOK_V13_15.md](EXTERNAL_VALIDATION_RUNBOOK_V13_15.md)
+- Round 6 disposition: [ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md)
 - Scenario fixture: `apps/api/validation/scenarios/austria_skilled_worker_v1.json`
 - Validation workspace: `/validation`
 - Gate evaluation endpoint: `POST /api/v1/external-validation/runs/{run_id}/evaluate`

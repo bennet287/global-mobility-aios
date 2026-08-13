@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-08-13 - Phase 13.15 Round 6 correctness disposition
+
+- Recorded **ROUND 6 CORRECTNESS DISPOSITION: PASS** for fresh synthetic case
+  `AT-1D68AB41` on branch `roadmap/global-mobility-aios-v11` at baseline
+  `dc22e7b2db4343bfaad702ebf53a2f9e5946e968`.
+- Completed separate internal mobility-user and professional shadow reviews for the
+  comparable India-to-Austria skilled-employment persona. These sessions are not
+  genuine external-human acceptance and do not satisfy Phase 13.17.
+- The mobility-user result is **PASS WITH MEDIUM/LOW EXPERIENCE FINDINGS**. The
+  professional result is **PASS WITH MEDIUM/LOW FINDINGS**, with all 21 professional
+  matrix checks passing.
+- Confirmed zero Critical findings, zero High findings, and zero unsupported legal
+  certainty. Candidate-family isolation, national/regional occupation
+  conditionality, material blockers and costs, lifecycle/certification state,
+  production/draft separation, and material traceability all pass the gate.
+- Preserved the material decision state: Austria pathway v4 is `draft` and
+  `simulation_candidate`, `INTERNAL_SIMULATION_ONLY`, production `false`, simulation
+  `true`, and publication readiness `false`; the EUR 218 fee is retained and total
+  cost remains `not_established`.
+- Preserved `AMBIGUOUS` overall/national occupation results,
+  `INSUFFICIENT_INFORMATION` regional status with province unset, `UNRESOLVED`
+  qualification recognition, the `ABSENT` binding job offer, 14 canonical evidence
+  gaps, four next actions, and the explicit non-eligibility boundary.
+- Confirmed that excluded self-employment contributes no projected cost, obsolete
+  optional-job-offer wording is absent, and the incorrect EUR 21,800 display is
+  absent.
+- Preserved the certification boundary: the distinct core pathway certification
+  remains `approved`. The 2026 national and regional occupation certifications
+  remained `pending_review` and were not approved or modified during Round 6.
+- Carried `R6-MU-01` and `R6-MU-02` (Medium), `R6-MU-03` and `R6-MU-04` (Low), and
+  `R6-PRO-001` and `R6-PRO-002` (Low) forward as formal Phase 13.16 experience and
+  operational-evidence inputs.
+- Added the complete pinned case, profile, comparison, pathway, rule, source,
+  snapshot, hash, certification, gate, and finding record in
+  [ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md).
+- Marked Phase 13.15 Round 6 complete and Phase 13.16.0 **UNLOCKED / NOT STARTED**.
+  Phase 13 remains open, Phase 13.17 genuine external-human acceptance remains
+  mandatory, and Phase 14 remains locked.
+- This was a documentation-only disposition. It did not modify runtime code, database
+  state, the external-validation ledger, assessments, certifications, or publication
+  state, and it did not start Phase 13.16 implementation.
+
 ## 2026-08-13 - Phase 13.10.2.15 eligibility preview consistency
 
 - Corrected the eligibility candidate-contribution boundary so excluded or
