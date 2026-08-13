@@ -1,20 +1,36 @@
 # Phase 13.16.1 Durable Contribution and Activity Model
 
-**Phase status:** IMPLEMENTATION IN PROGRESS — DESIGN AND PERSISTENCE FOUNDATION COMPLETE
+**Phase status:** IMPLEMENTATION IN PROGRESS — DESIGN, 13.16.1A PERSISTENCE, AND
+13.16.1B COMMAND/SERVICE LAYER COMPLETE
 
 **Design baseline:** `409b8953290a0286a99fde3c760dce569fb3878b`
 
 **Current migration head:** `0074_durable_contribution_activity_model`
 
-**Scope:** authoritative design plus the completed 13.16.1A durable persistence slice
+**Scope:** authoritative design plus completed 13.16.1A persistence and 13.16.1B
+internal command/service slices
 
 ## 1. Purpose and invariant
 
 Phase 13.16.1 defines the durable data boundary required before the Organization
 Observatory, department workspaces, dependency views, or owner inbox can report
-organizational performance. Slice 13.16.1A now implements models and migration `0074`;
-it does not implement services, routes, workers, contribution emitters, read models,
-or UI.
+organizational performance. Slice 13.16.1A implements models and migration `0074`.
+Slice 13.16.1B implements the internal, HTTP-independent command boundary. No REST
+routes, real domain Contribution emitters, Observatory/read model, workflow changes,
+or UI are implemented yet.
+
+The 13.16.1B authority policy is deliberately narrow. A terminal, attributed
+`ExecutiveDecision` in `approved` or `rejected` state is the only currently enabled
+source for a validated `AuthoritativeOutcomeDescriptor`. Agent/workflow execution,
+tool/LLM calls, AuditLog, retries, messages, and UI interaction are explicitly
+rejected as Contribution authority. Plausible domain records remain disabled until
+their individual adapters receive review.
+
+`HumanAction` requires an authenticated internal `human` whose actor ID matches the
+authenticated user. The separate `external_human` identity does not qualify in this
+slice: the repository has no authenticated external-human attestation contract, and
+the 0074 database constraint permits only `human`. Phase 13.17 remains the required
+acceptance boundary for genuine external-human behavior.
 
 The governing invariant is:
 
@@ -610,13 +626,21 @@ responses avoid leaking raw JSON strings.
 
 ## 17. Implementation integration points
 
-Implemented in slice 13.16.1A: domain models and migration `0074`. Future bounded
-changes: dedicated schemas/service/
-router; same-transaction emissions from organization transitions; Activity-only agent
-and worker completion; automation transition Activity and explicit later adapters;
-Board/read-model aggregation; policy, migration, dialect, service, API, auth,
-concurrency, and source-contract tests. No domain service changes authoritative state
-merely to populate an observatory.
+Implemented in slice 13.16.1A: domain models and migration `0074`.
+
+Implemented in slice 13.16.1B: bounded command context and HTTP-independent errors;
+canonical SHA-256 fingerprints and replay/conflict handling; tenant-scoped Activity,
+Contribution, WorkItem, dependency, Blocker, HumanActionRequest, HumanAction,
+ExecutiveDecision, and heterogeneous reference services; explicit transition
+matrices; PostgreSQL stream-row locking and database uniqueness fences; validated
+source descriptors; human/authority checks; and same-transaction AuditLog writes.
+SQLite and isolated PostgreSQL service tests cover the command contract and rollback
+atomicity.
+
+Future bounded changes: internal Activity integration at existing command boundaries;
+reviewed real domain Contribution adapters; REST schemas/routes; and Observatory/read
+aggregation. No existing domain workflow was changed merely to populate the new
+ledgers, and no generic execution path imports the Contribution writer.
 
 ## 18. Test matrix
 
@@ -693,19 +717,18 @@ inbox UI (13.16.6), Mobility User redesign (13.16.7), Professional redesign
 (13.16.8), evidence UX consolidation (13.16.9), final responsive/accessibility polish
 (13.16.10), Phase 13.17 external-human acceptance, or Phase 14 infrastructure.
 
-Slice 13.16.1A creates only registered persistence models and migration `0074`. It does
-not create routes, services, workers, emitters, read-model code, dashboards, semantic
-database rows, backfill output, new departments, or claims of overall phase
+Slices 13.16.1A and 13.16.1B create registered persistence plus the internal service
+contract. They do not create routes, workers, real emitters, read-model code,
+dashboards, semantic backfill output, new departments, or claims of overall phase
 completion.
 
 ## 23. Readiness and recommendation
 
-The design and durable persistence foundation are complete: semantic boundaries,
-relationships, source rules, lifecycle, idempotency, ordering, authorization,
-retention, migration, API direction, aggregation, backfill, and tests remain fixed
-before dashboard work.
+The design, durable persistence foundation, and bounded internal command/service
+layer are complete. Organization REST APIs, real Contribution emitters, and the
+Observatory/read model are **NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
 
-Recommended next step: implement the bounded Phase 13.16.1 service/API layer and
-explicit authoritative adapters. Do not start
-Phase 13.16.2 or any observatory dashboard until the contribution gate and aggregate
-reconciliation tests pass on SQLite and PostgreSQL.
+Recommended next step: review this service contract, then implement the separately
+bounded API and emitter layer. Do not start Phase 13.16.2 or any Observatory dashboard
+until real contribution adapters and aggregate reconciliation pass on SQLite and
+PostgreSQL.

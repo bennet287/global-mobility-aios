@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with its persistence foundation complete and service/API integration not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, and 13.16.1B command/service layer complete; REST APIs, real emitters, and the Observatory/read model are not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -65,7 +65,9 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: code, fresh SQLite, and isolated fresh PostgreSQL migration cycles are verified at `0074_durable_contribution_activity_model`; the preserved PostgreSQL environment remains intentionally unchanged at `0073_austria_candidate_integrity`.
 - Docker production-profile validation: passing.
-- API regression baseline: **672 passed, 0 failed** with the Phase 13.16.1A persistence foundation; the closed Phase 13.10.2.15 eligibility-preview and authenticated CORS gates pass.
+- API regression baseline: **697 passed, 1 PostgreSQL-only test skipped, 0 failed**
+  with the Phase 13.16.1B command/service layer; the same focused service file passes
+  **26/26** against an isolated PostgreSQL database at migration `0074`.
 - SQLite migration compatibility: **passing through current migration head `0074_durable_contribution_activity_model`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - PostgreSQL: the isolated fresh database passes the full chain and `0074 -> 0073 -> 0074` cycle with empty new ledgers; the preserved Docker database remains **passing and untouched at `0073_austria_candidate_integrity`** with the immutable Austria v4 draft unchanged.
 - Local quality gate: compilation, evidence-pack validation, repository policy,
@@ -714,8 +716,9 @@ both national/regional certifications remain `pending_review`.
 
 ### 13.16 Organization Observatory & Experience Layer
 
-**State: IN PROGRESS — 13.16.0 CLOSED / PASS; 13.16.1 PERSISTENCE FOUNDATION
-COMPLETE / SERVICE AND API INTEGRATION NOT STARTED.** The
+**State: IN PROGRESS — 13.16.0 CLOSED / PASS; 13.16.1 DESIGN, 13.16.1A
+PERSISTENCE, AND 13.16.1B COMMAND/SERVICE LAYER COMPLETE; REST API, REAL
+CONTRIBUTION EMITTERS, AND OBSERVATORY/READ MODEL NOT STARTED.** The
 fresh Round 6 mobility-user and professional shadow reviews passed the correctness
 gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
 are complete. Phase 13.17 external-human acceptance is not satisfied.
@@ -750,7 +753,8 @@ Phase 13.16.0 final disposition is **CLOSED / PASS**:
 - Independent internal rendered acceptance: **PASS**.
 - Overall Phase 13.16.0 state: **CLOSED**.
 - Next slice: Phase 13.16.1 Durable Contribution & Activity Model — **IN PROGRESS;
-  PERSISTENCE FOUNDATION COMPLETE / SERVICE AND API INTEGRATION NOT STARTED**.
+  DESIGN, 13.16.1A PERSISTENCE, AND 13.16.1B COMMAND/SERVICE COMPLETE; REST API,
+  REAL EMITTERS, AND OBSERVATORY/READ MODEL NOT STARTED**.
 - Phase 13.17 genuine external-human acceptance: **still required**.
 - Phase 14: **locked**.
 
@@ -922,8 +926,9 @@ Round 6 supplies these formal acceptance inputs:
 The implementation is documented in
 [DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md).
 Automated checks and independent internal rendered inspection pass. Phase 13.16.0 is
-closed; Phase 13.16.1 design and persistence foundation are complete, while service,
-API, emitter, and read-model implementation has not started.
+closed; Phase 13.16.1 design, persistence foundation, and internal command/service
+layer are complete, while REST API, real emitter, and read-model implementation has
+not started.
 
 #### 13.16 delivery sequence
 
@@ -947,21 +952,24 @@ contribution data before any dashboard attempts to summarize the organization.
 
 ##### 13.16.1 authoritative model requirements
 
-**Status: IMPLEMENTATION IN PROGRESS — DESIGN AND PERSISTENCE FOUNDATION COMPLETE;
-SERVICE/API, CONTRIBUTION EMITTERS, AND READ MODELS NOT STARTED.** The current-state
+**Status: IMPLEMENTATION IN PROGRESS — DESIGN, 13.16.1A PERSISTENCE, AND 13.16.1B
+COMMAND/SERVICE LAYER COMPLETE; REST API, REAL CONTRIBUTION EMITTERS, AND READ MODELS
+NOT STARTED.** The current-state
 inventory, six canonical contracts, exact proposed database model, migration plan,
 API/service direction, observatory aggregation boundary, backfill policy, and test
 matrix are defined in
 [DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
 Migration `0074_durable_contribution_activity_model`, registered SQLModel entities,
 portable controlled-value checks, tenant-fenced relationships, and focused persistence
-tests now establish the durable schema. The unchecked items below remain service,
-integration, aggregation, and experience exit criteria; persistence completion does
-not claim that services, routes, emitters, read models, or UI exist.
+tests establish the durable schema. The bounded HTTP-independent command services now
+enforce source authority, lifecycle, idempotency, tenant, actor, reference, and atomic
+AuditLog invariants on SQLite and PostgreSQL. The unchecked items below remain API,
+real-emitter integration, aggregation, and experience exit criteria; service
+completion does not claim that routes, emitters, read models, or UI exist.
 
-Remaining implementation order: implement typed ledger services and Activity-only
-agent integration; enable reviewed
-authoritative contribution adapters; then add read APIs and aggregate reconciliation.
+Remaining implementation order: review and expose the typed services through bounded
+REST APIs; add Activity-only integration and reviewed real authoritative Contribution
+adapters; then add read APIs and aggregate reconciliation.
 Phase 13.16.2 remains locked until that sequence and the 13.16.1 exit criteria pass.
 
 - [x] Define separate durable records or explicitly versioned event contracts for

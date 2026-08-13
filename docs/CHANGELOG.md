@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1B durable organization command/service layer
+
+- Added HTTP-independent, tenant-scoped command services for ordered Activity,
+  explicit authoritative Contribution, WorkItem lifecycle/dependencies, Blocker,
+  HumanActionRequest/HumanAction, ExecutiveDecision, and heterogeneous record
+  references, with canonical SHA-256 fingerprints and fail-closed replay conflicts.
+- Added a deliberately narrow Contribution source policy: only an attributed terminal
+  ExecutiveDecision is enabled. AgentRun, WorkflowRun, tool/LLM calls, AuditLog,
+  retries, messages, and UI activity remain telemetry and cannot directly authorize a
+  Contribution. No real domain emitter or execution integration was added.
+- Added explicit lifecycle/authority matrices, exact authenticated-human enforcement
+  (`external_human` is not accepted in this slice), bounded dependency-cycle checks,
+  tenant-safe reference validation, PostgreSQL activity-stream row locking, and atomic
+  mutation-plus-AuditLog rollback behavior.
+- Added focused SQLite and isolated PostgreSQL service coverage. Phase 13.16.1 design,
+  13.16.1A persistence, and 13.16.1B command/service layer are complete; REST APIs,
+  real Contribution emitters, and the Observatory/read model are not started. Phase
+  13.16.1 remains **IN PROGRESS**, and Phase 13.16.2 remains locked.
+
 ## 2026-08-13 - Phase 13.16.1A durable persistence foundation
 
 - Added migration `0074_durable_contribution_activity_model` and registered portable
