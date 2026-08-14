@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1D4 deferred-domain review and integrated emitter regression acceptance
+
+- Closed 13.16.1D4 as **COMPLETE / PASS** after local acceptance of the deferred-domain governance review and integrated emitter regression: 17/17 authenticated organization-record API tests, 40/40 combined D1-D3C Contribution transaction/emitter tests, 49/49 deferred-domain regression tests, and 750 passed + 1 expected PostgreSQL-only skip with 0 failures in the complete API suite. The full API run exited 0.
+- Confirmed the accepted emitter inventory remains intentionally narrow: terminal human-attributed `ExecutiveDecision`, reviewed `JurisdictionSourceCertification`, published `InitialRuleAssertion`/`VerifiedRule`, published `RegulatoryChange`/`VerifiedRule`, and published `MobilityPathwayVersion`. No additional deferred-domain runtime emitter was enabled.
+- Confirmed the generic authenticated Contribution command remains ExecutiveDecision-only and cannot bypass sealed source-owned adapters by selecting source-certification, rule-publication, regulatory-change, pathway-publication, deferred-domain, assessment, external-validation component, or telemetry source types in the request body.
+- Repository policy, release consistency, migration consistency, and `git diff --check` pass at Alembic head `0074_durable_contribution_activity_model` with 118 registered tables. Round 6 Austria v4 remains draft, simulation-only, unpublished/not-ready, with national/regional source certification still `pending_review` and no false legal Contribution emitted.
+- 13.16.1E Observatory/read model is now **UNLOCKED / NOT STARTED**. Phase 13.16.1 remains **IN PROGRESS**; Phase 13.16.2 remains locked; genuine Phase 13.17 external-human acceptance is still required.
+
+## 2026-08-14 - Phase 13.16.1D4 deferred-domain review and integrated emitter regression implementation
+
+- Re-evaluated every domain source deliberately deferred in D0 after acceptance of the
+  D2/D3 publication emitters. No additional runtime emitter is authorized in D4: the
+  remaining candidates still lack one or more required provenance, source-transition
+  audit, authenticated external/user attribution, typed evidence, independent review, or
+  external-authority verification contracts. Sparse Contribution volume is intentional.
+- Kept `JurisdictionImmigrationAssessment`, `ReassessmentAcceptance`,
+  `ExternalValidationRun`, `CorporateComplianceEvent`, `MobilityTimelineMilestone`,
+  `AgencySubmission`, and `AuthorityAppointment` deferred with explicit repository-backed
+  reasons. In particular, external validation remains held behind genuine Phase 13.17
+  external-human acceptance, and no current Round 6 Austria draft/pending state gains an
+  emitter.
+- Expanded the authenticated organization API negative-source regression so request-body
+  source selection cannot invoke any sealed D2/D3 adapter, deferred domain source,
+  assessment-generation record, external-validation component record, or telemetry source.
+  The generic Contribution command remains terminal human-attributed ExecutiveDecision
+  only; accepted real-domain emission remains source-owned and sealed.
+- No runtime service/router/model/migration behavior changes are included. D4 is
+  **COMPLETE / PASS** after the acceptance recorded above. 13.16.1E Observatory/read model
+  is **UNLOCKED / NOT STARTED**; its source-table reconciliation remains a separate next
+  slice.
+
 ## 2026-08-14 - Phase 13.16.1D3C pathway-version publication Contribution adapter acceptance
 
 - Closed 13.16.1D3C as **COMPLETE / PASS** after local acceptance of the pathway-version

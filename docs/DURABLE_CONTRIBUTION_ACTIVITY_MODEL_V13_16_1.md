@@ -1136,15 +1136,67 @@ contract are satisfied; the AI organization must not self-attest that gate.
    The bounded source-owned transaction, sealed pathway-publication validator, draft/internal
    simulation exclusion, deterministic replay, supersession behavior, and atomic rollback
    pass focused, pathway-regression, full-suite, and repository acceptance.
-6. **13.16.1D4 — deferred-domain review and integrated regression.** Re-evaluate
-   reassessment acceptance, timeline milestones, agency submissions, corporate
-   compliance, jurisdiction assessments, and external validation against their
-   remaining attribution/evidence/audit gaps. Do not enable them merely to increase
-   Contribution counts.
-7. **13.16.1E — Observatory/read model** only after enabled adapters reconcile exactly
-   to their source tables on SQLite and PostgreSQL.
+6. **13.16.1D4 — deferred-domain review and integrated regression. COMPLETE / PASS.**
+   The repository review keeps jurisdiction assessments, reassessment acceptance,
+   timeline milestones, agency submissions/appointments, corporate compliance, and
+   external validation deferred for the specific attribution/evidence/audit reasons
+   documented below. The generic API negative-source regression is expanded across
+   sealed, deferred, telemetry, and assessment sources; no new runtime emitter is
+   authorized by D4.
+7. **13.16.1E — Observatory/read model** is **UNLOCKED / NOT STARTED** after D4 acceptance.
+   It may now begin, but aggregate/read-model acceptance still requires enabled adapters
+   to reconcile exactly to their authoritative source tables on SQLite and PostgreSQL.
 
-### 23.10 Emitter acceptance tests
+### 23.10 D4 deferred-domain re-evaluation
+
+The post-D3C review finds **no additional source safe to enable in 13.16.1D4**. This is
+a governance result, not an implementation shortfall. The accepted real-domain emitters
+are intentionally sparse and D4 does not broaden the generic Contribution source policy.
+
+| Deferred source | D4 result | Remaining blocker | Earliest safe future condition |
+|---|---|---|---|
+| `JurisdictionImmigrationAssessment` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | Review transition has no source `AuditLog`; proposal can omit official-source/snapshot provenance. | Require governed immutable provenance for authoritative states and make review/audit transactionally composable before any adapter. |
+| `ReassessmentAcceptance` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | Explicit user attestation is stored, but durable authenticated end-user identity is not represented; `recorded_by` is the internal recorder. | Introduce an accepted user/external-human authentication and attribution contract without weakening the internal HumanAction boundary. |
+| `ExternalValidationRun` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | Phase 13.17 genuine external-human acceptance is still outstanding; durable external-human actor contract is intentionally held. | Complete genuine 13.17 acceptance and bind the passed gate to authenticated external-human reviews. |
+| `CorporateComplianceEvent` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | Completion has actor/time/audit but no typed evidence linkage or distinct reviewer approval despite evidence/review flags. | Bind required evidence and independent review/approval to completion in one governed transaction. |
+| `MobilityTimelineMilestone` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | Generic completion enforces dependencies and optional approval note but not stage-specific `required_evidence_json`. | Define allowlisted milestone types with exact evidence/approval contracts; do not enable generic completion. |
+| `AgencySubmission` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | Status progression is operator-recorded; reference/tracking evidence is optional and no immutable authority receipt is required. | Bind an immutable authority receipt/decision artifact to the exact terminal transition. |
+| `AuthorityAppointment` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | `completed` is operator-recorded and does not prove attendance or authority acknowledgement; reference number is optional. | Require governed attendance/authority evidence for an allowlisted material appointment outcome. |
+
+Assessment-generation records (`EligibilityAssessment`, `PathwayComparisonAssessment`,
+`CountryRankingAssessment`), external-validation component reviews/findings, telemetry,
+AuditLog, retries, messages, UI interactions, tools, and LLM output remain ineligible as
+direct Contribution authority.
+
+The generic authenticated Contribution command remains terminal `ExecutiveDecision` only.
+The accepted sealed integration sources remain exactly:
+
+1. reviewed `JurisdictionSourceCertification`;
+2. published `InitialRuleAssertion` / resulting `VerifiedRule`;
+3. published `RegulatoryChange` / resulting `VerifiedRule`; and
+4. published `MobilityPathwayVersion`.
+
+D4 expands the generic API regression across all sealed and deferred source names so a
+caller cannot bypass source-owned governance by selecting one of those types in the
+request body. Existing source-owned emitter tests remain the authority for positive
+emission, idempotent replay, fail-closed drift, and atomic rollback.
+
+Round 6 Austria v4 remains a mandatory negative control: draft,
+`simulation_candidate`, `INTERNAL_SIMULATION_ONLY`, publication-ready false, unpublished,
+national/regional certification `pending_review`, binding job offer absent/blocking,
+occupation `AMBIGUOUS`, unknown-province regional result `INSUFFICIENT_INFORMATION`, and
+qualification mapping `UNRESOLVED`. D4 authorizes no legal-conclusion emitter from that
+state.
+
+D4 local acceptance is **COMPLETE / PASS**: 17/17 organization-record API tests, 40/40
+combined D1-D3C Contribution transaction/emitter tests, and 49/49 deferred-domain
+regression tests pass; the complete API suite passes 750 with 1 expected PostgreSQL-only
+skip, 0 failures, and exit code 0. Repository policy, release consistency, migration
+consistency, and `git diff --check` pass at Alembic head
+`0074_durable_contribution_activity_model` with 118 registered tables. No new emitter
+was enabled by D4.
+
+### 23.11 Emitter acceptance tests
 
 The runtime slices must prove at least: AgentRun/WorkflowRun success emits zero
 Contributions; draft/simulation assessment emits zero Contributions; pending source
@@ -1167,12 +1219,13 @@ The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / P
 13.16.1D3A initial-rule / VerifiedRule publication emission is **COMPLETE / PASS**;
 13.16.1D3B regulatory-change publication is **COMPLETE / PASS**;
 13.16.1D3C pathway publication is **COMPLETE / PASS**; 13.16.1D4 deferred-domain
-review/integrated regression is **UNLOCKED / NOT STARTED**, and the Observatory/read model
-(13.16.1E) is **NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
+review/integrated regression is **COMPLETE / PASS**, and the Observatory/read model
+(13.16.1E) is **UNLOCKED / NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
 
-Recommended next step: proceed with bounded 13.16.1D4 deferred-domain review and integrated emitter regression. Every later adapter must preserve
-draft/unpublished exclusion, caller-owned atomic transaction semantics, deterministic
-replay, and narrow organizational wording. No automatic legal conclusion or broad
-source-policy expansion is authorized. Do not start Phase 13.16.2 or any Observatory dashboard until the remaining
-emitter gates pass and enabled adapters
-reconcile to their authoritative source tables on SQLite and PostgreSQL.
+Recommended next step: begin the bounded 13.16.1E Observatory/read-model reconciliation.
+Every later adapter must preserve draft/unpublished exclusion, caller-owned atomic
+transaction semantics, deterministic replay, and narrow organizational wording. No
+automatic legal conclusion or broad source-policy expansion is authorized. Do not start
+Phase 13.16.2, and do not accept an Observatory dashboard as authoritative until the
+13.16.1E read model reconciles enabled adapters to their authoritative source tables on
+SQLite and PostgreSQL.

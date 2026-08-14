@@ -241,7 +241,34 @@ def test_contribution_source_policy_idempotency_and_append_only_correction(
     conflict = client.post(f"{BASE}/contributions", json={**payload, "title": "Changed"})
     assert conflict.status_code == 409
 
-    for source_type in ("agent_run", "workflow_run", "audit_log", "ui_interaction", "anything_else"):
+    # D4 keeps both the sealed domain adapters and the deferred domain records out of
+    # the generic authenticated Contribution command. Real domain emission must continue
+    # to enter through its reviewed source-owned adapter rather than request-selected
+    # source authority.
+    rejected_source_types = (
+        "agent_run",
+        "workflow_run",
+        "audit_log",
+        "ui_interaction",
+        "jurisdiction_source_certification",
+        "initial_rule_assertion",
+        "regulatory_change",
+        "mobility_pathway_version",
+        "jurisdiction_immigration_assessment",
+        "reassessment_acceptance",
+        "external_validation_run",
+        "corporate_compliance_event",
+        "mobility_timeline_milestone",
+        "agency_submission",
+        "authority_appointment",
+        "eligibility_assessment",
+        "pathway_comparison_assessment",
+        "country_ranking_assessment",
+        "external_validation_review",
+        "external_validation_finding",
+        "anything_else",
+    )
+    for source_type in rejected_source_types:
         rejected = client.post(
             f"{BASE}/contributions",
             json=_contribution(decision, f"rejected-{source_type}", source_type=source_type),
