@@ -15,12 +15,16 @@ from app.services.organization_command import (
     OrganizationCommandContext,
     canonical_fingerprint,
     canonical_json,
-    commit_mutations,
     idempotent_existing,
     require_human,
     require_mutation_role,
     snapshot,
+    stage_mutations,
     tenant_record,
+)
+from app.services.organization_semantic_activity import (
+    stage_decision_created_activity,
+    stage_decision_outcome_activity,
 )
 
 
@@ -132,12 +136,25 @@ def create_executive_decision(
         expires_at=expires_at,
     )
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.decision.create", "executive_decision", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.decision.create",
+                    "executive_decision",
+                    row.id,
+                    after_state=row,
+                )
+            ],
+            context=context,
+        )
+        stage_decision_created_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -164,6 +181,7 @@ def record_executive_decision_outcome(
     if row.status not in {"pending_ceo", "coordinating_ceo", "pending_board"}:
         raise InvalidTransition(f"decision cannot be recorded from status {row.status!r}")
     before = snapshot(row)
+    previous_status = row.status
     row.status = outcome
     row.decided_by = context.actor_id
     row.decision_reason = reason
@@ -171,12 +189,32 @@ def record_executive_decision_outcome(
     row.decided_at = now_utc()
     row.updated_at = row.decided_at
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation(f"organization.decision.{outcome}", "executive_decision", row.id, before, row, reason)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    f"organization.decision.{outcome}",
+                    "executive_decision",
+                    row.id,
+                    before,
+                    row,
+                    reason,
+                )
+            ],
+            context=context,
+        )
+        stage_decision_outcome_activity(
+            session,
+            context,
+            row,
+            previous_status=previous_status,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 

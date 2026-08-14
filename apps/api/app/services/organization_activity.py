@@ -23,14 +23,16 @@ from app.services.organization_command import (
     commit_mutations,
     idempotent_existing,
     require_mutation_role,
+    stage_mutations,
     tenant_record,
 )
 
 
-def append_activity(
+def _write_activity(
     session: Session,
     context: OrganizationCommandContext,
     *,
+    _commit: bool,
     activity_key: str,
     stream_key: str,
     activity_class: OrganizationActivityClass | str,
@@ -55,7 +57,12 @@ def append_activity(
     payload: Mapping[str, Any] | None = None,
     correlation_key: str | None = None,
 ) -> OrganizationActivity:
-    require_mutation_role(context)
+    if _commit:
+        # The standalone Activity command keeps the authenticated admin/operator
+        # contract. Caller-owned staging is an internal integration primitive and
+        # inherits authority from the already-validated source transition (for
+        # example, an authenticated reviewer publishing governed regulatory data).
+        require_mutation_role(context)
     activity_class = OrganizationActivityClass(activity_class)
     command = {
         "activity_key": activity_key,
@@ -129,7 +136,14 @@ def append_activity(
         session.add(stream)
         try:
             session.flush()
-        except IntegrityError:
+        except IntegrityError as exc:
+            if not _commit:
+                # Caller-owned staging must never roll back a transaction it does not own.
+                # The caller receives a retryable conflict and rolls the whole source unit
+                # of work back atomically.
+                raise DependencyConflict(
+                    "activity stream was created concurrently; retry the source transaction"
+                ) from exc
             session.rollback()
             concurrent = session.exec(
                 select(OrganizationActivity).where(
@@ -145,7 +159,7 @@ def append_activity(
             )
             if replay is not None:
                 return replay
-            raise DependencyConflict("activity stream was created concurrently; retry the command")
+            raise DependencyConflict("activity stream was created concurrently; retry the command") from exc
 
     stream.last_sequence += 1
     stream.updated_at = now_utc()
@@ -185,21 +199,31 @@ def append_activity(
     )
     session.add(stream)
     session.add(activity)
+    mutation = AuditMutation(
+        action="organization.activity.append",
+        entity_type="organization_activity",
+        entity_id=activity.id,
+        after_state=activity,
+    )
+    if not _commit:
+        try:
+            stage_mutations(session, mutations=[mutation], context=context)
+        except IntegrityError as exc:
+            # The staging primitive must not query or roll back after a failed flush;
+            # the caller owns rollback/retry for the complete source transition.
+            raise DependencyConflict(
+                "concurrent activity sequence allocation failed; retry the source transaction"
+            ) from exc
+        return activity
+
     try:
         commit_mutations(
             session,
-            mutations=[
-                AuditMutation(
-                    action="organization.activity.append",
-                    entity_type="organization_activity",
-                    entity_id=activity.id,
-                    after_state=activity,
-                )
-            ],
+            mutations=[mutation],
             context=context,
             refresh=(activity,),
         )
-    except IntegrityError:
+    except IntegrityError as exc:
         concurrent = session.exec(
             select(OrganizationActivity).where(
                 OrganizationActivity.tenant_key == context.tenant_key,
@@ -214,5 +238,131 @@ def append_activity(
         )
         if replay is not None:
             return replay
-        raise DependencyConflict("concurrent activity sequence allocation failed; retry the command")
+        raise DependencyConflict("concurrent activity sequence allocation failed; retry the command") from exc
     return activity
+
+
+def append_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    activity_key: str,
+    stream_key: str,
+    activity_class: OrganizationActivityClass | str,
+    activity_type: str,
+    title: str,
+    summary: str,
+    source_object_type: str,
+    source_object_id: str,
+    occurred_at: datetime,
+    source_object_version: str | None = None,
+    work_item_id: UUID | None = None,
+    execution_attempt_id: UUID | None = None,
+    agent_run_id: UUID | None = None,
+    automation_event_id: UUID | None = None,
+    lead_id: UUID | None = None,
+    profile_id: UUID | None = None,
+    application_id: UUID | None = None,
+    corporate_account_id: UUID | None = None,
+    corporate_mobility_case_id: UUID | None = None,
+    causation_activity_id: UUID | None = None,
+    supersedes_activity_id: UUID | None = None,
+    payload: Mapping[str, Any] | None = None,
+    correlation_key: str | None = None,
+) -> OrganizationActivity:
+    """Append and commit one standalone governed Activity command."""
+
+    return _write_activity(
+        session,
+        context,
+        _commit=True,
+        activity_key=activity_key,
+        stream_key=stream_key,
+        activity_class=activity_class,
+        activity_type=activity_type,
+        title=title,
+        summary=summary,
+        source_object_type=source_object_type,
+        source_object_id=source_object_id,
+        occurred_at=occurred_at,
+        source_object_version=source_object_version,
+        work_item_id=work_item_id,
+        execution_attempt_id=execution_attempt_id,
+        agent_run_id=agent_run_id,
+        automation_event_id=automation_event_id,
+        lead_id=lead_id,
+        profile_id=profile_id,
+        application_id=application_id,
+        corporate_account_id=corporate_account_id,
+        corporate_mobility_case_id=corporate_mobility_case_id,
+        causation_activity_id=causation_activity_id,
+        supersedes_activity_id=supersedes_activity_id,
+        payload=payload,
+        correlation_key=correlation_key,
+    )
+
+
+def stage_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    activity_key: str,
+    stream_key: str,
+    activity_class: OrganizationActivityClass | str,
+    activity_type: str,
+    title: str,
+    summary: str,
+    source_object_type: str,
+    source_object_id: str,
+    occurred_at: datetime,
+    source_object_version: str | None = None,
+    work_item_id: UUID | None = None,
+    execution_attempt_id: UUID | None = None,
+    agent_run_id: UUID | None = None,
+    automation_event_id: UUID | None = None,
+    lead_id: UUID | None = None,
+    profile_id: UUID | None = None,
+    application_id: UUID | None = None,
+    corporate_account_id: UUID | None = None,
+    corporate_mobility_case_id: UUID | None = None,
+    causation_activity_id: UUID | None = None,
+    supersedes_activity_id: UUID | None = None,
+    payload: Mapping[str, Any] | None = None,
+    correlation_key: str | None = None,
+) -> OrganizationActivity:
+    """Stage Activity + Activity audit inside a caller-owned source transaction.
+
+    This internal composition primitive never commits or rolls back. Source-owned
+    semantic adapters must call it before their transaction owner commits the domain
+    transition. Any failure propagates so the caller can roll back source state,
+    source audit, Activity, and Activity audit together.
+    """
+
+    return _write_activity(
+        session,
+        context,
+        _commit=False,
+        activity_key=activity_key,
+        stream_key=stream_key,
+        activity_class=activity_class,
+        activity_type=activity_type,
+        title=title,
+        summary=summary,
+        source_object_type=source_object_type,
+        source_object_id=source_object_id,
+        occurred_at=occurred_at,
+        source_object_version=source_object_version,
+        work_item_id=work_item_id,
+        execution_attempt_id=execution_attempt_id,
+        agent_run_id=agent_run_id,
+        automation_event_id=automation_event_id,
+        lead_id=lead_id,
+        profile_id=profile_id,
+        application_id=application_id,
+        corporate_account_id=corporate_account_id,
+        corporate_mobility_case_id=corporate_mobility_case_id,
+        causation_activity_id=causation_activity_id,
+        supersedes_activity_id=supersedes_activity_id,
+        payload=payload,
+        correlation_key=correlation_key,
+    )

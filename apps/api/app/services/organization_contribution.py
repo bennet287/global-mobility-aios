@@ -35,7 +35,6 @@ from app.services.organization_command import (
     canonical_fingerprint,
     canonical_json,
     canonical_payload_json,
-    commit_mutations,
     idempotent_existing,
     require_human,
     require_mutation_role,
@@ -43,6 +42,7 @@ from app.services.organization_command import (
     stage_mutations,
     tenant_record,
 )
+from app.services.organization_semantic_activity import stage_contribution_record_activity
 
 
 _DESCRIPTOR_TOKEN = object()
@@ -993,10 +993,18 @@ def _write_contribution(
         row.id,
         after_state=row,
     )
-    if _commit:
-        commit_mutations(session, mutations=[mutation], context=context, refresh=(row,))
-    else:
+    if not _commit:
         stage_mutations(session, mutations=[mutation], context=context)
+        stage_contribution_record_activity(session, context, row)
+        return row
+    try:
+        stage_mutations(session, mutations=[mutation], context=context)
+        stage_contribution_record_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -1232,10 +1240,18 @@ def _write_contribution_correction(
         row.id,
         after_state=row,
     )
-    if _commit:
-        commit_mutations(session, mutations=[mutation], context=context, refresh=(row,))
-    else:
+    if not _commit:
         stage_mutations(session, mutations=[mutation], context=context)
+        stage_contribution_record_activity(session, context, row)
+        return row
+    try:
+        stage_mutations(session, mutations=[mutation], context=context)
+        stage_contribution_record_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 

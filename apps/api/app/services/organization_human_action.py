@@ -28,12 +28,18 @@ from app.services.organization_command import (
     OrganizationCommandContext,
     canonical_fingerprint,
     canonical_payload_json,
-    commit_mutations,
     idempotent_existing,
     require_human,
     require_mutation_role,
     snapshot,
+    stage_mutations,
     tenant_record,
+)
+from app.services.organization_semantic_activity import (
+    stage_human_action_appended_activity,
+    stage_human_request_assignment_activity,
+    stage_human_request_created_activity,
+    stage_human_request_status_activity,
 )
 
 
@@ -189,12 +195,25 @@ def create_human_action_request(
         updated_by=context.actor_id,
     )
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.human_request.create", "organization_human_action_request", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.human_request.create",
+                    "organization_human_action_request",
+                    row.id,
+                    after_state=row,
+                )
+            ],
+            context=context,
+        )
+        stage_human_request_created_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -213,16 +232,37 @@ def assign_human_action_request(
     if row.assigned_human_id == assigned_human_id:
         return row
     before = snapshot(row)
+    previously_assigned = row.assigned_human_id is not None
     row.assigned_human_id = assigned_human_id
     row.updated_by = context.actor_id
     row.updated_at = now_utc()
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.human_request.assign", "organization_human_action_request", row.id, before, row, reason)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.human_request.assign",
+                    "organization_human_action_request",
+                    row.id,
+                    before,
+                    row,
+                    reason,
+                )
+            ],
+            context=context,
+        )
+        stage_human_request_assignment_activity(
+            session,
+            context,
+            row,
+            previously_assigned=previously_assigned,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -264,6 +304,7 @@ def transition_human_action_request(
     if target_status in {OrganizationHumanActionRequestStatus.declined, OrganizationHumanActionRequestStatus.cancelled} and not (outcome or "").strip():
         raise InvalidTransition("decline/cancel outcome is required")
     before = snapshot(row)
+    previous_status = row.status.value
     timestamp = now_utc()
     row.status = target_status
     row.updated_at = timestamp
@@ -286,12 +327,32 @@ def transition_human_action_request(
         row.expired_at = timestamp
         row.outcome = outcome
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation(f"organization.human_request.{target_status.value}", "organization_human_action_request", row.id, before, row, outcome)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    f"organization.human_request.{target_status.value}",
+                    "organization_human_action_request",
+                    row.id,
+                    before,
+                    row,
+                    outcome,
+                )
+            ],
+            context=context,
+        )
+        stage_human_request_status_activity(
+            session,
+            context,
+            row,
+            previous_status=previous_status,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -462,12 +523,25 @@ def append_human_action(
     if replay:
         return row
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.human_action.append", "organization_human_action", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.human_action.append",
+                    "organization_human_action",
+                    row.id,
+                    after_state=row,
+                )
+            ],
+            context=context,
+        )
+        stage_human_action_appended_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -516,6 +590,7 @@ def complete_human_action_request(
     if OrganizationHumanActionRequestStatus.completed not in REQUEST_TRANSITIONS.get(request.status, frozenset()):
         raise InvalidTransition("human action request cannot be completed from its current state")
     before = snapshot(request)
+    previous_status = request.status.value
     request.status = OrganizationHumanActionRequestStatus.completed
     request.completed_at = now_utc()
     request.completed_by_human_id = context.actor_id
@@ -525,13 +600,43 @@ def complete_human_action_request(
     request.updated_at = request.completed_at
     session.add(action)
     session.add(request)
-    commit_mutations(
-        session,
-        mutations=[
-            AuditMutation("organization.human_action.append", "organization_human_action", action.id, after_state=action),
-            AuditMutation("organization.human_request.completed", "organization_human_action_request", request.id, before, request, reason),
-        ],
-        context=context,
-        refresh=(request, action),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.human_action.append",
+                    "organization_human_action",
+                    action.id,
+                    after_state=action,
+                ),
+                AuditMutation(
+                    "organization.human_request.completed",
+                    "organization_human_action_request",
+                    request.id,
+                    before,
+                    request,
+                    reason,
+                ),
+            ],
+            context=context,
+        )
+        action_activity = stage_human_action_appended_activity(
+            session,
+            context,
+            action,
+        )
+        stage_human_request_status_activity(
+            session,
+            context,
+            request,
+            previous_status=previous_status,
+            causation_activity_id=action_activity.id,
+        )
+        session.commit()
+        session.refresh(request)
+        session.refresh(action)
+    except Exception:
+        session.rollback()
+        raise
     return request, action

@@ -26,12 +26,21 @@ from app.services.organization_command import (
     OrganizationCommandContext,
     canonical_fingerprint,
     canonical_payload_json,
-    commit_mutations,
     idempotent_existing,
     require_human,
     require_mutation_role,
     snapshot,
+    stage_mutations,
     tenant_record,
+)
+from app.services.organization_semantic_activity import (
+    stage_blocker_opened_activity,
+    stage_blocker_status_activity,
+    stage_dependency_created_activity,
+    stage_dependency_status_activity,
+    stage_work_item_assignment_activity,
+    stage_work_item_created_activity,
+    stage_work_item_status_activity,
 )
 
 
@@ -151,12 +160,25 @@ def create_work_item(
         created_by=context.actor_id,
     )
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.work.create", "organizational_work_item", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.work.create",
+                    "organizational_work_item",
+                    row.id,
+                    after_state=row,
+                )
+            ],
+            context=context,
+        )
+        stage_work_item_created_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -176,6 +198,7 @@ def transition_work_item(
     if target_status not in allowed:
         raise InvalidTransition(f"work item cannot transition from {row.status!r} to {target_status!r}")
     before = snapshot(row)
+    previous_status = row.status
     row.status = target_status
     row.updated_at = now_utc()
     if target_status == "completed":
@@ -186,21 +209,32 @@ def transition_work_item(
         row.cancelled_by = context.actor_id
         row.cancellation_reason = reason
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[
-            AuditMutation(
-                f"organization.work.{target_status}",
-                "organizational_work_item",
-                row.id,
-                before_state=before,
-                after_state=row,
-                reason=reason,
-            )
-        ],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    f"organization.work.{target_status}",
+                    "organizational_work_item",
+                    row.id,
+                    before_state=before,
+                    after_state=row,
+                    reason=reason,
+                )
+            ],
+            context=context,
+        )
+        stage_work_item_status_activity(
+            session,
+            context,
+            row,
+            previous_status=previous_status,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -239,15 +273,36 @@ def assign_work_item(
     if row.assigned_position_key == assigned_position_key:
         return row
     before = snapshot(row)
+    previous_position_key = row.assigned_position_key
     row.assigned_position_key = assigned_position_key
     row.updated_at = now_utc()
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.work.assign", "organizational_work_item", row.id, before, row, reason)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.work.assign",
+                    "organizational_work_item",
+                    row.id,
+                    before,
+                    row,
+                    reason,
+                )
+            ],
+            context=context,
+        )
+        stage_work_item_assignment_activity(
+            session,
+            context,
+            row,
+            previous_position_key=previous_position_key,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -328,12 +383,25 @@ def create_dependency(
         updated_by=context.actor_id,
     )
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.dependency.create", "organization_work_item_dependency", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    "organization.dependency.create",
+                    "organization_work_item_dependency",
+                    row.id,
+                    after_state=row,
+                )
+            ],
+            context=context,
+        )
+        stage_dependency_created_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -378,6 +446,7 @@ def _transition_dependency(
     if row.status is not OrganizationDependencyStatus.active:
         raise InvalidTransition("only an active dependency can transition")
     before = snapshot(row)
+    previous_status = row.status.value
     row.status = target_status
     row.updated_by = context.actor_id
     row.updated_at = now_utc()
@@ -389,12 +458,32 @@ def _transition_dependency(
         row.waiver_reason = reason
         row.waived_at = row.updated_at
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation(f"organization.dependency.{target_status.value}", "organization_work_item_dependency", row.id, before, row, reason)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    f"organization.dependency.{target_status.value}",
+                    "organization_work_item_dependency",
+                    row.id,
+                    before,
+                    row,
+                    reason,
+                )
+            ],
+            context=context,
+        )
+        stage_dependency_status_activity(
+            session,
+            context,
+            row,
+            previous_status=previous_status,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -513,12 +602,27 @@ def open_blocker(
     mutations = [AuditMutation("organization.blocker.open", "organization_blocker", row.id, after_state=row)]
     if predecessor is not None:
         before = snapshot(predecessor)
+        predecessor_previous_status = predecessor.status.value
         predecessor.status = OrganizationBlockerStatus.superseded
         predecessor.updated_at = now_utc()
         predecessor.updated_by = context.actor_id
         session.add(predecessor)
         mutations.append(AuditMutation("organization.blocker.superseded", "organization_blocker", predecessor.id, before, predecessor, f"superseded by {blocker_key}"))
-    commit_mutations(session, mutations=mutations, context=context, refresh=(row,))
+    try:
+        stage_mutations(session, mutations=mutations, context=context)
+        if predecessor is not None:
+            stage_blocker_status_activity(
+                session,
+                context,
+                predecessor,
+                previous_status=predecessor_previous_status,
+            )
+        stage_blocker_opened_activity(session, context, row)
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 
@@ -546,6 +650,7 @@ def transition_blocker(
     if target_status not in allowed:
         raise InvalidTransition(f"blocker cannot transition from {row.status.value} to {target_status.value}")
     before = snapshot(row)
+    previous_status = row.status.value
     timestamp = now_utc()
     row.status = target_status
     row.updated_at = timestamp
@@ -563,12 +668,32 @@ def transition_blocker(
         row.waiver_reason = reason
         row.waived_at = timestamp
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation(f"organization.blocker.{target_status.value}", "organization_blocker", row.id, before, row, reason)],
-        context=context,
-        refresh=(row,),
-    )
+    try:
+        stage_mutations(
+            session,
+            mutations=[
+                AuditMutation(
+                    f"organization.blocker.{target_status.value}",
+                    "organization_blocker",
+                    row.id,
+                    before,
+                    row,
+                    reason,
+                )
+            ],
+            context=context,
+        )
+        stage_blocker_status_activity(
+            session,
+            context,
+            row,
+            previous_status=previous_status,
+        )
+        session.commit()
+        session.refresh(row)
+    except Exception:
+        session.rollback()
+        raise
     return row
 
 

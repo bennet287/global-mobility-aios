@@ -183,7 +183,8 @@ def test_stage_contribution_never_owns_commit_and_outer_rollback_is_atomic(
     )
     assert contribution.source_state == "approved"
     assert organization_session.exec(select(func.count()).select_from(OrganizationContribution)).one() == 1
-    assert organization_session.exec(select(func.count()).select_from(AuditLog)).one() == baseline_audits + 2
+    # Source audit + Contribution audit + staged semantic Activity audit.
+    assert organization_session.exec(select(func.count()).select_from(AuditLog)).one() == baseline_audits + 3
 
     monkeypatch.setattr(organization_session, "commit", original_commit)
     organization_session.rollback()

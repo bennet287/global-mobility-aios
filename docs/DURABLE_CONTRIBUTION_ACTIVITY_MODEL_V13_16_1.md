@@ -1460,12 +1460,93 @@ record's department, and the OpenAPI architecture boundary permits exactly the t
 GET-only Observatory endpoints while retaining the prohibition on arbitrary dashboard,
 metrics, observatory-root, or unapproved summary surfaces.
 
-E1 does not unlock Phase 13.16.2. The next bounded E slice is E2, now **UNLOCKED / NOT
-STARTED**: caller-owned Activity staging plus source-owned semantic transition adapters.
+E1 does not unlock Phase 13.16.2. E2 caller-owned Activity staging plus source-owned semantic transition adapters is now **COMPLETE / PASS**; 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure is **UNLOCKED / NOT STARTED**.
 Only after that coverage exists may historical throughput/cycle-time metrics be
 implemented. Round 6 Austria v4 remains draft/simulation-only/unpublished with pending
 national/regional certifications and must not appear as a published, certified, or
 eligibility Contribution.
+
+
+### 23.14 13.16.1E2 caller-owned Activity staging and semantic transition coverage
+
+**State: COMPLETE / PASS.** E2 implements the transaction
+boundary identified by E0/E1 without changing the 0074 persistence model. No migration,
+new table, router, public mutation endpoint, dashboard, materialized read model, or
+historical backfill is introduced.
+
+The Activity command now has two explicit modes. `append_activity(...)` remains the
+standalone authenticated mutation command and continues to own its commit. The new
+`stage_activity(...)` is an internal composition primitive: it allocates/locks the
+tenant-scoped Activity stream, appends the immutable Activity row, and stages the
+`organization.activity.append` audit without calling commit or rollback. Source services
+that use it already own authorization and the surrounding transaction. This distinction
+preserves reviewer-authorized sealed D2/D3 publication flows without opening a reviewer
+standalone Activity command.
+
+Modern 13.16.1 command paths now append curated semantic Activity for the following
+authoritative transitions:
+
+| Source family | Covered semantic events | Stream basis |
+|---|---|---|
+| `OrganizationalWorkItem` | create, status transition, assignment change | WorkItem id |
+| `OrganizationWorkItemDependency` | create, satisfied, waived, superseded | owning WorkItem id |
+| `OrganizationBlocker` | open, mitigated, resolved, waived, predecessor superseded | Blocker id |
+| `ExecutiveDecision` | create, approved, rejected | Decision id |
+| `OrganizationHumanActionRequest` | create, assignment, acknowledge/start/decline/cancel/expire/completed | HumanActionRequest id |
+| `OrganizationHumanAction` | immutable append | HumanActionRequest stream when linked, otherwise HumanAction id |
+| `OrganizationContribution` | outcome, supersession, retraction | original Contribution lineage root |
+
+A semantic source transition follows one transaction contract: source row changes are
+staged, the existing source `AuditLog` is staged, semantic Activity and its Activity
+`AuditLog` are staged, and only then does the source command commit. Any Activity or
+Activity-audit failure rolls back the entire source unit. The caller-owned Contribution
+path follows the same rule, so D2/D3 sealed emitters now include Contribution Activity in
+their already caller-owned publication/review transaction. Idempotent source replay
+returns before another Activity is appended.
+
+Activity is still not organizational success authority. The Activity row points to the
+semantic source/transition and may carry domain ownership/provenance, but it never creates
+a Contribution by itself. AuditLog, AgentRun, WorkflowRun, retry count, tool calls,
+messages, and provider/model telemetry remain non-authoritative. Contribution source
+validation and all D2/D3 governance gates remain unchanged.
+
+Attribution is deliberately domain-aware. Where an Activity belongs to a WorkItem, the
+WorkItem department/position/authority is used instead of blindly inheriting the actor's
+request context; authenticated actor identity remains the `actor_type`/`actor_id` on the
+Activity. This mirrors E1's blocker department correction and prevents owner/board actors
+from making operational work appear to belong to the executive department merely because
+they performed the transition.
+
+E2 does **not** establish complete semantic history. Repository review found material
+legacy WorkItem and ExecutiveDecision writer paths in `organization_governance.py` and the
+organization-governance router that still bypass the modern 13.16.1 command services.
+Those writers are not silently backfilled or reconstructed from mutable `updated_at` or
+AuditLog. Consequently E1's Observatory response intentionally keeps
+`activity_history_basis = partial_activity_coverage` and
+`activity_history_established = false`. Historical WorkItem cycle time, completed-work
+period throughput, blocker-resolution throughput, last-material-transition ageing, and a
+complete organization semantic timeline remain unavailable until the remaining writer
+surface is reconciled or retired in a bounded later E step.
+
+E2 adds 11 focused tests: 10 default SQLite tests for staging/rollback, ordered semantic
+streams, WorkItem/dependency/Blocker/Decision/HumanAction/Contribution coverage, replay,
+Activity-not-Contribution separation, atomic rollback on Activity audit failure, and the
+still-partial Observatory flag; plus one PostgreSQL-only caller-owned staging contract.
+The existing D1 transaction test is extended so staged Contribution now requires the
+Contribution Activity and its audit inside the same caller-owned unit. Acceptance is
+complete: the complete API suite passes **770 passed + 2 expected PostgreSQL-only skips,
+0 failed** with exit code 0; repository policy, release consistency, migration consistency,
+and `git diff --check` pass at Alembic 0074 with 118 registered tables.
+
+The two bounded PostgreSQL Activity transaction contracts run against the existing isolated
+0074 service database and pass **2/2** with 35 non-PostgreSQL tests deselected. Read-only
+post-test verification confirms zero persisted `organization_activity_streams` and zero
+persisted `organization_activities`, proving the outer transaction rollback/no-residue
+contract. The authoritative integration database `gmai` remains preserved at
+`0073_austria_candidate_integrity`, stopped and unmigrated. E2 is therefore **COMPLETE /
+PASS**. Phase 13.16.2 remains locked because complete-writer reconciliation is still
+outstanding; 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure is
+**UNLOCKED / NOT STARTED**.
 
 
 ## 24. Readiness and recommendation
@@ -1480,13 +1561,14 @@ The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / P
 review/integrated regression is **COMPLETE / PASS**. The 13.16.1E0 Observatory/read-model
 source reconciliation design is **COMPLETE** and 13.16.1E1 safe snapshot + Contribution
 reconciliation API is **COMPLETE / PASS**, so Phase 13.16.1 remains **IN PROGRESS**.
-E2 Activity transaction/semantic coverage is **UNLOCKED / NOT STARTED**.
+E2 Activity transaction/semantic coverage is **COMPLETE / PASS**. 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure is **UNLOCKED / NOT STARTED**.
 
-Recommended next step: begin bounded E2 Activity transaction/semantic coverage design and
-implementation. Preserve E1's read-only snapshot/reconciliation contract while adding only
-caller-owned Activity staging and source-owned semantic transition adapters.
-Every later adapter must preserve draft/unpublished exclusion, caller-owned atomic
-transaction semantics, deterministic replay, and narrow organizational wording. No
+Recommended next step: begin 13.16.1E3 and reconcile or explicitly retire the remaining
+legacy WorkItem/Decision writer surface before enabling any historical throughput/cycle-time
+metrics. Preserve E1's read-only snapshot/reconciliation
+contract and keep `activity_history_established` false until writer coverage is demonstrably
+complete. Every later adapter must preserve draft/unpublished exclusion, caller-owned
+atomic transaction semantics, deterministic replay, and narrow organizational wording. No
 automatic legal conclusion or broad source-policy expansion is authorized. Do not start
 Phase 13.16.2, and do not accept an Observatory dashboard as authoritative until the
 13.16.1E read model reconciles enabled adapters to their authoritative source tables on
