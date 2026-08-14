@@ -1004,6 +1004,7 @@ def publish_pathway_version(
     *,
     actor: str,
     review_notes: str,
+    publisher_role: str | None = None,
 ) -> tuple[MobilityPathway, MobilityPathwayVersion]:
     version = session.get(MobilityPathwayVersion, version_id)
     if version is None:
@@ -1049,12 +1050,32 @@ def publish_pathway_version(
         },
         reason=review_notes,
         actor=actor,
-        source="pathway_catalogue_v8_1",
+        source="pathway_catalogue_v13_16_1d3c",
     )
-    session.commit()
-    session.refresh(pathway)
-    session.refresh(version)
-    return pathway, version
+    try:
+        if publisher_role is not None:
+            from app.services.organization_pathway_publication import (
+                pathway_publication_organization_context,
+                stage_pathway_version_publication_contribution,
+            )
+
+            organization_context = pathway_publication_organization_context(
+                actor=actor,
+                role=publisher_role,
+            )
+            stage_pathway_version_publication_contribution(
+                session,
+                organization_context,
+                pathway=pathway,
+                version=version,
+            )
+        session.commit()
+        session.refresh(pathway)
+        session.refresh(version)
+        return pathway, version
+    except Exception:
+        session.rollback()
+        raise
 
 
 def retire_pathway(

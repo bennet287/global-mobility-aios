@@ -1028,6 +1028,56 @@ suite. Repository policy, release consistency, migration consistency, and
 `git diff --check` pass at Alembic head `0074_durable_contribution_activity_model` with
 118 registered tables.
 
+### 23.5.5 13.16.1D3C pathway-version publication adapter acceptance
+
+**State: COMPLETE / PASS.** D3C is limited to the existing
+authenticated `MobilityPathwayVersion` publication boundary. A draft version remains
+non-authoritative until the existing catalogue publication gate succeeds, an independent
+human publisher is attributed, the version is staged as `published`, and the parent
+`MobilityPathway` is active. Draft, simulation-only, retired, or otherwise unpublished
+versions cannot emit. The current Round 6 Austria v4 draft therefore remains a
+zero-emitter safety pin.
+
+The HTTP publication path now supplies the trusted authenticated role to the domain
+service. Existing admin/operator publication authorization is preserved; the adapter also
+accepts reviewer authority for trusted internal composition, while the public route still
+follows the existing auth policy. The publisher must remain distinct from the version
+creator. Direct service callers that omit trusted publisher-role context retain their
+pre-D3C no-emitter behavior, so D3C introduces no historical backfill.
+
+The `MobilityPathway`/`MobilityPathwayVersion` workflow remains transaction owner. The
+previous published version(s), if any, are staged as `superseded`; the selected draft is
+staged `published`; the pathway is activated; the existing
+`mobility_pathway_version_published` audit is staged; then one
+`pathway_version_published` Contribution and its audit are staged before one final commit.
+Contribution staging or final commit failure rolls the whole publication unit back. A
+later immutable pathway version emits a distinct Contribution rather than rewriting the
+prior publication outcome.
+
+D3C uses a sealed validator rather than widening the generic authenticated Contribution
+source policy. It requires the default legacy tenant, an authenticated internal-human
+publisher, published/active source state, proposer/publisher separation, and exact reuse
+of the catalogue's existing publication-evidence blocker contract after the transition is
+staged. That preserves required official-source/snapshot provenance, verified-rule
+provenance, source-certification gates, and the Austria structured occupation-evidence
+requirements without creating a second competing publication policy. The canonical source
+version also binds the immutable pathway/version content, evidence links, verified-rule
+state, publication actor, and publication timestamp using DB-stable datetime
+normalization.
+
+The Contribution records only that a governed pathway catalogue version was published.
+It explicitly does not establish applicant eligibility, occupation eligibility, visa
+approval, or an authority decision for any mobility case. Focused D3C tests pass **8/8**
+for non-emitting draft state, authenticated publication, preserved operator compatibility,
+persisted adapter replay, fail-closed rule drift, atomic rollback on emitter failure,
+revision supersession with a distinct Contribution, and confirmation that the generic
+Contribution source policy remains closed to `mobility_pathway_version`. Existing pathway
+governance regression passes **23/23**, the combined D1-D3B/organization protection set
+passes **94 passed + 1 expected PostgreSQL-only skip**, and the complete API suite passes
+**750 passed + 1 expected PostgreSQL-only skip, 0 failed** with exit code 0. Repository
+policy, release consistency, migration consistency, and `git diff --check` pass at Alembic
+head `0074_durable_contribution_activity_model` with 118 registered tables.
+
 ### 23.6 Future emission points and source versions
 
 | Source | Exact future boundary | Proposed source version | Proposed Contribution semantics | WorkItem link |
@@ -1082,9 +1132,10 @@ contract are satisfied; the AI organization must not self-attest that gate.
 4. **13.16.1D3B — regulatory-change publication adapter. COMPLETE / PASS.**
    Authenticated publication, sealed validation, deterministic replay, and atomic rollback
    are accepted under the local focused/full-suite/repository gates.
-5. **13.16.1D3C — pathway-version publication adapter. UNLOCKED / NOT STARTED.**
-   The narrower rule/regulatory publication adapters are accepted;
-   draft/internal simulation remains excluded.
+5. **13.16.1D3C — pathway-version publication adapter. COMPLETE / PASS.**
+   The bounded source-owned transaction, sealed pathway-publication validator, draft/internal
+   simulation exclusion, deterministic replay, supersession behavior, and atomic rollback
+   pass focused, pathway-regression, full-suite, and repository acceptance.
 6. **13.16.1D4 — deferred-domain review and integrated regression.** Re-evaluate
    reassessment acceptance, timeline milestones, agency submissions, corporate
    compliance, jurisdiction assessments, and external validation against their
@@ -1115,12 +1166,11 @@ mapping/design and 13.16.1D1 caller-owned transaction staging are **COMPLETE / P
 The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / PASS**.
 13.16.1D3A initial-rule / VerifiedRule publication emission is **COMPLETE / PASS**;
 13.16.1D3B regulatory-change publication is **COMPLETE / PASS**;
-13.16.1D3C pathway publication is **UNLOCKED / NOT STARTED**, and the
-Observatory/read model (13.16.1E) is **NOT STARTED**, so Phase 13.16.1 remains **IN
-PROGRESS**.
+13.16.1D3C pathway publication is **COMPLETE / PASS**; 13.16.1D4 deferred-domain
+review/integrated regression is **UNLOCKED / NOT STARTED**, and the Observatory/read model
+(13.16.1E) is **NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
 
-Recommended next step: implement the bounded D3C pathway-version publication
-adapter. Every later adapter must preserve
+Recommended next step: proceed with bounded 13.16.1D4 deferred-domain review and integrated emitter regression. Every later adapter must preserve
 draft/unpublished exclusion, caller-owned atomic transaction semantics, deterministic
 replay, and narrow organizational wording. No automatic legal conclusion or broad
 source-policy expansion is authorized. Do not start Phase 13.16.2 or any Observatory dashboard until the remaining

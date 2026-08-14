@@ -1,5 +1,57 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1D3C pathway-version publication Contribution adapter acceptance
+
+- Closed 13.16.1D3C as **COMPLETE / PASS** after local acceptance of the pathway-version
+  publication Contribution adapter: 8/8 focused D3C emitter tests, 23/23 existing pathway
+  catalogue/evidence-provenance/draft-simulation/reassessment regression tests, 94 passed +
+  1 expected PostgreSQL-only skip in the combined D1-D3B/organization protection set, and
+  750 passed + 1 expected PostgreSQL-only skip in the complete API suite.
+- Confirmed authenticated pathway publication stages exactly one
+  `pathway_version_published` Contribution with persisted replay idempotency, preserved
+  admin/operator compatibility, fail-closed VerifiedRule/provenance drift handling,
+  immutable-version supersession behavior, and atomic rollback of pathway/version/audit/
+  Contribution state on emitter failure. Draft/internal-simulation and unpublished versions
+  remain non-emitting, and the generic organization Contribution API remains
+  ExecutiveDecision-only.
+- Repository policy, release consistency, migration consistency, and `git diff --check`
+  pass at Alembic head `0074_durable_contribution_activity_model` with 118 registered
+  tables. The complete API suite exits 0 with zero failures.
+- 13.16.1D4 deferred-domain review plus integrated emitter regression is now **UNLOCKED /
+  NOT STARTED**. 13.16.1E Observatory remains not started, Phase 13.16.1 remains in
+  progress, Phase 13.16.2 remains locked, and genuine Phase 13.17 external-human
+  acceptance is still required.
+
+## 2026-08-14 - Phase 13.16.1D3C pathway-version publication Contribution adapter implementation
+
+- Added the bounded pathway-publication Contribution adapter at the existing authenticated
+  `MobilityPathwayVersion` publish boundary. Only a draft version that passes the existing
+  catalogue publication-evidence gate, is independently published by an authenticated
+  human actor, becomes `published`, and activates its parent pathway may stage
+  `pathway_version_published`; draft/internal-simulation, retired, and unpublished
+  versions remain non-emitting.
+- Preserved the pathway catalogue as transaction owner across supersession of any prior
+  published version, the selected version's publication transition, pathway activation,
+  the existing publication audit, one staged Contribution, and the Contribution audit.
+  Emitter or final-commit failure rolls the whole unit back. A later immutable version
+  receives a distinct deterministic Contribution instead of rewriting the earlier
+  publication outcome.
+- Kept the generic authenticated organization Contribution API ExecutiveDecision-only.
+  The sealed D3C validator requires authenticated internal-human publication authority,
+  proposer/publisher separation, active published source state, and reuses the catalogue's
+  exact official-source/snapshot, verified-rule, certification, and structured-evidence
+  publication blocker contract before creating the descriptor. Contribution wording
+  records catalogue publication only and does not establish applicant eligibility,
+  occupation eligibility, visa approval, or an authority decision for a mobility case.
+- Preserved current admin/operator pathway publication compatibility and passed the
+  authenticated role into the trusted adapter. Direct service calls without publisher-role
+  context remain no-emitter, so no historical backfill is introduced. Added eight focused
+  D3C tests for draft/no-emission, authenticated emission, operator compatibility,
+  persisted replay, fail-closed rule drift, atomic rollback, revision supersession, and
+  the still-closed generic source policy. D3C is **COMPLETE / PASS** after the acceptance
+  recorded above; 13.16.1D4 deferred-domain review/integrated emitter regression is now
+  **UNLOCKED / NOT STARTED**, and 13.16.1E Observatory remains not started.
+
 ## 2026-08-14 - Phase 13.16.1D3B regulatory-change publication Contribution adapter acceptance
 
 - Closed 13.16.1D3B as **COMPLETE / PASS** after local acceptance of the second

@@ -71,6 +71,11 @@ def _actor(request: Request) -> str:
     return getattr(context, "username", "api-operator")
 
 
+def _role(request: Request) -> str | None:
+    context = getattr(request.state, "auth", None)
+    return getattr(context, "role", None)
+
+
 def _bad_request(exc: ValueError) -> HTTPException:
     message = str(exc)
     status = 404 if message in {
@@ -412,6 +417,7 @@ def api_publish_pathway_version(
             version_id,
             actor=_actor(request),
             review_notes=payload.review_notes,
+            publisher_role=_role(request),
         )
     except ValueError as exc:
         session.rollback()

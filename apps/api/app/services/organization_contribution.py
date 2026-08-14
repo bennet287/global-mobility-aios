@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -12,6 +13,10 @@ from app.models.domain import (
     ExecutiveDecision,
     InitialRuleAssertion,
     JurisdictionSourceCertification,
+    MobilityPathway,
+    MobilityPathwayVersion,
+    MobilityPathwayVersionEvidence,
+    OfficialSource,
     RegulatoryChange,
     OrganizationActorType,
     OrganizationContribution,
@@ -579,6 +584,255 @@ def validate_regulatory_change_publication_outcome(
     )
 
 
+def _json_payload(value: str | None, default: Any) -> Any:
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _pathway_publication_evidence_state(
+    session: Session,
+    version: MobilityPathwayVersion,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    evidence_rows = list(
+        session.exec(
+            select(MobilityPathwayVersionEvidence).where(
+                MobilityPathwayVersionEvidence.pathway_version_id == version.id
+            )
+        ).all()
+    )
+    evidence_rows.sort(
+        key=lambda row: (
+            row.evidence_role,
+            str(row.official_source_id),
+            str(row.source_snapshot_id),
+            str(row.id),
+        )
+    )
+    evidence_state: list[dict[str, Any]] = []
+    for row in evidence_rows:
+        source = session.get(OfficialSource, row.official_source_id)
+        snapshot = session.get(SourceSnapshot, row.source_snapshot_id)
+        evidence_state.append(
+            {
+                "evidence_role": row.evidence_role,
+                "official_source_id": row.official_source_id,
+                "source_snapshot_id": row.source_snapshot_id,
+                "required_for_publication": row.required_for_publication,
+                "metadata": _json_payload(row.metadata_json, {}),
+                "source_active": source.active if source is not None else None,
+                "source_country": source.country if source is not None else None,
+                "source_domain": source.domain if source is not None else None,
+                "source_snapshot_content_hash": snapshot.content_hash if snapshot is not None else None,
+            }
+        )
+
+    rule_state: list[dict[str, Any]] = []
+    raw_rule_ids = _json_payload(version.verified_rule_ids_json, [])
+    try:
+        rule_ids = [UUID(str(value)) for value in raw_rule_ids]
+    except (TypeError, ValueError) as exc:
+        raise ContributionSourceRejected(
+            "published pathway version has invalid verified-rule provenance"
+        ) from exc
+    for rule_id in sorted(rule_ids, key=str):
+        rule = session.get(VerifiedRule, rule_id)
+        if rule is None:
+            raise ContributionSourceRejected(
+                f"published pathway verified rule {rule_id} was not found"
+            )
+        rule_state.append(
+            {
+                "id": rule.id,
+                "country": rule.country,
+                "domain": rule.domain,
+                "rule_key": rule.rule_key,
+                "statement": rule.statement,
+                "official_source_id": rule.official_source_id,
+                "source_snapshot_id": rule.source_snapshot_id,
+                "confidence": rule.confidence,
+                "active": rule.active,
+                "approved_by": rule.approved_by,
+                "published_at": (
+                    _db_stable_datetime(rule.published_at)
+                    if rule.published_at is not None
+                    else None
+                ),
+            }
+        )
+    return evidence_state, rule_state
+
+
+def _pathway_publication_version(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> str:
+    evidence_state, rule_state = _pathway_publication_evidence_state(
+        session,
+        version,
+    )
+    return canonical_fingerprint(
+        {
+            "pathway_id": pathway.id,
+            "pathway_key": pathway.pathway_key,
+            "pathway_name": pathway.name,
+            "country": pathway.country,
+            "domain": pathway.domain,
+            "jurisdiction_id": pathway.jurisdiction_id,
+            "catalogue_status": pathway.catalogue_status,
+            "pathway_version_id": version.id,
+            "version_number": version.version_number,
+            "lifecycle_status": version.lifecycle_status,
+            "supersedes_version_id": version.supersedes_version_id,
+            "official_source_id": version.official_source_id,
+            "source_snapshot_id": version.source_snapshot_id,
+            "verified_rule_ids": _json_payload(version.verified_rule_ids_json, []),
+            "eligibility_criteria": _json_payload(version.eligibility_criteria_json, {}),
+            "required_documents": _json_payload(version.required_documents_json, []),
+            "costs": _json_payload(version.costs_json, {}),
+            "processing_time": _json_payload(version.processing_time_json, {}),
+            "benefits": _json_payload(version.benefits_json, []),
+            "risks": _json_payload(version.risks_json, []),
+            "metadata": _json_payload(version.metadata_json, {}),
+            "effective_from": (
+                _db_stable_datetime(version.effective_from)
+                if version.effective_from is not None
+                else None
+            ),
+            "effective_to": (
+                _db_stable_datetime(version.effective_to)
+                if version.effective_to is not None
+                else None
+            ),
+            "human_review_required": version.human_review_required,
+            "approved_by": version.approved_by,
+            "review_notes": version.review_notes or "",
+            "published_at": _db_stable_datetime(version.published_at),
+            "evidence": evidence_state,
+            "verified_rules": rule_state,
+        }
+    )
+
+
+def validate_pathway_version_publication_outcome(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    pathway_version_id: UUID,
+    outcome_type: str = "pathway_version_published",
+    verification_basis: str,
+) -> AuthoritativeOutcomeDescriptor:
+    """Validate one bounded D3C human-published pathway-version outcome.
+
+    This sealed integration validator reuses the catalogue's exact publication-evidence
+    blocker contract after the publication state has been staged. The generic
+    authenticated Contribution API remains ExecutiveDecision-only.
+    """
+
+    require_human(context)
+    require_role(context, "admin", "operator", "reviewer")
+    if context.tenant_key != LEGACY_DEFAULT_TENANT:
+        raise ContributionSourceRejected(
+            "legacy pathway-version publication records are only mapped to the default tenant"
+        )
+
+    version = session.get(MobilityPathwayVersion, pathway_version_id)
+    if version is None:
+        raise ContributionSourceRejected("published pathway version was not found")
+    pathway = session.get(MobilityPathway, version.pathway_id)
+    if pathway is None:
+        raise ContributionSourceRejected("published pathway was not found")
+    if version.lifecycle_status != "published":
+        raise ContributionSourceRejected(
+            "pathway version is not in the published authoritative state"
+        )
+    if pathway.catalogue_status != "active":
+        raise ContributionSourceRejected(
+            "published pathway is not active in the governed catalogue"
+        )
+    if not version.approved_by or version.published_at is None:
+        raise ContributionSourceRejected(
+            "published pathway version lacks human publication attribution"
+        )
+    if version.approved_by.strip().casefold() != context.actor_id.strip().casefold():
+        raise ContributionSourceRejected(
+            "pathway-version publisher does not match the authenticated emitter actor"
+        )
+    if version.created_by.strip().casefold() == version.approved_by.strip().casefold():
+        raise ContributionSourceRejected(
+            "pathway-version proposer and publisher must remain distinct"
+        )
+    if not verification_basis.strip():
+        raise ContributionSourceRejected("verification basis is required")
+
+    # Reuse the exact catalogue evidence/certification/rule gate. This helper excludes
+    # lifecycle checks, so it remains valid immediately after the draft -> published
+    # transition has been staged inside the same transaction.
+    from app.services.pathway_catalogue import _publication_evidence_blockers
+
+    blockers = _publication_evidence_blockers(session, pathway, version)
+    if blockers:
+        raise ContributionSourceRejected(
+            "published pathway evidence no longer satisfies the publication gate: "
+            + blockers[0]
+        )
+
+    evidence_state, rule_state = _pathway_publication_evidence_state(
+        session,
+        version,
+    )
+    evidence_roles = {str(item["evidence_role"]) for item in evidence_state}
+
+    other_published = list(
+        session.exec(
+            select(MobilityPathwayVersion).where(
+                MobilityPathwayVersion.pathway_id == pathway.id,
+                MobilityPathwayVersion.lifecycle_status == "published",
+                MobilityPathwayVersion.id != version.id,
+            )
+        ).all()
+    )
+    if other_published:
+        raise ContributionSourceRejected(
+            "pathway publication left more than one current published version"
+        )
+
+    source_version = _pathway_publication_version(session, pathway, version)
+    provenance = {
+        "pathway_id": str(pathway.id),
+        "pathway_key": pathway.pathway_key,
+        "pathway_name": pathway.name,
+        "country": pathway.country,
+        "domain": pathway.domain,
+        "jurisdiction_id": str(pathway.jurisdiction_id) if pathway.jurisdiction_id else None,
+        "version_number": version.version_number,
+        "supersedes_version_id": (
+            str(version.supersedes_version_id) if version.supersedes_version_id else None
+        ),
+        "evidence_roles": sorted(evidence_roles),
+        "evidence": evidence_state,
+        "verified_rules": rule_state,
+    }
+    return AuthoritativeOutcomeDescriptor(
+        source_type="mobility_pathway_version",
+        source_id=str(version.id),
+        source_version=source_version,
+        source_state="published",
+        tenant_key=context.tenant_key,
+        outcome_type=outcome_type,
+        verification_method=OrganizationContributionVerificationMethod.human_attestation,
+        verification_basis=verification_basis,
+        provenance=provenance,
+        verified_by=version.approved_by,
+        verified_at=_db_stable_datetime(version.published_at),
+        _validation_token=_DESCRIPTOR_TOKEN,
+    )
+
+
 def _require_descriptor(
     context: OrganizationCommandContext,
     descriptor: AuthoritativeOutcomeDescriptor,
@@ -590,6 +844,9 @@ def _require_descriptor(
     }:
         require_human(context)
         require_role(context, "admin", "reviewer")
+    elif descriptor.source_type == "mobility_pathway_version":
+        require_human(context)
+        require_role(context, "admin", "operator", "reviewer")
     else:
         require_mutation_role(context)
     if context.actor_type in {
