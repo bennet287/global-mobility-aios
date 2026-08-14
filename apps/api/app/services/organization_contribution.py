@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Mapping, Sequence
 from uuid import UUID
@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     ExecutiveDecision,
+    JurisdictionSourceCertification,
     OrganizationActorType,
     OrganizationContribution,
     OrganizationContributionImpactKind,
@@ -29,6 +30,7 @@ from app.services.organization_command import (
     idempotent_existing,
     require_human,
     require_mutation_role,
+    require_role,
     stage_mutations,
     tenant_record,
 )
@@ -125,11 +127,141 @@ def validate_authoritative_outcome(
     )
 
 
+LEGACY_DEFAULT_TENANT = "default"
+
+
+def _db_stable_datetime(value: datetime) -> datetime:
+    """Normalize timestamps to the representation preserved by current DB backends.
+
+    The D2 emitter stages the Contribution before the source transaction commits.
+    SQLite persists timezone-aware UTC datetimes as naive values, so a later replay
+    must fingerprint the same logical instant using the same canonical representation.
+    PostgreSQL UTC values normalize to the same representation here as well.
+    """
+
+    if value.tzinfo is not None:
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value
+
+
+def _source_certification_review_version(
+    certification: JurisdictionSourceCertification,
+    review_evidence: Mapping[str, Any],
+) -> str:
+    """Return the stable reviewed-state identity used by the D2 certification adapter."""
+
+    return canonical_fingerprint(
+        {
+            "certification_id": certification.id,
+            "certification_version": certification.certification_version,
+            "certification_scope": certification.certification_scope,
+            "official_source_id": certification.official_source_id,
+            "status": certification.status,
+            "reviewed_by": certification.reviewed_by,
+            "review_notes": certification.review_notes or "",
+            "review_evidence": dict(review_evidence),
+        }
+    )
+
+
+def validate_source_certification_outcome(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    certification_id: UUID,
+    review_evidence: Mapping[str, Any],
+    outcome_type: str = "source_certification_review_completed",
+    verification_basis: str,
+) -> AuthoritativeOutcomeDescriptor:
+    """Validate one terminal source-certification review for the bounded D2 adapter.
+
+    This validator is intentionally separate from ``validate_authoritative_outcome`` so
+    the authenticated generic Contribution API keeps its original ExecutiveDecision-only
+    source contract. Only the reviewed source-certification integration path calls this
+    adapter validator.
+    """
+
+    require_human(context)
+    require_role(context, "admin", "reviewer")
+    if context.tenant_key != LEGACY_DEFAULT_TENANT:
+        raise ContributionSourceRejected(
+            "legacy source-certification records are only mapped to the default tenant"
+        )
+    certification = session.get(JurisdictionSourceCertification, certification_id)
+    if certification is None:
+        raise ContributionSourceRejected("source certification was not found")
+    if certification.status not in {"approved", "rejected"}:
+        raise ContributionSourceRejected(
+            "source certification is not in an authoritative reviewed terminal state"
+        )
+    if not certification.reviewed_by or certification.reviewed_at is None:
+        raise ContributionSourceRejected("source certification lacks review attribution")
+    if certification.reviewed_by.strip().casefold() != context.actor_id.strip().casefold():
+        raise ContributionSourceRejected(
+            "source certification reviewer does not match the authenticated emitter actor"
+        )
+    if certification.proposed_by.strip().casefold() == certification.reviewed_by.strip().casefold():
+        raise ContributionSourceRejected(
+            "source certification proposer and reviewer must remain distinct"
+        )
+    if str(review_evidence.get("decision", "")).strip().lower() != certification.status:
+        raise ContributionSourceRejected(
+            "source certification review evidence does not match the reviewed state"
+        )
+
+    structured_required = bool(review_evidence.get("structured_review_pack_required"))
+    if structured_required:
+        if review_evidence.get("independent_human_attestation") is not True:
+            raise ContributionSourceRejected(
+                "structured source certification requires independent-human attestation"
+            )
+        evidence_hash = str(review_evidence.get("evidence_pack_sha256", "")).strip().lower()
+        if len(evidence_hash) != 64 or any(ch not in "0123456789abcdef" for ch in evidence_hash):
+            raise ContributionSourceRejected(
+                "structured source certification requires the deterministic evidence-pack SHA-256"
+            )
+        if not str(review_evidence.get("source_snapshot_id", "")).strip():
+            raise ContributionSourceRejected(
+                "structured source certification requires the reviewed source snapshot"
+            )
+
+    if not verification_basis.strip():
+        raise ContributionSourceRejected("verification basis is required")
+
+    source_version = _source_certification_review_version(certification, review_evidence)
+    provenance = {
+        "certification_version": certification.certification_version,
+        "certification_scope": certification.certification_scope,
+        "jurisdiction_id": str(certification.jurisdiction_id),
+        "regulatory_authority_id": str(certification.regulatory_authority_id),
+        "official_source_id": str(certification.official_source_id),
+        "review_evidence": dict(review_evidence),
+    }
+    return AuthoritativeOutcomeDescriptor(
+        source_type="jurisdiction_source_certification",
+        source_id=str(certification.id),
+        source_version=source_version,
+        source_state=certification.status,
+        tenant_key=context.tenant_key,
+        outcome_type=outcome_type,
+        verification_method=OrganizationContributionVerificationMethod.human_attestation,
+        verification_basis=verification_basis,
+        provenance=provenance,
+        verified_by=certification.reviewed_by,
+        verified_at=_db_stable_datetime(certification.reviewed_at),
+        _validation_token=_DESCRIPTOR_TOKEN,
+    )
+
+
 def _require_descriptor(
     context: OrganizationCommandContext,
     descriptor: AuthoritativeOutcomeDescriptor,
 ) -> None:
-    require_mutation_role(context)
+    if descriptor.source_type == "jurisdiction_source_certification":
+        require_human(context)
+        require_role(context, "admin", "reviewer")
+    else:
+        require_mutation_role(context)
     if context.actor_type in {
         OrganizationActorType.agent,
         OrganizationActorType.worker,

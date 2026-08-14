@@ -892,9 +892,51 @@ conflict, correction rollback, and standalone-wrapper regression. Local evidence
 combined organization service/API/platform regression, and 722 passed + 1 expected
 PostgreSQL-only skip in the complete API suite. Repository policy, release consistency,
 migration consistency, and `git diff --check` pass at migration head
-`0074_durable_contribution_activity_model` with 118 registered tables. 13.16.1D2 is
-therefore unlocked but not started; no real domain emitter is authorized until its own
-bounded adapter implementation and acceptance pass.
+`0074_durable_contribution_activity_model` with 118 registered tables. 13.16.1D2 is now COMPLETE / PASS after bounded source/Contribution/audit acceptance;
+13.16.1D3 publication adapters are unlocked but not started.
+
+### 23.5.2 13.16.1D2 source-certification adapter implementation status
+
+**State: COMPLETE / PASS.** The bounded D2 patch connects only
+the authenticated `JurisdictionSourceCertification` review route to the durable
+Contribution ledger. The source-certification transition remains the outer transaction
+owner: reviewed state, the existing source-review `AuditLog`, one staged
+`OrganizationContribution`, and its Contribution audit are committed together or rolled
+back together. No post-commit best-effort write is used.
+
+The generic authenticated `/api/v1/organization/contributions` source validator remains
+ExecutiveDecision-only. D2 adds a separate sealed source-certification validator used
+only by the reviewed domain adapter, so a caller cannot promote an arbitrary source or
+self-assert a certification outcome. The adapter accepts only terminal `approved` or
+`rejected` certification rows with distinct proposer/reviewer attribution. Structured
+certifications additionally require the existing deterministic evidence-pack SHA-256,
+pinned immutable source snapshot, and independent-human attestation before review can
+reach the emitter. `pending_review` and `superseded` remain non-emitting states.
+
+The source-version identity is a canonical SHA-256 over the certification identity,
+version/scope/source, terminal review state, reviewer, notes, and exact review-evidence
+payload. The deterministic Contribution key is
+`source-certification-review:<certification-id>:v<version>:<approved|rejected>`. The
+Contribution semantic is always `source_certification_review_completed`; even an
+approved review is described as a governed source-review outcome and explicitly does
+not establish applicant eligibility, occupation eligibility, or pathway publication.
+Reviewer and admin HTTP roles are mapped to authenticated internal-human organization
+contexts; operator and other roles cannot activate the emitter. Legacy direct service
+calls that do not carry trusted reviewer-role context preserve their pre-D2 no-emitter
+behavior, while the authenticated runtime review route supplies the trusted role.
+
+The D2 test patch covers pending/no-emission behavior, approved and rejected structured
+review emission, evidence-attestation rejection, source+Contribution+both-audits rollback
+on emitter failure, unauthorized-role rollback, idempotent replay without duplicate
+audit, and the legacy direct-service compatibility boundary. Acceptance passes **8/8**
+focused emitter tests, **12/12** existing source-certification evidence-pack tests, **58
+passed + 1 expected PostgreSQL-only skip** in the D1/organization service/API/platform
+regression, and **730 passed + 1 expected PostgreSQL-only skip** in the complete API
+suite. Repository policy, release consistency, migration consistency, and `git diff
+--check` pass at migration head `0074_durable_contribution_activity_model` with 118
+registered tables. The replay defect discovered during acceptance was corrected with
+DB-stable UTC normalization before canonical fingerprinting, so persisted/reloaded
+review timestamps preserve idempotent replay.
 
 ### 23.6 Future emission points and source versions
 
@@ -939,12 +981,11 @@ contract are satisfied; the AI organization must not self-attest that gate.
 1. **13.16.1D1 — transaction composability correction. COMPLETE / PASS.**
    Caller-owned Contribution/AuditLog staging is explicit while standalone commands
    retain commit ownership; local transaction and full regression acceptance pass.
-2. **13.16.1D2 — first reviewed adapter: source-certification review.** After D1
-   acceptance, enable only
-   `JurisdictionSourceCertification` approved/rejected review outcomes, including the
-   structured evidence-pack/independent-review requirements. Round 6 pending
-   national/regional certifications must emit zero Contributions.
-3. **13.16.1D3 — publication adapters.** Add reviewed publication adapters one at a
+2. **13.16.1D2 — first reviewed adapter: source-certification review. COMPLETE / PASS.**
+   Only authenticated `JurisdictionSourceCertification` approved/rejected review
+   outcomes are connected, with structured evidence-pack/independent-review requirements
+   preserved. Round 6 pending national/regional certifications emit zero Contributions.
+3. **13.16.1D3 — publication adapters. UNLOCKED / NOT STARTED.** Add reviewed publication adapters one at a
    time for verified-rule/regulatory-change publication and then published pathway
    versions. Each adapter gets source-contract and rollback tests; draft/internal
    simulation remains excluded.
@@ -974,14 +1015,16 @@ unchanged; and Observatory remains absent until 13.16.1E.
 
 The design, durable persistence foundation, bounded internal command/service layer,
 and authenticated organization REST API are complete. The 13.16.1D0 real-emitter
-mapping/design is complete and 13.16.1D1 caller-owned transaction staging is
-**COMPLETE / PASS**. Runtime emitters remain **NOT STARTED**, the source allowlist
-remains unchanged, and the Observatory/read model (13.16.1E) is **NOT STARTED**, so
-Phase 13.16.1 remains **IN PROGRESS**.
+mapping/design and 13.16.1D1 caller-owned transaction staging are **COMPLETE / PASS**.
+The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / PASS**.
+13.16.1D3 publication adapters are **UNLOCKED / NOT STARTED**, and the
+Observatory/read model (13.16.1E) is **NOT STARTED**, so Phase 13.16.1 remains **IN
+PROGRESS**.
 
-Recommended next step: implement the first narrow 13.16.1D2 source-certification
-review adapter on the accepted caller-owned transaction contract. Pending certification
-must continue to emit zero certification Contributions, and no source-policy expansion
-beyond the reviewed adapter is authorized. Do not start Phase 13.16.2 or any
-Observatory dashboard until real adapters reconcile to their authoritative source
-tables on SQLite and PostgreSQL.
+Recommended next step: implement 13.16.1D3 publication adapters one authoritative
+boundary at a time, beginning with the lowest-risk reviewed publication transition.
+Each adapter must preserve draft/unpublished exclusion, caller-owned atomic transaction
+semantics, deterministic replay, and narrow organizational wording. No automatic legal
+conclusion or broad source-policy expansion is authorized. Do not start Phase 13.16.2
+or any Observatory dashboard until enabled adapters reconcile to their authoritative
+source tables on SQLite and PostgreSQL.

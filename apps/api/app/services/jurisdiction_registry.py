@@ -30,6 +30,10 @@ from app.services.source_certification_review import (
     source_certification_requires_structured_review_pack,
     source_certification_review_pack,
 )
+from app.services.organization_source_certification import (
+    source_certification_organization_context,
+    stage_source_certification_review_contribution,
+)
 
 
 UN_M49_SOURCE_URL = "https://unstats.un.org/unsd/methodology/m49/overview/"
@@ -608,6 +612,7 @@ def review_source_certification(
     decision: str,
     notes: str,
     actor: str,
+    reviewer_role: str | None = None,
     evidence_pack_sha256: str | None = None,
     source_snapshot_id: Any | None = None,
     independent_human_attestation: bool = False,
@@ -736,8 +741,23 @@ def review_source_certification(
         actor=actor,
         source="source_certification_review_v13_10_2_8",
     )
-    session.commit()
-    session.refresh(certification)
+    try:
+        if reviewer_role is not None:
+            organization_context = source_certification_organization_context(
+                actor=actor,
+                role=reviewer_role,
+            )
+            stage_source_certification_review_contribution(
+                session,
+                organization_context,
+                certification=certification,
+                review_evidence=review_evidence,
+            )
+        session.commit()
+        session.refresh(certification)
+    except Exception:
+        session.rollback()
+        raise
     return certification
 
 

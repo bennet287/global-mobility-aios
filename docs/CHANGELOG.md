@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1D2 source-certification Contribution adapter acceptance
+
+- Closed 13.16.1D2 as **COMPLETE / PASS** after local acceptance of the first bounded
+  real-domain Contribution emitter: 8/8 focused D2 emitter tests, 12/12 existing
+  structured source-certification evidence-pack tests, 58 passed + 1 expected
+  PostgreSQL-only skip in the D1/organization service/API/platform regression, and 730
+  passed + 1 expected PostgreSQL-only skip in the complete API suite.
+- Corrected the replay defect exposed during acceptance by normalizing reviewed
+  timestamps to a database-stable UTC representation before canonical Contribution
+  fingerprinting. Persist/reload replay now returns the existing Contribution without
+  weakening fail-closed idempotency conflicts.
+- Repository policy, release consistency, migration consistency, and `git diff --check`
+  pass at Alembic head `0074_durable_contribution_activity_model` with 118 registered
+  tables. Round 6 pending national/regional certifications remain non-emitting and no
+  applicant-eligibility, occupation-eligibility, or pathway-publication conclusion is
+  introduced.
+- 13.16.1D3 publication adapters are **UNLOCKED / NOT STARTED**. 13.16.1E Observatory
+  remains not started, and Phase 13.16.1 remains in progress.
+
+## 2026-08-14 - Phase 13.16.1D2 source-certification Contribution adapter implementation
+
+- Added the first real authoritative Contribution adapter at the existing authenticated
+  `JurisdictionSourceCertification` review boundary. Only terminal approved/rejected
+  reviews can stage `source_certification_review_completed`; pending/superseded state,
+  raw source capture, and generated immigration assessments remain non-emitting.
+- Preserved the source service as transaction owner: certification transition, the
+  existing source-review `AuditLog`, one staged Contribution, and the Contribution audit
+  commit or roll back together. Structured reviews retain the deterministic evidence-pack
+  SHA-256, pinned immutable snapshot, independent-human attestation, and distinct
+  proposer/reviewer requirements.
+- Kept the generic authenticated organization Contribution API ExecutiveDecision-only. A
+  separate sealed source-certification validator permits only authenticated admin/reviewer
+  domain integration, uses deterministic source-version/key identity, and records safe
+  organizational review semantics that explicitly do not establish applicant eligibility,
+  occupation eligibility, or pathway publication.
+- Added focused D2 tests for pending/no-emission, approved/rejected structured emission,
+  attestation rejection, atomic rollback on emitter failure, unauthorized-role rollback,
+  idempotent replay, and legacy direct-service no-emitter compatibility. D2 remains
+  **IMPLEMENTED / LOCAL ACCEPTANCE PENDING** until the local regression gates pass; D3
+  publication adapters and 13.16.1E Observatory remain not started.
+
 ## 2026-08-14 - Phase 13.16.1D1 transaction composability acceptance
 
 - Closed 13.16.1D1 as **COMPLETE / PASS** after local verification of the caller-owned

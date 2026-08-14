@@ -292,6 +292,7 @@ def api_review_source_certification(
             decision=payload.decision,
             notes=payload.notes,
             actor=_actor(request),
+            reviewer_role=_role(request),
             evidence_pack_sha256=payload.evidence_pack_sha256,
             source_snapshot_id=payload.source_snapshot_id,
             independent_human_attestation=payload.independent_human_attestation,
