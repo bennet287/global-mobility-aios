@@ -635,12 +635,33 @@ def test_pagination_is_bounded_stable_and_tenant_scoped(
 
 
 def test_openapi_and_phase_architecture_boundaries() -> None:
-    # Matrix 61-64 plus schema/OpenAPI contract checks.
+    # Matrix 61-64 plus schema/OpenAPI contract checks. E1 permits only the
+    # bounded GET-only Observatory read surface defined by the reconciliation contract.
     schema = app.openapi()
     paths = schema["paths"]
     organization_paths = [path for path in paths if path.startswith(BASE)]
-    forbidden_suffixes = ("/observatory", "/summary", "/dashboard", "/metrics")
+
+    allowed_observatory_paths = {
+        f"{BASE}/observatory/summary",
+        f"{BASE}/observatory/departments",
+        f"{BASE}/observatory/contribution-reconciliation",
+    }
+    observatory_paths = {
+        path for path in organization_paths if path.startswith(f"{BASE}/observatory")
+    }
+    assert observatory_paths == allowed_observatory_paths
+
+    http_methods = {"get", "post", "put", "patch", "delete"}
+    for path in allowed_observatory_paths:
+        assert {method for method in paths[path] if method in http_methods} == {"get"}
+
+    # Keep the pre-E1 prohibition everywhere except the explicitly approved E1 summary.
+    forbidden_suffixes = ("/observatory", "/dashboard", "/metrics")
     assert not any(path.endswith(forbidden_suffixes) for path in organization_paths)
+    assert not any(
+        path.endswith("/summary") and path not in allowed_observatory_paths
+        for path in organization_paths
+    )
 
     operation_ids = [
         operation["operationId"]

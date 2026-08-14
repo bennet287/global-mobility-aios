@@ -1374,6 +1374,99 @@ E0 does not unlock Phase 13.16.2. 13.16.1E1 is the next implementation slice. Fu
 Observatory historical throughput remains gated on the later semantic Activity-coverage
 slice described above.
 
+### 23.13 13.16.1E1 safe snapshot and Contribution-reconciliation read API
+
+**State: COMPLETE / PASS.** E1 adds the first runtime
+Observatory projection without introducing a mutable read-model table, cache, migration,
+dashboard, or write path. The existing authenticated organization router now exposes:
+
+- `GET /api/v1/organization/observatory/summary`;
+- `GET /api/v1/organization/observatory/contribution-reconciliation`;
+- `GET /api/v1/organization/observatory/departments`.
+
+All three derive tenant/role identity from the trusted 13.16.1C request context. No
+payload or query parameter can select another tenant. Reconciliation detail uses the
+existing default/max page sizes of 50/200 with deterministic newest-first ordering and
+optional source/status filters. GETs append no AuditLog, Activity, Contribution, or
+source mutation.
+
+The summary reports only the E0-safe current-state metrics: WorkItems by status,
+department, and priority; active/terminal and overdue-active work; open/mitigated
+Blockers; pending/Board-attention ExecutiveDecisions; pending/overdue HumanActionRequests;
+immutable HumanAction count; active dependency edges/currently blocked downstream work;
+and historical/active Contribution outcomes with supersession/retraction counts and
+active department/type breakdowns. Department reads aggregate only directly attributable
+current rows; HumanActionRequests without a linked WorkItem department remain unassigned
+rather than being inferred from actor or audit context.
+
+Contribution active-state resolution follows the immutable correction model: an
+`outcome` remains active unless it is the target of a same-tenant `supersession` or
+`retraction`. Correction rows remain visible history and never increment active outcome
+counts. Activity, AgentRun, WorkflowRun, retries, tool calls, messages, and mutable work
+status alone cannot increase Contribution metrics.
+
+E1 implements read-only source reconciliation for the accepted source inventory:
+
+| Source | Contribution -> source | Source -> Contribution completeness |
+|---|---|---|
+| `executive_decision` | tenant-scoped terminal attributed decision and stored version | explicit-command-only; no automatic completeness gap |
+| `jurisdiction_source_certification` | terminal independent review plus deterministic review-evidence version | automatic only after first observed Contribution |
+| `initial_rule_assertion` | published assertion and exact active human-published `VerifiedRule` provenance/version | automatic only after first observed Contribution |
+| `regulatory_change` | reviewed published change, immutable current snapshot, exact active `VerifiedRule` and version | automatic only after first observed Contribution |
+| `mobility_pathway_version` | active published pathway version still passing catalogue evidence/certification/rule gates | automatic only after first observed Contribution |
+
+The reconciliation classifications are `matched`, `missing_source`,
+`source_state_drift`, `source_version_drift`, `duplicate_outcome`,
+`missing_contribution_in_coverage`, and `unsupported_source`. Any mismatch is reported in
+the GET response; E1 never repairs, re-emits, approves, publishes, certifies, or backfills.
+
+Automatic-source completeness uses the E0 no-backfill contract. Coverage begins at the
+earliest observed outcome Contribution `created_at` for each sealed source type with
+`coverage_basis = first_observed_contribution`. Earlier eligible source transitions are
+reported as precoverage history; eligible transitions on/after coverage start without an
+exact source-ID/version Contribution are visible gaps. If no Contribution exists for an
+automatic type, coverage remains `not_established` even if eligible source rows exist.
+ExecutiveDecision is reported separately as `explicit_command_only`.
+
+Every E1 response carries one UTC `as_of`, trusted tenant scope, source-row counts,
+coverage metadata, and explicit warnings. Historical WorkItem cycle time,
+completed-throughput periods, blockers-resolved-in-period, last-material-transition
+ageing, and a complete semantic timeline remain unavailable because current source
+transitions do not yet guarantee curated OrganizationActivity emission.
+
+E1 acceptance is complete: focused Observatory tests pass **10/10**, the protected
+organization/emitter regression passes **65/65**, and the complete API suite passes
+**760 passed + 1 expected PostgreSQL-only skip, 0 failed** with exit code 0. Repository
+policy, release consistency, migration consistency, and `git diff --check` pass with code
+head `0074_durable_contribution_activity_model` and 118 registered tables.
+
+The PostgreSQL acceptance boundary is explicit. The authoritative integration database
+`gmai` was queried only inside a strict read-only transaction and remains preserved at
+`0073_austria_candidate_integrity`; no migration was run and E1 execution is not claimed
+against schema that does not contain the 0074 organization ledgers. The isolated
+PostgreSQL service database is at `0074_durable_contribution_activity_model`, exposes all
+eight durable organization tables, and passed execution of the current E1
+`observatory_summary`, `observatory_departments`, and
+`observatory_contribution_reconciliation` functions with transaction read-only protection
+retained before and after the reads. The smoke exited 0 with internally consistent tenant
+scope, source-row counts, and coverage projections. Its current organization/source rows
+were empty, so automatic sealed-source coverage correctly reported `not_established` and
+ExecutiveDecision remained `explicit_command_only`; no production completeness inference
+is made from the empty fixture.
+
+Acceptance also corrected two bounded defects without widening authority: blockers linked
+to WorkItems are attributed to the WorkItem department before falling back to the blocker
+record's department, and the OpenAPI architecture boundary permits exactly the three E1
+GET-only Observatory endpoints while retaining the prohibition on arbitrary dashboard,
+metrics, observatory-root, or unapproved summary surfaces.
+
+E1 does not unlock Phase 13.16.2. The next bounded E slice is E2, now **UNLOCKED / NOT
+STARTED**: caller-owned Activity staging plus source-owned semantic transition adapters.
+Only after that coverage exists may historical throughput/cycle-time metrics be
+implemented. Round 6 Austria v4 remains draft/simulation-only/unpublished with pending
+national/regional certifications and must not appear as a published, certified, or
+eligibility Contribution.
+
 
 ## 24. Readiness and recommendation
 
@@ -1386,9 +1479,12 @@ The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / P
 13.16.1D3C pathway publication is **COMPLETE / PASS**; 13.16.1D4 deferred-domain
 review/integrated regression is **COMPLETE / PASS**. The 13.16.1E0 Observatory/read-model
 source reconciliation design is **COMPLETE** and 13.16.1E1 safe snapshot + Contribution
-reconciliation API is **UNLOCKED / NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
+reconciliation API is **COMPLETE / PASS**, so Phase 13.16.1 remains **IN PROGRESS**.
+E2 Activity transaction/semantic coverage is **UNLOCKED / NOT STARTED**.
 
-Recommended next step: implement the bounded 13.16.1E1 safe snapshot and Contribution-reconciliation read API.
+Recommended next step: begin bounded E2 Activity transaction/semantic coverage design and
+implementation. Preserve E1's read-only snapshot/reconciliation contract while adding only
+caller-owned Activity staging and source-owned semantic transition adapters.
 Every later adapter must preserve draft/unpublished exclusion, caller-owned atomic
 transaction semantics, deterministic replay, and narrow organizational wording. No
 automatic legal conclusion or broad source-policy expansion is authorized. Do not start

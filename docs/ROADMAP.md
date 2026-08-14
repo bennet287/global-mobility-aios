@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is COMPLETE / PASS, the first bounded runtime emitter is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is COMPLETE / PASS; 13.16.1D3C pathway publication is COMPLETE / PASS; 13.16.1D4 deferred-domain review/integrated regression is COMPLETE / PASS, and 13.16.1E0 Observatory/read-model reconciliation design is COMPLETE; 13.16.1E1 safe snapshot/reconciliation read API is UNLOCKED / NOT STARTED; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is COMPLETE / PASS, the first bounded runtime emitter is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is COMPLETE / PASS; 13.16.1D3C pathway publication is COMPLETE / PASS; 13.16.1D4 deferred-domain review/integrated regression is COMPLETE / PASS, and 13.16.1E0 Observatory/read-model reconciliation design is COMPLETE; 13.16.1E1 safe snapshot/reconciliation read API is COMPLETE / PASS; 13.16.1E2 Activity staging/semantic coverage is UNLOCKED / NOT STARTED; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -65,16 +65,13 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: code, fresh SQLite, and isolated fresh PostgreSQL migration cycles are verified at `0074_durable_contribution_activity_model`; the preserved PostgreSQL environment remains intentionally unchanged at `0073_austria_candidate_integrity`.
 - Docker production-profile validation: passing.
-- API regression baseline: **750 passed, 1 PostgreSQL-only test skipped, 0 failed**
-  with the Phase 13.16.1D3C pathway-version publication Contribution adapter. D3C
-  focused emitter tests pass **8/8**, existing pathway catalogue/evidence/simulation/
-  reassessment regression tests pass **23/23**, and the combined D1-D3B/organization
-  regression passes **94 passed + 1 expected PostgreSQL-only skip**. The accepted D2,
-  D3A, and D3B emitters remain covered with deterministic replay and atomic rollback
-  semantics. 13.16.1D4 deferred-domain review/integrated emitter regression is now
-  **COMPLETE / PASS**.
+- API regression baseline: **760 passed, 1 PostgreSQL-only test skipped, 0 failed**
+  after Phase 13.16.1E1 safe Observatory acceptance. Focused E1 tests pass **10/10** and
+  the protected organization/emitter regression passes **65/65**. The accepted D2-D3C
+  emitters remain covered with deterministic replay, atomic rollback, and the closed
+  generic source-policy boundary. E1 is **COMPLETE / PASS**.
 - SQLite migration compatibility: **passing through current migration head `0074_durable_contribution_activity_model`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
-- PostgreSQL: the isolated fresh database passes the full chain and `0074 -> 0073 -> 0074` cycle with empty new ledgers; the preserved Docker database remains **passing and untouched at `0073_austria_candidate_integrity`** with the immutable Austria v4 draft unchanged.
+- PostgreSQL: the preserved authoritative `gmai` Docker database remains **untouched at `0073_austria_candidate_integrity`**; a strict `BEGIN READ ONLY` preflight confirmed that boundary and no upgrade was performed. The isolated PostgreSQL service database at `0074_durable_contribution_activity_model` exposes all eight durable organization tables and passed the actual E1 Observatory summary/department/reconciliation service smoke with transaction read-only protection retained before and after the reads. Both containers were returned to their stopped state.
 - Local quality gate: compilation, evidence-pack validation, repository policy,
   release consistency, migrations, Docker-profile validation, frontend production
   build, and the complete API test suite pass. The disposable/test databases are
@@ -102,7 +99,7 @@ internal rendered acceptance passed. Phase 13.16.1 is **IMPLEMENTATION IN PROGRE
 DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, 13.16.1C AUTHENTICATED
 ORGANIZATION API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1
 TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API UNLOCKED / NOT STARTED**; its
+COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE UNLOCKED / NOT STARTED**; its
 implementation contract is recorded in
 [DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
 This closure does not satisfy genuine external-human acceptance, which remains Phase
@@ -127,7 +124,7 @@ release gate.
    **IMPLEMENTATION IN PROGRESS — DESIGN, PERSISTENCE, COMMAND/SERVICE,
    AUTHENTICATED API, AND 13.16.1D0 EMITTER MAPPING COMPLETE; 13.16.1D1
    TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API IS UNLOCKED / NOT STARTED**.
+   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API IS COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE IS UNLOCKED / NOT STARTED**.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
    owner observatory, department workspaces, dependencies, owner inbox, mobility-user
    and operator experiences, and consolidated evidence/provenance presentation.
@@ -732,7 +729,7 @@ API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 CALLER-OWNED
 TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
 COMPLETE / PASS; FIRST BOUNDED RUNTIME CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0
 OBSERVATORY/READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 SAFE SNAPSHOT /
-RECONCILIATION READ API UNLOCKED / NOT STARTED.** The
+RECONCILIATION READ API COMPLETE / PASS; E2 ACTIVITY COVERAGE UNLOCKED / NOT STARTED.** The
 fresh Round 6 mobility-user and professional shadow reviews passed the correctness
 gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
 are complete. Phase 13.17 external-human acceptance is not satisfied.
@@ -772,7 +769,7 @@ Phase 13.16.0 final disposition is **CLOSED / PASS**:
   TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0
   OBSERVATORY/READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 SAFE SNAPSHOT /
-  RECONCILIATION READ API UNLOCKED / NOT STARTED**.
+  RECONCILIATION READ API COMPLETE / PASS; E2 ACTIVITY COVERAGE UNLOCKED / NOT STARTED**.
 - Phase 13.17 genuine external-human acceptance: **still required**.
 - Phase 14: **locked**.
 
@@ -874,7 +871,7 @@ Required implementation order:
 4. 13.16.1D3B regulatory-change publication adapter — **COMPLETE / PASS**.
 5. 13.16.1D3C pathway-version publication adapter — **COMPLETE / PASS**.
 6. 13.16.1D4 deferred-domain review plus integrated emitter regression — **COMPLETE / PASS**.
-7. 13.16.1E0 Observatory/read-model source reconciliation design — **COMPLETE**; 13.16.1E1 safe snapshot + Contribution reconciliation read API — **UNLOCKED / NOT STARTED**.
+7. 13.16.1E0 Observatory/read-model source reconciliation design — **COMPLETE**; 13.16.1E1 safe snapshot + Contribution reconciliation read API — **COMPLETE / PASS**; 13.16.1E2 Activity staging/semantic coverage — **UNLOCKED / NOT STARTED**.
 
 #### 13.16.1D1 caller-owned transaction staging
 
@@ -1053,7 +1050,7 @@ policy, release consistency, migration consistency, and `git diff --check` pass 
 Alembic head `0074_durable_contribution_activity_model` with 118 registered tables.
 13.16.1D4 is therefore **COMPLETE / PASS**. 13.16.1E0 Observatory/read-model
 source reconciliation design is **COMPLETE** and 13.16.1E1 safe snapshot + Contribution
-reconciliation read API is **UNLOCKED / NOT STARTED**. Phase 13.16.1 remains **IN PROGRESS**.
+reconciliation read API is **COMPLETE / PASS**; E2 Activity coverage is **UNLOCKED / NOT STARTED**. Phase 13.16.1 remains **IN PROGRESS**.
 
 #### 13.16.1D4 deferred-domain review and integrated emitter regression
 
@@ -1107,11 +1104,11 @@ regression passes 49/49; the complete API suite passes 750 with 1 expected
 PostgreSQL-only skip and 0 failures (exit code 0); repository policy, release
 consistency, migration consistency, and `git diff --check` pass at Alembic head
 `0074_durable_contribution_activity_model` with 118 registered tables. D4 is therefore
-closed; 13.16.1E0 Observatory/read-model reconciliation design is complete and 13.16.1E1 is unlocked.
+closed; 13.16.1E0 Observatory/read-model reconciliation design is complete, D4 unlocked E1, and E1 is now COMPLETE / PASS.
 
 #### 13.16.1E0 Observatory/read-model source reconciliation design
 
-**State: DESIGN COMPLETE / RUNTIME NOT STARTED.** Repository reconciliation confirms
+**State: DESIGN COMPLETE.** Repository reconciliation confirmed
 that the first Observatory read slice can safely summarize current authoritative state
 and verified Contributions, but it cannot yet claim complete transition-history metrics.
 No runtime code, schema, migration, database state, or UI changes are part of E0.
@@ -1159,7 +1156,68 @@ tables, prove tenant isolation and correction-chain semantics, identify source d
 post-coverage missing emissions without repair, and keep the current Round 6 Austria
 draft/pending state from appearing as published/certified/eligible Contribution.
 
-13.16.1E1 is now **UNLOCKED / NOT STARTED**. Phase 13.16.2 remains locked.
+13.16.1E1 is now **COMPLETE / PASS**. 13.16.1E2 Activity staging/semantic coverage is **UNLOCKED / NOT STARTED**. Phase 13.16.2 remains locked.
+
+#### 13.16.1E1 safe snapshot + Contribution reconciliation read API
+
+**State: COMPLETE / PASS.** The first Observatory runtime stays
+inside the existing authenticated organization boundary and is read-only. It adds
+`/api/v1/organization/observatory/summary`, `/contribution-reconciliation`, and
+`/departments` without a mutation route, materialized metric table, cache, migration, or
+Owner Control Center UI.
+
+The implementation reads current tenant-scoped WorkItems, Blockers, ExecutiveDecisions,
+HumanActionRequests, HumanActions, dependencies, and Contributions directly from their
+authoritative rows. Active Contribution counts follow immutable correction semantics:
+supersession/retraction targets no longer count active, while correction history remains
+visible separately. Department summaries use only directly attributable current rows and
+do not invent ownership from audit/runtime context.
+
+The Contribution reconciliation API validates explicit terminal `ExecutiveDecision`
+references and the four sealed automatic source families accepted in D2/D3. Automatic
+completeness uses `first_observed_contribution` as the explicit no-backfill watermark;
+precoverage rows are separated, post-coverage missing exact source/version Contributions
+are visible gaps, and source/version/state drift is reported without repair. Terminal
+ExecutiveDecision rows remain `explicit_command_only` and are not automatically expected
+to have Contributions.
+
+Every E1 response exposes a UTC `as_of`, trusted tenant scope, source-row counts,
+coverage basis/start, and partial/unavailable warnings. Reconciliation pagination is
+bounded at 50 default / 200 maximum and deterministically ordered. GET requests do not
+append AuditLog, Activity, Contribution, or source state.
+
+Historical WorkItem cycle time, completed-throughput periods, blockers-resolved-in-period,
+last-material-transition ageing, and a complete semantic organization timeline remain
+unavailable. E2 must first add caller-owned Activity staging and source-owned semantic
+transition adapters. Round 6 Austria v4 remains draft/simulation-only/unpublished with
+pending national/regional certification and remains outside published/certified/
+eligibility Contribution metrics.
+
+E1 acceptance is complete. Focused Observatory coverage passes **10/10**, the protected
+organization/emitter regression passes **65/65**, and the complete API suite passes
+**760 passed + 1 expected PostgreSQL-only skip, 0 failed** with exit code 0. Repository
+policy, release consistency, migration consistency, and `git diff --check` pass with code
+head `0074_durable_contribution_activity_model` and 118 registered tables.
+
+PostgreSQL acceptance preserves two distinct boundaries. The authoritative integration
+database `gmai` was inspected only inside `BEGIN READ ONLY` and remains intentionally at
+`0073_austria_candidate_integrity`; the 0074 Observatory ledgers are absent there and no
+migration was performed. The isolated PostgreSQL service database at 0074 exposes all
+eight durable organization tables and successfully executed the current E1
+`observatory_summary`, `observatory_departments`, and
+`observatory_contribution_reconciliation` functions under transaction-level read-only
+protection. The smoke retained `transaction_read_only=on` before and after the reads,
+returned internally consistent tenant/source-count/coverage projections, and exited 0.
+Its organization/source rows were empty, so sealed automatic coverage correctly remained
+`not_established` while ExecutiveDecision remained `explicit_command_only`; this is not
+claimed as production-data completeness. Both PostgreSQL containers were returned to
+their prior stopped state.
+
+The focused acceptance also fixed blocker department attribution to prefer the linked
+WorkItem's department before the blocker record's fallback department, and narrowed the
+OpenAPI architecture guard to permit exactly the three E1 GET-only routes without opening
+arbitrary Observatory/dashboard/metrics surfaces. E1 is **COMPLETE / PASS**. E2 Activity
+staging/semantic coverage is **UNLOCKED / NOT STARTED**; Phase 13.16.2 remains locked.
 
 #### Canonical validation sequence from Round 6 onward
 
@@ -1183,7 +1241,8 @@ Round 6 correctness disposition                 PASS / CLOSED
   DESIGN + PERSISTENCE + SERVICE + API + D0 EMITTER MAPPING COMPLETE
   D1 TRANSACTION STAGING + D2/D3 EMITTERS + D4 REGRESSION COMPLETE / PASS
   E0 READ-MODEL RECONCILIATION DESIGN COMPLETE
-  E1 SAFE SNAPSHOT / RECONCILIATION READ API NEXT
+  E1 SAFE SNAPSHOT / RECONCILIATION READ API COMPLETE / PASS
+  E2 ACTIVITY STAGING / SEMANTIC COVERAGE NEXT
                     ↓
 13.16.2-13.16.9 role-based experience and observatory delivery
                     ↓
@@ -1288,7 +1347,7 @@ authenticated organization API, and 13.16.1D0 emitter mapping/design are complet
 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS; 13.16.1D2
 source-certification review emission is COMPLETE / PASS. The first bounded runtime emitter
 is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is COMPLETE / PASS; 13.16.1D3C pathway publication is COMPLETE / PASS; 13.16.1D4 is COMPLETE / PASS, and
-13.16.1E0 read-model reconciliation design is COMPLETE; 13.16.1E1 read API implementation is UNLOCKED / NOT STARTED.
+13.16.1E0 read-model reconciliation design is COMPLETE; 13.16.1E1 read API implementation is COMPLETE / PASS; 13.16.1E2 Activity coverage is UNLOCKED / NOT STARTED.
 
 #### 13.16 delivery sequence
 
@@ -1317,7 +1376,7 @@ COMMAND/SERVICE LAYER, 13.16.1C AUTHENTICATED ORGANIZATION API, AND 13.16.1D0
 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 TRANSACTION STAGING COMPLETE / PASS;
 13.16.1D2 SOURCE-CERTIFICATION EMISSION COMPLETE / PASS; FIRST BOUNDED RUNTIME
 CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS;
-13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API UNLOCKED / NOT STARTED.** The current-state
+13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE UNLOCKED / NOT STARTED.** The current-state
 inventory, six canonical contracts, exact proposed database model, migration plan,
 API/service direction, observatory aggregation boundary, backfill policy, and test
 matrix are defined in
@@ -1333,7 +1392,7 @@ bounded pagination, and typed responses. The unchecked items below now remain re
 the accepted D emitter set exists, but API/emitter completion does not claim that the
 Observatory read model or UI exists.
 
-Remaining implementation order: implement 13.16.1E1 safe snapshot + Contribution reconciliation reads using the accepted E0 source map. Do not enable transition-period throughput/cycle-time metrics until a later E Activity-coverage slice adds caller-owned semantic Activity staging and source-owned transition adapters. Enabled Contribution adapters must reconcile to their authoritative source tables before Observatory/read-model acceptance.
+Remaining implementation order: implement the bounded E2 caller-owned Activity staging + semantic transition adapters before enabling transition-period throughput/cycle-time metrics. E1 safe snapshot + Contribution reconciliation is closed COMPLETE / PASS. Enabled Contribution adapters must continue to reconcile to their authoritative source tables before Observatory/read-model acceptance.
 Phase 13.16.2 remains locked until that sequence and the 13.16.1 exit criteria pass.
 
 - [x] Define separate durable records or explicitly versioned event contracts for

@@ -57,6 +57,12 @@ from app.schemas_organization_records import (
     WorkItemCreate,
     WorkItemRead,
 )
+from app.schemas_organization_observatory import (
+    ContributionReconciliationRead,
+    ObservatoryDepartmentsRead,
+    ObservatorySummaryRead,
+    ReconciliationStatus,
+)
 from app.services.organization_activity import append_activity
 from app.services.organization_command import (
     AuthorityDenied,
@@ -91,6 +97,12 @@ from app.services.organization_human_action import (
     decline_human_action_request,
     expire_human_action_request,
     start_human_action_request,
+)
+from app.services.organization_observatory import (
+    ACCEPTED_SOURCE_TYPES,
+    observatory_contribution_reconciliation,
+    observatory_departments,
+    observatory_summary,
 )
 from app.services.organization_reference import create_record_reference
 from app.services.organization_work import (
@@ -209,6 +221,49 @@ def _page_result(rows: list[Any], *, page: int, page_size: int, total: int) -> d
         "total": total,
         "total_pages": math.ceil(total / page_size) if total else 0,
     }
+
+
+@router.get("/observatory/summary", response_model=ObservatorySummaryRead)
+def get_observatory_summary(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    return observatory_summary(session, context.tenant_key)
+
+
+@router.get("/observatory/departments", response_model=ObservatoryDepartmentsRead)
+def get_observatory_departments(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    return observatory_departments(session, context.tenant_key)
+
+
+@router.get(
+    "/observatory/contribution-reconciliation",
+    response_model=ContributionReconciliationRead,
+)
+def get_observatory_contribution_reconciliation(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),
+    source_type: str | None = Query(
+        default=None,
+        pattern="^(executive_decision|jurisdiction_source_certification|initial_rule_assertion|regulatory_change|mobility_pathway_version)$",
+    ),
+    reconciliation_status: ReconciliationStatus | None = Query(default=None, alias="status"),
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    if source_type is not None and source_type not in ACCEPTED_SOURCE_TYPES:
+        raise HTTPException(status_code=422, detail="Unsupported Observatory source type.")
+    return observatory_contribution_reconciliation(
+        session,
+        context.tenant_key,
+        page=page,
+        page_size=page_size,
+        source_type=source_type,
+        reconciliation_status=reconciliation_status,
+    )
 
 
 @router.get("/activities", response_model=OrganizationPage[ActivityRead])
