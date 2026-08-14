@@ -29,6 +29,7 @@ from app.services.organization_command import (
     idempotent_existing,
     require_human,
     require_mutation_role,
+    stage_mutations,
     tenant_record,
 )
 
@@ -141,10 +142,11 @@ def _require_descriptor(
         raise ContributionSourceRejected("authoritative descriptor tenant does not match command tenant")
 
 
-def create_contribution(
+def _write_contribution(
     session: Session,
     context: OrganizationCommandContext,
     *,
+    _commit: bool,
     contribution_key: str,
     descriptor: AuthoritativeOutcomeDescriptor,
     contribution_type: str,
@@ -266,19 +268,161 @@ def create_contribution(
         created_by=context.actor_id,
     )
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.contribution.create", "organization_contribution", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
+    mutation = AuditMutation(
+        "organization.contribution.create",
+        "organization_contribution",
+        row.id,
+        after_state=row,
     )
+    if _commit:
+        commit_mutations(session, mutations=[mutation], context=context, refresh=(row,))
+    else:
+        stage_mutations(session, mutations=[mutation], context=context)
     return row
 
 
-def append_contribution_correction(
+def create_contribution(
     session: Session,
     context: OrganizationCommandContext,
     *,
+    contribution_key: str,
+    descriptor: AuthoritativeOutcomeDescriptor,
+    contribution_type: str,
+    title: str,
+    outcome_summary: str,
+    department: str,
+    accountable_position_key: str,
+    authority_level: str,
+    impact_kind: OrganizationContributionImpactKind | str,
+    effective_at: datetime,
+    work_item_id: UUID | None = None,
+    decision_id: UUID | None = None,
+    objective_key: str | None = None,
+    phase_key: str | None = None,
+    lead_id: UUID | None = None,
+    profile_id: UUID | None = None,
+    application_id: UUID | None = None,
+    corporate_account_id: UUID | None = None,
+    corporate_mobility_case_id: UUID | None = None,
+    measured_value: Decimal | None = None,
+    baseline_value: Decimal | None = None,
+    target_value: Decimal | None = None,
+    measurement_unit: str | None = None,
+    impact: Mapping[str, Any] | None = None,
+    evidence_summary: Sequence[Any] | None = None,
+    human_action_required: bool = False,
+) -> OrganizationContribution:
+    """Create and commit a standalone authoritative Contribution command."""
+
+    return _write_contribution(
+        session,
+        context,
+        _commit=True,
+        contribution_key=contribution_key,
+        descriptor=descriptor,
+        contribution_type=contribution_type,
+        title=title,
+        outcome_summary=outcome_summary,
+        department=department,
+        accountable_position_key=accountable_position_key,
+        authority_level=authority_level,
+        impact_kind=impact_kind,
+        effective_at=effective_at,
+        work_item_id=work_item_id,
+        decision_id=decision_id,
+        objective_key=objective_key,
+        phase_key=phase_key,
+        lead_id=lead_id,
+        profile_id=profile_id,
+        application_id=application_id,
+        corporate_account_id=corporate_account_id,
+        corporate_mobility_case_id=corporate_mobility_case_id,
+        measured_value=measured_value,
+        baseline_value=baseline_value,
+        target_value=target_value,
+        measurement_unit=measurement_unit,
+        impact=impact,
+        evidence_summary=evidence_summary,
+        human_action_required=human_action_required,
+    )
+
+
+def stage_contribution(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    contribution_key: str,
+    descriptor: AuthoritativeOutcomeDescriptor,
+    contribution_type: str,
+    title: str,
+    outcome_summary: str,
+    department: str,
+    accountable_position_key: str,
+    authority_level: str,
+    impact_kind: OrganizationContributionImpactKind | str,
+    effective_at: datetime,
+    work_item_id: UUID | None = None,
+    decision_id: UUID | None = None,
+    objective_key: str | None = None,
+    phase_key: str | None = None,
+    lead_id: UUID | None = None,
+    profile_id: UUID | None = None,
+    application_id: UUID | None = None,
+    corporate_account_id: UUID | None = None,
+    corporate_mobility_case_id: UUID | None = None,
+    measured_value: Decimal | None = None,
+    baseline_value: Decimal | None = None,
+    target_value: Decimal | None = None,
+    measurement_unit: str | None = None,
+    impact: Mapping[str, Any] | None = None,
+    evidence_summary: Sequence[Any] | None = None,
+    human_action_required: bool = False,
+) -> OrganizationContribution:
+    """Stage a Contribution and its audit inside a caller-owned transaction.
+
+    This internal integration primitive never commits or rolls back. Real source
+    adapters must call it only while their authoritative source transition owns the
+    surrounding transaction. The public/API command remains ``create_contribution``.
+    """
+
+    return _write_contribution(
+        session,
+        context,
+        _commit=False,
+        contribution_key=contribution_key,
+        descriptor=descriptor,
+        contribution_type=contribution_type,
+        title=title,
+        outcome_summary=outcome_summary,
+        department=department,
+        accountable_position_key=accountable_position_key,
+        authority_level=authority_level,
+        impact_kind=impact_kind,
+        effective_at=effective_at,
+        work_item_id=work_item_id,
+        decision_id=decision_id,
+        objective_key=objective_key,
+        phase_key=phase_key,
+        lead_id=lead_id,
+        profile_id=profile_id,
+        application_id=application_id,
+        corporate_account_id=corporate_account_id,
+        corporate_mobility_case_id=corporate_mobility_case_id,
+        measured_value=measured_value,
+        baseline_value=baseline_value,
+        target_value=target_value,
+        measurement_unit=measurement_unit,
+        impact=impact,
+        evidence_summary=evidence_summary,
+        human_action_required=human_action_required,
+    )
+
+
+def _write_contribution_correction(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    _commit: bool,
     contribution_key: str,
     original_contribution_id: UUID,
     descriptor: AuthoritativeOutcomeDescriptor,
@@ -363,10 +507,74 @@ def append_contribution_correction(
         created_by=context.actor_id,
     )
     session.add(row)
-    commit_mutations(
-        session,
-        mutations=[AuditMutation("organization.contribution.correct", "organization_contribution", row.id, after_state=row)],
-        context=context,
-        refresh=(row,),
+    mutation = AuditMutation(
+        "organization.contribution.correct",
+        "organization_contribution",
+        row.id,
+        after_state=row,
     )
+    if _commit:
+        commit_mutations(session, mutations=[mutation], context=context, refresh=(row,))
+    else:
+        stage_mutations(session, mutations=[mutation], context=context)
     return row
+
+
+def append_contribution_correction(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    contribution_key: str,
+    original_contribution_id: UUID,
+    descriptor: AuthoritativeOutcomeDescriptor,
+    record_kind: OrganizationContributionRecordKind | str,
+    title: str,
+    outcome_summary: str,
+    effective_at: datetime,
+    retraction_reason: str | None = None,
+) -> OrganizationContribution:
+    """Append and commit a standalone Contribution correction/retraction."""
+
+    return _write_contribution_correction(
+        session,
+        context,
+        _commit=True,
+        contribution_key=contribution_key,
+        original_contribution_id=original_contribution_id,
+        descriptor=descriptor,
+        record_kind=record_kind,
+        title=title,
+        outcome_summary=outcome_summary,
+        effective_at=effective_at,
+        retraction_reason=retraction_reason,
+    )
+
+
+def stage_contribution_correction(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    contribution_key: str,
+    original_contribution_id: UUID,
+    descriptor: AuthoritativeOutcomeDescriptor,
+    record_kind: OrganizationContributionRecordKind | str,
+    title: str,
+    outcome_summary: str,
+    effective_at: datetime,
+    retraction_reason: str | None = None,
+) -> OrganizationContribution:
+    """Stage a correction/retraction inside a caller-owned transaction."""
+
+    return _write_contribution_correction(
+        session,
+        context,
+        _commit=False,
+        contribution_key=contribution_key,
+        original_contribution_id=original_contribution_id,
+        descriptor=descriptor,
+        record_kind=record_kind,
+        title=title,
+        outcome_summary=outcome_summary,
+        effective_at=effective_at,
+        retraction_reason=retraction_reason,
+    )

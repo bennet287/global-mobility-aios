@@ -1,5 +1,65 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1D1 transaction composability acceptance
+
+- Closed 13.16.1D1 as **COMPLETE / PASS** after local verification of the caller-owned
+  transaction contract: 8/8 focused D1 transaction tests, 50 passed + 1 expected
+  PostgreSQL-only skip in the combined organization service/API/platform regression,
+  and 722 passed + 1 expected PostgreSQL-only skip in the complete API suite.
+- Repository policy, release consistency, migration consistency, and `git diff --check`
+  pass at Alembic head `0074_durable_contribution_activity_model` with 118 registered
+  tables. No migration, persistence-model, API, source-policy, emitter, or Austria
+  regulated-state change was required for acceptance.
+- 13.16.1D2 source-certification review emission is now **UNLOCKED / NOT STARTED**.
+  Runtime Contribution emitters remain absent until the D2 adapter and its own atomic
+  source/Contribution/audit acceptance pass.
+
+## 2026-08-14 - Phase 13.16.1D1 transaction composability implementation
+
+- Added an internal caller-owned mutation staging primitive that flushes domain changes
+  and their `AuditLog` rows without committing, refreshing, or rolling back. The
+  existing standalone `commit_mutations()` path retains commit/rollback ownership, so
+  the authenticated organization API contract is unchanged.
+- Added explicit internal `stage_contribution()` and
+  `stage_contribution_correction()` integration paths while preserving the existing
+  `create_contribution()` and `append_contribution_correction()` commit-on-command
+  wrappers. No public `commit=False` bypass, source-policy expansion, real emitter,
+  migration, persistence-model change, router change, or Observatory work was added.
+- Added focused transaction-composability coverage for source/Contribution/audit
+  rollback, Contribution-audit failure, caller final-commit failure, replay without
+  duplicate audit, fail-closed semantic conflicts, correction rollback, and standalone
+  wrapper regression. The subsequent acceptance entry records the passing local gates.
+
+## 2026-08-14 - Phase 13.16.1D0 authoritative Contribution emitter mapping
+
+- Completed a repository-backed, design-only mapping of real domain outcomes against
+  the durable Contribution contract. Terminal `ExecutiveDecision` remains an eligible
+  source but explicit-command-only; reviewed source-certification outcomes and governed
+  publication transitions are the first eligible future adapter classes. Generated
+  Eligibility, pathway comparison, country ranking, raw source/evidence retrieval,
+  agent/workflow execution, attempts, tools/LLM calls, AuditLog, retries, messages, and
+  UI interactions remain ineligible as direct Contribution authority.
+- Classified `JurisdictionImmigrationAssessment`, `ReassessmentAcceptance`,
+  `ExternalValidationRun`, corporate compliance, timeline milestones, and
+  agency/appointment progress as deferred until their remaining audit, authenticated
+  actor, evidence, or external-verification contracts are strong enough. Phase 13.17
+  external-human acceptance remains unsatisfied and `external_human` is not promoted to
+  durable HumanAction authority.
+- Identified a transaction-composability hard gate before runtime emitters:
+  `create_contribution()` commits through `commit_mutations()` while the source-domain
+  services also own their commits. Direct post-commit emission would be a lossy
+  best-effort dual write, while nested pre-commit use would unexpectedly transfer
+  transaction ownership to the Contribution service. 13.16.1D1 must introduce a
+  caller-owned staging path so the source transition, source audit, Contribution, and
+  Contribution audit commit or roll back together. No new outbox is required for the
+  initial same-database adapters.
+- Pinned Round 6 Austria v4 to zero automatic Contributions: draft,
+  `simulation_candidate`, `INTERNAL_SIMULATION_ONLY`, unpublished/not-ready, national
+  and regional certification `pending_review`, absent/blocking job offer, occupation
+  `AMBIGUOUS`, regional `INSUFFICIENT_INFORMATION`, qualification mapping `UNRESOLVED`,
+  EUR 218, 14 evidence gaps, and human review required. No runtime code, migration, API,
+  source policy, database state, or emitter changed in this design-only slice.
+
 ## 2026-08-14 - Phase 13.16.1C authenticated organization REST API
 
 - Added the authenticated, tenant-scoped `/api/v1/organization` durable record API

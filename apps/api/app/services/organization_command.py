@@ -195,6 +195,39 @@ def snapshot(obj: Any) -> dict[str, Any]:
     return to_audit_dict(obj)
 
 
+def stage_mutations(
+    session: Session,
+    *,
+    mutations: Sequence[AuditMutation],
+    context: OrganizationCommandContext,
+) -> None:
+    """Flush domain changes and their audit rows without owning the transaction.
+
+    This is an internal composition primitive for a caller that already owns the
+    surrounding transaction. It deliberately does not commit, refresh, or roll back
+    the session. Any exception propagates to the transaction owner, which must decide
+    whether to roll back the complete unit of work.
+    """
+
+    session.flush()
+    for mutation in mutations:
+        record_audit(
+            session,
+            action=mutation.action,
+            entity_type=mutation.entity_type,
+            entity_id=mutation.entity_id,
+            before_state=mutation.before_state,
+            after_state=mutation.after_state,
+            reason=mutation.reason,
+            actor=context.actor_id,
+            source="organization_command_v13.16.1b",
+            commit=False,
+        )
+    # Flush the audit rows as part of the same caller-owned transaction so audit
+    # storage failures surface before control returns to an integrating source service.
+    session.flush()
+
+
 def commit_mutations(
     session: Session,
     *,
@@ -202,23 +235,10 @@ def commit_mutations(
     context: OrganizationCommandContext,
     refresh: Iterable[SQLModel] = (),
 ) -> None:
-    """Flush domain changes, append their audits, and commit as one transaction."""
+    """Stage domain/audit changes, then commit as one standalone transaction."""
 
     try:
-        session.flush()
-        for mutation in mutations:
-            record_audit(
-                session,
-                action=mutation.action,
-                entity_type=mutation.entity_type,
-                entity_id=mutation.entity_id,
-                before_state=mutation.before_state,
-                after_state=mutation.after_state,
-                reason=mutation.reason,
-                actor=context.actor_id,
-                source="organization_command_v13.16.1b",
-                commit=False,
-            )
+        stage_mutations(session, mutations=mutations, context=context)
         session.commit()
         for record in refresh:
             session.refresh(record)

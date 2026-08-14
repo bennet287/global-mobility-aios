@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, and 13.16.1C authenticated organization API complete; 13.16.1D real emitters and 13.16.1E Observatory/read model are not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is UNLOCKED / NOT STARTED, no runtime emitter is enabled yet, and 13.16.1E Observatory/read model is not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -65,10 +65,12 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: code, fresh SQLite, and isolated fresh PostgreSQL migration cycles are verified at `0074_durable_contribution_activity_model`; the preserved PostgreSQL environment remains intentionally unchanged at `0073_austria_candidate_integrity`.
 - Docker production-profile validation: passing.
-- API regression baseline: **714 passed, 1 PostgreSQL-only test skipped, 0 failed**
-  with the Phase 13.16.1C authenticated organization API; the focused API file passes
-  **17/17**, and the focused command/service file previously passed **26/26** against
-  an isolated PostgreSQL database at migration `0074`.
+- API regression baseline: **722 passed, 1 PostgreSQL-only test skipped, 0 failed**
+  with the Phase 13.16.1D1 transaction-composability correction; the focused D1
+  transaction suite passes **8/8**, the combined organization service/API/platform
+  regression passes **50 passed + 1 expected PostgreSQL-only skip**, and the focused
+  command/service file previously passed **26/26** against an isolated PostgreSQL
+  database at migration `0074`.
 - SQLite migration compatibility: **passing through current migration head `0074_durable_contribution_activity_model`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - PostgreSQL: the isolated fresh database passes the full chain and `0074 -> 0073 -> 0074` cycle with empty new ledgers; the preserved Docker database remains **passing and untouched at `0073_austria_candidate_integrity`** with the immutable Austria v4 draft unchanged.
 - Local quality gate: compilation, evidence-pack validation, repository policy,
@@ -95,8 +97,10 @@ useful operational evidence, and the fresh Round 6 mobility-user and professiona
 shadow reviews produced a [PASS correctness disposition](ROUND_6_CORRECTNESS_DISPOSITION_V13_15.md).
 Phase 13.16.0 is **CLOSED / PASS**: implementation is complete and independent
 internal rendered acceptance passed. Phase 13.16.1 is **IMPLEMENTATION IN PROGRESS —
-DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, AND 13.16.1C AUTHENTICATED
-ORGANIZATION API COMPLETE; REAL EMITTERS AND READ MODEL NOT STARTED**; its
+DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, 13.16.1C AUTHENTICATED
+ORGANIZATION API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1
+TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
+UNLOCKED / NOT STARTED; RUNTIME EMITTERS NOT YET ENABLED; READ MODEL NOT STARTED**; its
 implementation contract is recorded in
 [DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
 This closure does not satisfy genuine external-human acceptance, which remains Phase
@@ -118,8 +122,10 @@ release gate.
    acceptance passed.
 4. **Phase 13.16.1 durable contribution and activity model** — establish the
    outcome-oriented source of truth before building observatory dashboards.
-   **IMPLEMENTATION IN PROGRESS — DESIGN, PERSISTENCE, COMMAND/SERVICE, AND
-   AUTHENTICATED API COMPLETE; CONTRIBUTION EMITTER AND READ-MODEL WORK NOT STARTED**.
+   **IMPLEMENTATION IN PROGRESS — DESIGN, PERSISTENCE, COMMAND/SERVICE,
+   AUTHENTICATED API, AND 13.16.1D0 EMITTER MAPPING COMPLETE; 13.16.1D1
+   TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
+   UNLOCKED / NOT STARTED; RUNTIME EMITTERS AND READ MODEL ARE NOT STARTED**.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
    owner observatory, department workspaces, dependencies, owner inbox, mobility-user
    and operator experiences, and consolidated evidence/provenance presentation.
@@ -719,8 +725,10 @@ both national/regional certifications remain `pending_review`.
 ### 13.16 Organization Observatory & Experience Layer
 
 **State: IN PROGRESS — 13.16.0 CLOSED / PASS; 13.16.1 DESIGN, 13.16.1A
-PERSISTENCE, 13.16.1B COMMAND/SERVICE LAYER, AND 13.16.1C AUTHENTICATED
-ORGANIZATION API COMPLETE; 13.16.1D REAL CONTRIBUTION EMITTERS AND 13.16.1E
+PERSISTENCE, 13.16.1B COMMAND/SERVICE LAYER, 13.16.1C AUTHENTICATED ORGANIZATION
+API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 CALLER-OWNED
+TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
+UNLOCKED / NOT STARTED; RUNTIME CONTRIBUTION EMITTERS NOT YET ENABLED; 13.16.1E
 OBSERVATORY/READ MODEL NOT STARTED.** The
 fresh Round 6 mobility-user and professional shadow reviews passed the correctness
 gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
@@ -756,8 +764,10 @@ Phase 13.16.0 final disposition is **CLOSED / PASS**:
 - Independent internal rendered acceptance: **PASS**.
 - Overall Phase 13.16.0 state: **CLOSED**.
 - Next slice: Phase 13.16.1 Durable Contribution & Activity Model — **IN PROGRESS;
-  DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, AND 13.16.1C
-  AUTHENTICATED ORGANIZATION API COMPLETE; 13.16.1D REAL EMITTERS AND 13.16.1E
+  DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, 13.16.1C AUTHENTICATED
+  ORGANIZATION API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1
+  TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
+  UNLOCKED / NOT STARTED; RUNTIME EMITTERS NOT YET ENABLED; 13.16.1E
   OBSERVATORY/READ MODEL NOT STARTED**.
 - Phase 13.17 genuine external-human acceptance: **still required**.
 - Phase 14: **locked**.
@@ -811,6 +821,77 @@ Independent internal rendered acceptance matrix:
 This is internal rendered acceptance only. It is not genuine external-human
 acceptance and does not satisfy Phase 13.17.
 
+#### 13.16.1D0 authoritative emitter mapping / transaction gate
+
+**State: DESIGN COMPLETE / RUNTIME IMPLEMENTATION NOT STARTED.** Repository-backed
+inspection of the real domain outcome services confirms that real Contribution
+emission must not be wired directly onto the current standalone command contract.
+`create_contribution()` owns `session.commit()` through `commit_mutations()`, while the
+source domain services also own their authoritative commits. Calling Contribution
+after a source commit would be an unsafe best-effort dual write; calling the current
+command before the source commit would make the nested service unexpectedly commit
+the caller's pending transaction. 13.16.1D1 therefore must add a caller-owned staging
+path so source transition + source audit + Contribution + Contribution audit commit
+atomically or roll back together. A new durable outbox is not required for the first
+adapters because these records share the same relational database.
+
+Emitter classification from the design pass:
+
+- `ExecutiveDecision` terminal approved/rejected remains an eligible source but
+  **EXPLICIT COMMAND ONLY**; Decision and Contribution stay distinct.
+- `JurisdictionSourceCertification` approved/rejected review is the recommended first
+  real adapter after D1, with structured evidence-pack and independent-human review
+  requirements preserved. Pending/superseded certification emits nothing.
+- Published `InitialRuleAssertion`/`VerifiedRule`, published `RegulatoryChange`, and
+  published `MobilityPathwayVersion` are eligible later publication adapters with
+  narrow organizational semantics only.
+- `JurisdictionImmigrationAssessment`, `ReassessmentAcceptance`,
+  `ExternalValidationRun`, `CorporateComplianceEvent`, `MobilityTimelineMilestone`,
+  and agency/appointment records are deferred until their remaining audit, actor,
+  evidence, or external-verification contracts are strong enough.
+- Eligibility, pathway comparison, country ranking, raw source retrieval/snapshots,
+  external-validation component reviews/findings, AgentRun/WorkflowRun, attempts,
+  tools/LLM calls, AuditLog, retries, messages, and UI interactions cannot directly
+  authorize Contribution.
+
+Round 6 Austria v4 remains a zero-emitter safety pin: draft,
+`simulation_candidate`, `INTERNAL_SIMULATION_ONLY`, unpublished/not-ready, national
+and regional certification `pending_review`, job offer absent/blocking, occupation
+`AMBIGUOUS`, regional result `INSUFFICIENT_INFORMATION`, qualification mapping
+`UNRESOLVED`, EUR 218, 14 gaps, and human review required. No current Round 6 record
+may emit “eligibility established”, “occupation confirmed”, “source certified”, or
+“pathway published”.
+
+Required implementation order:
+
+1. 13.16.1D1 transaction composability correction — **COMPLETE / PASS**; no source-policy expansion.
+2. 13.16.1D2 source-certification review adapter — **UNLOCKED / NOT STARTED**.
+3. 13.16.1D3 verified-rule/regulatory-change/pathway publication adapters.
+4. 13.16.1D4 deferred-domain review plus integrated emitter regression.
+5. 13.16.1E Observatory/read model only after source-table reconciliation passes.
+
+#### 13.16.1D1 caller-owned transaction staging
+
+**State: COMPLETE / PASS.** The bounded D1 patch adds an
+internal `stage_mutations()` primitive plus explicit `stage_contribution()` and
+`stage_contribution_correction()` integration paths. These paths flush the domain row
+and its audit record but never commit, refresh, or roll back the caller's session.
+The existing standalone Contribution commands retain commit-on-command behavior and
+safe replay semantics. No `commit=False` public bypass, source-policy expansion,
+real emitter, migration, persistence-model change, router change, or Observatory work
+is included.
+
+D1 acceptance proved caller-owned rollback across source + source audit + Contribution
++ Contribution audit, audit-failure propagation without an inner commit, final-commit
+rollback, idempotent replay without duplicate audit, fail-closed semantic conflict,
+correction rollback, and unchanged standalone API behavior. Local verification passed
+8/8 focused D1 transaction tests, 50 passed + 1 expected PostgreSQL-only skip in the
+focused service/API/platform regression, and 722 passed + 1 expected PostgreSQL-only
+skip in the complete API suite. Repository policy, release consistency, migration
+consistency, and `git diff --check` pass at Alembic head
+`0074_durable_contribution_activity_model` with 118 registered tables. D2 is therefore
+unlocked but not started.
+
 #### Canonical validation sequence from Round 6 onward
 
 This sequence supersedes older roadmap examples that referred to Round 3/4,
@@ -830,7 +911,8 @@ Round 6 correctness disposition                 PASS / CLOSED
                                                      CLOSED / PASS
                     ↓
 13.16.1 Durable Contribution & Activity Model
-              PERSISTENCE COMPLETE / SERVICE AND API NOT STARTED
+  DESIGN + PERSISTENCE + SERVICE + API + D0 EMITTER MAPPING COMPLETE
+       D1 TRANSACTION STAGING COMPLETE / PASS
                     ↓
 13.16.2-13.16.9 role-based experience and observatory delivery
                     ↓
@@ -931,8 +1013,10 @@ The implementation is documented in
 [DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md).
 Automated checks and independent internal rendered inspection pass. Phase 13.16.0 is
 closed; Phase 13.16.1 design, persistence foundation, internal command/service layer,
-and authenticated organization API are complete, while real emitter and read-model
-implementation has not started.
+authenticated organization API, and 13.16.1D0 emitter mapping/design are complete.
+13.16.1D1 caller-owned transaction staging is COMPLETE / PASS; 13.16.1D2
+source-certification review emission is UNLOCKED / NOT STARTED, no runtime emitter is
+enabled yet, and the read-model implementation also has not started.
 
 #### 13.16 delivery sequence
 
@@ -957,8 +1041,10 @@ contribution data before any dashboard attempts to summarize the organization.
 ##### 13.16.1 authoritative model requirements
 
 **Status: IMPLEMENTATION IN PROGRESS — DESIGN, 13.16.1A PERSISTENCE, 13.16.1B
-COMMAND/SERVICE LAYER, AND 13.16.1C AUTHENTICATED ORGANIZATION API COMPLETE;
-13.16.1D REAL CONTRIBUTION EMITTERS AND 13.16.1E READ MODELS NOT STARTED.** The current-state
+COMMAND/SERVICE LAYER, 13.16.1C AUTHENTICATED ORGANIZATION API, AND 13.16.1D0
+EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 TRANSACTION STAGING COMPLETE / PASS;
+13.16.1D2 SOURCE-CERTIFICATION EMISSION UNLOCKED / NOT STARTED; RUNTIME
+CONTRIBUTION EMITTERS NOT YET ENABLED; 13.16.1E READ MODELS NOT STARTED.** The current-state
 inventory, six canonical contracts, exact proposed database model, migration plan,
 API/service direction, observatory aggregation boundary, backfill policy, and test
 matrix are defined in
@@ -974,9 +1060,10 @@ bounded pagination, and typed responses. The unchecked items below remain real-e
 integration, aggregation, and experience exit criteria; API completion does not claim
 that emitters, read models, or UI exist.
 
-Remaining implementation order: add 13.16.1D Activity-only integration and reviewed
-real authoritative Contribution adapters; then add 13.16.1E read APIs and aggregate
-reconciliation.
+Remaining implementation order: implement 13.16.1D2 source-certification review
+emission on the accepted caller-owned transaction contract, then 13.16.1D3 reviewed
+publication adapters and 13.16.1D4 deferred-source/integrated regression. Add 13.16.1E read APIs and aggregate reconciliation only after enabled
+adapters reconcile to their authoritative source tables.
 Phase 13.16.2 remains locked until that sequence and the 13.16.1 exit criteria pass.
 
 - [x] Define separate durable records or explicitly versioned event contracts for

@@ -740,14 +740,248 @@ service contract, and its authenticated HTTP boundary. They do not create worker
 real emitters, read-model code, dashboards, semantic backfill output, new departments,
 or claims of overall phase completion.
 
-## 23. Readiness and recommendation
+## 23. Real Contribution Emitter Mapping (13.16.1D0)
+
+This design pass inspects the committed 13.16.1A-C persistence, command, and HTTP
+contracts against the domain services that currently own governed outcomes. It is a
+design-only gate: no source policy was broadened, no emitter was connected, and no
+runtime behavior changed.
+
+### 23.1 Candidate source classification
+
+The classification is deliberately semantic. `ELIGIBLE_EMITTER_SOURCE` means the
+existing domain record can support a narrowly named organizational outcome after the
+transaction-composability gate is corrected; it does **not** authorize a legal or
+immigration conclusion. `DEFER_UNTIL_STRONGER_GOVERNANCE` means the record is
+potentially meaningful but lacks a sufficiently strong source-state, attribution,
+evidence, or lifecycle contract today. `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` means
+the record must not authorize a Contribution.
+
+| Candidate source | Classification | Qualifying state / evidence | Permitted future Contribution meaning | Key reason |
+|---|---|---|---|---|
+| `ExecutiveDecision` | `ELIGIBLE_EMITTER_SOURCE`, but explicit-command-only | `approved` or `rejected`; `decided_by` and `decided_at`; current tenant/version validation | A specifically requested governed decision outcome was recorded | Already supported by the closed source validator. Decision remains a separate canonical fact, so every decision must not automatically count as Contribution. |
+| `JurisdictionSourceCertification` | `ELIGIBLE_EMITTER_SOURCE` | `approved` or `rejected`; distinct proposer/reviewer; `reviewed_by`/`reviewed_at`; structured evidence-pack hash and independent-human attestation when the structured review contract requires them | Source-certification review completed, approved, or rejected | Strong reviewed governance outcome. `pending_review` and `superseded` never qualify as certified outcomes. |
+| Published `InitialRuleAssertion` / resulting `VerifiedRule` | `ELIGIBLE_EMITTER_SOURCE` | assertion `published`, reviewed approval, `published_rule_id`, published actor/time; resulting rule has official source/snapshot provenance and `approved_by`/`published_at` | Verified regulatory rule publication completed | Publication is an explicit governed transition with immutable source/snapshot lineage. Draft/pending/approved-but-unpublished assertions do not qualify as published. |
+| `RegulatoryChange` publication | `ELIGIBLE_EMITTER_SOURCE` | change `published`; prior review complete; `reviewed_by`, `reviewed_at`, `published_at`; resulting verified-rule lineage | Reviewed regulatory change publication completed | The publication boundary is material and source-controlled. Detection, classification, and pending review are Activity/intermediate state only. |
+| `MobilityPathwayVersion` publication | `ELIGIBLE_EMITTER_SOURCE` | `lifecycle_status == "published"`; `approved_by`, `published_at`; publication-evidence readiness passed | Governed pathway-version publication completed | This means catalogue publication only, never applicant eligibility or visa approval. Draft/internal-simulation versions are prohibited sources. |
+| `JurisdictionImmigrationAssessment` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | reviewed `approved`/`rejected` with distinct proposer/reviewer | Potentially “jurisdiction assessment review completed” | The review record has durable reviewer attribution, but the current review service commits without an accompanying source-transition AuditLog. Do not promote it until that audit gap is corrected under a separate bounded change. |
+| `ReassessmentAcceptance` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | `accepted`, explicit user acceptance, current consent, deterministic acceptance key | Potentially “reassessment acceptance recorded” | The record is meaningful but its authority mixes user attestation with an internal `recorded_by` actor; durable external/user actor attribution is not strong enough to claim the user as the Contribution actor. |
+| `ExternalValidationRun` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | only `status == "completed"` and `gate_status == "passed"`, with both required external-human reviews, complete evidence, zero unsupported certainty, no unresolved critical/high findings, and all medium/low findings triaged | Potentially “external validation gate passed” | The deterministic gate is strong, but Phase 13.17 genuine external-human acceptance is still outstanding and durable external-human identity is intentionally not accepted by `OrganizationHumanAction`. Do not enable this adapter before that governance boundary is satisfied. |
+| `CorporateComplianceEvent` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | completed with reviewer/evidence requirements actually satisfied | Potentially “compliance event verified complete” | The current row has completion actor/time but no typed evidence/review linkage sufficient to prove the required evidence was governed. |
+| `MobilityTimelineMilestone` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | completed; all dependencies complete; human approval where required; stage-specific evidence contract | Potentially an allowlisted milestone completion | Generic milestone completion is too broad. Stage-specific adapters must define what evidence and approval make the milestone material. |
+| `AgencySubmission` / `AuthorityAppointment` | `DEFER_UNTIL_STRONGER_GOVERNANCE` | verified authority receipt/attendance state, not merely an operator-entered status | Potentially verified submission/appointment completion | The present status machines record operational progress but do not always prove external-authority receipt or attendance. They remain Activity/work until a stronger verification contract exists. |
+| `EligibilityAssessment` | `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` | none in the current model | none | Generated assessment with no authoritative reviewer/version contract; may be linked to `AgentRun`. It must never mean visa/permit approval. |
+| `PathwayComparisonAssessment` | `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` | none in the current model | none | Generated comparison, often `needs_profile_review`/`ready_for_review`, with `human_review_required`; no authoritative review completion field. |
+| `CountryRankingAssessment` | `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` | none in the current model | none | Reviewed-catalogue ranking is still a generated decision-support artifact, not an authoritative organizational outcome or legal conclusion. |
+| `SourceSnapshot`, retrieval/check/classification runs | `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` | none by themselves | none | Capturing or classifying evidence is Activity/provenance. Verification/publication occurs in separate governed records. |
+| `ExternalValidationReview` / `ExternalValidationFinding` | `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` by themselves | none by themselves | none | Reviews are evidence/attestation and findings are defects/risks/blockers. The aggregate run gate, not an individual review/finding, is the potential validation outcome. |
+| `AgentRun`, `WorkflowRun`, execution attempts, action outputs, tool/LLM calls, `AuditLog`, automation retries, messages, UI interactions | `INELIGIBLE_TELEMETRY_OR_INTERMEDIATE` | never | none | Execution/telemetry remains explicitly excluded by the 13.16.1B source policy. |
+
+### 23.2 Round 6 / Austria safety pin
+
+The current Round 6 Austria v4 state emits **zero automatic Contributions**. In
+particular, no adapter may turn the current assessment into “Austria eligibility
+established”, “occupation eligibility confirmed”, “source certified”, “pathway
+published”, or any equivalent legal conclusion. The pinned state remains draft,
+`simulation_candidate`, `INTERNAL_SIMULATION_ONLY`, not a production recommendation,
+not publication-ready, unpublished, with national and regional occupation
+certifications `pending_review`, the binding job offer absent/blocking, occupation
+`AMBIGUOUS`, unknown-province regional result `INSUFFICIENT_INFORMATION`, qualification
+mapping `UNRESOLVED`, EUR 218 government fee, 14 canonical gaps, and human review
+required.
+
+A future organizational Contribution may describe a **governed work outcome** such as
+“source-certification review completed” or “pathway version published” only when the
+corresponding source record actually reaches that qualifying state. That Contribution
+must not be worded as applicant approval or legal eligibility.
+
+### 23.3 Current source-policy result
+
+The committed `validate_authoritative_outcome()` policy remains intentionally closed.
+It accepts only `source_type == "executive_decision"` and requires an attributed
+terminal `approved`/`rejected` decision with an exact source version. Agent/workflow
+runs, attempts, action outputs, tool/LLM requests, `AuditLog`, retries, messages, and UI
+activity are explicitly rejected. 13.16.1D0 does not broaden this policy.
+
+For future adapters, the allowlist contract must include the exact model, qualifying
+and prohibited states, tenant/subject check, required reviewer or publication
+attribution, source-version derivation, evidence/certification gate, and deterministic
+key/fingerprint construction. A caller-supplied `verified=True`-style flag can never
+substitute for adapter validation.
+
+### 23.4 Transaction composability finding — hard gate
+
+**Classification: `REQUIRES_SERVICE_TRANSACTION_REFACTOR`.**
+
+`create_contribution()` calls `commit_mutations()`. `commit_mutations()` flushes the
+session, appends `AuditLog`, calls `session.commit()`, refreshes records, and rolls the
+whole session back on exception. The correction/retraction path does the same. This
+contract is correct for the standalone 13.16.1B/13.16.1C command boundary, but it is
+not safe as a nested domain-emitter primitive because it takes ownership of the
+caller's transaction.
+
+The inspected source services likewise own their commits at their authoritative
+transition boundaries, including `review_source_certification()`,
+`publish_initial_rule_assertion()`, `publish_regulatory_change()`,
+`publish_pathway_version()`, `create_reassessment_acceptance()`,
+`evaluate_external_validation_run()`, `transition_milestone()`, and agency/corporate
+status commands.
+
+Calling Contribution **after** a source service commits would create an unsafe
+best-effort dual write: the source could be authoritative while its Contribution is
+lost. Calling the current `create_contribution()` **before** the source service's
+existing commit can incidentally commit all pending source mutations in the same
+SQLAlchemy session, but that is still not an acceptable composability contract: the
+nested Contribution service would unexpectedly own the caller's transaction, and any
+source-side work after that call could fail outside the already committed unit.
+
+Therefore no real emitter may be wired until a bounded 13.16.1D1 transaction slice
+provides a caller-owned transaction path. A durable outbox is not required for the
+initial adapters because the source records, Contribution ledger, and AuditLog use the
+same relational database and can commit atomically. The existing automation delivery
+outbox remains a separate external-side-effect mechanism and must not be repurposed as
+an organizational outcome ledger.
+
+### 23.5 Required 13.16.1D1 transaction contract
+
+The corrective slice should preserve the current public command behavior while adding
+an internal staging primitive that does **not** commit. Conceptually:
+
+1. the source service owns the transaction;
+2. it validates and stages the authoritative source transition;
+3. it stages the source transition AuditLog;
+4. an allowlisted adapter validates the in-transaction source state;
+5. it stages one idempotent Contribution and its AuditLog without committing;
+6. the source service performs the single final `session.commit()`;
+7. any failure rolls back source transition, Contribution, and both audit records.
+
+Prefer a dedicated internal `stage_contribution(...)`/equivalent plus a standalone
+wrapper that retains today's commit-on-command behavior. Do not add a casual public
+`commit=False` flag that any caller can use to bypass transaction ownership. Source
+services should receive similarly explicit transaction-owned integration points only
+where needed.
+
+Required rollback tests must prove:
+
+- source transition failure leaves no Contribution;
+- Contribution validation/audit failure leaves the source uncommitted;
+- final commit failure leaves neither source nor Contribution committed;
+- retry with the same source revision returns one Contribution and no duplicate audit;
+- semantic mismatch on the same deterministic key fails closed.
+
+### 23.5.1 13.16.1D1 implementation status
+
+**State: COMPLETE / PASS.** The bounded D1 patch introduces a
+caller-owned staging path without changing the public/API commit-on-command contract or
+broadening the source allowlist. `stage_mutations()` flushes domain changes and their
+`AuditLog` rows without committing, refreshing, or rolling back; the existing
+`commit_mutations()` now delegates to that staging primitive and retains standalone
+commit/rollback ownership.
+
+`stage_contribution()` and `stage_contribution_correction()` are explicit internal
+integration primitives. They stage one idempotent Contribution (or correction) plus its
+audit and never call `session.commit()` or `session.rollback()`. The existing
+`create_contribution()` and `append_contribution_correction()` wrappers retain the
+13.16.1B/13.16.1C standalone behavior, including safe replay without an incidental
+commit. No `commit=False` switch was added to the public command contract.
+
+Focused D1 acceptance passed for caller-owned rollback, Contribution audit failure,
+final caller commit failure, replay without duplicate audit, semantic idempotency
+conflict, correction rollback, and standalone-wrapper regression. Local evidence is
+8/8 focused transaction tests, 50 passed + 1 expected PostgreSQL-only skip in the
+combined organization service/API/platform regression, and 722 passed + 1 expected
+PostgreSQL-only skip in the complete API suite. Repository policy, release consistency,
+migration consistency, and `git diff --check` pass at migration head
+`0074_durable_contribution_activity_model` with 118 registered tables. 13.16.1D2 is
+therefore unlocked but not started; no real domain emitter is authorized until its own
+bounded adapter implementation and acceptance pass.
+
+### 23.6 Future emission points and source versions
+
+| Source | Exact future boundary | Proposed source version | Proposed Contribution semantics | WorkItem link |
+|---|---|---|---|---|
+| `JurisdictionSourceCertification` | `jurisdiction_registry.review_source_certification()` immediately after the reviewed state/evidence is staged and before the single outer commit | `certification_version` plus immutable review evidence identity; structured reviews also bind the evidence-pack SHA-256/source snapshot | `source_certification_review_completed` with outcome approved/rejected; approved may additionally carry a narrowly named certification-approved semantic | optional |
+| Published `InitialRuleAssertion` / `VerifiedRule` | `initial_rule_assertions.publish_initial_rule_assertion()` after the rule and assertion publication state are staged | assertion SHA-256 + published rule ID (or equivalent deterministic publication revision) | `regulatory_rule_published` | optional |
+| `RegulatoryChange` | `regulatory_intelligence.publish_regulatory_change()` after published state and resulting VerifiedRule are staged | current snapshot ID + publication transition/revision | `regulatory_change_published` | optional |
+| `MobilityPathwayVersion` | `pathway_catalogue.publish_pathway_version()` after publication evidence passes and published state is staged | pathway ID + `version_number` + publication transition | `pathway_version_published` | optional |
+| `ExecutiveDecision` | no automatic emitter; retain explicit Contribution command after terminal decision validation | existing record fingerprint or committed `updated_at` fallback | caller-specific governed decision contribution only when explicitly requested | optional |
+
+For every adapter the deterministic key should be derived from stable semantics, for
+example `contribution:<tenant>:<source_type>:<source_id>:<source_version>:<transition>:<contribution_type>`.
+Random UUIDs and server-generated timestamps must not be the replay identity. A later
+material source revision gets a new source version and therefore a new key.
+
+### 23.7 Actor attribution and corrections
+
+The Contribution actor is the accountable organizational actor for the authoritative
+transition, not the agent/tool that may have produced draft material. The adapter must
+preserve source reviewer/publisher attribution in `verified_by`/provenance and use the
+authenticated command context for the organization actor that invokes the transition.
+Where those identities differ, both must remain visible rather than collapsing
+producer, reviewer, authority, and emitter into one identity.
+
+Corrections never rewrite the original Contribution. A corrected/superseding source
+revision emits a new Contribution with a new deterministic key and the committed
+`supersedes_contribution_id`/retraction relationship where appropriate. A status
+change to `superseded` must not mutate the prior immutable outcome.
+
+### 23.8 External-human boundary
+
+13.16.1D does not weaken the committed HumanAction identity rule. `external_human`
+remains rejected by the durable HumanAction command until an accepted authentication
+contract exists. External-validation reviews remain authoritative evidence only inside
+the existing external-validation gate. The `ExternalValidationRun` adapter stays
+deferred until genuine Phase 13.17 external-human acceptance and the attribution
+contract are satisfied; the AI organization must not self-attest that gate.
+
+### 23.9 Recommended implementation slices
+
+1. **13.16.1D1 — transaction composability correction. COMPLETE / PASS.**
+   Caller-owned Contribution/AuditLog staging is explicit while standalone commands
+   retain commit ownership; local transaction and full regression acceptance pass.
+2. **13.16.1D2 — first reviewed adapter: source-certification review.** After D1
+   acceptance, enable only
+   `JurisdictionSourceCertification` approved/rejected review outcomes, including the
+   structured evidence-pack/independent-review requirements. Round 6 pending
+   national/regional certifications must emit zero Contributions.
+3. **13.16.1D3 — publication adapters.** Add reviewed publication adapters one at a
+   time for verified-rule/regulatory-change publication and then published pathway
+   versions. Each adapter gets source-contract and rollback tests; draft/internal
+   simulation remains excluded.
+4. **13.16.1D4 — deferred-domain review and integrated regression.** Re-evaluate
+   reassessment acceptance, timeline milestones, agency submissions, corporate
+   compliance, jurisdiction assessments, and external validation against their
+   remaining attribution/evidence/audit gaps. Do not enable them merely to increase
+   Contribution counts.
+5. **13.16.1E — Observatory/read model** only after enabled adapters reconcile exactly
+   to their source tables on SQLite and PostgreSQL.
+
+### 23.10 Emitter acceptance tests
+
+The runtime slices must prove at least: AgentRun/WorkflowRun success emits zero
+Contributions; draft/simulation assessment emits zero Contributions; pending source
+certification emits zero certified Contribution; an exact eligible terminal source
+emits one Contribution; replay is idempotent; a changed semantic payload under the
+same key fails closed; corrected source revisions append linked corrections;
+cross-tenant and missing/stale sources fail; required reviewer/certification/publication
+states are enforced; source transition + Contribution + AuditLog commit atomically;
+rollback leaves no partial outcome; the current Round 6 Austria state emits no false
+legal conclusion; no historical backfill occurs; 13.16.1C API behavior remains
+unchanged; and Observatory remains absent until 13.16.1E.
+
+
+## 24. Readiness and recommendation
 
 The design, durable persistence foundation, bounded internal command/service layer,
-and authenticated organization REST API are complete. Real Contribution emitters
-(13.16.1D) and the Observatory/read model (13.16.1E) are **NOT STARTED**, so Phase
-13.16.1 remains **IN PROGRESS**.
+and authenticated organization REST API are complete. The 13.16.1D0 real-emitter
+mapping/design is complete and 13.16.1D1 caller-owned transaction staging is
+**COMPLETE / PASS**. Runtime emitters remain **NOT STARTED**, the source allowlist
+remains unchanged, and the Observatory/read model (13.16.1E) is **NOT STARTED**, so
+Phase 13.16.1 remains **IN PROGRESS**.
 
-Recommended next step: review the authenticated HTTP surface, then implement the
-separately bounded real emitter layer. Do not start Phase 13.16.2 or any Observatory
-dashboard until real contribution adapters and aggregate reconciliation pass on
-SQLite and PostgreSQL.
+Recommended next step: implement the first narrow 13.16.1D2 source-certification
+review adapter on the accepted caller-owned transaction contract. Pending certification
+must continue to emit zero certification Contributions, and no source-policy expansion
+beyond the reviewed adapter is authorized. Do not start Phase 13.16.2 or any
+Observatory dashboard until real adapters reconcile to their authoritative source
+tables on SQLite and PostgreSQL.
