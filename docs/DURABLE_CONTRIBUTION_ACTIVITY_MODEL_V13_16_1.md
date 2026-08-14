@@ -1,23 +1,24 @@
 # Phase 13.16.1 Durable Contribution and Activity Model
 
-**Phase status:** IMPLEMENTATION IN PROGRESS — DESIGN, 13.16.1A PERSISTENCE, AND
-13.16.1B COMMAND/SERVICE LAYER COMPLETE
+**Phase status:** IMPLEMENTATION IN PROGRESS — DESIGN, 13.16.1A PERSISTENCE,
+13.16.1B COMMAND/SERVICE LAYER, AND 13.16.1C AUTHENTICATED ORGANIZATION API COMPLETE
 
 **Design baseline:** `409b8953290a0286a99fde3c760dce569fb3878b`
 
 **Current migration head:** `0074_durable_contribution_activity_model`
 
-**Scope:** authoritative design plus completed 13.16.1A persistence and 13.16.1B
-internal command/service slices
+**Scope:** authoritative design plus completed 13.16.1A persistence, 13.16.1B
+internal command/service, and 13.16.1C authenticated HTTP/API slices
 
 ## 1. Purpose and invariant
 
 Phase 13.16.1 defines the durable data boundary required before the Organization
 Observatory, department workspaces, dependency views, or owner inbox can report
 organizational performance. Slice 13.16.1A implements models and migration `0074`.
-Slice 13.16.1B implements the internal, HTTP-independent command boundary. No REST
-routes, real domain Contribution emitters, Observatory/read model, workflow changes,
-or UI are implemented yet.
+Slice 13.16.1B implements the internal, HTTP-independent command boundary. Slice
+13.16.1C exposes that boundary through authenticated, tenant-scoped REST schemas and
+routes. No real domain Contribution emitters, Observatory/read model, workflow
+changes, or UI are implemented yet.
 
 The 13.16.1B authority policy is deliberately narrow. A terminal, attributed
 `ExecutiveDecision` in `approved` or `rejected` state is the only currently enabled
@@ -544,7 +545,10 @@ linked under Technical provenance.
 
 - Reads require organization/governance role and tenant. Mobility users receive only
   case-safe projections, never organization-wide ledgers.
-- Activity is internal-service write only; no generic public emit route.
+- Authenticated `admin` and `operator` callers may append explicit governed Activity
+  through the 13.16.1C API. The router derives actor, role, position, authority, and
+  tenant from trusted request state; payloads cannot select them. This is an explicit
+  command boundary, not automatic domain emission.
 - Invoking a Contribution adapter requires operator authority; its immutable outcome
   is inserted only after the adapter validates configured domain reviewer/executive/
   Board authority. Supersession/retraction requires the same or higher authority.
@@ -599,26 +603,31 @@ report create/skip/conflict, and prohibit telemetry/UI/prose conversion. Board r
 is required before backfilled data enters headline metrics. Until then APIs expose a
 coverage-start timestamp.
 
-## 16. Future API/service surface
+## 16. Authenticated API surface
 
-The existing `/api/v1/organization` router namespace remains canonical. Summary is a
-read model; ledgers retain typed resource APIs.
+Slice 13.16.1C implements typed ledger APIs in the existing
+`/api/v1/organization` namespace. The pre-existing governance router already owns
+`/work-items` and `/decisions`, so durable record contracts use the collision-free
+`/work-items/records` and `/decisions/records` subresources without changing the
+legacy routes. Observatory summary/metric routes remain unimplemented.
 
 | Resource | Reads | Writes / authority | Filters, pagination, ordering |
 |---|---|---|---|
-| Observatory | `GET /organization/observatory/summary`, `GET /organization/observatory/runtime-health` | None; operator/owner/Board read roles | bounded `from/to`, department, position, objective, phase, subject; response includes coverage/as-of |
-| Activity | `GET /organization/activities`, `GET /organization/activities/{id}` | No public create/update/delete; internal emitters only | tenant-enforced cursor pagination ordered by `occurred_at, created_at, id`; class/type/work/subject/correlation filters |
-| Contribution | list/detail under `/organization/contributions` | `POST` invokes an allowlisted adapter and creates an already-verified immutable outcome; `POST /{id}/supersessions` and `/retractions` append records; operator proposal is represented as WorkItem/Decision, not Contribution | cursor by `effective_at, created_at, id`; department/type/objective/phase/source/subject/active filters; domain reviewer/executive/Board authority by adapter |
-| WorkItem | existing list/detail/create/execute routes, extended metadata; dependency list/detail | existing create/assign/reassign/execute/cancel/retry authority; dependency create/satisfy/waive with department/executive authority | current status/department/position/priority/due/age/subject/objective/phase; stable cursor |
-| Decision | existing list/detail/coordinate/Board-decision/override routes | preserve L3/L4 rules; add append-only supersede/expire commands, never generic outcome rewrite | status/owner/authority/type/due/subject/work; pending-first then due/created |
-| Blocker | list/detail `/organization/blockers` | create by governed service/operator; mitigate/resolve by accountable lane; waive only authenticated permitted human; supersede appends history | status/severity/type/department/position/due/work/subject; active-first, severity/due/created |
-| Human action request | list/detail `/organization/human-action-requests` | create/assign/reassign/acknowledge/start/complete/decline/cancel under human RBAC; each intervention appends HumanAction | status/priority/assignee/required role/due/target; active-first due/created cursor |
-| HumanAction | list/detail `/organization/human-actions` | No update/delete; created only through authenticated request/decision/blocker/domain commands | actor/action type/target/subject/date; `occurred_at, created_at, id` cursor |
+| Activity | list/detail plus explicit `POST /activities` | authenticated operator/admin; actor and tenant are server-derived | page/page-size 50/200; newest `occurred_at`, then ID; work/class/type/correlation/actor/time filters |
+| Contribution | list/detail under `/contributions`; corrections under `/{id}/corrections` | `POST` invokes only the committed terminal ExecutiveDecision validator; corrections append | page/page-size 50/200; effective time then ID; work/department/type/source filters |
+| WorkItem | list/detail/create under `/work-items/records` | explicit start/block/await-human/complete/cancel/assign commands; no generic status PATCH | page/page-size 50/200; creation time then ID; status/department filters |
+| Dependency | list/detail under `/work-item-dependencies` | create/satisfy/waive/supersede commands; service retains cycle, tenant, source, and waiver checks | page/page-size 50/200; creation time then ID; work/status filters |
+| Blocker | list/detail under `/blockers` | open/mitigate/resolve/waive/supersede; no delete | page/page-size 50/200; creation time then ID; work/status filters |
+| Human action request | list/detail under `/human-action-requests` | create/assign/acknowledge/start/complete/decline/cancel/expire; completion appends HumanAction | page/page-size 50/200; creation time then ID; status/assignee filters |
+| HumanAction | list/detail plus explicit `POST /human-actions` | authenticated internal human only; no update/delete | page/page-size 50/200; occurrence time then ID; request/actor filters |
+| Decision | list/detail/create under `/decisions/records` | record terminal outcome and append-only supersession; CEO/Board service authority preserved | page/page-size 50/200; creation time then ID; status/work filters |
+| RecordReference | list/detail/create under `/record-references` | exactly one tenant-safe owner and an allowlisted existent target validated by the service | page/page-size 50/200; creation time then ID; target filters |
 
-Cursor tokens are opaque and tenant-bound; default/max page sizes should be 50/200.
+Pagination is page-based and tenant-bound with default/max page sizes 50/200.
 Detail endpoints return 404 rather than disclose cross-tenant existence. Immutable
 commands return the existing row on identical idempotent replay and 409 on fingerprint
-conflict. Bulk dashboard-only mutation endpoints are not added.
+conflict. The API uses existing body idempotency keys rather than inventing a second
+header transport. Bulk/dashboard mutation and Observatory endpoints are not added.
 
 Services split typed commands, contribution adapters, Activity projection, and read
 aggregation rather than further enlarging the current governance service. Typed
@@ -637,10 +646,19 @@ source descriptors; human/authority checks; and same-transaction AuditLog writes
 SQLite and isolated PostgreSQL service tests cover the command contract and rollback
 atomicity.
 
-Future bounded changes: internal Activity integration at existing command boundaries;
-reviewed real domain Contribution adapters; REST schemas/routes; and Observatory/read
-aggregation. No existing domain workflow was changed merely to populate the new
-ledgers, and no generic execution path imports the Contribution writer.
+Implemented in slice 13.16.1C: bounded Pydantic command/read/page schemas; router
+registration; trusted `OrganizationCommandContext` construction from existing
+authentication state; existing read/mutation RBAC; implicit local tenant `default`;
+non-disclosing cross-tenant 404 behavior; centralized safe domain-error translation;
+tenant-scoped indexed filters and deterministic pagination; OpenAPI generation; and
+focused HTTP tests. Raw canonical fingerprints remain private; the ExecutiveDecision
+response exposes only the product-safe `source_version` needed by the currently
+enabled Contribution command.
+
+Future bounded changes: 13.16.1D internal Activity integration plus reviewed real
+domain Contribution adapters, followed by 13.16.1E Observatory/read aggregation. No
+existing domain workflow was changed merely to populate the new ledgers, and no
+generic execution path imports the Contribution writer.
 
 ## 18. Test matrix
 
@@ -717,18 +735,19 @@ inbox UI (13.16.6), Mobility User redesign (13.16.7), Professional redesign
 (13.16.8), evidence UX consolidation (13.16.9), final responsive/accessibility polish
 (13.16.10), Phase 13.17 external-human acceptance, or Phase 14 infrastructure.
 
-Slices 13.16.1A and 13.16.1B create registered persistence plus the internal service
-contract. They do not create routes, workers, real emitters, read-model code,
-dashboards, semantic backfill output, new departments, or claims of overall phase
-completion.
+Slices 13.16.1A, 13.16.1B, and 13.16.1C create registered persistence, the internal
+service contract, and its authenticated HTTP boundary. They do not create workers,
+real emitters, read-model code, dashboards, semantic backfill output, new departments,
+or claims of overall phase completion.
 
 ## 23. Readiness and recommendation
 
-The design, durable persistence foundation, and bounded internal command/service
-layer are complete. Organization REST APIs, real Contribution emitters, and the
-Observatory/read model are **NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
+The design, durable persistence foundation, bounded internal command/service layer,
+and authenticated organization REST API are complete. Real Contribution emitters
+(13.16.1D) and the Observatory/read model (13.16.1E) are **NOT STARTED**, so Phase
+13.16.1 remains **IN PROGRESS**.
 
-Recommended next step: review this service contract, then implement the separately
-bounded API and emitter layer. Do not start Phase 13.16.2 or any Observatory dashboard
-until real contribution adapters and aggregate reconciliation pass on SQLite and
-PostgreSQL.
+Recommended next step: review the authenticated HTTP surface, then implement the
+separately bounded real emitter layer. Do not start Phase 13.16.2 or any Observatory
+dashboard until real contribution adapters and aggregate reconciliation pass on
+SQLite and PostgreSQL.

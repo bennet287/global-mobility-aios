@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1C authenticated organization REST API
+
+- Added the authenticated, tenant-scoped `/api/v1/organization` durable record API
+  for Activity, Contribution, WorkItem, dependency, Blocker, HumanActionRequest,
+  HumanAction, ExecutiveDecision, and heterogeneous RecordReference operations. The
+  durable WorkItem and Decision collections use collision-free `/work-items/records`
+  and `/decisions/records` paths because the legacy governance router retains the base
+  collection contracts.
+- Added bounded Pydantic command/read/page schemas, stable newest-first pagination,
+  useful indexed filters, centralized safe service-error translation, non-disclosing
+  tenant lookup behavior, and router registration with successful duplicate-free
+  OpenAPI generation. Canonical fingerprints remain private; decisions expose only
+  the safe source version required by the current Contribution validator.
+- Derived `OrganizationCommandContext` exclusively from existing authenticated
+  request state. The current trusted local context maps `admin` to Board/L4,
+  `operator` to organization-operator/L2, and read roles conservatively; request
+  bodies cannot choose actor, actor type, authenticated user, role, authority, or
+  tenant. HumanAction remains restricted to authenticated internal humans, and
+  Board-reserved decision and waiver checks remain enforced by the service layer.
+- Added focused HTTP coverage for authentication/RBAC, identity spoofing, tenant
+  isolation, idempotency, source rejection, append-only corrections/supersession,
+  lifecycle conflicts, human-only action completion, pagination, OpenAPI, and the
+  no-emitter/no-Observatory/no-migration boundaries. No domain emitter, workflow,
+  read model, dashboard, UI, migration, persistence model, or service policy changed.
+  Phase 13.16.1D real Contribution emitters and 13.16.1E Observatory/read model remain
+  **NOT STARTED**; Phase 13.16.1 remains **IN PROGRESS**.
+
 ## 2026-08-14 - Phase 13.16.1B durable organization command/service layer
 
 - Added HTTP-independent, tenant-scoped command services for ordered Activity,
