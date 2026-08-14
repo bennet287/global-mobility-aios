@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1E3A legacy writer reconciliation design
+
+- Completed a fresh repository-wide legacy writer audit against exact committed baseline `8bfbd40a1b4e460757b99d943a139cfd2ef83316`. The remaining write-capable surface for `OrganizationalWorkItem` / `ExecutiveDecision` is bounded to the legacy organization-governance router/service plus task-owned reminder bookkeeping; modern 13.16.1 command services remain covered by E2.
+- Added `ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md` with an explicit writer-by-writer disposition. Material creation, assignment/escalation, governance hold, terminal Work/Decision outcomes, cancellation/control actions, deadline/evidence readiness changes, and coupled Work/Decision transitions require Activity. Execution claims/attempt retries, delegation/action-output progress, CEO coordination leases, reminder timestamps, and evidence-only Decision refresh remain explicitly excluded telemetry/intermediate state.
+- Recorded two non-obvious legacy boundaries: `ensure_foundation_positions(...)` can requeue held WorkItems from bootstrap/snapshot flows, and `mark_work_emergency(...)` / `_execute_claimed_work_item(...)` intentionally use multiple replay-safe commits. Later adapters must stage Activity per existing material commit rather than collapsing those workflows into a new transaction model.
+- E3A also closes a design gap in Observatory coverage semantics: writer closure alone cannot truthfully make historical Activity complete because pre-E3 rows are intentionally not backfilled and E1 has no durable Activity coverage watermark. E3D will therefore require an explicit immutable coverage-epoch Activity and Observatory coverage-start metadata; pre-epoch history remains partial.
+- E3 is now **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE**; E3B legacy WorkItem material-writer adapters are **UNLOCKED / NOT STARTED**; E3C Decision adapters and E3D coverage activation remain locked in sequence. `activity_history_established` stays false, Phase 13.16.2 stays locked, no migration/runtime/API/database change is included, and the preserved authoritative PostgreSQL `gmai` database remains untouched at 0073.
+
 ## 2026-08-14 - Phase 13.16.1E2 caller-owned Activity staging acceptance
 
 - Closed 13.16.1E2 as **COMPLETE / PASS** after the complete API suite passed **770 tests with 2 expected PostgreSQL-only skips and 0 failures** (exit code 0). Repository policy, release consistency, migration consistency, and `git diff --check` remained green at Alembic head `0074_durable_contribution_activity_model` with 118 registered tables.

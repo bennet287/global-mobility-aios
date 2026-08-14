@@ -1460,7 +1460,7 @@ record's department, and the OpenAPI architecture boundary permits exactly the t
 GET-only Observatory endpoints while retaining the prohibition on arbitrary dashboard,
 metrics, observatory-root, or unapproved summary surfaces.
 
-E1 does not unlock Phase 13.16.2. E2 caller-owned Activity staging plus source-owned semantic transition adapters is now **COMPLETE / PASS**; 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure is **UNLOCKED / NOT STARTED**.
+E1 does not unlock Phase 13.16.2. E2 caller-owned Activity staging plus source-owned semantic transition adapters is now **COMPLETE / PASS**; 13.16.1E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **UNLOCKED / NOT STARTED**.
 Only after that coverage exists may historical throughput/cycle-time metrics be
 implemented. Round 6 Austria v4 remains draft/simulation-only/unpublished with pending
 national/regional certifications and must not appear as a published, certified, or
@@ -1545,8 +1545,39 @@ persisted `organization_activities`, proving the outer transaction rollback/no-r
 contract. The authoritative integration database `gmai` remains preserved at
 `0073_austria_candidate_integrity`, stopped and unmigrated. E2 is therefore **COMPLETE /
 PASS**. Phase 13.16.2 remains locked because complete-writer reconciliation is still
-outstanding; 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure is
-**UNLOCKED / NOT STARTED**.
+outstanding. E3A writer inventory/coverage-epoch design is now **COMPLETE**; E3B legacy
+WorkItem material-writer adapters are **UNLOCKED / NOT STARTED**.
+
+
+### 23.15 13.16.1E3A legacy-writer inventory and coverage-epoch design
+
+**State: DESIGN COMPLETE; E3 OVERALL IN PROGRESS.** A fresh audit of exact baseline
+`8bfbd40a1b4e460757b99d943a139cfd2ef83316` maps the remaining legacy
+`OrganizationalWorkItem` / `ExecutiveDecision` writer surface and records the mandatory
+semantic-vs-telemetry disposition in
+[ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md](ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md).
+
+The material gaps are bounded to the legacy organization-governance router/service: direct
+Work/Decision creation, requeue/control/deadline/escalation/emergency paths, governance
+holds and final execution dispositions, cancellation/retry/evidence-readiness controls,
+Decision hold/Board promotion/outcomes, and their coupled Work side effects. Execution
+claim leases, per-attempt retry state, delegation/action-output progress, CEO coordination
+leases, Decision evidence-only refresh, and reminder timestamps are explicitly excluded
+from curated Activity.
+
+E3A also establishes that complete writer adaptation is necessary but not sufficient to
+set `activity_history_established = true`. Historic rows that predate semantic adapters
+are intentionally not reconstructed, and E1 currently persists no Activity coverage
+watermark. E3D must therefore create an explicit immutable coverage-epoch Activity after
+all material writers pass acceptance and expose its occurrence time as Observatory
+coverage start. Only periods at or after that epoch may later support authoritative
+throughput/cycle-time metrics. Pre-epoch Activity remains partial evidence; no backfill is
+authorized.
+
+Implementation is now sequenced as E3B WorkItem material-writer adapters, E3C
+ExecutiveDecision/coupled adapters, and E3D explicit coverage-epoch/Observatory
+activation. `activity_history_established` remains false throughout E3A-E3C. Phase 13.16.2
+remains locked.
 
 
 ## 24. Readiness and recommendation
@@ -1561,11 +1592,12 @@ The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / P
 review/integrated regression is **COMPLETE / PASS**. The 13.16.1E0 Observatory/read-model
 source reconciliation design is **COMPLETE** and 13.16.1E1 safe snapshot + Contribution
 reconciliation API is **COMPLETE / PASS**, so Phase 13.16.1 remains **IN PROGRESS**.
-E2 Activity transaction/semantic coverage is **COMPLETE / PASS**. 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure is **UNLOCKED / NOT STARTED**.
+E2 Activity transaction/semantic coverage is **COMPLETE / PASS**. 13.16.1E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **UNLOCKED / NOT STARTED**.
 
-Recommended next step: begin 13.16.1E3 and reconcile or explicitly retire the remaining
-legacy WorkItem/Decision writer surface before enabling any historical throughput/cycle-time
-metrics. Preserve E1's read-only snapshot/reconciliation
+Recommended next step: begin 13.16.1E3B and adapt the mapped legacy WorkItem material
+writer surface while preserving the E3A semantic-vs-telemetry exclusions. E3C must then
+close the remaining Decision/coupled writers, and E3D must establish an explicit coverage
+epoch before enabling any historical throughput/cycle-time metrics. Preserve E1's read-only snapshot/reconciliation
 contract and keep `activity_history_established` false until writer coverage is demonstrably
 complete. Every later adapter must preserve draft/unpublished exclusion, caller-owned
 atomic transaction semantics, deterministic replay, and narrow organizational wording. No
