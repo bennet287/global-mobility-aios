@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1D3A initial-rule publication Contribution adapter acceptance
+
+- Closed 13.16.1D3A as **COMPLETE / PASS** after local acceptance of the first
+  publication-class Contribution adapter: 8/8 focused initial-rule publication tests,
+  4/4 coverage-reconciliation tests, 78 passed + 1 expected PostgreSQL-only skip in the
+  combined D1/D2/organization service/API/platform regression, and 734 passed + 1
+  expected PostgreSQL-only skip in the complete API suite.
+- Confirmed authenticated independently reviewed `InitialRuleAssertion` publication
+  stages exactly one `verified_rule_publication_completed` Contribution with HTTP and
+  persisted replay idempotency, fail-closed published-source drift handling, and atomic
+  rollback if Contribution staging fails. The generic organization Contribution API
+  remains ExecutiveDecision-only and no historical backfill is introduced.
+- Repository policy, release consistency, migration consistency, and `git diff --check`
+  pass at Alembic head `0074_durable_contribution_activity_model` with 118 registered
+  tables. The complete API suite exits 0 with zero failures.
+- 13.16.1D3B regulatory-change publication is now **UNLOCKED / NOT STARTED**.
+  13.16.1D3C pathway publication remains **LOCKED / NOT STARTED**, 13.16.1E Observatory
+  remains not started, and Phase 13.16.1 remains in progress.
+
+## 2026-08-14 - Phase 13.16.1D3A initial-rule publication Contribution adapter implementation
+
+- Added the first publication-class Contribution adapter at the existing authenticated
+  `InitialRuleAssertion` publish boundary. Only an independently reviewed assertion that
+  passes the existing approved coverage/source-certification, immutable-snapshot,
+  confidence, publication-attestation, and proposer/publisher-separation gates can stage
+  `verified_rule_publication_completed` when it becomes an active `VerifiedRule`.
+- Preserved one caller-owned transaction across the assertion `published` transition,
+  VerifiedRule creation, regulatory-knowledge-graph projection, existing publication and
+  coverage-reconciliation audits, one staged Contribution, and the Contribution audit.
+  Contribution staging or final commit failure rolls the publication unit back rather
+  than leaving a source/ledger dual-write gap.
+- Kept the generic authenticated organization Contribution API ExecutiveDecision-only.
+  The new sealed publication validator requires authenticated internal-human
+  admin/reviewer context and exact assertion/rule jurisdiction, official-source,
+  snapshot, semantic content, confidence, effective-period, publisher, and publication
+  timestamp provenance. Contribution wording records knowledge publication only and does
+  not establish applicant eligibility, occupation eligibility, visa approval, or pathway
+  publication.
+- Preserved the no-backfill boundary: already-published records and legacy direct service
+  calls without trusted publisher-role context do not synthesize Contributions. Added
+  focused coverage for authenticated publication emission, HTTP and persisted replay,
+  fail-closed source drift, and atomic rollback on emitter failure. D3A remains
+  **COMPLETE / PASS** after the acceptance recorded above. D3B regulatory-change
+  publication is unlocked/not started; D3C pathway publication remains locked/not
+  started.
+
 ## 2026-08-14 - Phase 13.16.1D2 source-certification Contribution adapter acceptance
 
 - Closed 13.16.1D2 as **COMPLETE / PASS** after local acceptance of the first bounded

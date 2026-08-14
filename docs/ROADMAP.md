@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is COMPLETE / PASS, the first bounded runtime emitter is accepted, 13.16.1D3 publication adapters are UNLOCKED / NOT STARTED, and 13.16.1E Observatory/read model is not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is COMPLETE / PASS, the first bounded runtime emitter is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is UNLOCKED / NOT STARTED; 13.16.1D3C pathway publication is LOCKED / NOT STARTED, and 13.16.1E Observatory/read model is not started; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -65,13 +65,13 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: code, fresh SQLite, and isolated fresh PostgreSQL migration cycles are verified at `0074_durable_contribution_activity_model`; the preserved PostgreSQL environment remains intentionally unchanged at `0073_austria_candidate_integrity`.
 - Docker production-profile validation: passing.
-- API regression baseline: **730 passed, 1 PostgreSQL-only test skipped, 0 failed**
-  with the Phase 13.16.1D2 source-certification Contribution adapter; the focused D2
-  emitter suite passes **8/8**, the existing structured source-certification evidence-pack
-  suite passes **12/12**, and the combined D1/organization service/API/platform regression
-  passes **58 passed + 1 expected PostgreSQL-only skip**. The D2 replay regression that
-  exposed SQLite timezone normalization drift is fixed with DB-stable UTC normalization,
-  preserving deterministic Contribution idempotency.
+- API regression baseline: **734 passed, 1 PostgreSQL-only test skipped, 0 failed**
+  with the Phase 13.16.1D3A initial-rule / VerifiedRule publication Contribution adapter.
+  D3A focused publication tests pass **8/8**, coverage-reconciliation tests pass **4/4**,
+  and the combined D1/D2/organization service/API/platform regression passes **78 passed +
+  1 expected PostgreSQL-only skip**. The accepted D2 source-certification adapter remains
+  covered, including DB-stable UTC replay normalization and deterministic Contribution
+  idempotency.
 - SQLite migration compatibility: **passing through current migration head `0074_durable_contribution_activity_model`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - PostgreSQL: the isolated fresh database passes the full chain and `0074 -> 0073 -> 0074` cycle with empty new ledgers; the preserved Docker database remains **passing and untouched at `0073_austria_candidate_integrity`** with the immutable Austria v4 draft unchanged.
 - Local quality gate: compilation, evidence-pack validation, repository policy,
@@ -101,7 +101,7 @@ internal rendered acceptance passed. Phase 13.16.1 is **IMPLEMENTATION IN PROGRE
 DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, 13.16.1C AUTHENTICATED
 ORGANIZATION API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1
 TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3 PUBLICATION ADAPTERS UNLOCKED / NOT STARTED; READ MODEL NOT STARTED**; its
+COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION UNLOCKED / NOT STARTED; 13.16.1D3C PATHWAY PUBLICATION LOCKED / NOT STARTED; READ MODEL NOT STARTED**; its
 implementation contract is recorded in
 [DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
 This closure does not satisfy genuine external-human acceptance, which remains Phase
@@ -126,7 +126,7 @@ release gate.
    **IMPLEMENTATION IN PROGRESS — DESIGN, PERSISTENCE, COMMAND/SERVICE,
    AUTHENTICATED API, AND 13.16.1D0 EMITTER MAPPING COMPLETE; 13.16.1D1
    TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3 PUBLICATION ADAPTERS UNLOCKED / NOT STARTED; READ MODEL IS NOT STARTED**.
+   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION UNLOCKED / NOT STARTED; 13.16.1D3C PATHWAY PUBLICATION LOCKED / NOT STARTED; READ MODEL IS NOT STARTED**.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
    owner observatory, department workspaces, dependencies, owner inbox, mobility-user
    and operator experiences, and consolidated evidence/provenance presentation.
@@ -729,7 +729,7 @@ both national/regional certifications remain `pending_review`.
 PERSISTENCE, 13.16.1B COMMAND/SERVICE LAYER, 13.16.1C AUTHENTICATED ORGANIZATION
 API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 CALLER-OWNED
 TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-COMPLETE / PASS; FIRST BOUNDED RUNTIME CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3 PUBLICATION ADAPTERS UNLOCKED / NOT STARTED; 13.16.1E
+COMPLETE / PASS; FIRST BOUNDED RUNTIME CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION UNLOCKED / NOT STARTED; 13.16.1D3C PATHWAY PUBLICATION LOCKED / NOT STARTED; 13.16.1E
 OBSERVATORY/READ MODEL NOT STARTED.** The
 fresh Round 6 mobility-user and professional shadow reviews passed the correctness
 gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
@@ -768,7 +768,7 @@ Phase 13.16.0 final disposition is **CLOSED / PASS**:
   DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, 13.16.1C AUTHENTICATED
   ORGANIZATION API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1
   TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-  COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3 PUBLICATION ADAPTERS UNLOCKED / NOT STARTED; 13.16.1E
+  COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION UNLOCKED / NOT STARTED; 13.16.1D3C PATHWAY PUBLICATION LOCKED / NOT STARTED; 13.16.1E
   OBSERVATORY/READ MODEL NOT STARTED**.
 - Phase 13.17 genuine external-human acceptance: **still required**.
 - Phase 14: **locked**.
@@ -867,9 +867,11 @@ Required implementation order:
 
 1. 13.16.1D1 transaction composability correction — **COMPLETE / PASS**; no source-policy expansion.
 2. 13.16.1D2 source-certification review adapter — **COMPLETE / PASS**.
-3. 13.16.1D3 verified-rule/regulatory-change/pathway publication adapters — **UNLOCKED / NOT STARTED**.
-4. 13.16.1D4 deferred-domain review plus integrated emitter regression.
-5. 13.16.1E Observatory/read model only after source-table reconciliation passes.
+3. 13.16.1D3A initial-rule / VerifiedRule publication adapter — **COMPLETE / PASS**.
+4. 13.16.1D3B regulatory-change publication adapter — **UNLOCKED / NOT STARTED**.
+5. 13.16.1D3C pathway-version publication adapter — **LOCKED / NOT STARTED**.
+6. 13.16.1D4 deferred-domain review plus integrated emitter regression.
+7. 13.16.1E Observatory/read model only after source-table reconciliation passes.
 
 #### 13.16.1D1 caller-owned transaction staging
 
@@ -924,7 +926,45 @@ policy, release consistency, migration consistency, and `git diff --check` pass 
 Alembic head `0074_durable_contribution_activity_model` with 118 registered tables. The
 replay defect found during acceptance was corrected by normalizing reviewed timestamps
 to a DB-stable UTC representation before canonical fingerprinting; replay now remains
-idempotent across SQLite persistence/reload. D3 is therefore unlocked but not started.
+idempotent across SQLite persistence/reload. D3A is now COMPLETE / PASS; D3B is unlocked/not started and D3C remains locked/not started.
+
+#### 13.16.1D3A initial-rule / VerifiedRule publication Contribution adapter
+
+**State: COMPLETE / PASS.** D3A connects only the existing
+authenticated initial-rule publication endpoint to the durable Contribution ledger.
+The generic `/api/v1/organization/contributions` command remains
+ExecutiveDecision-only; a separate sealed publication validator is used by the domain
+integration path.
+
+Only an `InitialRuleAssertion` that has already passed independent review and the
+existing approved coverage/source-certification, immutable-snapshot, confidence,
+attestation, and proposer/publisher-separation gates can emit. After the publication
+workflow stages the new active `VerifiedRule`, marks the assertion `published`, projects
+the rule into the regulatory knowledge graph, and records its existing publication and
+coverage-reconciliation audits, D3A stages one
+`verified_rule_publication_completed` Contribution before the single outer commit.
+Source transition, graph projection, source audits, Contribution, and Contribution audit
+therefore commit or roll back as one unit.
+
+The Contribution source is the published `InitialRuleAssertion`, bound to its assertion
+SHA-256 and material `VerifiedRule` publication state. The adapter verifies exact
+jurisdiction, official-source, immutable-snapshot, rule-key/domain, statement,
+confidence, effective-period, publisher, and publication-time provenance. Its wording
+records governed regulatory-knowledge publication only and explicitly does not establish
+applicant eligibility, occupation eligibility, visa approval, or pathway publication.
+Already-published legacy records are not backfilled. Direct service calls without trusted
+publisher-role context preserve their prior no-emitter behavior.
+
+Focused coverage is included for authenticated publication emission and HTTP replay,
+persisted adapter replay, fail-closed published-source drift, and atomic rollback on
+Contribution staging failure. Local acceptance passed 8/8 focused initial-rule tests,
+4/4 coverage-reconciliation tests, 78 passed + 1 expected PostgreSQL-only skip in the
+combined D1/D2/organization service/API/platform regression, and 734 passed + 1 expected
+PostgreSQL-only skip in the complete API suite. Repository policy, release consistency,
+migration consistency, and `git diff --check` pass at Alembic head
+`0074_durable_contribution_activity_model` with 118 registered tables. D3B
+regulatory-change publication is therefore unlocked/not started; D3C pathway publication
+remains locked/not started.
 
 #### Canonical validation sequence from Round 6 onward
 
@@ -1050,7 +1090,7 @@ closed; Phase 13.16.1 design, persistence foundation, internal command/service l
 authenticated organization API, and 13.16.1D0 emitter mapping/design are complete.
 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS; 13.16.1D2
 source-certification review emission is COMPLETE / PASS. The first bounded runtime emitter
-is accepted, 13.16.1D3 publication adapters are unlocked but not started, and the
+is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is unlocked/not started, 13.16.1D3C pathway publication remains locked/not started, and the
 read-model implementation also has not started.
 
 #### 13.16 delivery sequence
@@ -1079,7 +1119,7 @@ contribution data before any dashboard attempts to summarize the organization.
 COMMAND/SERVICE LAYER, 13.16.1C AUTHENTICATED ORGANIZATION API, AND 13.16.1D0
 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 TRANSACTION STAGING COMPLETE / PASS;
 13.16.1D2 SOURCE-CERTIFICATION EMISSION COMPLETE / PASS; FIRST BOUNDED RUNTIME
-CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3 PUBLICATION ADAPTERS UNLOCKED / NOT STARTED;
+CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION UNLOCKED / NOT STARTED; 13.16.1D3C PATHWAY PUBLICATION LOCKED / NOT STARTED;
 13.16.1E READ MODELS NOT STARTED.** The current-state
 inventory, six canonical contracts, exact proposed database model, migration plan,
 API/service direction, observatory aggregation boundary, backfill policy, and test
@@ -1096,8 +1136,9 @@ bounded pagination, and typed responses. The unchecked items below remain real-e
 integration, aggregation, and experience exit criteria; API completion does not claim
 that emitters, read models, or UI exist.
 
-Remaining implementation order: implement 13.16.1D3 reviewed
-publication adapters and 13.16.1D4 deferred-source/integrated regression. Add 13.16.1E read APIs and aggregate reconciliation only after enabled
+Remaining implementation order: implement 13.16.1D3B regulatory-change publication,
+then 13.16.1D3C pathway publication and
+13.16.1D4 deferred-source/integrated regression. Add 13.16.1E read APIs and aggregate reconciliation only after enabled
 adapters reconcile to their authoritative source tables.
 Phase 13.16.2 remains locked until that sequence and the 13.16.1 exit criteria pass.
 

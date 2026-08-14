@@ -27,6 +27,10 @@ from app.schemas import (
 from app.services.audit_log import record_audit
 from app.services.jurisdiction_registry import jurisdiction_coverage_receipt
 from app.services.official_sources import normalize_country, normalize_domain
+from app.services.organization_rule_publication import (
+    initial_rule_publication_organization_context,
+    stage_initial_rule_publication_contribution,
+)
 
 
 _MIN_PUBLISH_CONFIDENCE = 0.90
@@ -366,6 +370,7 @@ def publish_initial_rule_assertion(
     payload: InitialRuleAssertionPublishRequest,
     *,
     actor: str,
+    publisher_role: str | None = None,
 ) -> tuple[VerifiedRule, dict[str, Any]]:
     assertion = session.get(InitialRuleAssertion, assertion_id)
     if assertion is None:
@@ -499,6 +504,21 @@ def publish_initial_rule_assertion(
         actor=actor,
         source="initial_rule_assertions_v10_20",
     )
-    session.commit()
-    session.refresh(rule)
+    try:
+        if publisher_role is not None:
+            organization_context = initial_rule_publication_organization_context(
+                actor=actor,
+                role=publisher_role,
+            )
+            stage_initial_rule_publication_contribution(
+                session,
+                organization_context,
+                assertion=assertion,
+                rule=rule,
+            )
+        session.commit()
+        session.refresh(rule)
+    except Exception:
+        session.rollback()
+        raise
     return rule, coverage_receipt

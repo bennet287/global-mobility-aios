@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import pytest
 from sqlmodel import Session, select
 
 from app.models.domain import (
     AuditLog,
     InitialRuleAssertion,
+    OrganizationContribution,
     RegulatoryChange,
     RegulatoryKnowledgeEdge,
     SourceMonitor,
@@ -30,6 +32,12 @@ from app.services.jurisdiction_registry import (
     review_source_certification,
 )
 from app.services.live_intelligence import global_intelligence_dashboard
+from app.services.organization_command import ContributionSourceRejected
+from app.services.organization_contribution import validate_authoritative_outcome
+from app.services.organization_rule_publication import (
+    initial_rule_publication_organization_context,
+    stage_initial_rule_publication_contribution,
+)
 from app.services.regulatory_knowledge_graph import knowledge_graph_payload
 
 
@@ -288,6 +296,7 @@ def test_initial_rule_publication_receipt_is_idempotent(db_session: Session) -> 
     assert repeated_receipt["before"] == repeated_receipt["after"]
     assert repeated_receipt["after"]["coverage_ready"] is True
     assert len(db_session.exec(select(VerifiedRule)).all()) == 1
+    assert db_session.exec(select(OrganizationContribution)).all() == []
     audits = db_session.exec(
         select(AuditLog).where(AuditLog.action == "jurisdiction_coverage_readiness_reconciled")
     ).all()
@@ -356,3 +365,205 @@ def test_initial_rule_assertion_api_requires_separate_review_and_publish(client,
     assert listed.json()["total"] == 1
     assert listed.json()["assertions"][0]["status"] == "published"
     assert len(db_session.exec(select(VerifiedRule)).all()) == 1
+    contributions = db_session.exec(select(OrganizationContribution)).all()
+    assert len(contributions) == 1
+    contribution = contributions[0]
+    assert contribution.contribution_type == "verified_rule_publication_completed"
+    assert contribution.source_object_type == "initial_rule_assertion"
+    assert contribution.source_object_id == assertion_id
+    assert contribution.source_state == "published"
+    assert contribution.actor_id == "assertion-publisher"
+    assert contribution.verified_by == "assertion-publisher"
+    assert "does not establish applicant eligibility" in contribution.outcome_summary
+
+    replay = client.post(
+        f"/api/v1/global-intelligence/registry/initial-rule-assertions/{assertion_id}/publish",
+        json={"attestation": True, "publication_notes": "Separate explicit publication after review."},
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "assertion-publisher"},
+    )
+    assert replay.status_code == 200, replay.text
+    assert replay.json()["coverage_receipt"]["idempotent"] is True
+    assert len(db_session.exec(select(OrganizationContribution)).all()) == 1
+
+
+def test_initial_rule_publication_contribution_replay_is_idempotent(db_session: Session) -> None:
+    batch, item = _setup_batch(db_session)
+    _approve_and_capture(db_session, batch, item)
+    assertion, _ = propose_initial_rule_assertion(
+        db_session,
+        batch_id=batch.id,
+        payload=_payload(),
+        actor="assertion-proposer",
+    )
+    review_initial_rule_assertion(
+        db_session,
+        assertion.id,
+        InitialRuleAssertionReviewRequest(
+            decision="approved",
+            notes="Exact immutable baseline evidence independently verified.",
+        ),
+        actor="assertion-reviewer",
+    )
+    rule, _ = publish_initial_rule_assertion(
+        db_session,
+        assertion.id,
+        InitialRuleAssertionPublishRequest(
+            attestation=True,
+            publication_notes="Publish the reviewed baseline assertion with organization emission.",
+        ),
+        actor="assertion-publisher",
+        publisher_role="reviewer",
+    )
+    persisted_assertion = db_session.get(InitialRuleAssertion, assertion.id)
+    assert persisted_assertion is not None
+    first = db_session.exec(select(OrganizationContribution)).one()
+    context = initial_rule_publication_organization_context(
+        actor="assertion-publisher",
+        role="reviewer",
+    )
+
+    replay = stage_initial_rule_publication_contribution(
+        db_session,
+        context,
+        assertion=persisted_assertion,
+        rule=rule,
+    )
+
+    assert replay.id == first.id
+    assert len(db_session.exec(select(OrganizationContribution)).all()) == 1
+
+
+def test_initial_rule_publication_contribution_detects_source_drift(db_session: Session) -> None:
+    batch, item = _setup_batch(db_session)
+    _approve_and_capture(db_session, batch, item)
+    assertion, _ = propose_initial_rule_assertion(
+        db_session,
+        batch_id=batch.id,
+        payload=_payload(),
+        actor="assertion-proposer",
+    )
+    review_initial_rule_assertion(
+        db_session,
+        assertion.id,
+        InitialRuleAssertionReviewRequest(
+            decision="approved",
+            notes="Exact immutable baseline evidence independently verified.",
+        ),
+        actor="assertion-reviewer",
+    )
+    rule, _ = publish_initial_rule_assertion(
+        db_session,
+        assertion.id,
+        InitialRuleAssertionPublishRequest(
+            attestation=True,
+            publication_notes="Publish the reviewed baseline assertion with organization emission.",
+        ),
+        actor="assertion-publisher",
+        publisher_role="reviewer",
+    )
+    persisted_assertion = db_session.get(InitialRuleAssertion, assertion.id)
+    assert persisted_assertion is not None
+    rule.statement = "Mutated after publication and therefore no longer provenance-consistent."
+    db_session.add(rule)
+    db_session.flush()
+    context = initial_rule_publication_organization_context(
+        actor="assertion-publisher",
+        role="reviewer",
+    )
+
+    with pytest.raises(ContributionSourceRejected) as exc_info:
+        stage_initial_rule_publication_contribution(
+            db_session,
+            context,
+            assertion=persisted_assertion,
+            rule=rule,
+        )
+    assert "published content is inconsistent" in str(exc_info.value)
+    db_session.rollback()
+
+
+def test_initial_rule_publication_rolls_back_if_contribution_staging_fails(
+    db_session: Session,
+    monkeypatch,
+) -> None:
+    batch, item = _setup_batch(db_session)
+    _approve_and_capture(db_session, batch, item)
+    assertion, _ = propose_initial_rule_assertion(
+        db_session,
+        batch_id=batch.id,
+        payload=_payload(),
+        actor="assertion-proposer",
+    )
+    review_initial_rule_assertion(
+        db_session,
+        assertion.id,
+        InitialRuleAssertionReviewRequest(
+            decision="approved",
+            notes="Exact immutable baseline evidence independently verified.",
+        ),
+        actor="assertion-reviewer",
+    )
+
+    def _fail_emission(*args, **kwargs):
+        raise RuntimeError("synthetic Contribution staging failure")
+
+    monkeypatch.setattr(
+        "app.services.initial_rule_assertions.stage_initial_rule_publication_contribution",
+        _fail_emission,
+    )
+
+    with pytest.raises(RuntimeError, match="synthetic Contribution staging failure"):
+        publish_initial_rule_assertion(
+            db_session,
+            assertion.id,
+            InitialRuleAssertionPublishRequest(
+                attestation=True,
+                publication_notes="This publication must roll back atomically.",
+            ),
+            actor="assertion-publisher",
+            publisher_role="reviewer",
+        )
+
+    db_session.expire_all()
+    persisted = db_session.get(InitialRuleAssertion, assertion.id)
+    assert persisted is not None
+    assert persisted.status == "approved"
+    assert persisted.published_rule_id is None
+    assert persisted.published_by is None
+    assert persisted.published_at is None
+    assert db_session.exec(select(VerifiedRule)).all() == []
+    assert db_session.exec(select(OrganizationContribution)).all() == []
+    publish_audits = db_session.exec(
+        select(AuditLog).where(
+            AuditLog.action.in_([
+                "initial_rule_assertion_published",
+                "verified_rule_published",
+                "jurisdiction_coverage_readiness_reconciled",
+                "organization.contribution.create",
+            ])
+        )
+    ).all()
+    assert publish_audits == []
+
+
+def test_generic_contribution_source_policy_remains_closed_to_initial_rules(
+    db_session: Session,
+) -> None:
+    context = initial_rule_publication_organization_context(
+        actor="assertion-publisher",
+        role="admin",
+    )
+
+    with pytest.raises(
+        ContributionSourceRejected,
+        match="no authoritative contribution adapter is enabled",
+    ):
+        validate_authoritative_outcome(
+            db_session,
+            context,
+            source_type="initial_rule_assertion",
+            source_id="11111111-1111-1111-1111-111111111111",
+            source_version="forbidden-generic-source-version",
+            outcome_type="verified_rule_publication_completed",
+            verification_basis="Generic API must not select the sealed D3A source adapter.",
+        )

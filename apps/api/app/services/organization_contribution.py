@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     ExecutiveDecision,
+    InitialRuleAssertion,
     JurisdictionSourceCertification,
     OrganizationActorType,
     OrganizationContribution,
@@ -17,6 +18,7 @@ from app.models.domain import (
     OrganizationContributionRecordKind,
     OrganizationContributionVerificationMethod,
     OrganizationalWorkItem,
+    VerifiedRule,
 )
 from app.services.organization_command import (
     AuditMutation,
@@ -253,11 +255,166 @@ def validate_source_certification_outcome(
     )
 
 
+def _initial_rule_publication_version(
+    assertion: InitialRuleAssertion,
+    rule: VerifiedRule,
+) -> str:
+    """Return the immutable logical identity for one initial-rule publication."""
+
+    return canonical_fingerprint(
+        {
+            "assertion_id": assertion.id,
+            "assertion_sha256": assertion.assertion_sha256,
+            "assertion_status": assertion.status,
+            "published_rule_id": assertion.published_rule_id,
+            "jurisdiction_id": assertion.jurisdiction_id,
+            "official_source_id": assertion.official_source_id,
+            "source_snapshot_id": assertion.source_snapshot_id,
+            "domain": assertion.domain,
+            "rule_key": assertion.rule_key,
+            "verified_rule_id": rule.id,
+            "verified_rule_active": rule.active,
+            "verified_rule_approved_by": rule.approved_by,
+            "verified_rule_statement": rule.statement,
+            "verified_rule_confidence": rule.confidence,
+            "verified_rule_effective_from": rule.effective_from,
+            "verified_rule_effective_to": rule.effective_to,
+        }
+    )
+
+
+def validate_initial_rule_publication_outcome(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    assertion_id: UUID,
+    rule_id: UUID,
+    outcome_type: str = "verified_rule_publication_completed",
+    verification_basis: str,
+) -> AuthoritativeOutcomeDescriptor:
+    """Validate the bounded D3A initial-rule/VerifiedRule publication source.
+
+    This remains a sealed integration validator. The generic authenticated
+    Contribution command is still ExecutiveDecision-only and cannot select this
+    source type directly.
+    """
+
+    require_human(context)
+    require_role(context, "admin", "reviewer")
+    if context.tenant_key != LEGACY_DEFAULT_TENANT:
+        raise ContributionSourceRejected(
+            "legacy initial-rule publication records are only mapped to the default tenant"
+        )
+
+    assertion = session.get(InitialRuleAssertion, assertion_id)
+    if assertion is None:
+        raise ContributionSourceRejected("initial rule assertion was not found")
+    if assertion.status != "published":
+        raise ContributionSourceRejected(
+            "initial rule assertion is not in the published authoritative state"
+        )
+    if assertion.published_rule_id is None or assertion.published_rule_id != rule_id:
+        raise ContributionSourceRejected(
+            "initial rule assertion does not reference the supplied published rule"
+        )
+    if not assertion.reviewed_by or assertion.reviewed_at is None:
+        raise ContributionSourceRejected(
+            "initial rule assertion lacks independent review attribution"
+        )
+    if not assertion.published_by or assertion.published_at is None:
+        raise ContributionSourceRejected(
+            "initial rule assertion lacks publication attribution"
+        )
+    if assertion.published_by.strip().casefold() != context.actor_id.strip().casefold():
+        raise ContributionSourceRejected(
+            "initial rule publisher does not match the authenticated emitter actor"
+        )
+    if assertion.proposed_by.strip().casefold() == assertion.reviewed_by.strip().casefold():
+        raise ContributionSourceRejected(
+            "initial rule proposer and reviewer must remain distinct"
+        )
+    if assertion.proposed_by.strip().casefold() == assertion.published_by.strip().casefold():
+        raise ContributionSourceRejected(
+            "initial rule proposer and publisher must remain distinct"
+        )
+
+    rule = session.get(VerifiedRule, rule_id)
+    if rule is None:
+        raise ContributionSourceRejected("published verified rule was not found")
+    if rule.initial_rule_assertion_id != assertion.id:
+        raise ContributionSourceRejected(
+            "verified rule provenance does not reference the initial rule assertion"
+        )
+    if rule.regulatory_change_id is not None:
+        raise ContributionSourceRejected(
+            "initial-rule publication adapter cannot emit a regulatory-change rule"
+        )
+    if rule.jurisdiction_id != assertion.jurisdiction_id:
+        raise ContributionSourceRejected("verified rule jurisdiction provenance is inconsistent")
+    if rule.official_source_id != assertion.official_source_id:
+        raise ContributionSourceRejected("verified rule official-source provenance is inconsistent")
+    if rule.source_snapshot_id != assertion.source_snapshot_id:
+        raise ContributionSourceRejected("verified rule snapshot provenance is inconsistent")
+    if rule.rule_key != assertion.rule_key or rule.domain != assertion.domain:
+        raise ContributionSourceRejected("verified rule semantic provenance is inconsistent")
+    if rule.statement != assertion.statement or rule.confidence != assertion.confidence:
+        raise ContributionSourceRejected("verified rule published content is inconsistent")
+    if (
+        rule.effective_from != assertion.effective_from
+        or rule.effective_to != assertion.effective_to
+    ):
+        raise ContributionSourceRejected("verified rule effective-period provenance is inconsistent")
+    if not rule.active or not rule.approved_by or rule.published_at is None:
+        raise ContributionSourceRejected(
+            "verified rule is not an active human-published rule"
+        )
+    if rule.approved_by.strip().casefold() != assertion.published_by.strip().casefold():
+        raise ContributionSourceRejected(
+            "verified rule publisher attribution does not match the assertion publication"
+        )
+    if _db_stable_datetime(rule.published_at) != _db_stable_datetime(assertion.published_at):
+        raise ContributionSourceRejected(
+            "verified rule publication timestamp does not match the assertion publication"
+        )
+    if not verification_basis.strip():
+        raise ContributionSourceRejected("verification basis is required")
+
+    source_version = _initial_rule_publication_version(assertion, rule)
+    provenance = {
+        "assertion_sha256": assertion.assertion_sha256,
+        "jurisdiction_id": str(assertion.jurisdiction_id),
+        "official_source_id": str(assertion.official_source_id),
+        "source_snapshot_id": str(assertion.source_snapshot_id),
+        "domain": assertion.domain,
+        "rule_key": assertion.rule_key,
+        "verified_rule_id": str(rule.id),
+        "reviewed_by": assertion.reviewed_by,
+        "published_by": assertion.published_by,
+    }
+    return AuthoritativeOutcomeDescriptor(
+        source_type="initial_rule_assertion",
+        source_id=str(assertion.id),
+        source_version=source_version,
+        source_state="published",
+        tenant_key=context.tenant_key,
+        outcome_type=outcome_type,
+        verification_method=OrganizationContributionVerificationMethod.human_attestation,
+        verification_basis=verification_basis,
+        provenance=provenance,
+        verified_by=assertion.published_by,
+        verified_at=_db_stable_datetime(assertion.published_at),
+        _validation_token=_DESCRIPTOR_TOKEN,
+    )
+
+
 def _require_descriptor(
     context: OrganizationCommandContext,
     descriptor: AuthoritativeOutcomeDescriptor,
 ) -> None:
-    if descriptor.source_type == "jurisdiction_source_certification":
+    if descriptor.source_type in {
+        "jurisdiction_source_certification",
+        "initial_rule_assertion",
+    }:
         require_human(context)
         require_role(context, "admin", "reviewer")
     else:

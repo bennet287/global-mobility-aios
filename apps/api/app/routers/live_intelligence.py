@@ -525,6 +525,7 @@ def api_publish_initial_rule_assertion(
             assertion_id,
             payload,
             actor=_actor(request),
+            publisher_role=_role(request),
         )
     except ValueError as exc:
         session.rollback()
