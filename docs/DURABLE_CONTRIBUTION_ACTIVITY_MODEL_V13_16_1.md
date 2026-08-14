@@ -1210,6 +1210,171 @@ legal conclusion; no historical backfill occurs; 13.16.1C API behavior remains
 unchanged; and Observatory remains absent until 13.16.1E.
 
 
+### 23.12 13.16.1E0 Observatory/read-model source reconciliation design
+
+**State: DESIGN COMPLETE / RUNTIME NOT STARTED.** E0 reconciles the accepted durable
+ledgers and D2-D4 emitter behavior to the Observatory aggregation contract before any
+summary endpoint is allowed to present organization-wide metrics. E0 changes
+specification only: no router, service, schema, migration, database, dashboard, or UI
+behavior is added.
+
+#### 23.12.1 Read-model authority and non-goals
+
+The first read model is a live, tenant-scoped projection over authoritative tables. It
+must not create a second mutable source of truth, materialized metric table, cache, or
+semantic backfill. Reads produce no AuditLog row and mutate no source state.
+
+The safe source map is:
+
+| Read concern | Authoritative rows | Safe in E1 | Explicitly not inferred |
+|---|---|---:|---|
+| Verified Contributions | `organization_contributions` plus correction edges | yes | Activity, AgentRun, WorkflowRun, attempts, outputs, work completion |
+| Work snapshot | `organizational_work_items` | yes | impact or contribution from status alone |
+| Blocker snapshot | `organization_blockers` | yes | resolved-in-period from `updated_at` |
+| Pending decisions | `executive_decisions` | yes | approval effect/execution not recorded by the decision |
+| Human attention | active `organization_human_action_requests` plus genuine pending Board decisions, reported separately | yes | generic audits or agent prompts |
+| Human interventions | immutable `organization_human_actions` | yes | AuditLog actor counts |
+| Dependency snapshot | `organization_work_item_dependencies` plus linked WorkItems | yes | inferred dependency from co-occurrence or agent fan-out |
+| Curated semantic history | `organization_activities` | only where rows actually exist | AuditLog, raw telemetry, mutable-row timestamps |
+| Runtime health | AgentRun/WorkflowRun/attempt/Celery/delivery records | technical-only later | organizational contribution or productivity |
+
+Every Observatory response must include one stable `as_of` instant, timezone `UTC`,
+tenant/filter scope, source-row counts, coverage start/basis, and warnings for partial or
+unavailable metrics. Empty data means zero only where the authoritative source coverage
+is established; otherwise the response must say coverage is not established.
+
+#### 23.12.2 Active Contribution resolution
+
+An active verified Contribution is an immutable row with `record_kind = 'outcome'` that
+is not the target of any valid `supersession` or `retraction` row in the same tenant.
+Correction rows remain visible as history/correction counts but are not counted as new
+active outcome Contributions. The read model never updates the original row and never
+turns Activity or WorkItem completion into Contribution.
+
+The first summary must expose at least historical outcome count, active outcome count,
+supersession count, retraction count, and active outcomes grouped by department and
+`contribution_type`. Filtering uses `effective_at` for Contribution periods. Actor/tool
+volume is never a contribution metric.
+
+#### 23.12.3 Accepted source reconciliation
+
+Every accepted Contribution must reconcile back to its authoritative source identity and
+version. The read model may extract pure read-only source-version/provenance helpers from
+the sealed validators, but it must **not** call mutation validators by fabricating an
+admin/reviewer/operator authority context and must not widen `validate_authoritative_outcome()`.
+
+| Contribution source | Contribution -> source validation | Source -> Contribution completeness |
+|---|---|---|
+| `executive_decision` | decision exists in same tenant; terminal approved/rejected state, governed decision attribution, and stored source version still match | not required: ExecutiveDecision remains explicit-command-only |
+| `jurisdiction_source_certification` | default-tenant certification exists; approved/rejected reviewed state, reviewer/time, certification version/scope, and review-evidence fingerprint match | required only inside established automatic-emitter coverage |
+| `initial_rule_assertion` | default-tenant assertion remains published and points to the exact active human-published `VerifiedRule`; assertion/source/snapshot/content/version provenance match | required only inside established automatic-emitter coverage |
+| `regulatory_change` | default-tenant change remains published and maps to the exact active human-published `VerifiedRule`, immutable current snapshot, review, supersession, and source version | required only inside established automatic-emitter coverage |
+| `mobility_pathway_version` | default-tenant version remains published under an active pathway and still satisfies the exact catalogue evidence/certification/rule gate and deterministic source version | required only inside established automatic-emitter coverage |
+
+The reconciliation result classifies at least: `matched`, `missing_source`,
+`source_state_drift`, `source_version_drift`, `duplicate_outcome`, and
+`missing_contribution_in_coverage`. A mismatch is reported; a GET must never repair,
+re-emit, approve, publish, or backfill anything.
+
+#### 23.12.4 No-backfill coverage semantics
+
+D2-D3 intentionally performed no historical backfill, and the repository has no durable
+emitter-rollout watermark. E1 therefore must not label all historic terminal sources as
+missing Contributions.
+
+For each automatic sealed source type, the initial coverage start is the earliest
+observed matching Contribution `created_at`, reported with
+`coverage_basis = 'first_observed_contribution'`. Terminal source transitions earlier
+than that instant are `precoverage_source_rows` and excluded from completeness. Eligible
+source transitions at or after the established coverage start that have no matching
+Contribution are reconciliation gaps. If no Contribution has ever been observed for an
+automatic source type, coverage is `not_established`, not silently zero-complete.
+
+`ExecutiveDecision` is different: terminal decisions do not automatically imply a
+Contribution, so the read model validates Contributions that reference decisions but
+never reports every terminal decision without a Contribution as a gap.
+
+The source transition timestamp used for coverage is `reviewed_at` for source
+certifications and `published_at` for initial-rule, regulatory-change, and pathway
+publication. The Contribution coverage watermark uses `created_at`; business-period
+metrics continue to use `effective_at`.
+
+#### 23.12.5 Safe E1 snapshot metrics
+
+E1 may expose point-in-time metrics that are reproducible from current authoritative
+rows without reconstructing missing semantic history:
+
+- WorkItems by current status/department/priority, active vs terminal, overdue active
+  count, and current oldest active creation time.
+- Blockers in `open`/`mitigated` state by severity/department/due status.
+- Pending ExecutiveDecision rows in `pending_ceo`, `coordinating_ceo`, or
+  `pending_board`, with Board-reserved/L4 attention reported distinctly.
+- HumanActionRequests in `required`, `acknowledged`, or `in_progress`, separately from
+  immutable HumanAction intervention counts.
+- Active dependency edges and currently blocked downstream WorkItems.
+- Active/historical Contribution counts and Contribution-source reconciliation.
+
+E1 must **not** expose authoritative WorkItem cycle time, completed-work period
+throughput, blockers-resolved-in-period, last-material-transition ageing, or a complete
+semantic organization timeline until Activity coverage exists.
+
+#### 23.12.6 Activity-coverage gap and required later slice
+
+Repository inspection confirms that current WorkItem, Blocker, HumanActionRequest, and
+ExecutiveDecision command transitions write their domain row plus `AuditLog`, but do not
+automatically append curated `OrganizationActivity` rows. The standalone Activity append
+service also owns `session.commit()`. Therefore a full historical Observatory cannot be
+made correct by querying `updated_at`, counting AuditLog rows, or calling the current
+Activity command after a source commit.
+
+Before transition-period metrics are enabled, a later bounded E slice must add an
+explicit caller-owned Activity staging path and source-owned semantic Activity adapters,
+with the same atomicity rule used for D1 Contributions. Only then may cycle-time,
+resolved-blocker throughput, transition-based work ageing, and complete department
+throughput be marked authoritative. Until that gate closes, these metrics are returned as
+unavailable/partial rather than fabricated.
+
+#### 23.12.7 Planned E1 HTTP/read contract
+
+The first runtime slice should add read-only organization endpoints under the existing
+authenticated organization boundary, without mutation methods:
+
+- `GET /api/v1/organization/observatory/summary`
+- `GET /api/v1/organization/observatory/contribution-reconciliation`
+- `GET /api/v1/organization/observatory/departments`
+
+Schemas should separate metric values from coverage metadata. Reads inherit the trusted
+tenant/role context used by 13.16.1C; payload/query parameters cannot select another
+tenant. Default tenant legacy source reconciliation is explicit. Reconciliation detail
+uses bounded pagination (default 50, max 200) and deterministic ordering. No endpoint is
+named or shaped as a mutation, and no dashboard/frontend work belongs in E1.
+
+#### 23.12.8 E1 acceptance plan
+
+E1 must prove at least:
+
+1. empty-ledger summaries are deterministic and distinguish zero from coverage not established;
+2. Contribution active counts exclude any outcome targeted by supersession/retraction;
+3. correction rows remain visible without becoming active outcomes;
+4. AgentRun/WorkflowRun/tool/retry/activity volume cannot increase Contribution metrics;
+5. current WorkItem/Blocker/Decision/HumanActionRequest/dependency counts reconcile exactly to tenant-scoped source rows;
+6. human interventions come only from immutable HumanAction records;
+7. cross-tenant reads do not disclose counts or identifiers;
+8. each accepted sealed Contribution reconciles to its exact source/version;
+9. missing/deleted source, state drift, version drift, and duplicate outcomes fail reconciliation visibly without mutation;
+10. precoverage historic source rows are excluded and reported separately;
+11. eligible post-coverage automatic source rows without Contributions are reported as gaps;
+12. terminal ExecutiveDecision without Contribution is not treated as a completeness failure;
+13. current Round 6 Austria draft/pending state produces no false published/certified/eligibility Contribution metric;
+14. GET requests create no AuditLog, Activity, Contribution, or source mutation;
+15. SQLite and PostgreSQL reconciliation fixtures produce the same semantic result;
+16. Alembic head remains `0074_durable_contribution_activity_model` and registered tables remain 118.
+
+E0 does not unlock Phase 13.16.2. 13.16.1E1 is the next implementation slice. Full
+Observatory historical throughput remains gated on the later semantic Activity-coverage
+slice described above.
+
+
 ## 24. Readiness and recommendation
 
 The design, durable persistence foundation, bounded internal command/service layer,
@@ -1219,10 +1384,11 @@ The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / P
 13.16.1D3A initial-rule / VerifiedRule publication emission is **COMPLETE / PASS**;
 13.16.1D3B regulatory-change publication is **COMPLETE / PASS**;
 13.16.1D3C pathway publication is **COMPLETE / PASS**; 13.16.1D4 deferred-domain
-review/integrated regression is **COMPLETE / PASS**, and the Observatory/read model
-(13.16.1E) is **UNLOCKED / NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
+review/integrated regression is **COMPLETE / PASS**. The 13.16.1E0 Observatory/read-model
+source reconciliation design is **COMPLETE** and 13.16.1E1 safe snapshot + Contribution
+reconciliation API is **UNLOCKED / NOT STARTED**, so Phase 13.16.1 remains **IN PROGRESS**.
 
-Recommended next step: begin the bounded 13.16.1E Observatory/read-model reconciliation.
+Recommended next step: implement the bounded 13.16.1E1 safe snapshot and Contribution-reconciliation read API.
 Every later adapter must preserve draft/unpublished exclusion, caller-owned atomic
 transaction semantics, deterministic replay, and narrow organizational wording. No
 automatic legal conclusion or broad source-policy expansion is authorized. Do not start
