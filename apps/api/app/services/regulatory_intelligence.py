@@ -1039,10 +1039,22 @@ def publish_regulatory_change(
     session: Session,
     change_id: UUID,
     payload: RegulatoryChangePublishRequest,
+    *,
+    publisher_actor: str | None = None,
+    publisher_role: str | None = None,
 ) -> VerifiedRule:
+    if (publisher_actor is None) != (publisher_role is None):
+        raise ValueError("Trusted publisher actor and role must be provided together")
     change = session.get(RegulatoryChange, change_id)
     if change is None:
         raise ValueError("Regulatory change not found")
+    if publisher_actor is not None:
+        authenticated_publisher = publisher_actor.strip()
+        if not authenticated_publisher:
+            raise ValueError("Authenticated regulatory-change publisher is required")
+        if payload.reviewer.strip().casefold() != authenticated_publisher.casefold():
+            raise ValueError("Publication reviewer must match the authenticated publisher")
+
     existing = session.exec(
         select(VerifiedRule).where(VerifiedRule.regulatory_change_id == change.id)
     ).first()
@@ -1058,77 +1070,126 @@ def publish_regulatory_change(
     jurisdiction = session.get(Jurisdiction, change.jurisdiction_id)
     if jurisdiction is None:
         raise ValueError("Jurisdiction not found")
-    published_at = now_utc()
-    superseded_rule: Optional[VerifiedRule] = None
-    if payload.supersedes_rule_id:
-        superseded_rule = session.get(VerifiedRule, payload.supersedes_rule_id)
-        if superseded_rule is None:
-            raise ValueError("Superseded verified rule not found")
-        if not superseded_rule.active:
-            raise ValueError("Superseded verified rule is already inactive")
-        if superseded_rule.jurisdiction_id != change.jurisdiction_id or superseded_rule.domain != change.domain:
-            raise ValueError("A verified rule can only supersede a rule in the same jurisdiction and domain")
-        before_rule = {"active": superseded_rule.active, "effective_to": superseded_rule.effective_to}
-        superseded_rule.active = False
-        superseded_rule.effective_to = payload.effective_from or change.effective_at or published_at
-        superseded_rule.retired_at = published_at
-        superseded_rule.retired_by = payload.reviewer
-        superseded_rule.retirement_reason = f"Superseded by regulatory change {change.id}"
-        superseded_rule.updated_at = published_at
-        session.add(superseded_rule)
-        session.flush()
-        from app.services.regulatory_knowledge_graph import deactivate_rule_projection
 
-        deactivate_rule_projection(session, superseded_rule, actor=payload.reviewer)
+    publication_actor = publisher_actor or payload.reviewer
+    try:
+        published_at = now_utc()
+        before_change = {"status": change.status, "published_at": change.published_at}
+        superseded_rule: Optional[VerifiedRule] = None
+        if payload.supersedes_rule_id:
+            superseded_rule = session.get(VerifiedRule, payload.supersedes_rule_id)
+            if superseded_rule is None:
+                raise ValueError("Superseded verified rule not found")
+            if not superseded_rule.active:
+                raise ValueError("Superseded verified rule is already inactive")
+            if (
+                superseded_rule.jurisdiction_id != change.jurisdiction_id
+                or superseded_rule.domain != change.domain
+            ):
+                raise ValueError(
+                    "A verified rule can only supersede a rule in the same jurisdiction and domain"
+                )
+            before_rule = {
+                "active": superseded_rule.active,
+                "effective_to": superseded_rule.effective_to,
+            }
+            superseded_rule.active = False
+            superseded_rule.effective_to = (
+                payload.effective_from or change.effective_at or published_at
+            )
+            superseded_rule.retired_at = published_at
+            superseded_rule.retired_by = publication_actor
+            superseded_rule.retirement_reason = f"Superseded by regulatory change {change.id}"
+            superseded_rule.updated_at = published_at
+            session.add(superseded_rule)
+            session.flush()
+            from app.services.regulatory_knowledge_graph import deactivate_rule_projection
+
+            deactivate_rule_projection(session, superseded_rule, actor=publication_actor)
+            record_audit(
+                session,
+                action="verified_rule_superseded",
+                entity_type="verified_rule",
+                entity_id=superseded_rule.id,
+                before_state=before_rule,
+                after_state=superseded_rule,
+                reason=superseded_rule.retirement_reason,
+                actor=publication_actor,
+                source="regulatory_intelligence_v7",
+            )
+
+        rule = VerifiedRule(
+            country=normalize_country(jurisdiction.name),
+            domain=change.domain,
+            rule_key=payload.rule_key,
+            statement=payload.statement,
+            official_source_id=change.official_source_id,
+            jurisdiction_id=change.jurisdiction_id,
+            regulatory_change_id=change.id,
+            source_snapshot_id=change.current_snapshot_id,
+            supersedes_rule_id=superseded_rule.id if superseded_rule else None,
+            confidence=payload.confidence,
+            active=True,
+            effective_from=payload.effective_from or change.effective_at,
+            effective_to=payload.effective_to,
+            approved_by=publication_actor,
+            published_at=published_at,
+        )
+        change.status = "published"
+        change.published_at = published_at
+        session.add(rule)
+        session.add(change)
+        session.flush()
+        from app.services.regulatory_knowledge_graph import project_verified_rule
+
+        project_verified_rule(session, rule, actor=publication_actor)
         record_audit(
             session,
-            action="verified_rule_superseded",
+            action="regulatory_change_published",
+            entity_type="regulatory_change",
+            entity_id=change.id,
+            before_state=before_change,
+            after_state={
+                "status": change.status,
+                "published_at": change.published_at,
+                "verified_rule_id": rule.id,
+            },
+            reason=change.review_notes,
+            actor=publication_actor,
+            source="regulatory_intelligence_v13_16_1d3b",
+        )
+        record_audit(
+            session,
+            action="verified_rule_published",
             entity_type="verified_rule",
-            entity_id=superseded_rule.id,
-            before_state=before_rule,
-            after_state=superseded_rule,
-            reason=superseded_rule.retirement_reason,
-            actor=payload.reviewer,
+            entity_id=rule.id,
+            after_state=rule,
+            reason=change.review_notes,
+            actor=publication_actor,
             source="regulatory_intelligence_v7",
         )
-    rule = VerifiedRule(
-        country=normalize_country(jurisdiction.name),
-        domain=change.domain,
-        rule_key=payload.rule_key,
-        statement=payload.statement,
-        official_source_id=change.official_source_id,
-        jurisdiction_id=change.jurisdiction_id,
-        regulatory_change_id=change.id,
-        source_snapshot_id=change.current_snapshot_id,
-        supersedes_rule_id=superseded_rule.id if superseded_rule else None,
-        confidence=payload.confidence,
-        active=True,
-        effective_from=payload.effective_from or change.effective_at,
-        effective_to=payload.effective_to,
-        approved_by=payload.reviewer,
-        published_at=published_at,
-    )
-    change.status = "published"
-    change.published_at = published_at
-    session.add(rule)
-    session.add(change)
-    session.flush()
-    from app.services.regulatory_knowledge_graph import project_verified_rule
+        if publisher_actor is not None and publisher_role is not None:
+            from app.services.organization_regulatory_change_publication import (
+                regulatory_change_publication_organization_context,
+                stage_regulatory_change_publication_contribution,
+            )
 
-    project_verified_rule(session, rule, actor=payload.reviewer)
-    record_audit(
-        session,
-        action="verified_rule_published",
-        entity_type="verified_rule",
-        entity_id=rule.id,
-        after_state=rule,
-        reason=change.review_notes,
-        actor=payload.reviewer,
-        source="regulatory_intelligence_v7",
-    )
-    session.commit()
-    session.refresh(rule)
-    return rule
+            organization_context = regulatory_change_publication_organization_context(
+                actor=publisher_actor,
+                role=publisher_role,
+            )
+            stage_regulatory_change_publication_contribution(
+                session,
+                organization_context,
+                change=change,
+                rule=rule,
+            )
+        session.commit()
+        session.refresh(rule)
+        return rule
+    except Exception:
+        session.rollback()
+        raise
 
 
 def retire_verified_rule(

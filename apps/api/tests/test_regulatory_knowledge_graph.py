@@ -77,6 +77,7 @@ def _publish_reviewed_rule(client: TestClient) -> dict:
             "reviewer": "graph-rule-publisher",
             "confidence": 1.0,
         },
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "graph-rule-publisher"},
     )
     assert published.status_code == 200
     return published.json()["verified_rule"]

@@ -98,6 +98,7 @@ def _review_and_publish_change(
     published = client.post(
         f"/api/v1/regulatory-intelligence/changes/{change['id']}/publish",
         json=payload,
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "impact-rule-publisher"},
     )
     assert published.status_code == 200, published.text
     return published.json()["verified_rule"]

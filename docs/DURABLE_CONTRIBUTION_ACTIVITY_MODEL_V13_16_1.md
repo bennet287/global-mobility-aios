@@ -980,13 +980,61 @@ the complete API suite. Repository policy, release consistency, migration consis
 and `git diff --check` pass at Alembic head
 `0074_durable_contribution_activity_model` with 118 registered tables.
 
+### 23.5.4 13.16.1D3B regulatory-change publication adapter implementation and acceptance status
+
+**State: COMPLETE / PASS.** The second publication adapter is
+limited to the existing authenticated `RegulatoryChange` publication boundary. Only a
+previously reviewed `approved` change backed by its hashed current `SourceSnapshot` may
+become `published` and stage exactly one `regulatory_change_publication_completed`
+Contribution when the workflow creates its active `VerifiedRule`. Detection, source
+retrieval, classification proposals, pending review, rejected changes, and
+approved-but-unpublished changes remain non-emitting.
+
+The authenticated HTTP publisher is now authoritative for publication attribution. The
+legacy request `reviewer` field must match the authenticated publisher identity; a body
+cannot name a different publisher. The resulting `VerifiedRule.approved_by`, knowledge
+graph projection, supersession attribution when present, publication audit, and
+Contribution actor therefore share the authenticated identity. Direct service callers
+that omit trusted publisher actor/role context retain their pre-D3B no-emitter behavior.
+
+The `RegulatoryChange` workflow remains transaction owner. The `published` transition,
+new `VerifiedRule`, optional old-rule supersession/deactivation, regulatory knowledge
+graph projection, existing publication/supersession audits, one staged Contribution, and
+its audit are committed together. Contribution staging or final commit failure rolls the
+whole publication unit back. The existing already-published branch does not synthesize a
+Contribution, preserving the no-historical-backfill boundary.
+
+D3B uses a separate sealed validator rather than widening the generic authenticated
+Contribution source policy. It requires the default legacy tenant, authenticated
+internal-human admin/reviewer authority, `RegulatoryChange.status == published`, prior
+review attribution, a publication timestamp, a current hashed source snapshot belonging
+to the same official source, and an active human-published `VerifiedRule` with exact
+regulatory-change, jurisdiction, official-source, snapshot, domain, publisher, and
+publication-timestamp lineage. The canonical source version binds the reviewed change,
+current snapshot, publication transition, and material VerifiedRule state. The
+deterministic Contribution key binds the change ID and resulting rule ID.
+
+The Contribution records governed regulatory-knowledge publication only. It explicitly
+does not establish applicant eligibility, occupation eligibility, visa approval, or
+pathway publication. Focused D3B coverage includes non-emitting pre-publication state,
+authenticated emission, HTTP and adapter replay, fail-closed published-rule drift,
+source+rule+Contribution rollback on emitter failure, request-body publisher spoofing,
+and confirmation that the generic Contribution API remains closed to
+`regulatory_change`. Local acceptance passes **8/8** focused D3B emitter tests, **9/9**
+existing regulatory-intelligence/knowledge-graph/pathway-impact regression tests, **86
+passed + 1 expected PostgreSQL-only skip** in the combined D1-D3A/organization
+regression, and **742 passed + 1 expected PostgreSQL-only skip** in the complete API
+suite. Repository policy, release consistency, migration consistency, and
+`git diff --check` pass at Alembic head `0074_durable_contribution_activity_model` with
+118 registered tables.
+
 ### 23.6 Future emission points and source versions
 
 | Source | Exact future boundary | Proposed source version | Proposed Contribution semantics | WorkItem link |
 |---|---|---|---|---|
 | `JurisdictionSourceCertification` | `jurisdiction_registry.review_source_certification()` immediately after the reviewed state/evidence is staged and before the single outer commit | `certification_version` plus immutable review evidence identity; structured reviews also bind the evidence-pack SHA-256/source snapshot | `source_certification_review_completed` with outcome approved/rejected; approved may additionally carry a narrowly named certification-approved semantic | optional |
 | Published `InitialRuleAssertion` / `VerifiedRule` | `initial_rule_assertions.publish_initial_rule_assertion()` after the rule, assertion publication state, graph projection, and coverage-reconciliation audits are staged | assertion SHA-256 + published rule ID + material VerifiedRule publication state | `verified_rule_publication_completed` | optional |
-| `RegulatoryChange` | `regulatory_intelligence.publish_regulatory_change()` after published state and resulting VerifiedRule are staged | current snapshot ID + publication transition/revision | `regulatory_change_published` | optional |
+| `RegulatoryChange` | `regulatory_intelligence.publish_regulatory_change()` after published state, resulting VerifiedRule, graph projection, and publication/supersession audits are staged | canonical reviewed change + current hashed snapshot + resulting rule publication state | `regulatory_change_publication_completed` | optional |
 | `MobilityPathwayVersion` | `pathway_catalogue.publish_pathway_version()` after publication evidence passes and published state is staged | pathway ID + `version_number` + publication transition | `pathway_version_published` | optional |
 | `ExecutiveDecision` | no automatic emitter; retain explicit Contribution command after terminal decision validation | existing record fingerprint or committed `updated_at` fallback | caller-specific governed decision contribution only when explicitly requested | optional |
 
@@ -1031,10 +1079,11 @@ contract are satisfied; the AI organization must not self-attest that gate.
    Connect only the independently reviewed initial-rule publication boundary; keep the
    generic Contribution API unchanged and prohibit any applicant/pathway legal
    conclusion.
-4. **13.16.1D3B — regulatory-change publication adapter. UNLOCKED / NOT STARTED.**
-   D3A acceptance is complete; D3B is now the next bounded publication adapter.
-5. **13.16.1D3C — pathway-version publication adapter. LOCKED / NOT STARTED.**
-   Start only after the narrower rule/regulatory publication adapters are accepted;
+4. **13.16.1D3B — regulatory-change publication adapter. COMPLETE / PASS.**
+   Authenticated publication, sealed validation, deterministic replay, and atomic rollback
+   are accepted under the local focused/full-suite/repository gates.
+5. **13.16.1D3C — pathway-version publication adapter. UNLOCKED / NOT STARTED.**
+   The narrower rule/regulatory publication adapters are accepted;
    draft/internal simulation remains excluded.
 6. **13.16.1D4 — deferred-domain review and integrated regression.** Re-evaluate
    reassessment acceptance, timeline milestones, agency submissions, corporate
@@ -1065,15 +1114,15 @@ and authenticated organization REST API are complete. The 13.16.1D0 real-emitter
 mapping/design and 13.16.1D1 caller-owned transaction staging are **COMPLETE / PASS**.
 The first narrow 13.16.1D2 source-certification review adapter is **COMPLETE / PASS**.
 13.16.1D3A initial-rule / VerifiedRule publication emission is **COMPLETE / PASS**;
-13.16.1D3B regulatory-change publication is **UNLOCKED / NOT STARTED**; 13.16.1D3C pathway
-publication remains **LOCKED / NOT STARTED**, and the
+13.16.1D3B regulatory-change publication is **COMPLETE / PASS**;
+13.16.1D3C pathway publication is **UNLOCKED / NOT STARTED**, and the
 Observatory/read model (13.16.1E) is **NOT STARTED**, so Phase 13.16.1 remains **IN
 PROGRESS**.
 
-Recommended next step: implement the bounded D3B regulatory-change publication adapter.
-Every later adapter must preserve
+Recommended next step: implement the bounded D3C pathway-version publication
+adapter. Every later adapter must preserve
 draft/unpublished exclusion, caller-owned atomic transaction semantics, deterministic
 replay, and narrow organizational wording. No automatic legal conclusion or broad
-source-policy expansion is authorized. Do not start D3C, Phase 13.16.2, or any
-Observatory dashboard until the preceding adapter gates pass and enabled adapters
+source-policy expansion is authorized. Do not start Phase 13.16.2 or any Observatory dashboard until the remaining
+emitter gates pass and enabled adapters
 reconcile to their authoritative source tables on SQLite and PostgreSQL.

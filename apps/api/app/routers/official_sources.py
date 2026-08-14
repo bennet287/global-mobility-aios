@@ -68,6 +68,16 @@ from app.tasks.source_monitor_tasks import run_source_monitor_task
 router = APIRouter(tags=["official-source-truth-v3.4"])
 
 
+def _actor(request: Request) -> str:
+    context = getattr(request.state, "auth", None)
+    return getattr(context, "username", "api-operator")
+
+
+def _role(request: Request) -> str:
+    context = getattr(request.state, "auth", None)
+    return getattr(context, "role", "read_only")
+
+
 def _json_response(payload: Dict[str, Any], *, status_code: int = 200) -> JSONResponse:
     return JSONResponse(content=jsonable_encoder(payload), status_code=status_code)
 
@@ -728,11 +738,18 @@ def api_review_regulatory_change(
 def api_publish_regulatory_change(
     change_id: UUID,
     payload: RegulatoryChangePublishRequest,
+    request: Request,
     session: Session = Depends(get_session),
 ):
     from fastapi import HTTPException
     try:
-        rule = publish_regulatory_change(session, change_id, payload)
+        rule = publish_regulatory_change(
+            session,
+            change_id,
+            payload,
+            publisher_actor=_actor(request),
+            publisher_role=_role(request),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return _json_response({"verified_rule": rule})

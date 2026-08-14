@@ -191,6 +191,7 @@ def test_regulatory_change_is_review_gated_before_rule_publication(
             "statement": "The minimum salary is EUR 45,000.",
             "reviewer": "pytest-reviewer",
         },
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "pytest-reviewer"},
     )
     assert early_publish.status_code == 400
 
@@ -235,6 +236,7 @@ def test_regulatory_change_is_review_gated_before_rule_publication(
             "reviewer": "pytest-reviewer",
             "confidence": 1.0,
         },
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "pytest-reviewer"},
     )
     assert publish_response.status_code == 200
     rule_payload = publish_response.json()["verified_rule"]
@@ -255,6 +257,7 @@ def test_regulatory_change_is_review_gated_before_rule_publication(
         "regulatory_classification_reviewed",
         "regulatory_change_detected",
         "regulatory_change_reviewed",
+        "regulatory_change_published",
         "verified_rule_published",
     }.issubset(audit_actions)
 
@@ -286,14 +289,14 @@ def test_verified_rule_can_be_superseded_and_retired(client: TestClient, db_sess
     first_snapshot = SourceSnapshot(
         official_source_id=source.id,
         url=source.url,
-        content_hash="first",
+        content_hash="1" * 64,
         content_text="Threshold one",
         status="changed",
     )
     second_snapshot = SourceSnapshot(
         official_source_id=source.id,
         url=source.url,
-        content_hash="second",
+        content_hash="2" * 64,
         content_text="Threshold two",
         status="changed",
     )
@@ -336,6 +339,7 @@ def test_verified_rule_can_be_superseded_and_retired(client: TestClient, db_sess
             "statement": "The minimum salary is CAD 50,000.",
             "reviewer": "reviewer",
         },
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "reviewer"},
     )
     assert first_response.status_code == 200
     first_rule_id = first_response.json()["verified_rule"]["id"]
@@ -348,6 +352,7 @@ def test_verified_rule_can_be_superseded_and_retired(client: TestClient, db_sess
             "reviewer": "reviewer",
             "supersedes_rule_id": first_rule_id,
         },
+        headers={"X-GMAI-Role": "reviewer", "X-GMAI-User": "reviewer"},
     )
     assert second_response.status_code == 200
     second_rule_id = second_response.json()["verified_rule"]["id"]

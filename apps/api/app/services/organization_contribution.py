@@ -12,12 +12,14 @@ from app.models.domain import (
     ExecutiveDecision,
     InitialRuleAssertion,
     JurisdictionSourceCertification,
+    RegulatoryChange,
     OrganizationActorType,
     OrganizationContribution,
     OrganizationContributionImpactKind,
     OrganizationContributionRecordKind,
     OrganizationContributionVerificationMethod,
     OrganizationalWorkItem,
+    SourceSnapshot,
     VerifiedRule,
 )
 from app.services.organization_command import (
@@ -407,6 +409,176 @@ def validate_initial_rule_publication_outcome(
     )
 
 
+
+def _regulatory_change_publication_version(
+    change: RegulatoryChange,
+    rule: VerifiedRule,
+) -> str:
+    """Return the immutable logical identity for one reviewed regulatory publication."""
+
+    return canonical_fingerprint(
+        {
+            "regulatory_change_id": change.id,
+            "change_status": change.status,
+            "jurisdiction_id": change.jurisdiction_id,
+            "official_source_id": change.official_source_id,
+            "previous_snapshot_id": change.previous_snapshot_id,
+            "current_snapshot_id": change.current_snapshot_id,
+            "domain": change.domain,
+            "change_type": change.change_type,
+            "materiality": change.materiality,
+            "effective_at": _db_stable_datetime(change.effective_at) if change.effective_at is not None else None,
+            "reviewed_by": change.reviewed_by,
+            "reviewed_at": _db_stable_datetime(change.reviewed_at),
+            "published_at": _db_stable_datetime(change.published_at),
+            "verified_rule_id": rule.id,
+            "verified_rule_active": rule.active,
+            "verified_rule_approved_by": rule.approved_by,
+            "verified_rule_statement": rule.statement,
+            "verified_rule_confidence": rule.confidence,
+            "verified_rule_effective_from": _db_stable_datetime(rule.effective_from) if rule.effective_from is not None else None,
+            "verified_rule_effective_to": _db_stable_datetime(rule.effective_to) if rule.effective_to is not None else None,
+            "verified_rule_supersedes_rule_id": rule.supersedes_rule_id,
+        }
+    )
+
+
+def validate_regulatory_change_publication_outcome(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    change_id: UUID,
+    rule_id: UUID,
+    outcome_type: str = "regulatory_change_publication_completed",
+    verification_basis: str,
+) -> AuthoritativeOutcomeDescriptor:
+    """Validate the bounded D3B reviewed regulatory-change publication source.
+
+    This is a sealed integration validator. The generic authenticated Contribution
+    command remains ExecutiveDecision-only and cannot select this source directly.
+    """
+
+    require_human(context)
+    require_role(context, "admin", "reviewer")
+    if context.tenant_key != LEGACY_DEFAULT_TENANT:
+        raise ContributionSourceRejected(
+            "legacy regulatory-change publication records are only mapped to the default tenant"
+        )
+
+    change = session.get(RegulatoryChange, change_id)
+    if change is None:
+        raise ContributionSourceRejected("regulatory change was not found")
+    if change.status != "published":
+        raise ContributionSourceRejected(
+            "regulatory change is not in the published authoritative state"
+        )
+    if not change.reviewed_by or change.reviewed_at is None:
+        raise ContributionSourceRejected(
+            "regulatory change lacks prior human review attribution"
+        )
+    if change.published_at is None:
+        raise ContributionSourceRejected(
+            "regulatory change lacks publication timestamp attribution"
+        )
+
+    snapshot = session.get(SourceSnapshot, change.current_snapshot_id)
+    if snapshot is None:
+        raise ContributionSourceRejected("regulatory change current source snapshot was not found")
+    if snapshot.official_source_id != change.official_source_id:
+        raise ContributionSourceRejected(
+            "regulatory change source snapshot does not match its official source"
+        )
+    snapshot_hash = str(snapshot.content_hash or "").strip().lower()
+    if len(snapshot_hash) != 64 or any(ch not in "0123456789abcdef" for ch in snapshot_hash):
+        raise ContributionSourceRejected(
+            "regulatory change publication requires an immutable SHA-256 source snapshot"
+        )
+
+    rule = session.get(VerifiedRule, rule_id)
+    if rule is None:
+        raise ContributionSourceRejected("published verified rule was not found")
+    if rule.regulatory_change_id != change.id:
+        raise ContributionSourceRejected(
+            "verified rule provenance does not reference the regulatory change"
+        )
+    if rule.initial_rule_assertion_id is not None:
+        raise ContributionSourceRejected(
+            "regulatory-change publication adapter cannot emit an initial-rule publication"
+        )
+    if rule.jurisdiction_id != change.jurisdiction_id:
+        raise ContributionSourceRejected("verified rule jurisdiction provenance is inconsistent")
+    if rule.official_source_id != change.official_source_id:
+        raise ContributionSourceRejected("verified rule official-source provenance is inconsistent")
+    if rule.source_snapshot_id != change.current_snapshot_id:
+        raise ContributionSourceRejected("verified rule snapshot provenance is inconsistent")
+    if rule.domain != change.domain:
+        raise ContributionSourceRejected("verified rule regulatory domain is inconsistent")
+    if not rule.active or not rule.approved_by or rule.published_at is None:
+        raise ContributionSourceRejected(
+            "verified rule is not an active human-published regulatory-change rule"
+        )
+    if rule.approved_by.strip().casefold() != context.actor_id.strip().casefold():
+        raise ContributionSourceRejected(
+            "verified rule publisher does not match the authenticated emitter actor"
+        )
+    if _db_stable_datetime(rule.published_at) != _db_stable_datetime(change.published_at):
+        raise ContributionSourceRejected(
+            "verified rule publication timestamp does not match the regulatory change publication"
+        )
+    if rule.supersedes_rule_id is not None:
+        superseded_rule = session.get(VerifiedRule, rule.supersedes_rule_id)
+        if superseded_rule is None:
+            raise ContributionSourceRejected("superseded verified rule was not found")
+        if superseded_rule.active:
+            raise ContributionSourceRejected("superseded verified rule remains active")
+        if (
+            superseded_rule.jurisdiction_id != change.jurisdiction_id
+            or superseded_rule.domain != change.domain
+        ):
+            raise ContributionSourceRejected(
+                "superseded verified rule provenance is outside the regulatory-change scope"
+            )
+        if not superseded_rule.retired_by or (
+            superseded_rule.retired_by.strip().casefold()
+            != context.actor_id.strip().casefold()
+        ):
+            raise ContributionSourceRejected(
+                "superseded verified rule retirement is not attributed to the authenticated publisher"
+            )
+    if not verification_basis.strip():
+        raise ContributionSourceRejected("verification basis is required")
+
+    source_version = _regulatory_change_publication_version(change, rule)
+    provenance = {
+        "jurisdiction_id": str(change.jurisdiction_id),
+        "official_source_id": str(change.official_source_id),
+        "previous_snapshot_id": str(change.previous_snapshot_id) if change.previous_snapshot_id else None,
+        "current_snapshot_id": str(change.current_snapshot_id),
+        "source_snapshot_hash": snapshot_hash,
+        "domain": change.domain,
+        "change_type": change.change_type,
+        "materiality": change.materiality,
+        "reviewed_by": change.reviewed_by,
+        "reviewed_at": _db_stable_datetime(change.reviewed_at),
+        "verified_rule_id": str(rule.id),
+        "supersedes_rule_id": str(rule.supersedes_rule_id) if rule.supersedes_rule_id else None,
+    }
+    return AuthoritativeOutcomeDescriptor(
+        source_type="regulatory_change",
+        source_id=str(change.id),
+        source_version=source_version,
+        source_state="published",
+        tenant_key=context.tenant_key,
+        outcome_type=outcome_type,
+        verification_method=OrganizationContributionVerificationMethod.human_attestation,
+        verification_basis=verification_basis,
+        provenance=provenance,
+        verified_by=rule.approved_by,
+        verified_at=_db_stable_datetime(change.published_at),
+        _validation_token=_DESCRIPTOR_TOKEN,
+    )
+
+
 def _require_descriptor(
     context: OrganizationCommandContext,
     descriptor: AuthoritativeOutcomeDescriptor,
@@ -414,6 +586,7 @@ def _require_descriptor(
     if descriptor.source_type in {
         "jurisdiction_source_certification",
         "initial_rule_assertion",
+        "regulatory_change",
     }:
         require_human(context)
         require_role(context, "admin", "reviewer")

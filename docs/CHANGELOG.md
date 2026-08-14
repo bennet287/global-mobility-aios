@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-08-14 - Phase 13.16.1D3B regulatory-change publication Contribution adapter acceptance
+
+- Closed 13.16.1D3B as **COMPLETE / PASS** after local acceptance of the second
+  publication-class Contribution adapter: 8/8 focused regulatory-change emitter tests,
+  9/9 existing regulatory-intelligence/knowledge-graph/pathway-impact regression tests,
+  86 passed + 1 expected PostgreSQL-only skip in the combined D1-D3A/organization
+  regression, and 742 passed + 1 expected PostgreSQL-only skip in the complete API suite.
+- Confirmed authenticated publication stages exactly one
+  `regulatory_change_publication_completed` Contribution with HTTP and persisted replay
+  idempotency, fail-closed published-rule drift handling, authenticated publisher
+  attribution, and atomic rollback of the source/rule/audit/Contribution unit on emitter
+  failure. The generic organization Contribution API remains ExecutiveDecision-only and
+  no historical backfill is introduced.
+- Repository policy, release consistency, migration consistency, and `git diff --check`
+  pass at Alembic head `0074_durable_contribution_activity_model` with 118 registered
+  tables. The complete API suite exits 0 with zero failures.
+- 13.16.1D3C pathway-version publication is now **UNLOCKED / NOT STARTED**.
+  13.16.1E Observatory remains not started, Phase 13.16.1 remains in progress, Phase
+  13.16.2 remains locked, and genuine Phase 13.17 external-human acceptance is still
+  required.
+
+## 2026-08-14 - Phase 13.16.1D3B regulatory-change publication Contribution adapter implementation
+
+- Added the second publication-class Contribution adapter at the authenticated
+  `RegulatoryChange` publish boundary. Only a previously reviewed approved change backed
+  by its current hashed official-source snapshot can emit
+  `regulatory_change_publication_completed` when it becomes published with an active
+  resulting `VerifiedRule`; detection, classification, pending/rejected review, and
+  approved-but-unpublished states remain non-emitting.
+- Bound publication attribution to the authenticated HTTP publisher. The legacy request
+  `reviewer` value must match that authenticated identity, and the same actor is recorded
+  on the resulting VerifiedRule, graph projection, supersession when present, publication
+  audit, and Contribution. Request-body actor spoofing therefore fails before mutation.
+- Preserved one source-owned transaction across RegulatoryChange publication, VerifiedRule
+  creation, optional prior-rule supersession/deactivation, regulatory knowledge-graph
+  projection, existing source audits, the staged Contribution, and its audit. Emitter or
+  final commit failure rolls back the whole unit; already-published records do not receive
+  historical backfill.
+- Kept the generic authenticated organization Contribution API ExecutiveDecision-only. A
+  sealed D3B validator requires internal-human admin/reviewer authority, exact change/rule
+  jurisdiction/source/snapshot/domain/publication provenance, prior review attribution, a
+  hashed current snapshot, and authenticated publisher identity. The Contribution records
+  regulatory-knowledge publication only and does not establish applicant eligibility,
+  occupation eligibility, visa approval, or pathway publication.
+- Added focused D3B coverage for pre-publication no-emission, authenticated atomic
+  emission, HTTP and adapter replay, fail-closed rule drift, emitter rollback, publisher
+  spoofing rejection, and the still-closed generic source policy. D3B is
+  **COMPLETE / PASS** after the acceptance recorded above; D3C pathway publication is
+  now **UNLOCKED / NOT STARTED**.
+
 ## 2026-08-14 - Phase 13.16.1D3A initial-rule publication Contribution adapter acceptance
 
 - Closed 13.16.1D3A as **COMPLETE / PASS** after local acceptance of the first
