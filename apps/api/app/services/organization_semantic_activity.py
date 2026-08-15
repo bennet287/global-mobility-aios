@@ -187,8 +187,211 @@ def stage_work_item_created_activity(
         activity_class=OrganizationActivityClass.work,
         activity_type="organization.work.created.v1",
         title="Work item created",
-        summary="Governed organizational work was created in queued state.",
+        summary=f"Governed organizational work was created in {work.status} state.",
         occurred_at=work.created_at,
+        payload=payload,
+        department=work.department,
+        work_item_id=work.id,
+    )
+
+
+def stage_work_item_deadline_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    work: OrganizationalWorkItem,
+    *,
+    previous_due_at: datetime | None,
+) -> OrganizationActivity:
+    payload = {
+        "previous_due_at": previous_due_at,
+        "due_at": work.due_at,
+        "status": work.status,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="organizational_work_item",
+        source_id=work.id,
+        stream_key=f"work:{work.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type="organization.work.deadline.set.v1",
+        title="Work item deadline set",
+        summary="The governed deadline for organizational work changed.",
+        occurred_at=work.updated_at,
+        payload=payload,
+        department=work.department,
+        work_item_id=work.id,
+    )
+
+
+def stage_work_item_escalation_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    work: OrganizationalWorkItem,
+    *,
+    previous_position_key: str,
+    reason: str,
+    emergency: bool,
+) -> OrganizationActivity:
+    payload = {
+        "previous_position_key": previous_position_key,
+        "assigned_position_key": work.assigned_position_key,
+        "status": work.status,
+        "is_emergency": work.is_emergency,
+        "reason": reason,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="organizational_work_item",
+        source_id=work.id,
+        stream_key=f"work:{work.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type=(
+            "organization.work.emergency_escalated.v1"
+            if emergency
+            else "organization.work.escalated.v1"
+        ),
+        title="Work item emergency escalation" if emergency else "Work item escalated",
+        summary=(
+            "Emergency work accountability moved to a higher governed position."
+            if emergency
+            else "Work accountability moved to a higher governed position."
+        ),
+        occurred_at=work.updated_at,
+        payload=payload,
+        department=work.department,
+        work_item_id=work.id,
+    )
+
+
+def stage_work_item_emergency_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    work: OrganizationalWorkItem,
+    *,
+    previous_status: str,
+    reason: str,
+) -> OrganizationActivity:
+    payload = {
+        "previous_status": previous_status,
+        "status": work.status,
+        "authority_level": work.authority_level,
+        "risk_level": work.risk_level,
+        "is_emergency": work.is_emergency,
+        "reason": reason,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="organizational_work_item",
+        source_id=work.id,
+        stream_key=f"work:{work.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type="organization.work.emergency_marked.v1",
+        title="Work item marked emergency",
+        summary="Governed work was explicitly marked as an emergency and held for escalation.",
+        occurred_at=work.updated_at,
+        payload=payload,
+        department=work.department,
+        work_item_id=work.id,
+    )
+
+
+def stage_work_item_cancellation_requested_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    work: OrganizationalWorkItem,
+    *,
+    previous_status: str,
+) -> OrganizationActivity:
+    payload = {
+        "previous_status": previous_status,
+        "status": work.status,
+        "cancel_requested_at": work.cancel_requested_at,
+        "cancelled_by": work.cancelled_by,
+        "cancellation_reason": work.cancellation_reason,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="organizational_work_item",
+        source_id=work.id,
+        stream_key=f"work:{work.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type="organization.work.cancellation_requested.v1",
+        title="Work item cancellation requested",
+        summary="Cancellation of governed work was explicitly requested.",
+        occurred_at=work.updated_at,
+        payload=payload,
+        department=work.department,
+        work_item_id=work.id,
+    )
+
+
+def stage_work_item_retry_requested_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    work: OrganizationalWorkItem,
+    *,
+    previous_status: str,
+    reason: str,
+) -> OrganizationActivity:
+    payload = {
+        "previous_status": previous_status,
+        "status": work.status,
+        "next_attempt": work.execution_attempts + 1,
+        "max_attempts": work.max_execution_attempts,
+        "reason": reason,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="organizational_work_item",
+        source_id=work.id,
+        stream_key=f"work:{work.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type="organization.work.retry_requested.v1",
+        title="Work item retry authorized",
+        summary="A governed retry was explicitly authorized without implying execution success.",
+        occurred_at=work.updated_at,
+        payload=payload,
+        department=work.department,
+        work_item_id=work.id,
+    )
+
+
+def stage_work_item_evidence_amended_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    work: OrganizationalWorkItem,
+    *,
+    revision: int,
+    evidence_keys_added: list[str],
+    fact_keys_added: list[str],
+    before_gaps: list[str],
+    after_gaps: list[str],
+) -> OrganizationActivity:
+    payload = {
+        "evidence_revision": revision,
+        "evidence_keys_added": evidence_keys_added,
+        "fact_keys_added": fact_keys_added,
+        "previous_missing_evidence_fields": before_gaps,
+        "missing_evidence_fields": after_gaps,
+        "status": work.status,
+        "external_action_authorized": False,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="organizational_work_item",
+        source_id=work.id,
+        stream_key=f"work:{work.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type="organization.work.evidence.amended.v1",
+        title="Work item evidence amended",
+        summary="Governed evidence context was amended without authorizing external action.",
+        occurred_at=work.updated_at,
         payload=payload,
         department=work.department,
         work_item_id=work.id,
@@ -211,6 +414,8 @@ def stage_work_item_status_activity(
         payload["completed_at"] = work.completed_at
     if work.status == "cancelled":
         payload["cancelled_at"] = work.cancelled_at
+    if work.status == "held" and work.last_error:
+        payload["hold_reason"] = work.last_error
     return _stage_semantic_activity(
         session,
         context,

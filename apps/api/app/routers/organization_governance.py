@@ -59,6 +59,7 @@ from app.services.organization_governance import (
     ensure_foundation_positions,
     escalate_work_item,
     execute_work_item,
+    legacy_work_activity_context,
     mark_work_emergency,
     resume_position,
     retry_work_item,
@@ -67,6 +68,7 @@ from app.services.organization_governance import (
     set_work_deadline,
     suspend_position,
 )
+from app.services.organization_semantic_activity import stage_work_item_created_activity
 
 
 router = APIRouter(prefix="/api/v1/organization", tags=["ai-organization-v13.0"])
@@ -255,8 +257,14 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
             escalated_to_position_key=owner,
             requires_board_attention=authority == "L4",
         ))
-    record_audit(session, action="organization_work_created", entity_type="organizational_work_item", entity_id=work.id, after_state={"authority_level": authority}, actor=_actor(request), source=SOURCE)
+    actor = _actor(request)
+    record_audit(session, action="organization_work_created", entity_type="organizational_work_item", entity_id=work.id, after_state={"authority_level": authority}, actor=actor, source=SOURCE)
     try:
+        stage_work_item_created_activity(
+            session,
+            legacy_work_activity_context(work, actor=actor),
+            work,
+        )
         session.commit()
     except IntegrityError:
         session.rollback()
@@ -267,6 +275,9 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
         ).first()
         if concurrent is not None:
             return concurrent
+        raise
+    except Exception:
+        session.rollback()
         raise
     session.refresh(work)
     return work

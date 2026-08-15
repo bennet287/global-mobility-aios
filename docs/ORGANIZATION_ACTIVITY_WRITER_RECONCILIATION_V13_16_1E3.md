@@ -4,11 +4,17 @@
 
 **13.16.1E3A — WRITER INVENTORY / COVERAGE-EPOCH DESIGN: COMPLETE.**
 
-Baseline reviewed: `8bfbd40a1b4e460757b99d943a139cfd2ef83316`.
+**13.16.1E3B — LEGACY WORKITEM MATERIAL-WRITER ADAPTERS: IMPLEMENTED / ACCEPTANCE PENDING.**
 
-This is a repository-backed design/reconciliation slice only. It does not change runtime
-Python, database schema, routers, tests, Activity rows, Contribution authority, Austria v4,
-or PostgreSQL data. `activity_history_established` remains `false`.
+E3A writer-inventory baseline reviewed: `8bfbd40a1b4e460757b99d943a139cfd2ef83316`.
+
+E3B implementation baseline: `9e97f0f0e3a1f3c9cbf66a05286e67096195ab64`.
+
+E3A was a repository-backed design/reconciliation slice only. E3B is the bounded runtime
+adapter slice described below; it does not change the database schema, Contribution
+authority, historical coverage truth, or Observatory activation. E3A itself changed no runtime
+Python, routers, tests, Activity rows, Austria v4 state, or PostgreSQL data.
+`activity_history_established` remains `false`.
 
 ## 1. Purpose
 
@@ -157,7 +163,7 @@ To keep the regression surface bounded, E3 is split into four internal sub-slice
 
 1. **E3A — writer inventory + coverage-epoch design: COMPLETE.** This document and roadmap
    reconciliation only; no runtime changes.
-2. **E3B — legacy WorkItem material-writer adapters: UNLOCKED / NOT STARTED.** Cover direct
+2. **E3B — legacy WorkItem material-writer adapters: IMPLEMENTED / ACCEPTANCE PENDING.** Cover direct
    creation/routing, requeue/control/deadline/escalation/emergency Work-side changes,
    governance holds, terminal execution/cancellation/failure, explicit retry, evidence
    amendment/release, and linked Work outcome staging. Runtime claim/retry telemetry stays
@@ -173,6 +179,32 @@ To keep the regression surface bounded, E3 is split into four internal sub-slice
 Phase 13.16.2 remains locked through E3A-E3C. No dashboard may present historical
 throughput, cycle time, resolved-blocker period throughput, or last-material-transition
 ageing as authoritative until E3D is accepted.
+
+### E3B implementation disposition
+
+The bounded E3B implementation now stages semantic WorkItem Activity for the legacy
+material-writer surface while preserving each writer's existing transaction ownership:
+
+- direct legacy API creation and caller-owned automation routing stage Work-created
+  Activity without adding a new commit;
+- position/bootstrap repair, position resume, and global-control resume stage `held ->
+  queued` Work Activity only when Work actually changes;
+- deadlines, assignment/escalation, emergency marking/escalation, governance holds,
+  terminal execution dispositions, terminal failure/cancellation, explicit retry
+  authorization, and Technology evidence amendment/release have versioned Work Activity;
+- Board/CEO terminal decision paths stage only their linked Work outcome in E3B; Decision
+  Activity remains reserved for E3C;
+- the global-pause execution hold now closes its previously identified source-AuditLog gap
+  in the same commit as the Work mutation and Activity;
+- execution claims, `retry_wait`, delegation/action-output progress, coordination leases,
+  reminder timestamps, and Decision evidence-only refresh remain excluded telemetry;
+- `activity_history_established` remains `false`, no historical backfill exists, and no
+  Contribution authority is created by Activity.
+
+Focused E3B regression coverage is added for semantic ordering, hidden requeue behavior,
+emergency replay, terminal-vs-retry classification, cancellation, evidence release,
+coupled Work outcomes, and Activity-stage rollback. E3B is not COMPLETE / PASS until the
+repository acceptance commands and isolated PostgreSQL 0074 transaction checks pass.
 
 ## 8. Acceptance invariants for later E3 slices
 

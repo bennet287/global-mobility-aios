@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-15 - Phase 13.16.1E3B legacy WorkItem Activity adapters acceptance
+
+- Closed 13.16.1E3B as **COMPLETE / PASS** after the corrected focused E3B suite passed **10 tests with 1 expected PostgreSQL-only skip and 0 failures**, the surrounding organization regression passed **143 tests with 2 expected skips and 0 failures**, and the complete API suite passed **780 tests with 3 expected PostgreSQL-only skips and 0 failures**.
+- Repository policy, release consistency, migration consistency, and `git diff --check` all passed. The migration check remained at Alembic head `0074_durable_contribution_activity_model` with 118 registered tables.
+- Ran the three bounded PostgreSQL Activity transaction contracts against isolated `gmai-pg-13161b-service`: **3 passed, 0 failed**. `organization_activity_streams = 0` and `organization_activities = 0` both before and after acceptance, and Alembic remained at 0074, confirming rollback/no-residue behavior. The isolated PostgreSQL container was returned to stopped state; the preserved authoritative `gmai-postgres` database remained stopped and unmigrated at 0073.
+- E3B closes the legacy WorkItem material-writer Activity gap only. `activity_history_established` remains `false`; no historical backfill is authorized. **13.16.1E3C legacy ExecutiveDecision / coupled adapters are now UNLOCKED / NOT STARTED**; E3D coverage-epoch/Observatory activation and Phase 13.16.2 remain locked.
+
+## 2026-08-14 - Phase 13.16.1E3B focused-acceptance correction 1
+
+- Recorded the first focused E3B local acceptance result: **8 passed, 2 failed, 1 expected PostgreSQL-only skip**. No broader/full-suite or PostgreSQL acceptance is claimed from that run.
+- Corrected semantic deadline replay detection so SQLite/PostgreSQL timezone-awareness representation differences do not emit a duplicate `organization.work.deadline.set.v1` Activity for the same instant. The source transaction boundary and deadline-write contract remain unchanged.
+- Corrected the global-pause execute branch to refresh the held `OrganizationalWorkItem` after its existing commit before returning it, preventing expired ORM state from producing an incomplete API serialization. Audit + Work mutation + semantic Activity still share the same existing commit.
+- E3B remains **IMPLEMENTED / ACCEPTANCE PENDING**. Focused acceptance must be rerun before the complete API and isolated PostgreSQL gates; `activity_history_established` remains `false`, E3C/E3D remain locked, Phase 13.16.2 remains locked, and the authoritative PostgreSQL integration database remains untouched at 0073.
+
+## 2026-08-14 - Phase 13.16.1E3B legacy WorkItem Activity adapters implementation
+
+- Implemented the bounded legacy WorkItem semantic-Activity bridge for Phase 13.16.1E3B without a migration, public API expansion, historical backfill, Contribution-policy change, or Observatory coverage activation. Legacy Activity attribution preserves each WorkItem's default tenant, department, accountable position, and authority level while explicitly classifying human, agent, worker, and system actors.
+- Adapted direct legacy WorkItem creation, caller-owned automation routing, position/bootstrap contract-repair requeues, position resume, global-control resume, Work deadlines, escalation/emergency hops, governance holds, terminal execution disposition, terminal failure/cancellation, explicit retry authorization, Technology evidence amendment/release, and the linked Work side of Board/CEO terminal decision outcomes. Existing multi-commit emergency/execution boundaries remain intact.
+- Closed the E3A-identified global-pause audit gap: a WorkItem held because global control is paused now records source AuditLog + semantic Activity + Activity audit in the same existing commit. Replay/no-op paths remain non-duplicating, and `retry_wait`, execution claims, delegation/action-output progress, CEO coordination leases, reminders, and Decision evidence-only refresh remain excluded telemetry.
+- Added focused E3B regression coverage for lifecycle ordering, global-control and position requeues, emergency replay, terminal-vs-retriable failure classification, running cancellation, evidence amendment/release, coupled Work outcomes, bootstrap hidden requeue behavior, Activity-not-Contribution separation, and rollback when Activity staging fails.
+- E3B is **IMPLEMENTED / ACCEPTANCE PENDING**. `activity_history_established` remains `false`; E3C and E3D remain locked; Phase 13.16.2 remains locked; the preserved authoritative PostgreSQL `gmai` database must remain untouched at 0073. E3B may be marked COMPLETE / PASS only after focused/full API acceptance and isolated PostgreSQL 0074 transaction validation.
+
 ## 2026-08-14 - Phase 13.16.1E3A legacy writer reconciliation design
 
 - Completed a fresh repository-wide legacy writer audit against exact committed baseline `8bfbd40a1b4e460757b99d943a139cfd2ef83316`. The remaining write-capable surface for `OrganizationalWorkItem` / `ExecutiveDecision` is bounded to the legacy organization-governance router/service plus task-owned reminder bookkeeping; modern 13.16.1 command services remain covered by E2.

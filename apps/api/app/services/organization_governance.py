@@ -19,6 +19,7 @@ from app.models.domain import (
     DelegationRecord,
     ExecutiveCouncilConsultation,
     ExecutiveDecision,
+    OrganizationActorType,
     OrganizationControl,
     OrganizationExecutionAttempt,
     OrganizationalActionOutput,
@@ -30,9 +31,72 @@ from app.schemas import ControlledAgentRunRequest
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import run_controlled_agent
 from app.services.department_runtime import DEPARTMENT_RUNTIMES, department_runtime_spec
+from app.services.organization_command import OrganizationCommandContext
+from app.services.organization_semantic_activity import (
+    stage_work_item_cancellation_requested_activity,
+    stage_work_item_created_activity,
+    stage_work_item_deadline_activity,
+    stage_work_item_emergency_activity,
+    stage_work_item_escalation_activity,
+    stage_work_item_evidence_amended_activity,
+    stage_work_item_retry_requested_activity,
+    stage_work_item_status_activity,
+)
 
 
 SOURCE = "ai_organization_v13.0"
+
+
+def legacy_work_activity_context(
+    work: OrganizationalWorkItem,
+    *,
+    actor: str,
+) -> OrganizationCommandContext:
+    """Bridge legacy governance writers into the caller-owned semantic Activity ledger.
+
+    This is an internal integration context only. It preserves the legacy default-tenant
+    boundary and attributes organizational ownership from the governed WorkItem rather
+    than treating a worker/agent identity as public command authority.
+    """
+
+    identity = actor.strip() or "system"
+    lowered = identity.lower()
+    if lowered == "system" or lowered.startswith("automation"):
+        actor_type = OrganizationActorType.system
+    elif "worker" in lowered or lowered.startswith("celery"):
+        actor_type = OrganizationActorType.worker
+    elif lowered.endswith("-agent") or lowered.endswith("_agent"):
+        actor_type = OrganizationActorType.agent
+    else:
+        actor_type = OrganizationActorType.human
+    return OrganizationCommandContext(
+        tenant_key=work.tenant_key or "default",
+        actor_id=identity,
+        actor_type=actor_type,
+        authenticated_user_id=identity,
+        role="operator",
+        department=work.department,
+        position_key=work.assigned_position_key,
+        authority_level=work.authority_level,
+        correlation_key=f"legacy-work:{work.id}",
+    )
+
+
+def _stage_legacy_work_status(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    actor: str,
+    previous_status: str,
+) -> None:
+    if previous_status == work.status:
+        return
+    stage_work_item_status_activity(
+        session,
+        legacy_work_activity_context(work, actor=actor),
+        work,
+        previous_status=previous_status,
+    )
 
 POSITION_SPECS = (
     ("board", "Human Board", "Board", None, "L4", None),
@@ -780,6 +844,18 @@ POSITION_DOMAINS = {
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _normalized_utc_datetime(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _same_datetime_instant(left: datetime | None, right: datetime | None) -> bool:
+    return _normalized_utc_datetime(left) == _normalized_utc_datetime(right)
 
 
 def _json(value: Any) -> str:
@@ -1601,6 +1677,7 @@ def _requeue_position_holds(
     position_key: str,
     *,
     result_refs: set[str],
+    actor: str,
 ) -> set[UUID]:
     requeued_work_ids: set[UUID] = set()
     held_delegations = session.exec(
@@ -1623,11 +1700,18 @@ def _requeue_position_holds(
             and work.execution_attempts < work.max_execution_attempts
             and department_runtime_available(work.department, _work_action(work))
         ):
+            previous_status = work.status
             work.status = "queued"
             work.output_json = "{}"
             work.last_error = None
             work.updated_at = _now()
             session.add(work)
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=previous_status,
+            )
             requeued_work_ids.add(work.id)
     return requeued_work_ids
 
@@ -1635,14 +1719,17 @@ def _requeue_position_holds(
 def _requeue_executive_contract_holds(
     session: Session,
     position_key: str,
-) -> None:
+    *,
+    actor: str,
+) -> set[UUID]:
+    requeued_work_ids: set[UUID] = set()
     runtime_specs = [
         spec
         for spec in DEPARTMENT_RUNTIMES.values()
         if spec.contract_position == position_key and spec.contract_repair_label
     ]
     if not runtime_specs:
-        return
+        return requeued_work_ids
 
     expected_reasons = {
         f"The persisted {spec.contract_repair_label} contract requires Human Board repair before execution."
@@ -1662,10 +1749,19 @@ def _requeue_executive_contract_holds(
             and held_work.execution_attempts < held_work.max_execution_attempts
             and department_runtime_available(held_work.department, _work_action(held_work))
         ):
+            previous_status = held_work.status
             held_work.status = "queued"
             held_work.last_error = None
             held_work.updated_at = _now()
             session.add(held_work)
+            _stage_legacy_work_status(
+                session,
+                held_work,
+                actor=actor,
+                previous_status=previous_status,
+            )
+            requeued_work_ids.add(held_work.id)
+    return requeued_work_ids
 
 
 def ensure_foundation_positions(
@@ -1710,6 +1806,7 @@ def ensure_foundation_positions(
                     session,
                     key,
                     result_refs={"position:unavailable"},
+                    actor=actor,
                 )
         elif key in HARDENED_POSITION_KEYS and repair_contracts:
             expected_contract = _position_contract(key, authority)
@@ -1749,8 +1846,9 @@ def ensure_foundation_positions(
                         session,
                         key,
                         result_refs={"position:contract_mismatch"},
+                        actor=actor,
                     )
-                _requeue_executive_contract_holds(session, key)
+                _requeue_executive_contract_holds(session, key, actor=actor)
         positions.append(position)
     control = session.exec(
         select(OrganizationControl).where(OrganizationControl.control_key == "global")
@@ -2212,6 +2310,7 @@ def resume_position(
         session,
         position.position_key,
         result_refs={"position:suspended"},
+        actor=actor,
     )
 
     accountable_hold_reason = f"The accountable {position.position_key} position is suspended."
@@ -2228,10 +2327,17 @@ def resume_position(
             and work.execution_attempts < work.max_execution_attempts
             and department_runtime_available(work.department, _work_action(work))
         ):
+            previous_status = work.status
             work.status = "queued"
             work.last_error = None
             work.updated_at = _now()
             session.add(work)
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=previous_status,
+            )
             requeued_work_ids.add(work.id)
     record_audit(
         session,
@@ -2247,7 +2353,11 @@ def resume_position(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(position)
     return position
 
@@ -2284,6 +2394,7 @@ def board_override_decision(
     decision.updated_at = _now()
     session.add(decision)
     work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
+    work_previous_status = work.status if work is not None else None
     if work is not None:
         _apply_decision_outcome_to_work(session, work, outcome=outcome)
     record_audit(
@@ -2301,7 +2412,18 @@ def board_override_decision(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        if work is not None and work_previous_status is not None:
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=work_previous_status,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(decision)
     return decision
 
@@ -2322,6 +2444,8 @@ def set_work_deadline(
 ) -> OrganizationalWorkItem:
     if work.status in {"completed", "rejected", "returned"}:
         raise ValueError("Cannot set deadline on a closed work item")
+    previous_due_at = work.due_at
+    deadline_changed = not _same_datetime_instant(previous_due_at, due_at)
     work.due_at = due_at
     work.updated_at = _now()
     session.add(work)
@@ -2334,7 +2458,18 @@ def set_work_deadline(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        if deadline_changed:
+            stage_work_item_deadline_activity(
+                session,
+                legacy_work_activity_context(work, actor=actor),
+                work,
+                previous_due_at=previous_due_at,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -2445,7 +2580,19 @@ def escalate_work_item(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        stage_work_item_escalation_activity(
+            session,
+            legacy_work_activity_context(work, actor=actor),
+            work,
+            previous_position_key=before_owner,
+            reason=reason.strip(),
+            emergency=emergency,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -2495,6 +2642,7 @@ def mark_work_emergency(
         decision.requested_by_position if decision is not None else work.assigned_position_key
     )
     was_emergency = work.is_emergency
+    previous_status = work.status
     work.is_emergency = True
     work.authority_level = "L4"
     work.risk_level = "critical"
@@ -2512,7 +2660,26 @@ def mark_work_emergency(
             actor=actor,
             source=SOURCE,
         )
-    session.commit()
+    try:
+        context = legacy_work_activity_context(work, actor=actor)
+        if not was_emergency:
+            stage_work_item_emergency_activity(
+                session,
+                context,
+                work,
+                previous_status=previous_status,
+                reason=reason.strip(),
+            )
+        _stage_legacy_work_status(
+            session,
+            work,
+            actor=actor,
+            previous_status=previous_status,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
 
     # Reconcile every parent hop. A replay resumes from the last committed owner.
@@ -2592,10 +2759,32 @@ def mark_work_emergency(
         risk.containment_json = _json(containment)
         risk.updated_at = _now()
     session.add(risk)
+    previous_status = work.status
     work.status = "pending_board"
     work.updated_at = _now()
     session.add(work)
-    session.commit()
+    record_audit(
+        session,
+        action="organization_work_emergency_pending_board",
+        entity_type="organizational_work_item",
+        entity_id=work.id,
+        before_state={"status": previous_status},
+        after_state={"status": "pending_board", "assigned_position_key": work.assigned_position_key},
+        reason=reason,
+        actor=actor,
+        source=SOURCE,
+    )
+    try:
+        _stage_legacy_work_status(
+            session,
+            work,
+            actor=actor,
+            previous_status=previous_status,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     create_board_packet(session, packet_type="incident", actor=actor, trigger_key=str(work.id))
     session.refresh(work)
     return work
@@ -2699,6 +2888,11 @@ def route_automation_event(
         after_state={"authority_level": authority, "status": status, "assigned_to": "coo"},
         actor=actor,
         source=SOURCE,
+    )
+    stage_work_item_created_activity(
+        session,
+        legacy_work_activity_context(work, actor=actor),
+        work,
     )
     return work, True
 
@@ -2804,6 +2998,7 @@ def _mark_execution_cancelled(
     if work is None:
         raise ValueError("Organizational work item not found")
     now = _now()
+    previous_status = work.status
     work.status = "cancelled"
     work.cancelled_at = now
     work.completed_at = now
@@ -2841,7 +3036,17 @@ def _mark_execution_cancelled(
         actor=work.cancelled_by or actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        _stage_legacy_work_status(
+            session,
+            work,
+            actor=work.cancelled_by or actor,
+            previous_status=previous_status,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -2859,6 +3064,7 @@ def _mark_execution_failed(
     if work is None:
         raise error
     now = _now()
+    previous_status = work.status
     error_text = f"{type(error).__name__}: {error}"[:2000]
     has_attempts_remaining = work.execution_attempts < work.max_execution_attempts
     retry_delay = min(300, 15 * (2 ** max(0, work.execution_attempts - 1)))
@@ -2904,7 +3110,18 @@ def _mark_execution_failed(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        if work.status == "failed":
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=previous_status,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -2919,6 +3136,7 @@ def _hold_work_without_claim(
     audit_action: str,
 ) -> OrganizationalWorkItem:
     if work.status != "held" or work.last_error != reason:
+        previous_status = work.status
         work.status = "held"
         work.completed_at = None
         work.execution_started_at = None
@@ -2941,7 +3159,17 @@ def _hold_work_without_claim(
             actor=actor,
             source=SOURCE,
         )
-        session.commit()
+        try:
+            stage_work_item_status_activity(
+                session,
+                legacy_work_activity_context(work, actor=actor),
+                work,
+                previous_status=previous_status,
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
         session.refresh(work)
     return work
 
@@ -3010,10 +3238,33 @@ def execute_work_item(
     if control and control.status == "paused":
         if work.status not in {"queued", "retry_wait"}:
             raise ValueError("Work item is not executable")
+        previous_status = work.status
         work.status = "held"
         work.updated_at = _now()
         session.add(work)
-        session.commit()
+        record_audit(
+            session,
+            action="organization_work_held_global_pause",
+            entity_type="organizational_work_item",
+            entity_id=work.id,
+            before_state={"status": previous_status},
+            after_state={"status": "held", "global_control": "paused"},
+            reason=control.reason,
+            actor=actor,
+            source=SOURCE,
+        )
+        try:
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=previous_status,
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        session.refresh(work)
         return work
 
     claimed, attempt = _claim_work_execution(session, work.id, actor=actor)
@@ -4131,6 +4382,7 @@ def _execute_claimed_work_item(
     completed_confidences = [item.confidence for item in action_outputs if item.status == "completed"]
     completion_gap = _department_completion_gap(work, delegations, action_outputs)
     if completion_gap or not completed_confidences:
+        previous_status = work.status
         hold_reason = completion_gap or "No completed, provenance-bearing departmental output is available."
         work.output_json = _json(
             {
@@ -4167,7 +4419,17 @@ def _execute_claimed_work_item(
             actor=actor,
             source=SOURCE,
         )
-        session.commit()
+        try:
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=previous_status,
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
         session.refresh(work)
         return work
     aggregate_confidence = (
@@ -4192,6 +4454,7 @@ def _execute_claimed_work_item(
             "execution_token": attempt.execution_token,
         },
     })
+    previous_status = work.status
     work.status = "pending_board" if work.authority_level == "L4" else "pending_ceo" if work.authority_level == "L3" else "completed"
     work.completed_at = _now() if work.status == "completed" else None
     work.execution_started_at = None
@@ -4236,7 +4499,17 @@ def _execute_claimed_work_item(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        _stage_legacy_work_status(
+            session,
+            work,
+            actor=actor,
+            previous_status=previous_status,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -4252,6 +4525,7 @@ def cancel_work_item(
     if work.status in {"completed", "cancelled", "pending_ceo", "pending_board"}:
         raise ValueError("Work item can no longer be cancelled")
     now = _now()
+    previous_status = work.status
     work.cancel_requested_at = now
     work.cancelled_by = actor
     work.cancellation_reason = reason.strip()
@@ -4285,7 +4559,25 @@ def cancel_work_item(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        context = legacy_work_activity_context(work, actor=actor)
+        stage_work_item_cancellation_requested_activity(
+            session,
+            context,
+            work,
+            previous_status=previous_status,
+        )
+        if work.status == "cancelled":
+            stage_work_item_status_activity(
+                session,
+                context,
+                work,
+                previous_status=previous_status,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -4304,6 +4596,7 @@ def retry_work_item(
         raise ValueError("Cancelled work cannot be retried")
     if work.execution_attempts >= work.max_execution_attempts:
         raise ValueError("Work item has exhausted its execution attempts")
+    previous_status = work.status
     work.status = "queued"
     work.next_retry_at = None
     work.updated_at = _now()
@@ -4323,7 +4616,18 @@ def retry_work_item(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        stage_work_item_retry_requested_activity(
+            session,
+            legacy_work_activity_context(work, actor=actor),
+            work,
+            previous_status=previous_status,
+            reason=reason.strip(),
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -4359,6 +4663,7 @@ def amend_technology_evidence(
     current_facts = context.get("facts")
     current_facts = current_facts if isinstance(current_facts, dict) else {}
     before_gaps = _technology_evidence_gaps(work)
+    previous_status = work.status
     revision = int(context.get("evidence_revision") or 0) + 1
     context.update(
         {
@@ -4418,7 +4723,29 @@ def amend_technology_evidence(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        activity_context = legacy_work_activity_context(work, actor=actor)
+        stage_work_item_evidence_amended_activity(
+            session,
+            activity_context,
+            work,
+            revision=revision,
+            evidence_keys_added=sorted(evidence),
+            fact_keys_added=sorted(facts),
+            before_gaps=before_gaps,
+            after_gaps=after_gaps,
+        )
+        if previous_status != work.status:
+            stage_work_item_status_activity(
+                session,
+                activity_context,
+                work,
+                previous_status=previous_status,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(work)
     return work
 
@@ -5250,6 +5577,7 @@ def set_global_control(session: Session, *, status: str, reason: str, actor: str
     control.changed_by = actor
     control.updated_at = _now()
     session.add(control)
+    requeued_work: list[tuple[OrganizationalWorkItem, str]] = []
     if status == "active":
         held = session.exec(select(OrganizationalWorkItem).where(OrganizationalWorkItem.status == "held")).all()
         for item in held:
@@ -5257,11 +5585,24 @@ def set_global_control(session: Session, *, status: str, reason: str, actor: str
                 continue
             if item.last_error:
                 continue
+            previous_status = item.status
             item.status = "queued"
             item.updated_at = _now()
             session.add(item)
+            requeued_work.append((item, previous_status))
     record_audit(session, action=f"organization_{status}", entity_type="organization_control", entity_id=control.id, before_state={"status": before}, after_state={"status": status}, reason=reason, actor=actor, source=SOURCE)
-    session.commit()
+    try:
+        for item, previous_status in requeued_work:
+            _stage_legacy_work_status(
+                session,
+                item,
+                actor=actor,
+                previous_status=previous_status,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(control)
     return control
 
@@ -5437,6 +5778,7 @@ def decide_executive_decision(
         decision.updated_at = now
         session.add(decision)
     work = session.get(OrganizationalWorkItem, decision.work_item_id) if decision.work_item_id else None
+    work_previous_status = work.status if work is not None else None
     if work is not None:
         _apply_decision_outcome_to_work(session, work, outcome=outcome)
     record_audit(
@@ -5454,7 +5796,18 @@ def decide_executive_decision(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        if work is not None and work_previous_status is not None:
+            _stage_legacy_work_status(
+                session,
+                work,
+                actor=actor,
+                previous_status=work_previous_status,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(decision)
     return decision
 
