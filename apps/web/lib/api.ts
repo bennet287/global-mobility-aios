@@ -4978,6 +4978,73 @@ export async function getBoardPacket(): Promise<BoardPacketSnapshot> {
   return request("/api/v1/organization/board-packet");
 }
 
+export type ObservatorySummary = {
+  as_of: string;
+  timezone: "UTC";
+  tenant_scope: string;
+  source_row_counts: Record<string, number>;
+  metrics: {
+    work: { total: number; active: number; terminal: number; overdue_active: number; oldest_active_created_at: string | null; by_status: Record<string, number>; by_department: Record<string, number>; by_priority: Record<string, number> };
+    blockers: { total: number; open: number; mitigated: number; due_or_overdue_open: number; by_severity: Record<string, number>; by_department: Record<string, number> };
+    decisions: { total: number; pending: number; board_attention: number; by_status: Record<string, number> };
+    human_attention: { request_total: number; pending_requests: number; overdue_pending_requests: number; immutable_human_actions: number; by_request_status: Record<string, number> };
+    dependencies: { total: number; active_edges: number; blocked_downstream_work_items: number; by_status: Record<string, number>; by_type: Record<string, number> };
+    contributions: { total_records: number; historical_outcomes: number; active_outcomes: number; supersessions: number; retractions: number; by_department: Record<string, number>; by_contribution_type: Record<string, number> };
+  };
+  coverage: {
+    snapshot_basis: string;
+    activity_history_basis: string;
+    activity_history_established: boolean;
+    activity_history_coverage_start: string | null;
+    contribution_sources: Array<{
+      source_type: string; automatic_emitter: boolean; coverage_basis: string; coverage_start: string | null;
+      coverage_established: boolean; contribution_outcome_count: number; eligible_source_rows: number; matched_source_rows: number;
+      precoverage_source_rows: number; missing_contribution_in_coverage: number; warnings: string[];
+    }>;
+  };
+  warnings: string[];
+};
+
+export type OrganizationActivity = {
+  id: string;
+  activity_key: string;
+  stream_sequence: number;
+  activity_class: "domain" | "work" | "decision" | "blocker" | "human_action" | "contribution" | "operational" | string;
+  activity_type: string;
+  title: string;
+  summary: string;
+  department: string | null;
+  position_key: string | null;
+  actor_type: "human" | "agent" | "worker" | "system" | "external_human" | string;
+  actor_id: string;
+  work_item_id: string | null;
+  source_object_type: string;
+  source_object_id: string;
+  source_object_version: string | null;
+  correlation_key: string | null;
+  occurred_at: string;
+  created_at: string;
+};
+
+export type OrganizationActivityPage = {
+  data: OrganizationActivity[];
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+};
+
+export async function getOrganizationObservatorySummary(): Promise<ObservatorySummary> {
+  return request("/api/v1/organization/observatory/summary");
+}
+
+export async function listOrganizationActivities(params: { page?: number; page_size?: number } = {}): Promise<OrganizationActivityPage> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 20));
+  return request(`/api/v1/organization/activities?${search.toString()}`);
+}
+
 export async function updateOrganizationControl(status: "active" | "paused", reason: string) {
   return request("/api/v1/organization/control", {
     method: "POST", body: JSON.stringify({ status, reason }),

@@ -1,4 +1,49 @@
 # Changelog
+## 2026-08-15 - Phase 13.16.2 COMPLETE / PASS — premium experience foundation closure
+
+- Closed **Phase 13.16.2 role-based application shells and navigation** as **COMPLETE / PASS** from committed baseline `4e6aaa5b372a0cd4171d1199fb0315961eb691f6`; **Phase 13.16.3 Unified Owner Control Center is UNLOCKED / NOT STARTED**. The visual foundation is now frozen so further Cockpit improvement is capability-led rather than another shell redesign.
+- Accepted the premium GMAI experience architecture: **Cockpit** for Owner / Board, **Operations** for Professional / Operator, and **My Mobility** for Mobility User, with Board Room remaining a module inside Cockpit and `/portal` remaining the secure token-bound case-data surface. The compact 88px control rail keeps immediate hover/focus name discovery without covering the workspace, and backend authorization remains authoritative.
+- Accepted the Cockpit visual contract in both light and layered dark themes: data-led runtime hero, Owner Attention, contextual Global Mobility Pulse, explicit durable-Activity coverage boundary, unified Owner Control Dock, and read-only Organization Pulse hierarchy **Human Board → CEO → active L3 executive leadership → operational domains → governed AIOS execution**. Final browser evidence exposed **9 active L3 officers** and **10 operational domains** from live organization data; no executive role or jurisdiction state is fabricated.
+- Accepted preserved developer SQLite reconciliation at Alembic `0075_legacy_schema_reconciliation`. Final physical-schema gate passed with **118 registered model tables**, **118 actual model tables**, **119 physical tables** including `alembic_version`, `physical_schema=ok`, and `database_revision=0075_legacy_schema_reconciliation`. The controlled reconciliation preserved existing data and did not reconstruct historical Activity.
+- Acceptance results: fresh migration/reconciliation regression **6 passed, 0 failed**; premium design-foundation **16 passed, 0 failed**; frontend request/auth **4 passed, 0 failed**; complete API **791 passed, 5 skipped, 0 failed**; repository policy **PASS**; release consistency **PASS**; and `git diff --check` **PASS**. The only pytest warning is the existing Starlette/httpx test-client deprecation warning; the Windows LF→CRLF notice for the design test file is informational.
+- Next.js 15.2.4 production build completed successfully with the accepted route set; the captured build generated **39/39 static pages** including `/cockpit`, `/board-room`, `/`, `/my-mobility`, and `/portal`. The earlier Autoprefixer mixed-support source was corrected from `align-items: end` to `flex-end` before closure.
+- Runtime smoke passed **5/5 HTTP 200** for `/health`, `/api/v1/organization/work-items`, `/api/v1/organization/decisions`, `/api/v1/organization/board-packet`, and `/api/v1/crm/summary`. No PostgreSQL migration command was part of this closure flow; preserved PostgreSQL environments remained outside the SQLite-focused reconciliation and visual-acceptance slice.
+- No Austria legal-certainty posture, publication state, certification state, evidence/review gate, server authorization boundary, durable Activity semantics, or autonomous authority was weakened by 13.16.2 closure.
+
+## 2026-08-15 - Phase 13.16.2 preserved SQLite schema reconciliation
+
+- Live Cockpit/Board Room/Operations smoke confirmed the API process itself was healthy but exposed HTTP 500 responses from WorkItems, Decisions, Board Packet, and CRM summary reads. A read-only physical-schema diagnostic traced the failures to a preserved developer SQLite database stamped at Alembic 0074 while retaining older table shapes: `leads` was missing the eight 0073 Austria structured-case columns; `organizational_work_items` was missing fourteen 0074 durable extension columns; and `executive_decisions` was missing fifteen 0074 durable extension columns. `board_packets`, `organization_positions`, and `truth_claims` remained readable.
+- Added forward-only migration `0075_legacy_schema_reconciliation`. Correctly migrated 0074 databases no-op through the migration; drifted databases receive only missing 0073/0074 Lead, WorkItem, and ExecutiveDecision columns plus the intended 0074 constraints/indexes, with structured intake values backfilled into newly restored Lead fields without overwriting populated values. The downgrade intentionally preserves the repaired shape because those fields semantically belong to earlier revisions.
+- Strengthened `scripts/check_database_migrations.py` so the normal local SQLite migration gate now checks physical SQLModel table/column parity instead of reporting PASS from Alembic metadata alone. Updated the local-schema guidance to avoid destructive reset advice for preserved databases.
+- Added migration regression coverage for a synthetic database stamped at 0074 with the same legacy extension drift, plus the normal fresh migration chain now expecting `0075_legacy_schema_reconciliation`. The preserved authoritative integration PostgreSQL environment remains untouched at 0073; this remediation does not alter Austria publication/certification state, organization Activity history semantics, or role-shell authorization.
+- Corrected the preserved-SQLite preflight after the earlier failed direct Alembic attempt created an empty `alembic_version` metadata table. `alembic_version` is now classified as migration infrastructure rather than an unexpected application/model table, while genuinely unexpected non-model tables remain a hard refusal. The schema checker reports model-table parity separately from total physical tables, and fresh-migration regression coverage asserts that distinction.
+- The correction does not stamp, migrate, reset, or otherwise mutate the preserved database during preflight. Adoption remains guarded by the known-drift whitelist, integrity-checked backup, explicit 0074 adoption, single-step 0075 upgrade, physical-schema parity, and final 0075 revision verification.
+
+## 2026-08-15 — Phase 13.16.2 visual acceptance polish
+
+- Incorporated first live visual review of the role-based shells.
+- Tightened the Cockpit hero so the Owner control message fits the first viewport more naturally.
+- Removed roadmap/slice language from product UI; Cockpit now describes the Owner control model without exposing delivery-phase terminology.
+- Reworked My Mobility copy and card metadata to read as a customer experience rather than an implementation shell.
+- Replaced the raw `CRM summary unavailable / Failed to fetch` presentation with a clearer partial-service message while preserving the underlying error for follow-up diagnostics.
+- Added role-shell bottom clearance so the floating assistant does not cover the final governance/user guidance strip.
+- The fully data-driven unified Cockpit remains intentionally scoped to Phase 13.16.3.
+
+## 2026-08-15 - Phase 13.16.2 sidebar readability and visual-hierarchy correction
+
+- Refined the role-shell sidebar after browser smoke showed that the initial 188px rail, 10px labels, low-contrast secondary text, and thin unframed line icons were difficult to read and visually underweighted relative to the main product surfaces.
+- Expanded the desktop rail to 224px, moved navigation chrome explicitly onto the Geist/sans stack, increased primary navigation labels to 12px with stronger contrast/weight, increased Experience labels and secondary text, and made backend/navigation-boundary copy legible without becoming visually dominant.
+- Added visible navigation group labels plus 30px restrained icon containers with heavier 1.95px SVG strokes, clearer hover treatment, and a more deliberate active state. The route taxonomy, Cockpit/Operations/My Mobility hierarchy, deep links, and server-authoritative authorization boundary are unchanged.
+- Preserved responsive behavior: medium desktop widths retain the compact icon rail, while the mobile drawer restores full text and Experience controls. Also normalized the existing `align-items: end` role-shell CSS to `flex-end` to remove the Autoprefixer mixed-support warning.
+- Extended design-foundation coverage for the sidebar hierarchy. 13.16.2 remains **IMPLEMENTED / ACCEPTANCE PENDING** until this visual correction passes local design/request-auth tests, a fresh production build, browser smoke, complete API regression, and repository/release/migration gates.
+
+## 2026-08-15 - Phase 13.16.2 role-based shells + Global Mobility AIOS Cockpit implementation
+
+- Implemented the bounded 13.16.2 experience-foundation slice from exact committed baseline `4e6aaa5b372a0cd4171d1199fb0315961eb691f6`. The canonical Owner / Board experience is now named **Global Mobility AIOS Cockpit** at `/cockpit`; **Board Room** remains the executive decision/reserved-authority module at `/board-room` rather than the name of the entire Owner control surface.
+- Replaced the single global operator-heavy sidebar taxonomy with explicit persisted presentation contexts for **Cockpit**, **Professional / Operator Operations**, and **Mobility User / My Mobility**. Existing deep routes remain intact; navigation states explicitly that server authentication/authorization remains authoritative.
+- Added `/my-mobility` as the case-first Mobility User shell and preserved `/portal` as the existing secure expiring-token data surface. The user shell intentionally does not expose Board, agent, governance, or internal authority routes and does not search for personal case data outside the portal grant.
+- Kept 13.16.2 bounded: `/cockpit` is a coherent Owner launch surface into existing Board, validation, evidence, intelligence, and controlled-agent modules, but the rich unified Owner operational dashboard remains Phase 13.16.3. No backend model, API, migration, Activity/Contribution authority, Austria state, certification, publication, or historical-coverage semantics are changed.
+- Added design-foundation regression coverage for the three shell identities, canonical Cockpit route, Board Room hierarchy, secure My Mobility portal boundary, persisted shell preference, and the explicit non-security nature of navigation. **13.16.2 is IMPLEMENTED / ACCEPTANCE PENDING** until frontend tests/build, complete API regression, repository/release/migration gates, and browser/deep-link smoke checks pass.
 
 ## 2026-08-15 - Phase 13.16.1E3D coverage epoch acceptance + 13.16.1 closure
 
@@ -2526,3 +2571,84 @@ Validation:
 - Added twelve-hour Celery Beat scanning, lead-scoped manual scans, restricted APIs, and mandatory human review notes.
 - Added Document Intelligence risk metrics and queue with explicit zero automated fraud determinations or adverse actions.
 - Added regression tests for idempotency, source linkage, privacy masking, human review, and non-mutation.
+### 2026-08-15 — Preserved SQLite reconciliation harness correction
+
+- The first 0075 acceptance attempt exposed that the preserved developer SQLite database had no usable Alembic revision row, so a normal `alembic upgrade head` attempted to replay the chain from `0001` and stopped safely when `leads` already existed.
+- The strengthened physical-schema checker also identified two additional approved drift columns from 0072 on `intake_sessions`: `submission_key` and `submission_fingerprint`.
+- 0075 now reconciles the approved 0072/0073/0074 drift set, including the unique `ix_intake_sessions_submission_key` index.
+- Added `scripts/reconcile_preserved_sqlite.py`, which refuses unknown drift, verifies table parity, creates a SQLite-native integrity-checked backup, adopts an absent/empty Alembic stamp at 0074 only after the whitelist preflight, upgrades through 0075, and verifies final physical schema parity and revision.
+- `scripts/check_database_migrations.py` now verifies both physical SQLite schema parity and the database's actual Alembic revision, preventing an unversioned or empty-stamp database from reporting PASS.
+- No reset, data deletion, PostgreSQL migration, Activity reconstruction, or Austria governance change is part of this correction.
+
+### 2026-08-15 — Premium GMAI experience foundation and live Cockpit composition
+
+- Raised the Global Mobility AIOS visual target from a conventional polished SaaS shell to a premium enterprise operating-system standard: warm ivory + deep ink/navy, selective editorial serif with operational sans, restrained depth, deliberate spacing, refined iconography, and subtle motion.
+- Replaced the interim wide desktop sidebar direction with an icon-first premium control rail that rests at 88px, expands to 252px on wide-desktop hover/focus without moving the workspace, retains an independently scrollable navigation body, and keeps a full labelled mobile drawer.
+- Reworked the GMAI brand treatment so the mark remains high-contrast in the dark rail; removed the tiny permanent navigation-authority footnote from the rail while retaining the authorization boundary in the Cockpit product surface and server behavior.
+- Redesigned `/cockpit` around live organization state rather than marketing copy. The first viewport now composes Board Packet control state and metrics into a premium Owner / Board command surface without inventing a synthetic health percentage.
+- Added a data-backed Organization Pulse derived from current organization positions and Observatory coverage, including an explicit visible Activity-history coverage boundary rather than reconstructing pre-epoch history.
+- Added Owner Attention from existing Board decisions, open risk escalations, pending human-action requests, and overdue active work.
+- Added a reviewed Global Mobility Pulse from the existing Global Intelligence dashboard. Activity-volume treatment is explicitly not destination-quality scoring or client recommendation.
+- Added a live durable Activity stream from `/api/v1/organization/activities`; no fake activity animation or synthetic historical events are introduced.
+- Added frontend API helpers/types for `/api/v1/organization/observatory/summary` and paged `/api/v1/organization/activities` reads only; backend authorization remains authoritative and no governance, publication, Austria safety, or write semantics change.
+- Preserved distinct role personalities: Cockpit is commanding/mission-control oriented, Operations remains dense and functional, and My Mobility keeps the calmer mobility-user treatment within the same design system.
+- Preserved `prefers-reduced-motion` behavior for the new live-status and Organization Pulse animation cues.
+- The preserved developer SQLite reconciliation is now live at `0075_legacy_schema_reconciliation`; `/health`, organization WorkItems, organization Decisions, Board Packet, and CRM summary were all re-verified at HTTP 200 before this premium pass.
+
+### 2026-08-15 — Premium Cockpit signature refinement
+
+- Tightened the Cockpit command surface so live state and control data carry more visual authority than the editorial headline.
+- Rebuilt Organization Pulse as a governed runtime fabric: Human Board → CEO → live department nodes → AIOS, with connectors rendered only for departments actually returned by the Board Packet and restrained control-flow motion that does not claim historical Activity.
+- Elevated Owner Attention into a dedicated authority-ring state while continuing to derive intervention counts only from existing Board decisions and open risk escalations; pending human requests and overdue work remain visible supporting signals.
+- Replaced the generic Global Mobility orbit graphic with a contextual equirectangular world view. Reviewed jurisdiction signals are plotted only when the jurisdiction code has an explicit geographic centroid; unmapped codes remain in the textual intelligence list rather than being placed arbitrarily.
+- Reworked the zero-Activity state into a deliberate coverage timeline that explains canonical Activity readiness without fabricating events or reconstructing pre-coverage history.
+- Replaced prototype-style C/O/M experience letters in the compact rail with distinct Owner, Operator, and Mobility SVG glyphs and refined the GMAI mark.
+- No API, authorization, governance, publication, Austria safety, Activity semantics, or database behavior changed in this visual refinement.
+
+### 2026-08-15 — Premium Cockpit screenshot-acceptance correction
+
+- Corrected the live Organization Pulse layout after browser screenshots showed department cards visually colliding: the six visible departments now occupy a stable two-row field with matching governed-runtime connectors instead of a compressed diagonal arc.
+- Removed wide-desktop hover/focus expansion from the compact control rail because the expanded rail covered Owner Cockpit content during normal pointer movement; the 88px rail now remains spatially stable and keeps accessible labels/titles without shifting or masking the workspace.
+- Replaced the crude decorative continent silhouettes in Global Mobility Pulse with a dark latitude/longitude coordinate field and restrained region labels. Jurisdiction markers still use only explicit centroids; no unknown jurisdiction is positioned or ranked synthetically.
+- Recast the four Owner destination cards as a unified premium control dock, reducing repetitive rounded-card chrome while preserving Board Room, External Validation, Source Review, and Agent Review deep links.
+- No API, authorization, migration, Activity semantics, global-intelligence scoring, governance, publication, or Austria safety behavior changed in this screenshot-driven visual correction.
+
+### 2026-08-15 — Premium Cockpit visual-freeze correction
+
+- Replaced absolute per-card department positioning with a deterministic two-row Organization Pulse field so every department returned in the six-node Owner view remains visible; no returned department is silently hidden by the composition.
+- Rebuilt the Organization Pulse connector fabric around only the rows that actually exist. Shared authority buses and the center execution spine now terminate at rendered department rows, eliminating decorative/orphan branch lines without asserting hierarchy between peer departments.
+- Reworked the zero-Activity state into an explicit coverage visualization. It distinguishes unasserted earlier history, the explicit coverage boundary (or honestly states that it is not established), and the current durable-Activity frontier without synthesizing historical events.
+- Preserved the accepted hero, Owner Attention, compact control rail, geographic intelligence field, and Owner Control Dock unchanged except where required by the two corrections above.
+- No API, authorization, database, migration, Activity semantics, governance, publication, intelligence scoring, or Austria safety behavior changed.
+
+### 2026-08-15 — Cockpit executive-authority hierarchy refinement
+
+- Added the missing executive-authority layer to premium Organization Pulse so active L3 officers such as CTO and CISO are visually distinct from operational departments instead of being collapsed into department totals.
+- Executive cards are derived only from active Board Packet positions that report directly to `ceo` at authority level `L3`; no executive role is created or hard-coded into runtime state for presentation purposes.
+- Operational-domain ownership is derived by following existing `reports_to_position_key` relationships to an active L3 executive. Domains without a resolvable executive ancestor are labelled as unresolved rather than assigned synthetically.
+- Reframed the visual hierarchy as Human Board → CEO → executive leadership → operational domains → governed AIOS execution, while retaining the existing human-authority boundary and the premium Cockpit design language.
+- No API, authorization, delegation, organization mutation, migration, Activity semantics, governance, publication, intelligence scoring, or Austria safety behavior changed.
+
+### 2026-08-15 — Executive hierarchy + fixed-rail hover labels
+
+- Combined the executive-authority Organization Pulse refinement with a usability correction for the compact premium control rail so the user does not need to memorize icon meanings.
+- Kept the desktop rail spatially fixed at 88px; it no longer expands over Cockpit content. Hovering or keyboard-focusing a brand, Experience control, navigation icon, appearance control, or backend-status control now opens an immediate premium floating label to the right of the rail.
+- Hover labels use existing route/Experience names and group context only; they do not alter routing, authorization, workspace selection, or backend behavior. Native `aria-label`/title semantics remain in place for assistive technology and non-hover fallback.
+- This cumulative patch includes the read-only Human Board → CEO → active L3 executive leadership → operational domains → governed AIOS hierarchy refinement; no executive position is synthesized for presentation.
+- No API, database, migration, delegation, Activity semantics, governance, publication, intelligence scoring, or Austria safety behavior changed.
+
+### Phase 13.16.2 — dark-mode information hierarchy correction
+
+- Corrected the premium Cockpit dark theme after visual review showed that the page canvas, information surfaces, executive cards, Owner Attention, and activity/intelligence panels were too close in luminance and therefore difficult to scan.
+- Preserved the deep navy/graphite premium direction while introducing explicit surface levels: dark canvas, lifted Cockpit panels, elevated executive/dialog cards, and clearer control-dock boundaries.
+- Strengthened restrained borders, inset highlights, and elevation shadows rather than making the interface bright or gray.
+- Improved dark-mode separation for Organization Pulse, executive leadership, operational domains, Owner Attention, Activity zero state, Global Mobility intelligence, and the Owner Control Dock.
+- Removed executive-title ellipsis so officer identities such as Chief Information Security Officer remain readable.
+- No authorization, organization mutation, Activity semantics, intelligence scoring, database, migration, governance, publication, or Austria safety behavior changed.
+
+### 2026-08-15 — Phase 13.16.2 acceptance-boundary correction
+
+- Corrected the stale organization architecture regression that still asserted no `0075` migration could exist. The contract now explicitly requires `0075_legacy_schema_reconciliation.py` and rejects any numbered migration later than 0075, preserving the intended phase boundary without denying the accepted reconciliation migration.
+- Recorded the first full closure rerun result accurately: **790 passed, 5 skipped, 1 failed**, with the sole failure coming from that stale migration-name assertion rather than an API/runtime regression.
+- Corrected the single Organization Pulse Autoprefixer warning by changing its layer-heading alignment from `end` to `flex-end`; the prior Next.js 15.2.4 production build otherwise compiled, type/lint checked, and generated **39/39 static pages** successfully.
+- No API behavior, authorization, organization mutation, Activity semantics, intelligence scoring, database migration content, governance, publication, or Austria safety state changed. Full 13.16.2 closure remains pending the focused rerun, warning-clean web build, and complete API suite.

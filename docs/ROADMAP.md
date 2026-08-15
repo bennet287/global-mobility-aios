@@ -446,10 +446,14 @@ Capabilities include:
 ### 4.8 Organization Observatory and role-based experience
 
 Purpose: turn the underlying governed organization into a product experience that humans can
-understand and operate.
+understand and operate. The Owner / Board experience is canonically the **Global Mobility AIOS
+Cockpit**. The **Board Room is a module inside the Cockpit**, not the name of the entire Owner
+control surface.
 
 Capabilities include:
 
+- Global Mobility AIOS Cockpit for Owner / Board entry, governance, intelligence, and intervention;
+- Board Room as the executive decision and reserved-authority module inside the Cockpit;
 - organization health and work overview;
 - department views;
 - blocker/dependency visibility;
@@ -673,9 +677,9 @@ back.
 **Development branch:** `roadmap/global-mobility-aios-v11`
 **Accepted 13.16.1 / E3D implementation baseline:** `a503fe8b8a41cff6908751ba24688ed03fa535ec`
 
-<!-- CURRENT_MIGRATION_HEAD: 0074_durable_contribution_activity_model -->
+<!-- CURRENT_MIGRATION_HEAD: 0075_legacy_schema_reconciliation -->
 
-**Code migration head:** `0074_durable_contribution_activity_model`
+**Code migration head:** `0075_legacy_schema_reconciliation`
 
 | Area | State | Current position |
 |---|---|---|
@@ -687,8 +691,9 @@ back.
 | Phase 13.0-13.15 | **Complete / PASS where gated** | AI organization governance, bounded department runtimes, external-validation infrastructure, and Round 6 correctness PASS |
 | Phase 13.16.0 | **CLOSED / PASS** | Design system and information architecture foundation accepted |
 | Phase 13.16.1 | **COMPLETE / PASS** | Durable Contribution & Activity model, legacy writer reconciliation, explicit immutable coverage epoch, and Observatory activation accepted |
-| Phase 13.16.2 | **UNLOCKED / NOT STARTED** | Role-based application shells and navigation is the next implementation slice |
-| Phase 13.16.3-13.16.10 | **LOCKED** | Later experience slices remain gated by accepted delivery of their immediate predecessors |
+| Phase 13.16.2 | **COMPLETE / PASS** | Premium role shells, controlled preserved-SQLite reconciliation, Cockpit executive-authority hierarchy, discoverable compact rail, and light/dark visual foundation accepted from baseline `4e6aaa5`; Alembic 0075 and all critical runtime reads are green |
+| Phase 13.16.3 | **UNLOCKED / NOT STARTED** | Unified Owner Control Center is the next active sequential slice; capability-led Cockpit work may now begin on the frozen 13.16.2 visual foundation |
+| Phase 13.16.4-13.16.10 | **LOCKED** | Later experience slices remain gated by accepted delivery of their immediate predecessors |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
 
@@ -718,7 +723,21 @@ E3D / 13.16.1 closure evidence:
 - PostgreSQL Alembic remained `0074_durable_contribution_activity_model`, and the isolated test container returned to stopped state.
 - The preserved authoritative `gmai-postgres` integration database remains outside this acceptance flow at 0073.
 
-**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is UNLOCKED / NOT STARTED.**
+13.16.2 closure evidence:
+
+- Complete API suite: **791 passed, 5 skipped, 0 failed**; the only warning is the pre-existing Starlette/httpx test-client deprecation warning.
+- Fresh-migration / reconciliation regression: **6 passed, 0 failed**.
+- Frontend premium design-foundation suite: **16 passed, 0 failed**.
+- Frontend request/auth suite: **4 passed, 0 failed**.
+- Next.js 15.2.4 production build: **PASS**; the accepted route set includes `/cockpit`, `/board-room`, `/`, `/my-mobility`, and `/portal`, with the captured build generating **39/39 static pages**.
+- Repository policy and release consistency: **PASS**.
+- `git diff --check`: **PASS**; the Windows LF-to-CRLF notice for `design-foundation.test.mjs` is informational and not a whitespace failure.
+- Preserved developer SQLite physical schema: **PASS** with **118 registered model tables**, **118 actual model tables**, **119 physical tables** including the Alembic infrastructure table, and database revision `0075_legacy_schema_reconciliation`.
+- Runtime smoke: **5/5 HTTP 200** for `/health`, WorkItems, Decisions, Board Packet, and CRM summary.
+- Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
+- No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
+
+**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is UNLOCKED / NOT STARTED.**
 
 ### 8.2 Preserved database boundaries
 
@@ -729,6 +748,32 @@ E3D / 13.16.1 closure evidence:
 - Developer SQLite is preserved and must not be reset merely to make a test convenient.
 
 ---
+
+### 13.16.2 live visual-acceptance refinements
+
+
+### Preserved developer SQLite reconciliation gate
+
+The live 13.16.2 visual review exposed a preserved developer-database schema drift that had been hidden by the earlier migration gate. The database contains the full registered table set but is missing a bounded set of columns from revisions 0072, 0073, and 0074, and it does not have a usable Alembic revision row. This is an environment-compatibility issue, not a reason to reset developer data.
+
+The controlled repair path is revision `0075_legacy_schema_reconciliation` plus `scripts/reconcile_preserved_sqlite.py`. The script may adopt the preserved schema at 0074 only after confirming that there are no missing application/model tables, no unexpected non-model tables, and that all missing columns are contained in the approved reconciliation whitelist. The Alembic-owned `alembic_version` table is treated explicitly as migration infrastructure rather than application-schema drift; this matters because the earlier failed direct Alembic replay created an empty version table before stopping on the already-existing `leads` table. The script creates an integrity-checked SQLite backup before mutation, applies only 0075, and then requires both physical ORM parity and an actual 0075 Alembic database revision. The authoritative PostgreSQL environment remains untouched.
+
+The preserved SQLite reconciliation gate is now **PASS in the developer environment**: the database is at `0075_legacy_schema_reconciliation`, physical schema parity is restored, and the previously failing WorkItems, Decisions, Board Packet, and CRM summary endpoints all return HTTP 200. The backup remains preserved under `.local`; the authoritative PostgreSQL environment remains untouched.
+
+The browser review of Cockpit, Operations, and My Mobility established the following shell-quality requirements before this slice can close:
+
+- Product UI must not expose roadmap phase numbers or implementation-language explanations.
+- The Owner control model must be understandable without conflating Cockpit with Board Room.
+- My Mobility should use customer-facing journey language and differentiated case/pathway/document/timeline/action/message cues.
+- Partial backend failures must remain visible without presenting raw prototype-style error copy.
+- Floating assistance must not obscure role-shell governance or user guidance.
+- Premium quality is the baseline: warm ivory, deep ink/navy, restrained depth, high-quality iconography, selective editorial serif plus operational sans, deliberate spacing, and subtle motion rather than generic admin-dashboard chrome.
+- Cockpit must feel like a human-owned AI operating system rather than a static consulting website: live organization state should dominate the first viewport, not marketing copy.
+- The navigation should behave as a spatially stable compact premium control rail on wide desktop, using icon/title affordances without hover expansion covering live Cockpit content; mobile remains a full labelled drawer and navigation visibility remains non-authoritative.
+- Data shown for "wow" must be real. The premium Cockpit preview may compose existing Board Packet, Observatory, Global Intelligence, and durable Activity APIs, but it must not fabricate health percentages, jurisdiction quality scores, historical Activity, or authority state.
+- The full Owner Control Center remains Phase 13.16.3; the 13.16.2 premium foundation proves its design language and safe live-data composition without absorbing later department/blocker/decision workflow slices.
+- Screenshot acceptance of the signature pass exposed three concrete presentation defects that must be corrected before closure: department nodes may not collide in Organization Pulse, the compact rail may not expand over the live workspace merely on hover, and Global Mobility geography may not rely on crude decorative continent silhouettes. The corrected direction uses a stable six-node organization field, a non-expanding desktop control rail, and a true latitude/longitude coordinate field with region labels and only explicitly mapped jurisdiction markers.
+- Owner destinations should read as a unified control dock rather than another row of generic rounded cards, reducing repetitive SaaS-card chrome while preserving the same deep links.
 
 ## 9. Direction From Here
 
@@ -794,6 +839,20 @@ External-human validation
 Measured global scale
 ```
 
+#### Preserved SQLite schema-integrity gate
+
+Live Board Room and Operations smoke exposed a pre-existing physical-schema drift in the preserved developer `gmai.db`: the database was stamped at `0074_durable_contribution_activity_model`, but `leads` lacked the eight structured case columns introduced by 0073, while `organizational_work_items` and `executive_decisions` lacked the durable extension columns, constraints, and indexes introduced by 0074. This made current ORM reads fail with `no such column` and surfaced as HTTP 500 responses from WorkItems, Decisions, Board Packet, and CRM summary endpoints.
+
+The repair policy is forward-only and data-preserving:
+
+- add `0075_legacy_schema_reconciliation` as a compatibility-safe migration; correctly migrated 0074 databases no-op through it;
+- reconcile only missing 0073/0074 Lead, WorkItem, and ExecutiveDecision schema elements and restore the intended structured-intake Lead backfill without overwriting already-populated values;
+- keep the preserved authoritative `gmai-postgres` integration database untouched at 0073 during this local remediation;
+- strengthen the normal migration check so a local SQLite database cannot report PASS merely because code has an Alembic head and registered metadata while its physical columns are stale;
+- back up the preserved SQLite file before applying 0075, verify schema parity afterward, and re-run the failing live endpoints before 13.16.2 closure.
+
+This is a schema-integrity remediation discovered during real application smoke, not a change to Austria legal state, Activity history semantics, authorization, or the role-shell information architecture.
+
 ---
 
 ## 10. Active Execution Lane
@@ -806,11 +865,12 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 2 | 13.15 Round 6 correctness | **COMPLETE / PASS** | Closed |
 | 3 | 13.16.0 design/IA foundation | **CLOSED / PASS** | Closed |
 | 4 | 13.16.1 durable Contribution & Activity model | **COMPLETE / PASS** | Closed after E3D coverage-epoch acceptance |
-| 5 | 13.16.2 role-based application shells and navigation | **UNLOCKED / NOT STARTED** | 13.16.1 COMPLETE / PASS |
-| 6 | 13.16.3-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially beginning with 13.16.2 |
-| 7 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
-| 8 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
-| 9 | Phase 14 scale work | **LOCKED** | Phase 13 PASS + measured demand |
+| 5 | 13.16.2 role-based application shells and navigation | **COMPLETE / PASS** | Closed after premium visual, schema-reconciliation, runtime, frontend, API, repository, and migration acceptance |
+| 6 | 13.16.3 Unified Owner Control Center | **UNLOCKED / NOT STARTED** | 13.16.2 COMPLETE / PASS |
+| 7 | 13.16.4-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.3 |
+| 8 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
+| 9 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
+| 10 | Phase 14 scale work | **LOCKED** | Phase 13 PASS + measured demand |
 
 ### 10.1 Closed foundation slice — 13.16.1E3D
 
@@ -859,17 +919,18 @@ experience slices remain sequentially gated.
 - [x] Alembic remains `0074_durable_contribution_activity_model` with **118 registered tables**.
 - [x] `gmai-postgres` remains outside the bounded E3D acceptance path at preserved integration head 0073.
 
-**E3D is COMPLETE / PASS. 13.16.1 is COMPLETE / PASS. 13.16.2 is UNLOCKED / NOT STARTED.**
+**E3D is COMPLETE / PASS. 13.16.1 is COMPLETE / PASS. 13.16.2 is COMPLETE / PASS. 13.16.3 is UNLOCKED / NOT STARTED.**
 
-### 10.3 Next active slice — 13.16.2 role-based application shells and navigation
+### 10.3 Closed slice — 13.16.2 role-based application shells and navigation
 
 **Goal:** turn the accepted backend governance/Observatory foundation into coherent role-based
 entry points without weakening server-side authorization or breaking deep operational routes.
 
 The first experience-layer slice should establish:
 
-- an **Owner / Board shell** centered on organizational health, work, decisions, blockers,
-  evidence, validation, governance, and settings;
+- the canonical **Global Mobility AIOS Cockpit** as the Owner / Board shell, centered on
+  organizational health, work, decisions, blockers, evidence, validation, governance, and
+  intelligence, while keeping **Board Room** as a module inside the Cockpit;
 - a **Mobility User shell** centered on the person's case, pathway, documents, timeline,
   tasks, communications, and next actions rather than internal governance machinery;
 - a **Professional / Operator shell** centered on cases, comparison, evidence, validation,
@@ -887,6 +948,25 @@ The first experience-layer slice should establish:
 Owner Control Center, department workspaces, blocker/dependency experience, user/operator
 journeys, or integrated accessibility acceptance; those remain the sequential 13.16.3-13.16.10
 programme.
+
+**13.16.2 implementation from baseline `4e6aaa5b372a0cd4171d1199fb0315961eb691f6`:**
+
+- added `/cockpit` as the canonical Owner / Board entry route;
+- retained `/board-room` as the executive decision module and compatible deep link;
+- retained `/` as the Professional / Operator Operations Workspace;
+- added `/my-mobility` as the case-first Mobility User shell and retained `/portal` as the secure token-bound data surface;
+- replaced the single global navigation taxonomy with persisted Cockpit / Operations / My Mobility navigation contexts while preserving existing deep routes;
+- kept navigation context explicitly non-authoritative: server-side authentication, role checks, evidence gates, publication controls, and human-review requirements remain the security and authority boundary;
+- preserved the rich full Owner Control Center as the next sequential slice while allowing 13.16.2 to prove the premium visual language against existing read-only/live read APIs;
+- replaced the interim wide SaaS-style sidebar direction with a compact premium control rail: fixed 88px wide-desktop width, icon-first navigation with immediate floating name/role labels on hover and keyboard focus, a scrollable route body, pinned utility state, and full-label mobile drawer without masking the Cockpit canvas;
+- redesigned the Cockpit first viewport around real organization state instead of a static hero: governed runtime state, active positions, active work, Contributions, open risks, and an Organization Pulse derived from the Board Packet and Observatory;
+- added a real Owner Attention composition from Board decisions, risk escalations, pending human requests, and overdue work;
+- added a reviewed Global Mobility Pulse using the existing Global Intelligence dashboard and a durable Activity stream using `/api/v1/organization/activities`; no synthetic health percentage, fake activity, or destination-quality score is introduced;
+- retained explicit Activity coverage semantics so pre-epoch history remains visibly partial rather than reconstructed;
+- refined the premium Cockpit signature after live visual review: reduced headline dominance, converted Organization Pulse from a static department grid into a live governed-runtime fabric with data-backed department nodes and non-semantic control-flow motion, elevated Owner Attention into a dedicated authority-ring state, replaced the generic orbit graphic with a contextual geographic world view for recognized jurisdiction codes, and gave the honest zero-Activity state a deliberate coverage visualization rather than synthetic events;
+- replaced prototype-style C/O/M experience glyphs with distinct Owner, Operator, and Mobility symbols while preserving the same role-shell routes and non-authoritative navigation semantics.
+
+13.16.2 is **COMPLETE / PASS**. Acceptance closed on 2026-08-15 with Alembic `0075_legacy_schema_reconciliation`; physical SQLite parity at 118 registered / 118 actual model tables plus the Alembic infrastructure table; 6/6 migration regressions; 16/16 premium design-foundation tests; 4/4 request/auth tests; a successful Next.js production build; 791 API tests passed with 5 expected skips and 0 failures; repository policy, release consistency, and `git diff --check` PASS; and 5/5 critical runtime smoke endpoints returning HTTP 200. Browser review accepted the premium light/dark Cockpit, executive-authority hierarchy, discoverable compact rail, Owner Attention, Global Mobility Pulse, and durable-Activity coverage presentation. Phase 13.16.3 is therefore **UNLOCKED / NOT STARTED**.
 
 **13.16.2 exit direction:** role-based shells are navigable, deep links remain compatible,
 backend permissions remain authoritative, critical route groups are represented coherently, and
@@ -924,8 +1004,8 @@ Phase 13.16 asks a different question:
 |---|---|---|
 | **13.16.0** | Design System & Information Architecture Foundation | **CLOSED / PASS** |
 | **13.16.1** | Durable Contribution & Activity Model | **COMPLETE / PASS** |
-| **13.16.2** | Role-based application shells and navigation | **UNLOCKED / NOT STARTED** |
-| **13.16.3** | Unified Owner Control Center | **LOCKED** |
+| **13.16.2** | Role-based application shells and navigation | **COMPLETE / PASS** |
+| **13.16.3** | Unified Owner Control Center | **UNLOCKED / NOT STARTED** |
 | **13.16.4** | Department workspaces | **LOCKED** |
 | **13.16.5** | Cross-department dependencies and blocker view | **LOCKED** |
 | **13.16.6** | Owner decision and escalation inbox | **LOCKED** |
@@ -985,17 +1065,20 @@ Authoritative design/evidence:
 **Intent:** move away from a route-heavy developer/operator information architecture toward
 clear role-based shells without breaking deep links or authority boundaries.
 
-Expected direction:
+Implemented foundation:
 
-- Owner/Board navigation groups the product into Overview, Organization, Mobility Operations,
-  Intelligence, Validation, Governance, and Settings.
-- Mobility User navigation is case-centric and hides backend/governance noise.
-- Professional/Operator navigation prioritizes cases, comparison, evidence, validation,
-  timelines, authority workflow, and provenance.
+- **Global Mobility AIOS Cockpit** is the canonical Owner / Board entry point at `/cockpit`.
+- **Board Room** remains a module inside the Cockpit at `/board-room`; it is not renamed into the whole Owner experience.
+- Professional / Operator entry remains the Operations Workspace at `/`.
+- Mobility User entry is `/my-mobility`, while `/portal` remains the secure token-bound case workspace and data-access boundary.
+- The shared premium control rail exposes explicit **Cockpit**, **Operations**, and **My Mobility** contexts with persisted presentation preference so overlapping deep routes remain reachable without one giant global navigation tree. On wide desktop it remains icon-first and spatially stable instead of expanding across Cockpit content on hover; native title/accessible labels preserve discoverability, while mobile remains a full labelled drawer.
 - Existing deep routes remain reachable during incremental migration.
 - Authorization remains backend-enforced; navigation visibility is not a permission system.
+- 13.16.2 now includes a bounded, read-only premium Cockpit composition using existing Board Packet, Observatory, Global Intelligence, and durable Activity APIs to validate the design language. Its accepted visual direction includes a live governed-runtime Organization Pulse with non-colliding department placement, a dedicated Owner Authority state, a coordinate-based Global Intelligence field plotting only recognized jurisdiction centroids, a unified dark Owner control dock, and an explicit Activity coverage empty state. These are presentation/composition layers only: full organizational-health workflows, department workspaces, blocker/dependency operations, decision handling, and intervention orchestration remain in 13.16.3 and later slices.
 
 ### 11.6 13.16.3 — Unified Owner Control Center
+
+**Premium product direction:** the Owner experience must feel like a high-trust premium enterprise operating system: deep navy/graphite anchor surfaces against warm ivory, selective editorial serif with operational sans, restrained depth, refined motion, beautiful information density, and distinct visual personality without becoming an all-black sci-fi interface. The recognizable visual signature should be the live Organization Pulse plus Owner Attention, reviewed global-mobility intelligence, and trustworthy Activity/Contribution context.
 
 **Intent:** give the Human Owner / Board a concise operational view of the AI organization.
 
@@ -1668,7 +1751,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 is unlocked because 13.16.1 is COMPLETE / PASS; later 13.16.x slices remain sequentially gated;
+- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is UNLOCKED / NOT STARTED, while later 13.16.x slices remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 
@@ -1731,3 +1814,43 @@ Core references:
 The roadmap deliberately preserves **strategic depth and phase intent** while avoiding repeated
 historical test logs, backup hashes, one-off debugging transcripts, and closed-slice acceptance
 narratives. Those records remain in the changelog, feature evidence, Git, and migration history.
+
+### 13.16.2 visual freeze — final Cockpit acceptance correction (2026-08-15)
+
+The premium shell is visually frozen after final local acceptance gates passed. Browser review found two final issues after the signature pass: the six-department Organization Pulse could visually omit peer nodes despite reporting six visible departments, and the honest zero-Activity surface did not yet make the canonical coverage boundary visually legible. The final bounded correction therefore moves department rendering to a deterministic two-row field with data-counted connector buses and converts the Activity empty state into a truthful coverage-boundary instrument. It does not add synthetic organization hierarchy, synthetic Activity, invented jurisdiction data, or new product capability.
+
+The accepted 13.16.2 visual foundation remains: premium compact control rail; deep-ink/warm-ivory Cockpit language; restrained editorial serif + operational sans; data-led command surface; Owner Attention authority state; contextual geographic Global Mobility field; and unified Owner Control Dock. Further visual work in 13.16.3 must be driven by live Owner capability and interaction rather than another shell redesign.
+
+### 13.16.2 visual-freeze amendment — executive authority hierarchy (2026-08-15)
+
+Final Owner review identified one remaining structural omission in Organization Pulse: the premium Cockpit was visually flattening active L3 officers such as CTO and CISO into department totals instead of showing the executive-authority layer that already exists in the canonical organization runtime. The visual freeze is therefore amended once, without changing authority semantics or creating positions.
+
+Organization Pulse now derives active executive leadership strictly from current `OrganizationPosition` rows where `reports_to_position_key == "ceo"` and `authority_level == "L3"`. Present officers (for example COO, CTO, CISO, CPO, CFO, CLO, CMO, CCO, or CHRO) render only when they actually exist in the Board Packet. Operational domains are derived from the remaining active organization positions and resolve their executive portfolio by walking the existing `reports_to_position_key` chain; unresolved ownership is shown explicitly rather than invented.
+
+The Owner hierarchy presented by the Cockpit is therefore: **Human Board → CEO → active L3 executive leadership → operational domains → governed AIOS execution**. This is a read-only visualization of the existing organization graph. It does not create CTO/CISO or any other officer, alter delegations, change authorization, repair governance records, reconstruct Activity, or expand autonomous authority. Local browser acceptance and the full 13.16.2 gates passed; this hierarchy is now part of the frozen premium foundation and 13.16.3 returns to live Owner capability rather than shell redesign.
+
+### 13.16.2 visual-freeze usability amendment — discoverable compact navigation (2026-08-15)
+
+Owner review rejected an icon-only rail with no immediate name discovery as impractical. The premium control rail therefore remains compact and spatially stable, but every desktop rail control exposes its real product name on hover and keyboard focus through a floating label outside the 88px rail. This preserves Cockpit canvas space without requiring users to memorize glyphs or restoring the earlier full-rail hover expansion that masked workspace content.
+
+This usability amendment ships together with the executive-authority Organization Pulse refinement in one cumulative patch. The accepted hierarchy remains **Human Board → CEO → active L3 executive leadership → operational domains → governed AIOS execution** and is still derived only from live organization data. Hover labels are presentation-only and do not replace backend authorization, mutate organization state, or change route ownership. Browser acceptance passed; 13.16.2 is frozen and 13.16.3 returns to live Owner capability rather than shell redesign.
+
+#### 13.16.2 visual acceptance refinement — dark-mode surface hierarchy
+
+Visual acceptance found that the premium dark theme had become too uniformly dark: the Cockpit canvas, information panels, executive leadership cards, Owner Attention states, and supporting dialog-like surfaces could visually merge. The accepted design direction keeps dark mode as the flagship Cockpit presentation but requires an explicit luminance/elevation hierarchy: the page canvas remains the deepest level; primary Cockpit surfaces are visibly lifted; executive and status/dialog surfaces receive a further restrained elevation step; and borders/highlights remain subtle but discoverable. This refinement is presentation-only and does not alter authority, organization state, durable Activity semantics, intelligence meaning, or safety controls.
+
+#### 13.16.2 acceptance correction — 0075 architecture boundary + warning-clean build
+
+The first complete API acceptance rerun after the premium visual freeze reached **790 passed, 5 skipped, 1 failed**. The sole failure was a stale architecture-boundary assertion in `test_openapi_and_phase_architecture_boundaries` that still prohibited any `0075` migration even though `0075_legacy_schema_reconciliation` is now the accepted, data-preserving local-schema reconciliation head. The correction now requires that exact 0075 migration and continues to fail if any numbered migration later than 0075 appears, preserving the phase boundary rather than weakening it.
+
+The same acceptance run produced a successful Next.js 15.2.4 production build with all **39/39 static pages** generated, but Autoprefixer reported one mixed-support warning for `align-items: end` in the new Organization Pulse layer heading. The bounded correction uses `flex-end` for that selector only. No runtime API behavior, authorization, organization state, Activity semantics, intelligence meaning, governance, publication, Austria safety state, or database contents change. The corrected architecture boundary and production build passed, and the complete API rerun closed at **791 passed, 5 skipped, 0 failed**.
+
+### 13.16.2 closure acceptance — COMPLETE / PASS (2026-08-15)
+
+Phase 13.16.2 is closed from baseline `4e6aaa5b372a0cd4171d1199fb0315961eb691f6`. The accepted experience foundation establishes **Global Mobility AIOS Cockpit** as the Owner / Board control experience, keeps **Board Room** as a module inside Cockpit, preserves `/` as the Professional / Operator Operations shell, adds `/my-mobility` as the Mobility User shell, and retains `/portal` as the secure token-bound case-data surface. Navigation remains presentation context only; server authorization remains authoritative.
+
+The visual foundation is frozen at the accepted premium direction: warm ivory plus layered deep-ink/graphite themes; selective editorial serif plus operational sans; fixed compact control rail with discoverable hover/focus names; data-led Cockpit composition; Owner Attention; contextual Global Mobility Pulse; explicit durable-Activity coverage presentation; and the live read-only authority hierarchy **Human Board → CEO → active L3 executive leadership → operational domains → governed AIOS execution**. Final browser evidence showed **9 active L3 officers** and **10 operational domains** from the current Board Packet; the UI does not create or infer missing officers.
+
+Closure evidence: migration regression **6 passed**; design-foundation **16 passed**; request/auth **4 passed**; complete API **791 passed, 5 skipped, 0 failed**; Next.js 15.2.4 production build **PASS** with the accepted route set and captured **39/39 static pages**; repository policy **PASS**; release consistency **PASS** at `0075_legacy_schema_reconciliation`; physical preserved-SQLite parity **PASS** with 118 registered/actual model tables and only `alembic_version` as infrastructure; `git diff --check` **PASS**; and runtime smoke **5/5 HTTP 200** across `/health`, WorkItems, Decisions, Board Packet, and CRM summary. The remaining Starlette/httpx warning is a known test-client deprecation warning and is not a 13.16.2 functional failure.
+
+`0075_legacy_schema_reconciliation` is a forward, data-preserving compatibility repair for the preserved developer SQLite database; it does not authorize historical Activity reconstruction, weaken review gates, change Austria publication/certification state, or migrate the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is UNLOCKED / NOT STARTED**. Further Cockpit evolution should now be capability-led: interactive executive focus, real Owner authority queues, organizational health, blockers/dependencies, Contributions/evidence health, durable Activity, and richer grounded Global Mobility intelligence rather than another shell redesign.

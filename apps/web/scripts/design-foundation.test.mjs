@@ -159,3 +159,123 @@ test("App Router icon has no conflicting public asset", async () => {
   assert.match(icon, /<svg[^>]+viewBox="0 0 32 32"/);
   await assert.rejects(read("public/icon.svg"), (error) => error?.code === "ENOENT");
 });
+
+
+test("role-based shells expose Cockpit, Operations, and My Mobility without replacing backend authorization", async () => {
+  const [sidebar, navigation, cockpit, myMobility] = await Promise.all([read("components/Sidebar.tsx"),read("lib/workspace-navigation.ts"),read("app/cockpit/page.tsx"),read("app/my-mobility/page.tsx")]);
+  for (const label of ["Cockpit", "Professional / Operator", "Mobility User", "My Mobility"]) assert.ok(navigation.includes(label), `missing role-shell label ${label}`);
+  assert.match(navigation, /href: "\/cockpit"/);
+  assert.match(navigation, /href: "\/my-mobility"/);
+  assert.doesNotMatch(sidebar, /Navigation context only\. Server authorization remains authoritative\./);
+  assert.match(cockpit, /Server authorization remains authoritative/);
+  assert.match(sidebar, /WORKSPACE_EXPERIENCE_STORAGE_KEY/);
+  assert.match(cockpit, /Global Mobility AIOS · Owner \/ Board/);
+  assert.match(cockpit, /One governed view of human authority, organizational execution/);
+  assert.doesNotMatch(cockpit, /13\.16\.2|13\.16\.3|Cockpit ≠ Board Room/);
+  assert.match(cockpit, /href="\/board-room"/);
+  assert.match(myMobility, /href="\/portal"/);
+  assert.match(myMobility, /Current stage/);
+  assert.match(myMobility, /Evidence requests/);
+  assert.doesNotMatch(myMobility, /long-term navigation model|user-facing shell/);
+  assert.doesNotMatch(myMobility, /href="\/agents\//);
+  assert.doesNotMatch(myMobility, /href="\/board-room"/);
+});
+
+test("workspace rail uses the premium compact control-rail pattern", async () => {
+  const [sidebar, styles] = await Promise.all([read("components/Sidebar.tsx"), read("app/globals.css")]);
+  assert.match(sidebar, /rail-brand-copy/);
+  assert.match(sidebar, /Global Mobility AIOS/);
+  assert.match(sidebar, /rail-experience-icon/);
+  assert.match(sidebar, /ExperienceIcon/);
+  assert.doesNotMatch(sidebar, /experienceGlyph/);
+  assert.match(sidebar, /className="rail-group-label"/);
+  assert.match(sidebar, /className="rail-icon"/);
+  assert.doesNotMatch(sidebar, /rail-authority-note/);
+  assert.match(styles, /grid-template-columns: 88px minmax\(0, 1fr\)/);
+  assert.match(styles, /Keep the control rail calm and spatially stable/);
+  assert.match(styles, /\.workspace-rail:hover,[\s\S]*width: 88px/);
+  assert.match(sidebar, /data-label=\{`\$\{item\.shortLabel\} · \$\{item\.label\}`\}/);
+  assert.match(styles, /\.rail-brand-mark[\s\S]*width: 40px;[\s\S]*height: 40px;/);
+  assert.match(styles, /\.rail-navigation[\s\S]*overflow-y: auto/);
+  assert.match(sidebar, /showRailTooltip/);
+  assert.match(sidebar, /className="rail-hover-label"/);
+  assert.match(sidebar, /onMouseEnter=\{\(event\) => showRailTooltip/);
+  assert.match(sidebar, /onFocus=\{\(event\) => showRailTooltip/);
+  assert.match(styles, /\.rail-hover-label \{[\s\S]*position: fixed;[\s\S]*pointer-events: none/);
+  assert.match(styles, /The rail remains spatially stable; labels float outside it instead of expanding over the Cockpit/);
+});
+
+
+test("premium role-shell direction stays product-facing and data-grounded", async () => {
+  const [cockpit, myMobility, home, api, styles] = await Promise.all([
+    read("app/cockpit/page.tsx"),
+    read("app/my-mobility/page.tsx"),
+    read("app/page.tsx"),
+    read("lib/api.ts"),
+    read("app/globals.css"),
+  ]);
+  assert.match(cockpit, /Operating within delegated authority/);
+  assert.match(cockpit, /Organization pulse/);
+  assert.match(cockpit, /Governed runtime fabric/);
+  assert.match(cockpit, /pulse-layer-connector/);
+  assert.match(cockpit, /Requires your authority/);
+  assert.match(cockpit, /owner-authority-orbit/);
+  assert.match(cockpit, /Global mobility pulse/);
+  assert.match(cockpit, /global-coverage-map/);
+  assert.match(cockpit, /JURISDICTION_CENTROIDS/);
+  assert.match(cockpit, /world-region-labels/);
+  assert.doesNotMatch(cockpit, /className="world-land"/);
+  assert.match(cockpit, /cockpit-control-dock/);
+  assert.match(cockpit, /Durable Activity stream/);
+  assert.match(cockpit, /Durable Activity is ready/);
+  assert.match(cockpit, /getOrganizationObservatorySummary/);
+  assert.match(cockpit, /listOrganizationActivities/);
+  assert.match(cockpit, /getGlobalIntelligenceDashboard/);
+  assert.doesNotMatch(cockpit, /97%|hard-coded|delivered in 13|establishes the shell/);
+  assert.match(api, /\/api\/v1\/organization\/observatory\/summary/);
+  assert.match(api, /\/api\/v1\/organization\/activities/);
+  assert.match(myMobility, /Know where your case stands/);
+  assert.match(myMobility, /Protected case access/);
+  assert.doesNotMatch(myMobility, /Secure workspace<\/small>/);
+  assert.match(home, /Case summary temporarily unavailable/);
+  assert.match(styles, /--font-editorial/);
+  assert.match(styles, /\.cockpit-command-copy h2[\s\S]*font-family: var\(--font-editorial\)/);
+  assert.match(styles, /@keyframes cockpit-live-pulse/);
+  assert.match(styles, /@keyframes pulse-flow/);
+  assert.match(styles, /\.global-coverage-map/);
+  assert.match(styles, /\.world-region-labels text/);
+  assert.match(styles, /\.cockpit-control-links\.cockpit-control-dock/);
+  assert.match(cockpit, /EXECUTIVE_ROLE_LABELS/);
+  assert.match(cockpit, /cto: "CTO"/);
+  assert.match(cockpit, /ciso: "CISO"/);
+  assert.match(cockpit, /position\.reports_to_position_key === "ceo" && position\.authority_level === "L3"/);
+  assert.match(cockpit, /pulse-executive-layer/);
+  assert.match(cockpit, /pulse-executive-grid/);
+  assert.match(cockpit, /pulse-operational-layer/);
+  assert.match(cockpit, /pulse-domain-grid/);
+  assert.match(cockpit, /executivePortfolios/);
+  assert.match(cockpit, /operationalDomains/);
+  assert.doesNotMatch(cockpit, /PULSE_ROW_X|pulseTopDepartments|pulseBottomDepartments|data-slot=/);
+  assert.match(styles, /\.pulse-executive-grid/);
+  assert.match(styles, /\.pulse-domain-grid/);
+  assert.match(styles, /\.organization-pulse-map\.enterprise-authority-map/);
+  assert.match(cockpit, /activity-coverage-viz/);
+  assert.match(cockpit, /Earlier history/);
+  assert.match(cockpit, /Coverage boundary/);
+  assert.match(styles, /\.activity-coverage-boundary/);
+  assert.match(styles, /\.activity-now-point/);
+  assert.match(styles, /\.authority-ring/);
+  assert.match(styles, /prefers-reduced-motion: reduce/);
+});
+
+test("Cockpit dark mode preserves visible information-surface hierarchy", async () => {
+  const styles = await read("app/globals.css");
+  assert.match(styles, /dark-mode hierarchy correction: preserve premium depth without hiding information surfaces/);
+  assert.match(styles, /\[data-theme="dark"\] \.cockpit-surface \{[\s\S]*rgba\(31, 36, 48/);
+  assert.match(styles, /\[data-theme="dark"\] \.pulse-executive-layer \{/);
+  assert.match(styles, /\[data-theme="dark"\] \.pulse-executive-card \{/);
+  assert.match(styles, /\[data-theme="dark"\] \.owner-attention-state \{/);
+  assert.match(styles, /\[data-theme="dark"\] \.live-organization \.activity-empty-state \{/);
+  assert.match(styles, /Keep the page canvas darker than its information surfaces so panel boundaries remain obvious/);
+  assert.match(styles, /Important executive titles must remain readable/);
+});

@@ -154,6 +154,12 @@ export default function HomePage() {
     { label: "Agent outputs", value: agentCount, tone: agentCount ? ("warn" as Tone) : ("neutral" as Tone) },
   ];
 
+  const summaryNotice = summaryError
+    ? summaryError === "Failed to fetch"
+      ? "Live case metrics did not load. Other connected queues remain available; use Refresh after the case service recovers."
+      : summaryError
+    : null;
+
   const postureCopy = {
     ready: { headline: "All services reachable", body: "Live CRM, truth, document, and agent queues are loaded. Sensitive actions remain review-gated." },
     partial: { headline: "Backend online with partial queues", body: "Some services returned errors. The workspace shows what is available." },
@@ -217,7 +223,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {summaryError ? <InlineNotice label="CRM summary unavailable" tone="bad" detail={summaryError} /> : null}
+      {summaryNotice ? <InlineNotice label="Case summary temporarily unavailable" tone="bad" detail={summaryNotice} /> : null}
 
       <div className="dashboard-section-heading">
         <div>

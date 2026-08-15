@@ -1,11 +1,25 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
+from uuid import uuid4
 from pathlib import Path
 
-from sqlalchemy import CheckConstraint, ForeignKeyConstraint, UniqueConstraint, create_engine, inspect, text
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKeyConstraint,
+    MetaData,
+    String,
+    Table,
+    UniqueConstraint,
+    create_engine,
+    inspect,
+    text,
+)
 from sqlmodel import SQLModel
 
 from app.core.db import register_models
@@ -85,6 +99,10 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
     assert schema_result["status"] == "ok"
     assert schema_result["missing_tables"] == {}
     assert schema_result["missing_columns"] == {}
+    assert schema_result["extra_tables"] == []
+    assert schema_result["infrastructure_tables"] == ["alembic_version"]
+    assert schema_result["registered_tables"] == schema_result["actual_tables"]
+    assert schema_result["physical_tables"] == schema_result["actual_tables"] + 1
 
     inspector = inspect(create_engine(database_url))
     durable_tables = {
@@ -154,10 +172,163 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0074_durable_contribution_activity_model"
+            "0075_legacy_schema_reconciliation"
         )
         for table in durable_tables:
             assert connection.execute(text(f"SELECT count(*) FROM {table}")).scalar_one() == 0
+
+
+
+def test_0075_reconciles_stamped_legacy_extension_drift(tmp_path: Path) -> None:
+    database_path = tmp_path / "stamped-legacy-drift.db"
+    database_url = f"sqlite:///{database_path.as_posix()}"
+    engine = create_engine(database_url)
+
+    register_models()
+    source_tables = SQLModel.metadata.tables
+    legacy_metadata = MetaData()
+
+    work_missing = {
+        "idempotency_fingerprint", "tenant_key", "work_type", "objective_key", "phase_key", "priority",
+        "parent_work_item_id", "profile_id", "application_id", "source_object_type", "source_object_id",
+        "source_object_version", "requested_by_type", "requested_by_id",
+    }
+    decision_missing = {
+        "tenant_key", "decision_type", "record_fingerprint", "lead_id", "profile_id", "application_id",
+        "corporate_account_id", "corporate_mobility_case_id", "source_object_type", "source_object_id",
+        "source_object_version", "supersedes_decision_id", "conditions_json", "effect_summary", "expires_at",
+    }
+    lead_missing = {
+        "nationality", "current_country", "occupation_title", "years_experience", "job_offer_status",
+        "qualification_recognition", "german_level", "employment_province",
+    }
+    intake_missing = {"submission_key", "submission_fingerprint"}
+
+    def clone_legacy_table(table_name: str, excluded: set[str]) -> None:
+        source = source_tables[table_name]
+        columns = [
+            Column(
+                column.name,
+                column.type,
+                primary_key=column.primary_key,
+                nullable=column.nullable,
+            )
+            for column in source.columns
+            if column.name not in excluded
+        ]
+        Table(table_name, legacy_metadata, *columns)
+
+    clone_legacy_table("leads", lead_missing)
+    clone_legacy_table("organizational_work_items", work_missing)
+    clone_legacy_table("executive_decisions", decision_missing)
+    for table_name in ("profiles", "applications", "corporate_accounts", "corporate_mobility_cases"):
+        source_id = source_tables[table_name].columns["id"]
+        Table(
+            table_name,
+            legacy_metadata,
+            Column("id", source_id.type, primary_key=True, nullable=False),
+        )
+    Table(
+        "intake_sessions",
+        legacy_metadata,
+        Column("id", source_tables["intake_sessions"].columns["id"].type, primary_key=True, nullable=False),
+        Column("lead_id", source_tables["leads"].columns["id"].type, nullable=True),
+        Column("answers_json", String(), nullable=True),
+        Column("updated_at", DateTime(), nullable=False),
+    )
+    Table("alembic_version", legacy_metadata, Column("version_num", String(128), primary_key=True))
+    legacy_metadata.create_all(engine)
+
+    lead_id = uuid4().hex
+    intake_id = uuid4().hex
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO leads "
+                "(id, full_name, email, phone, source, intent, target_country, status, notes, created_at, updated_at) "
+                "VALUES (:id, 'Legacy Lead', NULL, NULL, 'public_intake', 'visa', 'AT', 'new', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            ),
+            {"id": lead_id},
+        )
+        connection.execute(
+            text(
+                "INSERT INTO intake_sessions (id, lead_id, answers_json, updated_at) "
+                "VALUES (:id, :lead_id, :answers_json, CURRENT_TIMESTAMP)"
+            ),
+            {
+                "id": intake_id,
+                "lead_id": lead_id,
+                "answers_json": json.dumps(
+                    {
+                        "nationality": "IN",
+                        "current_country": "AT",
+                        "profession": "Software Engineer",
+                        "years_experience": 5,
+                        "job_offer_status": "absent",
+                        "qualification_recognition": "unresolved",
+                        "language_level": "A2",
+                        "employment_province": "Vienna",
+                    }
+                ),
+            },
+        )
+        connection.execute(
+            text("INSERT INTO alembic_version (version_num) VALUES ('0074_durable_contribution_activity_model')")
+        )
+
+    env = {**os.environ, "DATABASE_URL": database_url}
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "alembic",
+            "-c",
+            str(ROOT / "alembic.ini"),
+            "upgrade",
+            "head",
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
+
+    schema_result = check_local_db_schema(engine)
+    assert schema_result["status"] == "schema_drift"  # minimal fixture intentionally omits unrelated tables
+    assert "leads" not in schema_result["missing_columns"]
+    assert "organizational_work_items" not in schema_result["missing_columns"]
+    assert "executive_decisions" not in schema_result["missing_columns"]
+
+    inspector = inspect(engine)
+    assert work_missing <= {column["name"] for column in inspector.get_columns("organizational_work_items")}
+    assert decision_missing <= {column["name"] for column in inspector.get_columns("executive_decisions")}
+    assert lead_missing <= {column["name"] for column in inspector.get_columns("leads")}
+    assert intake_missing <= {column["name"] for column in inspector.get_columns("intake_sessions")}
+    intake_indexes = {index["name"]: index for index in inspector.get_indexes("intake_sessions")}
+    assert "ix_intake_sessions_submission_key" in intake_indexes
+    assert intake_indexes["ix_intake_sessions_submission_key"].get("unique") in {True, 1}
+    assert "ix_org_work_tenant_status_due" in {
+        index["name"] for index in inspector.get_indexes("organizational_work_items")
+    }
+    assert "ix_exec_decision_tenant_status_due" in {
+        index["name"] for index in inspector.get_indexes("executive_decisions")
+    }
+
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
+            "0075_legacy_schema_reconciliation"
+        )
+        row = connection.execute(
+            text(
+                "SELECT nationality, current_country, occupation_title, years_experience, job_offer_status, "
+                "qualification_recognition, german_level, employment_province FROM leads WHERE id=:lead_id"
+            ),
+            {"lead_id": lead_id},
+        ).one()
+    assert tuple(row) == ("IN", "AT", "Software Engineer", 5.0, "absent", "unresolved", "A2", "Vienna")
 
 
 def test_migrations_do_not_use_integer_defaults_for_boolean_columns() -> None:
