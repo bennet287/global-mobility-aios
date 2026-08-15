@@ -8,6 +8,8 @@
 
 **13.16.1E3C — LEGACY EXECUTIVEDECISION / COUPLED ADAPTERS: COMPLETE / PASS.**
 
+**13.16.1E3D — EXPLICIT ACTIVITY COVERAGE EPOCH / OBSERVATORY ACTIVATION: COMPLETE / PASS.**
+
 E3A writer-inventory baseline reviewed: `8bfbd40a1b4e460757b99d943a139cfd2ef83316`.
 
 E3B implementation baseline: `9e97f0f0e3a1f3c9cbf66a05286e67096195ab64`.
@@ -17,7 +19,7 @@ E3A was a repository-backed design/reconciliation slice only. E3B is the bounded
 adapter slice described below; it does not change the database schema, Contribution
 authority, historical coverage truth, or Observatory activation. E3A itself changed no runtime
 Python, routers, tests, Activity rows, Austria v4 state, or PostgreSQL data.
-`activity_history_established` remains `false`.
+`activity_history_established` remains `false` until a tenant has the explicit governed E3D epoch marker.
 
 ## 1. Purpose
 
@@ -175,13 +177,14 @@ To keep the regression surface bounded, E3 is split into four internal sub-slice
    direct creation, deadlines, escalation/ownership, CEO hold/Board promotion, Board/CEO
    terminal outcomes, and coupled transaction regression. Lease/reminder/evidence-only
    writes stay excluded.
-4. **E3D — explicit coverage epoch + Observatory coverage activation: UNLOCKED / NOT STARTED.**
-   Add the coverage-start contract, cross-database reconciliation tests, and only then
-   allow `activity_history_established = true` from the epoch forward.
+4. **E3D — explicit coverage epoch + Observatory coverage activation: COMPLETE / PASS.**
+   The coverage-start contract, cross-database transaction acceptance, and Observatory
+   activation semantics are accepted. `activity_history_established = true` is valid only
+   from the first immutable governed epoch marker forward.
 
-Phase 13.16.2 remains locked through E3D and the remaining 13.16.1 exit gates. No dashboard may present historical
-throughput, cycle time, resolved-blocker period throughput, or last-material-transition
-ageing as authoritative until E3D is accepted.
+Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is UNLOCKED / NOT STARTED. No dashboard may present
+pre-epoch historical throughput, cycle time, resolved-blocker period throughput, or
+last-material-transition ageing as authoritative.
 
 ### E3B implementation disposition
 
@@ -242,9 +245,9 @@ existing legacy material-writer transaction:
 Focused E3C regression coverage adds eight tests spanning Decision create/deadline/replay,
 terminal coupled outcomes, emergency replay, material CEO hold, coupled Board promotion,
 caller-owned automation rollback, Activity-stage rollback, and one PostgreSQL-only
-Decision transaction/no-residue contract. Acceptance is complete; E3D is now UNLOCKED / NOT STARTED.
+Decision transaction/no-residue contract. E3C acceptance is complete; E3D is now COMPLETE / PASS.
 
-E3C acceptance evidence: focused E3C **7 passed / 1 expected PostgreSQL-only skip**; combined organization/E3B/E3C regression **160 passed / 4 expected skips**; complete API **787 passed / 4 expected PostgreSQL-only skips**; isolated PostgreSQL Activity transaction contracts **4/4 passed**. `organization_activity_streams = 0` and `organization_activities = 0` both before and after that PostgreSQL run, Alembic remained `0074_durable_contribution_activity_model`, and repository policy, release consistency, migration consistency, and `git diff --check` all passed. `activity_history_established` remains `false`; the isolated PostgreSQL container was returned to stopped state, and E3D is the next unlocked slice.
+E3C acceptance evidence: focused E3C **7 passed / 1 expected PostgreSQL-only skip**; combined organization/E3B/E3C regression **160 passed / 4 expected skips**; complete API **787 passed / 4 expected PostgreSQL-only skips**; isolated PostgreSQL Activity transaction contracts **4/4 passed**. `organization_activity_streams = 0` and `organization_activities = 0` both before and after that PostgreSQL run, Alembic remained `0074_durable_contribution_activity_model`, and repository policy, release consistency, migration consistency, and `git diff --check` all passed. `activity_history_established` remains `false`; the isolated PostgreSQL container was returned to stopped state. Those results unlocked E3D; E3D has since completed its own focused, full-suite, repository, migration, and isolated-PostgreSQL acceptance and is COMPLETE / PASS.
 
 ## 8. Acceptance invariants for later E3 slices
 
@@ -269,8 +272,40 @@ Every adapted material writer must prove:
 The legacy writer surface is mapped, E3B WorkItem reconciliation is accepted, and E3C
 Decision/coupled adapters are now COMPLETE / PASS. E3C also closes the
 one coupled Work-side Board-promotion omission discovered during its writer trace. E3D is now
-UNLOCKED / NOT STARTED after the focused/full/isolated-PostgreSQL E3C gates passed.
+COMPLETE / PASS after focused coverage-epoch, full API, repository/migration, and isolated-PostgreSQL acceptance.
 
 E3A itself is documentation/design only and requires no API/full-suite rerun. Repository
 policy, release consistency, migration consistency, and `git diff --check` are the only
 acceptance gates for this sub-slice. E3 overall remains **IN PROGRESS**.
+
+### E3D implementation disposition
+
+The bounded E3D implementation uses the existing Activity ledger rather than a schema
+migration or synthetic historical backfill. The canonical marker is
+`organization.activity_coverage.established.v1` in the dedicated
+`organization:activity-coverage` stream. Its first immutable `occurred_at` is the tenant's
+semantic-history coverage start.
+
+Activation is an explicit authenticated admin/internal-human command. The command is
+idempotent, returns the first immutable marker on replay, cannot be forged through the generic
+Activity creation endpoint, and emits no Contribution. Observatory summary and department
+coverage metadata remain partial before activation and switch to
+`explicit_activity_coverage_epoch` with `activity_history_established = true` only when the
+canonical marker exists. `activity_history_coverage_start` exposes the exact epoch.
+
+No pre-epoch WorkItem or ExecutiveDecision history is reconstructed. Pre-epoch Activity may
+remain visible as partial evidence, but future period throughput/cycle-time logic must bound
+its authoritative period to the epoch or later. E3D itself does not add those metrics.
+
+Focused acceptance includes admin-human authority, idempotency, no Contribution emission, no
+backfill, reserved-marker protection, pre/post Observatory coverage semantics, and one
+PostgreSQL-only outer-rollback/no-residue contract. E3D acceptance is complete: focused
+coverage-epoch tests passed **3 with 1 expected PostgreSQL-only skip**, the broader
+Observatory/organization regression passed **65 with 5 expected skips**, the complete API
+suite passed **790 with 5 expected PostgreSQL-only skips**, and the isolated PostgreSQL
+E2/E3B/E3C/E3D transaction set passed **5/5**. Activity rows were **0/0 before and after**,
+Alembic remained `0074_durable_contribution_activity_model`, repository/release/migration
+gates and `git diff --check` passed, and the isolated PostgreSQL container returned to
+stopped state. `activity_history_established` remains false in tenants without the marker
+and becomes true only from the first immutable governed marker forward. Phase 13.16.1 is
+**COMPLETE / PASS** and Phase 13.16.2 is **UNLOCKED / NOT STARTED**.

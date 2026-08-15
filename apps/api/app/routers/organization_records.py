@@ -63,7 +63,13 @@ from app.schemas_organization_observatory import (
     ObservatorySummaryRead,
     ReconciliationStatus,
 )
-from app.services.organization_activity import append_activity
+from app.services.organization_activity import (
+    ACTIVITY_COVERAGE_ACTIVITY_KEY,
+    ACTIVITY_COVERAGE_ACTIVITY_TYPE,
+    ACTIVITY_COVERAGE_STREAM_KEY,
+    append_activity,
+    establish_activity_coverage_epoch,
+)
 from app.services.organization_command import (
     AuthorityDenied,
     ContributionSourceRejected,
@@ -223,6 +229,21 @@ def _page_result(rows: list[Any], *, page: int, page_size: int, total: int) -> d
     }
 
 
+@router.post("/activity-coverage/establish", response_model=ActivityRead)
+def establish_activity_coverage_endpoint(
+    payload: ReasonCommand,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationActivity:
+    return _command(
+        lambda: establish_activity_coverage_epoch(
+            session,
+            context,
+            reason=payload.reason,
+        )
+    )
+
+
 @router.get("/observatory/summary", response_model=ObservatorySummaryRead)
 def get_observatory_summary(
     context: OrganizationCommandContext = Depends(organization_command_context),
@@ -322,6 +343,15 @@ def create_activity_endpoint(
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
 ) -> OrganizationActivity:
+    if (
+        payload.activity_key == ACTIVITY_COVERAGE_ACTIVITY_KEY
+        or payload.stream_key == ACTIVITY_COVERAGE_STREAM_KEY
+        or payload.activity_type == ACTIVITY_COVERAGE_ACTIVITY_TYPE
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="The Activity coverage epoch can only be established through its governed command.",
+        )
     return _command(lambda: append_activity(session, context, **payload.model_dump()))
 
 

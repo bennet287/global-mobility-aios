@@ -34,6 +34,7 @@ from app.models.domain import (
     SourceSnapshot,
     VerifiedRule,
 )
+from app.services.organization_activity import activity_coverage_epoch
 from app.services.organization_contribution import (
     _initial_rule_publication_version,
     _pathway_publication_version,
@@ -1095,6 +1096,35 @@ def _reconciliation_state(
     return coverage, contribution_items + gap_items, warnings
 
 
+def _activity_history_coverage(session: Session, tenant_key: str) -> dict[str, Any]:
+    epoch = activity_coverage_epoch(session, tenant_key)
+    if epoch is None:
+        return {
+            "activity_history_basis": "partial_activity_coverage",
+            "activity_history_established": False,
+            "activity_history_coverage_start": None,
+        }
+    return {
+        "activity_history_basis": "explicit_activity_coverage_epoch",
+        "activity_history_established": True,
+        "activity_history_coverage_start": epoch.occurred_at,
+    }
+
+
+def _activity_history_warning(coverage: dict[str, Any]) -> str:
+    coverage_start = coverage["activity_history_coverage_start"]
+    if coverage["activity_history_established"]:
+        return (
+            "Curated Activity history is authoritative only from the explicit coverage epoch "
+            f"{coverage_start.isoformat()} forward; pre-epoch history remains partial "
+            "and is not backfilled."
+        )
+    return (
+        "Historical throughput, cycle-time, resolved-blocker period metrics, and "
+        "last-material-transition ageing are unavailable until the explicit curated Activity "
+        "coverage epoch is established."
+    )
+
 def observatory_summary(
     session: Session,
     tenant_key: str,
@@ -1104,9 +1134,8 @@ def observatory_summary(
     instant = _as_utc(as_of) or _now_utc()
     contribution_metrics, _outcomes, _active = _contribution_metrics(session, tenant_key)
     coverage, _items, reconciliation_warnings = _reconciliation_state(session, tenant_key)
-    warnings = [
-        "Historical throughput, cycle-time, resolved-blocker period metrics, and last-material-transition ageing are unavailable until curated Activity transition coverage is complete."
-    ]
+    activity_coverage = _activity_history_coverage(session, tenant_key)
+    warnings = [_activity_history_warning(activity_coverage)]
     warnings.extend(reconciliation_warnings)
     return {
         "as_of": instant,
@@ -1123,8 +1152,7 @@ def observatory_summary(
         },
         "coverage": {
             "snapshot_basis": "authoritative_current_rows",
-            "activity_history_basis": "partial_activity_coverage",
-            "activity_history_established": False,
+            **activity_coverage,
             "contribution_sources": coverage,
         },
         "warnings": warnings,
@@ -1206,8 +1234,10 @@ def observatory_departments(
         )
 
     coverage, _items, reconciliation_warnings = _reconciliation_state(session, tenant_key)
+    activity_coverage = _activity_history_coverage(session, tenant_key)
     warnings = [
-        "Department metrics are point-in-time snapshots; transition throughput and cycle-time remain unavailable until curated Activity coverage is complete.",
+        _activity_history_warning(activity_coverage),
+        "Department metrics are point-in-time snapshots; any future transition-period metric must be bounded to the explicit Activity coverage epoch.",
         "Human-action requests without a WorkItem department are intentionally not attributed to a department.",
     ]
     warnings.extend(reconciliation_warnings)
@@ -1218,8 +1248,7 @@ def observatory_departments(
         "source_row_counts": source_row_counts(session, tenant_key),
         "coverage": {
             "snapshot_basis": "authoritative_current_rows",
-            "activity_history_basis": "partial_activity_coverage",
-            "activity_history_established": False,
+            **activity_coverage,
             "contribution_sources": coverage,
         },
         "departments": rows,

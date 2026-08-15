@@ -13,6 +13,7 @@ CoverageBasis = Literal[
     "not_established",
     "explicit_command_only",
     "partial_activity_coverage",
+    "explicit_activity_coverage_epoch",
 ]
 
 ReconciliationStatus = Literal[
@@ -110,6 +111,7 @@ class ObservatoryCoverage(ObservatoryRead):
     snapshot_basis: CoverageBasis = "authoritative_current_rows"
     activity_history_basis: CoverageBasis = "partial_activity_coverage"
     activity_history_established: bool = False
+    activity_history_coverage_start: datetime | None = None
     contribution_sources: list[ContributionSourceCoverage] = Field(default_factory=list)
 
 

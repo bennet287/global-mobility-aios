@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-08-15 - Phase 13.16.1E3D coverage epoch acceptance + 13.16.1 closure
+
+- Closed **13.16.1E3D** as **COMPLETE / PASS** and closed **Phase 13.16.1 Durable Contribution & Activity Model** as **COMPLETE / PASS**. The next slice, **13.16.2 role-based application shells and navigation**, is **UNLOCKED / NOT STARTED**; later 13.16.x experience slices remain sequentially gated.
+- Accepted focused Activity coverage-epoch behavior with **3 passed, 1 expected PostgreSQL-only skip, 0 failures**; accepted the broader Observatory/organization regression with **65 passed, 5 expected skips, 0 failures**; restored and revalidated the roadmap compatibility contract with **1 passed, 0 failures**; and accepted the complete API suite with **790 passed, 5 expected PostgreSQL-only skips, 0 failures**.
+- Repository policy, release consistency, migration consistency, and `git diff --check` all passed. Migration consistency remained at Alembic head `0074_durable_contribution_activity_model` with **118 registered tables**.
+- Ran the bounded isolated PostgreSQL E2/E3B/E3C/E3D transaction set against `gmai-pg-13161b-service`: **5 passed, 0 failed**. `organization_activity_streams = 0` and `organization_activities = 0` both before and after the run, Alembic remained at 0074, and the isolated container returned to stopped state. The preserved authoritative `gmai-postgres` integration database was not part of this acceptance flow.
+- The accepted E3D contract keeps pre-epoch history explicitly partial, performs no historical WorkItem/ExecutiveDecision backfill, emits no Contribution, and exposes `activity_history_established = true` only from the first immutable governed `organization.activity_coverage.established.v1` marker forward. Tenants without that marker remain `activity_history_established = false`.
+- The detailed strategic roadmap remains the canonical product-direction + delivery document, while chronological execution evidence stays in this changelog and feature specifications. No Austria safety state, certification, pathway publication, schema migration, or legal-certainty posture changed in closure.
+
+## 2026-08-15 - E3D roadmap whitespace correction + complete API acceptance
+
+- Corrected two trailing-space defects introduced in the detailed roadmap dashboard header and normalized trailing whitespace in `docs/ROADMAP.md`; this is documentation-only and does not alter E3D runtime behavior.
+- Confirmed the restored Phase 10B roadmap compatibility contract passes **1 test, 0 failures** after restoring `v10.22`, `multi-batch tranche operations`, and `0032_initial_rule_assertions`.
+- Confirmed the complete API suite now passes **790 tests with 5 expected PostgreSQL-only skips and 0 failures** after the roadmap compatibility correction. The broader Observatory/organization E3D regression had already passed **65 tests with 5 expected skips and 0 failures**.
+- E3D remains **IMPLEMENTED / ACCEPTANCE PENDING** until repository/release/migration gates and the isolated PostgreSQL E3D coverage-epoch transaction/rollback contract pass. No migration, Activity/Contribution authority, Observatory semantics, Austria state, certification, pathway publication, or database data is changed by this documentation correction.
+
+## 2026-08-15 - Detailed roadmap compatibility-anchor correction after E3D full-suite regression
+
+- Recorded the E3D broader organization/Observatory regression as **65 passed, 5 expected skips, 0 failures**. The subsequent complete API run reached **789 passed, 5 expected skips, 1 failure**; the sole failure was the pre-existing Phase 10B roadmap compatibility contract in `test_coverage_tranche_operations_script.py`, not E3D runtime behavior.
+- Restored the three exact historical roadmap anchors required by that compatibility contract: **`v10.22`**, **`multi-batch tranche operations`**, and **`0032_initial_rule_assertions`**. They now live in the Phase 10B strategic-history subsection instead of reintroducing the former chronological roadmap sprawl.
+- Audited repository tests that read `docs/ROADMAP.md`; this Phase 10B test is the only direct content-contract reader, and these are its only required legacy literals.
+- Documentation-only compatibility correction. No E3D runtime, schema, migration, Activity/Contribution authority, Observatory behavior, Austria state, certification, pathway publication, or database data is changed. E3D remains **IMPLEMENTED / ACCEPTANCE PENDING** until the corrected complete API run, repository/migration gates, and isolated PostgreSQL acceptance pass.
+
+## 2026-08-15 - Roadmap strategic-detail restructuring after E3D focused acceptance
+
+- Expanded `docs/ROADMAP.md` from the overly compressed post-E3D structure into a strategic + delivery roadmap that explains what Global Mobility AIOS is, who it serves, the north-star mobility lifecycle, product thesis, capability pillars, target surfaces, AI-organization operating model, architecture/truth hierarchy, current state, near-term direction, detailed Phase 13.16 outcomes, broader Phase 13 intent, and phase-by-phase evolution through Phase 14.
+- Preserved the cleaner separation between roadmap and changelog: the roadmap now carries product direction, phase intent, current gates, and future direction, while chronological test logs, one-off repairs, backup hashes, and detailed acceptance transcripts remain in `CHANGELOG.md`, feature specifications, Git, and Alembic history.
+- Recorded the first E3D acceptance evidence in the roadmap: focused Activity coverage-epoch tests pass **3 tests with 1 expected PostgreSQL-only skip and 0 failures**. E3D remains **IMPLEMENTED / ACCEPTANCE PENDING** until broader Observatory/organization regression, full API, repository/migration, and isolated PostgreSQL gates pass.
+- Documentation refinement only. No runtime, schema, migration, Activity/Contribution authority, Observatory behavior, Austria state, certification, pathway publication, or database data is changed by this restructuring patch.
+
+## 2026-08-15 - Phase 13.16.1E3D Activity coverage epoch + Observatory activation implementation
+
+- Implemented the bounded E3D coverage-epoch contract from exact committed baseline `a503fe8b8a41cff6908751ba24688ed03fa535ec` without a migration, historical backfill, Contribution-policy change, Austria mutation, certification approval, or pathway publication. A canonical operational Activity marker (`organization.activity_coverage.established.v1`) now establishes the tenant-scoped semantic-history start only through an explicit authenticated admin/internal-human command.
+- Added idempotent activation semantics using the existing Activity ledger. Replays return the first immutable epoch; the marker timestamp becomes the Observatory coverage start. The generic Activity API rejects the reserved coverage marker key/type, and activation never creates a Contribution.
+- Observatory summary and department responses now remain `partial_activity_coverage` / `activity_history_established = false` before the marker, then expose `explicit_activity_coverage_epoch`, `activity_history_established = true`, and `activity_history_coverage_start` after governed activation. Pre-epoch history remains explicitly partial and is not reconstructed from WorkItem/Decision current state, `updated_at`, AuditLog, attempts, or telemetry.
+- Added focused E3D regressions for admin-human authority, pre/post Observatory coverage semantics, idempotent replay, no Contribution emission, no pre-epoch backfill, reserved-marker forgery rejection, and one PostgreSQL-only outer-rollback/no-residue contract. Acceptance is **PENDING** until local focused/full API, repository/migration, and isolated PostgreSQL gates run.
+- Rebuilt `docs/ROADMAP.md` into a concise current-state dashboard, active execution lane, Phase 13.16 delivery table, Phase 13 historical index, safety invariants, governance rules, and source-of-truth references. Detailed historical test logs and closed-slice narratives remain preserved in this changelog and feature documents rather than being duplicated in the active roadmap.
+
 ## 2026-08-15 - Phase 13.16.1E3C legacy ExecutiveDecision / coupled Activity adapters acceptance
 
 - Closed 13.16.1E3C as **COMPLETE / PASS** after the focused E3C suite passed **7 tests with 1 expected PostgreSQL-only skip and 0 failures**, the combined organization/E3B/E3C regression passed **160 tests with 4 expected skips and 0 failures**, and the complete API suite passed **787 tests with 4 expected PostgreSQL-only skips and 0 failures**.

@@ -17,15 +17,113 @@ from app.models.domain import (
 from app.services.organization_command import (
     AuditMutation,
     DependencyConflict,
+    IdempotencyConflict,
     OrganizationCommandContext,
     canonical_fingerprint,
     canonical_payload_json,
     commit_mutations,
     idempotent_existing,
+    require_human,
     require_mutation_role,
     stage_mutations,
     tenant_record,
 )
+
+
+ACTIVITY_COVERAGE_ACTIVITY_KEY = "organization:activity-coverage:established:v1"
+ACTIVITY_COVERAGE_STREAM_KEY = "organization:activity-coverage"
+ACTIVITY_COVERAGE_ACTIVITY_TYPE = "organization.activity_coverage.established.v1"
+ACTIVITY_COVERAGE_SOURCE_TYPE = "organization_activity_coverage"
+ACTIVITY_COVERAGE_SOURCE_VERSION = "v1"
+
+
+def activity_coverage_epoch(
+    session: Session,
+    tenant_key: str,
+) -> OrganizationActivity | None:
+    """Return the canonical immutable Activity coverage epoch for one tenant, if present."""
+
+    marker = session.exec(
+        select(OrganizationActivity).where(
+            OrganizationActivity.tenant_key == tenant_key,
+            OrganizationActivity.activity_key == ACTIVITY_COVERAGE_ACTIVITY_KEY,
+            OrganizationActivity.activity_type == ACTIVITY_COVERAGE_ACTIVITY_TYPE,
+            OrganizationActivity.activity_class == OrganizationActivityClass.operational,
+            OrganizationActivity.source_object_type == ACTIVITY_COVERAGE_SOURCE_TYPE,
+            OrganizationActivity.source_object_id == tenant_key,
+            OrganizationActivity.source_object_version == ACTIVITY_COVERAGE_SOURCE_VERSION,
+        )
+    ).first()
+    if marker is None:
+        return None
+    stream = session.exec(
+        select(OrganizationActivityStream).where(
+            OrganizationActivityStream.id == marker.activity_stream_id,
+            OrganizationActivityStream.tenant_key == tenant_key,
+            OrganizationActivityStream.stream_key == ACTIVITY_COVERAGE_STREAM_KEY,
+        )
+    ).first()
+    return marker if stream is not None else None
+
+
+def establish_activity_coverage_epoch(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    reason: str,
+) -> OrganizationActivity:
+    """Establish the immutable semantic-Activity coverage start for one tenant.
+
+    This is an explicit admin/internal-human governance command. It appends exactly one
+    operational Activity marker and never emits a Contribution or reconstructs pre-epoch
+    history. Replays return the original immutable marker regardless of a later reason.
+    """
+
+    require_human(context, admin=True)
+    existing_by_key = session.exec(
+        select(OrganizationActivity).where(
+            OrganizationActivity.tenant_key == context.tenant_key,
+            OrganizationActivity.activity_key == ACTIVITY_COVERAGE_ACTIVITY_KEY,
+        )
+    ).first()
+    if existing_by_key is not None:
+        canonical = activity_coverage_epoch(session, context.tenant_key)
+        if canonical is None:
+            raise DependencyConflict(
+                "activity coverage epoch marker conflicts with the canonical contract"
+            )
+        return canonical
+
+    occurred_at = now_utc()
+    try:
+        return append_activity(
+            session,
+            context,
+            activity_key=ACTIVITY_COVERAGE_ACTIVITY_KEY,
+            stream_key=ACTIVITY_COVERAGE_STREAM_KEY,
+            activity_class=OrganizationActivityClass.operational,
+            activity_type=ACTIVITY_COVERAGE_ACTIVITY_TYPE,
+            title="Semantic Activity coverage established",
+            summary=(
+                "Curated material-transition Activity is authoritative from this epoch forward; "
+                "pre-epoch history remains partial and is not backfilled."
+            ),
+            source_object_type=ACTIVITY_COVERAGE_SOURCE_TYPE,
+            source_object_id=context.tenant_key,
+            source_object_version=ACTIVITY_COVERAGE_SOURCE_VERSION,
+            occurred_at=occurred_at,
+            payload={
+                "coverage_contract": "semantic_material_transitions_v1",
+                "pre_epoch_history": "partial_no_backfill",
+                "reason": reason,
+                "contribution_emitted": False,
+            },
+        )
+    except (IdempotencyConflict, DependencyConflict):
+        concurrent = activity_coverage_epoch(session, context.tenant_key)
+        if concurrent is not None:
+            return concurrent
+        raise
 
 
 def _write_activity(
