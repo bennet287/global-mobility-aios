@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-15 - Phase 13.16.1E3B closure-document consistency correction
+
+- Synchronized `docs/ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md` with the already accepted E3B closure at commit `fac48397a712ddb184fb7fac44f95b71f2860a52`: E3B is **COMPLETE / PASS**, E3C is **UNLOCKED / NOT STARTED**, and E3D remains locked pending E3C.
+- Recorded the accepted E3B evidence in the reconciliation document: focused **10 passed / 1 expected skip**, surrounding organization **143 passed / 2 expected skips**, full API **780 passed / 3 expected skips**, isolated PostgreSQL **3/3 passed**, zero Activity residue before/after, and Alembic unchanged at `0074_durable_contribution_activity_model`.
+- Documentation-only consistency correction. No runtime, schema, migration, API, Activity/Contribution authority, Austria v4 state, or database data is changed. `activity_history_established` remains `false`.
+
 ## 2026-08-15 - Phase 13.16.1E3B legacy WorkItem Activity adapters acceptance
 
 - Closed 13.16.1E3B as **COMPLETE / PASS** after the corrected focused E3B suite passed **10 tests with 1 expected PostgreSQL-only skip and 0 failures**, the surrounding organization regression passed **143 tests with 2 expected skips and 0 failures**, and the complete API suite passed **780 tests with 3 expected PostgreSQL-only skips and 0 failures**.

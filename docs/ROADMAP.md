@@ -1311,7 +1311,7 @@ E3D coverage epoch/Observatory activation. Phase 13.16.2 remains locked.
 
 #### 13.16.1E3B legacy WorkItem material-writer adapters
 
-**State: COMPLETE / PASS; E3C UNLOCKED / NOT STARTED; E3D AND 13.16.2 LOCKED.** The bounded
+**State: COMPLETE / PASS; E3C UNLOCKED / NOT STARTED; E3D AND 13.16.2 LOCKED.** Closure-document consistency was synchronized from the accepted `fac48397a712ddb184fb7fac44f95b71f2860a52` baseline before E3C begins. The bounded
 implementation baseline is exact committed E3A head
 `9e97f0f0e3a1f3c9cbf66a05286e67096195ab64`. E3B adds caller-owned semantic WorkItem
 Activity staging to the remaining legacy material writer surface without changing the

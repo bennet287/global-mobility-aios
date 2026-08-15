@@ -4,11 +4,14 @@
 
 **13.16.1E3A — WRITER INVENTORY / COVERAGE-EPOCH DESIGN: COMPLETE.**
 
-**13.16.1E3B — LEGACY WORKITEM MATERIAL-WRITER ADAPTERS: IMPLEMENTED / ACCEPTANCE PENDING.**
+**13.16.1E3B — LEGACY WORKITEM MATERIAL-WRITER ADAPTERS: COMPLETE / PASS.**
+
+**13.16.1E3C — LEGACY EXECUTIVEDECISION / COUPLED ADAPTERS: UNLOCKED / NOT STARTED.**
 
 E3A writer-inventory baseline reviewed: `8bfbd40a1b4e460757b99d943a139cfd2ef83316`.
 
 E3B implementation baseline: `9e97f0f0e3a1f3c9cbf66a05286e67096195ab64`.
+E3B accepted commit: `fac48397a712ddb184fb7fac44f95b71f2860a52`.
 
 E3A was a repository-backed design/reconciliation slice only. E3B is the bounded runtime
 adapter slice described below; it does not change the database schema, Contribution
@@ -163,12 +166,12 @@ To keep the regression surface bounded, E3 is split into four internal sub-slice
 
 1. **E3A — writer inventory + coverage-epoch design: COMPLETE.** This document and roadmap
    reconciliation only; no runtime changes.
-2. **E3B — legacy WorkItem material-writer adapters: IMPLEMENTED / ACCEPTANCE PENDING.** Cover direct
+2. **E3B — legacy WorkItem material-writer adapters: COMPLETE / PASS.** Cover direct
    creation/routing, requeue/control/deadline/escalation/emergency Work-side changes,
    governance holds, terminal execution/cancellation/failure, explicit retry, evidence
    amendment/release, and linked Work outcome staging. Runtime claim/retry telemetry stays
    excluded.
-3. **E3C — legacy ExecutiveDecision material-writer adapters: LOCKED pending E3B.** Cover
+3. **E3C — legacy ExecutiveDecision material-writer adapters: UNLOCKED / NOT STARTED.** Cover
    direct creation, deadlines, escalation/ownership, CEO hold/Board promotion, Board/CEO
    terminal outcomes, and coupled transaction regression. Lease/reminder/evidence-only
    writes stay excluded.
@@ -201,10 +204,16 @@ material-writer surface while preserving each writer's existing transaction owne
 - `activity_history_established` remains `false`, no historical backfill exists, and no
   Contribution authority is created by Activity.
 
-Focused E3B regression coverage is added for semantic ordering, hidden requeue behavior,
+Focused E3B regression coverage covers semantic ordering, hidden requeue behavior,
 emergency replay, terminal-vs-retry classification, cancellation, evidence release,
-coupled Work outcomes, and Activity-stage rollback. E3B is not COMPLETE / PASS until the
-repository acceptance commands and isolated PostgreSQL 0074 transaction checks pass.
+coupled Work outcomes, and Activity-stage rollback. E3B acceptance is complete: the focused
+suite passed **10 tests with 1 expected PostgreSQL-only skip**, the surrounding organization
+regression passed **143 tests with 2 expected skips**, the complete API suite passed
+**780 tests with 3 expected PostgreSQL-only skips**, and the isolated PostgreSQL transaction
+contracts passed **3/3** at Alembic `0074_durable_contribution_activity_model`.
+`organization_activity_streams` and `organization_activities` were both zero before and after
+that PostgreSQL acceptance run. Repository policy, release consistency, migration consistency,
+and `git diff --check` also passed. E3C is therefore the next unlocked slice.
 
 ## 8. Acceptance invariants for later E3 slices
 
@@ -226,9 +235,10 @@ Every adapted material writer must prove:
 
 ## 9. E3A disposition
 
-The legacy writer surface is now sufficiently mapped to begin implementation without
-silently promoting telemetry or mutating historical rows. The safe next slice is E3B,
-starting with WorkItem material writers and a legacy-to-semantic internal context bridge.
+The legacy writer surface is mapped and E3B WorkItem material-writer reconciliation is
+accepted without promoting telemetry or mutating historical rows. The safe next slice is E3C,
+covering only legacy ExecutiveDecision material writers and the Decision side of coupled
+transactions while preserving the exclusions and transaction boundaries defined above.
 
 E3A itself is documentation/design only and requires no API/full-suite rerun. Repository
 policy, release consistency, migration consistency, and `git diff --check` are the only
