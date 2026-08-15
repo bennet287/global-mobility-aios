@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-15 - Phase 13.16.1E3C legacy ExecutiveDecision / coupled Activity adapters acceptance
+
+- Closed 13.16.1E3C as **COMPLETE / PASS** after the focused E3C suite passed **7 tests with 1 expected PostgreSQL-only skip and 0 failures**, the combined organization/E3B/E3C regression passed **160 tests with 4 expected skips and 0 failures**, and the complete API suite passed **787 tests with 4 expected PostgreSQL-only skips and 0 failures**.
+- Repository policy, release consistency, migration consistency, and `git diff --check` all passed. The migration check remained at Alembic head `0074_durable_contribution_activity_model` with **118 registered tables**.
+- Ran four bounded PostgreSQL Activity transaction contracts against isolated `gmai-pg-13161b-service`: **4 passed, 0 failed**. `organization_activity_streams = 0` and `organization_activities = 0` both before and after acceptance, Alembic remained at 0074, and the isolated PostgreSQL container was returned to stopped state.
+- E3C closes the legacy ExecutiveDecision / coupled material-writer Activity gap, including the coupled Board-promotion Work-side omission discovered during E3C tracing. `activity_history_established` remains `false`; no historical backfill is authorized. **13.16.1E3D explicit immutable Activity coverage epoch + Observatory activation is now UNLOCKED / NOT STARTED**; Phase 13.16.2 remains locked.
+
+## 2026-08-15 - Phase 13.16.1E3C legacy ExecutiveDecision / coupled Activity adapters implementation
+
+- Implemented the bounded E3C semantic-Activity bridge from exact committed baseline `485fd85219c7ae26866c87cd27d9ef9cd0abf3d1` without a migration, public API expansion, historical backfill, Contribution-policy change, Observatory activation, or database mutation. Direct legacy Decision creation, deadlines, material ownership/status/authority escalation, emergency promotion, CEO holds, CEO-to-Board promotion, and terminal Board/CEO outcomes now stage curated Decision Activity in each writer's existing transaction boundary.
+- Preserved caller-owned automation-event transactions and the existing multi-commit emergency/coordination boundaries. CEO coordination claim/recovery/release leases, Decision evidence/recommendation enrichment, and deadline reminder timestamps remain excluded telemetry/intermediate state; Activity still cannot create a Contribution and `activity_history_established` remains `false`.
+- E3C tracing found one bounded coupled-path Work omission left by the accepted E3B implementation: `_promote_decision_to_board(...)` mutated linked Work to `pending_board` without staging the Work-side Activity. E3C owns coupled-writer closure, so that path now stages both Decision escalation and linked Work status before the existing pre-packet commit. Historical E3B test evidence is unchanged; complete legacy writer closure is deferred until E3C acceptance.
+- Added 8 focused E3C regressions covering Decision creation/deadline replay/outcomes, Board-reserved coupled outcome, emergency Decision escalation replay, material CEO hold versus lease telemetry, coupled Board promotion, caller-owned automation rollback, Activity-stage rollback, and one PostgreSQL-only Decision deadline atomicity/no-residue contract. E3C is **IMPLEMENTED / ACCEPTANCE PENDING**; E3D and Phase 13.16.2 remain locked.
+
 ## 2026-08-15 - Phase 13.16.1E3B closure-document consistency correction
 
 - Synchronized `docs/ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md` with the already accepted E3B closure at commit `fac48397a712ddb184fb7fac44f95b71f2860a52`: E3B is **COMPLETE / PASS**, E3C is **UNLOCKED / NOT STARTED**, and E3D remains locked pending E3C.

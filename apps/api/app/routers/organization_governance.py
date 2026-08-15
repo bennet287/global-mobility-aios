@@ -59,6 +59,7 @@ from app.services.organization_governance import (
     ensure_foundation_positions,
     escalate_work_item,
     execute_work_item,
+    legacy_decision_activity_context,
     legacy_work_activity_context,
     mark_work_emergency,
     resume_position,
@@ -68,7 +69,10 @@ from app.services.organization_governance import (
     set_work_deadline,
     suspend_position,
 )
-from app.services.organization_semantic_activity import stage_work_item_created_activity
+from app.services.organization_semantic_activity import (
+    stage_decision_created_activity,
+    stage_work_item_created_activity,
+)
 
 
 router = APIRouter(prefix="/api/v1/organization", tags=["ai-organization-v13.0"])
@@ -235,9 +239,10 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
         delegate_people_work(session, work)
     elif payload.department.strip().lower() == "legal" and runtime_available:
         delegate_legal_work(session, work)
+    decision: ExecutiveDecision | None = None
     if authority in {"L3", "L4"}:
         owner = "board" if authority == "L4" else "ceo"
-        session.add(ExecutiveDecision(
+        decision = ExecutiveDecision(
             decision_key=f"decision:{work.id}", work_item_id=work.id,
             authority_level=authority, requested_by_position=work.assigned_position_key,
             decision_owner_position=owner, title=f"Decision required: {work.title}",
@@ -246,7 +251,8 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
             alternatives_json=json.dumps(["proceed", "revise", "reject"]),
             evidence_json=json.dumps([]), impact_json=json.dumps({"risk_level": risk}),
             status="pending_board" if authority == "L4" else "pending_ceo",
-        ))
+        )
+        session.add(decision)
         session.add(RiskEscalation(
             risk_key=f"risk:{work.id}", work_item_id=work.id,
             category="governance", severity=risk,
@@ -265,6 +271,12 @@ def create_work_item(payload: WorkItemCreate, request: Request, session: Session
             legacy_work_activity_context(work, actor=actor),
             work,
         )
+        if decision is not None:
+            stage_decision_created_activity(
+                session,
+                legacy_decision_activity_context(session, decision, actor=actor),
+                decision,
+            )
         session.commit()
     except IntegrityError:
         session.rollback()

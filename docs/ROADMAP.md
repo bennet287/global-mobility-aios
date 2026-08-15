@@ -56,7 +56,7 @@ The target operating model is defined in
 | Phase 11 | Complete | Corporate, entrepreneur, business, wealth, investment, family-office, and tax/treaty mobility delivered |
 | Phase 12 features | Delivered | Portals, partner APIs, governed automation, and government/agency workflows delivered |
 | Phase 12 release posture | Stabilized | Database alignment, client-session security, API regression coverage, and local release gates pass |
-| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is COMPLETE / PASS, the first bounded runtime emitter is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is COMPLETE / PASS; 13.16.1D3C pathway publication is COMPLETE / PASS; 13.16.1D4 deferred-domain review/integrated regression is COMPLETE / PASS, and 13.16.1E0 Observatory/read-model reconciliation design is COMPLETE; 13.16.1E1 safe snapshot/reconciliation read API is COMPLETE / PASS; 13.16.1E2 Activity staging/semantic coverage is COMPLETE / PASS; 13.16.1E3 is IN PROGRESS with E3A writer inventory/coverage-epoch design COMPLETE, E3B legacy WorkItem material-writer adapters COMPLETE / PASS, and E3C Decision/coupled adapters UNLOCKED / NOT STARTED; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
+| Phase 13 | Experience implementation active | Board controls and bounded department runtimes are delivered; Round 6 correctness is PASS; Phase 13.16.0 is CLOSED / PASS; Phase 13.16.1 is IN PROGRESS with design, 13.16.1A persistence, 13.16.1B command/service, 13.16.1C authenticated organization API, and 13.16.1D0 emitter mapping/design complete; 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS, 13.16.1D2 source-certification review emission is COMPLETE / PASS, the first bounded runtime emitter is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is COMPLETE / PASS; 13.16.1D3C pathway publication is COMPLETE / PASS; 13.16.1D4 deferred-domain review/integrated regression is COMPLETE / PASS, and 13.16.1E0 Observatory/read-model reconciliation design is COMPLETE; 13.16.1E1 safe snapshot/reconciliation read API is COMPLETE / PASS; 13.16.1E2 Activity staging/semantic coverage is COMPLETE / PASS; 13.16.1E3 is IN PROGRESS with E3A writer inventory/coverage-epoch design COMPLETE, E3B legacy WorkItem material-writer adapters COMPLETE / PASS, E3C Decision/coupled adapters COMPLETE / PASS, and E3D coverage-epoch/Observatory activation UNLOCKED / NOT STARTED; genuine external-human acceptance remains required later before Phase 13 closure, cross-functional programmes, or Phase 14 |
 | Phase 14 | Not started | Global-scale infrastructure and validated platform scaling |
 
 ### Current quality evidence
@@ -65,8 +65,8 @@ The target operating model is defined in
 - Repository policy: passing.
 - Migration-chain integrity: code, fresh SQLite, and isolated fresh PostgreSQL migration cycles are verified at `0074_durable_contribution_activity_model`; the preserved PostgreSQL environment remains intentionally unchanged at `0073_austria_candidate_integrity`.
 - Docker production-profile validation: passing.
-- API regression baseline: **780 passed, 3 expected PostgreSQL-only tests skipped, 0 failed** after Phase 13.16.1E3B acceptance. The corrected focused E3B suite passes **10 tests with 1 expected PostgreSQL-only skip**, and the surrounding organization regression passes **143 tests with 2 expected skips**. E3B is **COMPLETE / PASS**; E3C Decision/coupled adapters are unlocked next.
-- E2 remains **COMPLETE / PASS**. Its accepted complete API baseline was **770 passed, 2 expected PostgreSQL-only tests skipped, 0 failed**, with two bounded isolated-PostgreSQL Activity contracts passing **2/2** at Alembic 0074. E3B extends semantic Activity coverage across the remaining legacy WorkItem material-writer surface but still does not establish complete history because Decision/coupled writers and the explicit coverage epoch remain outstanding.
+- API regression baseline: **787 passed, 4 expected PostgreSQL-only tests skipped, 0 failed** after Phase 13.16.1E3C acceptance. The focused E3C suite passes **7 tests with 1 expected PostgreSQL-only skip**, the combined organization/E3B/E3C regression passes **160 tests with 4 expected skips**, and the isolated PostgreSQL Activity contracts pass **4/4** with zero Activity residue before/after at Alembic `0074_durable_contribution_activity_model`. E3B and E3C are **COMPLETE / PASS**; E3D coverage-epoch/Observatory activation is **UNLOCKED / NOT STARTED**.
+- E2 remains **COMPLETE / PASS**. Its accepted complete API baseline was **770 passed, 2 expected PostgreSQL-only tests skipped, 0 failed**, with two bounded isolated-PostgreSQL Activity contracts passing **2/2** at Alembic 0074. E3B extends semantic Activity coverage across the remaining legacy WorkItem material-writer surface but still does not establish complete history because E3C Decision/coupled acceptance and the explicit coverage epoch remain outstanding.
 - SQLite migration compatibility: **passing through current migration head `0074_durable_contribution_activity_model`** via the fresh-database upgrade/downgrade/re-upgrade regression suite.
 - PostgreSQL: the preserved authoritative `gmai` Docker database remains **untouched at `0073_austria_candidate_integrity`**. The isolated `gmai-pg-13161b-service` database remained at `0074_durable_contribution_activity_model` and passed the three bounded E3B/E2 Activity transaction contracts **3/3** with `organization_activity_streams = 0` and `organization_activities = 0` both before and after acceptance. The isolated container was returned to stopped state; the authoritative integration database was not started or migrated.
 - Local quality gate: compilation, evidence-pack validation, repository policy,
@@ -96,7 +96,7 @@ internal rendered acceptance passed. Phase 13.16.1 is **IMPLEMENTATION IN PROGRE
 DESIGN, 13.16.1A PERSISTENCE, 13.16.1B COMMAND/SERVICE, 13.16.1C AUTHENTICATED
 ORGANIZATION API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1
 TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE COMPLETE / PASS; 13.16.1E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS UNLOCKED / NOT STARTED**; its
+COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE COMPLETE / PASS; 13.16.1E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS COMPLETE / PASS; E3D COVERAGE-EPOCH/OBSERVATORY ACTIVATION UNLOCKED / NOT STARTED**; its
 implementation contract is recorded in
 [DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md](DURABLE_CONTRIBUTION_ACTIVITY_MODEL_V13_16_1.md).
 This closure does not satisfy genuine external-human acceptance, which remains Phase
@@ -121,7 +121,7 @@ release gate.
    **IMPLEMENTATION IN PROGRESS — DESIGN, PERSISTENCE, COMMAND/SERVICE,
    AUTHENTICATED API, AND 13.16.1D0 EMITTER MAPPING COMPLETE; 13.16.1D1
    TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
-   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API IS COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE IS COMPLETE / PASS; 13.16.1E3 IS IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS UNLOCKED / NOT STARTED**.
+   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API IS COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE IS COMPLETE / PASS; 13.16.1E3 IS IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS COMPLETE / PASS; E3D COVERAGE-EPOCH/OBSERVATORY ACTIVATION UNLOCKED / NOT STARTED**.
 5. **Phase 13.16.2-13.16.9 experience implementation** — build role-based shells,
    owner observatory, department workspaces, dependencies, owner inbox, mobility-user
    and operator experiences, and consolidated evidence/provenance presentation.
@@ -726,7 +726,7 @@ API, AND 13.16.1D0 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 CALLER-OWNED
 TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
 COMPLETE / PASS; FIRST BOUNDED RUNTIME CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0
 OBSERVATORY/READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 SAFE SNAPSHOT /
-RECONCILIATION READ API COMPLETE / PASS; E2 ACTIVITY COVERAGE COMPLETE / PASS; E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS UNLOCKED / NOT STARTED.** The
+RECONCILIATION READ API COMPLETE / PASS; E2 ACTIVITY COVERAGE COMPLETE / PASS; E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS COMPLETE / PASS; E3D COVERAGE-EPOCH/OBSERVATORY ACTIVATION UNLOCKED / NOT STARTED.** The
 fresh Round 6 mobility-user and professional shadow reviews passed the correctness
 gate, and Phase 13.16.0 implementation plus independent internal rendered acceptance
 are complete. Phase 13.17 external-human acceptance is not satisfied.
@@ -766,7 +766,7 @@ Phase 13.16.0 final disposition is **CLOSED / PASS**:
   TRANSACTION STAGING COMPLETE / PASS; 13.16.1D2 SOURCE-CERTIFICATION EMISSION
   COMPLETE / PASS; FIRST BOUNDED RUNTIME EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS; 13.16.1E0
   OBSERVATORY/READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 SAFE SNAPSHOT /
-  RECONCILIATION READ API COMPLETE / PASS; E2 ACTIVITY COVERAGE COMPLETE / PASS; E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS UNLOCKED / NOT STARTED**.
+  RECONCILIATION READ API COMPLETE / PASS; E2 ACTIVITY COVERAGE COMPLETE / PASS; E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS COMPLETE / PASS; E3D COVERAGE-EPOCH/OBSERVATORY ACTIVATION UNLOCKED / NOT STARTED**.
 - Phase 13.17 genuine external-human acceptance: **still required**.
 - Phase 14: **locked**.
 
@@ -868,7 +868,7 @@ Required implementation order:
 4. 13.16.1D3B regulatory-change publication adapter — **COMPLETE / PASS**.
 5. 13.16.1D3C pathway-version publication adapter — **COMPLETE / PASS**.
 6. 13.16.1D4 deferred-domain review plus integrated emitter regression — **COMPLETE / PASS**.
-7. 13.16.1E0 Observatory/read-model source reconciliation design — **COMPLETE**; 13.16.1E1 safe snapshot + Contribution reconciliation read API — **COMPLETE / PASS**; 13.16.1E2 Activity staging/semantic coverage — **COMPLETE / PASS**; 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure — **IN PROGRESS; E3A DESIGN COMPLETE, E3B COMPLETE / PASS, E3C UNLOCKED / NOT STARTED**.
+7. 13.16.1E0 Observatory/read-model source reconciliation design — **COMPLETE**; 13.16.1E1 safe snapshot + Contribution reconciliation read API — **COMPLETE / PASS**; 13.16.1E2 Activity staging/semantic coverage — **COMPLETE / PASS**; 13.16.1E3 legacy-writer reconciliation / Activity-coverage closure — **IN PROGRESS; E3A DESIGN COMPLETE, E3B COMPLETE / PASS, E3C COMPLETE / PASS, E3D UNLOCKED / NOT STARTED**.
 
 #### 13.16.1D1 caller-owned transaction staging
 
@@ -1047,7 +1047,7 @@ policy, release consistency, migration consistency, and `git diff --check` pass 
 Alembic head `0074_durable_contribution_activity_model` with 118 registered tables.
 13.16.1D4 is therefore **COMPLETE / PASS**. 13.16.1E0 Observatory/read-model
 source reconciliation design is **COMPLETE** and 13.16.1E1 safe snapshot + Contribution
-reconciliation read API is **COMPLETE / PASS**; E2 Activity coverage is **COMPLETE / PASS**; E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled adapters are **UNLOCKED / NOT STARTED**. Phase 13.16.1 remains **IN PROGRESS**.
+reconciliation read API is **COMPLETE / PASS**; E2 Activity coverage is **COMPLETE / PASS**; E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled adapters are **COMPLETE / PASS**; E3D coverage-epoch/Observatory activation is **UNLOCKED / NOT STARTED**. Phase 13.16.1 remains **IN PROGRESS**.
 
 #### 13.16.1D4 deferred-domain review and integrated emitter regression
 
@@ -1153,7 +1153,7 @@ tables, prove tenant isolation and correction-chain semantics, identify source d
 post-coverage missing emissions without repair, and keep the current Round 6 Austria
 draft/pending state from appearing as published/certified/eligible Contribution.
 
-13.16.1E1 is now **COMPLETE / PASS**. 13.16.1E2 Activity staging/semantic coverage is **COMPLETE / PASS**; 13.16.1E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled adapters are **UNLOCKED / NOT STARTED**. Phase 13.16.2 remains locked.
+13.16.1E1 is now **COMPLETE / PASS**. 13.16.1E2 Activity staging/semantic coverage is **COMPLETE / PASS**; 13.16.1E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled adapters are **COMPLETE / PASS**; E3D coverage-epoch/Observatory activation is **UNLOCKED / NOT STARTED**. Phase 13.16.2 remains locked.
 
 #### 13.16.1E1 safe snapshot + Contribution reconciliation read API
 
@@ -1214,7 +1214,7 @@ The focused acceptance also fixed blocker department attribution to prefer the l
 WorkItem's department before the blocker record's fallback department, and narrowed the
 OpenAPI architecture guard to permit exactly the three E1 GET-only routes without opening
 arbitrary Observatory/dashboard/metrics surfaces. E1 is **COMPLETE / PASS**. E2 Activity
-staging/semantic coverage is **COMPLETE / PASS**; E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled adapters are **UNLOCKED / NOT STARTED**; Phase 13.16.2 remains locked.
+staging/semantic coverage is **COMPLETE / PASS**; E3 is **IN PROGRESS**: E3A writer inventory/coverage-epoch design is **COMPLETE** and E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled adapters are **COMPLETE / PASS**; E3D coverage-epoch/Observatory activation is **UNLOCKED / NOT STARTED**; Phase 13.16.2 remains locked.
 
 #### 13.16.1E2 caller-owned Activity staging and semantic transition coverage
 
@@ -1282,8 +1282,7 @@ E2 is **COMPLETE / PASS**, but Phase 13.16.2 remains locked because complete sem
 history coverage remains explicitly false. E3A writer inventory/coverage-epoch design is
 **COMPLETE** and the detailed reconciliation contract is recorded in
 [ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md](ORGANIZATION_ACTIVITY_WRITER_RECONCILIATION_V13_16_1E3.md).
-E3B legacy WorkItem material-writer adapters are **COMPLETE / PASS**; E3C Decision/coupled
-adapters are **UNLOCKED / NOT STARTED**, while E3D explicit coverage activation remains locked pending E3C.
+E3B legacy WorkItem material-writer adapters and E3C Decision/coupled adapters are **COMPLETE / PASS**; E3D explicit coverage activation is **UNLOCKED / NOT STARTED**.
 
 #### 13.16.1E3A legacy-writer inventory and Activity coverage-epoch design
 
@@ -1311,7 +1310,7 @@ E3D coverage epoch/Observatory activation. Phase 13.16.2 remains locked.
 
 #### 13.16.1E3B legacy WorkItem material-writer adapters
 
-**State: COMPLETE / PASS; E3C UNLOCKED / NOT STARTED; E3D AND 13.16.2 LOCKED.** Closure-document consistency was synchronized from the accepted `fac48397a712ddb184fb7fac44f95b71f2860a52` baseline before E3C begins. The bounded
+**State: COMPLETE / PASS; E3C COMPLETE / PASS; E3D UNLOCKED / NOT STARTED; 13.16.2 LOCKED.** Closure-document consistency was synchronized from the accepted `fac48397a712ddb184fb7fac44f95b71f2860a52` baseline before E3C begins. The bounded
 implementation baseline is exact committed E3A head
 `9e97f0f0e3a1f3c9cbf66a05286e67096195ab64`. E3B adds caller-owned semantic WorkItem
 Activity staging to the remaining legacy material writer surface without changing the
@@ -1322,7 +1321,7 @@ position/bootstrap requeues, position/global-control resume, deadline changes, a
 and emergency escalation, governance holds, final execution disposition, terminal failure
 and cancellation, explicit retry authorization, Technology evidence amendment/release,
 and the linked Work outcome inside Board/CEO terminal decision transactions. Decision-side
-Activity remains E3C work. Execution claims, `retry_wait`, delegation/action-output progress,
+Activity was reserved for E3C and is now accepted. Execution claims, `retry_wait`, delegation/action-output progress,
 CEO coordination leases, reminder timestamps, and Decision evidence-only refresh remain
 explicitly excluded telemetry. The global-pause Work hold also gains its previously missing
 source AuditLog in the same existing commit as the Work mutation and semantic Activity.
@@ -1343,9 +1342,48 @@ unmigrated at 0073.
 E3B therefore closes the remaining legacy WorkItem material-writer Activity gap, but it does
 not establish complete Activity history. `activity_history_established` remains `false`; no
 historical backfill or inference from mutable rows/AuditLog is authorized. E3C Decision/coupled
-adapters are now **UNLOCKED / NOT STARTED**. E3D coverage-epoch/Observatory activation remains
-locked pending E3C, and Phase 13.16.2 remains locked until the 13.16.1 sequence and exit
+adapters are now **COMPLETE / PASS**. E3D coverage-epoch/Observatory activation is now
+**UNLOCKED / NOT STARTED**, while Phase 13.16.2 remains locked until the 13.16.1 sequence and exit
 criteria are complete.
+
+#### 13.16.1E3C legacy ExecutiveDecision / coupled adapters
+
+**State: COMPLETE / PASS; E3D UNLOCKED / NOT STARTED; 13.16.2 LOCKED.** The bounded E3C
+implementation baseline is exact committed E3B closure-consistency head
+`485fd85219c7ae26866c87cd27d9ef9cd0abf3d1`. E3C adds caller-owned semantic
+ExecutiveDecision Activity to the remaining legacy material Decision writers without a
+migration, public API expansion, Contribution-policy change, historical backfill, or
+Observatory activation.
+
+Covered Decision material transitions are direct API and caller-owned automation creation,
+deadline changes with same-instant replay suppression, material owner/status/authority
+escalation, emergency promotion, CEO coordination holds, CEO-to-Board promotion, and
+terminal Board/CEO outcomes. Coupled Decision+Work writers stage both semantic sides before
+the writer's existing commit. Coordination claims/recovery/releases, evidence/recommendation
+enrichment, and reminder timestamps remain excluded telemetry/intermediate state.
+
+The E3C writer trace also found one bounded coupled-path omission in the accepted E3B code:
+`_promote_decision_to_board(...)` changed linked Work from `pending_ceo` to `pending_board`
+without staging the Work-side Activity before its pre-packet commit. E3C owns coupled-writer
+closure, so this implementation closes that Work-side omission in the same transaction while
+adding the Decision escalation Activity. The historical E3B acceptance evidence remains
+recorded as executed; legacy material-writer coverage is accepted through E3C, while complete
+historical Activity truth still requires the explicit E3D coverage epoch.
+
+Focused E3C regression coverage contains **8 tests**: Decision create/deadline/replay/outcome,
+Board-reserved coupled outcome, emergency escalation replay, CEO hold versus lease telemetry,
+CEO-to-Board coupled promotion, caller-owned automation rollback, Activity-stage rollback,
+and one PostgreSQL-only atomic Decision-deadline/no-residue contract. E3C acceptance is
+**COMPLETE / PASS**: focused E3C regression passed **7 tests with 1 expected PostgreSQL-only
+skip**; the combined organization/E3B/E3C regression passed **160 tests with 4 expected
+skips**; the complete API suite passed **787 tests with 4 expected PostgreSQL-only skips**;
+and the isolated PostgreSQL transaction contracts passed **4/4**.
+
+`organization_activity_streams` and `organization_activities` were both **0 before and after**
+PostgreSQL acceptance, Alembic remained `0074_durable_contribution_activity_model`, repository
+policy, release consistency, migration consistency, and `git diff --check` all passed, and the
+isolated PostgreSQL container was returned to stopped state. `activity_history_established`
+remains `false`; E3D coverage-epoch/Observatory activation is now **UNLOCKED / NOT STARTED**.
 
 #### Canonical validation sequence from Round 6 onward
 
@@ -1374,8 +1412,8 @@ Round 6 correctness disposition                 PASS / CLOSED
   E3 LEGACY-WRITER / COVERAGE CLOSURE IN PROGRESS
     E3A WRITER INVENTORY + COVERAGE-EPOCH DESIGN COMPLETE
     E3B WORKITEM MATERIAL-WRITER ADAPTERS COMPLETE / PASS
-    E3C DECISION/COUPLED ADAPTERS UNLOCKED / NOT STARTED
-    E3D COVERAGE EPOCH / OBSERVATORY ACTIVATION LOCKED PENDING E3C
+    E3C DECISION/COUPLED ADAPTERS COMPLETE / PASS
+    E3D COVERAGE EPOCH / OBSERVATORY ACTIVATION UNLOCKED / NOT STARTED
                     ↓
 13.16.2-13.16.9 role-based experience and observatory delivery (LOCKED)
                     ↓
@@ -1480,7 +1518,7 @@ authenticated organization API, and 13.16.1D0 emitter mapping/design are complet
 13.16.1D1 caller-owned transaction staging is COMPLETE / PASS; 13.16.1D2
 source-certification review emission is COMPLETE / PASS. The first bounded runtime emitter
 is accepted, 13.16.1D3A initial-rule / VerifiedRule publication is COMPLETE / PASS; 13.16.1D3B regulatory-change publication is COMPLETE / PASS; 13.16.1D3C pathway publication is COMPLETE / PASS; 13.16.1D4 is COMPLETE / PASS, and
-13.16.1E0 read-model reconciliation design is COMPLETE; 13.16.1E1 read API implementation is COMPLETE / PASS; 13.16.1E2 Activity coverage is COMPLETE / PASS; 13.16.1E3 is IN PROGRESS with E3A writer inventory/coverage-epoch design COMPLETE, E3B legacy WorkItem material-writer adapters COMPLETE / PASS, and E3C Decision/coupled adapters UNLOCKED / NOT STARTED.
+13.16.1E0 read-model reconciliation design is COMPLETE; 13.16.1E1 read API implementation is COMPLETE / PASS; 13.16.1E2 Activity coverage is COMPLETE / PASS; 13.16.1E3 is IN PROGRESS with E3A writer inventory/coverage-epoch design COMPLETE, E3B legacy WorkItem material-writer adapters COMPLETE / PASS, E3C Decision/coupled adapters COMPLETE / PASS, and E3D coverage-epoch/Observatory activation UNLOCKED / NOT STARTED.
 
 #### 13.16 delivery sequence
 
@@ -1509,7 +1547,7 @@ COMMAND/SERVICE LAYER, 13.16.1C AUTHENTICATED ORGANIZATION API, AND 13.16.1D0
 EMITTER MAPPING/DESIGN COMPLETE; 13.16.1D1 TRANSACTION STAGING COMPLETE / PASS;
 13.16.1D2 SOURCE-CERTIFICATION EMISSION COMPLETE / PASS; FIRST BOUNDED RUNTIME
 CONTRIBUTION EMITTER ACCEPTED; 13.16.1D3A INITIAL-RULE / VERIFIED-RULE PUBLICATION COMPLETE / PASS; 13.16.1D3B REGULATORY-CHANGE PUBLICATION COMPLETE / PASS; 13.16.1D3C PATHWAY PUBLICATION COMPLETE / PASS; 13.16.1D4 DEFERRED-DOMAIN / INTEGRATED REGRESSION COMPLETE / PASS;
-13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE COMPLETE / PASS; 13.16.1E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS UNLOCKED / NOT STARTED.** The current-state
+13.16.1E0 READ-MODEL RECONCILIATION DESIGN COMPLETE; 13.16.1E1 READ API COMPLETE / PASS; 13.16.1E2 ACTIVITY COVERAGE COMPLETE / PASS; 13.16.1E3 IN PROGRESS — E3A WRITER AUDIT/COVERAGE-EPOCH DESIGN COMPLETE; E3B WORKITEM ADAPTERS COMPLETE / PASS; E3C DECISION/COUPLED ADAPTERS COMPLETE / PASS; E3D COVERAGE-EPOCH/OBSERVATORY ACTIVATION UNLOCKED / NOT STARTED.** The current-state
 inventory, six canonical contracts, exact proposed database model, migration plan,
 API/service direction, observatory aggregation boundary, backfill policy, and test
 matrix are defined in
@@ -1525,7 +1563,7 @@ bounded pagination, and typed responses. The unchecked items below now remain re
 the accepted D emitter set exists, but API/emitter completion does not claim that the
 Observatory read model or UI exists.
 
-Remaining implementation order: proceed with **13.16.1E3C legacy ExecutiveDecision / coupled adapters** now that E3B WorkItem material-writer adapters are COMPLETE / PASS. Then establish the explicit Activity coverage epoch in E3D before enabling transition-period throughput/cycle-time metrics. E1 safe snapshot + Contribution reconciliation remains COMPLETE / PASS, and enabled Contribution adapters must continue to reconcile to their authoritative source tables before Observatory/read-model acceptance.
+Remaining implementation order: establish the explicit Activity coverage epoch in **13.16.1E3D**, now **UNLOCKED / NOT STARTED**, before enabling transition-period throughput/cycle-time metrics. E1 safe snapshot + Contribution reconciliation remains COMPLETE / PASS, and enabled Contribution adapters must continue to reconcile to their authoritative source tables before Observatory/read-model acceptance.
 Phase 13.16.2 remains locked until that sequence and the 13.16.1 exit criteria pass.
 
 - [x] Define separate durable records or explicitly versioned event contracts for

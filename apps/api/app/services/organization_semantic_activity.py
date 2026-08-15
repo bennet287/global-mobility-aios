@@ -667,6 +667,142 @@ def stage_decision_outcome_activity(
     )
 
 
+
+def stage_decision_deadline_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    decision: ExecutiveDecision,
+    *,
+    previous_due_at: datetime | None,
+) -> OrganizationActivity:
+    payload = {
+        "previous_due_at": previous_due_at,
+        "due_at": decision.due_at,
+        "status": decision.status,
+        "decision_owner_position": decision.decision_owner_position,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="executive_decision",
+        source_id=decision.id,
+        stream_key=f"decision:{decision.id}",
+        activity_class=OrganizationActivityClass.decision,
+        activity_type="organization.decision.deadline.set.v1",
+        title="Executive decision deadline set",
+        summary="The governed deadline for an executive decision changed.",
+        occurred_at=decision.updated_at,
+        payload=payload,
+        department=(
+            _linked_work_department(session, context, decision.work_item_id)
+            or context.department
+        ),
+        work_item_id=decision.work_item_id,
+        lead_id=decision.lead_id,
+        profile_id=decision.profile_id,
+        application_id=decision.application_id,
+        corporate_account_id=decision.corporate_account_id,
+        corporate_mobility_case_id=decision.corporate_mobility_case_id,
+    )
+
+
+def stage_decision_escalation_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    decision: ExecutiveDecision,
+    *,
+    previous_status: str,
+    previous_owner_position: str,
+    previous_authority_level: str,
+    reason: str,
+    emergency: bool = False,
+) -> OrganizationActivity:
+    payload = {
+        "previous_status": previous_status,
+        "status": decision.status,
+        "previous_owner_position": previous_owner_position,
+        "decision_owner_position": decision.decision_owner_position,
+        "previous_authority_level": previous_authority_level,
+        "authority_level": decision.authority_level,
+        "reason": reason,
+        "emergency": emergency,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="executive_decision",
+        source_id=decision.id,
+        stream_key=f"decision:{decision.id}",
+        activity_class=OrganizationActivityClass.decision,
+        activity_type=(
+            "organization.decision.emergency_escalated.v1"
+            if emergency
+            else "organization.decision.escalated.v1"
+        ),
+        title=(
+            "Executive decision emergency escalation"
+            if emergency
+            else "Executive decision escalated"
+        ),
+        summary=(
+            "Emergency decision authority or ownership moved to a higher governed boundary."
+            if emergency
+            else "Decision authority or ownership moved to a higher governed boundary."
+        ),
+        occurred_at=decision.updated_at,
+        payload=payload,
+        department=(
+            _linked_work_department(session, context, decision.work_item_id)
+            or context.department
+        ),
+        work_item_id=decision.work_item_id,
+        lead_id=decision.lead_id,
+        profile_id=decision.profile_id,
+        application_id=decision.application_id,
+        corporate_account_id=decision.corporate_account_id,
+        corporate_mobility_case_id=decision.corporate_mobility_case_id,
+    )
+
+
+def stage_decision_held_activity(
+    session: Session,
+    context: OrganizationCommandContext,
+    decision: ExecutiveDecision,
+    *,
+    previous_status: str,
+    reason: str,
+) -> OrganizationActivity:
+    payload = {
+        "previous_status": previous_status,
+        "status": decision.status,
+        "decision_owner_position": decision.decision_owner_position,
+        "authority_level": decision.authority_level,
+        "reason": reason,
+    }
+    return _stage_semantic_activity(
+        session,
+        context,
+        source_type="executive_decision",
+        source_id=decision.id,
+        stream_key=f"decision:{decision.id}",
+        activity_class=OrganizationActivityClass.decision,
+        activity_type="organization.decision.held.v1",
+        title="Executive decision held",
+        summary="CEO coordination returned a governed decision to pending review without recording an outcome.",
+        occurred_at=decision.updated_at,
+        payload=payload,
+        department=(
+            _linked_work_department(session, context, decision.work_item_id)
+            or context.department
+        ),
+        work_item_id=decision.work_item_id,
+        lead_id=decision.lead_id,
+        profile_id=decision.profile_id,
+        application_id=decision.application_id,
+        corporate_account_id=decision.corporate_account_id,
+        corporate_mobility_case_id=decision.corporate_mobility_case_id,
+    )
+
 def _contribution_stream_root(
     session: Session,
     context: OrganizationCommandContext,

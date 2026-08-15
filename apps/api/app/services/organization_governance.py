@@ -33,6 +33,11 @@ from app.services.controlled_agents import run_controlled_agent
 from app.services.department_runtime import DEPARTMENT_RUNTIMES, department_runtime_spec
 from app.services.organization_command import OrganizationCommandContext
 from app.services.organization_semantic_activity import (
+    stage_decision_created_activity,
+    stage_decision_deadline_activity,
+    stage_decision_escalation_activity,
+    stage_decision_held_activity,
+    stage_decision_outcome_activity,
     stage_work_item_cancellation_requested_activity,
     stage_work_item_created_activity,
     stage_work_item_deadline_activity,
@@ -47,18 +52,7 @@ from app.services.organization_semantic_activity import (
 SOURCE = "ai_organization_v13.0"
 
 
-def legacy_work_activity_context(
-    work: OrganizationalWorkItem,
-    *,
-    actor: str,
-) -> OrganizationCommandContext:
-    """Bridge legacy governance writers into the caller-owned semantic Activity ledger.
-
-    This is an internal integration context only. It preserves the legacy default-tenant
-    boundary and attributes organizational ownership from the governed WorkItem rather
-    than treating a worker/agent identity as public command authority.
-    """
-
+def _legacy_activity_actor(actor: str) -> tuple[str, OrganizationActorType]:
     identity = actor.strip() or "system"
     lowered = identity.lower()
     if lowered == "system" or lowered.startswith("automation"):
@@ -69,6 +63,17 @@ def legacy_work_activity_context(
         actor_type = OrganizationActorType.agent
     else:
         actor_type = OrganizationActorType.human
+    return identity, actor_type
+
+
+def legacy_work_activity_context(
+    work: OrganizationalWorkItem,
+    *,
+    actor: str,
+) -> OrganizationCommandContext:
+    """Bridge legacy governance Work writers into the caller-owned Activity ledger."""
+
+    identity, actor_type = _legacy_activity_actor(actor)
     return OrganizationCommandContext(
         tenant_key=work.tenant_key or "default",
         actor_id=identity,
@@ -79,6 +84,33 @@ def legacy_work_activity_context(
         position_key=work.assigned_position_key,
         authority_level=work.authority_level,
         correlation_key=f"legacy-work:{work.id}",
+    )
+
+
+def legacy_decision_activity_context(
+    session: Session,
+    decision: ExecutiveDecision,
+    *,
+    actor: str,
+) -> OrganizationCommandContext:
+    """Bridge legacy governance Decision writers into the caller-owned Activity ledger."""
+
+    identity, actor_type = _legacy_activity_actor(actor)
+    work = (
+        session.get(OrganizationalWorkItem, decision.work_item_id)
+        if decision.work_item_id is not None
+        else None
+    )
+    return OrganizationCommandContext(
+        tenant_key=decision.tenant_key or "default",
+        actor_id=identity,
+        actor_type=actor_type,
+        authenticated_user_id=identity,
+        role="operator",
+        department=work.department if work is not None else None,
+        position_key=decision.decision_owner_position,
+        authority_level=decision.authority_level,
+        correlation_key=f"legacy-decision:{decision.id}",
     )
 
 
@@ -2413,6 +2445,12 @@ def board_override_decision(
         source=SOURCE,
     )
     try:
+        stage_decision_outcome_activity(
+            session,
+            legacy_decision_activity_context(session, decision, actor=actor),
+            decision,
+            previous_status=before_status,
+        )
         if work is not None and work_previous_status is not None:
             _stage_legacy_work_status(
                 session,
@@ -2483,6 +2521,8 @@ def set_decision_deadline(
 ) -> ExecutiveDecision:
     if decision.status not in {"pending_ceo", "coordinating_ceo", "pending_board"}:
         raise ValueError("Cannot set deadline on a decided decision")
+    previous_due_at = decision.due_at
+    deadline_changed = not _same_datetime_instant(previous_due_at, due_at)
     decision.due_at = due_at
     decision.updated_at = _now()
     session.add(decision)
@@ -2495,7 +2535,18 @@ def set_decision_deadline(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        if deadline_changed:
+            stage_decision_deadline_activity(
+                session,
+                legacy_decision_activity_context(session, decision, actor=actor),
+                decision,
+                previous_due_at=previous_due_at,
+            )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(decision)
     return decision
 
@@ -2522,18 +2573,31 @@ def escalate_work_item(
         work.is_emergency = True
     session.add(work)
 
-    # Update or create decision ownership if this is L3/L4 work.
+    # Update Decision ownership/status in the same existing Work escalation transaction.
     decision = session.exec(
         select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
     ).first()
+    decision_before: tuple[str, str, str] | None = None
     if decision is not None and decision.status in {"pending_ceo", "pending_board"}:
+        decision_before = (
+            decision.status,
+            decision.decision_owner_position,
+            decision.authority_level,
+        )
         decision.decision_owner_position = parent
         if parent == "board" or emergency:
             decision.status = "pending_board"
             decision.coordination_token = None
             decision.coordination_claimed_at = None
-        decision.updated_at = _now()
-        session.add(decision)
+        if (
+            decision.status,
+            decision.decision_owner_position,
+            decision.authority_level,
+        ) != decision_before:
+            decision.updated_at = _now()
+            session.add(decision)
+        else:
+            decision_before = None
 
     # Open/refresh a risk escalation record.
     risk = session.exec(
@@ -2589,6 +2653,17 @@ def escalate_work_item(
             reason=reason.strip(),
             emergency=emergency,
         )
+        if decision is not None and decision_before is not None:
+            stage_decision_escalation_activity(
+                session,
+                legacy_decision_activity_context(session, decision, actor=actor),
+                decision,
+                previous_status=decision_before[0],
+                previous_owner_position=decision_before[1],
+                previous_authority_level=decision_before[2],
+                reason=reason.strip(),
+                emergency=emergency,
+            )
         session.commit()
     except Exception:
         session.rollback()
@@ -2694,6 +2769,8 @@ def mark_work_emergency(
     decision = session.exec(
         select(ExecutiveDecision).where(ExecutiveDecision.work_item_id == work.id)
     ).first()
+    decision_created = decision is None
+    decision_before: tuple[str, str, str] | None = None
     if decision is None:
         decision = ExecutiveDecision(
             decision_key=f"decision:{work.id}",
@@ -2717,13 +2794,25 @@ def mark_work_emergency(
         )
         session.add(decision)
     else:
+        decision_before = (
+            decision.status,
+            decision.decision_owner_position,
+            decision.authority_level,
+        )
         decision.authority_level = "L4"
         decision.decision_owner_position = "board"
         decision.status = "pending_board"
         decision.coordination_token = None
         decision.coordination_claimed_at = None
-        decision.updated_at = _now()
-        session.add(decision)
+        if (
+            decision.status,
+            decision.decision_owner_position,
+            decision.authority_level,
+        ) != decision_before:
+            decision.updated_at = _now()
+            session.add(decision)
+        else:
+            decision_before = None
 
     risk = session.exec(
         select(RiskEscalation).where(
@@ -2781,6 +2870,23 @@ def mark_work_emergency(
             actor=actor,
             previous_status=previous_status,
         )
+        if decision_created:
+            stage_decision_created_activity(
+                session,
+                legacy_decision_activity_context(session, decision, actor=actor),
+                decision,
+            )
+        elif decision_before is not None:
+            stage_decision_escalation_activity(
+                session,
+                legacy_decision_activity_context(session, decision, actor=actor),
+                decision,
+                previous_status=decision_before[0],
+                previous_owner_position=decision_before[1],
+                previous_authority_level=decision_before[2],
+                reason=reason.strip(),
+                emergency=True,
+            )
         session.commit()
     except Exception:
         session.rollback()
@@ -2849,6 +2955,7 @@ def route_automation_event(
     session.flush()
     delegate_operations_work(session, work, include_application_readiness=True)
 
+    decision: ExecutiveDecision | None = None
     if authority in {"L3", "L4"}:
         owner = "board" if authority == "L4" else "ceo"
         decision = ExecutiveDecision(
@@ -2894,6 +3001,12 @@ def route_automation_event(
         legacy_work_activity_context(work, actor=actor),
         work,
     )
+    if decision is not None:
+        stage_decision_created_activity(
+            session,
+            legacy_decision_activity_context(session, decision, actor=actor),
+            decision,
+        )
     return work, True
 
 
@@ -4992,6 +5105,7 @@ def _hold_ceo_decision(
         session.rollback()
         raise ValueError("CEO coordination lease was lost before the hold was recorded")
     session.expire(decision)
+    session.refresh(decision)
     if previous_reason != reason:
         record_audit(
             session,
@@ -5003,7 +5117,18 @@ def _hold_ceo_decision(
             actor=actor,
             source=SOURCE,
         )
-    session.commit()
+    try:
+        stage_decision_held_activity(
+            session,
+            legacy_decision_activity_context(session, decision, actor=actor),
+            decision,
+            previous_status="coordinating_ceo",
+            reason=reason,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(decision)
     return decision
 
@@ -5020,7 +5145,9 @@ def _promote_decision_to_board(
     before = {
         "status": decision.status,
         "decision_owner_position": decision.decision_owner_position,
+        "authority_level": decision.authority_level,
     }
+    work_previous_status = work.status
     now = _now()
     with session.no_autoflush:
         promoted = session.exec(
@@ -5045,6 +5172,7 @@ def _promote_decision_to_board(
         session.rollback()
         raise ValueError("CEO coordination lease was lost before Board escalation")
     session.expire(decision)
+    session.refresh(decision)
     work.status = "pending_board"
     work.escalated_at = work.escalated_at or now
     work.updated_at = now
@@ -5085,7 +5213,26 @@ def _promote_decision_to_board(
         actor=actor,
         source=SOURCE,
     )
-    session.commit()
+    try:
+        stage_decision_escalation_activity(
+            session,
+            legacy_decision_activity_context(session, decision, actor=actor),
+            decision,
+            previous_status=before["status"],
+            previous_owner_position=before["decision_owner_position"],
+            previous_authority_level=before["authority_level"],
+            reason=reason,
+        )
+        _stage_legacy_work_status(
+            session,
+            work,
+            actor=actor,
+            previous_status=work_previous_status,
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(decision)
     create_board_packet(
         session,
@@ -5739,6 +5886,7 @@ def decide_executive_decision(
             raise ValueError("CEO decision requires complete, non-dissenting executive consultations")
     else:
         raise ValueError("Unsupported decision actor position")
+    decision_previous_status = decision.status
     now = _now()
     if actor_position == "ceo":
         with session.no_autoflush:
@@ -5768,6 +5916,7 @@ def decide_executive_decision(
             session.rollback()
             raise ValueError("CEO coordination lease was lost before the decision was recorded")
         session.expire(decision)
+        session.refresh(decision)
     else:
         decision.status = outcome
         decision.coordination_token = None
@@ -5797,6 +5946,12 @@ def decide_executive_decision(
         source=SOURCE,
     )
     try:
+        stage_decision_outcome_activity(
+            session,
+            legacy_decision_activity_context(session, decision, actor=actor),
+            decision,
+            previous_status=decision_previous_status,
+        )
         if work is not None and work_previous_status is not None:
             _stage_legacy_work_status(
                 session,

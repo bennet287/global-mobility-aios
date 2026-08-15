@@ -6,7 +6,7 @@
 
 **13.16.1E3B — LEGACY WORKITEM MATERIAL-WRITER ADAPTERS: COMPLETE / PASS.**
 
-**13.16.1E3C — LEGACY EXECUTIVEDECISION / COUPLED ADAPTERS: UNLOCKED / NOT STARTED.**
+**13.16.1E3C — LEGACY EXECUTIVEDECISION / COUPLED ADAPTERS: COMPLETE / PASS.**
 
 E3A writer-inventory baseline reviewed: `8bfbd40a1b4e460757b99d943a139cfd2ef83316`.
 
@@ -171,15 +171,15 @@ To keep the regression surface bounded, E3 is split into four internal sub-slice
    governance holds, terminal execution/cancellation/failure, explicit retry, evidence
    amendment/release, and linked Work outcome staging. Runtime claim/retry telemetry stays
    excluded.
-3. **E3C — legacy ExecutiveDecision material-writer adapters: UNLOCKED / NOT STARTED.** Cover
+3. **E3C — legacy ExecutiveDecision material-writer adapters: COMPLETE / PASS.** Cover
    direct creation, deadlines, escalation/ownership, CEO hold/Board promotion, Board/CEO
    terminal outcomes, and coupled transaction regression. Lease/reminder/evidence-only
    writes stay excluded.
-4. **E3D — explicit coverage epoch + Observatory coverage activation: LOCKED pending E3C.**
+4. **E3D — explicit coverage epoch + Observatory coverage activation: UNLOCKED / NOT STARTED.**
    Add the coverage-start contract, cross-database reconciliation tests, and only then
    allow `activity_history_established = true` from the epoch forward.
 
-Phase 13.16.2 remains locked through E3A-E3C. No dashboard may present historical
+Phase 13.16.2 remains locked through E3D and the remaining 13.16.1 exit gates. No dashboard may present historical
 throughput, cycle time, resolved-blocker period throughput, or last-material-transition
 ageing as authoritative until E3D is accepted.
 
@@ -196,7 +196,7 @@ material-writer surface while preserving each writer's existing transaction owne
   terminal execution dispositions, terminal failure/cancellation, explicit retry
   authorization, and Technology evidence amendment/release have versioned Work Activity;
 - Board/CEO terminal decision paths stage only their linked Work outcome in E3B; Decision
-  Activity remains reserved for E3C;
+  Activity was reserved for E3C and is now accepted;
 - the global-pause execution hold now closes its previously identified source-AuditLog gap
   in the same commit as the Work mutation and Activity;
 - execution claims, `retry_wait`, delegation/action-output progress, coordination leases,
@@ -213,7 +213,38 @@ regression passed **143 tests with 2 expected skips**, the complete API suite pa
 contracts passed **3/3** at Alembic `0074_durable_contribution_activity_model`.
 `organization_activity_streams` and `organization_activities` were both zero before and after
 that PostgreSQL acceptance run. Repository policy, release consistency, migration consistency,
-and `git diff --check` also passed. E3C is therefore the next unlocked slice.
+and `git diff --check` also passed. E3C is now COMPLETE / PASS after focused, full-suite, repository, migration, and isolated-PostgreSQL acceptance.
+
+### E3C implementation disposition
+
+The bounded E3C implementation stages semantic ExecutiveDecision Activity inside each
+existing legacy material-writer transaction:
+
+- direct API Work creation and caller-owned automation routing now stage Decision-created
+  Activity whenever the authority boundary creates a Decision; automation routing still does
+  not commit;
+- Decision deadlines stage a versioned deadline Activity only when the governed instant
+  actually changes; same-instant timezone representation replay does not duplicate Activity;
+- Work escalation and emergency reconciliation stage Decision escalation Activity only when
+  Decision owner, pending authority state, or authority level materially changes;
+- `_hold_ceo_decision(...)` stages a semantic hold after a real coordination claim is returned
+  to pending review, while claim/recovery/release lease transitions remain excluded;
+- `_promote_decision_to_board(...)` stages Decision escalation plus the linked Work
+  `pending_board` Activity before the existing pre-packet commit; this closes the coupled
+  Work-side omission discovered during E3C tracing;
+- Board override and normal Board/CEO outcomes stage Decision outcome plus linked Work status
+  in the same existing commit; `approved`, `rejected`, and legacy `returned` outcomes remain
+  descriptive governance facts and do not create Contributions automatically;
+- Decision evidence/recommendation refresh and reminder timestamps remain excluded; and
+- `activity_history_established` remains `false`, with no historical reconstruction or
+  Contribution feedback loop.
+
+Focused E3C regression coverage adds eight tests spanning Decision create/deadline/replay,
+terminal coupled outcomes, emergency replay, material CEO hold, coupled Board promotion,
+caller-owned automation rollback, Activity-stage rollback, and one PostgreSQL-only
+Decision transaction/no-residue contract. Acceptance is complete; E3D is now UNLOCKED / NOT STARTED.
+
+E3C acceptance evidence: focused E3C **7 passed / 1 expected PostgreSQL-only skip**; combined organization/E3B/E3C regression **160 passed / 4 expected skips**; complete API **787 passed / 4 expected PostgreSQL-only skips**; isolated PostgreSQL Activity transaction contracts **4/4 passed**. `organization_activity_streams = 0` and `organization_activities = 0` both before and after that PostgreSQL run, Alembic remained `0074_durable_contribution_activity_model`, and repository policy, release consistency, migration consistency, and `git diff --check` all passed. `activity_history_established` remains `false`; the isolated PostgreSQL container was returned to stopped state, and E3D is the next unlocked slice.
 
 ## 8. Acceptance invariants for later E3 slices
 
@@ -235,10 +266,10 @@ Every adapted material writer must prove:
 
 ## 9. E3A disposition
 
-The legacy writer surface is mapped and E3B WorkItem material-writer reconciliation is
-accepted without promoting telemetry or mutating historical rows. The safe next slice is E3C,
-covering only legacy ExecutiveDecision material writers and the Decision side of coupled
-transactions while preserving the exclusions and transaction boundaries defined above.
+The legacy writer surface is mapped, E3B WorkItem reconciliation is accepted, and E3C
+Decision/coupled adapters are now COMPLETE / PASS. E3C also closes the
+one coupled Work-side Board-promotion omission discovered during its writer trace. E3D is now
+UNLOCKED / NOT STARTED after the focused/full/isolated-PostgreSQL E3C gates passed.
 
 E3A itself is documentation/design only and requires no API/full-suite rerun. Repository
 policy, release consistency, migration consistency, and `git diff --check` are the only
