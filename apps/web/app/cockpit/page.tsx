@@ -12,6 +12,9 @@ import {
   GlobalIntelligenceDashboard,
   OrganizationActivity,
   OrganizationHumanActionRequest,
+  OrganizationBlocker,
+  OrganizationWorkItemDependency,
+  OrganizationalWorkItem,
   ObservatoryDepartments,
   ObservatorySummary,
   getBoardPacket,
@@ -20,6 +23,9 @@ import {
   getOrganizationObservatorySummary,
   listOrganizationActivities,
   listOrganizationHumanActionRequests,
+  listOrganizationBlockers,
+  listOrganizationWorkItemDependencies,
+  listOrganizationWorkItems,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
 
@@ -78,6 +84,21 @@ function dateLabel(value?: string | null): string {
   return new Intl.DateTimeFormat(undefined, { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
 
+function shortDate(value?: string | null): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, { day: "2-digit", month: "short" }).format(date);
+}
+
+function daysOverdue(dueAt: string): number {
+  const due = new Date(dueAt);
+  if (Number.isNaN(due.getTime())) return 0;
+  const now = new Date();
+  const diff = now.getTime() - due.getTime();
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+
 function projectPoint(point: GeographicPoint) {
   return {
     left: `${((point.lon + 180) / 360) * 100}%`,
@@ -93,6 +114,9 @@ export default function CockpitPage() {
   const [intelligence, setIntelligence] = useState<GlobalIntelligenceDashboard | null>(null);
   const [activities, setActivities] = useState<OrganizationActivity[]>([]);
   const [humanRequests, setHumanRequests] = useState<OrganizationHumanActionRequest[]>([]);
+  const [blockers, setBlockers] = useState<OrganizationBlocker[]>([]);
+  const [dependencies, setDependencies] = useState<OrganizationWorkItemDependency[]>([]);
+  const [workItems, setWorkItems] = useState<OrganizationalWorkItem[]>([]);
   const [organizationFocus, setOrganizationFocus] = useState<OrganizationFocus>({ kind: "ceo", key: "ceo" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,10 +132,13 @@ export default function CockpitPage() {
       getGlobalIntelligenceDashboard(90),
       listOrganizationActivities({ page_size: 20 }),
       listOrganizationHumanActionRequests({ page_size: 50 }),
+      listOrganizationBlockers({ status: "open", page_size: 50 }),
+      listOrganizationWorkItemDependencies({ status: "active", page_size: 50 }),
+      listOrganizationWorkItems({ status_filter: "running", page_size: 100 }),
     ]);
 
     const failures: string[] = [];
-    const [packetResult, observatoryResult, departmentsResult, intelligenceResult, activityResult, humanRequestResult] = results;
+    const [packetResult, observatoryResult, departmentsResult, intelligenceResult, activityResult, humanRequestResult, blockersResult, dependenciesResult, workItemsResult] = results;
 
     if (packetResult.status === "fulfilled") setPacket(packetResult.value);
     else failures.push("organization control");
@@ -130,6 +157,15 @@ export default function CockpitPage() {
 
     if (humanRequestResult.status === "fulfilled") setHumanRequests(humanRequestResult.value.data);
     else failures.push("human attention records");
+
+    if (blockersResult.status === "fulfilled") setBlockers(blockersResult.value.data);
+    else failures.push("blockers");
+
+    if (dependenciesResult.status === "fulfilled") setDependencies(dependenciesResult.value.data);
+    else failures.push("dependencies");
+
+    if (workItemsResult.status === "fulfilled") setWorkItems(workItemsResult.value.data);
+    else failures.push("active work");
 
     if (failures.length) setError(`Some Cockpit signals are temporarily unavailable: ${failures.join(", ")}.`);
     setLoading(false);
@@ -255,8 +291,71 @@ export default function CockpitPage() {
         ? `${domains.length} domain${domains.length === 1 ? "" : "s"} · ${downstreamPositions} downstream position${downstreamPositions === 1 ? "" : "s"}`
         : `${executivePortfolios.length} executive${executivePortfolios.length === 1 ? "" : "s"} · ${domains.length} domain${domains.length === 1 ? "" : "s"} · ${downstreamPositions} downstream position${downstreamPositions === 1 ? "" : "s"}`;
 
-    return { label, title, domains, scopedPositions, downstreamPositions, scopeSummary, metrics, recentWork, recentActivity };
+    return { label, title, domains, scopedPositions, downstreamPositions, scopeSummary, metrics, recentWork, recentActivity, domainNames, positionKeys };
   }, [activities, departmentObservatory, executivePortfolios, operationalDomains, organizationFocus, packet]);
+
+  const operationalIntelligence = useMemo(() => {
+    const workItemById = new Map(workItems.map((item) => [item.id, item]));
+    const { domainNames, positionKeys } = organizationFocusView;
+
+    const inScope = (workItemId: string | null) => {
+      if (!workItemId) return false;
+      const item = workItemById.get(workItemId);
+      if (!item) return false;
+      return domainNames.has(item.department) || positionKeys.has(item.assigned_position_key);
+    };
+
+    const scopedBlockers = blockers.filter((blocker) => {
+      if (organizationFocus.kind === "ceo") return true;
+      if (blocker.department && domainNames.has(blocker.department)) return true;
+      if (blocker.accountable_position_key && positionKeys.has(blocker.accountable_position_key)) return true;
+      return inScope(blocker.work_item_id);
+    });
+
+    const scopedDependencies = dependencies.filter((dep) => {
+      if (organizationFocus.kind === "ceo") return true;
+      return inScope(dep.work_item_id) || inScope(dep.depends_on_work_item_id);
+    });
+
+    const now = new Date().toISOString();
+    const scopedOverdueWork = workItems.filter((item) => {
+      if (!item.due_at || item.due_at > now) return false;
+      if (organizationFocus.kind === "ceo") return true;
+      return domainNames.has(item.department) || positionKeys.has(item.assigned_position_key);
+    });
+
+    const scopedPendingHumanRequests = humanRequests.filter((request) => {
+      if (!ACTIVE_HUMAN_REQUEST_STATUSES.has(request.status)) return false;
+      if (organizationFocus.kind === "ceo") return true;
+      if (inScope(request.work_item_id)) return true;
+      return false;
+    });
+
+    const contributionSources = observatory?.coverage.contribution_sources || [];
+    const coveredSources = contributionSources.filter((source) => source.coverage_established).length;
+    const evidenceHealth = {
+      total: contributionSources.length,
+      covered: coveredSources,
+      warning: observatory?.warnings?.[0] || null,
+    };
+
+    const timestamps = [
+      packet?.generated_at,
+      observatory?.as_of,
+      intelligence?.generated_at,
+    ].filter(Boolean) as string[];
+    const dataFreshnessAt = timestamps.length ? timestamps.sort()[timestamps.length - 1] : null;
+
+    return {
+      scopedBlockers,
+      scopedDependencies,
+      scopedOverdueWork,
+      scopedPendingHumanRequests,
+      workItemById,
+      evidenceHealth,
+      dataFreshnessAt,
+    };
+  }, [blockers, dependencies, workItems, humanRequests, observatory, packet, intelligence, organizationFocusView]);
 
   const globalSignals = useMemo(() => {
     return [...(intelligence?.country_heatmap || [])]
@@ -527,8 +626,8 @@ export default function CockpitPage() {
           <div className="attention-rows">
             <Link href="/board-room"><span>Board decisions</span><strong>{boardAttention}</strong></Link>
             <Link href="/board-room"><span>Board risk escalations</span><strong>{boardRiskAttention}</strong></Link>
-            <div><span>Pending human requests</span><strong>{pendingHuman}</strong></div>
-            <Link href="/"><span>Overdue active work</span><strong>{overdueWork}</strong></Link>
+            <a className="attention-row-link" href="#pending-human-requests-title"><span>Pending human requests</span><strong>{pendingHuman}</strong></a>
+            <a className="attention-row-link" href="#overdue-work-title"><span>Overdue active work</span><strong>{overdueWork}</strong></a>
           </div>
 
           {activeHumanRequests.length ? (
@@ -654,6 +753,104 @@ export default function CockpitPage() {
             <small>{observatory?.warnings?.[0] || "The Cockpit does not invent historical activity."}</small>
           </footer>
         </article>
+      </section>
+
+      <section className="cockpit-operational-intelligence" aria-labelledby="operational-intelligence-title">
+        <header className="cockpit-surface-header compact">
+          <div>
+            <span className="premium-label">Operational intelligence</span>
+            <h3 id="operational-intelligence-title">Blockers, dependencies, and live work</h3>
+          </div>
+          {operationalIntelligence.dataFreshnessAt ? (
+            <span className="cockpit-freshness">Updated {shortDate(operationalIntelligence.dataFreshnessAt)} · {timeLabel(operationalIntelligence.dataFreshnessAt)}</span>
+          ) : null}
+        </header>
+
+        <div className="operational-intelligence-grid">
+          <article className="owner-blockers-lane cockpit-lane" aria-labelledby="open-blockers-title">
+            <header><span>Open blockers</span><strong>{operationalIntelligence.scopedBlockers.length}</strong></header>
+            <h4 id="open-blockers-title" className="visually-hidden">Open blockers</h4>
+            {operationalIntelligence.scopedBlockers.length ? (
+              <ul className="cockpit-lane-list">
+                {operationalIntelligence.scopedBlockers.slice(0, 5).map((blocker) => (
+                  <li key={blocker.id}>
+                    <span className={`blocker-severity-${blocker.severity}`}>{titleCase(blocker.severity)}</span>
+                    <strong>{blocker.title}</strong>
+                    <small>
+                      {blocker.department || titleCase(blocker.blocker_type)}
+                      {blocker.accountable_position_key ? ` · ${blocker.accountable_position_key.replaceAll("_", " ").toUpperCase()}` : null}
+                      {blocker.due_at ? ` · Due ${shortDate(blocker.due_at)}` : null}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            ) : <div className="cockpit-empty-line">No open blockers in the current view.</div>}
+          </article>
+
+          <article className="owner-dependencies-lane cockpit-lane" aria-labelledby="active-dependencies-title">
+            <header><span>Active dependencies</span><strong>{operationalIntelligence.scopedDependencies.length}</strong></header>
+            <h4 id="active-dependencies-title" className="visually-hidden">Active dependencies</h4>
+            {operationalIntelligence.scopedDependencies.length ? (
+              <ul className="cockpit-lane-list">
+                {operationalIntelligence.scopedDependencies.slice(0, 5).map((dep) => {
+                  const upstream = operationalIntelligence.workItemById.get(dep.depends_on_work_item_id);
+                  const downstream = operationalIntelligence.workItemById.get(dep.work_item_id);
+                  const blocked = downstream && downstream.status !== "completed" && downstream.status !== "cancelled";
+                  return (
+                    <li key={dep.id} className={blocked ? "dependency-blocked" : ""}>
+                      <strong>{downstream?.title || dep.work_item_id.slice(0, 8)}</strong>
+                      <span className="dependency-edge">depends on</span>
+                      <strong>{upstream?.title || dep.depends_on_work_item_id.slice(0, 8)}</strong>
+                      <small>{titleCase(dep.dependency_type)}{blocked ? " · blocked downstream" : null}</small>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : <div className="cockpit-empty-line">No active dependencies in the current view.</div>}
+          </article>
+
+          <article className="owner-overdue-lane cockpit-lane" aria-labelledby="overdue-work-title">
+            <header><span>Overdue active work</span><strong>{operationalIntelligence.scopedOverdueWork.length}</strong></header>
+            <h4 id="overdue-work-title" className="visually-hidden">Overdue active work</h4>
+            {operationalIntelligence.scopedOverdueWork.length ? (
+              <ul className="cockpit-lane-list">
+                {operationalIntelligence.scopedOverdueWork.slice(0, 5).map((item) => (
+                  <li key={item.id}>
+                    <strong>{item.title}</strong>
+                    <small>
+                      {item.department}
+                      {item.assigned_position_key ? ` · ${item.assigned_position_key.replaceAll("_", " ").toUpperCase()}` : null}
+                      {item.due_at ? ` · ${daysOverdue(item.due_at)} day${daysOverdue(item.due_at) === 1 ? "" : "s"} overdue` : null}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            ) : <div className="cockpit-empty-line">No overdue active work in the current view.</div>}
+          </article>
+
+          <article className="owner-human-requests-lane cockpit-lane" aria-labelledby="pending-human-requests-title">
+            <header><span>Pending human requests</span><strong>{operationalIntelligence.scopedPendingHumanRequests.length}</strong></header>
+            <h4 id="pending-human-requests-title" className="visually-hidden">Pending human requests</h4>
+            {operationalIntelligence.scopedPendingHumanRequests.length ? (
+              <ul className="cockpit-lane-list">
+                {operationalIntelligence.scopedPendingHumanRequests.slice(0, 5).map((request) => (
+                  <li key={request.id}>
+                    <strong>{request.title}</strong>
+                    <small>
+                      {titleCase(request.priority)} · {request.required_role.replaceAll("_", " ")}
+                      {request.due_at ? ` · Due ${shortDate(request.due_at)}` : null}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            ) : <div className="cockpit-empty-line">No pending human requests in the current view.</div>}
+          </article>
+        </div>
+
+        <footer className="operational-intelligence-footer">
+          <span>Evidence health: {operationalIntelligence.evidenceHealth.covered} of {operationalIntelligence.evidenceHealth.total} contribution sources covered.</span>
+          {operationalIntelligence.evidenceHealth.warning ? <small>{operationalIntelligence.evidenceHealth.warning}</small> : null}
+        </footer>
       </section>
 
       <section className="cockpit-control-links cockpit-control-dock" aria-label="Owner control surfaces">

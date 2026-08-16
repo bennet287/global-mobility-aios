@@ -692,7 +692,7 @@ back.
 | Phase 13.16.0 | **CLOSED / PASS** | Design system and information architecture foundation accepted |
 | Phase 13.16.1 | **COMPLETE / PASS** | Durable Contribution & Activity model, legacy writer reconciliation, explicit immutable coverage epoch, and Observatory activation accepted |
 | Phase 13.16.2 | **COMPLETE / PASS** | Premium role shells, controlled preserved-SQLite reconciliation, Cockpit executive-authority hierarchy, discoverable compact rail, and light/dark visual foundation accepted from baseline `4e6aaa5`; Alembic 0075 and all critical runtime reads are green |
-| Phase 13.16.3 | **IN PROGRESS — 13.16.3A / A.1 / A.2 / A.3 / A.3R COMPLETE / PASS; 13.16.3B UNLOCKED / NOT STARTED** | Owner focus, capability architecture, Technology + Security, Global Mobility Operations + Intelligence + Legal/Regulatory, and OrganizationPosition active-identity integrity are accepted; the preserved SQLite organization is 61/61 with zero duplicate active identities at Alembic 0076 |
+| Phase 13.16.3 | **IN PROGRESS — 13.16.3A / A.1 / A.2 / A.3 / A.3R COMPLETE / PASS; 13.16.3B COMPLETE / PASS** | Owner focus, capability architecture, Technology + Security, Global Mobility Operations + Intelligence + Legal/Regulatory, OrganizationPosition active-identity integrity, and Owner operational-intelligence panel (blockers, dependencies, overdue work, pending human requests, evidence health) are accepted; the preserved SQLite organization is 61/61 with zero duplicate active identities at Alembic 0076 |
 | Phase 13.16.4-13.16.10 | **LOCKED** | Later experience slices remain gated by accepted delivery of their immediate predecessors |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
@@ -737,7 +737,7 @@ E3D / 13.16.1 closure evidence:
 - Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
 - No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
 
-**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is IN PROGRESS — 13.16.3A Interactive Owner Control Center, 13.16.3A.1 capability architecture/live inventory, 13.16.3A.2 Technology + Security foundation tranche 1, 13.16.3A.3 Global Mobility Operations + Intelligence + Legal/Regulatory, and 13.16.3A.3R OrganizationPosition active-identity integrity are COMPLETE / PASS. 13.16.3B Owner blockers, dependencies, and live operational intelligence is UNLOCKED / NOT STARTED.**
+**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is IN PROGRESS — 13.16.3A Interactive Owner Control Center, 13.16.3A.1 capability architecture/live inventory, 13.16.3A.2 Technology + Security foundation tranche 1, 13.16.3A.3 Global Mobility Operations + Intelligence + Legal/Regulatory, 13.16.3A.3R OrganizationPosition active-identity integrity, and 13.16.3B Owner blockers, dependencies, and live operational intelligence are COMPLETE / PASS.**
 
 ### 8.2 Preserved database boundaries
 
@@ -866,7 +866,7 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 3 | 13.16.0 design/IA foundation | **CLOSED / PASS** | Closed |
 | 4 | 13.16.1 durable Contribution & Activity model | **COMPLETE / PASS** | Closed after E3D coverage-epoch acceptance |
 | 5 | 13.16.2 role-based application shells and navigation | **COMPLETE / PASS** | Closed after premium visual, schema-reconciliation, runtime, frontend, API, repository, and migration acceptance |
-| 6 | 13.16.3 Unified Owner Control Center | **IN PROGRESS — CAPABILITY AUDIT PASS; TECHNOLOGY + SECURITY FOUNDATION LIVE APPLY NEXT** | 13.16.2 COMPLETE / PASS |
+| 6 | 13.16.3 Unified Owner Control Center | **IN PROGRESS — 13.16.3B COMPLETE / PASS; 13.16.3C UNLOCKED / NOT STARTED** | 13.16.2 COMPLETE / PASS |
 | 7 | 13.16.4-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.3 |
 | 8 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
 | 9 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
@@ -1248,9 +1248,21 @@ Acceptance evidence: organization integrity regressions **14/14 PASS**; 0076 mig
 
 #### 11.6.5 13.16.3B — Owner blockers, dependencies, and live operational intelligence
 
-**State:** UNLOCKED / NOT STARTED.
+**State:** COMPLETE / PASS.
 
 Once Tier-1 ownership is credible, continue the Unified Owner Control Center with blocker/dependency visibility, live durable Activity, Contribution/evidence health, and department/executive intervention signals. This ordering prevents the Cockpit from assigning blockers to an unrealistic or ambiguous organization model.
+
+**Intent:** make operational friction visible to the Owner without turning the Cockpit into a task manager.
+
+- Load open blockers, active dependencies, running work items, and pending human requests into the Cockpit.
+- Render a new **Operational Intelligence** panel with four scoped lanes: **Open blockers**, **Active dependencies**, **Overdue active work**, and **Pending human requests**.
+- Scope each lane by the selected `organizationFocus` (CEO / executive / domain) using live department and position filters.
+- Add an evidence-health line using existing Observatory `contribution_sources` coverage.
+- Surface data freshness from the newest Board Packet / Observatory / Global Intelligence timestamp.
+- Link Owner Attention metrics (pending human requests, overdue work) to the relevant Operational Intelligence lane anchors; Board decisions and Board-attention risks continue to link to Board Room.
+- Preserve read-only composition: no inline blocker mitigation, dependency waiver, work assignment, or publication authority is added to the Cockpit.
+
+**Acceptance:** design-foundation regressions **19/19 PASS**; request/auth tests **1/1 PASS** for the new organization read endpoints; complete API **806 passed, 5 skipped, 0 failed**; Next.js 15.2.4 production build **PASS** with **39/39 static pages**; repository policy, release consistency, migration/schema checks, and `git diff --check` **PASS** at Alembic `0076_organization_position_active_identity`; runtime smoke confirms `/api/v1/organization/blockers?status=open`, `/api/v1/organization/work-item-dependencies?status=active`, and `/api/v1/organization/work-items/records?status_filter=running` return HTTP 200. No Alembic change, no preserved PostgreSQL migration, no Austria safety boundary weakened.
 
 ### 11.7 13.16.4 — Department workspaces
 
@@ -1906,7 +1918,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is IN PROGRESS with 13.16.3A / A.1 / A.2 / A.3 / A.3R COMPLETE / PASS and 13.16.3B UNLOCKED / NOT STARTED, while later 13.16.x slices remain sequentially gated;
+- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is IN PROGRESS with 13.16.3A / A.1 / A.2 / A.3 / A.3R / 13.16.3B COMPLETE / PASS, while later 13.16.x slices remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 
@@ -2008,7 +2020,7 @@ The visual foundation is frozen at the accepted premium direction: warm ivory pl
 
 Closure evidence: migration regression **6 passed**; design-foundation **16 passed**; request/auth **4 passed**; complete API **791 passed, 5 skipped, 0 failed**; Next.js 15.2.4 production build **PASS** with the accepted route set and captured **39/39 static pages**; repository policy **PASS**; release consistency **PASS** at `0075_legacy_schema_reconciliation`; physical preserved-SQLite parity **PASS** with 118 registered/actual model tables and only `alembic_version` as infrastructure; `git diff --check` **PASS**; and runtime smoke **5/5 HTTP 200** across `/health`, WorkItems, Decisions, Board Packet, and CRM summary. The remaining Starlette/httpx warning is a known test-client deprecation warning and is not a 13.16.2 functional failure.
 
-`0075_legacy_schema_reconciliation` remains the forward, data-preserving compatibility repair that restored the preserved developer SQLite schema; `0076_organization_position_active_identity` now enforces durable OrganizationPosition identity uniqueness after the data-preserving Board duplicate reconciliation. Neither migration authorizes historical Activity reconstruction, weakens review gates, changes Austria publication/certification state, or migrates the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is IN PROGRESS**. Slices **13.16.3A, 13.16.3A.1, 13.16.3A.2, 13.16.3A.3, and 13.16.3A.3R are COMPLETE / PASS**: interactive executive/domain focus and an authority-correct Owner queue are accepted; the capability architecture is reconciled; Technology + Security is live; the Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live; and the preserved organization is **61 active rows / 61 distinct active identities / zero duplicates** at Alembic 0076. **13.16.3B Owner blockers, dependencies, and live operational intelligence is UNLOCKED / NOT STARTED**.
+`0075_legacy_schema_reconciliation` remains the forward, data-preserving compatibility repair that restored the preserved developer SQLite schema; `0076_organization_position_active_identity` now enforces durable OrganizationPosition identity uniqueness after the data-preserving Board duplicate reconciliation. Neither migration authorizes historical Activity reconstruction, weakens review gates, changes Austria publication/certification state, or migrates the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is IN PROGRESS**. Slices **13.16.3A, 13.16.3A.1, 13.16.3A.2, 13.16.3A.3, 13.16.3A.3R, and 13.16.3B are COMPLETE / PASS**: interactive executive/domain focus and an authority-correct Owner queue are accepted; the capability architecture is reconciled; Technology + Security is live; the Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live; the preserved organization is **61 active rows / 61 distinct active identities / zero duplicates** at Alembic 0076; and the Owner Cockpit now surfaces blockers, dependencies, overdue work, pending human requests, evidence health, and data freshness without introducing write authority. **13.16.3C — live intervention controls and department-level drill-down is UNLOCKED / NOT STARTED.**
 
 ### 13.16.3A.1 organization capability architecture — planning contract (2026-08-16)
 
@@ -2033,4 +2045,4 @@ The first Unified Owner Control Center checkpoint is accepted from immutable bas
 
 Acceptance evidence: design-foundation **18/18 PASS**; request/auth **4/4 PASS**; Next.js production build **PASS** with **39/39 static pages**; focused organization tranche regressions **11/11 PASS**; complete API **801 passed, 5 skipped, 0 failed**; preserved SQLite physical schema and migration checks **PASS** at `0075_legacy_schema_reconciliation`; repository policy, release consistency, and `git diff --check` **PASS**; runtime smoke **5/5 HTTP 200** for the critical Owner-read surfaces; post-apply organization audit **47 foundation / 47 live / zero extra / zero missing**. Browser review confirmed **9 executives, 19 operational domains, 45 downstream positions**, expanded CTO/CISO portfolios, and no synthetic Owner authority or Activity. The 13 newly registered Technology/Security capability slots remain non-executable with empty delegated/direct action authority, no self-approval, and unchanged existing CTO/CISO executable delegation sets.
 
-**13.16.3A.3 and 13.16.3A.3R are COMPLETE / PASS.** The Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live at 61/61 active OrganizationPosition identities; the duplicate Board row was preserved as suspended historical `board@v2`, the canonical `board@v1` remains active, Alembic 0076 is accepted, and row/identity counts converge. **13.16.3B — Owner blockers, dependencies, and live operational intelligence is UNLOCKED / NOT STARTED.**
+**13.16.3A.3, 13.16.3A.3R, and 13.16.3B are COMPLETE / PASS.** The Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live at 61/61 active OrganizationPosition identities; the duplicate Board row was preserved as suspended historical `board@v2`, the canonical `board@v1` remains active, Alembic 0076 is accepted, and row/identity counts converge. The Cockpit now surfaces an Operational Intelligence panel with scoped blockers, dependencies, overdue work, and pending human requests plus evidence health and data freshness, all without write authority. **13.16.3C — live intervention controls and department-level drill-down is UNLOCKED / NOT STARTED.**

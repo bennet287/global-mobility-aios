@@ -5000,9 +5000,26 @@ export type OrganizationHumanActionRequest = {
 };
 
 export type OrganizationalWorkItem = {
-  id: string; title: string; objective: string; department: string;
-  authority_level: string; status: string; assigned_position_key: string;
-  risk_level: string; created_at: string;
+  id: string;
+  idempotency_key: string;
+  work_type: string;
+  objective_key: string | null;
+  phase_key: string | null;
+  priority: string;
+  parent_work_item_id: string | null;
+  title: string;
+  objective: string;
+  department: string;
+  authority_level: string;
+  status: string;
+  assigned_position_key: string;
+  risk_level: string;
+  is_emergency: boolean;
+  due_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
 };
 
 export type ExecutiveDecision = {
@@ -5088,6 +5105,46 @@ export type OrganizationActivityPage = {
   total_pages: number;
 };
 
+export type OrganizationBlocker = {
+  id: string;
+  blocker_key: string;
+  blocker_type: string;
+  severity: "low" | "medium" | "high" | "critical";
+  title: string;
+  description: string;
+  status: "open" | "mitigated" | "resolved" | "waived" | "superseded";
+  department: string | null;
+  accountable_position_key: string | null;
+  work_item_id: string | null;
+  decision_id: string | null;
+  contribution_id: string | null;
+  requires_human_action: boolean;
+  due_at: string | null;
+  mitigated_at: string | null;
+  resolved_at: string | null;
+  resolution_summary: string | null;
+  resolving_actor_type: string | null;
+  resolving_actor_id: string | null;
+  supersedes_blocker_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrganizationWorkItemDependency = {
+  id: string;
+  dependency_key: string;
+  work_item_id: string;
+  depends_on_work_item_id: string;
+  dependency_type: string;
+  status: "active" | "satisfied" | "waived" | "superseded";
+  satisfied_by_contribution_id: string | null;
+  waived_by_human_id: string | null;
+  waiver_reason: string | null;
+  waived_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function getOrganizationObservatorySummary(): Promise<ObservatorySummary> {
   return request("/api/v1/organization/observatory/summary");
 }
@@ -5109,6 +5166,51 @@ export async function listOrganizationActivities(params: { page?: number; page_s
   search.set("page", String(params.page || 1));
   search.set("page_size", String(params.page_size || 20));
   return request(`/api/v1/organization/activities?${search.toString()}`);
+}
+
+export async function listOrganizationBlockers(
+  params: { status?: "open" | "mitigated" | "resolved" | "waived" | "superseded"; work_item_id?: string; page?: number; page_size?: number } = {},
+): Promise<OrganizationRecordPage<OrganizationBlocker>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 50));
+  if (params.status) search.set("status", params.status);
+  if (params.work_item_id) search.set("work_item_id", params.work_item_id);
+  return request(`/api/v1/organization/blockers?${search.toString()}`);
+}
+
+export async function getOrganizationBlocker(id: string): Promise<OrganizationBlocker> {
+  return request(`/api/v1/organization/blockers/${id}`);
+}
+
+export async function listOrganizationWorkItemDependencies(
+  params: { status?: "active" | "satisfied" | "waived" | "superseded"; work_item_id?: string; page?: number; page_size?: number } = {},
+): Promise<OrganizationRecordPage<OrganizationWorkItemDependency>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 50));
+  if (params.status) search.set("status", params.status);
+  if (params.work_item_id) search.set("work_item_id", params.work_item_id);
+  return request(`/api/v1/organization/work-item-dependencies?${search.toString()}`);
+}
+
+export async function getOrganizationWorkItemDependency(id: string): Promise<OrganizationWorkItemDependency> {
+  return request(`/api/v1/organization/work-item-dependencies/${id}`);
+}
+
+export async function listOrganizationWorkItems(
+  params: { status_filter?: string; department?: string; page?: number; page_size?: number } = {},
+): Promise<OrganizationRecordPage<OrganizationalWorkItem>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 100));
+  if (params.status_filter) search.set("status", params.status_filter);
+  if (params.department) search.set("department", params.department);
+  return request(`/api/v1/organization/work-items/records?${search.toString()}`);
+}
+
+export async function getOrganizationWorkItem(id: string): Promise<OrganizationalWorkItem> {
+  return request(`/api/v1/organization/work-items/records/${id}`);
 }
 
 export async function updateOrganizationControl(status: "active" | "paused", reason: string) {

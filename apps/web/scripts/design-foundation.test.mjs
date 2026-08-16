@@ -327,3 +327,55 @@ test("13.16.3A interaction polish keeps scope counts consistent and the Cockpit 
   assert.match(styles, /\.owner-attention \{[\s\S]*align-self: start/);
   assert.match(styles, /\.organization-pulse-map\.enterprise-authority-map \{[\s\S]*min-height: 0/);
 });
+
+
+test("13.16.3B Owner operational intelligence remains data-grounded", async () => {
+  const [cockpit, api, styles] = await Promise.all([
+    read("app/cockpit/page.tsx"),
+    read("lib/api.ts"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(cockpit, /listOrganizationBlockers/);
+  assert.match(cockpit, /listOrganizationWorkItemDependencies/);
+  assert.match(cockpit, /listOrganizationWorkItems/);
+  assert.match(cockpit, /OrganizationBlocker/);
+  assert.match(cockpit, /OrganizationWorkItemDependency/);
+  assert.match(cockpit, /Operational intelligence/);
+  assert.match(cockpit, /cockpit-operational-intelligence/);
+  assert.match(cockpit, /owner-blockers-lane/);
+  assert.match(cockpit, /owner-dependencies-lane/);
+  assert.match(cockpit, /owner-overdue-lane/);
+  assert.match(cockpit, /owner-human-requests-lane/);
+  assert.match(cockpit, /Open blockers/);
+  assert.match(cockpit, /Active dependencies/);
+  assert.match(cockpit, /Overdue active work/);
+  assert.match(cockpit, /Pending human requests/);
+  assert.match(cockpit, /No open blockers in the current view/);
+  assert.match(cockpit, /No active dependencies in the current view/);
+  assert.match(cockpit, /No overdue active work in the current view/);
+  assert.match(cockpit, /No pending human requests in the current view/);
+  assert.match(cockpit, /Evidence health/);
+  assert.match(cockpit, /Updated [\s\S]*{shortDate/);
+  assert.match(cockpit, /#overdue-work-title/);
+  assert.match(cockpit, /#pending-human-requests-title/);
+  assert.doesNotMatch(cockpit, /mitigate.*blocker|resolve.*blocker|waive.*dependency/);
+  assert.doesNotMatch(cockpit, /97%|hard-coded|synthetic activity|fake blocker/);
+
+  assert.match(api, /\/api\/v1\/organization\/blockers/);
+  assert.match(api, /\/api\/v1\/organization\/work-item-dependencies/);
+  assert.match(api, /\/api\/v1\/organization\/work-items\/records/);
+
+  assert.match(styles, /Phase 13\.16\.3B/);
+  assert.match(styles, /\.cockpit-operational-intelligence/);
+  assert.match(styles, /\.operational-intelligence-grid/);
+  assert.match(styles, /\.owner-blockers-lane/);
+  assert.match(styles, /\.owner-dependencies-lane/);
+  assert.match(styles, /\.owner-overdue-lane/);
+  assert.match(styles, /\.owner-human-requests-lane/);
+  assert.match(styles, /\.blocker-severity-critical/);
+  assert.match(styles, /\.blocker-severity-high/);
+  assert.match(styles, /\.blocker-severity-medium/);
+  assert.match(styles, /\.blocker-severity-low/);
+  assert.match(styles, /\.dependency-blocked/);
+});
