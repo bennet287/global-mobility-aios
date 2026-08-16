@@ -673,7 +673,7 @@ back.
 
 ## 8. Current State Dashboard
 
-**As of:** 2026-08-15
+**As of:** 2026-08-16
 **Development branch:** `roadmap/global-mobility-aios-v11`
 **Accepted 13.16.1 / E3D implementation baseline:** `a503fe8b8a41cff6908751ba24688ed03fa535ec`
 
@@ -692,7 +692,7 @@ back.
 | Phase 13.16.0 | **CLOSED / PASS** | Design system and information architecture foundation accepted |
 | Phase 13.16.1 | **COMPLETE / PASS** | Durable Contribution & Activity model, legacy writer reconciliation, explicit immutable coverage epoch, and Observatory activation accepted |
 | Phase 13.16.2 | **COMPLETE / PASS** | Premium role shells, controlled preserved-SQLite reconciliation, Cockpit executive-authority hierarchy, discoverable compact rail, and light/dark visual foundation accepted from baseline `4e6aaa5`; Alembic 0075 and all critical runtime reads are green |
-| Phase 13.16.3 | **UNLOCKED / NOT STARTED** | Unified Owner Control Center is the next active sequential slice; capability-led Cockpit work may now begin on the frozen 13.16.2 visual foundation |
+| Phase 13.16.3 | **IN PROGRESS — 13.16.3A / A.1 / A.2 COMPLETE / PASS; 13.16.3A.3 UNLOCKED / NOT STARTED** | Interactive Owner focus is accepted; the capability architecture is reconciled; Technology + Security tranche 1 is live at 47/47 positions with no authority expansion; Global Mobility Operations + Intelligence + Legal/Regulatory is next |
 | Phase 13.16.4-13.16.10 | **LOCKED** | Later experience slices remain gated by accepted delivery of their immediate predecessors |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
@@ -737,7 +737,7 @@ E3D / 13.16.1 closure evidence:
 - Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
 - No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
 
-**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is UNLOCKED / NOT STARTED.**
+**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is IN PROGRESS — 13.16.3A Interactive Owner Control Center, 13.16.3A.1 capability architecture/live inventory, and 13.16.3A.2 Technology + Security foundation tranche 1 are COMPLETE / PASS; 13.16.3A.3 Global Mobility Operations + Intelligence + Legal/Regulatory is UNLOCKED / NOT STARTED.**
 
 ### 8.2 Preserved database boundaries
 
@@ -866,7 +866,7 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 3 | 13.16.0 design/IA foundation | **CLOSED / PASS** | Closed |
 | 4 | 13.16.1 durable Contribution & Activity model | **COMPLETE / PASS** | Closed after E3D coverage-epoch acceptance |
 | 5 | 13.16.2 role-based application shells and navigation | **COMPLETE / PASS** | Closed after premium visual, schema-reconciliation, runtime, frontend, API, repository, and migration acceptance |
-| 6 | 13.16.3 Unified Owner Control Center | **UNLOCKED / NOT STARTED** | 13.16.2 COMPLETE / PASS |
+| 6 | 13.16.3 Unified Owner Control Center | **IN PROGRESS — CAPABILITY AUDIT PASS; TECHNOLOGY + SECURITY FOUNDATION LIVE APPLY NEXT** | 13.16.2 COMPLETE / PASS |
 | 7 | 13.16.4-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.3 |
 | 8 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
 | 9 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
@@ -919,7 +919,7 @@ experience slices remain sequentially gated.
 - [x] Alembic remains `0074_durable_contribution_activity_model` with **118 registered tables**.
 - [x] `gmai-postgres` remains outside the bounded E3D acceptance path at preserved integration head 0073.
 
-**E3D is COMPLETE / PASS. 13.16.1 is COMPLETE / PASS. 13.16.2 is COMPLETE / PASS. 13.16.3 is UNLOCKED / NOT STARTED.**
+**E3D is COMPLETE / PASS. 13.16.1 is COMPLETE / PASS. 13.16.2 is COMPLETE / PASS. 13.16.3 is IN PROGRESS — 13.16.3A / A.1 / A.2 COMPLETE / PASS; 13.16.3A.3 UNLOCKED / NOT STARTED.**
 
 ### 10.3 Closed slice — 13.16.2 role-based application shells and navigation
 
@@ -966,7 +966,7 @@ programme.
 - refined the premium Cockpit signature after live visual review: reduced headline dominance, converted Organization Pulse from a static department grid into a live governed-runtime fabric with data-backed department nodes and non-semantic control-flow motion, elevated Owner Attention into a dedicated authority-ring state, replaced the generic orbit graphic with a contextual geographic world view for recognized jurisdiction codes, and gave the honest zero-Activity state a deliberate coverage visualization rather than synthetic events;
 - replaced prototype-style C/O/M experience glyphs with distinct Owner, Operator, and Mobility symbols while preserving the same role-shell routes and non-authoritative navigation semantics.
 
-13.16.2 is **COMPLETE / PASS**. Acceptance closed on 2026-08-15 with Alembic `0075_legacy_schema_reconciliation`; physical SQLite parity at 118 registered / 118 actual model tables plus the Alembic infrastructure table; 6/6 migration regressions; 16/16 premium design-foundation tests; 4/4 request/auth tests; a successful Next.js production build; 791 API tests passed with 5 expected skips and 0 failures; repository policy, release consistency, and `git diff --check` PASS; and 5/5 critical runtime smoke endpoints returning HTTP 200. Browser review accepted the premium light/dark Cockpit, executive-authority hierarchy, discoverable compact rail, Owner Attention, Global Mobility Pulse, and durable-Activity coverage presentation. Phase 13.16.3 is therefore **UNLOCKED / NOT STARTED**.
+13.16.2 is **COMPLETE / PASS**. Acceptance closed on 2026-08-15 with Alembic `0075_legacy_schema_reconciliation`; physical SQLite parity at 118 registered / 118 actual model tables plus the Alembic infrastructure table; 6/6 migration regressions; 16/16 premium design-foundation tests; 4/4 request/auth tests; a successful Next.js production build; 791 API tests passed with 5 expected skips and 0 failures; repository policy, release consistency, and `git diff --check` PASS; and 5/5 critical runtime smoke endpoints returning HTTP 200. Browser review accepted the premium light/dark Cockpit, executive-authority hierarchy, discoverable compact rail, Owner Attention, Global Mobility Pulse, and durable-Activity coverage presentation. Phase 13.16.3 is now **IN PROGRESS**; bounded slice 13.16.3A implements interactive executive/domain focus plus an authority-correct Owner queue and awaits acceptance.
 
 **13.16.2 exit direction:** role-based shells are navigable, deep links remain compatible,
 backend permissions remain authoritative, critical route groups are represented coherently, and
@@ -1005,7 +1005,7 @@ Phase 13.16 asks a different question:
 | **13.16.0** | Design System & Information Architecture Foundation | **CLOSED / PASS** |
 | **13.16.1** | Durable Contribution & Activity Model | **COMPLETE / PASS** |
 | **13.16.2** | Role-based application shells and navigation | **COMPLETE / PASS** |
-| **13.16.3** | Unified Owner Control Center | **UNLOCKED / NOT STARTED** |
+| **13.16.3** | Unified Owner Control Center | **IN PROGRESS — A.1 LIVE AUDIT PASS; A.2 TECHNOLOGY + SECURITY FOUNDATION IMPLEMENTED / LIVE APPLY PENDING** |
 | **13.16.4** | Department workspaces | **LOCKED** |
 | **13.16.5** | Cross-department dependencies and blocker view | **LOCKED** |
 | **13.16.6** | Owner decision and escalation inbox | **LOCKED** |
@@ -1096,6 +1096,114 @@ The control center should distinguish:
 
 It must not substitute raw AgentRun counts, messages, retries, or tool activity for business
 progress.
+
+#### 11.6.1 13.16.3A — Interactive Organization Pulse + Owner Attention
+
+**State:** COMPLETE / PASS — ACCEPTED 2026-08-16.
+
+This first bounded capability slice turns the accepted premium shell into an interactive Owner control surface without adding a new backend authority model:
+
+- CEO, active L3 executive officers, and operational domains are selectable in Organization Pulse using keyboard-accessible `aria-pressed` controls.
+- The selected focus is resolved from the live Board Packet hierarchy and Observatory department snapshots, then exposes real span-of-control, active work, open blockers, active Contributions, linked pending human requests, and the most recent durable Activity or work signal in the loaded window.
+- Executive portfolio ownership continues to follow existing `reports_to_position_key` ancestry; unresolved ownership remains unresolved rather than being guessed.
+- Owner Attention now counts only **Board-pending decisions plus open risks explicitly marked `requires_board_attention`**. Generic open risks are not silently promoted into Owner authority.
+- The reserved-authority queue renders the actual current Board decision/risk records. Pending human-action requests remain a clearly separated delegated-human lane and are not counted as Owner authority unless they are escalated into a Board-reserved record.
+- The frontend adds read-only helpers for `/api/v1/organization/observatory/departments` and `/api/v1/organization/human-action-requests`; backend authorization remains authoritative and no write, delegation, publication, Activity, or Austria-safety semantics change.
+- Activity remains canonical: if no durable signal exists in the selected scope/window, the Cockpit says so instead of inventing one.
+- Screenshot-driven interaction polish keeps span-of-control language consistent: executive focus excludes the selected officer from its downstream-position count, domain focus reports operational positions directly, and CEO focus distinguishes executives, domains, and downstream positions.
+- The Organization Pulse and Owner Attention now size to their actual content instead of stretching to an artificial shared height; this removes the large empty region between focus inspection and AIOS while keeping the Owner lane compact.
+- Focus metrics are grouped as Execution, Governance, Evidence, and Human attention without changing their underlying Observatory values; operational-domain selection remains a first-class peer to executive selection.
+
+**A acceptance:** premium design-foundation **18 passed**; request/auth **4 passed**; Next.js 15.2.4 production build **PASS** with **39/39 static pages**; interactive browser review confirmed selectable CTO/CISO/domain focus, truthful zero-state Owner Attention, consistent downstream counts, and compact content-led layout; repository policy, release consistency, and `git diff --check` passed. No backend write authority, delegation, Activity reconstruction, or synthetic Owner work was introduced.
+
+#### 11.6.2 13.16.3A.1 — Organization Capability Architecture + live inventory
+
+**State:** COMPLETE / PASS — LIVE INVENTORY RECONCILED 2026-08-16.
+
+The interactive Cockpit exposed a structural truth: the nine-officer executive council is mature enough to remain, but the functional organization below it is too shallow for the product and operating model Global Mobility AIOS is becoming. The code-defined foundation at this gate contained **34 position specs** (Human Board + CEO + nine L3 officers + 23 non-executive positions). The authoritative read-only live audit on 2026-08-16 reported **34 active positions, zero live extras, and zero missing foundation keys**. The earlier browser count of 35 was therefore not used as a mutation basis; the audited database state is the acceptance source of truth.
+
+This slice added a **planning-only, machine-readable capability architecture** plus a **read-only audit command**. The A.1 audit itself did **not** feed `ensure_foundation_positions()`, create positions, repair the live organization, change reporting lines, alter authority, or claim that planned positions represent hired humans. A target position is an organizational capability/ownership slot; later execution may be human-owned, human-supervised, agent-assisted, or automated only within separately accepted authority contracts.
+
+**Executive-council decision:** keep the current nine L3 officers — COO, CTO, CISO, CPO, CFO, CLO, CMO, CCO, and CHRO. Do not add CIO, CRO, IT Director, or another C-suite layer merely to make the org chart look complete. CTO remains the product/platform technology executive; CISO remains an independent peer reporting to CEO rather than reporting through CTO.
+
+**Target capability architecture:**
+
+| Owner | Priority capabilities | Boundary / direction |
+|---|---|---|
+| **CTO** | Engineering Leadership; Application Engineering; Platform & Reliability; Quality Engineering; Data & AI Engineering; Architecture & Engineering Enablement | Build/run/enable the product and platform; security challenge remains independent under CISO |
+| **CISO** | Security Engineering & AppSec; IAM; Security GRC; Security Operations & Incident Response; Threat & Vulnerability Management | Security control ownership and assurance; privacy/legal interpretation remains CLO; platform implementation partners with CTO |
+| **COO** | Global Mobility Operations; Document & Evidence Operations; Authority & Filing Operations; Client Success; Partner Operations; Operational Excellence; Commercial Operations; Operational Intelligence; **Global Mobility Intelligence** | COO owns operational research/evidence workflows; CLO remains governance partner for regulatory/legal interpretation and no autonomous filing authority is introduced |
+| **CPO** | Product Management; Product Design & UX Research; Product Operations & Analytics; Accessibility & Content Experience | Product owns what/why and customer experience; CTO owns engineering implementation |
+| **CLO** | Commercial & Corporate Legal; Global Mobility / Immigration Regulatory; Privacy & Data Protection; Public Policy & Government Regulation; Legal Compliance & Regulatory Assurance | Human-governed legal interpretation, privacy, regulatory challenge, and assurance; unsupported legal certainty remains prohibited |
+| **CFO** | FP&A; Accounting & Controller; Tax & Treasury; Procurement & Vendor Management; FinOps / Cloud Economics | Procurement and FinOps are cross-functional with CTO/CISO/CLO rather than isolated purchasing authority |
+| **CMO** | Product Marketing; Growth & Demand; Brand & Content; Lifecycle & CRM; Marketing Operations & Analytics | Positioning/growth lifecycle; CCO remains reputation/public-affairs owner |
+| **CCO** | Corporate Communications & PR; Public Affairs & Government Relations; Crisis & Issues Communications; Executive & Stakeholder Communications | CCO explicitly means Chief Communications Officer; legal policy interpretation remains CLO |
+| **CHRO** | People Operations; Talent Acquisition; Learning & Performance; Culture & Engagement; Workforce Planning & People Analytics | Human workforce/capability planning and people evidence; no autonomous hiring/termination authority |
+| **Human Board (future assurance)** | Independent AI Governance & Assurance | Future Board-level assurance capability, not a new C-suite officer and not part of the immediate runtime expansion |
+
+The target registry contains **49 capability domains**. At A.1 it mapped all **23 current non-executive foundation positions**, marked **46 additional capability positions as planned**, and flagged five current positions for **review rather than deletion**: `head_of_product`, `sales_summary`, `business_intelligence`, `marketing_manager`, and `culture_recruitment_lead`. A.2 promotes only the first 13 Technology + Security capability slots into the foundation, leaving **33 positions planned**. Planned does **not** mean “create all remaining positions now”; the architecture remains a long-lived target used to choose small justified tranches.
+
+**Priority model:**
+
+1. **Tier 1 — product/safety/mission critical:** Technology & Engineering, Security, Global Mobility Operations, Global Mobility Intelligence, Legal/Regulatory, and core Product capabilities.
+2. **Tier 2 — company operating maturity:** Finance, People, Customer Success/Partner Operations, Product Operations, procurement/FinOps.
+3. **Tier 3 — growth/reputation:** Marketing and Communications expansion.
+4. **Future:** Board-level independent AI governance/assurance after the operating model is mature enough to justify it.
+
+**A.1 live-audit acceptance:** `python scripts/audit_organization_capabilities.py --database-url sqlite:///D:/global-mobility-aios/gmai.db` returned **7 focused tests PASS**, `foundation_positions=34`, `live_active_positions=34`, `live_extra_position_keys=[]`, `live_missing_foundation_keys=[]`, `live_status=matches_foundation`, and `runtime_mutation_performed=false`; repository policy, release consistency, and `git diff --check` also passed. No reset, repair, or position creation occurred in A.1.
+
+#### 11.6.3 13.16.3A.2 — Tier-1 organization foundation expansion
+
+**State:** COMPLETE / PASS — TECHNOLOGY + SECURITY TRANCHE 1 ACCEPTED 2026-08-16.
+
+The live audit resolved the foundation state cleanly, so the first runtime tranche is bounded to **13 additive Technology + Security capability positions**. The foundation expands from **34 → 47 positions** only after controlled live application; no existing position is deleted, suspended, reassigned, or contract-repaired.
+
+**Technology tranche (9):**
+
+- `lead_software_engineer` → VP Engineering (L2)
+- `backend_api_engineer` → Lead Software Engineer (L1)
+- `frontend_product_engineer` → Lead Software Engineer (L1)
+- `platform_engineer` → VP Engineering (L2)
+- `site_reliability_engineer` → Platform Engineer (L1)
+- `qa_automation_engineer` → VP Engineering (L1)
+- `data_engineer` → VP Engineering (L1)
+- `ai_ml_platform_engineer` → VP Engineering (L1)
+- `developer_experience_engineer` → Lead Architect (L1)
+
+**Security tranche (4):**
+
+- `application_security_engineer` → Security Lead (L1)
+- `iam_engineer` → Security Lead (L1)
+- `security_grc_lead` → CISO (L2)
+- `vulnerability_management_engineer` → Security Lead (L1)
+
+These positions are **organizational capability slots, not newly hired people and not newly executable agents**. Their foundation contracts set `execution_enabled=false`, `execution_posture=organization_capability_only`, empty delegated/direct action authority, `external_action_authorized=false`, `self_approval_allowed=false`, explicit prohibited authority, and no role-card/runtime adapter. Existing CTO and CISO executable delegation sets remain unchanged (`vp_engineering` + `lead_architect` for CTO; `security_lead` + `threat_analyst` for CISO).
+
+A guarded local helper, `scripts/apply_organization_foundation_tranche.py`, provides read-only preflight by default and refuses unexpected live extras, missing pre-existing foundation keys, missing global OrganizationControl, or non-SQLite targets. `--apply` creates an integrity-checked backup and then performs only additive `ensure_foundation_positions()` registration with audit records. It performs no delete, suspension, contract repair, delegation expansion, schema migration, or authority grant.
+
+**A.2 live acceptance:** guarded preflight identified exactly the 13 approved Technology/Security keys and no unrelated organization drift. Controlled SQLite apply completed additively after an integrity-checked backup. The read-only post-apply audit returned `foundation_positions=47`, `live_active_positions=47`, `live_extra_position_keys=[]`, `live_missing_foundation_keys=[]`, `live_missing_technology_security_tranche_keys=[]`, and `live_status=matches_foundation`. Physical SQLite schema and migration checks passed at `0075_legacy_schema_reconciliation`; repository policy, release consistency, and `git diff --check` passed. Focused tranche regression closed at **11 passed, 0 failed**. The complete API suite closed at **801 passed, 5 skipped, 0 failed** with only the known Starlette/httpx test-client deprecation warning. Runtime smoke closed **5/5 HTTP 200** for health, Board Packet, Observatory summary, Observatory departments, and human-action requests. Browser review confirmed the expanded live organization at **9 executives, 19 operational domains, and 45 downstream positions** beneath CEO, with CTO/CISO portfolios materially expanded while all 13 new capability slots remain non-executable and delegation sets unchanged.
+
+**Later accepted tranches remain sequential:**
+
+2. **Global Mobility Operations + Intelligence + Legal/Regulatory:** case/pathway/document/filing operations, jurisdiction research, evidence/source certification, mobility intelligence, immigration-regulatory counsel, privacy, and regulatory assurance.
+3. **Product + Finance + People maturity:** remove no legacy role automatically; resolve `head_of_product`/other review items through explicit compatibility decisions.
+4. **Commercial/Marketing/Communications maturity:** only after operational ownership and product-market workflows justify deeper specialization.
+
+Every runtime tranche must define reporting, authority level, role contract, evidence requirements, prohibited authority, runtime availability, migration/data impact (if any), Cockpit ownership, tests, and rollback/compatibility behavior. No planned position automatically gains executable runtime authority simply by being registered.
+
+#### 11.6.4 13.16.3A.3 — Global Mobility Operations + Global Mobility Intelligence + Legal/Regulatory
+
+**State:** UNLOCKED / NOT STARTED.
+
+**Intent:** expand the Tier-1 mission organization beneath COO and CLO before blocker/dependency ownership becomes authoritative in the Cockpit. The tranche should cover case/pathway/document/filing operations, jurisdiction research, evidence/source certification, mobility intelligence, immigration-regulatory counsel, privacy/data protection, and regulatory assurance.
+
+The tranche must preserve the same organization-capability discipline accepted in A.2: additive foundation registration only; explicit reporting/authority contracts; no position becomes an executable agent merely by existing; no autonomous legal opinion, filing, publication, certification, or unsupported regulatory certainty; and no Austria safety boundary may be weakened. A guarded preflight/apply path and read-only post-apply audit remain mandatory for preserved SQLite.
+
+#### 11.6.5 13.16.3B — Owner blockers, dependencies, and live operational intelligence
+
+**State:** LOCKED ON 13.16.3A.3 TIER-1 MISSION OWNERSHIP.
+
+Once Tier-1 ownership is credible, continue the Unified Owner Control Center with blocker/dependency visibility, live durable Activity, Contribution/evidence health, and department/executive intervention signals. This ordering prevents the Cockpit from assigning blockers to an unrealistic or ambiguous organization model.
 
 ### 11.7 13.16.4 — Department workspaces
 
@@ -1751,7 +1859,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is UNLOCKED / NOT STARTED, while later 13.16.x slices remain sequentially gated;
+- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is IN PROGRESS with 13.16.3A / A.1 / A.2 COMPLETE / PASS and 13.16.3A.3 UNLOCKED / NOT STARTED, while later 13.16.x slices remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 
@@ -1853,4 +1961,29 @@ The visual foundation is frozen at the accepted premium direction: warm ivory pl
 
 Closure evidence: migration regression **6 passed**; design-foundation **16 passed**; request/auth **4 passed**; complete API **791 passed, 5 skipped, 0 failed**; Next.js 15.2.4 production build **PASS** with the accepted route set and captured **39/39 static pages**; repository policy **PASS**; release consistency **PASS** at `0075_legacy_schema_reconciliation`; physical preserved-SQLite parity **PASS** with 118 registered/actual model tables and only `alembic_version` as infrastructure; `git diff --check` **PASS**; and runtime smoke **5/5 HTTP 200** across `/health`, WorkItems, Decisions, Board Packet, and CRM summary. The remaining Starlette/httpx warning is a known test-client deprecation warning and is not a 13.16.2 functional failure.
 
-`0075_legacy_schema_reconciliation` is a forward, data-preserving compatibility repair for the preserved developer SQLite database; it does not authorize historical Activity reconstruction, weaken review gates, change Austria publication/certification state, or migrate the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is UNLOCKED / NOT STARTED**. Further Cockpit evolution should now be capability-led: interactive executive focus, real Owner authority queues, organizational health, blockers/dependencies, Contributions/evidence health, durable Activity, and richer grounded Global Mobility intelligence rather than another shell redesign.
+`0075_legacy_schema_reconciliation` is a forward, data-preserving compatibility repair for the preserved developer SQLite database; it does not authorize historical Activity reconstruction, weaken review gates, change Austria publication/certification state, or migrate the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is IN PROGRESS**. Slices **13.16.3A, 13.16.3A.1, and 13.16.3A.2 are COMPLETE / PASS**: interactive executive/domain focus and an authority-correct Owner queue are accepted; the capability architecture is reconciled; and the first Technology + Security foundation tranche is live at 47/47 positions without authority expansion. **13.16.3A.3 Global Mobility Operations + Global Mobility Intelligence + Legal/Regulatory is UNLOCKED / NOT STARTED**; later capability work remains organizational health, blockers/dependencies, Contributions/evidence health, durable Activity, and richer grounded Global Mobility intelligence rather than another shell redesign.
+
+### 13.16.3A.1 organization capability architecture — planning contract (2026-08-16)
+
+- Added a planning-only capability registry covering the current nine-officer executive council plus 49 target capability domains across Technology, Security, Operations, Global Mobility Intelligence, Product, Legal, Finance, Marketing, Communications, People, and future Board assurance.
+- The registry maps every current non-executive foundation position, proposes missing capabilities without registering them, and flags overlapping legacy positions for review rather than deletion.
+- Added a read-only capability-audit command to reconcile the code-defined 34-position foundation with the live preserved developer organization before any mutation; it must report `runtime_mutation_performed=false`.
+- Explicitly kept CISO independent from CTO, rejected premature CIO/CRO expansion, and made COO operational owner of Global Mobility Intelligence with CLO as regulatory/legal governance partner.
+- Live audit completed with 34 active positions matching all 34 foundation specs, no extras/missing keys, 7 focused tests PASS, repository policy PASS, release consistency PASS, and no runtime mutation. The earlier browser count was not used as a mutation basis.
+
+### 13.16.3A.2 Technology + Security foundation tranche 1 — implementation contract (2026-08-16)
+
+- Promoted exactly 13 previously planned Technology/Security capability slots into `POSITION_SPECS`, expanding the code foundation from 34 to 47 positions while keeping the existing nine-officer executive council unchanged.
+- Added nine CTO-side capability slots across Application Engineering, Platform & Reliability, Quality Engineering, Data & AI Engineering, and Architecture/Engineering Enablement; added four CISO-side slots for AppSec, IAM, Security GRC, and vulnerability management.
+- New capability slots are intentionally **non-executable**: no runtime adapter/role card, no delegated or direct action authority, no external action authority, no self-approval, and explicit prohibited authority. Existing CTO/CISO executable delegation sets are unchanged.
+- Added focused regression coverage for additive foundation registration, reporting lines, non-executable contracts, and unchanged executable delegation sets. Updated the capability architecture so these 13 keys are `existing`, leaving 33 planned positions and the five legacy review items unchanged.
+- Added `scripts/apply_organization_foundation_tranche.py`, a guarded SQLite-only preflight/apply helper that refuses unrelated drift, requires the existing global OrganizationControl, backs up the preserved DB before mutation, and performs only additive foundation registration with audit records.
+- No Alembic/schema migration, Activity reconstruction, work/decision backfill, publication/certification change, Austria safety change, PostgreSQL mutation, or autonomous-authority expansion is included. Controlled preserved-SQLite application and browser acceptance are recorded in the checkpoint closure below.
+
+### 13.16.3A / A.1 / A.2 checkpoint closure — COMPLETE / PASS (2026-08-16)
+
+The first Unified Owner Control Center checkpoint is accepted from immutable baseline `a6ab946748b80430502d0f21108187913b4ed7ca`. 13.16.3A makes the premium Cockpit interactive and authority-correct; A.1 establishes the machine-readable organization capability architecture and reconciles the preserved live foundation at 34/34 without mutation; A.2 additively establishes the first Technology + Security capability tranche and closes at 47/47 live positions.
+
+Acceptance evidence: design-foundation **18/18 PASS**; request/auth **4/4 PASS**; Next.js production build **PASS** with **39/39 static pages**; focused organization tranche regressions **11/11 PASS**; complete API **801 passed, 5 skipped, 0 failed**; preserved SQLite physical schema and migration checks **PASS** at `0075_legacy_schema_reconciliation`; repository policy, release consistency, and `git diff --check` **PASS**; runtime smoke **5/5 HTTP 200** for the critical Owner-read surfaces; post-apply organization audit **47 foundation / 47 live / zero extra / zero missing**. Browser review confirmed **9 executives, 19 operational domains, 45 downstream positions**, expanded CTO/CISO portfolios, and no synthetic Owner authority or Activity. The 13 newly registered Technology/Security capability slots remain non-executable with empty delegated/direct action authority, no self-approval, and unchanged existing CTO/CISO executable delegation sets.
+
+The next unlocked slice is **13.16.3A.3 — Global Mobility Operations + Global Mobility Intelligence + Legal/Regulatory**. 13.16.3B remains locked until that Tier-1 mission-ownership tranche is accepted.

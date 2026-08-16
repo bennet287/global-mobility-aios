@@ -11,15 +11,22 @@ import {
   OrganizationPosition,
   GlobalIntelligenceDashboard,
   OrganizationActivity,
+  OrganizationHumanActionRequest,
+  ObservatoryDepartments,
   ObservatorySummary,
   getBoardPacket,
   getGlobalIntelligenceDashboard,
+  getOrganizationObservatoryDepartments,
   getOrganizationObservatorySummary,
   listOrganizationActivities,
+  listOrganizationHumanActionRequests,
 } from "../../lib/api";
 import { titleCase } from "../../lib/utils";
 
 type GeographicPoint = { lat: number; lon: number };
+type OrganizationFocus = { kind: "ceo" | "executive" | "domain"; key: string };
+
+const ACTIVE_HUMAN_REQUEST_STATUSES = new Set(["required", "acknowledged", "in_progress"]);
 
 const JURISDICTION_CENTROIDS: Record<string, GeographicPoint> = {
   AT: { lat: 47.52, lon: 14.55 }, DE: { lat: 51.17, lon: 10.45 }, CH: { lat: 46.82, lon: 8.23 },
@@ -82,8 +89,11 @@ export default function CockpitPage() {
   const { health, error: healthError } = useBackendStatus();
   const [packet, setPacket] = useState<BoardPacketSnapshot | null>(null);
   const [observatory, setObservatory] = useState<ObservatorySummary | null>(null);
+  const [departmentObservatory, setDepartmentObservatory] = useState<ObservatoryDepartments | null>(null);
   const [intelligence, setIntelligence] = useState<GlobalIntelligenceDashboard | null>(null);
   const [activities, setActivities] = useState<OrganizationActivity[]>([]);
+  const [humanRequests, setHumanRequests] = useState<OrganizationHumanActionRequest[]>([]);
+  const [organizationFocus, setOrganizationFocus] = useState<OrganizationFocus>({ kind: "ceo", key: "ceo" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,12 +104,14 @@ export default function CockpitPage() {
     const results = await Promise.allSettled([
       getBoardPacket(),
       getOrganizationObservatorySummary(),
+      getOrganizationObservatoryDepartments(),
       getGlobalIntelligenceDashboard(90),
-      listOrganizationActivities({ page_size: 6 }),
+      listOrganizationActivities({ page_size: 20 }),
+      listOrganizationHumanActionRequests({ page_size: 50 }),
     ]);
 
     const failures: string[] = [];
-    const [packetResult, observatoryResult, intelligenceResult, activityResult] = results;
+    const [packetResult, observatoryResult, departmentsResult, intelligenceResult, activityResult, humanRequestResult] = results;
 
     if (packetResult.status === "fulfilled") setPacket(packetResult.value);
     else failures.push("organization control");
@@ -107,11 +119,17 @@ export default function CockpitPage() {
     if (observatoryResult.status === "fulfilled") setObservatory(observatoryResult.value);
     else failures.push("observatory");
 
+    if (departmentsResult.status === "fulfilled") setDepartmentObservatory(departmentsResult.value);
+    else failures.push("department observatory");
+
     if (intelligenceResult.status === "fulfilled") setIntelligence(intelligenceResult.value);
     else failures.push("global intelligence");
 
     if (activityResult.status === "fulfilled") setActivities(activityResult.value.data);
     else failures.push("activity stream");
+
+    if (humanRequestResult.status === "fulfilled") setHumanRequests(humanRequestResult.value.data);
+    else failures.push("human attention records");
 
     if (failures.length) setError(`Some Cockpit signals are temporarily unavailable: ${failures.join(", ")}.`);
     setLoading(false);
@@ -171,6 +189,75 @@ export default function CockpitPage() {
     });
   }, [executivePositions, operationalDomains]);
 
+  const organizationFocusView = useMemo(() => {
+    const positions = packet?.positions || [];
+    const byKey = new Map(positions.map((position) => [position.position_key, position]));
+    const departmentRows = departmentObservatory?.departments || [];
+
+    const descendsFrom = (position: OrganizationPosition, ancestorKey: string) => {
+      let current: OrganizationPosition | undefined = position;
+      const visited = new Set<string>();
+      while (current?.reports_to_position_key && !visited.has(current.position_key)) {
+        visited.add(current.position_key);
+        if (current.reports_to_position_key === ancestorKey) return true;
+        current = byKey.get(current.reports_to_position_key);
+      }
+      return false;
+    };
+
+    let label = "CEO";
+    let title = "Organization-wide executive view";
+    let domains = operationalDomains;
+    let scopedPositions = positions.filter((position) => position.position_key !== "board");
+
+    if (organizationFocus.kind === "executive") {
+      const portfolio = executivePortfolios.find(({ position }) => position.position_key === organizationFocus.key);
+      if (portfolio) {
+        label = executiveRoleLabel(portfolio.position);
+        title = cleanExecutiveTitle(portfolio.position.title);
+        domains = portfolio.domains;
+        scopedPositions = positions.filter((position) => position.position_key === portfolio.position.position_key || descendsFrom(position, portfolio.position.position_key));
+      }
+    } else if (organizationFocus.kind === "domain") {
+      const domain = operationalDomains.find((item) => item.department === organizationFocus.key);
+      if (domain) {
+        label = domain.department;
+        title = "Operational domain";
+        domains = [domain];
+        scopedPositions = positions.filter((position) => position.department === domain.department);
+      }
+    }
+
+    const domainNames = new Set(domains.map((domain) => domain.department));
+    const positionKeys = new Set(scopedPositions.map((position) => position.position_key));
+    const metrics = departmentRows
+      .filter((row) => domainNames.has(row.department))
+      .reduce((total, row) => ({
+        activeWork: total.activeWork + row.work_items_active,
+        openBlockers: total.openBlockers + row.blockers_open,
+        activeContributions: total.activeContributions + row.active_contributions,
+        pendingHuman: total.pendingHuman + row.pending_human_action_requests_linked_to_work,
+      }), { activeWork: 0, openBlockers: 0, activeContributions: 0, pendingHuman: 0 });
+
+    const recentWork = (packet?.recent_work || [])
+      .filter((item) => domainNames.has(item.department) || positionKeys.has(item.assigned_position_key))
+      .slice(0, 3);
+    const recentActivity = activities
+      .filter((activity) => (activity.department ? domainNames.has(activity.department) : false) || (activity.position_key ? positionKeys.has(activity.position_key) : false))
+      .slice(0, 3);
+
+    const downstreamPositions = organizationFocus.kind === "domain"
+      ? scopedPositions.length
+      : Math.max(0, scopedPositions.length - 1);
+    const scopeSummary = organizationFocus.kind === "domain"
+      ? `${downstreamPositions} operational position${downstreamPositions === 1 ? "" : "s"}`
+      : organizationFocus.kind === "executive"
+        ? `${domains.length} domain${domains.length === 1 ? "" : "s"} · ${downstreamPositions} downstream position${downstreamPositions === 1 ? "" : "s"}`
+        : `${executivePortfolios.length} executive${executivePortfolios.length === 1 ? "" : "s"} · ${domains.length} domain${domains.length === 1 ? "" : "s"} · ${downstreamPositions} downstream position${downstreamPositions === 1 ? "" : "s"}`;
+
+    return { label, title, domains, scopedPositions, downstreamPositions, scopeSummary, metrics, recentWork, recentActivity };
+  }, [activities, departmentObservatory, executivePortfolios, operationalDomains, organizationFocus, packet]);
+
   const globalSignals = useMemo(() => {
     return [...(intelligence?.country_heatmap || [])]
       .sort((a, b) => b.critical - a.critical || b.pending_review - a.pending_review || b.activity_count - a.activity_count)
@@ -185,11 +272,15 @@ export default function CockpitPage() {
   }, [globalSignals]);
 
   const maxActivity = Math.max(1, ...globalSignals.map((item) => item.activity_count));
-  const boardAttention = packet?.metrics.pending_board ?? 0;
+  const boardDecisions = (packet?.pending_decisions || []).filter((decision) => decision.status === "pending_board" || decision.decision_owner_position === "board");
+  const boardRisks = (packet?.open_risks || []).filter((risk) => risk.requires_board_attention);
+  const activeHumanRequests = humanRequests.filter((request) => ACTIVE_HUMAN_REQUEST_STATUSES.has(request.status));
+  const boardAttention = boardDecisions.length;
   const openRisks = packet?.metrics.open_risks ?? 0;
-  const pendingHuman = observatory?.metrics.human_attention.pending_requests ?? 0;
+  const boardRiskAttention = boardRisks.length;
+  const pendingHuman = observatory?.metrics.human_attention.pending_requests ?? activeHumanRequests.length;
   const overdueWork = observatory?.metrics.work.overdue_active ?? 0;
-  const ownerAttention = boardAttention + openRisks;
+  const ownerAttention = boardAttention + boardRiskAttention;
   const isPaused = packet?.control.status === "paused";
 
   const headline = isPaused
@@ -266,7 +357,14 @@ export default function CockpitPage() {
             <div className="pulse-enterprise-stack">
               <div className="pulse-node human-board"><small>L4 human authority</small><strong>Human Board</strong></div>
               <div className={`pulse-layer-connector ${isPaused ? "paused" : "active"}`} aria-hidden="true"><span /></div>
-              <div className="pulse-node ceo"><small>L3 executive integrator</small><strong>CEO</strong><span /></div>
+              <button
+                className={`pulse-node ceo pulse-selectable ${organizationFocus.kind === "ceo" ? "selected" : ""}`}
+                type="button"
+                aria-pressed={organizationFocus.kind === "ceo"}
+                onClick={() => setOrganizationFocus({ kind: "ceo", key: "ceo" })}
+              >
+                <small>L3 executive integrator</small><strong>CEO</strong><span />
+              </button>
               <div className={`pulse-layer-connector ${isPaused ? "paused" : "active"}`} aria-hidden="true"><span /></div>
 
               <section className="pulse-executive-layer" aria-labelledby="executive-leadership-title">
@@ -276,7 +374,13 @@ export default function CockpitPage() {
                 </header>
                 <div className="pulse-executive-grid">
                   {executivePortfolios.length ? executivePortfolios.map(({ position, domains, downstreamPositions }) => (
-                    <article className="pulse-executive-card" key={position.position_key}>
+                    <button
+                      className={`pulse-executive-card pulse-selectable ${organizationFocus.kind === "executive" && organizationFocus.key === position.position_key ? "selected" : ""}`}
+                      key={position.position_key}
+                      type="button"
+                      aria-pressed={organizationFocus.kind === "executive" && organizationFocus.key === position.position_key}
+                      onClick={() => setOrganizationFocus({ kind: "executive", key: position.position_key })}
+                    >
                       <span className="pulse-executive-mark">{executiveRoleLabel(position)}</span>
                       <div>
                         <small>{position.department} · {position.authority_level}</small>
@@ -284,7 +388,7 @@ export default function CockpitPage() {
                         <p>{domains.length ? domains.map((domain) => domain.department).join(" · ") : "Executive authority"}</p>
                       </div>
                       <em>{downstreamPositions} downstream</em>
-                    </article>
+                    </button>
                   )) : (
                     <div className="pulse-layer-empty">No active L3 officers currently report to the CEO.</div>
                   )}
@@ -302,13 +406,56 @@ export default function CockpitPage() {
                   {operationalDomains.length ? operationalDomains.map((domain) => {
                     const owners = domain.ownerKeys.map((key) => EXECUTIVE_ROLE_LABELS[key] || key.toUpperCase());
                     return (
-                      <article className="pulse-domain-card" key={domain.department}>
+                      <button
+                        className={`pulse-domain-card pulse-selectable ${organizationFocus.kind === "domain" && organizationFocus.key === domain.department ? "selected" : ""}`}
+                        key={domain.department}
+                        type="button"
+                        aria-pressed={organizationFocus.kind === "domain" && organizationFocus.key === domain.department}
+                        onClick={() => setOrganizationFocus({ kind: "domain", key: domain.department })}
+                      >
                         <div><span aria-hidden="true" /><small>{owners.length ? `${owners.join(" / ")} portfolio` : "Executive ownership unresolved"}</small></div>
                         <strong>{domain.department}</strong>
                         <p>{domain.positions} operational position{domain.positions === 1 ? "" : "s"}</p>
-                      </article>
+                      </button>
                     );
                   }) : <div className="pulse-layer-empty">Waiting for active operational positions.</div>}
+                </div>
+              </section>
+
+              <section className="pulse-focus-panel" aria-live="polite" aria-label="Selected organization focus">
+                <header>
+                  <div>
+                    <small>Interactive organization focus</small>
+                    <strong>{organizationFocusView.label}</strong>
+                    <span>{organizationFocusView.title}</span>
+                  </div>
+                  <p>{organizationFocusView.scopeSummary}</p>
+                </header>
+
+                <div className="pulse-focus-metrics">
+                  <div><small>Execution</small><strong>{departmentObservatory ? organizationFocusView.metrics.activeWork : "—"}</strong><span>Active work</span></div>
+                  <div><small>Governance</small><strong>{departmentObservatory ? organizationFocusView.metrics.openBlockers : "—"}</strong><span>Open blockers</span></div>
+                  <div><small>Evidence</small><strong>{departmentObservatory ? organizationFocusView.metrics.activeContributions : "—"}</strong><span>Active contributions</span></div>
+                  <div><small>Human attention</small><strong>{departmentObservatory ? organizationFocusView.metrics.pendingHuman : "—"}</strong><span>Pending requests</span></div>
+                </div>
+
+                <div className="pulse-focus-detail">
+                  <div>
+                    <small>Portfolio</small>
+                    <div className="pulse-focus-tags">
+                      {organizationFocusView.domains.length ? organizationFocusView.domains.map((domain) => <span key={domain.department}>{domain.department}</span>) : <span>No resolved operational domains</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <small>Recent durable signal</small>
+                    {organizationFocusView.recentActivity[0] ? (
+                      <p><strong>{organizationFocusView.recentActivity[0].title}</strong><span>{timeLabel(organizationFocusView.recentActivity[0].occurred_at)} · {organizationFocusView.recentActivity[0].department || titleCase(organizationFocusView.recentActivity[0].activity_class)}</span></p>
+                    ) : organizationFocusView.recentWork[0] ? (
+                      <p><strong>{organizationFocusView.recentWork[0].title}</strong><span>{titleCase(organizationFocusView.recentWork[0].status)} · {organizationFocusView.recentWork[0].department}</span></p>
+                    ) : (
+                      <p><strong>No recent durable signal in the loaded window.</strong><span>The Cockpit does not synthesize activity for presentation.</span></p>
+                    )}
+                  </div>
                 </div>
               </section>
 
@@ -349,16 +496,50 @@ export default function CockpitPage() {
             <span className="attention-emblem" aria-hidden="true">{ownerAttention > 0 ? "!" : "✓"}</span>
             <div>
               <strong>{ownerAttention > 0 ? "Reserved-authority signals are waiting." : "No owner intervention required."}</strong>
-              <p>{ownerAttention > 0 ? "Review the Board decision and escalation lanes before changing organizational control." : "All observed execution remains inside delegated authority. Human ownership remains intact."}</p>
+              <p>{ownerAttention > 0 ? "Review the Board decision and Board-attention risk lanes before changing organizational control." : "All observed execution remains inside delegated authority. Human ownership remains intact."}</p>
             </div>
           </div>
 
+          <section className="owner-authority-queue" aria-label="Reserved authority queue">
+            <header><span>Reserved authority queue</span><strong>{ownerAttention ? `${ownerAttention} waiting` : "Clear"}</strong></header>
+            {ownerAttention ? (
+              <div className="owner-queue-items">
+                {boardDecisions.slice(0, 3).map((decision) => (
+                  <Link href="/board-room" key={`decision-${decision.id}`}>
+                    <span className="owner-queue-kind">Decision</span>
+                    <strong>{decision.title}</strong>
+                    <small>{decision.decision_owner_position.toUpperCase()} · {titleCase(decision.status)}</small>
+                  </Link>
+                ))}
+                {boardRisks.slice(0, Math.max(0, 3 - boardDecisions.length)).map((risk) => (
+                  <Link href="/board-room" key={`risk-${risk.id}`}>
+                    <span className="owner-queue-kind risk">Risk</span>
+                    <strong>{risk.title}</strong>
+                    <small>{titleCase(risk.severity)} · {titleCase(risk.category)}</small>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="owner-queue-empty"><span aria-hidden="true">✓</span><p><strong>No reserved-authority records in the current Board Packet.</strong><small>Delegated human requests and operational exceptions remain visible below without being counted as Owner authority.</small></p></div>
+            )}
+          </section>
+
           <div className="attention-rows">
             <Link href="/board-room"><span>Board decisions</span><strong>{boardAttention}</strong></Link>
-            <Link href="/board-room"><span>Risk escalations</span><strong>{openRisks}</strong></Link>
-            <Link href="/agents/review"><span>Pending human requests</span><strong>{pendingHuman}</strong></Link>
+            <Link href="/board-room"><span>Board risk escalations</span><strong>{boardRiskAttention}</strong></Link>
+            <div><span>Pending human requests</span><strong>{pendingHuman}</strong></div>
             <Link href="/"><span>Overdue active work</span><strong>{overdueWork}</strong></Link>
           </div>
+
+          {activeHumanRequests.length ? (
+            <div className="owner-human-lane">
+              <span>Delegated human attention</span>
+              {activeHumanRequests.slice(0, 2).map((request) => (
+                <div key={request.id}><strong>{request.title}</strong><small>{titleCase(request.priority)} · {request.required_role} · {titleCase(request.status)}</small></div>
+              ))}
+              <small>These records are not counted as Owner authority unless they are escalated into a Board-reserved lane.</small>
+            </div>
+          ) : null}
 
           <Link className="surface-link" href="/board-room">Open executive authority →</Link>
         </article>

@@ -31,6 +31,12 @@ from app.schemas import ControlledAgentRunRequest
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import run_controlled_agent
 from app.services.department_runtime import DEPARTMENT_RUNTIMES, department_runtime_spec
+from app.services.organization_capability_architecture import (
+    TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS,
+    capability_domain_for_position,
+    capability_position_map,
+    technology_security_foundation_specs,
+)
 from app.services.organization_command import OrganizationCommandContext
 from app.services.organization_semantic_activity import (
     stage_decision_created_activity,
@@ -130,7 +136,7 @@ def _stage_legacy_work_status(
         previous_status=previous_status,
     )
 
-POSITION_SPECS = (
+LEGACY_POSITION_SPECS = (
     ("board", "Human Board", "Board", None, "L4", None),
     ("ceo", "Chief Executive Officer Agent", "Executive", "board", "L3", "CEO.md"),
     ("cto", "Chief Technology Officer Agent", "Technology", "ceo", "L3", "CTO.md"),
@@ -166,6 +172,8 @@ POSITION_SPECS = (
     ("business_intelligence", "Business Intelligence Agent", "Operations", "coo", "L1", "Business_Intelligence_Agent.md"),
     ("application_readiness", "Application Readiness Agent", "Operations", "coo", "L1", "Application_Readiness_Agent.md"),
 )
+POSITION_SPECS = LEGACY_POSITION_SPECS + technology_security_foundation_specs()
+CAPABILITY_ONLY_POSITION_KEYS = TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS
 POSITION_SPEC_BY_KEY = {
     key: {
         "title": title,
@@ -287,6 +295,20 @@ EXECUTIVE_ACTIONS = {
     "policy.publish",
     "secrets.access",
 }
+
+CAPABILITY_ONLY_PROHIBITED_ACTIONS = frozenset(
+    BOARD_RESERVED_ACTIONS
+    | EXECUTIVE_ACTIONS
+    | {
+        "compliance.certify",
+        "compensation.change",
+        "hiring.decision",
+        "legal.opinion.final",
+        "privileged.disclosure",
+        "settlement.commit",
+        "termination.action",
+    }
+)
 
 DEPARTMENT_EXECUTIVE_OWNER = {
     key: spec.executive_position for key, spec in DEPARTMENT_RUNTIMES.items()
@@ -948,6 +970,28 @@ def _position_contract(position_key: str, authority_level: str) -> dict[str, Any
                 "external_action_authorized": False,
                 "self_approval_allowed": False,
                 "prohibited_direct_actions": sorted(GOVERNED_EXTERNAL_ACTIONS),
+            }
+        )
+    elif position_key in CAPABILITY_ONLY_POSITION_KEYS:
+        capability = capability_position_map()[position_key]
+        domain = capability_domain_for_position(position_key)
+        contract.update(
+            {
+                "capabilities": [
+                    "represent_organization_capability",
+                    "surface_scope_health_to_owner_cockpit",
+                ],
+                "capability_domain": domain.domain_key if domain is not None else None,
+                "capability_owner": domain.executive_position if domain is not None else None,
+                "capability_title": capability.title,
+                "execution_enabled": False,
+                "execution_posture": "organization_capability_only",
+                "delegated_action_authority": [],
+                "direct_action_authority": [],
+                "external_action_authorized": False,
+                "self_approval_allowed": False,
+                "required_evidence_fields": ["sources"],
+                "prohibited_direct_actions": sorted(CAPABILITY_ONLY_PROHIBITED_ACTIONS),
             }
         )
     elif position_key == "cto":
@@ -1840,7 +1884,7 @@ def ensure_foundation_positions(
                     result_refs={"position:unavailable"},
                     actor=actor,
                 )
-        elif key in HARDENED_POSITION_KEYS and repair_contracts:
+        elif (key in HARDENED_POSITION_KEYS or key in CAPABILITY_ONLY_POSITION_KEYS) and repair_contracts:
             expected_contract = _position_contract(key, authority)
             if not _position_matches_spec(position, key):
                 before_state = {

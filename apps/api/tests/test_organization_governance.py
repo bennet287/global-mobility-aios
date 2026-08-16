@@ -508,7 +508,7 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 34
+    assert response.json()["positions_registered"] == 47
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
@@ -526,6 +526,16 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["vp_engineering"].authority_level == "L2"
     assert by_key["lead_architect"].reports_to_position_key == "cto"
     assert by_key["lead_architect"].authority_level == "L2"
+    assert by_key["lead_software_engineer"].reports_to_position_key == "vp_engineering"
+    assert by_key["lead_software_engineer"].department == "Application Engineering"
+    assert by_key["backend_api_engineer"].reports_to_position_key == "lead_software_engineer"
+    assert by_key["frontend_product_engineer"].reports_to_position_key == "lead_software_engineer"
+    assert by_key["platform_engineer"].reports_to_position_key == "vp_engineering"
+    assert by_key["site_reliability_engineer"].reports_to_position_key == "platform_engineer"
+    assert by_key["qa_automation_engineer"].reports_to_position_key == "vp_engineering"
+    assert by_key["data_engineer"].reports_to_position_key == "vp_engineering"
+    assert by_key["ai_ml_platform_engineer"].reports_to_position_key == "vp_engineering"
+    assert by_key["developer_experience_engineer"].reports_to_position_key == "lead_architect"
     assert by_key["security_lead"].reports_to_position_key == "ciso"
     assert by_key["security_lead"].authority_level == "L2"
     assert by_key["threat_analyst"].reports_to_position_key == "ciso"
@@ -534,6 +544,11 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["soc_lead"].authority_level == "L2"
     assert by_key["soc_analyst"].reports_to_position_key == "ciso"
     assert by_key["soc_analyst"].authority_level == "L2"
+    assert by_key["application_security_engineer"].reports_to_position_key == "security_lead"
+    assert by_key["iam_engineer"].reports_to_position_key == "security_lead"
+    assert by_key["security_grc_lead"].reports_to_position_key == "ciso"
+    assert by_key["security_grc_lead"].authority_level == "L2"
+    assert by_key["vulnerability_management_engineer"].reports_to_position_key == "security_lead"
     assert by_key["product_manager"].reports_to_position_key == "cpo"
     assert by_key["product_manager"].authority_level == "L2"
     assert by_key["design_agent"].reports_to_position_key == "cpo"

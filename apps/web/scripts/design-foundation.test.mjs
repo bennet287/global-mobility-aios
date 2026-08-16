@@ -279,3 +279,51 @@ test("Cockpit dark mode preserves visible information-surface hierarchy", async 
   assert.match(styles, /Keep the page canvas darker than its information surfaces so panel boundaries remain obvious/);
   assert.match(styles, /Important executive titles must remain readable/);
 });
+
+test("13.16.3A Cockpit interaction stays data-grounded and authority-correct", async () => {
+  const [cockpit, api, styles] = await Promise.all([
+    read("app/cockpit/page.tsx"),
+    read("lib/api.ts"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(cockpit, /organizationFocus/);
+  assert.match(cockpit, /organizationFocusView/);
+  assert.match(cockpit, /aria-pressed=\{organizationFocus\.kind === "ceo"\}/);
+  assert.match(cockpit, /kind: "executive"/);
+  assert.match(cockpit, /kind: "domain"/);
+  assert.match(cockpit, /Interactive organization focus/);
+  assert.match(cockpit, /Active contributions/);
+  assert.match(cockpit, /No recent durable signal in the loaded window/);
+  assert.match(cockpit, /risk\.requires_board_attention/);
+  assert.match(cockpit, /const ownerAttention = boardAttention \+ boardRiskAttention/);
+  assert.match(cockpit, /Reserved authority queue/);
+  assert.match(cockpit, /These records are not counted as Owner authority unless they are escalated/);
+  assert.match(api, /\/api\/v1\/organization\/observatory\/departments/);
+  assert.match(api, /\/api\/v1\/organization\/human-action-requests/);
+  assert.match(styles, /Phase 13\.16\.3A — interactive Owner Control Center focus and authority queue/);
+  assert.match(styles, /\.pulse-focus-panel/);
+  assert.match(styles, /\.owner-authority-queue/);
+  assert.match(styles, /\.pulse-executive-card\.selected/);
+});
+
+
+test("13.16.3A interaction polish keeps scope counts consistent and the Cockpit content-led", async () => {
+  const [cockpit, styles] = await Promise.all([
+    read("app/cockpit/page.tsx"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(cockpit, /const downstreamPositions = organizationFocus\.kind === "domain"/);
+  assert.match(cockpit, /downstream position/);
+  assert.match(cockpit, /operational position/);
+  assert.match(cockpit, /organizationFocusView\.scopeSummary/);
+  assert.match(cockpit, /<small>Execution<\/small>/);
+  assert.match(cockpit, /<small>Governance<\/small>/);
+  assert.match(cockpit, /<small>Evidence<\/small>/);
+  assert.match(cockpit, /<small>Human attention<\/small>/);
+  assert.match(styles, /Phase 13\.16\.3A interaction polish: consistent span-of-control language and content-led Cockpit height/);
+  assert.match(styles, /\.cockpit-primary-grid \{[\s\S]*align-items: start/);
+  assert.match(styles, /\.owner-attention \{[\s\S]*align-self: start/);
+  assert.match(styles, /\.organization-pulse-map\.enterprise-authority-map \{[\s\S]*min-height: 0/);
+});

@@ -4945,6 +4945,60 @@ export type OrganizationPosition = {
   authority_level: string; status: string;
 };
 
+export type OrganizationRecordPage<T> = {
+  data: T[];
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+};
+
+export type ObservatoryDepartmentSnapshot = {
+  department: string;
+  work_items_total: number;
+  work_items_active: number;
+  work_items_terminal: number;
+  blockers_open: number;
+  blockers_mitigated: number;
+  historical_contribution_outcomes: number;
+  active_contributions: number;
+  pending_human_action_requests_linked_to_work: number;
+};
+
+export type ObservatoryDepartments = {
+  as_of: string;
+  timezone: "UTC";
+  tenant_scope: string;
+  source_row_counts: Record<string, number>;
+  coverage: ObservatorySummary["coverage"];
+  departments: ObservatoryDepartmentSnapshot[];
+  warnings: string[];
+};
+
+export type OrganizationHumanActionRequest = {
+  id: string;
+  request_key: string;
+  request_type: string;
+  title: string;
+  instructions: string;
+  status: string;
+  priority: string;
+  required_role: string;
+  assigned_human_id: string | null;
+  requested_by_type: string;
+  requested_by_id: string;
+  work_item_id: string | null;
+  decision_id: string | null;
+  blocker_id: string | null;
+  contribution_id: string | null;
+  due_at: string | null;
+  outcome: string | null;
+  completed_at: string | null;
+  completed_by_human_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type OrganizationalWorkItem = {
   id: string; title: string; objective: string; department: string;
   authority_level: string; status: string; assigned_position_key: string;
@@ -5036,6 +5090,18 @@ export type OrganizationActivityPage = {
 
 export async function getOrganizationObservatorySummary(): Promise<ObservatorySummary> {
   return request("/api/v1/organization/observatory/summary");
+}
+
+export async function getOrganizationObservatoryDepartments(): Promise<ObservatoryDepartments> {
+  return request("/api/v1/organization/observatory/departments");
+}
+
+export async function listOrganizationHumanActionRequests(params: { page?: number; page_size?: number; status?: string } = {}): Promise<OrganizationRecordPage<OrganizationHumanActionRequest>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 50));
+  if (params.status) search.set("status", params.status);
+  return request(`/api/v1/organization/human-action-requests?${search.toString()}`);
 }
 
 export async function listOrganizationActivities(params: { page?: number; page_size?: number } = {}): Promise<OrganizationActivityPage> {
