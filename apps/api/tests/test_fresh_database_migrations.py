@@ -172,11 +172,172 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0075_legacy_schema_reconciliation"
+            "0076_organization_position_active_identity"
         )
+        position_inspector = inspect(connection)
+        position_indexes = {
+            index["name"]: index for index in position_inspector.get_indexes("organization_positions")
+        }
+        position_unique_constraints = {
+            constraint["name"]: constraint
+            for constraint in position_inspector.get_unique_constraints("organization_positions")
+            if constraint.get("name")
+        }
+        assert "uq_org_position_version" in position_unique_constraints
+        assert tuple(position_unique_constraints["uq_org_position_version"].get("column_names") or ()) == (
+            "position_key",
+            "version",
+        )
+        assert "ux_organization_positions_active_position_key" in position_indexes
+        assert position_indexes["ux_organization_positions_active_position_key"].get("unique") in {True, 1}
         for table in durable_tables:
             assert connection.execute(text(f"SELECT count(*) FROM {table}")).scalar_one() == 0
 
+
+
+
+def test_0076_refuses_duplicate_active_organization_position_identity(tmp_path: Path) -> None:
+    database_path = tmp_path / "duplicate-organization-position.db"
+    database_url = f"sqlite:///{database_path.as_posix()}"
+    env = {**os.environ, "DATABASE_URL": database_url}
+
+    # Reproduce the preserved-SQLite condition that motivated 0076 rather than a
+    # normal fresh 0075 schema. Fresh databases already have uq_org_position_version
+    # from 0056 and therefore correctly reject the duplicate before 0076 can see it.
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE organization_positions (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    position_key TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    status TEXT NOT NULL
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO organization_positions (id, position_key, version, status)
+                VALUES
+                    (:first_id, 'board', 1, 'active'),
+                    (:second_id, 'board', 1, 'active')
+                """
+            ),
+            {"first_id": str(uuid4()), "second_id": str(uuid4())},
+        )
+        connection.execute(
+            text(
+                """
+                CREATE TABLE alembic_version (
+                    version_num VARCHAR(64) NOT NULL PRIMARY KEY
+                )
+                """
+            )
+        )
+        connection.execute(
+            text("INSERT INTO alembic_version (version_num) VALUES (:revision)"),
+            {"revision": "0075_legacy_schema_reconciliation"},
+        )
+
+    to_head = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "alembic",
+            "-c",
+            str(ROOT / "alembic.ini"),
+            "upgrade",
+            "head",
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
+        check=False,
+    )
+    assert to_head.returncode != 0
+    output = (to_head.stderr or "") + (to_head.stdout or "")
+    assert "0076 refuses to hide duplicate active organization identities" in output
+
+
+def test_0076_restores_position_version_uniqueness_on_preserved_like_0075(tmp_path: Path) -> None:
+    database_path = tmp_path / "reconciled-organization-position.db"
+    database_url = f"sqlite:///{database_path.as_posix()}"
+    env = {**os.environ, "DATABASE_URL": database_url}
+
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE organization_positions (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    position_key TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    status TEXT NOT NULL
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO organization_positions (id, position_key, version, status)
+                VALUES
+                    (:canonical_id, 'board', 1, 'active'),
+                    (:archived_id, 'board', 2, 'suspended')
+                """
+            ),
+            {"canonical_id": str(uuid4()), "archived_id": str(uuid4())},
+        )
+        connection.execute(
+            text(
+                """
+                CREATE TABLE alembic_version (
+                    version_num VARCHAR(64) NOT NULL PRIMARY KEY
+                )
+                """
+            )
+        )
+        connection.execute(
+            text("INSERT INTO alembic_version (version_num) VALUES (:revision)"),
+            {"revision": "0075_legacy_schema_reconciliation"},
+        )
+
+    to_head = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "alembic",
+            "-c",
+            str(ROOT / "alembic.ini"),
+            "upgrade",
+            "head",
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=ALEMBIC_CHAIN_TIMEOUT_SECONDS,
+        check=False,
+    )
+    assert to_head.returncode == 0, to_head.stderr or to_head.stdout
+
+    inspector = inspect(create_engine(database_url))
+    indexes = {
+        index["name"]: index
+        for index in inspector.get_indexes("organization_positions")
+        if index.get("name")
+    }
+    assert "ux_organization_positions_position_key_version_reconciled" in indexes
+    assert indexes["ux_organization_positions_position_key_version_reconciled"].get("unique") in {True, 1}
+    assert "ux_organization_positions_active_position_key" in indexes
+    assert indexes["ux_organization_positions_active_position_key"].get("unique") in {True, 1}
 
 
 def test_0075_reconciles_stamped_legacy_extension_drift(tmp_path: Path) -> None:
@@ -285,7 +446,7 @@ def test_0075_reconciles_stamped_legacy_extension_drift(tmp_path: Path) -> None:
             "-c",
             str(ROOT / "alembic.ini"),
             "upgrade",
-            "head",
+            "0075_legacy_schema_reconciliation",
         ],
         cwd=ROOT,
         env=env,

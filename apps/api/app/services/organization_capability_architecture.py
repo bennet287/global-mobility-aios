@@ -60,14 +60,35 @@ TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS = frozenset(
     TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_ORDER
 )
 
+MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_ORDER: tuple[str, ...] = (
+    "mobility_operations_lead",
+    "case_operations_specialist",
+    "pathway_operations_specialist",
+    "document_evidence_operations_lead",
+    "evidence_quality_specialist",
+    "authority_filing_operations_lead",
+    "submission_readiness_specialist",
+    "jurisdiction_research_lead",
+    "regulatory_intelligence_analyst",
+    "evidence_source_certification_lead",
+    "mobility_intelligence_analyst",
+    "immigration_regulatory_counsel",
+    "privacy_data_protection_counsel",
+    "regulatory_assurance_counsel",
+)
+MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS = frozenset(
+    MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_ORDER
+)
+
 
 # Capability architecture for Phase 13.16.3A.x.
 #
 # Phase 13.16.3A.1 established this registry as a planning-only inventory.
-# Phase 13.16.3A.2 promotes the bounded Technology + Security tranche declared
-# above into the runtime foundation while all remaining planned keys stay proposals.
-# Promoted capability positions are organizational capacity only: their runtime
-# contracts explicitly disable delegated/direct execution until a later reviewed slice.
+# Phase 13.16.3A.2 promoted the bounded Technology + Security tranche.
+# Phase 13.16.3A.3 promotes the bounded Global Mobility Operations + Intelligence
+# + Legal/Regulatory tranche. All remaining planned keys stay proposals. Promoted
+# capability positions are organizational capacity only: their runtime contracts
+# explicitly disable delegated/direct execution until a later reviewed slice.
 ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
     CapabilityDomain(
         "technology.engineering_leadership",
@@ -201,9 +222,9 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "coo",
         "tier1",
         (
-            _planned("mobility_operations_lead", "Global Mobility Operations Lead", "L2", "coo"),
-            _planned("case_operations_specialist", "Mobility Case Operations Specialist", "L1", "mobility_operations_lead"),
-            _planned("pathway_operations_specialist", "Pathway & Eligibility Operations Specialist", "L1", "mobility_operations_lead"),
+            _existing("mobility_operations_lead", "Global Mobility Operations Lead", "L2", "coo"),
+            _existing("case_operations_specialist", "Mobility Case Operations Specialist", "L1", "mobility_operations_lead"),
+            _existing("pathway_operations_specialist", "Pathway & Eligibility Operations Specialist", "L1", "mobility_operations_lead"),
         ),
         governance_partners=("clo",),
         purpose="Operate mobility cases, pathway execution, milestones, service readiness, and evidence-backed case coordination.",
@@ -215,8 +236,8 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "tier1",
         (
             _existing("application_readiness", "Application Readiness", "L1", "coo"),
-            _planned("document_evidence_operations_lead", "Document & Evidence Operations Lead", "L2", "coo"),
-            _planned("evidence_quality_specialist", "Evidence Quality Specialist", "L1", "document_evidence_operations_lead"),
+            _existing("document_evidence_operations_lead", "Document & Evidence Operations Lead", "L2", "coo"),
+            _existing("evidence_quality_specialist", "Evidence Quality Specialist", "L1", "document_evidence_operations_lead"),
         ),
         governance_partners=("clo",),
         purpose="Coordinate document readiness, evidence completeness, expiry/renewal risk, and application-readiness controls.",
@@ -227,8 +248,8 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "coo",
         "tier1",
         (
-            _planned("authority_filing_operations_lead", "Authority & Filing Operations Lead", "L2", "coo"),
-            _planned("submission_readiness_specialist", "Submission Readiness Specialist", "L1", "authority_filing_operations_lead"),
+            _existing("authority_filing_operations_lead", "Authority & Filing Operations Lead", "L2", "coo"),
+            _existing("submission_readiness_specialist", "Submission Readiness Specialist", "L1", "authority_filing_operations_lead"),
         ),
         governance_partners=("clo",),
         purpose="Coordinate submission readiness and authority-facing operations without creating autonomous filing authority.",
@@ -296,10 +317,10 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "coo",
         "tier1",
         (
-            _planned("jurisdiction_research_lead", "Jurisdiction Research Lead", "L2", "coo"),
-            _planned("regulatory_intelligence_analyst", "Regulatory Intelligence Analyst", "L1", "jurisdiction_research_lead"),
-            _planned("evidence_source_certification_lead", "Evidence & Source Certification Lead", "L2", "coo"),
-            _planned("mobility_intelligence_analyst", "Mobility Intelligence Analyst", "L1", "jurisdiction_research_lead"),
+            _existing("jurisdiction_research_lead", "Jurisdiction Research Lead", "L2", "coo"),
+            _existing("regulatory_intelligence_analyst", "Regulatory Intelligence Analyst", "L1", "jurisdiction_research_lead"),
+            _existing("evidence_source_certification_lead", "Evidence & Source Certification Lead", "L2", "coo"),
+            _existing("mobility_intelligence_analyst", "Mobility Intelligence Analyst", "L1", "jurisdiction_research_lead"),
         ),
         governance_partners=("clo",),
         purpose="Own jurisdiction research, official-source monitoring, evidence provenance, review operations, and mobility-intelligence analysis while legal interpretation remains human-governed.",
@@ -364,7 +385,7 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "clo",
         "tier1",
         (
-            _planned("immigration_regulatory_counsel", "Global Mobility / Immigration Regulatory Counsel", "L2", "clo"),
+            _existing("immigration_regulatory_counsel", "Global Mobility / Immigration Regulatory Counsel", "L2", "clo"),
         ),
         governance_partners=("coo",),
         purpose="Own human legal interpretation of mobility/immigration regulation and challenge unsupported certainty.",
@@ -375,7 +396,7 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "clo",
         "tier1",
         (
-            _planned("privacy_data_protection_counsel", "Privacy & Data Protection Counsel", "L2", "clo"),
+            _existing("privacy_data_protection_counsel", "Privacy & Data Protection Counsel", "L2", "clo"),
         ),
         governance_partners=("ciso", "cto"),
         purpose="Own legal privacy/data-protection analysis, data-rights interpretation, and legal review of data-processing boundaries.",
@@ -397,7 +418,7 @@ ORGANIZATION_CAPABILITY_DOMAINS: tuple[CapabilityDomain, ...] = (
         "clo",
         "tier1",
         (
-            _planned("regulatory_assurance_counsel", "Legal Compliance & Regulatory Assurance Counsel", "L2", "clo"),
+            _existing("regulatory_assurance_counsel", "Legal Compliance & Regulatory Assurance Counsel", "L2", "clo"),
         ),
         governance_partners=("ciso", "coo"),
         purpose="Provide independent legal/regulatory assurance over evidence-backed operating and publication boundaries.",
@@ -628,10 +649,12 @@ def capability_domain_for_position(position_key: str) -> CapabilityDomain | None
     return None
 
 
-def technology_security_foundation_specs() -> tuple[tuple[str, str, str, str, str, None], ...]:
+def _foundation_specs_for_order(
+    position_order: tuple[str, ...],
+) -> tuple[tuple[str, str, str, str, str, None], ...]:
     mapped = capability_position_map()
     specs: list[tuple[str, str, str, str, str, None]] = []
-    for position_key in TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_ORDER:
+    for position_key in position_order:
         position = mapped[position_key]
         domain = capability_domain_for_position(position_key)
         if domain is None:
@@ -649,6 +672,18 @@ def technology_security_foundation_specs() -> tuple[tuple[str, str, str, str, st
             )
         )
     return tuple(specs)
+
+
+def technology_security_foundation_specs() -> tuple[tuple[str, str, str, str, str, None], ...]:
+    return _foundation_specs_for_order(TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_ORDER)
+
+
+def mobility_operations_intelligence_legal_foundation_specs() -> tuple[
+    tuple[str, str, str, str, str, None], ...
+]:
+    return _foundation_specs_for_order(
+        MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_ORDER
+    )
 
 
 def capability_position_map() -> dict[str, CapabilityPosition]:

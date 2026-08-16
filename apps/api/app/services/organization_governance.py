@@ -32,9 +32,11 @@ from app.services.audit_log import record_audit
 from app.services.controlled_agents import run_controlled_agent
 from app.services.department_runtime import DEPARTMENT_RUNTIMES, department_runtime_spec
 from app.services.organization_capability_architecture import (
+    MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS,
     TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS,
     capability_domain_for_position,
     capability_position_map,
+    mobility_operations_intelligence_legal_foundation_specs,
     technology_security_foundation_specs,
 )
 from app.services.organization_command import OrganizationCommandContext
@@ -172,8 +174,15 @@ LEGACY_POSITION_SPECS = (
     ("business_intelligence", "Business Intelligence Agent", "Operations", "coo", "L1", "Business_Intelligence_Agent.md"),
     ("application_readiness", "Application Readiness Agent", "Operations", "coo", "L1", "Application_Readiness_Agent.md"),
 )
-POSITION_SPECS = LEGACY_POSITION_SPECS + technology_security_foundation_specs()
-CAPABILITY_ONLY_POSITION_KEYS = TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS
+POSITION_SPECS = (
+    LEGACY_POSITION_SPECS
+    + technology_security_foundation_specs()
+    + mobility_operations_intelligence_legal_foundation_specs()
+)
+CAPABILITY_ONLY_POSITION_KEYS = (
+    TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS
+    | MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS
+)
 POSITION_SPEC_BY_KEY = {
     key: {
         "title": title,
@@ -1840,12 +1849,43 @@ def _requeue_executive_contract_holds(
     return requeued_work_ids
 
 
+def active_organization_position_identity_duplicates(
+    session: Session,
+) -> dict[str, list[OrganizationPosition]]:
+    """Return active OrganizationPosition identities that are represented by multiple rows.
+
+    An active position_key is an organization identity, not a countable instance. Multiple active
+    rows for the same key make Board Packet counts and foundation reconciliation ambiguous, so
+    foundation bootstrap must fail closed until the duplicate is reconciled.
+    """
+
+    rows = session.exec(
+        select(OrganizationPosition).where(OrganizationPosition.status == "active")
+    ).all()
+    grouped: dict[str, list[OrganizationPosition]] = {}
+    for row in rows:
+        grouped.setdefault(row.position_key, []).append(row)
+    return {
+        key: sorted(items, key=lambda item: (item.created_at, str(item.id)))
+        for key, items in grouped.items()
+        if len(items) > 1
+    }
+
+
 def ensure_foundation_positions(
     session: Session,
     *,
     actor: str = "system",
     repair_contracts: bool = False,
 ) -> list[OrganizationPosition]:
+    duplicates = active_organization_position_identity_duplicates(session)
+    if duplicates:
+        summary = ", ".join(f"{key}={len(rows)}" for key, rows in sorted(duplicates.items()))
+        raise RuntimeError(
+            "Duplicate active OrganizationPosition identities detected; refusing foundation bootstrap "
+            f"until they are reconciled: {summary}"
+        )
+
     positions: list[OrganizationPosition] = []
     for key, title, department, reports_to, authority, role_card in POSITION_SPECS:
         position = session.exec(

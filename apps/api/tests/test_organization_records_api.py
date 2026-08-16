@@ -689,8 +689,9 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
     repo_root = Path(__file__).resolve().parents[3]
     migration_names = {path.name for path in (repo_root / "apps/api/alembic/versions").glob("*.py")}
     assert "0075_legacy_schema_reconciliation.py" in migration_names
+    assert "0076_organization_position_active_identity.py" in migration_names
     assert not any(
-        name[:4].isdigit() and int(name[:4]) > 75
+        name[:4].isdigit() and int(name[:4]) > 76
         for name in migration_names
     )
     migration_text = (repo_root / "apps/api/alembic/versions/0074_durable_contribution_activity_model.py").read_text(encoding="utf-8")

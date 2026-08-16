@@ -2302,6 +2302,16 @@ class InvestmentMobilityRuleDecision(SQLModel, table=True):
 
 class OrganizationPosition(SQLModel, table=True):
     __tablename__ = "organization_positions"
+    __table_args__ = (
+        UniqueConstraint("position_key", "version", name="uq_org_position_version"),
+        Index(
+            "ux_organization_positions_active_position_key",
+            "position_key",
+            unique=True,
+            sqlite_where=text("status = 'active'"),
+            postgresql_where=text("status = 'active'"),
+        ),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     position_key: str = Field(index=True)

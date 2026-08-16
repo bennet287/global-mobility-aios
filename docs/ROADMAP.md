@@ -677,9 +677,9 @@ back.
 **Development branch:** `roadmap/global-mobility-aios-v11`
 **Accepted 13.16.1 / E3D implementation baseline:** `a503fe8b8a41cff6908751ba24688ed03fa535ec`
 
-<!-- CURRENT_MIGRATION_HEAD: 0075_legacy_schema_reconciliation -->
+<!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
 
-**Code migration head:** `0075_legacy_schema_reconciliation`
+**Code migration head:** `0076_organization_position_active_identity`
 
 | Area | State | Current position |
 |---|---|---|
@@ -692,7 +692,7 @@ back.
 | Phase 13.16.0 | **CLOSED / PASS** | Design system and information architecture foundation accepted |
 | Phase 13.16.1 | **COMPLETE / PASS** | Durable Contribution & Activity model, legacy writer reconciliation, explicit immutable coverage epoch, and Observatory activation accepted |
 | Phase 13.16.2 | **COMPLETE / PASS** | Premium role shells, controlled preserved-SQLite reconciliation, Cockpit executive-authority hierarchy, discoverable compact rail, and light/dark visual foundation accepted from baseline `4e6aaa5`; Alembic 0075 and all critical runtime reads are green |
-| Phase 13.16.3 | **IN PROGRESS — 13.16.3A / A.1 / A.2 COMPLETE / PASS; 13.16.3A.3 UNLOCKED / NOT STARTED** | Interactive Owner focus is accepted; the capability architecture is reconciled; Technology + Security tranche 1 is live at 47/47 positions with no authority expansion; Global Mobility Operations + Intelligence + Legal/Regulatory is next |
+| Phase 13.16.3 | **IN PROGRESS — 13.16.3A / A.1 / A.2 / A.3 / A.3R COMPLETE / PASS; 13.16.3B UNLOCKED / NOT STARTED** | Owner focus, capability architecture, Technology + Security, Global Mobility Operations + Intelligence + Legal/Regulatory, and OrganizationPosition active-identity integrity are accepted; the preserved SQLite organization is 61/61 with zero duplicate active identities at Alembic 0076 |
 | Phase 13.16.4-13.16.10 | **LOCKED** | Later experience slices remain gated by accepted delivery of their immediate predecessors |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
@@ -737,7 +737,7 @@ E3D / 13.16.1 closure evidence:
 - Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
 - No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
 
-**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is IN PROGRESS — 13.16.3A Interactive Owner Control Center, 13.16.3A.1 capability architecture/live inventory, and 13.16.3A.2 Technology + Security foundation tranche 1 are COMPLETE / PASS; 13.16.3A.3 Global Mobility Operations + Intelligence + Legal/Regulatory is UNLOCKED / NOT STARTED.**
+**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is IN PROGRESS — 13.16.3A Interactive Owner Control Center, 13.16.3A.1 capability architecture/live inventory, 13.16.3A.2 Technology + Security foundation tranche 1, 13.16.3A.3 Global Mobility Operations + Intelligence + Legal/Regulatory, and 13.16.3A.3R OrganizationPosition active-identity integrity are COMPLETE / PASS. 13.16.3B Owner blockers, dependencies, and live operational intelligence is UNLOCKED / NOT STARTED.**
 
 ### 8.2 Preserved database boundaries
 
@@ -919,7 +919,7 @@ experience slices remain sequentially gated.
 - [x] Alembic remains `0074_durable_contribution_activity_model` with **118 registered tables**.
 - [x] `gmai-postgres` remains outside the bounded E3D acceptance path at preserved integration head 0073.
 
-**E3D is COMPLETE / PASS. 13.16.1 is COMPLETE / PASS. 13.16.2 is COMPLETE / PASS. 13.16.3 is IN PROGRESS — 13.16.3A / A.1 / A.2 COMPLETE / PASS; 13.16.3A.3 UNLOCKED / NOT STARTED.**
+**E3D is COMPLETE / PASS. 13.16.1 is COMPLETE / PASS. 13.16.2 is COMPLETE / PASS. 13.16.3 is IN PROGRESS — 13.16.3A / A.1 / A.2 / A.3 / A.3R COMPLETE / PASS; 13.16.3B UNLOCKED / NOT STARTED.**
 
 ### 10.3 Closed slice — 13.16.2 role-based application shells and navigation
 
@@ -1193,15 +1193,62 @@ Every runtime tranche must define reporting, authority level, role contract, evi
 
 #### 11.6.4 13.16.3A.3 — Global Mobility Operations + Global Mobility Intelligence + Legal/Regulatory
 
-**State:** UNLOCKED / NOT STARTED.
+**State:** COMPLETE / PASS.
 
-**Intent:** expand the Tier-1 mission organization beneath COO and CLO before blocker/dependency ownership becomes authoritative in the Cockpit. The tranche should cover case/pathway/document/filing operations, jurisdiction research, evidence/source certification, mobility intelligence, immigration-regulatory counsel, privacy/data protection, and regulatory assurance.
+**Intent:** expand the Tier-1 mission organization beneath COO and CLO before blocker/dependency ownership becomes authoritative in the Cockpit. The tranche covers case/pathway/document/filing operations, jurisdiction research, evidence/source certification, mobility intelligence, immigration-regulatory counsel, privacy/data protection, and regulatory assurance.
 
-The tranche must preserve the same organization-capability discipline accepted in A.2: additive foundation registration only; explicit reporting/authority contracts; no position becomes an executable agent merely by existing; no autonomous legal opinion, filing, publication, certification, or unsupported regulatory certainty; and no Austria safety boundary may be weakened. A guarded preflight/apply path and read-only post-apply audit remain mandatory for preserved SQLite.
+**Implemented bounded foundation tranche (14 capability positions):**
+
+- `mobility_operations_lead` → COO (L2)
+- `case_operations_specialist` → Global Mobility Operations Lead (L1)
+- `pathway_operations_specialist` → Global Mobility Operations Lead (L1)
+- `document_evidence_operations_lead` → COO (L2)
+- `evidence_quality_specialist` → Document & Evidence Operations Lead (L1)
+- `authority_filing_operations_lead` → COO (L2)
+- `submission_readiness_specialist` → Authority & Filing Operations Lead (L1)
+- `jurisdiction_research_lead` → COO (L2)
+- `regulatory_intelligence_analyst` → Jurisdiction Research Lead (L1)
+- `evidence_source_certification_lead` → COO (L2)
+- `mobility_intelligence_analyst` → Jurisdiction Research Lead (L1)
+- `immigration_regulatory_counsel` → CLO (L2)
+- `privacy_data_protection_counsel` → CLO (L2)
+- `regulatory_assurance_counsel` → CLO (L2)
+
+The code foundation therefore moves from **47 to 61 positions** only after the reviewed patch is applied; the capability registry moves from **33 to 19 still-planned positions**. Existing executive composition remains unchanged. The 14 promoted positions are organizational capability slots, not claims of 14 newly hired humans and not newly executable agents. Their contracts use the same accepted capability-only posture as A.2: `execution_enabled=false`, `execution_posture=organization_capability_only`, empty delegated/direct action authority, `external_action_authorized=false`, `self_approval_allowed=false`, no role card/runtime adapter, and explicit prohibited direct authority including `authority.submit`, `policy.publish`, `legal.opinion.final`, and `compliance.certify`. Existing COO/Legal delegation sets are not expanded.
+
+The guarded `scripts/apply_organization_foundation_tranche.py` helper is generalized to an explicit `--tranche` registry. It refuses non-SQLite targets, unexpected live extras, missing non-tranche foundation positions, or an incomplete earlier tranche; before `--apply` it remains read-only. The A.3 apply path creates an integrity-checked preserved-SQLite backup and uses additive `ensure_foundation_positions(..., repair_contracts=False)` only. The read-only audit now reports both accepted tranche registries and their live-missing sets. No schema migration is introduced.
+
+Functional acceptance is complete: focused regressions passed, the controlled apply reached **61/61** distinct foundation identities, schema/release checks passed, complete API regression passed at **803 passed / 5 skipped**, runtime reads remained HTTP 200, and COO/CLO Cockpit focus was visually accepted. Final closure is blocked only by the active-identity integrity discrepancy discovered during visual review: Board Packet reported 62 active rows while the read-only capability audit reported 61 distinct active `position_key` identities. Diagnostic evidence proved one semantically identical duplicate active `board` row created within milliseconds on 2026-08-15. No autonomous legal opinion, filing, publication, certification, or unsupported regulatory certainty is authorized; no Austria safety boundary may be weakened.
+
+#### 11.6.4.1 13.16.3A.3R — OrganizationPosition active-identity integrity reconciliation
+
+**State:** COMPLETE / PASS.
+
+**Intent:** close the row-count/identity-count observability gap without deleting organization history or masking the duplicate. The integrity slice makes active-position identity explicit and fail-closed before 13.16.3B can depend on organization counts.
+
+- Strengthen `scripts/audit_organization_capabilities.py` to report both active database rows and distinct active position identities, plus duplicate keys/row IDs; duplicate active identities force `live_status=reconcile_required`.
+- Strengthen `scripts/apply_organization_foundation_tranche.py` and `ensure_foundation_positions()` to refuse foundation mutation/bootstrap while duplicate active identities exist rather than silently collapsing them by `position_key`.
+- Add guarded local-SQLite `scripts/reconcile_duplicate_organization_positions.py`: read-only preflight by default; only semantically identical duplicate active foundation rows are eligible; no physical FK may point to `organization_positions`; an integrity-checked backup is mandatory; the oldest row remains canonical; redundant rows are suspended, assigned non-colliding archival versions, recorded in audit history, and never deleted.
+- Add `0076_organization_position_active_identity`, a data-preserving migration that refuses unresolved duplicates, restores the original `(position_key, version)` uniqueness contract when a preserved legacy database has lost it, and then creates a cross-dialect partial unique active-identity index on `organization_positions.position_key WHERE status='active'`. This preserves the 0056 version-identity invariant while preventing the concurrent bootstrap race from creating a second active row for the same position identity.
+- A.3R migration regression correction: a normal fresh 0075 database already carries `uq_org_position_version` from migration 0056, so it correctly rejects two `board@v1` rows before 0076 executes. The 0076 refusal regression must therefore emulate the actual preserved-SQLite drift (stamped 0075 physical schema with the original version-unique constraint absent) rather than trying to create an impossible duplicate through the fresh ORM schema.
+- A.3R full-suite regression-scope correction: `test_0075_reconciles_stamped_legacy_extension_drift` is a 0075-specific compatibility test and asserts the database remains stamped at `0075_legacy_schema_reconciliation`. Once 0076 became head, allowing that fixture to run `upgrade head` incorrectly pushed its intentionally minimal 0075-only schema into 0076, where `organization_positions` is deliberately required. The regression now upgrades explicitly to 0075; fresh-head and preserved-like 0076 behavior remain covered by the dedicated 0076 migration tests.
+- Preserved PostgreSQL environments remain untouched during the local reconciliation. 0076 must be regression-tested against fresh SQLite and offline/isolated PostgreSQL before any preserved PostgreSQL upgrade is considered.
+
+Acceptance requires: duplicate-aware audit showing `active_rows=62`, 61 distinct keys, duplicate `board`; reconciliation preflight identifying the older Board row as canonical and the newer row as redundant; integrity-backed apply suspending exactly one row; post-apply 61 active rows / 61 distinct keys / zero duplicates; Alembic upgrade to 0076; schema/migration/repo/release checks; focused identity regressions; complete API regression; runtime Board Packet/Cockpit count of 61; and idempotent reconciliation preflight.
+
+**Final A.3R acceptance:** corrected organization regressions passed **14/14**; corrected 0076 migration regressions passed **3/3**; the 0075-specific stamped-legacy compatibility regression passed **1/1** after being pinned to its intended migration boundary. Duplicate-aware audit identified exactly one semantically identical active `board` duplicate. The guarded reconciliation created an integrity-checked backup, preserved the oldest `board@v1` row active, archived the redundant row as `board@v2` suspended, deleted nothing, and changed no authority/delegation. Post-reconciliation audit returned **61 active rows / 61 distinct active keys / zero duplicates / zero extra / zero missing**. Alembic upgraded only the preserved developer SQLite database from 0075 to `0076_organization_position_active_identity`; local schema and migration checks passed at 118 registered / 118 actual model tables plus `alembic_version`, `physical_schema=ok`, and database revision 0076. Reconciliation and A.3 tranche preflights are idempotent with `apply_required=false`. Repository policy, release consistency, and `git diff --check` passed. The complete post-0076 API suite passed at **806 passed / 5 skipped / 0 failed** with only the known Starlette/httpx deprecation warning. Final browser acceptance showed **9 executives, 26 live operational domains, and 59 downstream positions**, which with the Human Board and CEO gives the accepted **61 active OrganizationPosition rows**; the former 62-row discrepancy is closed. Preserved PostgreSQL environments remain untouched.
+
+#### 11.6.4.2 13.16.3A.3 / A.3R checkpoint closure — COMPLETE / PASS
+
+The Tier-1 mission-ownership foundation and the active-position identity repair are accepted together from committed baseline `94a453bd16f00b974442d856a8eeff682a83956c`. The organization closes at **61 active OrganizationPosition rows / 61 distinct active position identities / zero duplicate active keys**, with **9 executives, 26 live operational domains, and 59 downstream positions** visible in Cockpit. The 14 A.3 capability slots remain organizational-capability-only with no execution/delegation expansion.
+
+Integrity closure preserved history rather than deleting it: the oldest Human Board row remains canonical `board@v1 active`; the semantically identical race-created duplicate is retained as `board@v2 suspended` with reconciliation provenance. `0076_organization_position_active_identity` restores durable `(position_key, version)` protection where legacy drift removed it and enforces one active row per `position_key`. The preserved developer SQLite database is at 0076; preserved PostgreSQL environments were not migrated.
+
+Acceptance evidence: organization integrity regressions **14/14 PASS**; 0076 migration regressions **3/3 PASS**; corrected 0075 compatibility regression **1/1 PASS**; complete API **806 passed, 5 skipped, 0 failed**; local schema and migration gates **PASS** at 118 registered / 118 actual model tables plus `alembic_version`; repository policy **PASS**; release consistency **PASS** at `0076_organization_position_active_identity`; `git diff --check` **PASS**; reconciliation and A.3 tranche preflights both idempotent with `apply_required=false`; runtime organization reads remained HTTP 200; browser review accepted COO/CLO focus and the post-reconciliation organization count. No Austria safety boundary, publication/certification state, human-review requirement, or autonomous legal/filing authority was weakened.
 
 #### 11.6.5 13.16.3B — Owner blockers, dependencies, and live operational intelligence
 
-**State:** LOCKED ON 13.16.3A.3 TIER-1 MISSION OWNERSHIP.
+**State:** UNLOCKED / NOT STARTED.
 
 Once Tier-1 ownership is credible, continue the Unified Owner Control Center with blocker/dependency visibility, live durable Activity, Contribution/evidence health, and department/executive intervention signals. This ordering prevents the Cockpit from assigning blockers to an unrealistic or ambiguous organization model.
 
@@ -1859,7 +1906,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is IN PROGRESS with 13.16.3A / A.1 / A.2 COMPLETE / PASS and 13.16.3A.3 UNLOCKED / NOT STARTED, while later 13.16.x slices remain sequentially gated;
+- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is IN PROGRESS with 13.16.3A / A.1 / A.2 / A.3 / A.3R COMPLETE / PASS and 13.16.3B UNLOCKED / NOT STARTED, while later 13.16.x slices remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 
@@ -1961,7 +2008,7 @@ The visual foundation is frozen at the accepted premium direction: warm ivory pl
 
 Closure evidence: migration regression **6 passed**; design-foundation **16 passed**; request/auth **4 passed**; complete API **791 passed, 5 skipped, 0 failed**; Next.js 15.2.4 production build **PASS** with the accepted route set and captured **39/39 static pages**; repository policy **PASS**; release consistency **PASS** at `0075_legacy_schema_reconciliation`; physical preserved-SQLite parity **PASS** with 118 registered/actual model tables and only `alembic_version` as infrastructure; `git diff --check` **PASS**; and runtime smoke **5/5 HTTP 200** across `/health`, WorkItems, Decisions, Board Packet, and CRM summary. The remaining Starlette/httpx warning is a known test-client deprecation warning and is not a 13.16.2 functional failure.
 
-`0075_legacy_schema_reconciliation` is a forward, data-preserving compatibility repair for the preserved developer SQLite database; it does not authorize historical Activity reconstruction, weaken review gates, change Austria publication/certification state, or migrate the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is IN PROGRESS**. Slices **13.16.3A, 13.16.3A.1, and 13.16.3A.2 are COMPLETE / PASS**: interactive executive/domain focus and an authority-correct Owner queue are accepted; the capability architecture is reconciled; and the first Technology + Security foundation tranche is live at 47/47 positions without authority expansion. **13.16.3A.3 Global Mobility Operations + Global Mobility Intelligence + Legal/Regulatory is UNLOCKED / NOT STARTED**; later capability work remains organizational health, blockers/dependencies, Contributions/evidence health, durable Activity, and richer grounded Global Mobility intelligence rather than another shell redesign.
+`0075_legacy_schema_reconciliation` remains the forward, data-preserving compatibility repair that restored the preserved developer SQLite schema; `0076_organization_position_active_identity` now enforces durable OrganizationPosition identity uniqueness after the data-preserving Board duplicate reconciliation. Neither migration authorizes historical Activity reconstruction, weakens review gates, changes Austria publication/certification state, or migrates the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is IN PROGRESS**. Slices **13.16.3A, 13.16.3A.1, 13.16.3A.2, 13.16.3A.3, and 13.16.3A.3R are COMPLETE / PASS**: interactive executive/domain focus and an authority-correct Owner queue are accepted; the capability architecture is reconciled; Technology + Security is live; the Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live; and the preserved organization is **61 active rows / 61 distinct active identities / zero duplicates** at Alembic 0076. **13.16.3B Owner blockers, dependencies, and live operational intelligence is UNLOCKED / NOT STARTED**.
 
 ### 13.16.3A.1 organization capability architecture — planning contract (2026-08-16)
 
@@ -1986,4 +2033,4 @@ The first Unified Owner Control Center checkpoint is accepted from immutable bas
 
 Acceptance evidence: design-foundation **18/18 PASS**; request/auth **4/4 PASS**; Next.js production build **PASS** with **39/39 static pages**; focused organization tranche regressions **11/11 PASS**; complete API **801 passed, 5 skipped, 0 failed**; preserved SQLite physical schema and migration checks **PASS** at `0075_legacy_schema_reconciliation`; repository policy, release consistency, and `git diff --check` **PASS**; runtime smoke **5/5 HTTP 200** for the critical Owner-read surfaces; post-apply organization audit **47 foundation / 47 live / zero extra / zero missing**. Browser review confirmed **9 executives, 19 operational domains, 45 downstream positions**, expanded CTO/CISO portfolios, and no synthetic Owner authority or Activity. The 13 newly registered Technology/Security capability slots remain non-executable with empty delegated/direct action authority, no self-approval, and unchanged existing CTO/CISO executable delegation sets.
 
-The next unlocked slice is **13.16.3A.3 — Global Mobility Operations + Global Mobility Intelligence + Legal/Regulatory**. 13.16.3B remains locked until that Tier-1 mission-ownership tranche is accepted.
+**13.16.3A.3 and 13.16.3A.3R are COMPLETE / PASS.** The Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live at 61/61 active OrganizationPosition identities; the duplicate Board row was preserved as suspended historical `board@v2`, the canonical `board@v1` remains active, Alembic 0076 is accepted, and row/identity counts converge. **13.16.3B — Owner blockers, dependencies, and live operational intelligence is UNLOCKED / NOT STARTED.**

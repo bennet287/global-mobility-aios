@@ -1,6 +1,7 @@
 from app.services.organization_capability_architecture import (
     CURRENT_EXECUTIVE_POSITIONS,
     ORGANIZATION_CAPABILITY_DOMAINS,
+    MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS,
     PLANNED_C_SUITE_POSITIONS,
     TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS,
     capability_domains_for_executive,
@@ -19,7 +20,7 @@ def test_capability_architecture_maps_every_existing_non_executive_foundation_po
         key for key, position in mapped.items() if position.status in {"existing", "review"}
     }
 
-    assert len(POSITION_SPECS) == 47
+    assert len(POSITION_SPECS) == 61
     assert foundation_non_exec == mapped_existing_or_review
 
 
@@ -125,7 +126,30 @@ def test_technology_security_tranche_is_promoted_without_promoting_remaining_pla
     assert len(TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS) == 13
     assert all(mapped[key].status == "existing" for key in TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS)
     assert TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS.isdisjoint(planned_position_keys())
-    assert len(planned_position_keys()) == 33
+    assert len(planned_position_keys()) == 19
 
     foundation_keys = {item[0] for item in POSITION_SPECS}
     assert TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS.issubset(foundation_keys)
+
+
+def test_mobility_operations_intelligence_legal_tranche_is_promoted_without_authority_expansion() -> None:
+    mapped = capability_position_map()
+
+    assert len(MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS) == 14
+    assert all(
+        mapped[key].status == "existing"
+        for key in MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS
+    )
+    assert MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS.isdisjoint(
+        planned_position_keys()
+    )
+
+    foundation_keys = {item[0] for item in POSITION_SPECS}
+    assert MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS.issubset(
+        foundation_keys
+    )
+    assert {
+        mapped[key].reports_to_position_key
+        for key in MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS
+        if mapped[key].authority_level == "L2"
+    }.issubset({"coo", "clo"})

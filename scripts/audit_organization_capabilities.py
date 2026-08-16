@@ -21,6 +21,7 @@ from app.core.database_url import is_sqlite_url, mask_database_url, normalize_da
 from app.models.domain import OrganizationPosition  # noqa: E402
 from app.services.organization_capability_architecture import (  # noqa: E402
     CURRENT_EXECUTIVE_POSITIONS,
+    MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS,
     ORGANIZATION_CAPABILITY_DOMAINS,
     TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS,
     capability_position_map,
@@ -85,6 +86,9 @@ def audit(database_url: str | None) -> dict[str, Any]:
         "domains_by_owner": dict(sorted(domains_by_owner.items())),
         "planned_positions_by_owner": dict(sorted(planned_by_owner.items())),
         "technology_security_foundation_tranche_keys": sorted(TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS),
+        "mobility_operations_intelligence_legal_foundation_tranche_keys": sorted(
+            MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS
+        ),
         "runtime_mutation_performed": False,
     }
 
@@ -92,17 +96,38 @@ def audit(database_url: str | None) -> dict[str, Any]:
         normalized = normalize_database_url(database_url)
         live = _live_positions(normalized)
         live_by_key = {position.position_key: position for position in live}
+        live_rows_by_key: dict[str, list[OrganizationPosition]] = defaultdict(list)
+        for position in live:
+            live_rows_by_key[position.position_key].append(position)
+        duplicate_rows = {
+            key: rows for key, rows in live_rows_by_key.items() if len(rows) > 1
+        }
+        duplicate_keys = sorted(duplicate_rows)
+        redundant_row_count = sum(len(rows) - 1 for rows in duplicate_rows.values())
+        extra_keys = set(live_by_key) - set(foundation)
+        missing_keys = set(foundation) - set(live_by_key)
         result.update(
             {
                 "database_url": mask_database_url(normalized),
+                "live_active_position_row_count": len(live),
                 "live_active_position_count": len(live_by_key),
-                "live_extra_position_keys": sorted(set(live_by_key) - set(foundation)),
-                "live_missing_foundation_keys": sorted(set(foundation) - set(live_by_key)),
+                "live_duplicate_active_position_keys": duplicate_keys,
+                "live_duplicate_active_position_row_count": redundant_row_count,
+                "live_duplicate_active_position_ids_by_key": {
+                    key: [str(row.id) for row in sorted(rows, key=lambda item: (item.created_at, str(item.id)))]
+                    for key, rows in sorted(duplicate_rows.items())
+                },
+                "live_extra_position_keys": sorted(extra_keys),
+                "live_missing_foundation_keys": sorted(missing_keys),
                 "live_missing_technology_security_tranche_keys": sorted(
                     TECHNOLOGY_SECURITY_FOUNDATION_TRANCHE_KEYS - set(live_by_key)
                 ),
+                "live_missing_mobility_operations_intelligence_legal_tranche_keys": sorted(
+                    MOBILITY_OPERATIONS_INTELLIGENCE_LEGAL_FOUNDATION_TRANCHE_KEYS
+                    - set(live_by_key)
+                ),
                 "live_status": "reconcile_required"
-                if (set(live_by_key) - set(foundation)) or (set(foundation) - set(live_by_key))
+                if extra_keys or missing_keys or duplicate_keys
                 else "matches_foundation",
             }
         )
@@ -148,20 +173,42 @@ def main() -> int:
     print("domains_by_owner=" + json.dumps(result["domains_by_owner"], sort_keys=True))
     print("planned_positions_by_owner=" + json.dumps(result["planned_positions_by_owner"], sort_keys=True))
     print("technology_security_foundation_tranche_keys=" + json.dumps(result["technology_security_foundation_tranche_keys"]))
+    print(
+        "mobility_operations_intelligence_legal_foundation_tranche_keys="
+        + json.dumps(result["mobility_operations_intelligence_legal_foundation_tranche_keys"])
+    )
     print(f"live_status={result['live_status']}")
     if result["database_url"]:
         print(f"database_url={result['database_url']}")
+        print(f"live_active_position_rows={result['live_active_position_row_count']}")
         print(f"live_active_positions={result['live_active_position_count']}")
+        print(
+            "live_duplicate_active_position_keys="
+            + json.dumps(result["live_duplicate_active_position_keys"])
+        )
+        print(
+            f"live_duplicate_active_position_row_count="
+            f"{result['live_duplicate_active_position_row_count']}"
+        )
+        print(
+            "live_duplicate_active_position_ids_by_key="
+            + json.dumps(result["live_duplicate_active_position_ids_by_key"], sort_keys=True)
+        )
         print("live_extra_position_keys=" + json.dumps(result["live_extra_position_keys"]))
         print("live_missing_foundation_keys=" + json.dumps(result["live_missing_foundation_keys"]))
         print(
             "live_missing_technology_security_tranche_keys="
             + json.dumps(result["live_missing_technology_security_tranche_keys"])
         )
+        print(
+            "live_missing_mobility_operations_intelligence_legal_tranche_keys="
+            + json.dumps(result["live_missing_mobility_operations_intelligence_legal_tranche_keys"])
+        )
     print("runtime_mutation_performed=false")
     print(
-        "next=If the only live missing foundation keys are the bounded Technology + Security tranche, "
-        "run scripts/apply_organization_foundation_tranche.py in preflight mode before --apply."
+        "next=Resolve any duplicate active position identity first; otherwise, if live drift is limited "
+        "to the currently reviewed bounded tranche, run scripts/apply_organization_foundation_tranche.py "
+        "with the matching --tranche in preflight mode before --apply."
     )
     return 0
 

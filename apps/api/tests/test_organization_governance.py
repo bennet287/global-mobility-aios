@@ -508,7 +508,7 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     raw_client.headers.update(_headers())
     response = raw_client.post("/api/v1/organization/bootstrap")
     assert response.status_code == 201, response.text
-    assert response.json()["positions_registered"] == 47
+    assert response.json()["positions_registered"] == 61
 
     positions = db_session.exec(select(OrganizationPosition)).all()
     by_key = {item.position_key: item for item in positions}
@@ -574,6 +574,21 @@ def test_foundation_bootstrap_registers_executable_hierarchy(raw_client, db_sess
     assert by_key["sales_summary"].reports_to_position_key == "coo"
     assert by_key["operations_coordination"].reports_to_position_key == "coo"
     assert by_key["business_intelligence"].reports_to_position_key == "coo"
+    assert by_key["mobility_operations_lead"].reports_to_position_key == "coo"
+    assert by_key["mobility_operations_lead"].department == "Global Mobility Operations"
+    assert by_key["case_operations_specialist"].reports_to_position_key == "mobility_operations_lead"
+    assert by_key["pathway_operations_specialist"].reports_to_position_key == "mobility_operations_lead"
+    assert by_key["document_evidence_operations_lead"].reports_to_position_key == "coo"
+    assert by_key["evidence_quality_specialist"].reports_to_position_key == "document_evidence_operations_lead"
+    assert by_key["authority_filing_operations_lead"].reports_to_position_key == "coo"
+    assert by_key["submission_readiness_specialist"].reports_to_position_key == "authority_filing_operations_lead"
+    assert by_key["jurisdiction_research_lead"].reports_to_position_key == "coo"
+    assert by_key["regulatory_intelligence_analyst"].reports_to_position_key == "jurisdiction_research_lead"
+    assert by_key["evidence_source_certification_lead"].reports_to_position_key == "coo"
+    assert by_key["mobility_intelligence_analyst"].reports_to_position_key == "jurisdiction_research_lead"
+    assert by_key["immigration_regulatory_counsel"].reports_to_position_key == "clo"
+    assert by_key["privacy_data_protection_counsel"].reports_to_position_key == "clo"
+    assert by_key["regulatory_assurance_counsel"].reports_to_position_key == "clo"
     assert by_key["board"].authority_level == "L4"
     ceo_contract = json.loads(by_key["ceo"].contract_json)
     assert ceo_contract["external_action_authorized"] is False
