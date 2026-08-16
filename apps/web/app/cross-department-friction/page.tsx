@@ -463,4 +463,3 @@ export default function CrossDepartmentFrictionPage() {
     </WorkspaceShell>
   );
 }
-
