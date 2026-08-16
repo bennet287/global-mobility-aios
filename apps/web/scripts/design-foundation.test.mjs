@@ -457,3 +457,48 @@ test("13.16.4 Department workspaces route, navigation, and governed composition"
   assert.match(styles, /\.department-workspace-card/);
   assert.match(styles, /\.department-metrics/);
 });
+
+
+test("13.16.5 Cross-department friction surface stays governed and read-only", async () => {
+  const [friction, cockpit, nav, styles] = await Promise.all([
+    read("app/cross-department-friction/page.tsx"),
+    read("app/cockpit/page.tsx"),
+    read("lib/workspace-navigation.ts"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(nav, /Cross-department friction/);
+  assert.match(nav, /href: "\/cross-department-friction"/);
+  assert.match(nav, /pathname === "\/cross-department-friction"/);
+  assert.match(cockpit, /href="\/cross-department-friction"/);
+  assert.match(cockpit, /Cross-department view/);
+
+  assert.match(friction, /className="cross-department-friction"/);
+  assert.match(friction, /className="friction-summary"/);
+  assert.match(friction, /className="friction-grid"/);
+  assert.match(friction, /className="friction-lane friction-blockers"/);
+  assert.match(friction, /className="friction-lane friction-dependencies"/);
+  assert.match(friction, /listOrganizationBlockers\({ status: "open", page_size: 100 }\)/);
+  assert.match(friction, /listOrganizationWorkItemDependencies\({ status: "active", page_size: 100 }\)/);
+  assert.match(friction, /listOrganizationWorkItems\({ page_size: 100 }\)/);
+  assert.match(friction, /listOrganizationHumanActionRequests\({ page_size: 100 }\)/);
+  assert.match(friction, /listOrganizationActivities\({ page_size: 200 }\)/);
+  assert.match(friction, /Affects:/);
+  assert.match(friction, /Owned by:/);
+  assert.match(friction, /Downstream:/);
+  assert.match(friction, /Upstream:/);
+  assert.match(friction, /Human request/);
+  assert.match(friction, /Governed intervention/);
+  assert.match(friction, /friction view does not directly change blocker or dependency status/);
+  assert.doesNotMatch(
+    friction,
+    /resolveOrganizationBlocker|waiveOrganizationBlocker|mitigateOrganizationBlocker|waiveOrganizationWorkItemDependency|completeOrganizationWorkItem|reassignOrganizationWorkItem/,
+  );
+
+  assert.match(styles, /Phase 13\.16\.5/);
+  assert.match(styles, /\.cross-department-friction/);
+  assert.match(styles, /\.friction-summary/);
+  assert.match(styles, /\.friction-grid/);
+  assert.match(styles, /\.friction-lane/);
+  assert.match(styles, /\.friction-list/);
+});
