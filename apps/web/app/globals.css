@@ -12170,3 +12170,300 @@ html[data-theme="dark"] body {
 .owner-human-requests-lane {
   /* Lane-specific overrides live here; shared layout is .cockpit-lane. */
 }
+
+/* Phase 13.16.3C — department drill-down + governed human-intervention request controls. */
+
+.cockpit-department-drilldown {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  background: color-mix(in srgb, var(--surface) 92%, var(--blue-soft));
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+}
+
+.cockpit-department-drilldown > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.department-owner-label {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.department-drilldown-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.8fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.department-position-list,
+.department-operating-state,
+.department-recent-signal {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 14px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.department-position-list > small,
+.department-operating-state > small,
+.department-recent-signal > small {
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.department-position-list > div {
+  display: grid;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.department-position-list > div strong,
+.department-recent-signal strong {
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.department-position-list > div span,
+.department-recent-signal span {
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.department-operating-state dl {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.department-operating-state dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.department-operating-state dt {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.department-operating-state dd {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-editorial);
+  font-size: 20px;
+}
+
+.department-recent-signal p {
+  margin: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.governed-intervention-trigger {
+  justify-self: start;
+  margin-top: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--blue);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.governed-intervention-trigger:hover,
+.governed-intervention-trigger:focus-visible {
+  text-decoration: underline;
+}
+
+.governed-intervention-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.governed-intervention-form > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.governed-intervention-form > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.governed-intervention-form > header strong {
+  color: var(--ink);
+  font-family: var(--font-editorial);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.governed-intervention-form > header small,
+.intervention-actions p {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.intervention-dismiss {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.governed-intervention-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.governed-intervention-fields label,
+.intervention-instructions {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.governed-intervention-fields select,
+.intervention-instructions textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.governed-intervention-fields select {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.intervention-instructions textarea {
+  min-height: 112px;
+  resize: vertical;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+.intervention-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.intervention-actions p {
+  max-width: 760px;
+  margin: 0;
+}
+
+.intervention-actions button[type="submit"] {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--surface);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.intervention-actions button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.intervention-message {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--blue-soft);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 1100px) {
+  .department-drilldown-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .department-recent-signal {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .department-drilldown-grid,
+  .governed-intervention-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .department-recent-signal {
+    grid-column: auto;
+  }
+
+  .intervention-actions,
+  .cockpit-department-drilldown > header,
+  .governed-intervention-form > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+[data-theme="dark"] .cockpit-department-drilldown {
+  background: rgba(31, 36, 48, 0.56);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .department-position-list,
+[data-theme="dark"] .department-operating-state,
+[data-theme="dark"] .department-recent-signal,
+[data-theme="dark"] .governed-intervention-form {
+  background: rgba(23, 27, 36, 0.72);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .governed-intervention-fields select,
+[data-theme="dark"] .intervention-instructions textarea {
+  background: rgba(31, 36, 48, 0.78);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: #f4f2ec;
+}

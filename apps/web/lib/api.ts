@@ -4975,6 +4975,20 @@ export type ObservatoryDepartments = {
   warnings: string[];
 };
 
+export type OrganizationHumanActionRequestCreateInput = {
+  request_key: string;
+  request_type: "review" | "acknowledgement" | "provide_information";
+  title: string;
+  instructions: string;
+  required_role: "operator" | "reviewer";
+  priority: "low" | "normal" | "high" | "critical";
+  work_item_id?: string | null;
+  blocker_id?: string | null;
+  source_object_type?: string | null;
+  source_object_id?: string | null;
+  source_object_version?: string | null;
+};
+
 export type OrganizationHumanActionRequest = {
   id: string;
   request_key: string;
@@ -5159,6 +5173,15 @@ export async function listOrganizationHumanActionRequests(params: { page?: numbe
   search.set("page_size", String(params.page_size || 50));
   if (params.status) search.set("status", params.status);
   return request(`/api/v1/organization/human-action-requests?${search.toString()}`);
+}
+
+export async function createOrganizationHumanActionRequest(
+  payload: OrganizationHumanActionRequestCreateInput,
+): Promise<OrganizationHumanActionRequest> {
+  return request("/api/v1/organization/human-action-requests", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function listOrganizationActivities(params: { page?: number; page_size?: number } = {}): Promise<OrganizationActivityPage> {

@@ -379,3 +379,31 @@ test("13.16.3B Owner operational intelligence remains data-grounded", async () =
   assert.match(styles, /\.blocker-severity-low/);
   assert.match(styles, /\.dependency-blocked/);
 });
+
+test("13.16.3C department drill-down and intervention stay governed", async () => {
+  const [cockpit, api, styles] = await Promise.all([
+    read("app/cockpit/page.tsx"),
+    read("lib/api.ts"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(cockpit, /Department drill-down/);
+  assert.match(cockpit, /cockpit-department-drilldown/);
+  assert.match(cockpit, /department-drilldown-grid/);
+  assert.match(cockpit, /Governed intervention/);
+  assert.match(cockpit, /Request human follow-up/);
+  assert.match(cockpit, /createOrganizationHumanActionRequest/);
+  assert.match(cockpit, /Backend authorization remains authoritative/);
+  assert.match(cockpit, /does not directly change blocker or dependency status, complete work, or publish legal\/regulatory outcomes/);
+  assert.doesNotMatch(cockpit, /mitigateOrganizationBlocker|resolveOrganizationBlocker|waiveOrganizationBlocker|waiveOrganizationWorkItemDependency|completeOrganizationWorkItem/);
+
+  assert.match(api, /OrganizationHumanActionRequestCreateInput/);
+  assert.match(api, /createOrganizationHumanActionRequest/);
+  assert.match(api, /method: "POST"/);
+  assert.match(api, /\/api\/v1\/organization\/human-action-requests/);
+
+  assert.match(styles, /Phase 13\.16\.3C/);
+  assert.match(styles, /\.cockpit-department-drilldown/);
+  assert.match(styles, /\.governed-intervention-form/);
+  assert.match(styles, /\.governed-intervention-trigger/);
+});

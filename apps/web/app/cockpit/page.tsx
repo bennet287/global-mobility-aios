@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
@@ -23,6 +23,7 @@ import {
   getOrganizationObservatorySummary,
   listOrganizationActivities,
   listOrganizationHumanActionRequests,
+  createOrganizationHumanActionRequest,
   listOrganizationBlockers,
   listOrganizationWorkItemDependencies,
   listOrganizationWorkItems,
@@ -31,6 +32,16 @@ import { titleCase } from "../../lib/utils";
 
 type GeographicPoint = { lat: number; lon: number };
 type OrganizationFocus = { kind: "ceo" | "executive" | "domain"; key: string };
+type InterventionTarget = {
+  kind: "blocker" | "work" | "dependency";
+  id: string;
+  label: string;
+  department: string | null;
+  workItemId: string | null;
+  blockerId: string | null;
+  sourceObjectType: string;
+  sourceObjectVersion: string;
+};
 
 const ACTIVE_HUMAN_REQUEST_STATUSES = new Set(["required", "acknowledged", "in_progress"]);
 
@@ -118,6 +129,13 @@ export default function CockpitPage() {
   const [dependencies, setDependencies] = useState<OrganizationWorkItemDependency[]>([]);
   const [workItems, setWorkItems] = useState<OrganizationalWorkItem[]>([]);
   const [organizationFocus, setOrganizationFocus] = useState<OrganizationFocus>({ kind: "ceo", key: "ceo" });
+  const [interventionTarget, setInterventionTarget] = useState<InterventionTarget | null>(null);
+  const [interventionInstructions, setInterventionInstructions] = useState("");
+  const [interventionRole, setInterventionRole] = useState<"operator" | "reviewer">("operator");
+  const [interventionPriority, setInterventionPriority] = useState<"low" | "normal" | "high" | "critical">("normal");
+  const [interventionType, setInterventionType] = useState<"review" | "acknowledgement" | "provide_information">("review");
+  const [interventionSubmitting, setInterventionSubmitting] = useState(false);
+  const [interventionMessage, setInterventionMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -357,6 +375,60 @@ export default function CockpitPage() {
     };
   }, [blockers, dependencies, workItems, humanRequests, observatory, packet, intelligence, organizationFocusView]);
 
+  const departmentDrilldown = useMemo(() => {
+    if (organizationFocus.kind !== "domain") return null;
+    const domain = operationalDomains.find((item) => item.department === organizationFocus.key);
+    if (!domain) return null;
+    const ownerPositions = executivePositions.filter((position) => domain.ownerKeys.includes(position.position_key));
+    const positions = organizationFocusView.scopedPositions
+      .slice()
+      .sort((a, b) => a.authority_level.localeCompare(b.authority_level) || a.title.localeCompare(b.title));
+    const work = workItems.filter((item) => organizationFocusView.domainNames.has(item.department) || organizationFocusView.positionKeys.has(item.assigned_position_key));
+    const blockersInScope = operationalIntelligence.scopedBlockers;
+    const dependenciesInScope = operationalIntelligence.scopedDependencies;
+    const requestsInScope = operationalIntelligence.scopedPendingHumanRequests;
+    return { domain, ownerPositions, positions, work, blockersInScope, dependenciesInScope, requestsInScope };
+  }, [executivePositions, operationalDomains, operationalIntelligence, organizationFocus, organizationFocusView, workItems]);
+
+  const beginIntervention = (target: InterventionTarget) => {
+    setInterventionTarget(target);
+    setInterventionInstructions("");
+    setInterventionRole("operator");
+    setInterventionPriority("normal");
+    setInterventionType("review");
+    setInterventionMessage(null);
+    requestAnimationFrame(() => document.getElementById("governed-intervention-form")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  };
+
+  const submitIntervention = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!interventionTarget || !interventionInstructions.trim()) return;
+    setInterventionSubmitting(true);
+    setInterventionMessage(null);
+    try {
+      const created = await createOrganizationHumanActionRequest({
+        request_key: `cockpit-intervention:${interventionTarget.sourceObjectType}:${interventionTarget.id}:${interventionTarget.sourceObjectVersion}`,
+        request_type: interventionType,
+        title: `Owner follow-up: ${interventionTarget.label}`.slice(0, 500),
+        instructions: interventionInstructions.trim(),
+        required_role: interventionRole,
+        priority: interventionPriority,
+        work_item_id: interventionTarget.workItemId,
+        blocker_id: interventionTarget.blockerId,
+        source_object_type: interventionTarget.sourceObjectType,
+        source_object_id: interventionTarget.id,
+        source_object_version: interventionTarget.sourceObjectVersion,
+      });
+      setInterventionMessage(`Governed human request created · ${titleCase(created.status)} · ${created.required_role}`);
+      setInterventionInstructions("");
+      await load();
+    } catch (requestError) {
+      setInterventionMessage(requestError instanceof Error ? requestError.message : "The governed intervention request was rejected.");
+    } finally {
+      setInterventionSubmitting(false);
+    }
+  };
+
   const globalSignals = useMemo(() => {
     return [...(intelligence?.country_heatmap || [])]
       .sort((a, b) => b.critical - a.critical || b.pending_review - a.pending_review || b.activity_count - a.activity_count)
@@ -557,6 +629,49 @@ export default function CockpitPage() {
                   </div>
                 </div>
               </section>
+
+              {departmentDrilldown ? (
+                <section className="cockpit-department-drilldown" aria-labelledby="department-drilldown-title">
+                  <header className="cockpit-surface-header compact">
+                    <div>
+                      <span className="premium-label">Department drill-down</span>
+                      <h3 id="department-drilldown-title">{departmentDrilldown.domain.department}</h3>
+                    </div>
+                    <span className="department-owner-label">
+                      {departmentDrilldown.ownerPositions.length
+                        ? departmentDrilldown.ownerPositions.map((position) => executiveRoleLabel(position)).join(" / ")
+                        : "Executive owner unresolved"}
+                    </span>
+                  </header>
+
+                  <div className="department-drilldown-grid">
+                    <div className="department-position-list">
+                      <small>Positions</small>
+                      {departmentDrilldown.positions.length ? departmentDrilldown.positions.map((position) => (
+                        <div key={position.id}>
+                          <strong>{position.title}</strong>
+                          <span>{position.position_key.replaceAll("_", " ")} · {position.authority_level}</span>
+                        </div>
+                      )) : <p>No active positions resolved for this domain.</p>}
+                    </div>
+                    <div className="department-operating-state">
+                      <small>Operating state</small>
+                      <dl>
+                        <div><dt>Active work</dt><dd>{departmentDrilldown.work.length}</dd></div>
+                        <div><dt>Open blockers</dt><dd>{departmentDrilldown.blockersInScope.length}</dd></div>
+                        <div><dt>Active dependencies</dt><dd>{departmentDrilldown.dependenciesInScope.length}</dd></div>
+                        <div><dt>Pending human requests</dt><dd>{departmentDrilldown.requestsInScope.length}</dd></div>
+                      </dl>
+                    </div>
+                    <div className="department-recent-signal">
+                      <small>Durable signal</small>
+                      {organizationFocusView.recentActivity[0] ? (
+                        <p><strong>{organizationFocusView.recentActivity[0].title}</strong><span>{organizationFocusView.recentActivity[0].summary}</span></p>
+                      ) : <p><strong>No recent durable Activity.</strong><span>No synthetic department event is created for presentation.</span></p>}
+                    </div>
+                  </div>
+                </section>
+              ) : null}
 
               <div className={`pulse-layer-connector execution ${isPaused ? "paused" : "active"}`} aria-hidden="true"><span /></div>
               <div className="pulse-node aios"><small>L1 governed execution</small><strong>AIOS</strong><span /></div>
@@ -781,6 +896,20 @@ export default function CockpitPage() {
                       {blocker.accountable_position_key ? ` · ${blocker.accountable_position_key.replaceAll("_", " ").toUpperCase()}` : null}
                       {blocker.due_at ? ` · Due ${shortDate(blocker.due_at)}` : null}
                     </small>
+                    <button
+                      type="button"
+                      className="governed-intervention-trigger"
+                      onClick={() => beginIntervention({
+                        kind: "blocker",
+                        id: blocker.id,
+                        label: blocker.title,
+                        department: blocker.department,
+                        workItemId: blocker.work_item_id,
+                        blockerId: blocker.id,
+                        sourceObjectType: "organization_blocker",
+                        sourceObjectVersion: blocker.updated_at,
+                      })}
+                    >Request human follow-up</button>
                   </li>
                 ))}
               </ul>
@@ -802,6 +931,20 @@ export default function CockpitPage() {
                       <span className="dependency-edge">depends on</span>
                       <strong>{upstream?.title || dep.depends_on_work_item_id.slice(0, 8)}</strong>
                       <small>{titleCase(dep.dependency_type)}{blocked ? " · blocked downstream" : null}</small>
+                      <button
+                        type="button"
+                        className="governed-intervention-trigger"
+                        onClick={() => beginIntervention({
+                          kind: "dependency",
+                          id: dep.id,
+                          label: `${downstream?.title || "Downstream work"} dependency`,
+                          department: downstream?.department || null,
+                          workItemId: dep.work_item_id,
+                          blockerId: null,
+                          sourceObjectType: "organization_work_item_dependency",
+                          sourceObjectVersion: dep.updated_at,
+                        })}
+                      >Request dependency follow-up</button>
                     </li>
                   );
                 })}
@@ -822,6 +965,20 @@ export default function CockpitPage() {
                       {item.assigned_position_key ? ` · ${item.assigned_position_key.replaceAll("_", " ").toUpperCase()}` : null}
                       {item.due_at ? ` · ${daysOverdue(item.due_at)} day${daysOverdue(item.due_at) === 1 ? "" : "s"} overdue` : null}
                     </small>
+                    <button
+                      type="button"
+                      className="governed-intervention-trigger"
+                      onClick={() => beginIntervention({
+                        kind: "work",
+                        id: item.id,
+                        label: item.title,
+                        department: item.department,
+                        workItemId: item.id,
+                        blockerId: null,
+                        sourceObjectType: "organizational_work_item",
+                        sourceObjectVersion: item.updated_at,
+                      })}
+                    >Request work follow-up</button>
                   </li>
                 ))}
               </ul>
@@ -846,6 +1003,62 @@ export default function CockpitPage() {
             ) : <div className="cockpit-empty-line">No pending human requests in the current view.</div>}
           </article>
         </div>
+
+        {interventionTarget ? (
+          <form id="governed-intervention-form" className="governed-intervention-form" onSubmit={submitIntervention}>
+            <header>
+              <div>
+                <span className="premium-label">Governed intervention</span>
+                <strong>Request human follow-up</strong>
+                <small>{titleCase(interventionTarget.kind)} · {interventionTarget.label}{interventionTarget.department ? ` · ${interventionTarget.department}` : ""}</small>
+              </div>
+              <button type="button" className="intervention-dismiss" onClick={() => { setInterventionTarget(null); setInterventionMessage(null); }}>Dismiss</button>
+            </header>
+            <div className="governed-intervention-fields">
+              <label>
+                <span>Request type</span>
+                <select value={interventionType} onChange={(event) => setInterventionType(event.target.value as typeof interventionType)}>
+                  <option value="review">Review</option>
+                  <option value="provide_information">Provide information</option>
+                  <option value="acknowledgement">Acknowledgement</option>
+                </select>
+              </label>
+              <label>
+                <span>Required role</span>
+                <select value={interventionRole} onChange={(event) => setInterventionRole(event.target.value as typeof interventionRole)}>
+                  <option value="operator">Operator</option>
+                  <option value="reviewer">Reviewer</option>
+                </select>
+              </label>
+              <label>
+                <span>Priority</span>
+                <select value={interventionPriority} onChange={(event) => setInterventionPriority(event.target.value as typeof interventionPriority)}>
+                  <option value="low">Low</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </label>
+            </div>
+            <label className="intervention-instructions">
+              <span>Instructions</span>
+              <textarea
+                value={interventionInstructions}
+                onChange={(event) => setInterventionInstructions(event.target.value)}
+                maxLength={4000}
+                required
+                placeholder="Describe the human follow-up required. This creates a governed request; it does not resolve, waive, approve, or reassign the underlying record."
+              />
+            </label>
+            <div className="intervention-actions">
+              <p>Backend authorization remains authoritative. The Cockpit does not directly change blocker or dependency status, complete work, or publish legal/regulatory outcomes.</p>
+              <button type="submit" disabled={interventionSubmitting || !interventionInstructions.trim()}>
+                {interventionSubmitting ? "Creating governed request…" : "Create human request"}
+              </button>
+            </div>
+            {interventionMessage ? <div className="intervention-message" role="status">{interventionMessage}</div> : null}
+          </form>
+        ) : null}
 
         <footer className="operational-intelligence-footer">
           <span>Evidence health: {operationalIntelligence.evidenceHealth.covered} of {operationalIntelligence.evidenceHealth.total} contribution sources covered.</span>
