@@ -12467,3 +12467,151 @@ html[data-theme="dark"] body {
   border-color: rgba(255, 255, 255, 0.10);
   color: #f4f2ec;
 }
+
+/* Phase 13.16.4 — department workspaces: bounded operational unit surfaces. */
+.drilldown-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.department-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.department-workspace-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.department-workspace-header h1 {
+  margin: 6px 0 8px;
+  font-size: var(--text-2xl);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.department-workspace-header p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.department-workspace-header strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.department-workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.department-workspace-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.department-workspace-card header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.department-workspace-card h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.department-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.department-metrics div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.department-metrics dt {
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.department-metrics dd {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.department-workspace-card .cockpit-empty-line {
+  padding: 18px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.department-workspace-card .governed-intervention-trigger {
+  margin-top: 8px;
+}
+
+@media (max-width: 1100px) {
+  .department-workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .department-workspace-header {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .department-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .department-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+[data-theme="dark"] .department-workspace-header,
+[data-theme="dark"] .department-workspace-card {
+  background: rgba(23, 27, 36, 0.72);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .department-metrics div {
+  background: rgba(31, 36, 48, 0.56);
+  border-color: rgba(255, 255, 255, 0.07);
+}

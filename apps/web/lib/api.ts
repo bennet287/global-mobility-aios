@@ -5159,6 +5159,31 @@ export type OrganizationWorkItemDependency = {
   updated_at: string;
 };
 
+export type OrganizationContribution = {
+  id: string;
+  contribution_key: string;
+  contribution_type: string;
+  title: string;
+  outcome_summary: string;
+  actor_type: string;
+  actor_id: string;
+  department: string;
+  accountable_position_key: string;
+  authority_level: string;
+  status: string;
+  source_object_type: string;
+  source_object_id: string;
+  source_object_version: string;
+  source_state: string;
+  verification_method: string;
+  record_kind: "outcome" | "supersession" | "retraction";
+  impact_kind: string;
+  effective_at: string;
+  supersedes_contribution_id: string | null;
+  retraction_reason: string | null;
+  created_at: string;
+};
+
 export async function getOrganizationObservatorySummary(): Promise<ObservatorySummary> {
   return request("/api/v1/organization/observatory/summary");
 }
@@ -5234,6 +5259,23 @@ export async function listOrganizationWorkItems(
 
 export async function getOrganizationWorkItem(id: string): Promise<OrganizationalWorkItem> {
   return request(`/api/v1/organization/work-items/records/${id}`);
+}
+
+export async function listOrganizationContributions(
+  params: { department?: string; contribution_type?: string; source_type?: string; work_item_id?: string; page?: number; page_size?: number } = {},
+): Promise<OrganizationRecordPage<OrganizationContribution>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 100));
+  if (params.department) search.set("department", params.department);
+  if (params.contribution_type) search.set("contribution_type", params.contribution_type);
+  if (params.source_type) search.set("source_type", params.source_type);
+  if (params.work_item_id) search.set("work_item_id", params.work_item_id);
+  return request(`/api/v1/organization/contributions?${search.toString()}`);
+}
+
+export async function getOrganizationContribution(id: string): Promise<OrganizationContribution> {
+  return request(`/api/v1/organization/contributions/${id}`);
 }
 
 export async function updateOrganizationControl(status: "active" | "paused", reason: string) {

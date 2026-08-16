@@ -637,11 +637,19 @@ export default function CockpitPage() {
                       <span className="premium-label">Department drill-down</span>
                       <h3 id="department-drilldown-title">{departmentDrilldown.domain.department}</h3>
                     </div>
-                    <span className="department-owner-label">
-                      {departmentDrilldown.ownerPositions.length
-                        ? departmentDrilldown.ownerPositions.map((position) => executiveRoleLabel(position)).join(" / ")
-                        : "Executive owner unresolved"}
-                    </span>
+                    <div className="drilldown-header-actions">
+                      <span className="department-owner-label">
+                        {departmentDrilldown.ownerPositions.length
+                          ? departmentDrilldown.ownerPositions.map((position) => executiveRoleLabel(position)).join(" / ")
+                          : "Executive owner unresolved"}
+                      </span>
+                      <Link
+                        className="premium-button ghost"
+                        href={`/workspace/${encodeURIComponent(departmentDrilldown.domain.department)}`}
+                      >
+                        Open workspace
+                      </Link>
+                    </div>
                   </header>
 
                   <div className="department-drilldown-grid">

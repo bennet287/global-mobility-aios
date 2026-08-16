@@ -407,3 +407,53 @@ test("13.16.3C department drill-down and intervention stay governed", async () =
   assert.match(styles, /\.governed-intervention-form/);
   assert.match(styles, /\.governed-intervention-trigger/);
 });
+
+
+test("13.16.4 Department workspaces route, navigation, and governed composition", async () => {
+  const [cockpit, workspace, nav, styles, api] = await Promise.all([
+    read("app/cockpit/page.tsx"),
+    read("app/workspace/[department]/page.tsx"),
+    read("lib/workspace-navigation.ts"),
+    read("app/globals.css"),
+    read("lib/api.ts"),
+  ]);
+
+  assert.ok(
+    cockpit.includes('href={`/workspace/${encodeURIComponent(departmentDrilldown.domain.department)}`}'),
+    "Cockpit drill-down must deep-link to the bounded department workspace",
+  );
+  assert.match(nav, /Department workspaces/);
+  assert.match(nav, /pathname\.startsWith\("\/workspace\/"\)/);
+
+  assert.match(workspace, /className="department-workspace"/);
+  assert.match(workspace, /className="department-workspace-header"/);
+  assert.match(workspace, /className="department-workspace-grid"/);
+  assert.match(workspace, /className="department-workspace-card/);
+  assert.match(workspace, /className="department-metrics"/);
+
+  assert.match(workspace, /listOrganizationContributions\({ department, page_size: 100 }\)/);
+  assert.match(workspace, /getOrganizationObservatoryDepartments\(\)/);
+  assert.match(workspace, /Owned work/);
+  assert.match(workspace, /Open blockers/);
+  assert.match(workspace, /Active dependencies/);
+  assert.match(workspace, /Pending human requests/);
+  assert.match(workspace, /Contributions/);
+  assert.match(workspace, /Material Activity/);
+  assert.match(workspace, /Governed intervention/);
+  assert.match(workspace, /Backend authorization remains authoritative/);
+  assert.doesNotMatch(
+    workspace,
+    /resolveOrganizationBlocker|waiveOrganizationBlocker|completeOrganizationWorkItem|reassignOrganizationWorkItem|publishOrganizationContribution|certifyOrganization/,
+  );
+
+  assert.match(api, /export type OrganizationContribution/);
+  assert.match(api, /listOrganizationContributions/);
+  assert.match(api, /getOrganizationContribution/);
+
+  assert.match(styles, /Phase 13\.16\.4/);
+  assert.match(styles, /\.department-workspace/);
+  assert.match(styles, /\.department-workspace-header/);
+  assert.match(styles, /\.department-workspace-grid/);
+  assert.match(styles, /\.department-workspace-card/);
+  assert.match(styles, /\.department-metrics/);
+});

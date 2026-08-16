@@ -67,3 +67,38 @@ test("Organization read list functions reach the expected endpoints and params",
     assert.equal(call.init.credentials, "include");
   }
 });
+
+test("Organization contribution list reaches the expected endpoint with department filter", async () => {
+  const originalFetch = globalThis.fetch;
+  const recorder = recordingFetch();
+  globalThis.fetch = recorder.fetch;
+
+  process.env.NEXT_PUBLIC_API_BASE_URL = "http://127.0.0.1:8003";
+  process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE = "true";
+  process.env.NEXT_PUBLIC_GMAI_ROLE = "admin";
+  process.env.NEXT_PUBLIC_GMAI_USER = "frontend-operator";
+  process.env.NODE_ENV = "production";
+
+  try {
+    const api = await import(`./api.ts?organization-contribution=${Date.now()}`);
+    await api.listOrganizationContributions({ department: "Global Mobility Operations", page_size: 50 });
+  } finally {
+    globalThis.fetch = originalFetch;
+    delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    delete process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE;
+    delete process.env.NEXT_PUBLIC_GMAI_ROLE;
+    delete process.env.NEXT_PUBLIC_GMAI_USER;
+    delete process.env.NODE_ENV;
+  }
+
+  assert.deepEqual(recorder.calls.map((call) => call.input), [
+    "http://127.0.0.1:8003/api/v1/organization/contributions?page=1&page_size=50&department=Global+Mobility+Operations",
+  ]);
+
+  for (const call of recorder.calls) {
+    assert.equal(call.init.method, undefined);
+    assert.equal(call.headers.get("x-gmai-role"), "admin");
+    assert.equal(call.headers.get("x-gmai-user"), "frontend-operator");
+    assert.equal(call.init.credentials, "include");
+  }
+});
