@@ -673,7 +673,7 @@ back.
 
 ## 8. Current State Dashboard
 
-**As of:** 2026-08-16
+**As of:** 2026-08-17
 **Development branch:** `roadmap/global-mobility-aios-v11`
 **Accepted 13.16.1 / E3D implementation baseline:** `a503fe8b8a41cff6908751ba24688ed03fa535ec`
 
@@ -695,7 +695,8 @@ back.
 | Phase 13.16.3 | **COMPLETE / PASS** | Unified Owner Control Center accepted through 13.16.3C: Owner focus, capability architecture, Tier-1 organization, active-identity integrity, operational-intelligence reads, department drill-down, and governed human-intervention routing are complete without weakening backend authorization or direct blocker/dependency/work/legal outcome boundaries |
 | Phase 13.16.4 | **COMPLETE / PASS** | Bounded department workspaces from the Cockpit drill-down into `/workspace/[department]`, with owned work, blockers, dependencies, human requests, Contributions, material Activity, executive ownership, and governed intervention; does not mutate blockers/dependencies/work/legal outcomes directly |
 | Phase 13.16.5 | **COMPLETE / PASS** | Cross-department friction surface from the Owner control surfaces, showing blockers and dependencies whose owning department differs from the affected department, with human-action indicators, escalation signals, department workspace links, and governed intervention; no direct blocker/dependency/work/legal-outcome mutation |
-| Phase 13.16.6-13.16.10 | **LOCKED** | Later experience slices remain gated by accepted delivery of 13.16.5 |
+| Phase 13.16.6 | **UNLOCKED / NOT STARTED** | Owner decision and escalation inbox is the next product slice after the Technology Radar V1 docs-only checkpoint |
+| Phase 13.16.7-13.16.10 | **LOCKED** | Later experience slices remain sequentially gated by accepted delivery of 13.16.6 and subsequent slices |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
 
@@ -739,7 +740,7 @@ E3D / 13.16.1 closure evidence:
 - Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
 - No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
 
-**13.16.1E3D is COMPLETE / PASS. Phase 13.16.1 is COMPLETE / PASS. Phase 13.16.2 is COMPLETE / PASS. Phase 13.16.3 is IN PROGRESS — 13.16.3A Interactive Owner Control Center, 13.16.3A.1 capability architecture/live inventory, 13.16.3A.2 Technology + Security foundation tranche 1, 13.16.3A.3 Global Mobility Operations + Intelligence + Legal/Regulatory, 13.16.3A.3R OrganizationPosition active-identity integrity, and 13.16.3B Owner blockers, dependencies, and live operational intelligence are COMPLETE / PASS.**
+**Current Phase 13.16 state: 13.16.1, 13.16.2, 13.16.3, 13.16.4, and 13.16.5 are COMPLETE / PASS. Technology Radar V1 is a docs-only platform-evolution checkpoint. 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED and remains the next product slice.**
 
 ### 8.2 Preserved database boundaries
 
@@ -776,6 +777,41 @@ The browser review of Cockpit, Operations, and My Mobility established the follo
 - The full Owner Control Center remains Phase 13.16.3; the 13.16.2 premium foundation proves its design language and safe live-data composition without absorbing later department/blocker/decision workflow slices.
 - Screenshot acceptance of the signature pass exposed three concrete presentation defects that must be corrected before closure: department nodes may not collide in Organization Pulse, the compact rail may not expand over the live workspace merely on hover, and Global Mobility geography may not rely on crude decorative continent silhouettes. The corrected direction uses a stable six-node organization field, a non-expanding desktop control rail, and a true latitude/longitude coordinate field with region labels and only explicitly mapped jurisdiction markers.
 - Owner destinations should read as a unified control dock rather than another row of generic rounded cards, reducing repetitive SaaS-card chrome while preserving the same deep links.
+
+### 8.3 Technology Radar / Platform Evolution track — FROZEN V1
+
+The project now maintains a parallel **Technology Radar / Platform Evolution track** for
+third-party and open-source infrastructure candidates. This is an architecture/evaluation track,
+not a dependency list and not a replacement for the sequential product roadmap.
+
+Authoritative documents:
+
+- [TECHNOLOGY_RADAR_V1.md](TECHNOLOGY_RADAR_V1.md)
+- [THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md](THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md)
+- [ADR/0002-provider-neutral-platform-adapters.md](ADR/0002-provider-neutral-platform-adapters.md)
+
+The frozen architecture principle is **AIOS semantic sovereignty**: third-party infrastructure may
+parse, execute, retrieve, observe, scan, render, evaluate, or enforce an AIOS-defined capability,
+but it may not become authoritative for domain meaning, legal status, evidence/certification
+state, human-review requirements, publication state, organizational authority, or business
+outcome semantics.
+
+Initial V1 classifications:
+
+- **ADOPT / EARLY PILOT:** Docling, Presidio, urlwatch, Promptfoo, OpenTelemetry, ClamAV;
+- **PILOT / BENCHMARK:** PaddleOCR, Unlimited-OCR, pgvector, Qdrant, Pydantic AI, Langfuse,
+  Gotenberg, Typst;
+- **STRATEGIC PILOT:** Temporal, OpenFGA;
+- **RESEARCH:** DSPy, EU DSS, Fides, OpenLineage;
+- **NARROW / CONDITIONAL:** OPA, OpenFeature;
+- **BENCHMARK ONLY:** Haystack, MarkItDown.
+
+Wave 0 is **documentation/architecture only**. It adds no runtime dependency, container, migration,
+feature flag, database mutation, or placeholder interface. Actual AIOS-owned runtime contracts
+appear only when the first real implementation needs them.
+
+This checkpoint does **not** reorder Phase 13.16. Phase 13.16.5 remains COMPLETE / PASS and
+**13.16.6 Owner decision and escalation inbox remains the next product slice**.
 
 ## 9. Direction From Here
 
@@ -869,10 +905,13 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 4 | 13.16.1 durable Contribution & Activity model | **COMPLETE / PASS** | Closed after E3D coverage-epoch acceptance |
 | 5 | 13.16.2 role-based application shells and navigation | **COMPLETE / PASS** | Closed after premium visual, schema-reconciliation, runtime, frontend, API, repository, and migration acceptance |
 | 6 | 13.16.3 Unified Owner Control Center | **COMPLETE / PASS** | 13.16.2 COMPLETE / PASS |
-| 7 | 13.16.4-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.3 |
-| 8 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
-| 9 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
-| 10 | Phase 14 scale work | **LOCKED** | Phase 13 PASS + measured demand |
+| 7 | 13.16.4 Department workspaces | **COMPLETE / PASS** | Closed |
+| 8 | 13.16.5 Cross-department dependencies and blocker view | **COMPLETE / PASS** | Closed |
+| 9 | 13.16.6 Owner decision and escalation inbox | **UNLOCKED / NEXT** | Technology Radar V1 docs-only checkpoint does not change product ordering |
+| 10 | 13.16.7-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.6 |
+| 11 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
+| 12 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
+| 13 | Phase 14 scale work | **LOCKED** | Phase 13 PASS + measured demand |
 
 ### 10.1 Closed foundation slice — 13.16.1E3D
 
@@ -968,7 +1007,7 @@ programme.
 - refined the premium Cockpit signature after live visual review: reduced headline dominance, converted Organization Pulse from a static department grid into a live governed-runtime fabric with data-backed department nodes and non-semantic control-flow motion, elevated Owner Attention into a dedicated authority-ring state, replaced the generic orbit graphic with a contextual geographic world view for recognized jurisdiction codes, and gave the honest zero-Activity state a deliberate coverage visualization rather than synthetic events;
 - replaced prototype-style C/O/M experience glyphs with distinct Owner, Operator, and Mobility symbols while preserving the same role-shell routes and non-authoritative navigation semantics.
 
-13.16.2 is **COMPLETE / PASS**. Acceptance closed on 2026-08-15 with Alembic `0075_legacy_schema_reconciliation`; physical SQLite parity at 118 registered / 118 actual model tables plus the Alembic infrastructure table; 6/6 migration regressions; 16/16 premium design-foundation tests; 4/4 request/auth tests; a successful Next.js production build; 791 API tests passed with 5 expected skips and 0 failures; repository policy, release consistency, and `git diff --check` PASS; and 5/5 critical runtime smoke endpoints returning HTTP 200. Browser review accepted the premium light/dark Cockpit, executive-authority hierarchy, discoverable compact rail, Owner Attention, Global Mobility Pulse, and durable-Activity coverage presentation. Phase 13.16.3 is now **IN PROGRESS**; bounded slice 13.16.3A implements interactive executive/domain focus plus an authority-correct Owner queue and awaits acceptance.
+13.16.2 is **COMPLETE / PASS**. Acceptance closed on 2026-08-15 with Alembic `0075_legacy_schema_reconciliation`; physical SQLite parity at 118 registered / 118 actual model tables plus the Alembic infrastructure table; 6/6 migration regressions; 16/16 premium design-foundation tests; 4/4 request/auth tests; a successful Next.js production build; 791 API tests passed with 5 expected skips and 0 failures; repository policy, release consistency, and `git diff --check` PASS; and 5/5 critical runtime smoke endpoints returning HTTP 200. Browser review accepted the premium light/dark Cockpit, executive-authority hierarchy, discoverable compact rail, Owner Attention, Global Mobility Pulse, and durable-Activity coverage presentation. At that 13.16.2 closure checkpoint, Phase 13.16.3 was **IN PROGRESS**; subsequent sections record its later COMPLETE / PASS closure through 13.16.3C.
 
 **13.16.2 exit direction:** role-based shells are navigable, deep links remain compatible,
 backend permissions remain authoritative, critical route groups are represented coherently, and
@@ -1007,10 +1046,10 @@ Phase 13.16 asks a different question:
 | **13.16.0** | Design System & Information Architecture Foundation | **CLOSED / PASS** |
 | **13.16.1** | Durable Contribution & Activity Model | **COMPLETE / PASS** |
 | **13.16.2** | Role-based application shells and navigation | **COMPLETE / PASS** |
-| **13.16.3** | Unified Owner Control Center | **IN PROGRESS — A / A.1 / A.2 / A.3 / A.3R / B COMPLETE / PASS; C IMPLEMENTED / ACCEPTANCE PENDING** |
+| **13.16.3** | Unified Owner Control Center | **COMPLETE / PASS** |
 | **13.16.4** | Department workspaces | **COMPLETE / PASS** |
 | **13.16.5** | Cross-department dependencies and blocker view | **COMPLETE / PASS** |
-| **13.16.6** | Owner decision and escalation inbox | **LOCKED** |
+| **13.16.6** | Owner decision and escalation inbox | **UNLOCKED / NOT STARTED** |
 | **13.16.7** | Mobility User experience | **LOCKED** |
 | **13.16.8** | Professional/Operator experience | **LOCKED** |
 | **13.16.9** | Evidence and provenance UX consolidation | **LOCKED** |
@@ -1943,7 +1982,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 is COMPLETE / PASS; 13.16.3 Unified Owner Control Center is IN PROGRESS with 13.16.3A / A.1 / A.2 / A.3 / A.3R / 13.16.3B COMPLETE / PASS, while later 13.16.x slices remain sequentially gated;
+- 13.16.2 through 13.16.5 are COMPLETE / PASS; 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED and remains the next product slice, while 13.16.7-13.16.10 remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 

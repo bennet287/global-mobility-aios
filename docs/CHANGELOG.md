@@ -1,3 +1,15 @@
+## 2026-08-17 - Technology Radar V1 — provider-neutral platform evolution checkpoint
+
+- Added `docs/TECHNOLOGY_RADAR_V1.md` as the frozen V1 platform-evolution radar for document intelligence, privacy, regulatory monitoring, AI evaluation/observability, retrieval, durable execution, authorization/policy, professional document production, lineage, feature rollout, and benchmark-only alternatives.
+- Added `docs/THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md` and formalized the **AIOS Semantic Sovereignty Principle**: third-party infrastructure may implement or accelerate an AIOS capability, but may not become authoritative for domain meaning, legal status, evidence/certification/publication state, human-review requirements, organizational authority, semantic Activity, or business outcomes.
+- Added `docs/ADR/0002-provider-neutral-platform-adapters.md`, selecting an AIOS-owned capability-contract + adapter boundary for future integrations while explicitly rejecting speculative empty runtime interfaces during Wave 0.
+- Frozen classifications: **ADOPT / EARLY PILOT** — Docling, Presidio, urlwatch, Promptfoo, OpenTelemetry, ClamAV; **PILOT / BENCHMARK** — PaddleOCR, Unlimited-OCR, pgvector, Qdrant, Pydantic AI, Langfuse, Gotenberg, Typst; **STRATEGIC PILOT** — Temporal, OpenFGA; **RESEARCH** — DSPy, EU DSS, Fides, OpenLineage; **NARROW / CONDITIONAL** — OPA, OpenFeature; **BENCHMARK ONLY** — Haystack, MarkItDown.
+- Frozen responsibility boundaries: OpenFGA = relationship authorization; OPA = AIOS-defined system policy; AIOS = legal/business/domain truth. Temporal = durable execution; AIOS = workflow/business semantics. OpenTelemetry = neutral engineering telemetry; Langfuse = optional observability backend. Pydantic AI = typed runtime candidate; DSPy = offline optimization. Docling = parser representation; future AIOSDocumentArtifact = durable AIOS representation.
+- Added a standard candidate-evaluation contract covering domain correctness, safety/governance, technical quality, operational fit, and **exit cost**, plus OCR/document and pgvector-vs-Qdrant benchmark requirements. The retrieval target is one primary architecture unless a real workload demonstrates a justified split.
+- Preserved four distinct concepts: engineering trace, processing lineage, semantic OrganizationActivity, and evidence/legal provenance.
+- Wave 0 is docs/architecture only: **no runtime dependency, Docker service, placeholder interface, migration, feature flag, preserved-database mutation, authorization expansion, agent authority, or Austria/legal-safety state change**.
+- Product sequencing is unchanged: **13.16.5 remains COMPLETE / PASS; 13.16.6 Owner decision and escalation inbox remains UNLOCKED / NOT STARTED and is the next product slice.**
+
 ## 2026-08-17 - Phase 13.16.5 COMPLETE / PASS — Cross-department dependencies and blockers
 
 - Closed **Phase 13.16.5 Cross-department dependencies and blockers** as **COMPLETE / PASS**.
