@@ -695,8 +695,8 @@ back.
 | Phase 13.16.3 | **COMPLETE / PASS** | Unified Owner Control Center accepted through 13.16.3C: Owner focus, capability architecture, Tier-1 organization, active-identity integrity, operational-intelligence reads, department drill-down, and governed human-intervention routing are complete without weakening backend authorization or direct blocker/dependency/work/legal outcome boundaries |
 | Phase 13.16.4 | **COMPLETE / PASS** | Bounded department workspaces from the Cockpit drill-down into `/workspace/[department]`, with owned work, blockers, dependencies, human requests, Contributions, material Activity, executive ownership, and governed intervention; does not mutate blockers/dependencies/work/legal outcomes directly |
 | Phase 13.16.5 | **COMPLETE / PASS** | Cross-department friction surface from the Owner control surfaces, showing blockers and dependencies whose owning department differs from the affected department, with human-action indicators, escalation signals, department workspace links, and governed intervention; no direct blocker/dependency/work/legal-outcome mutation |
-| Phase 13.16.6 | **UNLOCKED / NOT STARTED** | Owner decision and escalation inbox is the next product slice after the Technology Radar V1 docs-only checkpoint |
-| Phase 13.16.7-13.16.10 | **LOCKED** | Later experience slices remain sequentially gated by accepted delivery of 13.16.6 and subsequent slices |
+| Phase 13.16.6 | **COMPLETE / PASS** | Owner decision and escalation inbox accepted |
+| Phase 13.16.7-13.16.10 | **13.16.7 UNLOCKED / NEXT; 13.16.8-13.16.10 LOCKED** | Begin Mobility User experience; later slices remain sequentially gated |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
 
@@ -740,7 +740,7 @@ E3D / 13.16.1 closure evidence:
 - Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
 - No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
 
-**Current Phase 13.16 state: 13.16.1, 13.16.2, 13.16.3, 13.16.4, and 13.16.5 are COMPLETE / PASS. Technology Radar V1 is a docs-only platform-evolution checkpoint. 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED and remains the next product slice.**
+**Current Phase 13.16 state: 13.16.1, 13.16.2, 13.16.3, 13.16.4, and 13.16.5 are COMPLETE / PASS. Technology Radar V1 is a docs-only platform-evolution checkpoint. 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT and is the active product slice.**
 
 ### 8.2 Preserved database boundaries
 
@@ -811,7 +811,7 @@ feature flag, database mutation, or placeholder interface. Actual AIOS-owned run
 appear only when the first real implementation needs them.
 
 This checkpoint does **not** reorder Phase 13.16. Phase 13.16.5 remains COMPLETE / PASS and
-**13.16.6 Owner decision and escalation inbox remains the next product slice**.
+**13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT**.
 
 ## 9. Direction From Here
 
@@ -907,8 +907,8 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 6 | 13.16.3 Unified Owner Control Center | **COMPLETE / PASS** | 13.16.2 COMPLETE / PASS |
 | 7 | 13.16.4 Department workspaces | **COMPLETE / PASS** | Closed |
 | 8 | 13.16.5 Cross-department dependencies and blocker view | **COMPLETE / PASS; 13.16.5R COMPLETE / PASS** | Bounded HumanActionRequest provenance correction accepted |
-| 9 | 13.16.6 Owner decision and escalation inbox | **UNLOCKED / NEXT** | Begin from the accepted 13.16.5R + Technology Radar V1 baseline |
-| 10 | 13.16.7-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.6 |
+| 9 | 13.16.6 Owner decision and escalation inbox | **COMPLETE / PASS** | Deterministic Owner attention composition accepted |
+| 10 | 13.16.7-13.16.9 role-based experience delivery | **13.16.7 UNLOCKED / NEXT; 13.16.8-13.16.9 LOCKED** | Start Mobility User experience from accepted 13.16.6 baseline |
 | 11 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
 | 12 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
 | 13 | Phase 14 scale work | **LOCKED** | Phase 13 PASS + measured demand |
@@ -1049,8 +1049,8 @@ Phase 13.16 asks a different question:
 | **13.16.3** | Unified Owner Control Center | **COMPLETE / PASS** |
 | **13.16.4** | Department workspaces | **COMPLETE / PASS** |
 | **13.16.5** | Cross-department dependencies and blocker view | **COMPLETE / PASS** |
-| **13.16.6** | Owner decision and escalation inbox | **UNLOCKED / NOT STARTED** |
-| **13.16.7** | Mobility User experience | **LOCKED** |
+| **13.16.6** | Owner decision and escalation inbox | **COMPLETE / PASS** |
+| **13.16.7** | Mobility User experience | **UNLOCKED / NEXT** |
 | **13.16.8** | Professional/Operator experience | **LOCKED** |
 | **13.16.9** | Evidence and provenance UX consolidation | **LOCKED** |
 | **13.16.10** | Responsive, accessibility, polish, integrated acceptance | **LOCKED** |
@@ -1339,7 +1339,7 @@ Expected concepts:
 - human requests;
 - department-specific evidence and outputs.
 
-**Acceptance:** design-foundation **21/21 PASS**; organization read-client **2/2 PASS**; Next.js 15.2.4 production build **PASS** with **39/39 pages** including `/workspace/[department]`; repository policy, migration, and local DB schema **PASS** at Alembic `0076_organization_position_active_identity`; `git diff --check` **PASS**; complete API regression **806 passed, 5 skipped, 0 failed**; runtime smoke **8/8 HTTP 200** across `/health`, Board Packet, Observatory departments, blockers, dependencies, work items, human-action requests, and contributions. The new `/workspace/[department]` page loads a Board Packet, Observatory departments, scoped work, open blockers, active dependencies, pending human requests, Contributions, and material Activity, resolves executive ownership from the organization graph, validates the department against Observatory rows, and reuses the 13.16.3C governed `OrganizationHumanActionRequest` intervention form. It does not resolve/waive blockers, satisfy/waive dependencies, complete/reassign work, make Board decisions, publish/certify evidence, issue legal conclusions, or alter organization control. **13.16.4 is COMPLETE / PASS. 13.16.5 Cross-department dependencies and blockers is COMPLETE / PASS. 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED.**
+**Acceptance:** design-foundation **21/21 PASS**; organization read-client **2/2 PASS**; Next.js 15.2.4 production build **PASS** with **39/39 pages** including `/workspace/[department]`; repository policy, migration, and local DB schema **PASS** at Alembic `0076_organization_position_active_identity`; `git diff --check` **PASS**; complete API regression **806 passed, 5 skipped, 0 failed**; runtime smoke **8/8 HTTP 200** across `/health`, Board Packet, Observatory departments, blockers, dependencies, work items, human-action requests, and contributions. The new `/workspace/[department]` page loads a Board Packet, Observatory departments, scoped work, open blockers, active dependencies, pending human requests, Contributions, and material Activity, resolves executive ownership from the organization graph, validates the department against Observatory rows, and reuses the 13.16.3C governed `OrganizationHumanActionRequest` intervention form. It does not resolve/waive blockers, satisfy/waive dependencies, complete/reassign work, make Board decisions, publish/certify evidence, issue legal conclusions, or alter organization control. **13.16.4 is COMPLETE / PASS. 13.16.5 Cross-department dependencies and blockers is COMPLETE / PASS. 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT.**
 
 ### 11.8 13.16.5 — Cross-department dependencies and blockers
 
@@ -1355,7 +1355,7 @@ The experience should answer:
 - whether escalation has occurred;
 - what changed materially.
 
-**Acceptance:** design-foundation **22/22 PASS**; organization read-client **2/2 PASS** (unchanged from 13.16.4); Next.js 15.2.4 production build **PASS** with **40/40 pages** including `/cross-department-friction`; repository policy, migration, and local DB schema **PASS** at Alembic `0076_organization_position_active_identity`; `git diff --check` **PASS**; complete API regression **806 passed, 5 skipped, 0 failed**; runtime smoke **8/8 HTTP 200** across `/health`, Board Packet, Observatory departments, blockers, dependencies, work items, human-action requests, and contributions. The new `/cross-department-friction` page loads organization-wide work items, open blockers, active dependencies, pending human requests, and material Activity, identifies blockers whose owning department differs from the affected work's department and dependencies where downstream/upstream work belongs to different departments, surfaces human-action status, escalation/overdue signals, the latest durable Activity, deep links into each affected `/workspace/[department]`, and a governed `OrganizationHumanActionRequest` intervention form. It does not resolve/waive blockers, satisfy/waive dependencies, complete/reassign work, make Board decisions, publish/certify evidence, issue legal conclusions, or alter organization control. **13.16.5 is COMPLETE / PASS. 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED.**
+**Acceptance:** design-foundation **22/22 PASS**; organization read-client **2/2 PASS** (unchanged from 13.16.4); Next.js 15.2.4 production build **PASS** with **40/40 pages** including `/cross-department-friction`; repository policy, migration, and local DB schema **PASS** at Alembic `0076_organization_position_active_identity`; `git diff --check` **PASS**; complete API regression **806 passed, 5 skipped, 0 failed**; runtime smoke **8/8 HTTP 200** across `/health`, Board Packet, Observatory departments, blockers, dependencies, work items, human-action requests, and contributions. The new `/cross-department-friction` page loads organization-wide work items, open blockers, active dependencies, pending human requests, and material Activity, identifies blockers whose owning department differs from the affected work's department and dependencies where downstream/upstream work belongs to different departments, surfaces human-action status, escalation/overdue signals, the latest durable Activity, deep links into each affected `/workspace/[department]`, and a governed `OrganizationHumanActionRequest` intervention form. It does not resolve/waive blockers, satisfy/waive dependencies, complete/reassign work, make Board decisions, publish/certify evidence, issue legal conclusions, or alter organization control. **13.16.5 is COMPLETE / PASS. 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT.**
 
 #### 11.8.1 13.16.5R — HumanActionRequest provenance read/matching correction
 
@@ -1393,7 +1393,7 @@ release consistency, database migration, local physical-schema, and `git diff --
 **PASS** at Alembic `0076_organization_position_active_identity`, with **118 registered /
 118 actual model tables / 119 physical tables including only `alembic_version` infrastructure**.
 No migration or preserved database mutation was required. **13.16.5R is COMPLETE / PASS.
-13.16.6 Owner decision and escalation inbox remains UNLOCKED / NEXT.**
+13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT.**
 
 ### 11.9 13.16.6 — Owner decision and escalation inbox
 
@@ -1401,6 +1401,55 @@ No migration or preserved database mutation was required. **13.16.5R is COMPLETE
 
 The inbox should prioritize materiality and authority, not chronological noise.
 
+
+**State:** COMPLETE / PASS.
+
+The bounded first delivery adds `/owner-inbox` as a read/composition surface rather than a
+second Board Room. It composes the existing Board Packet plus durable HumanActionRequest,
+WorkItem, Blocker, Dependency, and Activity reads into four deterministic attention tiers:
+
+1. **Decision required** — explicit `pending_board` decisions only.
+2. **Critical Owner attention** — critical/high risks with
+   `requires_board_attention=true`, emergency work, critical Owner-relevant human requests,
+   and critical blockers attached to Board-owned/accountable work.
+3. **Human / escalation required** — active human requests promoted only by explicit
+   Owner/Board authority evidence, overdue Board-owned work, and unresolved dependencies
+   blocking Board-owned downstream work.
+4. **Watch** — lower-severity Board-attention risks and elevated-risk Board-owned work that is
+   not yet overdue or emergency.
+
+The promotion contract is deterministic and explainable. A HumanActionRequest is **not** Owner
+attention merely because it exists. The generic authentication role `admin` is not treated as
+Board authority; the canonical Human Board position key `board` is. Promotion requires explicit
+Board-position, pending-Board-decision, Board-owned-work, or Board-accountable-blocker evidence.
+No title/keyword scoring, probabilistic ranking, or model inference is used.
+
+The Owner Inbox routes authority to its legitimate surface:
+
+- reserved decisions and Board risk context → Board Room;
+- cross-department dependency context → cross-department friction;
+- department-owned work/blockers → the relevant department workspace;
+- unresolved Owner context without a more specific route → Cockpit.
+
+`/owner-inbox` exposes no Board decision/control command and no blocker/dependency/work mutation.
+Board Room remains the explicit authority-execution surface. Backend authorization remains
+authoritative.
+
+**Final acceptance:** design-foundation **23/23 PASS**; organization read-client
+**2/2 PASS**; Next.js 15.2.4 production build **PASS with 41/41 pages**, including
+`/owner-inbox`; complete API regression **807 passed / 5 skipped / 0 failed** with only the
+known Starlette/httpx test-client deprecation warning; repository policy, release consistency,
+database migration, local physical-schema, UTF-8, exact seven-file boundary, and
+`git diff --check` gates **PASS** at Alembic `0076_organization_position_active_identity`.
+Runtime/browser acceptance reached **Workspace Ready** with the partial-data warning absent,
+truthful zero states, clear four-tier authority/materiality hierarchy, delegated human work
+separated from Owner attention, governed routing to Board Room and department/friction
+workspaces, and no duplicated Board/blocker/dependency/work mutation controls. The final
+secondary-action contrast polish passed design-foundation and the production build. No backend
+endpoint, model, migration, preserved database mutation, authorization expansion,
+publication/certification change, human-review weakening, organization-control mutation, or
+Austria legal-safety change was introduced. **13.16.6 is COMPLETE / PASS. 13.16.7 Mobility User
+experience is UNLOCKED / NEXT.**
 ### 11.10 13.16.7 — Mobility User experience
 
 **Intent:** convert the platform's already-deep mobility intelligence into a clearer end-user
@@ -2020,7 +2069,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 through 13.16.5 are COMPLETE / PASS; 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED and remains the next product slice, while 13.16.7-13.16.10 remain sequentially gated;
+- 13.16.2 through 13.16.5 are COMPLETE / PASS; 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT and is the active product slice, while 13.16.8-13.16.10 remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 
@@ -2122,7 +2171,7 @@ The visual foundation is frozen at the accepted premium direction: warm ivory pl
 
 Closure evidence: migration regression **6 passed**; design-foundation **16 passed**; request/auth **4 passed**; complete API **791 passed, 5 skipped, 0 failed**; Next.js 15.2.4 production build **PASS** with the accepted route set and captured **39/39 static pages**; repository policy **PASS**; release consistency **PASS** at `0075_legacy_schema_reconciliation`; physical preserved-SQLite parity **PASS** with 118 registered/actual model tables and only `alembic_version` as infrastructure; `git diff --check` **PASS**; and runtime smoke **5/5 HTTP 200** across `/health`, WorkItems, Decisions, Board Packet, and CRM summary. The remaining Starlette/httpx warning is a known test-client deprecation warning and is not a 13.16.2 functional failure.
 
-`0075_legacy_schema_reconciliation` remains the forward, data-preserving compatibility repair that restored the preserved developer SQLite schema; `0076_organization_position_active_identity` now enforces durable OrganizationPosition identity uniqueness after the data-preserving Board duplicate reconciliation. Neither migration authorizes historical Activity reconstruction, weakens review gates, changes Austria publication/certification state, or migrates the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is COMPLETE / PASS** through **13.16.3C**. Interactive executive/domain focus, an authority-correct Owner queue, capability architecture, Technology + Security, Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory, active-position identity integrity, Operational Intelligence, department drill-down, and governed human-follow-up routing are accepted. The preserved organization remains **61 active rows / 61 distinct active identities / zero duplicates** at Alembic 0076, and no direct blocker/dependency/work/legal-outcome authority was added to Cockpit. **Phase 13.16.4 Department workspaces is COMPLETE / PASS: the Cockpit drill-down now deep-links into `/workspace/[department]` as a bounded operational unit with owned work, blockers, dependencies, human requests, Contributions, material Activity, executive ownership, and governed intervention, without resolving, waiving, completing, reassigning, publishing, certifying, or altering organization control. Phase 13.16.5 Cross-department dependencies and blockers is COMPLETE / PASS: the Owner control surfaces now expose `/cross-department-friction` with organization-wide cross-department blockers and dependencies, human-action indicators, escalation/overdue signals, durable Activity, deep links into each affected department workspace, and the same governed intervention form, without direct blocker/dependency/work/legal-outcome mutation. 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED.**
+`0075_legacy_schema_reconciliation` remains the forward, data-preserving compatibility repair that restored the preserved developer SQLite schema; `0076_organization_position_active_identity` now enforces durable OrganizationPosition identity uniqueness after the data-preserving Board duplicate reconciliation. Neither migration authorizes historical Activity reconstruction, weakens review gates, changes Austria publication/certification state, or migrates the preserved PostgreSQL environments. Phase **13.16.3 Unified Owner Control Center is COMPLETE / PASS** through **13.16.3C**. Interactive executive/domain focus, an authority-correct Owner queue, capability architecture, Technology + Security, Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory, active-position identity integrity, Operational Intelligence, department drill-down, and governed human-follow-up routing are accepted. The preserved organization remains **61 active rows / 61 distinct active identities / zero duplicates** at Alembic 0076, and no direct blocker/dependency/work/legal-outcome authority was added to Cockpit. **Phase 13.16.4 Department workspaces is COMPLETE / PASS: the Cockpit drill-down now deep-links into `/workspace/[department]` as a bounded operational unit with owned work, blockers, dependencies, human requests, Contributions, material Activity, executive ownership, and governed intervention, without resolving, waiving, completing, reassigning, publishing, certifying, or altering organization control. Phase 13.16.5 Cross-department dependencies and blockers is COMPLETE / PASS: the Owner control surfaces now expose `/cross-department-friction` with organization-wide cross-department blockers and dependencies, human-action indicators, escalation/overdue signals, durable Activity, deep links into each affected department workspace, and the same governed intervention form, without direct blocker/dependency/work/legal-outcome mutation. 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT.**
 
 ### 13.16.3A.1 organization capability architecture — planning contract (2026-08-16)
 
@@ -2147,4 +2196,4 @@ The first Unified Owner Control Center checkpoint is accepted from immutable bas
 
 Acceptance evidence: design-foundation **18/18 PASS**; request/auth **4/4 PASS**; Next.js production build **PASS** with **39/39 static pages**; focused organization tranche regressions **11/11 PASS**; complete API **801 passed, 5 skipped, 0 failed**; preserved SQLite physical schema and migration checks **PASS** at `0075_legacy_schema_reconciliation`; repository policy, release consistency, and `git diff --check` **PASS**; runtime smoke **5/5 HTTP 200** for the critical Owner-read surfaces; post-apply organization audit **47 foundation / 47 live / zero extra / zero missing**. Browser review confirmed **9 executives, 19 operational domains, 45 downstream positions**, expanded CTO/CISO portfolios, and no synthetic Owner authority or Activity. The 13 newly registered Technology/Security capability slots remain non-executable with empty delegated/direct action authority, no self-approval, and unchanged existing CTO/CISO executable delegation sets.
 
-**13.16.3A.3, 13.16.3A.3R, 13.16.3B, 13.16.3C, 13.16.4, and 13.16.5 are COMPLETE / PASS.** The Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live at 61/61 active OrganizationPosition identities; the duplicate Board row was preserved as suspended historical `board@v2`, the canonical `board@v1` remains active, Alembic 0076 is accepted, and row/identity counts converge. Cockpit now combines Operational Intelligence with selected-domain department drill-down and governed human-follow-up routing; that drill-down deep-links into bounded `/workspace/[department]` operational units with owned work, blockers, dependencies, human requests, Contributions, material Activity, resolved executive ownership, and the same governed intervention form; and the Owner control surfaces now include `/cross-department-friction`, surfacing blockers and dependencies whose owning department differs from the affected department, with human-action indicators, escalation/overdue signals, durable Activity, workspace deep links, and governed intervention. All surfaces preserve truthful zero states, backend authorization, and the prohibition on direct blocker/dependency/work/legal-outcome mutation. **13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED.**
+**13.16.3A.3, 13.16.3A.3R, 13.16.3B, 13.16.3C, 13.16.4, and 13.16.5 are COMPLETE / PASS.** The Tier-1 Global Mobility Operations + Intelligence + Legal/Regulatory foundation is live at 61/61 active OrganizationPosition identities; the duplicate Board row was preserved as suspended historical `board@v2`, the canonical `board@v1` remains active, Alembic 0076 is accepted, and row/identity counts converge. Cockpit now combines Operational Intelligence with selected-domain department drill-down and governed human-follow-up routing; that drill-down deep-links into bounded `/workspace/[department]` operational units with owned work, blockers, dependencies, human requests, Contributions, material Activity, resolved executive ownership, and the same governed intervention form; and the Owner control surfaces now include `/cross-department-friction`, surfacing blockers and dependencies whose owning department differs from the affected department, with human-action indicators, escalation/overdue signals, durable Activity, workspace deep links, and governed intervention. All surfaces preserve truthful zero states, backend authorization, and the prohibition on direct blocker/dependency/work/legal-outcome mutation. **13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT.**

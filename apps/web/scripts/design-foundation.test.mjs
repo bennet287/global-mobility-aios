@@ -514,3 +514,60 @@ test("13.16.5 Cross-department friction surface stays governed and read-only", a
   assert.match(styles, /\.friction-lane/);
   assert.match(styles, /\.friction-list/);
 });
+test("13.16.6 Owner Inbox prioritizes authority and materiality without duplicating mutations", async () => {
+  const [inbox, cockpit, nav, styles] = await Promise.all([
+    read("app/owner-inbox/page.tsx"),
+    read("app/cockpit/page.tsx"),
+    read("lib/workspace-navigation.ts"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(nav, /Owner Inbox/);
+  assert.match(nav, /href: "\/owner-inbox"/);
+  assert.match(nav, /pathname === "\/owner-inbox"/);
+  assert.match(cockpit, /href="\/owner-inbox"/);
+  assert.match(cockpit, /Open Owner Inbox/);
+
+  for (const binding of [
+    "getBoardPacket()",
+    "listOrganizationHumanActionRequests({ page_size: 100 })",
+    "listOrganizationWorkItems({ page_size: 100 })",
+    'listOrganizationBlockers({ status: "open", page_size: 100 })',
+    'listOrganizationWorkItemDependencies({ status: "active", page_size: 100 })',
+    "listOrganizationActivities({ page_size: 200 })",
+  ]) {
+    assert.ok(inbox.includes(binding), `missing Owner Inbox read binding ${binding}`);
+  }
+
+  assert.match(inbox, /pending_board/);
+  assert.match(inbox, /requires_board_attention/);
+  assert.match(inbox, /const BOARD_HUMAN_ROLES = new Set\(\["board"\]\);/);
+  assert.doesNotMatch(inbox, /BOARD_HUMAN_ROLES = new Set\(\["admin"/);
+  assert.match(inbox, /Authentication role alone does not establish Board authority/);
+  assert.match(inbox, /isBoardOwnedWork/);
+  assert.match(inbox, /HumanActionRequest exists ≠ Owner attention/);
+  assert.match(inbox, /Priority comes from explicit authority, risk, emergency, due-date, and/);
+  assert.match(inbox, /Decision required/);
+  assert.match(inbox, /Critical Owner attention/);
+  assert.match(inbox, /Human \/ escalation required/);
+  assert.match(inbox, /title="Watch"/);
+  assert.match(inbox, /Owner Inbox routes authority; it does not execute it/);
+  assert.match(inbox, /href="\/board-room"/);
+  assert.match(inbox, /\/cross-department-friction/);
+  assert.match(inbox, /`\/workspace\/\$\{encodeURIComponent\(/);
+
+  assert.doesNotMatch(
+    inbox,
+    /decideBoardItem|updateOrganizationControl|resolveOrganizationBlocker|waiveOrganizationBlocker|mitigateOrganizationBlocker|waiveOrganizationWorkItemDependency|completeOrganizationWorkItem|reassignOrganizationWorkItem|publishOrganizationContribution|certifyOrganization/,
+  );
+  assert.doesNotMatch(inbox, /\.includes\(["']urgent["']\)|title\.includes|recommendation\.includes/);
+
+  assert.match(styles, /Phase 13\.16\.6 Owner decision and escalation inbox/);
+  assert.match(styles, /\.owner-inbox \{/);
+  assert.match(styles, /\.owner-inbox-lane/);
+  assert.match(styles, /\.owner-inbox-item/);
+  assert.match(styles, /\.owner-inbox-governance-note/);
+  assert.match(styles, /Phase 13\.16\.6 Owner Inbox hero action contrast/);
+  assert.match(styles, /\.owner-inbox-hero \.premium-button\.ghost/);
+  assert.match(styles, /color: var\(--ink\);/);
+});
