@@ -571,3 +571,50 @@ test("13.16.6 Owner Inbox prioritizes authority and materiality without duplicat
   assert.match(styles, /\.owner-inbox-hero \.premium-button\.ghost/);
   assert.match(styles, /color: var\(--ink\);/);
 });
+test("13.16.7 secure Mobility User plan stays reviewed, pinned, and client-safe", async () => {
+  const [portal, api, styles] = await Promise.all([
+    read("components/ClientPortalPage.tsx"),
+    read("lib/api.ts"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(api, /export type ClientPortalMobilityPlan = \{/);
+  assert.match(api, /mobility_plan: ClientPortalMobilityPlan \| null/);
+  assert.match(api, /evidence_summary: ClientPortalEvidenceSummary \| null/);
+  assert.match(api, /processing_evidence_status: "established" \| "not_established"/);
+
+  assert.match(portal, /Reviewed mobility plan/);
+  assert.match(portal, /Human-activated plan/);
+  assert.match(portal, /Long-term progression/);
+  assert.match(portal, /Reviewed plan &ne; authority outcome/);
+  assert.match(portal, /Draft simulations and stale plan versions are kept out/);
+  assert.match(portal, /No client-safe reviewed plan is visible yet/);
+  assert.match(portal, /No pathway-aligned evidence assessment has completed human review yet/);
+
+  assert.doesNotMatch(
+    portal,
+    /verified_rule_ids|source_snapshot_ids|review_notes|approved_by|owner_role|findings_json|document_snapshot_json/,
+  );
+  assert.doesNotMatch(
+    portal,
+    /generatePathwayComparison|generateMobilityTimeline|activateMobilityTimeline|transitionMobilityMilestone|evaluateEligibility/,
+  );
+  assert.doesNotMatch(
+    api,
+    /ClientPortalFollowUp|ClientPortalCommunication/,
+  );
+
+  assert.match(styles, /Phase 13\.16\.7 secure Mobility User experience/);
+  assert.match(styles, /\.portal-plan-section/);
+  assert.match(styles, /\.portal-plan-shell/);
+  assert.match(styles, /\.portal-plan-journey/);
+  assert.match(styles, /\.portal-plan-boundary/);
+  assert.match(styles, /\.portal-plan-empty/);
+  assert.ok(portal.includes('{" \\u00b7 "}'));
+  assert.doesNotMatch(portal, /\? Planned/);
+  assert.match(portal, /portal-risk-grid/);
+  assert.match(
+    styles,
+    /\.portal-risk-grid > div:last-child:nth-child\(odd\)/,
+  );
+});

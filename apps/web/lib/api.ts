@@ -2059,6 +2059,61 @@ export type ClientPortalAuthorityChecklistItem = {
   status: string;
 };
 
+export type ClientPortalPlanCost = {
+  currency: string | null;
+  government_application_fee: number | null;
+  government_application_fee_scope: string | null;
+  estimated_total_status: "established" | "not_established";
+  minimum_funds: number | null;
+};
+
+export type ClientPortalPlanRisk = {
+  level: "low" | "medium" | "high";
+  declared_count: number;
+  evidence_count: number;
+  regulatory_count: number;
+};
+
+export type ClientPortalJourneyMilestone = {
+  key: string;
+  title: string;
+  state: "complete" | "current" | "upcoming" | "attention";
+  due_at: string | null;
+  requires_human_approval: boolean;
+};
+
+export type ClientPortalMobilityPlan = {
+  timeline_id: string;
+  comparison_assessment_id: string;
+  profile_version: number;
+  pathway_id: string;
+  pathway_version_id: string;
+  pathway_version_number: number;
+  pathway_name: string;
+  country: string;
+  domain: string;
+  plan_status: "active" | "completed";
+  current_stage_key: string | null;
+  activated_at: string;
+  published_at: string;
+  processing_evidence_status: "established" | "not_established";
+  cost: ClientPortalPlanCost;
+  risk: ClientPortalPlanRisk | null;
+  journey: ClientPortalJourneyMilestone[];
+};
+
+export type ClientPortalEvidenceSummary = {
+  assessment_id: string;
+  requirement_source: string;
+  result_status: string;
+  review_status: "approved";
+  required_count: number;
+  satisfied_count: number;
+  missing_count: number;
+  inconsistency_count: number;
+  reviewed_at: string;
+};
+
 export type ClientPortalDashboard = {
   grant_id: string;
   client_name: string;
@@ -2074,6 +2129,8 @@ export type ClientPortalDashboard = {
   submissions: ClientPortalSubmission[];
   external_agency_assignments: ClientPortalExternalAgencyAssignment[];
   authority_checklist: ClientPortalAuthorityChecklistItem[];
+  mobility_plan: ClientPortalMobilityPlan | null;
+  evidence_summary: ClientPortalEvidenceSummary | null;
   expires_at: string;
   updated_at: string;
 };

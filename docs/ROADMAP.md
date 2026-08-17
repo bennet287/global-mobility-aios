@@ -696,7 +696,7 @@ back.
 | Phase 13.16.4 | **COMPLETE / PASS** | Bounded department workspaces from the Cockpit drill-down into `/workspace/[department]`, with owned work, blockers, dependencies, human requests, Contributions, material Activity, executive ownership, and governed intervention; does not mutate blockers/dependencies/work/legal outcomes directly |
 | Phase 13.16.5 | **COMPLETE / PASS** | Cross-department friction surface from the Owner control surfaces, showing blockers and dependencies whose owning department differs from the affected department, with human-action indicators, escalation signals, department workspace links, and governed intervention; no direct blocker/dependency/work/legal-outcome mutation |
 | Phase 13.16.6 | **COMPLETE / PASS** | Owner decision and escalation inbox accepted |
-| Phase 13.16.7-13.16.10 | **13.16.7 UNLOCKED / NEXT; 13.16.8-13.16.10 LOCKED** | Begin Mobility User experience; later slices remain sequentially gated |
+| Phase 13.16.7-13.16.10 | **13.16.7 COMPLETE / PASS; 13.16.8 UNLOCKED / NEXT; 13.16.9-13.16.10 LOCKED** | Accept Professional / Operator experience before later slices |
 | Phase 13.17 | **LOCKED** | Genuine external-human acceptance waits for 13.16.10 |
 | Phase 14 | **NOT STARTED** | Scale work waits for Phase 13 acceptance and measured demand |
 
@@ -740,7 +740,7 @@ E3D / 13.16.1 closure evidence:
 - Browser acceptance confirmed the premium Cockpit light/dark hierarchy, fixed-width discoverable control rail with hover/focus names, Human Board → CEO → **9 active L3 officers** → **10 operational domains** → governed AIOS execution, Owner Attention, contextual Global Mobility Pulse, and explicit durable-Activity coverage state.
 - No PostgreSQL migration command was part of the 13.16.2 closure flow; the preserved PostgreSQL environments remain outside this SQLite-focused reconciliation and visual-acceptance slice.
 
-**Current Phase 13.16 state: 13.16.1, 13.16.2, 13.16.3, 13.16.4, and 13.16.5 are COMPLETE / PASS. Technology Radar V1 is a docs-only platform-evolution checkpoint. 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT and is the active product slice.**
+**Current Phase 13.16 state: 13.16.1, 13.16.2, 13.16.3, 13.16.4, and 13.16.5 are COMPLETE / PASS. Technology Radar V1 is a docs-only platform-evolution checkpoint. 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is COMPLETE / PASS; 13.16.8 Professional / Operator experience is UNLOCKED / NEXT and is the active product slice.**
 
 ### 8.2 Preserved database boundaries
 
@@ -908,7 +908,7 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 7 | 13.16.4 Department workspaces | **COMPLETE / PASS** | Closed |
 | 8 | 13.16.5 Cross-department dependencies and blocker view | **COMPLETE / PASS; 13.16.5R COMPLETE / PASS** | Bounded HumanActionRequest provenance correction accepted |
 | 9 | 13.16.6 Owner decision and escalation inbox | **COMPLETE / PASS** | Deterministic Owner attention composition accepted |
-| 10 | 13.16.7-13.16.9 role-based experience delivery | **13.16.7 UNLOCKED / NEXT; 13.16.8-13.16.9 LOCKED** | Start Mobility User experience from accepted 13.16.6 baseline |
+| 10 | 13.16.7-13.16.9 role-based experience delivery | **13.16.7 COMPLETE / PASS; 13.16.8 UNLOCKED / NEXT; 13.16.9 LOCKED** | Deliver Professional / Operator experience next |
 | 11 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
 | 12 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
 | 13 | Phase 14 scale work | **LOCKED** | Phase 13 PASS + measured demand |
@@ -1050,7 +1050,7 @@ Phase 13.16 asks a different question:
 | **13.16.4** | Department workspaces | **COMPLETE / PASS** |
 | **13.16.5** | Cross-department dependencies and blocker view | **COMPLETE / PASS** |
 | **13.16.6** | Owner decision and escalation inbox | **COMPLETE / PASS** |
-| **13.16.7** | Mobility User experience | **UNLOCKED / NEXT** |
+| **13.16.7** | Mobility User experience | **COMPLETE / PASS** |
 | **13.16.8** | Professional/Operator experience | **LOCKED** |
 | **13.16.9** | Evidence and provenance UX consolidation | **LOCKED** |
 | **13.16.10** | Responsive, accessibility, polish, integrated acceptance | **LOCKED** |
@@ -1456,6 +1456,61 @@ experience is UNLOCKED / NEXT.**
 journey centered on goals, cases, pathways, evidence, documents, actions, costs, risks, and
 long-term progression.
 
+**State:** COMPLETE / PASS.
+
+The bounded 13.16.7 delivery keeps `/my-mobility` non-sensitive and upgrades the existing
+token/device-bound `/portal` workspace rather than creating a parallel public dashboard. The
+existing `GET /api/v1/public/client-portal/dashboard` contract now adds two nullable client-safe
+projections:
+
+- `mobility_plan` is available only from a current **active/completed, human-activated**
+  `MobilityTimeline` pinned to the same lead, current consent-granted profile/version,
+  `PathwayComparisonAssessment`, pathway, and pathway version. Draft versions, persisted
+  simulations, stale profile versions, missing publication provenance, and unactivated timelines
+  are skipped rather than exposed or recomputed.
+- `evidence_summary` is available only from the newest **approved** `DocumentRequirementAssessment`
+  aligned to the selected lead, pathway/version, and profile/version. Pending/rejected assessments
+  and internal findings/source snapshots/reviewer notes remain private.
+
+The client projection exposes route identity, plan state, publication lineage, processing-evidence
+state, narrowly bounded cost facts, risk-category counts, and client-normalized durable timeline
+milestones. It does not expose raw rule/source IDs, source hashes, internal blockers/notes,
+operator ownership, reviewer identity, generic FollowUps, draft communications, fraud internals,
+publication controls, timeline mutation controls, or raw legal/evidence trace internals.
+
+Portal GET remains read/composition-only apart from its pre-existing audited access-count/device
+grant bookkeeping. It never generates eligibility, pathway comparison, document assessment,
+timeline, reassessment, country ranking, publication, submission, or authority outcome state.
+The existing simple four-step case workflow remains a secondary immediate-status cue; the new
+human-activated timeline is the governed long-term progression surface when eligible.
+
+Browser runtime acceptance identified a transport-boundary defect: the secure portal frontend already sends `X-GMAI-Portal-Token` and `X-GMAI-Portal-Device`, while the API CORS allow-list admitted only the generic role/user headers. 13.16.7 therefore includes those two portal headers in the explicit CORS allow-list plus a preflight regression. This enables the existing token/device-bound browser contract; it does not expand portal grant scope, backend authorization, publication authority, human-review authority, or legal/business semantics.
+
+**Final acceptance:** secure client-portal regression and CORS behavior PASS;
+design-foundation **24/24 PASS**; Next.js 15.2.4 production build **PASS with 41/41 pages**;
+complete API regression **811 passed / 5 skipped / 0 failed** with only the known
+Starlette/httpx test-client deprecation warning; repository policy, release consistency,
+database migration, local physical-schema, exact ten-file boundary, UTF-8-safe presentation,
+and `git diff --check` gates **PASS** at Alembic
+`0076_organization_position_active_identity`, with **118 registered / 118 actual model tables /
+119 physical tables including only `alembic_version` infrastructure**.
+
+Disposable browser acceptance reached the secure workspace through the real token/device-bound
+portal contract after the CORS preflight was corrected to admit `X-GMAI-Portal-Token` and
+`X-GMAI-Portal-Device`. The reviewed-plan state displayed a current human-activated,
+version-pinned Germany Skilled Work Pathway with conservative cost, risk, approved evidence,
+and durable long-term progression surfaces. The separate current-profile/no-eligible-plan case
+displayed the truthful **Your route is still under review** / **No client-safe reviewed plan is
+visible yet** state and fabricated no pathway, fee, risk, evidence conclusion, or long-term plan.
+
+Runtime preparation and browser acceptance used only an ignored disposable `.local` SQLite
+database. The preserved `gmai.db` remained byte-for-byte unchanged during the preservation
+checks. No model/table change, Alembic migration, preserved-database mutation, new public
+endpoint, authorization expansion, human-review weakening, publication/certification expansion,
+generic FollowUp/communication exposure, or Austria legal-safety change was introduced.
+
+**13.16.7 Mobility User experience is COMPLETE / PASS. 13.16.8 Professional / Operator
+experience is UNLOCKED / NEXT.**
 ### 11.11 13.16.8 — Professional / Operator experience
 
 **Intent:** provide experts and internal operators with a high-information-density workspace that
@@ -2069,7 +2124,7 @@ The roadmap unlock state must follow accepted prerequisite evidence.
 
 Examples:
 
-- 13.16.2 through 13.16.5 are COMPLETE / PASS; 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT and is the active product slice, while 13.16.8-13.16.10 remain sequentially gated;
+- 13.16.2 through 13.16.5 are COMPLETE / PASS; 13.16.6 Owner decision and escalation inbox is COMPLETE / PASS; 13.16.7 Mobility User experience is UNLOCKED / NEXT and is the active product slice, while 13.16.9-13.16.10 remain sequentially gated;
 - 13.17 remains locked until the integrated experience layer is ready;
 - Phase 14 remains locked until Phase 13 acceptance and measured demand.
 

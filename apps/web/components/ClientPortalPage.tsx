@@ -121,6 +121,24 @@ function formatDateTime(value: string) {
   });
 }
 
+
+function formatMoney(
+  value: number | null,
+  currency: string | null,
+) {
+  if (value == null) return "Not established";
+  if (!currency) return value.toLocaleString();
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `${currency} ${value.toLocaleString()}`;
+  }
+}
+
 export function ClientPortalPage() {
   const searchParams = useSearchParams();
   const [tokenInput, setTokenInput] = useState("");
@@ -230,6 +248,9 @@ export function ClientPortalPage() {
     .filter(([key]) => ["verified", "approved", "accepted"].includes(key))
     .reduce((total, [, count]) => total + count, 0);
 
+  const plan = dashboard.mobility_plan;
+  const evidence = dashboard.evidence_summary;
+
   return (
     <main className="client-portal">
       <header className="portal-topbar">
@@ -266,11 +287,206 @@ export function ClientPortalPage() {
           </div>
         </section>
 
+        <section className="portal-plan-section" aria-labelledby="portal-plan-title">
+          <div className="portal-section-heading portal-plan-heading">
+            <div>
+              <span className="portal-eyebrow">Reviewed mobility plan</span>
+              <h2 id="portal-plan-title">
+                {plan ? plan.pathway_name : "Your route is still under review."}
+              </h2>
+            </div>
+            {plan ? (
+              <span className="portal-plan-status">Human-activated plan</span>
+            ) : null}
+          </div>
+
+          {plan ? (
+            <div className="portal-plan-shell">
+              <div className="portal-plan-overview">
+                <article>
+                  <span>Route</span>
+                  <strong>{pretty(plan.domain)}</strong>
+                  <small>{plan.country}{" \u00b7 "}Pathway version {plan.pathway_version_number}</small>
+                </article>
+                <article>
+                  <span>Plan state</span>
+                  <strong>{pretty(plan.plan_status)}</strong>
+                  <small>Activated {formatDate(plan.activated_at)}</small>
+                </article>
+                <article>
+                  <span>Processing evidence</span>
+                  <strong>{pretty(plan.processing_evidence_status)}</strong>
+                  <small>Authority timing and decisions remain external.</small>
+                </article>
+              </div>
+
+              <div className="portal-plan-intelligence">
+                <article className="portal-plan-card">
+                  <span className="portal-eyebrow">Costs</span>
+                  <div className="portal-plan-stat">
+                    <span>Government application fee</span>
+                    <strong>
+                      {formatMoney(
+                        plan.cost.government_application_fee,
+                        plan.cost.currency,
+                      )}
+                    </strong>
+                    <small>
+                      {plan.cost.government_application_fee_scope
+                        ? pretty(plan.cost.government_application_fee_scope)
+                        : "No reviewed fee scope recorded"}
+                    </small>
+                  </div>
+                  <div className="portal-plan-mini-grid">
+                    <div>
+                      <span>Minimum funds</span>
+                      <strong>
+                        {formatMoney(plan.cost.minimum_funds, plan.cost.currency)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Total estimate</span>
+                      <strong>{pretty(plan.cost.estimated_total_status)}</strong>
+                    </div>
+                  </div>
+                </article>
+
+                <article className="portal-plan-card">
+                  <span className="portal-eyebrow">Risk & uncertainty</span>
+                  {plan.risk ? (
+                    <>
+                      <div className="portal-plan-stat">
+                        <span>Reviewed risk level</span>
+                        <strong>{pretty(plan.risk.level)}</strong>
+                        <small>Recorded categories, not an outcome prediction.</small>
+                      </div>
+                      <div className="portal-plan-mini-grid portal-risk-grid">
+                        <div>
+                          <span>Declared</span>
+                          <strong>{plan.risk.declared_count}</strong>
+                        </div>
+                        <div>
+                          <span>Evidence</span>
+                          <strong>{plan.risk.evidence_count}</strong>
+                        </div>
+                        <div>
+                          <span>Regulatory</span>
+                          <strong>{plan.risk.regulatory_count}</strong>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="portal-plan-muted">
+                      No client-safe reviewed risk summary is available for this plan.
+                    </p>
+                  )}
+                </article>
+
+                <article className="portal-plan-card portal-evidence-card">
+                  <span className="portal-eyebrow">Evidence review</span>
+                  {evidence ? (
+                    <>
+                      <div className="portal-plan-stat">
+                        <span>Reviewed evidence state</span>
+                        <strong>{pretty(evidence.result_status)}</strong>
+                        <small>Human-reviewed {formatDate(evidence.reviewed_at)}</small>
+                      </div>
+                      <div className="portal-plan-mini-grid">
+                        <div>
+                          <span>Required</span>
+                          <strong>{evidence.required_count}</strong>
+                        </div>
+                        <div>
+                          <span>Satisfied</span>
+                          <strong>{evidence.satisfied_count}</strong>
+                        </div>
+                        <div>
+                          <span>Missing</span>
+                          <strong>{evidence.missing_count}</strong>
+                        </div>
+                        <div>
+                          <span>Inconsistencies</span>
+                          <strong>{evidence.inconsistency_count}</strong>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="portal-plan-muted">
+                      No pathway-aligned evidence assessment has completed human review yet.
+                    </p>
+                  )}
+                </article>
+              </div>
+
+              <div className="portal-plan-journey">
+                <div>
+                  <span className="portal-eyebrow">Long-term progression</span>
+                  <h3>Your governed journey.</h3>
+                  <p>
+                    These stages come from the human-activated plan pinned to your reviewed
+                    pathway. Draft simulations and stale plan versions are kept out of this
+                    workspace.
+                  </p>
+                </div>
+                <div className="portal-plan-milestones">
+                  {plan.journey.map((milestone, index) => (
+                    <article
+                      className={`portal-plan-milestone ${milestone.state}`}
+                      key={milestone.key}
+                    >
+                      <span className="portal-plan-order">
+                        {milestone.state === "complete"
+                          ? "\u2713"
+                          : String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <strong>{milestone.title}</strong>
+                        <span>
+                          {pretty(milestone.state)}
+                          {milestone.due_at ? (
+                            <>
+                              {" \u00b7 "}
+                              Planned {formatDate(milestone.due_at)}
+                            </>
+                          ) : null}
+                        </span>
+                        {milestone.requires_human_approval ? (
+                          <small>Human review gate</small>
+                        ) : null}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+
+              <div className="portal-plan-boundary">
+                <strong>Reviewed plan &ne; authority outcome.</strong>
+                <span>
+                  Your team controls professional review and any submission action. The competent
+                  authority controls processing and the final decision.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="portal-plan-empty">
+              <span className="portal-plan-empty-mark" aria-hidden="true">?</span>
+              <div>
+                <strong>No client-safe reviewed plan is visible yet.</strong>
+                <p>
+                  Only a current, human-activated plan tied to your present profile and a
+                  reviewed pathway can appear here. Draft simulations, stale profiles, and
+                  unreviewed plan state remain private to the professional workflow.
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
+
         <section className="portal-progress">
           <div className="portal-section-heading">
             <div>
-              <span className="portal-eyebrow">Case journey</span>
-              <h2>Progress without the noise.</h2>
+              <span className="portal-eyebrow">Case workflow</span>
+              <h2>Immediate case progress.</h2>
             </div>
             <span className="portal-status-pill">{pretty(dashboard.case_status)}</span>
           </div>

@@ -46,6 +46,8 @@ app.add_middleware(
         "Content-Type",
         "X-GMAI-Role",
         "X-GMAI-User",
+        "X-GMAI-Portal-Token",
+        "X-GMAI-Portal-Device",
     ],
 )
 

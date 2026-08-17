@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -14,12 +15,207 @@ from app.models.domain import (
     AuthorityAppointment,
     ClientPortalAccessGrant,
     DocumentRecord,
+    DocumentRequirementAssessment,
     ExternalAgency,
     ExternalAgencyAssignment,
+    MobilityPathway,
+    MobilityPathwayVersion,
+    MobilityTimeline,
+    MobilityTimelineMilestone,
+    PathwayComparisonAssessment,
+    Profile,
     now_utc,
 )
 from app.services.client_portal import issue_client_portal_grant
 from tests.conftest import create_lead
+
+
+def _portal_profile(
+    session: Session,
+    lead_id: UUID,
+    *,
+    version: int = 1,
+    supersedes_profile_id: UUID | None = None,
+) -> Profile:
+    profile = Profile(
+        lead_id=lead_id,
+        profile_version=version,
+        lifecycle_status="active",
+        supersedes_profile_id=supersedes_profile_id,
+        target_country="Germany",
+        completeness_score=90,
+        readiness_stage="review",
+        consent_status="granted",
+    )
+    session.add(profile)
+    session.commit()
+    session.refresh(profile)
+    return profile
+
+
+def _persist_portal_plan_graph(
+    session: Session,
+    lead_id: UUID,
+    profile: Profile,
+    *,
+    key: str,
+    created_at: datetime,
+    simulation: bool = False,
+    version_status: str = "published",
+) -> dict[str, object]:
+    pathway = MobilityPathway(
+        pathway_key=key,
+        name=f"{key.replace('-', ' ').title()} Pathway",
+        country="Germany",
+        domain="work",
+        catalogue_status=(
+            "draft"
+            if version_status == "draft"
+            else "active"
+        ),
+        created_by="pytest",
+    )
+    session.add(pathway)
+    session.flush()
+
+    published = version_status != "draft"
+    version = MobilityPathwayVersion(
+        pathway_id=pathway.id,
+        version_number=1,
+        lifecycle_status=version_status,
+        costs_json=json.dumps(
+            {
+                "currency": "EUR",
+                "government_fee": 120,
+                "minimum_funds_eur": 5000,
+            }
+        ),
+        processing_time_json=json.dumps(
+            {
+                "minimum_weeks": 4,
+                "maximum_weeks": 12,
+            }
+        ),
+        risks_json=json.dumps(
+            ["Qualification recognition may be required"]
+        ),
+        human_review_required=True,
+        approved_by=(
+            "pytest-pathway-reviewer"
+            if published
+            else None
+        ),
+        published_at=created_at if published else None,
+        created_by="pytest",
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    session.add(version)
+    session.flush()
+
+    cost_summary = {
+        "currency": "EUR",
+        "one_time_total": 120.0,
+        "minimum_funds": 5000.0,
+        "estimated_total_status": "not_established",
+        "government_application_fee": 120.0,
+        "government_application_fee_scope":
+            "official authority application fee only",
+    }
+    risk_summary = {
+        "level": "medium",
+        "score": 0.45,
+        "declared_risks": [
+            "Qualification recognition may be required"
+        ],
+        "evidence_risks": [],
+        "regulatory_risks": [
+            "Authority processing remains external"
+        ],
+    }
+    comparison = PathwayComparisonAssessment(
+        lead_id=lead_id,
+        profile_id=profile.id,
+        profile_version=profile.profile_version,
+        primary_pathway_id=pathway.id,
+        primary_pathway_version_id=version.id,
+        status="ready_for_review",
+        comparison_json=json.dumps(
+            {
+                "consent_status": "granted",
+                "simulation": simulation,
+                "primary": {
+                    "processing_evidence_status":
+                        "established"
+                },
+                "alternatives": [],
+            }
+        ),
+        cost_summary_json=json.dumps(cost_summary),
+        risk_summary_json=json.dumps(risk_summary),
+        alternative_pathways_json="[]",
+        missing_evidence_json="[]",
+        summary=(
+            "Evidence-backed route retained for human review."
+        ),
+        human_review_required=True,
+        generated_by="pytest",
+        created_at=created_at,
+    )
+    session.add(comparison)
+    session.flush()
+
+    timeline = MobilityTimeline(
+        lead_id=lead_id,
+        profile_id=profile.id,
+        profile_version=profile.profile_version,
+        comparison_assessment_id=comparison.id,
+        primary_pathway_id=pathway.id,
+        primary_pathway_version_id=version.id,
+        title=f"{pathway.name} mobility timeline",
+        status="active",
+        current_stage_key="evidence_collection",
+        generated_by="pytest",
+        activated_by="pytest-human-operator",
+        activated_at=created_at,
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    session.add(timeline)
+    session.flush()
+
+    first = MobilityTimelineMilestone(
+        timeline_id=timeline.id,
+        stage_order=1,
+        stage_key="profile_readiness",
+        title="Profile readiness",
+        status="completed",
+        due_at=created_at + timedelta(days=7),
+        requires_human_approval=False,
+        completed_at=created_at,
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    second = MobilityTimelineMilestone(
+        timeline_id=timeline.id,
+        stage_order=2,
+        stage_key="evidence_collection",
+        title="Evidence collection",
+        status="blocked",
+        due_at=created_at + timedelta(days=14),
+        requires_human_approval=True,
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    session.add_all([first, second])
+    session.commit()
+
+    return {
+        "pathway": pathway,
+        "version": version,
+        "comparison": comparison,
+        "timeline": timeline,
+    }
 
 
 def test_portal_grant_is_hashed_scoped_and_audited(client, raw_client, db_session: Session) -> None:
@@ -364,3 +560,302 @@ def test_portal_grant_list_without_device_binding_shows_null_fields(
     assert matching[0]["device_fingerprint"] is None
     assert matching[0]["device_label"] is None
     assert matching[0]["user_agent"] is None
+def test_portal_exposes_only_human_activated_pinned_mobility_plan(
+    raw_client,
+    db_session: Session,
+) -> None:
+    lead = create_lead(
+        db_session,
+        name="Reviewed Plan Client",
+        target_country="Germany",
+    )
+    profile = _portal_profile(
+        db_session,
+        lead.id,
+    )
+    base = datetime(
+        2026,
+        8,
+        17,
+        8,
+        0,
+        tzinfo=timezone.utc,
+    )
+    graph = _persist_portal_plan_graph(
+        db_session,
+        lead.id,
+        profile,
+        key="reviewed-client-route",
+        created_at=base,
+    )
+
+    approved = DocumentRequirementAssessment(
+        assessment_key="portal-reviewed-evidence",
+        lead_id=lead.id,
+        pathway_id=graph["pathway"].id,
+        pathway_version_id=graph["version"].id,
+        profile_id=profile.id,
+        profile_version=profile.profile_version,
+        requirement_source="published_pathway_version",
+        result_status="needs_documents",
+        review_status="approved",
+        required_count=4,
+        satisfied_count=2,
+        missing_count=2,
+        inconsistency_count=0,
+        requirements_json="[]",
+        findings_json="[]",
+        source_snapshot_json="{}",
+        document_snapshot_json="[]",
+        summary="Reviewed document requirement coverage.",
+        human_review_required=True,
+        generated_by="pytest",
+        reviewed_by="pytest-document-reviewer",
+        reviewed_at=base + timedelta(minutes=10),
+        review_notes="Reviewed against the pinned pathway.",
+        created_at=base,
+        updated_at=base + timedelta(minutes=10),
+    )
+    newer_pending = DocumentRequirementAssessment(
+        assessment_key="portal-newer-pending-evidence",
+        lead_id=lead.id,
+        pathway_id=graph["pathway"].id,
+        pathway_version_id=graph["version"].id,
+        profile_id=profile.id,
+        profile_version=profile.profile_version,
+        requirement_source="published_pathway_version",
+        result_status="complete",
+        review_status="pending",
+        required_count=4,
+        satisfied_count=4,
+        missing_count=0,
+        inconsistency_count=0,
+        requirements_json="[]",
+        findings_json="[]",
+        source_snapshot_json="{}",
+        document_snapshot_json="[]",
+        summary="Newer assessment still awaiting human review.",
+        human_review_required=True,
+        generated_by="pytest",
+        created_at=base + timedelta(minutes=20),
+        updated_at=base + timedelta(minutes=20),
+    )
+    db_session.add_all([approved, newer_pending])
+    db_session.commit()
+
+    _grant, token = issue_client_portal_grant(
+        db_session,
+        lead.id,
+        actor="pytest-operator",
+    )
+    response = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={"X-GMAI-Portal-Token": token},
+    )
+    assert response.status_code == 200, response.text
+
+    data = response.json()
+    plan = data["mobility_plan"]
+    assert plan is not None
+    assert plan["pathway_name"] == (
+        "Reviewed Client Route Pathway"
+    )
+    assert plan["plan_status"] == "active"
+    assert plan["profile_version"] == 1
+    assert plan["processing_evidence_status"] == "established"
+    assert plan["cost"]["currency"] == "EUR"
+    assert (
+        plan["cost"]["government_application_fee"]
+        == 120.0
+    )
+    assert plan["cost"]["minimum_funds"] == 5000.0
+    assert (
+        plan["cost"]["estimated_total_status"]
+        == "not_established"
+    )
+    assert plan["risk"] == {
+        "level": "medium",
+        "declared_count": 1,
+        "evidence_count": 0,
+        "regulatory_count": 1,
+    }
+    assert plan["journey"][0]["state"] == "complete"
+    assert plan["journey"][1]["state"] == "attention"
+
+    evidence = data["evidence_summary"]
+    assert evidence is not None
+    assert evidence["review_status"] == "approved"
+    assert evidence["required_count"] == 4
+    assert evidence["satisfied_count"] == 2
+    assert evidence["missing_count"] == 2
+    assert evidence["inconsistency_count"] == 0
+
+    serialized = json.dumps(data)
+    for internal_field in (
+        "verified_rule_ids",
+        "source_snapshot_ids",
+        "review_notes",
+        "approved_by",
+        "owner_role",
+        "blockers",
+        "findings_json",
+        "source_snapshot_json",
+        "document_snapshot_json",
+    ):
+        assert internal_field not in serialized
+
+
+def test_portal_skips_newer_simulation_and_draft_plan_state(
+    raw_client,
+    db_session: Session,
+) -> None:
+    lead = create_lead(
+        db_session,
+        name="Safe Selection Client",
+        target_country="Germany",
+    )
+    profile = _portal_profile(
+        db_session,
+        lead.id,
+    )
+    base = datetime(
+        2026,
+        8,
+        17,
+        7,
+        0,
+        tzinfo=timezone.utc,
+    )
+
+    valid = _persist_portal_plan_graph(
+        db_session,
+        lead.id,
+        profile,
+        key="safe-reviewed-route",
+        created_at=base,
+    )
+    _persist_portal_plan_graph(
+        db_session,
+        lead.id,
+        profile,
+        key="newer-simulation-route",
+        created_at=base + timedelta(hours=1),
+        simulation=True,
+    )
+    _persist_portal_plan_graph(
+        db_session,
+        lead.id,
+        profile,
+        key="newer-draft-route",
+        created_at=base + timedelta(hours=2),
+        version_status="draft",
+    )
+
+    _grant, token = issue_client_portal_grant(
+        db_session,
+        lead.id,
+        actor="pytest-operator",
+    )
+    response = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={"X-GMAI-Portal-Token": token},
+    )
+    assert response.status_code == 200, response.text
+
+    plan = response.json()["mobility_plan"]
+    assert plan is not None
+    assert plan["timeline_id"] == str(valid["timeline"].id)
+    assert plan["pathway_name"] == "Safe Reviewed Route Pathway"
+
+    serialized = json.dumps(plan).lower()
+    assert "simulation" not in serialized
+    assert "newer simulation route" not in serialized
+    assert "newer draft route" not in serialized
+
+
+def test_portal_suppresses_plan_when_current_profile_version_changes(
+    raw_client,
+    db_session: Session,
+) -> None:
+    lead = create_lead(
+        db_session,
+        name="Stale Plan Client",
+        target_country="Germany",
+    )
+    profile_v1 = _portal_profile(
+        db_session,
+        lead.id,
+    )
+    base = datetime(
+        2026,
+        8,
+        17,
+        6,
+        0,
+        tzinfo=timezone.utc,
+    )
+    _persist_portal_plan_graph(
+        db_session,
+        lead.id,
+        profile_v1,
+        key="stale-profile-route",
+        created_at=base,
+    )
+
+    _portal_profile(
+        db_session,
+        lead.id,
+        version=2,
+        supersedes_profile_id=profile_v1.id,
+    )
+
+    _grant, token = issue_client_portal_grant(
+        db_session,
+        lead.id,
+        actor="pytest-operator",
+    )
+    response = raw_client.get(
+        "/api/v1/public/client-portal/dashboard",
+        headers={"X-GMAI-Portal-Token": token},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+
+    assert data["mobility_plan"] is None
+    assert data["evidence_summary"] is None
+def test_client_portal_cors_preflight_allows_portal_headers(
+    raw_client,
+) -> None:
+    response = raw_client.options(
+        "/api/v1/public/client-portal/dashboard",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": (
+                "x-gmai-portal-device,"
+                "x-gmai-portal-token"
+            ),
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    assert (
+        response.headers.get(
+            "access-control-allow-origin"
+        )
+        == "http://localhost:3000"
+    )
+
+    allowed = {
+        value.strip().lower()
+        for value in response.headers.get(
+            "access-control-allow-headers",
+            "",
+        ).split(",")
+        if value.strip()
+    }
+
+    assert {
+        "x-gmai-portal-device",
+        "x-gmai-portal-token",
+    }.issubset(allowed)

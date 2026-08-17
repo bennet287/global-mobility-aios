@@ -100,6 +100,61 @@ class ClientPortalAuthorityChecklistItem(BaseModel):
     status: str
 
 
+class ClientPortalPlanCost(BaseModel):
+    currency: str | None = None
+    government_application_fee: float | None = None
+    government_application_fee_scope: str | None = None
+    estimated_total_status: Literal["established", "not_established"] = "not_established"
+    minimum_funds: float | None = None
+
+
+class ClientPortalPlanRisk(BaseModel):
+    level: Literal["low", "medium", "high"]
+    declared_count: int = 0
+    evidence_count: int = 0
+    regulatory_count: int = 0
+
+
+class ClientPortalJourneyMilestone(BaseModel):
+    key: str
+    title: str
+    state: Literal["complete", "current", "upcoming", "attention"]
+    due_at: datetime | None = None
+    requires_human_approval: bool = False
+
+
+class ClientPortalMobilityPlan(BaseModel):
+    timeline_id: UUID
+    comparison_assessment_id: UUID
+    profile_version: int
+    pathway_id: UUID
+    pathway_version_id: UUID
+    pathway_version_number: int
+    pathway_name: str
+    country: str
+    domain: str
+    plan_status: Literal["active", "completed"]
+    current_stage_key: str | None = None
+    activated_at: datetime
+    published_at: datetime
+    processing_evidence_status: Literal["established", "not_established"]
+    cost: ClientPortalPlanCost
+    risk: ClientPortalPlanRisk | None = None
+    journey: list[ClientPortalJourneyMilestone] = Field(default_factory=list)
+
+
+class ClientPortalEvidenceSummary(BaseModel):
+    assessment_id: UUID
+    requirement_source: str
+    result_status: str
+    review_status: Literal["approved"]
+    required_count: int
+    satisfied_count: int
+    missing_count: int
+    inconsistency_count: int
+    reviewed_at: datetime
+
+
 class ClientPortalDashboard(BaseModel):
     grant_id: UUID
     client_name: str
@@ -119,5 +174,7 @@ class ClientPortalDashboard(BaseModel):
     authority_checklist: list[ClientPortalAuthorityChecklistItem] = Field(
         default_factory=list
     )
+    mobility_plan: ClientPortalMobilityPlan | None = None
+    evidence_summary: ClientPortalEvidenceSummary | None = None
     expires_at: datetime
     updated_at: datetime

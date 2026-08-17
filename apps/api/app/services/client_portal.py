@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import secrets
 from datetime import datetime, timedelta, timezone
+from typing import Any
 from uuid import UUID
 
 from sqlmodel import Session, select
@@ -15,15 +17,349 @@ from app.models.domain import (
     AuthorityAppointment,
     ClientPortalAccessGrant,
     DocumentRecord,
+    DocumentRequirementAssessment,
     ExternalAgency,
     ExternalAgencyAssignment,
     Lead,
+    MobilityPathway,
+    MobilityPathwayVersion,
+    MobilityTimeline,
+    MobilityTimelineMilestone,
+    PathwayComparisonAssessment,
     now_utc,
 )
 from app.services.audit_log import record_audit
+from app.services.mobility_profiles import current_mobility_profile
 
 
 PORTAL_SOURCE = "client_portal_v12_0"
+
+
+def _load_json(value: str | None, default: Any) -> Any:
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    return None
+
+
+def _journey_state(
+    milestone: MobilityTimelineMilestone,
+    current_stage_key: str | None,
+) -> str:
+    if milestone.status == "completed":
+        return "complete"
+    if milestone.status == "blocked":
+        return "attention"
+    if (
+        milestone.stage_key == current_stage_key
+        or milestone.status in {"ready", "in_progress"}
+    ):
+        return "current"
+    return "upcoming"
+
+
+def _client_safe_plan_and_evidence(
+    session: Session,
+    lead_id: UUID,
+) -> tuple[dict[str, object] | None, dict[str, object] | None]:
+    """Return only a current, human-activated, non-simulation client plan.
+
+    This read never generates a comparison, timeline, eligibility assessment,
+    document assessment, or replacement pathway. Failure to satisfy every
+    provenance/review invariant produces an honest null plan.
+    """
+    profile = current_mobility_profile(session, lead_id)
+    if profile is None or profile.consent_status != "granted":
+        return None, None
+
+    timelines = list(
+        session.exec(
+            select(MobilityTimeline)
+            .where(
+                MobilityTimeline.lead_id == lead_id,
+                MobilityTimeline.status.in_(["active", "completed"]),
+            )
+            .order_by(
+                MobilityTimeline.updated_at.desc(),
+                MobilityTimeline.created_at.desc(),
+            )
+        ).all()
+    )
+
+    for timeline in timelines:
+        if not timeline.activated_by or timeline.activated_at is None:
+            continue
+        if timeline.profile_id is None or timeline.profile_version is None:
+            continue
+        if (
+            profile.id != timeline.profile_id
+            or profile.profile_version != timeline.profile_version
+        ):
+            continue
+
+        assessment = session.get(
+            PathwayComparisonAssessment,
+            timeline.comparison_assessment_id,
+        )
+        pathway = session.get(
+            MobilityPathway,
+            timeline.primary_pathway_id,
+        )
+        version = session.get(
+            MobilityPathwayVersion,
+            timeline.primary_pathway_version_id,
+        )
+
+        if assessment is None or pathway is None or version is None:
+            continue
+        if assessment.lead_id != lead_id:
+            continue
+        if assessment.status not in {
+            "ready_for_review",
+            "needs_profile_review",
+        }:
+            continue
+        if (
+            assessment.profile_id != timeline.profile_id
+            or assessment.profile_version != timeline.profile_version
+        ):
+            continue
+        if (
+            assessment.primary_pathway_id != timeline.primary_pathway_id
+            or assessment.primary_pathway_version_id
+            != timeline.primary_pathway_version_id
+        ):
+            continue
+        if version.pathway_id != pathway.id:
+            continue
+        if version.lifecycle_status not in {
+            "published",
+            "superseded",
+            "retired",
+        }:
+            continue
+        if not version.approved_by or version.published_at is None:
+            continue
+
+        comparison = _load_json(
+            assessment.comparison_json,
+            {},
+        )
+        if not isinstance(comparison, dict):
+            continue
+        if comparison.get("simulation") is True:
+            continue
+        if comparison.get("consent_status") != "granted":
+            continue
+
+        cost_payload = _load_json(
+            assessment.cost_summary_json,
+            {},
+        )
+        if not isinstance(cost_payload, dict):
+            cost_payload = {}
+
+        risk_payload = _load_json(
+            assessment.risk_summary_json,
+            {},
+        )
+        if not isinstance(risk_payload, dict):
+            risk_payload = {}
+
+        primary_payload = comparison.get("primary")
+        if not isinstance(primary_payload, dict):
+            primary_payload = {}
+
+        processing_status = primary_payload.get(
+            "processing_evidence_status"
+        )
+        if processing_status not in {
+            "established",
+            "not_established",
+        }:
+            processing = _load_json(
+                version.processing_time_json,
+                {},
+            )
+            if not isinstance(processing, dict):
+                processing = {}
+            processing_status = (
+                "established"
+                if (
+                    processing.get("minimum_weeks") is not None
+                    or processing.get("maximum_weeks") is not None
+                )
+                else "not_established"
+            )
+
+        currency = cost_payload.get("currency")
+        if not isinstance(currency, str) or not currency.strip():
+            currency = None
+        else:
+            currency = currency.strip().upper()
+
+        fee_scope = cost_payload.get(
+            "government_application_fee_scope"
+        )
+        if (
+            not isinstance(fee_scope, str)
+            or not fee_scope.strip()
+        ):
+            fee_scope = None
+        else:
+            fee_scope = fee_scope.strip()
+
+        estimated_total_status = cost_payload.get(
+            "estimated_total_status"
+        )
+        if estimated_total_status not in {
+            "established",
+            "not_established",
+        }:
+            estimated_total_status = "not_established"
+
+        risk_level = risk_payload.get("level")
+        risk: dict[str, object] | None = None
+        if risk_level in {"low", "medium", "high"}:
+            declared = risk_payload.get("declared_risks")
+            evidence = risk_payload.get("evidence_risks")
+            regulatory = risk_payload.get("regulatory_risks")
+            risk = {
+                "level": risk_level,
+                "declared_count": len(declared)
+                if isinstance(declared, list)
+                else 0,
+                "evidence_count": len(evidence)
+                if isinstance(evidence, list)
+                else 0,
+                "regulatory_count": len(regulatory)
+                if isinstance(regulatory, list)
+                else 0,
+            }
+
+        milestones = list(
+            session.exec(
+                select(MobilityTimelineMilestone)
+                .where(
+                    MobilityTimelineMilestone.timeline_id
+                    == timeline.id
+                )
+                .order_by(
+                    MobilityTimelineMilestone.stage_order
+                )
+            ).all()
+        )
+
+        plan: dict[str, object] = {
+            "timeline_id": timeline.id,
+            "comparison_assessment_id": assessment.id,
+            "profile_version": timeline.profile_version,
+            "pathway_id": pathway.id,
+            "pathway_version_id": version.id,
+            "pathway_version_number": version.version_number,
+            "pathway_name": pathway.name,
+            "country": pathway.country,
+            "domain": pathway.domain,
+            "plan_status": timeline.status,
+            "current_stage_key": timeline.current_stage_key,
+            "activated_at": timeline.activated_at,
+            "published_at": version.published_at,
+            "processing_evidence_status": processing_status,
+            "cost": {
+                "currency": currency,
+                "government_application_fee": _safe_number(
+                    cost_payload.get(
+                        "government_application_fee"
+                    )
+                ),
+                "government_application_fee_scope": fee_scope,
+                "estimated_total_status": estimated_total_status,
+                "minimum_funds": _safe_number(
+                    cost_payload.get("minimum_funds")
+                ),
+            },
+            "risk": risk,
+            "journey": [
+                {
+                    "key": milestone.stage_key,
+                    "title": milestone.title,
+                    "state": _journey_state(
+                        milestone,
+                        timeline.current_stage_key,
+                    ),
+                    "due_at": milestone.due_at,
+                    "requires_human_approval":
+                        milestone.requires_human_approval,
+                }
+                for milestone in milestones
+            ],
+        }
+
+        approved_assessment = session.exec(
+            select(DocumentRequirementAssessment)
+            .where(
+                DocumentRequirementAssessment.lead_id
+                == lead_id,
+                DocumentRequirementAssessment.pathway_id
+                == pathway.id,
+                DocumentRequirementAssessment.pathway_version_id
+                == version.id,
+                DocumentRequirementAssessment.profile_id
+                == timeline.profile_id,
+                DocumentRequirementAssessment.profile_version
+                == timeline.profile_version,
+                DocumentRequirementAssessment.review_status
+                == "approved",
+                DocumentRequirementAssessment.reviewed_by.is_not(
+                    None
+                ),
+                DocumentRequirementAssessment.reviewed_at.is_not(
+                    None
+                ),
+            )
+            .order_by(
+                DocumentRequirementAssessment.reviewed_at.desc(),
+                DocumentRequirementAssessment.created_at.desc(),
+            )
+        ).first()
+
+        evidence_summary: dict[str, object] | None = None
+        if (
+            approved_assessment is not None
+            and approved_assessment.reviewed_at is not None
+        ):
+            evidence_summary = {
+                "assessment_id": approved_assessment.id,
+                "requirement_source":
+                    approved_assessment.requirement_source,
+                "result_status":
+                    approved_assessment.result_status,
+                "review_status": "approved",
+                "required_count":
+                    approved_assessment.required_count,
+                "satisfied_count":
+                    approved_assessment.satisfied_count,
+                "missing_count":
+                    approved_assessment.missing_count,
+                "inconsistency_count":
+                    approved_assessment.inconsistency_count,
+                "reviewed_at":
+                    approved_assessment.reviewed_at,
+            }
+
+        return plan, evidence_summary
+
+    return None, None
 
 
 def _as_utc(value: datetime) -> datetime:
@@ -333,6 +669,11 @@ def client_portal_dashboard(
     application = applications[0] if applications else None
     application_ids = [app.id for app in applications]
 
+    mobility_plan, evidence_summary = _client_safe_plan_and_evidence(
+        session,
+        lead.id,
+    )
+
     appointments: list[AuthorityAppointment] = []
     submissions: list[AgencySubmission] = []
     assignments: list[tuple[ExternalAgencyAssignment, ExternalAgency]] = []
@@ -459,6 +800,8 @@ def client_portal_dashboard(
             }
             for item in checklist_items
         ],
+        "mobility_plan": mobility_plan,
+        "evidence_summary": evidence_summary,
         "expires_at": grant.expires_at,
         "updated_at": lead.updated_at,
     }
