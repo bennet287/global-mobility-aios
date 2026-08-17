@@ -906,8 +906,8 @@ Work proceeds in this order. A later programme must not hide an earlier red rele
 | 5 | 13.16.2 role-based application shells and navigation | **COMPLETE / PASS** | Closed after premium visual, schema-reconciliation, runtime, frontend, API, repository, and migration acceptance |
 | 6 | 13.16.3 Unified Owner Control Center | **COMPLETE / PASS** | 13.16.2 COMPLETE / PASS |
 | 7 | 13.16.4 Department workspaces | **COMPLETE / PASS** | Closed |
-| 8 | 13.16.5 Cross-department dependencies and blocker view | **COMPLETE / PASS** | Closed |
-| 9 | 13.16.6 Owner decision and escalation inbox | **UNLOCKED / NEXT** | Technology Radar V1 docs-only checkpoint does not change product ordering |
+| 8 | 13.16.5 Cross-department dependencies and blocker view | **COMPLETE / PASS; 13.16.5R COMPLETE / PASS** | Bounded HumanActionRequest provenance correction accepted |
+| 9 | 13.16.6 Owner decision and escalation inbox | **UNLOCKED / NEXT** | Begin from the accepted 13.16.5R + Technology Radar V1 baseline |
 | 10 | 13.16.7-13.16.9 role-based experience delivery | **LOCKED** | Deliver slices sequentially after 13.16.6 |
 | 11 | 13.16.10 integrated responsive/accessibility acceptance | **LOCKED** | 13.16.2-13.16.9 delivered |
 | 12 | 13.17 genuine external-human acceptance | **LOCKED** | 13.16.10 PASS |
@@ -1356,6 +1356,44 @@ The experience should answer:
 - what changed materially.
 
 **Acceptance:** design-foundation **22/22 PASS**; organization read-client **2/2 PASS** (unchanged from 13.16.4); Next.js 15.2.4 production build **PASS** with **40/40 pages** including `/cross-department-friction`; repository policy, migration, and local DB schema **PASS** at Alembic `0076_organization_position_active_identity`; `git diff --check` **PASS**; complete API regression **806 passed, 5 skipped, 0 failed**; runtime smoke **8/8 HTTP 200** across `/health`, Board Packet, Observatory departments, blockers, dependencies, work items, human-action requests, and contributions. The new `/cross-department-friction` page loads organization-wide work items, open blockers, active dependencies, pending human requests, and material Activity, identifies blockers whose owning department differs from the affected work's department and dependencies where downstream/upstream work belongs to different departments, surfaces human-action status, escalation/overdue signals, the latest durable Activity, deep links into each affected `/workspace/[department]`, and a governed `OrganizationHumanActionRequest` intervention form. It does not resolve/waive blockers, satisfy/waive dependencies, complete/reassign work, make Board decisions, publish/certify evidence, issue legal conclusions, or alter organization control. **13.16.5 is COMPLETE / PASS. 13.16.6 Owner decision and escalation inbox is UNLOCKED / NOT STARTED.**
+
+#### 11.8.1 13.16.5R — HumanActionRequest provenance read/matching correction
+
+**State:** COMPLETE / PASS.
+
+A post-checkpoint review found that the 13.16.5 cross-department page correctly created dependency
+follow-up requests with the dependency edge preserved in `source_object_type`,
+`source_object_id`, and `source_object_version`, but the frontend read contract did not expose
+those stored provenance fields. The page therefore attempted to identify a dependency request by
+comparing `HumanActionRequest.work_item_id` to the dependency record ID. That comparison is
+semantically invalid because `work_item_id` intentionally points to the affected/downstream work
+item while `source_object_id` identifies the dependency edge.
+
+The bounded correction:
+
+- exposes the already-persisted HumanActionRequest source provenance through
+  `HumanActionRequestRead`;
+- mirrors those fields in the frontend `OrganizationHumanActionRequest` type;
+- matches dependency follow-up requests by exact
+  `source_object_type == "organization_work_item_dependency"` plus dependency
+  `source_object_id`;
+- preserves the direct `blocker_id` match for blocker follow-up requests;
+- adds a focused API provenance round-trip regression and a frontend design regression preventing
+  reintroduction of the stale `work_item_id == dependency.id` comparison.
+
+No model/table field, migration, preserved database row, authorization rule, blocker/dependency
+mutation command, publication/certification state, human-review requirement, or Austria
+legal-safety boundary changes in 13.16.5R.
+
+**Final acceptance:** focused organization-record API regression **18 passed / 0 failed**;
+design-foundation **22/22 PASS**; organization read-client **2/2 PASS**; Next.js 15.2.4
+production build **PASS with 40/40 pages**; complete API regression **807 passed / 5 skipped /
+0 failed** with only the known Starlette/httpx test-client deprecation warning; repository policy,
+release consistency, database migration, local physical-schema, and `git diff --check` all
+**PASS** at Alembic `0076_organization_position_active_identity`, with **118 registered /
+118 actual model tables / 119 physical tables including only `alembic_version` infrastructure**.
+No migration or preserved database mutation was required. **13.16.5R is COMPLETE / PASS.
+13.16.6 Owner decision and escalation inbox remains UNLOCKED / NEXT.**
 
 ### 11.9 13.16.6 — Owner decision and escalation inbox
 

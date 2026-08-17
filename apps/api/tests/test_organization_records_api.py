@@ -431,6 +431,65 @@ def test_blocker_commands_authority_and_no_delete(client: TestClient, raw_client
     assert client.delete(f"{BASE}/blockers/{blocker.json()['id']}").status_code == 405
 
 
+def test_human_action_request_read_preserves_dependency_source_provenance(
+    client: TestClient,
+) -> None:
+    downstream = client.post(
+        f"{BASE}/work-items/records",
+        json=_work("har-provenance-downstream"),
+    ).json()
+    upstream = client.post(
+        f"{BASE}/work-items/records",
+        json=_work("har-provenance-upstream"),
+    ).json()
+    dependency = client.post(
+        f"{BASE}/work-item-dependencies",
+        json={
+            "dependency_key": "har-provenance-dependency",
+            "work_item_id": downstream["id"],
+            "depends_on_work_item_id": upstream["id"],
+            "dependency_type": "requires",
+        },
+    )
+    assert dependency.status_code == 201, dependency.text
+    dependency_row = dependency.json()
+
+    payload = {
+        "request_key": "har-provenance-request",
+        "request_type": "review",
+        "title": "Dependency provenance review",
+        "instructions": "Review the exact dependency edge without losing source provenance.",
+        "required_role": "reviewer",
+        "priority": "high",
+        "work_item_id": downstream["id"],
+        "source_object_type": "organization_work_item_dependency",
+        "source_object_id": dependency_row["id"],
+        "source_object_version": "v1",
+    }
+    created = client.post(f"{BASE}/human-action-requests", json=payload)
+    assert created.status_code == 201, created.text
+
+    created_row = created.json()
+    assert created_row["work_item_id"] == downstream["id"]
+    assert created_row["source_object_type"] == "organization_work_item_dependency"
+    assert created_row["source_object_id"] == dependency_row["id"]
+    assert created_row["source_object_version"] == "v1"
+
+    detail = client.get(f"{BASE}/human-action-requests/{created_row['id']}")
+    assert detail.status_code == 200, detail.text
+    detail_row = detail.json()
+    assert detail_row["source_object_type"] == "organization_work_item_dependency"
+    assert detail_row["source_object_id"] == dependency_row["id"]
+    assert detail_row["source_object_version"] == "v1"
+
+    listing = client.get(f"{BASE}/human-action-requests", params={"page_size": 100})
+    assert listing.status_code == 200, listing.text
+    listed = next(item for item in listing.json()["data"] if item["id"] == created_row["id"])
+    assert listed["source_object_type"] == "organization_work_item_dependency"
+    assert listed["source_object_id"] == dependency_row["id"]
+    assert listed["source_object_version"] == "v1"
+
+
 def test_human_action_request_completion_is_human_only_idempotent_and_not_contribution(
     client: TestClient, db_session: Session
 ) -> None:

@@ -1,3 +1,13 @@
+## 2026-08-17 - Phase 13.16.5R COMPLETE / PASS - HumanActionRequest provenance correction
+
+- A post-checkpoint review identified a bounded 13.16.5 defect in dependency HumanActionRequest recognition: the cross-department page created requests whose `work_item_id` correctly pointed to the affected/downstream work item and whose `source_object_id` preserved the dependency edge, but the page later compared `request.work_item_id` to `dependency.id`.
+- Extended `HumanActionRequestRead` to expose the already-persisted `source_object_type`, `source_object_id`, and `source_object_version` fields; no database model or migration is required.
+- Mirrored the provenance fields in the frontend `OrganizationHumanActionRequest` read type.
+- Corrected `/cross-department-friction` dependency-request matching to use exact source provenance (`organization_work_item_dependency` + dependency ID) while preserving direct `blocker_id` matching for blocker requests.
+- Added a focused organization-record API regression proving dependency provenance survives HumanActionRequest POST, detail GET, and list GET, plus a design-foundation regression that rejects the stale `work_item_id == dependency.id` match.
+- No blocker/dependency status transition, work completion/reassignment, Board decision, publication/certification, legal conclusion, organization-control mutation, Alembic change, preserved database mutation, or Austria safety-boundary change is introduced.
+- **Final acceptance:** focused organization-record API **18 passed / 0 failed**; design-foundation **22/22 PASS**; organization read-client **2/2 PASS**; Next.js 15.2.4 production build **PASS with 40/40 pages**; complete API regression **807 passed / 5 skipped / 0 failed** with only the known Starlette/httpx test-client deprecation warning; repository policy, release consistency, database migration, local physical-schema, and `git diff --check` **PASS** at Alembic `0076_organization_position_active_identity`. Local schema remains **118 registered / 118 actual model tables / 119 physical tables**, with only `alembic_version` as infrastructure. No migration or preserved database mutation was required. **13.16.5R is COMPLETE / PASS; 13.16.6 remains UNLOCKED / NEXT.**
+
 ## 2026-08-17 - Technology Radar V1 — provider-neutral platform evolution checkpoint
 
 - Added `docs/TECHNOLOGY_RADAR_V1.md` as the frozen V1 platform-evolution radar for document intelligence, privacy, regulatory monitoring, AI evaluation/observability, retrieval, durable execution, authorization/policy, professional document production, lineage, feature rollout, and benchmark-only alternatives.

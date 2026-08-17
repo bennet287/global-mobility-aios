@@ -5005,6 +5005,9 @@ export type OrganizationHumanActionRequest = {
   decision_id: string | null;
   blocker_id: string | null;
   contribution_id: string | null;
+  source_object_type: string | null;
+  source_object_id: string | null;
+  source_object_version: string | null;
   due_at: string | null;
   outcome: string | null;
   completed_at: string | null;

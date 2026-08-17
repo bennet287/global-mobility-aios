@@ -489,6 +489,18 @@ test("13.16.5 Cross-department friction surface stays governed and read-only", a
   assert.match(friction, /Upstream:/);
   assert.match(friction, /Human request/);
   assert.match(friction, /Governed intervention/);
+  assert.match(
+    friction,
+    /request\.source_object_type === sourceType && request\.source_object_id === sourceId/,
+  );
+  assert.doesNotMatch(
+    friction,
+    /organization_work_item_dependency"\) return request\.work_item_id === sourceId/,
+  );
+  assert.match(
+    await read("lib/api.ts"),
+    /export type OrganizationHumanActionRequest = \{[\s\S]*source_object_type: string \| null;[\s\S]*source_object_id: string \| null;[\s\S]*source_object_version: string \| null;/,
+  );
   assert.match(friction, /friction view does not directly change blocker or dependency status/);
   assert.doesNotMatch(
     friction,

@@ -165,7 +165,9 @@ export default function CrossDepartmentFrictionPage() {
     return humanRequests.find((request) => {
       if (!ACTIVE_HUMAN_REQUEST_STATUSES.has(request.status)) return false;
       if (sourceType === "organization_blocker") return request.blocker_id === sourceId;
-      if (sourceType === "organization_work_item_dependency") return request.work_item_id === sourceId;
+      if (sourceType === "organization_work_item_dependency") {
+        return request.source_object_type === sourceType && request.source_object_id === sourceId;
+      }
       return false;
     });
   }, [humanRequests]);

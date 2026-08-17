@@ -332,6 +332,9 @@ class HumanActionRequestRead(OrganizationRead):
     decision_id: UUID | None
     blocker_id: UUID | None
     contribution_id: UUID | None
+    source_object_type: str | None
+    source_object_id: str | None
+    source_object_version: str | None
     due_at: datetime | None
     outcome: str | None
     completed_at: datetime | None
