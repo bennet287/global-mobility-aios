@@ -729,3 +729,55 @@ test("13.16.8 Professional / Operator experience composes governed case reads wi
 
   assert.doesNotMatch(portal, /operator-case-workbench|Technical provenance.*Eligibility assessment/);
 });
+
+test("13.16.9 evidence and provenance UX uses one presentation taxonomy without changing evidence authority", async () => {
+  const [component, casePage, pathways, sourceReview, documents, styles] = await Promise.all([
+    read("components/EvidenceProvenance.tsx"),
+    read("app/leads/[id]/page.tsx"),
+    read("app/pathways/page.tsx"),
+    read("app/source-certification-review/page.tsx"),
+    read("app/document-intelligence/page.tsx"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(component, /role="list"/);
+  assert.match(component, /role="listitem"/);
+  assert.match(component, /Evidence boundary/);
+  assert.match(component, /aria-current=/);
+  assert.doesNotMatch(component, /lib\/api|fetch\(|onClick=|<button/);
+
+  assert.match(casePage, /Current decision evidence chain/);
+  assert.match(casePage, /source URL alone does not establish certification, a VerifiedRule, or pathway applicability/);
+  assert.match(casePage, /Historical or mismatched assessments are excluded/);
+
+  assert.match(pathways, /Source-to-pathway evidence chain/);
+  assert.match(pathways, /selectedSnapshot\.content_hash/);
+  assert.match(pathways, /selectedRules\.map\(\(rule\) => rule\.rule_key\)/);
+  assert.match(pathways, /Publishing a pathway remains a separate human-reviewed backend action/);
+
+  assert.match(sourceReview, /Source certification provenance/);
+  assert.match(sourceReview, /Approving source certification does not itself publish a VerifiedRule/);
+  assert.match(sourceReview, /Certification review changes only the governed certification state/);
+
+  assert.match(documents, /Case evidence provenance/);
+  assert.match(documents, /OCR\/extraction output is derived data/);
+  assert.match(documents, /never turns a case document into an official source, a VerifiedRule, legal truth, or an authority decision/);
+
+  const combined = [casePage, pathways, sourceReview, documents].join("\n");
+  for (const stage of [
+    "Official source",
+    "Immutable snapshot",
+    "Certification / review",
+    "VerifiedRule",
+    "Pathway evidence",
+    "Case evidence",
+    "Superseded / historical",
+    "Unresolved gaps",
+  ]) {
+    assert.ok(combined.includes(stage), `missing evidence/provenance stage ${stage}`);
+  }
+
+  assert.match(styles, /Phase 13\.16\.9 evidence and provenance UX consolidation/);
+  assert.match(styles, /\.evidence-provenance-grid/);
+  assert.match(styles, /\.evidence-provenance-boundary/);
+});

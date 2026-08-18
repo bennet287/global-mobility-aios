@@ -3,8 +3,8 @@
 **Roadmap generation:** V11.1 / Technology Radar V1.1 alignment
 **Date:** 2026-08-18
 **Development branch:** `roadmap/global-mobility-aios-v11`
-**Accepted product baseline:** Phase 13.16.8 Professional / Operator experience — COMPLETE / PASS (sealed by this delivery checkpoint)
-**Active product slice:** Phase 13.16.9 — Evidence and provenance UX consolidation — UNLOCKED / NEXT
+**Accepted product baseline:** Phase 13.16.9 Evidence and provenance UX consolidation — COMPLETE / PASS (sealed by this delivery checkpoint)
+**Active product slice:** Phase 13.16.10 — Responsive, accessibility, polish, and integrated acceptance — UNLOCKED / NEXT
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
@@ -147,6 +147,26 @@ The Phase 13.16.8 implementation introduces no backend endpoint, model, schema, 
 client-portal projection widening, publication/certification semantic change, Technology Radar runtime dependency,
 Coworker/OpenWorker runtime implementation, preserved-database mutation, or Austria legal-safety change.
 
+Phase 13.16.9 Evidence and provenance UX consolidation is accepted by this checkpoint. Accepted evidence includes:
+
+- one shared, presentation-only `EvidenceProvenance` grammar used across Professional Case, Pathway Catalogue, Independent Source Review, and Document Intelligence;
+- a consistent distinction between official source, immutable snapshot, certification/review state, VerifiedRule, pathway evidence, case evidence, superseded/historical state, and unresolved gaps;
+- explicit evidence-boundary copy preventing source references, retrieval, OCR/extraction, review state, pathway evidence, or case evidence from being silently promoted into legal truth, certification, publication, or authority outcomes;
+- Professional Case provenance remaining subordinate to the persisted current-decision/context-alignment rules accepted in 13.16.8;
+- Pathway Catalogue presenting official source → immutable snapshot → human-published VerifiedRule → immutable pathway version → superseded history while preserving backend publication authority;
+- Independent Source Review presenting official source → immutable snapshot → deterministic review pack → independent-human certification state while keeping VerifiedRule creation and pathway publication separate;
+- Document Intelligence presenting stored case evidence → derived extraction → consistency review → requirement coverage → integrity review → unresolved gaps while explicitly rejecting automated authenticity/fraud/legal-sufficiency conclusions;
+- design foundation **26/26 PASS**, request/auth **4/4 PASS**, Next.js 15.2.4 production build **41/41 PASS**, repository policy **PASS**, release consistency **PASS**, Docker production profile **PASS**, database migration/schema consistency **PASS**, local physical-schema parity **PASS**, and `git diff --check` **PASS**;
+- complete API regression **811 passed / 5 skipped / 0 failed** carried forward because the exact 13.16.9 implementation/docs boundary contains no backend/API/model/schema/Alembic change;
+- isolated Edge production-browser captures for all four evidence-heavy surfaces, with direct human review of the settled full-page screenshots **PASS**;
+- runtime fixture request trace **61 requests / 31 GET / 30 OPTIONS / 0 mutating methods**, covering all four evidence surfaces;
+- browser harness semantic-verifier failure classified as a harness false negative: two DOM snapshots were written before their final async state settled, and the Professional Case verifier additionally expected a source title where the designed summary intentionally renders a source-reference count; the later full-page screenshots and request trace were inspected directly rather than claiming an automated semantic-verifier PASS;
+- preserved `gmai.db` SHA256 `23FC012AF3FA89804A84A9C8DD75C0C68515B23AEF1813CC5460D6D73808CD31` unchanged throughout static and runtime acceptance.
+
+The Phase 13.16.9 implementation introduces no backend endpoint, model, schema, migration, authorization expansion,
+publication/certification authority change, client-portal projection widening, Technology Radar runtime dependency,
+Coworker/OpenWorker runtime implementation, preserved-database mutation, or Austria legal-safety change.
+
 Technology Radar V1 was separately established as a docs-only architecture/governance checkpoint. V1 remains historical
 evidence; Technology Radar V1.1 is now the active platform-evolution direction.
 
@@ -158,8 +178,8 @@ evidence; Technology Radar V1.1 is now the active platform-evolution direction.
 |---|---|---|
 | **13.16.7** | **COMPLETE / PASS** | Governed Mobility User experience sealed at `f0688a8` |
 | **13.16.8** | **COMPLETE / PASS** | Governed Professional / Operator decision workspace accepted with context-aligned evidence composition |
-| **13.16.9** | **UNLOCKED / NEXT** | Evidence and provenance UX consolidation after accepted 13.16.8 Professional / Operator experience |
-| **13.16.10** | **LOCKED** | Responsive/accessibility/polish/integrated acceptance after 13.16.9 |
+| **13.16.9** | **COMPLETE / PASS** | Shared evidence/provenance presentation grammar accepted across four evidence-heavy Professional surfaces |
+| **13.16.10** | **UNLOCKED / NEXT** | Responsive/accessibility/polish/integrated acceptance after accepted 13.16.9 evidence/provenance consolidation |
 | **13.17** | **LOCKED** | Genuine external-human acceptance after integrated role experience is ready |
 | **Final Phase 13 disposition** | **LOCKED** | Deterministic release disposition after 13.16 + 13.17 evidence |
 | **Phase 14** | **NOT STARTED / DEMAND-GATED** | Scale validated product; do not redesign around infrastructure prematurely |
@@ -215,20 +235,32 @@ remained unchanged, and the governance/reliance/authority boundaries remain inta
 
 ### 5.2 Phase 13.16.9 — Evidence and provenance UX consolidation
 
-**State: UNLOCKED / NEXT.**
+**State: COMPLETE / PASS — 2026-08-18.**
 
-Make evidence state understandable consistently across the product. Users/operators should be able to distinguish:
+Evidence-heavy Professional surfaces now use one shared presentation grammar while preserving each underlying domain's
+existing authority and lifecycle semantics. Users/operators can distinguish official source, immutable retrieved snapshot,
+certification/review state, VerifiedRule, pathway evidence, case evidence, superseded/historical state, and unresolved gaps
+without a new backend evidence model.
 
-- official source;
-- immutable retrieved snapshot;
-- certification/review state;
-- VerifiedRule;
-- pathway evidence;
-- pending evidence;
-- superseded evidence;
-- unresolved gaps and uncertainty.
+Accepted surfaces:
+
+1. **Professional Case** — current decision evidence chain remains context-aligned and subordinate to the persisted comparison;
+2. **Pathway Catalogue** — source → snapshot → VerifiedRule → immutable pathway version → superseded history;
+3. **Independent Source Review** — source → snapshot → deterministic review pack → independent-human certification boundary;
+4. **Document Intelligence** — stored case evidence → derived extraction → consistency/requirement/integrity review → unresolved gaps.
+
+The shared component is presentation-only: it does not fetch, mutate, certify, publish, authorize, or create evidence.
+TechnicalDisclosure remains the deeper identifier/version/timestamp technical-provenance layer where appropriate.
+
+Static/build/repository/schema acceptance passed, and isolated production-browser captures were reviewed across all four
+surfaces. The automated semantic verifier itself is **not** recorded as PASS because two DOM files were captured before the
+final async render settled and one Professional Case assertion expected a source title although the designed summary uses a
+source-reference count. The later full-page screenshots, Edge/CDP logs, and 61-row read-only request trace were inspected
+directly and accepted. No mutating browser fixture traffic occurred.
 
 ### 5.3 Phase 13.16.10 — responsive/accessibility/polish/integrated acceptance
+
+**State: UNLOCKED / NEXT.**
 
 Acceptance must cover desktop/mobile, keyboard navigation, screen-reader semantics, contrast/hierarchy, loading/error/empty
 states, role separation, cross-role handoffs, and integrated Owner + Mobility User + Professional/Operator journeys.
@@ -505,7 +537,7 @@ At minimum:
 
 ## 13. Current decision
 
-**Continue with Phase 13.16.9 Evidence and provenance UX consolidation.**
+**Continue with Phase 13.16.10 responsive/accessibility/polish/integrated acceptance.**
 
 Technology Radar V1.1 is now the canonical parallel Platform Evolution architecture. Its Wave 0 direction is active for
 architecture/governance, while runtime pilots remain evidence-gated and must not interrupt the 13.16 product sequence.

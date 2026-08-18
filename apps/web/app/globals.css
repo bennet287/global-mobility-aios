@@ -13898,3 +13898,202 @@ html[data-theme="dark"] body {
   .operator-reliance-boundary { grid-template-columns: 1fr; gap: 6px; }
   .operator-case-workbench .technical-metadata-list > div { grid-template-columns: 1fr; }
 }
+
+/* Phase 13.16.9 evidence and provenance UX consolidation */
+.evidence-provenance {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0 22px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent-soft) 20%, transparent), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-strong) 96%, transparent), color-mix(in srgb, var(--surface) 98%, transparent));
+  box-shadow: 0 12px 34px rgba(20, 20, 32, 0.035);
+}
+
+.evidence-provenance-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: start;
+}
+
+.evidence-provenance-heading h3 {
+  margin: 5px 0 6px;
+  font-family: var(--font-editorial);
+  font-size: clamp(21px, 2.2vw, 28px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.evidence-provenance-heading p {
+  max-width: 72rem;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.evidence-provenance-count {
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+  font-size: 9px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.evidence-provenance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 9px;
+}
+
+.evidence-provenance-card {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 152px;
+  align-content: start;
+  gap: 8px;
+  padding: 13px 14px 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
+}
+
+.evidence-provenance-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: color-mix(in srgb, var(--ink-muted) 35%, transparent);
+}
+
+.evidence-provenance-card[data-tone="good"]::before {
+  background: var(--green);
+}
+
+.evidence-provenance-card[data-tone="warn"]::before {
+  background: var(--amber);
+}
+
+.evidence-provenance-card[data-tone="bad"]::before {
+  background: var(--red);
+}
+
+.evidence-provenance-card[data-current="true"] {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 22%, var(--surface-muted));
+}
+
+.evidence-provenance-topline {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.evidence-provenance-stage {
+  color: var(--accent);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: 0.07em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.evidence-provenance-state {
+  flex: 0 0 auto;
+  max-width: 52%;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 8px;
+  font-weight: 720;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.evidence-provenance-card > strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.38;
+}
+
+.evidence-provenance-card > p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.evidence-provenance-card > small {
+  align-self: end;
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+  font-size: 8.5px;
+  line-height: 1.45;
+}
+
+.evidence-provenance-boundary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--amber) 24%, var(--line));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--state-warning-bg) 55%, transparent);
+}
+
+.evidence-provenance-boundary strong {
+  color: var(--state-warning-fg);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.evidence-provenance-boundary span {
+  color: var(--ink-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .evidence-provenance {
+    padding: 14px;
+  }
+
+  .evidence-provenance-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-provenance-count {
+    justify-self: start;
+  }
+
+  .evidence-provenance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-provenance-card {
+    min-height: 0;
+  }
+
+  .evidence-provenance-boundary {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}

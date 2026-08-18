@@ -6,6 +6,7 @@ import { InlineNotice } from "../../components/InlineNotice";
 import { StatusBadge } from "../../components/StatusBadge";
 import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
+import { EvidenceProvenance, type EvidenceProvenanceItem } from "../../components/EvidenceProvenance";
 import {
   getHealthStatus,
   getSourceCertificationReviewQueue,
@@ -116,6 +117,70 @@ export default function SourceCertificationReviewPage() {
     [queue, selectedId],
   );
 
+  const selectedProjection = workspace?.available_projections.find(
+    (item) => item.source_snapshot_id === snapshotId,
+  ) || workspace?.available_projections[0] || null;
+  const latestReview = workspace?.review_history[0] || null;
+  const sourceCertificationProvenance: EvidenceProvenanceItem[] = workspace ? [
+    {
+      key: "official-source",
+      stage: "Official source",
+      title: queueItem?.official_source.name || workspace.certification.official_source_id,
+      state: "Registered source",
+      detail: queueItem?.official_source.url || "The certification is bound to a persisted official-source record.",
+      meta: queueItem ? `${queueItem.jurisdiction.code} · ${queueItem.certification.certification_scope}` : undefined,
+      tone: "good",
+    },
+    {
+      key: "snapshot",
+      stage: "Immutable snapshot",
+      title: selectedProjection ? `Snapshot ${selectedProjection.source_snapshot_id.slice(0, 8)}` : "Snapshot pin required",
+      state: selectedProjection ? "Pinned" : "Not established",
+      detail: selectedProjection
+        ? `${selectedProjection.entry_count} structured entries · extraction ${selectedProjection.extraction_version}`
+        : "A review pack cannot be relied on until one immutable source snapshot is selected.",
+      meta: selectedProjection ? `Content hash ${selectedProjection.source_snapshot_content_hash.slice(0, 16)}…` : undefined,
+      tone: selectedProjection ? "good" : "warn",
+    },
+    {
+      key: "review-pack",
+      stage: "Certification / review",
+      title: workspace.review_pack ? `Review pack ${workspace.review_pack.pack_version}` : "Review pack unavailable",
+      state: objectText(workspace.review_pack_state).replaceAll("_", " "),
+      detail: workspace.review_pack
+        ? "The deterministic pack binds immutable source content, structured projection, checklist, and an exact SHA-256."
+        : "No certification decision can be submitted without the exact review evidence pack.",
+      meta: workspace.review_pack ? `SHA-256 ${workspace.review_pack.evidence_pack_sha256.slice(0, 16)}…` : undefined,
+      tone: workspace.review_pack ? "good" : "warn",
+    },
+    {
+      key: "certification",
+      stage: "Human review state",
+      title: latestReview?.actor || "No independent review recorded",
+      state: latestReview?.decision || workspace.certification.status,
+      detail: latestReview?.notes || "The certification remains governed by independent-human review requirements.",
+      meta: latestReview ? formatDate(latestReview.created_at) : undefined,
+      tone: latestReview?.decision === "approved" ? "good" : latestReview?.decision === "rejected" ? "bad" : "warn",
+      current: Boolean(latestReview),
+    },
+    {
+      key: "verified-rule-boundary",
+      stage: "VerifiedRule",
+      title: "Not created by this review screen",
+      state: "Separate governed record",
+      detail: "Approving source certification does not itself publish a VerifiedRule and does not establish pathway criteria.",
+      tone: "neutral",
+    },
+    {
+      key: "pathway-boundary",
+      stage: "Pathway evidence",
+      title: "Publication remains separate",
+      state: "Separate controlled action",
+      detail: "A certification decision can support downstream evidence governance, but pathway publication is still an independent human-reviewed action.",
+      tone: "neutral",
+    },
+  ] : [];
+
   function selectCertification(id: string) {
     const item = queue?.items.find((candidate) => candidate.certification.id === id);
     setSelectedId(id);
@@ -203,6 +268,15 @@ export default function SourceCertificationReviewPage() {
 
       {error ? <InlineNotice label="Review workspace error" detail={error} tone="bad" /> : null}
       {notice ? <InlineNotice label="Review workspace update" detail={notice} tone="good" /> : null}
+
+      {workspace ? (
+        <EvidenceProvenance
+          title="Source certification provenance"
+          detail="Keep the registered official source, immutable snapshot, deterministic review pack, independent-human decision, VerifiedRule boundary, and pathway-publication boundary visibly distinct."
+          items={sourceCertificationProvenance}
+          boundary="Certification review changes only the governed certification state. It does not mutate the immutable snapshot, publish a VerifiedRule, publish a pathway, or create legal certainty."
+        />
+      ) : null}
 
       <section className="source-review-layout">
         <aside className="panel source-review-queue">

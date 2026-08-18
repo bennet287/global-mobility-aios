@@ -9,6 +9,7 @@ import { SectionTitle } from "../../components/SectionTitle";
 import { StatusBadge } from "../../components/StatusBadge";
 import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
+import { EvidenceProvenance, type EvidenceProvenanceItem } from "../../components/EvidenceProvenance";
 import {
   DocumentExtractionJob,
   DocumentConsistencyAssessment,
@@ -284,6 +285,63 @@ export default function DocumentIntelligencePage() {
   const highFraudRiskCount = fraudRiskAssessments.filter((item) => item.review_status === "pending").reduce((total, item) => total + item.high_indicator_count, 0);
   const pendingRequirementCount = requirementAssessments.filter((item) => item.review_status === "pending").length;
   const missingRequirementCount = requirementAssessments.filter((item) => item.review_status === "pending").reduce((total, item) => total + item.missing_count, 0);
+  const pendingConsistencyCount = validations.filter((item) => item.review_status === "pending").length;
+  const verifiedDocumentCount = documents.filter((document) => Boolean(document.verified_by)).length;
+  const unresolvedDocumentSignalCount = missingRequirementCount + inconsistencyCount + highFraudRiskCount;
+  const documentEvidenceProvenance: EvidenceProvenanceItem[] = [
+    {
+      key: "case-evidence",
+      stage: "Case evidence",
+      title: `${documents.length} stored document${documents.length === 1 ? "" : "s"}`,
+      state: documents.length ? "Recorded" : "Not established",
+      detail: "Stored documents are case evidence records. Upload/storage integrity does not establish authenticity or legal sufficiency.",
+      meta: `${verifiedDocumentCount} document${verifiedDocumentCount === 1 ? "" : "s"} with a verifier identity`,
+      tone: documents.length ? "good" : "warn",
+    },
+    {
+      key: "extraction",
+      stage: "Extraction",
+      title: `${jobs.length} extraction job${jobs.length === 1 ? "" : "s"}`,
+      state: reviewCount ? `${reviewCount} need review` : failedCount ? `${failedCount} failed` : jobs.length ? "No review queue" : "Not established",
+      detail: "OCR/extraction output is derived data. Even an approved extraction remains separate from document authenticity and source certification.",
+      tone: reviewCount || failedCount ? "warn" : jobs.length ? "good" : "neutral",
+    },
+    {
+      key: "consistency",
+      stage: "Consistency review",
+      title: `${validations.length} assessment${validations.length === 1 ? "" : "s"}`,
+      state: pendingConsistencyCount ? `${pendingConsistencyCount} pending` : validations.length ? "Reviewed / recorded" : "Not established",
+      detail: "Consistency assessments compare extracted facts with pinned profile/application context without rewriting those source records.",
+      meta: `${inconsistencyCount} assessment${inconsistencyCount === 1 ? "" : "s"} with inconsistencies`,
+      tone: pendingConsistencyCount || inconsistencyCount ? "warn" : validations.length ? "good" : "neutral",
+    },
+    {
+      key: "requirements",
+      stage: "Requirement coverage",
+      title: `${requirementAssessments.length} immutable assessment${requirementAssessments.length === 1 ? "" : "s"}`,
+      state: pendingRequirementCount ? `${pendingRequirementCount} pending review` : requirementAssessments.length ? "Reviewed / recorded" : "Not established",
+      detail: "Requirement coverage is pathway/application-context evidence, not an eligibility decision and not proof that an authority will accept a document.",
+      meta: `${missingRequirementCount} missing requirement signal${missingRequirementCount === 1 ? "" : "s"}`,
+      tone: pendingRequirementCount || missingRequirementCount ? "warn" : requirementAssessments.length ? "good" : "neutral",
+    },
+    {
+      key: "integrity",
+      stage: "Integrity review",
+      title: `${fraudRiskAssessments.length} assessment${fraudRiskAssessments.length === 1 ? "" : "s"}`,
+      state: pendingFraudRiskCount ? `${pendingFraudRiskCount} pending review` : fraudRiskAssessments.length ? "Reviewed / recorded" : "Not established",
+      detail: "Integrity indicators are human-review triage signals. They do not create an automated fraud verdict, adverse action, or evidence rejection.",
+      meta: `${highFraudRiskCount} high-severity indicator${highFraudRiskCount === 1 ? "" : "s"}`,
+      tone: pendingFraudRiskCount || highFraudRiskCount ? "warn" : fraudRiskAssessments.length ? "good" : "neutral",
+    },
+    {
+      key: "gaps",
+      stage: "Unresolved gaps",
+      title: `${unresolvedDocumentSignalCount} unresolved evidence signal${unresolvedDocumentSignalCount === 1 ? "" : "s"}`,
+      state: unresolvedDocumentSignalCount ? "Attention required" : "No unresolved signal returned",
+      detail: "Zero returned signals is not legal clearance. Case evidence, human review, pathway context, and authority requirements remain separate layers.",
+      tone: unresolvedDocumentSignalCount ? "warn" : "neutral",
+    },
+  ];
   const loadStatus = loading ? "loading" : health?.status === "ok" ? "ready" : "partial";
   return (
     <WorkspaceShell health={health}>
@@ -313,6 +371,15 @@ export default function DocumentIntelligencePage() {
           <MetricPill label="Expiry tasks" value={pendingExpiryCount} tone={pendingExpiryCount ? "warn" : "good"} />
           <MetricPill label="Expired" value={expiredCount} tone={expiredCount ? "warn" : "good"} />
         </div>
+
+        {leadId ? (
+          <EvidenceProvenance
+            title="Case evidence provenance"
+            detail="Keep stored documents, derived extraction, consistency review, requirement coverage, integrity review, and unresolved gaps visibly separate while working the case."
+            items={documentEvidenceProvenance}
+            boundary="Document extraction, consistency review, requirement review, or integrity review never turns a case document into an official source, a VerifiedRule, legal truth, or an authority decision."
+          />
+        ) : null}
 
         {!leadId ? <EmptyState title="No lead selected" detail="Choose a lead to inspect stored documents and extraction history." /> : <div className="document-intelligence-layout">
           <section className="document-intelligence-main" aria-label="Document intelligence workspace">

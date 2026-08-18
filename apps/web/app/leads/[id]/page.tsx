@@ -43,6 +43,7 @@ import { LeadIdentity } from "../../../components/LeadIdentity";
 import { ActionCard, ActionItem } from "../../../components/ActionCard";
 import { MetricPill } from "../../../components/MetricPill";
 import { TechnicalDisclosure } from "../../../components/TechnicalDisclosure";
+import { EvidenceProvenance, type EvidenceProvenanceItem } from "../../../components/EvidenceProvenance";
 import { useBackendStatus } from "../../../hooks/useBackendStatus";
 import { titleCase, statusTone, Tone } from "../../../lib/utils";
 import {
@@ -432,6 +433,74 @@ export default function LeadDetailPage() {
       ? "The latest pathway comparison does not expose a complete assessment/profile/pathway version spine. Timeline and document-assessment records are excluded from current blockers, evidence counts, and journey state rather than being inferred into alignment."
       : "No persisted pathway comparison establishes the current decision context. Timeline and document-assessment records are historical/unassigned for this view and are excluded from current blockers, evidence counts, and journey state.";
 
+  const officialSourceReferenceCount = detail.source_references.filter(
+    (reference) => (reference.source_type || "").toLowerCase().includes("official"),
+  ).length;
+  const currentRuleCount = primaryComparison?.verified_rule_ids.length || 0;
+  const currentEvidenceGapCount = primaryComparison?.missing_evidence.length || 0;
+  const caseEvidenceState = alignedRequirementAssessment
+    ? `${alignedRequirementAssessment.satisfied_count}/${alignedRequirementAssessment.required_count} satisfied`
+    : "Not established";
+  const caseEvidenceTone: EvidenceProvenanceItem["tone"] = alignedRequirementAssessment
+    ? alignedRequirementAssessment.missing_count || alignedRequirementAssessment.inconsistency_count ? "warn" : "good"
+    : "warn";
+  const caseEvidenceProvenance: EvidenceProvenanceItem[] = [
+    {
+      key: "official-source",
+      stage: "Official source",
+      title: `${officialSourceReferenceCount} official-labeled source reference${officialSourceReferenceCount === 1 ? "" : "s"}`,
+      state: officialSourceReferenceCount ? "Referenced" : "Not established",
+      detail: "Source references support truth review, but a source URL alone does not establish certification, a VerifiedRule, or pathway applicability.",
+      meta: `${detail.source_references.length} total truth-source reference${detail.source_references.length === 1 ? "" : "s"} loaded`,
+      tone: officialSourceReferenceCount ? "good" : "warn",
+    },
+    {
+      key: "verified-rule",
+      stage: "VerifiedRule",
+      title: currentRuleCount ? `${currentRuleCount} rule reference${currentRuleCount === 1 ? "" : "s"} pinned` : "No current rule reference",
+      state: currentRuleCount ? "Pinned to comparison" : "Not established",
+      detail: "Only VerifiedRule identifiers carried by the persisted pathway comparison are presented as current rule evidence here.",
+      tone: currentRuleCount ? "good" : "warn",
+    },
+    {
+      key: "pathway-evidence",
+      stage: "Pathway evidence",
+      title: primaryComparison?.pathway.name || "No current pathway evidence",
+      state: primaryComparison ? titleCase(primaryComparison.processing_evidence_status) : "Not established",
+      detail: "Pathway evidence belongs to the persisted comparison and remains distinct from an authority outcome or legal certainty.",
+      meta: professionalContext.comparison ? `Comparison ${professionalContext.comparison.assessment_id}` : undefined,
+      tone: primaryComparison?.processing_evidence_status === "established" ? "good" : "warn",
+      current: Boolean(primaryComparison),
+    },
+    {
+      key: "case-evidence",
+      stage: "Case evidence",
+      title: caseEvidenceState,
+      state: alignedRequirementAssessment ? titleCase(alignedRequirementAssessment.review_status) : "Not established",
+      detail: "Only the context-aligned document requirement assessment contributes current case evidence to this professional view.",
+      meta: alignedRequirementAssessment
+        ? `${alignedRequirementAssessment.missing_count} missing · ${alignedRequirementAssessment.inconsistency_count} inconsistencies`
+        : "Historical or mismatched assessments are excluded.",
+      tone: caseEvidenceTone,
+    },
+    {
+      key: "historical",
+      stage: "Superseded / historical",
+      title: `${contextMismatchCount} excluded record${contextMismatchCount === 1 ? "" : "s"}`,
+      state: contextMismatchCount ? "Excluded from current" : "None excluded",
+      detail: "Timeline and document-assessment records that do not match the persisted comparison context remain inspectable but cannot support current blockers, readiness, or evidence conclusions.",
+      tone: contextMismatchCount ? "warn" : "neutral",
+    },
+    {
+      key: "gaps",
+      stage: "Unresolved gaps",
+      title: `${currentEvidenceGapCount} comparison evidence gap${currentEvidenceGapCount === 1 ? "" : "s"}`,
+      state: currentEvidenceGapCount ? "Attention required" : "No comparison gap returned",
+      detail: "No returned gap does not mean the case is legally clear; human review, source state, and case evidence boundaries still apply.",
+      tone: currentEvidenceGapCount ? "warn" : "neutral",
+    },
+  ];
+
   return (
     <WorkspaceShell health={health}>
       <Topbar
@@ -562,6 +631,12 @@ export default function LeadDetailPage() {
             <div><span className="page-kicker">Supporting evidence & review state</span><h2 id="case-evidence-heading">What supports the current professional view</h2></div>
             {professionalLoading ? <span className="operator-count-chip">Refreshing reads…</span> : null}
           </div>
+          <EvidenceProvenance
+            title="Current decision evidence chain"
+            detail="A consistent presentation of source, rule, pathway, aligned case evidence, historical exclusions, and unresolved gaps. These labels describe existing persisted records; they do not create new evidence authority."
+            items={caseEvidenceProvenance}
+            boundary="Evidence presentation never upgrades retrieval, a source reference, an assessment, or a pathway comparison into legal truth, certification, publication, or an authority outcome."
+          />
           <div className="operator-evidence-grid">
             <article>
               <span>Latest eligibility assessment</span>

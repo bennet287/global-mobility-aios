@@ -4,6 +4,73 @@ This is the current changelog from the post-`f0688a8` baseline onward. The compl
 Phase 13.16.7 baseline is preserved byte-for-byte at
 [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md).
 
+## 2026-08-18 - Phase 13.16.9 COMPLETE / PASS - Evidence and provenance UX consolidation
+
+- Added a shared, presentation-only `EvidenceProvenance` component and one consistent visual/evidence grammar across:
+  - Professional Case;
+  - Pathway Catalogue;
+  - Independent Source Review;
+  - Document Intelligence.
+- Made official source, immutable snapshot, certification/review state, VerifiedRule, pathway evidence, case evidence,
+  superseded/historical state, and unresolved gaps visibly distinct without inventing a new backend evidence model.
+- Preserved the 13.16.8 Professional Case context-alignment invariant: only persisted comparison-aligned records may support
+  current decision evidence; latest eligibility and historical/mismatched records remain explicitly bounded.
+- Pathway Catalogue now makes its source → snapshot → VerifiedRule → pathway-version chain visible alongside immutable
+  superseded history, while backend publication and explicit human review remain authoritative.
+- Independent Source Review now makes source → snapshot → deterministic evidence pack → independent-human review state
+  visible while explicitly stating that certification does not itself publish a VerifiedRule or pathway.
+- Document Intelligence now distinguishes stored case evidence from derived OCR/extraction, consistency review, requirement
+  coverage, integrity triage, and unresolved gaps. None of these states create automated authenticity, fraud, legal-truth,
+  eligibility, certification, publication, or authority conclusions.
+- Added design regression coverage locking the shared taxonomy, presentational-only component boundary, evidence-boundary
+  language, and the distinction between review/certification/publication authority layers.
+- Added premium responsive evidence-provenance cards/boundary treatment consistent with the warm-ivory / navy Professional
+  experience and existing TechnicalDisclosure detail layer.
+
+### Acceptance
+
+- design foundation: **26/26 PASS**;
+- request/auth regression: **4/4 PASS**;
+- Next.js 15.2.4 production build: **PASS**, **41/41 static pages**;
+- repository policy: **PASS**;
+- release consistency: **PASS** at `0076_organization_position_active_identity`;
+- Docker production profile: **PASS**;
+- database migration/schema consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- local physical-schema parity: **PASS** — 118 registered model tables / 118 actual model tables / 119 physical tables
+  including only `alembic_version` infrastructure;
+- complete API regression: **811 passed / 5 skipped / 0 failed**, carried forward because the exact 13.16.9 boundary has no
+  backend/API/model/schema/Alembic change;
+- `git diff --check`: **PASS** after the two mechanical EOF blank lines were normalized;
+- isolated Edge browser captures: **PASS** for Professional Case, Pathway Catalogue, Independent Source Review, and Document
+  Intelligence;
+- human visual review of all four settled full-page captures: **PASS** — no material overlap, clipping, broken hierarchy, or
+  generic-load/application-error state was observed;
+- runtime fixture request trace: **61 rows — 31 GET / 30 OPTIONS / 0 mutating methods**;
+- automated semantic verifier: **false-negative / not claimed PASS** because two DOM snapshots were taken before final async
+  state settled and the Professional Case source assertion expected a title where the designed summary renders a count;
+  later screenshots, request traces, and Edge/CDP logs were inspected directly and accepted;
+- preserved `gmai.db`: SHA256 `23FC012AF3FA89804A84A9C8DD75C0C68515B23AEF1813CC5460D6D73808CD31`, unchanged throughout static and runtime acceptance;
+- accepted runtime evidence ZIP: SHA256 `FB0B992287C17ABFC6BDFE683308661D13066B28D9275BE6A0E8F5B9AB132954`.
+
+### Boundary
+
+Exact delivery boundary at seal is nine tracked files:
+
+- `apps/web/app/document-intelligence/page.tsx`
+- `apps/web/app/globals.css`
+- `apps/web/app/leads/[id]/page.tsx`
+- `apps/web/app/pathways/page.tsx`
+- `apps/web/app/source-certification-review/page.tsx`
+- `apps/web/components/EvidenceProvenance.tsx`
+- `apps/web/scripts/design-foundation.test.mjs`
+- `docs/CHANGELOG.md`
+- `docs/ROADMAP.md`
+
+There is **no backend/model/Alembic/preserved-database/Austria-safety/Technology-Radar runtime semantic change** in this
+slice. No existing evidence, certification, publication, authorization, or human-review authority is weakened.
+
+Phase 13.16.10 responsive/accessibility/polish/integrated acceptance is now **UNLOCKED / NEXT**.
+
 ## 2026-08-18 - Phase 13.16.8 COMPLETE / PASS - Governed Professional / Operator experience
 
 - Refined the existing `/` Operations Workspace and `/leads/[id]` native case workspace instead of creating a parallel

@@ -8,6 +8,7 @@ import { SectionTitle } from "../../components/SectionTitle";
 import { StatusBadge } from "../../components/StatusBadge";
 import { Topbar } from "../../components/Topbar";
 import { WorkspaceShell } from "../../components/WorkspaceShell";
+import { EvidenceProvenance, type EvidenceProvenanceItem } from "../../components/EvidenceProvenance";
 import {
   createPathway,
   createPathwayVersion,
@@ -270,6 +271,72 @@ export default function PathwaysPage() {
     versions: pathways.reduce((total, item) => total + (item.current_version?.version_number || 0), 0),
   };
   const current = selected?.current_version;
+  const selectedSource = sources.find((source) => source.id === form.sourceId) || null;
+  const selectedSnapshot = snapshots.find((snapshot) => snapshot.id === form.snapshotId) || null;
+  const selectedRules = rules.filter((rule) => form.ruleIds.includes(rule.id));
+  const supersededVersionCount = selected?.versions.filter((version) => version.lifecycle_status === "superseded").length || 0;
+  const publicationEvidenceGaps = [
+    form.sourceId ? null : "official source",
+    form.snapshotId ? null : "immutable source snapshot",
+    form.ruleIds.length ? null : "VerifiedRule",
+  ].filter((value): value is string => Boolean(value));
+  const pathwayEvidenceProvenance: EvidenceProvenanceItem[] = [
+    {
+      key: "official-source",
+      stage: "Official source",
+      title: selectedSource?.name || "No official source selected",
+      state: selectedSource ? "Selected" : "Not established",
+      detail: selectedSource
+        ? `${titleCase(selectedSource.country)} · ${titleCase(selectedSource.domain)}`
+        : "A pathway draft may be edited without a source, but publication remains evidence-gated.",
+      tone: selectedSource ? "good" : "warn",
+    },
+    {
+      key: "snapshot",
+      stage: "Immutable snapshot",
+      title: selectedSnapshot ? `Snapshot ${selectedSnapshot.id.slice(0, 8)}` : "No snapshot pinned",
+      state: selectedSnapshot ? titleCase(selectedSnapshot.status) : "Not established",
+      detail: selectedSnapshot
+        ? `Captured ${new Date(selectedSnapshot.captured_at).toLocaleString()}`
+        : "The current pathway version has no immutable retrieval pin selected in the editor.",
+      meta: selectedSnapshot?.content_hash ? `Hash ${selectedSnapshot.content_hash.slice(0, 16)}…` : undefined,
+      tone: selectedSnapshot ? "good" : "warn",
+    },
+    {
+      key: "verified-rules",
+      stage: "VerifiedRule",
+      title: selectedRules.length ? `${selectedRules.length} human-published rule${selectedRules.length === 1 ? "" : "s"} pinned` : "No VerifiedRule pinned",
+      state: selectedRules.length ? "Selected" : "Not established",
+      detail: "VerifiedRule records remain distinct from raw source text and snapshots; only their identifiers are attached to the pathway version.",
+      meta: selectedRules.length ? selectedRules.map((rule) => rule.rule_key).slice(0, 3).join(" · ") : undefined,
+      tone: selectedRules.length ? "good" : "warn",
+    },
+    {
+      key: "pathway-version",
+      stage: "Pathway evidence",
+      title: selected && current ? `${selected.name} · version ${current.version_number}` : "Draft composition",
+      state: current ? titleCase(current.lifecycle_status) : "Not established",
+      detail: "The pathway version packages selected source/snapshot/rule evidence with criteria. Drafting never makes it client-facing.",
+      tone: current?.lifecycle_status === "published" ? "good" : current ? "warn" : "neutral",
+      current: current?.lifecycle_status === "published",
+    },
+    {
+      key: "historical",
+      stage: "Superseded / historical",
+      title: `${supersededVersionCount} superseded version${supersededVersionCount === 1 ? "" : "s"}`,
+      state: supersededVersionCount ? "Historical only" : "None recorded",
+      detail: "Superseded pathway versions stay in the immutable version ledger and do not silently replace the selected current version.",
+      tone: "neutral",
+    },
+    {
+      key: "gaps",
+      stage: "Unresolved gaps",
+      title: publicationEvidenceGaps.length ? publicationEvidenceGaps.join(" · ") : "Core publication evidence selected",
+      state: publicationEvidenceGaps.length ? "Incomplete" : "Selected",
+      detail: "This presentation does not decide publishability; the backend publication gate and explicit human review remain authoritative.",
+      tone: publicationEvidenceGaps.length ? "warn" : "good",
+    },
+  ];
   const loadStatus = loading ? "loading" : health?.status === "ok" ? "ready" : "partial";
 
   return (
@@ -287,6 +354,13 @@ export default function PathwaysPage() {
           <MetricPill label="Evidence rules" value={rules.length} tone="good" />
           <MetricPill label="Pending impacts" value={impactQueue.pending_review} tone={impactQueue.pending_review ? "warn" : "good"} />
         </div>
+
+        <EvidenceProvenance
+          title="Source-to-pathway evidence chain"
+          detail="Trace the exact official source, immutable retrieval snapshot, human-published rules, pathway version, historical state, and unresolved evidence before relying on a mobility route."
+          items={pathwayEvidenceProvenance}
+          boundary="This is a presentation of existing evidence pins. Publishing a pathway remains a separate human-reviewed backend action; draft or superseded versions never gain authority from this panel."
+        />
 
         <section className="panel pathway-impact-panel">
           <div className="panel-header-row">
