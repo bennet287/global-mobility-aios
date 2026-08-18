@@ -38,7 +38,7 @@ const safetyRules = [
 
 const DASHBOARD_VIEWS = [
   { id: "cases", label: "Cases", description: "Pipeline and priorities" },
-  { id: "verification", label: "Verification", description: "Truth, applications, documents" },
+  { id: "verification", label: "Decision gates", description: "Truth, applications, documents" },
   { id: "intake", label: "Intake", description: "Capture and verification signals" },
   { id: "governance", label: "Governance", description: "Controls, agents, shortcuts" },
 ] as const;
@@ -51,14 +51,12 @@ function buildActionQueue({
   documentQueue,
   agentDashboard,
   applicationQueue,
-  apiBase,
 }: {
   summary: DashboardSummary;
   truthQueue: OptionalData<TruthResolutionQueue>;
   documentQueue: OptionalData<DocumentVerificationQueue>;
   agentDashboard: OptionalData<AgentReviewDashboard>;
   applicationQueue: OptionalData<ApplicationQueue>;
-  apiBase: string;
 }): ActionItem[] {
   const actions: ActionItem[] = [];
 
@@ -68,7 +66,7 @@ function buildActionQueue({
       title: lead.full_name,
       detail: `${lead.target_country || "No country"} · ${titleCase(lead.intent)}`,
       tone: "warn",
-      href: `${apiBase}/admin/v2`,
+      href: `/leads/${lead.id}`,
     });
   }
 
@@ -78,7 +76,7 @@ function buildActionQueue({
       title: item.lead.full_name,
       detail: item.next_action,
       tone: item.stage.includes("blocked") ? "bad" : "warn",
-      href: `${apiBase}/api/v1/leads/${item.lead.id}/truth-resolution`,
+      href: `/leads/${item.lead.id}?tab=truth`,
     });
   }
 
@@ -88,7 +86,7 @@ function buildActionQueue({
       title: titleCase(doc.document_type),
       detail: `${doc.status} · ${doc.filename}`,
       tone: "warn",
-      href: `${apiBase}/admin/v2`,
+      href: doc.lead_id ? `/leads/${doc.lead_id}` : "/document-intelligence",
     });
   }
 
@@ -98,7 +96,7 @@ function buildActionQueue({
       title: titleCase(item.agent_name),
       detail: item.summary,
       tone: "warn",
-      href: "/agents/review",
+      href: item.lead_id ? `/leads/${item.lead_id}?tab=agents` : "/agents/review",
     });
   }
 
@@ -108,7 +106,7 @@ function buildActionQueue({
       title: item.lead.full_name,
       detail: item.next_action,
       tone: statusTone(item.stage),
-      href: `${apiBase}/admin/v2`,
+      href: `/leads/${item.lead.id}?tab=applications`,
     });
   }
 
@@ -141,7 +139,7 @@ export default function HomePage() {
   const agentCount = agentDashboard.data?.items?.length || 0;
   const recentLeads = summary.recent_leads.slice(0, 8);
   const recentTruthClaims = summary.recent_truth_audits.slice(0, 3);
-  const actionQueue = buildActionQueue({ summary, truthQueue, documentQueue, agentDashboard, applicationQueue, apiBase });
+  const actionQueue = buildActionQueue({ summary, truthQueue, documentQueue, agentDashboard, applicationQueue });
   const readyApplications = applicationQueue.data?.stage_counts?.ready_for_human_approval || 0;
   const blockedApplications = applicationQueue.data?.stage_counts?.blocked_truth_rejected || 0;
 
@@ -172,22 +170,22 @@ export default function HomePage() {
     <WorkspaceShell health={health}>
       <Topbar
         title="Operations Workspace"
-        kicker="Local-first · Human-controlled · Audit-safe"
+        kicker="Professional / Operator · Evidence-aware · Human-controlled"
         loadStatus={loadStatus}
         onRefresh={load}
       />
 
       <section className={`command-strip ${loadStatus}`} id="workbench">
         <div className="command-copy">
-          <span>Today&apos;s operating picture</span>
-          <strong>{postureCopy.headline}</strong>
-          <p>{postureCopy.body}</p>
+          <span>Professional attention desk</span>
+          <strong>What requires professional attention now?</strong>
+          <p>{postureCopy.body} Case decisions stay grounded in persisted evidence, explicit review state, and governed specialist workflows.</p>
           <div className="command-actions">
             <button className="button hero-primary" type="button" onClick={() => setDashboardView("cases")}>
-              Review active cases
+              Open case decisions
             </button>
             <button className="button hero-secondary" type="button" onClick={() => setDashboardView("verification")}>
-              View safety gates
+              Review decision gates
             </button>
           </div>
         </div>
@@ -195,10 +193,10 @@ export default function HomePage() {
           <div className="system-panel">
             <div className="system-panel-heading">
               <div>
-                <span>System pulse</span>
-                <strong>Controlled workflow</strong>
+                <span>Operations pulse</span>
+                <strong>Governed case work</strong>
               </div>
-              <small>3 connected layers</small>
+              <small>Case · evidence · execution</small>
             </div>
             <div className="system-card system-card-leads">
               <div className="system-card-label"><i /><span>Pipeline</span></div>
@@ -225,12 +223,21 @@ export default function HomePage() {
 
       {summaryNotice ? <InlineNotice label="Case summary temporarily unavailable" tone="bad" detail={summaryNotice} /> : null}
 
+      <nav className="operator-workflow-map" aria-label="Professional decision workflow">
+        <Link href="/"><span>01 · Case</span><strong>Case attention</strong><small>Open the professional case spine and see persisted blockers.</small></Link>
+        <Link href="/eligibility"><span>02 · Assess</span><strong>Eligibility</strong><small>Review profile-backed eligibility and explicit uncertainty.</small></Link>
+        <Link href="/planning"><span>03 · Compare</span><strong>Pathway planning</strong><small>Compare governed pathway versions, evidence, cost, and risk.</small></Link>
+        <Link href="/document-intelligence"><span>04 · Evidence</span><strong>Evidence review</strong><small>Work document requirements, validation, provenance, and review.</small></Link>
+        <Link href="/timelines"><span>05 · Execute</span><strong>Timeline</strong><small>Move only through deliberately generated and activated milestones.</small></Link>
+        <Link href="/authority-submission-checklist"><span>06 · Authority</span><strong>Authority workflow</strong><small>Control readiness and filing work without implying an outcome.</small></Link>
+      </nav>
+
       <div className="dashboard-section-heading">
         <div>
           <span>At a glance</span>
-          <h2>Work that needs attention.</h2>
+          <h2>Cases and governed decisions that need attention.</h2>
         </div>
-        <p>Live workload across the client pipeline, verification queues, documents, and controlled agent output.</p>
+        <p>Live professional workload across cases, verification gates, evidence, authority readiness, and controlled agent output.</p>
       </div>
 
       <section className="metric-row" aria-label="Workspace metrics">
@@ -258,7 +265,7 @@ export default function HomePage() {
         </article>
 
         <aside className="panel action-panel">
-          <SectionTitle label="Today" title="Priority queue" detail={`${actionQueue.length} operator actions`} />
+          <SectionTitle label="Professional attention" title="Priority queue" detail={`${actionQueue.length} persisted review / workflow signals`} />
           {loadStatus === "loading" || loadStatus === "idle" ? (
             <div className="action-list">
               <ActionCardSkeleton />
@@ -272,7 +279,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <EmptyState title="No immediate actions" detail="When reviews, documents, or agent outputs need attention, they will appear here first." />
+            <EmptyState title="No immediate actions" detail="When persisted reviews, documents, application gates, or agent outputs need attention, they will appear here first." />
           )}
         </aside>
       </section>}

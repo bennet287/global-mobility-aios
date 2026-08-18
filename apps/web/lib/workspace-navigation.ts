@@ -104,6 +104,7 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
       items: [
         { label: "Operations Workspace", href: "/", icon: "home" },
         { label: "Mobility Profiles", href: "/profiles", icon: "profiles" },
+        { label: "Eligibility", href: "/eligibility", icon: "review" },
         { label: "Mobility Planning", href: "/planning", icon: "planning" },
         { label: "Pathway Catalogue", href: "/pathways", icon: "pathways" },
         { label: "Mobility Timelines", href: "/timelines", icon: "timelines" },

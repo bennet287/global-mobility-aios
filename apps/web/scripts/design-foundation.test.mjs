@@ -618,3 +618,114 @@ test("13.16.7 secure Mobility User plan stays reviewed, pinned, and client-safe"
     /\.portal-risk-grid > div:last-child:nth-child\(odd\)/,
   );
 });
+
+test("13.16.8 Professional / Operator experience composes governed case reads without creating a parallel dashboard", async () => {
+  const [operations, casePage, navigation, styles, api, portal] = await Promise.all([
+    read("app/page.tsx"),
+    read("app/leads/[id]/page.tsx"),
+    read("lib/workspace-navigation.ts"),
+    read("app/globals.css"),
+    read("lib/api.ts"),
+    read("components/ClientPortalPage.tsx"),
+  ]);
+
+  assert.match(navigation, /label: "Professional \/ Operator"/);
+  assert.match(navigation, /label: "Eligibility", href: "\/eligibility"/);
+  assert.match(navigation, /label: "Operations Workspace", href: "\/"/);
+  assert.match(navigation, /label: "Board Room", href: "\/board-room"/);
+
+  assert.match(operations, /Professional attention desk/);
+  assert.match(operations, /What requires professional attention now\?/);
+  assert.match(operations, /className="operator-workflow-map"/);
+  assert.match(operations, /Professional decision workflow/);
+  assert.match(operations, /href: `\/leads\/\$\{item\.lead\.id\}\?tab=truth`/);
+  assert.match(operations, /href: `\/leads\/\$\{item\.lead\.id\}\?tab=applications`/);
+  assert.doesNotMatch(operations, /href: `\$\{apiBase\}\/api\/v1\/leads\/\$\{item\.lead\.id\}\/truth-resolution`/);
+
+  for (const readBinding of [
+    "getLatestEligibilityAssessment(id)",
+    "getLatestPathwayComparison(id)",
+    "listMobilityTimelines(id)",
+    "listDocumentRequirementAssessments({ lead_id: id })",
+    "listAuthorityAppointments({ application_id: application.id })",
+    "listAgencySubmissions({ application_id: application.id })",
+    "listExternalAgencyAssignments({ application_id: application.id })",
+    "listApplicationAuthorityChecklistItems({ application_id: application.id })",
+  ]) {
+    assert.ok(casePage.includes(readBinding), `missing Professional / Operator read binding ${readBinding}`);
+  }
+  assert.match(casePage, /Promise\.allSettled/);
+  assert.match(casePage, /Refreshing professional case reads/);
+  assert.match(casePage, /Treat unavailable signals as unknown, not absent/);
+  assert.match(casePage, /Human review required by persisted comparison/);
+  assert.match(casePage, /professionalContext\.comparison\?\.human_review_required/);
+  assert.match(casePage, /type DecisionContextSpine = \{/);
+  assert.match(casePage, /buildDecisionContextSpine\(professionalContext\.comparison\)/);
+  assert.match(casePage, /timelineMatchesDecisionContext\(timeline, decisionContextSpine\)/);
+  assert.match(casePage, /requirementAssessmentMatchesDecisionContext\(assessment, decisionContextSpine\)/);
+  assert.match(casePage, /timeline\.comparison_assessment_id === spine\.assessmentId/);
+  assert.match(casePage, /timeline\.profile_id === spine\.profileId/);
+  assert.match(casePage, /timeline\.profile_version === spine\.profileVersion/);
+  assert.match(casePage, /timeline\.primary_pathway_id === spine\.pathwayId/);
+  assert.match(casePage, /timeline\.primary_pathway_version_id === spine\.pathwayVersionId/);
+  assert.match(casePage, /assessment\.profile_id === spine\.profileId/);
+  assert.match(casePage, /assessment\.profile_version === spine\.profileVersion/);
+  assert.match(casePage, /assessment\.pathway_id === spine\.pathwayId/);
+  assert.match(casePage, /assessment\.pathway_version_id === spine\.pathwayVersionId/);
+  assert.match(casePage, /excludedTimelines/);
+  assert.match(casePage, /excludedRequirementAssessments/);
+  assert.match(casePage, /Context alignment/);
+  assert.match(casePage, /Context mismatch/);
+  assert.match(casePage, /historical\/context-mismatch/);
+  assert.match(casePage, /alignment to current comparison is not established/);
+  assert.match(casePage, /Latest eligibility is shown separately and is not treated as context-aligned/);
+  assert.match(casePage, /present_unverified/);
+  assert.match(casePage, /Persisted operator records only/);
+  assert.match(casePage, /No aligned persisted blocker signal/);
+  assert.match(casePage, /No persisted next action/);
+  assert.match(casePage, /TechnicalDisclosure/);
+  assert.match(casePage, /These are case operations, not evidence for the current pathway/);
+
+  assert.doesNotMatch(casePage, /const activeTimeline = timelinesByRecency/);
+  assert.doesNotMatch(casePage, /const latestRequirementAssessment = \[\.\.\.professionalContext\.requirementAssessments\]/);
+  assert.doesNotMatch(casePage, /for \(const requirement of professionalContext\.eligibility\?\.factors\.eligibility_requirements/);
+
+  const contextIndex = casePage.indexOf("Decision / case context");
+  const blockersIndex = casePage.indexOf("Blockers & uncertainty");
+  const actionsIndex = casePage.indexOf("Next governed actions");
+  const evidenceIndex = casePage.indexOf("Supporting evidence & review state");
+  const alignmentIndex = casePage.indexOf("contextAlignmentLabel");
+  const provenanceIndex = casePage.indexOf("<TechnicalDisclosure", evidenceIndex);
+  assert.ok(alignmentIndex >= 0 && alignmentIndex < provenanceIndex, "material context alignment must be visible before technical provenance");
+  assert.ok(contextIndex >= 0 && contextIndex < blockersIndex, "decision context must precede blockers");
+  assert.ok(blockersIndex < actionsIndex, "blockers must precede next governed actions");
+  assert.ok(actionsIndex < evidenceIndex, "next governed actions must precede supporting evidence");
+  assert.ok(evidenceIndex < provenanceIndex, "supporting evidence must precede technical provenance");
+
+  assert.doesNotMatch(
+    casePage,
+    /evaluateEligibility\(|comparePathways\(|generateMobilityTimeline\(|activateMobilityTimeline\(|transitionMobilityMilestone\(|generateDocumentRequirementAssessment\(|reviewDocumentRequirementAssessment\(|createAuthorityAppointment\(|createAgencySubmission\(|applyAuthorityChecklistTemplate\(/,
+  );
+
+  for (const readContract of [
+    "getLatestEligibilityAssessment",
+    "getLatestPathwayComparison",
+    "listMobilityTimelines",
+    "listDocumentRequirementAssessments",
+    "listAuthorityAppointments",
+    "listAgencySubmissions",
+    "listExternalAgencyAssignments",
+    "listApplicationAuthorityChecklistItems",
+  ]) {
+    assert.ok(api.includes(`export async function ${readContract}`), `missing existing API read contract ${readContract}`);
+  }
+
+  assert.match(styles, /Phase 13\.16\.8 Professional \/ Operator experience/);
+  assert.match(styles, /\.operator-workflow-map/);
+  assert.match(styles, /\.operator-case-workbench/);
+  assert.match(styles, /\.operator-reliance-boundary/);
+  assert.match(styles, /\.operator-evidence-grid/);
+  assert.match(styles, /@media \(max-width: 640px\)[\s\S]*\.operator-workflow-map/);
+
+  assert.doesNotMatch(portal, /operator-case-workbench|Technical provenance.*Eligibility assessment/);
+});

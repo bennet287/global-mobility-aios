@@ -3,8 +3,8 @@
 **Roadmap generation:** V11.1 / Technology Radar V1.1 alignment
 **Date:** 2026-08-18
 **Development branch:** `roadmap/global-mobility-aios-v11`
-**Accepted product baseline:** `f0688a872e7e6977b69d1f9ff0607b647fc71d14` — Phase 13.16.7 COMPLETE / PASS
-**Active product slice:** Phase 13.16.8 — Professional / Operator experience — UNLOCKED / NEXT
+**Accepted product baseline:** Phase 13.16.8 Professional / Operator experience — COMPLETE / PASS (sealed by this delivery checkpoint)
+**Active product slice:** Phase 13.16.9 — Evidence and provenance UX consolidation — UNLOCKED / NEXT
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
@@ -128,6 +128,25 @@ Accepted evidence at that checkpoint includes:
 - 118 registered model tables, 118 actual model tables, 119 physical tables including only `alembic_version` infrastructure;
 - preserved `gmai.db` unchanged during the accepted browser/runtime work.
 
+Phase 13.16.8 Professional / Operator experience is accepted by this checkpoint. Accepted evidence includes:
+
+- the existing Operations workspace and native `/leads/[id]` case workspace refined rather than a parallel dashboard;
+- Eligibility restored as a first-class Professional / Operator navigation destination;
+- the professional reading order frozen as decision/context → blockers and uncertainty → governed next actions → supporting evidence/review state → technical provenance;
+- a persisted `PathwayComparison` used as the current-decision anchor, with timeline and document-assessment evidence admitted to current state only when their persisted profile/pathway/version context aligns;
+- historical/context-mismatched timeline and document-assessment records excluded from current blockers, evidence counts, readiness, and journey conclusions while remaining inspectable through visible context state and technical provenance;
+- the latest EligibilityAssessment shown as useful persisted case context without falsely claiming full alignment to the current comparison where the contract cannot prove it;
+- authority appointments, submissions, agency assignments, and checklist rows presented as case operations rather than evidence for the selected pathway unless an explicit aligned relationship is persisted;
+- design-foundation **25/25 PASS**, request/auth **4/4 PASS**, Next.js 15.2.4 production build **41/41 PASS**, repository policy **PASS**, release consistency **PASS**, Docker production profile **PASS**, database migration/schema consistency **PASS**, local physical-schema parity **PASS**, and `git diff --check` **PASS**;
+- complete API regression **811 passed / 5 skipped / 0 failed**, carried forward because the context-alignment correction and final documentation work do not modify backend/API/model/schema/Alembic code;
+- browser/runtime acceptance across aligned data-rich, deliberate context-mismatch, and sparse/uncertain cases **PASS**, including human visual review of all three full-page captures;
+- browser fixture traffic limited to read-only `GET`/`HEAD`/`OPTIONS` semantics, with no case-open mutation;
+- preserved `gmai.db` SHA256 `23FC012AF3FA89804A84A9C8DD75C0C68515B23AEF1813CC5460D6D73808CD31` unchanged through the accepted runtime work and re-verified before seal.
+
+The Phase 13.16.8 implementation introduces no backend endpoint, model, schema, migration, authorization expansion,
+client-portal projection widening, publication/certification semantic change, Technology Radar runtime dependency,
+Coworker/OpenWorker runtime implementation, preserved-database mutation, or Austria legal-safety change.
+
 Technology Radar V1 was separately established as a docs-only architecture/governance checkpoint. V1 remains historical
 evidence; Technology Radar V1.1 is now the active platform-evolution direction.
 
@@ -138,8 +157,8 @@ evidence; Technology Radar V1.1 is now the active platform-evolution direction.
 | Slice | State | Intent / gate |
 |---|---|---|
 | **13.16.7** | **COMPLETE / PASS** | Governed Mobility User experience sealed at `f0688a8` |
-| **13.16.8** | **UNLOCKED / NEXT** | Professional / Operator high-density governed case experience |
-| **13.16.9** | **LOCKED** | Evidence and provenance UX consolidation after 13.16.8 acceptance |
+| **13.16.8** | **COMPLETE / PASS** | Governed Professional / Operator decision workspace accepted with context-aligned evidence composition |
+| **13.16.9** | **UNLOCKED / NEXT** | Evidence and provenance UX consolidation after accepted 13.16.8 Professional / Operator experience |
 | **13.16.10** | **LOCKED** | Responsive/accessibility/polish/integrated acceptance after 13.16.9 |
 | **13.17** | **LOCKED** | Genuine external-human acceptance after integrated role experience is ready |
 | **Final Phase 13 disposition** | **LOCKED** | Deterministic release disposition after 13.16 + 13.17 evidence |
@@ -177,7 +196,26 @@ blockers, evidence counts, or readiness conclusions.
 13.16.8 should leave an intentional future UX seam for AIOS Coworker, but it must not introduce speculative Coworker
 runtime dependencies into the active slice.
 
+**State: COMPLETE / PASS — 2026-08-18.**
+
+The accepted implementation refines `/`, `/leads/[id]`, Professional/Operator navigation, and premium presentation
+without adding a parallel dashboard or backend contract. Current pathway evidence is composed conservatively around the
+persisted pathway-comparison decision spine. Context-aligned timeline/document evidence may contribute to the current view;
+historical, unassigned, or mismatched records are explicitly excluded from current blockers/evidence/readiness while
+remaining inspectable. Latest eligibility remains separately labeled where full context alignment cannot be proven.
+
+Browser/runtime acceptance covered three deliberately different states:
+
+1. **aligned data-rich** — aligned timeline/document evidence contributes current blockers and evidence state;
+2. **deliberate context mismatch** — newer mismatched records are visibly excluded while older aligned records remain current;
+3. **sparse / uncertain** — no comparison means no invented current decision context, no imported historical blockers, and no inferred clearance.
+
+All three captures passed human visual review. Browser-open fixture traffic remained read-only, the preserved database
+remained unchanged, and the governance/reliance/authority boundaries remain intact.
+
 ### 5.2 Phase 13.16.9 — Evidence and provenance UX consolidation
+
+**State: UNLOCKED / NEXT.**
 
 Make evidence state understandable consistently across the product. Users/operators should be able to distinguish:
 
@@ -467,7 +505,7 @@ At minimum:
 
 ## 13. Current decision
 
-**Continue with Phase 13.16.8 Professional / Operator experience.**
+**Continue with Phase 13.16.9 Evidence and provenance UX consolidation.**
 
 Technology Radar V1.1 is now the canonical parallel Platform Evolution architecture. Its Wave 0 direction is active for
 architecture/governance, while runtime pilots remain evidence-gated and must not interrupt the 13.16 product sequence.
