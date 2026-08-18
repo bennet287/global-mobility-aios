@@ -1,11 +1,15 @@
 # Global Mobility AIOS — Third-Party Platform Adoption Principles
 
-**Version:** V1
-**Date:** 2026-08-17
-**Status:** Architecture principle
+**Version:** V1.1
+**Date:** 2026-08-18
+**Status:** Current architecture principle
+**Supersedes:** V1 wording only where V1.1 adds the Internal Learning & Quality and AIOS Coworker boundaries
 
 This document defines the permanent ownership boundary between Global Mobility AIOS and external
-frameworks, libraries, engines, services, standards, and infrastructure.
+frameworks, libraries, engines, services, standards, and infrastructure. V1.1 preserves the V1
+semantic-sovereignty rules and adds explicit Internal Learning & Quality, data-use lineage, and AIOS
+Coworker principles. The active radar is [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md);
+[TECHNOLOGY_RADAR_V1.md](TECHNOLOGY_RADAR_V1.md) remains historical evidence.
 
 ## 1. AIOS Semantic Sovereignty Principle
 
@@ -256,3 +260,126 @@ alternatives, security/license, data flow, authority impact, failure modes, benc
 rollback, exit and ROADMAP/CHANGELOG updates.
 
 Repository popularity is not an adoption criterion.
+
+## 22. Internal Learning & Quality Principle
+
+> **Subject to applicable law, contractual commitments, declared processing purposes, required
+> safeguards, and the applicable data-use policy, AIOS should maximize lawful learning from the
+> work it performs. Evaluation, quality improvement, operational intelligence, retrieval/document
+> improvement, workflow optimization, and appropriate internal model training are first-class
+> product purposes.**
+
+This principle does **not** mean every record is automatically trainable. It means AIOS should be
+architected so that permitted operational outcomes, corrections, approvals/rejections, retrieval
+results, document corrections, agent outcomes and workflow signals can become traceable quality
+or learning assets when their use is allowed.
+
+## 23. Separate operational intelligence, evaluation and training
+
+AIOS must preserve three distinct uses:
+
+1. **operational intelligence** — understand work, bottlenecks, workloads, source quality and
+   outcomes;
+2. **evaluation/quality** — measure correctness, correction rates, retrieval/OCR quality, agent
+   success, tool failures and regressions;
+3. **training/optimization** — build permitted corpora for fine-tuning, specialized models,
+   prompt/program optimization, retrieval/ranking improvements and planning improvements.
+
+A record being valid for analytics does not automatically make it valid for model training.
+
+## 24. Human corrections are governed learning assets
+
+Professional corrections, review outcomes, approvals, rejections, evidence edits and OCR fixes
+are high-value supervised quality signals.
+
+Where permitted, AIOS should preserve the relationship between:
+
+```text
+prediction / extraction / recommendation
+        ↓
+professional or human decision
+        ↓
+difference / confirmation
+        ↓
+Learning Record
+```
+
+The learning record must retain provenance and must not rewrite the authoritative business/legal
+record merely to create training data.
+
+## 25. Learning and training lineage
+
+AIOS should be able to establish which source categories, datasets, transformations, human
+corrections, evaluation corpora and promotion decisions contributed to a model/program version.
+
+Training/evaluation lineage is separate from:
+
+- AIOS evidence/legal provenance;
+- OrganizationActivity;
+- business AuditLog;
+- engineering telemetry.
+
+No one lineage layer may silently substitute for another.
+
+## 26. Data-use policy boundary
+
+A future AIOS data-governance layer should express allowed/conditional/excluded uses for service
+operation, quality assurance, analytics, agent/safety evaluation, workflow/retrieval/document
+improvement, prompt/program improvement, human quality review and internal model training.
+
+It should also preserve the relevant processing purpose, lawful-basis/compatibility analysis,
+tenant, provenance, sensitivity classification, retention class and training lineage.
+
+The data-use layer exists to make permitted learning enforceable and auditable, not to block
+learning by default and not to imply universal reuse permission.
+
+## 27. EU compliance boundary for learning
+
+Where GDPR applies, learning/evaluation/training involving personal data requires the applicable
+processing purpose, legal basis or compatible-purpose analysis, transparency, minimisation,
+retention/security controls and other required safeguards. Special-category personal data requires
+an applicable Article 9 condition and any additional required safeguards.
+
+The EDPB's AI-model guidance requires case-specific assessment; it does not create a blanket
+permission or blanket prohibition on AI model development using personal data.
+
+If AIOS later becomes a provider of a general-purpose AI model under the EU AI Act, GPAI provider
+obligations may become relevant. Using or fine-tuning a third-party model does not automatically
+settle that classification; the applicable Commission guidance and the significance of the
+modification must be assessed at that time.
+
+This is an architecture requirement, not a final legal determination. Concrete production
+processing regimes require legal/privacy review before enablement.
+
+## 28. AIOS Coworker boundary
+
+**AIOS Coworker** is the AIOS-owned product capability for governed finished-work execution.
+OpenWorker (`andrewyng/openworker`) is an A+ strategic reference / controlled-pilot candidate,
+not the domain abstraction.
+
+```text
+AIOS domain truth + Organization OS
+        ↓
+AIOS Coworker capability
+        ↓
+AIOS-owned execution/tool/connector contracts
+        ↓
+OpenWorker-derived or other bounded implementation
+        ↓
+finished deliverable
+        ↓
+governed outcome
+        ↓
+permitted learning/evaluation signals
+```
+
+A third-party coworker/runtime may not redefine WorkItem, Blocker, Dependency,
+HumanActionRequest, ExecutiveDecision, Contribution, Activity, authority, evidence truth,
+certification, publication, or legal/business outcome semantics.
+
+## 29. Finished work over chat alone
+
+The platform should increasingly use agents to produce useful governed outcomes and artifacts,
+not merely conversational instructions. Finished work remains subject to the same authority,
+review, evidence and publication gates as any other AIOS operation.
+
