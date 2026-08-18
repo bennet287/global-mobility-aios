@@ -781,3 +781,48 @@ test("13.16.9 evidence and provenance UX uses one presentation taxonomy without 
   assert.match(styles, /\.evidence-provenance-grid/);
   assert.match(styles, /\.evidence-provenance-boundary/);
 });
+
+test("13.16.10 integrated accessibility keeps mobile focus, secure portal states, and responsive role handoffs governed", async () => {
+  const [shell, portal, myMobility, styles] = await Promise.all([
+    read("components/WorkspaceShell.tsx"),
+    read("components/ClientPortalPage.tsx"),
+    read("app/my-mobility/page.tsx"),
+    read("app/globals.css"),
+  ]);
+
+  assert.match(shell, /menuButtonRef/);
+  assert.match(shell, /mobileNavWasOpenRef/);
+  assert.match(shell, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(shell, /containMobileNavigationFocus/);
+  assert.match(shell, /event\.key === "Escape"/);
+  assert.match(shell, /event\.key !== "Tab"/);
+  assert.match(shell, /menuButtonRef\.current\?\.focus\(\)/);
+  assert.match(shell, /type="button"/);
+
+  assert.match(portal, /aria-busy="true"/);
+  assert.match(portal, /role="status" aria-live="polite"/);
+  assert.match(portal, /aria-labelledby="portal-access-title"/);
+  assert.match(portal, /aria-invalid=\{Boolean\(error\)\}/);
+  assert.match(portal, /aria-describedby=\{error \? "portal-access-error" : undefined\}/);
+  assert.match(portal, /id="portal-access-error"[\s\S]*role="alert"/);
+  assert.match(portal, /aria-labelledby="portal-workspace-title"/);
+  assert.match(portal, /id="portal-workspace-title"/);
+
+  assert.match(myMobility, /href="\/portal"/);
+  assert.match(myMobility, /Personal case details are shown only after secure portal access is established/);
+
+  assert.match(styles, /Phase 13\.16\.10 integrated accessibility and responsive acceptance/);
+  assert.match(styles, /:focus-visible[\s\S]*outline: 2px solid var\(--green\)/);
+  assert.match(styles, /\.mobile-menu-button,[\s\S]*min-height: 44px/);
+  assert.match(styles, /\.portal-token-form input\[aria-invalid="true"\]/);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*\.workspace,[\s\S]*overflow-x: clip/);
+});
+
+test("13.16.10 mobile visual composition keeps Cockpit and Operations narrative panels sequential", async () => {
+  const styles = await read("app/globals.css");
+  assert.match(styles, /Phase 13\.16\.10 mobile visual acceptance correction/);
+  assert.match(styles, /@media \(max-width: 900px\)[\s\S]*\.cockpit-command \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(styles, /@media \(max-width: 760px\)[\s\S]*\.command-strip \{[\s\S]*display: grid;[\s\S]*min-height: 0/);
+  assert.match(styles, /\.system-canvas \{[\s\S]*position: relative;[\s\S]*order: 2;[\s\S]*transform: none/);
+  assert.match(styles, /\.premium-grid,[\s\S]*\.governance-grid \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
+});

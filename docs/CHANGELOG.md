@@ -4,6 +4,86 @@ This is the current changelog from the post-`f0688a8` baseline onward. The compl
 Phase 13.16.7 baseline is preserved byte-for-byte at
 [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md).
 
+## 2026-08-18 - Phase 13.16.10 COMPLETE / PASS - Responsive, accessibility, polish, and integrated role acceptance
+
+- Added mobile WorkspaceShell focus containment while preserving the existing skip link, main landmark, route semantics,
+  and backend-authoritative role model:
+  - opening the mobile drawer moves focus into navigation;
+  - Tab and Shift+Tab wrap within the open drawer;
+  - Escape closes the drawer;
+  - focus returns to the menu control;
+  - body scrolling is contained while open and restored on close.
+- Strengthened secure Portal accessibility without changing token/device-bound access:
+  - live/busy loading state;
+  - labelled secure-access and personalized-workspace main landmarks;
+  - invalid-token `role="alert"`;
+  - token-field `aria-invalid` and `aria-describedby`;
+  - explicit non-submit utility button semantics.
+- Strengthened global keyboard focus visibility, critical mobile/Portal touch targets, min-width/overflow resilience, and
+  narrow-screen secure-access form behavior.
+- Preserved the Mobility User privacy boundary: `/my-mobility` remains non-sensitive orientation/access and personalized
+  case details remain behind secure `/portal` access.
+- Added regression coverage for integrated accessibility, role handoff, Portal state semantics, and mobile composition.
+- Human visual review identified and corrected two real responsive defects before seal:
+  - Cockpit mobile had a later two-column signature rule squeezing its primary narrative beside the runtime-state card;
+  - Operations mobile kept the pulse canvas over the narrative and allowed desktop case-grid composition to leak into the
+    narrow viewport while `overflow-x: clip` masked the geometry.
+- Added a late responsive correction making Cockpit narrative/runtime state sequential and Operations narrative/pulse/case
+  panels sequential and single-column on narrow screens.
+
+### Acceptance
+
+- design foundation: **28/28 PASS**;
+- request/auth regression: **4/4 PASS**;
+- Next.js 15.2.4 production build: **PASS**, **41/41 static pages**;
+- repository policy: **PASS**;
+- release consistency: **PASS** at `0076_organization_position_active_identity`;
+- Docker production profile: **PASS**;
+- database migration/schema consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- local physical-schema parity: **PASS** — 118 registered model tables / 118 actual model tables / 119 physical tables
+  including only `alembic_version` infrastructure;
+- complete API regression: **811 passed / 5 skipped / 0 failed**, carried forward because no
+  backend/API/model/schema/Alembic file changed in the exact 13.16.10 boundary;
+- `git diff --check`: **PASS**;
+- integrated browser semantic/keyboard verifier: **PASS** across eight states — Cockpit desktop/mobile, Operations
+  desktop/mobile, My Mobility desktop, My Mobility mobile keyboard navigation, My Mobility → secure Portal handoff, and
+  secure Portal invalid-token mobile state;
+- mobile keyboard acceptance: **PASS** — focus enters the drawer, Tab/Shift+Tab wrap, Escape closes it, focus returns,
+  body scrolling restores, expanded state remains exposed, and asserted mobile states have no horizontal overflow;
+- secure Portal acceptance: **PASS** — `/portal` handoff reaches the labelled secure-access landmark and invalid-token state
+  exposes `role="alert"`, `aria-invalid`, `aria-describedby`, and the safe revoked/expired-link message;
+- first human visual review: **PARTIAL / DEFECTS FOUND** — Cockpit and Operations mobile composition were rejected rather
+  than incorrectly sealed;
+- focused mobile geometry acceptance after correction: **PASS** — Cockpit headline width 300px, Operations headline width
+  322px, sequential hero/supporting panels, sequential Operations case panels, single-column composition, no horizontal
+  overflow;
+- final human visual review of the two corrected mobile captures: **PASS**; the six unaffected captures from the integrated
+  review remain accepted;
+- initial integrated fixture traffic: **93 rows — 47 GET / 46 OPTIONS / 0 mutating methods**;
+- Portal continuation traffic: **5 rows — 3 GET / 2 OPTIONS / 0 mutating methods**;
+- focused visual-correction traffic: **43 rows — 22 GET / 21 OPTIONS / 0 mutating methods**;
+- Next/mock stderr: **empty** in the accepted runtime evidence;
+- preserved `gmai.db`: SHA256 `23FC012AF3FA89804A84A9C8DD75C0C68515B23AEF1813CC5460D6D73808CD31`, unchanged throughout acceptance;
+- initial integrated evidence ZIP: SHA256 `4867605856C56DD798B951B4AD0E5F735E95651857C3692B65A28FEE4E6E0710`;
+- combined eight-surface evidence ZIP: SHA256 `0FFB0F66CA39D3CB039DB375D06372D37494FE0B9B1797354033CBB6F6C151C5`;
+- focused corrected-mobile evidence ZIP: SHA256 `65795D979A3E3F8B75A00C1B97FA6CA13F433B0D170A8C2C39956A52A328B509`.
+
+### Boundary
+
+Exact delivery boundary at seal is six tracked files:
+
+- `apps/web/app/globals.css`
+- `apps/web/components/ClientPortalPage.tsx`
+- `apps/web/components/WorkspaceShell.tsx`
+- `apps/web/scripts/design-foundation.test.mjs`
+- `docs/CHANGELOG.md`
+- `docs/ROADMAP.md`
+
+There is **no backend/API/model/Alembic/preserved-database/Austria-safety/Technology-Radar runtime semantic change** in
+this slice. No evidence, certification, publication, authorization, secure-Portal, or human-review authority is weakened.
+
+Phase 13.17 genuine external-human acceptance is now **UNLOCKED / NEXT**.
+
 ## 2026-08-18 - Phase 13.16.9 COMPLETE / PASS - Evidence and provenance UX consolidation
 
 - Added a shared, presentation-only `EvidenceProvenance` component and one consistent visual/evidence grammar across:

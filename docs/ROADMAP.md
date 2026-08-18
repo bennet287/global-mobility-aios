@@ -3,8 +3,8 @@
 **Roadmap generation:** V11.1 / Technology Radar V1.1 alignment
 **Date:** 2026-08-18
 **Development branch:** `roadmap/global-mobility-aios-v11`
-**Accepted product baseline:** Phase 13.16.9 Evidence and provenance UX consolidation — COMPLETE / PASS (sealed by this delivery checkpoint)
-**Active product slice:** Phase 13.16.10 — Responsive, accessibility, polish, and integrated acceptance — UNLOCKED / NEXT
+**Accepted product baseline:** Phase 13.16.10 Responsive, accessibility, polish, and integrated acceptance — COMPLETE / PASS (sealed by this delivery checkpoint)
+**Active product slice:** Phase 13.17 — Genuine external-human acceptance — UNLOCKED / NEXT
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
@@ -167,6 +167,47 @@ The Phase 13.16.9 implementation introduces no backend endpoint, model, schema, 
 publication/certification authority change, client-portal projection widening, Technology Radar runtime dependency,
 Coworker/OpenWorker runtime implementation, preserved-database mutation, or Austria legal-safety change.
 
+Phase 13.16.10 Responsive, accessibility, polish, and integrated acceptance is accepted by this checkpoint. Accepted
+evidence includes:
+
+- mobile WorkspaceShell focus containment: focus moves into the open navigation, Tab/Shift+Tab wrap inside the drawer,
+  Escape closes it, focus returns to the menu button, body scroll is contained/restored, and the existing skip-link/main
+  landmark structure remains intact;
+- secure Portal state semantics: labelled access/workspace landmarks, live/busy loading state, invalid-token
+  `role="alert"`, `aria-invalid`, and `aria-describedby`, without changing token/device-bound authorization or exposing
+  personalized case data through `/my-mobility`;
+- strengthened `:focus-visible` treatment, critical 44px touch targets, narrow-screen overflow resilience, and preserved
+  Cockpit → Operations → My Mobility role separation;
+- integrated production-browser acceptance across eight states: Cockpit desktop/mobile, Operations desktop/mobile, My
+  Mobility desktop, My Mobility mobile keyboard navigation, My Mobility → secure Portal handoff, and secure Portal
+  invalid-token mobile state;
+- full combined semantic/keyboard verifier **PASS**, including role identity, authority/privacy boundaries, focus containment,
+  Escape/focus-return, labelled Portal handoff, accessible invalid-token state, and asserted mobile widths;
+- direct human visual review initially identified two genuine mobile composition defects in Cockpit and Operations rather
+  than misclassifying them as harness failures;
+- bounded CSS/test correction then made the Cockpit narrative + runtime-state panel sequential and the Operations narrative
+  + pulse panel + case panels sequential/single-column on narrow screens;
+- focused mobile geometry acceptance **PASS** with Cockpit headline width **300px**, Operations headline width **322px**,
+  sequential hero/supporting panels, sequential case panels, and no horizontal overflow;
+- final human visual review of the two corrected 390×844 full-page captures **PASS**; the six unaffected states from the
+  prior eight-surface review remain accepted;
+- design foundation **28/28 PASS**, request/auth **4/4 PASS**, Next.js 15.2.4 production build **41/41 PASS**, repository
+  policy **PASS**, release consistency **PASS**, Docker production profile **PASS**, database migration/schema consistency
+  **PASS**, local physical-schema parity **PASS**, and `git diff --check` **PASS**;
+- complete API regression **811 passed / 5 skipped / 0 failed** carried forward because the exact 13.16.10 implementation
+  boundary contains no backend/API/model/schema/Alembic change;
+- initial integrated fixture trace **93 requests / 47 GET / 46 OPTIONS / 0 mutating methods**, Portal continuation trace
+  **5 requests / 3 GET / 2 OPTIONS / 0 mutating methods**, and focused visual-correction trace **43 requests / 22 GET /
+  21 OPTIONS / 0 mutating methods**;
+- Next/mock stderr empty in the accepted runtime evidence sets;
+- preserved `gmai.db` SHA256 `23FC012AF3FA89804A84A9C8DD75C0C68515B23AEF1813CC5460D6D73808CD31` unchanged throughout static, integrated runtime, continuation, and
+  focused visual acceptance.
+
+The Phase 13.16.10 implementation introduces no backend endpoint, model, schema, migration, authorization expansion,
+evidence/certification/publication authority change, secure-Portal token/device-binding weakening, client-data projection
+widening, Technology Radar runtime dependency, Coworker/OpenWorker runtime implementation, preserved-database mutation, or
+Austria legal-safety change.
+
 Technology Radar V1 was separately established as a docs-only architecture/governance checkpoint. V1 remains historical
 evidence; Technology Radar V1.1 is now the active platform-evolution direction.
 
@@ -179,8 +220,8 @@ evidence; Technology Radar V1.1 is now the active platform-evolution direction.
 | **13.16.7** | **COMPLETE / PASS** | Governed Mobility User experience sealed at `f0688a8` |
 | **13.16.8** | **COMPLETE / PASS** | Governed Professional / Operator decision workspace accepted with context-aligned evidence composition |
 | **13.16.9** | **COMPLETE / PASS** | Shared evidence/provenance presentation grammar accepted across four evidence-heavy Professional surfaces |
-| **13.16.10** | **UNLOCKED / NEXT** | Responsive/accessibility/polish/integrated acceptance after accepted 13.16.9 evidence/provenance consolidation |
-| **13.17** | **LOCKED** | Genuine external-human acceptance after integrated role experience is ready |
+| **13.16.10** | **COMPLETE / PASS** | Integrated responsive/accessibility role experience accepted across desktop, mobile, keyboard, secure Portal handoff, and corrected visual composition |
+| **13.17** | **UNLOCKED / NEXT** | Genuine external-human acceptance against the accepted integrated role experience |
 | **Final Phase 13 disposition** | **LOCKED** | Deterministic release disposition after 13.16 + 13.17 evidence |
 | **Phase 14** | **NOT STARTED / DEMAND-GATED** | Scale validated product; do not redesign around infrastructure prematurely |
 
@@ -260,15 +301,33 @@ directly and accepted. No mutating browser fixture traffic occurred.
 
 ### 5.3 Phase 13.16.10 — responsive/accessibility/polish/integrated acceptance
 
-**State: UNLOCKED / NEXT.**
+**State: COMPLETE / PASS — 2026-08-18.**
 
-Acceptance must cover desktop/mobile, keyboard navigation, screen-reader semantics, contrast/hierarchy, loading/error/empty
-states, role separation, cross-role handoffs, and integrated Owner + Mobility User + Professional/Operator journeys.
+The integrated Owner/Board, Professional/Operator, Mobility User, and secure Portal experiences now have accepted
+desktop/mobile composition, keyboard focus behavior, explicit accessible loading/error states, cross-role handoff semantics,
+and corrected narrow-screen visual hierarchy.
+
+Acceptance covered Cockpit, Operations, My Mobility, and Portal in isolated Edge production-browser sessions. The mobile
+navigation drawer traps focus correctly, wraps Tab/Shift+Tab, closes on Escape, restores focus/body scrolling, and exposes
+its expanded state. `/my-mobility` continues to reveal no personalized case data; it hands the user to the token/device-bound
+`/portal`, whose access and invalid-token states now expose explicit labelled/live/error semantics.
+
+Human visual review was authoritative for composition quality. The first integrated evidence set revealed two genuine
+mobile defects: a late Cockpit signature rule reintroduced a squeezed two-column hero, and the Operations pulse canvas
+overlapped the primary narrative while desktop case-grid composition leaked into the narrow viewport. Those defects were
+corrected with late responsive CSS and locked by regression/geometry assertions. The corrected Cockpit and Operations
+390×844 captures passed both geometry verification and direct human visual review.
+
+The accepted implementation remains frontend/test-only. It does not alter backend authorization, case/evidence authority,
+Portal grant semantics, certification/publication, preserved database state, or legal-safety boundaries.
 
 ### 5.4 Phase 13.17 — genuine external-human acceptance
 
-This remains deliberately different from simulated/shadow correctness testing. Phase 13.17 starts only after the role
-experiences are integrated and the repository/runtime evidence shows they are ready for genuine external-human use.
+**State: UNLOCKED / NEXT.**
+
+This remains deliberately different from simulated/shadow correctness testing. Phase 13.17 begins from the accepted
+13.16.10 integrated role experience and must gather genuine external-human use/feedback evidence without weakening the
+existing authority, evidence, privacy, or review invariants.
 
 ---
 
@@ -537,7 +596,7 @@ At minimum:
 
 ## 13. Current decision
 
-**Continue with Phase 13.16.10 responsive/accessibility/polish/integrated acceptance.**
+**Continue with Phase 13.17 genuine external-human acceptance.**
 
 Technology Radar V1.1 is now the canonical parallel Platform Evolution architecture. Its Wave 0 direction is active for
 architecture/governance, while runtime pilots remain evidence-gated and must not interrupt the 13.16 product sequence.

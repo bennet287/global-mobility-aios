@@ -82,6 +82,7 @@ function PwaInstallPrompt() {
     <div className="portal-install-prompt">
       <span>Add this workspace to your home screen for quick, secure access.</span>
       <button
+        type="button"
         onClick={async () => {
           await prompt.prompt();
           const choice = await prompt.userChoice;
@@ -94,7 +95,7 @@ function PwaInstallPrompt() {
       >
         Install
       </button>
-      <button onClick={() => setDismissed(true)}>Dismiss</button>
+      <button type="button" onClick={() => setDismissed(true)}>Dismiss</button>
     </div>
   );
 }
@@ -197,9 +198,9 @@ export function ClientPortalPage() {
 
   if (loading) {
     return (
-      <main className="client-portal">
-        <div className="portal-loading">
-          <span className="portal-mark">G</span>
+      <main className="client-portal" aria-busy="true" aria-label="Secure mobility workspace">
+        <div className="portal-loading" role="status" aria-live="polite">
+          <span className="portal-mark" aria-hidden="true">G</span>
           <p>Opening your secure workspace...</p>
         </div>
       </main>
@@ -208,14 +209,14 @@ export function ClientPortalPage() {
 
   if (!dashboard) {
     return (
-      <main className="client-portal portal-access-screen">
+      <main className="client-portal portal-access-screen" aria-labelledby="portal-access-title">
         <section className="portal-access-card">
           <div className="portal-brand">
             <span className="portal-mark">G</span>
             <span><strong>GMAI</strong><small>Private mobility workspace</small></span>
           </div>
           <span className="portal-eyebrow">Secure client access</span>
-          <h1>Your mobility case,<br />quietly in one place.</h1>
+          <h1 id="portal-access-title">Your mobility case,<br />quietly in one place.</h1>
           <p>
             Open the expiring access link shared by your consultant. No password,
             public case search, or personal-data lookup is used.
@@ -228,8 +229,10 @@ export function ClientPortalPage() {
               onChange={(event) => setTokenInput(event.target.value)}
               placeholder="gmai_portal_..."
               autoComplete="off"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "portal-access-error" : undefined}
             />
-            {error && <div className="portal-access-error">{error}</div>}
+            {error && <div id="portal-access-error" className="portal-access-error" role="alert">{error}</div>}
             <button type="submit" disabled={!tokenInput.trim()}>
               Open secure workspace
             </button>
@@ -252,7 +255,7 @@ export function ClientPortalPage() {
   const evidence = dashboard.evidence_summary;
 
   return (
-    <main className="client-portal">
+    <main className="client-portal" aria-labelledby="portal-workspace-title">
       <header className="portal-topbar">
         <div className="portal-brand">
           <span className="portal-mark">G</span>
@@ -264,7 +267,7 @@ export function ClientPortalPage() {
             Secure session
             <small>{getDeviceLabel()}</small>
           </span>
-          <button onClick={signOut}>Close</button>
+          <button type="button" onClick={signOut}>Close</button>
         </div>
       </header>
 
@@ -274,7 +277,7 @@ export function ClientPortalPage() {
         <section className="portal-hero">
           <div>
             <span className="portal-eyebrow">Your mobility workspace</span>
-            <h1>Welcome back,<br />{dashboard.client_name}.</h1>
+            <h1 id="portal-workspace-title">Welcome back,<br />{dashboard.client_name}.</h1>
             <p>
               {pretty(dashboard.intent)}
               {dashboard.target_country ? ` · ${dashboard.target_country}` : ""}

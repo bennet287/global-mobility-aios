@@ -14097,3 +14097,159 @@ html[data-theme="dark"] body {
     gap: 5px;
   }
 }
+
+/* Phase 13.16.10 integrated accessibility and responsive acceptance */
+:where(
+  a[href],
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+.workspace,
+.page-pad,
+.client-portal,
+.portal-canvas,
+.portal-access-card,
+.evidence-provenance {
+  min-width: 0;
+}
+
+.portal-token-form input[aria-invalid="true"] {
+  border-color: #a7372e;
+  box-shadow: 0 0 0 3px rgba(167, 55, 46, 0.12);
+}
+
+.portal-access-error[role="alert"] {
+  border: 1px solid rgba(167, 55, 46, 0.28);
+}
+
+.mobile-menu-button,
+.portal-token-form button,
+.portal-session button,
+.portal-install-prompt button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (max-width: 720px) {
+  .workspace,
+  .client-portal {
+    overflow-x: clip;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .topbar-actions {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .experience-actions .button {
+    min-height: 44px;
+  }
+
+  .portal-access-card {
+    width: min(100%, 34rem);
+  }
+
+  .portal-token-form input,
+  .portal-token-form button {
+    width: 100%;
+  }
+
+  .portal-topbar {
+    gap: 12px;
+  }
+
+  .portal-brand,
+  .portal-session {
+    min-width: 0;
+  }
+
+  .portal-brand span:last-child,
+  .portal-session span {
+    min-width: 0;
+  }
+
+  .portal-brand small,
+  .portal-session small {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Phase 13.16.10 mobile visual acceptance correction:
+   keep narrative copy and supporting runtime panels sequential instead of overlapping. */
+@media (max-width: 900px) {
+  .cockpit-command {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cockpit-command-copy,
+  .cockpit-command-state {
+    min-width: 0;
+  }
+
+  .cockpit-command-state {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .command-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 20px;
+    min-height: 0;
+    padding: 24px 18px;
+  }
+
+  .command-copy {
+    position: relative;
+    z-index: 4;
+    order: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .system-canvas {
+    position: relative;
+    z-index: 2;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    order: 2;
+    width: 100%;
+    min-width: 0;
+    transform: none;
+    transform-origin: center;
+  }
+
+  .system-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .premium-grid,
+  .ops-grid,
+  .workbench-grid,
+  .governance-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-view-panel {
+    min-height: 0;
+  }
+}
