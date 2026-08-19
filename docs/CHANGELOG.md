@@ -24,13 +24,128 @@ Earlier history remains available through V11, Git history and the archived chan
 
 ---
 
-## 2026-08-20 — V1.3-C.1 TRANSPARENCY TRACE FOUNDATION — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+## 2026-08-20 — V1.3-C.2 NON-EXECUTING MATERIAL ATTEMPT TRANSPARENCY — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
 ### Status
 
-**The first V1.3-C transparency slice is implemented on V12. It reuses the existing durable `OrganizationActivity` substrate and must still pass canonical Windows-checkout acceptance before being marked PASS.**
+**The second V1.3-C slice is implemented on V12. Material actions that are blocked or routed to review can now be persisted as trace-scoped governance attempts without changing the sealed B.2 successful-command semantics. Canonical Windows-checkout acceptance is still required before C.2 is marked PASS.**
 
-Delivered commits:
+Implementation history:
+
+```text
+3348d1779e45a91020bad1a548627d07c2100519
+feat: persist non-executing governance attempts
+
+596688c7d9016869865fa30290057537994bc5a0
+fix: preserve requested governance attempt context
+
+e34a32f7ebf1bf4efe9937177ebda8d02698d57b
+test: cover non-executing governance transparency
+
+b5025836f1544a67a0a3136594c5b8e60ecaa1bd
+docs: define v1.3-c.2 attempt transparency
+
+504aed7fc21457203e4c68864abffcfbe7cff6f4
+docs: advance roadmap to v12.6 attempt transparency
+```
+
+The first `3348d177` commit was an intermediate implementation checkpoint. `596688c7` corrected the facade before canonical acceptance by preserving the actual requested assignment target, expected version and reason in the durable attempt context. The corrected head is the implementation truth.
+
+### Delivered
+
+```text
+apps/api/app/services/organization_governed_work_transparency.py
+apps/api/tests/test_organization_transparency_attempts.py
+docs/V1_3_C2_NON_EXECUTING_ATTEMPT_TRANSPARENCY.md
+```
+
+### Purpose
+
+C.1 made successful material execution reconstructable. C.2 ensures important non-executing material attempts do not disappear:
+
+```text
+Material action attempt
+        ↓
+Governance Kernel
+        ↓
+BLOCK or REVIEW_REQUIRED
+        ↓
+NO domain mutation
+        +
+trace-scoped governance Attempt Activity
+        ↓
+Board-inspectable reconstruction
+```
+
+### B.2 compatibility
+
+C.2 does not rewrite the sealed B.2 command service. It adds a transparency facade over `governed_assign_work_item(...)`.
+
+For:
+
+```text
+AUTO_EXECUTE
+IDEMPOTENT_REPLAY
+```
+
+B.2 behavior remains authoritative.
+
+For:
+
+```text
+BLOCK
+REVIEW_REQUIRED
+```
+
+C.2 appends a separate durable attempt record.
+
+### Idempotency separation
+
+Successful-command identity remains:
+
+```text
+governance:<idempotency_key>
+```
+
+Non-executing attempt identity is:
+
+```text
+governance:attempt:<trace_id>
+```
+
+This prevents a past denial/review result from masquerading as a successful-command replay record after legitimate authority or policy changes.
+
+### Attempt context
+
+The attempt payload preserves structured action/governance metadata including the outcome, governance reason, constitutional Activity class, risk, consequence class, HumanReviewReason, action fingerprint, trace ID, requested idempotency key, requested target, expected version and reason.
+
+Hidden model chain-of-thought is not stored.
+
+### Focused tests added
+
+Five focused tests cover:
+
+1. A2 `REVIEW_REQUIRED` visibility without mutation;
+2. stale-version `BLOCK` visibility without changing accepted WorkItem state;
+3. scope-denied attempt visibility;
+4. a review attempt not poisoning later successful-command idempotency after legitimate authority increase;
+5. fail-closed attempt-Activity storage behavior.
+
+No canonical pytest PASS is claimed yet.
+
+### Non-claims
+
+C.2 does not yet implement a generic MaterialAction table, Board/Cockpit HTTP transparency endpoints, Board notification policy, repeated-attempt aggregation, AgentConversation/AgentMessage persistence, ToolActionRecord, Evidence/Rule/SourceSnapshot DecisionLineage, sensitivity-tier filtering, Decision Readiness, independent verification, the Organizational Immune System, or GitHub CI PASS.
+
+---
+
+## 2026-08-20 — V1.3-C.1 TRANSPARENCY TRACE FOUNDATION — COMPLETE / PASS / SEALED
+
+### Status
+
+**Canonical V12 checkout acceptance completed successfully. C.1 is sealed as the first accepted Transparency foundation.**
+
+Implementation commits:
 
 ```text
 a05b5c9c9fd0f3b6dc70df2591cc21244cf18a44
@@ -44,106 +159,41 @@ test: cover v1.3-c governed transparency trace
 
 2c0af621c76f5407cb464ee5bfad7c5387f90bdd
 docs: define v1.3-c.1 transparency trace foundation
-
-f620febbe0b69fdf0ad70b87124ff77226405e0d
-docs: advance roadmap to v12.5 transparency foundation
 ```
 
-### Purpose
-
-C.1 makes the first real governed material action reconstructable without introducing a second event store or prematurely adding the entire future Transparency schema.
-
-The governed WorkItem assignment now propagates its Governance Kernel `trace_id` into the command context used to stage the resulting semantic WorkItem Activity.
-
-Therefore:
+Acceptance record:
 
 ```text
-governance.work_item.assignment.auto_execute
-        +
-organization.work.assigned.v1
-        ↓
-shared correlation / trace identity
-        ↓
-tenant-scoped durable query
-        ↓
-structured Board-inspectable reconstruction
+c7f90c9ff2b7e73d882d648e5267ef6731c5663d
+docs: seal v1.3-c.1 acceptance
+
+docs/V1_3_C1_ACCEPTANCE_2026-08-20.md
 ```
 
-### Added
+Canonical evidence:
 
 ```text
-apps/api/app/services/organization_transparency.py
-apps/api/tests/test_organization_transparency.py
-docs/V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md
+Focused B.1+B.2+C.1     31 passed / 1 warning / 0 failed in 5.40s
+Repository policy        PASS
+Full API regression      917 passed / 5 skipped / 1 warning / 0 failed in 317.64s
+Migration check          PASS
+Migration head           0076_organization_position_active_identity
+Registered tables        118
+Local DB schema          PASS / 118 actual tables
+Physical tables          119 incl. alembic_version
+git diff --check         clean
+git status               clean / synchronized
 ```
 
-The transparency service adds:
+Accepted behavior includes shared governance/effect trace correlation, tenant-scoped Activity queries, `GovernedActionTrace` reconstruction, explicit constitutional transparency semantics when durable governance payload carries them, no fabricated classification for legacy Activity, fail-closed malformed trace handling, and WorkItem-history visibility.
 
-- `TransparencyActivityRecord`;
-- `GovernedActionTrace`;
-- `transparency_activity_record(...)`;
-- `activities_for_trace(...)`;
-- `activities_for_work_item(...)`;
-- `governed_action_trace(...)`.
-
-### Constitutional transparency behavior
-
-V1.3 governance Activities already carry the constitutional activity class in their durable payload. C.1 applies the frozen constitutional transparency policy to those explicit classes.
-
-For the current R1 WorkItem assignment:
+Accepted API baseline after C.1:
 
 ```text
-constitutional class       MATERIAL
-Board inspectable          YES
-durable record required    YES
-full lineage required      YES
-policy compaction           NO
+917 passed / 5 skipped / 1 warning / 0 failed
 ```
 
-Existing pre-V1.3/legacy Activities remain Board-inspectable but are **not silently assigned a constitutional retention/lineage class**. Unknown historical semantics stay unknown until explicitly classified.
-
-### Fail-closed behavior
-
-C.1 rejects ambiguous durable governance traces including:
-
-- invalid JSON/non-object payloads;
-- unsupported constitutional activity class;
-- invalid trace identity;
-- governance `trace_id` / `correlation_key` mismatch;
-- zero or multiple governance roots for a governed trace.
-
-### Focused tests added
-
-Six tests cover:
-
-- shared trace across governance authorization and resulting WorkItem effect;
-- governed action reconstruction;
-- tenant isolation;
-- legacy/unclassified activity handling;
-- malformed governance trace failure;
-- WorkItem-history visibility.
-
-No canonical pytest PASS is claimed yet. Raw-clone validation was unavailable in the assistant execution environment, so the canonical local checkout remains the acceptance source of truth.
-
-### Non-claims
-
-C.1 does not yet implement:
-
-- AgentConversation / AgentMessage persistence;
-- ToolActionRecord;
-- complete ActivityLineage graph traversal;
-- full DecisionLineage across Evidence / VerifiedRules / SourceSnapshots;
-- blocked/review-required attempt persistence;
-- Board/Cockpit HTTP transparency endpoints;
-- sensitivity-tier enforcement;
-- hidden chain-of-thought logging;
-- a new transparency database schema;
-- a migration;
-- Decision Readiness;
-- independent verification;
-- Organizational Immune System;
-- canonical C.1 PASS;
-- GitHub CI PASS.
+No GitHub CI PASS is claimed.
 
 ---
 
@@ -172,99 +222,44 @@ docs: seal v1.3-b.2 acceptance
 docs/V1_3_B2_ACCEPTANCE_2026-08-20.md
 ```
 
-### Canonical acceptance evidence
-
-Focused B.1 + B.2 suite:
+Canonical evidence:
 
 ```text
-25 passed, 1 warning in 3.08s
+Focused B.1+B.2          25 passed / 1 warning / 0 failed in 3.08s
+Repository policy        PASS
+Full API regression      911 passed / 5 skipped / 1 warning / 0 failed in 316.36s
+Migration check          PASS
+Migration head           0076_organization_position_active_identity
+Registered tables        118
+Local DB schema          PASS
+git diff --check         clean
+git status               clean / synchronized
 ```
 
-Repository policy:
+Accepted behavior:
 
-```text
-Repository policy check passed.
-```
-
-Full API regression:
-
-```text
-911 passed, 5 skipped, 1 warning in 316.36s (0:05:16)
-```
-
-Database/migration integrity:
-
-```text
-Database migration check passed.
-database_url=sqlite:///./gmai.db
-migration_heads=0076_organization_position_active_identity
-registered_tables=118
-physical_schema=ok
-database_revision=0076_organization_position_active_identity
-```
-
-The local DB schema check and `git diff --check` were rerun separately after an initial PowerShell command concatenation error and were reported green/PASS. Git status was clean and synchronized with the V12 remote-tracking branch.
-
-### Accepted behavior
-
-```text
-work_item.assignment
-risk = R1
-consequence = REVERSIBLE
-capability = operations.work
-```
-
-B.2 proves:
-
-- authorized R1/A4 assignment auto-executes;
-- exact successful retries are idempotent after aggregate-state advancement;
+- authorized R1/A4 WorkItem assignment auto-executes;
+- exact successful retries remain idempotent after aggregate-state advancement;
 - stale competing commands fail closed;
 - conflicting idempotency-key reuse fails closed;
-- A2 requires review and does not mutate;
-- WorkItem mutation, assignment audit, semantic Activity and governance Activity remain one atomic transaction;
+- A2 requires review and cannot mutate;
+- mutation, assignment audit, semantic Activity and governance Activity remain one atomic transaction;
 - governance Activity storage failure prevents an opaque autonomous mutation.
 
 No migration or new registered domain table was required.
-
-### Final disposition
-
-```text
-V1.3-B.2
-COMPLETE
-PASS
-SEALED
-```
-
-Accepted API baseline after B.2:
-
-```text
-911 passed / 5 skipped / 1 warning / 0 failed
-```
-
-No GitHub CI PASS is claimed.
 
 ---
 
 ## 2026-08-20 — V1.3-B.1 MINIMAL GOVERNANCE KERNEL — COMPLETE / PASS / SEALED AS FOUNDATION
 
-### Status
-
-**Canonical V12 checkout acceptance is complete. B.1 is the accepted deterministic foundation for subsequent V1.3 material-action integration.**
-
-Implementation commit:
+Implementation:
 
 ```text
 d351ad85f5c3464178b56dd9da6ac5c83090a27a
 feat: start v1.3-b governance kernel
 ```
 
-Dedicated acceptance record:
-
-```text
-docs/V1_3_B1_ACCEPTANCE_2026-08-20.md
-```
-
-### Canonical acceptance evidence
+Canonical evidence:
 
 ```text
 Focused Governance Kernel    19 passed / 1 warning / 0 failed in 0.16s
@@ -283,34 +278,17 @@ B.1 accepts tenant/actor-bound `CapabilityAuthority`, capability/action/scope au
 
 Government submission remains R5 + Board-reserved even for A5 capability autonomy.
 
-### Final disposition
-
-```text
-V1.3-B.1
-COMPLETE
-PASS
-SEALED AS B FOUNDATION
-```
-
-No GitHub CI PASS is claimed.
+See `docs/V1_3_B1_ACCEPTANCE_2026-08-20.md`.
 
 ---
 
-## 2026-08-20 — V1.3-A FINAL ACCEPTANCE — COMPLETE / PASS / SEALED
-
-V1.3-A Constitutional Contracts is the sealed constitutional floor for V1.3 runtime work.
+## 2026-08-20 — V1.3-A CONSTITUTIONAL CONTRACTS — COMPLETE / PASS / SEALED
 
 Implementation:
 
 ```text
 7779c1f8e5d3db2e72e047667774284d7cc5f5af
 feat: freeze v1.3 constitutional contracts
-```
-
-Dedicated acceptance record:
-
-```text
-docs/V1_3_A_ACCEPTANCE_2026-08-20.md
 ```
 
 Canonical evidence:
@@ -328,7 +306,7 @@ git diff --check           clean
 git status                 clean / synchronized
 ```
 
-The historical v10.22 roadmap compatibility fix preserved:
+The historical roadmap compatibility correction preserved:
 
 ```text
 v10.22
@@ -336,7 +314,7 @@ multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-No GitHub CI PASS was claimed.
+See `docs/V1_3_A_ACCEPTANCE_2026-08-20.md`.
 
 ---
 
