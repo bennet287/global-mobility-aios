@@ -24,11 +24,98 @@ Earlier history remains available through V11, Git history and the archived chan
 
 ---
 
-## 2026-08-20 — V1.3-C.2 NON-EXECUTING MATERIAL ATTEMPT TRANSPARENCY — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+## 2026-08-20 — V1.3-C.3 EXPLICIT GOVERNANCE → EFFECT CAUSATION — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
 ### Status
 
-**The second V1.3-C slice is implemented on V12. Material actions that are blocked or routed to review can now be persisted as trace-scoped governance attempts without changing the sealed B.2 successful-command semantics. Canonical Windows-checkout acceptance is still required before C.2 is marked PASS.**
+**The third V1.3-C slice is implemented on V12. Successful governed WorkItem assignment effects now carry an explicit `causation_activity_id` pointing to the governance authorization Activity that caused the domain effect. Canonical Windows-checkout acceptance is required before C.3 is marked PASS.**
+
+Implementation commits:
+
+```text
+d40e5a2aa7b662129d674851f2854f29a6d635c8
+feat: link governed work effect to authorization
+
+ef28c75a457a298e3194a8ae3ce0ed4638ab30e6
+test: cover explicit governance effect causation
+
+e05c8da5892cecc108af632ceef16906f9208b63
+docs: define v1.3-c.3 explicit causation
+```
+
+### Purpose
+
+C.1 established shared trace correlation. C.3 strengthens the first successful material path from correlation to explicit causal lineage:
+
+```text
+Governance authorization Activity
+        │
+        │ activity.id
+        ▼
+organization.work.assigned.v1
+causation_activity_id = governance Activity id
+```
+
+This distinguishes records that merely share a trace from the specific authorization that caused an organization effect.
+
+### Runtime behavior
+
+`governed_assign_work_item(...)` now stages the governance authorization Activity first inside the same caller-owned transaction. The WorkItem mutation, assignment audit and semantic assignment Activity are then staged with that governance Activity UUID as the semantic effect's cause.
+
+The atomic unit remains:
+
+```text
+Governance Activity
+        ↓
+WorkItem mutation
+        +
+assignment audit
+        +
+semantic assignment Activity
+          causation_activity_id → Governance Activity
+        ↓
+ONE COMMIT
+```
+
+If governance or effect staging fails, the entire unit rolls back.
+
+### Semantic compatibility
+
+The effect keeps the accepted semantic event contract:
+
+```text
+activity_type = organization.work.assigned.v1
+stream_key    = work:<work_item_id>
+semantic contract version = v1
+```
+
+The semantic source-object version uses the same canonical event-version inputs as the existing semantic Activity layer. The Activity record fingerprint additionally covers the explicit causal reference through the existing `stage_activity(...)` command contract.
+
+### Focused tests added
+
+```text
+apps/api/tests/test_organization_transparency_causation.py
+```
+
+Three tests cover:
+
+1. explicit governance authorization → organization effect causation;
+2. exact successful replay preserving one causal chain without duplicate Activities;
+3. effect-storage failure rolling back staged governance authorization and WorkItem mutation together.
+
+No canonical pytest PASS is claimed yet.
+
+### Non-claims
+
+C.3 does not yet implement a generic arbitrary ActivityLineage traversal API, Evidence/VerifiedRule/SourceSnapshot DecisionLineage, ToolActionRecord, conversation lineage, Board/Cockpit HTTP transparency endpoints, sensitivity-tier filtering, schema migrations, or GitHub CI PASS.
+
+---
+
+## 2026-08-20 — V1.3-C.2 NON-EXECUTING MATERIAL ATTEMPT TRANSPARENCY — COMPLETE / PASS / SEALED
+
+### Status
+
+**Canonical V12 checkout acceptance is complete. C.2 is sealed as the durable transparency contract for material actions that are blocked or routed to review without mutating canonical domain state.**
 
 Implementation history:
 
@@ -51,17 +138,34 @@ docs: advance roadmap to v12.6 attempt transparency
 
 The first `3348d177` commit was an intermediate implementation checkpoint. `596688c7` corrected the facade before canonical acceptance by preserving the actual requested assignment target, expected version and reason in the durable attempt context. The corrected head is the implementation truth.
 
-### Delivered
+Acceptance record:
 
 ```text
-apps/api/app/services/organization_governed_work_transparency.py
-apps/api/tests/test_organization_transparency_attempts.py
-docs/V1_3_C2_NON_EXECUTING_ATTEMPT_TRANSPARENCY.md
+5a03308438ed6f0ce38f92288cacbbe3bec3dd05
+docs: seal v1.3-c.2 acceptance
+
+docs/V1_3_C2_ACCEPTANCE_2026-08-20.md
 ```
 
-### Purpose
+### Canonical acceptance evidence
 
-C.1 made successful material execution reconstructable. C.2 ensures important non-executing material attempts do not disappear:
+```text
+Repository policy        PASS
+Full API regression      922 passed / 5 skipped / 1 warning / 0 failed in 320.37s
+Migration check          PASS
+Migration head           0076_organization_position_active_identity
+Registered tables        118
+Local DB schema          PASS / 118 actual tables
+Physical tables          119 incl. alembic_version
+git diff --check         clean
+git status               clean / synchronized
+```
+
+The focused C.2 governance/transparency chain and protected roadmap compatibility check were reported green in the canonical checkout; their exact final counts were not restated in the pasted acceptance excerpt and are therefore not invented here.
+
+### Accepted behavior
+
+C.2 ensures important non-executing material attempts do not disappear:
 
 ```text
 Material action attempt
@@ -77,37 +181,13 @@ trace-scoped governance Attempt Activity
 Board-inspectable reconstruction
 ```
 
-### B.2 compatibility
-
-C.2 does not rewrite the sealed B.2 command service. It adds a transparency facade over `governed_assign_work_item(...)`.
-
-For:
-
-```text
-AUTO_EXECUTE
-IDEMPOTENT_REPLAY
-```
-
-B.2 behavior remains authoritative.
-
-For:
-
-```text
-BLOCK
-REVIEW_REQUIRED
-```
-
-C.2 appends a separate durable attempt record.
-
-### Idempotency separation
-
 Successful-command identity remains:
 
 ```text
 governance:<idempotency_key>
 ```
 
-Non-executing attempt identity is:
+Non-executing attempt identity remains:
 
 ```text
 governance:attempt:<trace_id>
@@ -115,27 +195,15 @@ governance:attempt:<trace_id>
 
 This prevents a past denial/review result from masquerading as a successful-command replay record after legitimate authority or policy changes.
 
-### Attempt context
+The attempt payload preserves structured action/governance metadata including outcome, governance reason, constitutional Activity class, risk, consequence class, HumanReviewReason, action fingerprint, trace ID, requested idempotency key, requested target, expected version and reason. Hidden model chain-of-thought is not stored.
 
-The attempt payload preserves structured action/governance metadata including the outcome, governance reason, constitutional Activity class, risk, consequence class, HumanReviewReason, action fingerprint, trace ID, requested idempotency key, requested target, expected version and reason.
+Accepted API baseline after C.2:
 
-Hidden model chain-of-thought is not stored.
+```text
+922 passed / 5 skipped / 1 warning / 0 failed
+```
 
-### Focused tests added
-
-Five focused tests cover:
-
-1. A2 `REVIEW_REQUIRED` visibility without mutation;
-2. stale-version `BLOCK` visibility without changing accepted WorkItem state;
-3. scope-denied attempt visibility;
-4. a review attempt not poisoning later successful-command idempotency after legitimate authority increase;
-5. fail-closed attempt-Activity storage behavior.
-
-No canonical pytest PASS is claimed yet.
-
-### Non-claims
-
-C.2 does not yet implement a generic MaterialAction table, Board/Cockpit HTTP transparency endpoints, Board notification policy, repeated-attempt aggregation, AgentConversation/AgentMessage persistence, ToolActionRecord, Evidence/Rule/SourceSnapshot DecisionLineage, sensitivity-tier filtering, Decision Readiness, independent verification, the Organizational Immune System, or GitHub CI PASS.
+No GitHub CI PASS is claimed.
 
 ---
 
