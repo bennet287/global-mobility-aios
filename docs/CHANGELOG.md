@@ -1,25 +1,223 @@
-# Global Mobility AIOS — Active Changelog
+# Global Mobility AIOS — V12 Active Changelog
 
-This is the active changelog from the V1.3 architecture checkpoint onward.
+This changelog records delivery on the active branch:
 
-Earlier active history from the post-`f0688a8` baseline through the V1.2 checkpoint at `c192e7d5ba56088388527d3406c30f6ab2315e2f` is preserved at [archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md](archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md). The earlier sealed Phase 13.16.7 history remains preserved at [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md). Git history remains the exact immutable record of all prior versions.
+```text
+roadmap/global-mobility-aios-v12
+```
+
+The complete frozen V11 checkpoint remains available on:
+
+```text
+roadmap/global-mobility-aios-v11
+@ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+```
+
+V11 preserves its own README, Roadmap V11.5, V1.3 architecture checkpoint, and active changelog exactly as they existed when V12 was created. Earlier history also remains available through Git history and the existing archived changelog snapshots.
+
+> **V11 is the frozen reference. V12 is the active implementation line.**
 
 ---
 
-## 2026-08-19 — V12 DEVELOPMENT BRANCH OPENED / V11 FROZEN AS REFERENCE CHECKPOINT
+## 2026-08-19 — V12 ROADMAP / README ALIGNMENT — ACTIVE IMPLEMENTATION LINE CLARIFIED
 
 ### Status
 
-**Branch-governance / documentation checkpoint only. No runtime implementation change is claimed.**
+**Documentation / branch-alignment checkpoint only. No runtime implementation or acceptance-state change is claimed.**
 
-A new active development branch was created for the next implementation stage:
+### Why this correction was needed
 
-- **Frozen reference branch:** `roadmap/global-mobility-aios-v11`
-- **Frozen V11 checkpoint:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449` — `docs: define high-autonomy v1.3 architecture`
-- **Active development branch:** `roadmap/global-mobility-aios-v12`
-- **V12 starting checkpoint:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
+V12 was created directly from the frozen V11 checkpoint. That correctly preserved all files, but it also meant that the inherited `README.md` and `docs/ROADMAP.md` initially still described V11 as the current development line.
 
-GitHub comparison at branch creation confirmed:
+That created a naming ambiguity:
+
+- **Git branch V11 / V12** describes repository-development generations;
+- **architecture V1.3** describes the Human-Like High-Autonomy Organization architecture version;
+- **Roadmap V11.5 / V12.0** describes roadmap-document generations.
+
+These version systems are related but are not the same thing.
+
+V1.3 was designed and frozen on V11 before V12 was created. Therefore it is correct that the frozen V11 checkpoint contains V1.3 architecture documentation. What was incorrect was allowing V12's inherited roadmap metadata to continue calling V11 the active development branch.
+
+### V11 remains unchanged
+
+Frozen branch:
+
+```text
+roadmap/global-mobility-aios-v11
+```
+
+Frozen checkpoint:
+
+```text
+dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+```
+
+V11 continues to preserve:
+
+- its V11 README;
+- Roadmap V11.5;
+- the V1.3 architecture documentation checkpoint;
+- Phase 13.16.10 accepted product baseline;
+- Phase 13.17 owner-led human acceptance state;
+- the V1.3-era changelog as of the frozen checkpoint.
+
+No V11 file was modified by the V12 alignment work.
+
+### V12 README alignment
+
+Commit:
+
+```text
+4a347d418408a199198832e211f13555cf1ee5e9
+```
+
+Message:
+
+```text
+docs: align v12 readme with v1.3 direction
+```
+
+The V12 README now opens with the active project definition:
+
+> **A governed, transparent, high-autonomy digital organization for global mobility.**
+
+It explicitly identifies:
+
+- `roadmap/global-mobility-aios-v12` as the active development line;
+- V11 at `dd2f2cd` as the frozen predecessor/reference checkpoint;
+- V1.3 as the active architecture direction;
+- the Organizational Immune System;
+- Earned Autonomy;
+- Board Transparency;
+- Decision Lineage;
+- persistent AI employees;
+- risk-tiered verification;
+- the V1.3-A → V1.3-N implementation direction.
+
+### V12 Roadmap V12.0
+
+Commit:
+
+```text
+dac2529f4dee279cddc738c9310960afb32cc139
+```
+
+Message:
+
+```text
+docs: establish v12 implementation roadmap
+```
+
+`docs/ROADMAP.md` is now explicitly:
+
+```text
+Global Mobility AIOS — Active V12 Implementation Roadmap
+Roadmap generation: V12.0
+Active branch: roadmap/global-mobility-aios-v12
+Frozen predecessor: roadmap/global-mobility-aios-v11 @ dd2f2cd
+```
+
+The V12 roadmap deliberately changes role from the frozen V11.5 document:
+
+- **V11.5** records the checkpoint and architecture direction frozen on V11;
+- **V12.0** is the active implementation roadmap for proving and realizing that direction.
+
+The V12 roadmap retains the project vision and complete V1.3 implementation direction while putting greater emphasis on implementation evidence, real vertical workflows, external validation, legal/data-governance maturity, operational maturity, and the V1.3-A → V1.3-N runtime programme.
+
+### V12 roadmap priorities
+
+The active implementation sequence remains:
+
+```text
+V1.3-A  Constitutional Contracts
+V1.3-B  Minimal Governance Kernel
+V1.3-C  Transparency Foundation
+V1.3-D  Context & Agent Identity
+V1.3-E  First Governed Vertical Workflow
+V1.3-F  Decision Readiness
+V1.3-G  Independent Verification
+V1.3-H  Organizational Immune System
+V1.3-I  Earned Autonomy
+V1.3-J  Agent Organization Runtime
+V1.3-K  Execution / Coworker Runtime
+V1.3-L  Live Organization
+V1.3-M  Board Transparency Experience
+V1.3-N  Learning & Optimization
+```
+
+The roadmap additionally makes the first governed vertical workflow a central proof point so architecture does not continue expanding without implementation evidence.
+
+### Product validation emphasis
+
+V12 explicitly recognizes that architecture/engineering maturity is currently ahead of independent product validation.
+
+The validation direction is:
+
+```text
+owner-led acceptance
+        ↓
+external professional usability
+        ↓
+real mobility workflow / real case
+        ↓
+first external cases
+        ↓
+repeatable jurisdiction workflow
+        ↓
+first paying professional / organization
+        ↓
+measured demand
+```
+
+This does not reduce the long-term project ambition. It is intended to turn architecture quality into external evidence.
+
+### Runtime truth unchanged
+
+This README/Roadmap alignment does **not**:
+
+- modify application/runtime code;
+- change database schema;
+- change Alembic head;
+- mutate preserved `gmai.db`;
+- implement Decision Readiness;
+- implement the Organizational Immune System;
+- implement earned autonomy;
+- implement the Transparency Layer;
+- integrate Munder Difflin or OpenWorker;
+- resolve Phase 13.17 findings;
+- change Technology Radar adoption state;
+- rerun or claim a new API/web/design regression;
+- claim GitHub CI PASS.
+
+Latest accepted runtime evidence remains carried forward:
+
+```text
+API regression                873 passed / 5 skipped / 0 failed
+Next.js production build      41 / 41 pages
+Design foundation             28 / 28 passed
+Alembic head                  0076_organization_position_active_identity
+Preserved gmai.db             unchanged at accepted checkpoint
+```
+
+---
+
+## 2026-08-19 — V12 DEVELOPMENT BRANCH OPENED / V11 FROZEN
+
+### Status
+
+**Repository isolation / branch-governance checkpoint only.**
+
+A new active development branch was created from the frozen V11 checkpoint:
+
+```text
+roadmap/global-mobility-aios-v11
+@ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+        │
+        └── roadmap/global-mobility-aios-v12
+```
+
+GitHub comparison at creation confirmed:
 
 ```text
 V11 ↔ V12
@@ -29,580 +227,46 @@ behind: 0
 starting SHA: dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
 ```
 
-### Purpose
+The branch split exists so ambitious V1.3 implementation can proceed without disturbing the clean V11 checkpoint.
 
-V12 provides an isolated active development line for implementing the ambitious V1.3 architecture while preserving V11 as a clean recovery/reference checkpoint.
+### First V12 documentation checkpoint
 
-The branch split is intentional:
-
-- V11 preserves the accepted product/runtime baseline plus the V1.3 architecture, Roadmap V11.5, Transparency Layer direction, and active V1.3-era changelog as of `dd2f2cd`;
-- V12 begins from exactly that state and becomes the active branch for subsequent V1.3 implementation, Product/Human Experience corrections, Technology Radar work, and High-Autonomy Organization delivery;
-- V11 should not receive new implementation changes unless the Human Owner explicitly decides to reopen it;
-- future implementation should be committed to V12 or bounded descendant branches created from V12;
-- V11 remains available for comparison, rollback/reference, and recovery if later V1.3 work introduces regressions or architectural mistakes.
-
-### Active development direction from V12
-
-V12 continues the canonical V1.3 programme rather than defining a separate architecture.
-
-Primary Track C sequence remains:
+Commit:
 
 ```text
-V1.3-A  Constitutional Contracts
-V1.3-B  Minimal Governance Kernel
-V1.3-C  Transparency Foundation
-V1.3-D  Context & Agent Identity
-V1.3-E  First Governed Vertical Workflow
-V1.3-F  Decision Readiness
-V1.3-G  Independent Verification
-V1.3-H  Organizational Immune System
-V1.3-I  Earned Autonomy
-V1.3-J  Agent Organization Runtime
-V1.3-K  Execution / Coworker Runtime
-V1.3-L  Live Organization
-V1.3-M  Board Transparency Experience
-V1.3-N  Learning & Optimization
+2120ba7f509d9f556534d859628755e2608d2955
 ```
 
-Phase 13.17 human acceptance remains a parallel feedback stream and does not globally stop V12 development. Relevant findings should be corrected and retested on the active development line while the frozen V11 checkpoint remains unchanged.
+Message:
 
-### Runtime truth
+```text
+docs: record v12 development branch transition
+```
 
-This branch transition itself does **not**:
+This recorded:
 
-- change application code;
-- change database schema or migration head;
-- modify preserved `gmai.db`;
-- implement V1.3 runtime controls;
-- resolve Phase 13.17 findings;
-- change Technology Radar adoption state;
-- claim new test, release, or CI PASS evidence.
-
-The purpose of this checkpoint is repository isolation and delivery safety only.
+- V11 as frozen reference/recovery state;
+- V12 as the active implementation branch;
+- V1.3-A → V1.3-N as the continuing architecture programme;
+- Phase 13.17 as a parallel feedback stream;
+- no runtime/test/migration/acceptance-state change from the branch split itself.
 
 ---
 
-## 2026-08-19 — High-Autonomy Organization Architecture V1.3 — BOARD TRANSPARENCY / EARNED AUTONOMY DIRECTION
+## History before V12
 
-### Status
-
-**Documentation / architecture checkpoint only.**
-
-This checkpoint defines the proposed canonical implementation direction for Global Mobility AIOS V1.3. It does **not** by itself implement the new runtime control plane, change database schema, integrate external agent runtimes, resolve Phase 13.17 findings, or claim a new runtime PASS.
-
-### Purpose
-
-Expanded the Human-Like High-Autonomy architecture from the V1.2 runtime-governance foundation into a V1.3 operating model for a **high-autonomy, transparent AI-operated Global Mobility organization**.
-
-The owner-approved direction is intentionally ambitious: AI employees should have persistent identity, memory, roles, tools, measurable performance, organizational relationships, and meaningful capability-specific delegated authority. Human governance should operate primarily by exception rather than requiring routine approval of healthy work.
-
-At the same time, V1.3 makes Board transparency a hard architectural requirement so autonomy never becomes organizational opacity.
-
-### Created
-
-- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
-- `docs/archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md` — immutable copy of the prior active changelog through the V1.2 checkpoint
-
-### Updated
-
-- `docs/ROADMAP.md` — expanded to Roadmap V11.5 with project vision, direction, current delivery truth, V1.3 architecture, Transparency Layer, detailed Track C implementation programme, acceptance gates, performance doctrine, metrics, and sequencing;
-- `docs/CHANGELOG.md` — starts the active V1.3-era changelog while preserving prior history in archive/Git history;
-- `README.md` — aligns the repository entrypoint with the accepted Phase 13.16.10 baseline, Phase 13.17 parallel acceptance stream, and V1.3 direction.
-
-### V1.3 extends V1.2 rather than replacing its discipline
-
-V1.2 remains the foundational governance architecture. V1.3 keeps and extends:
-
-- Context Broker;
-- deterministic Canonicalization Gateway;
-- Command Gateway mutation boundary;
-- optimistic concurrency;
-- evidence/trust ladder;
-- capability-specific autonomy;
-- labeled learning outcomes;
-- recovery/side-effect awareness;
-- AIOS Semantic Sovereignty.
-
-The operating interpretation is sharpened to:
-
-> **The safety infrastructure exists to enable autonomy, not suppress it.**
-
-### Project definition
-
-Global Mobility AIOS is not being designed as a visa chatbot, generic agent framework, case-management SaaS, CRM with AI features, or approval queue.
-
-The target is a **governed, transparent, high-autonomy digital organization for global mobility** in which AI employees can research, reason, collaborate, remember, use tools, manage Missions/WorkItems, prepare professional outputs, make authorized decisions, execute bounded operations, and learn from outcomes.
-
-The Human Owner / Board remains the supreme authority while normal organizational operation is delegated downward.
-
-### Human Owner / Board
-
-The Human Owner / Board is explicitly the **supreme authority** of Global Mobility AIOS.
-
-Supreme authority does not mean daily micromanagement.
-
-The operating model is **Board by exception**:
-
-- normal internal research, collaboration, drafting, WorkItem management, scheduling, bounded tool use, and low-risk operations should proceed autonomously;
-- uncertainty should first be resolved through AI-to-AI collaboration, specialist review, Department Heads, or the AI CEO;
-- professional review should route to the lowest appropriate accountable authority;
-- legal/policy-required human gates remain mandatory regardless of model/readiness confidence;
-- Board Room remains reserved for strategic, critical, constitutionally reserved, or materially irreversible authority actions.
-
-### Board Transparency invariant
-
-Added the permanent principle:
-
-> **Operational autonomy must never create organizational opacity.**
-
-The Board must have on-demand visibility into relevant:
-
-- agent-to-agent conversations and collaboration;
-- delegation chains;
-- material decisions and recommendations;
-- Evidence, SourceSnapshots, and VerifiedRules;
-- tool usage and external actions;
-- escalations and contradictions;
-- incidents and circuit-breaker events;
-- autonomy promotions/downgrades;
-- policy decisions;
-- execution history;
-- learning outcomes.
-
-Visibility is summarized by default and drillable to governed records.
+For the exact state before V12 work began, use:
 
 ```text
-Board visibility ≠ Board interruption
+Branch: roadmap/global-mobility-aios-v11
+Commit: dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
 ```
 
-### Transparency Layer
+That checkpoint contains the detailed V1.3 architecture change record, Roadmap V11.5, README state, and links to earlier archived changelog history.
 
-V1.3 adds an explicit Transparency Layer rather than treating transparency as a late Cockpit feature.
+Existing repository archives remain authoritative for older sealed history, including:
 
-Target flow:
+- `docs/archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md`;
+- `docs/archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md`.
 
-```text
-material event
-→ durable canonical/activity record
-→ transparency indexing / summarization
-→ Cockpit summary
-→ on-demand drill-down
-```
-
-Cockpit should support progressive inspection from organization → department → Mission → case → WorkItem → agent → conversation → decision → Evidence/rule/tool event.
-
-### Decision / Conversation / Tool lineage
-
-V1.3 adds first-class target lineage so a material outcome can be traced backward through:
-
-```text
-Canonical outcome
-→ Command authorization
-→ Verification
-→ Agent recommendation
-→ Evidence / VerifiedRules
-→ SourceSnapshots
-→ Research / tool actions
-```
-
-Relevant collaboration and delegation should be reconstructable as well.
-
-Structured decision rationales are the governance artifact; hidden model chain-of-thought is not the audit mechanism.
-
-### AI employees and durable memory
-
-Agents are modeled as persistent organizational employees with:
-
-- identity;
-- Position / Department;
-- manager / relationships;
-- responsibilities / expertise;
-- Missions / WorkItems / assigned cases;
-- working and long-term memory;
-- organizational memory access;
-- tools/connectors;
-- authority/autonomy profiles;
-- budgets;
-- performance, incident, and learning history.
-
-Permanent distinction:
-
-> **Memory provides continuity. Evidence provides authority.**
-
-Memory may guide research and coordination but does not directly become Evidence, VerifiedRule, or authoritative case state.
-
-### Capability, authority, autonomy, and risk
-
-V1.3 keeps these separate:
-
-```text
-Capability = what the runtime can technically do
-Authority  = what the organization permits
-Autonomy   = how independently it may exercise that authority
-Risk       = consequence of the specific action
-```
-
-Permanent rule:
-
-```text
-CAN DO ≠ MAY DO
-```
-
-### Earned autonomy
-
-Autonomy remains A0–A5 and is capability/context-specific rather than one global agent score.
-
-Target progression:
-
-```text
-SHADOW
-→ RECOMMEND
-→ SUPERVISED
-→ AUTONOMOUS
-→ HIGH-TRUST AUTONOMOUS
-```
-
-`AutonomyEvidenceProfile` is expected to use qualifying volume, Evidence grounding, human acceptance/modification/rejection, contradiction rate, policy compliance, critical errors, source freshness, SLA performance, and incident/recovery outcomes.
-
-Agents cannot self-promote.
-
-Autonomy may also be temporarily downgraded in a scope-limited way when abnormal behavior appears. Every change must be explainable and Board-inspectable.
-
-### Decision Readiness
-
-V1.3 introduces Decision Readiness as a routing/quality signal based on auditable inputs such as:
-
-- Evidence completeness;
-- source authority;
-- rule freshness;
-- required fact completeness;
-- cross-source consistency;
-- contradictions;
-- historical capability reliability;
-- deterministic validation;
-- limited model-confidence metadata.
-
-Permanent rule:
-
-> **Scores route; gates authorize.**
-
-A high readiness score cannot override missing mandatory Evidence, failed policy, insufficient authority, unresolved contradiction, stale version, required independent verification, or a legal/Board human gate.
-
-### Risk-tiered independent verification
-
-Verification depth is proportional to risk:
-
-```text
-R0 → single agent
-R1 → agent + cheap deterministic checks
-R2 → agent + Evidence validation
-R3 → blind independent verification
-R4 → blind verification + fresh source validation + appropriate authority
-R5 → full AI preparation + human/Board gate
-```
-
-The independent verifier should form its conclusion before seeing the first agent's conclusion so peer review does not become confirmation bias.
-
-### AI-to-AI escalation before human escalation
-
-Uncertainty should normally flow through the organization:
-
-```text
-Specialist
-→ Peer Specialist
-→ Senior Specialist
-→ Department Head
-→ AI CEO
-→ Human only if unresolved or required
-```
-
-V1.3 distinguishes **uncertainty escalation** from **authority escalation**. A 99% ready action can still require Board authority because the action is reserved, not because AIOS is uncertain.
-
-### Human-review reasons
-
-Target `HumanReviewReason` values include:
-
-```text
-UNCERTAINTY
-CONTRADICTION
-INSUFFICIENT_EVIDENCE
-OUTSIDE_AUTHORITY
-POLICY_REQUIRED
-LEGAL_REQUIRED
-BOARD_RESERVED
-ANOMALY
-EXCEPTION
-```
-
-This keeps professional queues and Board Room intelligible.
-
-### Materiality and MaterialAction
-
-V1.3 introduces a versioned Materiality Registry so governance overhead is proportional to consequence rather than applied to every agent action.
-
-A common `MaterialAction` envelope is proposed for actor, aggregate, expected version, proposed change, Evidence references, authority context, rationale, readiness, risk, consequence class, idempotency, and trace identity.
-
-Domain payloads remain typed.
-
-### Deterministic canonicalization retained
-
-The V1.2 semantic firewall remains foundational:
-
-```text
-LLM / provider / tool interpretation
-→ typed AIOS candidate
-→ schema validation
-→ deterministic domain checks
-→ Evidence / authority / policy checks
-→ canonical result
-```
-
-Conversation, memory, retrieval, or model opinion cannot silently become authoritative truth.
-
-Canonicalization should be implemented progressively, workflow by workflow, rather than attempting to formalize the entire mobility domain before useful product delivery.
-
-### Command Gateway retained and reframed for autonomy
-
-The Command Gateway remains the only autonomous-agent production mutation path for material canonical state.
-
-It is **not** a human approval gateway.
-
-Healthy authorized action should normally be:
-
-```text
-Agent
-→ MaterialAction
-→ identity / authority / scope
-→ Evidence / policy / contradiction
-→ expected-version / idempotency
-→ AUTO EXECUTE
-```
-
-Human involvement occurs only when policy, law, uncertainty, risk, or reserved authority requires it.
-
-The gateway is a logical constitutional boundary and may be physically distributed/sharded to avoid global serialization.
-
-### Optimistic concurrency retained
-
-Material writes require expected-version/precondition semantics. Stale proposals reject and refresh rather than overwrite newer accepted state.
-
-Use idempotency, bounded retries, backoff, and aggregate-level serialization where required. CRDT-style merging is reserved for genuinely mergeable collaboration data, not authoritative regulated state.
-
-### Organizational Immune System
-
-V1.3 formalizes the safety/quality layer around high autonomy:
-
-- Evidence integrity monitoring;
-- contradiction detection;
-- anomaly detection;
-- Decision Readiness;
-- capability performance monitoring;
-- dynamic autonomy management;
-- circuit breakers;
-- rate/budget protection;
-- blast-radius controls;
-- incident detection/aggregation;
-- root-cause classification;
-- escalation routing;
-- shadow evaluation;
-- learning feedback.
-
-The immune system should be mostly invisible during healthy operation and active when abnormal signals appear.
-
-> **Human review is the final safety net, not the primary quality-control mechanism.**
-
-### Immune-system transparency
-
-Every material intervention must be able to explain:
-
-```text
-WHAT happened?
-WHY?
-WHO acted?
-WHICH rule/signals triggered?
-WHICH scope was affected?
-WHAT happens next?
-HOW can normal operation resume?
-WHO can override?
-```
-
-The safety system itself must not become a black box.
-
-### Incident aggregation
-
-Correlated failures should be grouped as one organizational incident rather than flooding the Board with many alerts.
-
-The Cockpit should show affected operations, likely root cause, containment, investigation status, client/business impact, and whether Board action is actually required.
-
-### Consequence-aware recovery
-
-V1.3 replaces any simplistic universal-rollback interpretation with:
-
-```text
-REVERSIBLE
-COMPENSATABLE
-IRREVERSIBLE
-APPEND_ONLY_CORRECTION
-```
-
-Recovery semantics belong to consequential commands/business actions rather than generic rollback across all existing tables.
-
-Irreversible actions receive stronger pre-execution checks and pre-mortem validation.
-
-### Learning architecture
-
-The target learning pipeline is:
-
-```text
-OrganizationActivity
-→ LearningRecord
-→ CuratedLearningExample
-```
-
-Outcome labels remain explicit:
-
-```text
-PROPOSED
-ACCEPTED
-MODIFIED
-REJECTED
-CONTRADICTED
-STALE
-SUPERSEDED
-HUMAN_CORRECTED
-EXECUTION_FAILED
-PARTIAL
-ROLLED_BACK
-```
-
-Not every stored event becomes training truth.
-
-Human corrections should become high-quality labeled learning signals.
-
-### Performance / scalability doctrine
-
-V1.3 explicitly avoids paying maximum governance cost for every operation.
-
-Principles:
-
-1. **Pay for risk** — verification scales with consequence, uncertainty, and novelty.
-2. **Recompute only what changed** — readiness/Evidence/policy inputs are incremental and version-aware.
-3. **Load only what is needed** — ContextBundles are purpose-scoped, lazy, composable, and versioned.
-4. **Block only when necessary** — PRE_COMMIT, POST_COMMIT, and BACKGROUND verification are distinct.
-5. **Centralize governance, distribute execution** — one authority model does not require one global serialization process.
-6. **Cache exact governed state only** — verifier reuse is keyed to exact relevant Evidence/facts/rules/policy/jurisdiction/effective dates/program/model versions.
-7. **Instrument from day one** — latency, cost, retries, escalation quality, autonomy, Board workload, source freshness, incidents, and transparency lag are measurable.
-
-Conceptual principle:
-
-> **Governance Cost ∝ Risk × Uncertainty × Novelty**
-
-### External runtime posture
-
-Munder Difflin remains an **experimental / controlled-research reference** requiring a bounded compatibility spike before deep integration commitment.
-
-OpenWorker remains a replaceable finished-work/execution-runtime reference behind AIOS-owned interfaces.
-
-AIOS Semantic Sovereignty remains permanent: external frameworks provide capabilities; AIOS owns organizational meaning, Evidence semantics, authority, policy, lineage, and canonical state.
-
-### Coordinated Parallel Evolution
-
-The project continues through three parallel tracks:
-
-1. **Product / Human Experience**;
-2. **Technology Radar / Platform Evolution**;
-3. **High-Autonomy Organization**.
-
-Phase 13.17 remains owner-led, **IN PROGRESS / PAUSED BY EVALUATOR**, and continues as a parallel human-acceptance feedback stream. It does not globally stop Track B or Track C. Existing findings remain unresolved until corrected, retested, or explicitly dispositioned.
-
-### Detailed V1.3 implementation programme
-
-Roadmap V11.5 defines:
-
-```text
-V1.3-A  Constitutional Contracts
-V1.3-B  Minimal Governance Kernel
-V1.3-C  Transparency Foundation
-V1.3-D  Context & Agent Identity
-V1.3-E  First Governed Vertical Workflow
-V1.3-F  Decision Readiness
-V1.3-G  Independent Verification
-V1.3-H  Organizational Immune System
-V1.3-I  Earned Autonomy
-V1.3-J  Agent Organization Runtime
-V1.3-K  Execution / Coworker Runtime
-V1.3-L  Live Organization
-V1.3-M  Board Transparency Experience
-V1.3-N  Learning & Optimization
-```
-
-Transparency is intentionally implemented early rather than retrofitted at the end.
-
-### Success criteria direction
-
-V1.3 should ultimately improve:
-
-```text
-Autonomous completion             ↑
-Quality                           ↑
-Evidence grounding                ↑
-Decision traceability             ↑
-Board transparency                ↑
-Capability reliability            ↑
-```
-
-while reducing:
-
-```text
-Board operational workload        ↓
-Critical errors                   ↓
-False/missed escalations          ↓
-Cost per outcome                  ↓
-Latency                           ↓
-Unexplained decisions             ↓
-Opaque organizational activity    ↓
-```
-
-### Runtime truth / acceptance
-
-This checkpoint is **documentation-only**.
-
-It does not implement or claim runtime completion of:
-
-- Decision Readiness;
-- earned autonomy;
-- dynamic autonomy downgrade;
-- the Organizational Immune System;
-- Decision/Conversation/Tool Lineage;
-- the full Transparency Layer;
-- the complete Command Gateway;
-- Munder/OpenWorker integration;
-- Live Organization;
-- Board-wide organization search.
-
-Latest accepted runtime evidence is carried forward, **not rerun by this documentation checkpoint**:
-
-- API **873 passed / 5 skipped / 0 failed**;
-- Next.js **41/41 PASS**;
-- design foundation **28/28 PASS**;
-- preserved `gmai.db` unchanged.
-
-Repository documentation validation for this patch was performed locally; no new complete runtime regression is claimed.
-
-No GitHub CI PASS is claimed unless a real status/check is attached to the resulting commit.
-
-### Defining V1.3 principles
-
-> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
-
-> **The safety infrastructure exists to enable autonomy, not suppress it.**
-
-> **Scores route; gates authorize.**
-
-> **Memory provides continuity. Evidence provides authority.**
-
-> **More relevant truth, not more tokens.**
-
-> **Governance Cost ∝ Risk × Uncertainty × Novelty.**
-
-> **Board by exception. Transparency by default.**
+Git history remains the immutable source for exact historical diffs and commit lineage.
