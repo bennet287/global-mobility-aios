@@ -2,15 +2,13 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**State:** **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**
+**State:** **COMPLETE / PASS / SEALED**
 
 ## Purpose
 
 C.1 starts the V1.3 Transparency Foundation by making the first real governed material action reconstructable from the durable organization Activity substrate that already exists.
 
-The goal is deliberately narrower than the complete V1.3-C architecture.
-
-C.1 proves:
+Accepted shape:
 
 ```text
 Governance authorization
@@ -24,33 +22,19 @@ tenant-scoped durable Activity query
 Board-inspectable structured reconstruction
 ```
 
-It does not introduce a second event store or prematurely add conversation/tool/decision-lineage tables before runtime evidence requires them.
+It deliberately does not introduce a second event store or prematurely add conversation/tool/decision-lineage tables.
 
 ## Existing substrate reused
 
-`OrganizationActivity` already provides:
+`OrganizationActivity` already provides tenant ownership, durable activity identity, streams/sequences, actor context, department/position/authority, source identity/version, WorkItem links, correlation keys, causation/supersession fields, payload fingerprints and timestamps.
 
-- tenant ownership;
-- durable activity identity;
-- streams and sequence numbers;
-- actor identity/type;
-- department/position/authority context;
-- source object identity/version;
-- WorkItem links;
-- correlation keys;
-- causation/supersession link fields;
-- immutable-ish semantic payload fingerprints;
-- occurred/created timestamps.
-
-C.1 therefore builds a typed transparency projection/query layer over this accepted substrate.
+C.1 builds a typed transparency projection/query layer over this accepted substrate.
 
 ## Runtime changes
 
-### Trace correlation for governed WorkItem assignment
+The B.2 governed WorkItem assignment propagates the Governance Kernel `trace_id` into the command context used to stage the resulting semantic WorkItem Activity.
 
-`governed_assign_work_item(...)` now derives a command context whose `correlation_key` is the Governance Kernel `trace_id` before staging the actual WorkItem mutation.
-
-Therefore both:
+Therefore:
 
 ```text
 organization.work.assigned.v1
@@ -62,19 +46,16 @@ and:
 governance.work_item.assignment.auto_execute
 ```
 
-share the same durable correlation identity.
-
-The existing atomic transaction guarantee remains unchanged: failure in the staged unit prevents the mutation/audit/Activity unit from committing.
-
-### Transparency service
+share one durable correlation identity.
 
 Added:
 
 ```text
 apps/api/app/services/organization_transparency.py
+apps/api/tests/test_organization_transparency.py
 ```
 
-The service provides:
+The transparency service provides:
 
 - `TransparencyActivityRecord`;
 - `GovernedActionTrace`;
@@ -85,7 +66,7 @@ The service provides:
 
 ## Constitutional classification
 
-V1.3 Governance Activities already carry their constitutional class explicitly in the durable payload:
+V1.3 Governance Activities carry their constitutional class explicitly in durable payload:
 
 ```text
 MATERIAL
@@ -94,7 +75,7 @@ AUTHORITY
 
 C.1 reads that class and applies the frozen constitutional transparency policy.
 
-For example, the current governed WorkItem assignment is `MATERIAL`, so its governance record is:
+For the governed WorkItem assignment (`MATERIAL`):
 
 ```text
 Board inspectable       YES
@@ -103,97 +84,50 @@ Full lineage required   YES
 Policy compaction       NO
 ```
 
-Existing pre-V1.3 Activities that do not carry a constitutional class remain Board-inspectable but are **not silently reclassified**. Their constitutional retention/lineage fields remain unknown (`None`) until an explicit later migration/classification policy exists.
+Existing pre-V1.3 Activities remain Board-inspectable but are not silently assigned fake constitutional retention/lineage semantics.
 
-This preserves repository truth instead of manufacturing historical semantics.
+## Fail-closed rules
 
-## Fail-closed transparency rules
+C.1 rejects ambiguous durable governance data including invalid/non-object payload JSON, unsupported constitutional Activity classes, invalid trace identity, governance trace/correlation mismatch, and governed traces with zero or multiple governance roots.
 
-C.1 fails closed when a durable governance record is structurally ambiguous, including:
+All trace and WorkItem-history queries are tenant-scoped at the database boundary.
 
-- invalid Activity payload JSON;
-- non-object payload;
-- unsupported constitutional activity class;
-- invalid trace identity;
-- governance `trace_id` / `correlation_key` mismatch;
-- a governed trace containing zero or multiple governance roots.
+## Canonical acceptance
 
-## Tenant isolation
-
-All trace and WorkItem-history queries require an explicit tenant key and filter on it at the database query boundary.
-
-A correlation identifier is not globally authoritative and cannot be used to cross tenant boundaries.
-
-## Focused tests
-
-Added:
+Dedicated record:
 
 ```text
-apps/api/tests/test_organization_transparency.py
+docs/V1_3_C1_ACCEPTANCE_2026-08-20.md
 ```
 
-Six focused tests cover:
-
-1. governed WorkItem assignment shares one trace across governance authorization and organization effect;
-2. `governed_action_trace(...)` reconstructs the material action;
-3. trace queries remain strictly tenant-scoped;
-4. legacy/unclassified Activity remains Board-inspectable without fake constitutional classification;
-5. malformed governance trace data fails closed;
-6. WorkItem history includes creation, governed assignment effect and governance record.
-
-## Non-claims
-
-C.1 does not yet implement:
-
-- AgentConversation / AgentMessage persistence;
-- ToolActionRecord;
-- complete ActivityLineage graph traversal;
-- full DecisionLineage across Evidence / VerifiedRules / SourceSnapshots;
-- blocked/review-required attempt persistence;
-- Board/Cockpit HTTP transparency endpoints;
-- sensitivity-tier enforcement for privileged/legal/identity/credential/personnel records;
-- raw model chain-of-thought capture;
-- a new transparency database schema;
-- a database migration;
-- Decision Readiness;
-- independent verification;
-- Organizational Immune System;
-- canonical repository PASS;
-- GitHub CI PASS.
-
-Hidden chain-of-thought is explicitly **not** the audit mechanism. Transparency is based on structured decisions, evidence, authority, actions and durable lineage.
-
-## Acceptance gate
-
-From the canonical Windows V12 checkout:
+Canonical Windows V12 evidence:
 
 ```text
-pytest apps/api/tests/test_organization_governance_kernel.py \
-       apps/api/tests/test_organization_governed_work.py \
-       apps/api/tests/test_organization_transparency.py -q
-
-python scripts/check_repo_policy.py --root .
-
-pytest apps/api/tests -q
-
-python scripts/check_database_migrations.py
-
-python scripts/check_local_db_schema.py \
-  --database-url "sqlite:///D:/global-mobility-aios/gmai.db"
-
-git diff --check
-git status -sb
+Focused B.1+B.2+C.1     31 passed / 1 warning / 0 failed in 5.40s
+Repository policy        PASS
+Full API regression      917 passed / 5 skipped / 1 warning / 0 failed in 317.64s
+Migration check          PASS
+Migration head           0076_organization_position_active_identity
+Registered tables        118
+Local DB schema          PASS / 118 actual tables
+Physical tables          119 incl. alembic_version
+git diff --check         clean
+git status               clean / synchronized
 ```
 
-The previously protected `v10.22` roadmap regression should also remain green after the roadmap synchronization for this slice.
+The warning remains the pre-existing Starlette/httpx TestClient deprecation warning.
 
-## Next C direction after acceptance
+## Preserved boundaries
 
-If C.1 passes canonical acceptance, the next transparency work should be selected based on the real vertical-slice needs. The likely next candidates are:
+C.1 does not implement AgentConversation/AgentMessage persistence, ToolActionRecord, complete ActivityLineage graph traversal, Evidence/VerifiedRule/SourceSnapshot DecisionLineage, Board/Cockpit HTTP transparency endpoints, sensitivity-tier enforcement, hidden chain-of-thought capture, a new transparency schema, or a migration.
 
-1. durable persistence of blocked/review-required governance attempts so rejected material actions are also inspectable;
-2. explicit causation links between governance authorization and domain effect;
-3. bounded Board/Cockpit transparency query contract;
-4. ToolActionRecord / Evidence / decision lineage where the first real mobility case requires them.
+## Final disposition
 
-Do not expand all of C at once.
+```text
+V1.3-C.1 — Transparency Trace Foundation
+COMPLETE
+PASS
+SEALED
+```
+
+C.2 proceeds with durable visibility for `BLOCK` and `REVIEW_REQUIRED` material attempts.
