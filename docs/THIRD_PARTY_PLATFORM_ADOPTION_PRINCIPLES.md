@@ -1,572 +1,608 @@
 # Global Mobility AIOS — Third-Party Platform Adoption Principles
 
-**Version:** V1.1  
+**Version:** V1.2  
 **Date:** 2026-08-19  
 **Status:** Current architecture principle  
-**Supersedes:** V1 wording only where V1.1 adds Internal Learning & Quality, AIOS Coworker, Agent Organization Fabric, Execution Broker, human-like organization, and performance-governance boundaries
+**Active organization architecture:** [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)  
+**Active Radar:** [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md)
 
-This document defines the permanent ownership boundary between Global Mobility AIOS and external frameworks, libraries, engines, services, standards, and infrastructure.
+This document defines the permanent ownership boundary between Global Mobility AIOS and external frameworks, libraries, models, agent runtimes, execution systems, services, standards and infrastructure.
 
-The active radar is [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md). The canonical human-like organization direction is [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md). [TECHNOLOGY_RADAR_V1.md](TECHNOLOGY_RADAR_V1.md) remains historical evidence.
+---
 
-## 1. AIOS Semantic Sovereignty Principle
+## 1. AIOS Semantic Sovereignty
 
-> **Third-party infrastructure may implement, accelerate, execute, retrieve, parse, monitor, observe, scan, render, evaluate, optimize, coordinate, remember, connect, or otherwise support an AIOS-defined capability, but it must never become authoritative for AIOS domain meaning, legal status, evidence state, certification state, publication state, human-review requirements, organizational authority, Mission/WorkItem semantics, ExecutiveDecision semantics, Contribution semantics, OrganizationActivity semantics, or business outcomes.**
+> **Third-party infrastructure may implement, accelerate, execute, retrieve, parse, monitor, observe, scan, render, evaluate, optimize, coordinate, remember, connect, visualize, draft, or propose an AIOS-defined capability, but it must never become authoritative for AIOS domain meaning, legal status, evidence state, certification state, publication state, human-review requirements, organizational authority, Mission/WorkItem semantics, ExecutiveDecision semantics, Contribution semantics, canonical OrganizationActivity semantics, or business outcomes.**
 
-## 2. AIOS always owns
-
-- domain/case/mobility semantics;
-- legal/business conclusion state;
-- jurisdiction/effective-period meaning;
-- evidence and source-snapshot state;
-- certification and VerifiedRule state;
-- pathway/publication lifecycle;
-- human-review requirements;
-- positions, delegation and Board authority;
-- Mission semantics;
-- WorkItem, Blocker, Dependency and HumanActionRequest meaning;
-- HumanAction meaning;
-- AgentConversation semantics;
-- ExecutiveDecision meaning;
-- Contribution semantics;
-- canonical OrganizationActivity semantics;
-- Capability Registry semantics;
-- SLA/KPI/OKR semantics;
-- Definition of Done / outcome semantics;
-- business audit semantics;
-- final evidence/provenance interpretation.
-
-## 3. Third parties may
-
-Through bounded adapters / Execution Broker contracts, external components may:
-
-- parse/OCR/classify;
-- normalize documents;
-- detect or transform PII;
-- scan malware;
-- monitor sources and detect changes;
-- retrieve semantic candidates;
-- persist timers/retries/execution waits;
-- trace/evaluate model and tool execution;
-- optimize offline experiments;
-- evaluate AIOS-defined authorization relationships;
-- evaluate AIOS-defined system policies;
-- render/convert documents;
-- validate cryptographic signatures;
-- provide processing lineage;
-- execute AI/model/tool steps;
-- produce files and finished deliverables;
-- connect to external systems through tools/MCP/connectors;
-- provide agent communication transport;
-- provide agent mailboxes/message routing;
-- provide working-memory mechanisms;
-- provide orchestration/supervisor mechanics;
-- provide schedules/heartbeats;
-- provide budget/cost telemetry;
-- provide progressive execution/circuit-breaker mechanics;
-- provide visualization/event feeds.
-
-Their output is input to AIOS-owned organizational/domain state, not an authoritative replacement for it.
-
-## 4. Third parties may not implicitly
-
-- declare immigration/legal eligibility;
-- approve evidence/certification;
-- publish a pathway;
-- promote draft state to production;
-- infer organization authority from prompts, personas, titles, provider roles or model confidence;
-- bypass backend authorization;
-- bypass mandatory HumanActionRequest/human-review gates;
-- turn retrieval similarity into legal truth;
-- turn source diffs into VerifiedRules;
-- turn OCR/document-normalization confidence into authenticity;
-- turn malware-clean status into evidence approval;
-- turn workflow completion into business approval;
-- turn telemetry into OrganizationActivity;
-- turn provider memory into Evidence, VerifiedRule or certification;
-- turn a provider task into an AIOS Mission or WorkItem automatically;
-- turn a provider message into ExecutiveDecision automatically;
-- turn a provider event log into the canonical AIOS OrganizationActivity ledger automatically;
-- become the sole provenance record.
-
-## 5. Adapter-first / Execution Broker rule
-
-Preferred:
+Preferred integration:
 
 ```text
 AIOS domain / Organization OS
   ↓
 AIOS-owned capability contract
   ↓
-AIOS Execution Broker / adapter
+Context Broker / Canonicalization / Command Gateway / Execution Broker
   ↓
 external technology
 ```
 
-Avoid broad provider-specific imports throughout domain services.
+---
 
-### Timing
+## 2. AIOS always owns
 
-The Technology Radar documents conceptual boundaries but **does not create empty runtime interfaces merely because a candidate exists**. A runtime contract appears when a bounded implementation needs it and its acceptance contract is known.
+AIOS owns the canonical meaning of:
 
-## 6. Provider replacement
+- domain/case/mobility state;
+- legal/business conclusions;
+- jurisdiction/effective-period semantics;
+- official-source/snapshot state;
+- Evidence;
+- certification;
+- VerifiedRule;
+- pathway/publication lifecycle;
+- human-review requirements;
+- positions/delegation/Board authority;
+- Mission;
+- WorkItem;
+- Blocker;
+- Dependency;
+- HumanActionRequest / HumanAction;
+- AgentConversation semantics;
+- ExecutiveDecision;
+- Contribution;
+- canonical OrganizationActivity;
+- Capability Registry;
+- autonomy policy;
+- SLA/KPI/OKR;
+- Definition of Done;
+- ConsequentialActionProposal lifecycle;
+- approval/modification/rejection state;
+- business audit semantics;
+- final evidence/provenance interpretation.
 
-AIOS records must remain meaningful if a provider disappears.
+---
+
+## 3. External technologies may
+
+Through bounded AIOS contracts, external systems may:
+
+- parse / OCR / classify / normalize documents;
+- detect/redact/transform sensitive data;
+- scan malware;
+- monitor official sources;
+- detect changes;
+- retrieve semantic candidates;
+- perform model/tool execution;
+- produce drafts and finished artifacts;
+- use files/terminal/MCP/connectors in a scoped sandbox;
+- provide agent communication transport;
+- provide mailboxes/message routing;
+- provide working-memory mechanics;
+- provide orchestration/supervisor mechanics;
+- provide schedules/heartbeats;
+- provide budgets/cost telemetry;
+- provide circuit-breaker mechanics;
+- provide visualization/event feeds;
+- persist durable waits/retries/execution state;
+- evaluate AIOS-defined relationships/policies;
+- trace/evaluate model/tool execution;
+- render/convert documents;
+- validate cryptographic signatures;
+- provide processing lineage;
+- create candidate/proposed actions for AIOS review.
+
+Their output is input to AIOS-owned canonicalization/domain transitions, not an automatic authoritative transition.
+
+---
+
+## 4. External technologies may not silently
+
+They may not automatically:
+
+- declare immigration/legal eligibility;
+- certify Evidence;
+- publish/change a VerifiedRule;
+- publish a pathway;
+- change client/case status;
+- submit an application;
+- send consequential external communication outside an accepted autonomy policy;
+- create Board/executive authority from a prompt/title/persona;
+- bypass backend authorization;
+- bypass a required professional/source/certification/human gate;
+- turn retrieval similarity into legal truth;
+- turn memory into Evidence;
+- turn memory into VerifiedRule;
+- turn conversation into authority;
+- turn an agent message directly into ExecutiveDecision without AIOS validation;
+- turn a source diff into VerifiedRule;
+- turn OCR/model confidence into authenticity/certification;
+- turn malware-clean status into evidence approval;
+- turn workflow completion into business approval;
+- turn telemetry/provider event history directly into canonical OrganizationActivity;
+- become the sole provenance/audit record;
+- write arbitrary production-domain state around the AIOS Command Gateway.
+
+---
+
+## 5. Broad cognition / scoped context
+
+Agents may reason broadly, but sensitive information should be provided through task/tenant/purpose/sensitivity-scoped context.
+
+The preferred pattern is:
+
+```text
+AIOS Context Broker
+  ↓
+ContextBundle
+  ↓
+agent/runtime
+```
+
+A ContextBundle may include only the case/documents/evidence/rules/conversations/decisions/unknowns needed for the Mission.
+
+External providers must not receive unrelated sensitive information merely because it exists in the database.
+
+---
+
+## 6. Canonicalization boundary
+
+Non-authoritative inputs include:
+
+- agent messages;
+- memory;
+- model outputs;
+- OCR/retrieval;
+- source monitoring;
+- Munder Difflin events;
+- OpenWorker events;
+- Temporal histories;
+- connector events;
+- telemetry.
+
+The AIOS Canonicalization Gateway decides whether an input becomes:
+
+- telemetry only;
+- conversational/collaborative OrganizationActivity;
+- operational/material OrganizationActivity;
+- candidate WorkItem/Mission/Blocker;
+- Evidence candidate;
+- VerifiedRule candidate;
+- ExecutiveDecision candidate;
+- ConsequentialActionProposal;
+- unsupported/conflicted result.
+
+Provider storage itself is never the authoritative semantic record.
+
+---
+
+## 7. Command boundary
+
+Authoritative mutations use typed AIOS commands.
+
+Before mutation, AIOS validates:
+
+- authenticated identity;
+- deterministic authority;
+- capability scope;
+- tenant/case scope;
+- evidence sufficiency;
+- contradictions;
+- current version/state preconditions;
+- required human/professional/source/certification gate;
+- idempotency;
+- transaction safety.
+
+An external runtime may request/propose a command. It may not bypass the command contract.
+
+---
+
+## 8. Consequential-action proposal boundary
+
+The following action classes are proposal-first by default:
+
+- send external email/communication;
+- change eligibility;
+- certify Evidence;
+- submit application;
+- change/publish VerifiedRule;
+- change client status.
+
+Agents/runtimes may prepare:
+
+- exact payload;
+- recipients/attachments;
+- rationale;
+- evidence/source references;
+- uncertainty;
+- contradictions;
+- downstream impact;
+- preflight results.
+
+The appropriate human may:
+
+- approve;
+- modify;
+- return for revision;
+- reject.
+
+Only after approval does AIOS execute the corresponding domain/external command, unless a separately accepted bounded autonomy policy permits direct execution for that specific action class/context.
+
+Review belongs at the lowest appropriate human surface, not automatically Board Room.
+
+---
+
+## 9. Five hard semantic constraints
+
+```text
+conversation != authority
+message != ExecutiveDecision
+memory != Evidence
+memory != VerifiedRule
+provider event log != canonical AIOS Activity automatically
+```
+
+Allowed promotion chains require AIOS-owned validation.
 
 Examples:
 
-- document/evidence state survives replacing Docling/OCR;
-- Missions and WorkItems remain meaningful without Munder Difflin/OpenWorker/Temporal;
-- AgentConversation remains meaningful if a message provider changes;
-- authorization semantics remain understandable without OpenFGA;
-- OrganizationActivity remains canonical if provider logs/Langfuse traces expire;
-- source snapshots remain authoritative if monitoring tooling changes;
-- finished deliverables remain attached to AIOS outcomes even if OpenWorker is replaced.
-
-External IDs are traceability mappings, not semantic primary keys.
-
-## 7. Evidence/legal boundary
-
 ```text
-external parser / retriever / model / memory / agent output
-  ↓
-candidate information / working context
-  ↓
-AIOS provenance + evidence checks
-  ↓
-domain rules
-  ↓
-required review / certification
-  ↓
-governed AIOS transition
+message
+→ Decision candidate
+→ authority/evidence/state validation
+→ ExecutiveDecision
 ```
 
-Never `model/retrieval/parsing/memory/conversation result → legal truth`.
-
-## 8. Authorization boundary
-
-- **OpenFGA candidate:** relationship authorization evaluation.
-- **OPA candidate:** narrow AIOS-defined system/policy gates.
-- **AIOS:** organization authority, domain/legal/business meaning and authoritative mutation.
-
-Navigation visibility, provider role, system prompt, persona and model confidence are not permission.
-
-## 9. Durable execution boundary
-
-A future Temporal layer may own timer durability, retries, resumption, signals and execution history.
-
-AIOS owns Mission/workflow meaning, WorkItems, blockers, dependencies, human actions, decisions, Contributions, OrganizationActivity and case/legal/business outcomes.
-
-## 10. Telemetry, Activity and provenance separation
-
-- **OpenTelemetry/Langfuse:** engineering trace.
-- **OpenLineage candidate:** processing lineage.
-- **AIOS OrganizationActivity:** semantic organizational history, including normalized conversational/collaborative/operational activity.
-- **AIOS evidence/source/certification:** legal/evidence provenance.
-
-No category may replace another.
-
-Important refinement:
-
 ```text
-AgentMessage ⊂ OrganizationActivity
+memory
+→ hypothesis
+→ official-source/evidence retrieval
+→ governed validation
+→ Evidence / rule candidate
 ```
 
-is valid **when the message is normalized into the AIOS-owned activity model**.
+---
 
-But:
-
-```text
-provider message log ≠ canonical OrganizationActivity automatically
-telemetry trace ≠ OrganizationActivity
-conversation ≠ authority
-```
-
-## 11. Privacy/minimum necessary data
-
-External AI/infrastructure should not receive sensitive values merely because they exist in a case.
-
-A future Privacy Gateway should apply purpose, recipient/tool identity, minimum necessary fields, redaction/pseudonymization, retention, re-identification permission, and human-review rules.
-
-Automated PII detection is a safety aid, not proof of complete de-identification.
-
-## 12. Untrusted document boundary
+## 10. Evidence / legal boundary
 
 ```text
-upload
+external parser / retrieval / model / memory
   ↓
-type/size validation
+candidate information
   ↓
-hash
+AIOS source/evidence checks
   ↓
-quarantine
+contradiction/effective-date/supersession checks
   ↓
-malware scan
+required review/certification
   ↓
-safe-to-process state
-  ↓
-document normalization / parser / OCR
+governed AIOS state
 ```
 
-A clean scan does not establish authenticity or evidence validity. Document normalization does not establish legal sufficiency.
+Never `model/retrieval/memory result → legal truth`.
 
-## 13. Retrieval boundary
+---
 
-Semantic retrieval may identify candidate evidence. AIOS must still verify jurisdiction, source authority, effective date, certification state, supersession and tenancy.
+## 11. Trust ladder
 
-Vector similarity is not legal truth.
+```text
+L0 model speculation
+L1 conversation / memory
+L2 retrieved information
+L3 captured source snapshot
+L4 governed Evidence
+L5 reviewed candidate
+L6 VerifiedRule / certified governed fact
+L7 governed case conclusion
+L8 approved authority-bearing action
+```
 
-## 14. Agent-framework / organization-framework boundary
+Lower levels cannot skip mandatory promotion stages merely because a model is confident.
 
-Agent frameworks may provide typed model calls, tools, provider adapters, structured outputs, message transport, working memory, supervisor/orchestrator mechanics, schedules and circuit breakers.
+---
 
-They may not grant authority through prompts/personas, replace deterministic business logic without justification, publish evidence, approve certification, establish final legal outcomes, or substitute provider task/message/memory semantics for AIOS Missions, WorkItems, Decisions, OrganizationActivity or evidence state.
+## 12. Confidence / grounding
 
-## 15. Munder Difflin boundary
+Model self-confidence is not an authorization mechanism.
 
-Munder Difflin (`chaitanyagiri/munder-difflin`) is an A+ strategic architecture reference / controlled pilot-research candidate for the AIOS Agent Organization Fabric.
+Material agent output should provide structured grounding such as:
 
-Its useful reference concepts include:
+- support state;
+- source/evidence identifiers;
+- VerifiedRule identifiers;
+- assumptions;
+- uncertainty;
+- missing facts;
+- contradictions.
 
-- persistent identities;
-- mailboxes and routed messages;
-- long-term/working memory;
-- supervisor/orchestrator coordination;
-- task/dependency coordination;
-- scheduled missions / heartbeat;
-- human intervention patterns;
-- budgets/cost telemetry;
-- OpenTelemetry spans;
-- progressive circuit breakers;
-- skills/capability discovery;
+AIOS may reject an unsupported high-confidence output.
+
+---
+
+## 13. Contradiction / self-correction boundary
+
+Before material mutation, AIOS should check current:
+
+- Evidence;
+- VerifiedRules;
+- source authority/effective date;
+- supersession;
+- case facts;
+- pathway version;
+- decisions;
+- prior accepted state.
+
+Unsupported/conflicted results should normally follow:
+
+```text
+self-correct
+→ peer/specialist review where useful
+→ human review where still required
+```
+
+Peer-agent agreement is a signal, not truth.
+
+---
+
+## 14. Capability / autonomy boundary
+
+Capabilities should be typed and scoped rather than exposing arbitrary database/tool power.
+
+Suggested autonomy levels:
+
+```text
+A0 prohibited
+A1 human execution required
+A2 human approval required
+A3 autonomous + mandatory post-review
+A4 autonomous + monitoring/rollback
+A5 fully autonomous bounded internal operation
+```
+
+Autonomy belongs to capability + context.
+
+An agent/provider may not self-promote its autonomy or authority.
+
+---
+
+## 15. Execution sandbox
+
+Powerful runtimes should use bounded controls for:
+
+- filesystem;
+- network;
+- secrets;
+- shell;
+- connectors;
+- execution time;
+- token/model cost;
+- production mutation;
+- external actions.
+
+No local-first/coworker convenience justifies unrestricted secrets/network/filesystem access.
+
+---
+
+## 16. Atomic/versioned mutation
+
+Rejected/bad proposals must not corrupt the prior accepted state.
+
+Prefer:
+
+```text
+proposal
+→ validate / approve
+→ atomic commit
+```
+
+and version/supersession rather than destructive overwrite for material assessments/rules/plans/drafts.
+
+Irreversible external actions must preserve the exact approved proposal and execution result.
+
+---
+
+## 17. Munder Difflin boundary
+
+Munder Difflin is an A+ reference / controlled-research candidate for:
+
+- organization/agent identities;
+- communication/mailboxes;
+- memory mechanics;
+- orchestration;
+- dependencies;
+- scheduling;
+- budgets/cost;
+- circuit breakers;
+- skills;
 - live organization visualization.
 
-Munder Difflin may not define AIOS Mission, WorkItem, Blocker, Dependency, HumanActionRequest, ExecutiveDecision, Contribution, evidence, certification, publication, authority, canonical OrganizationActivity or business-outcome semantics.
+It may not own AIOS Mission/WorkItem/Decision/Activity/Evidence/VerifiedRule/authority semantics.
 
-Its local file/git hive is a provider implementation detail/reference pattern, not the AIOS authoritative persistence model.
+Its provider-native messages/events may feed AIOS normalization but are not canonical by existence alone.
 
-## 16. OpenWorker / AIOS Coworker boundary
+---
 
-OpenWorker (`andrewyng/openworker`) is an A+ strategic reference / controlled-pilot candidate for governed finished-work execution.
+## 18. OpenWorker boundary
 
-```text
-AIOS Mission / governed work
-        ↓
-AIOS Execution Broker
-        ↓
-AIOS-owned execution/tool/connector contract
-        ↓
-OpenWorker-derived or other bounded implementation
-        ↓
-finished deliverable / external action
-        ↓
-AIOS quality + authority gates
-        ↓
-governed outcome
-```
+OpenWorker is an A+ reference / controlled-research candidate for:
 
-A third-party coworker/runtime may not redefine Mission, WorkItem, Blocker, Dependency, HumanActionRequest, ExecutiveDecision, Contribution, OrganizationActivity, authority, evidence truth, certification, publication or legal/business outcomes.
+- finished work;
+- artifacts/files;
+- terminal/tools;
+- MCP;
+- connectors;
+- scheduled work;
+- approval inbox patterns;
+- external actions;
+- model portability;
+- local-first Coworker execution.
 
-## 17. Munder + OpenWorker cooperation principle
+External action functionality remains subject to AIOS proposal/approval and Command Gateway rules.
 
-AIOS should not optimize for framework competition when complementary capabilities produce a better governed result.
+OpenWorker tasks/sessions do not replace AIOS Missions/WorkItems.
 
-A single Mission may legitimately involve:
+---
 
-- Munder-inspired multi-agent communication/coordination;
-- AIOS-native domain/evidence services;
-- OpenWorker-style finished-work/tool/connector execution;
-- deterministic services;
-- specialist models;
-- required professional/human gates.
+## 19. Execution Broker / complementary frameworks
 
-The AIOS Execution Broker owns the composition decision.
+AIOS may compose Munder/OpenWorker/AIOS-native capabilities when that produces better governed results.
 
-> **Results matter more than framework ownership, while semantic sovereignty remains non-negotiable.**
+The Execution Broker may consider:
 
-## 18. Human-like interaction boundary
+- capability;
+- quality;
+- SLA;
+- workload;
+- evidence requirements;
+- human-review requirements;
+- cost;
+- privacy/data-use;
+- provider health;
+- fallback.
 
-Agents should be allowed to behave like capable colleagues: ask questions, clarify, suggest, disagree, request assistance, hand off work, warn, acknowledge, review, and coordinate without creating a formal WorkItem or human escalation for every interaction.
+Duplicate-framework restraint does **not** mean forcing one winner when technologies own genuinely complementary responsibilities.
 
-This human-like behavior must remain bounded by:
+It still means not retaining duplicate production solutions for the same capability without measured justification.
 
-- deterministic authority;
-- evidence/legal truth rules;
-- SLA/Definition of Done;
-- quality gates;
-- privacy/data-use constraints;
-- required human/professional review.
+---
 
-> **Natural interaction, deterministic accountability.**
+## 20. Durable execution / telemetry separation
 
-## 19. Activity is broad; authority is narrow
+- **Temporal** may eventually own durable timer/retry/signal mechanics.
+- **OpenTelemetry/Langfuse** own engineering telemetry/observability roles.
+- **OrganizationActivity** remains AIOS semantic organizational history.
+- **AuditLog** remains business/security audit state.
+- **Evidence/source/certification** remains separate legal/evidence provenance.
 
-OrganizationActivity may include conversational, collaborative, operational, material and authority-bearing activity.
+No one substitutes for another.
 
-A message can be genuine OrganizationActivity without becoming a decision.
+---
 
-A conversation can create understanding without creating authority.
+## 21. Document / OCR boundary
 
-Only the appropriate governed transition can create a Decision, approval, certification, publication, external action or legal/business conclusion.
+Docling/document parsers/OCR produce machine-readable normalization/extraction signals.
 
-## 20. Distributed human review / escalation boundary
+They do not establish:
 
-The canonical escalation principle is:
+- authenticity;
+- legal sufficiency;
+- certification;
+- eligibility;
+- publication;
+- authority.
 
-> **Resolve autonomously where permitted. Collaborate before escalating. Escalate to the lowest level with the necessary expertise or authority. Reserve Board attention for genuinely Board-level matters.**
+PaddleOCR/Unlimited-OCR should be benchmarked only when measured Docling/current-stack gaps justify another OCR technology.
 
-```text
-agent can resolve → agent
-colleague expertise → collaborate
-operational authority → department lead
-professional judgement → Professional / Operator
-personal fact → Mobility User
-executive authority → executive / CEO
-reserved material authority → Human Owner / Board
-```
+---
 
-Board Room remains reserved authority, not a generic review inbox.
+## 22. Privacy / minimum necessary
 
-## 21. Persona + deterministic authority
+A future Presidio/Privacy Gateway may assist with sensitive-data detection/transformation.
 
-Rich organizational persona may inform reasoning, priorities, communication style and delegation strategy.
+Automated PII detection is not proof of complete de-identification.
 
-Actual authority comes from deterministic AIOS runtime position/delegation contracts.
+Tool/provider context should follow recipient identity, purpose, minimum necessary fields, sensitivity, tenancy, retention and re-identification policy.
 
-```text
-persona / identity
-      +
-position contract / delegated authority
-      =
-governed organizational agent
-```
+---
 
-When they disagree, deterministic authority wins.
+## 23. Internal Learning & Quality
 
-## 22. Human Owner privileged command
+Keep three uses distinct:
 
-Natural-language commands from authenticated humans are an interface to existing AIOS authority, not a new source of authority.
+1. operational intelligence;
+2. evaluation/quality;
+3. training/optimization.
 
-The Human Owner / Board may exercise the highest organizational privileges available through normal AIOS governance.
+Permitted corrections, proposal modifications/rejections, approvals, OCR/document corrections, routing outcomes, SLA misses and provider outcomes may become quality/learning signals.
 
-High-impact commands may receive an interpretation preview to reduce ambiguity. The preview does not create or remove authority.
+A record valid for service operation or analytics is not automatically valid for training.
 
-## 23. Mission / WorkItem boundary
+Real-client-data training/reuse requires the applicable processing purpose, legal/compliance treatment, special-category safeguards where relevant, retention/deletion, tenant/data-use policy and lineage.
 
-Mission represents the outcome-level organizational objective. WorkItems represent durable units of work needed to achieve it.
+---
 
-Provider tasks may help execute WorkItems/Missions but do not become authoritative Mission/WorkItem records automatically.
+## 24. Provider replacement / exit
 
-A conversation may create a WorkItem only when actual durable work is warranted.
+AIOS records must remain meaningful if a provider disappears.
 
-## 24. Capability Registry / Execution Broker boundary
+Before production adoption define:
 
-Provider skills, tools and connectors register behind AIOS-owned capability semantics.
+- external-ID mapping;
+- export/rebuild path;
+- rollback;
+- replacement interface;
+- minimum authoritative AIOS data required to reconstruct capability.
 
-The Execution Broker may consider capability, authority, SLA risk, workload, historical quality, rework, cost, privacy/data-use constraints and provider health.
+If provider removal requires rewriting core domain semantics, the integration is too coupled.
 
-Provider skill names do not become AIOS organizational semantics.
+---
 
-## 25. SLA / KPI / OKR boundary
-
-SLAs, KPIs and OKRs measure/steer organizational performance; they do not grant authority or change evidence truth.
-
-KPIs should support diagnosis and improvement rather than create a simplistic competitive agent leaderboard.
-
-> **Team/Mission outcome is the primary performance unit.**
-
-## 26. Progressive intervention boundary
-
-AIOS should prefer progressive intervention:
-
-```text
-NORMAL
-→ STEER
-→ ASSIST / PEER SUPPORT
-→ REASSIGN
-→ CONSTRAIN
-→ SUSPEND SPECIFIC AGENT / CAPABILITY
-→ EXECUTIVE / HUMAN ESCALATION
-→ EMERGENCY ORGANIZATION STOP
-```
-
-Global pause must remain an emergency governance action, not a normal troubleshooting fallback.
-
-## 27. Evaluation boundary
-
-AI evaluation tools may run regression/red-team/prompt-injection tests. They do not become production authority.
-
-Evaluation configuration capable of code/tool execution must be treated as trusted engineering material and isolated appropriately.
-
-## 28. Rendering/signature boundary
-
-Rendering success does not prove factual correctness, approval or certification.
-
-Cryptographic signature validity does not independently establish legal acceptance of document contents.
-
-## 29. License/security review
+## 25. Security / license / operations review
 
 Before adoption re-check:
 
-- canonical project/repository;
-- current license/open-core boundaries;
+- canonical repository/project;
+- license/open-core terms;
 - transitive dependencies;
 - security advisories;
-- data sent to the component;
 - network/filesystem/secrets access;
+- data residency;
+- tenancy;
+- deletion/backups;
+- telemetry export;
 - update cadence;
-- SBOM/container provenance where relevant.
+- deployment/supportability;
+- SBOM/container provenance where applicable.
 
-## 30. Data residency
+---
 
-Document where data is processed/persisted, deletion behavior, backup behavior, telemetry export, tenancy, encryption and operator access.
+## 26. Adoption lifecycle
 
-Sensitive mobility data must not leave the controlled environment merely because an SDK makes it easy.
+Strategic fit and adoption state remain separate.
 
-## 31. Exit strategy
+```text
+REFERENCE
+→ RESEARCH
+→ BENCHMARK
+→ PILOT
+→ TRIAL
+→ ADOPT
+```
 
-Before adoption define:
+Passing a pilot does not automatically mean `ADOPT`.
 
-- data export;
-- provider-ID mapping;
-- rebuild strategy for derived data;
-- rollback;
-- replacement boundary;
-- minimum authoritative AIOS data required to reconstruct the capability.
+---
 
-If removal requires rewriting core semantics, the integration is too coupled.
+## 27. Change-management rule
 
-## 32. Duplicate-framework restraint
-
-- maintain one AIOS-owned semantic organization model;
-- maintain one AIOS-owned Execution Broker contract;
-- prefer one primary production agent runtime per actual overlapping capability after evaluation, unless measured needs justify plurality;
-- complementary Munder/OpenWorker roles may coexist if they measurably improve outcomes rather than duplicate the same responsibility;
-- one primary retrieval architecture unless real workloads prove a split;
-- OpenTelemetry remains the neutral trace contract;
-- DSPy stays offline if Pydantic AI becomes the production runtime;
-- Haystack remains benchmark-only unless measured requirements justify it.
-
-## 33. Change-management rule
-
-A Radar technology enters runtime only through a bounded slice documenting:
+A Radar technology enters or expands runtime only through a bounded slice documenting:
 
 - problem;
-- AIOS-owned boundary;
+- AIOS-owned capability boundary;
 - alternatives;
 - security/license/data flow;
 - authority impact;
-- evidence impact;
+- proposal/approval impact where relevant;
 - failure modes;
-- SLA/quality expectations where relevant;
-- benchmark;
-- acceptance;
+- benchmark/acceptance;
 - rollback;
 - exit strategy;
 - ROADMAP/CHANGELOG updates.
 
-Repository popularity or visual appeal alone is not an adoption criterion.
+Repository popularity alone is not an adoption criterion.
 
-## 34. Internal Learning & Quality Principle
+---
 
-> **Subject to applicable law, contractual commitments, declared processing purposes, required safeguards, and the applicable data-use policy, AIOS should maximize lawful learning from the work it performs. Evaluation, quality improvement, operational intelligence, retrieval/document improvement, workflow optimization, organizational improvement, and appropriate internal model training are first-class product purposes.**
+## 28. Current architecture decision
 
-This does **not** mean every record is automatically trainable.
+The active organization architecture is V1.1.
 
-## 35. Separate operational intelligence, evaluation and training
+Platform architecture may proceed in parallel with Phase 13.17 human acceptance.
 
-AIOS preserves three distinct uses:
+This parallelism does not permit:
 
-1. **Operational intelligence** — work, bottlenecks, capacity, conversations, collaboration, source quality and outcomes.
-2. **Evaluation/quality** — correctness, correction rates, retrieval/OCR quality, agent success, collaboration quality, SLA performance, tool/provider failure and regressions.
-3. **Training/optimization** — permitted corpora for fine-tuning, specialized models, prompt/program optimization, routing/retrieval/ranking and planning improvements.
+- bypassing unresolved human findings;
+- claiming docs as runtime acceptance;
+- weakening evidence/authority/security boundaries;
+- letting agents silently execute proposal-first consequential actions.
 
-A record being valid for analytics does not automatically make it valid for model training.
-
-## 36. Human corrections are governed learning assets
-
-Professional corrections, Owner redirections, review outcomes, approvals/rejections, evidence edits and OCR fixes are high-value supervised signals where reuse is permitted.
-
-```text
-prediction / extraction / plan / recommendation
-        ↓
-professional / Owner / human decision
-        ↓
-difference / confirmation
-        ↓
-Learning Record
-```
-
-Learning records retain provenance and never rewrite the authoritative business/legal record merely to create training data.
-
-## 37. Organizational learning assets
-
-Where permitted, AIOS may also learn from:
-
-- successful/failed collaboration paths;
-- unnecessary handoffs;
-- repeated questions;
-- SLA misses;
-- capacity rebalancing;
-- routing outcomes;
-- peer-review disagreements;
-- provider/runtime success and cost;
-- escalation appropriateness;
-- Mission outcomes.
-
-Operational learning does not create legal/evidence truth.
-
-## 38. Learning and training lineage
-
-AIOS should be able to establish which source categories, datasets, transformations, human corrections, organizational outcomes, evaluation corpora and promotion decisions contributed to a model/program version.
-
-Training/evaluation lineage is separate from:
-
-- AIOS evidence/legal provenance;
-- OrganizationActivity;
-- business AuditLog;
-- engineering telemetry.
-
-No one lineage layer may silently substitute for another.
-
-## 39. Data-use policy boundary
-
-A future AIOS data-governance layer should express allowed/conditional/excluded uses for service operation, quality assurance, analytics, agent/safety evaluation, workflow/retrieval/document improvement, organizational improvement, prompt/program improvement, human quality review and internal model training.
-
-It should preserve relevant processing purpose, lawful-basis/compatibility analysis, tenant, provenance, sensitivity classification, retention class and training lineage.
-
-The data-use layer exists to make permitted learning enforceable/auditable, not to block learning by default and not to imply universal reuse permission.
-
-## 40. EU compliance boundary for learning
-
-Where GDPR applies, learning/evaluation/training involving personal data requires the applicable processing purpose, legal basis or compatible-purpose analysis, transparency, minimisation, retention/security controls and other required safeguards. Special-category personal data requires an applicable Article 9 condition and additional safeguards.
-
-The EDPB's AI-model guidance requires case-specific assessment; it does not create a blanket permission or blanket prohibition on AI model development using personal data.
-
-A generic Terms clause is not treated as automatic authorization for every future learning use.
-
-If AIOS later becomes a provider of a general-purpose AI model under the EU AI Act, GPAI provider obligations may become relevant. Using or fine-tuning a third-party model does not automatically settle that classification.
-
-Concrete production processing regimes require legal/privacy review before enablement.
-
-## 41. Finished work over chat alone
-
-The platform should increasingly use agents to produce useful governed outcomes and artifacts, not merely conversational instructions.
-
-Finished work remains subject to the same authority, review, evidence, SLA, Definition of Done and publication gates as any other AIOS operation.
-
-## 42. Live Organization boundary
-
-External visualization/event systems may inform the future Live Organization experience, but the Cockpit visualization must reflect AIOS-owned normalized state.
-
-A provider avatar/status animation is not itself authority, WorkItem truth, SLA truth, evidence truth or OrganizationActivity until mapped to the relevant AIOS semantics.
-
-The AIOS visual direction remains premium enterprise—deep navy/graphite, warm ivory, restrained motion and sophisticated information density—not a direct copy of a third-party visual style.
-
-## 43. Outcome principle
-
-> **Results matter more than provider competition.**
-
-AIOS may combine complementary technologies when that measurably improves quality, SLA performance, reliability, cost or human effort without compromising semantic sovereignty, privacy, evidence boundaries or authority.
-
-The organization optimizes for **governed Mission outcomes**, not framework loyalty.
+The objective is a **high-autonomy, low-corruption organization**: agents can think, collaborate and prepare work broadly, while AIOS remains conservative at the point where information becomes canonical truth or real-world consequence.
