@@ -24,11 +24,128 @@ Earlier history remains available through V11, Git history and the existing arch
 
 ---
 
+## 2026-08-19 — V1.3-A BROADER ACCEPTANCE — ROADMAP COMPATIBILITY REGRESSION IDENTIFIED AND FIXED / RERUN PENDING
+
+### Status
+
+**Constitutional contract tests PASS. Repository policy PASS. Broader API regression exposed one documentation-roadmap compatibility failure; the roadmap has been corrected and the broader suite must be rerun before V1.3-A is sealed PASS.**
+
+### Canonical local acceptance evidence
+
+Reported from the canonical Windows V12 checkout:
+
+```text
+pytest apps/api/tests/test_organization_constitution.py -q
+13 passed, 1 warning in 0.14s
+```
+
+Repository policy:
+
+```text
+scripts/check_repo_policy.py --root .
+Repository policy check passed.
+```
+
+Broader API regression:
+
+```text
+pytest apps/api/tests -q
+885 passed, 5 skipped, 1 failed, 1 warning in 334.06s
+```
+
+### Sole failing test
+
+```text
+apps/api/tests/test_coverage_tranche_operations_script.py::
+test_v10_22_documentation_and_roadmap_are_present
+```
+
+Failure condition:
+
+```text
+assert "v10.22" in roadmap
+```
+
+The same protected regression also requires the active roadmap to retain:
+
+```text
+multi-batch tranche operations
+0032_initial_rule_assertions
+```
+
+### Root cause
+
+The V12 roadmap rewrite correctly preserved the active product/architecture direction, but accidentally removed selected historical Phase 10.22 markers that are intentionally encoded as repository continuity contracts.
+
+The underlying v10.22 implementation documentation remained present at:
+
+```text
+docs/COVERAGE_TRANCHE_OPERATIONS_V10_22.md
+```
+
+and the failure did not indicate a defect in the new constitutional contract module.
+
+### Fix
+
+Roadmap advanced to **V12.2** and now preserves a concise historical compatibility section documenting:
+
+- `v10.22`;
+- **multi-batch tranche operations**;
+- preserved human-review / no-automatic-certification boundaries;
+- canonical v10.22 operations documentation;
+- historical migration marker `0032_initial_rule_assertions`.
+
+Roadmap fix commit:
+
+```text
+2f1fe6774e8681cc98448680b1a8e315d8ebe4a0
+docs: restore v10.22 roadmap compatibility milestone
+```
+
+### Acceptance posture
+
+V1.3-A remains:
+
+```text
+IMPLEMENTED
+FOCUSED CONTRACT TEST PASS
+REPOSITORY POLICY PASS
+BROADER API RERUN PENDING
+```
+
+It is **not** yet sealed PASS.
+
+Required next evidence:
+
+1. pull the latest V12 head;
+2. rerun `test_v10_22_documentation_and_roadmap_are_present`;
+3. rerun the complete API test suite;
+4. confirm migration/schema invariants;
+5. confirm clean repository state;
+6. record the final exact results before starting V1.3-B runtime delivery.
+
+### Runtime truth
+
+This roadmap compatibility correction does not:
+
+- change application behavior;
+- change database schema;
+- change migration head `0076_organization_position_active_identity`;
+- mutate preserved `gmai.db`;
+- change route authorization;
+- implement the Governance Kernel;
+- implement Decision Readiness;
+- implement the Organizational Immune System;
+- resolve Phase 13.17 findings;
+- establish GitHub CI PASS.
+
+---
+
 ## 2026-08-19 — V1.3-A CONSTITUTIONAL CONTRACTS — IMPLEMENTED / FOCUSED TEST PASS
 
 ### Status
 
-**Runtime-facing contract implementation delivered. Focused contract tests PASS. Full repository regression/CI PASS is not claimed.**
+**Runtime-facing contract implementation delivered. Focused contract tests PASS. Full repository regression/CI PASS is not claimed at this checkpoint.**
 
 Implementation commit:
 
@@ -177,15 +294,20 @@ Board visibility != Board interruption
 Transparency != infinite raw-token retention
 ```
 
-### Focused acceptance evidence
+### Initial focused acceptance evidence
 
-Executed against the new contract module in an isolated Python package layout:
+The implementation checkpoint initially recorded isolated focused evidence:
 
 ```text
 python -m py_compile apps/api/app/core/organization_constitution.py
 pytest apps/api/tests/test_organization_constitution.py
-
 13 passed in 0.07s
+```
+
+The later canonical local checkout run supersedes the timing detail for acceptance purposes:
+
+```text
+13 passed, 1 warning in 0.14s
 ```
 
 The tests cover:
@@ -222,26 +344,11 @@ This slice does **not**:
 - implement full Transparency runtime/UI;
 - integrate Munder Difflin or OpenWorker;
 - resolve Phase 13.17 findings;
-- rerun the complete 873-test API suite;
 - claim GitHub CI PASS.
-
-GitHub returned no attached status checks for the implementation commit at the time of this checkpoint.
-
-### Acceptance posture
-
-V1.3-A is therefore recorded as:
-
-```text
-IMPLEMENTED
-FOCUSED CONTRACT TEST PASS
-BROADER REPOSITORY ACCEPTANCE NOT YET CLAIMED
-```
-
-Before final V1.3-A PASS/seal, run the new tests from the canonical repository checkout plus the repository-policy and broader checks required for a core-module addition, then record the exact evidence.
 
 ### Roadmap
 
-Roadmap advanced to **V12.1** to record the first actual Track C implementation and preserve the boundary between contract delivery and later Governance Kernel runtime work.
+Roadmap advanced to **V12.1** for the initial implementation checkpoint and then **V12.2** after broader regression exposed the historical roadmap-continuity requirement.
 
 ### Next roadmap slice
 
@@ -267,7 +374,7 @@ Key commits included:
 4a347d418408a199198832e211f13555cf1ee5e9
 docs: align v12 readme with v1.3 direction
 
- dac2529f4dee279cddc738c9310960afb32cc139
+dac2529f4dee279cddc738c9310960afb32cc139
 docs: establish v12 implementation roadmap
 
 c894fba4fb3f04d992614952cafe843978011a21
