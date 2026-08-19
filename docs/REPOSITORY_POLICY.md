@@ -33,6 +33,8 @@ This document defines the controlled GitHub repository set allowed for Global Mo
    - Local model runtime for phase-1 local-first operation.
 11. langfuse/langfuse
    - LLM tracing, evaluation, observability, and auditability.
+12. promptfoo/promptfoo
+   - AI prompt regression, adversarial evaluation, and safety testing for controlled agents.
 
 ## Adapted Repositories (Constrained Use)
 

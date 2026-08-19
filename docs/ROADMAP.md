@@ -128,6 +128,10 @@ Accepted evidence at that checkpoint includes:
 - 118 registered model tables, 118 actual model tables, 119 physical tables including only `alembic_version` infrastructure;
 - preserved `gmai.db` unchanged during the accepted browser/runtime work.
 
+Earlier coverage milestones such as v10.22 multi-batch tranche operations (starting from migration
+`0032_initial_rule_assertions`) remain recorded in the archive and supporting coverage artifacts;
+they are not part of the active product sequence above.
+
 Phase 13.16.8 Professional / Operator experience is accepted by this checkpoint. Accepted evidence includes:
 
 - the existing Operations workspace and native `/leads/[id]` case workspace refined rather than a parallel dashboard;
@@ -513,6 +517,15 @@ Candidates may correctly end as ADOPT, HOLD, or REJECT.
 
 `Promptfoo + OpenTelemetry + ClamAV`
 
+- **Promptfoo early pilot started** — `eval/promptfoo/` contains a bounded role-card safety
+  invariant harness for controlled agents. It evaluates the canonical system-prompt contract under
+  `agents/role_cards/` for human-review requirements, no-guarantee language, legal-advice disclaimers,
+  source/provenance awareness, and explicit blocked actions or prohibitions. The harness introduces
+  no runtime dependency, no production code path, and no change to AIOS authority/evidence semantics.
+  A matching pytest regression (`test_role_card_safety_invariants.py`) runs in the standard API
+  test gate so the invariants are enforced independently of the Promptfoo installation.
+- OpenTelemetry and ClamAV remain queued for later Wave 1 pilots.
+
 ### Wave 2 — document + privacy intelligence
 
 `ClamAV → Docling → OCR providers → AIOSDocumentArtifact → Presidio/Privacy Gateway → Evidence → learning signals`
@@ -596,10 +609,18 @@ At minimum:
 
 ## 13. Current decision
 
-**Continue with Phase 13.17 genuine external-human acceptance.**
+**Phase 13.17 genuine external-human acceptance is in progress manually.**
 
-Technology Radar V1.1 is now the canonical parallel Platform Evolution architecture. Its Wave 0 direction is active for
-architecture/governance, while runtime pilots remain evidence-gated and must not interrupt the 13.16 product sequence.
+Technology Radar V1.1 Wave 1 has started in parallel with the first bounded pilot:
+
+- **Promptfoo early pilot started** — `eval/promptfoo/` evaluates controlled-agent role-card safety invariants
+  (human review, no positive guarantees, legal-advice disclaimer, source/provenance awareness, blocked actions/prohibitions).
+  A matching pytest regression (`test_role_card_safety_invariants.py`) enforces the invariants in the standard API gate.
+  The pilot introduces no runtime dependency, no production code path, and no change to AIOS authority/evidence semantics.
+- OpenTelemetry and ClamAV remain queued for later Wave 1 pilots.
+
+Phase 13.16 product acceptance remains sealed. Phase 14 remains demand-gated and must not start until Phase 13 evidence is
+complete.
 
 Long-term flywheel:
 

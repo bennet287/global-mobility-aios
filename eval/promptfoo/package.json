@@ -1,0 +1,13 @@
+{
+  "name": "gmai-promptfoo-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase 13.17+ Wave 1 Promptfoo early pilot for controlled-agent role-card safety invariants.",
+  "scripts": {
+    "eval": "promptfoo eval",
+    "eval:summary": "promptfoo eval --summary"
+  },
+  "devDependencies": {
+    "promptfoo": "^0.122.0"
+  }
+}

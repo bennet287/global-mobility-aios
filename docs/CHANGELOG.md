@@ -4,6 +4,67 @@ This is the current changelog from the post-`f0688a8` baseline onward. The compl
 Phase 13.16.7 baseline is preserved byte-for-byte at
 [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md).
 
+## 2026-08-19 - Technology Radar V1.1 Wave 1 Promptfoo pilot COMPLETE / PASS - controlled-agent role-card safety invariants
+
+- Started the first Technology Radar V1.1 Wave 1 pilot (`Promptfoo` — AI regression / safety evaluation) by adding a bounded,
+  deterministic evaluation harness under `eval/promptfoo/`.
+- The pilot evaluates the canonical controlled-agent role-card contract (`agents/role_cards/*.md`) rather than live LLM
+  completions, so it requires no API keys and introduces no runtime dependency.
+- Added a Python provider at `eval/promptfoo/providers/role_card_safety.py` that checks five AIOS-owned safety invariants for
+  every role card:
+  - human-review or human-oversight requirement;
+  - no positive guarantee language for regulated outcomes (visas, admission, jobs, legal results), with explicit allowance
+    for prohibition contexts such as "never guarantee" or "reject guaranteed claims";
+  - no legal-advice substitution — disclaim giving legal advice or point to qualified professionals;
+  - source/provenance awareness — official sources, source URLs, authoritative sources, or provenance;
+  - explicit blocked actions or prohibitions.
+- Added a matching pytest regression at `apps/api/tests/test_role_card_safety_invariants.py` so the standard API test gate
+  enforces the invariants independently of whether Promptfoo is installed locally.
+- Added a standard `## AIOS Safety Boundary` footer to every role card that was missing one or more invariant phrases,
+  preserving each card's existing position contract, accountabilities, and guardrails.
+- Refined the guarantee invariant in both the Promptfoo provider and the pytest mirror so that prohibition language
+  ("never claim ... is guaranteed", "reject guaranteed claims", "not a guarantee") is not misclassified as a positive
+  guarantee.
+- Added `promptfoo/promptfoo` to `docs/REPOSITORY_POLICY.md` as an approved core repository.
+- Recorded the pilot start in `docs/ROADMAP.md` under Technology Radar V1.1 Wave 1.
+
+### Acceptance
+
+- role-card safety invariant regression: **42/42 PASS**;
+- complete API regression: **853 passed / 5 skipped / 0 failed**;
+- Promptfoo evaluation: **40/40 PASS** (deterministic Python provider, no remote LLM calls);
+- repository policy: **PASS**;
+- release consistency: **PASS** at `0076_organization_position_active_identity`;
+- Docker production profile: **PASS**;
+- database migration/schema consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- local physical-schema parity: **PASS** — 118 registered model tables / 118 actual model tables / 119 physical tables
+  including only `alembic_version` infrastructure;
+- `git diff --check`: **PASS**;
+- Next.js 15.2.4 production build: **PASS**, **41/41 static pages**;
+- design foundation regression: **28/28 PASS**;
+- preserved `gmai.db`: unchanged.
+
+### Boundary
+
+Exact delivery boundary at seal is the following tracked files:
+
+- `agents/role_cards/*.md` — standard AIOS Safety Boundary footer added where missing;
+- `apps/api/tests/test_role_card_safety_invariants.py` — pytest regression for role-card safety invariants;
+- `docs/CHANGELOG.md`;
+- `docs/REPOSITORY_POLICY.md`;
+- `docs/ROADMAP.md`;
+- `eval/promptfoo/package.json`;
+- `eval/promptfoo/package-lock.json`;
+- `eval/promptfoo/promptfooconfig.yaml`;
+- `eval/promptfoo/providers/role_card_safety.py`;
+- `eval/promptfoo/README.md`.
+
+There is **no backend/API/model/Alembic/preserved-database/Austria-safety/frontend runtime semantic change** in this slice.
+No evidence, certification, publication, authorization, secure-Portal, or human-review authority is weakened. The Promptfoo
+harness is an evaluation adapter; AIOS retains the role-card safety contract and domain meaning.
+
+Phase 13.17 genuine external-human acceptance remains **UNLOCKED / NEXT**.
+
 ## 2026-08-18 - Phase 13.16.10 COMPLETE / PASS - Responsive, accessibility, polish, and integrated role acceptance
 
 - Added mobile WorkspaceShell focus containment while preserving the existing skip link, main landmark, route semantics,
