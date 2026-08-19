@@ -5,16 +5,19 @@ from uuid import UUID
 
 from sqlmodel import Session
 
+from app.core.organization_constitution import ConsequenceClass, MaterialActionType
 from app.models.domain import OrganizationActivity
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import OrganizationCommandContext
 from app.services.organization_governance_kernel import (
     CapabilityAuthority,
     GatewayOutcome,
+    MaterialAction,
     PolicyDisposition,
     organization_activity_projection,
 )
 from app.services.organization_governed_work import (
+    GOVERNED_WORK_CAPABILITY,
     GovernedWorkAssignmentResult,
     governed_assign_work_item,
 )
@@ -35,30 +38,30 @@ def _persist_non_execution_attempt(
     context: OrganizationCommandContext,
     result: GovernedWorkAssignmentResult,
     *,
+    assigned_position_key: str,
+    expected_version: int,
     idempotency_key: str,
+    reason: str,
 ) -> OrganizationActivity:
     evaluation = result.evaluation
     if evaluation.outcome not in {GatewayOutcome.BLOCK, GatewayOutcome.REVIEW_REQUIRED}:
         raise ValueError("attempt persistence requires BLOCK or REVIEW_REQUIRED")
 
-    # Reconstruct the governance projection from the durable result metadata without
-    # changing B.2 successful-command idempotency semantics. The attempt record uses
-    # a trace-scoped key, not governance:<idempotency_key>, so a denied/reviewed attempt
-    # cannot later masquerade as a successful-command replay record.
-    from app.core.organization_constitution import ConsequenceClass, MaterialActionType
-    from app.services.organization_governance_kernel import MaterialAction
-
+    # C.2 deliberately keeps attempt identity separate from B.2 successful-command
+    # idempotency. A denied/reviewed attempt uses a trace-scoped Activity key, so it
+    # remains inspectable without turning a past denial into governance:<idempotency>
+    # and thereby freezing a later command after authority/policy has legitimately changed.
     work_item = result.work_item
     action = MaterialAction(
         action_type=MaterialActionType.WORK_ITEM_ASSIGNMENT,
-        capability="operations.work",
+        capability=GOVERNED_WORK_CAPABILITY,
         subject_type="organizational_work_item",
         subject_id=str(work_item.id),
         idempotency_key=idempotency_key,
-        expected_version=None if result.evaluation.reason.value == "EXPECTED_VERSION_REQUIRED" else None,
-        proposed_change={},
+        expected_version=expected_version,
+        proposed_change={"assigned_position_key": assigned_position_key},
         scope_key=work_item.department,
-        rationale="",
+        rationale=reason,
         consequence_class=ConsequenceClass.REVERSIBLE,
         trace_id=evaluation.trace_id,
     )
@@ -70,6 +73,9 @@ def _persist_non_execution_attempt(
             **dict(projection.payload),
             "governance_record_kind": "attempt",
             "requested_idempotency_key": idempotency_key,
+            "requested_assigned_position_key": assigned_position_key,
+            "requested_expected_version": expected_version,
+            "requested_reason": reason,
         },
     )
     trace_context = replace(context, correlation_key=str(evaluation.trace_id))
@@ -86,7 +92,7 @@ def _persist_non_execution_attempt(
         source_object_id=projection.source_object_id,
         source_object_version=projection.source_object_version,
         work_item_id=work_item.id,
-        occurred_at=work_item.updated_at,
+        occurred_at=action.requested_at,
         payload=projection.payload,
         correlation_key=projection.correlation_key,
     )
@@ -107,11 +113,12 @@ def transparent_governed_assign_work_item(
     reason: str,
     policy_disposition: PolicyDisposition = PolicyDisposition.ALLOW,
 ) -> TransparentGovernedWorkAssignmentResult:
-    """Execute B.2 assignment semantics and persist non-executing material attempts.
+    """Execute sealed B.2 semantics and persist non-executing material attempts.
 
-    Successful execution and successful-command replay remain owned by the sealed B.2
-    service. C.2 only adds a trace-scoped durable governance Activity for BLOCK and
-    REVIEW_REQUIRED outcomes so those material attempts are Board-inspectable.
+    AUTO_EXECUTE and IDEMPOTENT_REPLAY remain owned by B.2. C.2 appends one
+    trace-scoped governance Activity only for BLOCK or REVIEW_REQUIRED outcomes.
+    The attempt record is therefore transparent without becoming a successful-command
+    idempotency record or mutating the WorkItem.
     """
 
     assignment = governed_assign_work_item(
@@ -140,7 +147,10 @@ def transparent_governed_assign_work_item(
             session,
             context,
             assignment,
+            assigned_position_key=assigned_position_key,
+            expected_version=expected_version,
             idempotency_key=idempotency_key,
+            reason=reason,
         )
     except Exception:
         session.rollback()
