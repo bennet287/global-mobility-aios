@@ -399,50 +399,34 @@ Current accepted delivery position on this branch:
 | Phase 13.16.3 | COMPLETE / PASS — Unified Owner Control Center |
 | Phase 13.16.4 | COMPLETE / PASS — Department workspaces |
 | Phase 13.16.5 | COMPLETE / PASS — Cross-department dependencies and blocker view |
-| **Phase 13.16.6** | **NEXT — Owner decision and escalation inbox** |
-| Phase 13.16.7–13.16.10 | Sequenced after 13.16.6 — Mobility User, Professional/Operator, evidence/provenance consolidation, integrated responsive/accessibility acceptance |
-| Phase 13.17 | External-human acceptance after 13.16.10 |
-| Phase 14 | Scale-gated until Phase 13 acceptance and measured demand |
+| Phase 13.16.6 | COMPLETE / PASS — Owner decision and escalation inbox |
+| Phase 13.16.7 | COMPLETE / PASS — Mobility User experience |
+| Phase 13.16.8 | COMPLETE / PASS — Professional / Operator workspace |
+| Phase 13.16.9 | COMPLETE / PASS — Evidence / provenance presentation |
+| **Phase 13.16.10** | **COMPLETE / PASS — integrated responsive/accessibility role experience** |
+| **Phase 13.17** | **IN PROGRESS / PAUSED BY EVALUATOR — owner-led human acceptance running in parallel** |
+| Phase 14 | NOT STARTED / demand-gated — measured scale after validated product demand |
 
-### Phase 13.16.6 — next delivery slice
-
-The next milestone is the **Owner decision and escalation inbox**.
-
-Its roadmap intent is to centralize genuinely Board/Owner-relevant decisions and human-required actions while prioritizing **materiality and authority rather than chronological noise**.
-
-This slice should build on the already-accepted Board, blocker, dependency, HumanActionRequest, durable Activity and organization-governance primitives rather than creating a parallel uncontrolled task system.
+Phase 13.17 does not globally block Technology Radar or High-Autonomy Organization architecture work. Its findings remain real until corrected, retested, or explicitly dispositioned.
 
 ---
 
 ## 9. Latest Accepted Quality Baseline
 
-At the Phase 13.16.5 checkpoint, the accepted baseline includes:
+Latest accepted runtime evidence before the documentation-only V1.3 architecture checkpoint includes:
 
 ```text
-API regression                806 passed / 5 skipped / 0 failed
-Frontend design foundation    22 / 22 passed
-Organization read client       2 / 2 passed
-Next.js production build      40 / 40 pages
-Runtime organization smoke     8 / 8 HTTP 200
-Repository policy             PASS
-Release consistency           PASS
-Local DB schema               PASS
-Registered model tables       118
-Actual model tables           118
-Physical SQLite tables        119 (including alembic_version)
+API regression                873 passed / 5 skipped / 0 failed
+Next.js production build      41 / 41 pages
+Design foundation             28 / 28 passed
 Alembic head                  0076_organization_position_active_identity
 ```
 
-The known Starlette/httpx test-client deprecation warning is non-functional and remains tracked separately from acceptance failures.
+The accepted preserved `gmai.db` state remains unchanged across the documentation-only architecture update.
 
-The 13.16.5 browser acceptance also confirmed:
+These results are carried forward from the accepted runtime checkpoints and are **not represented as rerun by the V1.3 documentation checkpoint**.
 
-- the cross-department surface reaches **Workspace Ready**;
-- live zero-state friction metrics are presented truthfully when no real cross-department friction exists;
-- invalid `page_size=500` organization reads were corrected to the accepted `page_size=100` contract;
-- no synthetic operational data is created for presentation;
-- UTF-8 presentation remains clean;
-- and the Owner can return visibly to Cockpit without gaining additional backend authority.
+No GitHub CI PASS is inferred unless a real status/check is attached to the relevant commit.
 
 ---
 
@@ -726,6 +710,7 @@ Start here:
 - **Canonical roadmap:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - **Implementation history:** [`docs/CHANGELOG.md`](docs/CHANGELOG.md)
 - **AI organization governance:** [`docs/AI_ORGANIZATION_GOVERNANCE_V13_0.md`](docs/AI_ORGANIZATION_GOVERNANCE_V13_0.md)
+- **High-autonomy organization architecture:** [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md)
 - **Repository policy:** [`docs/REPOSITORY_POLICY.md`](docs/REPOSITORY_POLICY.md)
 - **Universal Mobility Profile:** [`docs/UNIVERSAL_MOBILITY_PROFILE_V8_0.md`](docs/UNIVERSAL_MOBILITY_PROFILE_V8_0.md)
 - **Versioned pathway catalogue:** [`docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md`](docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md)
@@ -765,10 +750,12 @@ Genuine external-human validation
 Measured global scale
 ```
 
-The immediate next milestone after the accepted Phase 13.16.5 checkpoint is:
+The accepted product baseline is **Phase 13.16.10 — COMPLETE / PASS**. Phase 13.17 owner-led human acceptance remains **IN PROGRESS / PAUSED BY EVALUATOR** and continues as a parallel feedback stream rather than a global stop gate.
 
-> **Phase 13.16.6 — Owner decision and escalation inbox**
->
-> Centralize genuinely Board/Owner-relevant decisions and human-required actions, prioritizing materiality and authority rather than chronological noise.
+The active organization direction is **V1.3 — High-Autonomy Organization + Organizational Immune System + Earned Autonomy + Board Transparency & Decision Lineage**.
 
-Global Mobility AIOS should become more capable over time without becoming less governed. The objective is not maximum autonomy; it is **useful, evidence-backed, auditable automation operating at the lowest level that is explicitly authorized, with humans retaining the decisions that genuinely require human authority.**
+Global Mobility AIOS should become more capable over time without becoming less governed or less transparent. AI employees may hold real capability-specific delegated authority and should complete most healthy work autonomously. Quality comes from Evidence, deterministic material-state validation, risk-tiered verification, authority/policy controls, concurrency protection, anomaly detection, circuit breakers, bounded blast radius, consequence-aware recovery, and labeled learning.
+
+The Human Owner / Board remains supreme authority but operates primarily by exception. The Board must have on-demand visibility into material decisions, agent collaboration, Evidence, rules, tool actions, incidents, autonomy changes, and decision lineage without being forced to approve routine work.
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the detailed coordinated Product / Technology Radar / High-Autonomy Organization delivery programme.

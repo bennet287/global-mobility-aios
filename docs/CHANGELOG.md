@@ -1,271 +1,389 @@
 # Global Mobility AIOS — Active Changelog
 
-This is the current changelog from the post-`f0688a8` baseline onward. The complete historical changelog through the sealed Phase 13.16.7 baseline remains preserved at [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md). Git history preserves exact previous versions of this active changelog.
+This is the active changelog from the V1.3 architecture checkpoint onward.
+
+Earlier active history from the post-`f0688a8` baseline through the V1.2 checkpoint at `c192e7d5ba56088388527d3406c30f6ab2315e2f` is preserved at [archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md](archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md). The earlier sealed Phase 13.16.7 history remains preserved at [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md). Git history remains the exact immutable record of all prior versions.
 
 ---
 
-## 2026-08-19 — Human-Like High-Autonomy Architecture V1.2 — RUNTIME GOVERNANCE INVARIANTS FROZEN / PUSHED
+## 2026-08-19 — High-Autonomy Organization Architecture V1.3 — BOARD TRANSPARENCY / EARNED AUTONOMY DIRECTION
+
+### Status
+
+**Documentation / architecture checkpoint only.**
+
+This checkpoint defines the proposed canonical implementation direction for Global Mobility AIOS V1.3. It does **not** by itself implement the new runtime control plane, change database schema, integrate external agent runtimes, resolve Phase 13.17 findings, or claim a new runtime PASS.
 
 ### Purpose
 
-Strengthened the owner-approved Human-Like High-Autonomy architecture so the transition from documentation to runtime has explicit non-negotiable control contracts.
+Expanded the Human-Like High-Autonomy architecture from the V1.2 runtime-governance foundation into a V1.3 operating model for a **high-autonomy, transparent AI-operated Global Mobility organization**.
 
-Created:
+The owner-approved direction is intentionally ambitious: AI employees should have persistent identity, memory, roles, tools, measurable performance, organizational relationships, and meaningful capability-specific delegated authority. Human governance should operate primarily by exception rather than requiring routine approval of healthy work.
 
-- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md`
+At the same time, V1.3 makes Board transparency a hard architectural requirement so autonomy never becomes organizational opacity.
 
-Architecture commit:
+### Created
 
-- `75ba986ea02248639685830c21712ac0b32d2fc6` — `docs: freeze runtime governance invariants for high-autonomy architecture`
+- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
+- `docs/archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md` — immutable copy of the prior active changelog through the V1.2 checkpoint
 
-V1.2 supersedes V1.1 for active implementation direction while preserving V1/V1.1 as architecture history.
+### Updated
 
-Canonical final principle added:
+- `docs/ROADMAP.md` — expanded to Roadmap V11.5 with project vision, direction, current delivery truth, V1.3 architecture, Transparency Layer, detailed Track C implementation programme, acceptance gates, performance doctrine, metrics, and sequencing;
+- `docs/CHANGELOG.md` — starts the active V1.3-era changelog while preserving prior history in archive/Git history;
+- `README.md` — aligns the repository entrypoint with the accepted Phase 13.16.10 baseline, Phase 13.17 parallel acceptance stream, and V1.3 direction.
 
-> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
+### V1.3 extends V1.2 rather than replacing its discipline
 
-### Five non-negotiable runtime rules
+V1.2 remains the foundational governance architecture. V1.3 keeps and extends:
 
-1. **Canonicalization Gateway cannot become an unconstrained LLM.** LLM interpretation may assist, but material final classification must resolve through AIOS-owned typed schemas and deterministic validators.
-2. **Command Gateway is the only production mutation path for autonomous agents/runtimes.** Munder/OpenWorker/model/MCP/tool processes do not receive arbitrary production-domain writes.
-3. **Optimistic concurrency / expected-version checks are mandatory for material autonomous work.** Stale proposals reject and re-evaluate rather than overwriting accepted newer state.
-4. **Learning preserves outcome labels.** Proposed/accepted/modified/rejected/contradicted/stale/superseded/human-corrected/failed/rolled-back states remain distinguishable.
-5. **Rollback/compensation is first-class.** A3/A4 and consequential execution must declare real reversibility/side-effect semantics where relevant; audit history alone is not rollback.
+- Context Broker;
+- deterministic Canonicalization Gateway;
+- Command Gateway mutation boundary;
+- optimistic concurrency;
+- evidence/trust ladder;
+- capability-specific autonomy;
+- labeled learning outcomes;
+- recovery/side-effect awareness;
+- AIOS Semantic Sovereignty.
 
-### Deterministic canonicalization
+The operating interpretation is sharpened to:
 
-The semantic firewall now explicitly requires:
+> **The safety infrastructure exists to enable autonomy, not suppress it.**
 
-```text
-free-form provider / agent / model event
-        ↓
-optional LLM interpretation
-        ↓
-typed AIOS candidate
-        ↓
-schema validation
-        ↓
-deterministic classification / invariants
-        ↓
-canonical candidate / Activity / command
-```
+### Project definition
 
-Material categories covered include:
+Global Mobility AIOS is not being designed as a visa chatbot, generic agent framework, case-management SaaS, CRM with AI features, or approval queue.
 
-- `ExecutiveDecision`;
-- `VerifiedRule`;
-- Evidence certification;
-- publication;
-- eligibility transition;
-- client-status transition;
-- application submission;
-- consequential external action;
-- required human-review completion.
+The target is a **governed, transparent, high-autonomy digital organization for global mobility** in which AI employees can research, reason, collaborate, remember, use tools, manage Missions/WorkItems, prepare professional outputs, make authorized decisions, execute bounded operations, and learn from outcomes.
 
-### Command Gateway mutation monopoly
+The Human Owner / Board remains the supreme authority while normal organizational operation is delegated downward.
 
-The production pattern is now explicitly:
+### Human Owner / Board
 
-```text
-agent/runtime
-→ typed AIOS command request
-→ Command Gateway
-→ identity / authority / capability / tenant / evidence
-→ contradiction / expected-version / review / idempotency
-→ atomic canonical mutation
-```
+The Human Owner / Board is explicitly the **supreme authority** of Global Mobility AIOS.
 
-Disallowed runtime patterns include autonomous arbitrary ORM/SQL writes, unrestricted MCP production mutation, and provider-local state silently becoming AIOS canonical state.
+Supreme authority does not mean daily micromanagement.
 
-### Optimistic concurrency
+The operating model is **Board by exception**:
 
-Material commands should carry expected version/state/precondition semantics.
+- normal internal research, collaboration, drafting, WorkItem management, scheduling, bounded tool use, and low-risk operations should proceed autonomously;
+- uncertainty should first be resolved through AI-to-AI collaboration, specialist review, Department Heads, or the AI CEO;
+- professional review should route to the lowest appropriate accountable authority;
+- legal/policy-required human gates remain mandatory regardless of model/readiness confidence;
+- Board Room remains reserved for strategic, critical, constitutionally reserved, or materially irreversible authority actions.
 
-```text
-Case V14
-Agent A reads V14
-Agent B reads V14
+### Board Transparency invariant
 
-A accepted
-→ V15
+Added the permanent principle:
 
-B submits expected_version=14
-actual_version=15
-→ STALE
-→ reject
-→ refreshed ContextBundle
-→ re-evaluate / rebase
-```
+> **Operational autonomy must never create organizational opacity.**
 
-This protects AIOS from lost updates even when neither agent hallucinates.
+The Board must have on-demand visibility into relevant:
 
-### Provenance-aware ContextBundle
+- agent-to-agent conversations and collaboration;
+- delegation chains;
+- material decisions and recommendations;
+- Evidence, SourceSnapshots, and VerifiedRules;
+- tool usage and external actions;
+- escalations and contradictions;
+- incidents and circuit-breaker events;
+- autonomy promotions/downgrades;
+- policy decisions;
+- execution history;
+- learning outcomes.
 
-V1.2 expands the Context Broker target to preserve:
+Visibility is summarized by default and drillable to governed records.
 
 ```text
-context_bundle_id
-mission_id
-case_id?
-generated_at
-context_version
-facts[] + provenance/support state
-evidence[]
-verified_rules[]
-source_snapshots[]
-unknowns[]
-contradictions[]
-agent capability / authority context
-context_hash
+Board visibility ≠ Board interruption
 ```
 
-Future `AgentRun` lineage should bind to:
+### Transparency Layer
 
-- context bundle/hash;
-- model/model version;
-- prompt/program version;
-- role-card version;
-- tool versions;
-- connector versions;
-- execution/autonomy policy versions.
+V1.3 adds an explicit Transparency Layer rather than treating transparency as a late Cockpit feature.
 
-This supports debugging, incident reconstruction, evaluation and training lineage.
-
-### Trust ladder remains runtime target
+Target flow:
 
 ```text
-L0 model speculation
-L1 conversation / memory
-L2 retrieved information
-L3 source snapshot
-L4 governed Evidence
-L5 reviewed candidate
-L6 VerifiedRule / certified fact
-L7 governed case conclusion
-L8 approved authority-bearing action
+material event
+→ durable canonical/activity record
+→ transparency indexing / summarization
+→ Cockpit summary
+→ on-demand drill-down
 ```
 
-Forbidden jumps remain:
+Cockpit should support progressive inspection from organization → department → Mission → case → WorkItem → agent → conversation → decision → Evidence/rule/tool event.
+
+### Decision / Conversation / Tool lineage
+
+V1.3 adds first-class target lineage so a material outcome can be traced backward through:
 
 ```text
-L1 ↛ L6
-L2 ↛ L7
-L6 ↛ L8 automatically
+Canonical outcome
+→ Command authorization
+→ Verification
+→ Agent recommendation
+→ Evidence / VerifiedRules
+→ SourceSnapshots
+→ Research / tool actions
 ```
 
-Model self-confidence is metadata, not permission.
+Relevant collaboration and delegation should be reconstructable as well.
 
-### Contradiction detection before unnecessary human review
+Structured decision rationales are the governance artifact; hidden model chain-of-thought is not the audit mechanism.
 
-Material proposals should be compared with:
+### AI employees and durable memory
 
-- current Evidence;
-- VerifiedRules;
-- source authority/effective dates;
-- supersession;
-- case facts;
-- pathway/profile version;
-- ExecutiveDecisions;
-- prior accepted state;
-- current aggregate version/preconditions.
+Agents are modeled as persistent organizational employees with:
 
-Preferred recovery remains:
+- identity;
+- Position / Department;
+- manager / relationships;
+- responsibilities / expertise;
+- Missions / WorkItems / assigned cases;
+- working and long-term memory;
+- organizational memory access;
+- tools/connectors;
+- authority/autonomy profiles;
+- budgets;
+- performance, incident, and learning history.
+
+Permanent distinction:
+
+> **Memory provides continuity. Evidence provides authority.**
+
+Memory may guide research and coordination but does not directly become Evidence, VerifiedRule, or authoritative case state.
+
+### Capability, authority, autonomy, and risk
+
+V1.3 keeps these separate:
 
 ```text
-self-correct
-→ peer review
-→ specialist review
-→ human where still required
+Capability = what the runtime can technically do
+Authority  = what the organization permits
+Autonomy   = how independently it may exercise that authority
+Risk       = consequence of the specific action
 ```
 
-Peer agreement is a useful signal, not truth.
-
-### Proposal-first consequential actions retained
-
-Agents remain powerful and should prepare almost all useful work before human involvement.
-
-Proposal-first action classes remain:
-
-1. send email / external communication;
-2. change eligibility;
-3. certify Evidence;
-4. submit application;
-5. change/publish VerifiedRule;
-6. change client status.
-
-Human interaction remains:
+Permanent rule:
 
 ```text
-APPROVE
-MODIFY
-RETURN FOR REVISION
-REJECT
+CAN DO ≠ MAY DO
 ```
 
-Human modification lineage should preserve agent proposal version, final approved version, changed fields, reviewer, approval time and final execution-payload hash.
+### Earned autonomy
 
-### Capability autonomy / evidence profile
+Autonomy remains A0–A5 and is capability/context-specific rather than one global agent score.
 
-Autonomy remains capability + context specific:
+Target progression:
 
 ```text
-A0 prohibited
-A1 human execution required
-A2 human approval required
-A3 autonomous + mandatory post-review
-A4 autonomous + monitoring / real rollback or compensation
-A5 fully autonomous bounded internal operation
+SHADOW
+→ RECOMMEND
+→ SUPERVISED
+→ AUTONOMOUS
+→ HIGH-TRUST AUTONOMOUS
 ```
 
-Future `AutonomyEvidenceProfile` may use executions, acceptance, modification, rejection, contradiction, grounding, SLA, incident and rollback metrics to recommend—but never self-grant—autonomy changes.
+`AutonomyEvidenceProfile` is expected to use qualifying volume, Evidence grounding, human acceptance/modification/rejection, contradiction rate, policy compliance, critical errors, source freshness, SLA performance, and incident/recovery outcomes.
 
-### Rollback / compensation
+Agents cannot self-promote.
 
-Target command metadata now includes:
+Autonomy may also be temporarily downgraded in a scope-limited way when abnormal behavior appears. Every change must be explainable and Board-inspectable.
+
+### Decision Readiness
+
+V1.3 introduces Decision Readiness as a routing/quality signal based on auditable inputs such as:
+
+- Evidence completeness;
+- source authority;
+- rule freshness;
+- required fact completeness;
+- cross-source consistency;
+- contradictions;
+- historical capability reliability;
+- deterministic validation;
+- limited model-confidence metadata.
+
+Permanent rule:
+
+> **Scores route; gates authorize.**
+
+A high readiness score cannot override missing mandatory Evidence, failed policy, insufficient authority, unresolved contradiction, stale version, required independent verification, or a legal/Board human gate.
+
+### Risk-tiered independent verification
+
+Verification depth is proportional to risk:
 
 ```text
-reversible
-compensation_command
-previous_version
-side_effects
-external_side_effects
-rollback_deadline
-rollback_preconditions
+R0 → single agent
+R1 → agent + cheap deterministic checks
+R2 → agent + Evidence validation
+R3 → blind independent verification
+R4 → blind verification + fresh source validation + appropriate authority
+R5 → full AI preparation + human/Board gate
 ```
 
-Internal reassignment may be truly reversible. Government submission, delivered email, filing or payment may not be. Irreversible actions therefore remain stricter-autonomy actions.
+The independent verifier should form its conclusion before seeing the first agent's conclusion so peer review does not become confirmation bias.
 
-### Tiered OrganizationActivity
+### AI-to-AI escalation before human escalation
 
-The semantic rule remains:
+Uncertainty should normally flow through the organization:
 
 ```text
-AgentMessage ⊂ OrganizationActivity
+Specialist
+→ Peer Specialist
+→ Senior Specialist
+→ Department Head
+→ AI CEO
+→ Human only if unresolved or required
 ```
 
-Runtime activity classes are now targeted as:
+V1.3 distinguishes **uncertainty escalation** from **authority escalation**. A 99% ready action can still require Board authority because the action is reserved, not because AIOS is uncertain.
+
+### Human-review reasons
+
+Target `HumanReviewReason` values include:
 
 ```text
-CONVERSATIONAL
-COLLABORATIVE
-OPERATIONAL
-MATERIAL
-AUTHORITY
+UNCERTAINTY
+CONTRADICTION
+INSUFFICIENT_EVIDENCE
+OUTSIDE_AUTHORITY
+POLICY_REQUIRED
+LEGAL_REQUIRED
+BOARD_RESERVED
+ANOMALY
+EXCEPTION
 ```
 
-Policy direction:
+This keeps professional queues and Board Room intelligible.
 
-- conversational — high-volume / inspectable / policy-governed compression after retention window;
-- collaborative — structured handoff/peer-review history;
-- operational — durable work execution history;
-- material — long-term durable / strongly indexed;
-- authority — highest-durability, tamper-evident/immutable target linked to AuditLog and exact approved payload.
+### Materiality and MaterialAction
 
-Conversation should remain showable to permitted humans even when retention/compression policies apply.
+V1.3 introduces a versioned Materiality Registry so governance overhead is proportional to consequence rather than applied to every agent action.
 
-### Learning outcome labels
+A common `MaterialAction` envelope is proposed for actor, aggregate, expected version, proposed change, Evidence references, authority context, rationale, readiness, risk, consequence class, idempotency, and trace identity.
 
-The Learning & Quality Plane should distinguish at least:
+Domain payloads remain typed.
+
+### Deterministic canonicalization retained
+
+The V1.2 semantic firewall remains foundational:
+
+```text
+LLM / provider / tool interpretation
+→ typed AIOS candidate
+→ schema validation
+→ deterministic domain checks
+→ Evidence / authority / policy checks
+→ canonical result
+```
+
+Conversation, memory, retrieval, or model opinion cannot silently become authoritative truth.
+
+Canonicalization should be implemented progressively, workflow by workflow, rather than attempting to formalize the entire mobility domain before useful product delivery.
+
+### Command Gateway retained and reframed for autonomy
+
+The Command Gateway remains the only autonomous-agent production mutation path for material canonical state.
+
+It is **not** a human approval gateway.
+
+Healthy authorized action should normally be:
+
+```text
+Agent
+→ MaterialAction
+→ identity / authority / scope
+→ Evidence / policy / contradiction
+→ expected-version / idempotency
+→ AUTO EXECUTE
+```
+
+Human involvement occurs only when policy, law, uncertainty, risk, or reserved authority requires it.
+
+The gateway is a logical constitutional boundary and may be physically distributed/sharded to avoid global serialization.
+
+### Optimistic concurrency retained
+
+Material writes require expected-version/precondition semantics. Stale proposals reject and refresh rather than overwrite newer accepted state.
+
+Use idempotency, bounded retries, backoff, and aggregate-level serialization where required. CRDT-style merging is reserved for genuinely mergeable collaboration data, not authoritative regulated state.
+
+### Organizational Immune System
+
+V1.3 formalizes the safety/quality layer around high autonomy:
+
+- Evidence integrity monitoring;
+- contradiction detection;
+- anomaly detection;
+- Decision Readiness;
+- capability performance monitoring;
+- dynamic autonomy management;
+- circuit breakers;
+- rate/budget protection;
+- blast-radius controls;
+- incident detection/aggregation;
+- root-cause classification;
+- escalation routing;
+- shadow evaluation;
+- learning feedback.
+
+The immune system should be mostly invisible during healthy operation and active when abnormal signals appear.
+
+> **Human review is the final safety net, not the primary quality-control mechanism.**
+
+### Immune-system transparency
+
+Every material intervention must be able to explain:
+
+```text
+WHAT happened?
+WHY?
+WHO acted?
+WHICH rule/signals triggered?
+WHICH scope was affected?
+WHAT happens next?
+HOW can normal operation resume?
+WHO can override?
+```
+
+The safety system itself must not become a black box.
+
+### Incident aggregation
+
+Correlated failures should be grouped as one organizational incident rather than flooding the Board with many alerts.
+
+The Cockpit should show affected operations, likely root cause, containment, investigation status, client/business impact, and whether Board action is actually required.
+
+### Consequence-aware recovery
+
+V1.3 replaces any simplistic universal-rollback interpretation with:
+
+```text
+REVERSIBLE
+COMPENSATABLE
+IRREVERSIBLE
+APPEND_ONLY_CORRECTION
+```
+
+Recovery semantics belong to consequential commands/business actions rather than generic rollback across all existing tables.
+
+Irreversible actions receive stronger pre-execution checks and pre-mortem validation.
+
+### Learning architecture
+
+The target learning pipeline is:
+
+```text
+OrganizationActivity
+→ LearningRecord
+→ CuratedLearningExample
+```
+
+Outcome labels remain explicit:
 
 ```text
 PROPOSED
@@ -281,281 +399,134 @@ PARTIAL
 ROLLED_BACK
 ```
 
-Never:
+Not every stored event becomes training truth.
+
+Human corrections should become high-quality labeled learning signals.
+
+### Performance / scalability doctrine
+
+V1.3 explicitly avoids paying maximum governance cost for every operation.
+
+Principles:
+
+1. **Pay for risk** — verification scales with consequence, uncertainty, and novelty.
+2. **Recompute only what changed** — readiness/Evidence/policy inputs are incremental and version-aware.
+3. **Load only what is needed** — ContextBundles are purpose-scoped, lazy, composable, and versioned.
+4. **Block only when necessary** — PRE_COMMIT, POST_COMMIT, and BACKGROUND verification are distinct.
+5. **Centralize governance, distribute execution** — one authority model does not require one global serialization process.
+6. **Cache exact governed state only** — verifier reuse is keyed to exact relevant Evidence/facts/rules/policy/jurisdiction/effective dates/program/model versions.
+7. **Instrument from day one** — latency, cost, retries, escalation quality, autonomy, Board workload, source freshness, incidents, and transparency lag are measurable.
+
+Conceptual principle:
+
+> **Governance Cost ∝ Risk × Uncertainty × Novelty**
+
+### External runtime posture
+
+Munder Difflin remains an **experimental / controlled-research reference** requiring a bounded compatibility spike before deep integration commitment.
+
+OpenWorker remains a replaceable finished-work/execution-runtime reference behind AIOS-owned interfaces.
+
+AIOS Semantic Sovereignty remains permanent: external frameworks provide capabilities; AIOS owns organizational meaning, Evidence semantics, authority, policy, lineage, and canonical state.
+
+### Coordinated Parallel Evolution
+
+The project continues through three parallel tracks:
+
+1. **Product / Human Experience**;
+2. **Technology Radar / Platform Evolution**;
+3. **High-Autonomy Organization**.
+
+Phase 13.17 remains owner-led, **IN PROGRESS / PAUSED BY EVALUATOR**, and continues as a parallel human-acceptance feedback stream. It does not globally stop Track B or Track C. Existing findings remain unresolved until corrected, retested, or explicitly dispositioned.
+
+### Detailed V1.3 implementation programme
+
+Roadmap V11.5 defines:
 
 ```text
-everything agents said
-→ training truth
+V1.3-A  Constitutional Contracts
+V1.3-B  Minimal Governance Kernel
+V1.3-C  Transparency Foundation
+V1.3-D  Context & Agent Identity
+V1.3-E  First Governed Vertical Workflow
+V1.3-F  Decision Readiness
+V1.3-G  Independent Verification
+V1.3-H  Organizational Immune System
+V1.3-I  Earned Autonomy
+V1.3-J  Agent Organization Runtime
+V1.3-K  Execution / Coworker Runtime
+V1.3-L  Live Organization
+V1.3-M  Board Transparency Experience
+V1.3-N  Learning & Optimization
 ```
 
-Prefer:
+Transparency is intentionally implemented early rather than retrofitted at the end.
+
+### Success criteria direction
+
+V1.3 should ultimately improve:
 
 ```text
-proposal
-+ validation/failure reason
-+ human correction/modification
-+ final accepted outcome
-→ labeled learning example
+Autonomous completion             ↑
+Quality                           ↑
+Evidence grounding                ↑
+Decision traceability             ↑
+Board transparency                ↑
+Capability reliability            ↑
 ```
 
-### Wave 5 implementation update
+while reducing:
 
-The implementation sequence remains parallel but now has stronger runtime dependencies:
+```text
+Board operational workload        ↓
+Critical errors                   ↓
+False/missed escalations          ↓
+Cost per outcome                  ↓
+Latency                           ↓
+Unexplained decisions             ↓
+Opaque organizational activity    ↓
+```
 
-- **5A Runtime Control Plane / Immune System** — deterministic canonicalization, Command Gateway-only mutation, ContextBundle provenance, optimistic concurrency, proposal lifecycle, contradiction detection, capability autonomy, sandbox, rollback/compensation, labeled LearningRecord.
-- **5B Organization Semantics** — Mission, AgentConversation, tiered OrganizationActivity, Dynamic Squad, Capability Registry, memory, AgentRelationship, SLA/KPI/OKR/Definition of Done.
-- **5C Munder Difflin Agent Organization Fabric** — controlled research/pilot behind AIOS contracts.
-- **5D Execution Broker + OpenWorker / Coworker** — controlled research/pilot for finished work and proposal-gated actions.
-- **5E Live Organization / Cockpit**.
-- **5F Organizational Learning & Optimization**.
+### Runtime truth / acceptance
 
-5A/5B may progress in parallel, but deep external-agent mutation depends on the relevant 5A controls existing.
+This checkpoint is **documentation-only**.
 
-### Canonical document synchronization
+It does not implement or claim runtime completion of:
 
-Updated:
+- Decision Readiness;
+- earned autonomy;
+- dynamic autonomy downgrade;
+- the Organizational Immune System;
+- Decision/Conversation/Tool Lineage;
+- the full Transparency Layer;
+- the complete Command Gateway;
+- Munder/OpenWorker integration;
+- Live Organization;
+- Board-wide organization search.
 
-- `docs/ROADMAP.md`
-  - commit `f7e3e635fbd6a20349320c376664fe356b8b84c0` — `docs: align roadmap with runtime governance invariants v1.2`
-- `docs/TECHNOLOGY_RADAR_V1_1.md`
-  - commit `8c7fdb1815dcf6bf4cd1a99121379295fb14447c` — `docs: freeze runtime governance rules in Technology Radar V1.1`
-- `docs/THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md`
-  - commit `a79d241eb9a123dc638d4f817c64e0e67998f5fb` — `docs: harden provider adoption rules for runtime governance invariants`
-
-### Boundary / runtime truth
-
-This V1.2 checkpoint is **documentation-only**.
-
-It does not yet implement:
-
-- deterministic Canonicalization runtime;
-- Command Gateway mutation enforcement;
-- expected-version checks across material aggregates;
-- ContextBundle persistence/hash lineage;
-- rollback/compensation runtime;
-- tiered Activity storage/retention;
-- labeled LearningRecord persistence;
-- Munder/OpenWorker integration.
-
-No complete API regression, Next.js build, browser acceptance, database checker or local repository seal was rerun by these direct GitHub documentation writes.
-
-Latest accepted runtime evidence remains the prior Docling checkpoint and is carried forward, not represented as rerun:
+Latest accepted runtime evidence is carried forward, **not rerun by this documentation checkpoint**:
 
 - API **873 passed / 5 skipped / 0 failed**;
 - Next.js **41/41 PASS**;
 - design foundation **28/28 PASS**;
 - preserved `gmai.db` unchanged.
 
-No GitHub CI PASS is claimed unless real status checks are attached.
+Repository documentation validation for this patch was performed locally; no new complete runtime regression is claimed.
 
----
+No GitHub CI PASS is claimed unless a real status/check is attached to the resulting commit.
 
-## 2026-08-19 — Human-Like High-Autonomy Architecture V1.1 — OWNER-APPROVED CANONICAL DOCS CHECKPOINT / PUSHED
+### Defining V1.3 principles
 
-V1.1 established the controlled high-autonomy architecture and owner-approved parallel delivery strategy.
+> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
 
-Core additions:
+> **The safety infrastructure exists to enable autonomy, not suppress it.**
 
-- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md`;
-- Broad Cognition / Scoped Context / Narrow Mutation / Deterministic Authority / Reversible Execution;
-- Context Broker;
-- Canonicalization Gateway;
-- Command Gateway;
-- ConsequentialActionProposal;
-- proposal-first consequential actions;
-- trust ladder;
-- contradiction/self-correction;
-- capability-specific autonomy;
-- sandbox;
-- Munder + OpenWorker complementary A+ direction;
-- fit/adoption lifecycle cleanup;
-- parallel Product / Platform / Organization tracks.
+> **Scores route; gates authorize.**
 
-Checkpoint commits:
+> **Memory provides continuity. Evidence provides authority.**
 
-- `2c2b0fd4c8f5579f73f582fe5ea317bef52f864c` — architecture V1.1;
-- `c90361c3cf077c54e132bca575589ecf4ea2656a` — Radar alignment;
-- `b00856546a287ec605bd74073c6383c8482b7ca3` — roadmap alignment;
-- `84920366b629ec256e27184f0ba09753fed35b13` — provider-boundary alignment;
-- `29ec1cd8c5aaeff9b4dc5028a484a8456367044b` — V1.1 changelog checkpoint.
+> **More relevant truth, not more tokens.**
 
-V1.2 above supersedes V1.1 for active runtime-governance direction.
+> **Governance Cost ∝ Risk × Uncertainty × Novelty.**
 
----
-
-## 2026-08-19 — Human-Like Agent Organization Architecture V1 — CANONICAL DOCS CHECKPOINT / PUSHED
-
-V1 established the initial human-like organization architecture:
-
-- Human in interaction / machine-like reliability;
-- Munder Difflin + OpenWorker complementary A+ direction;
-- AIOS Execution Broker;
-- Mission / Dynamic Squad;
-- AgentConversation;
-- `AgentMessage ⊂ OrganizationActivity`;
-- memory scopes / relationships;
-- Capability Registry;
-- SLA/KPI/OKR/Definition of Done;
-- progressive intervention;
-- Live Organization;
-- organization learning.
-
-V1 architecture commit:
-
-- `f7216c523c3de96a15eeb7c8d6698b62b52934e4`
-
----
-
-## 2026-08-19 — Technology Radar V1.1 Wave 2 Docling pilot STARTED
-
-- Added bounded optional disabled-by-default `docling_adapter.py`.
-- Integrated normalization into the existing document-intelligence extraction flow with safe fallback.
-- Added `DOCLING_ENABLED` and AI-only dependency placement.
-- Preserved the rule that normalization is not authenticity, legal sufficiency, evidence validity or authority.
-
-Acceptance:
-
-- Docling adapter **6/6 PASS**;
-- document intelligence **5/5 PASS**;
-- complete API **873 passed / 5 skipped / 0 failed**;
-- repository/release/Docker/database/schema checks **PASS**;
-- Next.js **41/41 PASS**;
-- design foundation **28/28 PASS**;
-- preserved `gmai.db` unchanged.
-
-Presidio remains queued next. Specialist OCR is gap-triggered by actual Docling/current-stack measurement.
-
----
-
-## 2026-08-19 — Technology Radar V1.1 Wave 1 ClamAV pilot COMPLETE / PASS
-
-- Added optional disabled-by-default upload malware scanning.
-- Infected uploads reject before storage.
-- Clean scan remains engineering safety signal, not evidence validity.
-
-Acceptance:
-
-- malware-scan **11/11 PASS**;
-- document-upload **2/2 PASS**;
-- API **867 passed / 5 skipped / 0 failed**;
-- repository/release/Docker/database/schema checks **PASS**;
-- Next.js **41/41 PASS**;
-- design foundation **28/28 PASS**;
-- preserved database unchanged.
-
-Wave 1 became complete at pilot level.
-
----
-
-## 2026-08-19 — Technology Radar V1.1 Wave 1 OpenTelemetry pilot COMPLETE / PASS
-
-- Added optional disabled-by-default FastAPI/OpenTelemetry instrumentation / OTLP export.
-- Missing packages/configuration degrade safely.
-- OpenTelemetry remains engineering telemetry, not semantic Activity/Audit/Evidence/authority.
-
-Acceptance:
-
-- telemetry **3/3 PASS** with environment-dependent SDK skip recorded;
-- API **856 passed / 5 skipped / 0 failed**;
-- repository/release/Docker/database/schema checks **PASS**;
-- Next.js **41/41 PASS**;
-- design foundation **28/28 PASS**;
-- preserved database unchanged.
-
----
-
-## 2026-08-19 — Technology Radar V1.1 Wave 1 Promptfoo pilot COMPLETE / PASS
-
-- Added deterministic role-card safety evaluation.
-- Added matching pytest invariants independent of Promptfoo installation.
-- Promptfoo remains evaluation tooling, never production authority.
-
-Acceptance:
-
-- role-card safety **42/42 PASS**;
-- Promptfoo **40/40 PASS**;
-- API **853 passed / 5 skipped / 0 failed**;
-- repository/release/Docker/database/schema checks **PASS**;
-- Next.js **41/41 PASS**;
-- design foundation **28/28 PASS**;
-- preserved database unchanged.
-
----
-
-## 2026-08-18 — Phase 13.17 owner-led human acceptance CHECKPOINT / PAUSED
-
-- Began genuine human-use acceptance against sealed 13.16.10.
-- Evaluator is product Owner; therefore owner-led, not independent third-party validation.
-- Recorded Owner findings O-01 through O-12 and Professional P-01/P-02.
-- No finding was fixed merely because intended semantics were later explained.
-- Paused after Professional Task 1; resume point is Professional Task 2.
-
-Checkpoint:
-
-- `docs/PHASE_13_17_OWNER_LED_HUMAN_ACCEPTANCE_CHECKPOINT_2026_08_18.md`
-- commit `24aa74109c749a2752c08eaca007917978eb1bcd`
-
-Phase 13.17 remains IN PROGRESS / PAUSED.
-
----
-
-## 2026-08-18 — Phase 13.16.10 COMPLETE / PASS
-
-- responsive/accessibility/integrated role experience accepted after bounded mobile corrections;
-- design foundation **28/28 PASS**;
-- request/auth **4/4 PASS**;
-- Next.js **41/41 PASS**;
-- API **811 passed / 5 skipped / 0 failed** carried forward for frontend-only boundary;
-- browser/mobile/keyboard/Portal acceptance PASS;
-- preserved `gmai.db` unchanged.
-
-Seal:
-
-- `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`
-
----
-
-## 2026-08-18 — Phase 13.16.9 COMPLETE / PASS
-
-- shared evidence/provenance presentation grammar across four evidence-heavy Professional surfaces;
-- context-alignment and certification/publication authority preserved;
-- design **26/26 PASS**;
-- request/auth **4/4 PASS**;
-- Next.js **41/41 PASS**;
-- API **811 passed / 5 skipped / 0 failed** carried forward;
-- human visual review PASS;
-- automated semantic verifier false-negative / not claimed PASS;
-- preserved database unchanged.
-
-Seal:
-
-- `c97b2189e94a6753ab902dd192bbd5b2e41073d0`
-
----
-
-## 2026-08-18 — Phase 13.16.8 COMPLETE / PASS
-
-- governed Professional/Operator workspace and case reading order accepted;
-- context-aligned evidence composition preserved;
-- design **25/25 PASS**;
-- request/auth **4/4 PASS**;
-- Next.js **41/41 PASS**;
-- API **811 passed / 5 skipped / 0 failed**;
-- browser/runtime acceptance PASS;
-- preserved database unchanged.
-
-Seal:
-
-- `2dc3637820f6fdbb75628e2632a07bdbe336aa19`
-
----
-
-## 2026-08-18 — Technology Radar V1.1 original platform-evolution checkpoint
-
-- established active Radar V1.1 / provider-neutral architecture;
-- added OpenWorker initial Coworker reference;
-- added Internal Learning & Quality, correction-learning and lineage direction;
-- preserved compliance-aware lawful-learning boundaries;
-- established implementation waves without automatic adoption.
-
-The V1/V1.1/V1.2 human-like organization checkpoints above extend this architecture without weakening AIOS Semantic Sovereignty.
+> **Board by exception. Transparency by default.**
