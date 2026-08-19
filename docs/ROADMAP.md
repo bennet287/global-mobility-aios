@@ -1,12 +1,12 @@
 # Global Mobility AIOS — Active Product & Delivery Roadmap
 
-**Roadmap generation:** V11.3 / Technology Radar V1.1 controlled high-autonomy alignment  
+**Roadmap generation:** V11.4 / Technology Radar V1.1 runtime-governance alignment  
 **Date:** 2026-08-19  
 **Development branch:** `roadmap/global-mobility-aios-v11`  
 **Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
 **Active product slice:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
 **Current Technology Radar state:** Wave 1 PILOT COMPLETE; Wave 2 IN PROGRESS with Docling pilot started  
-**Human-like organization architecture:** V1.1 CANONICAL / PARALLEL IMPLEMENTATION TRACK  
+**Human-like organization architecture:** V1.2 CANONICAL / RUNTIME-GOVERNANCE INVARIANTS FROZEN  
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
@@ -89,16 +89,21 @@ Visual direction remains premium enterprise AIOS: deep navy/graphite, warm ivory
 9. **Conversation is Activity but not authority** — `AgentMessage ⊂ OrganizationActivity`; conversation does not silently create Decision/Evidence/VerifiedRule.
 10. **Memory informs work, not truth** — memory may trigger retrieval/research but is not Evidence or VerifiedRule.
 11. **Provider logs are non-authoritative inputs** — provider events require AIOS normalization before canonical Activity/domain state.
-12. **Truthful unknowns** — missing/mismatched evidence remains unknown/not-established.
-13. **Natural interaction, deterministic accountability.**
-14. **Team outcomes over agent competition.**
-15. **Results matter more than framework competition.**
-16. **Autonomy is capability-specific and never self-granted.**
-17. **Finished work over chat alone.**
-18. **Atomic/versioned/reversible state where possible.**
-19. **Internal Learning & Quality** — permitted operational outcomes/corrections should improve AIOS without assuming universal training permission.
-20. **Preserved databases are evidence** — no demo mutation of preserved `gmai.db`.
-21. **Austria simulation safety remains frozen** — uncertain simulation state is never promoted to production certainty.
+12. **Canonicalization is deterministic at the material boundary** — an LLM may interpret, but final material classification resolves through typed AIOS schemas and deterministic validators.
+13. **Command Gateway mutation monopoly** — autonomous agents/runtimes do not receive arbitrary production-domain write access.
+14. **Optimistic concurrency** — material commands must fail stale rather than overwrite accepted newer state.
+15. **Rollback/compensation is first-class** — A3/A4 and consequential actions declare reversibility/side-effect semantics where relevant.
+16. **Learning outcomes stay labeled** — proposals, modifications, rejections, contradictions, stale states, supersession and human corrections do not collapse into training truth.
+17. **Truthful unknowns** — missing/mismatched evidence remains unknown/not-established.
+18. **Natural interaction, deterministic accountability.**
+19. **Team outcomes over agent competition.**
+20. **Results matter more than framework competition.**
+21. **Autonomy is capability-specific and never self-granted.**
+22. **Finished work over chat alone.**
+23. **Atomic/versioned/reversible state where possible.**
+24. **Internal Learning & Quality** — permitted operational outcomes/corrections should improve AIOS without assuming universal training permission.
+25. **Preserved databases are evidence** — no demo mutation of preserved `gmai.db`.
+26. **Austria simulation safety remains frozen** — uncertain simulation state is never promoted to production certainty.
 
 Five hard canonicalization constraints:
 
@@ -109,6 +114,10 @@ memory != Evidence
 memory != VerifiedRule
 provider event log != canonical AIOS Activity automatically
 ```
+
+Final runtime principle:
+
+> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
 
 ---
 
@@ -207,14 +216,20 @@ The project intentionally advances three coordinated tracks.
 - Wave 4 AI runtime/retrieval/quality;
 - Wave 6 output technologies when needed.
 
-### Track C — Human-Like Organization / Agent Control Plane
+### Track C — Human-Like Organization / Agent Runtime Control Plane
 
-- high-autonomy control plane;
-- organization semantics;
+- deterministic Canonicalization contracts;
+- Command Gateway mutation monopoly;
+- provenance-aware ContextBundle;
+- optimistic concurrency;
+- proposal-first consequential actions;
+- rollback/compensation;
+- tiered OrganizationActivity;
+- capability autonomy;
 - Munder Difflin research/pilot;
 - OpenWorker/Coworker research/pilot;
 - Live Organization;
-- organizational learning.
+- labeled organizational learning.
 
 Parallel means **no artificial stop-and-wait**. It does not mean unbounded implementation. Every slice keeps exact scope, tests, rollback, authority/evidence constraints and roadmap/changelog discipline.
 
@@ -225,7 +240,8 @@ Parallel means **no artificial stop-and-wait**. It does not mean unbounded imple
 Canonical documents:
 
 - [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md)
-- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md) — predecessor
 - [THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md](THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md)
 - [ADR/0002-provider-neutral-platform-adapters.md](ADR/0002-provider-neutral-platform-adapters.md)
 
@@ -297,7 +313,7 @@ Current:
 - Presidio next queued;
 - specialist OCR only if measured Docling/current-stack gaps justify it.
 
-Latest accepted runtime evidence before the new docs-only architecture updates:
+Latest accepted runtime evidence before the docs-only architecture updates:
 
 - API **873 passed / 5 skipped / 0 failed**;
 - Next.js **41/41 PASS**;
@@ -308,13 +324,13 @@ These are carried forward and not represented as rerun by docs-only architecture
 
 ---
 
-## 9. Human-Like High-Autonomy Architecture V1.1
+## 9. Human-Like High-Autonomy Architecture V1.2
 
 Canonical architecture:
 
-- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md)
 
-### Target stack
+Core target:
 
 ```text
 Human Owner / Board
@@ -334,10 +350,15 @@ Agent cognition / conversation / memory
 Proposed Intent
         ↓
 Canonicalization Gateway
+  optional LLM interpretation
+  + typed deterministic classification
         ↓
 Command Gateway
+  only autonomous-agent production mutation path
         ↓
-Authority + Grounding + Consistency checks
+Authority + Grounding + Consistency
+        ↓
+Expected-version / concurrency check
         ↓
 Internal bounded action
         OR
@@ -345,18 +366,20 @@ Consequential Action Proposal
         ↓
 Human approve / modify / return / reject where required
         ↓
-Atomic/versioned governed execution
+Atomic/versioned/idempotent execution
+        ↓
+Rollback/compensation metadata
         ↓
 OrganizationActivity + Audit
         ↓
-Learning & Quality
+Labeled Learning & Quality
 ```
 
 ---
 
 ## 10. Munder Difflin + OpenWorker
 
-They are complementary A+ references.
+They remain complementary A+ references.
 
 ### Munder Difflin informs
 
@@ -403,24 +426,70 @@ Routing may consider:
 
 ---
 
-## 11. Context Broker / Canonicalization / Command Gateway
+## 11. Runtime control plane
 
-### Context Broker
+### 11.1 Context Broker
 
-Provides task/tenant/purpose/sensitivity-scoped information instead of unrestricted agent database access.
+Provides task/tenant/purpose/sensitivity-scoped, provenance-aware context rather than unrestricted agent database access.
 
-### Canonicalization Gateway
+Future `ContextBundle` should preserve:
 
-Turns agent/provider/model/tool information into AIOS meaning such as:
+```text
+context_bundle_id
+mission_id
+case_id?
+context_version
+generated_at
+facts[] + provenance/support state
+evidence[]
+verified_rules[]
+source_snapshots[]
+unknowns[]
+contradictions[]
+agent capability / authority context
+context_hash
+```
 
-- telemetry;
-- Activity;
-- candidate/proposal;
-- unsupported/conflicted result.
+`AgentRun` should bind to the bundle/hash plus model, prompt/program, role-card, tool and connector versions.
 
-### Command Gateway
+### 11.2 Canonicalization Gateway
 
-Only typed governed commands create important authoritative mutations after identity/authority/evidence/consistency/precondition checks.
+May use LLM interpretation, but material classifications such as Decision/VerifiedRule/certification/publication/eligibility/external action must resolve through typed AIOS schemas and deterministic rules.
+
+### 11.3 Command Gateway
+
+Only typed governed commands create important authoritative mutations after identity, authority, capability, evidence, contradiction, version/precondition, review, idempotency and transaction checks.
+
+Autonomous runtimes do not receive arbitrary production-domain database writes.
+
+### 11.4 Optimistic concurrency
+
+Material commands bind to `expected_version` / expected state / precondition hash where appropriate.
+
+```text
+read V14
+→ another accepted mutation creates V15
+→ proposal still expects V14
+→ STALE
+→ reject
+→ refresh ContextBundle
+→ re-evaluate
+```
+
+### 11.5 Rollback / compensation
+
+A3/A4 and consequential commands should declare where relevant:
+
+```text
+reversible
+compensation_command
+previous_version
+side_effects
+external_side_effects
+rollback_deadline
+```
+
+A4 requires meaningful rollback/compensation, not merely an audit log.
 
 ---
 
@@ -433,6 +502,8 @@ DRAFT
   ↓
 PROPOSED
   ↓
+AIOS VALIDATION
+  ↓
 HUMAN REVIEW
   ├── APPROVE
   ├── MODIFY
@@ -440,6 +511,8 @@ HUMAN REVIEW
   └── REJECT
   ↓
 APPROVED
+  ↓
+FINAL VERSION / PRECONDITION CHECK
   ↓
 EXECUTE
   ↓
@@ -458,6 +531,8 @@ Explicit proposal-first action classes:
 Agents should prepare as much as possible: draft payload, evidence, rationale, impact, attachments, validation and uncertainty. The human should review **the finished proposed action**, not redo the work from scratch.
 
 Review goes to the lowest appropriate human surface, not automatically Board Room.
+
+Human modifications preserve proposal-to-final lineage for quality/learning.
 
 ---
 
@@ -487,7 +562,7 @@ L6 does not automatically create L8
 
 Material agent results should carry support/evidence/uncertainty/contradiction metadata. Model self-confidence is not a permission control.
 
-Contradiction detection should compare proposals against current Evidence, VerifiedRules, source authority/effective date, supersession, case facts, pathway version, decisions and prior accepted state.
+Contradiction detection should compare proposals against current Evidence, VerifiedRules, source authority/effective date, supersession, case facts, pathway version, decisions, accepted prior state and current aggregate version.
 
 Default failure recovery:
 
@@ -514,7 +589,7 @@ A0 prohibited
 A1 human execution required
 A2 human approval required
 A3 autonomous + mandatory post-review
-A4 autonomous + monitoring / rollback
+A4 autonomous + monitoring / real rollback or compensation
 A5 fully autonomous bounded internal operation
 ```
 
@@ -524,9 +599,41 @@ Powerful runtimes use a bounded sandbox for filesystem, network, secrets, shell,
 
 Performance may recommend an autonomy change; the agent cannot grant itself authority.
 
+Future `AutonomyEvidenceProfile` may track executions, acceptance, modification, rejection, contradiction, grounding, SLA, incident and rollback rates before recommending a level change.
+
 ---
 
-## 15. Mission / SLA / KPI / OKR / Definition of Done
+## 15. OrganizationActivity tiering
+
+Canonical relationship remains:
+
+```text
+AgentMessage ⊂ OrganizationActivity
+```
+
+Runtime class should be explicit:
+
+```text
+CONVERSATIONAL
+COLLABORATIVE
+OPERATIONAL
+MATERIAL
+AUTHORITY
+```
+
+Suggested treatment:
+
+- **CONVERSATIONAL** — high volume; human-inspectable; compress/summarize after retention window where policy permits.
+- **COLLABORATIVE** — handoffs/peer review/shared findings; structured and analytics-friendly.
+- **OPERATIONAL** — durable work execution history.
+- **MATERIAL** — long-term durable and Cockpit-visible where appropriate.
+- **AUTHORITY** — highest durability / immutable-tamper-evident target linked to exact approved payload and AuditLog.
+
+Conversation remains showable to permitted humans even when long-term storage uses summarization/retention policy.
+
+---
+
+## 16. Mission / SLA / KPI / OKR / Definition of Done
 
 `Mission` is the outcome-level concept above WorkItems.
 
@@ -541,7 +648,8 @@ Mission may include objective, owner, participants, service class, SLA, KPIs, De
 - review;
 - freshness;
 - escalation;
-- blocker age.
+- blocker age;
+- retry/recovery.
 
 ### KPI
 
@@ -551,7 +659,8 @@ Mission may include objective, owner, participants, service class, SLA, KPIs, De
 - collaboration;
 - cost;
 - human effort;
-- proposal modification/rejection;
+- proposal acceptance/modification/rejection;
+- contradiction/stale-proposal/rollback rates;
 - governance compliance.
 
 **Mission/team outcome is primary. Individual metrics are diagnostic.**
@@ -562,11 +671,56 @@ Strategic improvement above operational KPIs.
 
 ### Definition of Done
 
-Material work requires explicit deliverables, evidence/provenance, uncertainty, required reviews/proposal disposition, SLA status, verified result and recorded outcome.
+Material work requires explicit deliverables, evidence/provenance, uncertainty, required reviews/proposal disposition, SLA status, verified result and recorded outcome/exception/rollback state.
 
 ---
 
-## 16. Progressive intervention
+## 17. Learning & Quality
+
+Three separate layers:
+
+1. Operational Intelligence;
+2. Evaluation & Quality;
+3. Training & Optimization.
+
+Learning must preserve labeled outcome states such as:
+
+```text
+PROPOSED
+ACCEPTED
+MODIFIED
+REJECTED
+CONTRADICTED
+STALE
+SUPERSEDED
+HUMAN_CORRECTED
+EXECUTION_FAILED
+PARTIAL
+ROLLED_BACK
+```
+
+Never:
+
+```text
+everything agents said
+→ training truth
+```
+
+Prefer:
+
+```text
+proposal
++ validation result
++ human correction/modification
++ final accepted outcome
+→ labeled learning example
+```
+
+Architecture/quality capability may progress in parallel. Real-client-data training/reuse requires explicit data-use/legal/compliance treatment, sensitivity controls, retention/deletion, tenant policy and lineage.
+
+---
+
+## 18. Progressive intervention
 
 ```text
 NORMAL
@@ -583,7 +737,7 @@ NORMAL
 
 ---
 
-## 17. Live Organization
+## 19. Live Organization
 
 Future Cockpit visualization may show:
 
@@ -603,42 +757,31 @@ Visual truth must come from AIOS-owned normalized state, not provider animation 
 
 ---
 
-## 18. Learning & Quality
-
-Three separate layers:
-
-1. Operational Intelligence;
-2. Evaluation & Quality;
-3. Training & Optimization.
-
-Architecture/quality capability may progress in parallel. Real-client-data training/reuse requires explicit data-use/legal/compliance treatment, sensitivity controls, retention/deletion, tenant policy and lineage.
-
-Potential signals include corrections, proposal modifications/rejections, SLA misses, routing outcomes, peer disagreements, contradiction recovery, provider/runtime performance and external-action failure.
-
----
-
-## 19. Platform Evolution implementation sequence
+## 20. Platform Evolution implementation sequence
 
 These tracks may progress in parallel with product acceptance.
 
-### Wave 5A — High-Autonomy Control Plane
+### Wave 5A — Runtime Control Plane / Immune System
 
-- Context Broker;
-- Canonicalization Gateway;
-- Command Gateway;
+- deterministic Canonicalization Gateway contracts;
+- Command Gateway as sole autonomous-agent production mutation path;
+- provenance-aware Context Broker / ContextBundle;
+- expected-version / optimistic concurrency;
+- idempotency / preconditions;
 - ConsequentialActionProposal;
 - review/modify/approve/reject lifecycle;
 - evidence sufficiency;
 - contradiction detection;
 - capability autonomy;
 - sandbox;
-- atomic/versioned mutation.
+- rollback/compensation metadata;
+- labeled LearningRecord outcome model.
 
 ### Wave 5B — Organization Semantics
 
 - Mission;
 - AgentConversation;
-- conversational OrganizationActivity;
+- tiered conversational OrganizationActivity;
 - Dynamic Squad;
 - Capability Registry;
 - memory scopes;
@@ -647,7 +790,7 @@ These tracks may progress in parallel with product acceptance.
 - KPI/OKR;
 - Definition of Done.
 
-5A and 5B may progress together where dependencies permit.
+5A and 5B may progress together where dependencies permit. Deep external-agent mutation capability depends on the relevant 5A controls existing.
 
 ### Wave 5C — Munder Difflin Agent Organization Fabric
 
@@ -663,11 +806,54 @@ Premium visualization and direct interaction.
 
 ### Wave 5F — Organizational Learning & Optimization
 
-Improve routing, team composition, proposal quality, SLA, model/runtime selection and capacity decisions from permitted outcomes.
+Improve routing, team composition, proposal quality, contradiction recovery, autonomy recommendations, SLA, model/runtime selection and capacity decisions from permitted labeled outcomes.
 
 ---
 
-## 20. Phase 14 relationship
+## 21. Runtime acceptance gates for Wave 5A+
+
+### Canonicalization
+
+- unstructured message cannot directly become `ExecutiveDecision`;
+- memory cannot directly become Evidence/VerifiedRule;
+- provider event does not automatically become canonical Activity;
+- final material classification uses typed schema + deterministic validators.
+
+### Mutation path
+
+- agent-originated production write outside Command Gateway fails;
+- arbitrary provider/MCP DB mutation is unavailable;
+- required human gate cannot be bypassed;
+- idempotency prevents duplicate consequential execution.
+
+### Concurrency
+
+- stale expected version rejects;
+- accepted V15 cannot be overwritten by proposal based on V14;
+- stale re-evaluation receives refreshed context.
+
+### Rollback
+
+- reversible action exposes compensation;
+- A4 requires valid rollback/compensation semantics;
+- irreversible external effects cannot masquerade as reversible.
+
+### Learning
+
+- rejected/modified/contradicted outcomes retain labels;
+- accepted canonical state remains distinguishable from proposal text;
+- context/model/program/tool versions are reconstructable.
+
+### Activity
+
+- conversational messages remain legitimate Activity;
+- activity class is explicit;
+- AUTHORITY Activity has highest-durability/tamper-evident treatment target;
+- provider logs remain non-authoritative until normalized.
+
+---
+
+## 22. Phase 14 relationship
 
 Phase 14 remains a scale programme for a validated product. It does **not** mean all platform/architecture development must wait until Phase 14.
 
@@ -675,7 +861,7 @@ Technology Radar and human-like organization foundations may proceed as bounded 
 
 ---
 
-## 21. Acceptance / repository discipline
+## 23. Acceptance / repository discipline
 
 Every implementation slice must:
 
@@ -701,14 +887,15 @@ No Phase 13.17 finding is fixed merely because architecture text explains the in
 
 ---
 
-## 22. Canonical documents
+## 24. Canonical documents
 
 - [GLOBAL_MOBILITY_AIOS_VISION_V1.md](GLOBAL_MOBILITY_AIOS_VISION_V1.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [REPOSITORY_POLICY.md](REPOSITORY_POLICY.md)
 - [DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md)
 - [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md)
-- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_2.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md) — predecessor
 - [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md) — predecessor
 - [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md)
 - [THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md](THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md)
@@ -718,18 +905,26 @@ No Phase 13.17 finding is fixed merely because architecture text explains the in
 
 ---
 
-## 23. Current decision
+## 25. Current decision
 
 - Phase 13.17 remains **IN PROGRESS / PAUSED**, owner-led.
 - Product acceptance and platform/architecture work proceed **in parallel**.
 - Wave 1 is **PILOT COMPLETE / TRIAL-ELIGIBLE**.
 - Wave 2 is **IN PROGRESS** with Docling started and Presidio queued.
 - Munder Difflin and OpenWorker are complementary A+ references.
-- Human-Like High-Autonomy Architecture V1.1 is the active organization direction.
-- Wave 5A high-autonomy control plane and Wave 5B organization semantics may proceed as bounded architecture/implementation slices without waiting for Phase 13.17 completion.
-- Consequential actions are proposal-first: agents prepare work; appropriate humans approve/modify/return/reject before execution where required.
+- Human-Like High-Autonomy Architecture V1.2 is the active organization direction.
+- Wave 5A Runtime Control Plane and Wave 5B Organization Semantics may proceed as bounded architecture/implementation slices without waiting for Phase 13.17 completion.
+- Material canonicalization must end in typed/deterministic AIOS rules, not an unconstrained LLM decision.
+- Command Gateway is the sole production mutation path for autonomous agents/runtimes.
+- Material writes use optimistic concurrency/version checks.
+- Consequential actions remain proposal-first: agents prepare work; appropriate humans approve/modify/return/reject before execution where required.
+- Rollback/compensation and learning outcome labels are first-class runtime requirements.
 - No docs-only checkpoint installs Munder/OpenWorker or proves runtime behavior.
 
 Long-term flywheel:
 
 > **Work → Outcomes → Corrections → Intelligence → Evaluation → Training/Optimization where permitted → Better AIOS → Better Work.**
+
+Defining runtime principle:
+
+> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
