@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.6  
+**Roadmap generation:** V12.7  
 **Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -13,7 +13,8 @@
 **V1.3-B.1:** Minimal Governance Kernel — **COMPLETE / PASS / SEALED AS B FOUNDATION**  
 **V1.3-B.2:** Governed WorkItem Assignment — **COMPLETE / PASS / SEALED**  
 **V1.3-C.1:** Transparency Trace Foundation — **COMPLETE / PASS / SEALED**  
-**Current Track C slice:** V1.3-C.2 — Non-Executing Material Attempt Transparency — **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
+**V1.3-C.2:** Non-Executing Material Attempt Transparency — **COMPLETE / PASS / SEALED**  
+**Current Track C slice:** V1.3-C.3 — Explicit Governance → Effect Causation — **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS with Docling started; Presidio queued  
 **Code migration head:** `0076_organization_position_active_identity`
 
@@ -228,6 +229,24 @@ git status                    clean / synchronized
 ```
 
 See [V1_3_C1_ACCEPTANCE_2026-08-20.md](V1_3_C1_ACCEPTANCE_2026-08-20.md).
+
+### V1.3-C.2 final acceptance — 2026-08-20
+
+```text
+Repository policy             PASS
+Full API regression           922 passed / 5 skipped / 1 warning / 0 failed in 320.37s
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS / 118 actual tables
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+git status                    clean / synchronized
+```
+
+The focused C.2 chain and protected roadmap regression were reported green in the canonical checkout; exact final counts were not restated in the final pasted acceptance excerpt and are therefore not invented.
+
+See [V1_3_C2_ACCEPTANCE_2026-08-20.md](V1_3_C2_ACCEPTANCE_2026-08-20.md).
 
 The single warning remains the pre-existing Starlette/httpx TestClient deprecation warning.
 
@@ -703,7 +722,7 @@ C.1 reuses `OrganizationActivity`, keeps legacy/unclassified Activity Board-insp
 
 ### C.2 — Non-Executing Material Attempt Transparency
 
-**State:** IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING.
+**State:** COMPLETE / PASS / SEALED.
 
 Delivered:
 
@@ -711,9 +730,10 @@ Delivered:
 apps/api/app/services/organization_governed_work_transparency.py
 apps/api/tests/test_organization_transparency_attempts.py
 docs/V1_3_C2_NON_EXECUTING_ATTEMPT_TRANSPARENCY.md
+docs/V1_3_C2_ACCEPTANCE_2026-08-20.md
 ```
 
-C.2 closes the next transparency gap:
+Accepted behavior:
 
 ```text
 Material action attempt
@@ -745,21 +765,52 @@ governance:attempt:<trace_id>
 
 This prevents a past denial/review result from masquerading as a successful replay record after legitimate authority or policy changes.
 
-The C.2 attempt record preserves structured action/governance metadata but does not capture hidden chain-of-thought.
+Accepted C.2 API baseline:
 
-Focused tests cover A2 review visibility, stale-version block visibility, scope-denied visibility, later successful execution after legitimate authority increase, and fail-closed attempt-storage behavior.
+```text
+922 passed / 5 skipped / 1 warning / 0 failed
+```
 
-### Later C slices — only when vertical evidence requires them
+### C.3 — Explicit Governance → Effect Causation
+
+**State:** IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING.
+
+Delivered:
+
+```text
+apps/api/app/services/organization_governed_work.py
+apps/api/tests/test_organization_transparency_causation.py
+docs/V1_3_C3_EXPLICIT_GOVERNANCE_EFFECT_CAUSATION.md
+```
+
+C.3 strengthens the successful B.2/C.1 path from shared trace correlation to explicit causal lineage:
+
+```text
+Governance authorization Activity
+        │
+        │ activity.id
+        ▼
+organization.work.assigned.v1
+causation_activity_id = governance Activity id
+```
+
+The governance Activity is staged first inside the same transaction. The WorkItem mutation, assignment audit and semantic effect are then staged with the governance UUID as the effect cause. Any failure rolls back the entire unit.
+
+The semantic effect keeps the accepted `organization.work.assigned.v1` event contract and semantic v1 source-version calculation while the Activity command fingerprint additionally covers the causal reference.
+
+Focused C.3 tests cover explicit causation, idempotent replay without duplicate causal records, and rollback when the causally linked effect cannot be stored.
+
+### Later C slices — only when a product/vertical consumer requires them
 
 Candidates include:
 
-- explicit causation/activity-lineage links;
 - bounded Board/Cockpit transparency query DTO/API;
 - AgentConversation / AgentMessage semantics;
 - retention/sensitivity boundaries;
 - ToolActionRecord;
 - Evidence / VerifiedRule / SourceSnapshot decision lineage;
-- aggregation of repetitive attempts without losing drill-down history.
+- aggregation of repetitive attempts without losing drill-down history;
+- broader ActivityLineage traversal only where a real consumer needs it.
 
 Broader C acceptance target:
 
@@ -1174,6 +1225,7 @@ Future Board/professional questions should include:
 - Who changed canonical case state?
 - Which material attempts were blocked and why?
 - Which actions were routed to review?
+- Which authorization caused this organization effect?
 - Why was autonomy downgraded?
 - Which government submissions occurred in a period?
 - Which cases depend on a rule?
@@ -1268,32 +1320,33 @@ Historical regression-protected roadmap markers such as `v10.22`, **multi-batch 
 5. Material collaboration remains reconstructable.
 6. Material decisions require lineage.
 7. Material attempts that are blocked or review-routed must not silently disappear.
-8. Agents may hold real delegated authority.
-9. Authority is capability-specific and bounded.
-10. Autonomy is earned and capability-specific.
-11. Agents cannot self-promote authority/autonomy.
-12. Memory is not canonical truth.
-13. Memory provides continuity; Evidence provides authority.
-14. Material truth crosses typed deterministic canonicalization.
-15. Material autonomous mutations cross the Command Gateway as runtime integration expands.
-16. Scores/readiness route; deterministic gates authorize.
-17. Verification depth scales with risk/uncertainty/novelty.
-18. Legal/policy human requirements override confidence.
-19. Parallel agents use explicit version/concurrency controls.
-20. External frameworks provide capability; AIOS owns semantics/authority.
-21. Immune-system intervention must be explainable.
-22. Restrictions should be scope-limited where possible.
-23. Irreversible actions receive stronger prechecks.
-24. Recovery distinguishes reversible/compensatable/irreversible/append-only correction.
-25. Learning preserves labeled outcomes/corrections.
-26. Governance cost scales with risk rather than being maximal everywhere.
-27. Context is scoped/lazy/versioned.
-28. Governance is not a global execution mutex.
-29. Summaries do not replace required underlying records.
-30. Secrets/protected data remain secure under transparency.
-31. Conversation is Activity but not authority.
-32. Provider-local state/logs do not silently become canonical AIOS truth.
-33. Agents may be wrong while thinking; AIOS may not be wrong silently when committing truth.
+8. Material organization effects should explicitly identify their authorizing governance Activity when a direct causal relationship exists.
+9. Agents may hold real delegated authority.
+10. Authority is capability-specific and bounded.
+11. Autonomy is earned and capability-specific.
+12. Agents cannot self-promote authority/autonomy.
+13. Memory is not canonical truth.
+14. Memory provides continuity; Evidence provides authority.
+15. Material truth crosses typed deterministic canonicalization.
+16. Material autonomous mutations cross the Command Gateway as runtime integration expands.
+17. Scores/readiness route; deterministic gates authorize.
+18. Verification depth scales with risk/uncertainty/novelty.
+19. Legal/policy human requirements override confidence.
+20. Parallel agents use explicit version/concurrency controls.
+21. External frameworks provide capability; AIOS owns semantics/authority.
+22. Immune-system intervention must be explainable.
+23. Restrictions should be scope-limited where possible.
+24. Irreversible actions receive stronger prechecks.
+25. Recovery distinguishes reversible/compensatable/irreversible/append-only correction.
+26. Learning preserves labeled outcomes/corrections.
+27. Governance cost scales with risk rather than being maximal everywhere.
+28. Context is scoped/lazy/versioned.
+29. Governance is not a global execution mutex.
+30. Summaries do not replace required underlying records.
+31. Secrets/protected data remain secure under transparency.
+32. Conversation is Activity but not authority.
+33. Provider-local state/logs do not silently become canonical AIOS truth.
+34. Agents may be wrong while thinking; AIOS may not be wrong silently when committing truth.
 
 ---
 
@@ -1306,10 +1359,11 @@ V1.3-A     COMPLETE / PASS / SEALED
 V1.3-B.1   COMPLETE / PASS / SEALED AS FOUNDATION
 V1.3-B.2   COMPLETE / PASS / SEALED
 V1.3-C.1   COMPLETE / PASS / SEALED
-V1.3-C.2   IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+V1.3-C.2   COMPLETE / PASS / SEALED
+V1.3-C.3   IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 ```
 
-Immediate action: run canonical C.2 acceptance before expanding Transparency further.
+Immediate action: run canonical C.3 acceptance before adding another transparency abstraction.
 
 Required focused chain:
 
@@ -1317,12 +1371,13 @@ Required focused chain:
 pytest apps/api/tests/test_organization_governance_kernel.py \
        apps/api/tests/test_organization_governed_work.py \
        apps/api/tests/test_organization_transparency.py \
-       apps/api/tests/test_organization_transparency_attempts.py -q
+       apps/api/tests/test_organization_transparency_attempts.py \
+       apps/api/tests/test_organization_transparency_causation.py -q
 ```
 
 Then repository policy, full API regression, migration/schema checks, `git diff --check`, and clean synchronized status.
 
-If C.2 passes, select the next smallest requirement from the first mobility vertical. Preferred candidates are explicit causation, a bounded Board/Cockpit transparency query contract, or Evidence/tool/decision lineage. Do not expand all C abstractions at once.
+If C.3 passes, prefer the next step with a real product consumer: a bounded Board/Cockpit transparency read contract or the D/E vertical prerequisites. Do not extend generic lineage machinery merely because more graph abstractions are possible.
 
 At the same time, Track A Phase 13.17 and Track D external-validation preparation should continue independently rather than waiting for the complete V1.3 architecture.
 
