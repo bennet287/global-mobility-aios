@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.1  
+**Roadmap generation:** V12.2  
 **Date:** 2026-08-19  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -9,7 +9,7 @@
 **Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
 **Active organization architecture:** [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md)  
-**Current Track C slice:** V1.3-A — Constitutional Contracts — IMPLEMENTED / FOCUSED CONTRACT TEST PASS / BROADER REPOSITORY ACCEPTANCE NOT YET CLAIMED  
+**Current Track C slice:** V1.3-A — Constitutional Contracts — IMPLEMENTED / FOCUSED CONTRACT TEST PASS / BROADER API REGRESSION RERUN PENDING AFTER ROADMAP-COMPATIBILITY FIX  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS with Docling started; Presidio queued  
 **Code migration head:** `0076_organization_position_active_identity`
 
@@ -156,6 +156,16 @@ Current accepted delivery truth remains:
 
 Phase 13.17 remains real acceptance feedback and does not become PASS merely because architecture/runtime work progresses.
 
+### Historical compatibility milestone — v10.22
+
+The active V12 roadmap intentionally preserves selected older delivery markers that are still protected by repository regression tests and remain meaningful architectural history.
+
+`v10.22` introduced **multi-batch tranche operations** around the already-governed jurisdiction Evidence workflow. The work scaled planning and preparation across multiple reviewed evidence batches while explicitly preserving human review boundaries: it did not add automatic source certification, legal interpretation, assertion approval, VerifiedRule publication, snapshot mutation, or global coverage claims.
+
+The canonical implementation note remains [COVERAGE_TRANCHE_OPERATIONS_V10_22.md](COVERAGE_TRANCHE_OPERATIONS_V10_22.md), and the historical database evolution associated with that delivery lineage includes migration marker `0032_initial_rule_assertions`.
+
+This historical marker is retained in the active roadmap so later roadmap rewrites do not accidentally erase repository acceptance contracts or the provenance of the governed coverage-operations foundation.
+
 ---
 
 ## 5. Carried-forward accepted quality baseline
@@ -171,6 +181,21 @@ Preserved gmai.db             unchanged at accepted checkpoint
 ```
 
 These are carried-forward accepted results. They must never be represented as rerun by a later documentation-only or bounded contract patch unless those tests were actually executed again.
+
+### Current V1.3-A broader-regression evidence
+
+The first canonical-checkout broader API run after V1.3-A produced:
+
+```text
+885 passed
+5 skipped
+1 failed
+1 warning
+```
+
+The sole failure was `test_v10_22_documentation_and_roadmap_are_present`, because the V12 roadmap rewrite had dropped the literal historical `v10.22` / `multi-batch tranche operations` / `0032_initial_rule_assertions` markers even though the underlying v10.22 documentation and runtime history remained present.
+
+Roadmap V12.2 restores that historical compatibility contract. A rerun is required before V1.3-A is marked fully PASS.
 
 GitHub CI PASS must not be claimed unless an attached check/status exists for the relevant commit.
 
@@ -480,7 +505,7 @@ External tools/frameworks gain no organizational authority merely because they s
 
 ### Current state
 
-**IMPLEMENTED / FOCUSED CONTRACT TEST PASS / BROADER REPOSITORY ACCEPTANCE NOT YET CLAIMED**
+**IMPLEMENTED / FOCUSED CONTRACT TEST PASS / BROADER API REGRESSION RERUN PENDING AFTER ROADMAP-COMPATIBILITY FIX**
 
 Implementation commit:
 
@@ -523,13 +548,14 @@ V1.3-A now defines:
 
 ### Focused acceptance evidence
 
-Executed against the new isolated contract module:
+Canonical local checkout evidence reported on 2026-08-19:
 
 ```text
-python -m py_compile organization_constitution.py
-pytest test_organization_constitution.py
+pytest apps/api/tests/test_organization_constitution.py -q
+13 passed, 1 warning in 0.14s
 
-13 passed in 0.07s
+scripts/check_repo_policy.py --root .
+Repository policy check passed.
 ```
 
 The tests verify:
@@ -547,6 +573,38 @@ The tests verify:
 - conversational activity may compact after policy retention without eliminating the Board inspection right;
 - constitutional registries are read-only;
 - Board supremacy/transparency/hard-gate invariants are encoded.
+
+### Broader API acceptance evidence
+
+Canonical local checkout run:
+
+```text
+pytest apps/api/tests -q
+885 passed, 5 skipped, 1 failed, 1 warning in 334.06s
+```
+
+The single failure was documentation-roadmap compatibility, not constitutional runtime behavior:
+
+```text
+test_v10_22_documentation_and_roadmap_are_present
+```
+
+Cause:
+
+```text
+V12 roadmap rewrite removed historical markers required by the preserved v10.22 acceptance contract.
+```
+
+Fix:
+
+```text
+Roadmap V12.2 restores:
+- v10.22
+- multi-batch tranche operations
+- 0032_initial_rule_assertions
+```
+
+The broader suite must now be rerun before final V1.3-A PASS/seal.
 
 ### Important non-claims
 
@@ -566,22 +624,22 @@ This phase does **not** yet:
 - implement Transparency indexing/UI;
 - integrate Munder/OpenWorker;
 - resolve Phase 13.17 findings;
-- prove the full API regression;
+- prove the full API regression after the roadmap compatibility fix;
 - prove GitHub CI PASS.
 
 ### V1.3-A remaining acceptance before final PASS/seal
 
-Before marking V1.3-A fully sealed, run from the canonical repository checkout:
+Before marking V1.3-A fully sealed:
 
-1. focused constitutional tests;
-2. repository policy checks;
-3. any import/type/static checks normally required by repository policy;
-4. broader API regression if the project acceptance policy requires it for the core-module addition;
+1. pull Roadmap V12.2;
+2. rerun the specific v10.22 regression test;
+3. rerun the broader API suite;
+4. confirm repository policy remains PASS;
 5. confirm no migration/schema drift;
 6. verify remote branch/diff;
-7. record the exact acceptance evidence in the changelog.
+7. record exact final acceptance evidence in the changelog.
 
-Until those canonical-repository checks are run, status remains **implemented / focused-test pass**, not complete project-wide PASS.
+Until those checks are clean, status remains **implemented / focused-test pass / broader-regression rerun pending**, not complete project-wide PASS.
 
 ---
 
@@ -1114,7 +1172,7 @@ Board transparency must coexist with lawful sensitivity controls.
 
 ### V1.3-A — Constitutional Contracts
 
-**State:** IMPLEMENTED / focused 13-test PASS / repository-wide acceptance not yet claimed.
+**State:** IMPLEMENTED / focused contract PASS / broader API rerun pending after roadmap compatibility fix.
 
 See Section 16 and [ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md](ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md).
 
@@ -1370,9 +1428,17 @@ Bounded J/K research may happen earlier, but production mutation integration mus
 
 The active engineering priority is:
 
-### First — seal V1.3-A correctly
+### First — finish V1.3-A acceptance correctly
 
-Run the new constitutional tests from the canonical repository checkout and the repository-policy/appropriate broader checks. Record the exact evidence. Do not call V1.3-A full PASS before that evidence exists.
+The focused constitutional suite and repository policy already pass. The first broader API run exposed one historical-roadmap compatibility regression rather than a constitutional runtime defect. Roadmap V12.2 restores the protected v10.22 markers.
+
+Required next evidence:
+
+1. specific v10.22 regression test PASS;
+2. complete API suite PASS;
+3. migration/schema invariant confirmation;
+4. clean repository state;
+5. exact evidence recorded in changelog.
 
 ### Then — V1.3-B Minimal Governance Kernel
 
@@ -1541,6 +1607,8 @@ Every meaningful patch should:
 13. verify remote branch state;
 14. preserve migration/database/release invariants;
 15. never claim tests, CI, runtime implementation or PASS without evidence.
+
+Roadmap rewrites must also preserve intentionally regression-protected historical milestones where tests encode them as part of repository continuity.
 
 ---
 
