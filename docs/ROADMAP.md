@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.4  
+**Roadmap generation:** V12.5  
 **Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -11,7 +11,8 @@
 **Active organization architecture:** [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md)  
 **V1.3-A:** Constitutional Contracts — **COMPLETE / PASS / SEALED**  
 **V1.3-B.1:** Minimal Governance Kernel — **COMPLETE / PASS / SEALED AS B FOUNDATION**  
-**Current Track C slice:** V1.3-B.2 — Governed WorkItem Assignment — **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
+**V1.3-B.2:** Governed WorkItem Assignment — **COMPLETE / PASS / SEALED**  
+**Current Track C slice:** V1.3-C.1 — Transparency Trace Foundation — **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS with Docling started; Presidio queued  
 **Code migration head:** `0076_organization_position_active_identity`
 
@@ -33,7 +34,7 @@ Final V11 reference head:
 ac130deaafa7aa44068e9459facbda2b4df327d6
 ```
 
-V11 must not receive V12 implementation, V1.3-B runtime changes, Technology Radar experiments or later roadmap state unless the Human Owner explicitly reopens it.
+V11 must not receive V12 implementation, V1.3-B/C runtime changes, Technology Radar experiments or later roadmap state unless the Human Owner explicitly reopens it.
 
 ### V12 — active implementation line
 
@@ -193,6 +194,22 @@ git status                    clean / synchronized
 ```
 
 See [V1_3_B1_ACCEPTANCE_2026-08-20.md](V1_3_B1_ACCEPTANCE_2026-08-20.md).
+
+### V1.3-B.2 final acceptance — 2026-08-20
+
+```text
+B.1 + B.2 focused             25 passed / 1 warning / 0 failed in 3.08s
+Repository policy             PASS
+Full API regression           911 passed / 5 skipped / 1 warning / 0 failed in 316.36s
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS (canonical Windows checkout)
+git diff --check              clean
+git status                    clean / synchronized
+```
+
+See [V1_3_B2_ACCEPTANCE_2026-08-20.md](V1_3_B2_ACCEPTANCE_2026-08-20.md).
 
 The warning remains the pre-existing Starlette/httpx TestClient deprecation warning.
 
@@ -612,7 +629,7 @@ See [V1_3_B_MINIMAL_GOVERNANCE_KERNEL.md](V1_3_B_MINIMAL_GOVERNANCE_KERNEL.md) a
 
 ## 24. V1.3-B.2 — Governed WorkItem Assignment
 
-**State:** IMPLEMENTED / CANONICAL CHECKOUT ACCEPTANCE PENDING.
+**State:** COMPLETE / PASS / SEALED.
 
 Selected first real action:
 
@@ -628,9 +645,10 @@ Delivered:
 apps/api/app/services/organization_governed_work.py
 apps/api/tests/test_organization_governed_work.py
 docs/V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md
+docs/V1_3_B2_ACCEPTANCE_2026-08-20.md
 ```
 
-Runtime proof target:
+Accepted runtime path:
 
 ```text
 Actor
@@ -645,9 +663,9 @@ Actor
 → one atomic commit
 ```
 
-### Important B.2 design choices
+### Accepted B.2 design choices
 
-1. No migration is added merely to prove the first command path.
+1. No migration was added merely to prove the first command path.
 2. Current `updated_at` is converted into a deterministic integer precondition token as a compatibility bridge.
 3. New commands with stale preconditions fail closed.
 4. Exact successful-command retries resolve durable idempotency before stale-version rejection, because the first successful execution necessarily advanced aggregate state.
@@ -656,38 +674,37 @@ Actor
 7. WorkItem mutation, assignment audit, semantic Activity and governance Activity commit atomically for AUTO_EXECUTE.
 8. Governance Activity failure rolls back the whole unit of work rather than creating an opaque autonomous mutation.
 
-See [V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md](V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md).
-
-### B.2 acceptance gate
-
-Canonical V12 checkout must run:
+Canonical acceptance:
 
 ```text
-pytest apps/api/tests/test_organization_governance_kernel.py apps/api/tests/test_organization_governed_work.py -q
-scripts/check_repo_policy.py --root .
-pytest apps/api/tests -q
-scripts/check_database_migrations.py
-scripts/check_local_db_schema.py --database-url sqlite:///D:/global-mobility-aios/gmai.db
-git diff --check
-git status -sb
+25 passed, 1 warning in 3.08s
+Repository policy PASS
+911 passed, 5 skipped, 1 warning in 316.36s
+Database migration check PASS
+Local DB schema check PASS
+git diff --check clean
+git status clean / synchronized
 ```
 
-Only after those results are clean may B.2 be marked PASS.
+See [V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md](V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md) and [V1_3_B2_ACCEPTANCE_2026-08-20.md](V1_3_B2_ACCEPTANCE_2026-08-20.md).
 
 ---
 
-## 25. V1.3-B next decision after B.2
+## 25. V1.3-B conclusion and transition
 
-Do not expand the Governance Kernel horizontally merely because more abstractions are possible.
+B now has enough runtime evidence to support the next architectural dependency without expanding the Governance Kernel horizontally merely because more abstractions are possible.
 
-After B.2 PASS, inspect evidence and choose one bounded next move:
+Accepted B foundation:
 
-- B.3 explicit aggregate version contract if the timestamp bridge proves insufficient;
-- a second R1/R2 real domain command to prove reuse;
-- policy registry persistence if real execution requires it;
-- or proceed to V1.3-C Transparency if the minimal mutation boundary is already sufficient.
+```text
+B.1 deterministic Governance Kernel
+        +
+B.2 first real atomic R1 domain mutation
+```
 
-The default should favor evidence-producing vertical progress over framework breadth.
+A dedicated integer aggregate-version migration, persistent policy registry and additional governed command types remain legitimate future work, but should be introduced when a real vertical workflow demonstrates the need.
+
+The active dependency therefore moves to V1.3-C Transparency Foundation.
 
 ---
 
@@ -695,22 +712,67 @@ The default should favor evidence-producing vertical progress over framework bre
 
 Planned early because autonomy without reconstructability is unacceptable.
 
-Implement incrementally:
+### C.1 — Transparency Trace Foundation
 
+**State:** IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING.
+
+Delivered:
+
+```text
+apps/api/app/services/organization_transparency.py
+apps/api/tests/test_organization_transparency.py
+docs/V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md
+```
+
+The B.2 governed WorkItem path now also propagates the Governance Kernel `trace_id` as the correlation key of the resulting semantic WorkItem Activity.
+
+C.1 therefore makes one real material action reconstructable as:
+
+```text
+Governance authorization
+        +
+resulting WorkItem organization effect
+        ↓
+shared trace identity
+        ↓
+tenant-scoped durable OrganizationActivity query
+        ↓
+structured Board-inspectable trace
+```
+
+C.1 adds typed transparency projection/query contracts while reusing the existing `OrganizationActivity` substrate. Existing pre-V1.3 Activities remain Board-inspectable but are not silently assigned fake constitutional retention/lineage semantics.
+
+Focused coverage includes:
+
+- shared governance/effect trace correlation;
+- governed action reconstruction;
+- strict tenant isolation;
+- legacy/unclassified Activity handling;
+- fail-closed malformed governance trace detection;
+- WorkItem Activity-history visibility.
+
+Canonical acceptance must run before C.1 can be marked PASS.
+
+### Later C slices
+
+Implement only as runtime need becomes concrete:
+
+- explicit causation/activity-lineage links;
+- persistence of blocked/review-required governance attempts;
 - AgentConversation / AgentMessage semantics;
-- Activity classification;
 - retention/sensitivity boundaries;
-- trace correlation;
 - ToolActionRecord foundation;
-- DecisionLineage / ActivityLineage foundation;
-- transparency query surfaces.
+- DecisionLineage / ActivityLineage across Evidence/Rules/Tools;
+- Board/Cockpit transparency query surfaces.
 
-Acceptance target:
+Acceptance target for the broader C phase:
 
 - reconstruct a governed test decision from outcome back to actor/policy/Evidence;
 - trace material collaboration/tool actions;
 - hide secrets appropriately;
 - summarize normal activity rather than Board-spam it.
+
+See [V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md](V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md).
 
 ---
 
@@ -1194,12 +1256,13 @@ Current engineering state:
 ```text
 V1.3-A     COMPLETE / PASS / SEALED
 V1.3-B.1   COMPLETE / PASS / SEALED AS FOUNDATION
-V1.3-B.2   IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+V1.3-B.2   COMPLETE / PASS / SEALED
+V1.3-C.1   IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 ```
 
-The immediate next action is **not** to add more B abstractions.
+The immediate next action is canonical C.1 acceptance, not additional B framework expansion.
 
-First run canonical B.2 acceptance. If clean, seal B.2 and decide from evidence whether the smallest next step is B.3 or V1.3-C.
+If C.1 passes, seal it and choose the next bounded transparency requirement from the first real mobility vertical: blocked/review-attempt persistence, explicit causation, Board/Cockpit query contract, or Evidence/tool/decision lineage.
 
 At the same time, Track A Phase 13.17 and Track D external-validation preparation should continue independently rather than waiting for the complete V1.3 architecture.
 
