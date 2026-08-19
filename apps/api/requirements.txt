@@ -17,4 +17,12 @@ pillow>=11.0
 pytesseract>=0.3.13
 email-validator>=2.2
 cryptography>=42.0
+
+# OpenTelemetry — optional vendor-neutral telemetry foundation (Technology Radar V1.1 Wave 1).
+# The SDK is installed by default but telemetry remains disabled unless OTEL_ENABLED=true.
+opentelemetry-api>=1.28
+opentelemetry-sdk>=1.28
+opentelemetry-instrumentation-fastapi>=0.49b0
+opentelemetry-exporter-otlp>=1.28
+
 pytest>=8.3

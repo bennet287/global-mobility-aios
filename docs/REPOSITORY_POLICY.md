@@ -35,6 +35,12 @@ This document defines the controlled GitHub repository set allowed for Global Mo
    - LLM tracing, evaluation, observability, and auditability.
 12. promptfoo/promptfoo
    - AI prompt regression, adversarial evaluation, and safety testing for controlled agents.
+13. open-telemetry/opentelemetry-python and open-telemetry/opentelemetry-python-contrib
+   - Vendor-neutral application/AI telemetry foundation (SDK, FastAPI instrumentation, OTLP exporters).
+   - License: Apache 2.0.
+   - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 1 pilot.
+   - AIOS Semantic Sovereignty: OpenTelemetry remains engineering trace only and never substitutes
+     for OrganizationActivity, AuditLog, evidence provenance, or business authority.
 
 ## Adapted Repositories (Constrained Use)
 

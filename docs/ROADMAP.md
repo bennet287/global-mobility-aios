@@ -524,7 +524,14 @@ Candidates may correctly end as ADOPT, HOLD, or REJECT.
   no runtime dependency, no production code path, and no change to AIOS authority/evidence semantics.
   A matching pytest regression (`test_role_card_safety_invariants.py`) runs in the standard API
   test gate so the invariants are enforced independently of the Promptfoo installation.
-- OpenTelemetry and ClamAV remain queued for later Wave 1 pilots.
+- **OpenTelemetry early pilot started** — the FastAPI backend now has an optional, disabled-by-default
+  OpenTelemetry adapter at `app/core/telemetry.py`. When `OTEL_ENABLED=true` and the SDK is installed,
+  it instruments the FastAPI app and exports traces via OTLP. Missing packages or configuration errors
+  are logged and the API continues to start normally. A matching pytest regression
+  (`test_telemetry.py`) verifies disabled, missing-package fallback, and instrumented paths.
+  OpenTelemetry remains engineering trace only and does not substitute for AIOS Activity, AuditLog,
+  evidence provenance, or business authority.
+- ClamAV remains queued for the later Wave 1 pilot.
 
 ### Wave 2 — document + privacy intelligence
 
@@ -611,13 +618,17 @@ At minimum:
 
 **Phase 13.17 genuine external-human acceptance is in progress manually.**
 
-Technology Radar V1.1 Wave 1 has started in parallel with the first bounded pilot:
+Technology Radar V1.1 Wave 1 has started in parallel with the first two bounded pilots:
 
 - **Promptfoo early pilot started** — `eval/promptfoo/` evaluates controlled-agent role-card safety invariants
   (human review, no positive guarantees, legal-advice disclaimer, source/provenance awareness, blocked actions/prohibitions).
   A matching pytest regression (`test_role_card_safety_invariants.py`) enforces the invariants in the standard API gate.
   The pilot introduces no runtime dependency, no production code path, and no change to AIOS authority/evidence semantics.
-- OpenTelemetry and ClamAV remain queued for later Wave 1 pilots.
+- **OpenTelemetry early pilot started** — optional, disabled-by-default FastAPI instrumentation and OTLP trace export
+  via `app/core/telemetry.py`. Missing packages are a graceful no-op. A matching pytest regression (`test_telemetry.py`)
+  covers disabled, missing-package fallback, and instrumented paths. OpenTelemetry remains engineering trace only and does
+  not substitute for AIOS Activity, AuditLog, evidence provenance, or business authority.
+- ClamAV remains queued for the later Wave 1 pilot.
 
 Phase 13.16 product acceptance remains sealed. Phase 14 remains demand-gated and must not start until Phase 13 evidence is
 complete.

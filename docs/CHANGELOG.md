@@ -4,6 +4,63 @@ This is the current changelog from the post-`f0688a8` baseline onward. The compl
 Phase 13.16.7 baseline is preserved byte-for-byte at
 [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md).
 
+## 2026-08-19 - Technology Radar V1.1 Wave 1 OpenTelemetry pilot COMPLETE / PASS - optional vendor-neutral FastAPI telemetry
+
+- Started the second Technology Radar V1.1 Wave 1 pilot (`OpenTelemetry` — vendor-neutral application telemetry) by adding
+  a bounded, optional, disabled-by-default instrumentation adapter under `apps/api/app/core/telemetry.py`.
+- The adapter wires into `apps/api/app/main.py` and instruments the FastAPI application only when `OTEL_ENABLED=true` and the
+  OpenTelemetry SDK packages are installed. When disabled or when packages are missing, the API starts normally with a log
+  message; this preserves the local-first posture and avoids a hard production dependency.
+- Added environment-driven settings in `apps/api/app/core/config.py`: `OTEL_ENABLED`, `OTEL_EXPORTER_OTLP_ENDPOINT`,
+  `OTEL_SERVICE_NAME`, and `OTEL_SERVICE_VERSION`, with safe defaults.
+- Added OpenTelemetry SDK/ instrumentation/ exporter packages to `apps/api/requirements.txt` as an explicitly bounded and
+  documented Technology Radar dependency.
+- Added matching environment variables to `.env.example` so local Docker/host configuration is discoverable.
+- Added `apps/api/tests/test_telemetry.py` regression covering:
+  - disabled instrumentation is a no-op;
+  - enabled instrumentation gracefully skips when SDK packages are not installed;
+  - enabled instrumentation registers with the FastAPI app and routes remain reachable when packages are installed.
+- Updated `docs/REPOSITORY_POLICY.md` to record `open-telemetry/opentelemetry-python` and
+  `open-telemetry/opentelemetry-python-contrib` as approved core repositories, documenting Apache 2.0 licensing and the
+  engineering-trace-only boundary.
+- Updated `docs/ROADMAP.md` to record the OpenTelemetry early pilot as started and to leave ClamAV as the remaining queued
+  Wave 1 pilot.
+
+### Acceptance
+
+- telemetry regression: **3/3 PASS** (1 skipped when SDK not installed);
+- complete API regression: **856 passed / 5 skipped / 0 failed**;
+- repository policy: **PASS**;
+- release consistency: **PASS** at `0076_organization_position_active_identity`;
+- Docker production profile: **PASS**;
+- database migration/schema consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- local physical-schema parity: **PASS** — 118 registered model tables / 118 actual model tables / 119 physical tables
+  including only `alembic_version` infrastructure;
+- `git diff --check`: **PASS**;
+- Next.js 15.2.4 production build: **PASS**, **41/41 pages**;
+- design foundation regression: **28/28 PASS**;
+- preserved `gmai.db`: unchanged.
+
+### Boundary
+
+Exact delivery boundary at seal is the following tracked files:
+
+- `apps/api/app/core/config.py`;
+- `apps/api/app/core/telemetry.py`;
+- `apps/api/app/main.py`;
+- `apps/api/requirements.txt`;
+- `apps/api/tests/test_telemetry.py`;
+- `.env.example`;
+- `docs/CHANGELOG.md`;
+- `docs/REPOSITORY_POLICY.md`;
+- `docs/ROADMAP.md`.
+
+There is **no model/table/Alembic/preserved-database/Austria-safety/frontend runtime semantic change** in this slice.
+No evidence, certification, publication, authorization, secure-Portal, or human-review authority is weakened. OpenTelemetry
+is an engineering-trace adapter; AIOS domain meaning and authority records remain authoritative.
+
+Phase 13.17 genuine external-human acceptance remains **UNLOCKED / NEXT**. ClamAV remains the next queued Wave 1 pilot.
+
 ## 2026-08-19 - Technology Radar V1.1 Wave 1 Promptfoo pilot COMPLETE / PASS - controlled-agent role-card safety invariants
 
 - Started the first Technology Radar V1.1 Wave 1 pilot (`Promptfoo` — AI regression / safety evaluation) by adding a bounded,

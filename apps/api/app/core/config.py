@@ -50,6 +50,15 @@ class Settings(BaseSettings):
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True
 
+    # OpenTelemetry — optional, off-by-default telemetry pilot (Technology Radar V1.1 Wave 1).
+    # When enabled, the app attempts to install FastAPI instrumentation and export traces to the
+    # configured OTLP endpoint. Missing packages are treated as a graceful no-op so the API remains
+    # startable without the optional OpenTelemetry dependencies.
+    otel_enabled: bool = False
+    otel_exporter_otlp_endpoint: str = ""
+    otel_service_name: str = "global-mobility-aios-api"
+    otel_service_version: str = "0.1.0"
+
     jwt_secret: str = "change-this-in-production"
     auth_enabled: bool = True
     auth_admin_username: str = "admin"

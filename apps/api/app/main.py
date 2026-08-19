@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.db import create_db_and_tables
 from app.core.router_registry import register_routers
 from app.core.startup_safety import validate_production_settings
+from app.core.telemetry import setup_telemetry
 from app.services.document_storage import validate_document_storage_configuration
 
 
@@ -27,6 +28,10 @@ app = FastAPI(
     description="Local-first AI operating system for study abroad, jobs, visa guidance, CRM and workflow automation.",
     lifespan=lifespan,
 )
+
+# Optional OpenTelemetry instrumentation (Technology Radar V1.1 Wave 1 pilot).
+# Disabled by default and graceful when packages are absent.
+setup_telemetry(app)
 
 # Authentication remains responsible for application requests, but CORS must be
 # the outer response boundary so preflight and auth-generated 401/403 responses
