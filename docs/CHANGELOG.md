@@ -1,272 +1,319 @@
 # Global Mobility AIOS — V12 Active Changelog
 
-This changelog records delivery on the active branch:
+This changelog records meaningful delivery on:
 
 ```text
 roadmap/global-mobility-aios-v12
 ```
 
-The complete frozen V11 checkpoint remains available on:
+Repository lineage:
 
 ```text
-roadmap/global-mobility-aios-v11
-@ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+V12 fork origin
+  dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+
+Frozen V11 reference branch final documentation head
+  ac130deaafa7aa44068e9459facbda2b4df327d6
 ```
 
-V11 preserves its own README, Roadmap V11.5, V1.3 architecture checkpoint, and active changelog exactly as they existed when V12 was created. Earlier history also remains available through Git history and the existing archived changelog snapshots.
+The V12 fork origin remains `dd2f2cd`; the later `ac130dea` V11 commit only cleaned V11's own roadmap/documentation after V12 had already branched.
 
-> **V11 is the frozen reference. V12 is the active implementation line.**
+Earlier history remains available through V11, Git history and the existing archived changelogs.
+
+> **V11 preserves the reference product checkpoint. V12 is the active implementation line.**
 
 ---
 
-## 2026-08-19 — V12 ROADMAP / README ALIGNMENT — ACTIVE IMPLEMENTATION LINE CLARIFIED
+## 2026-08-19 — V1.3-A CONSTITUTIONAL CONTRACTS — IMPLEMENTED / FOCUSED TEST PASS
 
 ### Status
 
-**Documentation / branch-alignment checkpoint only. No runtime implementation or acceptance-state change is claimed.**
+**Runtime-facing contract implementation delivered. Focused contract tests PASS. Full repository regression/CI PASS is not claimed.**
 
-### Why this correction was needed
-
-V12 was created directly from the frozen V11 checkpoint. That correctly preserved all files, but it also meant that the inherited `README.md` and `docs/ROADMAP.md` initially still described V11 as the current development line.
-
-That created a naming ambiguity:
-
-- **Git branch V11 / V12** describes repository-development generations;
-- **architecture V1.3** describes the Human-Like High-Autonomy Organization architecture version;
-- **Roadmap V11.5 / V12.0** describes roadmap-document generations.
-
-These version systems are related but are not the same thing.
-
-V1.3 was designed and frozen on V11 before V12 was created. Therefore it is correct that the frozen V11 checkpoint contains V1.3 architecture documentation. What was incorrect was allowing V12's inherited roadmap metadata to continue calling V11 the active development branch.
-
-### V11 remains unchanged
-
-Frozen branch:
+Implementation commit:
 
 ```text
-roadmap/global-mobility-aios-v11
+7779c1f8e5d3db2e72e047667774284d7cc5f5af
+feat: freeze v1.3 constitutional contracts
 ```
 
-Frozen checkpoint:
+### Purpose
+
+Started the actual V12 Track C implementation with the first roadmap slice:
+
+> **V1.3-A — Constitutional Contracts**
+
+The existing runtime already has deterministic route/role authorization and organization-governance schemas, but future V1.3 concepts still needed a single machine-readable vocabulary before the Governance Kernel could safely use them.
+
+This slice freezes the constitutional vocabulary without prematurely changing current API/database behavior.
+
+### Added
 
 ```text
-dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+apps/api/app/core/organization_constitution.py
+apps/api/tests/test_organization_constitution.py
+docs/ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md
 ```
 
-V11 continues to preserve:
+### Constitutional invariants encoded
 
-- its V11 README;
-- Roadmap V11.5;
-- the V1.3 architecture documentation checkpoint;
-- Phase 13.16.10 accepted product baseline;
-- Phase 13.17 owner-led human acceptance state;
-- the V1.3-era changelog as of the frozen checkpoint.
+The new runtime-facing module freezes:
 
-No V11 file was modified by the V12 alignment work.
+> **The Human Owner / Board is the supreme authority of Global Mobility AIOS.**
 
-### V12 README alignment
+> **Operational autonomy must never create organizational opacity.**
 
-Commit:
+> **Scores route decisions; deterministic gates authorize decisions.**
+
+It also formalizes the permanent separation:
+
+```text
+Capability != Authority != Autonomy != Risk
+CAN DO != MAY DO
+```
+
+### A0–A5 autonomy contract
+
+```text
+A0  Prohibited
+A1  Human executes
+A2  AI prepares; approval required
+A3  Autonomous with mandatory review
+A4  Autonomous with monitoring and valid recovery controls
+A5  Fully autonomous bounded operation
+```
+
+The contract intentionally remains capability/context-specific rather than assigning one global autonomy score to an agent.
+
+### R0–R5 risk contract
+
+```text
+R0  Non-material cognition
+R1  Routine internal operation
+R2  Client-facing preparation / Evidence validation
+R3  Material recommendation / blind independent verification
+R4  Certification/regulatory publication / deeper verification + fresh sources
+R5  Government submission or critical reserved action / Human-Board gate
+```
+
+### HumanReviewReason frozen
+
+```text
+UNCERTAINTY
+CONTRADICTION
+INSUFFICIENT_EVIDENCE
+OUTSIDE_AUTHORITY
+POLICY_REQUIRED
+LEGAL_REQUIRED
+BOARD_RESERVED
+ANOMALY
+EXCEPTION
+```
+
+This preserves the critical distinction between uncertainty escalation and authority/legal/policy escalation.
+
+### Consequence/recovery classes frozen
+
+```text
+REVERSIBLE
+COMPENSATABLE
+IRREVERSIBLE
+APPEND_ONLY_CORRECTION
+```
+
+This prevents future governance code from pretending that every real-world action can be rolled back like a database row.
+
+### Reserved authority classes frozen
+
+```text
+CONSTITUTION
+STRATEGIC_DIRECTION
+AUTONOMY_CEILING
+MAJOR_POLICY
+EXECUTIVE_APPOINTMENT
+EMERGENCY_CONTROL
+BOARD_RESERVED_EXTERNAL_ACTION
+```
+
+These are constitutional categories. Later workflow/jurisdiction policy may map concrete actions into them.
+
+### Initial immutable Materiality Registry
+
+| Action | Material | Risk | Board reserved |
+|---|---:|---:|---:|
+| `official_source.search` | no | R0 | no |
+| `document.summary` | no | R0 | no |
+| `internal.note` | no | R0 | no |
+| `work_item.assignment` | yes | R1 | no |
+| `evidence.candidate` | yes | R2 | no |
+| `eligibility.transition` | yes | R3 | no |
+| `evidence.certification` | yes | R4 | no by base constitution |
+| `verified_rule.publication` | yes | R4 | no by base constitution |
+| `external_communication.consequential` | yes | R3 | no by base constitution |
+| `government.submission` | yes | R5 | yes |
+
+The registry is read-only at runtime in this phase.
+
+### Board Transparency activity policy
+
+Activity classes frozen:
+
+```text
+CONVERSATIONAL
+COLLABORATIVE
+OPERATIONAL
+MATERIAL
+AUTHORITY
+```
+
+Every class is Board-inspectable.
+
+Material/Authority activity requires durable full lineage.
+
+Lower-value conversation may compact/summarize after policy retention rather than being stored forever as regulatory-grade raw text. This preserves the design goal:
+
+```text
+Board visibility != Board interruption
+Transparency != infinite raw-token retention
+```
+
+### Focused acceptance evidence
+
+Executed against the new contract module in an isolated Python package layout:
+
+```text
+python -m py_compile apps/api/app/core/organization_constitution.py
+pytest apps/api/tests/test_organization_constitution.py
+
+13 passed in 0.07s
+```
+
+The tests cover:
+
+- stable A0–A5 values;
+- stable R0–R5 values;
+- HumanReviewReason taxonomy;
+- consequence/recovery classes;
+- reserved authority classes;
+- total Materiality Registry coverage;
+- R0 defaults for non-material cognition;
+- R5 + Board-reserved government submission;
+- Board inspectability for every activity class;
+- durable/full lineage requirements for Material/Authority activity;
+- conversational compaction semantics;
+- immutable registries;
+- frozen Board supremacy/transparency/hard-gate invariants.
+
+### Runtime truth / non-claims
+
+This slice does **not**:
+
+- add a database migration;
+- change migration head `0076_organization_position_active_identity`;
+- mutate preserved `gmai.db`;
+- change existing route authorization;
+- change existing WorkItem API compatibility;
+- implement MaterialAction persistence;
+- implement Command Gateway execution;
+- implement Decision Readiness;
+- implement independent verification;
+- implement the Organizational Immune System;
+- implement earned-autonomy promotion/demotion;
+- implement full Transparency runtime/UI;
+- integrate Munder Difflin or OpenWorker;
+- resolve Phase 13.17 findings;
+- rerun the complete 873-test API suite;
+- claim GitHub CI PASS.
+
+GitHub returned no attached status checks for the implementation commit at the time of this checkpoint.
+
+### Acceptance posture
+
+V1.3-A is therefore recorded as:
+
+```text
+IMPLEMENTED
+FOCUSED CONTRACT TEST PASS
+BROADER REPOSITORY ACCEPTANCE NOT YET CLAIMED
+```
+
+Before final V1.3-A PASS/seal, run the new tests from the canonical repository checkout plus the repository-policy and broader checks required for a core-module addition, then record the exact evidence.
+
+### Roadmap
+
+Roadmap advanced to **V12.1** to record the first actual Track C implementation and preserve the boundary between contract delivery and later Governance Kernel runtime work.
+
+### Next roadmap slice
+
+After V1.3-A is fully accepted:
+
+> **V1.3-B — Minimal Governance Kernel**
+
+The first B implementation should stay deliberately small: actor identity, capability authority, expected version, idempotency, MaterialAction envelope, deterministic policy evaluation, Command Gateway foundation and OrganizationActivity trace identity.
+
+---
+
+## 2026-08-19 — V12 ROADMAP / README ALIGNMENT
+
+### Status
+
+Documentation/branch-alignment checkpoint only.
+
+V12 was created directly from the V11 checkpoint at `dd2f2cd`. The inherited README and roadmap initially still described V11 as the active line, so V12 documentation was realigned to make the branch roles explicit.
+
+Key commits included:
 
 ```text
 4a347d418408a199198832e211f13555cf1ee5e9
-```
-
-Message:
-
-```text
 docs: align v12 readme with v1.3 direction
-```
 
-The V12 README now opens with the active project definition:
-
-> **A governed, transparent, high-autonomy digital organization for global mobility.**
-
-It explicitly identifies:
-
-- `roadmap/global-mobility-aios-v12` as the active development line;
-- V11 at `dd2f2cd` as the frozen predecessor/reference checkpoint;
-- V1.3 as the active architecture direction;
-- the Organizational Immune System;
-- Earned Autonomy;
-- Board Transparency;
-- Decision Lineage;
-- persistent AI employees;
-- risk-tiered verification;
-- the V1.3-A → V1.3-N implementation direction.
-
-### V12 Roadmap V12.0
-
-Commit:
-
-```text
-dac2529f4dee279cddc738c9310960afb32cc139
-```
-
-Message:
-
-```text
+ dac2529f4dee279cddc738c9310960afb32cc139
 docs: establish v12 implementation roadmap
+
+c894fba4fb3f04d992614952cafe843978011a21
+docs: align v12 roadmap and changelog
 ```
 
-`docs/ROADMAP.md` is now explicitly:
+Resulting distinction:
 
 ```text
-Global Mobility AIOS — Active V12 Implementation Roadmap
-Roadmap generation: V12.0
-Active branch: roadmap/global-mobility-aios-v12
-Frozen predecessor: roadmap/global-mobility-aios-v11 @ dd2f2cd
+Git branch V11/V12 = repository development generation
+Architecture V1.3 = high-autonomy organization architecture version
+Roadmap V12.x = active V12 delivery-plan generation
 ```
 
-The V12 roadmap deliberately changes role from the frozen V11.5 document:
-
-- **V11.5** records the checkpoint and architecture direction frozen on V11;
-- **V12.0** is the active implementation roadmap for proving and realizing that direction.
-
-The V12 roadmap retains the project vision and complete V1.3 implementation direction while putting greater emphasis on implementation evidence, real vertical workflows, external validation, legal/data-governance maturity, operational maturity, and the V1.3-A → V1.3-N runtime programme.
-
-### V12 roadmap priorities
-
-The active implementation sequence remains:
-
-```text
-V1.3-A  Constitutional Contracts
-V1.3-B  Minimal Governance Kernel
-V1.3-C  Transparency Foundation
-V1.3-D  Context & Agent Identity
-V1.3-E  First Governed Vertical Workflow
-V1.3-F  Decision Readiness
-V1.3-G  Independent Verification
-V1.3-H  Organizational Immune System
-V1.3-I  Earned Autonomy
-V1.3-J  Agent Organization Runtime
-V1.3-K  Execution / Coworker Runtime
-V1.3-L  Live Organization
-V1.3-M  Board Transparency Experience
-V1.3-N  Learning & Optimization
-```
-
-The roadmap additionally makes the first governed vertical workflow a central proof point so architecture does not continue expanding without implementation evidence.
-
-### Product validation emphasis
-
-V12 explicitly recognizes that architecture/engineering maturity is currently ahead of independent product validation.
-
-The validation direction is:
-
-```text
-owner-led acceptance
-        ↓
-external professional usability
-        ↓
-real mobility workflow / real case
-        ↓
-first external cases
-        ↓
-repeatable jurisdiction workflow
-        ↓
-first paying professional / organization
-        ↓
-measured demand
-```
-
-This does not reduce the long-term project ambition. It is intended to turn architecture quality into external evidence.
-
-### Runtime truth unchanged
-
-This README/Roadmap alignment does **not**:
-
-- modify application/runtime code;
-- change database schema;
-- change Alembic head;
-- mutate preserved `gmai.db`;
-- implement Decision Readiness;
-- implement the Organizational Immune System;
-- implement earned autonomy;
-- implement the Transparency Layer;
-- integrate Munder Difflin or OpenWorker;
-- resolve Phase 13.17 findings;
-- change Technology Radar adoption state;
-- rerun or claim a new API/web/design regression;
-- claim GitHub CI PASS.
-
-Latest accepted runtime evidence remains carried forward:
-
-```text
-API regression                873 passed / 5 skipped / 0 failed
-Next.js production build      41 / 41 pages
-Design foundation             28 / 28 passed
-Alembic head                  0076_organization_position_active_identity
-Preserved gmai.db             unchanged at accepted checkpoint
-```
+No runtime/database/acceptance state changed in those documentation commits.
 
 ---
 
-## 2026-08-19 — V12 DEVELOPMENT BRANCH OPENED / V11 FROZEN
+## 2026-08-19 — V12 DEVELOPMENT BRANCH OPENED
 
-### Status
-
-**Repository isolation / branch-governance checkpoint only.**
-
-A new active development branch was created from the frozen V11 checkpoint:
+V12 was created from:
 
 ```text
 roadmap/global-mobility-aios-v11
 @ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
-        │
-        └── roadmap/global-mobility-aios-v12
 ```
 
-GitHub comparison at creation confirmed:
-
-```text
-V11 ↔ V12
-status: identical
-ahead: 0
-behind: 0
-starting SHA: dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
-```
-
-The branch split exists so ambitious V1.3 implementation can proceed without disturbing the clean V11 checkpoint.
-
-### First V12 documentation checkpoint
-
-Commit:
+Initial V12 branch transition commit:
 
 ```text
 2120ba7f509d9f556534d859628755e2608d2955
-```
-
-Message:
-
-```text
 docs: record v12 development branch transition
 ```
 
-This recorded:
-
-- V11 as frozen reference/recovery state;
-- V12 as the active implementation branch;
-- V1.3-A → V1.3-N as the continuing architecture programme;
-- Phase 13.17 as a parallel feedback stream;
-- no runtime/test/migration/acceptance-state change from the branch split itself.
+The branch split exists so V1.3 implementation can proceed without risking the preserved V11 product/runtime reference.
 
 ---
 
 ## History before V12
 
-For the exact state before V12 work began, use:
+Use Git history and the frozen V11 branch for exact pre-V12 state.
 
-```text
-Branch: roadmap/global-mobility-aios-v11
-Commit: dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
-```
-
-That checkpoint contains the detailed V1.3 architecture change record, Roadmap V11.5, README state, and links to earlier archived changelog history.
-
-Existing repository archives remain authoritative for older sealed history, including:
+Existing archives include:
 
 - `docs/archive/CHANGELOG_THROUGH_C192E7D_2026-08-19.md`;
-- `docs/archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md`.
+- `docs/archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md`;
+- `docs/archive/ROADMAP_V11_5_HIGH_AUTONOMY_DIRECTION_2026-08-19.md` on the final V11 reference branch.
 
 Git history remains the immutable source for exact historical diffs and commit lineage.
