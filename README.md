@@ -1,147 +1,378 @@
 # Global Mobility AIOS
 
-**Global Mobility AIOS** is a governed global mobility intelligence operating system for the movement of people, talent, families, businesses, and capital across borders.
+> **A governed, transparent, high-autonomy digital organization for global mobility.**
 
-It combines mobility intelligence, workflow and case orchestration, official-source evidence, document intelligence, organization governance, human review, and controlled AI workers inside one auditable operating environment.
+Global Mobility AIOS is being built as an AI-operated professional organization for the movement of people, talent, families, businesses, and capital across borders.
 
-> **This is not a chatbot project.** Global Mobility AIOS is a workflow-first, evidence-backed AI operating system in which AI workers operate through explicit positions, authority boundaries, review gates, durable work records, and human-owned governance.
+It combines global-mobility intelligence, case/work orchestration, official-source evidence, document intelligence, persistent AI employees, governed execution, organizational memory, human professional review, and Human Owner / Board oversight inside one auditable operating environment.
 
-The canonical product direction is maintained in [`docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md`](docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md). The canonical delivery state and sequencing are maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md), while detailed implementation history and acceptance evidence are recorded in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+The project is deliberately more ambitious than an immigration chatbot, CRM with AI, workflow-automation product, multi-agent demo, generic SaaS admin panel, or agent framework wrapped in a UI.
+
+The active architecture direction is:
+
+> **Global Mobility AIOS V1.3 — High-Autonomy Organization + Organizational Immune System + Earned Autonomy + Board Transparency & Decision Lineage.**
+
+The central operating philosophy is:
+
+> **The safety infrastructure exists to enable autonomy, not suppress it.**
+
+> **Board by exception. Transparency by default.**
+
+> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
 
 ---
 
-## 1. What the Project Is Building
+## Current Development Line
 
-Global mobility is usually fragmented across visa research, university search, jobs, documents, relocation, compliance, legal review, tax context, employer workflows, and long-term settlement planning. Global Mobility AIOS treats those activities as one connected lifecycle.
-
-The system is designed to help a person or organization move from a mobility goal to an **evidence-backed, auditable, governed plan and operating workflow** while preserving explicit uncertainty and human authority where required.
-
-The north-star lifecycle is:
+Active development now continues on:
 
 ```text
-Dream / mobility goal
-        ↓
-Profile, constraints and consent
-        ↓
-Country + pathway discovery
-        ↓
-Eligibility, evidence, risk, cost and timeline comparison
-        ↓
-Study / Work / Family / Business / Investment / Remote-work move
-        ↓
-Documents, reviews, submissions, appointments and authority decisions
-        ↓
-Post-arrival / graduate work / employment / business operation
-        ↓
-Renewal / change of status / family progression
-        ↓
-Permanent or long-term residence
-        ↓
-Citizenship / long-term global mobility strategy
+roadmap/global-mobility-aios-v12
 ```
 
-The product is intentionally broader than any one of the following:
+V12 was created directly from the frozen V11 checkpoint:
 
+```text
+roadmap/global-mobility-aios-v11
+└── dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+    └── roadmap/global-mobility-aios-v12
+```
+
+**V11 is intentionally preserved as a frozen architecture/recovery/reference checkpoint.**
+
+All new V1.3 implementation work should proceed on V12 unless an explicit decision says otherwise.
+
+The V12 branch transition itself is recorded in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+
+---
+
+## 1. What We Are Building
+
+Global Mobility AIOS aims to operate the complete global-mobility lifecycle as one connected professional system:
+
+```text
+Human / Business Goal
+        ↓
+Profile + circumstances + constraints
+        ↓
+Mobility strategy
+        ↓
+Country / pathway discovery
+        ↓
+Eligibility + alternatives
+        ↓
+Evidence requirements + collection
+        ↓
+Official rules + regulatory intelligence
+        ↓
+Risk + cost + timeline + dependencies
+        ↓
+Document preparation + consistency
+        ↓
+Professional review where required
+        ↓
+Application / filing preparation
+        ↓
+Human / Board authority where required
+        ↓
+Submission / external action
+        ↓
+Authority response
+        ↓
+Remediation / follow-up
+        ↓
+Post-arrival / relocation / compliance
+        ↓
+Renewal / status progression
+        ↓
+Permanent residence
+        ↓
+Citizenship / business / investment /
+long-term global mobility strategy
+```
+
+The long-term objective is not simply to answer global-mobility questions. AIOS should increasingly be capable of **performing the organizational work required to reach reliable mobility outcomes**.
+
+That includes:
+
+- profile and case intake;
+- pathway discovery and comparison;
+- eligibility reasoning;
+- official-source research;
+- Evidence and provenance management;
+- regulatory intelligence;
+- document preparation and validation;
+- blocker/dependency management;
+- application preparation;
+- professional review;
+- authorized external execution;
+- authority-response handling;
+- post-arrival and renewal work;
+- long-term residence/citizenship strategy;
+- organizational learning from outcomes.
+
+---
+
+## 2. What Global Mobility AIOS Is Not
+
+The project should not collapse into any one of the following:
+
+- a visa chatbot;
 - a study-abroad search site;
 - an immigration CRM;
-- a visa chatbot;
 - a document uploader;
 - a recommendation engine;
 - a collection of independent AI agents;
-- or an autonomous legal, immigration, tax, employment, or investment decision-maker.
+- a generic AI company operating system;
+- an approval queue where humans supervise every AI action;
+- an autonomous legal/tax/investment decision-maker without the required professional or human authority.
 
-The intended category combines:
-
-- workflow CRM and case orchestration;
-- regulatory and official-source intelligence;
-- country, pathway and opportunity discovery;
-- universal mobility profiles and scenario planning;
-- document intelligence and evidence control;
-- governed automation;
-- employer, partner, agency and authority workflows;
-- controlled AI workers operating inside explicit organizational authority;
-- durable work, blocker, dependency, Contribution and Activity records;
-- and an Organization Observatory for understanding how the AI-operated organization is functioning.
+Global Mobility specialization remains the product anchor. General organizational capabilities should emerge from solving real global-mobility work well, not replace that domain focus.
 
 ---
 
-## 2. Who Global Mobility AIOS Serves
+## 3. Human Authority Model
 
-### Mobility users
+The **Human Owner / Board is the supreme authority** of Global Mobility AIOS.
 
-Students, graduates, professionals, job seekers, remote workers, families, founders, investors, HNWIs, and people planning settlement or citizenship.
+Supreme authority does not mean routine operational involvement.
 
-Their experience should answer questions such as:
-
-- Where can I realistically move?
-- Which pathways fit my profile and goals?
-- What is confirmed, uncertain, conditional, missing or blocking?
-- Which official evidence supports the answer?
-- What documents, costs, risks and deadlines matter?
-- What should I do next?
-- How does the current move connect to my longer-term study, work, family, business, residence and citizenship strategy?
-
-### Professionals and operators
-
-Mobility advisers, case operators, compliance reviewers, evidence researchers, source reviewers and regulated-domain reviewers.
-
-Their workspaces prioritize:
-
-- cases and work queues;
-- evidence and provenance;
-- pathway comparison;
-- document completeness;
-- blockers and dependencies;
-- deadlines and authority workflow;
-- review state and uncertainty;
-- human-required actions;
-- and durable audit history.
-
-### Employers and corporate mobility teams
-
-The platform supports employee mobility, sponsor and employer requirements, dependants, work and residence workflows, compliance calendars, case portfolios, relocation operations and cross-jurisdiction workforce mobility.
-
-### Business, investment, HNWI and family-office users
-
-The product direction includes entrepreneurship, startup pathways, business relocation, residence/citizenship-by-investment contexts, HNWI and family-office mobility, tax-residency issue mapping and treaty evidence.
-
-These areas remain strongly evidence- and review-gated. Model output must never be presented as legal, tax or investment certainty.
-
-### Partners, agencies and public-sector workflows
-
-The architecture includes partner APIs, agency operations, appointments, submissions, authority assignments, checklists and government/agency workflow integration where contracts and authorization permit.
-
-A workflow existing in the product does **not** imply authority to submit, approve, certify or make a legally binding decision.
-
----
-
-## 3. Product Operating Model
-
-Global Mobility AIOS is evolving into a **governed AI-operated organization** with a human Owner acting as the Board.
+The intended hierarchy is:
 
 ```text
-Human Owner / Board
-        ↓
-CEO governance layer
-        ↓
-Executive portfolios
-        ↓
-Departments and capability positions
-        ↓
-Governed work / evidence / review / escalation
-        ↓
-Bounded AIOS execution
+                 HUMAN OWNER / BOARD
+                   SUPREME AUTHORITY
+                          │
+               Constitution / Strategy
+               Reserved Powers / Limits
+                          │
+                          ▼
+                       AI CEO
+                 Operational Executive
+                          │
+             ┌────────────┼────────────┐
+             │            │            │
+       Department     Department    Department
+          Head           Head          Head
+             │            │            │
+       Specialists   Specialists   Specialists
+             │            │            │
+             └────────────┼────────────┘
+                          │
+                    AI Workforce
 ```
 
-Agent names, prompts or UI labels never grant authority. Authority comes from deterministic organization contracts, role permissions, backend authorization, evidence state, human review and explicit governance rules.
+The Board defines:
 
-The accepted organization foundation currently includes:
+- organizational constitution;
+- strategy;
+- reserved powers;
+- authority ceilings;
+- autonomy policy;
+- legal/policy human-review floors;
+- risk tolerance;
+- major organizational changes;
+- executive authority.
 
-- **61 active OrganizationPosition identities**;
-- **zero duplicate active position keys** after the active-identity reconciliation;
-- **9 L3 executive roles** beneath the CEO;
-- **26 operational domains**;
-- **59 positions downstream of the CEO**;
+Normal healthy work should happen below the Board.
+
+> **The Board governs the organization; it does not manually operate it.**
+
+---
+
+## 4. Board by Exception
+
+The Board should not routinely approve:
+
+- internal research;
+- routine case analysis;
+- agent collaboration;
+- document drafting;
+- Evidence extraction;
+- WorkItem updates;
+- normal scheduling;
+- low-risk tool usage;
+- ordinary retries;
+- routine bounded operational decisions.
+
+The Board should primarily become involved in:
+
+- constitutionally reserved actions;
+- government submissions where human authority is required;
+- major legal/regulatory commitments;
+- exceptional financial commitments;
+- major policy changes;
+- critical autonomy expansions;
+- unresolved high-risk contradictions;
+- critical incidents;
+- major strategic/executive decisions.
+
+AIOS should perform as much preparation as possible before a Board decision is requested.
+
+The target experience is:
+
+```text
+AI organization researches
+        ↓
+Evidence verified
+        ↓
+Application / action prepared
+        ↓
+Independent verification where required
+        ↓
+Pre-mortem / policy checks
+        ↓
+READY
+        ↓
+Human Board
+[Approve] [Modify] [Return] [Submit]
+```
+
+> **AIOS does the work. The Board makes the important decisions.**
+
+---
+
+## 5. Board Transparency
+
+High autonomy must never create organizational opacity.
+
+The Board should have on-demand visibility into relevant:
+
+- agent-to-agent conversations;
+- delegation chains;
+- decisions and recommendations;
+- Evidence and SourceSnapshots;
+- VerifiedRules;
+- tool usage;
+- external actions;
+- policy decisions;
+- contradictions;
+- escalations;
+- incidents and circuit breakers;
+- autonomy promotions/downgrades;
+- execution history;
+- learning outcomes.
+
+This is a transparency right, not a requirement to watch everything continuously.
+
+```text
+Board visibility ≠ Board interruption
+```
+
+Cockpit should summarize healthy operation while preserving drill-down:
+
+```text
+Organization
+→ Department
+→ Mission
+→ Case
+→ WorkItem
+→ Agent
+→ Conversation
+→ Decision
+→ Evidence / Rule / Tool Action
+→ Final Outcome
+```
+
+---
+
+## 6. Decision Lineage
+
+Every material decision should eventually be reconstructable.
+
+Example:
+
+```text
+FINAL ELIGIBILITY STATE
+        ▲
+EligibilityTransition
+        ▲
+Command Gateway Authorization
+        ▲
+Independent Verification
+        ▲
+Agent Recommendation
+        ▲
+Evidence
+        ▲
+VerifiedRules
+        ▲
+SourceSnapshots
+        ▲
+Official-source Research / Tool Actions
+```
+
+Relevant collaboration should also be reconstructable:
+
+```text
+Question raised
+      ↓
+Agent collaboration
+      ↓
+Missing Evidence identified
+      ↓
+Evidence collected
+      ↓
+Contradiction resolved
+      ↓
+Recommendation
+      ↓
+Verification
+      ↓
+Decision
+```
+
+Structured decision rationale is the governance artifact. Hidden model chain-of-thought is not the audit mechanism.
+
+---
+
+## 7. AI Employees, Not Stateless Prompts
+
+AI workers are intended to become persistent organizational employees with durable identity and continuity.
+
+An employee model may include:
+
+```text
+Agent Identity
+│
+├── Position
+├── Department
+├── Manager
+├── Responsibilities
+├── Expertise
+│
+├── Missions
+├── WorkItems
+├── Assigned cases
+│
+├── Working memory
+├── Long-term memory
+├── Organizational memory access
+├── Relationships
+├── Previous decisions
+│
+├── Tools
+├── Connector permissions
+├── Data permissions
+├── Authority profile
+├── Autonomy profile
+├── Budget
+│
+├── Performance history
+├── Quality history
+├── Incident history
+└── Learning history
+```
+
+The accepted organization foundation already includes persistent `OrganizationPosition` identities and an explicit reporting structure.
+
+Current accepted organization facts include:
+
+- 61 active `OrganizationPosition` identities;
+- zero duplicate active position keys after active-identity reconciliation;
+- 9 L3 executive roles beneath the CEO;
+- 26 operational domains;
+- 59 positions downstream of the CEO;
 - capability-only positions that remain non-executable until explicitly authorized;
 - preserved Human Board and CEO governance;
 - bounded executive delegation rather than title-based authority.
@@ -154,236 +385,541 @@ The active-identity contract is enforced at Alembic revision:
 
 ---
 
-## 4. Human Experiences
+## 8. Memory Is Not Truth
 
-The application is deliberately separated into role-based experiences. Navigation improves usability but **never replaces backend authorization**.
+AIOS should support strong memory without allowing memory to become authoritative truth automatically.
 
-### Global Mobility AIOS Cockpit — Owner / Board
+```text
+Agent Memory ≠ Canonical AIOS Truth
+```
 
-The **Cockpit** is the top-level Owner control surface. It provides organization-wide awareness rather than acting as a task manager.
+The model distinguishes:
 
-Current capabilities include:
+| Layer | Purpose |
+|---|---|
+| Working memory | Current reasoning/run |
+| Agent memory | Past tasks, conversations and experiences |
+| Organizational memory | Shared organizational knowledge |
+| Canonical AIOS truth | Governed case facts, Evidence, VerifiedRules and authoritative state |
 
-- live organization state;
-- Human Board → CEO → executive → department visibility;
-- Owner Attention signals;
-- operational domains and executive portfolio focus;
-- global mobility intelligence context;
-- blocker and dependency visibility;
-- overdue work and pending human-action signals;
-- evidence-health and Activity-coverage state;
-- department drill-down;
-- governed human-follow-up intervention;
-- and links into deeper control surfaces.
+A consequential decision should refresh important facts against governed current evidence where required.
 
-The Cockpit is not allowed to bypass the authority model by directly resolving regulated work simply because the Owner can see it.
+> **Memory provides continuity. Evidence provides authority.**
 
-### Board Room — executive authority module
+---
 
-**Board Room** is a module inside the Cockpit experience, not the name of the entire Owner product.
+## 9. Context Broker
 
-It is responsible for genuinely Board-level decisions, control, escalations and reserved authority.
+Agents should receive the context required for the task, not unrestricted access to all organizational data.
+
+The Context Broker principle is:
+
+> **More relevant truth, not more tokens.**
+
+A future `ContextBundle` may include:
+
+```text
+Agent identity
+Position / authority
+Mission
+Current WorkItem
+Relevant case facts
+Relevant Evidence
+Applicable VerifiedRules
+Known unknowns
+Known contradictions
+Relevant previous decisions
+Relevant collaboration summary
+Allowed tools
+Sensitivity profile
+Policy version
+Context version/hash
+```
+
+Additional context should be purpose-scoped and lazy-loaded.
+
+Material `AgentRun` lineage should bind the effective context, model/program versions, tools, policy, authority, Evidence/rule versions, cost, latency and outcome.
+
+---
+
+## 10. Capability, Authority, Autonomy and Risk
+
+V1.3 explicitly separates four concepts:
+
+```text
+Capability = what the runtime can technically do
+Authority  = what the organization permits
+Autonomy   = how independently it may exercise that authority
+Risk       = consequence of the specific action
+```
+
+Permanent rule:
+
+```text
+CAN DO ≠ MAY DO
+```
+
+An agent may technically be capable of sending email while being authorized only for specific classes of communication.
+
+---
+
+## 11. Earned Autonomy — A0 to A5
+
+Autonomy is capability-specific, not a single score for an entire agent.
+
+| Level | Meaning |
+|---|---|
+| A0 | Prohibited |
+| A1 | Human executes |
+| A2 | AI prepares; approval required |
+| A3 | Autonomous with mandatory review |
+| A4 | Autonomous with monitoring and valid recovery controls |
+| A5 | Fully autonomous bounded operation |
+
+Example:
+
+```text
+Austria Immigration Specialist
+
+Official-source research       A5
+Document extraction            A5
+Evidence assessment            A4
+Eligibility assessment         A4
+Client explanation             A3
+Evidence certification         A2
+Government submission          Board / human reserved as required
+```
+
+Autonomy should progress through measured performance:
+
+```text
+SHADOW
+   ↓
+RECOMMEND
+   ↓
+SUPERVISED
+   ↓
+AUTONOMOUS
+   ↓
+HIGH-TRUST AUTONOMOUS
+```
+
+`AutonomyEvidenceProfile` should use real outcomes such as Evidence grounding, acceptance/modification/rejection, contradiction rate, policy compliance, critical errors, incident outcomes and recovery performance.
+
+Agents cannot self-promote.
+
+---
+
+## 12. Decision Readiness
+
+Decision Readiness is a routing and quality signal, not a substitute for governance.
+
+Potential auditable components include:
+
+- Evidence completeness;
+- source authority;
+- rule freshness;
+- required fact completeness;
+- cross-source consistency;
+- contradictions;
+- historical capability reliability;
+- deterministic validation;
+- limited agent-confidence metadata.
+
+Permanent rule:
+
+> **Scores route; gates authorize.**
+
+For example:
+
+```text
+Readiness 98%
+BUT mandatory Evidence missing
+→ BLOCK
+```
+
+or:
+
+```text
+Readiness 100%
+BUT action is Board reserved
+→ BOARD GATE
+```
+
+A scalar score never overrides mandatory Evidence, authority, policy, contradiction, concurrency, verification or human-review requirements.
+
+---
+
+## 13. Risk-Tiered Verification
+
+Governance cost should be proportional to consequence.
+
+| Risk | Typical work | Verification |
+|---|---|---|
+| R0 | summarization / brainstorming | single agent |
+| R1 | routine internal operation | agent + cheap deterministic checks |
+| R2 | client-facing preparation | Evidence validation |
+| R3 | eligibility/material recommendation | blind independent verification |
+| R4 | certification/regulatory publication | independent verification + fresh source validation + appropriate authority |
+| R5 | government submission / critical reserved action | full AI preparation + required Human/Board gate |
+
+Independent verification should be genuinely independent: the verifier forms its conclusion before seeing the first agent's answer.
+
+---
+
+## 14. AI-to-AI Escalation
+
+Uncertainty should normally be resolved through the organization before reaching humans.
+
+```text
+Specialist
+    ↓
+Peer Specialist
+    ↓
+Senior Specialist
+    ↓
+Department Head
+    ↓
+AI CEO
+    ↓
+Human where unresolved or required
+```
+
+V1.3 distinguishes:
+
+- **uncertainty escalation** — the organization cannot confidently resolve a problem;
+- **authority escalation** — the work may be fully prepared, but the action belongs to a human/Board authority class.
+
+A 99% ready action can still require a Board decision because of authority rather than uncertainty.
+
+---
+
+## 15. Materiality, Canonicalization and Command Gateway
+
+Not every AI action needs maximum governance overhead.
+
+A Materiality Registry should distinguish routine cognition from material organizational action.
+
+Material actions should use a typed governance envelope containing concepts such as:
+
+```text
+action_type
+actor
+subject / aggregate
+expected_version
+proposed_change
+Evidence references
+authority context
+rationale
+Decision Readiness snapshot
+risk tier
+consequence class
+idempotency key
+trace identity
+```
+
+Agent reasoning can remain flexible.
+
+Canonical truth cannot.
+
+```text
+LLM / provider / tool interpretation
+        ↓
+Typed AIOS candidate
+        ↓
+Schema validation
+        ↓
+Deterministic domain checks
+        ↓
+Evidence / authority / policy checks
+        ↓
+Canonical result
+```
+
+The Command Gateway is the material mutation boundary for autonomous agents.
+
+It is **not** a universal human-approval gateway.
+
+Healthy action should normally be:
+
+```text
+Agent
+  ↓
+MaterialAction
+  ↓
+Identity / authority / scope
+  ↓
+Evidence / policy / contradiction
+  ↓
+Expected-version / idempotency
+  ↓
+AUTO EXECUTE
+```
+
+---
+
+## 16. Organizational Immune System
+
+V1.3 introduces an explicit cross-cutting quality/safety layer:
+
+```text
+Organizational Immune System
+│
+├── Evidence Integrity Monitor
+├── Contradiction Detector
+├── Anomaly Detector
+├── Decision Readiness Engine
+├── Capability Performance Monitor
+├── Dynamic Autonomy Manager
+├── Circuit Breakers
+├── Rate / Budget Protection
+├── Blast-Radius Controller
+├── Incident Detector
+├── Root-Cause Classifier
+├── Escalation Router
+├── Shadow Evaluation Engine
+└── Learning Feedback
+```
+
+The desired behavior is:
+
+> **Almost invisible during healthy operation; highly capable when abnormal behavior appears.**
+
+The safety system itself must be explainable and Board-inspectable.
+
+---
+
+## 17. Recovery Semantics
+
+Not every action can honestly be rolled back.
+
+V1.3 distinguishes:
+
+```text
+REVERSIBLE
+COMPENSATABLE
+IRREVERSIBLE
+APPEND_ONLY_CORRECTION
+```
+
+Examples:
+
+```text
+WorkItem reassignment
+→ REVERSIBLE
+```
+
+```text
+Incorrect external communication
+→ COMPENSATABLE
+→ send correction
+```
+
+```text
+Government submission
+→ IRREVERSIBLE
+→ stronger pre-execution controls
+```
+
+```text
+Evidence certification later revoked
+→ APPEND_ONLY_CORRECTION
+```
+
+Recovery semantics belong to consequential commands, not arbitrary database rows.
+
+---
+
+## 18. Performance and Scalability Doctrine
+
+The architecture must not pay maximum governance cost for every action.
+
+### P1 — Pay for risk
+
+Verification effort scales with consequence, uncertainty and novelty.
+
+### P2 — Recompute only what changed
+
+Readiness/Evidence/policy state should be incremental and version-aware.
+
+### P3 — Load only what is needed
+
+Context is purpose-scoped, lazy, composable and versioned.
+
+### P4 — Block only when necessary
+
+Verification modes are distinct:
+
+```text
+PRE_COMMIT
+POST_COMMIT
+BACKGROUND
+```
+
+### P5 — Centralize governance, distribute execution
+
+One authority model does not require one global execution mutex.
+
+### P6 — Cache only exact governed state
+
+Verifier reuse must be tied to the relevant Evidence/facts/rules/policy/jurisdiction/effective dates/program/model versions.
+
+### P7 — Instrument from day one
+
+Measure latency, cost, retries, source freshness, verification cost, incident rate, false/missed escalations, Board workload, autonomy rate and transparency lag.
+
+Conceptual rule:
+
+> **Governance Cost ∝ Risk × Uncertainty × Novelty**
+
+---
+
+## 19. Product Surfaces
+
+### Global Mobility AIOS Cockpit
+
+The **Cockpit** is the top-level Human Owner / Board organizational command surface.
+
+It should answer:
+
+> **Is the organization healthy, effective, transparent, and operating within the authority granted to it?**
+
+The target Cockpit includes:
+
+```text
+Cockpit
+│
+├── Organization
+├── Missions
+├── Agents
+├── Performance
+├── Quality
+├── Risk
+├── Incidents
+├── Autonomy
+├── Transparency
+├── Search / Intelligence
+└── Board Room
+```
+
+### Board Room
+
+**Board Room is a module inside the Cockpit**, not the name of the entire Owner experience.
+
+It is reserved for genuinely Board-level decisions, strategy, reserved authority, critical incidents, major autonomy/policy decisions and executive escalation.
+
+### Operations
+
+The professional/operator experience converges cases, Evidence, provenance, reviews, next actions, deadlines, blockers, specialist work and authority workflow.
+
+### My Mobility
+
+The mobility-user experience is journey-centric rather than governance-centric. It should explain goals, pathways, Evidence, unknowns, actions, deadlines, cost, risk and long-term progression in plain language.
 
 ### Department workspaces
 
-Accepted in Phase 13.16.4:
+Department surfaces compose real organizational state for specific units while preserving backend authority boundaries.
+
+---
+
+## 20. Durable Organization Model
+
+Important existing organizational concepts include:
+
+- `OrganizationPosition`;
+- `OrganizationalWorkItem`;
+- `OrganizationBlocker`;
+- `OrganizationWorkItemDependency`;
+- `OrganizationHumanActionRequest`;
+- `OrganizationContribution`;
+- `OrganizationActivity`.
+
+V1.3 extends the conceptual domain toward:
 
 ```text
-/workspace/[department]
+AgentCapability
+AgentAuthority
+AutonomyEvidenceProfile
+ContextBundle
+AgentRun
+AgentConversation
+AgentMessage
+ConversationSummary
+MaterialAction
+DecisionReadinessSnapshot
+ConsequentialActionProposal
+HumanReview
+BoardDecision
+DecisionLineage
+ToolActionRecord
+PolicyDecision
+Incident
+CircuitBreakerEvent
+RecoveryAction
+LearningRecord
+CuratedLearningExample
 ```
 
-A department workspace composes the live operational state of one organizational unit, including:
+These are conceptual target entities. Their presence in this README does **not** claim that all have been implemented or persisted already.
 
-- executive ownership;
-- active organizational positions;
-- owned work;
-- blockers;
-- dependencies;
-- pending human requests;
-- Contributions;
-- material durable Activity;
-- and governed intervention through the existing HumanActionRequest contract.
+---
 
-Department workspaces do not directly waive blockers or dependencies, complete/reassign work, publish evidence, make Board decisions or issue final legal conclusions.
+## 21. Evidence and Trust Model
 
-### Cross-department friction
+Global Mobility AIOS operates in domains where attractive answers can still be dangerously wrong.
 
-Accepted in Phase 13.16.5:
+Consequential claims must be grounded in the required evidence and review state.
+
+The trust ladder remains:
 
 ```text
-/cross-department-friction
+L0 model speculation
+L1 conversation / memory / hypothesis
+L2 retrieved information
+L3 captured SourceSnapshot
+L4 governed Evidence
+L5 reviewed candidate
+L6 VerifiedRule / certified governed fact
+L7 governed case conclusion
+L8 approved authority-bearing action
 ```
 
-This Owner-facing surface identifies friction that crosses organizational boundaries:
+Forbidden shortcuts include:
 
-- blockers whose owning department differs from the department of the affected work;
-- dependencies connecting downstream and upstream work in different departments;
-- human-action indicators;
-- escalation and overdue signals;
-- latest durable Activity where available;
-- deep links to affected department workspaces;
-- and bounded human-follow-up intervention.
+```text
+L1 ↛ L6
+L2 ↛ L7
+L6 ↛ L8 automatically
+```
 
-The page is a governed composition surface. It does not directly resolve or waive blockers, satisfy or waive dependencies, complete or reassign work, make Board decisions, publish/certify evidence, issue final legal conclusions or alter organization control.
+Permanent distinctions:
 
-### Operations — Professional / Operator
-
-The **Operations** shell is the high-information-density workspace for professionals and internal operators. It is intended to converge case operations, evidence, provenance, review, authority workflow and specialist work without exposing Owner-only controls.
-
-### My Mobility — mobility-user experience
-
-**My Mobility** is the user-facing journey surface. Its direction is goal- and case-centric rather than organized around internal database or governance concepts.
-
-It is intended to bring together profile, pathways, eligibility, documents, actions, deadlines, costs, risks, evidence and long-term progression into one understandable mobility journey.
+```text
+conversation != authority
+message != ExecutiveDecision
+memory != Evidence
+memory != VerifiedRule
+provider event log != canonical AIOS Activity automatically
+```
 
 ---
 
-## 5. Core Domain Capabilities
+## 22. Current Delivery Status
 
-The repository contains progressively delivered capabilities across the mobility lifecycle.
+Current active development branch:
 
-### Mobility intelligence
+```text
+roadmap/global-mobility-aios-v12
+```
 
-- universal mobility profiles;
-- profile-driven eligibility;
-- country and pathway catalogues;
-- evidence-backed pathway comparison;
-- costs, risks and alternatives;
-- opportunity discovery;
-- mobility timelines and scenarios;
-- study, work, family, business, investment and settlement contexts.
-
-### Regulatory and official-source intelligence
-
-- jurisdiction and authority registry;
-- official-source onboarding;
-- retrieved source snapshots and provenance;
-- source certification and independent review;
-- verified-rule workflows;
-- rule-change and intelligence pipelines;
-- country and global intelligence views;
-- continuous freshness as an operational programme rather than a one-time import.
-
-Global software capability does **not** mean global evidence coverage is complete. Phase 10B evidence operations remain an ongoing research, review, publication and freshness programme.
-
-### Document intelligence
-
-- secure document metadata and object-storage workflows;
-- OCR and structured extraction;
-- requirement/checklist handling;
-- missing-document detection;
-- expiry and lifecycle tracking;
-- evidence linkage;
-- fraud-risk indicators that require human investigation rather than autonomous accusations.
-
-### Corporate, business and wealth mobility
-
-- corporate employee mobility;
-- sponsorship and dependant contexts;
-- entrepreneur/startup pathways;
-- business relocation;
-- investment migration context;
-- HNWI/family-office control workflows;
-- tax-residency issue mapping and treaty evidence.
-
-### Ecosystem and external workflow
-
-- client portal foundations;
-- partner APIs;
-- agency workflows;
-- appointment tracking;
-- submission/checklist operations;
-- governed automation;
-- communication workflows;
-- authority-facing workflow where explicitly permitted.
-
----
-
-## 6. Durable Organization Model
-
-Phase 13 introduces a durable organization model rather than treating AI work as transient chat sessions.
-
-Important concepts include:
-
-### OrganizationPosition
-
-Represents organizational capacity and reporting structure. A position can exist as capability-only and still have no executable authority.
-
-### OrganizationalWorkItem
-
-Represents durable organizational work with ownership, department, status, due dates and operational context.
-
-### OrganizationBlocker
-
-Represents a material obstacle affecting work. Visibility of a blocker does not imply permission to resolve or waive it.
-
-### OrganizationWorkItemDependency
-
-Represents upstream/downstream work relationships and cross-department dependency chains.
-
-### OrganizationHumanActionRequest
-
-Represents explicit requests for human intervention such as review, information or acknowledgement. The accepted Cockpit, department workspace and cross-department intervention surfaces reuse this governed command rather than inventing direct mutation shortcuts.
-
-### OrganizationContribution
-
-Represents durable material contribution/evidence emitted through accepted contribution contracts.
-
-### OrganizationActivity
-
-Represents semantic organization history.
-
-Historical Activity is intentionally not fabricated from mutable current-state rows. The system uses an explicit immutable Activity coverage epoch so the Observatory can distinguish covered semantic history from earlier partial history.
-
-### Organization Observatory
-
-Composes durable organizational state into human-readable operating intelligence while preserving data quality, evidence coverage and historical limitations.
-
----
-
-## 7. Truth, Evidence and Safety Model
-
-Global Mobility AIOS is designed for domains in which an attractive answer can still be dangerously wrong.
-
-The core safety rule is:
-
-> **Regulated or consequential claims must be grounded in evidence and the required review state. Model output alone is never authoritative.**
-
-Visa, immigration, legal, scholarship, employment, tax and investment claims must preserve the applicable evidence and governance controls, including as relevant:
-
-- source URL and authority classification;
-- jurisdiction;
-- effective period;
-- retrieved timestamp;
-- content hash / snapshot provenance;
-- confidence and uncertainty;
-- certification/review state;
-- missing information and blockers;
-- human-review requirements;
-- explicit publication state.
-
-The system must not silently convert:
-
-- a model suggestion into a verified rule;
-- a draft into a published decision;
-- a capability position into an executable agent;
-- a visible control into backend authority;
-- a pending certification into an approved source;
-- or an incomplete evidence set into legal certainty.
-
-Human review remains mandatory wherever the relevant contract requires it.
-
----
-
-## 8. Current Delivery Status
-
-The current development branch is:
+Frozen reference/recovery branch:
 
 ```text
 roadmap/global-mobility-aios-v11
+@ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
 ```
 
-Current accepted delivery position on this branch:
+Current accepted delivery position:
 
 | Programme | State |
 |---|---|
@@ -392,7 +928,7 @@ Current accepted delivery position on this branch:
 | Phase 10B evidence operations | Operationally ongoing — jurisdiction evidence onboarding, independent review, publication and freshness |
 | Phase 11 | Complete — corporate, business, wealth, investment, family-office and tax/treaty mobility |
 | Phase 12 | Complete / stabilized — portals, partner APIs, governed automation and agency/government workflow foundations |
-| Phase 13.0–13.15 | Complete / PASS where gated — AI organization governance, department runtime and external-validation/correctness foundation |
+| Phase 13.0–13.15 | Complete / PASS where gated — organization governance, department runtime and correctness foundations |
 | Phase 13.16.0 | CLOSED / PASS — design and information-architecture foundation |
 | Phase 13.16.1 | COMPLETE / PASS — durable Contribution & Activity model and immutable coverage epoch |
 | Phase 13.16.2 | COMPLETE / PASS — premium role shells, navigation and preserved-SQLite reconciliation |
@@ -404,16 +940,112 @@ Current accepted delivery position on this branch:
 | Phase 13.16.8 | COMPLETE / PASS — Professional / Operator workspace |
 | Phase 13.16.9 | COMPLETE / PASS — Evidence / provenance presentation |
 | **Phase 13.16.10** | **COMPLETE / PASS — integrated responsive/accessibility role experience** |
-| **Phase 13.17** | **IN PROGRESS / PAUSED BY EVALUATOR — owner-led human acceptance running in parallel** |
-| Phase 14 | NOT STARTED / demand-gated — measured scale after validated product demand |
+| **Phase 13.17** | **IN PROGRESS / PAUSED BY EVALUATOR — owner-led human acceptance continues in parallel** |
+| Phase 14 | NOT STARTED / demand-gated — measured scale after validated demand |
 
-Phase 13.17 does not globally block Technology Radar or High-Autonomy Organization architecture work. Its findings remain real until corrected, retested, or explicitly dispositioned.
+Phase 13.17 is a parallel human-acceptance stream. It does not globally block Technology Radar or High-Autonomy Organization work, and its findings remain unresolved until corrected, retested or explicitly dispositioned.
 
 ---
 
-## 9. Latest Accepted Quality Baseline
+## 23. V1.3 Implementation Programme on V12
 
-Latest accepted runtime evidence before the documentation-only V1.3 architecture checkpoint includes:
+The current implementation sequence is defined in detail by [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+Track C target stages are:
+
+```text
+V1.3-A  Constitutional Contracts
+V1.3-B  Minimal Governance Kernel
+V1.3-C  Transparency Foundation
+V1.3-D  Context & Agent Identity
+V1.3-E  First Governed Vertical Workflow
+V1.3-F  Decision Readiness
+V1.3-G  Independent Verification
+V1.3-H  Organizational Immune System
+V1.3-I  Earned Autonomy
+V1.3-J  Agent Organization Runtime
+V1.3-K  Execution / Coworker Runtime
+V1.3-L  Live Organization
+V1.3-M  Board Transparency Experience
+V1.3-N  Learning & Optimization
+```
+
+Transparency is intentionally introduced early rather than retrofitted after autonomy expands.
+
+Implementation should proceed through **real vertical mobility workflows**, not giant abstract frameworks built in isolation.
+
+---
+
+## 24. Coordinated Parallel Evolution
+
+Development continues across three coordinated tracks.
+
+### Track A — Product / Human Experience
+
+- Phase 13.17 human acceptance;
+- bounded UX corrections;
+- Cockpit / Operations / My Mobility refinement;
+- explainability and traceability.
+
+### Track B — Technology Radar / Platform Evolution
+
+Current direction includes:
+
+- Wave 1 pilots complete / trial-eligible;
+- Wave 2 Docling pilot in progress;
+- Presidio queued;
+- further technologies adopted only through evidence-driven research/pilot/trial gates.
+
+### Track C — High-Autonomy Organization
+
+- constitutional contracts;
+- governance kernel;
+- Transparency Layer;
+- Context Broker;
+- agent identity/memory;
+- Decision Readiness;
+- independent verification;
+- Organizational Immune System;
+- earned autonomy;
+- runtime adapters;
+- Live Organization;
+- learning/optimization.
+
+No track globally stops the others, but shared contracts and discovered constraints must be reconciled before incompatible changes land.
+
+---
+
+## 25. Technology Radar and External Runtimes
+
+Global Mobility AIOS remains provider- and framework-independent.
+
+The architectural relationship is:
+
+```text
+                         AIOS
+                          │
+             ┌────────────┴────────────┐
+             │                         │
+     Agent Runtime Port        Execution Runtime Port
+             │                         │
+        Adapter(s)                 Adapter(s)
+             │                         │
+     Munder / Other        OpenWorker / Other
+```
+
+Munder Difflin remains an experimental / controlled-research candidate for agent-organization concepts.
+
+OpenWorker remains a replaceable finished-work/execution-runtime reference.
+
+Neither provider owns AIOS organizational semantics, Evidence, VerifiedRules, authority, Missions, WorkItems, canonical activity or business truth.
+
+> **External frameworks provide capability. AIOS owns meaning and authority.**
+
+---
+
+## 26. Latest Accepted Quality Baseline
+
+Latest accepted runtime evidence carried forward into the V12 branch includes:
 
 ```text
 API regression                873 passed / 5 skipped / 0 failed
@@ -422,57 +1054,121 @@ Design foundation             28 / 28 passed
 Alembic head                  0076_organization_position_active_identity
 ```
 
-The accepted preserved `gmai.db` state remains unchanged across the documentation-only architecture update.
+The preserved developer `gmai.db` remains unchanged across the documentation-only V1.3 architecture checkpoint.
 
-These results are carried forward from the accepted runtime checkpoints and are **not represented as rerun by the V1.3 documentation checkpoint**.
+These results are carried forward from accepted runtime checkpoints. They are **not represented as rerun by documentation-only commits**.
 
-No GitHub CI PASS is inferred unless a real status/check is attached to the relevant commit.
+No GitHub CI PASS should be inferred unless a real status/check is attached to the relevant commit.
 
 ---
 
-## 10. Architecture at a Glance
+## 27. Performance and Success Metrics
+
+V1.3 should ultimately improve:
 
 ```text
-┌──────────────────────────────── Human experiences ────────────────────────────────┐
-│ Cockpit / Board Room / Department Workspaces / Cross-department Friction        │
-│ Operations / My Mobility / Portal / Partner & specialist surfaces               │
-└──────────────────────────────────────┬────────────────────────────────────────────┘
-                                       │
-                    Authentication + backend authorization
-                                       │
-┌──────────────────────────── Organization governance ─────────────────────────────┐
-│ Board / CEO / executives / positions / delegation / decisions / risk            │
-│ WorkItems / Blockers / Dependencies / HumanActionRequests                       │
-│ Contributions / semantic Activity / Organization Observatory                    │
-└──────────────────────────────────────┬────────────────────────────────────────────┘
-                                       │
-┌────────────────────────────── Mobility domain layer ──────────────────────────────┐
-│ Profiles / eligibility / pathways / opportunities / timelines / documents       │
-│ corporate / business / investment / tax-residency / family mobility             │
-└──────────────────────────────────────┬────────────────────────────────────────────┘
-                                       │
-┌──────────────────────────── Evidence & intelligence ──────────────────────────────┐
-│ Jurisdictions / authorities / official sources / snapshots / certifications     │
-│ verified rules / global intelligence / evidence gaps / provenance               │
-└──────────────────────────────────────┬────────────────────────────────────────────┘
-                                       │
-┌──────────────────────────────── Runtime & data ───────────────────────────────────┐
-│ FastAPI / Python / SQLModel / Alembic                                            │
-│ PostgreSQL + preserved developer SQLite                                          │
-│ Redis / Qdrant / MinIO / n8n and optional model infrastructure                  │
-└───────────────────────────────────────────────────────────────────────────────────┘
+Autonomous completion             ↑
+Quality                           ↑
+Evidence grounding                ↑
+Decision traceability             ↑
+Board transparency                ↑
+Capability reliability            ↑
 ```
 
-The architecture intentionally avoids introducing heavier infrastructure simply because it is fashionable. Search engines, knowledge-graph infrastructure, durable event streaming, Temporal-class orchestration and Kubernetes remain scale-gated until validated product and operational demand justify them.
+while reducing:
+
+```text
+Board operational workload        ↓
+Critical errors                   ↓
+False / missed escalations        ↓
+Cost per outcome                  ↓
+Latency                           ↓
+Unexplained decisions             ↓
+Opaque organizational activity    ↓
+```
+
+Important runtime metrics include:
+
+- autonomous completion rate;
+- human interventions per material actions;
+- Board decisions per organizational actions;
+- critical-error rate;
+- Evidence-grounding rate;
+- human modification/rejection rate;
+- false/missed escalation rate;
+- contradiction rate;
+- source freshness;
+- capability reliability;
+- workflow completion time;
+- p50/p95 action latency;
+- cost per completed workflow;
+- retry/stale rate;
+- incident frequency;
+- recovery effectiveness;
+- lineage completeness;
+- transparency lag.
 
 ---
 
-## 11. Technology Stack
+## 28. Architecture at a Glance
+
+```text
+                         HUMAN OWNER / BOARD
+                           SUPREME AUTHORITY
+                                  │
+                     Global Mobility AIOS Cockpit
+                                  │
+               ┌──────────────────┼──────────────────┐
+               │                  │                  │
+          Organization       Transparency        Board Room
+               │                  │                  │
+               └──────────────────┼──────────────────┘
+                                  │
+                               AI CEO
+                                  │
+                    Organizational Runtime
+                                  │
+                  Departments / AI Employees
+                                  │
+                 Memory / Collaboration / Tools
+                                  │
+                           Agent Reasoning
+                                  │
+                           Proposed Intent
+                                  │
+                                  ▼
+                     Organizational Immune System
+                                  │
+                         Canonicalization Gateway
+                                  │
+                           Material Action
+                                  │
+                           Command Gateway
+                                  │
+                      ┌───────────┴───────────┐
+                      │                       │
+                AUTO EXECUTE              ESCALATE
+                      │                       │
+                      │              AI / Professional / Board
+                      │
+                      ▼
+                  Canonical State
+                      │
+             Activity / Lineage / Learning
+                      │
+                Transparency Layer
+                      │
+                    Cockpit
+```
+
+---
+
+## 29. Technology Stack
 
 ### Web
 
-- Next.js **15.2.4**
-- React **19**
+- Next.js 15.2.4
+- React 19
 - TypeScript
 - App Router
 - browser OCR through Tesseract.js where applicable
@@ -482,30 +1178,30 @@ The architecture intentionally avoids introducing heavier infrastructure simply 
 - Python 3.12-class runtime
 - FastAPI
 - SQLModel / SQLAlchemy ecosystem
-- Alembic migrations
+- Alembic
 - pytest
 
-### Data and local infrastructure
+### Data / local infrastructure
 
 - PostgreSQL for authoritative relational deployment/integration use
 - preserved SQLite developer database for local continuity and compatibility testing
 - Redis
 - Qdrant
 - MinIO / S3-compatible object storage
-- n8n for bounded business automation
+- n8n for bounded automation
 
 ### AI direction
 
-- provider-independent hosted or local models;
+- provider-independent hosted/local models;
 - structured agent contracts;
-- stateful workflow orchestration;
 - provenance-aware retrieval;
-- explicit uncertainty;
-- deterministic authority outside model prompts.
+- deterministic authority outside model prompts;
+- runtime adapters rather than provider-owned semantics;
+- risk-tiered execution and verification.
 
 ---
 
-## 12. Repository Layout
+## 30. Repository Layout
 
 ```text
 global-mobility-aios/
@@ -517,7 +1213,7 @@ global-mobility-aios/
 ├── knowledge/                # Knowledge and official-source assets
 ├── infrastructure/           # Deployment, monitoring and environment infrastructure
 ├── docs/                     # Vision, roadmap, governance, architecture and feature contracts
-├── scripts/                  # Repository, migration, audit and local acceptance helpers
+├── scripts/                  # Repository, migration, audit and acceptance helpers
 ├── docker-compose.yml
 ├── alembic.ini
 └── .env.example
@@ -525,33 +1221,25 @@ global-mobility-aios/
 
 ---
 
-## 13. Quick Start
+## 31. Quick Start
 
-### Option A — Docker-oriented local environment
+### Docker-oriented local environment
 
-Create the Docker environment file from the example:
-
-**PowerShell**
+PowerShell:
 
 ```powershell
 Copy-Item .env.example .env.docker
-```
-
-**Bash**
-
-```bash
-cp .env.example .env.docker
-```
-
-Then start the configured stack:
-
-```bash
 docker compose up --build
 ```
 
-Compose uses `.env.docker` so Docker-only hostnames do not accidentally leak into normal host-side Python commands.
+Bash:
 
-Common local endpoints:
+```bash
+cp .env.example .env.docker
+docker compose up --build
+```
+
+Common endpoints:
 
 ```text
 API health       http://localhost:8000/health
@@ -562,19 +1250,14 @@ MinIO console    http://localhost:9001
 Qdrant dashboard http://localhost:6333/dashboard
 ```
 
-### Option B — host-side API + web development
+### Host-side API + web development
 
-The project is commonly developed with a repository-local Python virtual environment.
-
-Example Windows/PowerShell flow:
+Example PowerShell:
 
 ```powershell
 cd D:\global-mobility-aios
-
-# Activate an existing repository venv
 & .\.venv\Scripts\Activate.ps1
 
-# API
 cd .\apps\api
 ..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -587,19 +1270,11 @@ npm install
 npm run dev
 ```
 
-The API container uses the equivalent production-style command:
-
-```text
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
 ---
 
-## 14. Development and Acceptance Commands
+## 32. Development and Acceptance Commands
 
 ### API regression
-
-From the repository root with the correct virtual environment:
 
 ```powershell
 & .\.venv\Scripts\python.exe -m pytest apps/api/tests -q
@@ -612,12 +1287,6 @@ cd .\apps\web
 npm run test:design-foundation
 ```
 
-### Organization read-client regression
-
-```powershell
-node --experimental-strip-types --test lib/organization-read-client.test.mjs
-```
-
 ### Production web build
 
 ```powershell
@@ -625,8 +1294,6 @@ npm run build
 ```
 
 ### Repository policy
-
-From the repository root:
 
 ```powershell
 & .\.venv\Scripts\python.exe scripts/check_repo_policy.py --root .
@@ -657,105 +1324,87 @@ From the repository root:
 git diff --check
 ```
 
-Acceptance should be evidence-driven. A green UI screenshot does not replace API, repository, migration, schema and authorization checks; conversely, unit tests do not replace runtime and browser acceptance for role-based experience slices.
+Acceptance remains evidence-driven. Unit tests, runtime/browser acceptance, migration safety, authorization checks, repository policy and preserved-data invariants each prove different things.
 
 ---
 
-## 15. Preserved Database Guardrails
+## 33. Preserved Database Guardrails
 
-This repository deliberately preserves important developer and integration databases rather than treating every test problem as a reason to reset state.
+Current guardrails include:
 
-Current local development guardrails include:
-
-- the developer SQLite database is preserved and migration-aware;
-- schema repair must be forward, bounded and data-preserving;
-- the accepted developer SQLite revision is `0076_organization_position_active_identity`;
-- the repository currently registers **118 application/model tables**;
+- preserve the developer SQLite database;
+- migrations must be forward, bounded and data-preserving;
+- accepted developer SQLite revision is `0076_organization_position_active_identity`;
+- the repository currently registers 118 application/model tables;
 - `alembic_version` is migration infrastructure, not application-schema drift;
-- preserved PostgreSQL environments must not be migrated casually just to make a local acceptance run convenient;
-- isolated PostgreSQL environments should be used for bounded migration/transaction contracts when required;
-- test data must not be fabricated in preserved environments merely to make a UI look populated.
+- preserved PostgreSQL environments should not be migrated casually for convenience;
+- isolated PostgreSQL environments should be used for bounded migration/transaction contracts;
+- test/demo data must not be fabricated in preserved environments merely to make a UI look populated.
 
 ---
 
-## 16. Repository Governance
+## 34. Repository Governance
 
-Dependency and repository usage is controlled through the project allowlist policy.
+Important contribution principles:
 
-Key references:
+1. Human Owner / Board remains supreme authority.
+2. Backend authorization is the source of executable authority.
+3. Do not introduce direct mutation shortcuts for UI convenience.
+4. Keep regulated claims Evidence-backed and appropriately review-gated.
+5. Conversation and memory do not silently become canonical truth.
+6. Material autonomous writes cross AIOS governance boundaries.
+7. Preserve optimistic concurrency for parallel autonomous work.
+8. Keep OrganizationActivity semantic rather than fabricating history from mutable state.
+9. Preserve database history unless a reviewed migration/reconciliation explicitly changes it.
+10. Keep Board transparency and decision lineage in scope for material organizational behavior.
+11. Update roadmap/changelog documentation when delivery state materially changes.
+12. Run bounded quality gates appropriate to the slice before claiming PASS.
+13. Keep V11 frozen unless an explicit decision authorizes changing it; continue active V1.3 development on V12.
+
+Key repository-policy references:
 
 - [`docs/REPOSITORY_POLICY.md`](docs/REPOSITORY_POLICY.md)
 - [`docs/ADR/0001-approved-repository-strategy.md`](docs/ADR/0001-approved-repository-strategy.md)
 - `.github/workflows/repo-policy-check.yml`
 - `scripts/check_repo_policy.py`
 
-Important contribution principles:
-
-1. Preserve backend authorization as the source of authority.
-2. Do not introduce direct mutation shortcuts merely for UI convenience.
-3. Keep regulated claims evidence-backed and review-gated.
-4. Keep Activity semantic; do not fabricate historical events from mutable state.
-5. Preserve database history unless a reviewed migration/reconciliation explicitly changes it.
-6. Update roadmap/changelog documentation when delivery state materially changes.
-7. Run the bounded quality gates appropriate to the slice before committing.
-8. Prefer incremental, auditable changes over broad rewrites.
-
 ---
 
-## 17. Key Documentation
+## 35. Key Documentation
 
 Start here:
 
+- **Active V1.3 architecture:** [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md)
+- **Canonical active roadmap:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- **Active changelog:** [`docs/CHANGELOG.md`](docs/CHANGELOG.md)
 - **Product vision:** [`docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md`](docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md)
-- **Canonical roadmap:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
-- **Implementation history:** [`docs/CHANGELOG.md`](docs/CHANGELOG.md)
 - **AI organization governance:** [`docs/AI_ORGANIZATION_GOVERNANCE_V13_0.md`](docs/AI_ORGANIZATION_GOVERNANCE_V13_0.md)
-- **High-autonomy organization architecture:** [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md)
+- **Technology Radar:** [`docs/TECHNOLOGY_RADAR_V1_1.md`](docs/TECHNOLOGY_RADAR_V1_1.md)
+- **Third-party adoption principles:** [`docs/THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md`](docs/THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md)
 - **Repository policy:** [`docs/REPOSITORY_POLICY.md`](docs/REPOSITORY_POLICY.md)
-- **Universal Mobility Profile:** [`docs/UNIVERSAL_MOBILITY_PROFILE_V8_0.md`](docs/UNIVERSAL_MOBILITY_PROFILE_V8_0.md)
-- **Versioned pathway catalogue:** [`docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md`](docs/VERSIONED_PATHWAY_CATALOGUE_V8_1.md)
-- **Pathway comparison explanations:** [`docs/PATHWAY_COMPARISON_EXPLANATIONS_V8_2.md`](docs/PATHWAY_COMPARISON_EXPLANATIONS_V8_2.md)
-- **Signed document access/object storage:** [`docs/SIGNED_DOCUMENT_ACCESS_OBJECT_STORAGE_V9_5.md`](docs/SIGNED_DOCUMENT_ACCESS_OBJECT_STORAGE_V9_5.md)
-- **Global intelligence filters:** [`docs/GLOBAL_INTELLIGENCE_FILTERS_V10_11.md`](docs/GLOBAL_INTELLIGENCE_FILTERS_V10_11.md)
 
-Feature-specific contracts under `docs/` remain the authoritative place for detailed behavioral requirements that are too specific for this README.
+V1.2 and earlier architecture documents remain historical foundations and design evidence. V1.3 supersedes them for active implementation direction while preserving their strongest invariants.
 
 ---
 
-## 18. Current Direction
+## 36. Current Direction
 
-The project is moving through a deliberate sequence:
+The accepted product baseline is **Phase 13.16.10 — COMPLETE / PASS**.
 
-```text
-Trusted data + governed workflows
-        ↓
-Evidence-backed mobility intelligence
-        ↓
-Controlled ecosystem operations
-        ↓
-Governed AI-operated organization
-        ↓
-Clear role-based human experiences
-        ↓
-Owner decisions and escalations
-        ↓
-Mobility User + Professional experiences
-        ↓
-Evidence/provenance consolidation
-        ↓
-Integrated responsive/accessibility acceptance
-        ↓
-Genuine external-human validation
-        ↓
-Measured global scale
-```
+Phase 13.17 owner-led human acceptance remains **IN PROGRESS / PAUSED BY EVALUATOR** and continues as a parallel feedback stream rather than a global stop gate.
 
-The accepted product baseline is **Phase 13.16.10 — COMPLETE / PASS**. Phase 13.17 owner-led human acceptance remains **IN PROGRESS / PAUSED BY EVALUATOR** and continues as a parallel feedback stream rather than a global stop gate.
+Active development now proceeds on **V12**.
 
-The active organization direction is **V1.3 — High-Autonomy Organization + Organizational Immune System + Earned Autonomy + Board Transparency & Decision Lineage**.
+The active architecture direction is:
 
-Global Mobility AIOS should become more capable over time without becoming less governed or less transparent. AI employees may hold real capability-specific delegated authority and should complete most healthy work autonomously. Quality comes from Evidence, deterministic material-state validation, risk-tiered verification, authority/policy controls, concurrency protection, anomaly detection, circuit breakers, bounded blast radius, consequence-aware recovery, and labeled learning.
+> **High-Autonomy Organization + Organizational Immune System + Earned Autonomy + Board Transparency & Decision Lineage.**
 
-The Human Owner / Board remains supreme authority but operates primarily by exception. The Board must have on-demand visibility into material decisions, agent collaboration, Evidence, rules, tool actions, incidents, autonomy changes, and decision lineage without being forced to approve routine work.
+The project should become more capable without becoming less governed or less transparent.
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the detailed coordinated Product / Technology Radar / High-Autonomy Organization delivery programme.
+AI employees may hold meaningful capability-specific delegated authority and should complete most healthy work autonomously. Quality should come primarily from governed Evidence, deterministic material-state validation, risk-tiered independent verification, authority/policy controls, concurrency protection, anomaly detection, circuit breakers, bounded blast radius, consequence-aware recovery and labeled learning.
+
+The Human Owner / Board remains supreme authority and operates primarily by exception, with on-demand visibility into material decisions, agent collaboration, Evidence, rules, tool actions, incidents, autonomy changes and decision lineage.
+
+The next implementation focus is **V1.3-A Constitutional Contracts**, followed by the Minimal Governance Kernel and early Transparency Foundation, while Phase 13.17 and Technology Radar work continue in parallel.
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the complete coordinated delivery programme.
