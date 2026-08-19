@@ -24,120 +24,294 @@ Earlier history remains available through V11, Git history and the existing arch
 
 ---
 
-## 2026-08-19 — V1.3-A BROADER ACCEPTANCE — ROADMAP COMPATIBILITY REGRESSION IDENTIFIED AND FIXED / RERUN PENDING
+## 2026-08-20 — V1.3-B.1 MINIMAL GOVERNANCE KERNEL — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
 ### Status
 
-**Constitutional contract tests PASS. Repository policy PASS. Broader API regression exposed one documentation-roadmap compatibility failure; the roadmap has been corrected and the broader suite must be rerun before V1.3-A is sealed PASS.**
+**First V1.3-B runtime slice implemented on V12. Isolated focused tests PASS. Canonical V12 checkout acceptance and broader API regression are not yet claimed.**
 
-### Canonical local acceptance evidence
-
-Reported from the canonical Windows V12 checkout:
+Implementation commit:
 
 ```text
-pytest apps/api/tests/test_organization_constitution.py -q
+d351ad85f5c3464178b56dd9da6ac5c83090a27a
+feat: start v1.3-b governance kernel
+```
+
+Roadmap synchronization:
+
+```text
+64b91e1b992a2198da034a6450d3100f110ce725
+docs: advance roadmap to v12.3 governance kernel
+```
+
+### Delivered
+
+```text
+apps/api/app/services/organization_governance_kernel.py
+apps/api/tests/test_organization_governance_kernel.py
+docs/V1_3_A_ACCEPTANCE_2026-08-20.md
+docs/V1_3_B_MINIMAL_GOVERNANCE_KERNEL.md
+```
+
+### Architectural approach
+
+The repository already contains mature command and Activity primitives, including:
+
+- `OrganizationCommandContext`;
+- tenant/actor/role validation;
+- canonical JSON/fingerprints;
+- idempotency helpers;
+- audited command mutation utilities;
+- durable `OrganizationActivity` append/stage behavior;
+- trace/correlation support.
+
+B.1 deliberately **reuses** those primitives. It does not create a second organization command framework.
+
+### B.1 contracts
+
+The new kernel adds:
+
+- `CapabilityAuthority` bound to tenant, actor, capability, actions, maximum risk, autonomy and optional scope;
+- typed `MaterialAction` envelope;
+- constitutional risk-floor enforcement;
+- expected-version/precondition decisions;
+- exact idempotent replay vs conflict decisions;
+- deterministic policy disposition;
+- A0–A5 routing;
+- Board-reserved action protection;
+- stable trace identity;
+- Activity projection compatible with the current OrganizationActivity runtime.
+
+Typed gateway outcomes:
+
+```text
+AUTO_EXECUTE
+BLOCK
+REVIEW_REQUIRED
+IDEMPOTENT_REPLAY
+```
+
+### Board-reserved invariant implemented
+
+A government submission remains:
+
+```text
+material = yes
+risk = R5
+Board reserved = yes
+```
+
+and therefore routes to:
+
+```text
+REVIEW_REQUIRED
+reason = BOARD_RESERVED
+```
+
+even when the actor's capability autonomy is A5.
+
+### Autonomy behavior in this bounded slice
+
+Only after authority, scope, risk, version, idempotency, policy and reserved-authority checks pass:
+
+```text
+A0 → BLOCK
+A1 → REVIEW_REQUIRED
+A2 → REVIEW_REQUIRED
+A3 → AUTO_EXECUTE + post-review-required marker
+A4 → AUTO_EXECUTE
+A5 → AUTO_EXECUTE
+```
+
+### Activity compatibility
+
+The current physical OrganizationActivity model predates the V1.3 constitutional activity taxonomy. B.1 therefore keeps the existing physical `operational` class and places the constitutional `MATERIAL` / `AUTHORITY` classification in the governance payload.
+
+This avoids an unnecessary schema migration before V1.3-C formalizes Transparency and Decision Lineage.
+
+### Isolated focused evidence
+
+Before publication, the bounded B.1 module/test pair was validated in an isolated package layout:
+
+```text
+19 passed in 0.05s
+```
+
+Coverage includes authority mismatch, action/scope authority, risk ceiling/floor, expected/stale versions, idempotent replay/conflict, policy deny/review, A0/A2/A3 behavior, Board reservation at A5, trace-correlated Activity projection and rejection of non-material actions from the material gateway.
+
+This is implementation evidence only. It is **not** the final repository acceptance result.
+
+### Non-claims
+
+B.1 does not yet:
+
+- execute a production domain mutation through the new gateway;
+- persist a new `MaterialAction` table;
+- add a database migration;
+- change the 118 registered domain tables;
+- replace existing route authorization;
+- replace existing organization command services;
+- implement Decision Readiness;
+- implement independent verification;
+- implement contradiction detection;
+- implement the Organizational Immune System;
+- implement earned-autonomy promotion/demotion;
+- implement full Transparency / Decision Lineage;
+- authorize government submission automatically;
+- claim a canonical B.1 full API PASS;
+- claim GitHub CI PASS.
+
+### Next acceptance
+
+From the canonical V12 checkout after pulling the B.1 commit:
+
+```text
+pytest apps/api/tests/test_organization_governance_kernel.py -q
+scripts/check_repo_policy.py --root .
+pytest apps/api/tests -q
+git diff --check
+git status -sb
+```
+
+Migration head is expected to remain:
+
+```text
+0076_organization_position_active_identity
+```
+
+After clean canonical acceptance, B.2 should wire one existing reversible low-risk organization command through the kernel and existing Activity path.
+
+---
+
+## 2026-08-20 — V1.3-A FINAL ACCEPTANCE — COMPLETE / PASS / SEALED
+
+### Status
+
+**V1.3-A Constitutional Contracts has completed canonical repository acceptance and is sealed as the constitutional floor for subsequent V1.3 runtime work.**
+
+Dedicated record:
+
+```text
+docs/V1_3_A_ACCEPTANCE_2026-08-20.md
+```
+
+### Canonical acceptance evidence
+
+Focused constitutional tests:
+
+```text
 13 passed, 1 warning in 0.14s
 ```
 
 Repository policy:
 
 ```text
-scripts/check_repo_policy.py --root .
 Repository policy check passed.
 ```
 
-Broader API regression:
+Previously failing v10.22 roadmap regression after the V12.2 compatibility correction:
 
 ```text
+1 passed, 1 warning in 0.08s
+```
+
+Full API regression:
+
+```text
+886 passed, 5 skipped, 1 warning in 337.70s (0:05:37)
+```
+
+Database migration integrity:
+
+```text
+Database migration check passed.
+database_url=sqlite:///./gmai.db
+migration_heads=0076_organization_position_active_identity
+registered_tables=118
+physical_schema=ok
+database_revision=0076_organization_position_active_identity
+```
+
+Preserved local database schema parity:
+
+```text
+Local DB schema check passed.
+database_url=sqlite:///D:/global-mobility-aios/gmai.db
+registered_tables=118
+actual_tables=118
+physical_tables=119
+infrastructure_tables=["alembic_version"]
+```
+
+Git integrity:
+
+```text
+git diff --check
+# no output
+
+git status -sb
+## roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
+```
+
+### Warning disposition
+
+One Starlette/httpx TestClient deprecation warning remains. It is non-blocking for V1.3-A and should be handled in a separate dependency-maintenance task rather than changing dependencies inside the governance phase.
+
+### Final disposition
+
+```text
+V1.3-A — Constitutional Contracts
+COMPLETE
+PASS
+SEALED
+```
+
+No GitHub CI PASS is claimed because no attached check/status evidence was used for this acceptance.
+
+---
+
+## 2026-08-19 — V1.3-A BROADER ACCEPTANCE — ROADMAP COMPATIBILITY REGRESSION IDENTIFIED AND FIXED / RERUN PENDING
+
+### Status
+
+**Historical intermediate checkpoint.** Constitutional contract tests and repository policy passed, while the first broader API regression exposed one documentation-roadmap compatibility failure. That failure was corrected in Roadmap V12.2 and subsequently verified by the final acceptance recorded above.
+
+### Intermediate evidence
+
+```text
+pytest apps/api/tests/test_organization_constitution.py -q
+13 passed, 1 warning in 0.14s
+
+scripts/check_repo_policy.py --root .
+Repository policy check passed.
+
 pytest apps/api/tests -q
 885 passed, 5 skipped, 1 failed, 1 warning in 334.06s
 ```
 
-### Sole failing test
+The sole failure was:
 
 ```text
 apps/api/tests/test_coverage_tranche_operations_script.py::
 test_v10_22_documentation_and_roadmap_are_present
 ```
 
-Failure condition:
+The regression required the roadmap to preserve:
 
 ```text
-assert "v10.22" in roadmap
-```
-
-The same protected regression also requires the active roadmap to retain:
-
-```text
+v10.22
 multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-### Root cause
-
-The V12 roadmap rewrite correctly preserved the active product/architecture direction, but accidentally removed selected historical Phase 10.22 markers that are intentionally encoded as repository continuity contracts.
-
-The underlying v10.22 implementation documentation remained present at:
-
-```text
-docs/COVERAGE_TRANCHE_OPERATIONS_V10_22.md
-```
-
-and the failure did not indicate a defect in the new constitutional contract module.
-
-### Fix
-
-Roadmap advanced to **V12.2** and now preserves a concise historical compatibility section documenting:
-
-- `v10.22`;
-- **multi-batch tranche operations**;
-- preserved human-review / no-automatic-certification boundaries;
-- canonical v10.22 operations documentation;
-- historical migration marker `0032_initial_rule_assertions`.
-
-Roadmap fix commit:
+Roadmap V12.2 restored those historical continuity markers in commit:
 
 ```text
 2f1fe6774e8681cc98448680b1a8e315d8ebe4a0
 docs: restore v10.22 roadmap compatibility milestone
 ```
 
-### Acceptance posture
-
-V1.3-A remains:
-
-```text
-IMPLEMENTED
-FOCUSED CONTRACT TEST PASS
-REPOSITORY POLICY PASS
-BROADER API RERUN PENDING
-```
-
-It is **not** yet sealed PASS.
-
-Required next evidence:
-
-1. pull the latest V12 head;
-2. rerun `test_v10_22_documentation_and_roadmap_are_present`;
-3. rerun the complete API test suite;
-4. confirm migration/schema invariants;
-5. confirm clean repository state;
-6. record the final exact results before starting V1.3-B runtime delivery.
-
-### Runtime truth
-
-This roadmap compatibility correction does not:
-
-- change application behavior;
-- change database schema;
-- change migration head `0076_organization_position_active_identity`;
-- mutate preserved `gmai.db`;
-- change route authorization;
-- implement the Governance Kernel;
-- implement Decision Readiness;
-- implement the Organizational Immune System;
-- resolve Phase 13.17 findings;
-- establish GitHub CI PASS.
+This checkpoint is superseded by the 2026-08-20 final V1.3-A PASS above.
 
 ---
 
@@ -145,7 +319,7 @@ This roadmap compatibility correction does not:
 
 ### Status
 
-**Runtime-facing contract implementation delivered. Focused contract tests PASS. Full repository regression/CI PASS is not claimed at this checkpoint.**
+**Initial runtime-facing contract implementation checkpoint.** Later canonical acceptance is recorded above.
 
 Implementation commit:
 
@@ -156,15 +330,11 @@ feat: freeze v1.3 constitutional contracts
 
 ### Purpose
 
-Started the actual V12 Track C implementation with the first roadmap slice:
+Started the actual V12 Track C implementation with:
 
 > **V1.3-A — Constitutional Contracts**
 
-The existing runtime already has deterministic route/role authorization and organization-governance schemas, but future V1.3 concepts still needed a single machine-readable vocabulary before the Governance Kernel could safely use them.
-
-This slice freezes the constitutional vocabulary without prematurely changing current API/database behavior.
-
-### Added
+Added:
 
 ```text
 apps/api/app/core/organization_constitution.py
@@ -172,191 +342,15 @@ apps/api/tests/test_organization_constitution.py
 docs/ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md
 ```
 
-### Constitutional invariants encoded
+The contract freezes Board supremacy, Board Transparency, **scores route; deterministic gates authorize**, A0–A5, R0–R5, `HumanReviewReason`, consequence/recovery classes, reserved authority, the Materiality Registry and activity transparency policy.
 
-The new runtime-facing module freezes:
-
-> **The Human Owner / Board is the supreme authority of Global Mobility AIOS.**
-
-> **Operational autonomy must never create organizational opacity.**
-
-> **Scores route decisions; deterministic gates authorize decisions.**
-
-It also formalizes the permanent separation:
+Initial isolated focused evidence was:
 
 ```text
-Capability != Authority != Autonomy != Risk
-CAN DO != MAY DO
-```
-
-### A0–A5 autonomy contract
-
-```text
-A0  Prohibited
-A1  Human executes
-A2  AI prepares; approval required
-A3  Autonomous with mandatory review
-A4  Autonomous with monitoring and valid recovery controls
-A5  Fully autonomous bounded operation
-```
-
-The contract intentionally remains capability/context-specific rather than assigning one global autonomy score to an agent.
-
-### R0–R5 risk contract
-
-```text
-R0  Non-material cognition
-R1  Routine internal operation
-R2  Client-facing preparation / Evidence validation
-R3  Material recommendation / blind independent verification
-R4  Certification/regulatory publication / deeper verification + fresh sources
-R5  Government submission or critical reserved action / Human-Board gate
-```
-
-### HumanReviewReason frozen
-
-```text
-UNCERTAINTY
-CONTRADICTION
-INSUFFICIENT_EVIDENCE
-OUTSIDE_AUTHORITY
-POLICY_REQUIRED
-LEGAL_REQUIRED
-BOARD_RESERVED
-ANOMALY
-EXCEPTION
-```
-
-This preserves the critical distinction between uncertainty escalation and authority/legal/policy escalation.
-
-### Consequence/recovery classes frozen
-
-```text
-REVERSIBLE
-COMPENSATABLE
-IRREVERSIBLE
-APPEND_ONLY_CORRECTION
-```
-
-This prevents future governance code from pretending that every real-world action can be rolled back like a database row.
-
-### Reserved authority classes frozen
-
-```text
-CONSTITUTION
-STRATEGIC_DIRECTION
-AUTONOMY_CEILING
-MAJOR_POLICY
-EXECUTIVE_APPOINTMENT
-EMERGENCY_CONTROL
-BOARD_RESERVED_EXTERNAL_ACTION
-```
-
-These are constitutional categories. Later workflow/jurisdiction policy may map concrete actions into them.
-
-### Initial immutable Materiality Registry
-
-| Action | Material | Risk | Board reserved |
-|---|---:|---:|---:|
-| `official_source.search` | no | R0 | no |
-| `document.summary` | no | R0 | no |
-| `internal.note` | no | R0 | no |
-| `work_item.assignment` | yes | R1 | no |
-| `evidence.candidate` | yes | R2 | no |
-| `eligibility.transition` | yes | R3 | no |
-| `evidence.certification` | yes | R4 | no by base constitution |
-| `verified_rule.publication` | yes | R4 | no by base constitution |
-| `external_communication.consequential` | yes | R3 | no by base constitution |
-| `government.submission` | yes | R5 | yes |
-
-The registry is read-only at runtime in this phase.
-
-### Board Transparency activity policy
-
-Activity classes frozen:
-
-```text
-CONVERSATIONAL
-COLLABORATIVE
-OPERATIONAL
-MATERIAL
-AUTHORITY
-```
-
-Every class is Board-inspectable.
-
-Material/Authority activity requires durable full lineage.
-
-Lower-value conversation may compact/summarize after policy retention rather than being stored forever as regulatory-grade raw text. This preserves the design goal:
-
-```text
-Board visibility != Board interruption
-Transparency != infinite raw-token retention
-```
-
-### Initial focused acceptance evidence
-
-The implementation checkpoint initially recorded isolated focused evidence:
-
-```text
-python -m py_compile apps/api/app/core/organization_constitution.py
-pytest apps/api/tests/test_organization_constitution.py
 13 passed in 0.07s
 ```
 
-The later canonical local checkout run supersedes the timing detail for acceptance purposes:
-
-```text
-13 passed, 1 warning in 0.14s
-```
-
-The tests cover:
-
-- stable A0–A5 values;
-- stable R0–R5 values;
-- HumanReviewReason taxonomy;
-- consequence/recovery classes;
-- reserved authority classes;
-- total Materiality Registry coverage;
-- R0 defaults for non-material cognition;
-- R5 + Board-reserved government submission;
-- Board inspectability for every activity class;
-- durable/full lineage requirements for Material/Authority activity;
-- conversational compaction semantics;
-- immutable registries;
-- frozen Board supremacy/transparency/hard-gate invariants.
-
-### Runtime truth / non-claims
-
-This slice does **not**:
-
-- add a database migration;
-- change migration head `0076_organization_position_active_identity`;
-- mutate preserved `gmai.db`;
-- change existing route authorization;
-- change existing WorkItem API compatibility;
-- implement MaterialAction persistence;
-- implement Command Gateway execution;
-- implement Decision Readiness;
-- implement independent verification;
-- implement the Organizational Immune System;
-- implement earned-autonomy promotion/demotion;
-- implement full Transparency runtime/UI;
-- integrate Munder Difflin or OpenWorker;
-- resolve Phase 13.17 findings;
-- claim GitHub CI PASS.
-
-### Roadmap
-
-Roadmap advanced to **V12.1** for the initial implementation checkpoint and then **V12.2** after broader regression exposed the historical roadmap-continuity requirement.
-
-### Next roadmap slice
-
-After V1.3-A is fully accepted:
-
-> **V1.3-B — Minimal Governance Kernel**
-
-The first B implementation should stay deliberately small: actor identity, capability authority, expected version, idempotency, MaterialAction envelope, deterministic policy evaluation, Command Gateway foundation and OrganizationActivity trace identity.
+The canonical checkout later produced `13 passed, 1 warning in 0.14s` and the complete V1.3-A acceptance described above.
 
 ---
 
@@ -368,7 +362,7 @@ Documentation/branch-alignment checkpoint only.
 
 V12 was created directly from the V11 checkpoint at `dd2f2cd`. The inherited README and roadmap initially still described V11 as the active line, so V12 documentation was realigned to make the branch roles explicit.
 
-Key commits included:
+Key commits:
 
 ```text
 4a347d418408a199198832e211f13555cf1ee5e9
