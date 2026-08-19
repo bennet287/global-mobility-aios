@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -231,17 +231,18 @@ def governed_assign_work_item(
         )
 
     projection = organization_activity_projection(context, action, evaluation)
+    trace_context = replace(context, correlation_key=str(evaluation.trace_id))
     try:
         mutated = _stage_assignment(
             session,
-            context,
+            trace_context,
             work_item,
             assigned_position_key=assigned_position_key,
             reason=reason,
         )
         governance_activity = stage_activity(
             session,
-            context,
+            trace_context,
             activity_key=projection.activity_key,
             stream_key=projection.stream_key,
             activity_class=projection.activity_class,
