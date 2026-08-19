@@ -8,13 +8,19 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.core.organization_constitution import ConsequenceClass, MaterialActionType
-from app.models.domain import OrganizationActivity, OrganizationalWorkItem, now_utc
+from app.models.domain import (
+    OrganizationActivity,
+    OrganizationActivityClass,
+    OrganizationalWorkItem,
+    now_utc,
+)
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import (
     AuditMutation,
     DependencyConflict,
     InvalidTransition,
     OrganizationCommandContext,
+    canonical_fingerprint,
     require_mutation_role,
     snapshot,
     stage_mutations,
@@ -29,7 +35,7 @@ from app.services.organization_governance_kernel import (
     evaluate_material_action,
     organization_activity_projection,
 )
-from app.services.organization_semantic_activity import stage_work_item_assignment_activity
+from app.services.organization_semantic_activity import SEMANTIC_ACTIVITY_CONTRACT_VERSION
 
 
 GOVERNED_WORK_CAPABILITY = "operations.work"
@@ -115,6 +121,57 @@ def _evaluate_persisted_action(
     )
 
 
+def _stage_assignment_activity_with_causation(
+    session: Session,
+    context: OrganizationCommandContext,
+    work_item: OrganizationalWorkItem,
+    *,
+    previous_position_key: str,
+    causation_activity_id: UUID,
+) -> OrganizationActivity:
+    """Stage the accepted assignment semantic with an explicit governance cause.
+
+    This preserves the existing semantic event key/version contract while ensuring the
+    Activity record fingerprint also covers the causal governance Activity reference.
+    """
+
+    payload = {
+        "previous_position_key": previous_position_key,
+        "assigned_position_key": work_item.assigned_position_key,
+        "status": work_item.status,
+    }
+    activity_type = "organization.work.assigned.v1"
+    source_version = canonical_fingerprint(
+        {
+            "contract": SEMANTIC_ACTIVITY_CONTRACT_VERSION,
+            "source_type": "organizational_work_item",
+            "source_id": str(work_item.id),
+            "activity_type": activity_type,
+            "occurred_at": work_item.updated_at,
+            "payload": payload,
+        }
+    )
+    return stage_activity(
+        session,
+        context,
+        activity_key=(
+            f"semantic:organizational_work_item:{work_item.id}:{activity_type}:{source_version}"
+        ),
+        stream_key=f"work:{work_item.id}",
+        activity_class=OrganizationActivityClass.work,
+        activity_type=activity_type,
+        title="Work item assignment changed",
+        summary="Governed work assignment changed without implying completion or impact.",
+        source_object_type="organizational_work_item",
+        source_object_id=str(work_item.id),
+        source_object_version=source_version,
+        occurred_at=work_item.updated_at,
+        work_item_id=work_item.id,
+        causation_activity_id=causation_activity_id,
+        payload=payload,
+    )
+
+
 def _stage_assignment(
     session: Session,
     context: OrganizationCommandContext,
@@ -122,6 +179,7 @@ def _stage_assignment(
     *,
     assigned_position_key: str,
     reason: str,
+    causation_activity_id: UUID,
 ) -> bool:
     """Stage the existing WorkItem assignment semantics without owning the transaction."""
 
@@ -151,11 +209,12 @@ def _stage_assignment(
         ],
         context=context,
     )
-    stage_work_item_assignment_activity(
+    _stage_assignment_activity_with_causation(
         session,
         context,
         work_item,
         previous_position_key=previous_position_key,
+        causation_activity_id=causation_activity_id,
     )
     return True
 
@@ -174,9 +233,10 @@ def governed_assign_work_item(
 ) -> GovernedWorkAssignmentResult:
     """Route one real reversible R1 WorkItem assignment through the V1.3 gateway.
 
-    AUTO_EXECUTE stages the existing assignment audit + semantic Activity together
-    with the governance Activity and commits them atomically. BLOCK/REVIEW_REQUIRED
-    does not mutate the WorkItem. An exact durable retry returns IDEMPOTENT_REPLAY.
+    AUTO_EXECUTE stages governance authorization first, then the existing assignment
+    mutation/audit plus a semantic Activity explicitly caused by that authorization.
+    The entire unit commits atomically. BLOCK/REVIEW_REQUIRED does not mutate the
+    WorkItem. An exact durable retry returns IDEMPOTENT_REPLAY.
     """
 
     work_item = tenant_record(
@@ -233,13 +293,6 @@ def governed_assign_work_item(
     projection = organization_activity_projection(context, action, evaluation)
     trace_context = replace(context, correlation_key=str(evaluation.trace_id))
     try:
-        mutated = _stage_assignment(
-            session,
-            trace_context,
-            work_item,
-            assigned_position_key=assigned_position_key,
-            reason=reason,
-        )
         governance_activity = stage_activity(
             session,
             trace_context,
@@ -256,6 +309,14 @@ def governed_assign_work_item(
             occurred_at=action.requested_at,
             payload=projection.payload,
             correlation_key=projection.correlation_key,
+        )
+        mutated = _stage_assignment(
+            session,
+            trace_context,
+            work_item,
+            assigned_position_key=assigned_position_key,
+            reason=reason,
+            causation_activity_id=governance_activity.id,
         )
         session.commit()
         session.refresh(work_item)
