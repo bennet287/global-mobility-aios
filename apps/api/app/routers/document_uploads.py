@@ -16,6 +16,7 @@ from app.core.db import get_session
 from app.models.domain import DocumentRecord, Lead
 from app.services.audit_log import record_audit
 from app.services.document_storage import document_storage_client, now_utc, public_document_metadata
+from app.services.malware_scan import scan_bytes, should_block_upload
 
 
 router = APIRouter(tags=["document-upload-v3.5"])
@@ -69,6 +70,16 @@ async def upload_document(
             detail=f"Uploaded file exceeds {settings.document_upload_max_mb} MB limit.",
         )
 
+    # Optional ClamAV malware scan (Technology Radar V1.1 Wave 1 pilot).
+    # Disabled by default; infected uploads are rejected before storage.
+    malware_result = scan_bytes(content)
+    if should_block_upload(malware_result):
+        if malware_result.status == "infected":
+            detail = f"Malware detected: {malware_result.signature}" if malware_result.signature else "Malware detected"
+        else:
+            detail = f"Malware scan failed: {malware_result.error}"
+        raise HTTPException(status_code=400, detail=detail)
+
     storage = document_storage_client()
     stored = storage.put_document(
         content=content,
@@ -85,6 +96,7 @@ async def upload_document(
             "original_filename": file.filename,
             "storage_provider": stored.storage_provider,
             "uploaded_at": now.isoformat(),
+            "malware_scan": malware_result.to_dict(),
         }
     }
     document = DocumentRecord(

@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     otel_service_name: str = "global-mobility-aios-api"
     otel_service_version: str = "0.1.0"
 
+    # ClamAV — optional upload malware-scanning pilot (Technology Radar V1.1 Wave 1).
+    # Disabled by default. Requires a running clamd daemon reachable via CLAMAV_HOST/CLAMAV_PORT.
+    # When enabled, uploads are scanned before storage. Infected uploads are rejected; unavailable
+    # scanners are logged and either allowed through (default) or blocked based on policy.
+    clamav_enabled: bool = False
+    clamav_host: str = "localhost"
+    clamav_port: int = 3310
+    clamav_timeout_seconds: int = 30
+    clamav_block_on_scanner_error: bool = False
+
     jwt_secret: str = "change-this-in-production"
     auth_enabled: bool = True
     auth_admin_username: str = "admin"

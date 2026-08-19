@@ -4,6 +4,68 @@ This is the current changelog from the post-`f0688a8` baseline onward. The compl
 Phase 13.16.7 baseline is preserved byte-for-byte at
 [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md).
 
+## 2026-08-19 - Technology Radar V1.1 Wave 1 ClamAV pilot COMPLETE / PASS - optional upload malware scanning
+
+- Started the third and final Technology Radar V1.1 Wave 1 pilot (`ClamAV` — upload malware scanning) by adding a bounded,
+  optional, disabled-by-default malware-scanning adapter under `apps/api/app/services/malware_scan.py`.
+- The adapter integrates into the existing `POST /api/v1/documents/upload` flow in `apps/api/app/routers/document_uploads.py`.
+  When `CLAMAV_ENABLED=true` and a clamd daemon is reachable, uploads are scanned before storage. Infected uploads are
+  rejected with a 400 response and are not stored. Missing/unreachable ClamAV is logged and, by default, does not block
+  uploads (`CLAMAV_BLOCK_ON_SCANNER_ERROR=false`), preserving the local-first posture.
+- Added environment-driven settings in `apps/api/app/core/config.py`: `CLAMAV_ENABLED`, `CLAMAV_HOST`, `CLAMAV_PORT`,
+  `CLAMAV_TIMEOUT_SECONDS`, and `CLAMAV_BLOCK_ON_SCANNER_ERROR`, all disabled/safe by default.
+- Added the `clamd` Python client to `apps/api/requirements.txt` as an explicitly bounded Technology Radar dependency.
+- Added matching environment variables to `.env.example` so local Docker/host configuration is discoverable.
+- Added `apps/api/tests/test_malware_scan.py` regression covering:
+  - disabled scanning returns `unscanned`;
+  - enabled scanning gracefully degrades when the `clamd` package is not installed;
+  - enabled scanning gracefully degrades when the clamd daemon is unreachable;
+  - clean clamd response is parsed correctly;
+  - infected clamd response is parsed correctly and includes the signature;
+  - upload-blocking policy respects both infected and scanner-error states.
+- Documented the AIOS Untrusted Document Boundary invariant: a clean scan is an engineering safety signal, not evidence of
+  authenticity, legal sufficiency, or evidence validity; an infected result is a genuine rejection signal for the untrusted
+  upload path.
+- Updated `docs/REPOSITORY_POLICY.md` to record `Cisco-Talos/clamav` as an approved core repository, documenting the GPL v2
+  license and the engineering-safety boundary.
+- Updated `docs/ROADMAP.md` to record the ClamAV early pilot as started and to mark Technology Radar V1.1 Wave 1 complete.
+
+### Acceptance
+
+- malware scan regression: **11/11 PASS**;
+- document upload regression: **2/2 PASS** (ClamAV disabled by default, existing upload behavior preserved);
+- complete API regression: **867 passed / 5 skipped / 0 failed**;
+- repository policy: **PASS**;
+- release consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- Docker production profile: **PASS**;
+- database migration/schema consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- local physical-schema parity: **PASS** — 118 registered model tables / 118 actual model tables / 119 physical tables including only `alembic_version` infrastructure;
+- `git diff --check`: **PASS** (only the expected CRLF→LF normalization warning for `docs/REPOSITORY_POLICY.md`);
+- Next.js 15.2.4 production build: **PASS**, **41/41 static pages**;
+- design foundation regression: **28/28 PASS**;
+- preserved `gmai.db`: unchanged.
+
+### Boundary
+
+Exact delivery boundary at seal is the following tracked files:
+
+- `apps/api/app/core/config.py`;
+- `apps/api/app/routers/document_uploads.py`;
+- `apps/api/app/services/malware_scan.py`;
+- `apps/api/requirements.txt`;
+- `apps/api/tests/test_malware_scan.py`;
+- `.env.example`;
+- `docs/CHANGELOG.md`;
+- `docs/REPOSITORY_POLICY.md`;
+- `docs/ROADMAP.md`.
+
+There is **no model/table/Alembic/preserved-database/frontend runtime semantic change** in this slice. No evidence,
+certification, publication, authorization, secure-Portal, or human-review authority is weakened. A clean malware scan is an
+engineering safety signal, not evidence of authenticity or legal validity.
+
+Phase 13.17 genuine external-human acceptance remains **UNLOCKED / NEXT**. Technology Radar V1.1 Wave 1
+(Promptfoo + OpenTelemetry + ClamAV) is now **COMPLETE**.
+
 ## 2026-08-19 - Technology Radar V1.1 Wave 1 OpenTelemetry pilot COMPLETE / PASS - optional vendor-neutral FastAPI telemetry
 
 - Started the second Technology Radar V1.1 Wave 1 pilot (`OpenTelemetry` — vendor-neutral application telemetry) by adding

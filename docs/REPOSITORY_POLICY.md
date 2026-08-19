@@ -41,6 +41,12 @@ This document defines the controlled GitHub repository set allowed for Global Mo
    - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 1 pilot.
    - AIOS Semantic Sovereignty: OpenTelemetry remains engineering trace only and never substitutes
      for OrganizationActivity, AuditLog, evidence provenance, or business authority.
+14. Cisco-Talos/clamav
+   - Open-source antivirus engine and malware scanner for untrusted document upload handling.
+   - License: GNU GPL v2 (with linking exception for the official client libraries).
+   - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 1 pilot.
+   - AIOS Semantic Sovereignty: a clean scan is an engineering safety signal, not evidence of
+     authenticity, legal sufficiency, or evidence validity. An infected result may reject an upload.
 
 ## Adapted Repositories (Constrained Use)
 

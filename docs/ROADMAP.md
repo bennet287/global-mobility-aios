@@ -531,7 +531,13 @@ Candidates may correctly end as ADOPT, HOLD, or REJECT.
   (`test_telemetry.py`) verifies disabled, missing-package fallback, and instrumented paths.
   OpenTelemetry remains engineering trace only and does not substitute for AIOS Activity, AuditLog,
   evidence provenance, or business authority.
-- ClamAV remains queued for the later Wave 1 pilot.
+- **ClamAV early pilot started** — optional, disabled-by-default upload malware-scanning adapter at
+  `app/services/malware_scan.py`. When `CLAMAV_ENABLED=true` and a clamd daemon is reachable, uploads
+  are scanned before storage and infected uploads are rejected. Missing/unreachable ClamAV is logged
+  and, by default, does not block uploads. A matching pytest regression (`test_malware_scan.py`) covers
+  disabled, missing-package, daemon-unreachable, clean, infected, and policy paths. A clean scan is
+  an engineering safety signal, not evidence of authenticity, legal sufficiency, or evidence validity.
+  This pilot completes Wave 1.
 
 ### Wave 2 — document + privacy intelligence
 
@@ -628,7 +634,11 @@ Technology Radar V1.1 Wave 1 has started in parallel with the first two bounded 
   via `app/core/telemetry.py`. Missing packages are a graceful no-op. A matching pytest regression (`test_telemetry.py`)
   covers disabled, missing-package fallback, and instrumented paths. OpenTelemetry remains engineering trace only and does
   not substitute for AIOS Activity, AuditLog, evidence provenance, or business authority.
-- ClamAV remains queued for the later Wave 1 pilot.
+- **ClamAV early pilot started** — optional, disabled-by-default upload malware-scanning adapter at
+  `app/services/malware_scan.py`. When `CLAMAV_ENABLED=true` and a clamd daemon is reachable, uploads are scanned before
+  storage and infected uploads are rejected. Missing/unreachable ClamAV is logged and, by default, does not block uploads.
+  A matching pytest regression (`test_malware_scan.py`) covers disabled, missing-package, daemon-unreachable, clean, and
+  infected paths. A clean scan is an engineering safety signal, not evidence of authenticity or validity.
 
 Phase 13.16 product acceptance remains sealed. Phase 14 remains demand-gated and must not start until Phase 13 evidence is
 complete.
