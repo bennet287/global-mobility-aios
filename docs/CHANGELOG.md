@@ -18,17 +18,158 @@ Frozen V11 reference branch final documentation head
 
 The V12 fork origin remains `dd2f2cd`; the later `ac130dea` V11 commit only cleaned V11's own roadmap/documentation after V12 had already branched.
 
-Earlier history remains available through V11, Git history and the existing archived changelogs.
+Earlier history remains available through V11, Git history and the archived changelogs.
 
 > **V11 preserves the reference product checkpoint. V12 is the active implementation line.**
 
 ---
 
-## 2026-08-20 — V1.3-B.1 MINIMAL GOVERNANCE KERNEL — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+## 2026-08-20 — V1.3-B.2 GOVERNED WORKITEM ASSIGNMENT — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
 ### Status
 
-**First V1.3-B runtime slice implemented on V12. Isolated focused tests PASS. Canonical V12 checkout acceptance and broader API regression are not yet claimed.**
+**The first real existing organization mutation is now wired through the V1.3 Governance Kernel on V12. Canonical Windows-checkout acceptance is still required before B.2 is marked PASS.**
+
+Delivered commits:
+
+```text
+e21585b4d50495c6dbddd52563e60757dfd9cfc3
+feat: route work assignment through governance kernel
+
+3779a8e4507d4c98d07aa818d5e71e20c1123e8c
+test: cover governed work assignment path
+
+a8c3f0f9d7a116238d8466aafb5c4062fbd2bf11
+docs: seal v1.3-b.1 acceptance
+
+9b554f7b253f9552c243e88f11e6adbfa8c55cda
+docs: define v1.3-b.2 governed work slice
+```
+
+### Bounded action selected
+
+```text
+work_item.assignment
+risk = R1
+consequence = REVERSIBLE
+capability = operations.work
+```
+
+B.2 deliberately starts with a low-risk reversible operation instead of pushing the new gateway directly into certification, eligibility or external/government actions.
+
+### Runtime path
+
+```text
+OrganizationCommandContext
+        ↓
+CapabilityAuthority
+        ↓
+MaterialAction(work_item.assignment)
+        ↓
+constitutional risk floor
+        ↓
+authority / capability / scope
+        ↓
+durable idempotency
+        ↓
+expected-version precondition
+        ↓
+policy / autonomy
+        ↓
+AUTO_EXECUTE
+        ↓
+existing WorkItem assignment semantics
+        +
+existing organization.work.assign audit
+        +
+existing semantic assignment Activity
+        +
+Governance Activity / trace
+        ↓
+ONE TRANSACTION COMMIT
+```
+
+### New runtime adapter
+
+```text
+apps/api/app/services/organization_governed_work.py
+```
+
+The adapter composes the accepted B.1 kernel with existing `OrganizationalWorkItem`, audit and semantic-Activity primitives. It does not add a parallel WorkItem model or a second organization command framework.
+
+### Precondition compatibility
+
+The current WorkItem schema does not expose a dedicated integer aggregate-version column. B.2 therefore derives the first governed precondition token from canonical `updated_at` without adding a migration.
+
+A successful assignment advances `updated_at`; a new command carrying the old precondition is therefore stale and blocked.
+
+This is a bounded compatibility bridge. A later explicit aggregate-version migration should only be introduced if broader runtime evidence justifies it.
+
+### Durable retry correction
+
+A successful action changes the aggregate and therefore changes its precondition. An exact retry must not become a false stale-version failure simply because the first attempt succeeded.
+
+The persisted B.2 flow therefore resolves an existing durable governance fingerprint before applying the stale-precondition decision to a new command:
+
+```text
+exact same idempotency key + same action fingerprint
+→ IDEMPOTENT_REPLAY
+
+same idempotency key + different action fingerprint
+→ BLOCK / IDEMPOTENCY_CONFLICT
+
+new idempotency key + stale expected version
+→ BLOCK / STALE_VERSION
+```
+
+Authority/capability/scope/risk checks remain mandatory before the replay path.
+
+### Atomicity invariant
+
+For `AUTO_EXECUTE`, WorkItem mutation, assignment audit, semantic WorkItem Activity and governance Activity are staged inside one transaction. If governance Activity storage fails, the assignment/audit/activity unit rolls back rather than allowing an autonomous mutation to become opaque.
+
+### Focused tests added
+
+```text
+apps/api/tests/test_organization_governed_work.py
+```
+
+The six new tests cover:
+
+- real R1 assignment AUTO_EXECUTE;
+- governance trace correlation and assignment audit;
+- exact durable replay after state/precondition advancement;
+- stale competing-command rejection;
+- conflicting idempotency-key reuse rejection;
+- A2 review-required behavior without mutation;
+- rollback of assignment/audit/Activity when governance Activity persistence fails.
+
+### Non-claims
+
+B.2 does not yet:
+
+- expose the governed assignment through a public HTTP route;
+- route every WorkItem transition through MaterialAction;
+- persist blocked/review-only attempts as the final Transparency model;
+- add a MaterialAction table;
+- add a database migration;
+- implement Decision Readiness;
+- implement independent R3+ verification;
+- implement the Organizational Immune System;
+- implement earned-autonomy promotion/demotion;
+- implement V1.3-C Transparency Foundation;
+- claim canonical B.2 PASS;
+- claim GitHub CI PASS.
+
+Canonical acceptance commands are documented in `docs/V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md`.
+
+---
+
+## 2026-08-20 — V1.3-B.1 MINIMAL GOVERNANCE KERNEL — COMPLETE / PASS / SEALED AS FOUNDATION
+
+### Status
+
+**Canonical V12 checkout acceptance is complete. B.1 is now the accepted deterministic foundation for subsequent V1.3-B integration slices.**
 
 Implementation commit:
 
@@ -37,170 +178,18 @@ d351ad85f5c3464178b56dd9da6ac5c83090a27a
 feat: start v1.3-b governance kernel
 ```
 
-Roadmap synchronization:
+Dedicated acceptance record:
 
 ```text
-64b91e1b992a2198da034a6450d3100f110ce725
-docs: advance roadmap to v12.3 governance kernel
-```
-
-### Delivered
-
-```text
-apps/api/app/services/organization_governance_kernel.py
-apps/api/tests/test_organization_governance_kernel.py
-docs/V1_3_A_ACCEPTANCE_2026-08-20.md
-docs/V1_3_B_MINIMAL_GOVERNANCE_KERNEL.md
-```
-
-### Architectural approach
-
-The repository already contains mature command and Activity primitives, including:
-
-- `OrganizationCommandContext`;
-- tenant/actor/role validation;
-- canonical JSON/fingerprints;
-- idempotency helpers;
-- audited command mutation utilities;
-- durable `OrganizationActivity` append/stage behavior;
-- trace/correlation support.
-
-B.1 deliberately **reuses** those primitives. It does not create a second organization command framework.
-
-### B.1 contracts
-
-The new kernel adds:
-
-- `CapabilityAuthority` bound to tenant, actor, capability, actions, maximum risk, autonomy and optional scope;
-- typed `MaterialAction` envelope;
-- constitutional risk-floor enforcement;
-- expected-version/precondition decisions;
-- exact idempotent replay vs conflict decisions;
-- deterministic policy disposition;
-- A0–A5 routing;
-- Board-reserved action protection;
-- stable trace identity;
-- Activity projection compatible with the current OrganizationActivity runtime.
-
-Typed gateway outcomes:
-
-```text
-AUTO_EXECUTE
-BLOCK
-REVIEW_REQUIRED
-IDEMPOTENT_REPLAY
-```
-
-### Board-reserved invariant implemented
-
-A government submission remains:
-
-```text
-material = yes
-risk = R5
-Board reserved = yes
-```
-
-and therefore routes to:
-
-```text
-REVIEW_REQUIRED
-reason = BOARD_RESERVED
-```
-
-even when the actor's capability autonomy is A5.
-
-### Autonomy behavior in this bounded slice
-
-Only after authority, scope, risk, version, idempotency, policy and reserved-authority checks pass:
-
-```text
-A0 → BLOCK
-A1 → REVIEW_REQUIRED
-A2 → REVIEW_REQUIRED
-A3 → AUTO_EXECUTE + post-review-required marker
-A4 → AUTO_EXECUTE
-A5 → AUTO_EXECUTE
-```
-
-### Activity compatibility
-
-The current physical OrganizationActivity model predates the V1.3 constitutional activity taxonomy. B.1 therefore keeps the existing physical `operational` class and places the constitutional `MATERIAL` / `AUTHORITY` classification in the governance payload.
-
-This avoids an unnecessary schema migration before V1.3-C formalizes Transparency and Decision Lineage.
-
-### Isolated focused evidence
-
-Before publication, the bounded B.1 module/test pair was validated in an isolated package layout:
-
-```text
-19 passed in 0.05s
-```
-
-Coverage includes authority mismatch, action/scope authority, risk ceiling/floor, expected/stale versions, idempotent replay/conflict, policy deny/review, A0/A2/A3 behavior, Board reservation at A5, trace-correlated Activity projection and rejection of non-material actions from the material gateway.
-
-This is implementation evidence only. It is **not** the final repository acceptance result.
-
-### Non-claims
-
-B.1 does not yet:
-
-- execute a production domain mutation through the new gateway;
-- persist a new `MaterialAction` table;
-- add a database migration;
-- change the 118 registered domain tables;
-- replace existing route authorization;
-- replace existing organization command services;
-- implement Decision Readiness;
-- implement independent verification;
-- implement contradiction detection;
-- implement the Organizational Immune System;
-- implement earned-autonomy promotion/demotion;
-- implement full Transparency / Decision Lineage;
-- authorize government submission automatically;
-- claim a canonical B.1 full API PASS;
-- claim GitHub CI PASS.
-
-### Next acceptance
-
-From the canonical V12 checkout after pulling the B.1 commit:
-
-```text
-pytest apps/api/tests/test_organization_governance_kernel.py -q
-scripts/check_repo_policy.py --root .
-pytest apps/api/tests -q
-git diff --check
-git status -sb
-```
-
-Migration head is expected to remain:
-
-```text
-0076_organization_position_active_identity
-```
-
-After clean canonical acceptance, B.2 should wire one existing reversible low-risk organization command through the kernel and existing Activity path.
-
----
-
-## 2026-08-20 — V1.3-A FINAL ACCEPTANCE — COMPLETE / PASS / SEALED
-
-### Status
-
-**V1.3-A Constitutional Contracts has completed canonical repository acceptance and is sealed as the constitutional floor for subsequent V1.3 runtime work.**
-
-Dedicated record:
-
-```text
-docs/V1_3_A_ACCEPTANCE_2026-08-20.md
+docs/V1_3_B1_ACCEPTANCE_2026-08-20.md
 ```
 
 ### Canonical acceptance evidence
 
-Focused constitutional tests:
+Focused Governance Kernel suite:
 
 ```text
-13 passed, 1 warning in 0.14s
+19 passed, 1 warning in 0.16s
 ```
 
 Repository policy:
@@ -209,34 +198,26 @@ Repository policy:
 Repository policy check passed.
 ```
 
-Previously failing v10.22 roadmap regression after the V12.2 compatibility correction:
-
-```text
-1 passed, 1 warning in 0.08s
-```
-
 Full API regression:
 
 ```text
-886 passed, 5 skipped, 1 warning in 337.70s (0:05:37)
+905 passed, 5 skipped, 1 warning in 325.63s (0:05:25)
 ```
 
-Database migration integrity:
+Database/migration integrity:
 
 ```text
 Database migration check passed.
-database_url=sqlite:///./gmai.db
 migration_heads=0076_organization_position_active_identity
 registered_tables=118
 physical_schema=ok
 database_revision=0076_organization_position_active_identity
 ```
 
-Preserved local database schema parity:
+Local preserved DB parity:
 
 ```text
 Local DB schema check passed.
-database_url=sqlite:///D:/global-mobility-aios/gmai.db
 registered_tables=118
 actual_tables=118
 physical_tables=119
@@ -253,50 +234,74 @@ git status -sb
 ## roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
 ```
 
+### Accepted B.1 foundation
+
+B.1 accepts:
+
+- tenant/actor-bound `CapabilityAuthority`;
+- capability/action/scope authority;
+- A0–A5 autonomy routing;
+- R0–R5 constitutional risk-floor enforcement;
+- typed `MaterialAction` envelope;
+- expected-version/precondition decisions;
+- idempotency replay/conflict decisions;
+- deterministic policy disposition;
+- Board-reserved protection;
+- stable trace identity;
+- OrganizationActivity-compatible governance projection.
+
+Government submission remains R5 + Board-reserved even for A5 capability autonomy.
+
 ### Warning disposition
 
-One Starlette/httpx TestClient deprecation warning remains. It is non-blocking for V1.3-A and should be handled in a separate dependency-maintenance task rather than changing dependencies inside the governance phase.
+The single warning remains the pre-existing Starlette/httpx TestClient deprecation warning and is not a B.1 regression.
 
 ### Final disposition
 
 ```text
-V1.3-A — Constitutional Contracts
+V1.3-B.1
 COMPLETE
 PASS
-SEALED
+SEALED AS B FOUNDATION
 ```
 
-No GitHub CI PASS is claimed because no attached check/status evidence was used for this acceptance.
+No GitHub CI PASS is claimed.
 
 ---
 
-## 2026-08-19 — V1.3-A BROADER ACCEPTANCE — ROADMAP COMPATIBILITY REGRESSION IDENTIFIED AND FIXED / RERUN PENDING
+## 2026-08-20 — V1.3-A FINAL ACCEPTANCE — COMPLETE / PASS / SEALED
 
-### Status
+V1.3-A Constitutional Contracts is the sealed constitutional floor for V1.3 runtime work.
 
-**Historical intermediate checkpoint.** Constitutional contract tests and repository policy passed, while the first broader API regression exposed one documentation-roadmap compatibility failure. That failure was corrected in Roadmap V12.2 and subsequently verified by the final acceptance recorded above.
-
-### Intermediate evidence
+Implementation:
 
 ```text
-pytest apps/api/tests/test_organization_constitution.py -q
-13 passed, 1 warning in 0.14s
-
-scripts/check_repo_policy.py --root .
-Repository policy check passed.
-
-pytest apps/api/tests -q
-885 passed, 5 skipped, 1 failed, 1 warning in 334.06s
+7779c1f8e5d3db2e72e047667774284d7cc5f5af
+feat: freeze v1.3 constitutional contracts
 ```
 
-The sole failure was:
+Dedicated acceptance record:
 
 ```text
-apps/api/tests/test_coverage_tranche_operations_script.py::
-test_v10_22_documentation_and_roadmap_are_present
+docs/V1_3_A_ACCEPTANCE_2026-08-20.md
 ```
 
-The regression required the roadmap to preserve:
+Canonical evidence:
+
+```text
+Constitutional tests       13 passed / 1 warning / 0 failed
+Repository policy          PASS
+v10.22 regression rerun    1 passed / 1 warning
+Full API regression        886 passed / 5 skipped / 1 warning / 0 failed
+Migration check            PASS
+Migration head             0076_organization_position_active_identity
+Registered tables          118
+Local DB schema            PASS / 118 actual tables
+git diff --check           clean
+git status                 clean / synchronized
+```
+
+The historical v10.22 roadmap compatibility fix preserved:
 
 ```text
 v10.22
@@ -304,63 +309,13 @@ multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-Roadmap V12.2 restored those historical continuity markers in commit:
-
-```text
-2f1fe6774e8681cc98448680b1a8e315d8ebe4a0
-docs: restore v10.22 roadmap compatibility milestone
-```
-
-This checkpoint is superseded by the 2026-08-20 final V1.3-A PASS above.
-
----
-
-## 2026-08-19 — V1.3-A CONSTITUTIONAL CONTRACTS — IMPLEMENTED / FOCUSED TEST PASS
-
-### Status
-
-**Initial runtime-facing contract implementation checkpoint.** Later canonical acceptance is recorded above.
-
-Implementation commit:
-
-```text
-7779c1f8e5d3db2e72e047667774284d7cc5f5af
-feat: freeze v1.3 constitutional contracts
-```
-
-### Purpose
-
-Started the actual V12 Track C implementation with:
-
-> **V1.3-A — Constitutional Contracts**
-
-Added:
-
-```text
-apps/api/app/core/organization_constitution.py
-apps/api/tests/test_organization_constitution.py
-docs/ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md
-```
-
-The contract freezes Board supremacy, Board Transparency, **scores route; deterministic gates authorize**, A0–A5, R0–R5, `HumanReviewReason`, consequence/recovery classes, reserved authority, the Materiality Registry and activity transparency policy.
-
-Initial isolated focused evidence was:
-
-```text
-13 passed in 0.07s
-```
-
-The canonical checkout later produced `13 passed, 1 warning in 0.14s` and the complete V1.3-A acceptance described above.
+No GitHub CI PASS was claimed.
 
 ---
 
 ## 2026-08-19 — V12 ROADMAP / README ALIGNMENT
 
-### Status
-
-Documentation/branch-alignment checkpoint only.
-
-V12 was created directly from the V11 checkpoint at `dd2f2cd`. The inherited README and roadmap initially still described V11 as the active line, so V12 documentation was realigned to make the branch roles explicit.
+V12 documentation was separated from the frozen V11 reference after the branch split.
 
 Key commits:
 
@@ -375,7 +330,7 @@ c894fba4fb3f04d992614952cafe843978011a21
 docs: align v12 roadmap and changelog
 ```
 
-Resulting distinction:
+Repository-generation distinction:
 
 ```text
 Git branch V11/V12 = repository development generation
@@ -383,27 +338,25 @@ Architecture V1.3 = high-autonomy organization architecture version
 Roadmap V12.x = active V12 delivery-plan generation
 ```
 
-No runtime/database/acceptance state changed in those documentation commits.
-
 ---
 
 ## 2026-08-19 — V12 DEVELOPMENT BRANCH OPENED
 
-V12 was created from:
+V12 forked from:
 
 ```text
 roadmap/global-mobility-aios-v11
 @ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
 ```
 
-Initial V12 branch transition commit:
+Initial branch-transition commit:
 
 ```text
 2120ba7f509d9f556534d859628755e2608d2955
 docs: record v12 development branch transition
 ```
 
-The branch split exists so V1.3 implementation can proceed without risking the preserved V11 product/runtime reference.
+The frozen V11 branch later received only its own documentation cleanup and remains the reference checkpoint.
 
 ---
 
