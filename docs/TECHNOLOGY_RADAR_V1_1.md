@@ -1,101 +1,89 @@
 # Global Mobility AIOS — Technology Radar V1.1
 
-**Status:** ACTIVE CANONICAL V1.1 — platform-evolution architecture / evaluation checkpoint
-**Date:** 2026-08-18
-**Product baseline:** Phase 13.16.7 COMPLETE / PASS at `f0688a872e7e6977b69d1f9ff0607b647fc71d14`
-**Active product slice:** Phase 13.16.8 — Professional / Operator experience
-**Runtime impact of this checkpoint:** none
+**Status:** ACTIVE CANONICAL V1.1 — platform-evolution architecture / evaluation checkpoint  
+**Date:** 2026-08-19  
+**Accepted product baseline:** Phase 13.16.10 COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
+**Active product slice:** Phase 13.17 — owner-led human acceptance, IN PROGRESS / PAUSED BY EVALUATOR  
+**Runtime impact of this architecture update:** none  
+**Human-like organization architecture:** [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md)  
 **Historical predecessor:** [TECHNOLOGY_RADAR_V1.md](TECHNOLOGY_RADAR_V1.md) remains frozen historical evidence
 
-Technology Radar V1.1 extends the provider-neutral architecture established in V1. It does not
-reorder product delivery, install the listed technologies, create runtime provider interfaces, or
-change AIOS authority/legal/evidence semantics by itself.
+Technology Radar V1.1 identifies external/open-source technologies and architecture patterns that can materially strengthen Global Mobility AIOS without allowing third-party frameworks to define AIOS domain semantics, organizational authority, evidence truth, legal status, certification/publication state, or business outcomes.
 
-The radar now serves three related purposes:
+The Radar is not a dependency manifest. Inclusion means a technology is worth evaluating for a defined AIOS capability. Runtime adoption still requires a bounded implementation slice, benchmark, architecture boundary, operational/security/data-flow review, acceptance contract, rollback plan, and exit strategy.
 
-1. identify technologies that can materially strengthen AIOS capabilities;
-2. preserve AIOS ownership of domain meaning and replaceability of external implementations;
-3. establish lawful Internal Learning & Quality and the future AIOS Coworker as explicit platform
-   directions.
-
-> **AIOS Semantic Sovereignty Principle:** Third-party infrastructure may implement, accelerate,
-> observe, execute, retrieve, parse, scan, render, evaluate, or enforce an AIOS-defined
-> capability, but it must never become authoritative for AIOS domain meaning, legal status,
-> evidence status, certification state, human-review requirements, publication state,
-> organizational authority, or business outcome semantics.
-
-> **Internal Learning & Quality Principle:** Subject to applicable law, contractual commitments,
-> declared processing purposes, required safeguards, and the relevant data-use policy, AIOS
-> should maximize lawful learning from the work it performs. Evaluation, quality improvement,
-> operational intelligence, retrieval/document improvement, workflow optimization, and
-> appropriate internal model training are first-class product purposes.
-
-The radar is not a dependency manifest. A listed technology is not automatically installed,
-production-approved, or allowed to own AIOS state.
+The 2026-08-19 update expands V1.1 from a provider-neutral capability radar into a platform-evolution model for a **human-like, high-performance AI organization**. It preserves the accepted Phase 13 product sequence and the already-started bounded Radar pilots.
 
 ---
 
-## 1. Fit tiers and adoption classifications
+## 1. Core architecture principle — AIOS Semantic Sovereignty
 
-V1.1 introduces a **strategic fit tier** in addition to the existing adoption classification.
-Fit describes architectural/product relevance. Classification describes how close a candidate is
-to an evidence-driven implementation decision.
+> **Third-party infrastructure may implement, accelerate, execute, retrieve, parse, monitor, observe, scan, render, evaluate, optimize, coordinate, remember, connect, or otherwise support an AIOS-defined capability, but it may never become authoritative for AIOS domain meaning, legal status, evidence state, certification state, publication state, human-review requirements, organizational authority, Mission/WorkItem semantics, ExecutiveDecision semantics, Contribution semantics, OrganizationActivity semantics, or business outcomes.**
 
-### 1.1 A+ — strongest strategic fit
+Preferred architecture:
 
-| Technology | Intended AIOS role | Fit | Current classification |
-|---|---|---:|---|
-| **Docling** | document normalization / structured document understanding | A+ | ADOPT / EARLY PILOT |
-| **Presidio** | sensitive-data detection/transformation for Privacy Gateway | A+ | ADOPT / EARLY PILOT |
-| **Promptfoo** | AI regression, adversarial and safety evaluation | A+ | ADOPT / EARLY PILOT |
-| **OpenTelemetry** | vendor-neutral AI/application telemetry foundation | A+ | ADOPT / EARLY PILOT |
-| **urlwatch** | official-source change monitoring | A+ | ADOPT / EARLY PILOT |
-| **ClamAV** | upload quarantine / malware scanning | A+ | ADOPT / EARLY PILOT |
-| **OpenWorker (`andrewyng/openworker`)** | AIOS Coworker / finished-work execution reference | **A+** | **STRATEGIC REFERENCE / CONTROLLED PILOT** |
-| **Temporal** | durable long-running execution | A+ Strategic | STRATEGIC PILOT |
-| **OpenFGA** | fine-grained relationship authorization | A+ Strategic | STRATEGIC PILOT |
+```text
+AIOS domain / Organization OS
+        ↓
+AIOS-owned capability contract
+        ↓
+AIOS adapter / Execution Broker
+        ↓
+external technology / runtime
+```
 
-OpenWorker is an unusually strong reference for the future AIOS Coworker because its current
-product model centers on completing real work, producing deliverables, using files/tools and
-connectors, supporting MCP and scheduled automation, remaining model-flexible, and requiring
-approval for consequential actions. The project currently documents a local Python agent server,
-desktop UI, 25+ connectors, scheduled automations, deliverable production, MCP support, and
-cloud/open-weight/local model choices.
+Provider output remains distinguishable from authoritative AIOS state.
 
-**Name disambiguation:** this radar entry refers specifically to the local-first finished-work
-coworker project at `andrewyng/openworker`, not other projects using the OpenWorker name.
+Permanent companion principles:
 
-### 1.2 A — specialist technologies
+> **Human in interaction. Machine-like in reliability.**
+
+> **Natural interaction, deterministic accountability.**
+
+> **Team outcomes over agent competition.**
+
+> **Activity is broad; authority is narrow.**
+
+> **Autonomy is earned and measured through quality, SLA performance, governed outcomes, and bounded authority.**
+
+---
+
+## 2. Updated Technology Fit Tiers
+
+### 2.1 A+ — strongest strategic fit
+
+| Technology | Intended AIOS capability | Current direction |
+|---|---|---|
+| **Docling** | document normalization / structured document intelligence | ADOPT / EARLY PILOT — Wave 2 pilot started |
+| **Presidio** | sensitive-data processing / Privacy Gateway | ADOPT / EARLY PILOT |
+| **Promptfoo** | AI regression, adversarial and quality evaluation | ADOPT EARLY — Wave 1 pilot complete |
+| **OpenTelemetry** | vendor-neutral telemetry foundation | ADOPT EARLY — Wave 1 pilot complete |
+| **urlwatch** | official-source change monitoring | ADOPT / EARLY PILOT |
+| **ClamAV** | untrusted-upload quarantine / malware scanning | ADOPT — Wave 1 pilot complete |
+| **Munder Difflin (`chaitanyagiri/munder-difflin`)** | AIOS Agent Organization Fabric / human-like multi-agent coordination / Live Organization reference | **STRATEGIC ARCHITECTURE REFERENCE / CONTROLLED PILOT-RESEARCH** |
+| **OpenWorker (`andrewyng/openworker`)** | AIOS Coworker / finished-work execution / tools-connectors-deliverables reference | **STRATEGIC REFERENCE / CONTROLLED PILOT** |
+| **Temporal** | durable timers, waits, retries, signals and resumption | STRATEGIC PILOT |
+| **OpenFGA** | fine-grained relationship authorization | STRATEGIC PILOT |
+
+Munder Difflin and OpenWorker are **not competing organization frameworks inside AIOS**. Their strongest capabilities are complementary and may be composed behind AIOS-owned contracts when measured results justify it.
+
+### 2.2 A — specialist technologies
 
 | Technology | Intended AIOS role | Current classification |
 |---|---|---|
-| **pgvector** | semantic retrieval candidate | PILOT / BENCHMARK |
-| **Pydantic AI** | typed production agent-runtime candidate | PILOT / BENCHMARK |
-| **Langfuse** | LLM/agent observability behind OpenTelemetry | PILOT / BENCHMARK |
-| **PaddleOCR** | mature OCR candidate | PILOT / BENCHMARK |
-| **Unlimited-OCR** | advanced OCR/VLM candidate | PILOT / BENCHMARK |
-| **DSPy** | offline AI program optimization | RESEARCH |
-| **Gotenberg** | general PDF/document rendering | PILOT / BENCHMARK |
-| **Typst** | premium professional report generation | PILOT / BENCHMARK |
-| **EU DSS** | EU electronic-signature validation | RESEARCH |
+| **pgvector** | governed semantic retrieval | BENCHMARK |
+| **Qdrant** | dedicated semantic retrieval alternative | BENCHMARK against pgvector |
+| **Pydantic AI** | typed production AI/agent runtime candidate | PILOT |
+| **Langfuse** | LLM/agent engineering observability behind OpenTelemetry | PILOT behind OpenTelemetry |
+| **PaddleOCR** | OCR/document extraction | BENCHMARK |
+| **Unlimited-OCR** | advanced OCR/VLM extraction | BENCHMARK |
+| **DSPy** | offline AI-program optimization | RESEARCH / PILOT |
+| **Gotenberg** | commodity PDF/document conversion | ADOPT when output layer requires it |
+| **Typst** | premium professional report generation | ADOPT for selected outputs |
+| **EU DSS** | EU electronic-signature validation | PREFERRED RESEARCH |
 
-These solve different responsibilities and must not be collapsed merely because several are
-adjacent to agent/AI workloads:
+### 2.3 B / conditional technologies
 
-```text
-OpenWorker     = Coworker / finished-work execution reference
-Pydantic AI    = typed AIOS agent-runtime candidate
-DSPy           = offline model/program optimization
-Temporal       = execution durability
-OpenTelemetry  = neutral telemetry
-Promptfoo      = evaluation and regression
-```
-
-OpenWorker does **not** justify removing an A+ or A specialist candidate.
-
-### 1.3 B / conditional technologies
-
-- Qdrant;
 - Fides;
 - OpenLineage;
 - OPA;
@@ -103,592 +91,782 @@ OpenWorker does **not** justify removing an A+ or A specialist candidate.
 - Haystack;
 - MarkItDown.
 
-The cleanup rule is:
+The cleanup rule remains:
 
-> **Do not remove a candidate because another unrelated technology is better overall. Remove it
-> only when another candidate demonstrably owns the same capability more effectively and AIOS no
-> longer benefits from maintaining both.**
+> **Do not remove a candidate merely because another technology is attractive. Remove it only when another candidate demonstrably wins the same capability and maintaining both provides no measurable benefit.**
 
 Examples:
 
-- if pgvector decisively wins the AIOS retrieval benchmark, Qdrant can leave the active radar;
-- if Docling covers the required lightweight conversion workload, MarkItDown can leave;
-- if Pydantic AI plus AIOS-native retrieval/orchestration satisfies the runtime need, Haystack can
-  leave.
+- pgvector wins the AIOS retrieval benchmark → Qdrant may leave the active radar;
+- Docling fully satisfies lightweight conversion → MarkItDown may leave;
+- Pydantic AI + AIOS-native retrieval/orchestration satisfies production requirements → Haystack may leave.
 
 ---
 
-## 2. AIOS Coworker — product capability, not third-party semantics
-
-OpenWorker is recorded as:
+## 3. Responsibility separation
 
 ```text
-Technology:     OpenWorker (andrewyng/openworker)
+Munder Difflin  = human-like multi-agent organization / coordination / visual organization reference
+OpenWorker      = finished-work / Coworker execution reference
+AIOS Execution Broker = AIOS-owned capability selection and composition
+Pydantic AI     = typed production agent-runtime candidate
+DSPy            = offline model/program optimization
+Temporal        = execution durability
+OpenFGA         = relationship authorization
+OpenTelemetry   = neutral engineering telemetry
+Langfuse        = LLM/agent engineering observability behind OTel
+Promptfoo       = evaluation / regression
+```
+
+No external runtime should become the semantic center of Global Mobility AIOS.
+
+---
+
+## 4. Munder Difflin — A+ Agent Organization reference
+
+Munder Difflin is classified as:
+
+```text
+Fit:            A+
+Classification: STRATEGIC ARCHITECTURE REFERENCE / CONTROLLED PILOT-RESEARCH
+AIOS capability: Agent Organization Fabric / Live Organization
+```
+
+Current documented concepts that are particularly relevant to AIOS include:
+
+- persistent agent identities;
+- real agent processes backed by multiple providers/CLIs;
+- agent-to-agent mailboxes and routed messages;
+- conversation/thread behavior;
+- persistent agent memory;
+- shared working-memory / blackboard patterns;
+- supervisor/orchestrator patterns;
+- dependency-aware tasks;
+- scheduled missions and heartbeat;
+- human approval/intervention paths;
+- agent budgets and cost accounting;
+- OpenTelemetry observability;
+- progressive steer → constrain → stop circuit breaking;
+- skills / capability discovery;
+- live fleet/organization visualization;
+- direct human interaction with individual agents.
+
+AIOS should adapt these capabilities to its stronger domain model rather than copy Munder Difflin's persistence or authority semantics.
+
+### 4.1 Communication is organization activity
+
+The canonical AIOS relationship is:
+
+```text
+AgentMessage ⊂ OrganizationActivity
+```
+
+Human-like conversation is legitimate organizational activity: questions, clarifications, suggestions, requests, handoffs, warnings, peer review, acknowledgements, disagreements, and routine coordination may all be recorded as organizational activity.
+
+But:
+
+```text
+conversation ≠ authority
+message ≠ ExecutiveDecision
+memory ≠ Evidence
+memory ≠ VerifiedRule
+message ≠ certification/publication
+provider event log ≠ canonical AIOS OrganizationActivity
+```
+
+Provider messages/events may be normalized into AIOS-owned `OrganizationActivity`. Provider storage itself never becomes the authoritative semantic history.
+
+### 4.2 Munder storage boundary
+
+Munder Difflin's local file/git hive is appropriate for its desktop-agent model. AIOS does not replace its authoritative database/domain model with that persistence pattern.
+
+AIOS remains authoritative for Mission, WorkItem, Dependency, Blocker, AgentConversation, OrganizationActivity, HumanActionRequest, HumanAction, ExecutiveDecision, Contribution, evidence, certification, publication, case state, and authority.
+
+---
+
+## 5. OpenWorker — A+ AIOS Coworker / finished-work reference
+
+OpenWorker is classified as:
+
+```text
 Fit:            A+
 Classification: STRATEGIC REFERENCE / CONTROLLED PILOT
-AIOS capability: AIOS Coworker / Agent Execution Plane
+AIOS capability: Finished-Work Execution / AIOS Coworker
 ```
 
-OpenWorker itself must **not** become a permanent AIOS domain abstraction. The product concept is
-**AIOS Coworker**.
+OpenWorker strongly informs:
 
-The intended experience is:
+- outcome-first UX;
+- documents/reports/spreadsheets/web artifacts as finished deliverables;
+- local files and terminal;
+- MCP;
+- connectors and external app actions;
+- scheduled work;
+- model/provider portability;
+- approval before consequential writes/sends/commands;
+- unattended-work approval inboxes;
+- local-first execution patterns.
 
-```text
-Human asks for an outcome
-          ↓
-AIOS understands the case/work context
-          ↓
-AIOS creates / resolves governed work
-          ↓
-Agents use relevant tools and information
-          ↓
-Finished deliverables are created
-          ↓
-Material actions follow AIOS authority rules
-          ↓
-Human intervention occurs where required
-          ↓
-Outcome + provenance + learning signals recorded
-```
+Candidate AIOS Coworker outcomes include:
 
-Candidate outcomes include:
+- employer mobility packs;
+- professional case briefs;
+- missing-evidence analysis;
+- client communications;
+- qualification memos;
+- evidence registers;
+- Board briefings;
+- regulatory-change comparisons;
+- case chronologies;
+- authority-correspondence analysis;
+- calendar/email actions;
+- premium professional reports.
 
-- prepare an employer mobility pack;
-- analyse missing evidence;
-- draft a professional case brief;
-- review authority correspondence;
-- prepare a client follow-up;
-- update internal case chronology;
-- build a qualification evidence memo;
-- create a Board briefing;
-- analyse a regulatory change;
-- prepare an evidence register;
-- draft an email/calendar action;
-- reconcile a case against a new VerifiedRule.
-
-The objective is:
-
-> **Do the work, produce the artifact, preserve provenance, and learn from the outcome.**
-
-### 2.1 Coworker architecture boundary
-
-```text
-                    GLOBAL MOBILITY AIOS
-                           DOMAIN TRUTH
-                                │
-          ┌─────────────────────┼─────────────────────┐
-          ▼                     ▼                     ▼
-      Mobility              Evidence           Organization OS
-       Engine                 System
-                                                    │
-                                           WorkItem
-                                           Blocker
-                                           Dependency
-                                           HumanActionRequest
-                                           HumanAction
-                                           ExecutiveDecision
-                                           Contribution
-                                           Activity
-                                                    │
-                                                    ▼
-                                          AIOS COWORKER
-                                                    │
-                                         Agent Execution Plane
-                                                    │
-                    ┌───────────────────────────────┼──────────────┐
-                    ▼                               ▼              ▼
-                  Files                           Tools        Connectors
-                    │                               │              │
-             Documents / Drive                    MCP       Email / Calendar
-                                                            Slack / Teams
-                                                            CRM / HRIS / ATS
-                                                    │
-                                                    ▼
-                                           Finished Deliverable
-                                                    │
-                                                    ▼
-                                           Governed Outcome
-                                                    │
-                                                    ▼
-                                          Learning + Evaluation
-```
-
-A future OpenWorker-derived integration is therefore a reference, adapter, or bounded execution
-implementation behind AIOS-owned contracts. It does not own WorkItem meaning, Board authority,
-legal/evidence conclusions, Activity, or the definition of a successful business outcome.
+OpenWorker must not own Mission, WorkItem, authority, evidence state, certification, publication, Decision, Contribution, OrganizationActivity, or business-outcome semantics.
 
 ---
 
-## 3. Internal Learning & Quality Plane
+## 6. AIOS Agent Organization Fabric
 
-Internal Learning & Quality is a first-class platform capability.
-
-Subject to applicable law, contractual commitments, declared processing purposes, and the
-applicable data-use policy, AIOS should be capable of learning from:
+The long-term architecture is:
 
 ```text
-Cases
-Documents
-Evidence
-Agent activity
-Model outputs
-Retrieval results
-Professional corrections
-Human approvals / rejections
-Tool outcomes
-Connector-derived context
-WorkItems
-Blockers
-Decisions
-Contributions
-Activity
-User feedback
-Workflow outcomes
-        │
-        ▼
-AIOS LEARNING & QUALITY PLANE
-        │
-        ├── product analytics
-        ├── AI evaluations
-        ├── regression datasets
-        ├── human-correction datasets
-        ├── agent-quality analysis
-        ├── workflow optimization
-        ├── document/OCR improvement
-        ├── retrieval improvement
-        ├── regulatory-intelligence quality
-        ├── organizational intelligence
-        ├── prompt/program optimization
-        └── permitted internal model training/fine-tuning
+AIOS DOMAIN TRUTH
+                        │
+     ┌──────────────────┼──────────────────┐
+     ▼                  ▼                  ▼
+Mobility Engine     Evidence System    Organization OS
+                                            │
+                                      Positions
+                                      Departments
+                                      Missions
+                                      WorkItems
+                                      Dependencies
+                                      Blockers
+                                      Human Actions
+                                      Decisions
+                                      Contributions
+                                      Activity
+                                            │
+                                            ▼
+                                  AGENT ORGANIZATION FABRIC
+                                            │
+                    ┌───────────────────────┼─────────────────────┐
+                    ▼                       ▼                     ▼
+             Orchestration            Communication            Memory
+                    │                       │                     │
+             CEO / executives           Messages             Session
+             delegation                 Conversations         Position
+             squads                     Handoffs              Department
+             scheduling                 Collaboration         Organization
+                    │                       │                     │
+                    └───────────────────────┼─────────────────────┘
+                                            ▼
+                                   AIOS EXECUTION BROKER
+                                            │
+                     ┌──────────────────────┼─────────────────────┐
+                     ▼                      ▼                     ▼
+               Munder-style           OpenWorker             AIOS-native
+               agent execution        finished work          typed/deterministic
+                     │                      │                     │
+                     └──────────────────────┼─────────────────────┘
+                                            ▼
+                                      Finished Work
+                                            │
+                                            ▼
+                                  Quality / SLA / Authority
+                                            │
+                                            ▼
+                                      Governed Outcome
+                                            │
+                                            ▼
+                                  Learning & Quality Plane
 ```
 
-The intended outcome is:
+---
 
-> **Every permitted interaction should have the potential to make AIOS better.**
+## 7. AIOS Execution Broker
 
-### 3.1 Human corrections as learning signals
+The AIOS-owned Execution Broker determines which capabilities should perform or cooperate on a Mission.
 
-Professional corrections, overrides, confirmations, review outcomes, and evidence/OCR
-corrections should be capable of becoming explicit learning events.
+Candidate routing criteria include:
+
+- capability fit;
+- deterministic authority;
+- SLA urgency;
+- workload/capacity;
+- jurisdiction/context;
+- expected quality;
+- historical success;
+- human correction/rework rate;
+- evidence requirements;
+- required human/professional gates;
+- tool/connector availability;
+- model/runtime suitability;
+- cost;
+- privacy/data-use constraints;
+- provider health;
+- fallback/recovery availability.
+
+The objective is not framework loyalty. The objective is **the best governed result**.
+
+One Mission may therefore use Munder-inspired collaboration, AIOS-native domain services, an OpenWorker finished-work capability, a specialist model runtime, and deterministic services together.
+
+---
+
+## 8. Missions, Dynamic Squads and Definition of Done
+
+AIOS should introduce **Mission** as an outcome-level organizational concept above WorkItems.
 
 ```text
-AI prediction
-     ↓
-professional decision
-     ↓
-difference
-     ↓
-Learning Record
+Mission
+  objective
+  owner_position
+  participants / Dynamic Squad
+  priority / service class
+  success definition
+  SLA
+  KPIs
+  authority boundary
+  risk
+  status
+  outcome
 ```
 
-The same pattern applies to OCR extraction corrections, evidence checklist edits, retrieval
-acceptance/rejection, agent rework, and workflow overrides.
+A Mission may create multiple WorkItems, conversations, dependencies, artifacts and decisions across departments.
 
-A future controlled pipeline is:
+Temporary **Dynamic Squads** allow cross-department collaboration without destroying the permanent organization chart.
+
+Every material Mission should have a **Definition of Done** appropriate to its outcome. Possible requirements include completed deliverables, current/authoritative sources, evidence/provenance completeness, explicit uncertainty, required review, valid output format, authorized external action, SLA status, and outcome/learning capture.
+
+---
+
+## 9. Persona + deterministic authority
+
+Agents should possess rich organizational identities:
 
 ```text
-Operational interaction
+IDENTITY
+CEO — Global Mobility AIOS
+
+REPORTS TO
+Human Board
+
+RESPONSIBILITIES
+...
+
+CURRENT AUTHORITY
+...
+
+DELEGATED CAPABILITIES
+...
+
+HUMAN / BOARD REQUIRED
+...
+
+PROHIBITED
+...
+```
+
+Therefore:
+
+```text
+rich organizational persona
+        +
+deterministic position / delegation contract
+        =
+governed organizational agent
+```
+
+Persona informs reasoning, priorities, communication and delegation strategy. When persona and deterministic runtime authority disagree, **deterministic authority wins**. A model cannot obtain authority by claiming a title.
+
+---
+
+## 10. Distributed human review and proportional escalation
+
+Not every uncertainty belongs in Board Room.
+
+The canonical escalation principle is:
+
+> **Resolve autonomously where permitted. Collaborate before escalating. Escalate to the lowest level with the necessary expertise or authority. Reserve Board attention for genuinely Board-level matters.**
+
+```text
+Issue
+ │
+ ├─ agent can resolve → resolve
+ ├─ colleague has expertise → collaborate
+ ├─ department authority required → department lead
+ ├─ professional judgement required → Professional / Operator
+ ├─ personal fact required → Mobility User
+ ├─ executive authority required → relevant Executive / CEO
+ └─ reserved/material organization authority → Human Owner / Board
+```
+
+Architecture principle:
+
+> **Distributed human review + centralized Cockpit oversight.**
+
+Board Room remains a reserved-authority module inside Cockpit, not a generic review queue.
+
+---
+
+## 11. Human Owner privileged command
+
+Natural language should become a first-class human organizational command interface.
+
+Conceptually:
+
+```text
+GLOBAL MOBILITY AIOS COCKPIT
+
+OWNER COMMAND
+────────────────────────────────
+
+> Ask the CEO why Austria cases are taking longer this week,
+  have Operations investigate, and prepare a recovery plan.
+```
+
+Authority comes from the authenticated Human Owner identity and deterministic AIOS governance, not the wording of the prompt.
+
+For high-impact commands AIOS may show an interpretation preview describing affected agents/capabilities, unaffected scope, authority source and expected consequence before execution.
+
+The preview protects against language ambiguity; it does not create or remove Owner authority.
+
+---
+
+## 12. SLA, KPI and OKR operating model
+
+Human-like collaboration must remain measurable and accountable.
+
+### SLA direction
+
+Mission/WorkItem SLA semantics may include:
+
+```text
+service_class
+acknowledge_by
+start_by
+respond_by
+complete_by
+review_by
+freshness_requirement
+escalation_after
+maximum_blocker_age
+retry_policy
+```
+
+Suggested classes: Critical, Priority, Standard, Background.
+
+SLA risk should trigger organizational correction—assist, rebalance, reassign, change execution capability—before inappropriate Board escalation.
+
+### KPI direction
+
+AIOS should measure delivery, quality, collaboration, economics, safety/governance, and human-effort outcomes.
+
+Examples:
+
+- Mission completion / SLA attainment / cycle time / blocker age;
+- first-pass quality / professional agreement / correction / rework;
+- evidence-grounding and provenance completeness;
+- collaboration success / unnecessary handoffs / dependency-resolution time;
+- cost per successful outcome / cost of rework;
+- human effort per outcome;
+- human-gate compliance / blocked unauthorized actions;
+- false or missed escalation rate.
+
+Individual metrics are diagnostic. **Team/Mission outcome is the primary performance unit.**
+
+### OKR direction
+
+Objectives and Key Results sit above operational KPIs and help CEO/executives direct organization improvement without incentivizing narrow agent competition.
+
+---
+
+## 13. Progressive intervention / circuit breaker
+
+Munder Difflin's progressive intervention concept maps strongly to AIOS.
+
+Target ladder:
+
+```text
+NORMAL
+  ↓
+STEER
+  ↓
+ASSIST / PEER SUPPORT
+  ↓
+REASSIGN
+  ↓
+CONSTRAIN
+  ↓
+SUSPEND SPECIFIC AGENT / CAPABILITY
+  ↓
+EXECUTIVE / HUMAN ESCALATION
+  ↓
+EMERGENCY ORGANIZATION STOP
+```
+
+`Pause Organization` remains an emergency governance control for circumstances where continued autonomous execution itself is materially unsafe—not a generic troubleshooting fallback.
+
+---
+
+## 14. Capability Registry and organizational capacity
+
+AIOS should own a Capability Registry that describes:
+
+- what each position/agent/runtime can do;
+- what requires professional/human review;
+- what is prohibited;
+- current availability/workload;
+- recent quality;
+- SLA risk;
+- cost;
+- provider/runtime health.
+
+COO/CEO and the Execution Broker can use these signals to route or rebalance work before SLA failure.
+
+Provider-specific skills register behind AIOS-owned capabilities; provider skill names do not become domain semantics.
+
+---
+
+## 15. Organizational memory and relationships
+
+Memory scopes should distinguish:
+
+```text
+Session → Position → Department → Organization
+```
+
+Useful organizational experience may include successful interventions, recurring problems, collaboration preferences, source-layout knowledge, correction patterns and routing lessons.
+
+But:
+
+```text
+memory ≠ evidence
+memory ≠ VerifiedRule
+memory ≠ certification
+memory ≠ legal truth
+```
+
+AIOS may also maintain structural and learned collaboration relationships for routing and organizational intelligence while keeping formal reporting/authority relationships deterministic.
+
+---
+
+## 16. Live Organization / Cockpit direction
+
+Munder Difflin's live office is valuable as an **information architecture concept**, not as a visual skin to copy.
+
+Global Mobility AIOS should translate it into its premium enterprise identity:
+
+- deep navy / graphite + warm ivory;
+- editorial serif + operational sans;
+- restrained motion;
+- sophisticated spatial organization;
+- no pixel/SNES imitation.
+
+Potential Live Organization capabilities:
+
+- department/position map;
+- visible working/waiting/blocked/collaborating states;
+- animated delegation and conversation flows;
+- active Dynamic Squads;
+- Mission movement;
+- SLA risk and workload/capacity;
+- cost/performance indicators;
+- click a position to inspect work, conversations, authority, performance and permitted memory;
+- natural direct conversation with CEO/executives/specialists.
+
+The animation must communicate real organization state rather than serve as decoration.
+
+Cockpit then compresses the large activity stream into notable/material/Owner/Board attention while keeping routine organizational activity inspectable.
+
+---
+
+## 17. Internal Learning & Quality Principle
+
+> **Subject to applicable law, contractual commitments, declared processing purposes, required safeguards, and the applicable data-use policy, AIOS should maximize lawful learning from the work it performs.**
+
+Potential signals include cases, documents, evidence, conversations, model responses, plans, tool calls, connector-derived context, retrieval results, professional corrections, Owner redirections, approvals/rejections, WorkItems, Missions, Blockers, Decisions, Contributions, Activity, SLA misses, collaboration outcomes and user feedback.
+
+Three layers remain separate:
+
+1. **Operational Intelligence** — understand organization/work performance.
+2. **Evaluation & Quality** — measure models, agents, collaboration and workflows.
+3. **Training & Optimization** — use permitted data to improve models, programs, retrieval, routing and workflows.
+
+Training is a first-class architecture concern, but a record valid for operational analytics is not automatically valid for model training.
+
+---
+
+## 18. Human corrections as high-value learning assets
+
+Where permitted:
+
+```text
+AI prediction / plan / extraction / recommendation
         ↓
-Outcome
+professional / Owner / human decision
         ↓
-Human correction / confirmation
+difference / confirmation
         ↓
 Learning Record
         ↓
 Evaluation Corpus
         ↓
-Training Candidate Corpus
+Training Candidate Dataset
         ↓
-Permitted Training Corpus
+Permitted Training Dataset
         ↓
-Model / prompt / program improvement
+Model / program / routing improvement
         ↓
-Shadow evaluation
-        ↓
-Promptfoo + deterministic regression
+Shadow evaluation + deterministic regression
         ↓
 Controlled promotion
 ```
 
-### 3.2 Keep three learning uses distinct
+This applies to OCR corrections, occupation mapping, evidence checklists, case summaries, agent plans, routing decisions and Board recommendations.
 
-**Level 1 — operational intelligence**
-
-- workflow bottlenecks;
-- agent performance;
-- professional workload;
-- case friction;
-- evidence gaps;
-- source quality;
-- user behaviour;
-- department performance.
-
-**Level 2 — evaluation and quality improvement**
-
-- professional agreement/correction rates;
-- material correction rate;
-- hallucination and retrieval quality;
-- OCR correction rate;
-- agent outcome quality;
-- tool failure rates;
-- legal-certainty regressions.
-
-**Level 3 — internal training and optimization**
-
-- fine-tuning and specialized models;
-- prompt/program optimization;
-- ranking/retrieval improvement;
-- document classifiers;
-- workflow prediction;
-- agent planning improvements.
-
-Separating these uses is necessary for model/data lineage, evaluation integrity, and compliance.
+Learning records never rewrite authoritative legal/business records merely to create training data.
 
 ---
 
-## 4. Training and learning lineage
+## 19. Training lineage
 
-AIOS should eventually be able to answer:
+AIOS should eventually answer:
 
-- Which information contributed to this model or program version?
-- Which model produced this result?
-- Which training/evaluation corpus was used?
-- Which professional corrections were included?
-- What was the jurisdiction/effective-date cutoff?
-- Which evaluation corpus was held out?
-- Which model/program version replaced which one?
-- Why was it promoted?
+- which data/corrections contributed to a model/program;
+- which jurisdictions/effective-date cutoff applied;
+- what transformations created a dataset;
+- which evaluation corpus remained held out;
+- which benchmark justified promotion;
+- which model/program produced a case result.
 
-Conceptually:
-
-```text
-TrainingDataset
-    dataset_id
-    purpose
-    creation_date
-    provenance
-    source_categories
-    jurisdictions
-    permitted_usages
-    model_targets
-    transformation_history
-
-ModelVersion
-    base_model
-    training_dataset_ids
-    training_configuration
-    evaluation_dataset_ids
-    benchmark_results
-    promotion_decision
-```
-
-Training lineage is both an engineering quality control and potential regulatory/compliance
-evidence. It must not be confused with legal/evidence provenance or OrganizationActivity.
+Future concepts may include `TrainingDataset`, `ModelVersion`, `LearningRecord`, and `AIOSDataUsagePolicy` with explicit provenance, purpose, allowed/conditional/excluded uses, sensitivity, retention and training lineage.
 
 ---
 
-## 5. Cockpit Quality Intelligence direction
+## 20. EU compliance and lawful learning
 
-Learning and quality should eventually surface in the **Global Mobility AIOS Cockpit** rather
-than remain only an ML-engineering facility.
+EU compliance should enable sustainable lawful improvement rather than either indiscriminate reuse or reflexive discarding of useful operational intelligence.
 
-Potential future measures include:
+Architecture direction:
 
 ```text
-AIOS Quality Intelligence
-────────────────────────────────────
-Professional agreement rate
-Human correction rate
-Material correction rate
-
-Evidence extraction accuracy
-OCR correction rate
-Retrieval citation acceptance
-
-Qualification-mapping disagreement
-Occupation-assessment agreement
-Regulatory extraction agreement
-
-Average human intervention per case
-Agent completion success
-Agent rework rate
-
-Most corrected AI capability
-Most common evidence ambiguity
-Largest workflow bottleneck
-Weakest jurisdiction coverage
-
-Model performance by capability
-Model performance by jurisdiction
-Model cost / successful outcome
-
-Human effort saved
-Human effort still required
+learning objective
+      ↓
+defined processing purpose
+      ↓
+appropriate lawful basis / compatibility analysis
+      ↓
+treatment of relevant data categories
+      ↓
+transparent policy / notices
+      ↓
+minimum-necessary processing + safeguards + retention
+      ↓
+traceable analytics / evaluation / training use
 ```
 
-The Cockpit should eventually help the Board ask where AIOS is weak, where humans repeatedly
-correct agents, which models/workflows perform best, and what should improve next. Durable
-WorkItems, Decisions, Blockers, Contributions and curated Activity remain organizational records;
-quality telemetry does not replace them.
+Where GDPR applies, concrete production learning/evaluation/training involving personal data requires the applicable purpose, legal basis or compatibility analysis, transparency, minimisation, retention/security controls and other required safeguards. Special-category data requires an applicable Article 9 condition and additional safeguards.
+
+The architecture must not assume a single generic Terms clause automatically authorizes every future use.
+
+If AIOS later becomes a provider of a general-purpose AI model under the EU AI Act, applicable GPAI-provider obligations and training-content lineage requirements must be assessed separately.
+
+This Radar is engineering/compliance architecture direction, not a final legal determination for a specific production processing regime.
 
 ---
 
-## 6. EU compliance direction for learning
+## 21. Updated Platform Evolution waves
 
-The product objective is **compliance-aware lawful learning**, not indiscriminate reuse of data
-and not automatic abandonment of useful learning.
+These waves describe platform evolution, not automatic installation order.
 
-The engineering direction is:
+### Wave 0 — Architecture & governance — COMPLETE
 
-```text
-AIOS learning objective
-        ↓
-explicit processing purpose
-        ↓
-appropriate lawful basis / compatibility assessment
-        ↓
-applicable treatment of relevant data categories
-        ↓
-transparent policy and notices
-        ↓
-minimum-necessary processing + retention/security controls
-        ↓
-traceable evaluation / training use
-```
+Established/frozen direction includes:
 
-GDPR principles require lawfulness, fairness, transparency, purpose limitation, data
-minimisation, and other safeguards. New or secondary processing cannot be treated as an undefined
-future use. Where personal data is involved, the applicable lawful basis and purpose/compatibility
-analysis must be established before the corresponding production processing regime is enabled.
-
-Global mobility cases may contain special-category personal data. Such data requires an
-applicable Article 9 condition and any other required safeguards before a learning/evaluation or
-training use is permitted.
-
-The EDPB's Opinion 28/2024 addresses personal data in AI model development/deployment, including
-anonymisation and legitimate-interest analysis. It does not create a blanket permission or blanket
-prohibition; production use requires case-specific compliance analysis.
-
-### 6.1 Data usage policy metadata direction
-
-A future AIOS data-governance layer should be capable of representing:
-
-```text
-AIOSDataUsagePolicy
-
-service_operation                  allowed / conditional / excluded
-quality_assurance                  allowed / conditional / excluded
-internal_analytics                 allowed / conditional / excluded
-agent_evaluation                   allowed / conditional / excluded
-safety_evaluation                  allowed / conditional / excluded
-workflow_improvement               allowed / conditional / excluded
-retrieval_improvement              allowed / conditional / excluded
-document_intelligence_improvement  allowed / conditional / excluded
-prompt_program_improvement         allowed / conditional / excluded
-internal_model_training            allowed / conditional / excluded
-human_quality_review               allowed / conditional / excluded
-
-processing_purpose                 [...]
-lawful_basis                       [...]
-tenant                             ...
-provenance                         ...
-sensitivity_class                  ...
-retention_class                    ...
-training_lineage                   ...
-```
-
-This metadata exists to make permitted learning traceable and enforceable, not to imply that every
-record is trainable.
-
-### 6.2 EU AI Act / GPAI boundary
-
-Using or fine-tuning a third-party model does not by itself establish that AIOS is a provider of a
-general-purpose AI model. Current European Commission guidance focuses on whether modifications
-are significant enough for the modifier to become the provider of the resulting GPAI model.
-
-If AIOS later develops or places its own GPAI model on the Union market, additional provider
-obligations may apply. Current Commission guidance states that GPAI provider obligations entered
-into application on 2 August 2025 and Commission enforcement powers apply from 2 August 2026.
-The current public-summary template also requires disclosure of whether training included data
-collected through user interactions with the provider's services/products.
-
-This is another reason to build training-data lineage early.
-
-**This section is an engineering/compliance architecture direction, not legal advice or a final
-lawful-basis determination for any production processing purpose.** Legal/privacy review remains a
-required gate before a concrete learning/training processing regime is enabled.
-
----
-
-## 7. Updated platform-evolution waves
-
-### Wave 0 — architecture and governance — COMPLETE
-
-Established in V1 and extended by V1.1:
-
-- Technology Radar and candidate-evaluation contract;
-- third-party adoption principles;
+- Radar / candidate-evaluation contract;
+- AIOS Semantic Sovereignty;
 - provider-neutral adapter rule;
-- semantic sovereignty;
-- Internal Learning & Quality Principle;
-- training-lineage direction;
-- OpenWorker / AIOS Coworker architecture;
-- EU processing-purpose architecture.
+- Internal Learning & Quality;
+- training lineage;
+- AIOS Coworker / OpenWorker boundary;
+- Agent Organization Fabric / Munder Difflin boundary;
+- Execution Broker;
+- natural interaction + deterministic accountability;
+- Activity broad / Authority narrow;
+- distributed review / centralized oversight;
+- Human Owner Command;
+- SLA/KPI/OKR direction.
 
-**No runtime dependency is required by this checkpoint.**
+### Wave 1 — Quality foundation — COMPLETE
 
-### Wave 1 — low-blast-radius quality foundation
+- Promptfoo bounded pilot;
+- OpenTelemetry bounded pilot;
+- ClamAV bounded pilot.
 
-- Promptfoo;
-- OpenTelemetry;
-- ClamAV.
+The accepted runtime evidence for these pilots remains in the active CHANGELOG. This architecture update does not represent those tests as rerun.
 
-### Wave 2 — document + privacy intelligence
-
-```text
-Document
-   ↓
-ClamAV
-   ↓
-Docling
-   ↓
-OCR providers
-   ↓
-AIOSDocumentArtifact
-   ↓
-Presidio / Privacy Gateway
-   ↓
-Evidence
-   ↓
-Learning signals
-```
-
-Candidates: Docling, PaddleOCR, Unlimited-OCR, Presidio.
-
-### Wave 3 — regulatory intelligence monitoring
+### Wave 2 — Document & Privacy Intelligence — IN PROGRESS
 
 ```text
-official source
-        ↓
-urlwatch / monitoring adapter
-        ↓
-change detection
-        ↓
-RegulatoryChange candidate
-        ↓
-AI analysis
-        ↓
-human/source review
-        ↓
-VerifiedRule
+ClamAV → Docling → OCR providers → AIOSDocumentArtifact → Presidio / Privacy Gateway → Evidence
 ```
+
+- Docling bounded pilot: **STARTED**;
+- Presidio: next queued candidate;
+- PaddleOCR / Unlimited-OCR: benchmark candidates.
+
+### Wave 3 — Regulatory Monitoring
+
+`official source → urlwatch/change detector → candidate change → AI analysis → human/source review → VerifiedRule`
 
 Never `website changed → law automatically changed`.
 
-### Wave 4 — AI runtime + retrieval + quality
+### Wave 4 — AI Runtime, Retrieval & Quality
 
 - Pydantic AI;
 - pgvector vs Qdrant;
 - DSPy;
-- Langfuse;
-- OpenTelemetry;
+- Langfuse behind OTel;
 - Promptfoo;
-- initial AIOS Learning & Evaluation Plane.
+- initial Learning/Evaluation runtime.
 
-### Wave 5 — AIOS Coworker + organization execution
+### Wave 5A — Organization Semantics Foundation
 
-- OpenWorker reference / controlled pilot;
-- Temporal;
-- OpenFGA.
+Define and accept AIOS-owned contracts for:
 
-Target capability:
+- Mission;
+- AgentConversation;
+- conversational/collaborative OrganizationActivity;
+- Capability Registry;
+- organizational memory scopes;
+- AgentRelationship;
+- SLA contract;
+- KPI / OKR semantics;
+- Definition of Done;
+- Dynamic Squad;
+- Execution Broker contract.
 
-```text
-AIOS Coworker
-        +
-durable execution
-        +
-tools/connectors
-        +
-organizational authority
-        +
-finished deliverables
-        +
-learning from outcomes
-```
+### Wave 5B — Agent Organization Fabric
 
-AIOS remains the organization. OpenWorker is a reference/potential adapter, not the semantic
-organization model.
+Munder Difflin is the principal reference/pilot for:
 
-### Wave 6 — professional output
+- identity;
+- communication;
+- conversations;
+- memory;
+- coordination;
+- supervisor patterns;
+- scheduling;
+- budgets;
+- circuit breakers;
+- Live Organization event feed.
+
+### Wave 5C — Execution Broker + AIOS Coworker
+
+OpenWorker is the principal reference/pilot for:
+
+- finished deliverables;
+- files;
+- tools;
+- MCP;
+- connectors;
+- scheduled execution;
+- external actions;
+- approval handling;
+- result return into AIOS Missions.
+
+Munder/OpenWorker/AIOS-native capabilities may cooperate through the Broker.
+
+### Wave 5D — Live Organization / Cockpit
+
+Premium AIOS-native visualization for:
+
+- positions;
+- work;
+- conversations;
+- delegations;
+- squads;
+- SLA risk;
+- workload/capacity;
+- performance/cost;
+- progressive intervention.
+
+### Wave 5E — Organizational Learning & Optimization
+
+Use permitted outcomes to improve:
+
+- routing;
+- collaboration;
+- capability/runtime selection;
+- SLA performance;
+- team composition;
+- prompts/programs;
+- capacity decisions.
+
+### Wave 6 — Professional Output
 
 - Gotenberg;
 - Typst;
-- EU DSS.
+- EU DSS;
+- premium Mobility Assessments, Employer Packs, Evidence Registers, Case Chronologies, Risk Registers, Board Briefs, Qualification Memos and provenance appendices.
 
-Target outputs include Mobility Assessments, Employer Packs, Evidence Registers, Case
-Chronologies, Risk Registers, Board Briefs, Qualification Memos, professional reports, and
-source-provenance appendices.
+### Continuous — Learning & Quality Plane
+
+Evaluation, correction learning, organization analytics, training lineage, Cockpit Quality Intelligence and permitted model/program improvement are continuous capabilities rather than a one-time wave.
 
 ---
 
-## 8. Product-roadmap relationship
+## 22. Relationship to the current product roadmap
 
-Technology Radar V1.1 does **not** interrupt Phase 13.16.8.
+Technology Radar V1.1 must **not** interrupt Phase 13.17 owner-led human acceptance or erase its findings.
 
 ```text
-13.16.8  Professional / Operator experience
+13.16.8  Professional / Operator experience                   COMPLETE
         ↓
-13.16.9  Evidence + provenance UX
+13.16.9  Evidence + provenance UX                             COMPLETE
         ↓
-13.16.10 Responsive/accessibility/integrated acceptance
+13.16.10 Responsive/accessibility/integrated acceptance       COMPLETE
         ↓
-13.17    Genuine external-human acceptance
+13.17    Owner-led human acceptance                           IN PROGRESS / PAUSED
         ↓
-measured Platform Evolution pilots
+Final Phase 13 disposition
         ↓
-AIOS Coworker / Learning Plane / Document Intelligence /
-Agent Runtime / Retrieval / Durable Execution / Professional Output
+measured Platform Evolution pilots / Phase 14 when gated
 ```
 
-13.16.8 should leave an intentional future UX seam for AIOS Coworker because the Professional
-workspace is a likely first bounded product surface, but it must not absorb the Coworker runtime
-or speculative dependencies into the current slice.
+Current Phase 13.17 evidence is genuine human-use evidence but **not independent third-party validation** because the current evaluator is the product Owner. Existing O-/P- findings remain unresolved until corrected and retested.
 
-Phase 14 remains a scale programme for a validated product. Technology Radar winners such as
-Temporal, OpenTelemetry, the selected retrieval architecture, and OpenFGA may eventually enter
-through Phase 14 when measured needs justify them. AIOS Coworker is a product capability and may
-begin as a bounded Platform Evolution pilot after Phase 13 acceptance rather than being reduced
-to Phase 14 infrastructure.
+Further Radar pilots may proceed only when they do not displace the active product acceptance sequence or compromise its evidence.
 
 ---
 
-## 9. Permanent architecture principles
+## 23. Permanent Technology Radar principles
 
-1. **AIOS Semantic Sovereignty** — third parties implement capabilities; AIOS owns meaning.
-2. **Internal Learning & Quality** — permitted operational information should improve service,
-   evaluation, organizational intelligence and AI capability where appropriate.
-3. **Finished Work over Chat Alone** — agents should increasingly produce governed outcomes and
-   artifacts, not only instructions.
-4. **Human Corrections Are Learning Assets** — corrections, overrides, approvals and rejections
-   are valuable quality signals when their reuse is permitted.
-5. **Training Lineage** — AIOS should be able to establish which datasets, transformations,
-   evaluations and decisions contributed to promoted model/program versions.
-6. **Evidence Remains Evidence** — OCR is not truth; retrieval is not truth; model output is not
-   legal truth; source change is not a VerifiedRule; signature validity is not legal acceptance.
-7. **Organization Semantics Remain AIOS-owned** — Temporal history is not Activity; an OpenWorker
-   task is not a WorkItem; a Langfuse trace is not AuditLog; a Promptfoo result is not production
-   authority.
-8. **Duplicate-framework restraint** — retain useful candidates during evaluation, then prefer one
-   winner for the same core capability unless measured requirements justify plurality.
-9. **EU Compliance Enables the Lawful Learning Loop** — define purposes, applicable legal bases,
-   data-use controls, safeguards, lineage and transparency so that lawful internal learning remains
-   possible without making every operational record trainable by default.
+1. **AIOS Semantic Sovereignty** — third parties implement capabilities; AIOS defines their meaning.
+2. **Human-Like Organization** — agents communicate and collaborate naturally rather than behaving as isolated endpoints.
+3. **Natural Interaction, Deterministic Accountability** — human-like behavior sits on deterministic authority, evidence and performance contracts.
+4. **Activity Is Broad; Authority Is Narrow** — communication may be OrganizationActivity without becoming a Decision or legal/evidence truth.
+5. **Persona + Authority** — persona informs behavior; deterministic runtime contracts define power.
+6. **Human Privileged Command** — authenticated humans may exercise their existing authority through natural language.
+7. **Distributed Review, Centralized Oversight** — review occurs where work belongs; material oversight converges in Cockpit.
+8. **Team Outcomes over Agent Competition** — optimize Mission/business outcomes, not framework or agent leaderboards.
+9. **Finished Work over Chat Alone** — agents increasingly produce real deliverables/actions.
+10. **SLA/KPI/OKR Discipline** — human-like organization remains measurable and accountable.
+11. **Progressive Intervention** — steer/assist/reassign/constrain/suspend before inappropriate global pause/escalation.
+12. **Internal Learning & Quality** — lawful operational experience should continuously improve AIOS.
+13. **Human Corrections Are Learning Assets** — corrections and redirections are high-value evaluation/training signals where permitted.
+14. **Training Lineage** — AIOS should know what data/evaluations contributed to improved models/programs.
+15. **Evidence Remains Evidence** — OCR, retrieval, memory, conversation and model output cannot silently become legal/evidence truth.
+16. **Organization Semantics Stay AIOS-owned** — Munder messages, OpenWorker tasks, Temporal histories and telemetry traces do not replace AIOS semantic records.
+17. **Outcome-Based Provider Composition** — complementary providers may cooperate when measured result quality justifies it.
+18. **Duplicate-Framework Restraint** — benchmark genuine duplicates and eventually prefer a primary winner unless measured needs justify plurality.
+19. **EU Compliance Enables the Learning Loop** — purpose, legal basis/compatibility, safeguards, transparency and lineage make lawful learning sustainable.
 
 ---
 
-## 10. Standard candidate-evaluation contract
+## 24. Standard candidate-evaluation contract
 
 Every candidate must still be evaluated on:
 
@@ -697,52 +875,60 @@ Every candidate must still be evaluated on:
 - does not force framework state into domain records;
 - provider output remains distinguishable from authoritative AIOS state.
 
+### Organizational fit
+- supports AIOS Missions/WorkItems rather than replacing them;
+- can participate in AgentConversation/Activity without taking authority;
+- fits Capability Registry / Execution Broker contracts;
+- supports collaboration without bypassing hierarchy/authority.
+
 ### Safety/governance
-- cannot bypass authorization, evidence, certification, publication, or human-review gates;
+- cannot bypass authorization, evidence, certification, publication or mandatory human gates;
 - supports least privilege;
 - failures cannot silently become successful business transitions.
 
-### Technical quality
-- accuracy/recall where applicable;
-- latency/throughput;
-- determinism;
-- failure behavior;
+### Performance/quality
+- accuracy / task-success where applicable;
+- SLA behavior;
+- first-pass quality / rework;
+- latency / throughput;
+- collaboration overhead;
+- cost per successful outcome;
+- determinism / failure behavior.
+
+### Technical/operational quality
 - observability;
 - CPU/GPU/memory;
-- upgrade/reproducibility.
-
-### Operational fit
 - self-hosting/deployment;
 - backup/restore;
 - disaster recovery;
 - data residency;
 - tenancy;
 - security updates;
-- monitoring and supportability.
+- reproducibility.
 
 ### Learning/data-use fit
-- processing purpose and allowed use categories;
+- processing purpose / allowed use categories;
 - minimum-necessary data flow;
 - special-category handling where relevant;
 - evaluation/training lineage;
-- deletion/retention behavior;
-- separation of telemetry, learning records, organizational Activity and legal/evidence provenance.
+- deletion/retention;
+- separation of telemetry, learning records, Activity and legal/evidence provenance.
 
 ### Exit cost
-- can be removed without rewriting domain services;
-- external IDs are mapped, not semantic primary keys;
-- data export/rebuild path exists;
-- alternative providers can be benchmarked behind the same AIOS meaning.
+- removable without rewriting domain services;
+- provider IDs mapped, not semantic primary keys;
+- export/rebuild path exists;
+- alternatives benchmarkable behind the same AIOS meaning.
 
 Exit cost remains a first-class selection criterion.
 
 ---
 
-## 11. External references reverified for V1.1
+## 25. External references reverified for V1.1
 
-These references support time-sensitive factual/compliance statements in this checkpoint and must
-be reverified again before production adoption or a concrete legal processing decision:
+Time-sensitive project/compliance facts must be reverified immediately before implementation or production decisions.
 
+- Munder Difflin (`chaitanyagiri/munder-difflin`): https://github.com/chaitanyagiri/munder-difflin
 - OpenWorker (`andrewyng/openworker`): https://github.com/andrewyng/openworker
 - European Commission — GDPR principles: https://commission.europa.eu/law/law-topic/data-protection/information-business-and-organisations/principles-gdpr_en
 - European Commission — legal grounds / special categories: https://commission.europa.eu/law/law-topic/data-protection/information-business-and-organisations/legal-grounds-processing-data_en
@@ -750,67 +936,60 @@ be reverified again before production adoption or a concrete legal processing de
 - European Commission — GPAI provider guidelines: https://digital-strategy.ec.europa.eu/en/policies/guidelines-gpai-providers
 - European Commission — GPAI training-content summary template: https://digital-strategy.ec.europa.eu/en/faqs/template-general-purpose-ai-model-providers-summarise-their-training-content
 
-License, maturity, security, data-flow, and regulatory metadata must be reverified against canonical
-sources immediately before any implementation or production decision.
+License, maturity, security, data-flow and regulatory metadata must be reverified against canonical sources before runtime adoption.
 
 ---
 
-## 12. Strategic end state
+## 26. Target end state
 
 ```text
-                         GLOBAL MOBILITY AIOS
-                                 │
-                         GOVERNED DOMAIN TRUTH
-                                 │
-     ┌───────────────────────────┼──────────────────────────┐
-     │                           │                          │
-     ▼                           ▼                          ▼
-Mobility Intelligence     Evidence Intelligence       Organization OS
-     │                           │                          │
-Official Sources               Documents                  WorkItems
-Verified Rules                 Evidence                   Blockers
-Pathways                       Provenance                 Decisions
-Assessments                    Certification              Human Actions
-                                                           Activity
-                                                           Contributions
-     │                           │                          │
-     └───────────────────────────┼──────────────────────────┘
-                                 ▼
-                           AI INTELLIGENCE
-                                 │
-                    Typed models / agents / tools
-                                 │
-                        Semantic retrieval
-                                 │
-                           AIOS COWORKER
-                                 │
-             ┌───────────────────┼─────────────────────┐
-             ▼                   ▼                     ▼
-          Files              Connectors             Tools/MCP
-             │                   │                     │
-             └───────────────────┼─────────────────────┘
-                                 ▼
-                       FINISHED PROFESSIONAL WORK
-                                 │
-                                 ▼
-                         REAL-WORLD OUTCOMES
-                                 │
-                                 ▼
-                     AIOS LEARNING & QUALITY PLANE
-                                 │
-          ┌──────────────────────┼─────────────────────────┐
-          ▼                      ▼                         ▼
-     Evaluation             Analytics                  Training
-          │                      │                         │
-          └──────────────────────┼─────────────────────────┘
-                                 ▼
-                         BETTER GLOBAL AIOS
-                                 │
-                                 ▼
-                       Cockpit Intelligence
+GLOBAL MOBILITY AIOS
+                             │
+                       DOMAIN TRUTH
+                             │
+       ┌─────────────────────┼─────────────────────┐
+       ▼                     ▼                     ▼
+ Mobility Intelligence   Evidence Intelligence   Organization OS
+                                                    │
+                                              AI Organization
+                                                    │
+                                   ┌────────────────┼─────────────────┐
+                                   ▼                ▼                 ▼
+                              Orchestration      Memory         Communication
+                                   │                │                 │
+                                   └────────────────┼─────────────────┘
+                                                    ▼
+                                           AIOS Execution Broker
+                                                    │
+                                  ┌─────────────────┼─────────────────┐
+                                  ▼                 ▼                 ▼
+                             Munder-style       OpenWorker        AIOS-native
+                             coordination       finished work     capabilities
+                                  │                 │                 │
+                                  └─────────────────┼─────────────────┘
+                                                    ▼
+                                               Finished Work
+                                                    │
+                                               Real Outcomes
+                                                    │
+                                                    ▼
+                                         Learning & Quality Plane
+                                      ┌─────────────┼─────────────┐
+                                      ▼             ▼             ▼
+                                  Evaluation     Analytics      Training
+                                      │             │             │
+                                      └─────────────┼─────────────┘
+                                                    ▼
+                                             Better AIOS
+                                                    │
+                                                    ▼
+                                          Cockpit Intelligence
+                                                    │
+                                                    ▼
+                                         HUMAN OWNER / BOARD
+                                           Privileged Command
 ```
 
 Long-term flywheel:
 
-> **More work → more outcomes → more corrections → more intelligence → better permitted training
-> and optimization → better AIOS → higher-quality work.**
+> **Work → Outcomes → Corrections → Intelligence → Evaluation → Training → Better AIOS → Better Work.**
