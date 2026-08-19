@@ -19,6 +19,7 @@ from app.models.domain import (
 from app.schemas import DocumentExtractionJobRead, DocumentSchemaDefinitionRead
 from app.services.audit_log import record_audit
 from app.services.document_storage import document_storage_client
+from app.services.docling_adapter import STATUS_SUCCESS, normalize_document_bytes
 from app.services.mobility_profiles import current_mobility_profile
 
 
@@ -264,6 +265,19 @@ def _extract_text(content: bytes, *, mime_type: str | None, filename: str, langu
     mime = (mime_type or "").lower()
     suffix = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
     warnings: list[str] = []
+
+    # Optional Docling normalization (Technology Radar V1.1 Wave 2 pilot).
+    # When enabled and successful, its markdown output becomes the extraction text.
+    # When disabled, unavailable, or empty, the pipeline falls back to the
+    # existing extractors below.
+    docling_result = normalize_document_bytes(content, mime_type=mime_type, filename=filename)
+    if docling_result.status == STATUS_SUCCESS:
+        normalized = docling_result.normalized_text.strip()
+        if normalized:
+            warnings.append("Document normalized with Docling; structured extraction still requires human review.")
+            warnings.extend(docling_result.warnings)
+            return normalized, warnings
+
     if mime.startswith("text/") or suffix in {"txt", "csv", "md"}:
         return content.decode("utf-8", errors="replace").strip(), warnings
     if mime == "application/pdf" or suffix == "pdf":

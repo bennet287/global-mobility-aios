@@ -545,6 +545,15 @@ Candidates may correctly end as ADOPT, HOLD, or REJECT.
 
 Candidates: Docling, PaddleOCR, Unlimited-OCR, Presidio.
 
+- **Docling early pilot started** — optional, disabled-by-default document normalization adapter at
+  `app/services/docling_adapter.py`. When `DOCLING_ENABLED=true` and the `docling` package is installed,
+  the document extraction pipeline normalizes supported uploads to markdown before structured field
+  extraction. Missing or failing Docling is logged and the pipeline falls back to the existing pypdf,
+  pytesseract, and plain-text extractors. A matching pytest regression (`test_docling_adapter.py`)
+  covers disabled, missing-package, successful conversion, and failure paths. Docling output is a
+  machine-readable normalization signal, not evidence of authenticity, legal sufficiency, or evidence
+  validity; extracted values still require human review and authority verification.
+
 ### Wave 3 — regulatory intelligence monitoring
 
 `official source → change detection/urlwatch → RegulatoryChange candidate → AI analysis → human/source review → VerifiedRule`

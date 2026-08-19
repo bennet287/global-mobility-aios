@@ -47,6 +47,13 @@ This document defines the controlled GitHub repository set allowed for Global Mo
    - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 1 pilot.
    - AIOS Semantic Sovereignty: a clean scan is an engineering safety signal, not evidence of
      authenticity, legal sufficiency, or evidence validity. An infected result may reject an upload.
+15. DS4SD/docling
+   - Open-source document normalization and structured document understanding library.
+   - License: MIT.
+   - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 2 pilot.
+   - AIOS Semantic Sovereignty: Docling output is a machine-readable normalization signal, not
+     evidence of authenticity, legal sufficiency, or evidence validity; extracted values still
+     require human review and authority verification.
 
 ## Adapted Repositories (Constrained Use)
 

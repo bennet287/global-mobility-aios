@@ -4,6 +4,72 @@ This is the current changelog from the post-`f0688a8` baseline onward. The compl
 Phase 13.16.7 baseline is preserved byte-for-byte at
 [archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md](archive/CHANGELOG_THROUGH_F0688A8_2026-08-17.md).
 
+## 2026-08-19 - Technology Radar V1.1 Wave 2 Docling pilot STARTED — optional document normalization
+
+- Started the first Technology Radar V1.1 Wave 2 pilot (`Docling` — document normalization /
+  structured document understanding) by adding a bounded, optional, disabled-by-default adapter under
+  `apps/api/app/services/docling_adapter.py`.
+- The adapter integrates into the existing document extraction pipeline in
+  `apps/api/app/services/document_intelligence.py`. When `DOCLING_ENABLED=true` and the `docling`
+  package is installed, supported documents are normalized to markdown before structured field
+  extraction. Missing or failing Docling is logged and the pipeline falls back to the existing
+  `pypdf`, `pytesseract`, and plain-text extractors, preserving the local-first posture.
+- Added environment-driven setting in `apps/api/app/core/config.py`: `DOCLING_ENABLED`, disabled by
+  default. No new model/table/migration is required; normalized output is consumed as extraction
+  text and existing metadata fields store the result.
+- Added `docling>=2.15.0` to `apps/api/requirements-ai.txt` as an explicitly bounded and documented
+  Technology Radar dependency, keeping the heavy document-AI stack out of the core API install path.
+- Added matching environment variable to `.env.example` so local Docker/host configuration is
+  discoverable.
+- Added `apps/api/tests/test_docling_adapter.py` regression covering:
+  - disabled normalization returns `disabled`;
+  - enabled normalization gracefully degrades when the `docling` package is not installed;
+  - enabled normalization returns a successful markdown result from a mocked Docling converter;
+  - conversion failure returns `error` with the exception message preserved;
+  - `DoclingResult.to_dict()` truncates long text and handles empty text.
+- Documented the AIOS Document Intelligence Boundary invariant: Docling output is a machine-readable
+  normalization signal, not evidence of authenticity, legal sufficiency, or evidence validity;
+  extracted values still require human review and authority verification.
+- Updated `docs/REPOSITORY_POLICY.md` to record `DS4SD/docling` as an approved core repository,
+  documenting the MIT license and the normalization-signal boundary.
+- Updated `docs/ROADMAP.md` to record the Docling early pilot as started under Technology Radar V1.1
+  Wave 2.
+
+### Acceptance
+
+- docling adapter regression: **6/6 PASS**;
+- document intelligence regression: **5/5 PASS** (Docling disabled by default, existing extraction behavior preserved);
+- complete API regression: **873 passed / 5 skipped / 0 failed**;
+- repository policy: **PASS**;
+- release consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- Docker production profile: **PASS**;
+- database migration/schema consistency: **PASS** at Alembic `0076_organization_position_active_identity`;
+- local physical-schema parity: **PASS** — 118 registered model tables / 118 actual model tables / 119 physical tables including only `alembic_version` infrastructure;
+- `git diff --check`: **PASS** (only the expected CRLF→LF normalization warning for `docs/REPOSITORY_POLICY.md`);
+- Next.js 15.2.4 production build: **PASS**, **41/41 static pages**;
+- design foundation regression: **28/28 PASS**;
+- preserved `gmai.db`: unchanged.
+
+### Boundary
+
+Exact delivery boundary at seal is the following tracked files:
+
+- `apps/api/app/core/config.py`;
+- `apps/api/app/services/document_intelligence.py`;
+- `apps/api/app/services/docling_adapter.py`;
+- `apps/api/requirements-ai.txt`;
+- `apps/api/tests/test_docling_adapter.py`;
+- `.env.example`;
+- `docs/CHANGELOG.md`;
+- `docs/REPOSITORY_POLICY.md`;
+- `docs/ROADMAP.md`.
+
+There is **no model/table/Alembic/preserved-database/frontend runtime semantic change** in this slice. No evidence,
+certification, publication, authorization, secure-Portal, or human-review authority is weakened. Docling output is a
+normalization signal, not evidence of authenticity or legal validity.
+
+Presidio remains the next queued Wave 2 pilot.
+
 ## 2026-08-19 - Technology Radar V1.1 Wave 1 ClamAV pilot COMPLETE / PASS - optional upload malware scanning
 
 - Started the third and final Technology Radar V1.1 Wave 1 pilot (`ClamAV` — upload malware scanning) by adding a bounded,

@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     clamav_timeout_seconds: int = 30
     clamav_block_on_scanner_error: bool = False
 
+    # Docling — optional document normalization / structured understanding pilot
+    # (Technology Radar V1.1 Wave 2). Disabled by default. When enabled, the adapter
+    # attempts to convert supported documents to markdown before legacy extraction.
+    # Missing or failing Docling is logged and the pipeline falls back to pypdf,
+    # pytesseract, or plain-text extractors.
+    docling_enabled: bool = False
+
     jwt_secret: str = "change-this-in-production"
     auth_enabled: bool = True
     auth_admin_username: str = "admin"
