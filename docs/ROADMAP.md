@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.2  
-**Date:** 2026-08-19  
+**Roadmap generation:** V12.3  
+**Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`  
@@ -9,7 +9,8 @@
 **Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
 **Active organization architecture:** [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md)  
-**Current Track C slice:** V1.3-A — Constitutional Contracts — IMPLEMENTED / FOCUSED CONTRACT TEST PASS / BROADER API REGRESSION RERUN PENDING AFTER ROADMAP-COMPATIBILITY FIX  
+**V1.3-A:** Constitutional Contracts — **COMPLETE / PASS / SEALED**  
+**Current Track C slice:** V1.3-B — Minimal Governance Kernel — **IN PROGRESS; B.1 IMPLEMENTED / ISOLATED FOCUSED TEST PASS / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS with Docling started; Presidio queued  
 **Code migration head:** `0076_organization_position_active_identity`
 
@@ -168,9 +169,9 @@ This historical marker is retained in the active roadmap so later roadmap rewrit
 
 ---
 
-## 5. Carried-forward accepted quality baseline
+## 5. Accepted quality and current V1.3 evidence
 
-Latest accepted runtime evidence before V12 implementation remains:
+### Carried-forward product baseline
 
 ```text
 API regression                873 passed / 5 skipped / 0 failed
@@ -180,24 +181,58 @@ Alembic head                  0076_organization_position_active_identity
 Preserved gmai.db             unchanged at accepted checkpoint
 ```
 
-These are carried-forward accepted results. They must never be represented as rerun by a later documentation-only or bounded contract patch unless those tests were actually executed again.
+These are carried-forward accepted results and must never be represented as rerun unless they actually were.
 
-### Current V1.3-A broader-regression evidence
+### V1.3-A final canonical acceptance — 2026-08-20
 
-The first canonical-checkout broader API run after V1.3-A produced:
+The canonical Windows V12 checkout produced:
 
 ```text
-885 passed
-5 skipped
-1 failed
-1 warning
+Constitutional contract tests  13 passed / 1 warning / 0 failed in 0.14s
+Repository policy              PASS
+v10.22 regression rerun        1 passed / 1 warning in 0.08s
+Full API regression            886 passed / 5 skipped / 1 warning / 0 failed in 337.70s
+Migration check                PASS
+Migration head                 0076_organization_position_active_identity
+Registered tables              118
+Physical schema                OK
+Local DB schema check          PASS
+Registered / actual tables     118 / 118
+Physical tables                119 incl. alembic_version
+git diff --check               clean
+git status                     clean / synchronized V12
 ```
 
-The sole failure was `test_v10_22_documentation_and_roadmap_are_present`, because the V12 roadmap rewrite had dropped the literal historical `v10.22` / `multi-batch tranche operations` / `0032_initial_rule_assertions` markers even though the underlying v10.22 documentation and runtime history remained present.
+The single warning is the existing Starlette/httpx TestClient deprecation warning and is not a V1.3-A blocker.
 
-Roadmap V12.2 restores that historical compatibility contract. A rerun is required before V1.3-A is marked fully PASS.
+See [V1_3_A_ACCEPTANCE_2026-08-20.md](V1_3_A_ACCEPTANCE_2026-08-20.md) for the exact acceptance record.
 
-GitHub CI PASS must not be claimed unless an attached check/status exists for the relevant commit.
+V1.3-A is therefore:
+
+```text
+COMPLETE
+PASS
+SEALED
+```
+
+No GitHub CI PASS is claimed without attached status/check evidence.
+
+### V1.3-B.1 implementation evidence
+
+B.1 was published in commit:
+
+```text
+d351ad85f5c3464178b56dd9da6ac5c83090a27a
+feat: start v1.3-b governance kernel
+```
+
+Its isolated pre-publish focused suite produced:
+
+```text
+19 passed in 0.05s
+```
+
+This is implementation evidence only. Canonical V12 checkout acceptance for B.1 remains pending.
 
 ---
 
@@ -257,11 +292,9 @@ Preferred direction remains:
 
 V1.3 extends the V1.2 constitutional/governance foundation rather than replacing it.
 
-The purpose of the control architecture is:
-
 > **The safety infrastructure exists to enable autonomy, not suppress it.**
 
-The target operating equation is:
+Target operating equation:
 
 ```text
 High Autonomy
@@ -346,33 +379,13 @@ Permanent rule:
 
 > **Operational autonomy must never create organizational opacity.**
 
-The Board must have on-demand visibility into relevant:
-
-- agent-to-agent conversations;
-- delegation chains;
-- decisions and recommendations;
-- Evidence;
-- SourceSnapshots;
-- VerifiedRules;
-- tool usage;
-- external actions;
-- policy decisions;
-- contradictions;
-- escalations;
-- incidents;
-- circuit-breaker events;
-- autonomy promotions/downgrades;
-- recovery actions;
-- execution history;
-- learning outcomes.
+The Board must have on-demand visibility into relevant agent collaboration, decisions, Evidence, SourceSnapshots, VerifiedRules, tools, external actions, policy decisions, contradictions, escalations, incidents, circuit-breaker events, autonomy changes, recovery actions, execution history and learning outcomes.
 
 This is an inspection right, not a mandatory approval requirement.
 
 ```text
 Board visibility ≠ Board interruption
 ```
-
-Cockpit should summarize normal healthy work and allow deep drill-down when the Board chooses.
 
 ---
 
@@ -396,39 +409,17 @@ SourceSnapshots
 Research / tool actions
 ```
 
-Relevant collaboration should also be reconstructable:
+Relevant collaboration should also be reconstructable from question/contradiction through Evidence gathering, resolution, recommendation, verification and decision.
 
-```text
-Question / contradiction
-        ↓
-Agent conversation / delegation
-        ↓
-Missing Evidence discovered
-        ↓
-Evidence gathered
-        ↓
-Contradiction resolved
-        ↓
-Recommendation
-        ↓
-Verification
-        ↓
-Decision
-```
-
-Structured rationales, Evidence, policy and lineage are the governance artifacts. Hidden model chain-of-thought is not the audit mechanism.
+Structured rationales, Evidence, policy and lineage are governance artifacts. Hidden model chain-of-thought is not the audit mechanism.
 
 ---
 
 ## 13. Memory vs truth
 
-AI employees should have rich continuity, but memory is not authority.
-
 ```text
 Agent Memory ≠ Canonical AIOS Truth
 ```
-
-Layers:
 
 | Layer | Purpose |
 |---|---|
@@ -437,11 +428,7 @@ Layers:
 | Organizational memory | shared organizational knowledge |
 | Canonical AIOS truth | governed facts, Evidence, VerifiedRules and authoritative state |
 
-Permanent principle:
-
 > **Memory provides continuity. Evidence provides authority.**
-
-Consequential decisions should refresh against current governed Evidence, rules, source state, effective dates, case facts and policy.
 
 ---
 
@@ -449,40 +436,13 @@ Consequential decisions should refresh against current governed Evidence, rules,
 
 Agents should receive purpose-scoped, versioned `ContextBundle`s instead of unrestricted database access or maximum-token prompts.
 
-Core context may include:
-
-```text
-Agent identity
-Position / Department
-Authority / autonomy context
-Mission / WorkItem
-Case / aggregate identity
-Relevant facts
-Evidence
-Applicable VerifiedRules
-SourceSnapshots where needed
-Known unknowns
-Known contradictions
-Relevant previous decisions
-Conversation summaries
-Allowed tools
-Sensitivity classification
-Policy version
-Context version
-Context hash
-```
-
-Additional slices should load lazily.
+Core context may include Agent identity, Position/Department, authority/autonomy context, Mission/WorkItem, case/aggregate identity, relevant facts, Evidence, VerifiedRules, SourceSnapshots, known unknowns/contradictions, previous decisions, conversation summaries, allowed tools, sensitivity classification, policy version, context version and context hash.
 
 > **More relevant truth, not more tokens.**
-
-Every material `AgentRun` should eventually be reconstructable against the exact context/model/program/tool/policy/rule versions used.
 
 ---
 
 ## 15. Capability, authority, autonomy and risk
-
-These are separate dimensions:
 
 ```text
 Capability = what the runtime can technically do
@@ -497,15 +457,13 @@ Permanent rule:
 CAN DO ≠ MAY DO
 ```
 
-External tools/frameworks gain no organizational authority merely because they support an operation technically.
-
 ---
 
 ## 16. V1.3-A — Constitutional Contracts
 
-### Current state
+### Final state
 
-**IMPLEMENTED / FOCUSED CONTRACT TEST PASS / BROADER API REGRESSION RERUN PENDING AFTER ROADMAP-COMPATIBILITY FIX**
+**COMPLETE / PASS / SEALED**
 
 Implementation commit:
 
@@ -514,27 +472,20 @@ Implementation commit:
 feat: freeze v1.3 constitutional contracts
 ```
 
-Delivered files:
+Delivered:
 
 ```text
 apps/api/app/core/organization_constitution.py
 apps/api/tests/test_organization_constitution.py
 docs/ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md
+docs/V1_3_A_ACCEPTANCE_2026-08-20.md
 ```
 
-### Why this phase exists
-
-The pre-V12 runtime already has valuable deterministic role/path authorization and organization-governance schemas, but some future-facing concepts still appear as loose values such as `risk_level` strings or `requires_board_approval` booleans.
-
-V1.3-A creates a single typed constitutional vocabulary before V1.3-B begins wiring real runtime decisions through it.
-
-### Frozen runtime-facing vocabulary
-
-V1.3-A now defines:
+V1.3-A freezes:
 
 - Board supremacy invariant;
 - Board Transparency invariant;
-- authorization invariant: **scores route; deterministic gates authorize**;
+- **scores route; deterministic gates authorize**;
 - A0–A5 autonomy levels;
 - R0–R5 risk tiers;
 - `HumanReviewReason`;
@@ -543,109 +494,71 @@ V1.3-A now defines:
 - reserved authority classes;
 - initial `MaterialActionType` vocabulary;
 - immutable Materiality Registry;
-- immutable activity transparency policy;
-- stable autonomy/risk semantics.
+- immutable activity transparency policy.
 
-### Focused acceptance evidence
-
-Canonical local checkout evidence reported on 2026-08-19:
-
-```text
-pytest apps/api/tests/test_organization_constitution.py -q
-13 passed, 1 warning in 0.14s
-
-scripts/check_repo_policy.py --root .
-Repository policy check passed.
-```
-
-The tests verify:
-
-- complete A0–A5 ladder;
-- complete R0–R5 ladder;
-- exact HumanReviewReason taxonomy;
-- exact consequence/recovery classes;
-- reserved authority categories;
-- every declared MaterialActionType has a registry rule;
-- non-material cognition defaults to R0;
-- government submission is material, R5 and Board-reserved;
-- every activity class is Board-inspectable;
-- MATERIAL/AUTHORITY activity requires durable full lineage;
-- conversational activity may compact after policy retention without eliminating the Board inspection right;
-- constitutional registries are read-only;
-- Board supremacy/transparency/hard-gate invariants are encoded.
-
-### Broader API acceptance evidence
-
-Canonical local checkout run:
-
-```text
-pytest apps/api/tests -q
-885 passed, 5 skipped, 1 failed, 1 warning in 334.06s
-```
-
-The single failure was documentation-roadmap compatibility, not constitutional runtime behavior:
-
-```text
-test_v10_22_documentation_and_roadmap_are_present
-```
-
-Cause:
-
-```text
-V12 roadmap rewrite removed historical markers required by the preserved v10.22 acceptance contract.
-```
-
-Fix:
-
-```text
-Roadmap V12.2 restores:
-- v10.22
-- multi-batch tranche operations
-- 0032_initial_rule_assertions
-```
-
-The broader suite must now be rerun before final V1.3-A PASS/seal.
-
-### Important non-claims
-
-This phase does **not** yet:
-
-- change database schema;
-- change migration head `0076_organization_position_active_identity`;
-- mutate `gmai.db`;
-- change existing route authorization behavior;
-- change current `WorkItemCreate` API compatibility;
-- implement `MaterialAction` persistence;
-- implement Command Gateway execution;
-- implement Decision Readiness;
-- implement independent verification;
-- implement the Organizational Immune System;
-- implement earned-autonomy promotion/demotion;
-- implement Transparency indexing/UI;
-- integrate Munder/OpenWorker;
-- resolve Phase 13.17 findings;
-- prove the full API regression after the roadmap compatibility fix;
-- prove GitHub CI PASS.
-
-### V1.3-A remaining acceptance before final PASS/seal
-
-Before marking V1.3-A fully sealed:
-
-1. pull Roadmap V12.2;
-2. rerun the specific v10.22 regression test;
-3. rerun the broader API suite;
-4. confirm repository policy remains PASS;
-5. confirm no migration/schema drift;
-6. verify remote branch/diff;
-7. record exact final acceptance evidence in the changelog.
-
-Until those checks are clean, status remains **implemented / focused-test pass / broader-regression rerun pending**, not complete project-wide PASS.
+Final acceptance is recorded in Section 5 and the dedicated acceptance record. V1.3-A is the constitutional floor for all subsequent Track C implementation.
 
 ---
 
-## 17. A0–A5 autonomy semantics
+## 17. V1.3-B — Minimal Governance Kernel
 
-Frozen meanings:
+### Current state
+
+**IN PROGRESS — B.1 IMPLEMENTED / ISOLATED FOCUSED TEST PASS / CANONICAL REPOSITORY ACCEPTANCE PENDING**
+
+B.1 implementation commit:
+
+```text
+d351ad85f5c3464178b56dd9da6ac5c83090a27a
+feat: start v1.3-b governance kernel
+```
+
+Delivered:
+
+```text
+apps/api/app/services/organization_governance_kernel.py
+apps/api/tests/test_organization_governance_kernel.py
+docs/V1_3_B_MINIMAL_GOVERNANCE_KERNEL.md
+```
+
+The repository already had `OrganizationCommandContext`, canonical fingerprints, idempotency helpers, tenant-aware command utilities and durable `OrganizationActivity` append/stage mechanics. B.1 deliberately reuses those foundations rather than creating a competing command system.
+
+B.1 adds:
+
+- `CapabilityAuthority`;
+- typed `MaterialAction` envelope;
+- effective risk floor enforcement;
+- deterministic authority/scope/risk evaluation;
+- expected-version/precondition checks;
+- idempotent replay/conflict decisions;
+- typed policy disposition;
+- A0–A5 execution/review routing;
+- Board-reserved override protection;
+- trace ID and Activity projection compatible with the existing Activity runtime.
+
+Typed outcomes:
+
+```text
+AUTO_EXECUTE
+BLOCK
+REVIEW_REQUIRED
+IDEMPOTENT_REPLAY
+```
+
+Important invariant already encoded in B.1:
+
+```text
+Government submission
+R5
+Board reserved
+→ REVIEW_REQUIRED even at A5
+```
+
+B.1 is schema-neutral and does not yet execute a production domain mutation through the gateway. Canonical repository acceptance is the immediate next gate.
+
+---
+
+## 18. A0–A5 autonomy semantics
 
 | Level | Meaning |
 |---|---|
@@ -673,9 +586,7 @@ Government submission          Board-reserved / policy-defined
 
 ---
 
-## 18. R0–R5 risk tiers
-
-Risk belongs to the action, not the employee.
+## 19. R0–R5 risk tiers
 
 | Tier | Default direction |
 |---|---|
@@ -686,13 +597,11 @@ Risk belongs to the action, not the employee.
 | R4 | certification/regulatory publication + blind verification + fresh source validation + appropriate authority |
 | R5 | government submission / critical reserved action + full preparation + Human/Board gate |
 
-Verification cost should scale with consequence rather than being maximal everywhere.
+B.1 prevents an action from declaring a risk below its constitutional Materiality Registry floor.
 
 ---
 
-## 19. Human review reasons
-
-Frozen `HumanReviewReason` values:
+## 20. Human review reasons
 
 ```text
 UNCERTAINTY
@@ -706,13 +615,11 @@ ANOMALY
 EXCEPTION
 ```
 
-A human may therefore be required even with very high readiness because the reason can be authority, law or policy rather than uncertainty.
+A human may be required even with high readiness because the reason can be authority, law or policy rather than uncertainty.
 
 ---
 
-## 20. Materiality Registry
-
-Initial constitutional registry:
+## 21. Materiality Registry
 
 | Action type | Material | Default risk | Board reserved |
 |---|---:|---:|---:|
@@ -727,13 +634,11 @@ Initial constitutional registry:
 | `external_communication.consequential` | yes | R3 | no by base constitution |
 | `government.submission` | yes | R5 | yes |
 
-Later jurisdiction/workflow policy may strengthen requirements. It may not silently downgrade constitutional minimums or remove explicit Board-reserved status without a governed change.
+Later jurisdiction/workflow policy may strengthen requirements but may not silently downgrade constitutional minimums.
 
 ---
 
-## 21. Organization activity transparency classes
-
-V1.3-A freezes:
+## 22. Organization activity transparency classes
 
 ```text
 CONVERSATIONAL
@@ -751,13 +656,11 @@ AUTHORITY
 | MATERIAL | yes | yes | yes | not allowed |
 | AUTHORITY | yes | yes | yes | not allowed |
 
-This formalizes the earlier principle that transparency does not mean retaining every low-value token forever, while material authority-bearing history must remain reconstructable.
+B.1 currently projects governance evaluations into the existing physical `operational` Activity class while preserving constitutional `MATERIAL` / `AUTHORITY` class in payload. V1.3-C will deepen the Transparency Foundation without prematurely rewriting the database enum contract.
 
 ---
 
-## 22. Consequence-aware recovery
-
-Frozen recovery classes:
+## 23. Consequence-aware recovery
 
 ```text
 REVERSIBLE
@@ -775,17 +678,13 @@ Examples:
 
 Recovery semantics belong to business commands, not arbitrary database rows.
 
-Irreversible actions require stronger pre-execution controls and pre-mortem validation.
-
 ---
 
-## 23. Scores route; gates authorize
-
-Permanent invariant:
+## 24. Scores route; gates authorize
 
 > **No material action is authorized by a Decision Readiness scalar alone.**
 
-Conceptually:
+Target authorization logic:
 
 ```text
 Identity valid
@@ -800,18 +699,11 @@ AND Readiness threshold satisfied
 → EXECUTE
 ```
 
-Examples:
-
-```text
-Readiness 98% + mandatory Evidence missing → BLOCK
-Readiness 100% + Board-reserved government submission → BOARD GATE
-```
+B.1 currently implements the identity/authority/scope/risk/version/idempotency/policy/autonomy/reserved-authority subset. Evidence, contradiction, verification and Decision Readiness gates arrive in later roadmap slices.
 
 ---
 
-## 24. Canonicalization Gateway
-
-V1.2 semantic sovereignty remains foundational:
+## 25. Canonicalization Gateway
 
 ```text
 LLM / provider / tool interpretation
@@ -837,17 +729,15 @@ memory != VerifiedRule
 provider event log != canonical AIOS Activity automatically
 ```
 
-Canonicalization should be implemented progressively, workflow by workflow.
-
 ---
 
-## 25. Command Gateway target
+## 26. Command Gateway target
 
-The Command Gateway is the planned controlled mutation boundary for material autonomous production state.
+The Command Gateway is the controlled mutation boundary for material autonomous production state. It is **not** a universal human approval gateway.
 
-It is **not** a universal human approval gateway.
+B.1 establishes the deterministic evaluation foundation; B.2 should prove one reversible existing domain command through it.
 
-Healthy future flow:
+Target healthy flow:
 
 ```text
 Agent
@@ -859,13 +749,9 @@ Agent
 → AUTO EXECUTE
 ```
 
-Human involvement happens only where law, policy, authority, uncertainty or consequence requires it.
-
 ---
 
-## 26. Optimistic concurrency
-
-Parallel agents require explicit version protection.
+## 27. Optimistic concurrency
 
 ```text
 Agent A reads Case v43
@@ -877,81 +763,36 @@ actual_version=44
 → refresh / rebase / reevaluate
 ```
 
-Use:
-
-- expected-version/precondition checks;
-- idempotency;
-- bounded retries;
-- backoff;
-- aggregate serialization where necessary;
-- tenant/case/mission sharding.
-
-CRDT-style approaches are reserved for genuinely mergeable collaborative state, not authoritative regulated state.
+B.1 already provides the expected-version/precondition decision contract. Later integration must preserve bounded retries, backoff and aggregate serialization where needed.
 
 ---
 
-## 27. Organizational Immune System target
+## 28. Organizational Immune System target
 
-The V1.3 safety/quality layer should eventually include:
-
-```text
-Evidence Integrity Monitor
-Contradiction Detector
-Anomaly Detector
-Decision Readiness Engine
-Capability Performance Monitor
-Dynamic Autonomy Manager
-Circuit Breakers
-Rate / Budget Protection
-Blast-Radius Controller
-Incident Detector
-Root-Cause Classifier
-Escalation Router
-Shadow Evaluation Engine
-Learning Feedback
-```
-
-Desired behavior:
+Future components include Evidence Integrity Monitor, Contradiction Detector, Anomaly Detector, Decision Readiness Engine, Capability Performance Monitor, Dynamic Autonomy Manager, Circuit Breakers, Rate/Budget Protection, Blast-Radius Controller, Incident Detector, Root-Cause Classifier, Escalation Router, Shadow Evaluation and Learning Feedback.
 
 > **Almost invisible during healthy operation, extremely capable when abnormal behavior happens.**
 
-Every material intervention must be explainable from observable signals, policy and recorded Evidence.
-
 ---
 
-## 28. Incident and circuit-breaker principles
+## 29. Incident and circuit-breaker principles
 
 Examples:
 
 ```text
-Unexpected bulk mutations
-→ stop affected capability
-
-Contradiction spike
-→ temporary scoped restriction
-
-Government API schema change
-→ suspend affected submission path
-
-Agent acts outside normal scope
-→ block material actions
-
-Runaway tool/model loop
-→ terminate run
-
-Expired VerifiedRule
-→ block dependent autonomous conclusion
+Unexpected bulk mutations → stop affected capability
+Contradiction spike → temporary scoped restriction
+Government API schema change → suspend affected submission path
+Agent acts outside normal scope → block material actions
+Runaway tool/model loop → terminate run
+Expired VerifiedRule → block dependent autonomous conclusion
 ```
 
-Restrictions should be scope-limited where possible.
-
-Correlated failures should aggregate into one organizational incident rather than flooding the Board.
+Restrictions should be scope-limited where possible and correlated failures should aggregate into organizational incidents rather than flooding the Board.
 
 ---
 
-## 29. Learning architecture
-
-Use three distinct levels:
+## 30. Learning architecture
 
 ```text
 OrganizationActivity
@@ -961,71 +802,27 @@ LearningRecord
 CuratedLearningExample
 ```
 
-Outcome labels should remain explicit, including:
-
-```text
-PROPOSED
-ACCEPTED
-MODIFIED
-REJECTED
-CONTRADICTED
-STALE
-SUPERSEDED
-HUMAN_CORRECTED
-EXECUTION_FAILED
-PARTIAL
-ROLLED_BACK
-```
+Outcome labels remain explicit, including PROPOSED, ACCEPTED, MODIFIED, REJECTED, CONTRADICTED, STALE, SUPERSEDED, HUMAN_CORRECTED, EXECUTION_FAILED, PARTIAL and ROLLED_BACK.
 
 Not every event becomes training truth.
 
-Human corrections are high-value labeled learning signals.
-
 ---
 
-## 30. Performance and scalability doctrine
+## 31. Performance and scalability doctrine
 
-### P1 — Pay for risk
-
-Verification effort scales with consequence, uncertainty and novelty.
-
-### P2 — Recompute only what changed
-
-Readiness, Evidence and policy components should be incremental/version-aware.
-
-### P3 — Load only what is needed
-
-Context should be purpose-scoped, lazy, composable and versioned.
-
-### P4 — Block only when necessary
-
-Distinguish:
-
-```text
-PRE_COMMIT
-POST_COMMIT
-BACKGROUND
-```
-
-### P5 — Centralize governance, distribute execution
-
-One authority model must not become one global execution mutex.
-
-### P6 — Cache exact governed state only
-
-Verifier/cache identity should include relevant Evidence, case facts, VerifiedRules, policy, jurisdiction, effective dates and program/model versions.
-
-### P7 — Instrument from day one
-
-Measure latency, cost, context size, verification overhead, retries, false/missed escalations, source freshness, Board workload, incident rate, autonomy rate and transparency lag.
-
-Conceptual principle:
+- **P1 Pay for risk** — verification effort scales with consequence, uncertainty and novelty.
+- **P2 Recompute only what changed** — readiness/Evidence/policy components are version-aware.
+- **P3 Load only what is needed** — context is purpose-scoped and lazy.
+- **P4 Block only when necessary** — distinguish PRE_COMMIT / POST_COMMIT / BACKGROUND.
+- **P5 Centralize governance, distribute execution** — one authority model must not become one global mutex.
+- **P6 Cache exact governed state only** — cache identity includes relevant Evidence/facts/rules/policy/jurisdiction/effective dates/program versions.
+- **P7 Instrument from day one** — measure latency, cost, retries, verification overhead, context size, source freshness, escalation quality, Board workload and autonomy.
 
 > **Governance Cost ∝ Risk × Uncertainty × Novelty**
 
 ---
 
-## 31. External runtime / provider independence
+## 32. External runtime / provider independence
 
 AIOS must survive replacement or disappearance of any external model, agent or execution framework.
 
@@ -1047,9 +844,7 @@ AIOS owns Mission/WorkItem meaning, Evidence, VerifiedRules, authority, canonica
 
 ---
 
-## 32. Technology Radar state
-
-Current state:
+## 33. Technology Radar state
 
 | Technology | Capability | State |
 |---|---|---|
@@ -1064,65 +859,33 @@ Current state:
 | Temporal | durable execution | DEFERRED PILOT |
 | OpenFGA | relationship authorization | DEFERRED PILOT |
 
-Adoption lifecycle remains evidence-driven:
-
 ```text
 REFERENCE → RESEARCH → BENCHMARK → PILOT → TRIAL → ADOPT
 ```
 
 or explicit REJECT where appropriate.
 
-Technology exists to improve mobility outcomes. AIOS must not reorganize itself around a fashionable framework.
-
 ---
 
-## 33. Coordinated parallel evolution
-
-Three primary project tracks continue in parallel.
+## 34. Coordinated parallel evolution
 
 ### Track A — Product / Human Experience
 
-- Phase 13.17 human acceptance;
-- bounded UX corrections;
-- Cockpit / Operations / My Mobility refinement;
-- role clarity;
-- evidence/provenance explainability;
-- mobile/responsive/accessibility quality;
-- real workflow usability.
+Phase 13.17 human acceptance, bounded UX corrections, Cockpit/Operations/My Mobility refinement, role clarity, Evidence/provenance explainability, responsive/accessibility quality and real workflow usability.
 
 ### Track B — Technology Radar / Platform Evolution
 
-- document/privacy intelligence;
-- regulatory monitoring;
-- runtime/retrieval/quality experiments;
-- professional-output technologies when justified;
-- explicit adoption/rejection evidence.
+Document/privacy intelligence, regulatory monitoring, runtime/retrieval/quality experiments, professional-output technologies when justified and explicit adoption/rejection evidence.
 
 ### Track C — High-Autonomy Organization
 
-- constitutional contracts;
-- Governance Kernel;
-- Transparency Foundation;
-- persistent agent/context architecture;
-- governed vertical workflows;
-- Decision Readiness;
-- independent verification;
-- Organizational Immune System;
-- earned autonomy;
-- runtime adapters;
-- Live Organization;
-- Board Transparency experience;
-- learning/optimization.
+Constitutional contracts, Governance Kernel, Transparency Foundation, persistent agent/context architecture, governed vertical workflows, Decision Readiness, independent verification, Organizational Immune System, earned autonomy, runtime adapters, Live Organization, Board Transparency experience and learning/optimization.
 
 No track globally blocks the others. Shared contracts and discoveries must be reconciled before incompatible delivery.
 
 ---
 
-## 34. Validation & commercial proof lane
-
-Architecture quality must be converted into external evidence.
-
-This cross-cutting lane should progress through:
+## 35. Validation & commercial proof lane
 
 ```text
 Owner-led acceptance
@@ -1140,105 +903,42 @@ First paying professional / organization
 Measured demand
 ```
 
-Track C must not become endless control-plane design without proving a real professional workflow.
-
-The most important future proof point is one real mobility case completed substantially by AIOS with a real external user/professional and fully reconstructable Evidence/decision lineage.
+Track C must not become endless control-plane design without proving real professional work.
 
 ---
 
-## 35. Legal, privacy and data-governance maturity
+## 36. Legal, privacy and data-governance maturity
 
-V12 must also convert principles into explicit governed policy over time, including:
-
-- GDPR lawful basis by data class/purpose;
-- purpose limitation;
-- special-category data handling;
-- retention/deletion/correction rights;
-- model-provider data-use boundaries;
-- cross-border transfers;
-- agent-memory retention;
-- LearningRecord eligibility;
-- CuratedLearningExample eligibility;
-- privilege/confidentiality handling;
-- professional/legal representation boundaries;
-- jurisdiction-specific submission authority;
-- human-accountability requirements.
+V12 must convert principles into explicit governed policy over time, including GDPR lawful basis by data class/purpose, purpose limitation, special-category data handling, retention/deletion/correction rights, model-provider data-use boundaries, cross-border transfers, agent-memory retention, LearningRecord/CuratedLearningExample eligibility, privilege/confidentiality, professional/legal representation boundaries, jurisdiction-specific submission authority and human-accountability requirements.
 
 Board transparency must coexist with lawful sensitivity controls.
 
 ---
 
-## 36. V1.3 implementation sequence
+## 37. V1.3 implementation sequence
 
 ### V1.3-A — Constitutional Contracts
 
-**State:** IMPLEMENTED / focused contract PASS / broader API rerun pending after roadmap compatibility fix.
-
-See Section 16 and [ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md](ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md).
+**State:** **COMPLETE / PASS / SEALED**.  
+See [ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md](ORGANIZATION_CONSTITUTIONAL_CONTRACTS_V1_3.md) and [V1_3_A_ACCEPTANCE_2026-08-20.md](V1_3_A_ACCEPTANCE_2026-08-20.md).
 
 ### V1.3-B — Minimal Governance Kernel
 
-Implement a deliberately small foundation:
+**State:** **IN PROGRESS**. B.1 deterministic governance evaluation is implemented; canonical V12 checkout acceptance is pending.
 
-- actor identity;
-- capability authority;
-- expected-version contract;
-- idempotency;
-- `MaterialAction` envelope;
-- deterministic policy-decision foundation;
-- Command Gateway foundation;
-- trace identity;
-- canonical `OrganizationActivity` integration.
+B.1 provides actor/capability authority, `MaterialAction`, expected-version and idempotency decisions, deterministic policy disposition, Board-reserved routing, autonomy routing, trace identity and Activity projection.
 
-Acceptance direction:
-
-- unauthorized material action fails;
-- stale action fails;
-- duplicate consequential action is blocked by idempotency;
-- an authorized low-risk action can execute without human approval;
-- activity/trace record is created;
-- existing runtime compatibility remains preserved.
+After B.1 acceptance, B.2 should integrate one existing reversible low-risk organization action through the kernel and canonical Activity path.
 
 ### V1.3-C — Transparency Foundation
 
-Implement early:
-
-- AgentConversation / AgentMessage capture semantics;
-- activity classification;
-- retention/sensitivity boundaries;
-- trace correlation;
-- `ToolActionRecord` foundation;
-- Decision Lineage foundation;
-- transparency query surfaces.
-
-Acceptance direction:
-
-- Board/developer can reconstruct a governed test decision from action back to actor/policy/Evidence;
-- material conversation/tool activity is traceable;
-- secrets are not exposed;
-- normal activity is summarized rather than spammed.
+Implement AgentConversation/AgentMessage capture semantics, activity classification, retention/sensitivity boundaries, trace correlation, `ToolActionRecord`, Decision Lineage foundation and transparency queries.
 
 ### V1.3-D — Context & Agent Identity
 
-Implement:
-
-- persistent agent identity;
-- Position / Department linkage;
-- `ContextBundle`;
-- version/hash;
-- `AgentRun` lineage;
-- working vs long-term vs organizational memory boundaries;
-- purpose-scoped retrieval.
-
-Acceptance direction:
-
-- a material run is reconstructable;
-- context is scoped rather than unrestricted;
-- memory cannot silently become canonical truth.
+Implement persistent agent identity, Position/Department linkage, `ContextBundle`, version/hash, `AgentRun` lineage, memory boundaries and purpose-scoped retrieval.
 
 ### V1.3-E — First Governed Vertical Workflow
-
-Use a real mobility workflow:
 
 ```text
 Evidence
@@ -1257,149 +957,48 @@ This is the critical architecture proof point.
 
 ### V1.3-F — Decision Readiness
 
-Implement:
-
-- auditable readiness components;
-- versioned formula/routing;
-- hard gates;
-- incremental recomputation;
-- `DecisionReadinessSnapshot`;
-- Board/Professional explanation output;
-- calibration telemetry.
+Implement auditable readiness components, versioned routing, hard gates, incremental recomputation, `DecisionReadinessSnapshot`, explanation output and calibration telemetry.
 
 ### V1.3-G — Independent Verification
 
-Implement:
-
-- blind peer verification;
-- contradiction comparison;
-- R3/R4/R5 routing;
-- PRE_COMMIT / POST_COMMIT / BACKGROUND modes;
-- exact-state cache/hash identity;
-- verification lineage.
+Implement blind peer verification, contradiction comparison, R3/R4/R5 routing, PRE_COMMIT/POST_COMMIT/BACKGROUND modes, exact-state cache identity and verification lineage.
 
 ### V1.3-H — Organizational Immune System
 
-Implement incrementally:
-
-- anomaly signals;
-- contradiction-rate monitoring;
-- circuit breakers;
-- blast-radius limits;
-- root-cause classification;
-- scope-limited quarantine;
-- incident aggregation;
-- escalation routing;
-- Board-inspectable intervention history.
+Implement anomaly signals, contradiction monitoring, circuit breakers, blast-radius limits, root-cause classification, scope-limited quarantine, incident aggregation, escalation routing and Board-inspectable intervention history.
 
 ### V1.3-I — Earned Autonomy
 
-Implement:
-
-- shadow mode;
-- `AutonomyEvidenceProfile`;
-- promotion criteria;
-- capability-specific promotion;
-- lower-risk automated promotion where policy permits;
-- dynamic downgrade;
-- recovery criteria;
-- governance review;
-- autonomy history.
+Implement shadow mode, `AutonomyEvidenceProfile`, promotion criteria, capability-specific promotion, dynamic downgrade, recovery criteria, governance review and autonomy history.
 
 ### V1.3-J — Agent Organization Runtime
 
-Evaluate runtime candidates against:
-
-- identity;
-- hierarchy;
-- messaging;
-- memory;
-- delegation;
-- scheduling;
-- failure handling;
-- tools;
-- observability;
-- multitenancy;
-- authority compatibility;
-- transparency compatibility;
-- AIOS semantic sovereignty.
-
-External candidate outcomes may be ADOPT / TRIAL / WRAP / BORROW / FORK / REJECT.
+Evaluate runtime candidates against identity, hierarchy, messaging, memory, delegation, scheduling, failure handling, tools, observability, multitenancy, authority/transparency compatibility and AIOS Semantic Sovereignty.
 
 ### V1.3-K — Execution / Coworker Runtime
 
-Implement provider-neutral bounded execution for:
-
-- files;
-- documents;
-- browser;
-- terminal/code;
-- email;
-- calendar;
-- MCP/connectors;
-- scheduled work;
-- external actions;
-- resumable execution jobs;
-- sandbox classes.
+Implement provider-neutral bounded execution for files, documents, browser, terminal/code, email, calendar, MCP/connectors, scheduled work, external actions, resumable jobs and sandbox classes.
 
 ### V1.3-L — Live Organization
 
-Bring canonical runtime state into Cockpit:
-
-- agents;
-- departments;
-- Missions;
-- WorkItems;
-- collaboration;
-- blocked work;
-- incidents;
-- autonomy;
-- quality;
-- cost;
-- performance.
-
-No fake/simulated activity where the product claims live organization state.
+Bring canonical agents, departments, Missions, WorkItems, collaboration, blocked work, incidents, autonomy, quality, cost and performance into Cockpit. No fake/simulated activity where the product claims live state.
 
 ### V1.3-M — Board Transparency Experience
 
-Build:
-
-- Organization Explorer;
-- Decision Explorer;
-- Conversation Explorer;
-- Case Timeline;
-- Evidence/Rule lineage;
-- Tool Activity Explorer;
-- Agent History;
-- Incident Timeline;
-- Autonomy History;
-- organization-wide grounded search.
+Build Organization Explorer, Decision Explorer, Conversation Explorer, Case Timeline, Evidence/Rule lineage, Tool Activity Explorer, Agent History, Incident Timeline, Autonomy History and grounded organization-wide search.
 
 ### V1.3-N — Learning & Optimization
 
-Deepen:
-
-- LearningRecords;
-- human correction analysis;
-- capability performance;
-- readiness calibration;
-- policy tuning;
-- routing optimization;
-- false/missed escalation analysis;
-- evaluation datasets;
-- curated learning examples;
-- permitted model/program improvement.
+Deepen LearningRecords, human-correction analysis, capability performance, readiness calibration, policy/routing optimization, escalation analysis, evaluation datasets and curated learning examples.
 
 ---
 
-## 37. Dependency logic
-
-Recommended dependency shape:
+## 38. Dependency logic
 
 ```text
-A Constitutional Contracts
+A Constitutional Contracts [SEALED]
         ↓
-B Governance Kernel
+B Governance Kernel [ACTIVE]
         ├────────→ C Transparency Foundation
         └────────→ D Context & Agent Identity
                          ↓
@@ -1420,46 +1019,49 @@ B Governance Kernel
                N Learning/Optimization
 ```
 
-Bounded J/K research may happen earlier, but production mutation integration must respect the governance contracts already accepted.
+Bounded J/K research may happen earlier, but production mutation integration must respect accepted governance contracts.
 
 ---
 
-## 38. Current immediate implementation priority
+## 39. Current immediate implementation priority
 
-The active engineering priority is:
+### First — canonical acceptance of V1.3-B.1
 
-### First — finish V1.3-A acceptance correctly
+After pulling `d351ad85...`, run from the canonical V12 checkout:
 
-The focused constitutional suite and repository policy already pass. The first broader API run exposed one historical-roadmap compatibility regression rather than a constitutional runtime defect. Roadmap V12.2 restores the protected v10.22 markers.
+```text
+pytest apps/api/tests/test_organization_governance_kernel.py -q
+scripts/check_repo_policy.py --root .
+pytest apps/api/tests -q
+git diff --check
+git status -sb
+```
 
-Required next evidence:
+Because B.1 is schema-neutral, the migration head should remain `0076_organization_position_active_identity`. If broader acceptance is clean, record exact evidence and mark B.1 PASS.
 
-1. specific v10.22 regression test PASS;
-2. complete API suite PASS;
-3. migration/schema invariant confirmation;
-4. clean repository state;
-5. exact evidence recorded in changelog.
+### Then — V1.3-B.2 first real governed command
 
-### Then — V1.3-B Minimal Governance Kernel
-
-The first B slice should avoid a giant framework. Prefer a minimal vertical contract that maps one real existing low-risk organization action into:
+Choose one **existing, reversible, low-risk organization operation** and route it through:
 
 ```text
 Actor
 → MaterialAction
 → deterministic authority/policy evaluation
 → expected version / idempotency
-→ canonical action
-→ traceable OrganizationActivity
+→ existing domain command
+→ canonical OrganizationActivity
+→ trace correlation
 ```
 
-The objective is to prove the kernel, not generalize every domain action immediately.
+Acceptance must prove unauthorized/stale/conflicting actions are blocked, an authorized low-risk action can execute without unnecessary human approval, exact replay is idempotent, and the result is traceable.
+
+Do not migrate every command at once.
 
 ---
 
-## 39. First vertical workflow direction
+## 40. First vertical workflow direction
 
-The architecture should ultimately be proven using a real mobility workflow, for example:
+A later V1.3-E proof should use a real mobility workflow such as:
 
 ```text
 Blocked mobility case
@@ -1489,13 +1091,9 @@ Board-inspectable transparency
 Learning outcome
 ```
 
-That one workflow should exercise many architecture layers against real product behavior.
-
 ---
 
-## 40. Cockpit target information architecture
-
-Long-term Cockpit:
+## 41. Cockpit target information architecture
 
 ```text
 Global Mobility AIOS Cockpit
@@ -1512,60 +1110,21 @@ Global Mobility AIOS Cockpit
 └── Board Room
 ```
 
-Top level should summarize health and exceptions. Board Room remains reserved. Transparency/search allows deep investigation without cluttering the default experience.
+Top level summarizes health and exceptions. Board Room remains reserved.
 
 ---
 
-## 41. Board organization-wide search target
+## 42. Board organization-wide search target
 
-Future grounded queries should support questions such as:
-
-- Why was this applicant marked ineligible?
-- Which agents contributed?
-- What did they discuss?
-- Which Evidence supported the conclusion?
-- Which VerifiedRule/source was used?
-- Who changed canonical case state?
-- Why was an agent capability downgraded?
-- Which government submissions happened in a time window?
-- Which cases rely on a given rule?
-- Which contradictions remain unresolved?
-- Which capabilities are declining in quality?
+Future grounded queries should answer why a case was decided, which agents contributed, what Evidence/rules/sources were used, who changed canonical state, why autonomy changed, which government submissions happened, which cases rely on a rule, which contradictions remain unresolved and which capabilities are declining.
 
 Answers must be grounded in governed lineage rather than invented summaries.
 
 ---
 
-## 42. Success metrics
+## 43. Success metrics
 
-The project should measure outcomes rather than infrastructure volume.
-
-Primary metrics:
-
-```text
-% work completed autonomously
-Human interventions / 100 material actions
-Board decisions / 1,000 organizational actions
-Critical error rate
-Evidence-grounding rate
-Human modification/rejection rate
-False escalation rate
-Missed escalation rate
-Contradiction rate
-Source freshness
-Capability reliability
-Workflow completion time
-p50/p95 material-action latency
-Cost per completed workflow
-Stale/retry rate
-Incident frequency
-Recovery effectiveness
-Decision-lineage completeness
-Conversation/material-action traceability
-External user success
-Professional acceptance
-Repeat usage / willingness to pay when measured
-```
+Primary metrics include autonomous completion %, human interventions per 100 material actions, Board decisions per 1,000 organizational actions, critical error rate, Evidence grounding, human modification/rejection, false/missed escalation, contradiction rate, source freshness, capability reliability, workflow completion time, p50/p95 material-action latency, cost/outcome, stale/retry rate, incident frequency, recovery effectiveness, Decision Lineage completeness, conversation/material-action traceability, external user success, professional acceptance and repeat usage/willingness to pay when measured.
 
 Desired direction:
 
@@ -1588,7 +1147,7 @@ Opaque decisions ↓
 
 ---
 
-## 43. Repository / acceptance discipline
+## 44. Repository / acceptance discipline
 
 Every meaningful patch should:
 
@@ -1608,11 +1167,11 @@ Every meaningful patch should:
 14. preserve migration/database/release invariants;
 15. never claim tests, CI, runtime implementation or PASS without evidence.
 
-Roadmap rewrites must also preserve intentionally regression-protected historical milestones where tests encode them as part of repository continuity.
+Roadmap rewrites must preserve intentionally regression-protected historical milestones such as `v10.22`, **multi-batch tranche operations**, and `0032_initial_rule_assertions` where tests encode them as repository continuity contracts.
 
 ---
 
-## 44. Frozen architecture invariants
+## 45. Frozen architecture invariants
 
 1. Human Owner / Board is supreme authority.
 2. Board governs mainly by exception rather than routine approval.
@@ -1649,15 +1208,11 @@ Roadmap rewrites must also preserve intentionally regression-protected historica
 
 ---
 
-## 45. Final project direction
+## 46. Final project direction
 
-Global Mobility AIOS is intended to become more than software that helps complete immigration tasks.
-
-It should become a **transparent AI-operated professional Global Mobility organization** capable of understanding goals, organizing work, preserving institutional memory, gathering and governing Evidence, tracking changing regulations, coordinating specialized AI employees, producing professional outputs, executing authorized actions, learning from corrections, detecting abnormal behavior, containing mistakes and escalating intelligently.
+Global Mobility AIOS should become a **transparent AI-operated professional Global Mobility organization** capable of understanding goals, organizing work, preserving institutional memory, gathering and governing Evidence, tracking changing regulations, coordinating specialized AI employees, producing professional outputs, executing authorized actions, learning from corrections, detecting abnormal behavior, containing mistakes and escalating intelligently.
 
 The Human Board retains supreme authority without becoming the organization's manual operator.
-
-The implementation target is:
 
 ```text
 Maximum useful autonomy
@@ -1675,4 +1230,4 @@ Complete Board inspectability
 Real external product proof
 ```
 
-The project should continue ambitiously, but every increase in architectural sophistication must increasingly be justified by runtime evidence and real mobility outcomes.
+The project should remain ambitious, but every increase in architectural sophistication must increasingly be justified by runtime evidence and real mobility outcomes.
