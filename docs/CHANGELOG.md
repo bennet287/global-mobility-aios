@@ -6,6 +6,82 @@ Earlier active history from the post-`f0688a8` baseline through the V1.2 checkpo
 
 ---
 
+## 2026-08-19 — V12 DEVELOPMENT BRANCH OPENED / V11 FROZEN AS REFERENCE CHECKPOINT
+
+### Status
+
+**Branch-governance / documentation checkpoint only. No runtime implementation change is claimed.**
+
+A new active development branch was created for the next implementation stage:
+
+- **Frozen reference branch:** `roadmap/global-mobility-aios-v11`
+- **Frozen V11 checkpoint:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449` — `docs: define high-autonomy v1.3 architecture`
+- **Active development branch:** `roadmap/global-mobility-aios-v12`
+- **V12 starting checkpoint:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
+
+GitHub comparison at branch creation confirmed:
+
+```text
+V11 ↔ V12
+status: identical
+ahead: 0
+behind: 0
+starting SHA: dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
+```
+
+### Purpose
+
+V12 provides an isolated active development line for implementing the ambitious V1.3 architecture while preserving V11 as a clean recovery/reference checkpoint.
+
+The branch split is intentional:
+
+- V11 preserves the accepted product/runtime baseline plus the V1.3 architecture, Roadmap V11.5, Transparency Layer direction, and active V1.3-era changelog as of `dd2f2cd`;
+- V12 begins from exactly that state and becomes the active branch for subsequent V1.3 implementation, Product/Human Experience corrections, Technology Radar work, and High-Autonomy Organization delivery;
+- V11 should not receive new implementation changes unless the Human Owner explicitly decides to reopen it;
+- future implementation should be committed to V12 or bounded descendant branches created from V12;
+- V11 remains available for comparison, rollback/reference, and recovery if later V1.3 work introduces regressions or architectural mistakes.
+
+### Active development direction from V12
+
+V12 continues the canonical V1.3 programme rather than defining a separate architecture.
+
+Primary Track C sequence remains:
+
+```text
+V1.3-A  Constitutional Contracts
+V1.3-B  Minimal Governance Kernel
+V1.3-C  Transparency Foundation
+V1.3-D  Context & Agent Identity
+V1.3-E  First Governed Vertical Workflow
+V1.3-F  Decision Readiness
+V1.3-G  Independent Verification
+V1.3-H  Organizational Immune System
+V1.3-I  Earned Autonomy
+V1.3-J  Agent Organization Runtime
+V1.3-K  Execution / Coworker Runtime
+V1.3-L  Live Organization
+V1.3-M  Board Transparency Experience
+V1.3-N  Learning & Optimization
+```
+
+Phase 13.17 human acceptance remains a parallel feedback stream and does not globally stop V12 development. Relevant findings should be corrected and retested on the active development line while the frozen V11 checkpoint remains unchanged.
+
+### Runtime truth
+
+This branch transition itself does **not**:
+
+- change application code;
+- change database schema or migration head;
+- modify preserved `gmai.db`;
+- implement V1.3 runtime controls;
+- resolve Phase 13.17 findings;
+- change Technology Radar adoption state;
+- claim new test, release, or CI PASS evidence.
+
+The purpose of this checkpoint is repository isolation and delivery safety only.
+
+---
+
 ## 2026-08-19 — High-Autonomy Organization Architecture V1.3 — BOARD TRANSPARENCY / EARNED AUTONOMY DIRECTION
 
 ### Status
