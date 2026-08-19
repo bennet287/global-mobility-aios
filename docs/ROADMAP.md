@@ -1,16 +1,17 @@
 # Global Mobility AIOS — Active Product & Delivery Roadmap
 
-**Roadmap generation:** V11.2 / Technology Radar V1.1 human-like organization alignment  
+**Roadmap generation:** V11.3 / Technology Radar V1.1 controlled high-autonomy alignment  
 **Date:** 2026-08-19  
 **Development branch:** `roadmap/global-mobility-aios-v11`  
-**Accepted product baseline:** Phase 13.16.10 — Responsive, accessibility, polish, and integrated role acceptance — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
+**Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
 **Active product slice:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
-**Current Technology Radar state:** Wave 1 COMPLETE; Wave 2 IN PROGRESS with Docling bounded pilot started  
+**Current Technology Radar state:** Wave 1 PILOT COMPLETE; Wave 2 IN PROGRESS with Docling pilot started  
+**Human-like organization architecture:** V1.1 CANONICAL / PARALLEL IMPLEMENTATION TRACK  
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
 
-This is the canonical **active strategic and delivery roadmap** for [Global Mobility AIOS](GLOBAL_MOBILITY_AIOS_VISION_V1.md). It is intentionally optimized for current direction, gates, sequence, and architecture. Detailed historical implementation evidence remains in [CHANGELOG.md](CHANGELOG.md), Git history, and the archived pre-`f0688a8` roadmap/changelog snapshots.
+This is the canonical active strategic/delivery roadmap. Historical detail remains in `CHANGELOG.md`, Git history, and archived roadmap/changelog snapshots.
 
 ---
 
@@ -18,32 +19,23 @@ This is the canonical **active strategic and delivery roadmap** for [Global Mobi
 
 Global Mobility AIOS is a **governed global mobility intelligence operating system** for the movement of people, talent, families, businesses, and capital across borders.
 
-It is not merely:
-
-- a visa chatbot;
-- a study-abroad search product;
-- a CRM;
-- a document uploader;
-- an agent demo;
-- a generic admin dashboard;
-- or a collection of disconnected automations.
+It is not merely a visa chatbot, document uploader, CRM, agent demo, generic SaaS dashboard, or disconnected automation collection.
 
 The product combines:
 
-- CRM, intake, identity, consent, and long-lived case continuity;
+- CRM, identity, intake, consent, and long-lived case continuity;
 - universal mobility profiles and goal/constraint context;
 - official-source and regulatory intelligence;
-- pathway discovery, versioning, comparison, and eligibility reasoning;
-- evidence, provenance, document intelligence, cost, risk, and timeline planning;
-- appointments, submissions, agency and authority workflow;
-- post-arrival, renewal, settlement, residence, citizenship, and global-strategy progression;
+- pathway discovery/versioning/comparison and eligibility reasoning;
+- evidence, provenance, documents, cost, risk and timelines;
+- appointments, submissions, agency/authority workflow;
+- post-arrival / renewal / residence / citizenship progression;
 - governed agents, executives, departments and position contracts;
-- explicit organizational authority and human-review gates;
-- durable Missions, WorkItems, Decisions, Blockers, Dependencies, Human Actions, Contributions, Conversations, Activity, and audit state;
-- role-specific experiences for Owner/Board, Professionals/Operators, Mobility Users, and future partners/employers;
-- an evolving human-like AI organization that collaborates naturally while remaining measurable and accountable.
+- Missions, WorkItems, Blockers, Dependencies, Conversations, Human Actions, Decisions, Contributions, Activity and audit state;
+- role-specific experiences for Owner/Board, Professionals/Operators, Mobility Users and future partners/employers;
+- a human-like AI organization that communicates naturally while remaining measurable, grounded and accountable.
 
-### North-star mobility lifecycle
+North-star mobility lifecycle:
 
 ```text
 Dream / Goal
@@ -52,698 +44,692 @@ Profile + constraints
    ↓
 Country / pathway discovery
    ↓
-Eligibility + evidence + risk + cost + timeline comparison
+Eligibility + evidence + risk + cost + timeline
    ↓
 Study / Work / Family / Business / Investment / Remote-work move
    ↓
-Documents / submissions / appointments / authority decisions / compliance
+Documents / submissions / appointments / authority decisions
    ↓
-Post-arrival / employment / business operation
+Post-arrival / operation
    ↓
 Renewal / status change / family progression
    ↓
-Permanent or long-term residence
+Long-term residence
    ↓
 Citizenship / global mobility strategy
 ```
 
-The lifecycle is branching, not a forced funnel. Changed facts, failed assumptions, new goals, changing laws, alternate pathways, and different user types remain first-class.
-
 ---
 
-## 2. Product surfaces and authority model
+## 2. Product surfaces
 
-The canonical experience split is:
-
-- **Global Mobility AIOS Cockpit** — Owner / Human Board control and organization-intelligence surface;
-- **Board Room** — reserved Board authority-execution module inside Cockpit, not the name of the whole control surface;
-- **Operations** — Professional / Operator experience;
-- **My Mobility** — Mobility User experience;
-- `/my-mobility` — non-sensitive orientation/access surface;
+- **Global Mobility AIOS Cockpit** — Human Owner / Board control, oversight, quality and organization-intelligence surface.
+- **Board Room** — reserved Owner/Board authority module inside Cockpit.
+- **Operations** — Professional / Operator experience.
+- **My Mobility** — Mobility User experience.
+- `/my-mobility` — non-sensitive orientation/access.
 - `/portal` — secure token/device-bound personalized client workspace.
 
-Backend authorization is authoritative. Navigation, route visibility, title, prompt wording, model capability, provider role, persona, or UI presence never grants business, legal, publication, certification, submission, or organizational authority.
+Backend authorization remains authoritative. Navigation, persona, prompt wording, model/provider identity or UI visibility never grants domain/business/legal authority.
 
-### Experience direction
-
-The product should feel like premium enterprise software with a distinct AI operating-system identity—not a generic SaaS admin dashboard and not dark sci-fi.
-
-Visual direction remains:
-
-- deep navy / graphite + warm ivory;
-- selective editorial serif + operational sans;
-- restrained depth/glass;
-- premium iconography;
-- subtle, meaningful motion;
-- luxury-level spacing;
-- beautiful information density;
-- strong role/context clarity.
-
-The future **Live Organization** experience may borrow Munder Difflin's principle that movement and spatial organization communicate system state, but must be translated into the established premium AIOS visual language rather than copying its pixel/SNES aesthetic.
+Visual direction remains premium enterprise AIOS: deep navy/graphite, warm ivory, selective serif + operational sans, restrained depth, premium iconography, subtle meaningful motion, strong information density and role clarity.
 
 ---
 
-## 3. Permanent governance, evidence, organization and learning invariants
+## 3. Permanent architecture invariants
 
-These are product architecture, not optional UX copy.
+1. **AIOS Semantic Sovereignty** — external technology implements capabilities; AIOS owns meaning.
+2. **Evidence before regulated certainty** — memory, conversation, retrieval, OCR, normalization, model output and source diffs are not legal truth by themselves.
+3. **Broad cognition, scoped context** — agents receive sufficient relevant context, not unrestricted unrelated sensitive data.
+4. **Narrow mutation** — important authoritative writes use typed AIOS commands and validation.
+5. **Deterministic authority** — authority comes from authenticated identity/position/contracts, never prompt/persona/model confidence.
+6. **Consequential action proposal-first** — important real-world/domain changes are prepared by agents and reviewed/modified/approved by the appropriate human unless a separately accepted bounded autonomy policy exists.
+7. **Distributed review, centralized oversight** — human review happens at the lowest appropriate surface; material oversight converges in Cockpit.
+8. **Board Room remains reserved** — not a generic human-review inbox.
+9. **Conversation is Activity but not authority** — `AgentMessage ⊂ OrganizationActivity`; conversation does not silently create Decision/Evidence/VerifiedRule.
+10. **Memory informs work, not truth** — memory may trigger retrieval/research but is not Evidence or VerifiedRule.
+11. **Provider logs are non-authoritative inputs** — provider events require AIOS normalization before canonical Activity/domain state.
+12. **Truthful unknowns** — missing/mismatched evidence remains unknown/not-established.
+13. **Natural interaction, deterministic accountability.**
+14. **Team outcomes over agent competition.**
+15. **Results matter more than framework competition.**
+16. **Autonomy is capability-specific and never self-granted.**
+17. **Finished work over chat alone.**
+18. **Atomic/versioned/reversible state where possible.**
+19. **Internal Learning & Quality** — permitted operational outcomes/corrections should improve AIOS without assuming universal training permission.
+20. **Preserved databases are evidence** — no demo mutation of preserved `gmai.db`.
+21. **Austria simulation safety remains frozen** — uncertain simulation state is never promoted to production certainty.
 
-1. **AIOS Semantic Sovereignty** — third parties implement capabilities; AIOS owns meaning.
-2. **Evidence before regulated certainty** — retrieval, OCR, document normalization, memory, conversation, model output, source diffs, or signature validation are not legal truth.
-3. **Explicit authority** — authority comes from deterministic contracts and gates, never model confidence, provider roles, titles, or prompts.
-4. **Human review remains human review** — required professional, source, certification, publication, Board, or external-action gates cannot be silently automated away.
-5. **Distributed review, centralized oversight** — human involvement occurs at the lowest appropriate work/authority surface; material oversight converges in Cockpit.
-6. **Board Room is reserved authority** — it is not a generic human-review inbox.
-7. **Navigation is not authorization** — frontend visibility never substitutes for backend enforcement.
-8. **Provider replacement must remain possible** — provider IDs are mappings, not semantic primary keys.
-9. **Truthful unknowns** — absent or mismatched evidence remains unknown/not-established rather than inferred clearance.
-10. **Preserved databases are evidence** — never mutate the preserved database merely to produce a demo.
-11. **Austria simulation safety remains frozen** — uncertain Austria v4 state must not be promoted into production certainty.
-12. **Natural interaction, deterministic accountability** — agents may behave like capable colleagues while deterministic contracts still govern work, authority, evidence and outcomes.
-13. **Activity is broad; authority is narrow** — conversational and collaborative messages may be OrganizationActivity without becoming Decisions or regulated truth.
-14. **Team outcomes over agent competition** — Mission/business outcomes matter more than internal framework or agent leaderboards.
-15. **Autonomy is earned and measured** — quality, SLA performance, correction/rework, evidence grounding and governed outcomes determine how much autonomy is justified.
-16. **Finished work over chat alone** — AIOS should increasingly produce real governed artifacts/actions rather than only instructions.
-17. **Internal Learning & Quality** — lawful operational experience, corrections and outcomes should improve AIOS where permitted.
-18. **Training lineage** — AIOS should know what data, corrections, transformations and evaluations contributed to improved models/programs.
-
----
-
-## 4. Current accepted product baseline
-
-### Phase 13.16.8 — Professional / Operator experience — COMPLETE / PASS
-
-The existing Operations workspace and native case workspace were refined instead of creating a parallel dashboard. The accepted professional reading order is:
+Five hard canonicalization constraints:
 
 ```text
-Decision / case context
-        ↓
-Blockers + uncertainty
-        ↓
-Governed next actions
-        ↓
-Supporting evidence + review state
-        ↓
-Technical provenance / audit detail
+conversation != authority
+message != ExecutiveDecision
+memory != Evidence
+memory != VerifiedRule
+provider event log != canonical AIOS Activity automatically
 ```
 
-Current pathway evidence remains conservatively composed around the persisted pathway-comparison decision spine. Historical, unassigned or mismatched evidence remains inspectable but cannot silently support current conclusions.
+---
 
-### Phase 13.16.9 — Evidence and provenance UX — COMPLETE / PASS
+## 4. Accepted product baseline
 
-A shared presentation grammar distinguishes:
+### 13.16.8 — Professional / Operator — COMPLETE / PASS
 
-- official source;
-- immutable retrieved snapshot;
-- certification/review state;
-- VerifiedRule;
-- pathway evidence;
-- case evidence;
-- superseded/historical state;
-- unresolved gaps.
+Accepted professional reading order:
 
-This layer is presentational and does not create/certify/publish evidence or grant authority.
+```text
+Decision / context
+  ↓
+Blockers + uncertainty
+  ↓
+Governed next actions
+  ↓
+Supporting evidence / review state
+  ↓
+Technical provenance
+```
 
-### Phase 13.16.10 — Integrated responsive/accessibility acceptance — COMPLETE / PASS
+Historical/mismatched evidence remains inspectable but cannot silently support current conclusions.
 
-Owner/Board, Professional/Operator, Mobility User and secure Portal experiences were accepted across desktop/mobile/keyboard/accessibility states after bounded responsive corrections.
+### 13.16.9 — Evidence / provenance UX — COMPLETE / PASS
+
+Shared grammar distinguishes official source, immutable snapshot, review/certification, VerifiedRule, pathway evidence, case evidence, superseded history and unresolved gaps.
+
+### 13.16.10 — Integrated responsive/accessibility acceptance — COMPLETE / PASS
 
 Accepted evidence includes:
 
 - design foundation **28/28 PASS**;
-- request/auth regression **4/4 PASS**;
-- Next.js 15.2.4 production build **41/41 PASS**;
-- complete API regression **811 passed / 5 skipped / 0 failed** carried forward for the frontend-only 13.16.10 boundary;
-- responsive/keyboard/Portal browser acceptance PASS;
+- request/auth **4/4 PASS**;
+- Next.js build **41/41 PASS**;
+- complete API regression **811 passed / 5 skipped / 0 failed** carried forward for the frontend-only boundary;
+- browser/mobile/keyboard/Portal acceptance PASS;
 - preserved `gmai.db` SHA256 `23FC012AF3FA89804A84A9C8DD75C0C68515B23AEF1813CC5460D6D73808CD31` unchanged.
 
-No GitHub CI status should be inferred from these local acceptance records.
+No GitHub CI status is inferred from these local acceptance records.
 
 ---
 
-## 5. Active delivery sequence
+## 5. Current product delivery
 
-| Slice | State | Intent / gate |
+| Slice | State | Intent |
 |---|---|---|
-| **13.16.8** | **COMPLETE / PASS** | Governed Professional / Operator decision workspace |
-| **13.16.9** | **COMPLETE / PASS** | Shared evidence/provenance presentation grammar |
-| **13.16.10** | **COMPLETE / PASS** | Integrated responsive/accessibility role experience |
-| **13.17** | **IN PROGRESS / PAUSED** | Owner-led genuine human acceptance; not independent third-party validation |
-| **Final Phase 13 disposition** | **LOCKED** | Only after outstanding human findings are corrected/retested or consciously dispositioned |
-| **Phase 14** | **NOT STARTED / DEMAND-GATED** | Scale a validated product; do not redesign around infrastructure prematurely |
+| 13.16.8 | COMPLETE / PASS | Professional / Operator workspace |
+| 13.16.9 | COMPLETE / PASS | evidence/provenance presentation |
+| 13.16.10 | COMPLETE / PASS | integrated responsive/accessibility role experience |
+| **13.17** | **IN PROGRESS / PAUSED** | owner-led human acceptance |
+| Final Phase 13 disposition | LOCKED | after findings corrected/retested or explicitly dispositioned |
+| Phase 14 | NOT STARTED / DEMAND-GATED | scale validated product |
 
-### 5.1 Phase 13.17 — owner-led genuine human acceptance
+### Phase 13.17
 
-The current evaluator is the product Owner. Therefore the evidence is genuine human-use evidence but **not independent third-party acceptance**.
+The evaluator is the product Owner. Evidence is genuine human use, but not independent third-party validation.
 
-The evaluation is deliberately scenario-based and avoids telling the evaluator the intended answer before comprehension/discoverability tasks.
-
-The session is currently paused after the first Professional / Operator task. Existing findings remain unresolved evidence rather than being considered fixed because their intended semantics were later explained.
-
-The durable checkpoint is:
+Checkpoint:
 
 - [PHASE_13_17_OWNER_LED_HUMAN_ACCEPTANCE_CHECKPOINT_2026_08_18.md](PHASE_13_17_OWNER_LED_HUMAN_ACCEPTANCE_CHECKPOINT_2026_08_18.md)
 
-Current finding themes include:
+Current unresolved themes include:
 
-- drill-down / traceability from summary counts;
-- plain-language evidence and governance terminology;
-- clearer powerful-control/emergency-stop semantics;
-- better cross-organization diagnosis;
-- relationship directionality;
-- stronger role/context navigation;
-- persistent icon + text navigation labels;
-- clearer Professional next actions;
-- clearer pathway/context-alignment warnings.
+- click-through traceability;
+- plain-language evidence/governance concepts;
+- powerful-control semantics;
+- diagnosis/routing;
+- blocker/dependency direction;
+- role-context navigation;
+- icon + text navigation;
+- Professional next-action clarity;
+- pathway/context-alignment terminology.
 
-The human-like organization architecture must **use** this evidence, not bypass it.
+Resume point remains Professional Task 2 when the Owner chooses to continue.
 
-Resume point: Professional Task 2 / human-review or blocked-claim case, with shorter scenarios and fewer repetitive screenshots.
+Architecture/platform work does **not wait** for this phase to finish. Existing findings still remain unresolved evidence until corrected/retested/dispositioned.
 
 ---
 
-## 6. Technology Radar V1.1 — active platform-evolution architecture
+## 6. Parallel delivery model
+
+The project intentionally advances three coordinated tracks.
+
+### Track A — Product / Human Experience
+
+- Phase 13.17 acceptance;
+- bounded corrections;
+- Operations/Cockpit/My Mobility refinement;
+- role clarity;
+- explainability and traceability.
+
+### Track B — Technology Radar / Platform Evolution
+
+- Wave 2 document/privacy intelligence;
+- Wave 3 regulatory monitoring;
+- Wave 4 AI runtime/retrieval/quality;
+- Wave 6 output technologies when needed.
+
+### Track C — Human-Like Organization / Agent Control Plane
+
+- high-autonomy control plane;
+- organization semantics;
+- Munder Difflin research/pilot;
+- OpenWorker/Coworker research/pilot;
+- Live Organization;
+- organizational learning.
+
+Parallel means **no artificial stop-and-wait**. It does not mean unbounded implementation. Every slice keeps exact scope, tests, rollback, authority/evidence constraints and roadmap/changelog discipline.
+
+---
+
+## 7. Technology Radar V1.1
 
 Canonical documents:
 
 - [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md)
-- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)
 - [THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md](THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md)
 - [ADR/0002-provider-neutral-platform-adapters.md](ADR/0002-provider-neutral-platform-adapters.md)
 
-Technology Radar is a **parallel evidence-driven evolution track**. Inclusion is not installation. Runtime adoption requires a bounded slice and acceptance contract.
+### Adoption lifecycle
 
-### 6.1 A+ strategic technologies
+```text
+REFERENCE → RESEARCH → BENCHMARK → PILOT → TRIAL → ADOPT
+```
 
-| Technology | AIOS role | Direction |
+Fit and adoption state are separate.
+
+### A+ current state
+
+| Technology | Capability | Adoption state |
 |---|---|---|
-| Docling | document normalization / structured understanding | ADOPT / EARLY PILOT — Wave 2 started |
-| Presidio | sensitive-data processing / Privacy Gateway | ADOPT / EARLY PILOT |
-| Promptfoo | AI regression / safety / quality evaluation | Wave 1 bounded pilot complete |
-| OpenTelemetry | vendor-neutral application/AI telemetry | Wave 1 bounded pilot complete |
-| urlwatch | official-source change monitoring | ADOPT / EARLY PILOT |
-| ClamAV | upload quarantine / malware scanning | Wave 1 bounded pilot complete |
-| **Munder Difflin** (`chaitanyagiri/munder-difflin`) | Agent Organization Fabric / human-like coordination / Live Organization reference | **A+ strategic architecture reference / controlled pilot-research** |
-| **OpenWorker** (`andrewyng/openworker`) | AIOS Coworker / finished-work / tools-connectors-deliverables reference | **A+ strategic reference / controlled pilot** |
-| Temporal | durable execution | strategic pilot |
-| OpenFGA | relationship authorization | strategic pilot |
+| Promptfoo | AI quality/safety evaluation | PILOT COMPLETE / TRIAL-ELIGIBLE |
+| OpenTelemetry | neutral telemetry | PILOT COMPLETE / TRIAL-ELIGIBLE |
+| ClamAV | malware scanning | PILOT COMPLETE / TRIAL-ELIGIBLE |
+| Docling | document normalization | PILOT IN PROGRESS |
+| Presidio | Privacy Gateway | QUEUED PILOT |
+| urlwatch | source monitoring | QUEUED PILOT |
+| **Munder Difflin** | Agent Organization Fabric / Live Organization | **REFERENCE / CONTROLLED RESEARCH** |
+| **OpenWorker** | Coworker / finished-work execution | **REFERENCE / CONTROLLED RESEARCH** |
+| Temporal | durable execution | DEFERRED PILOT |
+| OpenFGA | relationship authorization | DEFERRED PILOT |
 
-### 6.2 A specialist candidates
+### A specialist state
 
-- pgvector — governed semantic retrieval benchmark;
-- Qdrant — dedicated retrieval alternative benchmarked against pgvector;
-- Pydantic AI — typed production AI/agent runtime candidate;
-- Langfuse — LLM/agent engineering observability behind OpenTelemetry;
-- PaddleOCR — OCR/document extraction benchmark;
-- Unlimited-OCR — advanced OCR/VLM benchmark;
-- DSPy — offline AI-program optimization;
-- Gotenberg — commodity PDF/document conversion;
-- Typst — premium professional report generation;
-- EU DSS — EU electronic-signature validation research.
-
-### 6.3 Conditional / fallback candidates
-
-Fides, OpenLineage, OPA, OpenFeature, Haystack and MarkItDown remain conditional/fallback candidates.
+- pgvector — BENCHMARK;
+- Qdrant — BENCHMARK against pgvector;
+- Pydantic AI — research/pilot candidate;
+- Langfuse — research/pilot candidate behind OpenTelemetry;
+- PaddleOCR / Unlimited-OCR — gap-triggered benchmark only;
+- DSPy — research;
+- Gotenberg / Typst — queued when professional-output need exists;
+- EU DSS — research.
 
 ---
 
-## 7. Human-like Agent Organization architecture
+## 8. Wave 1 / Wave 2 current runtime truth
 
-The canonical architecture direction is defined in [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md).
+### Wave 1 — COMPLETE at pilot level
 
-### 7.1 Target organization stack
+- Promptfoo pilot complete;
+- OpenTelemetry pilot complete;
+- ClamAV pilot complete.
+
+These are `PILOT COMPLETE / TRIAL-ELIGIBLE`, not automatically `ADOPT`.
+
+### Wave 2 — IN PROGRESS
+
+Current path:
+
+```text
+ClamAV
+  ↓
+Docling
+  ↓
+measure current OCR/document quality
+  ↓
+Presidio / Privacy Gateway
+  ↓
+Evidence / document intelligence
+```
+
+Current:
+
+- Docling pilot started;
+- Presidio next queued;
+- specialist OCR only if measured Docling/current-stack gaps justify it.
+
+Latest accepted runtime evidence before the new docs-only architecture updates:
+
+- API **873 passed / 5 skipped / 0 failed**;
+- Next.js **41/41 PASS**;
+- design foundation **28/28 PASS**;
+- preserved `gmai.db` unchanged.
+
+These are carried forward and not represented as rerun by docs-only architecture commits.
+
+---
+
+## 9. Human-Like High-Autonomy Architecture V1.1
+
+Canonical architecture:
+
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)
+
+### Target stack
 
 ```text
 Human Owner / Board
         ↓
-Global Mobility AIOS Cockpit / Owner Command
+Cockpit / Owner Command
         ↓
 AI CEO
         ↓
 Organization OS / Domain Truth
         ↓
-Missions + WorkItems + Authority + Evidence
+AIOS Context Broker
         ↓
 Agent Organization Fabric
-        ├── communication
-        ├── conversations
-        ├── coordination
-        ├── memory
-        ├── Dynamic Squads
-        └── organizational relationships
         ↓
-AIOS Execution Broker
-        ├── Munder-inspired organization/execution capabilities
-        ├── OpenWorker finished-work capabilities
-        ├── AIOS-native typed agents
-        └── deterministic services
+Agent cognition / conversation / memory
         ↓
-Finished Work
+Proposed Intent
         ↓
-Definition of Done + SLA + quality + evidence + authority gates
+Canonicalization Gateway
         ↓
-Governed Outcome
+Command Gateway
+        ↓
+Authority + Grounding + Consistency checks
+        ↓
+Internal bounded action
+        OR
+Consequential Action Proposal
+        ↓
+Human approve / modify / return / reject where required
+        ↓
+Atomic/versioned governed execution
+        ↓
+OrganizationActivity + Audit
         ↓
 Learning & Quality
 ```
 
-### 7.2 Munder Difflin and OpenWorker cooperate
+---
 
-The architecture does not force a false choice between Munder Difflin and OpenWorker.
+## 10. Munder Difflin + OpenWorker
 
-- **Munder Difflin** principally informs the human-like multi-agent organization: identity, conversations, mailboxes, memory, orchestration, dependencies, schedules, budgets, circuit breakers, skills and Live Organization.
-- **OpenWorker** principally informs finished-work execution: files, artifacts, terminal/tools, MCP, connectors, schedules, model portability, consequential-action approvals and outcome-oriented UX.
-- **AIOS Execution Broker** owns capability composition and chooses what best satisfies the Mission based on measured quality, SLA, authority, workload, evidence needs, cost, privacy/data-use and provider health.
+They are complementary A+ references.
 
-> **Results matter more than framework ownership; semantic sovereignty remains non-negotiable.**
+### Munder Difflin informs
 
-### 7.3 AgentMessage / OrganizationActivity
-
-Canonical relationship:
-
-```text
-AgentMessage ⊂ OrganizationActivity
-```
-
-Routine human-like conversation is legitimate organizational activity. However:
-
-```text
-conversation ≠ authority
-message ≠ ExecutiveDecision
-memory ≠ Evidence
-memory ≠ VerifiedRule
-provider event log ≠ canonical AIOS Activity automatically
-```
-
-Provider messages/events are normalized into AIOS-owned semantic Activity where appropriate.
-
-### 7.4 Missions and Dynamic Squads
-
-**Mission** is the outcome-level organizational concept above WorkItems.
-
-A Mission may create:
-
-- WorkItems;
-- conversations;
+- identities;
+- conversations/mailboxes;
+- memory;
+- orchestration;
 - dependencies;
-- artifacts;
-- decisions;
-- temporary Dynamic Squads.
+- scheduling;
+- budgets;
+- circuit breakers;
+- capabilities/skills;
+- live organization visibility.
 
-Dynamic Squads allow cross-department work without destroying the permanent organization chart or authority structure.
+### OpenWorker informs
 
-### 7.5 Capability Registry
+- finished deliverables;
+- files/artifacts;
+- tools/terminal;
+- MCP;
+- connectors;
+- scheduled work;
+- external actions;
+- approval inbox;
+- model portability;
+- outcome-oriented Coworker UX.
 
-AIOS owns the capability semantics for positions, agents, runtimes, tools and connectors.
+### AIOS Execution Broker owns composition
 
-Routing can consider:
+Routing may consider:
 
 - capability;
-- deterministic authority;
-- SLA risk;
+- SLA urgency;
+- expected quality;
+- evidence requirements;
 - workload/capacity;
-- historical quality;
-- correction/rework;
+- correction/rework history;
 - cost;
-- provider/runtime health;
-- privacy/data-use;
-- evidence/human-review needs.
+- privacy/data-use constraints;
+- provider health;
+- fallback availability.
 
-### 7.6 Organizational memory
-
-Memory scopes:
-
-```text
-Session → Position → Department → Organization
-```
-
-Memory may contain collaboration lessons, recurring problems, successful interventions, routing experience and correction patterns.
-
-Memory never becomes evidence/legal truth merely because an agent remembers it.
+> **Governed outcome quality matters more than framework ownership.**
 
 ---
 
-## 8. SLA, KPI, OKR and Definition of Done
+## 11. Context Broker / Canonicalization / Command Gateway
 
-Human-like interaction must not reduce performance discipline.
+### Context Broker
 
-### 8.1 SLA direction
+Provides task/tenant/purpose/sensitivity-scoped information instead of unrestricted agent database access.
 
-Potential SLA contract fields:
+### Canonicalization Gateway
 
-```text
-service_class
-acknowledge_by
-start_by
-respond_by
-complete_by
-review_by
-freshness_requirement
-escalation_after
-maximum_blocker_age
-retry_policy
-```
+Turns agent/provider/model/tool information into AIOS meaning such as:
 
-Suggested classes: Critical / Priority / Standard / Background.
+- telemetry;
+- Activity;
+- candidate/proposal;
+- unsupported/conflicted result.
 
-SLA risk should first trigger organizational correction—assist, rebalance, reassign or change execution capability—before escalation beyond the level genuinely required.
+### Command Gateway
 
-### 8.2 KPI direction
-
-Measure at least:
-
-- Mission completion / SLA attainment / cycle time;
-- blocker age / handoff latency / response latency;
-- first-pass quality / professional agreement / correction / rework;
-- evidence-grounding / provenance completeness;
-- collaboration success / unnecessary handoffs / duplicate work;
-- dependency-resolution time / escalation appropriateness;
-- cost per successful outcome / cost of rework;
-- human effort per outcome;
-- human-gate / authority / evidence-gate compliance.
-
-**Team/Mission outcome is the primary performance unit.** Individual metrics are diagnostic, not an incentive to compete at the expense of the organization.
-
-### 8.3 OKR direction
-
-Objectives and Key Results sit above operational KPIs and allow CEO/executives to direct improvement.
-
-Example:
-
-```text
-Objective: Reduce avoidable Austria case delays
-
-KR1 ≥95% evidence review within SLA
-KR2 reduce median blocker age by 30%
-KR3 <5% material professional correction rate
-KR4 reduce unnecessary cross-department handoffs by 20%
-```
-
-### 8.4 Definition of Done
-
-Material Missions should define what “finished” actually requires, including deliverables, evidence/provenance, uncertainty, required review, valid output, authorized external actions, SLA disposition and outcome/learning capture.
+Only typed governed commands create important authoritative mutations after identity/authority/evidence/consistency/precondition checks.
 
 ---
 
-## 9. Progressive intervention and human escalation
+## 12. Consequential Action Proposal
 
-The organization should not jump from uncertainty to Board intervention or global pause.
+First-class proposal lifecycle:
 
-Target intervention ladder:
+```text
+DRAFT
+  ↓
+PROPOSED
+  ↓
+HUMAN REVIEW
+  ├── APPROVE
+  ├── MODIFY
+  ├── RETURN FOR REVISION
+  └── REJECT
+  ↓
+APPROVED
+  ↓
+EXECUTE
+  ↓
+VERIFY
+```
+
+Explicit proposal-first action classes:
+
+- send email / external communication;
+- change eligibility;
+- certify evidence;
+- submit application;
+- change/publish VerifiedRule;
+- change client status.
+
+Agents should prepare as much as possible: draft payload, evidence, rationale, impact, attachments, validation and uncertainty. The human should review **the finished proposed action**, not redo the work from scratch.
+
+Review goes to the lowest appropriate human surface, not automatically Board Room.
+
+---
+
+## 13. Truth and anti-hallucination controls
+
+Trust ladder:
+
+```text
+L0 model speculation
+L1 conversation / memory
+L2 retrieved information
+L3 source snapshot
+L4 governed Evidence
+L5 reviewed candidate
+L6 VerifiedRule / certified fact
+L7 governed case conclusion
+L8 approved authority-bearing action
+```
+
+Hard transitions:
+
+```text
+L1 cannot jump to L6
+L2 cannot jump to L7
+L6 does not automatically create L8
+```
+
+Material agent results should carry support/evidence/uncertainty/contradiction metadata. Model self-confidence is not a permission control.
+
+Contradiction detection should compare proposals against current Evidence, VerifiedRules, source authority/effective date, supersession, case facts, pathway version, decisions and prior accepted state.
+
+Default failure recovery:
+
+```text
+self-correct
+  ↓
+peer review
+  ↓
+specialist review
+  ↓
+human where required
+```
+
+Peer agreement is useful but not proof; high-risk work should also use independent evidence/deterministic checks.
+
+---
+
+## 14. Capability-specific autonomy and sandbox
+
+Suggested autonomy scale:
+
+```text
+A0 prohibited
+A1 human execution required
+A2 human approval required
+A3 autonomous + mandatory post-review
+A4 autonomous + monitoring / rollback
+A5 fully autonomous bounded internal operation
+```
+
+Autonomy belongs to capability + context, not simply agent identity.
+
+Powerful runtimes use a bounded sandbox for filesystem, network, secrets, shell, connectors, cost, time and production mutation access.
+
+Performance may recommend an autonomy change; the agent cannot grant itself authority.
+
+---
+
+## 15. Mission / SLA / KPI / OKR / Definition of Done
+
+`Mission` is the outcome-level concept above WorkItems.
+
+Mission may include objective, owner, participants, service class, SLA, KPIs, Definition of Done, conversations, WorkItems, dependencies, blockers, artifacts, proposals, decisions and outcome.
+
+### SLA
+
+- acknowledge;
+- start;
+- respond;
+- complete;
+- review;
+- freshness;
+- escalation;
+- blocker age.
+
+### KPI
+
+- delivery;
+- quality;
+- grounding/provenance;
+- collaboration;
+- cost;
+- human effort;
+- proposal modification/rejection;
+- governance compliance.
+
+**Mission/team outcome is primary. Individual metrics are diagnostic.**
+
+### OKR
+
+Strategic improvement above operational KPIs.
+
+### Definition of Done
+
+Material work requires explicit deliverables, evidence/provenance, uncertainty, required reviews/proposal disposition, SLA status, verified result and recorded outcome.
+
+---
+
+## 16. Progressive intervention
 
 ```text
 NORMAL
-  ↓
-STEER
-  ↓
-ASSIST / PEER SUPPORT
-  ↓
-REASSIGN
-  ↓
-CONSTRAIN
-  ↓
-SUSPEND SPECIFIC AGENT / CAPABILITY
-  ↓
-EXECUTIVE / HUMAN ESCALATION
-  ↓
-EMERGENCY ORGANIZATION STOP
+→ STEER
+→ ASSIST / PEER SUPPORT
+→ REASSIGN
+→ CONSTRAIN
+→ SUSPEND SPECIFIC AGENT / CAPABILITY
+→ EXECUTIVE / HUMAN ESCALATION
+→ EMERGENCY ORGANIZATION STOP
 ```
 
-`Pause Organization` remains an emergency governance control for cases where continued autonomous execution itself is materially unsafe.
-
-Escalation rule:
-
-> **Resolve autonomously where permitted. Collaborate before escalating. Escalate to the lowest level with the necessary expertise or authority. Reserve Board attention for genuinely Board-level matters.**
+`Pause Organization` is emergency-only.
 
 ---
 
-## 10. Live Organization / Cockpit direction
+## 17. Live Organization
 
-The future Cockpit should become a window into a living organization while retaining premium enterprise information design.
+Future Cockpit visualization may show:
 
-Potential capabilities:
-
-- department/position map;
-- visible working/waiting/blocked/collaborating states;
-- meaningful animated delegations/conversation flows;
-- active Dynamic Squads;
-- Mission movement;
+- departments/positions;
+- Missions;
+- agents working/waiting/blocked/collaborating;
+- conversation/delegation flows;
+- Dynamic Squads;
 - SLA risk;
 - workload/capacity;
-- agent/runtime cost and quality;
-- click a position to inspect work, conversations, authority, performance and permitted memory;
-- natural conversation with CEO/executives/specialists;
-- organization-wide compression into routine/notable/material/Owner/Board attention.
+- proposal queues;
+- cost/quality;
+- interventions;
+- direct conversation with CEO/executives/specialists.
 
-The visualization must reflect AIOS-owned normalized state. Decorative animation cannot become semantic truth.
+Visual truth must come from AIOS-owned normalized state, not provider animation alone.
 
 ---
 
-## 11. Internal Learning & Quality
+## 18. Learning & Quality
 
-The long-term flywheel is:
-
-```text
-Work
-  ↓
-Outcomes
-  ↓
-Corrections / collaboration / SLA / routing signals
-  ↓
-Operational Intelligence
-  ↓
-Evaluation & Quality
-  ↓
-Permitted Training / Optimization
-  ↓
-Better models / routing / organization
-  ↓
-Better Work
-```
-
-Three layers remain distinct:
+Three separate layers:
 
 1. Operational Intelligence;
 2. Evaluation & Quality;
 3. Training & Optimization.
 
-Human corrections, Owner redirections, peer-review disagreements, failed routing, SLA misses and provider/runtime outcomes may become learning signals where legally and contractually permitted.
+Architecture/quality capability may progress in parallel. Real-client-data training/reuse requires explicit data-use/legal/compliance treatment, sensitivity controls, retention/deletion, tenant policy and lineage.
 
-`AIOSDataUsagePolicy`, `LearningRecord`, `TrainingDataset`, `ModelVersion` and training/evaluation lineage remain future architecture concepts. A record valid for analytics is not automatically trainable.
-
-EU compliance remains an enabler of lawful learning through explicit purpose, lawful basis/compatibility analysis, appropriate treatment of data categories, transparency, minimisation, safeguards, retention and lineage. A generic Terms clause is not universal authorization for all future learning uses.
+Potential signals include corrections, proposal modifications/rejections, SLA misses, routing outcomes, peer disagreements, contradiction recovery, provider/runtime performance and external-action failure.
 
 ---
 
-## 12. Platform Evolution waves
+## 19. Platform Evolution implementation sequence
 
-Technology Radar waves describe implementation order/gates, not automatic installation.
+These tracks may progress in parallel with product acceptance.
 
-### Wave 0 — Architecture & Governance — COMPLETE
+### Wave 5A — High-Autonomy Control Plane
 
-- Radar/candidate-evaluation contract;
-- AIOS Semantic Sovereignty;
-- provider-neutral adapters;
-- Internal Learning & Quality;
-- training lineage;
-- AIOS Coworker boundary;
-- Agent Organization Fabric boundary;
-- Execution Broker direction;
-- natural interaction + deterministic accountability;
-- distributed review / centralized oversight;
-- Human Owner Command;
-- SLA/KPI/OKR direction.
+- Context Broker;
+- Canonicalization Gateway;
+- Command Gateway;
+- ConsequentialActionProposal;
+- review/modify/approve/reject lifecycle;
+- evidence sufficiency;
+- contradiction detection;
+- capability autonomy;
+- sandbox;
+- atomic/versioned mutation.
 
-### Wave 1 — Quality Foundation — COMPLETE
-
-Bounded pilots:
-
-- Promptfoo;
-- OpenTelemetry;
-- ClamAV.
-
-The detailed acceptance remains in CHANGELOG. This architecture checkpoint does not claim those tests were rerun.
-
-### Wave 2 — Document & Privacy Intelligence — IN PROGRESS
-
-```text
-ClamAV → Docling → OCR providers → AIOSDocumentArtifact → Presidio / Privacy Gateway → Evidence
-```
-
-Current state:
-
-- **Docling bounded pilot STARTED**;
-- latest accepted runtime regression: **873 passed / 5 skipped / 0 failed**;
-- Next.js build **41/41 PASS**;
-- design foundation **28/28 PASS**;
-- preserved `gmai.db` unchanged;
-- **Presidio remains the next queued Wave 2 pilot**.
-
-### Wave 3 — Regulatory Monitoring
-
-`official source → urlwatch/change detector → candidate change → AI analysis → human/source review → VerifiedRule`
-
-Never `website changed → law automatically changed`.
-
-### Wave 4 — AI Runtime, Retrieval & Quality
-
-- Pydantic AI;
-- pgvector vs Qdrant;
-- DSPy;
-- Langfuse behind OpenTelemetry;
-- Promptfoo;
-- initial Learning/Evaluation runtime.
-
-### Wave 5A — Organization Semantics Foundation
-
-Define/accept AIOS-owned contracts for:
+### Wave 5B — Organization Semantics
 
 - Mission;
 - AgentConversation;
-- conversational/collaborative OrganizationActivity;
-- Capability Registry;
-- organizational memory scopes;
-- AgentRelationship;
-- SLA contract;
-- KPI/OKR semantics;
-- Definition of Done;
+- conversational OrganizationActivity;
 - Dynamic Squad;
-- Execution Broker.
+- Capability Registry;
+- memory scopes;
+- AgentRelationship;
+- SLA;
+- KPI/OKR;
+- Definition of Done.
 
-### Wave 5B — Agent Organization Fabric
+5A and 5B may progress together where dependencies permit.
 
-Munder Difflin principal reference/pilot for:
+### Wave 5C — Munder Difflin Agent Organization Fabric
 
-- identity;
-- communication;
-- conversations;
-- memory;
-- coordination;
-- supervisor patterns;
-- scheduling;
-- budgets;
-- circuit breakers;
-- Live Organization event feed.
+Controlled research/pilot behind AIOS-owned contracts.
 
-### Wave 5C — Execution Broker + AIOS Coworker
+### Wave 5D — Execution Broker + OpenWorker / Coworker
 
-OpenWorker principal reference/pilot for:
+Controlled research/pilot for finished work, files/tools/MCP/connectors and proposal-gated external actions.
 
-- finished deliverables;
-- files;
-- tools;
-- MCP;
-- connectors;
-- scheduled execution;
-- external actions;
-- approval handling;
-- Mission result return.
+### Wave 5E — Live Organization / Cockpit
 
-Munder/OpenWorker/AIOS-native capabilities may cooperate through the Broker.
+Premium visualization and direct interaction.
 
-### Wave 5D — Live Organization / Cockpit
+### Wave 5F — Organizational Learning & Optimization
 
-Premium AIOS-native organization visualization for positions, work, conversations, delegations, squads, SLA risk, workload, cost, performance and intervention.
-
-### Wave 5E — Organizational Learning & Optimization
-
-Use permitted outcomes to improve routing, collaboration, capability/runtime selection, SLA performance, team composition, prompts/programs and capacity decisions.
-
-### Wave 6 — Professional Output
-
-Gotenberg, Typst, EU DSS and premium professional outputs such as Mobility Assessments, Employer Packs, Evidence Registers, Case Chronologies, Risk Registers, Board Briefs, Qualification Memos and provenance appendices.
-
-### Continuous — Learning & Quality Plane
-
-Evaluation, correction learning, organizational analytics, training lineage, Cockpit Quality Intelligence and permitted model/program improvement continue across waves.
+Improve routing, team composition, proposal quality, SLA, model/runtime selection and capacity decisions from permitted outcomes.
 
 ---
 
-## 13. Phase 14 relationship
+## 20. Phase 14 relationship
 
-Phase 14 remains a **scale-validated-product** programme, not permission to redesign the product around infrastructure.
+Phase 14 remains a scale programme for a validated product. It does **not** mean all platform/architecture development must wait until Phase 14.
 
-Measured needs may eventually justify dedicated retrieval/search, graphs, streaming, Temporal, OpenFGA or other Radar winners.
-
-The Agent Organization Fabric / AIOS Coworker / Execution Broker are product capabilities and may begin as bounded Platform Evolution pilots only when:
-
-- Phase 13 evidence allows it;
-- a concrete product need exists;
-- AIOS-owned contracts are defined;
-- implementation is bounded;
-- acceptance/rollback/exit criteria are explicit.
+Technology Radar and human-like organization foundations may proceed as bounded parallel tracks before Phase 14 when their scope and safety contracts are explicit.
 
 ---
 
-## 14. Acceptance and repository discipline
+## 21. Acceptance / repository discipline
 
-Every implementation slice must follow the established deterministic workflow:
+Every implementation slice must:
 
-1. verify exact branch/SHA and clean baseline;
-2. read canonical docs relevant to the slice;
-3. perform bounded discovery;
-4. freeze exact file/change boundary;
-5. implement incrementally inside that boundary;
-6. run focused and broad acceptance appropriate to the change;
-7. perform runtime/browser review for user-facing work;
-8. update this roadmap for every project patch;
-9. update `CHANGELOG.md` for meaningful delivery/checkpoint closure;
-10. stage exact intended files only;
-11. run staged diff/whitespace checks;
-12. commit truthfully and push the exact branch;
-13. fetch and verify local SHA == remote SHA;
-14. verify clean working tree;
-15. create an immutable `.local/archives/...zip` baseline and SHA256 when working from the canonical local repository.
+1. verify branch/SHA and clean baseline;
+2. read canonical docs;
+3. freeze exact boundary;
+4. implement incrementally;
+5. run focused/broad acceptance appropriate to the change;
+6. perform browser/runtime review for user-facing work;
+7. update ROADMAP every project patch;
+8. update CHANGELOG for meaningful delivery;
+9. stage exact files only;
+10. check staged diff/whitespace;
+11. commit/push truthfully;
+12. verify local == remote;
+13. verify clean tree;
+14. preserve database/release invariants;
+15. create immutable local archive when sealing from the canonical local repository.
 
-Never invent PASS evidence. Missing tools/dependencies are environment limitations, not successful checks.
+Never claim PASS evidence that was not actually run.
 
-No Phase 13.17 finding is considered fixed until the relevant correction is implemented and retested with human-use evidence.
+No Phase 13.17 finding is fixed merely because architecture text explains the intended design.
 
 ---
 
-## 15. Canonical documents for ongoing work
-
-At minimum:
+## 22. Canonical documents
 
 - [GLOBAL_MOBILITY_AIOS_VISION_V1.md](GLOBAL_MOBILITY_AIOS_VISION_V1.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [REPOSITORY_POLICY.md](REPOSITORY_POLICY.md)
 - [DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md](DESIGN_SYSTEM_INFORMATION_ARCHITECTURE_V13_16_0.md)
 - [AI_ORGANIZATION_GOVERNANCE_V13_0.md](AI_ORGANIZATION_GOVERNANCE_V13_0.md)
-- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_1.md)
+- [HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md](HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1.md) — predecessor
 - [TECHNOLOGY_RADAR_V1_1.md](TECHNOLOGY_RADAR_V1_1.md)
 - [THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md](THIRD_PARTY_PLATFORM_ADOPTION_PRINCIPLES.md)
 - [ADR/0002-provider-neutral-platform-adapters.md](ADR/0002-provider-neutral-platform-adapters.md)
 - [PHASE_13_17_OWNER_LED_HUMAN_ACCEPTANCE_CHECKPOINT_2026_08_18.md](PHASE_13_17_OWNER_LED_HUMAN_ACCEPTANCE_CHECKPOINT_2026_08_18.md)
-- operator UX/review specifications relevant to the active slice;
-- this `ROADMAP.md` and current `CHANGELOG.md`.
+- [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
-## 16. Current decision
+## 23. Current decision
 
-**Phase 13.17 owner-led genuine human acceptance remains IN PROGRESS / PAUSED BY EVALUATOR.** It is not independent third-party validation, and the existing human findings remain unresolved until correction/retest/disposition.
-
-**Technology Radar Wave 1 is COMPLETE.**
-
-**Technology Radar Wave 2 is IN PROGRESS:** Docling bounded pilot has started; Presidio remains next queued.
-
-The **Human-Like Agent Organization Architecture V1 is now canonical architecture direction**, including:
-
-- Munder Difflin + OpenWorker as complementary A+ references;
-- AIOS Execution Broker;
-- Mission / Dynamic Squad;
-- AgentConversation and conversational OrganizationActivity;
-- organizational memory / relationships;
-- Capability Registry;
-- SLA / KPI / OKR / Definition of Done;
-- progressive intervention;
-- Live Organization;
-- organizational learning.
-
-This architecture checkpoint **does not start Munder Difflin, OpenWorker, Temporal, OpenFGA, Pydantic AI, Qdrant, or any new Wave 5 runtime integration**. Implementation remains bounded and evidence-gated.
-
-Phase 13.16 product acceptance remains sealed. Phase 14 remains demand-gated.
+- Phase 13.17 remains **IN PROGRESS / PAUSED**, owner-led.
+- Product acceptance and platform/architecture work proceed **in parallel**.
+- Wave 1 is **PILOT COMPLETE / TRIAL-ELIGIBLE**.
+- Wave 2 is **IN PROGRESS** with Docling started and Presidio queued.
+- Munder Difflin and OpenWorker are complementary A+ references.
+- Human-Like High-Autonomy Architecture V1.1 is the active organization direction.
+- Wave 5A high-autonomy control plane and Wave 5B organization semantics may proceed as bounded architecture/implementation slices without waiting for Phase 13.17 completion.
+- Consequential actions are proposal-first: agents prepare work; appropriate humans approve/modify/return/reject before execution where required.
+- No docs-only checkpoint installs Munder/OpenWorker or proves runtime behavior.
 
 Long-term flywheel:
 
-> **Work → Outcomes → Corrections → Intelligence → Evaluation → Training → Better AIOS → Better Work.**
+> **Work → Outcomes → Corrections → Intelligence → Evaluation → Training/Optimization where permitted → Better AIOS → Better Work.**
