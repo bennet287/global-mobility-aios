@@ -421,7 +421,10 @@ def test_g3_torn_persisted_governance_effect_fails_closed_on_replay(db_session: 
     db_session.delete(first.revision)
     db_session.commit()
 
-    with pytest.raises(EligibilityCanonicalEffectIntegrityError, match="exactly one"):
+    with pytest.raises(
+        EligibilityCanonicalEffectIntegrityError,
+        match="governance_revision_cardinality",
+    ):
         commit_governed_eligibility_effect(
             db_session,
             proposal=proposal,
