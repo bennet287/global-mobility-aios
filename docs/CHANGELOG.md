@@ -24,11 +24,117 @@ Earlier history remains available through V11, Git history and the archived chan
 
 ---
 
-## 2026-08-20 — V1.3-C.3 EXPLICIT GOVERNANCE → EFFECT CAUSATION — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+## 2026-08-20 — V1.3-C.4 BOARD/COCKPIT TRANSPARENCY READ CONTRACT — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
 ### Status
 
-**The third V1.3-C slice is implemented on V12. Successful governed WorkItem assignment effects now carry an explicit `causation_activity_id` pointing to the governance authorization Activity that caused the domain effect. Canonical Windows-checkout acceptance is required before C.3 is marked PASS.**
+**The fourth V1.3-C slice is implemented on V12. The first governed material-action trace can now be read through a bounded, authenticated Board-facing API contract without exposing arbitrary raw Activity/governance payloads. Canonical Windows-checkout acceptance is still required before C.4 is marked PASS.**
+
+Implementation commits:
+
+```text
+4c8267bfa91e7cdc38b6e485792d72bdd39b3df3
+feat: add board transparency read schemas
+
+b9d59d403bfb53efdc2f235478ba5e0c31d67639
+feat: add board transparency read contract
+
+a17d81b6ad5af6259c40f1bd6c4184b944e37a8b
+feat: register organization transparency router
+
+40e04a86b06dc2e0e3b1a573c17d6cad67a03e92
+test: cover board transparency read contract
+
+f7572eb491e33bca2175f64eb99c701c7fd956f0
+docs: define v1.3-c.4 board transparency contract
+
+01ea83594938b5b819e17a40025ed04e1343ab96
+docs: advance roadmap to v12.8 board transparency
+```
+
+### Product-facing API
+
+Added under the existing organization API namespace:
+
+```text
+GET /api/v1/organization/transparency/traces/{trace_id}
+GET /api/v1/organization/transparency/work-items/{work_item_id}
+```
+
+The router is registered through the canonical router registry rather than creating a parallel application surface.
+
+### Board-safe projection
+
+The trace endpoint returns a typed, whitelisted governance decision projection including:
+
+- action type and capability;
+- gateway outcome/reason;
+- effective risk tier and consequence class;
+- human-review/post-review semantics;
+- constitutional Activity class;
+- actor/department/position/authority context;
+- source and WorkItem identity;
+- action fingerprint and idempotency key;
+- timestamp.
+
+The associated records expose bounded Activity metadata, trace identity and explicit `causation_activity_id`.
+
+Raw internal payload JSON is **not** part of the response schema.
+
+### Current access boundary
+
+C.4 is deliberately limited to the existing trusted:
+
+```text
+role = admin
+position_key = board
+```
+
+mapping. Other authenticated organization roles receive `403`.
+
+This is not claimed as final sensitivity/retention/privilege policy. Broader access remains deferred until explicit data-class policy exists.
+
+### Tenant and integrity behavior
+
+C.4 preserves strict tenant isolation. Foreign trace IDs and foreign WorkItems are non-disclosing.
+
+Malformed durable governance data fails closed with a safe `409` response instead of returning persistence details or traceback content.
+
+### Focused tests added
+
+Five API-level tests cover:
+
+1. Board trace reads expose whitelisted governance semantics and C.3 explicit causation;
+2. non-Board authenticated roles are denied;
+3. trace reads remain tenant-scoped and non-disclosing;
+4. WorkItem transparency history is bounded and rejects foreign/missing WorkItems;
+5. malformed governance data fails closed without leaking internals.
+
+No canonical pytest PASS is claimed yet.
+
+### Non-claims
+
+C.4 does not yet implement:
+
+- Cockpit UI rendering;
+- generalized organization-wide search;
+- final sensitivity/privilege policy;
+- ToolActionRecord;
+- AgentConversation / AgentMessage transparency;
+- Evidence/VerifiedRule/SourceSnapshot decision lineage;
+- a migration;
+- canonical C.4 PASS;
+- GitHub CI PASS.
+
+See `docs/V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md`.
+
+---
+
+## 2026-08-20 — V1.3-C.3 EXPLICIT GOVERNANCE → EFFECT CAUSATION — COMPLETE / PASS / SEALED
+
+### Status
+
+**Canonical C.3 acceptance was reported all green by the Human Owner from the prescribed Windows V12 checkout sequence. Exact final pytest counts were not restated, so they are not invented.**
 
 Implementation commits:
 
@@ -43,9 +149,18 @@ e05c8da5892cecc108af632ceef16906f9208b63
 docs: define v1.3-c.3 explicit causation
 ```
 
-### Purpose
+Acceptance record:
 
-C.1 established shared trace correlation. C.3 strengthens the first successful material path from correlation to explicit causal lineage:
+```text
+3c0cca1dc4fa0526ac04a8f60efd8370bf090683
+docs: seal v1.3-c.3 acceptance
+
+docs/V1_3_C3_ACCEPTANCE_2026-08-20.md
+```
+
+### Accepted behavior
+
+The successful governed WorkItem path now records explicit authorization-to-effect lineage:
 
 ```text
 Governance authorization Activity
@@ -56,58 +171,34 @@ organization.work.assigned.v1
 causation_activity_id = governance Activity id
 ```
 
-This distinguishes records that merely share a trace from the specific authorization that caused an organization effect.
+Accepted properties:
 
-### Runtime behavior
+- governance authorization is staged first inside the atomic unit;
+- WorkItem mutation, audit and semantic effect remain in the same transaction;
+- the effect explicitly points to its governance cause;
+- trace correlation remains intact;
+- exact successful replay does not duplicate the causal chain;
+- effect-storage failure rolls back authorization and mutation together;
+- no migration/new domain table was required.
 
-`governed_assign_work_item(...)` now stages the governance authorization Activity first inside the same caller-owned transaction. The WorkItem mutation, assignment audit and semantic assignment Activity are then staged with that governance Activity UUID as the semantic effect's cause.
+### Canonical acceptance truth
 
-The atomic unit remains:
+The prescribed C.3 sequence covered:
 
-```text
-Governance Activity
-        ↓
-WorkItem mutation
-        +
-assignment audit
-        +
-semantic assignment Activity
-          causation_activity_id → Governance Activity
-        ↓
-ONE COMMIT
-```
+- `v10.22` roadmap compatibility regression;
+- focused B.1/B.2/C.1/C.2/C.3 suite;
+- repository policy;
+- full API regression;
+- migration check;
+- local schema check;
+- `git diff --check`;
+- clean/synchronized status.
 
-If governance or effect staging fails, the entire unit rolls back.
+The Human Owner reported all checks green. Exact final counts were not restated and are therefore deliberately omitted.
 
-### Semantic compatibility
+The last separately evidenced API baseline before C.3 remains C.2's `922 passed / 5 skipped / 1 warning / 0 failed`; it is not relabeled as a C.3 result.
 
-The effect keeps the accepted semantic event contract:
-
-```text
-activity_type = organization.work.assigned.v1
-stream_key    = work:<work_item_id>
-semantic contract version = v1
-```
-
-The semantic source-object version uses the same canonical event-version inputs as the existing semantic Activity layer. The Activity record fingerprint additionally covers the explicit causal reference through the existing `stage_activity(...)` command contract.
-
-### Focused tests added
-
-```text
-apps/api/tests/test_organization_transparency_causation.py
-```
-
-Three tests cover:
-
-1. explicit governance authorization → organization effect causation;
-2. exact successful replay preserving one causal chain without duplicate Activities;
-3. effect-storage failure rolling back staged governance authorization and WorkItem mutation together.
-
-No canonical pytest PASS is claimed yet.
-
-### Non-claims
-
-C.3 does not yet implement a generic arbitrary ActivityLineage traversal API, Evidence/VerifiedRule/SourceSnapshot DecisionLineage, ToolActionRecord, conversation lineage, Board/Cockpit HTTP transparency endpoints, sensitivity-tier filtering, schema migrations, or GitHub CI PASS.
+No GitHub CI PASS is claimed.
 
 ---
 
@@ -115,95 +206,51 @@ C.3 does not yet implement a generic arbitrary ActivityLineage traversal API, Ev
 
 ### Status
 
-**Canonical V12 checkout acceptance is complete. C.2 is sealed as the durable transparency contract for material actions that are blocked or routed to review without mutating canonical domain state.**
+**C.2 is sealed. Material governance attempts that are blocked or routed to review remain durable and Board-inspectable even when no domain mutation occurs.**
 
-Implementation history:
-
-```text
-3348d1779e45a91020bad1a548627d07c2100519
-feat: persist non-executing governance attempts
-
-596688c7d9016869865fa30290057537994bc5a0
-fix: preserve requested governance attempt context
-
-e34a32f7ebf1bf4efe9937177ebda8d02698d57b
-test: cover non-executing governance transparency
-
-b5025836f1544a67a0a3136594c5b8e60ecaa1bd
-docs: define v1.3-c.2 attempt transparency
-
-504aed7fc21457203e4c68864abffcfbe7cff6f4
-docs: advance roadmap to v12.6 attempt transparency
-```
-
-The first `3348d177` commit was an intermediate implementation checkpoint. `596688c7` corrected the facade before canonical acceptance by preserving the actual requested assignment target, expected version and reason in the durable attempt context. The corrected head is the implementation truth.
-
-Acceptance record:
+Accepted API evidence:
 
 ```text
-5a03308438ed6f0ce38f92288cacbbe3bec3dd05
-docs: seal v1.3-c.2 acceptance
-
-docs/V1_3_C2_ACCEPTANCE_2026-08-20.md
+Repository policy             PASS
+Full API regression           922 passed / 5 skipped / 1 warning / 0 failed in 320.37s
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS / 118 actual tables
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+git status                    clean / synchronized
 ```
 
-### Canonical acceptance evidence
-
-```text
-Repository policy        PASS
-Full API regression      922 passed / 5 skipped / 1 warning / 0 failed in 320.37s
-Migration check          PASS
-Migration head           0076_organization_position_active_identity
-Registered tables        118
-Local DB schema          PASS / 118 actual tables
-Physical tables          119 incl. alembic_version
-git diff --check         clean
-git status               clean / synchronized
-```
-
-The focused C.2 governance/transparency chain and protected roadmap compatibility check were reported green in the canonical checkout; their exact final counts were not restated in the pasted acceptance excerpt and are therefore not invented here.
+The focused C.2 chain and protected roadmap regression were reported green; exact focused counts were not restated and are not invented.
 
 ### Accepted behavior
 
-C.2 ensures important non-executing material attempts do not disappear:
-
 ```text
-Material action attempt
-        ↓
-Governance Kernel
-        ↓
-BLOCK or REVIEW_REQUIRED
+BLOCK / REVIEW_REQUIRED
         ↓
 NO domain mutation
         +
-trace-scoped governance Attempt Activity
+durable governance-attempt Activity
         ↓
-Board-inspectable reconstruction
+Board-inspectable trace
 ```
 
-Successful-command identity remains:
+Successful-command idempotency remains:
 
 ```text
 governance:<idempotency_key>
 ```
 
-Non-executing attempt identity remains:
+Attempt identity remains:
 
 ```text
 governance:attempt:<trace_id>
 ```
 
-This prevents a past denial/review result from masquerading as a successful-command replay record after legitimate authority or policy changes.
+This prevents denied/review attempts from poisoning later legitimate successful-command replay semantics.
 
-The attempt payload preserves structured action/governance metadata including outcome, governance reason, constitutional Activity class, risk, consequence class, HumanReviewReason, action fingerprint, trace ID, requested idempotency key, requested target, expected version and reason. Hidden model chain-of-thought is not stored.
-
-Accepted API baseline after C.2:
-
-```text
-922 passed / 5 skipped / 1 warning / 0 failed
-```
-
-No GitHub CI PASS is claimed.
+See `docs/V1_3_C2_NON_EXECUTING_ATTEMPT_TRANSPARENCY.md` and `docs/V1_3_C2_ACCEPTANCE_2026-08-20.md`.
 
 ---
 
@@ -211,57 +258,26 @@ No GitHub CI PASS is claimed.
 
 ### Status
 
-**Canonical V12 checkout acceptance completed successfully. C.1 is sealed as the first accepted Transparency foundation.**
-
-Implementation commits:
-
-```text
-a05b5c9c9fd0f3b6dc70df2591cc21244cf18a44
-feat: correlate governed work transparency trace
-
-1fe877db6a4e35338a4832add23b04952e87c851
-feat: start v1.3-c transparency trace foundation
-
-7317bc35b50ed235f67b18e525bd12cf7ea8234b
-test: cover v1.3-c governed transparency trace
-
-2c0af621c76f5407cb464ee5bfad7c5387f90bdd
-docs: define v1.3-c.1 transparency trace foundation
-```
-
-Acceptance record:
-
-```text
-c7f90c9ff2b7e73d882d648e5267ef6731c5663d
-docs: seal v1.3-c.1 acceptance
-
-docs/V1_3_C1_ACCEPTANCE_2026-08-20.md
-```
+**C.1 established the accepted tenant-scoped durable transparency projection over the existing `OrganizationActivity` substrate.**
 
 Canonical evidence:
 
 ```text
-Focused B.1+B.2+C.1     31 passed / 1 warning / 0 failed in 5.40s
-Repository policy        PASS
-Full API regression      917 passed / 5 skipped / 1 warning / 0 failed in 317.64s
-Migration check          PASS
-Migration head           0076_organization_position_active_identity
-Registered tables        118
-Local DB schema          PASS / 118 actual tables
-Physical tables          119 incl. alembic_version
-git diff --check         clean
-git status               clean / synchronized
+Focused B.1+B.2+C.1          31 passed / 1 warning / 0 failed in 5.40s
+Repository policy             PASS
+Full API regression           917 passed / 5 skipped / 1 warning / 0 failed in 317.64s
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS / 118 actual tables
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+git status                    clean / synchronized
 ```
 
-Accepted behavior includes shared governance/effect trace correlation, tenant-scoped Activity queries, `GovernedActionTrace` reconstruction, explicit constitutional transparency semantics when durable governance payload carries them, no fabricated classification for legacy Activity, fail-closed malformed trace handling, and WorkItem-history visibility.
+Accepted behavior includes shared trace correlation across governance authorization and WorkItem effect, typed Board-inspectable reconstruction, tenant isolation, legacy/unclassified Activity treatment without fake constitutional semantics, fail-closed malformed trace handling, and WorkItem history visibility.
 
-Accepted API baseline after C.1:
-
-```text
-917 passed / 5 skipped / 1 warning / 0 failed
-```
-
-No GitHub CI PASS is claimed.
+See `docs/V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md` and `docs/V1_3_C1_ACCEPTANCE_2026-08-20.md`.
 
 ---
 
@@ -269,7 +285,7 @@ No GitHub CI PASS is claimed.
 
 ### Status
 
-**Canonical V12 checkout acceptance completed successfully. B.2 is sealed as the first real material domain mutation executed through the V1.3 Governance Kernel.**
+**B.2 is sealed as the first real material domain mutation executed through the V1.3 Governance Kernel.**
 
 Implementation commits:
 
@@ -281,37 +297,28 @@ feat: route work assignment through governance kernel
 test: cover governed work assignment path
 ```
 
-Acceptance record:
-
-```text
-58572770b482c6654d556fe1846d87d2b1233cfe
-docs: seal v1.3-b.2 acceptance
-
-docs/V1_3_B2_ACCEPTANCE_2026-08-20.md
-```
-
 Canonical evidence:
 
 ```text
-Focused B.1+B.2          25 passed / 1 warning / 0 failed in 3.08s
-Repository policy        PASS
-Full API regression      911 passed / 5 skipped / 1 warning / 0 failed in 316.36s
-Migration check          PASS
-Migration head           0076_organization_position_active_identity
-Registered tables        118
-Local DB schema          PASS
-git diff --check         clean
-git status               clean / synchronized
+Focused B.1 + B.2             25 passed / 1 warning / 0 failed in 3.08s
+Repository policy             PASS
+Full API regression           911 passed / 5 skipped / 1 warning / 0 failed in 316.36s
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+git diff --check              clean
+git status                    clean / synchronized
 ```
 
 Accepted behavior:
 
-- authorized R1/A4 WorkItem assignment auto-executes;
-- exact successful retries remain idempotent after aggregate-state advancement;
+- authorized R1/A4 assignment auto-executes;
+- exact successful retries are idempotent after aggregate-state advancement;
 - stale competing commands fail closed;
 - conflicting idempotency-key reuse fails closed;
-- A2 requires review and cannot mutate;
-- mutation, assignment audit, semantic Activity and governance Activity remain one atomic transaction;
+- A2 requires review and does not mutate;
+- WorkItem mutation, assignment audit, semantic Activity and governance Activity are atomic;
 - governance Activity storage failure prevents an opaque autonomous mutation.
 
 No migration or new registered domain table was required.
@@ -319,6 +326,10 @@ No migration or new registered domain table was required.
 ---
 
 ## 2026-08-20 — V1.3-B.1 MINIMAL GOVERNANCE KERNEL — COMPLETE / PASS / SEALED AS FOUNDATION
+
+### Status
+
+**B.1 is the accepted deterministic foundation for subsequent V1.3 material-action integration.**
 
 Implementation:
 
@@ -330,23 +341,21 @@ feat: start v1.3-b governance kernel
 Canonical evidence:
 
 ```text
-Focused Governance Kernel    19 passed / 1 warning / 0 failed in 0.16s
-Repository policy            PASS
-Full API regression          905 passed / 5 skipped / 1 warning / 0 failed in 325.63s
-Migration check              PASS
-Migration head               0076_organization_position_active_identity
-Registered tables            118
-Local DB schema              PASS / 118 actual tables
-Physical tables              119 incl. alembic_version
-git diff --check             clean
-git status                   clean / synchronized
+Focused Governance Kernel     19 passed / 1 warning / 0 failed in 0.16s
+Repository policy             PASS
+Full API regression           905 passed / 5 skipped / 1 warning / 0 failed in 325.63s
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS / 118 actual tables
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+git status                    clean / synchronized
 ```
 
-B.1 accepts tenant/actor-bound `CapabilityAuthority`, capability/action/scope authority, A0–A5 routing, R0–R5 risk floors, typed `MaterialAction`, expected-version decisions, idempotency replay/conflict decisions, deterministic policy disposition, Board-reserved protection, trace identity and OrganizationActivity-compatible governance projection.
+B.1 accepts tenant/actor-bound `CapabilityAuthority`, capability/action/scope authority, A0–A5 routing, R0–R5 risk floors, typed `MaterialAction`, expected-version decisions, idempotency replay/conflict decisions, deterministic policy disposition, Board-reserved protection, trace identity and `OrganizationActivity`-compatible governance projection.
 
 Government submission remains R5 + Board-reserved even for A5 capability autonomy.
-
-See `docs/V1_3_B1_ACCEPTANCE_2026-08-20.md`.
 
 ---
 
@@ -362,19 +371,19 @@ feat: freeze v1.3 constitutional contracts
 Canonical evidence:
 
 ```text
-Constitutional tests       13 passed / 1 warning / 0 failed
-Repository policy          PASS
-v10.22 regression rerun    1 passed / 1 warning
-Full API regression        886 passed / 5 skipped / 1 warning / 0 failed
-Migration check            PASS
-Migration head             0076_organization_position_active_identity
-Registered tables          118
-Local DB schema            PASS / 118 actual tables
-git diff --check           clean
-git status                 clean / synchronized
+Constitutional tests          13 passed / 1 warning / 0 failed
+Repository policy             PASS
+v10.22 regression rerun       1 passed / 1 warning
+Full API regression           886 passed / 5 skipped / 1 warning / 0 failed
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS / 118 actual tables
+git diff --check              clean
+git status                    clean / synchronized
 ```
 
-The historical roadmap compatibility correction preserved:
+The historical roadmap compatibility repair permanently preserves:
 
 ```text
 v10.22
@@ -382,7 +391,7 @@ multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-See `docs/V1_3_A_ACCEPTANCE_2026-08-20.md`.
+No GitHub CI PASS was claimed.
 
 ---
 
@@ -390,7 +399,7 @@ See `docs/V1_3_A_ACCEPTANCE_2026-08-20.md`.
 
 V12 documentation was separated from the frozen V11 reference after the branch split.
 
-Key commits:
+Representative alignment commits:
 
 ```text
 4a347d418408a199198832e211f13555cf1ee5e9
