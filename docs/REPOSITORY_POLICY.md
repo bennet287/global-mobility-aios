@@ -76,6 +76,14 @@ This document defines the controlled GitHub repository set allowed for Global Mo
 - Awesome-AI-Security
 - awesome-security-GRC
 - kubescape (defer to later Kubernetes phases)
+- chaitanyagiri/munder-difflin, snapshot `v0.4.4`
+  - Existing MIT-licensed vendored reference snapshot under `vendor/munder-difflin/v0.4.4`.
+  - It is not an approved runtime/build dependency and must remain isolated from production imports,
+    package manifests, execution paths, and authority semantics unless a later architecture/legal
+    review explicitly promotes a bounded component.
+  - Upstream comments/changelogs may mention providers or repositories excluded by AIOS policy;
+    repository-policy substring scanning therefore does not rewrite or classify those vendored
+    upstream bytes as Global Mobility AIOS product source.
 
 ## Explicitly Excluded Categories
 
