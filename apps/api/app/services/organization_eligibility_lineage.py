@@ -24,6 +24,7 @@ INDEPENDENT_ELIGIBILITY_ACTIVITY_TYPE = "verification.eligibility.independent.v1
 ELIGIBILITY_VERIFICATION_FLOOR_ACTIVITY_TYPE = "governance.eligibility.verification_floor.v1"
 ELIGIBILITY_CANONICAL_GOVERNANCE_ACTIVITY_TYPE = "governance.eligibility.transition.auto_execute"
 ELIGIBILITY_CANONICAL_GOVERNANCE_RECORD_KIND = "eligibility_canonical_effect_authorization"
+ELIGIBILITY_CANONICAL_GOVERNANCE_OUTCOME = "AUTO_EXECUTE"
 ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE = "organization.eligibility.assessment_committed.v1"
 ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION = "eligibility-canonical-effect.v1"
 
@@ -526,7 +527,7 @@ def validate_canonical_eligibility_lineage(
         payload=dict(governance_record.payload),
         expected={
             "governance_record_kind": ELIGIBILITY_CANONICAL_GOVERNANCE_RECORD_KIND,
-            "outcome": "auto_execute",
+            "outcome": ELIGIBILITY_CANONICAL_GOVERNANCE_OUTCOME,
             "action_fingerprint": revision.original_action_fingerprint,
             "verification_floor_fingerprint": revision.verification_floor_fingerprint,
             "effect_fingerprint": revision.effect_fingerprint,
