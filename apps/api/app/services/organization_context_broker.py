@@ -9,7 +9,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationPosition, OrganizationalWorkItem, now_utc
+from app.models.domain import Lead, OrganizationPosition, OrganizationalWorkItem, Profile, now_utc
 from app.services.organization_command import (
     canonical_fingerprint,
     canonical_json,
@@ -145,11 +145,48 @@ def _active_position(session: Session, position_key: str) -> OrganizationPositio
     return row
 
 
-def _canonical_references(work_item: OrganizationalWorkItem) -> tuple[ContextReference, ...]:
+def _canonical_references(
+    session: Session,
+    work_item: OrganizationalWorkItem,
+) -> tuple[ContextReference, ...]:
+    """Resolve canonical subject references and bind mutable case state by fingerprint.
+
+    Lead/Profile identifiers were already part of the D.1 bundle, but E.2 needs case
+    state changes to invalidate the context hash. The reference version is therefore a
+    canonical record fingerprint. Profile.profile_version remains the separate domain
+    precondition used by eligibility governance; the fingerprint additionally catches
+    lifecycle/supersession or other canonical-record changes.
+    """
+
     refs: list[ContextReference] = []
+    lead: Lead | None = None
+    if work_item.lead_id is not None:
+        lead = session.get(Lead, work_item.lead_id)
+        if lead is None:
+            raise ContextIntegrityError("work item lead reference was not found")
+        refs.append(
+            ContextReference(
+                kind="lead",
+                identifier=str(lead.id),
+                version=canonical_fingerprint(lead),
+            )
+        )
+
+    if work_item.profile_id is not None:
+        profile = session.get(Profile, work_item.profile_id)
+        if profile is None:
+            raise ContextIntegrityError("work item profile reference was not found")
+        if lead is not None and profile.lead_id != lead.id:
+            raise ContextIntegrityError("work item profile does not belong to its lead")
+        refs.append(
+            ContextReference(
+                kind="profile",
+                identifier=str(profile.id),
+                version=canonical_fingerprint(profile),
+            )
+        )
+
     for kind, identifier in (
-        ("lead", work_item.lead_id),
-        ("profile", work_item.profile_id),
         ("application", work_item.application_id),
         ("corporate_account", work_item.corporate_account_id),
         ("corporate_mobility_case", work_item.corporate_mobility_case_id),
@@ -284,7 +321,7 @@ def build_work_item_context_bundle(
     position = _active_position(session, position_id)
     contract_json = _canonical_json_object(position.contract_json, label="position contract")
     working_context_json = _canonical_json_object(work_item.context_json, label="work item context")
-    base_references = _canonical_references(work_item)
+    base_references = _canonical_references(session, work_item)
 
     try:
         authority = resolve_context_authority(
