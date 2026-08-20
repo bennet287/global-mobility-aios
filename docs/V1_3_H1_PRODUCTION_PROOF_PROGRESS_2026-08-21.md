@@ -4,7 +4,8 @@
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Accepted baseline remains:** V1.3-G.5  
 **Latest fully tested backend source/dependency-candidate head:** `ddac84b054c92c872f6df668e8c6f7a2a76e270c`  
-**Current dependency-repair candidate head:** `9c672e84ad5ebfb4e1b54222532f2b72dc6a0203`  
+**Latest dependency-proof attempt head:** `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6`  
+**Current dependency-repair candidate head:** `4a09646ea9d93b96071e312b73510f5b9aace634`  
 **Status:** PARTIAL PROOF RECORDED / DEPENDENCY INSTALL RETEST + FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
 
 This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. It deliberately preserves failed proof attempts as evidence. It does not seal H.1 and does not authorize H.2.
@@ -93,7 +94,7 @@ The single recurring warning is:
 StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
 ```
 
-The two commits after `ddac84b...` change only the declared `clamd` minimum/exact dependency candidate and do not change application source. Therefore the 1105-test backend evidence remains valid for the application source tree; the changed dependency candidate requires its own install and targeted adapter proof before acceptance.
+The later dependency-repair commits change only declared dependency minimum/exact candidates and proof documentation; they do not change application source. Therefore the 1105-test backend result remains source-tree evidence, while each changed dependency candidate still requires deterministic install/runtime proof before acceptance.
 
 ## 2. SQLite migration / physical schema evidence
 
@@ -250,13 +251,7 @@ Until that sequence is observed on the current repaired head, the PostgreSQL Pro
 
 ## 5. Repository policy / release consistency / dependency contract
 
-On:
-
-```text
-defc1bcb63ecfe0147bc46c43d2aeaf30fc03aba
-```
-
-local proof passed:
+Earlier local proof established:
 
 ```text
 Repository policy check passed.
@@ -265,7 +260,16 @@ Python dependency constraints passed for 25 direct dependencies.
 git diff --check = clean
 ```
 
-The repository-policy correction distinguishes declared vendored/reference snapshots from first-party product source for banned-content scanning while retaining suspicious shell-redirection artifact filename enforcement.
+On dependency-proof attempt head `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6`, the Human Owner reran the relevant checks and observed:
+
+```text
+Python dependency constraints passed for 25 direct dependencies.
+Repository policy check passed.
+Release consistency check passed. Alembic head: 0077_canonical_eligibility_assessment_revision
+git diff --check = clean
+```
+
+The branch/worktree was synchronized at the beginning and end of that attempt.
 
 ## 6. Deterministic Python dependency-install proof
 
@@ -296,17 +300,11 @@ The exact candidate was moved to:
 pyyaml==6.0.3
 ```
 
-and the next install attempt successfully resolved PyYAML 6.0.3 instead of repeating the legacy build failure.
+and later install attempts successfully resolved the wheel-backed PyYAML 6.0.3 candidate.
 
-Repair candidate:
+### clamd minimum candidate — failed, repaired and adapter-proven
 
-```text
-ddac84b054c92c872f6df668e8c6f7a2a76e270c
-```
-
-### clamd minimum candidate — failed, repaired, retest pending
-
-The same constrained-install attempt then reached:
+An earlier constrained-install attempt reached:
 
 ```text
 clamd==1.0.0
@@ -318,34 +316,90 @@ and failed during package metadata generation because that release uses the obso
 ImportError: cannot import name '_get_unpatched' from 'setuptools.dist'
 ```
 
-The application adapter uses the `clamd.ClamdNetworkSocket` client API. The bounded repair preserves that package/API and moves only the declared minimum/candidate to the later standalone-setuptools universal-wheel release:
-
-```text
-82f67ed2b74cb51bf1e0afe19284849a38694102
-fix: require installable clamd client baseline
-
-9c672e84ad5ebfb4e1b54222532f2b72dc6a0203
-fix: pin wheel-backed clamd client
-```
-
-Current contract:
+The application adapter uses the `clamd.ClamdNetworkSocket` client API. The bounded repair preserved that package/API and moved only the declared minimum/candidate to:
 
 ```text
 requirements.txt: clamd>=1.0.2
 constraints.txt:  clamd==1.0.2
 ```
 
-Required proof still outstanding:
+On `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6`, the environment confirmed:
 
 ```text
-constraint checker PASS
-constrained pip install PASS
-pip check PASS
-installed PyYAML/clamd versions confirmed
-targeted malware-scan adapter tests PASS
+PyYAML=6.0.3
+clamd=1.0.2
+pip check: No broken requirements found.
 ```
 
-A prior `pip check` result of `No broken requirements found` after a failed install is not counted as proof of the failed candidate; it only described the already-existing environment.
+The targeted malware adapter contract then passed:
+
+```text
+11 passed
+1 warning
+0 failed
+duration = 0.13s
+```
+
+This establishes the ClamAV adapter compatibility itself. It does **not** mark the overall constrained install PASS because pip failed later in the same install attempt on the Psycopg candidate below.
+
+### Psycopg binary minimum candidate — failed, repaired, retest pending
+
+The constrained install on:
+
+```text
+2808dd4fe91e18bb382c9d95e1f2502cb9461ab6
+```
+
+failed while resolving:
+
+```text
+psycopg[binary]>=3.2
+constraints.txt: psycopg==3.2.0
+```
+
+Psycopg 3.2.0's `binary` extra resolves to:
+
+```text
+psycopg-binary==3.2.0.dev1
+```
+
+which has no matching distribution for the Human Owner's CPython 3.13 Windows production-proof environment. The observed terminal failure was:
+
+```text
+ERROR: Could not find a version that satisfies the requirement
+psycopg-binary==3.2.0.dev1
+ERROR: No matching distribution found for psycopg-binary==3.2.0.dev1
+```
+
+This is treated as another invalid minimum compatibility candidate, not as an application or database behavior failure.
+
+The bounded repair moves the floor/exact direct candidate to the first 3.2-series release with a published CPython 3.13 Windows binary wheel:
+
+```text
+291a2ec9f56e79cb5c33fa90ef822e19ba215305
+fix: raise psycopg binary floor for Python 3.13
+
+4a09646ea9d93b96071e312b73510f5b9aace634
+fix: pin psycopg binary-compatible candidate
+```
+
+Current contract:
+
+```text
+requirements.txt: psycopg[binary]>=3.2.2
+constraints.txt:  psycopg==3.2.2
+```
+
+Required dependency proof now outstanding:
+
+```text
+constraint checker PASS on current repair head
+constrained pip install PASS on current repair head
+installed psycopg / psycopg-binary versions confirmed
+pip check PASS after successful constrained install
+```
+
+The existing PyYAML/clamd version output, `pip check`, and 11-test malware adapter result are retained as real evidence from the failed-install attempt, but they do not substitute for a complete successful constrained install.
 
 ## 7. Frontend production-proof evidence and blockers
 
@@ -381,17 +435,17 @@ SQLite migration consistency                    PASS
 SQLite physical schema                          PASS
 Repository policy                               PASS
 Release consistency                             PASS
-Direct dependency constraint structure          PASS (25 dependencies)
+Direct dependency constraint structure          PASS (25 dependencies on 2808dd4...)
 PostgreSQL governed H.1 behavior                PASS (57 passed)
 Fresh PostgreSQL Alembic upgrade                RETEST REQUIRED after identifier repair
 Fresh PostgreSQL physical schema/head           RETEST REQUIRED
-Constrained dependency installation             RETEST REQUIRED after clamd 1.0.2 repair
-Targeted malware adapter test                   RETEST REQUIRED
+ClamAV adapter compatibility                    PASS (11 passed on clamd 1.0.2)
+Constrained dependency installation             FAILED on psycopg 3.2.0 candidate; RETEST REQUIRED after 3.2.2 repair
 Frontend design/request-auth                    PASS on earlier candidate; current rerun required
 Frontend TypeScript/build                       PASS on earlier candidate; current rerun required
 Compiled frontend auth                          REPAIRED / RETEST REQUIRED
 Frontend dependency security                    BLOCKED by known high/critical audit findings
-GitHub Actions current-head execution            NOT YET PROVEN
+GitHub Actions current-head execution           NOT YET PROVEN
 Required-check/branch-protection enforcement    NOT YET VERIFIED
 ```
 
@@ -418,7 +472,7 @@ BLOCKED
 Permanent sequencing remains:
 
 ```text
-constrained dependency + malware adapter proof
+constrained dependency proof
 → fresh PostgreSQL migration/schema/H.1 proof
 → frontend security repair + frontend production proof
 → CI/settings evidence where available
