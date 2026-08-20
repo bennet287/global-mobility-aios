@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    EligibilityAssessment,
     MobilityPathwayVersion,
     OrganizationActivity,
     OrganizationActivityClass,
@@ -14,6 +15,7 @@ from app.models.domain import (
     OrganizationalWorkItem,
     now_utc,
 )
+from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import (
     AuthorityDenied,
@@ -282,6 +284,176 @@ def eligibility_circuit_status(
     )
 
 
+def _existing_tenant_activity_id(
+    session: Session,
+    *,
+    tenant_key: str,
+    activity_id: UUID | None,
+) -> UUID | None:
+    if activity_id is None:
+        return None
+    activity = session.get(OrganizationActivity, activity_id)
+    if activity is None or activity.tenant_key != tenant_key:
+        return None
+    return activity.id
+
+
+def _eligibility_lineage_integrity_problem(
+    session: Session,
+    *,
+    tenant_key: str,
+    aggregate_key: str,
+) -> tuple[EligibilityImmuneIncidentKind, str, UUID | None, str] | None:
+    """Return one deterministic structural problem for a provable eligibility aggregate.
+
+    H.1 audits only canonical revision truth that is already bound to the supplied
+    tenant/aggregate. It never guesses an aggregate from a malformed idempotency record.
+    The first detected structural problem is enough to stop fresh execution.
+    """
+
+    revisions = tuple(
+        session.exec(
+            select(EligibilityAssessmentRevision)
+            .where(
+                EligibilityAssessmentRevision.tenant_key == tenant_key,
+                EligibilityAssessmentRevision.aggregate_key == aggregate_key,
+            )
+            .order_by(EligibilityAssessmentRevision.version)
+        ).all()
+    )
+    if not revisions:
+        return None
+
+    active = tuple(row for row in revisions if row.lifecycle_status == "active")
+    lifecycle_fingerprint = canonical_fingerprint(
+        {
+            "aggregate_key": aggregate_key,
+            "revision_ids": tuple(str(row.id) for row in revisions),
+            "versions": tuple(row.version for row in revisions),
+            "lifecycle_statuses": tuple(row.lifecycle_status for row in revisions),
+            "supersedes_revision_ids": tuple(
+                str(row.supersedes_revision_id) if row.supersedes_revision_id is not None else None
+                for row in revisions
+            ),
+        }
+    )
+    latest_source = _existing_tenant_activity_id(
+        session,
+        tenant_key=tenant_key,
+        activity_id=revisions[-1].governance_activity_id,
+    )
+    if len(active) != 1:
+        return (
+            EligibilityImmuneIncidentKind.CANONICAL_AGGREGATE_INTEGRITY,
+            "Canonical eligibility revision lifecycle is inconsistent; governed execution is disabled pending recovery.",
+            latest_source,
+            lifecycle_fingerprint,
+        )
+
+    expected_versions = tuple(range(1, len(revisions) + 1))
+    actual_versions = tuple(row.version for row in revisions)
+    if actual_versions != expected_versions:
+        return (
+            EligibilityImmuneIncidentKind.CANONICAL_AGGREGATE_INTEGRITY,
+            "Canonical eligibility revision sequence is inconsistent; governed execution is disabled pending recovery.",
+            latest_source,
+            lifecycle_fingerprint,
+        )
+
+    for index, revision in enumerate(revisions):
+        expected_supersedes = None if index == 0 else revisions[index - 1].id
+        expected_status = "active" if index == len(revisions) - 1 else "superseded"
+        if (
+            revision.supersedes_revision_id != expected_supersedes
+            or revision.lifecycle_status != expected_status
+        ):
+            return (
+                EligibilityImmuneIncidentKind.CANONICAL_AGGREGATE_INTEGRITY,
+                "Canonical eligibility supersession lineage is inconsistent; governed execution is disabled pending recovery.",
+                latest_source,
+                lifecycle_fingerprint,
+            )
+
+    for revision in revisions:
+        assessment = session.get(EligibilityAssessment, revision.assessment_id)
+        governance = session.get(OrganizationActivity, revision.governance_activity_id)
+        verification = session.get(OrganizationActivity, revision.verification_activity_id)
+        floor = session.get(OrganizationActivity, revision.verification_floor_activity_id)
+        semantic = (
+            session.get(OrganizationActivity, revision.semantic_activity_id)
+            if revision.semantic_activity_id is not None
+            else None
+        )
+        linked = {
+            "assessment": assessment,
+            "governance": governance,
+            "verification": verification,
+            "verification_floor": floor,
+            "semantic": semantic,
+        }
+        missing = tuple(name for name, row in linked.items() if row is None)
+        source_activity_id = (
+            governance.id
+            if governance is not None and governance.tenant_key == tenant_key
+            else None
+        )
+        if missing:
+            fingerprint = canonical_fingerprint(
+                {
+                    "aggregate_key": aggregate_key,
+                    "revision_id": str(revision.id),
+                    "missing": missing,
+                }
+            )
+            return (
+                EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                "Canonical eligibility durable lineage is torn; governed execution is disabled pending recovery.",
+                source_activity_id,
+                fingerprint,
+            )
+
+        activities = (governance, verification, floor, semantic)
+        if any(activity.tenant_key != tenant_key for activity in activities):
+            fingerprint = canonical_fingerprint(
+                {
+                    "aggregate_key": aggregate_key,
+                    "revision_id": str(revision.id),
+                    "tenant_mismatch": tuple(str(activity.id) for activity in activities),
+                }
+            )
+            return (
+                EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                "Canonical eligibility durable lineage crosses tenant boundaries; governed execution is disabled pending recovery.",
+                source_activity_id,
+                fingerprint,
+            )
+
+        if (
+            verification.causation_activity_id is None
+            or floor.causation_activity_id != verification.id
+            or governance.causation_activity_id != floor.id
+            or semantic.causation_activity_id != governance.id
+        ):
+            fingerprint = canonical_fingerprint(
+                {
+                    "aggregate_key": aggregate_key,
+                    "revision_id": str(revision.id),
+                    "verification_cause": str(verification.causation_activity_id),
+                    "floor_cause": str(floor.causation_activity_id),
+                    "governance_cause": str(governance.causation_activity_id),
+                    "semantic_cause": str(semantic.causation_activity_id),
+                }
+            )
+            return (
+                EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                "Canonical eligibility durable causation lineage is inconsistent; governed execution is disabled pending recovery.",
+                source_activity_id,
+                fingerprint,
+            )
+
+    return None
+
+
 def require_eligibility_circuit_closed(
     session: Session,
     *,
@@ -297,6 +469,36 @@ def require_eligibility_circuit_closed(
         raise EligibilityCircuitOpen(
             "governed eligibility execution is circuit-broken for this canonical aggregate"
         )
+
+    problem = _eligibility_lineage_integrity_problem(
+        session,
+        tenant_key=status.tenant_key,
+        aggregate_key=status.aggregate_key,
+    )
+    if problem is not None:
+        kind, summary, source_activity_id, problem_fingerprint = problem
+        control_marker = (
+            str(status.control_activity_id) if status.control_activity_id is not None else "none"
+        )
+        incident = record_eligibility_immune_incident(
+            session,
+            tenant_key=status.tenant_key,
+            aggregate_key=status.aggregate_key,
+            incident_key=(
+                f"preflight:{kind.value}:{control_marker}:{problem_fingerprint}"
+            ),
+            kind=kind,
+            summary=summary,
+            source_activity_id=source_activity_id,
+        )
+        if incident.circuit_status.state is not EligibilityCircuitState.OPEN:
+            raise EligibilityImmuneSystemError(
+                "critical eligibility integrity incident failed to restrict execution"
+            )
+        raise EligibilityCircuitOpen(
+            "governed eligibility execution is circuit-broken by structural canonical integrity loss"
+        )
+
     return status
 
 
