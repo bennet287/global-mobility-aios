@@ -2,7 +2,9 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Status:** COMPLETE / PASS / SEALED
+
+Acceptance record: `docs/V1_3_F1_ACCEPTANCE_2026-08-20.md`
 
 ## Purpose
 
@@ -57,6 +59,7 @@ Before readiness gates are evaluated, F.1 verifies:
 - trace identity matches the Gateway evaluation;
 - WorkItem identity matches the intent;
 - durable intent/context/runtime-binding/profile/pathway fingerprints match the supplied proposal;
+- the durable record itself preserves `eligibility.transition`, `REVIEW_REQUIRED`, `POLICY_REVIEW_REQUIRED`, R3, the proposing `OrganizationPosition` actor identity and the exact action fingerprint;
 - the explicit E.2 `independent_verification_not_yet_satisfied` floor is still present.
 
 A BLOCKed E.2 proposal cannot be reclassified by F.1. A0, authority denial, scope denial and other Command Gateway failures remain governance outcomes rather than readiness questions.
@@ -354,7 +357,7 @@ Reusable deterministic domain rules should migrate into ContextBundle-scoped con
 13. forged in-memory intent changes are rejected against the durable E.2 fingerprint;
 14. malformed supported structured pathway criteria fail closed.
 
-The exact pytest collected count is canonical and must be recorded from the actual acceptance run rather than inferred from this list.
+The accepted full API regression after F.1 is `996 passed / 5 skipped / 1 warning / 0 failed`. The separate focused-test count is not invented because it was not restated in the acceptance evidence.
 
 ## Migration posture
 
@@ -370,6 +373,26 @@ It reuses:
 - CountryPolicy;
 - VerifiedRules;
 - existing transparency projection.
+
+## Accepted evidence
+
+Canonical acceptance is recorded in `docs/V1_3_F1_ACCEPTANCE_2026-08-20.md`.
+
+```text
+Repository policy             PASS
+Full API regression           996 passed / 5 skipped / 1 warning / 0 failed
+Duration                      359.39s
+Database migration check      PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+Actual tables                 118
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+V12 branch                    clean / synchronized
+```
+
+No GitHub CI PASS is claimed without attached status/check evidence.
 
 ## Non-claims
 
@@ -387,27 +410,9 @@ F.1 does not claim:
 - Munder adoption;
 - GitHub CI PASS.
 
-## Acceptance gate
-
-Canonical F.1 acceptance should include:
-
-```text
-F.1 focused tests
-E.2 + F.1 vertical chain
-D.1-D.3 + E.1-E.2 + F.1 chain
-B/C governance + transparency + D/E/F chain
-repository policy
-full API regression
-migration/schema checks
-git diff --check
-clean synchronized V12 branch
-```
-
-No roadmap/changelog PASS claim should be published until the actual local acceptance evidence is supplied.
-
 ## Direction after F.1
 
-If F.1 passes, V1.3-G should consume only:
+F.1 is accepted. V1.3-G should consume only:
 
 ```text
 EligibilityDecisionReadinessResult.state
