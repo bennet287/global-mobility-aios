@@ -22,6 +22,149 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-G.4 GOVERNED ELIGIBILITY ORCHESTRATION — COMPLETE / PASS / SEALED
+
+### Status
+
+**The accepted E.2→G.3 governed eligibility vertical is now operationally reachable through one bounded organization orchestration boundary without creating a second governance path or a generic workflow/effect framework.**
+
+Accepted chain:
+
+```text
+trusted organization request / WorkItems
+→ trusted server-side execution plan
+→ E.2 governed eligibility proposal
+→ F.1 deterministic Decision Readiness
+→ G.1 blind independent verification
+→ G.2 verification-floor integration
+→ G.3 fresh final authorization + canonical effect
+→ durable trace/effect identifiers
+```
+
+Permanent boundary:
+
+```text
+human initiator ≠ material-action actor
+request JSON ≠ runtime/provider/authority policy
+route exists ≠ external provider egress automatically authorized
+orchestration ≠ new governance path
+```
+
+### Governed API boundary
+
+New accepted route:
+
+```text
+POST /api/v1/organization/eligibility/orchestrate
+```
+
+Request surface is limited to:
+
+```text
+proposal_work_item_id
+verification_work_item_id
+idempotency_key
+```
+
+The request cannot select tenant, actor, producer/verifier OrganizationPosition, runtime profile, provider, model, autonomy, risk, scope, allowed action types or `CapabilityAuthority`.
+
+These remain trusted server-side execution-plan inputs.
+
+The default execution-plan dependency intentionally fails closed with HTTP 503 until a governed provider-egress/runtime/authority policy is configured. The legacy global `LLMProviderFactory` switch is not treated as permission to send case-scoped personal data externally.
+
+Authenticated `admin` / `operator` users may initiate the route, but the producer `OrganizationPosition` remains the material-action actor. Reviewer mutation access is denied by the existing global auth middleware before execution-plan/provider resolution.
+
+### Accepted orchestration states
+
+```text
+PROPOSAL_BLOCKED
+NOT_READY
+HUMAN_INPUT_REQUIRED
+VERIFICATION_DISAGREES
+VERIFICATION_INSUFFICIENT_BASIS
+AWAITING_AUTHORITY
+CANONICAL_EFFECT_COMMITTED
+```
+
+G.4 preserves lower-layer semantics. G.1 disagreement/insufficient basis never reaches effect integration; A1/A2 remain review-required after the verification floor and create no canonical effect; only G.3 fresh final `AUTO_EXECUTE` may commit canonical eligibility truth.
+
+### Post-commit replay
+
+Exact retries after G.3 has already committed validate the durable governance/revision/assessment/verification/floor/semantic lineage and return:
+
+```text
+state = CANONICAL_EFFECT_COMMITTED
+gateway_outcome = IDEMPOTENT_REPLAY
+replayed = true
+```
+
+Neither producer nor verifier model is called again.
+
+Torn or conflicting durable lineage fails closed.
+
+### Accepted evidence
+
+```text
+G.4 focused orchestration/API  10 passed / 1 warning / 0 failed
+G.4 + OpenAPI boundary         11 passed / 1 warning / 0 failed
+E.2 → G.4 vertical             81 passed / 1 warning / 0 failed
+Repository policy              PASS
+Full API regression            1050 passed / 5 skipped / 1 warning / 0 failed
+Full API duration              488.05s
+Database migration check       PASS
+Migration head                 0077_canonical_eligibility_assessment_revision
+Registered tables              119
+Local DB schema                PASS
+Actual tables                  119
+Physical tables                120 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_G4_GOVERNED_ELIGIBILITY_ORCHESTRATION.md
+docs/V1_3_G4_ACCEPTANCE_2026-08-20.md
+```
+
+### Acceptance boundary repairs
+
+Two stale test expectations were corrected without changing G.4 production behavior:
+
+1. the reviewer-denial test now asserts the canonical global auth-middleware 403 structure rather than an unreachable route-local generic 403 body;
+2. the platform hardening router inventory advanced from 65 to 66 and now explicitly requires the `organization-governed-eligibility` feature.
+
+### Roadmap effect
+
+The active roadmap advances from **V12.14 to V12.15**.
+
+```text
+V1.3-A     COMPLETE / PASS / SEALED
+V1.3-B     COMPLETE / PASS / SEALED
+V1.3-C     COMPLETE / PASS / SEALED through C.4
+V1.3-D     COMPLETE / PASS / SEALED through D.3
+V1.3-E     COMPLETE / PASS / SEALED through E.2
+V1.3-F     COMPLETE / PASS / SEALED through F.1
+V1.3-G     COMPLETE / PASS / SEALED through G.4
+V1.3-G.4   Governed Eligibility Orchestration — COMPLETE / PASS / SEALED
+V1.3-G.4.1 Eligibility Vertical Contract Consolidation — NEXT
+```
+
+G.4.1 is deliberately separate so the project does not falsely claim that every critic-verified helper consolidation was already completed inside the orchestration slice.
+
+G.4.1 targets only proven shared seams: canonical mobility intent→domain mapping, system-bound-agent command context, public pathway publication integrity, public eligibility action reconstruction/original-payload helpers, and shared reference/fingerprint helpers where real consumers prove identical semantics.
+
+`session.expire_all()` remains conservative until a dependency-aware freshness resolver can cover every hash-bearing ContextBundle input safely.
+
+G.5 reassessment/supersession follows G.4.1 and requires an explicit canonical eligibility revision precondition.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed because no attached status checks were present on the accepted implementation head.
+
+---
+
 ## 2026-08-20 — V1.3-G.3 FIRST CANONICAL ELIGIBILITY EFFECT — COMPLETE / PASS / SEALED
 
 ### Status
