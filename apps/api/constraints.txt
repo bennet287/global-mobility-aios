@@ -22,7 +22,7 @@ pydantic==2.8.0
 pydantic-settings==2.4.0
 sqlmodel==0.0.22
 alembic==1.13.0
-psycopg==3.2.0
+psycopg==3.2.2
 qdrant-client==1.12.0
 redis==5.0.0
 celery==5.4.0
