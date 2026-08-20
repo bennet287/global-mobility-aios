@@ -10,11 +10,23 @@ from app.services.organization_eligibility_effect import (
     EligibilityCanonicalEffectIntegrityError,
     commit_governed_eligibility_effect,
 )
+from app.services.organization_eligibility_immune_system import (
+    EligibilityCircuitState,
+    eligibility_circuit_status,
+)
 from app.services.organization_eligibility_lineage import (
     CanonicalEligibilityLineageError,
     validate_canonical_eligibility_lineage,
 )
+from app.services.organization_eligibility_orchestration import (
+    GovernedEligibilityOrchestrationIntegrityError,
+    orchestrate_governed_eligibility,
+)
 from tests.test_organization_eligibility_effect import _floor_ready
+from tests.test_organization_eligibility_immune_lineage import (
+    _committed_v1,
+    _critical_durable_incidents,
+)
 
 
 def test_g3_replay_rejects_semantic_activity_type_drift(db_session: Session) -> None:
@@ -77,3 +89,46 @@ def test_shared_lineage_validator_rejects_wrong_governance_record_kind(
         )
 
     assert exc_info.value.code == "governance_payload_mismatch"
+
+
+def test_h1_governance_activity_type_drift_opens_before_provider_egress(
+    db_session: Session,
+) -> None:
+    (
+        _,
+        revision,
+        _,
+        proposal_work,
+        verification_work,
+        plan,
+        producer,
+        verifier,
+    ) = _committed_v1(db_session, idempotency_key="h1-governance-type-base")
+    aggregate = revision.aggregate_key
+    governance = db_session.get(OrganizationActivity, revision.governance_activity_id)
+    assert governance is not None
+    governance.activity_type = "governance.unrelated.auto_execute"
+    db_session.add(governance)
+    db_session.commit()
+    producer.calls.clear()
+    verifier.calls.clear()
+
+    with pytest.raises(GovernedEligibilityOrchestrationIntegrityError, match="circuit is open"):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="h1-governance-type-fresh",
+            execution_plan=plan,
+            expected_eligibility_revision_version=1,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.OPEN
+    assert len(_critical_durable_incidents(db_session, aggregate_key=aggregate)) == 1
