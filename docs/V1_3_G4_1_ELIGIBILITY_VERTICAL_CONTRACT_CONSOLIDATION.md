@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Accepted implementation head:** `65ed83270389d5de88d917c5562077c1fbf9c8de`  
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -16,7 +17,7 @@ Permanent rule:
 
 ## Accepted upstream vertical preserved
 
-G.4.1 must preserve the already-sealed flow exactly:
+G.4.1 preserves the already-sealed flow exactly:
 
 ```text
 trusted G.4 organization request / WorkItems
@@ -33,7 +34,7 @@ No G.4.1 helper gains authority of its own.
 
 ## 1. Canonical mobility intent → domain mapping
 
-New public service:
+Public service:
 
 ```text
 app.services.mobility_domain.mobility_intent_domain(...)
@@ -52,7 +53,7 @@ The helper deliberately does **not** reinterpret richer profile goals, pathway m
 
 ## 2. System-bound AI employee command context
 
-New public constructor:
+Public constructor:
 
 ```text
 app.services.organization_command.system_bound_agent_command_context(...)
@@ -83,7 +84,7 @@ The persistent `OrganizationPosition` remains the organizational actor. Capabili
 
 ## 3. Public pathway publication-integrity contract
 
-New public service surface:
+Public service surface:
 
 ```text
 app.services.pathway_publication_integrity.pathway_publication_integrity_blockers(...)
@@ -91,7 +92,7 @@ app.services.pathway_publication_integrity.pathway_publication_integrity_blocker
 
 F.1 no longer imports `_publication_evidence_blockers` directly from `pathway_catalogue.py`.
 
-For this bounded consolidation, the new public surface delegates to the mature catalogue implementation rather than copying or relocating a large publication subsystem. This preserves the exact accepted rules for:
+For this bounded consolidation, the public surface delegates to the mature catalogue implementation rather than copying or relocating a large publication subsystem. This preserves the exact accepted rules for:
 
 - required official-source Evidence links;
 - core-route Evidence shape;
@@ -102,11 +103,11 @@ For this bounded consolidation, the new public surface delegates to the mature c
 
 The compatibility adapter is the only G.4.1 bridge to the historical private catalogue implementation. Downstream organization services consume the public contract.
 
-A deeper catalogue-internal extraction is deliberately deferred until it can be performed as its own bounded change with catalogue-specific regression evidence.
+A deeper catalogue-internal extraction remains deliberately deferred until it can be performed as its own bounded change with catalogue-specific regression evidence.
 
 ## 4. Public eligibility action reconstruction contracts
 
-G.2 now exposes eligibility-specific public contracts:
+G.2 exposes eligibility-specific public contracts:
 
 ```text
 eligibility_command_context(...)
@@ -173,7 +174,7 @@ for the current material R3 vertical.
 
 ## 7. Anti-regression contract tests
 
-New focused file:
+Focused file:
 
 ```text
 apps/api/tests/test_organization_eligibility_contract_consolidation.py
@@ -188,6 +189,8 @@ It verifies that:
 5. G.1 uses the shared system-bound-agent context;
 6. G.3 no longer imports G.2 private action helpers;
 7. G.2 exposes the named public eligibility reconstruction contracts.
+
+The initial anti-regression test for G.3 used a source substring check for `_command_context`, which falsely matched the intended public name `eligibility_command_context`. The implementation was verified correct and the test was repaired to inspect exact module symbols instead. This was a test defect, not an implementation defect.
 
 Existing E.2/F.1/G.1/G.2/G.3/G.4 tests remain the behavioral source of truth for fingerprints, Gateway outcomes, lineage, replay, canonical effects and the HTTP boundary.
 
@@ -220,26 +223,40 @@ G.4.1 does not claim:
 - Organization Fabric / Mission Room implementation;
 - any migration or schema change.
 
-## Acceptance gate
+## Canonical acceptance evidence
 
-Canonical acceptance requires at minimum:
+Accepted Human Owner local Windows evidence on implementation head `65ed83270389d5de88d917c5562077c1fbf9c8de`:
 
-- focused G.4.1 contract tests;
-- relevant pathway publication/catalogue tests;
-- E.2 → G.4 governed vertical regression including G.4.1 tests;
-- repository policy PASS;
-- full API regression;
-- migration/schema checks confirming no database change;
-- `git diff --check` clean;
-- clean synchronized V12 branch.
+```text
+G.4.1 focused contract tests       7 passed / 1 warning / 0 failed
+Pathway catalogue regression       2 passed / 1 warning / 0 failed
+E.2 → G.4.1 governed vertical      88 passed / 1 warning / 0 failed
+Repository policy                  PASS
+Full API regression                1057 passed / 5 skipped / 1 warning / 0 failed
+Full API duration                  400.30s
+Database migration check           PASS
+Migration head                     0077_canonical_eligibility_assessment_revision
+Registered tables                  119
+Local DB schema                    PASS
+Actual tables                      119
+Physical tables                    120 incl. alembic_version
+git diff --check                   clean
+V12 branch                         clean / synchronized
+```
 
-ROADMAP and CHANGELOG remain at the accepted V12.15 checkpoint until those results are observed.
+Canonical acceptance record:
 
-No GitHub CI PASS may be claimed without attached check evidence.
+```text
+docs/V1_3_G4_1_ACCEPTANCE_2026-08-20.md
+```
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed because no attached status checks were present on the accepted implementation head.
 
 ## Direction after acceptance
 
-If G.4.1 is accepted without behavior drift, the next bounded stage remains:
+The next bounded stage is:
 
 ```text
 V1.3-G.5 — Eligibility Reassessment / Supersession
