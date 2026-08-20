@@ -91,12 +91,17 @@ def governed_eligibility_execution_plan() -> GovernedEligibilityExecutionPlan:
     )
 
 
-def _require_initiator(context: OrganizationCommandContext) -> None:
+def governed_eligibility_initiator(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+) -> OrganizationCommandContext:
+    """Authorize a human initiator before resolving any execution/provider policy."""
+
     if context.actor_type.value != "human" or context.role not in {"admin", "operator"}:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Organization action is not permitted.",
         )
+    return context
 
 
 @router.post(
@@ -106,7 +111,7 @@ def _require_initiator(context: OrganizationCommandContext) -> None:
 def run_governed_eligibility_orchestration(
     payload: GovernedEligibilityOrchestrationRequest,
     session: Session = Depends(get_session),
-    initiator: OrganizationCommandContext = Depends(organization_command_context),
+    initiator: OrganizationCommandContext = Depends(governed_eligibility_initiator),
     execution_plan: GovernedEligibilityExecutionPlan = Depends(governed_eligibility_execution_plan),
 ) -> GovernedEligibilityOrchestrationRead:
     """Run the accepted governed eligibility vertical through a trusted server plan.
@@ -116,7 +121,6 @@ def run_governed_eligibility_orchestration(
     the trusted execution plan and governed ContextBundle.
     """
 
-    _require_initiator(initiator)
     try:
         result = orchestrate_governed_eligibility(
             session,
