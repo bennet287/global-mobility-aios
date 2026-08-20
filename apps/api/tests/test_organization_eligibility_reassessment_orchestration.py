@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
@@ -245,8 +247,14 @@ def test_g5_http_explicit_revision_precondition_drives_v2(
     assert second_payload["canonical_effect_committed"] is True
     assert first_payload["revision_id"] != second_payload["revision_id"]
 
-    revision1 = db_session.get(EligibilityAssessmentRevision, first_payload["revision_id"])
-    revision2 = db_session.get(EligibilityAssessmentRevision, second_payload["revision_id"])
+    revision1 = db_session.get(
+        EligibilityAssessmentRevision,
+        UUID(first_payload["revision_id"]),
+    )
+    revision2 = db_session.get(
+        EligibilityAssessmentRevision,
+        UUID(second_payload["revision_id"]),
+    )
     assert revision1 is not None and revision2 is not None
     assert revision1.lifecycle_status == "superseded"
     assert revision2.version == 2
