@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, replace
 from uuid import UUID
 
@@ -38,6 +37,7 @@ from app.services.organization_governance_kernel import (
     GatewayOutcome,
     PolicyDisposition,
     evaluate_material_action,
+    material_action_fingerprint,
     organization_activity_projection,
 )
 from app.services.organization_independent_eligibility_verification import (
@@ -471,7 +471,7 @@ def commit_governed_eligibility_effect(
         raise EligibilityCanonicalEffectNotAuthorized(
             f"verification floor is satisfied but Gateway outcome is {fresh_floor.evaluation.outcome.value}"
         )
-    if fresh_floor.evaluation.action_fingerprint != action.fingerprint():
+    if fresh_floor.evaluation.action_fingerprint != material_action_fingerprint(command_context, action):
         raise EligibilityCanonicalEffectIntegrityError("fresh G.2 action fingerprint changed before G.3")
 
     # Re-evaluate immediately before staging the real effect. G.2 proves the R3 floor;
