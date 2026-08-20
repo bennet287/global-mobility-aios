@@ -13,7 +13,12 @@ from app.models.domain import (
     now_utc,
 )
 from app.services.organization_activity import stage_activity
-from app.services.organization_command import OrganizationCommandContext, canonical_fingerprint, require_human
+from app.services.organization_command import (
+    AuthorityDenied,
+    OrganizationCommandContext,
+    canonical_fingerprint,
+    require_human,
+)
 from app.services.organization_transparency import TransparencyDataError, transparency_activity_record
 
 
@@ -111,6 +116,18 @@ def _severity(kind: EligibilityImmuneIncidentKind) -> EligibilityImmuneIncidentS
     return EligibilityImmuneIncidentSeverity.WARNING
 
 
+def _validated_scope(*, tenant_key: str, aggregate_key: str) -> tuple[str, str]:
+    tenant = str(tenant_key or "").strip()
+    aggregate = str(aggregate_key or "").strip()
+    if not tenant or not aggregate:
+        raise EligibilityImmuneSystemError("tenant_key and eligibility aggregate_key are required")
+    if not aggregate.startswith(f"eligibility:{tenant}:"):
+        raise EligibilityImmuneSystemError(
+            "eligibility aggregate key does not belong to the supplied tenant"
+        )
+    return tenant, aggregate
+
+
 def _stream_key(aggregate_key: str) -> str:
     return f"immune:eligibility:{aggregate_key}"
 
@@ -146,16 +163,20 @@ def eligibility_circuit_status(
     tenant_key: str,
     aggregate_key: str,
 ) -> EligibilityCircuitStatus:
-    controls = _control_activities(
-        session,
+    tenant, aggregate = _validated_scope(
         tenant_key=tenant_key,
         aggregate_key=aggregate_key,
+    )
+    controls = _control_activities(
+        session,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
     )
     if not controls:
         return EligibilityCircuitStatus(
             schema_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
-            tenant_key=tenant_key,
-            aggregate_key=aggregate_key,
+            tenant_key=tenant,
+            aggregate_key=aggregate,
             capability=ELIGIBILITY_IMMUNE_CAPABILITY,
             state=EligibilityCircuitState.CLOSED,
             control_activity_id=None,
@@ -171,8 +192,8 @@ def eligibility_circuit_status(
     cause = current.causation_activity_id if state is EligibilityCircuitState.OPEN else None
     return EligibilityCircuitStatus(
         schema_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
-        tenant_key=tenant_key,
-        aggregate_key=aggregate_key,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
         capability=ELIGIBILITY_IMMUNE_CAPABILITY,
         state=state,
         control_activity_id=current.id,
@@ -204,6 +225,7 @@ def _matching_existing_incident(
     kind: EligibilityImmuneIncidentKind,
     severity: EligibilityImmuneIncidentSeverity,
     summary: str,
+    incident_fingerprint: str,
 ) -> bool:
     try:
         record = transparency_activity_record(existing)
@@ -214,6 +236,7 @@ def _matching_existing_incident(
         and existing.summary == summary
         and record.payload.get("incident_kind") == kind.value
         and record.payload.get("severity") == severity.value
+        and record.payload.get("incident_fingerprint") == incident_fingerprint
     )
 
 
@@ -240,6 +263,10 @@ def record_eligibility_immune_incident(
     become durable while its required restrictive side effect is lost.
     """
 
+    tenant, aggregate = _validated_scope(
+        tenant_key=tenant_key,
+        aggregate_key=aggregate_key,
+    )
     incident_kind = EligibilityImmuneIncidentKind(kind)
     severity = _severity(incident_kind)
     key = str(incident_key or "").strip()
@@ -250,14 +277,14 @@ def record_eligibility_immune_incident(
         raise EligibilityImmuneSystemError("incident summary is required")
 
     context = eligibility_immune_system_context(
-        tenant_key=tenant_key,
+        tenant_key=tenant,
         correlation_key=correlation_key,
     )
     incident_fingerprint = canonical_fingerprint(
         {
             "schema_version": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
-            "tenant_key": tenant_key,
-            "aggregate_key": aggregate_key,
+            "tenant_key": tenant,
+            "aggregate_key": aggregate,
             "incident_key": key,
             "kind": incident_kind.value,
             "severity": severity.value,
@@ -265,10 +292,10 @@ def record_eligibility_immune_incident(
             "source_activity_id": source_activity_id,
         }
     )
-    activity_key = f"immune:eligibility:{aggregate_key}:incident:{key}"
+    activity_key = f"immune:eligibility:{aggregate}:incident:{key}"
     existing = session.exec(
         select(OrganizationActivity).where(
-            OrganizationActivity.tenant_key == tenant_key,
+            OrganizationActivity.tenant_key == tenant,
             OrganizationActivity.activity_key == activity_key,
         )
     ).first()
@@ -278,6 +305,7 @@ def record_eligibility_immune_incident(
             kind=incident_kind,
             severity=severity,
             summary=detail,
+            incident_fingerprint=incident_fingerprint,
         ):
             raise EligibilityImmuneSystemError(
                 "eligibility incident idempotency key conflicts with persisted incident"
@@ -288,8 +316,8 @@ def record_eligibility_immune_incident(
             severity=severity,
             circuit_status=eligibility_circuit_status(
                 session,
-                tenant_key=tenant_key,
-                aggregate_key=aggregate_key,
+                tenant_key=tenant,
+                aggregate_key=aggregate,
             ),
             circuit_opened=False,
             replayed=True,
@@ -297,8 +325,8 @@ def record_eligibility_immune_incident(
 
     before = eligibility_circuit_status(
         session,
-        tenant_key=tenant_key,
-        aggregate_key=aggregate_key,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
     )
     circuit_opened = False
     try:
@@ -306,20 +334,20 @@ def record_eligibility_immune_incident(
             session,
             context,
             activity_key=activity_key,
-            stream_key=_stream_key(aggregate_key),
+            stream_key=_stream_key(aggregate),
             activity_class=OrganizationActivityClass.blocker,
             activity_type=ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
             title="Eligibility immune-system incident",
             summary=detail,
             source_object_type="eligibility_aggregate",
-            source_object_id=aggregate_key,
+            source_object_id=aggregate,
             source_object_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
             causation_activity_id=source_activity_id,
             occurred_at=now_utc(),
             payload={
                 "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
                 "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
-                "aggregate_key": aggregate_key,
+                "aggregate_key": aggregate,
                 "incident_key": key,
                 "incident_kind": incident_kind.value,
                 "severity": severity.value,
@@ -336,12 +364,12 @@ def record_eligibility_immune_incident(
             severity is EligibilityImmuneIncidentSeverity.CRITICAL
             and before.state is EligibilityCircuitState.CLOSED
         ):
-            open_key = f"immune:eligibility:{aggregate_key}:circuit:open:{key}"
+            open_key = f"immune:eligibility:{aggregate}:circuit:open:{key}"
             stage_activity(
                 session,
                 context,
                 activity_key=open_key,
-                stream_key=_stream_key(aggregate_key),
+                stream_key=_stream_key(aggregate),
                 activity_class=OrganizationActivityClass.blocker,
                 activity_type=ELIGIBILITY_IMMUNE_CIRCUIT_OPEN_ACTIVITY_TYPE,
                 title="Eligibility circuit opened",
@@ -350,14 +378,14 @@ def record_eligibility_immune_incident(
                     "until an authorized recovery closes the circuit."
                 ),
                 source_object_type="eligibility_aggregate",
-                source_object_id=aggregate_key,
+                source_object_id=aggregate,
                 source_object_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
                 causation_activity_id=incident.id,
                 occurred_at=now_utc(),
                 payload={
                     "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
                     "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
-                    "aggregate_key": aggregate_key,
+                    "aggregate_key": aggregate,
                     "state": EligibilityCircuitState.OPEN.value,
                     "cause_incident_activity_id": str(incident.id),
                     "authority_effect": "restrict_only",
@@ -378,8 +406,8 @@ def record_eligibility_immune_incident(
         severity=severity,
         circuit_status=eligibility_circuit_status(
             session,
-            tenant_key=tenant_key,
-            aggregate_key=aggregate_key,
+            tenant_key=tenant,
+            aggregate_key=aggregate,
         ),
         circuit_opened=circuit_opened,
         replayed=False,
@@ -404,20 +432,24 @@ def close_eligibility_circuit(
 
     try:
         require_human(context, admin=True)
-    except Exception as exc:
+    except AuthorityDenied as exc:
         raise EligibilityCircuitRecoveryError(
             "eligibility circuit recovery requires an authenticated human admin"
         ) from exc
 
+    tenant, aggregate = _validated_scope(
+        tenant_key=context.tenant_key,
+        aggregate_key=aggregate_key,
+    )
     key = str(recovery_key or "").strip()
     detail = str(reason or "").strip()
     if not key or not detail:
         raise EligibilityCircuitRecoveryError("recovery_key and reason are required")
 
-    activity_key = f"immune:eligibility:{aggregate_key}:circuit:closed:{key}"
+    activity_key = f"immune:eligibility:{aggregate}:circuit:closed:{key}"
     existing = session.exec(
         select(OrganizationActivity).where(
-            OrganizationActivity.tenant_key == context.tenant_key,
+            OrganizationActivity.tenant_key == tenant,
             OrganizationActivity.activity_key == activity_key,
         )
     ).first()
@@ -428,14 +460,14 @@ def close_eligibility_circuit(
             )
         return eligibility_circuit_status(
             session,
-            tenant_key=context.tenant_key,
-            aggregate_key=aggregate_key,
+            tenant_key=tenant,
+            aggregate_key=aggregate,
         )
 
     current = eligibility_circuit_status(
         session,
-        tenant_key=context.tenant_key,
-        aggregate_key=aggregate_key,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
     )
     if current.state is not EligibilityCircuitState.OPEN or current.control_activity_id is None:
         raise EligibilityCircuitRecoveryError("eligibility circuit is not currently open")
@@ -445,20 +477,20 @@ def close_eligibility_circuit(
             session,
             context,
             activity_key=activity_key,
-            stream_key=_stream_key(aggregate_key),
+            stream_key=_stream_key(aggregate),
             activity_class=OrganizationActivityClass.operational,
             activity_type=ELIGIBILITY_IMMUNE_CIRCUIT_CLOSED_ACTIVITY_TYPE,
             title="Eligibility circuit closed",
             summary=detail,
             source_object_type="eligibility_aggregate",
-            source_object_id=aggregate_key,
+            source_object_id=aggregate,
             source_object_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
             supersedes_activity_id=current.control_activity_id,
             occurred_at=now_utc(),
             payload={
                 "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
                 "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
-                "aggregate_key": aggregate_key,
+                "aggregate_key": aggregate,
                 "state": EligibilityCircuitState.CLOSED.value,
                 "recovery_key": key,
                 "reason": detail,
@@ -474,6 +506,6 @@ def close_eligibility_circuit(
 
     return eligibility_circuit_status(
         session,
-        tenant_key=context.tenant_key,
-        aggregate_key=aggregate_key,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
     )
