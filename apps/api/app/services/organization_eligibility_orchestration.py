@@ -20,6 +20,12 @@ from app.services.organization_eligibility_effect import (
     EligibilityCanonicalEffectError,
     commit_governed_eligibility_effect,
 )
+from app.services.organization_eligibility_immune_system import (
+    EligibilityCircuitOpen,
+    EligibilityImmuneSystemError,
+    eligibility_circuit_scope_for_work_item,
+    require_eligibility_circuit_closed,
+)
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
     EligibilityIntentError,
@@ -302,6 +308,12 @@ def orchestrate_governed_eligibility(
     optimistic-concurrency assertion, not authority: initial v1 creation omits it,
     while reassessment must name the active revision it expects to supersede.
 
+    H.1 adds an aggregate-scoped restrictive circuit preflight after durable replay
+    resolution and before E.2/provider execution. A CLOSED circuit grants nothing; it
+    only means the Immune System is not adding an extra restriction. An OPEN circuit
+    blocks fresh execution before either provider is called. Exact replay of a durable
+    committed effect remains historical and does not perform new execution.
+
     Exact retries after a committed effect resolve directly from durable canonical
     governance/revision lineage and do not call either model again. Replay still checks
     that the caller supplied the same revision expectation as the committed operation.
@@ -329,6 +341,27 @@ def orchestrate_governed_eligibility(
     )
     if replay is not None:
         return replay
+
+    try:
+        circuit_scope = eligibility_circuit_scope_for_work_item(
+            session,
+            tenant_key=tenant,
+            proposal_work_item_id=proposal_work_item_id,
+            producer_position_key=execution_plan.producer_position_key,
+        )
+        require_eligibility_circuit_closed(
+            session,
+            tenant_key=tenant,
+            aggregate_key=circuit_scope.aggregate_key,
+        )
+    except EligibilityCircuitOpen as exc:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "governed eligibility circuit is open for the canonical aggregate"
+        ) from exc
+    except EligibilityImmuneSystemError as exc:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "governed eligibility circuit preflight could not resolve canonical scope"
+        ) from exc
 
     try:
         proposal = governed_eligibility_transition_intent(
