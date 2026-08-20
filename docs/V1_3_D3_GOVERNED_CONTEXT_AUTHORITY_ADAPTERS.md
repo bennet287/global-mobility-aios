@@ -1,6 +1,6 @@
 # V1.3-D.3 — Governed Context Authority Adapters
 
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING  
+**Status:** COMPLETE / PASS / SEALED  
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`
 
@@ -61,6 +61,8 @@ MobilityPathwayVersionAuthorityAdapter
 
 The registry is deliberately explicit and bounded. A future source type such as `corporate_mobility_case` or `application` should be added as a new adapter rather than by rewriting the Context Broker.
 
+The static module-level registry is accepted for D.3. Before source types become numerous, it should evolve into an explicit registration mechanism with duplicate-key and contract tests rather than turning the broker into a plugin framework prematurely.
+
 ## Mobility pathway authority rules
 
 For a `mobility_pathway_version` WorkItem, D.3:
@@ -119,17 +121,21 @@ SourceSnapshots are deduplicated across pathway, evidence and rule provenance.
 
 Each source-snapshot reference carries a deterministic fingerprint over the canonical SourceSnapshot record, including captured content/hash/state. A changed snapshot therefore changes `context_hash`.
 
+A null `SourceSnapshot.official_source_id` is not rejected automatically when the authoritative linking record itself provides a valid `official_source_id`; D.3 rejects only snapshots for which official-source provenance cannot be established or whose populated source identity conflicts with the authoritative link.
+
 ## Policy semantics
 
 `CountryPolicy` has no explicit version/effective-window columns in the current schema. D.3 does not invent them.
 
-Instead:
+Current accepted behavior:
 
 ```text
 policy_version = SHA-256 fingerprint of the canonical active CountryPolicy record
 ```
 
 The fingerprint therefore changes when policy content or review/update state changes.
+
+This is sufficient for D.3 stale-context detection. Before Flight Recorder/replay treats `policy_version` as a long-lived semantic version, the fingerprint must be narrowed to an explicit semantic field contract such as country/domain/status/policy content/review state so future non-semantic ORM columns cannot create accidental replay divergence.
 
 If no active policy exists:
 
@@ -139,6 +145,12 @@ unknowns includes country_policy_missing
 ```
 
 If multiple active policies exist for the same country/domain, D.3 fails closed because authority would be ambiguous.
+
+## WorkItem source-version semantics
+
+For supported governed adapters, `OrganizationalWorkItem.source_object_version` is a non-authoritative caller/reference hint only.
+
+The adapter computes the authoritative source-reference version from canonical `MobilityPathway` + `MobilityPathwayVersion` state and replaces the hint in the effective ContextBundle reference. This prevents stale or caller-controlled version labels from becoming authority.
 
 ## Tool entitlement — temporary D.3 source
 
@@ -238,28 +250,40 @@ Those concerns remain downstream.
 
 ## Acceptance matrix
 
-Focused D.3 tests cover:
+Canonical local acceptance on the Windows V12 checkout:
 
 ```text
-Deterministic bundle with governed Evidence/rules       pending
-Pathway-version change changes context hash             pending
-Active-rule change changes context hash                 pending
-CountryPolicy change changes policy/context hash        pending
-SourceSnapshot change changes context hash              pending
-Unpublished/retired/expired rule fails closed           pending
-Malformed/wrong-country rule fails closed               pending
-Foreign-tenant WorkItem remains non-disclosing          pending
-Missing pathway Evidence is empty but visible           pending
-Missing CountryPolicy is visible, not fabricated        pending
-Tool entitlement comes only from position contract      pending
-No tool namespace produces empty tools                  pending
-Malformed tool namespace fails closed                   pending
-Working context cannot self-promote authority           pending
-No runtime/provider identity enters ContextBundle       pending
-Adapter registry remains explicit and bounded           pending
-Repository policy                                        pending
-Full API regression                                      pending
-Migration/schema checks                                  pending
+Deterministic bundle with governed Evidence/rules       PASS
+Pathway-version change changes context hash             PASS
+Active-rule change changes context hash                 PASS
+CountryPolicy change changes policy/context hash        PASS
+SourceSnapshot change changes context hash              PASS
+Unpublished/retired/expired rule fails closed           PASS
+Malformed/wrong-country rule fails closed               PASS
+Foreign-tenant WorkItem remains non-disclosing          PASS
+Missing pathway Evidence is empty but visible           PASS
+Missing CountryPolicy is visible, not fabricated        PASS
+Tool entitlement comes only from position contract      PASS
+No tool namespace produces empty tools                  PASS
+Malformed tool namespace fails closed                   PASS
+Working context cannot self-promote authority           PASS
+No runtime/provider identity enters ContextBundle       PASS
+Adapter registry remains explicit and bounded           PASS
+Repository policy                                       PASS
+Full API regression                                     961 passed / 5 skipped / 1 warning / 0 failed
+Migration/schema checks                                 PASS
+git diff --check                                        clean
+V12 branch status                                       clean / synchronized
 ```
 
-No PASS is claimed until the canonical local acceptance sequence is executed and reported.
+Canonical acceptance record:
+
+`docs/V1_3_D3_ACCEPTANCE_2026-08-20.md`
+
+No GitHub CI PASS is claimed because no attached status checks were present.
+
+## Seal decision
+
+V1.3-D.3 is COMPLETE / PASS / SEALED.
+
+The next bounded step should use these sealed contracts inside a real end-to-end Global Mobility workflow. Additional runtime/provider abstraction should be introduced only where that vertical needs it, not as another horizontal framework phase.
