@@ -46,7 +46,10 @@ from app.services.organization_eligibility_transition_intent import (
     EligibilityProposedState,
     GovernedEligibilityTransitionIntentResult,
 )
-from app.services.organization_mobility_pathway_brief import _governed_payload
+from app.services.organization_mobility_pathway_brief import (
+    MobilityPathwayBriefError,
+    _governed_payload,
+)
 from app.services.organization_transparency import activities_for_work_item
 
 
@@ -276,6 +279,10 @@ def _verifier_binding(
         raise IndependentEligibilityVerificationIntegrityError(
             "verifier runtime must use a different independence group"
         )
+    if proposer_binding.model_key is None or binding.model_key is None:
+        raise IndependentEligibilityVerificationIntegrityError(
+            "G.1 requires pinned proposer and verifier model identities"
+        )
     if binding.provider_key == proposer_binding.provider_key:
         raise IndependentEligibilityVerificationIntegrityError(
             "G.1 verifier must use a different provider from the proposer"
@@ -349,7 +356,12 @@ def _blind_verifier_payload(
     context: ContextBundle,
     readiness: EligibilityDecisionReadinessResult,
 ) -> tuple[dict[str, Any], set[str], set[str]]:
-    pathway_payload, _, _, allowed_citations = _governed_payload(session, context=context)
+    try:
+        pathway_payload, _, _, allowed_citations = _governed_payload(session, context=context)
+    except MobilityPathwayBriefError as exc:
+        raise IndependentEligibilityVerificationIntegrityError(
+            "verifier governed pathway authority could not be dereferenced"
+        ) from exc
     evidence_tokens = {
         item["citation"] for item in pathway_payload["evidence"]
     }
@@ -618,6 +630,10 @@ def verify_eligibility_proposal_independently(
         context=context,
         runtime_profile=verifier_runtime_profile,
     )
+    if provider.name != binding.provider_key:
+        raise IndependentEligibilityVerificationRuntimeError(
+            "verifier provider adapter does not match the bound runtime"
+        )
     payload, evidence_tokens, rule_tokens = _blind_verifier_payload(
         session,
         context=context,
@@ -640,7 +656,7 @@ def verify_eligibility_proposal_independently(
         raise IndependentEligibilityVerificationRuntimeError(
             "verifier response provider does not match bound runtime"
         )
-    if binding.model_key is not None and response.model != binding.model_key:
+    if response.model != binding.model_key:
         raise IndependentEligibilityVerificationRuntimeError(
             "verifier response model does not match bound runtime"
         )
