@@ -17,6 +17,7 @@ from app.models.domain import (
     OrganizationActivity,
     OrganizationActorType,
     Profile,
+    now_utc,
 )
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import OrganizationCommandContext, canonical_fingerprint
@@ -358,7 +359,7 @@ def _persist_floor_reevaluation(
         lead_id=proposal.intent.lead_id,
         profile_id=proposal.intent.profile_id,
         causation_activity_id=verification.verification_activity.id,
-        occurred_at=action.requested_at,
+        occurred_at=now_utc(),
         payload={
             **dict(projection.payload),
             "governance_record_kind": "eligibility_verification_floor_reevaluation",
