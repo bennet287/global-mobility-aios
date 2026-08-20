@@ -19,6 +19,11 @@ from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import canonical_fingerprint, canonical_json
 from app.services.organization_decision_readiness import EligibilityDecisionReadinessResult
+from app.services.organization_eligibility_revision_precondition import (
+    EligibilityRevisionPreconditionError,
+    eligibility_aggregate_key,
+    require_eligibility_revision_precondition_current,
+)
 from app.services.organization_eligibility_transition_intent import (
     EligibilityProposedState,
     GovernedEligibilityTransitionIntentResult,
@@ -57,7 +62,7 @@ ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE = "organization.eligibility.assessmen
 
 
 class EligibilityCanonicalEffectError(RuntimeError):
-    """Base error for the bounded G.3 canonical eligibility-effect slice."""
+    """Base error for the bounded governed canonical eligibility-effect slice."""
 
 
 class EligibilityCanonicalEffectIntegrityError(EligibilityCanonicalEffectError):
@@ -157,7 +162,13 @@ def _aggregate_key(
     lead_id: UUID,
     pathway_id: UUID,
 ) -> str:
-    return f"eligibility:{tenant_key}:{lead_id}:{pathway_id}"
+    """Backward-compatible local name for the canonical eligibility aggregate key."""
+
+    return eligibility_aggregate_key(
+        tenant_key=tenant_key,
+        lead_id=lead_id,
+        pathway_id=pathway_id,
+    )
 
 
 def _active_canonical_revisions(
@@ -210,11 +221,15 @@ def _assessment_payload(
     verification: GovernedIndependentEligibilityVerificationResult,
     floor: EligibilityVerificationFloorResult,
     revision_version: int,
+    supersedes_revision_id: UUID | None,
 ) -> str:
     return canonical_json(
         {
             "schema_version": ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
             "canonical_revision_version": revision_version,
+            "supersedes_revision_id": (
+                str(supersedes_revision_id) if supersedes_revision_id is not None else None
+            ),
             "proposed_state": proposal.intent.proposed_state.value,
             "pathway_version_id": str(proposal.intent.pathway_version_id),
             "evidence_basis": proposal.intent.evidence_basis,
@@ -276,6 +291,11 @@ def _stage_semantic_effect(
             "aggregate_key": revision.aggregate_key,
             "revision_version": revision.version,
             "lifecycle_status": revision.lifecycle_status,
+            "supersedes_revision_id": (
+                str(revision.supersedes_revision_id)
+                if revision.supersedes_revision_id is not None
+                else None
+            ),
             "status": assessment.status,
             "profile_version": revision.profile_version,
             "pathway_version_id": str(revision.pathway_version_id),
@@ -302,6 +322,8 @@ def _validate_replay(
     evaluation: GatewayEvaluation,
     governance_activity: OrganizationActivity,
 ) -> GovernedEligibilityCanonicalEffectResult:
+    """Validate a durable historical effect without requiring it to remain ACTIVE."""
+
     revisions = list(
         session.exec(
             select(EligibilityAssessmentRevision).where(
@@ -332,18 +354,25 @@ def _validate_replay(
         lead_id=proposal.intent.lead_id,
         pathway_id=pathway.id,
     )
+    precondition = proposal.eligibility_revision_precondition
     expected_effect_fingerprint = _effect_fingerprint(
         proposal=proposal,
         readiness=readiness,
         verification=verification,
         floor=floor,
         aggregate_key=expected_aggregate_key,
-        version=1,
+        version=revision.version,
     )
     if revision.aggregate_key != expected_aggregate_key:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision has the wrong eligibility aggregate key")
     if revision.effect_fingerprint != expected_effect_fingerprint:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision has the wrong effect fingerprint")
+    if revision.version != precondition.next_revision_version:
+        raise EligibilityCanonicalEffectIntegrityError("persisted revision has the wrong canonical revision version")
+    if revision.supersedes_revision_id != precondition.supersedes_revision_id:
+        raise EligibilityCanonicalEffectIntegrityError("persisted revision has the wrong supersession lineage")
+    if revision.lifecycle_status not in {"active", "superseded"}:
+        raise EligibilityCanonicalEffectIntegrityError("persisted revision has an invalid lifecycle status")
     if revision.original_action_fingerprint != proposal.evaluation.action_fingerprint:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision belongs to a different E.2 action")
     if revision.intent_fingerprint != proposal.intent_fingerprint:
@@ -354,8 +383,6 @@ def _validate_replay(
         raise EligibilityCanonicalEffectIntegrityError("persisted revision belongs to a different G.1 verification")
     if revision.verification_floor_fingerprint != floor.verification_floor_fingerprint:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision belongs to a different G.2 floor")
-    if revision.lifecycle_status != "active" or revision.version != 1 or revision.supersedes_revision_id is not None:
-        raise EligibilityCanonicalEffectIntegrityError("persisted G.3 first revision violates the v1 aggregate contract")
     if assessment.lead_id != proposal.intent.lead_id:
         raise EligibilityCanonicalEffectIntegrityError("persisted assessment belongs to a different Lead")
     if assessment.profile_id != proposal.intent.profile_id or assessment.profile_version != proposal.intent.profile_version:
@@ -370,7 +397,7 @@ def _validate_replay(
         raise EligibilityCanonicalEffectIntegrityError("persisted assessment payload is malformed") from exc
     expected_assessment_fields = {
         "schema_version": ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
-        "canonical_revision_version": 1,
+        "canonical_revision_version": revision.version,
         "proposed_state": proposal.intent.proposed_state.value,
         "pathway_version_id": str(proposal.intent.pathway_version_id),
         "intent_fingerprint": proposal.intent_fingerprint,
@@ -384,6 +411,14 @@ def _validate_replay(
             raise EligibilityCanonicalEffectIntegrityError(
                 f"persisted assessment payload conflicts on field {key!r}"
             )
+    stored_supersedes = assessment_payload.get("supersedes_revision_id")
+    expected_supersedes = (
+        str(revision.supersedes_revision_id) if revision.supersedes_revision_id is not None else None
+    )
+    if stored_supersedes not in {None, expected_supersedes}:
+        raise EligibilityCanonicalEffectIntegrityError(
+            "persisted assessment payload conflicts on supersession lineage"
+        )
 
     try:
         governance_record = transparency_activity_record(governance_activity)
@@ -413,7 +448,10 @@ def _validate_replay(
         raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity has the wrong cause")
     if semantic_record.constitutional_activity_class is not ConstitutionalActivityClass.MATERIAL:
         raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity is not MATERIAL")
-    if semantic_record.source_object_id != str(assessment.id) or semantic_record.source_object_version != "1":
+    if (
+        semantic_record.source_object_id != str(assessment.id)
+        or semantic_record.source_object_version != str(revision.version)
+    ):
         raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity has the wrong source")
     if semantic_record.payload.get("effect_fingerprint") != revision.effect_fingerprint:
         raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity fingerprint conflicts")
@@ -433,6 +471,34 @@ def _validate_replay(
     )
 
 
+def _fresh_revision_precondition(
+    session: Session,
+    *,
+    proposal: GovernedEligibilityTransitionIntentResult,
+    pathway: MobilityPathway,
+):
+    try:
+        current = require_eligibility_revision_precondition_current(
+            session,
+            precondition=proposal.eligibility_revision_precondition,
+            lead_id=proposal.intent.lead_id,
+            pathway_id=pathway.id,
+        )
+    except EligibilityRevisionPreconditionError as exc:
+        raise EligibilityCanonicalEffectIntegrityError(
+            "canonical eligibility reassessment/supersession revision precondition is stale or missing"
+        ) from exc
+    if current.aggregate_key != _aggregate_key(
+        tenant_key=proposal.context.tenant_key,
+        lead_id=proposal.intent.lead_id,
+        pathway_id=pathway.id,
+    ):
+        raise EligibilityCanonicalEffectIntegrityError(
+            "eligibility reassessment/supersession resolved the wrong aggregate"
+        )
+    return current
+
+
 def commit_governed_eligibility_effect(
     session: Session,
     *,
@@ -442,14 +508,14 @@ def commit_governed_eligibility_effect(
     floor: EligibilityVerificationFloorResult,
     authority: CapabilityAuthority,
 ) -> GovernedEligibilityCanonicalEffectResult:
-    """Commit the first canonical eligibility effect after accepted E.2/F.1/G.1/G.2.
+    """Commit an initial or superseding canonical eligibility revision.
 
-    This first G.3 slice creates only canonical revision ``v1``. If a canonical active
-    revision already exists for the same Lead/pathway aggregate, G.3 fails closed rather
-    than inventing reassessment/supersession semantics that E.2 does not yet version.
+    Initial creation requires no active canonical revision and produces v1. Reassessment
+    requires E.2 to carry the exact active canonical revision version and produces only
+    the next revision while marking the prior revision SUPERSEDED in the same transaction.
 
-    Exact retries prioritize the durable ``governance:<idempotency_key>`` record and
-    return the already-committed effect even if later case state has moved on.
+    Exact retries prioritize durable ``governance:<idempotency_key>`` lineage and remain
+    historical: retrying v1 after v2 exists still resolves the original v1 effect.
     """
 
     _require_floor_contract(proposal=proposal, verification=verification, floor=floor)
@@ -464,10 +530,12 @@ def commit_governed_eligibility_effect(
     try:
         e2_payload = original_eligibility_attempt_payload(session, proposal)
         idempotency_key = str(e2_payload["idempotency_key"])
+        # Replay must not require the historical revision to remain current/ACTIVE.
         action, profile = rebuild_eligibility_action(
             session,
             proposal=proposal,
             idempotency_key=idempotency_key,
+            require_current_revision=False,
         )
     except EligibilityVerificationFloorIntegrityError as exc:
         raise EligibilityCanonicalEffectIntegrityError(
@@ -481,16 +549,11 @@ def commit_governed_eligibility_effect(
         idempotency_key=idempotency_key,
     )
     existing_fingerprint = _persisted_action_fingerprint(persisted_governance)
-    evaluation_version = (
-        action.expected_version
-        if existing_fingerprint is not None and action.expected_version is not None
-        else profile.profile_version
-    )
     evaluation = evaluate_material_action(
         command_context,
         authority,
         action,
-        current_version=evaluation_version,
+        current_version=(action.expected_version if existing_fingerprint is not None else profile.profile_version),
         existing_idempotency_fingerprint=existing_fingerprint,
         policy_disposition=PolicyDisposition.ALLOW,
     )
@@ -514,7 +577,22 @@ def commit_governed_eligibility_effect(
             f"canonical eligibility idempotency key cannot be reused: {evaluation.reason.value}"
         )
 
+    pathway_version, pathway = _pathway_identity(session, proposal)
+    # Fresh execution must still own the exact revision expectation carried by E.2.
+    session.expire_all()
+    revision_precondition = _fresh_revision_precondition(
+        session,
+        proposal=proposal,
+        pathway=pathway,
+    )
+
     try:
+        action, profile = rebuild_eligibility_action(
+            session,
+            proposal=proposal,
+            idempotency_key=idempotency_key,
+            require_current_revision=True,
+        )
         fresh_floor = integrate_eligibility_verification_floor(
             session,
             proposal=proposal,
@@ -524,7 +602,7 @@ def commit_governed_eligibility_effect(
         )
     except EligibilityVerificationFloorIntegrityError as exc:
         raise EligibilityCanonicalEffectIntegrityError(
-            "accepted G.2 verification floor is no longer fresh for G.3"
+            "accepted G.2 verification floor or eligibility revision precondition is no longer fresh for G.3"
         ) from exc
     if (
         fresh_floor.verification_floor_fingerprint != floor.verification_floor_fingerprint
@@ -540,8 +618,14 @@ def commit_governed_eligibility_effect(
     if fresh_floor.evaluation.action_fingerprint != material_action_fingerprint(command_context, action):
         raise EligibilityCanonicalEffectIntegrityError("fresh G.2 action fingerprint changed before G.3")
 
-    # Re-evaluate immediately before staging the real effect. G.2 proves the R3 floor;
-    # this evaluation remains the authorization committed atomically with the effect.
+    # Re-read the revision precondition after G.2 and immediately before final authorization.
+    session.expire_all()
+    revision_precondition = _fresh_revision_precondition(
+        session,
+        proposal=proposal,
+        pathway=pathway,
+    )
+
     evaluation = evaluate_material_action(
         command_context,
         authority,
@@ -554,23 +638,29 @@ def commit_governed_eligibility_effect(
             f"final Command Gateway outcome is {evaluation.outcome.value}: {evaluation.reason.value}"
         )
 
-    pathway_version, pathway = _pathway_identity(session, proposal)
-    aggregate_key = _aggregate_key(
-        tenant_key=proposal.context.tenant_key,
-        lead_id=proposal.intent.lead_id,
-        pathway_id=pathway.id,
+    aggregate_key = revision_precondition.aggregate_key
+    revision_version = revision_precondition.next_revision_version
+    supersedes_revision_id = revision_precondition.supersedes_revision_id
+    superseded_revision = (
+        session.get(EligibilityAssessmentRevision, supersedes_revision_id)
+        if supersedes_revision_id is not None
+        else None
     )
-    active = _active_canonical_revisions(
-        session,
-        tenant_key=proposal.context.tenant_key,
-        aggregate_key=aggregate_key,
-    )
-    if active:
-        raise EligibilityCanonicalEffectIntegrityError(
-            "canonical eligibility aggregate already has an active revision; reassessment/supersession is not yet defined"
-        )
+    if supersedes_revision_id is not None:
+        if superseded_revision is None:
+            raise EligibilityCanonicalEffectIntegrityError(
+                "eligibility reassessment predecessor revision disappeared before commit"
+            )
+        if (
+            superseded_revision.tenant_key != proposal.context.tenant_key
+            or superseded_revision.aggregate_key != aggregate_key
+            or superseded_revision.version != revision_precondition.current_revision_version
+            or superseded_revision.lifecycle_status != "active"
+        ):
+            raise EligibilityCanonicalEffectIntegrityError(
+                "eligibility reassessment predecessor is no longer the expected active revision"
+            )
 
-    revision_version = 1
     effect_fingerprint = _effect_fingerprint(
         proposal=proposal,
         readiness=readiness,
@@ -606,6 +696,13 @@ def commit_governed_eligibility_effect(
                 "eligibility_effect_schema_version": ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
                 "verification_floor_fingerprint": fresh_floor.verification_floor_fingerprint,
                 "effect_fingerprint": effect_fingerprint,
+                "canonical_revision_version": revision_version,
+                "expected_eligibility_revision_version": (
+                    revision_precondition.expected_revision_version
+                ),
+                "supersedes_revision_id": (
+                    str(supersedes_revision_id) if supersedes_revision_id is not None else None
+                ),
             },
             correlation_key=str(evaluation.trace_id),
         )
@@ -627,6 +724,7 @@ def commit_governed_eligibility_effect(
                 verification=verification,
                 floor=fresh_floor,
                 revision_version=revision_version,
+                supersedes_revision_id=supersedes_revision_id,
             ),
             risks_json="[]",
             required_documents_json="[]",
@@ -642,13 +740,17 @@ def commit_governed_eligibility_effect(
         session.add(assessment)
         session.flush()
 
+        if superseded_revision is not None:
+            superseded_revision.lifecycle_status = "superseded"
+            session.add(superseded_revision)
+
         revision = EligibilityAssessmentRevision(
             assessment_id=assessment.id,
             tenant_key=proposal.context.tenant_key,
             aggregate_key=aggregate_key,
             version=revision_version,
             lifecycle_status="active",
-            supersedes_revision_id=None,
+            supersedes_revision_id=supersedes_revision_id,
             lead_id=proposal.intent.lead_id,
             profile_id=proposal.intent.profile_id,
             profile_version=proposal.intent.profile_version,
