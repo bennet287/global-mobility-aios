@@ -7,9 +7,11 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    MobilityPathwayVersion,
     OrganizationActivity,
     OrganizationActivityClass,
     OrganizationActorType,
+    OrganizationalWorkItem,
     now_utc,
 )
 from app.services.organization_activity import stage_activity
@@ -19,6 +21,7 @@ from app.services.organization_command import (
     canonical_fingerprint,
     require_human,
 )
+from app.services.organization_eligibility_revision_precondition import eligibility_aggregate_key
 from app.services.organization_transparency import TransparencyDataError, transparency_activity_record
 
 
@@ -58,6 +61,16 @@ class EligibilityImmuneIncidentSeverity(str, Enum):
 class EligibilityCircuitState(str, Enum):
     CLOSED = "closed"
     OPEN = "open"
+
+
+@dataclass(frozen=True)
+class EligibilityCircuitScope:
+    schema_version: str
+    tenant_key: str
+    aggregate_key: str
+    proposal_work_item_id: UUID
+    lead_id: UUID
+    pathway_id: UUID
 
 
 @dataclass(frozen=True)
@@ -104,6 +117,74 @@ def eligibility_immune_system_context(
         position_key=None,
         authority_level=None,
         correlation_key=correlation_key,
+    )
+
+
+def eligibility_circuit_scope_for_work_item(
+    session: Session,
+    *,
+    tenant_key: str,
+    proposal_work_item_id: UUID,
+    producer_position_key: str,
+) -> EligibilityCircuitScope:
+    """Resolve the stable eligibility aggregate for G.4 circuit preflight.
+
+    This helper is deliberately read-only and authorization-neutral. It verifies that
+    the proposal WorkItem belongs to the tenant and trusted producer position, then
+    resolves only enough canonical identity to derive the same aggregate key used by
+    G.3/G.5. Full ContextBundle, Evidence, rule, profile, runtime and authority checks
+    remain mandatory in E.2 and later stages.
+    """
+
+    tenant = str(tenant_key or "").strip()
+    producer_position = str(producer_position_key or "").strip()
+    if not tenant or not producer_position:
+        raise EligibilityImmuneSystemError(
+            "tenant_key and producer_position_key are required for eligibility circuit scope"
+        )
+
+    work_item = session.get(OrganizationalWorkItem, proposal_work_item_id)
+    if work_item is None or work_item.tenant_key != tenant:
+        raise EligibilityImmuneSystemError(
+            "proposal WorkItem is unavailable in the supplied tenant for eligibility circuit scope"
+        )
+    if work_item.assigned_position_key != producer_position:
+        raise EligibilityImmuneSystemError(
+            "proposal WorkItem is not assigned to the trusted producer position"
+        )
+    if work_item.lead_id is None:
+        raise EligibilityImmuneSystemError(
+            "proposal WorkItem has no Lead for eligibility circuit scope"
+        )
+    if work_item.source_object_type != "mobility_pathway_version" or not work_item.source_object_id:
+        raise EligibilityImmuneSystemError(
+            "proposal WorkItem does not identify a mobility_pathway_version"
+        )
+
+    try:
+        pathway_version_id = UUID(str(work_item.source_object_id))
+    except (TypeError, ValueError, AttributeError) as exc:
+        raise EligibilityImmuneSystemError(
+            "proposal WorkItem pathway-version source identity is invalid"
+        ) from exc
+    pathway_version = session.get(MobilityPathwayVersion, pathway_version_id)
+    if pathway_version is None:
+        raise EligibilityImmuneSystemError(
+            "proposal WorkItem pathway-version source could not be resolved"
+        )
+
+    aggregate = eligibility_aggregate_key(
+        tenant_key=tenant,
+        lead_id=work_item.lead_id,
+        pathway_id=pathway_version.pathway_id,
+    )
+    return EligibilityCircuitScope(
+        schema_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
+        proposal_work_item_id=work_item.id,
+        lead_id=work_item.lead_id,
+        pathway_id=pathway_version.pathway_id,
     )
 
 
