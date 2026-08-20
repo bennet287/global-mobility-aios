@@ -30,6 +30,11 @@ SCAN_EXTENSIONS = {
     ".json",
     ".ini",
     ".env",
+    ".ps1",
+    ".sh",
+    ".js",
+    ".ts",
+    ".tsx",
 }
 
 IGNORE_DIRS = {
