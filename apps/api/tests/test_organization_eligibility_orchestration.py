@@ -355,7 +355,11 @@ def test_g4_http_route_rejects_non_operator_human_initiator(
         app.dependency_overrides.pop(organization_command_context, None)
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "Organization action is not permitted."}
+    assert response.json() == {
+        "detail": "Role is not allowed for this action.",
+        "role": "reviewer",
+        "allowed_roles": ["admin", "operator"],
+    }
 
 
 def test_g4_plan_authority_tenant_and_actor_are_not_replaceable_by_human_initiator(
