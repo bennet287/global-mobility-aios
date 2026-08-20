@@ -8,7 +8,7 @@ from typing import Any
 from sqlmodel import Session
 
 from app.models.domain import now_utc
-from app.services.organization_command import canonical_fingerprint
+from app.services.organization_command import OrganizationCommandError, canonical_fingerprint
 from app.services.organization_context_broker import (
     ContextBrokerError,
     ContextBundle,
@@ -168,7 +168,7 @@ def _current_context(session: Session, context: ContextBundle) -> ContextBundle:
             work_item_id=context.work_item.work_item_id,
             purpose=context.purpose,
         )
-    except ContextBrokerError as exc:
+    except (ContextBrokerError, OrganizationCommandError) as exc:
         raise RuntimeBindingStale("employee context is no longer eligible for runtime binding") from exc
 
 
