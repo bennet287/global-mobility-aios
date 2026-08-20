@@ -683,6 +683,24 @@ def test_confidence_is_informational_and_cannot_relax_r3_review_floor(db_session
     assert result.mutated is False
 
 
+def test_a0_remains_prohibited_despite_unsatisfied_r3_verification_floor(db_session: Session) -> None:
+    _, _, graph, work = _setup(db_session)
+    result = governed_eligibility_transition_intent(
+        db_session,
+        tenant_key="tenant-a",
+        position_key="austria_mobility_specialist",
+        work_item_id=work.id,
+        runtime_profile=_runtime_profile(),
+        authority=_authority(autonomy=AutonomyLevel.A0),
+        provider=FakeProvider(_safe_output(graph)),
+        idempotency_key="e2-a0-prohibited",
+    )
+
+    assert result.evaluation.outcome is GatewayOutcome.BLOCK
+    assert result.evaluation.reason is GatewayReason.AUTONOMY_PROHIBITED
+    assert result.mutated is False
+
+
 def test_context_hash_changes_when_bound_lead_changes(db_session: Session) -> None:
     lead, _, _, work = _setup(db_session)
     first = build_work_item_context_bundle(
