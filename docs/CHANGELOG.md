@@ -22,6 +22,112 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-F.1 ELIGIBILITY DECISION READINESS — COMPLETE / PASS / SEALED
+
+### Status
+
+**The first deterministic Decision Readiness slice is accepted. AIOS can now take an already-governed E.2 R3 eligibility proposal, prove that its durable governance attempt and canonical context remain intact, and deterministically decide whether the proposal is ready for genuinely independent verification, not ready, or requires human input.**
+
+Accepted chain:
+
+```text
+E.2 REVIEW_REQUIRED eligibility proposal
+→ durable E.2 attempt integrity
+→ fresh ContextBundle
+→ current Lead / Profile / pathway state
+→ deterministic F.1 gates
+→ READY_FOR_INDEPENDENT_VERIFICATION
+   or NOT_READY
+   or HUMAN_INPUT_REQUIRED
+```
+
+Permanent boundary:
+
+```text
+READY_FOR_INDEPENDENT_VERIFICATION
+≠ eligibility truth
+≠ independent verification complete
+≠ Command Gateway authorization
+≠ canonical mutation
+```
+
+### Accepted evidence
+
+```text
+Repository policy             PASS
+Full API regression           996 passed / 5 skipped / 1 warning / 0 failed
+Duration                      359.39s
+Database migration check      PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+Actual tables                 118
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+V12 branch                    clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_F1_ELIGIBILITY_DECISION_READINESS.md
+docs/V1_3_F1_ACCEPTANCE_2026-08-20.md
+```
+
+### Accepted readiness contract
+
+F.1 evaluates five deterministic gates:
+
+```text
+proposal_state_actionable
+governed_authority_complete
+required_case_facts_present
+pathway_publication_integrity
+material_fact_preconditions
+```
+
+The existing `binding_job_offer_in_austria_required` pathway criterion is the first explicit material-fact precondition admitted into F.1. Known unsatisfied facts produce `NOT_READY`; unresolved required human facts produce `HUMAN_INPUT_REQUIRED`.
+
+The readiness score is descriptive only. Model confidence and generic Profile completeness/readiness cannot authorize or veto a material recommendation by themselves.
+
+F.1 additionally proves the durable E.2 attempt itself contains the expected `eligibility.transition`, `REVIEW_REQUIRED`, `POLICY_REVIEW_REQUIRED`, R3 and exact actor/action/intent/context/runtime fingerprints. A BLOCKed proposal cannot be reclassified by forging an in-memory GatewayEvaluation.
+
+### Read-only safety posture
+
+F.1 performs no LLM call and creates no AgentRun, OrganizationActivity, EligibilityAssessment, eligibility-state mutation, application-state mutation, client-facing recommendation or external action.
+
+Accepted result properties remain:
+
+```text
+independent_verification_required = true
+authorization_effect              = false
+canonical_commit_allowed          = false
+```
+
+### Roadmap effect
+
+The active roadmap advances from **V12.11 to V12.12**.
+
+```text
+V1.3-A  COMPLETE / PASS / SEALED
+V1.3-B  COMPLETE / PASS / SEALED
+V1.3-C  COMPLETE / PASS / SEALED through C.4
+V1.3-D  COMPLETE / PASS / SEALED through D.3
+V1.3-E  COMPLETE / PASS / SEALED through E.2
+V1.3-F  COMPLETE / PASS / SEALED through F.1
+V1.3-G  Independent Verification — NEXT / NOT YET IMPLEMENTED
+```
+
+G.1 must consume only F.1-ready proposals and prove meaningful verifier independence rather than merely rerunning the same model/provider/context and rubber-stamping the proposer.
+
+No canonical eligibility mutation is authorized by F.1. The existing R3 verification floor remains unsatisfied until an independent-verification contract is implemented and accepted.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed without attached status/check evidence.
+
+---
+
 ## 2026-08-20 — V1.3-E FIRST GOVERNED MOBILITY VERTICAL — E.1 + E.2 COMPLETE / PASS / SEALED
 
 ### Status
