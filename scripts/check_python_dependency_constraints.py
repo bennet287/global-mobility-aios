@@ -7,6 +7,9 @@ from pathlib import Path
 REQUIREMENTS = Path("apps/api/requirements.txt")
 CONSTRAINTS = Path("apps/api/constraints.txt")
 NAME = re.compile(r"^([A-Za-z0-9_.-]+)(?:\[[^\]]+\])?")
+EXACT_CONSTRAINT = re.compile(
+    r"^[A-Za-z0-9_.-]+(?:\[[^\]]+\])?==[^\s;<>!=~@]+$"
+)
 
 
 def normalized_name(line: str) -> str:
@@ -43,8 +46,10 @@ def main() -> int:
         constraint = constraint_by_name.get(name)
         if constraint is None:
             violations.append(f"missing exact constraint for {name}")
-        elif "==" not in constraint:
-            violations.append(f"constraint for {name} is not an exact == pin")
+        elif EXACT_CONSTRAINT.fullmatch(constraint) is None:
+            violations.append(
+                f"constraint for {name} must be one unconditional exact == pin: {constraint!r}"
+            )
 
     for name in sorted(set(constraint_by_name) - set(requirement_names)):
         violations.append(f"orphaned direct constraint: {name}")
