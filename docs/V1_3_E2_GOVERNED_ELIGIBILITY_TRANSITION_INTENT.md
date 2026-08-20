@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -27,6 +27,8 @@ The goal is to prove that a model-generated material recommendation remains a pr
 Permanent rule:
 
 > **The runtime proposes. AIOS validates. The Command Gateway authorizes or refuses organizational action.**
+
+Canonical acceptance: `docs/V1_3_E2_ACCEPTANCE_2026-08-20.md`.
 
 ## Why E.2 does not auto-execute
 
@@ -275,7 +277,7 @@ The payload records, among other fields:
 
 The Activity is linked to the WorkItem, so existing C.4/C.1 transparency readers can inspect it through both trace and WorkItem history.
 
-This is the first vertical proof that a model can propose a material organizational action and AIOS can durably refuse to execute it while retaining Board-visible lineage.
+This is the first accepted vertical proof that a model can propose a material organizational action and AIOS can durably refuse to execute it while retaining Board-visible lineage.
 
 ## No eligibility mutation
 
@@ -308,7 +310,7 @@ UniversalIntentDispatcher
 IntentBus
 ```
 
-The second real Command Gateway consumer should remain vertical until multiple proven consumers reveal a stable common abstraction.
+The second real Command Gateway consumer remains vertical until multiple proven consumers reveal a stable common abstraction.
 
 ## Tests
 
@@ -332,7 +334,22 @@ The second real Command Gateway consumer should remain vertical until multiple p
 16. A0 remains `AUTONOMY_PROHIBITED`;
 17. Lead state changes alter ContextBundle hash.
 
-Parameterization means the exact pytest collected count is authoritative and should be recorded from the canonical local run rather than inferred from this list.
+Parameterization means the exact pytest collected count is authoritative and is represented through the accepted full-suite evidence rather than inferred from this list.
+
+## Accepted evidence
+
+```text
+Repository policy             PASS
+Full API regression           984 passed / 5 skipped / 1 warning / 0 failed
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+Actual tables                 118
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+V12 branch                    clean / synchronized
+```
 
 ## Migration posture
 
@@ -344,7 +361,6 @@ Existing `OrganizationActivity`, WorkItem, Lead/Profile, pathway authority and g
 
 E.2 does not claim:
 
-- E.1 acceptance unless separately evidenced;
 - eligibility decision execution;
 - independent verification completion;
 - Decision Readiness completion;
@@ -355,19 +371,10 @@ E.2 does not claim:
 - client-facing eligibility recommendation;
 - GitHub CI PASS.
 
-## Acceptance gate
+## Direction after E.2
 
-Canonical acceptance should include:
+V1.3-F Decision Readiness is next. It must evaluate whether a material eligibility proposal is sufficiently grounded and verification-ready, but it remains routing/quality infrastructure rather than authorization.
 
-- E.1 focused tests if E.1 has not yet been sealed;
-- E.2 focused tests;
-- D.1-D.3 context/runtime authority tests;
-- B/C governance/transparency chain;
-- protected v10.22 roadmap regression if roadmap changes;
-- repository policy;
-- full API regression;
-- migration/schema checks;
-- `git diff --check`;
-- clean synchronized V12 branch.
+> **Scores route; deterministic gates authorize.**
 
-If E.1 and E.2 both pass, seal them separately with their actual evidence. The next architecture step should then be V1.3-F Decision Readiness feeding V1.3-G independent verification before any eligibility mutation is authorized.
+V1.3-G must then provide genuinely independent verification before a later bounded slice can consider authorized canonical eligibility mutation.
