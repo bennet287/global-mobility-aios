@@ -131,7 +131,19 @@ def _fingerprinted_record(
     record = session.get(model, record_id)
     if record is None:
         raise EligibilityIntentIntegrityError(f"{kind} reference could not be dereferenced")
-    if reference.version != canonical_fingerprint(record):
+
+    expected_fingerprint = canonical_fingerprint(record)
+    if kind == "mobility_pathway_version":
+        pathway = session.get(MobilityPathway, record.pathway_id)
+        if pathway is None:
+            raise EligibilityIntentIntegrityError("mobility pathway parent was not found")
+        # D.3 intentionally versions the source reference over both the pathway and
+        # its published version. E.2 consumes that exact contract rather than
+        # redefining pathway-version identity locally.
+        expected_fingerprint = canonical_fingerprint(
+            {"pathway": pathway, "pathway_version": record}
+        )
+    if reference.version != expected_fingerprint:
         raise EligibilityIntentIntegrityError(f"{kind} changed after ContextBundle resolution")
     return record
 
