@@ -15,6 +15,12 @@ from app.services.organization_command import (
     canonical_json,
     tenant_record,
 )
+from app.services.organization_context_authority import (
+    AuthorityReference,
+    ContextAuthorityError,
+    ContextAuthorityContribution,
+    resolve_context_authority,
+)
 
 
 CONTEXT_BUNDLE_SCHEMA_VERSION = "context-bundle.v1"
@@ -87,10 +93,11 @@ class WorkItemContext:
 class ContextBundle:
     """Immutable, provider-neutral context assembled from governed AIOS state.
 
-    D.1 intentionally contains references rather than unrestricted record dumps and
-    keeps working context below the Evidence/VerifiedRule trust boundary. Provider,
-    model, process and session identity are deliberately absent; those belong to the
-    later Agent Runtime Profile binding, not to the persistent employee identity.
+    D.1 established the trust boundary. D.3 permits authority-bearing references to
+    enter the bundle only through governed ContextAuthorityAdapters. Working context
+    remains below the Evidence/VerifiedRule/tool/policy trust boundary. Provider,
+    model, process and session identity remain deliberately absent; those belong to
+    Agent Runtime Profile binding, not persistent employee identity.
     """
 
     schema_version: str
@@ -168,6 +175,42 @@ def _canonical_references(work_item: OrganizationalWorkItem) -> tuple[ContextRef
     return tuple(refs)
 
 
+def _context_reference(reference: AuthorityReference) -> ContextReference:
+    return ContextReference(
+        kind=reference.kind,
+        identifier=reference.identifier,
+        version=reference.version,
+    )
+
+
+def _authority_references(
+    base_references: tuple[ContextReference, ...],
+    contribution: ContextAuthorityContribution,
+    work_item: OrganizationalWorkItem,
+) -> tuple[ContextReference, ...]:
+    refs = list(base_references)
+    if contribution.source_reference_version is not None:
+        source_type = work_item.source_object_type
+        source_id = work_item.source_object_id
+        if not source_type or not source_id:
+            raise ContextIntegrityError("authority adapter returned a source version without a source reference")
+        replaced = False
+        for index, reference in enumerate(refs):
+            if reference.kind == source_type and reference.identifier == source_id:
+                refs[index] = ContextReference(
+                    kind=reference.kind,
+                    identifier=reference.identifier,
+                    version=contribution.source_reference_version,
+                )
+                replaced = True
+                break
+        if not replaced:
+            raise ContextIntegrityError("authority adapter source reference is missing from canonical context")
+
+    refs.extend(_context_reference(item) for item in contribution.canonical_references)
+    return tuple(refs)
+
+
 def _bundle_hash_payload(
     *,
     tenant_key: str,
@@ -175,10 +218,15 @@ def _bundle_hash_payload(
     position: PositionContext,
     work_item: WorkItemContext,
     canonical_references: tuple[ContextReference, ...],
+    evidence_refs: tuple[ContextReference, ...],
+    verified_rule_refs: tuple[ContextReference, ...],
+    source_snapshot_refs: tuple[ContextReference, ...],
+    unknowns: tuple[str, ...],
+    contradictions: tuple[str, ...],
+    allowed_tools: tuple[str, ...],
+    sensitivity_labels: tuple[str, ...],
+    policy_version: str | None,
 ) -> dict[str, Any]:
-    # D.1 deliberately leaves authority-bearing Evidence, rules, tools and policy
-    # bindings empty. Their later introduction must be sourced by governed adapters,
-    # not promoted from arbitrary WorkItem context JSON.
     return {
         "schema_version": CONTEXT_BUNDLE_SCHEMA_VERSION,
         "tenant_key": tenant_key,
@@ -186,14 +234,14 @@ def _bundle_hash_payload(
         "position": position,
         "work_item": work_item,
         "canonical_references": canonical_references,
-        "evidence_refs": (),
-        "verified_rule_refs": (),
-        "source_snapshot_refs": (),
-        "unknowns": (),
-        "contradictions": (),
-        "allowed_tools": (),
-        "sensitivity_labels": (),
-        "policy_version": None,
+        "evidence_refs": evidence_refs,
+        "verified_rule_refs": verified_rule_refs,
+        "source_snapshot_refs": source_snapshot_refs,
+        "unknowns": unknowns,
+        "contradictions": contradictions,
+        "allowed_tools": allowed_tools,
+        "sensitivity_labels": sensitivity_labels,
+        "policy_version": policy_version,
     }
 
 
@@ -205,13 +253,13 @@ def build_work_item_context_bundle(
     work_item_id: UUID,
     purpose: ContextPurpose | str = ContextPurpose.WORK_EXECUTION,
 ) -> ContextBundle:
-    """Build the first bounded ContextBundle for an assigned organization employee.
+    """Build a bounded ContextBundle for an assigned organization employee.
 
-    The function is intentionally read-only. It resolves canonical WorkItem state in
-    the requested tenant, binds it to the currently active OrganizationPosition, and
-    produces a deterministic hash over the semantically relevant state. It does not
-    create authority, Evidence, tools, memory truth, runtime identity, or provider
-    identity.
+    The function is read-only. Tenant-bound WorkItem and active OrganizationPosition
+    state are resolved first. Authority-bearing Evidence/rules/snapshots/policy/tools
+    are then resolved only through governed ContextAuthorityAdapters. Arbitrary
+    WorkItem context JSON remains working context and cannot self-promote into those
+    authority-bearing fields.
     """
 
     tenant = tenant_key.strip()
@@ -236,7 +284,21 @@ def build_work_item_context_bundle(
     position = _active_position(session, position_id)
     contract_json = _canonical_json_object(position.contract_json, label="position contract")
     working_context_json = _canonical_json_object(work_item.context_json, label="work item context")
-    references = _canonical_references(work_item)
+    base_references = _canonical_references(work_item)
+
+    try:
+        authority = resolve_context_authority(
+            session,
+            position=position,
+            work_item=work_item,
+        )
+    except ContextAuthorityError as exc:
+        raise ContextIntegrityError("governed context authority could not be resolved") from exc
+
+    references = _authority_references(base_references, authority, work_item)
+    evidence_refs = tuple(_context_reference(item) for item in authority.evidence_refs)
+    verified_rule_refs = tuple(_context_reference(item) for item in authority.verified_rule_refs)
+    source_snapshot_refs = tuple(_context_reference(item) for item in authority.source_snapshot_refs)
 
     position_context = PositionContext(
         position_key=position.position_key,
@@ -268,12 +330,21 @@ def build_work_item_context_bundle(
         updated_at=work_item.updated_at,
         working_context_json=working_context_json,
     )
+    sensitivity_labels: tuple[str, ...] = ()
     hash_payload = _bundle_hash_payload(
         tenant_key=tenant,
         purpose=purpose_value,
         position=position_context,
         work_item=work_context,
         canonical_references=references,
+        evidence_refs=evidence_refs,
+        verified_rule_refs=verified_rule_refs,
+        source_snapshot_refs=source_snapshot_refs,
+        unknowns=authority.unknowns,
+        contradictions=authority.contradictions,
+        allowed_tools=authority.allowed_tools,
+        sensitivity_labels=sensitivity_labels,
+        policy_version=authority.policy_version,
     )
     context_hash = canonical_fingerprint(hash_payload)
 
@@ -284,14 +355,14 @@ def build_work_item_context_bundle(
         position=position_context,
         work_item=work_context,
         canonical_references=references,
-        evidence_refs=(),
-        verified_rule_refs=(),
-        source_snapshot_refs=(),
-        unknowns=(),
-        contradictions=(),
-        allowed_tools=(),
-        sensitivity_labels=(),
-        policy_version=None,
+        evidence_refs=evidence_refs,
+        verified_rule_refs=verified_rule_refs,
+        source_snapshot_refs=source_snapshot_refs,
+        unknowns=authority.unknowns,
+        contradictions=authority.contradictions,
+        allowed_tools=authority.allowed_tools,
+        sensitivity_labels=sensitivity_labels,
+        policy_version=authority.policy_version,
         context_hash=context_hash,
         generated_at=now_utc(),
     )
