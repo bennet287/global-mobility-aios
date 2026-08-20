@@ -34,7 +34,7 @@ for (const expected of ["x-gmai-role", "x-gmai-user"]) {
   assert.ok(source.includes(expected), `Compiled Eligibility client path is missing ${expected}`);
 }
 for (const [setting, expected] of Object.entries({
-  apiBase: "http://127.0.0.1:8002",
+  apiBase: "http://127.0.0.1:8000",
   authAllowHeaderRole: "true",
   role: "admin",
   user: "frontend-operator",
@@ -51,7 +51,7 @@ console.log(JSON.stringify({
   chunk: path.relative(process.cwd(), file),
   eligibility_get: true,
   eligibility_post: true,
-  api_base: "http://127.0.0.1:8002",
+  api_base: "http://127.0.0.1:8000",
   allow_header_role: true,
   role: "admin",
   user: "frontend-operator",
