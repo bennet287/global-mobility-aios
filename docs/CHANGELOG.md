@@ -22,6 +22,193 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-G.1 + G.2 INDEPENDENT VERIFICATION AND R3 FLOOR INTEGRATION — COMPLETE / PASS / SEALED
+
+### Status
+
+**The first governed R3 eligibility chain is now accepted through independent verification and verification-floor integration. AIOS can take a governed eligibility proposal, deterministically establish Decision Readiness, run a genuinely independent blind verifier, and then re-evaluate the exact original material action through the unchanged Command Gateway without letting either model or verifier own organizational authority.**
+
+Accepted chain:
+
+```text
+E.2 governed eligibility proposal
+→ F.1 deterministic Decision Readiness
+→ G.1 blind independent verifier
+→ AGREES / DISAGREES / INSUFFICIENT_BASIS
+→ G.2 exact lineage/freshness validation
+→ reconstruct exact E.2 MaterialAction
+→ satisfy only the R3 independent-verification floor
+→ existing Command Gateway re-evaluates
+→ no canonical eligibility effect yet
+```
+
+Permanent boundary:
+
+```text
+independent verification ≠ authorization
+verification floor satisfied ≠ canonical effect committed
+AUTO_EXECUTE at G.2 ≠ eligibility mutation already happened
+```
+
+### G.1 accepted capability
+
+G.1 requires meaningful first-slice R3 independence:
+
+```text
+verifier OrganizationPosition != proposer OrganizationPosition
+verifier WorkItem              != proposer WorkItem
+verifier independence_group    != proposer independence_group
+verifier provider              != proposer provider
+verifier pinned model          != proposer pinned model
+```
+
+The verifier receives the governed case/pathway Evidence and VerifiedRules but not the proposer conclusion, rationale or confidence. AIOS compares conclusions only after the verifier returns.
+
+G.1 creates durable Board-inspectable MATERIAL lineage and no eligibility mutation.
+
+Accepted G.1 evidence:
+
+```text
+G.1 focused                    15 passed / 1 warning / 0 failed
+E.2 + F.1 + G.1               42 passed / 1 warning / 0 failed
+D.1–D.3 + E.1–E.2 + F.1–G.1  81 passed / 1 warning / 0 failed
+Protected v10.22 regression    1 passed / 1 warning / 0 failed
+Repository policy              PASS
+Full API regression            1011 passed / 5 skipped / 1 warning / 0 failed
+Full API duration              472.92s
+Database migration check       PASS
+Migration head                 0076_organization_position_active_identity
+Registered tables              118
+Local DB schema                PASS
+Actual tables                  118
+Physical tables                119 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_G1_BLIND_INDEPENDENT_ELIGIBILITY_VERIFICATION.md
+docs/V1_3_G1_ACCEPTANCE_2026-08-20.md
+```
+
+### G.2 accepted capability
+
+G.2 does not change the generic Governance Kernel. It accepts only a durable G.1 `AGREES` result, recomputes readiness/freshness, verifies the exact E.2→G.1 lineage, reconstructs the exact E.2 `MaterialAction`, and changes only the domain policy input from the temporary `HUMAN_REQUIRED` verification floor to `ALLOW`.
+
+The unchanged Gateway therefore retains the final decision:
+
+```text
+A0      → BLOCK / AUTONOMY_PROHIBITED
+A1/A2   → REVIEW_REQUIRED / AUTONOMY_REVIEW_REQUIRED
+A3      → AUTO_EXECUTE / AUTHORIZED + post_review_required=true
+A4/A5   → AUTO_EXECUTE / AUTHORIZED
+```
+
+Authority, scope, risk, expected version, policy and Board-reserved checks remain Gateway-owned.
+
+G.2 persists only:
+
+```text
+governance:verification-floor:<verification_floor_fingerprint>
+```
+
+and deliberately leaves the original canonical slot:
+
+```text
+governance:<original E.2 idempotency key>
+```
+
+unused for the future transaction that actually commits eligibility truth.
+
+The accepted suite proves exact G.2 reruns reuse the same floor Activity without consuming that future canonical idempotency slot.
+
+Accepted G.2 evidence:
+
+```text
+G.2 focused                    14 passed / 1 warning / 0 failed
+G.1 + G.2                     29 passed / 1 warning / 0 failed
+E.2 + F.1 + G.1 + G.2         56 passed / 1 warning / 0 failed
+D.1–D.3 + E.1–E.2 + F.1–G.2  95 passed / 1 warning / 0 failed
+Repository policy              PASS
+Full API regression            1025 passed / 5 skipped / 1 warning / 0 failed
+Full API duration              536.84s
+Database migration check       PASS
+Migration head                 0076_organization_position_active_identity
+Registered tables              118
+Local DB schema                PASS
+Actual tables                  118
+Physical tables                119 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_G2_ELIGIBILITY_VERIFICATION_FLOOR.md
+docs/V1_3_G2_ACCEPTANCE_2026-08-20.md
+```
+
+### No canonical mutation
+
+G.1/G.2 create no:
+
+- canonical `EligibilityAssessment` effect;
+- Lead eligibility-state mutation;
+- application mutation;
+- client-facing recommendation;
+- external communication;
+- government submission.
+
+G.2 may return `eligible_for_effect_integration = true` only after a fresh Gateway `AUTO_EXECUTE`, but still returns:
+
+```text
+canonical_effect_committed = false
+mutated                    = false
+```
+
+### Verified critic hardening disposition
+
+Post-G.2 review identified real but non-blocking hardening seams:
+
+- duplicated mobility intent→domain mapping should become one mobility-domain contract;
+- repeated system-bound-agent `OrganizationCommandContext` construction should be centralized and documented;
+- F.1's private pathway publication-blocker dependency is now mature enough for a public integrity contract;
+- canonical reference/fingerprint helpers should be extracted only where semantics are actually identical;
+- `session.expire_all()` is conservative but must not be replaced with incomplete targeted expiry that misses hash-bearing Evidence/policy/runtime dependencies;
+- service decomposition should follow proven semantic seams rather than arbitrary file-size thresholds.
+
+One reviewer criticism was already obsolete: the exact G.2 rerun / future canonical idempotency-slot test already exists and is part of the accepted G.2 suite.
+
+The existing legacy `/api/v1/eligibility/evaluate` endpoint is not treated as the new governed orchestration boundary because it persists through the older eligibility engine/controlled-agent path.
+
+### Roadmap effect
+
+The active roadmap advances from **V12.12 to V12.13**.
+
+```text
+V1.3-A   COMPLETE / PASS / SEALED
+V1.3-B   COMPLETE / PASS / SEALED
+V1.3-C   COMPLETE / PASS / SEALED through C.4
+V1.3-D   COMPLETE / PASS / SEALED through D.3
+V1.3-E   COMPLETE / PASS / SEALED through E.2
+V1.3-F   COMPLETE / PASS / SEALED through F.1
+V1.3-G   COMPLETE / PASS / SEALED through G.2
+V1.3-G.3 First Canonical Eligibility Effect — NEXT / NOT YET IMPLEMENTED
+```
+
+G.3 must define explicit `EligibilityAssessment` identity/version/supersession semantics before any effect is committed. It must perform fresh final Gateway evaluation and commit canonical governance authorization + EligibilityAssessment + semantic effect Activity atomically, with exact idempotent replay and no automatic client/external action.
+
+HTTP/worker exposure follows the canonical effect contract rather than preceding it.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed without attached status/check evidence.
+
+---
+
 ## 2026-08-20 — V1.3-F.1 ELIGIBILITY DECISION READINESS — COMPLETE / PASS / SEALED
 
 ### Status
