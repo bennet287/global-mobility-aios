@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlmodel import Session
 
 from app.core.db import get_session
@@ -216,13 +216,16 @@ def api_update_checklist_item_status(
 @router.delete(
     "/api/v1/application-authority-checklist-items/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
 )
 def api_delete_checklist_item(
     item_id: UUID,
     request: Request,
     session: Session = Depends(get_session),
-) -> None:
+) -> Response:
     item = session.get(ApplicationAuthorityChecklistItem, item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Checklist item not found")
     delete_checklist_item(session, item, actor=_actor(request))
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
