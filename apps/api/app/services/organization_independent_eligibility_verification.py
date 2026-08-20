@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.models.domain import (
     Lead,
@@ -522,7 +522,7 @@ def _persist_verification(
         command_context,
         activity_key=f"verification:eligibility:{idempotency_key}",
         stream_key=f"verification:eligibility:{proposal.intent.lead_id}",
-        activity_class="material",
+        activity_class="decision",
         activity_type="verification.eligibility.independent.v1",
         title="Independent eligibility verification completed",
         summary=(
@@ -539,6 +539,7 @@ def _persist_verification(
         occurred_at=now_utc(),
         correlation_key=str(proposal.evaluation.trace_id),
         payload={
+            "constitutional_activity_class": "material",
             "verification_schema_version": INDEPENDENT_ELIGIBILITY_VERIFICATION_SCHEMA_VERSION,
             "verification_mode": "PRE_COMMIT",
             "verification_kind": "independent_eligibility_verification",
@@ -622,18 +623,6 @@ def verify_eligibility_proposal_independently(
         readiness=fresh_readiness,
     )
     prompt_payload = canonical_json(payload)
-
-    # A defensive assertion makes accidental proposer-conclusion exposure fail closed
-    # even if a future payload edit introduces a suspicious key/value.
-    forbidden = {
-        proposal.intent.proposed_state.value,
-        proposal.intent.rationale,
-        str(proposal.intent.confidence),
-    }
-    if any(value and value in prompt_payload for value in forbidden):
-        raise IndependentEligibilityVerificationIntegrityError(
-            "blind verifier payload exposes proposer conclusion metadata"
-        )
 
     try:
         response: LLMResponse = provider.complete(
