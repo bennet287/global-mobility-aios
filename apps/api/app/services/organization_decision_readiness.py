@@ -11,6 +11,7 @@ from sqlmodel import Session
 
 from app.core.organization_constitution import MaterialActionType, RiskTier
 from app.models.domain import Lead, MobilityPathway, MobilityPathwayVersion, OrganizationActivity, Profile, now_utc
+from app.services.mobility_domain import mobility_intent_domain
 from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.organization_command import OrganizationCommandError, canonical_fingerprint
 from app.services.organization_context_broker import (
@@ -27,7 +28,7 @@ from app.services.organization_eligibility_transition_intent import (
 )
 from app.services.organization_governance_kernel import GatewayOutcome, GatewayReason
 from app.services.organization_transparency import TransparencyDataError, transparency_activity_record
-from app.services.pathway_catalogue import _publication_evidence_blockers
+from app.services.pathway_publication_integrity import pathway_publication_integrity_blockers
 
 
 DECISION_READINESS_SCHEMA_VERSION = "eligibility-decision-readiness.v1"
@@ -230,18 +231,6 @@ def _fresh_context(
     return current
 
 
-def _lead_domain(lead: Lead) -> str:
-    value = getattr(lead.intent, "value", lead.intent)
-    normalized = str(value or "unknown").strip().casefold()
-    if normalized in {"study_abroad", "study", "student"}:
-        return "study"
-    if normalized in {"overseas_job", "work", "job", "employment"}:
-        return "work"
-    if normalized in {"visa", "permanent", "residency", "immigration"}:
-        return "visa"
-    return "general"
-
-
 def _current_domain_state(
     session: Session,
     *,
@@ -279,7 +268,7 @@ def _current_domain_state(
     target_country = str(facts.get("target_country") or "").strip().casefold()
     if target_country != pathway.country.casefold():
         raise DecisionReadinessIntegrityError("case target country no longer matches the governed pathway")
-    if _lead_domain(lead).casefold() != pathway.domain.casefold():
+    if mobility_intent_domain(lead).casefold() != pathway.domain.casefold():
         raise DecisionReadinessIntegrityError("case mobility domain no longer matches the governed pathway")
     return lead, profile, pathway, pathway_version, facts
 
@@ -374,12 +363,10 @@ def _publication_integrity_gate(
     pathway: MobilityPathway,
     pathway_version: MobilityPathwayVersion,
 ) -> DecisionReadinessGate:
-    # Reuse the mature pathway publication checks rather than creating a second
-    # interpretation of source certification, evidence-role and rule-provenance
-    # requirements. Keep this bounded internal dependency until another real
-    # consumer demonstrates a stable public extraction is warranted.
+    # Consume the public pathway-publication integrity contract so F.1 does not
+    # depend directly on catalogue-private implementation details.
     try:
-        blockers = _publication_evidence_blockers(session, pathway, pathway_version)
+        blockers = pathway_publication_integrity_blockers(session, pathway, pathway_version)
     except ValueError as exc:
         raise DecisionReadinessIntegrityError("pathway publication integrity could not be evaluated") from exc
     return DecisionReadinessGate(
