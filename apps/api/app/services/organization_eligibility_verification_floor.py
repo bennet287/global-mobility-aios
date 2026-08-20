@@ -15,12 +15,15 @@ from app.models.domain import (
     MobilityPathway,
     MobilityPathwayVersion,
     OrganizationActivity,
-    OrganizationActorType,
     Profile,
     now_utc,
 )
 from app.services.organization_activity import stage_activity
-from app.services.organization_command import OrganizationCommandContext, canonical_fingerprint
+from app.services.organization_command import (
+    OrganizationCommandContext,
+    canonical_fingerprint,
+    system_bound_agent_command_context,
+)
 from app.services.organization_decision_readiness import (
     DecisionReadinessError,
     DecisionReadinessState,
@@ -80,16 +83,16 @@ class EligibilityVerificationFloorResult:
     mutated: bool = False
 
 
-def _command_context(proposal: GovernedEligibilityTransitionIntentResult) -> OrganizationCommandContext:
+def eligibility_command_context(
+    proposal: GovernedEligibilityTransitionIntentResult,
+) -> OrganizationCommandContext:
+    """Return the canonical system-bound command context for an eligibility proposal."""
+
     context = proposal.context
-    return OrganizationCommandContext(
+    return system_bound_agent_command_context(
         tenant_key=context.tenant_key,
-        actor_id=context.position.position_key,
-        actor_type=OrganizationActorType.agent,
-        authenticated_user_id="system",
-        role="operator",
-        department=context.position.department,
         position_key=context.position.position_key,
+        department=context.position.department,
         authority_level=context.position.authority_level,
     )
 
@@ -207,10 +210,12 @@ def _durable_verification(
     return activity
 
 
-def _original_e2_payload(
+def original_eligibility_attempt_payload(
     session: Session,
     proposal: GovernedEligibilityTransitionIntentResult,
 ) -> dict[str, object]:
+    """Return the validated durable E.2 attempt payload used to reconstruct the action."""
+
     if proposal.schema_version != ELIGIBILITY_INTENT_SCHEMA_VERSION:
         raise EligibilityVerificationFloorIntegrityError("unsupported E.2 eligibility-intent schema")
     activity = session.get(OrganizationActivity, proposal.attempt_activity.id)
@@ -231,12 +236,14 @@ def _original_e2_payload(
     return payload
 
 
-def _rebuild_action(
+def rebuild_eligibility_action(
     session: Session,
     *,
     proposal: GovernedEligibilityTransitionIntentResult,
     idempotency_key: str,
 ) -> tuple[MaterialAction, Profile]:
+    """Reconstruct the exact accepted E.2 eligibility MaterialAction from canonical state."""
+
     profile = session.get(Profile, proposal.intent.profile_id)
     if profile is None or profile.profile_version != proposal.intent.profile_version:
         raise EligibilityVerificationFloorIntegrityError("eligibility Profile precondition is stale")
@@ -337,7 +344,7 @@ def _persist_floor_reevaluation(
             raise EligibilityVerificationFloorIntegrityError("persisted G.2 floor record fingerprint conflicts")
         return existing
 
-    command_context = _command_context(proposal)
+    command_context = eligibility_command_context(proposal)
     projection = organization_activity_projection(command_context, action, evaluation)
     trace_context = replace(command_context, correlation_key=str(evaluation.trace_id))
     activity = stage_activity(
@@ -406,14 +413,14 @@ def integrate_eligibility_verification_floor(
         readiness=current_readiness,
         verification=verification,
     )
-    e2_payload = _original_e2_payload(session, proposal)
+    e2_payload = original_eligibility_attempt_payload(session, proposal)
     idempotency_key = str(e2_payload["idempotency_key"])
-    action, profile = _rebuild_action(
+    action, profile = rebuild_eligibility_action(
         session,
         proposal=proposal,
         idempotency_key=idempotency_key,
     )
-    command_context = _command_context(proposal)
+    command_context = eligibility_command_context(proposal)
 
     evaluation = evaluate_material_action(
         command_context,
