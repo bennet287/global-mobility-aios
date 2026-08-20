@@ -612,6 +612,23 @@ def commit_governed_eligibility_effect(
         )
         revision.semantic_activity_id = semantic_activity.id
         session.add(revision)
+        session.flush()
+
+        trace = activities_for_trace(
+            session,
+            tenant_key=proposal.context.tenant_key,
+            trace_id=proposal.evaluation.trace_id,
+        )
+        ids = [record.activity_id for record in trace]
+        if governance_activity.id not in ids or semantic_activity.id not in ids:
+            raise EligibilityCanonicalEffectIntegrityError(
+                "staged canonical eligibility effect is missing from Board trace lineage"
+            )
+        if semantic_activity.causation_activity_id != governance_activity.id:
+            raise EligibilityCanonicalEffectIntegrityError(
+                "canonical eligibility semantic effect lost governance causation"
+            )
+
         session.commit()
         session.refresh(assessment)
         session.refresh(revision)
@@ -620,21 +637,6 @@ def commit_governed_eligibility_effect(
     except Exception:
         session.rollback()
         raise
-
-    trace = activities_for_trace(
-        session,
-        tenant_key=proposal.context.tenant_key,
-        trace_id=proposal.evaluation.trace_id,
-    )
-    ids = [record.activity_id for record in trace]
-    if governance_activity.id not in ids or semantic_activity.id not in ids:
-        raise EligibilityCanonicalEffectIntegrityError(
-            "committed canonical eligibility effect is missing from Board trace lineage"
-        )
-    if semantic_activity.causation_activity_id != governance_activity.id:
-        raise EligibilityCanonicalEffectIntegrityError(
-            "canonical eligibility semantic effect lost governance causation"
-        )
 
     return GovernedEligibilityCanonicalEffectResult(
         schema_version=ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
