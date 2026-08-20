@@ -503,30 +503,37 @@ def test_g1_blind_agreement_is_durable_independent_but_has_no_authorization_effe
     assert "+4300000000" not in prompt
 
 
-def test_g1_disagreement_and_insufficient_basis_remain_non_authorizing(db_session: Session) -> None:
-    for conclusion, expected in (
+@pytest.mark.parametrize(
+    "conclusion,expected",
+    [
         ("supports_potential_ineligibility", IndependentVerificationDisposition.DISAGREES),
         ("insufficient_basis", IndependentVerificationDisposition.INSUFFICIENT_BASIS),
-    ):
-        proposal, readiness, _, _, graph, _, verification_work, _ = _setup(db_session)
-        result = verify_eligibility_proposal_independently(
-            db_session,
-            proposal=proposal,
-            readiness=readiness,
-            verification_work_item_id=verification_work.id,
-            verifier_position_key="austria_independent_verifier",
-            verifier_runtime_profile=_verifier_runtime(),
-            provider=FakeProvider(
-                name="openai",
-                model="gpt-verifier",
-                content=_verifier_output(graph, conclusion=conclusion),
-            ),
-            idempotency_key=f"g1-{conclusion}-{uuid4()}",
-        )
-        assert result.disposition is expected
-        assert result.eligible_for_verification_floor_integration is False
-        assert result.command_gateway_floor_satisfied is False
-        assert result.authorization_effect is False
+    ],
+)
+def test_g1_disagreement_and_insufficient_basis_remain_non_authorizing(
+    db_session: Session,
+    conclusion: str,
+    expected: IndependentVerificationDisposition,
+) -> None:
+    proposal, readiness, _, _, graph, _, verification_work, _ = _setup(db_session)
+    result = verify_eligibility_proposal_independently(
+        db_session,
+        proposal=proposal,
+        readiness=readiness,
+        verification_work_item_id=verification_work.id,
+        verifier_position_key="austria_independent_verifier",
+        verifier_runtime_profile=_verifier_runtime(),
+        provider=FakeProvider(
+            name="openai",
+            model="gpt-verifier",
+            content=_verifier_output(graph, conclusion=conclusion),
+        ),
+        idempotency_key=f"g1-{conclusion}-{uuid4()}",
+    )
+    assert result.disposition is expected
+    assert result.eligible_for_verification_floor_integration is False
+    assert result.command_gateway_floor_satisfied is False
+    assert result.authorization_effect is False
 
 
 def test_g1_requires_separate_verifier_employee_and_work_item(db_session: Session) -> None:
