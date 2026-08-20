@@ -22,6 +22,131 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-E FIRST GOVERNED MOBILITY VERTICAL — E.1 + E.2 COMPLETE / PASS / SEALED
+
+### Status
+
+**The first governed Global Mobility AIOS vertical is accepted through E.2. A persistent AI employee can now receive governed mobility truth, execute through a bound runtime, emit a typed material eligibility proposal, and have AIOS independently validate and route that proposal through the Command Gateway without allowing the model to mutate eligibility truth.**
+
+Accepted chain:
+
+```text
+OrganizationPosition
+→ ContextBundle
+→ EmployeeRuntimeBinding
+→ E.1 governed mobility pathway brief
+→ E.2 typed EligibilityTransitionIntent
+→ deterministic domain validation
+→ MaterialAction(eligibility.transition)
+→ Command Gateway
+→ REVIEW_REQUIRED / BLOCK
+→ durable Board-inspectable attempt
+→ NO eligibility mutation
+```
+
+### E.1 acceptance
+
+E.1 is now:
+
+```text
+COMPLETE / PASS / SEALED
+```
+
+Accepted evidence:
+
+```text
+Repository policy             PASS
+Full API regression           969 passed / 5 skipped / 1 warning / 0 failed
+Database migration check      PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+Actual tables                 118
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+```
+
+Canonical records:
+
+```text
+docs/V1_3_E1_GOVERNED_MOBILITY_PATHWAY_BRIEF.md
+docs/V1_3_E1_ACCEPTANCE_2026-08-20.md
+```
+
+E.1 remains read-only. It proves governed pathway Evidence/rules/policy can reach a bound hosted runtime without arbitrary WorkItem working context promoting itself into authority.
+
+### E.2 acceptance
+
+E.2 is now:
+
+```text
+COMPLETE / PASS / SEALED
+```
+
+Accepted evidence:
+
+```text
+Repository policy             PASS
+Full API regression           984 passed / 5 skipped / 1 warning / 0 failed
+Duration                      355.85s
+Database migration check      PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+Actual tables                 118
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+V12 branch                    clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_E2_GOVERNED_ELIGIBILITY_TRANSITION_INTENT.md
+docs/V1_3_E2_ACCEPTANCE_2026-08-20.md
+```
+
+E.2 proves:
+
+- `OrganizationPosition.position_key` is the organizational actor identity;
+- provider/model/runtime identity is not authority;
+- case/profile records participate in ContextBundle freshness;
+- the runtime emits only a narrow typed proposal;
+- AIOS constructs `MaterialAction(eligibility.transition)` itself;
+- forged/stale Evidence or VerifiedRule citations fail closed;
+- confidence is informational only;
+- A0 remains prohibited;
+- A1–A5 remain unable to execute the R3 eligibility transition while independent verification is unsatisfied;
+- REVIEW_REQUIRED/BLOCK attempts are durable and Board-inspectable;
+- no `EligibilityAssessment`, Lead eligibility truth, application state, client-facing recommendation or external action is mutated.
+
+The case-scoped pilot deliberately requires an explicitly supplied provider adapter and does not claim a completed provider-egress/sensitivity policy.
+
+### Roadmap effect
+
+The active roadmap advances from **V12.10 to V12.11**.
+
+```text
+V1.3-A  COMPLETE / PASS / SEALED
+V1.3-B  COMPLETE / PASS / SEALED
+V1.3-C  COMPLETE / PASS / SEALED through C.4
+V1.3-D  COMPLETE / PASS / SEALED through D.3
+V1.3-E  COMPLETE / PASS / SEALED through E.2
+V1.3-F  Decision Readiness — NEXT / NOT YET IMPLEMENTED
+```
+
+Decision Readiness remains routing/quality infrastructure rather than authorization:
+
+> **Scores route; deterministic gates authorize.**
+
+No canonical eligibility mutation is authorized until Decision Readiness and genuinely independent verification are implemented and accepted.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed without attached status/check evidence.
+
+---
+
 ## 2026-08-20 — MUNDER DIFFLIN v0.4.4 FROZEN DONOR SOURCE — VENDORED INTO AIOS
 
 ### Status
@@ -97,97 +222,19 @@ The governing rule is:
 
 > **Global Mobility AIOS remains the product, domain model, constitutional authority, canonical truth system and governing architecture. Munder supplies implementation mechanics where compatible.**
 
-AIOS retains exclusive ownership of:
-
-- Human Owner / Board supremacy;
-- organizational meaning;
-- OrganizationPosition identity;
-- Mission/WorkItem semantics;
-- Evidence and SourceSnapshots;
-- VerifiedRules and domain meaning;
-- authority and delegation;
-- Earned Autonomy;
-- risk tiers and Decision Readiness;
-- Organizational Immune System semantics;
-- Command Gateway decisions;
-- canonical state;
-- Board Transparency and Decision Lineage;
-- Global Mobility business truth.
+AIOS retains exclusive ownership of Human Owner / Board supremacy, organizational meaning, OrganizationPosition identity, Mission/WorkItem semantics, Evidence and SourceSnapshots, VerifiedRules and domain meaning, authority/delegation/autonomy, risk and Decision Readiness, Command Gateway decisions, canonical state, Board Transparency/Decision Lineage and Global Mobility business truth.
 
 ### Explicitly preserved V1.3 primitives
 
-The combined architecture explicitly preserves and strengthens:
-
-- Human Owner / Board supreme authority;
-- Board by exception;
-- cross-cutting Transparency Layer;
-- Decision Lineage;
-- persistent AI employees;
-- Memory ≠ Truth;
-- Context Broker / ContextBundle;
-- Capability ≠ Authority ≠ Autonomy ≠ Risk;
-- capability-specific A0–A5 Earned Autonomy;
-- SHADOW → RECOMMEND → SUPERVISED → AUTONOMOUS → HIGH-TRUST maturity progression;
-- Decision Readiness;
-- R0–R5 risk-tiered verification;
-- genuinely independent verification;
-- AI-to-AI escalation;
-- Materiality Registry;
-- typed MaterialAction;
-- Canonicalization Gateway;
-- Command Gateway;
-- optimistic concurrency and idempotency;
-- Organizational Immune System;
-- consequence-aware recovery semantics;
-- performance/scalability doctrine;
-- Evidence trust ladder;
-- provider/framework independence.
+The combined architecture preserves Human Owner / Board supreme authority, Board by exception, cross-cutting Transparency, Decision Lineage, persistent AI employees, Memory ≠ Truth, Context Broker / ContextBundle, Capability ≠ Authority ≠ Autonomy ≠ Risk, capability-specific A0–A5 autonomy, risk-tiered verification, independent verification, typed MaterialAction, Canonicalization/Command Gateway, concurrency/idempotency, Organizational Immune System, Evidence trust ladder and provider/framework independence.
 
 ### New explicitly adopted combined-architecture features
 
-The final combined architecture adds or makes explicit:
-
-- **AIOS Organization Fabric**;
-- **Agent Runtime Fabric**;
-- **Organizational Communication Fabric**;
-- **Dynamic Mission Squads**;
-- **Mission Rooms / organizational blackboards**;
-- **employee presence and heartbeats**;
-- **agent relationship intelligence**;
-- **Skills runtime integrated with Capability Registry**;
-- **Event Nervous System** for triggers, schedules and proactive work;
-- **Professional Peer Review Network**;
-- **Organizational Flight Recorder**;
-- **Replay / counterfactual evaluation**;
-- **Shadow Employees**;
-- **AI Economics and budget-aware routing**;
-- **intelligent provider/runtime routing**;
-- **Organization/Decision Graph**;
-- **Living Organization** with modern 2D/2.5D cartoon AI employees;
-- **semantic animation tied to genuine organizational state**;
-- **specialized Engineering Workspace using CLI agents/worktrees/IDE concepts**;
-- future executive voice/realtime interaction.
+The final combined architecture adds or makes explicit AIOS Organization Fabric, Agent Runtime Fabric, Organizational Communication Fabric, Dynamic Mission Squads, Mission Rooms, presence/heartbeats, agent relationships, Skills runtime, Event Nervous System, Professional Peer Review Network, Flight Recorder, Replay, Shadow Employees, AI Economics, Organization/Decision Graph, Living Organization, specialized Engineering Workspace and future voice/realtime concepts.
 
 ### Munder donor mapping
 
-High-value Munder donor areas include:
-
-```text
-Hive messaging / routing
-provider/runtime abstraction
-PTY/CLI execution
-Skills
-task coordination
-circuit breaking
-triggers / scheduling / heartbeats
-webhooks / integration broker
-memory mechanics
-transcripts / telemetry
-token and cost signals
-graph / live-scene mechanics
-Git worktrees / IDE concepts
-voice / realtime concepts
-```
+High-value Munder donor areas include messaging/routing, provider/runtime abstraction, PTY/CLI execution, Skills, task coordination, circuit breaking, triggers/schedules/heartbeats, webhooks, memory mechanics, transcripts/telemetry, token/cost signals, graph/live-scene mechanics, worktrees/IDE and voice/realtime concepts.
 
 Hard architectural rejects remain:
 
@@ -201,65 +248,17 @@ retro pixel-office presentation as final AIOS UI
 
 ### Living Organization decision
 
-The Munder 2D-office idea is retained only as a conceptual/runtime donor. AIOS will pursue a **premium modern 2D/2.5D Living Organization with modern cartoon AI employees**.
+The Munder 2D-office idea is retained only as a conceptual/runtime donor. AIOS will pursue a **premium modern 2D/2.5D Living Organization with modern cartoon AI employees** whose animation is tied to genuine organizational state. No fabricated busywork should be generated merely to make the interface look alive.
 
-Visual behavior must be semantic:
+### Historical implementation truth at this checkpoint
 
-```text
-employee approaches colleague → real conversation
-employees cluster → real collaboration
-employee joins Mission Room → real Mission participation
-cross-department movement → real handoff/delegation
-warning state → real Immune System intervention
-AI CEO presence → real executive involvement
-Board Room movement → real authority escalation
-```
-
-No fabricated busywork should be generated merely to make the interface look alive.
-
-### Roadmap effect
-
-The active roadmap advances from **V12.8 to V12.9** and expands later V1.3 stages:
-
-```text
-V1.3-D  Context Broker + Agent Identity + Runtime Profiles
-V1.3-E  First Governed Vertical Workflow
-V1.3-F  Decision Readiness
-V1.3-G  Independent Verification + Peer Review Network
-V1.3-H  Organizational Immune System + circuit breaking
-V1.3-I  Earned Autonomy
-V1.3-J  AIOS Organization Fabric + Munder donor integration
-V1.3-K  Agent Runtime / Coworker Execution + connectors
-V1.3-L  Living Organization + modern characters + Organization Graph
-V1.3-M  Full Board Transparency Experience + Flight Recorder
-V1.3-N  Organizational Learning + Replay + Shadow Employees + AI Economics
-```
-
-The dependency remains:
-
-> **Governance before unrestricted execution. Transparency before increased autonomy.**
-
-### Current implementation truth preserved
-
-This architecture update does **not** change the active implementation truth:
-
-```text
-V1.3-A    COMPLETE / PASS / SEALED
-V1.3-B.1  COMPLETE / PASS / SEALED
-V1.3-B.2  COMPLETE / PASS / SEALED
-V1.3-C.1  COMPLETE / PASS / SEALED
-V1.3-C.2  COMPLETE / PASS / SEALED
-V1.3-C.3  COMPLETE / PASS / SEALED
-V1.3-C.4  IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
-```
-
-No new migration, domain table, runtime dependency or autonomous external authority is claimed by this documentation checkpoint.
+At the time this architecture checkpoint was written, C.4 was still recorded as acceptance pending. Later changelog entries supersede that status. Changelog entries remain historical rather than being rewritten to pretend later evidence existed earlier.
 
 ---
 
 ## 2026-08-20 — V1.3-C.4 BOARD/COCKPIT TRANSPARENCY READ CONTRACT — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
-The fourth V1.3-C slice is implemented on V12. The first governed material-action trace can be read through a bounded, authenticated Board-facing API contract without exposing arbitrary raw Activity/governance payloads. Canonical Windows-checkout acceptance remains required before C.4 is marked PASS.
+This historical entry records the state when C.4 was first implemented. C.4 was subsequently accepted and sealed; see `docs/V1_3_C4_ACCEPTANCE_2026-08-20.md` and the current ROADMAP for canonical status.
 
 Product-facing API:
 
@@ -268,11 +267,7 @@ GET /api/v1/organization/transparency/traces/{trace_id}
 GET /api/v1/organization/transparency/work-items/{work_item_id}
 ```
 
-Current access remains limited to the existing trusted Board mapping. Tenant isolation, safe bounded projections and fail-closed malformed-data behavior are preserved.
-
-C.4 does not yet claim Cockpit UI rendering, organization-wide search, final sensitivity policy, ToolActionRecord, AgentConversation/AgentMessage transparency, complete Evidence/Rule lineage, migration changes, canonical C.4 PASS or GitHub CI PASS.
-
-See `docs/V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md`.
+Current access remains limited to the trusted Board mapping. Tenant isolation, safe bounded projections and fail-closed malformed-data behavior are preserved.
 
 ---
 
