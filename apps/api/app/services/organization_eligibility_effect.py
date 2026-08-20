@@ -27,10 +27,10 @@ from app.services.organization_eligibility_verification_floor import (
     ELIGIBILITY_VERIFICATION_FLOOR_SCHEMA_VERSION,
     EligibilityVerificationFloorIntegrityError,
     EligibilityVerificationFloorResult,
-    _command_context,
-    _original_e2_payload,
-    _rebuild_action,
+    eligibility_command_context,
     integrate_eligibility_verification_floor,
+    original_eligibility_attempt_payload,
+    rebuild_eligibility_action,
 )
 from app.services.organization_governance_kernel import (
     CapabilityAuthority,
@@ -242,7 +242,7 @@ def _stage_semantic_effect(
     effect_fingerprint: str,
 ) -> OrganizationActivity:
     context = replace(
-        _command_context(proposal),
+        eligibility_command_context(proposal),
         correlation_key=str(proposal.evaluation.trace_id),
     )
     return stage_activity(
@@ -462,9 +462,9 @@ def commit_governed_eligibility_effect(
         raise EligibilityCanonicalEffectIntegrityError("G.3 accepts only actionable eligibility states")
 
     try:
-        e2_payload = _original_e2_payload(session, proposal)
+        e2_payload = original_eligibility_attempt_payload(session, proposal)
         idempotency_key = str(e2_payload["idempotency_key"])
-        action, profile = _rebuild_action(
+        action, profile = rebuild_eligibility_action(
             session,
             proposal=proposal,
             idempotency_key=idempotency_key,
@@ -474,7 +474,7 @@ def commit_governed_eligibility_effect(
             "accepted E.2 action can no longer be reconstructed for G.3"
         ) from exc
 
-    command_context = _command_context(proposal)
+    command_context = eligibility_command_context(proposal)
     persisted_governance = _canonical_governance_activity(
         session,
         tenant_key=proposal.context.tenant_key,
