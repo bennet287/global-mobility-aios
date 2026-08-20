@@ -124,6 +124,7 @@ def register_models() -> None:
         VentureReviewDecision,
         WorkflowRun,
     )
+    from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
 
 def create_db_and_tables() -> None:
     register_models()
