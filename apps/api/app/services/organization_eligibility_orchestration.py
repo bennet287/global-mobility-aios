@@ -155,6 +155,7 @@ def _completed_effect_replay(
     proposal_work_item_id: UUID,
     verification_work_item_id: UUID,
     idempotency_key: str,
+    expected_eligibility_revision_version: int | None,
 ) -> GovernedEligibilityOrchestrationResult | None:
     governance = session.exec(
         select(OrganizationActivity).where(
@@ -193,6 +194,32 @@ def _completed_effect_replay(
             "completed canonical governance does not resolve to exactly one eligibility revision"
         )
     revision = revisions[0]
+    replay_expectation = None if revision.version == 1 else revision.version - 1
+    if expected_eligibility_revision_version != replay_expectation:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "orchestration replay eligibility revision expectation conflicts with durable effect"
+        )
+    if revision.version == 1:
+        if revision.supersedes_revision_id is not None:
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "first canonical eligibility revision cannot supersede another revision"
+            )
+    else:
+        if revision.supersedes_revision_id is None:
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "reassessment eligibility revision lacks supersession lineage"
+            )
+        predecessor = session.get(EligibilityAssessmentRevision, revision.supersedes_revision_id)
+        if (
+            predecessor is None
+            or predecessor.tenant_key != tenant_key
+            or predecessor.aggregate_key != revision.aggregate_key
+            or predecessor.version != revision.version - 1
+        ):
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "reassessment eligibility revision has invalid supersession lineage"
+            )
+
     assessment = session.get(EligibilityAssessment, revision.assessment_id)
     semantic = (
         session.get(OrganizationActivity, revision.semantic_activity_id)
@@ -216,6 +243,10 @@ def _completed_effect_replay(
     if semantic.causation_activity_id != governance.id:
         raise GovernedEligibilityOrchestrationIntegrityError(
             "completed canonical eligibility effect lost governance causation"
+        )
+    if semantic.source_object_version != str(revision.version):
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "completed canonical eligibility effect has the wrong semantic revision version"
         )
     if verification.causation_activity_id is None:
         raise GovernedEligibilityOrchestrationIntegrityError(
@@ -258,20 +289,30 @@ def orchestrate_governed_eligibility(
     verification_work_item_id: UUID,
     idempotency_key: str,
     execution_plan: GovernedEligibilityExecutionPlan,
+    expected_eligibility_revision_version: int | None = None,
 ) -> GovernedEligibilityOrchestrationResult:
-    """Run the accepted E.2 → F.1 → G.1 → G.2 → G.3 eligibility vertical.
+    """Run the governed E.2 → F.1 → G.1 → G.2 → canonical-effect eligibility vertical.
 
     The orchestration is intentionally domain-specific. It coordinates already-sealed
     services and does not create a generic workflow/effect framework. Runtime/provider
     and authority inputs arrive only through ``execution_plan``, which is a trusted
     server-side object rather than untrusted request data.
 
-    Exact retries after a committed G.3 effect resolve directly from durable canonical
-    governance/revision lineage and do not call either model again.
+    G.5 adds a caller-supplied canonical eligibility revision expectation. It is an
+    optimistic-concurrency assertion, not authority: initial v1 creation omits it,
+    while reassessment must name the active revision it expects to supersede.
+
+    Exact retries after a committed effect resolve directly from durable canonical
+    governance/revision lineage and do not call either model again. Replay still checks
+    that the caller supplied the same revision expectation as the committed operation.
     """
 
     tenant = _required_text(tenant_key, label="tenant key")
     key = _required_text(idempotency_key, label="orchestration idempotency key")
+    if expected_eligibility_revision_version is not None and expected_eligibility_revision_version < 1:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "expected eligibility revision version must be at least 1"
+        )
     if proposal_work_item_id == verification_work_item_id:
         raise GovernedEligibilityOrchestrationIntegrityError(
             "proposal and verification must use different WorkItems"
@@ -284,6 +325,7 @@ def orchestrate_governed_eligibility(
         proposal_work_item_id=proposal_work_item_id,
         verification_work_item_id=verification_work_item_id,
         idempotency_key=key,
+        expected_eligibility_revision_version=expected_eligibility_revision_version,
     )
     if replay is not None:
         return replay
@@ -298,6 +340,7 @@ def orchestrate_governed_eligibility(
             authority=execution_plan.authority,
             provider=execution_plan.producer_provider,
             idempotency_key=key,
+            expected_eligibility_revision_version=expected_eligibility_revision_version,
         )
     except EligibilityIntentError as exc:
         raise GovernedEligibilityOrchestrationIntegrityError(
