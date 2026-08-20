@@ -153,20 +153,21 @@ def test_alternate_provider_changes_binding_not_employee_or_context_identity(db_
     assert hosted.provider_key != cli.provider_key
 
 
-def test_runtime_tools_are_intersection_not_authority_grant(db_session: Session) -> None:
+def test_runtime_profile_and_forged_bundle_cannot_grant_tools(db_session: Session) -> None:
     _position(db_session)
     _, context = _context(db_session)
-    authorized_context = replace(context, allowed_tools=("browser",))
+    forged_context = replace(context, allowed_tools=("browser", "shell"))
 
     binding = bind_employee_runtime(
         db_session,
-        context=authorized_context,
+        context=forged_context,
         profile=_profile(available_tools=("browser", "shell", "filesystem")),
     )
 
-    assert binding.allowed_tools == ("browser",)
-    assert "shell" not in binding.allowed_tools
-    assert "filesystem" not in binding.allowed_tools
+    # D.1 currently resolves no governed tool grants, so D.2 must bind no tools even
+    # when both the caller and runtime profile claim them. Future tool grants must be
+    # introduced through governed Context Broker adapters, not an in-memory mutation.
+    assert binding.allowed_tools == ()
 
 
 def test_required_technical_capability_must_exist(db_session: Session) -> None:
