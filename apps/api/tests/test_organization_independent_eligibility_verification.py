@@ -48,7 +48,10 @@ from app.services.organization_independent_eligibility_verification import (
     IndependentVerificationDisposition,
     verify_eligibility_proposal_independently,
 )
-from app.services.organization_transparency import activities_for_work_item
+from app.services.organization_transparency import (
+    activities_for_work_item,
+    governed_action_trace,
+)
 
 
 class FakeProvider(LLMProvider):
@@ -322,7 +325,7 @@ def _runtime(
     *,
     profile_key: str,
     provider_key: str,
-    model_key: str,
+    model_key: str | None,
     independence_group: str,
 ) -> AgentRuntimeProfile:
     return AgentRuntimeProfile(
@@ -440,7 +443,7 @@ def _setup(session: Session, *, proposer_state: str = "potentially_eligible"):
 def _verifier_runtime(
     *,
     provider_key: str = "openai",
-    model_key: str = "gpt-verifier",
+    model_key: str | None = "gpt-verifier",
     independence_group: str = "independent-verifier-group",
 ) -> AgentRuntimeProfile:
     return _runtime(
@@ -591,6 +594,47 @@ def test_g1_rejects_runtime_that_is_not_meaningfully_independent(
     assert provider.calls == []
 
 
+def test_g1_requires_pinned_verifier_model_identity(db_session: Session) -> None:
+    proposal, readiness, _, _, graph, _, verification_work, _ = _setup(db_session)
+    provider = FakeProvider(name="openai", model="gpt-verifier", content=_verifier_output(graph))
+
+    with pytest.raises(IndependentEligibilityVerificationIntegrityError, match="pinned"):
+        verify_eligibility_proposal_independently(
+            db_session,
+            proposal=proposal,
+            readiness=readiness,
+            verification_work_item_id=verification_work.id,
+            verifier_position_key="austria_independent_verifier",
+            verifier_runtime_profile=_verifier_runtime(model_key=None),
+            provider=provider,
+            idempotency_key="g1-unpinned-model",
+        )
+    assert provider.calls == []
+
+
+def test_g1_rejects_provider_adapter_identity_mismatch_before_execution(db_session: Session) -> None:
+    proposal, readiness, _, _, graph, _, verification_work, _ = _setup(db_session)
+    provider = FakeProvider(
+        name="misbound-provider",
+        model="gpt-verifier",
+        response_provider="openai",
+        content=_verifier_output(graph),
+    )
+
+    with pytest.raises(IndependentEligibilityVerificationRuntimeError, match="provider adapter"):
+        verify_eligibility_proposal_independently(
+            db_session,
+            proposal=proposal,
+            readiness=readiness,
+            verification_work_item_id=verification_work.id,
+            verifier_position_key="austria_independent_verifier",
+            verifier_runtime_profile=_verifier_runtime(),
+            provider=provider,
+            idempotency_key="g1-provider-adapter-drift",
+        )
+    assert provider.calls == []
+
+
 def test_g1_rejects_verification_work_item_bound_to_different_case(db_session: Session) -> None:
     proposal, readiness, _, profile, graph, _, _, _ = _setup(db_session)
     other_lead = Lead(
@@ -729,7 +773,7 @@ def test_g1_rejects_verifier_provider_or_model_identity_drift(db_session: Sessio
             )
 
 
-def test_g1_verification_is_visible_in_verifier_work_item_transparency_and_linked_to_proposer(
+def test_g1_verification_is_visible_in_trace_and_verifier_work_item_transparency(
     db_session: Session,
 ) -> None:
     proposal, readiness, _, _, graph, _, verification_work, _ = _setup(db_session)
@@ -766,3 +810,12 @@ def test_g1_verification_is_visible_in_verifier_work_item_transparency_and_linke
     assert record.payload["blind_review"] is True
     assert record.payload["command_gateway_floor_satisfied"] is False
     assert record.payload["authorization_effect"] is False
+
+    trace = governed_action_trace(
+        db_session,
+        tenant_key="tenant-a",
+        trace_id=proposal.evaluation.trace_id,
+    )
+    assert trace is not None
+    assert trace.board_inspectable is True
+    assert any(item.activity_id == result.verification_activity.id for item in trace.records)
