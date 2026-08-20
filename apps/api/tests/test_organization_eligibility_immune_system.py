@@ -334,8 +334,9 @@ def test_h1_circuit_scope_isolated_by_tenant_and_aggregate(db_session: Session) 
         tenant_key="tenant-a",
         aggregate_key=aggregate_b,
     ).state is EligibilityCircuitState.CLOSED
-    assert eligibility_circuit_status(
-        db_session,
-        tenant_key="tenant-b",
-        aggregate_key=aggregate_a,
-    ).state is EligibilityCircuitState.CLOSED
+    with pytest.raises(EligibilityImmuneSystemError, match="does not belong"):
+        eligibility_circuit_status(
+            db_session,
+            tenant_key="tenant-b",
+            aggregate_key=aggregate_a,
+        )
