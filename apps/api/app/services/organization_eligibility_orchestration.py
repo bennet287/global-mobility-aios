@@ -22,8 +22,10 @@ from app.services.organization_eligibility_effect import (
 )
 from app.services.organization_eligibility_immune_system import (
     EligibilityCircuitOpen,
+    EligibilityImmuneIncidentKind,
     EligibilityImmuneSystemError,
     eligibility_circuit_scope_for_work_item,
+    record_eligibility_immune_incident,
     require_eligibility_circuit_closed,
 )
 from app.services.organization_eligibility_transition_intent import (
@@ -457,6 +459,24 @@ def orchestrate_governed_eligibility(
         ) from exc
 
     if verification.disposition is IndependentVerificationDisposition.DISAGREES:
+        try:
+            record_eligibility_immune_incident(
+                session,
+                tenant_key=tenant,
+                aggregate_key=circuit_scope.aggregate_key,
+                incident_key=f"{key}:verifier-disagreement",
+                kind=EligibilityImmuneIncidentKind.VERIFIER_DISAGREEMENT,
+                summary=(
+                    "Independent eligibility verification disagreed with the proposer; "
+                    "the governed vertical stopped before verification-floor or canonical effect integration."
+                ),
+                source_activity_id=verification.verification_activity.id,
+                correlation_key=str(proposal.evaluation.trace_id),
+            )
+        except EligibilityImmuneSystemError as exc:
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "verifier disagreement could not be persisted as an immune-system incident"
+            ) from exc
         state = GovernedEligibilityOrchestrationState.VERIFICATION_DISAGREES
     elif verification.disposition is IndependentVerificationDisposition.INSUFFICIENT_BASIS:
         state = GovernedEligibilityOrchestrationState.VERIFICATION_INSUFFICIENT_BASIS
