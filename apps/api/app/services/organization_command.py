@@ -87,6 +87,37 @@ class OrganizationCommandContext:
         object.__setattr__(self, "actor_type", actor_type)
 
 
+def system_bound_agent_command_context(
+    *,
+    tenant_key: str,
+    position_key: str,
+    department: str | None,
+    authority_level: str | None,
+    correlation_key: str | None = None,
+    request_id: str | None = None,
+) -> OrganizationCommandContext:
+    """Build the canonical command context for an AIOS employee acting as an agent.
+
+    ``authenticated_user_id='system'`` and ``role='operator'`` describe the trusted
+    system execution boundary only. Organizational authority remains the supplied
+    persistent ``OrganizationPosition.position_key``; provider/model/runtime identity
+    never becomes the actor and this helper never grants CapabilityAuthority.
+    """
+
+    return OrganizationCommandContext(
+        tenant_key=tenant_key,
+        actor_id=position_key,
+        actor_type=OrganizationActorType.agent,
+        authenticated_user_id="system",
+        role="operator",
+        department=department,
+        position_key=position_key,
+        authority_level=authority_level,
+        correlation_key=correlation_key,
+        request_id=request_id,
+    )
+
+
 @dataclass(frozen=True)
 class AuditMutation:
     action: str
