@@ -298,6 +298,31 @@ def _existing_tenant_activity_id(
     return activity.id
 
 
+def _lineage_integrity_problem(
+    *,
+    kind: EligibilityImmuneIncidentKind,
+    aggregate_key: str,
+    revision_id: UUID,
+    problem_code: str,
+    summary: str,
+    source_activity_id: UUID | None,
+    details: dict[str, object] | None = None,
+) -> tuple[EligibilityImmuneIncidentKind, str, UUID | None, str]:
+    fingerprint_payload: dict[str, object] = {
+        "aggregate_key": aggregate_key,
+        "revision_id": str(revision_id),
+        "problem_code": problem_code,
+    }
+    if details:
+        fingerprint_payload.update(details)
+    return (
+        kind,
+        summary,
+        source_activity_id,
+        canonical_fingerprint(fingerprint_payload),
+    )
+
+
 def _eligibility_lineage_integrity_problem(
     session: Session,
     *,
@@ -398,34 +423,245 @@ def _eligibility_lineage_integrity_problem(
             else None
         )
         if missing:
-            fingerprint = canonical_fingerprint(
-                {
-                    "aggregate_key": aggregate_key,
-                    "revision_id": str(revision.id),
-                    "missing": missing,
-                }
-            )
-            return (
-                EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
-                "Canonical eligibility durable lineage is torn; governed execution is disabled pending recovery.",
-                source_activity_id,
-                fingerprint,
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="missing_durable_lineage",
+                summary="Canonical eligibility durable lineage is torn; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={"missing": missing},
             )
 
         activities = (governance, verification, floor, semantic)
         if any(activity.tenant_key != tenant_key for activity in activities):
-            fingerprint = canonical_fingerprint(
-                {
-                    "aggregate_key": aggregate_key,
-                    "revision_id": str(revision.id),
-                    "tenant_mismatch": tuple(str(activity.id) for activity in activities),
-                }
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="cross_tenant_activity_lineage",
+                summary="Canonical eligibility durable lineage crosses tenant boundaries; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={"tenant_mismatch": tuple(str(activity.id) for activity in activities)},
             )
-            return (
-                EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
-                "Canonical eligibility durable lineage crosses tenant boundaries; governed execution is disabled pending recovery.",
-                source_activity_id,
-                fingerprint,
+
+        pathway_version = session.get(MobilityPathwayVersion, revision.pathway_version_id)
+        if pathway_version is None:
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="missing_pathway_version",
+                summary="Canonical eligibility pathway lineage is torn; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={"pathway_version_id": str(revision.pathway_version_id)},
+            )
+
+        revision_aggregate = eligibility_aggregate_key(
+            tenant_key=tenant_key,
+            lead_id=revision.lead_id,
+            pathway_id=pathway_version.pathway_id,
+        )
+        if revision_aggregate != aggregate_key:
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.CANONICAL_AGGREGATE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="revision_aggregate_identity_mismatch",
+                summary="Canonical eligibility revision identity does not match its aggregate; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={
+                    "revision_lead_id": str(revision.lead_id),
+                    "pathway_id": str(pathway_version.pathway_id),
+                    "resolved_aggregate_key": revision_aggregate,
+                },
+            )
+
+        if (
+            assessment.lead_id != revision.lead_id
+            or assessment.profile_id != revision.profile_id
+            or assessment.profile_version != revision.profile_version
+        ):
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="assessment_revision_identity_mismatch",
+                summary="Canonical eligibility assessment identity conflicts with its revision; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={
+                    "assessment_id": str(assessment.id),
+                    "assessment_lead_id": str(assessment.lead_id),
+                    "revision_lead_id": str(revision.lead_id),
+                    "assessment_profile_id": str(assessment.profile_id),
+                    "revision_profile_id": str(revision.profile_id),
+                    "assessment_profile_version": assessment.profile_version,
+                    "revision_profile_version": revision.profile_version,
+                },
+            )
+
+        activity_identity = {
+            "verification": verification,
+            "verification_floor": floor,
+            "governance": governance,
+            "semantic": semantic,
+        }
+        subject_mismatch = tuple(
+            name
+            for name, activity in activity_identity.items()
+            if activity.lead_id != revision.lead_id or activity.profile_id != revision.profile_id
+        )
+        if subject_mismatch:
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="activity_revision_subject_mismatch",
+                summary="Canonical eligibility Activity lineage names a different subject; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={"mismatched_activities": subject_mismatch},
+            )
+
+        try:
+            verification_record = transparency_activity_record(verification)
+            floor_record = transparency_activity_record(floor)
+            governance_record = transparency_activity_record(governance)
+            semantic_record = transparency_activity_record(semantic)
+        except TransparencyDataError as exc:
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="malformed_activity_lineage",
+                summary="Canonical eligibility Activity lineage is malformed; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={"error_type": type(exc).__name__},
+            )
+
+        supersedes_id = (
+            str(revision.supersedes_revision_id)
+            if revision.supersedes_revision_id is not None
+            else None
+        )
+        expected_previous_version = None if revision.version == 1 else revision.version - 1
+        actual_contract = {
+            "verification.activity_type": verification_record.activity_type,
+            "verification.verification_fingerprint": verification_record.payload.get(
+                "verification_fingerprint"
+            ),
+            "verification.readiness_fingerprint": verification_record.payload.get(
+                "readiness_fingerprint"
+            ),
+            "verification.disposition": verification_record.payload.get("disposition"),
+            "floor.activity_type": floor_record.activity_type,
+            "floor.verification_floor_fingerprint": floor_record.payload.get(
+                "verification_floor_fingerprint"
+            ),
+            "floor.verification_fingerprint": floor_record.payload.get("verification_fingerprint"),
+            "floor.readiness_fingerprint": floor_record.payload.get("readiness_fingerprint"),
+            "floor.eligibility_aggregate_key": floor_record.payload.get("eligibility_aggregate_key"),
+            "floor.next_eligibility_revision_version": floor_record.payload.get(
+                "next_eligibility_revision_version"
+            ),
+            "floor.expected_eligibility_revision_version": floor_record.payload.get(
+                "expected_eligibility_revision_version"
+            ),
+            "floor.expected_eligibility_revision_id": floor_record.payload.get(
+                "expected_eligibility_revision_id"
+            ),
+            "floor.original_e2_action_fingerprint": floor_record.payload.get(
+                "original_e2_action_fingerprint"
+            ),
+            "governance.record_kind": governance_record.payload.get("governance_record_kind"),
+            "governance.action_fingerprint": governance_record.payload.get("action_fingerprint"),
+            "governance.verification_floor_fingerprint": governance_record.payload.get(
+                "verification_floor_fingerprint"
+            ),
+            "governance.effect_fingerprint": governance_record.payload.get("effect_fingerprint"),
+            "governance.canonical_revision_version": governance_record.payload.get(
+                "canonical_revision_version"
+            ),
+            "governance.expected_eligibility_revision_version": governance_record.payload.get(
+                "expected_eligibility_revision_version"
+            ),
+            "governance.supersedes_revision_id": governance_record.payload.get(
+                "supersedes_revision_id"
+            ),
+            "semantic.activity_type": semantic_record.activity_type,
+            "semantic.source_object_type": semantic_record.source_object_type,
+            "semantic.source_object_id": semantic_record.source_object_id,
+            "semantic.source_object_version": semantic_record.source_object_version,
+            "semantic.effect_fingerprint": semantic_record.payload.get("effect_fingerprint"),
+            "semantic.revision_id": semantic_record.payload.get("revision_id"),
+            "semantic.aggregate_key": semantic_record.payload.get("aggregate_key"),
+            "semantic.revision_version": semantic_record.payload.get("revision_version"),
+            "semantic.supersedes_revision_id": semantic_record.payload.get("supersedes_revision_id"),
+            "semantic.original_action_fingerprint": semantic_record.payload.get(
+                "original_action_fingerprint"
+            ),
+            "semantic.intent_fingerprint": semantic_record.payload.get("intent_fingerprint"),
+            "semantic.readiness_fingerprint": semantic_record.payload.get("readiness_fingerprint"),
+            "semantic.verification_fingerprint": semantic_record.payload.get(
+                "verification_fingerprint"
+            ),
+            "semantic.verification_floor_fingerprint": semantic_record.payload.get(
+                "verification_floor_fingerprint"
+            ),
+            "semantic.profile_version": semantic_record.payload.get("profile_version"),
+            "semantic.status": semantic_record.payload.get("status"),
+        }
+        expected_contract = {
+            "verification.activity_type": "verification.eligibility.independent.v1",
+            "verification.verification_fingerprint": revision.verification_fingerprint,
+            "verification.readiness_fingerprint": revision.readiness_fingerprint,
+            "verification.disposition": "agrees",
+            "floor.activity_type": "governance.eligibility.verification_floor.v1",
+            "floor.verification_floor_fingerprint": revision.verification_floor_fingerprint,
+            "floor.verification_fingerprint": revision.verification_fingerprint,
+            "floor.readiness_fingerprint": revision.readiness_fingerprint,
+            "floor.eligibility_aggregate_key": aggregate_key,
+            "floor.next_eligibility_revision_version": revision.version,
+            "floor.expected_eligibility_revision_version": expected_previous_version,
+            "floor.expected_eligibility_revision_id": supersedes_id,
+            "floor.original_e2_action_fingerprint": revision.original_action_fingerprint,
+            "governance.record_kind": "eligibility_canonical_effect_authorization",
+            "governance.action_fingerprint": revision.original_action_fingerprint,
+            "governance.verification_floor_fingerprint": revision.verification_floor_fingerprint,
+            "governance.effect_fingerprint": revision.effect_fingerprint,
+            "governance.canonical_revision_version": revision.version,
+            "governance.expected_eligibility_revision_version": expected_previous_version,
+            "governance.supersedes_revision_id": supersedes_id,
+            "semantic.activity_type": "organization.eligibility.assessment_committed.v1",
+            "semantic.source_object_type": "eligibility_assessment",
+            "semantic.source_object_id": str(assessment.id),
+            "semantic.source_object_version": str(revision.version),
+            "semantic.effect_fingerprint": revision.effect_fingerprint,
+            "semantic.revision_id": str(revision.id),
+            "semantic.aggregate_key": aggregate_key,
+            "semantic.revision_version": revision.version,
+            "semantic.supersedes_revision_id": supersedes_id,
+            "semantic.original_action_fingerprint": revision.original_action_fingerprint,
+            "semantic.intent_fingerprint": revision.intent_fingerprint,
+            "semantic.readiness_fingerprint": revision.readiness_fingerprint,
+            "semantic.verification_fingerprint": revision.verification_fingerprint,
+            "semantic.verification_floor_fingerprint": revision.verification_floor_fingerprint,
+            "semantic.profile_version": revision.profile_version,
+            "semantic.status": assessment.status,
+        }
+        contract_mismatch = {
+            key: (actual_contract[key], expected)
+            for key, expected in expected_contract.items()
+            if actual_contract[key] != expected
+        }
+        if contract_mismatch:
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="activity_revision_contract_mismatch",
+                summary="Canonical eligibility Activity identity conflicts with its revision; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={"contract_mismatch": contract_mismatch},
             )
 
         if (
@@ -434,21 +670,19 @@ def _eligibility_lineage_integrity_problem(
             or governance.causation_activity_id != floor.id
             or semantic.causation_activity_id != governance.id
         ):
-            fingerprint = canonical_fingerprint(
-                {
-                    "aggregate_key": aggregate_key,
-                    "revision_id": str(revision.id),
+            return _lineage_integrity_problem(
+                kind=EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
+                aggregate_key=aggregate_key,
+                revision_id=revision.id,
+                problem_code="causation_lineage_mismatch",
+                summary="Canonical eligibility durable causation lineage is inconsistent; governed execution is disabled pending recovery.",
+                source_activity_id=source_activity_id,
+                details={
                     "verification_cause": str(verification.causation_activity_id),
                     "floor_cause": str(floor.causation_activity_id),
                     "governance_cause": str(governance.causation_activity_id),
                     "semantic_cause": str(semantic.causation_activity_id),
-                }
-            )
-            return (
-                EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY,
-                "Canonical eligibility durable causation lineage is inconsistent; governed execution is disabled pending recovery.",
-                source_activity_id,
-                fingerprint,
+                },
             )
 
     return None
