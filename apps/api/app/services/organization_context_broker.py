@@ -11,7 +11,6 @@ from sqlmodel import Session, select
 
 from app.models.domain import OrganizationPosition, OrganizationalWorkItem, now_utc
 from app.services.organization_command import (
-    NotFound,
     canonical_fingerprint,
     canonical_json,
     tenant_record,
