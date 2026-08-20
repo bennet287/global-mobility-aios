@@ -32,7 +32,15 @@ SCAN_EXTENSIONS = {
     ".env",
 }
 
-IGNORE_DIRS = {".git", ".gmai-patch-backups", "__pycache__", ".venv", "node_modules", "dist", "build"}
+IGNORE_DIRS = {
+    ".git",
+    ".gmai-patch-backups",
+    "__pycache__",
+    ".venv",
+    "node_modules",
+    "dist",
+    "build",
+}
 
 ALLOWLIST_FILES = {
     "REPOSITORY_POLICY.md",
@@ -41,10 +49,28 @@ ALLOWLIST_FILES = {
     "apply_mvp1_stabilization.py",
 }
 
+# PowerShell/shell redirection mistakes such as ``pip install celery>=5.4`` can
+# create a tracked file named ``=5.4``. These names are not valid repository
+# artifacts regardless of extension, so inspect every file before content filtering.
+SUSPICIOUS_ARTIFACT_NAME_PATTERNS = (
+    re.compile(r"^=.+"),
+    re.compile(r"^[<>].+"),
+)
+
+
+def is_ignored(path: Path) -> bool:
+    return any(part in IGNORE_DIRS for part in path.parts)
+
+
+def suspicious_artifact_name(path: Path) -> bool:
+    return any(pattern.match(path.name) for pattern in SUSPICIOUS_ARTIFACT_NAME_PATTERNS)
+
+
 def should_scan(path: Path) -> bool:
-    if any(part in IGNORE_DIRS for part in path.parts):
+    if is_ignored(path):
         return False
     return path.is_file() and path.suffix in SCAN_EXTENSIONS
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -55,18 +81,23 @@ def main() -> int:
     violations: list[str] = []
 
     for path in root.rglob("*"):
-        if not should_scan(path):
+        if is_ignored(path) or not path.is_file():
             continue
 
-        if path.name in ALLOWLIST_FILES:
+        relative = path.relative_to(root)
+        if suspicious_artifact_name(path):
+            violations.append(
+                f"{relative} has a suspicious shell-redirection artifact filename"
+            )
+
+        if not should_scan(path) or path.name in ALLOWLIST_FILES:
             continue
 
         text = path.read_text(encoding="utf-8", errors="ignore")
-
         for pattern in BANNED_PATTERNS:
             if re.search(pattern, text, re.IGNORECASE):
                 violations.append(
-                    f"{path.relative_to(root)} contains banned repo/category pattern: {pattern}"
+                    f"{relative} contains banned repo/category pattern: {pattern}"
                 )
 
     if violations:
@@ -77,6 +108,7 @@ def main() -> int:
 
     print("Repository policy check passed.")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
