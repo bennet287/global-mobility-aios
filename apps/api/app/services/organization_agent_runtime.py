@@ -62,8 +62,7 @@ def _optional_text(value: str | None) -> str | None:
 
 
 def _normalized_names(values: tuple[str, ...], *, label: str) -> tuple[str, ...]:
-    normalized = tuple(sorted({_required_text(item, label=label) for item in values}))
-    return normalized
+    return tuple(sorted({_required_text(item, label=label) for item in values}))
 
 
 @dataclass(frozen=True)
@@ -182,10 +181,10 @@ def bind_employee_runtime(
 ) -> EmployeeRuntimeBinding:
     """Bind a fresh ContextBundle to a technical runtime without granting authority.
 
-    The function re-resolves the governed ContextBundle before binding. A caller cannot
-    bind stale employee/work state to a runtime after assignment, contract or work
-    context changes. Runtime tools are intersected with ContextBundle.allowed_tools;
-    a runtime profile can never grant tools that AIOS context did not authorize.
+    The function re-resolves governed ContextBundle state before binding. A caller
+    cannot bind stale employee/work state after assignment, contract or work-context
+    changes, and cannot forge additional ContextBundle tools in memory. Runtime tools
+    are intersected with the *canonical re-resolved* ContextBundle.allowed_tools.
     """
 
     if not profile.enabled:
@@ -203,15 +202,17 @@ def bind_employee_runtime(
             f"runtime profile does not provide required capability {capability!r}"
         )
 
-    allowed_tools = tuple(sorted(set(context.allowed_tools).intersection(profile.available_tools)))
+    # Only the freshly rebuilt canonical bundle can grant a tool to this binding.
+    # The profile represents technical availability, never organizational authority.
+    allowed_tools = tuple(sorted(set(current.allowed_tools).intersection(profile.available_tools)))
     profile_fingerprint = runtime_profile_fingerprint(profile)
     binding_payload: dict[str, Any] = {
         "schema_version": RUNTIME_BINDING_SCHEMA_VERSION,
-        "tenant_key": context.tenant_key,
-        "position_key": context.position.position_key,
-        "position_version": context.position.position_version,
-        "context_hash": context.context_hash,
-        "context_purpose": context.purpose,
+        "tenant_key": current.tenant_key,
+        "position_key": current.position.position_key,
+        "position_version": current.position.position_version,
+        "context_hash": current.context_hash,
+        "context_purpose": current.purpose,
         "runtime_profile_fingerprint": profile_fingerprint,
         "required_capability": capability,
         "allowed_tools": allowed_tools,
@@ -220,11 +221,11 @@ def bind_employee_runtime(
 
     return EmployeeRuntimeBinding(
         schema_version=RUNTIME_BINDING_SCHEMA_VERSION,
-        tenant_key=context.tenant_key,
-        position_key=context.position.position_key,
-        position_version=context.position.position_version,
-        context_hash=context.context_hash,
-        context_purpose=context.purpose.value,
+        tenant_key=current.tenant_key,
+        position_key=current.position.position_key,
+        position_version=current.position.position_version,
+        context_hash=current.context_hash,
+        context_purpose=current.purpose.value,
         runtime_profile_key=profile.profile_key,
         runtime_profile_version=profile.profile_version,
         runtime_class=profile.runtime_class,
