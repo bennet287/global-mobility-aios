@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Generator
@@ -25,21 +26,47 @@ from app.models.domain import ApplicationRecord, DocumentRecord, Lead, LeadInten
 from app.models.domain import VerificationStatus  # noqa: E402
 
 
+def _test_engine():
+    """Return the default SQLite engine or an explicitly requested isolated DB engine.
+
+    Normal developer and broad regression runs remain fast and hermetic on SQLite.
+    The production-proof CI lane sets ``GMAI_TEST_DATABASE_URL`` to an isolated
+    PostgreSQL database so the same domain tests exercise real transaction/constraint
+    semantics without maintaining a second test framework.
+    """
+
+    database_url = os.getenv("GMAI_TEST_DATABASE_URL", "").strip()
+    if database_url:
+        return create_engine(database_url, pool_pre_ping=True), True
+    return (
+        create_engine(
+            "sqlite://",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        ),
+        False,
+    )
+
+
 @pytest.fixture()
 def db_session(monkeypatch: pytest.MonkeyPatch) -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    engine, external_database = _test_engine()
     monkeypatch.setattr(db_module, "engine", engine)
     db_module.register_models()
+
+    # The external database is explicitly test-only. Reset the SQLModel schema around
+    # every focused test so no state leaks between concurrency/idempotency scenarios.
+    # Migration correctness is verified independently before this fixture is used.
+    if external_database:
+        SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
 
-    with Session(engine) as session:
-        yield session
-
-    SQLModel.metadata.drop_all(engine)
+    try:
+        with Session(engine) as session:
+            yield session
+    finally:
+        SQLModel.metadata.drop_all(engine)
+        engine.dispose()
 
 
 @pytest.fixture()
