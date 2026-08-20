@@ -487,9 +487,11 @@ def test_g1_blind_agreement_is_durable_independent_but_has_no_authorization_effe
     assert result.verifier_context.position.position_key == "austria_independent_verifier"
     assert result.verifier_runtime_binding.independence_group == "independent-verifier-group"
     assert result.verifier_runtime_binding.independence_group != proposal.runtime_binding.independence_group
+    assert result.verifier_runtime_binding.provider_key != proposal.runtime_binding.provider_key
+    assert result.verifier_runtime_binding.model_key != proposal.runtime_binding.model_key
     assert len(result.verification_fingerprint) == 64
     assert result.verification_activity.causation_activity_id == proposal.attempt_activity.id
-    assert result.verification_activity.activity_class.value == "material"
+    assert result.verification_activity.activity_class.value == "decision"
     assert len(list(db_session.exec(select(OrganizationActivity)).all())) == before_activities + 1
     assert len(list(db_session.exec(select(EligibilityAssessment)).all())) == before_assessments
 
@@ -558,7 +560,8 @@ def test_g1_requires_separate_verifier_employee_and_work_item(db_session: Sessio
     "provider_key,model_key,independence_group",
     [
         ("openai", "gpt-verifier", "proposer-group"),
-        ("deepseek", "deepseek-reasoner", "different-metadata-group"),
+        ("deepseek", "other-verifier-model", "different-provider-group"),
+        ("openai", "deepseek-reasoner", "different-model-group"),
     ],
 )
 def test_g1_rejects_runtime_that_is_not_meaningfully_independent(
@@ -753,6 +756,12 @@ def test_g1_verification_is_visible_in_verifier_work_item_transparency_and_linke
     record = next(item for item in history if item.activity_id == result.verification_activity.id)
     assert record.actor_id == "austria_independent_verifier"
     assert record.causation_activity_id == proposal.attempt_activity.id
+    assert record.physical_activity_class == "decision"
+    assert record.constitutional_activity_class is not None
+    assert record.constitutional_activity_class.value == "MATERIAL"
+    assert record.requires_durable_record is True
+    assert record.requires_full_lineage is True
+    assert record.may_compact_after_policy_window is False
     assert record.payload["proposer_trace_id"] == str(proposal.evaluation.trace_id)
     assert record.payload["blind_review"] is True
     assert record.payload["command_gateway_floor_satisfied"] is False
