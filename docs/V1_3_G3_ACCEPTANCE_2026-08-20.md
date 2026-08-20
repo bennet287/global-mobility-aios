@@ -2,284 +2,179 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Accepted implementation head:** `2df0069af54945b4f32a24192447198b6e1cee28`  
+**Accepted implementation head:** `9ffd677e89473a9a495bc6a01fdfd80a2d9784e9`  
 **Status:** COMPLETE / PASS / SEALED
 
-## Scope accepted
+## Accepted capability
 
-V1.3-G.3 establishes the first canonical governed eligibility effect after the accepted E.2 → F.1 → G.1 → G.2 chain.
+V1.3-G.3 commits the first governed canonical eligibility effect end-to-end.
 
-Accepted implementation:
+Accepted flow:
 
 ```text
 E.2 governed eligibility proposal
-→ F.1 deterministic Decision Readiness
+→ F.1 READY_FOR_INDEPENDENT_VERIFICATION
 → G.1 blind independent AGREES verification
-→ G.2 verification-floor integration
-→ fresh final Command Gateway authorization
-→ canonical governance authorization Activity
-→ EligibilityAssessment
-→ EligibilityAssessmentRevision v1
-→ semantic MATERIAL eligibility Activity
-→ one atomic G.3 transaction
+→ G.2 verification-floor re-evaluation
+→ G.3 final Command Gateway authorization
+→ atomic canonical governance Activity + EligibilityAssessment + EligibilityAssessmentRevision + semantic effect Activity
 ```
 
-G.3 remains eligibility-specific. It does not establish a generic canonical-effect framework.
+Permanent rule:
 
-## Canonical model / migration
+> **Independent verification satisfies a verification requirement; the Command Gateway authorizes the effect; the canonical effect is committed only in the same transaction as its final durable governance authorization.**
 
-Accepted migration:
+G.3 introduces no HTTP surface, no client-facing recommendation, no external action, and no automatic reassessment/supersession.
+
+## Canonical local acceptance evidence
+
+The Human Owner reported the following results on a clean synchronized checkout at the accepted implementation head.
+
+```text
+Updated hardening test                1 passed / 1 warning / 0 failed
+Full API regression                 1050 passed / 5 skipped / 1 warning / 0 failed
+Full API duration                  488.05s
+Repository policy                    PASS
+Database migration check             PASS
+Migration head                     0077_canonical_eligibility_assessment_revision
+Registered tables                    119
+Physical schema                      PASS
+Local DB schema                      PASS
+Actual tables                        119
+Physical tables                      120 incl. alembic_version
+git diff --check                     clean
+V12 branch                           clean / synchronized
+```
+
+Known non-blocking warning remains:
+
+```text
+StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.
+```
+
+No dependency change is implied by this acceptance.
+
+## Accepted G.3 invariants
+
+### First canonical effect only
+
+G.3 creates only canonical revision `v1` with `lifecycle_status = active`. If an active revision already exists for the same `eligibility:<tenant>:<lead_id>:<pathway_id>` aggregate, G.3 fails closed.
+
+### No score synthesis
+
+The persisted `EligibilityAssessment.overall_score` is `0.0`. There is no canonical eligibility score in the accepted E.2/F.1/G.1/G.2 contract. Consumers must not present `0.0` as a computed eligibility score.
+
+### Canonical idempotency slot
+
+G.3 consumes the original E.2 idempotency slot:
+
+```text
+governance:<original E.2 idempotency key>
+```
+
+Exact retries return the durable committed effect and validate every fingerprint, causation link, and lineage record. Torn or corrupted persisted state fails closed.
+
+### Atomic transaction
+
+For a fresh authorized effect, G.3 stages and commits in one transaction:
+
+```text
+canonical governance authorization Activity
++ EligibilityAssessment
++ EligibilityAssessmentRevision
++ semantic eligibility Activity
+```
+
+The final governance Activity is causally linked to the accepted G.2 floor Activity. The semantic Activity is causally linked to the final governance Activity.
+
+### Authorization remains Gateway-owned
+
+G.3 reconstructs the exact accepted E.2 `MaterialAction` and performs a fresh final `evaluate_material_action(...)` with `PolicyDisposition.ALLOW`. Only `GatewayOutcome.AUTO_EXECUTE` may enter the canonical effect transaction.
+
+A0/A1/A2 cannot commit through G.3. A3 may commit with `post_review_required=true`.
+
+### Replay integrity
+
+Replay recomputes the aggregate/effect fingerprint and verifies:
+
+- E.2 action fingerprint
+- E.2 intent fingerprint
+- F.1 readiness fingerprint
+- G.1 verification fingerprint
+- G.2 verification-floor fingerprint
+- Lead/Profile/pathway scope
+- assessment payload fields
+- governance→G.2 causation
+- governance→semantic causation
+- constitutional activity class
+
+### Legacy compatibility
+
+Existing legacy `EligibilityAssessment` rows remain untouched. Only an assessment linked through `EligibilityAssessmentRevision` is a V1.3 governed canonical eligibility effect.
+
+### Transparency
+
+The semantic effect uses:
+
+```text
+activity_class = decision
+activity_type = organization.eligibility.assessment_committed.v1
+constitutional_activity_class = MATERIAL
+```
+
+It is Board-inspectable, durable, full-lineage and non-compactable under the constitutional MATERIAL transparency rule.
+
+## Migration posture
+
+G.3 introduces one migration:
 
 ```text
 0077_canonical_eligibility_assessment_revision
 ```
 
-Accepted companion canonical model:
-
-```text
-EligibilityAssessmentRevision
-```
-
-The companion record makes an `EligibilityAssessment` part of the governed V1.3 canonical eligibility aggregate. Legacy `EligibilityAssessment` rows without a companion revision remain legacy/non-canonical for V1.3 purposes.
-
-Accepted first aggregate identity:
-
-```text
-eligibility:<tenant_key>:<lead_id>:<pathway_id>
-```
-
-Accepted first-slice version semantics:
-
-```text
-version = 1
-lifecycle_status = active
-supersedes_revision_id = null
-```
-
-A second active canonical revision is intentionally refused until reassessment/supersession carries an explicit canonical revision precondition.
-
-## Authorization / mutation contract
-
-G.3 consumes only an accepted G.2 result and revalidates the accepted E.2/F.1/G.1/G.2 lineage.
-
-Before a first effect it reconstructs the exact E.2 `MaterialAction`, preserves the original E.2 action fingerprint and idempotency key, revalidates the verification floor, and performs a fresh call to the unchanged Command Gateway.
-
-Only:
-
-```text
-GatewayOutcome.AUTO_EXECUTE
-```
-
-may enter the canonical effect transaction.
-
-Accepted autonomy behavior remains:
-
-```text
-A0      → no canonical effect
-A1/A2   → no canonical effect
-A3      → canonical effect allowed only after Gateway AUTO_EXECUTE,
-          with post_review_required=true
-A4/A5   → canonical effect allowed subject to all other Gateway gates
-```
-
-Authority, scope, risk, version, policy and Board-reserved checks remain Gateway-owned.
-
-## Atomicity
-
-A fresh authorized G.3 transaction stages:
-
-```text
-governance:<original E.2 idempotency key>
-+ EligibilityAssessment
-+ EligibilityAssessmentRevision
-+ organization.eligibility.assessment_committed.v1
-```
-
-and commits once.
-
-Accepted causal lineage:
-
-```text
-E.2 governance attempt
-    ↓
-G.1 independent verification
-    ↓
-G.2 verification-floor re-evaluation
-    ↓
-G.3 canonical governance authorization
-    ↓
-G.3 semantic EligibilityAssessment effect
-```
-
-The semantic effect is physical Activity class `decision` with constitutional class `MATERIAL`.
-
-Synthetic mid-transaction failure is covered by the focused suite and must roll the G.3 governance/effect unit back instead of leaving partial canonical truth.
-
-## Canonical idempotency / replay
-
-G.3 is the first eligibility slice that consumes:
-
-```text
-governance:<original E.2 idempotency key>
-```
-
-Exact retry resolves the durable canonical result as `IDEMPOTENT_REPLAY` without duplicate assessment, revision or semantic Activity.
-
-Replay validation is not based on the governance key alone. It verifies the persisted assessment/revision/semantic effect and the E.2 action, E.2 intent, F.1 readiness, G.1 verification, G.2 floor and G.3 effect fingerprints.
-
-A torn or inconsistent persisted canonical state fails closed.
-
-## Canonical assessment semantics
-
-Accepted first governed assessment writes:
-
-```text
-status = E.2 proposed_state
-overall_score = 0.0
-confidence = E.2 informational confidence
-profile_id/profile_version = accepted E.2 profile binding
-target_country/domain = governed pathway
-```
-
-`overall_score = 0.0` does **not** mean a zero eligibility score was calculated. No canonical numerical eligibility score exists in the accepted E.2/F.1/G.1/G.2/G.3 contract. It is only a compatibility value for the legacy `EligibilityAssessment` column; governed read/API surfaces must not present it as a computed eligibility score.
-
-## Non-effects
-
-G.3 does not automatically:
-
-- change Lead lifecycle/status;
-- mutate an Application;
-- publish eligibility to a client;
-- send consequential external communication;
-- submit anything to government;
-- authorize a different material action;
-- create reassessment/version-2 semantics;
-- expose a new HTTP/worker orchestration surface.
-
-## Canonical acceptance evidence
-
-The Human Owner ran the acceptance checks on exact V12 head:
-
-```text
-2df0069af54945b4f32a24192447198b6e1cee28
-```
-
-### Migration-boundary repairs
-
-The introduction of migration 0077 initially exposed two stale test assertions that still hard-coded migration 0076 as the repository ceiling/head. Those tests were corrected without changing production code.
-
-Post-fix focused result:
-
-```text
-2 passed / 1 warning / 0 failed
-```
-
-Covered:
-
-- fresh database upgrades to current schema;
-- organization/OpenAPI architecture migration boundary through 0077.
-
-### G.3 focused
-
-```text
-15 passed / 1 warning / 0 failed
-Duration: 9.50s
-```
-
-### Full API regression
-
-```text
-1040 passed / 5 skipped / 1 warning / 0 failed
-Duration: 505.33s
-```
-
-Known warning:
-
-```text
-StarletteDeprecationWarning:
-Using httpx with starlette.testclient is deprecated; install httpx2 instead.
-```
-
-This remains a known non-blocking warning. No dependency change is implied by this acceptance.
-
-### Migration / schema
-
-Alembic upgrade to head completed successfully.
-
-```text
-Database migration check      PASS
-database_url                  sqlite:///./gmai.db
-migration_heads               0077_canonical_eligibility_assessment_revision
-registered_tables             119
-physical_schema               ok
-database_revision             0077_canonical_eligibility_assessment_revision
-```
-
-Local schema:
-
-```text
-Local DB schema check         PASS
-registered_tables             119
-actual_tables                 119
-physical_tables               120
-infrastructure_tables         ["alembic_version"]
-```
-
-### Repository integrity
-
-```text
-Repository policy             PASS
-Protected v10.22 regression   1 passed / 1 warning / 0 failed
-git diff --check              clean
-V12 branch                    clean / synchronized
-```
-
-The protected roadmap regression preserves:
-
-```text
-v10.22
-multi-batch tranche operations
-0032_initial_rule_assertions
-```
-
-## GitHub / CI truth
-
-The accepted local checkout was synchronized with `origin/roadmap/global-mobility-aios-v12` at the accepted implementation head before the acceptance-seal documentation commits.
-
-No GitHub status checks were attached to the implementation head when inspected. Therefore this record makes **no GitHub CI PASS claim**.
-
-## Result
-
-```text
-V1.3-G.3 First Canonical Eligibility Effect
-COMPLETE / PASS / SEALED
-```
-
-This is the first accepted V1.3 vertical proving:
-
-```text
-persistent employee
-→ governed context / Evidence
-→ model proposal
-→ deterministic validation
-→ Command Gateway review
-→ deterministic Decision Readiness
-→ blind independent verification
-→ verification-floor integration
-→ fresh final authorization
-→ atomic canonical organizational truth
-```
-
-Permanent conclusion:
-
-> **The model may propose. Independent AI may verify. Deterministic gates and the Command Gateway authorize. Only AIOS commits canonical organizational truth.**
-
-## Next bounded programme
-
-With the first canonical effect accepted, the next work should consolidate and operationalize the proven vertical before broad Organization Fabric work:
-
-1. extract stable eligibility vertical helpers only where semantics are now proven identical;
-2. add a trusted governed HTTP/worker orchestration surface for E.2 → F.1 → G.1 → G.2 → G.3 rather than routing through the legacy immediate-persistence eligibility endpoint;
-3. then define reassessment/supersession with an explicit expected canonical eligibility revision version.
-
-No Mission Room, generic Peer Review Network, Flight Recorder or broad Munder runtime expansion is implied by G.3 acceptance.
+Registered/physical table counts increased by one after the migration. No existing eligibility row is rewritten by the migration.
+
+## Acceptance gate
+
+Canonical G.3 acceptance included:
+
+- focused G.3 tests;
+- G.2 + G.3 integration tests;
+- E.2 → F.1 → G.1 → G.2 → G.3 vertical tests;
+- D.1–D.3 + E.1–E.2 + F.1–G.3 governed vertical neighborhood where practical;
+- repository policy;
+- full API regression;
+- Alembic migration upgrade to head;
+- migration/schema checks;
+- `git diff --check`;
+- clean synchronized V12 branch.
+
+## Non-claims
+
+G.3 does not claim:
+
+- eligibility reassessment/supersession support;
+- a generic canonical-effect framework;
+- client-facing eligibility publication;
+- legal/professional sign-off where required;
+- HTTP/worker orchestration for the new vertical;
+- generic Peer Review Network completion;
+- provider-egress policy completion;
+- GitHub CI PASS.
+
+## Direction after G.3
+
+After G.3 acceptance, the first governed eligibility vertical is proven end-to-end.
+
+The next bounded work should be selected from proven needs, in this order:
+
+1. **Bounded vertical hardening** — extract stable eligibility-specific contracts from duplicated/private helpers:
+   - `system_agent_command_context(...)`
+   - `original_eligibility_action(...)` / `rebuild_eligibility_action(...)`
+   - `mobility_intent_domain(...)`
+   - `pathway_publication_integrity(...)`
+   - shared reference/freshness resolver
+2. **Governed HTTP/worker orchestration surface** — expose the accepted vertical through a route that starts/inspects governed work rather than bypassing it through the legacy immediate-persistence path.
+3. **Reassessment/supersession** — extend E.2 with an explicit expected canonical eligibility revision precondition, then introduce version-2 active/superseded semantics.
+
+Do not jump to Mission Rooms, generic Peer Review Network, Flight Recorder or broad Munder runtime expansion before the vertical is hardened and orchestrated.
