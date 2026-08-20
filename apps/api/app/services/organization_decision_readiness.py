@@ -9,10 +9,10 @@ from uuid import UUID
 
 from sqlmodel import Session
 
-from app.core.organization_constitution import RiskTier
+from app.core.organization_constitution import MaterialActionType, RiskTier
 from app.models.domain import Lead, MobilityPathway, MobilityPathwayVersion, OrganizationActivity, Profile, now_utc
 from app.services.mobility_profiles import case_facts, current_mobility_profile
-from app.services.organization_command import canonical_fingerprint
+from app.services.organization_command import OrganizationCommandError, canonical_fingerprint
 from app.services.organization_context_broker import (
     ContextBrokerError,
     ContextBundle,
@@ -96,13 +96,6 @@ def _single_reference(context: ContextBundle, kind: str) -> ContextReference:
     return matches[0]
 
 
-def _uuid_reference(reference: ContextReference, *, label: str) -> UUID:
-    try:
-        return UUID(reference.identifier)
-    except (TypeError, ValueError, AttributeError) as exc:
-        raise DecisionReadinessIntegrityError(f"{label} ContextBundle reference is not a UUID") from exc
-
-
 def _record_reference(
     session: Session,
     *,
@@ -111,7 +104,11 @@ def _record_reference(
     model: type[Any],
 ) -> Any:
     reference = _single_reference(context, kind)
-    record = session.get(model, _uuid_reference(reference, label=kind))
+    try:
+        record_id = UUID(reference.identifier)
+    except (TypeError, ValueError, AttributeError) as exc:
+        raise DecisionReadinessIntegrityError(f"{kind} ContextBundle reference is not a UUID") from exc
+    record = session.get(model, record_id)
     if record is None:
         raise DecisionReadinessIntegrityError(f"{kind} ContextBundle reference could not be dereferenced")
 
@@ -174,14 +171,25 @@ def _attempt_integrity(
     except TransparencyDataError as exc:
         raise DecisionReadinessIntegrityError("durable E.2 governance attempt is malformed") from exc
 
-    payload = record.payload
-    if payload.get("governance_record_kind") != "eligibility_intent_attempt":
-        raise DecisionReadinessIntegrityError("durable governance record is not an E.2 eligibility attempt")
+    position_key = proposal.context.position.position_key
+    if record.actor_id != position_key or record.position_key != position_key:
+        raise DecisionReadinessIntegrityError("durable E.2 governance attempt has a different employee identity")
+    if record.source_object_type != "lead_eligibility" or record.source_object_id != str(proposal.intent.lead_id):
+        raise DecisionReadinessIntegrityError("durable E.2 governance attempt targets a different eligibility subject")
     if record.trace_id != str(proposal.evaluation.trace_id):
         raise DecisionReadinessIntegrityError("E.2 governance trace identity does not match the proposal")
     if record.work_item_id != proposal.intent.work_item_id:
         raise DecisionReadinessIntegrityError("E.2 governance attempt is linked to a different WorkItem")
+
+    payload = record.payload
     expected_payload = {
+        "governance_record_kind": "eligibility_intent_attempt",
+        "actor_id": position_key,
+        "action_type": MaterialActionType.ELIGIBILITY_TRANSITION.value,
+        "outcome": GatewayOutcome.REVIEW_REQUIRED.value,
+        "reason": GatewayReason.POLICY_REVIEW_REQUIRED.value,
+        "effective_risk_tier": RiskTier.R3.value,
+        "action_fingerprint": proposal.evaluation.action_fingerprint,
         "intent_fingerprint": proposal.intent_fingerprint,
         "context_hash": proposal.context.context_hash,
         "runtime_binding_hash": proposal.runtime_binding.binding_hash,
@@ -209,7 +217,7 @@ def _fresh_context(
             work_item_id=proposal.intent.work_item_id,
             purpose=ContextPurpose.REVIEW,
         )
-    except (ContextBrokerError, RuntimeError) as exc:
+    except (ContextBrokerError, OrganizationCommandError) as exc:
         raise DecisionReadinessIntegrityError(
             "governed context is no longer eligible for Decision Readiness"
         ) from exc
@@ -220,6 +228,18 @@ def _fresh_context(
     if proposal.runtime_binding.position_key != current.position.position_key:
         raise DecisionReadinessIntegrityError("runtime binding employee identity does not match ContextBundle")
     return current
+
+
+def _lead_domain(lead: Lead) -> str:
+    value = getattr(lead.intent, "value", lead.intent)
+    normalized = str(value or "unknown").strip().casefold()
+    if normalized in {"study_abroad", "study", "student"}:
+        return "study"
+    if normalized in {"overseas_job", "work", "job", "employment"}:
+        return "work"
+    if normalized in {"visa", "permanent", "residency", "immigration"}:
+        return "visa"
+    return "general"
 
 
 def _current_domain_state(
@@ -257,11 +277,10 @@ def _current_domain_state(
 
     facts = case_facts(session, lead, profile)
     target_country = str(facts.get("target_country") or "").strip().casefold()
-    goal = str(facts.get("goal") or "").strip().casefold()
     if target_country != pathway.country.casefold():
         raise DecisionReadinessIntegrityError("case target country no longer matches the governed pathway")
-    if not goal:
-        raise DecisionReadinessIntegrityError("case mobility goal is no longer available")
+    if _lead_domain(lead).casefold() != pathway.domain.casefold():
+        raise DecisionReadinessIntegrityError("case mobility domain no longer matches the governed pathway")
     return lead, profile, pathway, pathway_version, facts
 
 
@@ -355,12 +374,14 @@ def _publication_integrity_gate(
     pathway: MobilityPathway,
     pathway_version: MobilityPathwayVersion,
 ) -> DecisionReadinessGate:
-    # F.1 deliberately reuses the mature pathway-publication blocker logic rather
-    # than creating a second interpretation of source certification, required
-    # evidence roles or rule provenance. The helper remains internal to the same
-    # service package; a public extraction can wait until another real consumer
-    # proves the stable contract.
-    blockers = _publication_evidence_blockers(session, pathway, pathway_version)
+    # Reuse the mature pathway publication checks rather than creating a second
+    # interpretation of source certification, evidence-role and rule-provenance
+    # requirements. Keep this bounded internal dependency until another real
+    # consumer demonstrates a stable public extraction is warranted.
+    try:
+        blockers = _publication_evidence_blockers(session, pathway, pathway_version)
+    except ValueError as exc:
+        raise DecisionReadinessIntegrityError("pathway publication integrity could not be evaluated") from exc
     return DecisionReadinessGate(
         code=DecisionReadinessGateCode.PATHWAY_PUBLICATION_INTEGRITY,
         status=(DecisionReadinessGateStatus.PASS if not blockers else DecisionReadinessGateStatus.FAIL),
@@ -427,17 +448,16 @@ def assess_eligibility_decision_readiness(
     session: Session,
     *,
     proposal: GovernedEligibilityTransitionIntentResult,
-    assessed_at: datetime | None = None,
 ) -> EligibilityDecisionReadinessResult:
-    """Assess whether one accepted E.2 proposal is ready to enter independent verification.
+    """Assess whether one accepted E.2 proposal may enter independent verification.
 
-    F.1 is deterministic and read-only. It does not call a model, does not mutate
-    eligibility state, and does not authorize the R3 action. A READY result means
-    only that the proposal may advance to a genuinely independent verifier in G.
+    F.1 is deterministic and read-only. It never calls a model, mutates eligibility
+    state, or authorizes the R3 action. READY means only that the proposal may be
+    handed to a genuinely independent verifier in V1.3-G.
 
-    The LLM's confidence is intentionally ignored. Profile completeness/readiness
-    scores are also not treated as material decision gates because they describe
-    intake completeness rather than eligibility-decision authority.
+    LLM confidence is intentionally ignored. Profile completeness/readiness scores
+    are also not material decision gates because they measure intake completeness,
+    not eligibility-decision authority.
     """
 
     _attempt_integrity(session, proposal)
@@ -467,21 +487,22 @@ def assess_eligibility_decision_readiness(
     state = _state(gates)
     passed = sum(gate.status is DecisionReadinessGateStatus.PASS for gate in gates)
     score = round(passed / len(gates), 4)
-    fingerprint_payload = {
-        "schema_version": DECISION_READINESS_SCHEMA_VERSION,
-        "intent_fingerprint": proposal.intent_fingerprint,
-        "context_hash": current_context.context_hash,
-        "profile_id": str(profile.id),
-        "profile_version": profile.profile_version,
-        "pathway_version_id": str(pathway_version.id),
-        "gates": gates,
-        "state": state,
-        "readiness_score": score,
-        "independent_verification_required": True,
-        "authorization_effect": False,
-        "canonical_commit_allowed": False,
-    }
-    readiness_fingerprint = canonical_fingerprint(fingerprint_payload)
+    readiness_fingerprint = canonical_fingerprint(
+        {
+            "schema_version": DECISION_READINESS_SCHEMA_VERSION,
+            "intent_fingerprint": proposal.intent_fingerprint,
+            "context_hash": current_context.context_hash,
+            "profile_id": str(profile.id),
+            "profile_version": profile.profile_version,
+            "pathway_version_id": str(pathway_version.id),
+            "gates": gates,
+            "state": state,
+            "readiness_score": score,
+            "independent_verification_required": True,
+            "authorization_effect": False,
+            "canonical_commit_allowed": False,
+        }
+    )
 
     return EligibilityDecisionReadinessResult(
         schema_version=DECISION_READINESS_SCHEMA_VERSION,
@@ -494,7 +515,7 @@ def assess_eligibility_decision_readiness(
         profile_version=profile.profile_version,
         pathway_version_id=pathway_version.id,
         readiness_fingerprint=readiness_fingerprint,
-        assessed_at=assessed_at or now_utc(),
+        assessed_at=now_utc(),
         ready_for_independent_verification=(
             state is DecisionReadinessState.READY_FOR_INDEPENDENT_VERIFICATION
         ),
