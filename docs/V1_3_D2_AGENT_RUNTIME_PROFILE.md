@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -105,7 +105,7 @@ AgentRuntimeProfile.available_tools
 
 D.2 intentionally re-resolves the canonical ContextBundle before performing that intersection. A caller cannot copy a ContextBundle in memory, add fake `allowed_tools`, retain the old hash and thereby grant a runtime new tool authority.
 
-D.1 currently provides no governed tool grants, so D.2 bindings currently resolve an empty effective tool set. A future Context Broker adapter must introduce tool grants from governed policy/capability state.
+D.3 now supplies governed ContextBundle tool entitlements from the explicit transitional position-contract authority namespace, so D.2's intersection is operational rather than merely preparatory.
 
 ## Binding fingerprint
 
@@ -133,7 +133,7 @@ D.2 does not yet implement R3+ verifier selection. It merely prevents the runtim
 
 Existing `LLMProviderFactory` and provider implementations remain execution infrastructure.
 
-D.2 does not rewrite or adopt them into organizational authority. A future AIOS Agent Runtime Port may adapt those providers, CLI runtimes, local models, specialized runtimes and Munder-derived mechanics behind `AgentRuntimeProfile`.
+D.2 does not rewrite or adopt them into organizational authority. Future vertical runtime execution may adapt those providers, CLI runtimes, local models, specialized runtimes and Munder-derived mechanics behind `AgentRuntimeProfile`, but only after governed context and vertical semantics are established.
 
 ## Tests
 
@@ -162,24 +162,38 @@ D.2 does not claim:
 - Munder runtime adoption;
 - persistent runtime-session storage;
 - provider routing optimization;
-- tool authorization;
 - independent verifier selection;
 - AI Economics;
 - Flight Recorder completion;
 - full V1.3-D completion;
 - GitHub CI PASS.
 
-## Acceptance gate
+## Acceptance evidence
 
-Canonical local acceptance should include:
+Canonical Windows V12 acceptance reported by the Human Owner:
 
-- D.1 + D.2 focused tests;
-- relevant governance/transparency/context chain;
-- repository policy;
-- full API regression;
-- migration check;
-- local DB schema check;
-- `git diff --check`;
-- clean/synchronized branch status.
+```text
+Focused context/runtime/authority/transparency neighborhood   36 passed / 1 warning / 0 failed
+Repository policy                                             PASS
+Full API regression                                           961 passed / 5 skipped / 1 warning / 0 failed
+Database migration check                                      PASS
+Migration head                                                0076_organization_position_active_identity
+Registered tables                                             118
+Local DB schema check                                         PASS
+Actual tables                                                 118
+Physical tables                                               119 incl. alembic_version
+git diff --check                                              clean
+V12 branch status                                             clean / synchronized
+```
 
-After D.2 acceptance, the next bounded D slice should connect governed runtime-profile selection to a first AIOS Agent Runtime Port without allowing provider/runtime code to own organization identity or authority.
+Canonical acceptance record:
+
+`docs/V1_3_D2_ACCEPTANCE_2026-08-20.md`
+
+No GitHub CI PASS is claimed because no attached status checks were present.
+
+## Seal decision
+
+V1.3-D.2 is COMPLETE / PASS / SEALED.
+
+The next product-direction priority is not a generic runtime-port abstraction in isolation. D.2 is now a sealed supporting primitive for the first end-to-end governed Global Mobility vertical, with runtime execution introduced only where that vertical provides a real consumer.
