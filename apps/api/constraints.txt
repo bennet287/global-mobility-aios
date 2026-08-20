@@ -1,0 +1,35 @@
+# Global Mobility AIOS reviewed Python direct-dependency constraints.
+#
+# Install with:
+#   python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+#
+# This file intentionally pins every direct dependency declared in requirements.txt.
+# It is the first reproducible baseline for CI and release verification; it is not yet
+# claimed to be a complete transitive lock. Transitive lock generation may be added
+# after this baseline is proven across the supported Python/PostgreSQL lanes.
+
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic==2.8.0
+pydantic-settings==2.4.0
+sqlmodel==0.0.22
+alembic==1.13.0
+psycopg[binary]==3.2.0
+qdrant-client==1.12.0
+redis==5.0.0
+celery==5.4.0
+minio==7.2.0
+httpx==0.27.0
+python-multipart==0.0.9
+pyyaml==6.0.0
+pypdf==5.0.0
+pillow==11.0.0
+pytesseract==0.3.13
+email-validator==2.2.0
+cryptography==42.0.0
+opentelemetry-api==1.28.0
+opentelemetry-sdk==1.28.0
+opentelemetry-instrumentation-fastapi==0.49b0
+opentelemetry-exporter-otlp==1.28.0
+clamd==1.0.0
+pytest==8.3.0
