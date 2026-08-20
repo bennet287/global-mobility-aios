@@ -1,11 +1,14 @@
-# Global Mobility AIOS reviewed Python direct-dependency constraints.
+# Global Mobility AIOS Python direct-dependency constraint baseline.
 #
 # Install with:
 #   python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
 #
-# This file intentionally pins every direct dependency declared in requirements.txt.
-# It is the first reproducible baseline for CI and release verification; it is not yet
-# claimed to be a complete transitive lock. Transitive lock generation may be added
+# This file intentionally pins every direct dependency declared in requirements.txt
+# to the repository's current declared minimum baseline. It establishes a deterministic
+# candidate set for CI and release verification, but those versions are not claimed
+# accepted until the production-proof lanes actually install and test them.
+#
+# This is not yet a complete transitive lock. Transitive lock generation may be added
 # after this baseline is proven across the supported Python/PostgreSQL lanes.
 
 fastapi==0.115.0
