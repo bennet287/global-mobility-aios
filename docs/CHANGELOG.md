@@ -22,6 +22,203 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-G.5 ELIGIBILITY REASSESSMENT / SUPERSESSION — COMPLETE / PASS / SEALED
+
+### Status
+
+**The governed eligibility vertical now supports explicit, concurrency-safe, append-only canonical reassessment. AIOS can supersede a prior canonical eligibility revision only when the new operation names the exact revision it believes is current, reruns the full governed verification chain, receives fresh final authorization and commits the supersession atomically.**
+
+Accepted implementation head:
+
+```text
+e50a67d5167ace79423c62b3a729c45a82032bb8
+```
+
+Permanent concurrency boundary:
+
+```text
+Profile concurrency
+  MaterialAction.expected_version = Profile.profile_version
+
+Canonical eligibility concurrency
+  expected_eligibility_revision_version = current active canonical revision version
+```
+
+G.5 deliberately does not reuse the generic Profile version slot for canonical eligibility revision concurrency.
+
+### Accepted canonical transition
+
+Initial effect remains:
+
+```text
+no ACTIVE canonical revision
++ no expected eligibility revision
+→ v1 ACTIVE
+```
+
+Explicit reassessment is now:
+
+```text
+vN ACTIVE
++ expected_eligibility_revision_version = vN
+→ E.2 governed reassessment proposal
+→ F.1 Decision Readiness
+→ G.1 blind independent verification
+→ G.2 verification-floor integration + revision revalidation
+→ G.3 fresh final Command Gateway authorization
+→ atomic vN ACTIVE → SUPERSEDED
+→ new vN+1 ACTIVE
+→ new.supersedes_revision_id = prior revision id
+```
+
+Missing/stale revision expectations fail closed. More than one active revision is an aggregate-integrity failure. There is no implicit reassessment and no last-write-wins behavior.
+
+### E.2 / G.2 integration
+
+E.2 resolves the canonical eligibility revision precondition before provider/model execution and revalidates it after runtime latency.
+
+The accepted material action carries:
+
+```text
+eligibility_aggregate_key
+expected_eligibility_revision_version
+expected_eligibility_revision_id
+next_eligibility_revision_version
+```
+
+while retaining:
+
+```text
+MaterialAction.expected_version = Profile.profile_version
+```
+
+The durable E.2 governance attempt records the same revision contract.
+
+G.2 reconstructs the exact accepted E.2 action and revalidates the canonical revision before verification-floor authorization. A replay-only reconstruction path may skip *current* revision validation only when resolving an already-durable historical effect; it cannot authorize fresh work.
+
+### Atomic G.3 supersession
+
+G.3 now supports initial canonical creation and explicit reassessment through the same canonical-effect service.
+
+For reassessment, one transaction stages:
+
+```text
+canonical governance authorization Activity
++ prior ACTIVE revision → SUPERSEDED
++ new EligibilityAssessment
++ new EligibilityAssessmentRevision vN+1 ACTIVE
++ supersedes_revision_id → prior revision
++ semantic MATERIAL eligibility Activity
+```
+
+Any failure rolls back the entire reassessment, including the lifecycle change on the prior revision.
+
+Prior assessment/revision content is never rewritten in place.
+
+The existing `EligibilityAssessment.overall_score = 0.0` remains a legacy compatibility placeholder and is not a computed eligibility score.
+
+### Historical replay after supersession
+
+G.5 separates durable historical effect identity from current aggregate state.
+
+After v2 supersedes v1, an exact retry of the original v1 idempotency key still returns the original v1 effect as:
+
+```text
+GatewayOutcome.IDEMPOTENT_REPLAY
+```
+
+without model calls and without requiring v1 to remain ACTIVE.
+
+Replay continues to validate the persisted action/effect/readiness/verification/floor/assessment/semantic lineage and fails closed on torn or conflicting state.
+
+### G.4 orchestration / HTTP extension
+
+The accepted governed route remains:
+
+```text
+POST /api/v1/organization/eligibility/orchestrate
+```
+
+G.5 adds one optional request field:
+
+```text
+expected_eligibility_revision_version >= 1
+```
+
+This is an optimistic-concurrency assertion only.
+
+Request JSON still cannot choose tenant authority, producer/verifier OrganizationPosition, runtime, provider, model, autonomy, risk, scope or `CapabilityAuthority`.
+
+Post-commit orchestration replay validates that the reused idempotency key carries the same revision expectation as the persisted effect. Conflicting replay expectations fail before either model executes.
+
+### Accepted evidence
+
+```text
+G.5 precondition + G.3 baseline          20 passed / 1 warning / 0 failed
+G.5 E.2/G.2 integration                 38 passed / 1 warning / 0 failed
+G.5 canonical-effect core               28 passed / 1 warning / 0 failed
+E.2 → G.5 effect vertical               84 passed / 1 warning / 0 failed
+G.4 + G.5 orchestration/API             15 passed / 1 warning / 0 failed
+E.2 → G.5 full governed vertical        99 passed / 1 warning / 0 failed
+Platform hardening                      8 passed / 1 warning / 0 failed
+Repository policy                       PASS
+Full API regression                     1075 passed / 5 skipped / 1 warning / 0 failed
+Full API duration                       397.94s
+Database migration check                PASS
+Migration head                          0077_canonical_eligibility_assessment_revision
+Registered tables                       119
+Local DB schema                         PASS
+Actual tables                           119
+Physical tables                         120 incl. alembic_version
+git diff --check                        clean
+V12 branch                              clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_G5_ELIGIBILITY_REASSESSMENT_SUPERSESSION.md
+docs/V1_3_G5_ACCEPTANCE_2026-08-20.md
+```
+
+### Database / migration effect
+
+No migration was required. The existing revision schema already contains:
+
+```text
+version
+lifecycle_status
+supersedes_revision_id
+```
+
+Canonical migration/schema truth remains `0077`, 119 registered tables, 119 actual tables and 120 physical tables including `alembic_version`.
+
+### Roadmap effect
+
+The active roadmap advances from **V12.16 to V12.17**.
+
+```text
+V1.3-A     COMPLETE / PASS / SEALED
+V1.3-B     COMPLETE / PASS / SEALED
+V1.3-C     COMPLETE / PASS / SEALED through C.4
+V1.3-D     COMPLETE / PASS / SEALED through D.3
+V1.3-E     COMPLETE / PASS / SEALED through E.2
+V1.3-F     COMPLETE / PASS / SEALED through F.1
+V1.3-G     COMPLETE / PASS / SEALED through G.5
+V1.3-G.4   Governed Eligibility Orchestration — COMPLETE / PASS / SEALED
+V1.3-G.4.1 Eligibility Vertical Contract Consolidation — COMPLETE / PASS / SEALED
+V1.3-G.5   Eligibility Reassessment / Supersession — COMPLETE / PASS / SEALED
+V1.3-H     Organizational Immune System + circuit breaking — NEXT
+```
+
+H should start from concrete governed failure/anomaly signals now present in E.2–G.5—such as stale canonical revision conflicts, independent-verifier disagreement, torn durable lineage and runtime/provider failure—rather than inventing a generic anomaly platform first.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed because no attached status checks were present on the accepted implementation head.
+
+---
+
 ## 2026-08-20 — V1.3-G.4.1 ELIGIBILITY VERTICAL CONTRACT CONSOLIDATION — COMPLETE / PASS / SEALED
 
 ### Status
