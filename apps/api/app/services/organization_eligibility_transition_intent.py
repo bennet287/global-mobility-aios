@@ -44,6 +44,12 @@ from app.services.organization_context_broker import (
     ContextReference,
     build_work_item_context_bundle,
 )
+from app.services.organization_eligibility_revision_precondition import (
+    EligibilityRevisionPrecondition,
+    EligibilityRevisionPreconditionError,
+    require_eligibility_revision_precondition_current,
+    resolve_eligibility_revision_precondition,
+)
 from app.services.organization_governance_kernel import (
     CapabilityAuthority,
     GatewayEvaluation,
@@ -104,6 +110,7 @@ class GovernedEligibilityTransitionIntentResult:
     runtime_binding: EmployeeRuntimeBinding
     intent: EligibilityTransitionIntent
     intent_fingerprint: str
+    eligibility_revision_precondition: EligibilityRevisionPrecondition
     evaluation: GatewayEvaluation
     attempt_activity: OrganizationActivity
     provider: str
@@ -377,6 +384,7 @@ def _persist_attempt(
     intent_fingerprint: str,
     context_hash: str,
     runtime_binding_hash: str,
+    eligibility_revision_precondition: EligibilityRevisionPrecondition,
 ) -> OrganizationActivity:
     if evaluation.outcome not in {GatewayOutcome.BLOCK, GatewayOutcome.REVIEW_REQUIRED}:
         raise EligibilityIntentIntegrityError("E.2 may persist only non-executing gateway outcomes")
@@ -400,6 +408,14 @@ def _persist_attempt(
             "confidence": intent.confidence,
             "evidence_basis": list(intent.evidence_basis),
             "rule_basis": list(intent.rule_basis),
+            "eligibility_aggregate_key": eligibility_revision_precondition.aggregate_key,
+            "expected_eligibility_revision_version": eligibility_revision_precondition.expected_revision_version,
+            "expected_eligibility_revision_id": (
+                str(eligibility_revision_precondition.current_revision_id)
+                if eligibility_revision_precondition.current_revision_id is not None
+                else None
+            ),
+            "next_eligibility_revision_version": eligibility_revision_precondition.next_revision_version,
             "r3_verification_floor": "independent_verification_not_yet_satisfied",
         },
     )
@@ -436,6 +452,7 @@ def governed_eligibility_transition_intent(
     authority: CapabilityAuthority,
     provider: LLMProvider,
     idempotency_key: str,
+    expected_eligibility_revision_version: int | None = None,
 ) -> GovernedEligibilityTransitionIntentResult:
     """Run E.2: case-scoped runtime proposal → typed intent → R3 Command Gateway.
 
@@ -443,6 +460,10 @@ def governed_eligibility_transition_intent(
     a material eligibility transition while AIOS independently validates the proposal,
     constructs the MaterialAction, and forces the R3 action to REVIEW_REQUIRED until
     independent verification exists. The durable governance attempt is Board-inspectable.
+
+    ``MaterialAction.expected_version`` continues to protect the immutable Profile
+    version. G.5 adds an eligibility-specific optimistic-concurrency precondition in
+    ``proposed_change`` so reassessment cannot trade away the existing Profile guard.
 
     The provider must be supplied explicitly. E.2 does not automatically resolve an
     external hosted provider because case-scoped provider-egress/sensitivity policy is
@@ -468,6 +489,18 @@ def governed_eligibility_transition_intent(
     payload, lead, profile, pathway, pathway_version, evidence_tokens, rule_tokens = (
         _case_and_pathway_payload(session, context=context)
     )
+    try:
+        eligibility_revision_precondition = resolve_eligibility_revision_precondition(
+            session,
+            tenant_key=tenant_key,
+            lead_id=lead.id,
+            pathway_id=pathway.id,
+            expected_revision_version=expected_eligibility_revision_version,
+        )
+    except EligibilityRevisionPreconditionError as exc:
+        raise EligibilityIntentIntegrityError(
+            "canonical eligibility revision precondition is invalid"
+        ) from exc
     prompt_payload = canonical_json(payload)
 
     try:
@@ -495,7 +528,7 @@ def governed_eligibility_transition_intent(
     )
 
     # Re-read canonical state after runtime latency. The model never gets to carry a
-    # stale case/context proposal across this boundary.
+    # stale case/context or canonical-revision proposal across this boundary.
     session.expire_all()
     current_context = build_work_item_context_bundle(
         session,
@@ -514,6 +547,17 @@ def governed_eligibility_transition_intent(
     )
     if current_profile.id != intent.profile_id or current_profile.profile_version != intent.profile_version:
         raise EligibilityIntentIntegrityError("eligibility intent profile precondition is stale")
+    try:
+        eligibility_revision_precondition = require_eligibility_revision_precondition_current(
+            session,
+            precondition=eligibility_revision_precondition,
+            lead_id=intent.lead_id,
+            pathway_id=pathway.id,
+        )
+    except EligibilityRevisionPreconditionError as exc:
+        raise EligibilityIntentIntegrityError(
+            "canonical eligibility revision changed during runtime execution"
+        ) from exc
 
     intent_fingerprint = canonical_fingerprint(intent)
     command_context = system_bound_agent_command_context(
@@ -538,6 +582,14 @@ def governed_eligibility_transition_intent(
             "context_hash": current_context.context_hash,
             "runtime_binding_hash": binding.binding_hash,
             "intent_fingerprint": intent_fingerprint,
+            "eligibility_aggregate_key": eligibility_revision_precondition.aggregate_key,
+            "expected_eligibility_revision_version": eligibility_revision_precondition.expected_revision_version,
+            "expected_eligibility_revision_id": (
+                str(eligibility_revision_precondition.current_revision_id)
+                if eligibility_revision_precondition.current_revision_id is not None
+                else None
+            ),
+            "next_eligibility_revision_version": eligibility_revision_precondition.next_revision_version,
         },
         scope_key=scope_key,
         evidence_refs=tuple(sorted((*intent.evidence_basis, *intent.rule_basis))),
@@ -579,6 +631,7 @@ def governed_eligibility_transition_intent(
         intent_fingerprint=intent_fingerprint,
         context_hash=current_context.context_hash,
         runtime_binding_hash=binding.binding_hash,
+        eligibility_revision_precondition=eligibility_revision_precondition,
     )
     return GovernedEligibilityTransitionIntentResult(
         schema_version=ELIGIBILITY_INTENT_SCHEMA_VERSION,
@@ -586,6 +639,7 @@ def governed_eligibility_transition_intent(
         runtime_binding=binding,
         intent=intent,
         intent_fingerprint=intent_fingerprint,
+        eligibility_revision_precondition=eligibility_revision_precondition,
         evaluation=evaluation,
         attempt_activity=attempt_activity,
         provider=response.provider,
