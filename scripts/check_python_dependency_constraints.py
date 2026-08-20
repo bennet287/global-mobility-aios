@@ -7,9 +7,9 @@ from pathlib import Path
 REQUIREMENTS = Path("apps/api/requirements.txt")
 CONSTRAINTS = Path("apps/api/constraints.txt")
 NAME = re.compile(r"^([A-Za-z0-9_.-]+)(?:\[[^\]]+\])?")
-EXACT_CONSTRAINT = re.compile(
-    r"^[A-Za-z0-9_.-]+(?:\[[^\]]+\])?==[^\s;<>!=~@]+$"
-)
+# pip constraint files accept normalized distribution names plus version specifiers;
+# extras belong in requirements.txt and are invalid in constraints.txt.
+EXACT_CONSTRAINT = re.compile(r"^[A-Za-z0-9_.-]+==[^\s;<>!=~@]+$")
 
 
 def normalized_name(line: str) -> str:
@@ -48,7 +48,7 @@ def main() -> int:
             violations.append(f"missing exact constraint for {name}")
         elif EXACT_CONSTRAINT.fullmatch(constraint) is None:
             violations.append(
-                f"constraint for {name} must be one unconditional exact == pin: {constraint!r}"
+                f"constraint for {name} must be one pip-compatible unconditional exact == pin without extras: {constraint!r}"
             )
 
     for name in sorted(set(constraint_by_name) - set(requirement_names)):
