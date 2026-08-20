@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -37,6 +37,8 @@ HUMAN REVIEW REQUIRED
 ```
 
 This is the first real runtime consumer of D.2 and D.3.
+
+Canonical acceptance: `docs/V1_3_E1_ACCEPTANCE_2026-08-20.md`.
 
 ## Why the first vertical is a pathway brief rather than an eligibility decision
 
@@ -190,8 +192,6 @@ E.1 deliberately creates no:
 
 This first vertical proves governed execution before durable action/decision lineage is expanded.
 
-The next E slice may introduce a durable governed output/effect only after this read-only path is accepted and only through an existing or explicitly added material-action boundary.
-
 ## Existing domain engines
 
 The repository already contains `eligibility_engine.py` and `pathway_catalogue.py` with significant deterministic mobility logic.
@@ -217,24 +217,19 @@ Later E slices should reconcile reusable deterministic eligibility logic with Co
 
 The service additionally enforces bound model identity when the runtime profile pins a model.
 
-## Acceptance gate
-
-Canonical V12 acceptance should include:
+## Accepted evidence
 
 ```text
-E.1 focused tests
-D.1 + D.2 + D.3 + E.1 focused chain
-governance/transparency/context/runtime/vertical chain
-protected v10.22 roadmap regression
-repository policy
-full API regression
-migration check
-local DB schema check
-git diff --check
-clean/synchronized V12 branch
+Repository policy             PASS
+Full API regression           969 passed / 5 skipped / 1 warning / 0 failed
+Migration check               PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS / 118 actual / 119 physical incl. alembic_version
+git diff --check              clean
 ```
 
-No GitHub CI PASS is claimed without attached checks.
+The acceptance record documents the truthful branch-state nuance from the E.1 run.
 
 ## Non-claims
 
@@ -251,25 +246,9 @@ E.1 does not claim:
 - tool execution;
 - CLI/local/Munder runtime adoption;
 - automated external action;
-- V1.3-E completion;
+- V1.3-E completion by itself;
 - GitHub CI PASS.
 
 ## Direction after E.1
 
-If E.1 passes, the next work should remain vertical.
-
-Preferred progression:
-
-```text
-E.1  governed pathway research brief
- ↓
-E.2  case/profile authority adapter + case-specific pathway assessment candidate
- ↓
-F    Decision Readiness gates for material eligibility/recommendation
- ↓
-G    genuinely independent verification
- ↓
-governed canonical effect / client explanation where authorized
-```
-
-Runtime/Munder expansion remains subordinate to real consumers. We should not build a large runtime fabric before the first mobility vertical proves what execution contracts the product actually needs.
+E.2 is now the accepted downstream vertical proof. The active next stage after E.1 + E.2 is Decision Readiness, followed by genuinely independent verification before any canonical eligibility mutation.
