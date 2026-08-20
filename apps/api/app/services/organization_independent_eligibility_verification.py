@@ -11,7 +11,6 @@ from sqlmodel import Session
 from app.models.domain import (
     Lead,
     OrganizationActivity,
-    OrganizationActorType,
     OrganizationalWorkItem,
     Profile,
     now_utc,
@@ -26,9 +25,9 @@ from app.services.organization_agent_runtime import (
     bind_employee_runtime,
 )
 from app.services.organization_command import (
-    OrganizationCommandContext,
     canonical_fingerprint,
     canonical_json,
+    system_bound_agent_command_context,
 )
 from app.services.organization_context_broker import (
     ContextBundle,
@@ -503,20 +502,6 @@ def _disposition(
     )
 
 
-def _command_context(context: ContextBundle, *, correlation_key: str) -> OrganizationCommandContext:
-    return OrganizationCommandContext(
-        tenant_key=context.tenant_key,
-        actor_id=context.position.position_key,
-        actor_type=OrganizationActorType.agent,
-        authenticated_user_id="system",
-        role="operator",
-        department=context.position.department,
-        position_key=context.position.position_key,
-        authority_level=context.position.authority_level,
-        correlation_key=correlation_key,
-    )
-
-
 def _persist_verification(
     session: Session,
     *,
@@ -532,8 +517,11 @@ def _persist_verification(
     provider: str,
     model: str,
 ) -> OrganizationActivity:
-    command_context = _command_context(
-        verifier_context,
+    command_context = system_bound_agent_command_context(
+        tenant_key=verifier_context.tenant_key,
+        position_key=verifier_context.position.position_key,
+        department=verifier_context.position.department,
+        authority_level=verifier_context.position.authority_level,
         correlation_key=str(proposal.evaluation.trace_id),
     )
     activity = stage_activity(
