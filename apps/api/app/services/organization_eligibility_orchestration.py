@@ -6,8 +6,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import EligibilityAssessment, OrganizationActivity
-from app.models.eligibility_revision import EligibilityAssessmentRevision
+from app.models.domain import OrganizationActivity
 from app.services.llm_client import LLMProvider
 from app.services.organization_agent_runtime import AgentRuntimeProfile
 from app.services.organization_decision_readiness import (
@@ -16,7 +15,6 @@ from app.services.organization_decision_readiness import (
     assess_eligibility_decision_readiness,
 )
 from app.services.organization_eligibility_effect import (
-    ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE,
     EligibilityCanonicalEffectError,
     commit_governed_eligibility_effect,
 )
@@ -27,6 +25,10 @@ from app.services.organization_eligibility_immune_system import (
     eligibility_circuit_scope_for_work_item,
     record_eligibility_immune_incident,
     require_eligibility_circuit_closed,
+)
+from app.services.organization_eligibility_lineage import (
+    CanonicalEligibilityLineageError,
+    canonical_eligibility_lineage_for_governance,
 )
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
@@ -45,7 +47,6 @@ from app.services.organization_independent_eligibility_verification import (
     IndependentVerificationDisposition,
     verify_eligibility_proposal_independently,
 )
-from app.services.organization_transparency import TransparencyDataError, transparency_activity_record
 
 
 ELIGIBILITY_ORCHESTRATION_SCHEMA_VERSION = "governed-eligibility-orchestration.v1"
@@ -177,94 +178,35 @@ def _completed_effect_replay(
         return None
 
     try:
-        governance_record = transparency_activity_record(governance)
-    except TransparencyDataError as exc:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "durable canonical eligibility governance is malformed"
-        ) from exc
-    if governance_record.payload.get("governance_record_kind") != "eligibility_canonical_effect_authorization":
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "orchestration idempotency key is already owned by a different governance record"
+        lineage = canonical_eligibility_lineage_for_governance(
+            session,
+            tenant_key=tenant_key,
+            governance_activity_id=governance.id,
         )
+    except CanonicalEligibilityLineageError as exc:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            f"completed canonical eligibility effect failed durable lineage validation: {exc.code}"
+        ) from exc
+
+    revision = lineage.revision
+    assessment = lineage.assessment
+    verification = lineage.verification_activity
+    floor = lineage.verification_floor_activity
+    semantic = lineage.semantic_activity
+
     if governance.work_item_id != proposal_work_item_id:
         raise GovernedEligibilityOrchestrationIntegrityError(
             "completed canonical effect belongs to a different proposal WorkItem"
-        )
-
-    revisions = list(
-        session.exec(
-            select(EligibilityAssessmentRevision).where(
-                EligibilityAssessmentRevision.tenant_key == tenant_key,
-                EligibilityAssessmentRevision.governance_activity_id == governance.id,
-            )
-        ).all()
-    )
-    if len(revisions) != 1:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed canonical governance does not resolve to exactly one eligibility revision"
-        )
-    revision = revisions[0]
-    replay_expectation = None if revision.version == 1 else revision.version - 1
-    if expected_eligibility_revision_version != replay_expectation:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "orchestration replay eligibility revision expectation conflicts with durable effect"
-        )
-    if revision.version == 1:
-        if revision.supersedes_revision_id is not None:
-            raise GovernedEligibilityOrchestrationIntegrityError(
-                "first canonical eligibility revision cannot supersede another revision"
-            )
-    else:
-        if revision.supersedes_revision_id is None:
-            raise GovernedEligibilityOrchestrationIntegrityError(
-                "reassessment eligibility revision lacks supersession lineage"
-            )
-        predecessor = session.get(EligibilityAssessmentRevision, revision.supersedes_revision_id)
-        if (
-            predecessor is None
-            or predecessor.tenant_key != tenant_key
-            or predecessor.aggregate_key != revision.aggregate_key
-            or predecessor.version != revision.version - 1
-        ):
-            raise GovernedEligibilityOrchestrationIntegrityError(
-                "reassessment eligibility revision has invalid supersession lineage"
-            )
-
-    assessment = session.get(EligibilityAssessment, revision.assessment_id)
-    semantic = (
-        session.get(OrganizationActivity, revision.semantic_activity_id)
-        if revision.semantic_activity_id is not None
-        else None
-    )
-    verification = session.get(OrganizationActivity, revision.verification_activity_id)
-    floor = session.get(OrganizationActivity, revision.verification_floor_activity_id)
-    if assessment is None or semantic is None or verification is None or floor is None:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed canonical eligibility effect has torn durable lineage"
         )
     if verification.work_item_id != verification_work_item_id:
         raise GovernedEligibilityOrchestrationIntegrityError(
             "completed canonical effect belongs to a different verification WorkItem"
         )
-    if semantic.activity_type != ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE:
+
+    replay_expectation = None if revision.version == 1 else revision.version - 1
+    if expected_eligibility_revision_version != replay_expectation:
         raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed canonical eligibility effect has the wrong semantic Activity type"
-        )
-    if semantic.causation_activity_id != governance.id:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed canonical eligibility effect lost governance causation"
-        )
-    if semantic.source_object_version != str(revision.version):
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed canonical eligibility effect has the wrong semantic revision version"
-        )
-    if verification.causation_activity_id is None:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed independent verification has no E.2 proposal cause"
-        )
-    if floor.causation_activity_id != verification.id or governance.causation_activity_id != floor.id:
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "completed canonical eligibility effect has broken E.2/G.1/G.2/G.3 causation"
+            "orchestration replay eligibility revision expectation conflicts with durable effect"
         )
     try:
         trace_id = UUID(str(governance.correlation_key))
@@ -277,7 +219,7 @@ def _completed_effect_replay(
         schema_version=ELIGIBILITY_ORCHESTRATION_SCHEMA_VERSION,
         state=GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED,
         trace_id=trace_id,
-        proposal_activity_id=verification.causation_activity_id,
+        proposal_activity_id=lineage.proposal_activity_id,
         readiness_state=DecisionReadinessState.READY_FOR_INDEPENDENT_VERIFICATION.value,
         verification_activity_id=verification.id,
         verification_disposition=IndependentVerificationDisposition.AGREES.value,
