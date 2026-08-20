@@ -42,6 +42,8 @@ jobs:
   backend-sqlite:
     name: Backend regression (SQLite)
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: sqlite:///./ci-production-proof.db
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -63,10 +65,13 @@ jobs:
       - name: Compile Python sources
         run: python -m compileall -q apps/api/app scripts
 
+      - name: Upgrade isolated SQLite schema through Alembic
+        run: python -m alembic -c alembic.ini upgrade head
+
       - name: Backend pytest regression
         run: python -m pytest apps/api/tests -q
 
-      - name: Migration consistency
+      - name: Migration consistency and physical schema
         run: python scripts/check_database_migrations.py
 
       - name: Local schema contract
@@ -148,7 +153,7 @@ jobs:
       - name: Upgrade isolated PostgreSQL schema through Alembic
         run: python -m alembic -c alembic.ini upgrade head
 
-      - name: Verify migration contract
+      - name: Verify PostgreSQL migration and physical schema contract
         run: python scripts/check_database_migrations.py
 
       - name: Run governed eligibility PostgreSQL contracts
