@@ -77,10 +77,14 @@ class GovernedMobilityPathwayBriefResult:
     draft: MobilityPathwayBriefDraft
 
 
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant {value!r} is not permitted")
+
+
 def _json_value(raw: str | None, *, label: str, expected_type: type, default: Any) -> Any:
     candidate = raw if raw not in (None, "") else json.dumps(default)
     try:
-        value = json.loads(candidate)
+        value = json.loads(candidate, parse_constant=_reject_json_constant)
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         raise MobilityPathwayBriefError(f"{label} is not valid JSON") from exc
     if not isinstance(value, expected_type):
@@ -352,13 +356,12 @@ def _non_empty_string(value: Any, *, label: str) -> str:
 def _string_tuple(value: Any, *, label: str) -> tuple[str, ...]:
     if not isinstance(value, list):
         raise MobilityPathwayBriefOutputError(f"{label} must be an array")
-    items = tuple(_non_empty_string(item, label=f"{label} item") for item in value)
-    return items
+    return tuple(_non_empty_string(item, label=f"{label} item") for item in value)
 
 
 def _validated_draft(content: str, *, allowed_citations: set[str]) -> MobilityPathwayBriefDraft:
     try:
-        payload = json.loads(content)
+        payload = json.loads(content, parse_constant=_reject_json_constant)
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         raise MobilityPathwayBriefOutputError("runtime output is not valid JSON") from exc
     if not isinstance(payload, dict):
@@ -453,7 +456,6 @@ def prepare_governed_mobility_pathway_brief(
         context=context,
     )
 
-    prompt_payload = canonical_json(governed_payload)
     response_format = {"type": "json_object"}
     prompt_fingerprint = canonical_fingerprint(
         {
@@ -468,7 +470,7 @@ def prepare_governed_mobility_pathway_brief(
     try:
         response: LLMResponse = runtime.complete(
             system_prompt=_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt_payload}],
+            messages=[{"role": "user", "content": canonical_json(governed_payload)}],
             response_format=response_format,
         )
     except LLMProviderError as exc:
@@ -476,6 +478,8 @@ def prepare_governed_mobility_pathway_brief(
 
     if response.provider != runtime_profile.provider_key:
         raise MobilityPathwayBriefRuntimeError("runtime response provider does not match the bound profile")
+    if runtime_profile.model_key is not None and response.model != runtime_profile.model_key:
+        raise MobilityPathwayBriefRuntimeError("runtime response model does not match the bound profile")
 
     draft = _validated_draft(response.content, allowed_citations=allowed_citations)
     vertical_status = (
