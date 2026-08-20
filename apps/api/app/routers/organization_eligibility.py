@@ -35,6 +35,7 @@ class GovernedEligibilityOrchestrationRequest(BaseModel):
     proposal_work_item_id: UUID
     verification_work_item_id: UUID
     idempotency_key: str = Field(min_length=1, max_length=200)
+    expected_eligibility_revision_version: int | None = Field(default=None, ge=1)
 
 
 class GovernedEligibilityOrchestrationRead(BaseModel):
@@ -114,11 +115,16 @@ def run_governed_eligibility_orchestration(
     initiator: OrganizationCommandContext = Depends(governed_eligibility_initiator),
     execution_plan: GovernedEligibilityExecutionPlan = Depends(governed_eligibility_execution_plan),
 ) -> GovernedEligibilityOrchestrationRead:
-    """Run the accepted governed eligibility vertical through a trusted server plan.
+    """Run the governed eligibility vertical through a trusted server plan.
 
     The authenticated human initiates work but never becomes the material-action actor.
-    E.2/G.2/G.3 continue to execute under the producer OrganizationPosition carried by
-    the trusted execution plan and governed ContextBundle.
+    E.2/G.2/canonical effect execution continue under the producer OrganizationPosition
+    carried by the trusted execution plan and governed ContextBundle.
+
+    ``expected_eligibility_revision_version`` is a caller-supplied optimistic concurrency
+    assertion only. It cannot select providers, models, autonomy, authority or scope.
+    Initial canonical creation omits it; reassessment must explicitly name the revision
+    expected to be superseded.
     """
 
     try:
@@ -129,6 +135,7 @@ def run_governed_eligibility_orchestration(
             verification_work_item_id=payload.verification_work_item_id,
             idempotency_key=payload.idempotency_key,
             execution_plan=execution_plan,
+            expected_eligibility_revision_version=payload.expected_eligibility_revision_version,
         )
     except GovernedEligibilityOrchestrationIntegrityError as exc:
         raise HTTPException(
