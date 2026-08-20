@@ -77,14 +77,14 @@ def test_g4_1_g1_uses_shared_system_agent_contract() -> None:
 
 
 def test_g4_1_g3_consumes_public_g2_action_contracts() -> None:
-    source = inspect.getsource(organization_eligibility_effect)
+    module_symbols = vars(organization_eligibility_effect)
 
-    assert "_original_e2_payload" not in source
-    assert "_rebuild_action" not in source
-    assert "_command_context" not in source
-    assert "original_eligibility_attempt_payload" in source
-    assert "rebuild_eligibility_action" in source
-    assert "eligibility_command_context" in source
+    assert "_original_e2_payload" not in module_symbols
+    assert "_rebuild_action" not in module_symbols
+    assert "_command_context" not in module_symbols
+    assert "original_eligibility_attempt_payload" in module_symbols
+    assert "rebuild_eligibility_action" in module_symbols
+    assert "eligibility_command_context" in module_symbols
 
 
 def test_g4_1_g2_exposes_named_public_action_contracts() -> None:
