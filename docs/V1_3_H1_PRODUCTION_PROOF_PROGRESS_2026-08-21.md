@@ -2,22 +2,21 @@
 
 **Evidence date:** 2026-08-21  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Original SQLite/backend candidate head tested:** `44744ca5d550c94dfd6809345a0f1052cb99dcf3`  
-**PostgreSQL failure head tested:** `ad07f1e1416b7d524a880f3ca0596e8004ba5250`  
-**Current repair candidate head:** `a192fafd9290013a7f99e946bb1f43c929760297`  
-**Status:** PARTIAL PROOF RECORDED / POSTGRESQL RETEST REQUIRED / H.1 ACCEPTANCE STILL PENDING  
-**Accepted baseline remains:** V1.3-G.5
+**Accepted baseline remains:** V1.3-G.5  
+**Latest fully tested backend source/dependency-candidate head:** `ddac84b054c92c872f6df668e8c6f7a2a76e270c`  
+**Current dependency-repair candidate head:** `9c672e84ad5ebfb4e1b54222532f2b72dc6a0203`  
+**Status:** PARTIAL PROOF RECORDED / DEPENDENCY INSTALL RETEST + FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
 
-This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. It does not seal H.1 and does not authorize H.2.
+This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. It deliberately preserves failed proof attempts as evidence. It does not seal H.1 and does not authorize H.2.
 
-## Verified local evidence
+## 1. Backend / SQLite evidence
 
-### Full backend regression
+### Original backend candidate
 
-Command:
+The original H.1 proof candidate passed the full backend suite on:
 
 ```text
-.\.venv\Scripts\python.exe -m pytest apps/api/tests -q
+44744ca5d550c94dfd6809345a0f1052cb99dcf3
 ```
 
 Result:
@@ -30,23 +29,75 @@ Result:
 duration = 417.39s
 ```
 
-The single warning is the existing Starlette/httpx test-client deprecation warning:
+### Canonical-lineage repair candidate
+
+After the PostgreSQL behavioral defects described below were repaired, the focused SQLite regression on:
+
+```text
+5eccb70a5b5cf15a37944511292831f058a70e0c
+```
+
+passed:
+
+```text
+55 passed
+1 warning
+0 failed
+duration = 33.29s
+```
+
+The full backend suite on the same head then passed:
+
+```text
+1105 passed
+7 skipped
+1 warning
+0 failed
+duration = 511.09s
+```
+
+### Current backend source tree under the dependency-proof candidate
+
+After the production-proof infrastructure repairs and the PyYAML candidate-pin correction, the full backend suite was run again on:
+
+```text
+ddac84b054c92c872f6df668e8c6f7a2a76e270c
+```
+
+Runtime:
+
+```text
+Python 3.13.12
+```
+
+Result:
+
+```text
+1105 passed
+7 skipped
+1 warning
+0 failed
+duration = 513.70s
+```
+
+Worktree evidence at completion:
+
+```text
+git diff --check = clean
+roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
+```
+
+The single recurring warning is:
 
 ```text
 StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
 ```
 
-The full SQLite backend suite includes the canonical eligibility-lineage, G.3/G.4 replay, H.1 immune-system and adversarial lineage tests present in the original candidate. PostgreSQL-only contracts remain skipped unless `GMAI_TEST_DATABASE_URL` is set to a PostgreSQL database.
+The two commits after `ddac84b...` change only the declared `clamd` minimum/exact dependency candidate and do not change application source. Therefore the 1105-test backend evidence remains valid for the application source tree; the changed dependency candidate requires its own install and targeted adapter proof before acceptance.
 
-### Migration consistency
+## 2. SQLite migration / physical schema evidence
 
-Command:
-
-```text
-.\.venv\Scripts\python.exe scripts/check_database_migrations.py
-```
-
-Result:
+Earlier local SQLite proof passed with:
 
 ```text
 Database migration check passed.
@@ -57,73 +108,32 @@ physical_schema = ok
 database_revision = 0077_canonical_eligibility_assessment_revision
 ```
 
-### Local physical schema
-
-Command:
+Local schema proof passed with:
 
 ```text
-.\.venv\Scripts\python.exe scripts/check_local_db_schema.py --database-url "sqlite:///D:/global-mobility-aios/gmai.db"
-```
-
-Result:
-
-```text
-Local DB schema check passed.
 registered_tables = 119
 actual_tables = 119
 physical_tables = 120
 infrastructure_tables = ["alembic_version"]
 ```
 
-### Repository policy
-
-Command:
+Migration head remains:
 
 ```text
-.\.venv\Scripts\python.exe scripts/check_repo_policy.py --root .
+0077_canonical_eligibility_assessment_revision
 ```
 
-Result:
+## 3. PostgreSQL governed eligibility / H.1 behavior
 
-```text
-Repository policy check passed.
-```
+### First real PostgreSQL behavioral attempt — failed
 
-This verifies the repository-policy lane after removal of the accidental `apps/api/=5.4` artifact and after adding suspicious redirection-artifact filename enforcement.
-
-### Diff and branch hygiene
-
-Commands:
-
-```text
-git diff --check
-git status -sb
-```
-
-Result at the original evidence point:
-
-```text
-git diff --check = clean
-roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
-```
-
-The connected GitHub repository independently resolved the same V12 branch head as:
-
-```text
-44744ca5d550c94dfd6809345a0f1052cb99dcf3
-```
-
-at the time the SQLite/backend evidence was recorded.
-
-## PostgreSQL production-proof attempt — FAILED, REPAIRED, RETEST PENDING
-
-The real PostgreSQL 16 governed eligibility/H.1 lane was then run on:
+The first real PostgreSQL 16 governed eligibility/H.1 suite ran on:
 
 ```text
 ad07f1e1416b7d524a880f3ca0596e8004ba5250
 ```
 
-Observed result:
+Result:
 
 ```text
 49 passed
@@ -132,26 +142,20 @@ Observed result:
 duration = 908.01s
 ```
 
-This is a real failed production-proof run and is intentionally retained in the acceptance trail.
+The failure was retained rather than hidden.
 
-### Failure class 1 — canonical governance outcome representation drift
+### Behavioral repair 1 — canonical governance outcome representation
 
-The canonical lineage validator expected:
+The shared canonical lineage validator expected lowercase:
 
 ```text
 outcome = auto_execute
 ```
 
-while the sealed governance-kernel projection persists the enum value:
+while the sealed governance projection persists:
 
 ```text
 outcome = AUTO_EXECUTE
-```
-
-That mismatch caused valid committed G.3/G.4/H.1 replay and cross-session reassessment paths to fail with:
-
-```text
-governance_payload_mismatch
 ```
 
 Repair:
@@ -161,17 +165,9 @@ Repair:
 fix: align canonical governance outcome with persisted contract
 ```
 
-The canonical validator now validates the persisted `AUTO_EXECUTE` contract rather than inventing a lowercase representation.
+### Behavioral repair 2 — PostgreSQL-valid adversarial lineage corruption
 
-### Failure class 2 — adversarial test corruption violated PostgreSQL FK before H.1 could inspect it
-
-Two H.1 tests replaced `semantic_activity_id` with a random UUID. SQLite permitted that synthetic tear, but real PostgreSQL correctly rejected it through:
-
-```text
-fk_eligibility_revision_semantic_activity_tenant
-```
-
-That meant the database constraint, rather than H.1, stopped the mutation.
+Two H.1 tests previously used a random `semantic_activity_id`. Real PostgreSQL correctly rejected that mutation through the composite foreign key before H.1 could evaluate higher-order lineage integrity.
 
 Repair:
 
@@ -180,22 +176,9 @@ ad2bd9a339601d6fb14d7b0404b9ab8129d32223
 test: make H.1 lineage corruption PostgreSQL-valid
 ```
 
-The adversarial mutation now cross-links the semantic slot to an existing same-tenant governance Activity. The row remains valid under the real composite FK, while the canonical lineage is semantically invalid. This preserves the intended proof boundary:
+The corruption now cross-links to an existing same-tenant Activity, preserving referential integrity while violating canonical semantic lineage.
 
-```text
-PostgreSQL accepts referential identity
-→ H.1 detects higher-order canonical lineage corruption
-→ CRITICAL restrictive circuit opens
-→ provider egress remains zero
-```
-
-### Failure class 3 — replay assertion targeted obsolete wording
-
-The G.3 torn-governance replay test still matched the pre-consolidation prose `exactly one`, while shared canonical validation now exposes the stable failure code:
-
-```text
-governance_revision_cardinality
-```
+### Behavioral repair 3 — stable replay failure code
 
 Repair:
 
@@ -204,72 +187,242 @@ a192fafd9290013a7f99e946bb1f43c929760297
 test: assert canonical replay cardinality failure code
 ```
 
-The test now asserts the stable canonical lineage failure code instead of caller-era wording.
-
-### Current repair state
-
-The repair branch is three commits ahead of the failed PostgreSQL evidence head with only these bounded changes:
+The replay test now asserts:
 
 ```text
-apps/api/app/services/organization_eligibility_lineage.py
-apps/api/tests/test_organization_eligibility_effect.py
-apps/api/tests/test_organization_eligibility_immune_lineage.py
+governance_revision_cardinality
 ```
 
-No migration, schema, authority model, orchestration architecture or broad refactor was introduced.
+rather than obsolete caller-era prose.
 
-The current repair candidate must be retested before any PASS claim is made.
+### PostgreSQL behavioral retest — passed
 
-## What the evidence currently clears
-
-The following H.1 Production Proof Gate items have real local evidence from the original candidate:
+The governed eligibility/H.1 suite was rerun on:
 
 ```text
-full backend regression                         PASS on 44744ca5...
-canonical-lineage/adversarial tests in suite    PASS on SQLite candidate
-G.3/G.4 shared-lineage replay tests in suite    PASS on SQLite candidate
+5eccb70a5b5cf15a37944511292831f058a70e0c
+```
+
+Result:
+
+```text
+57 passed
+1 warning
+0 failed
+duration = 589.67s
+```
+
+This establishes real PostgreSQL behavioral evidence for the shared G.3/G.4/H.1 lineage repair.
+
+It does **not** by itself establish the fresh-database PostgreSQL migration gate, because the same production-proof sequence exposed the independent migration defect below.
+
+## 4. Fresh PostgreSQL migration proof — prior failure and repair pending retest
+
+A fresh PostgreSQL 16 Alembic upgrade through `0077` failed because a generated index identifier exceeded PostgreSQL's 63-character limit:
+
+```text
+ix_eligibility_assessment_revisions_verification_floor_activity_id
+```
+
+The failure was:
+
+```text
+sqlalchemy.exc.IdentifierError:
+Identifier 'ix_eligibility_assessment_revisions_verification_floor_activity_id'
+exceeds maximum length of 63 characters
+```
+
+Because Alembic aborted transactionally, the subsequent physical-schema check correctly reported the database as incomplete. That missing-schema output is not treated as an independent model drift defect.
+
+`0077_canonical_eligibility_assessment_revision.py` has since been repaired to use bounded explicit index names for identifiers that exceed the PostgreSQL limit.
+
+Required proof still outstanding:
+
+```text
+fresh PostgreSQL 16 database
+→ alembic upgrade head succeeds
+→ database revision == 0077_canonical_eligibility_assessment_revision
+→ registered/physical schema check passes
+→ governed eligibility/H.1 PostgreSQL suite passes on the same current candidate
+```
+
+Until that sequence is observed on the current repaired head, the PostgreSQL Production Proof lane is not marked PASS.
+
+## 5. Repository policy / release consistency / dependency contract
+
+On:
+
+```text
+defc1bcb63ecfe0147bc46c43d2aeaf30fc03aba
+```
+
+local proof passed:
+
+```text
+Repository policy check passed.
+Release consistency check passed. Alembic head: 0077_canonical_eligibility_assessment_revision
+Python dependency constraints passed for 25 direct dependencies.
+git diff --check = clean
+```
+
+The repository-policy correction distinguishes declared vendored/reference snapshots from first-party product source for banned-content scanning while retaining suspicious shell-redirection artifact filename enforcement.
+
+## 6. Deterministic Python dependency-install proof
+
+The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. Acceptance requires the candidate to install in the supported proof environment and then pass runtime tests.
+
+### Constraint syntax defect — repaired
+
+The first constraint form incorrectly included extras such as:
+
+```text
+uvicorn[standard]==...
+psycopg[binary]==...
+```
+
+Modern pip rejects extras in constraint entries. Extras remain in `requirements.txt`; constraints now use normalized distribution names.
+
+### PyYAML minimum candidate — failed, repaired
+
+On Python 3.13.12, the `pyyaml==6.0.0` candidate fell back to an old source-build path and failed with:
+
+```text
+AttributeError: 'build_ext' object has no attribute 'cython_sources'
+```
+
+The exact candidate was moved to:
+
+```text
+pyyaml==6.0.3
+```
+
+and the next install attempt successfully resolved PyYAML 6.0.3 instead of repeating the legacy build failure.
+
+Repair candidate:
+
+```text
+ddac84b054c92c872f6df668e8c6f7a2a76e270c
+```
+
+### clamd minimum candidate — failed, repaired, retest pending
+
+The same constrained-install attempt then reached:
+
+```text
+clamd==1.0.0
+```
+
+and failed during package metadata generation because that release uses the obsolete `d2to1` / old setuptools build path:
+
+```text
+ImportError: cannot import name '_get_unpatched' from 'setuptools.dist'
+```
+
+The application adapter uses the `clamd.ClamdNetworkSocket` client API. The bounded repair preserves that package/API and moves only the declared minimum/candidate to the later standalone-setuptools universal-wheel release:
+
+```text
+82f67ed2b74cb51bf1e0afe19284849a38694102
+fix: require installable clamd client baseline
+
+9c672e84ad5ebfb4e1b54222532f2b72dc6a0203
+fix: pin wheel-backed clamd client
+```
+
+Current contract:
+
+```text
+requirements.txt: clamd>=1.0.2
+constraints.txt:  clamd==1.0.2
+```
+
+Required proof still outstanding:
+
+```text
+constraint checker PASS
+constrained pip install PASS
+pip check PASS
+installed PyYAML/clamd versions confirmed
+targeted malware-scan adapter tests PASS
+```
+
+A prior `pip check` result of `No broken requirements found` after a failed install is not counted as proof of the failed candidate; it only described the already-existing environment.
+
+## 7. Frontend production-proof evidence and blockers
+
+Earlier frontend evidence established:
+
+```text
+design-foundation tests: 28 passed / 0 failed
+request-auth tests:       4 passed / 0 failed
+TypeScript/build path:    Next.js production build completed successfully
+```
+
+The compiled-auth verifier then failed because it asserted local API port `8002` while the canonical repository client configuration/default uses port `8000`. The proof harness has since been corrected to the canonical configuration and the workflow now supplies deterministic public build-time auth configuration.
+
+That correction still requires a current-head frontend rerun.
+
+Separately, `npm ci` reported:
+
+```text
+4 vulnerabilities
+3 high
+1 critical
+```
+
+and specifically warned that the pinned Next.js `15.2.4` release has a security vulnerability. This security signal is **not waived**. A bounded patched Next.js dependency update and current frontend/audit/type/build/compiled-auth proof are required before the Production Proof Gate can be sealed.
+
+## 8. Current evidence matrix
+
+```text
+Focused SQLite H.1 / lineage regression         PASS (55 passed)
+Full backend regression                         PASS (1105 passed / 7 skipped)
+Backend source revalidation on Python 3.13.12   PASS (1105 passed / 7 skipped)
 SQLite migration consistency                    PASS
-local SQLite physical schema                    PASS
-repository policy                               PASS
-diff whitespace hygiene                         PASS
-local/remote V12 branch synchronization         PASS at evidence point
+SQLite physical schema                          PASS
+Repository policy                               PASS
+Release consistency                             PASS
+Direct dependency constraint structure          PASS (25 dependencies)
+PostgreSQL governed H.1 behavior                PASS (57 passed)
+Fresh PostgreSQL Alembic upgrade                RETEST REQUIRED after identifier repair
+Fresh PostgreSQL physical schema/head           RETEST REQUIRED
+Constrained dependency installation             RETEST REQUIRED after clamd 1.0.2 repair
+Targeted malware adapter test                   RETEST REQUIRED
+Frontend design/request-auth                    PASS on earlier candidate; current rerun required
+Frontend TypeScript/build                       PASS on earlier candidate; current rerun required
+Compiled frontend auth                          REPAIRED / RETEST REQUIRED
+Frontend dependency security                    BLOCKED by known high/critical audit findings
+GitHub Actions current-head execution            NOT YET PROVEN
+Required-check/branch-protection enforcement    NOT YET VERIFIED
 ```
 
-The PostgreSQL lane is **not PASS**. It is:
+## 9. Acceptance state
+
+H.1 remains:
 
 ```text
-FAILED on ad07f1e...
-→ targeted repairs pushed
-→ RETEST REQUIRED on current repair head
+IMPLEMENTED / ACCEPTANCE PENDING
 ```
 
-No separate focused-count claim is invented beyond the command outputs actually supplied.
-
-## Remaining acceptance proof
-
-H.1 remains **IMPLEMENTED / ACCEPTANCE PENDING**. The remaining production-proof items are:
+The Production Proof Gate remains:
 
 ```text
-PostgreSQL focused governed eligibility/H.1 retest on current repair head
-SQLite focused regression for the three repaired files/contracts
-release consistency check
-Python direct-dependency constraint check
-constrained dependency-install proof
-frontend Node tests
-TypeScript --noEmit
-Next.js production build
-compiled frontend auth tests
-real PostgreSQL Alembic upgrade confirmation on retest database
-real PostgreSQL physical schema/head verification on retest database
-GitHub workflow execution evidence, where available
-required-check / branch-protection enforcement verification or explicit repository-settings limitation record
+IMPLEMENTED / PARTIALLY PROVEN / NOT SEALED
+```
+
+H.2 remains:
+
+```text
+BLOCKED
 ```
 
 Permanent sequencing remains:
 
 ```text
-remaining Production Proof Gate
-→ reconcile verified evidence
-→ seal H.1 only if green
+constrained dependency + malware adapter proof
+→ fresh PostgreSQL migration/schema/H.1 proof
+→ frontend security repair + frontend production proof
+→ CI/settings evidence where available
+→ reconcile ROADMAP / CHANGELOG / H.1 acceptance records
+→ seal H.1 only if all required evidence is green
 → only then begin H.2
 ```
