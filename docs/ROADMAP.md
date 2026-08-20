@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.13  
+**Roadmap generation:** V12.14  
 **Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -16,14 +16,14 @@
 **V1.3-D:** Context + persistent employee/runtime foundation — COMPLETE / PASS / SEALED through D.3  
 **V1.3-E:** First Governed Mobility Vertical — COMPLETE / PASS / SEALED through E.2  
 **V1.3-F:** Decision Readiness — COMPLETE / PASS / SEALED through F.1  
-**V1.3-G:** Independent Verification + governed eligibility-effect bridge — COMPLETE / PASS / SEALED through G.2  
-**Current active stage:** V1.3-G.3 — First Canonical Eligibility Effect — NEXT / NOT YET IMPLEMENTED  
+**V1.3-G:** Independent Verification + governed canonical eligibility effect — COMPLETE / PASS / SEALED through G.3  
+**Current active stage:** V1.3-G.4 — Governed Eligibility Orchestration + Vertical Consolidation — NEXT / NOT YET IMPLEMENTED  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS; Munder donor adoption remains controlled and subordinate to AIOS contracts  
-**Code migration head:** `0076_organization_position_active_identity`
+**Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
-<!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
+<!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
 
-This is the canonical active roadmap for V12.13.
+This is the canonical active roadmap for V12.14.
 
 > **V11 preserves the checkpoint. V12 proves and implements the direction.**
 
@@ -140,7 +140,6 @@ Historical accepted results are not represented as rerun unless actually rerun.
 API regression                873 passed / 5 skipped / 0 failed
 Next.js production build      41 / 41 pages
 Design foundation             28 / 28 passed
-Alembic head                  0076_organization_position_active_identity
 ```
 
 ### V1.3-A
@@ -309,6 +308,25 @@ git diff --check               clean
 V12 branch                     clean / synchronized
 ```
 
+### V1.3-G.3
+
+```text
+Migration-boundary repairs     2 passed / 1 warning / 0 failed
+G.3 focused                    15 passed / 1 warning / 0 failed
+Repository policy              PASS
+Protected v10.22 regression    1 passed / 1 warning / 0 failed
+Full API regression            1040 passed / 5 skipped / 1 warning / 0 failed
+Duration                       505.33s
+Database migration check       PASS
+Migration head                 0077_canonical_eligibility_assessment_revision
+Registered tables              119
+Local DB schema                PASS
+Actual tables                  119
+Physical tables                120 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
 Acceptance records:
 
 - `docs/V1_3_D1_ACCEPTANCE_2026-08-20.md`
@@ -319,6 +337,7 @@ Acceptance records:
 - `docs/V1_3_F1_ACCEPTANCE_2026-08-20.md`
 - `docs/V1_3_G1_ACCEPTANCE_2026-08-20.md`
 - `docs/V1_3_G2_ACCEPTANCE_2026-08-20.md`
+- `docs/V1_3_G3_ACCEPTANCE_2026-08-20.md`
 
 Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
 
@@ -432,10 +451,11 @@ E.2 material proposal / governance attempt
 → F.1 deterministic Decision Readiness
 → G.1 blind independent verification
 → G.2 verification-floor re-evaluation
-→ G.3 canonical effect — next
+→ G.3 canonical governance authorization
+→ G.3 semantic EligibilityAssessment effect
 ```
 
-F.1 is routing/readiness only. G.1 is verification only. G.2 may satisfy the R3 verification floor but still cannot mutate eligibility truth. G.3 must make the first real canonical effect atomic with its final governance authorization.
+F.1 is routing/readiness only. G.1 is verification only. G.2 satisfies the accepted independent-verification floor without committing eligibility truth. G.3 revalidates the chain, obtains fresh final Gateway authorization and atomically commits the first canonical eligibility effect.
 
 ---
 
@@ -517,7 +537,7 @@ OrganizationPosition.position_key
 
 The provider/model remains technical execution metadata.
 
-Current repeated construction with `authenticated_user_id="system"` and `role="operator"` means a **system-bound agent executing under OrganizationPosition authority**, not a human operator. This should be centralized as a stable helper once the G.3 effect boundary is fixed; it must not be mistaken for Human authority.
+Current repeated construction with `authenticated_user_id="system"` and `role="operator"` means a **system-bound agent executing under OrganizationPosition authority**, not a human operator. With G.3 sealed, this is now a proven shared seam suitable for bounded consolidation in G.4; it must not be mistaken for Human authority.
 
 ---
 
@@ -592,7 +612,7 @@ E.2 also establishes:
 - direct contact fields are excluded from the bounded case runtime payload;
 - automatic external-provider selection for case facts remains blocked pending governed provider-egress/sensitivity policy.
 
-The accepted material-action pilot scopes `subject_type="lead_eligibility"` / `subject_id=Lead.id` to a specific immutable `Profile.profile_version` through `expected_version`. G.3 must make this version relationship explicit in the canonical aggregate semantics rather than relying on naming convention alone.
+The accepted material-action pilot scopes `subject_type="lead_eligibility"` / `subject_id=Lead.id` to a specific immutable `Profile.profile_version` through `expected_version`. G.3 makes the profile binding explicit in canonical revision lineage while intentionally deferring canonical reassessment-version preconditions.
 
 ---
 
@@ -648,13 +668,13 @@ profile completeness ≠ material Decision Readiness
 
 F.1 creates no LLM call, AgentRun, OrganizationActivity, EligibilityAssessment, eligibility mutation, application mutation, client-facing recommendation or external action.
 
-The existing private `_publication_evidence_blockers` dependency is now a proven second-consumer seam. G.3/post-G.2 hardening may promote it to a public pathway-publication-integrity contract, but refactoring must not move the accepted behavior merely to reduce file size.
+The existing private `_publication_evidence_blockers` dependency is now a proven second-consumer seam. G.4 may promote it to a public pathway-publication-integrity contract, but refactoring must not move the accepted behavior merely to reduce file size.
 
 ---
 
-## 13. V1.3-G — Independent Verification + governed eligibility-effect bridge
+## 13. V1.3-G — Independent Verification + governed canonical eligibility effect
 
-V1.3-G is COMPLETE / PASS / SEALED through G.2. G.3 is the next bounded target.
+V1.3-G is COMPLETE / PASS / SEALED through G.3. G.4 is the next bounded operationalization target.
 
 ### G.1 — Blind Independent Eligibility Verification — accepted
 
@@ -728,90 +748,103 @@ A4/A5   → AUTO_EXECUTE / AUTHORIZED
 
 Authority, scope, risk, expected version, policy and Board-reserved checks remain Gateway-owned.
 
-G.2 distinguishes:
+G.2 distinguishes `verification_floor_satisfied` from `gateway_authorized_for_execution` and `eligible_for_effect_integration`.
+
+G.2 never commits the effect. It persists only `governance:verification-floor:<verification_floor_fingerprint>` and deliberately leaves `governance:<original E.2 idempotency key>` unused for G.3.
+
+### G.3 — First Canonical Eligibility Effect — accepted
+
+Canonical records:
+
+- `docs/V1_3_G3_CANONICAL_ELIGIBILITY_EFFECT.md`
+- `docs/V1_3_G3_ACCEPTANCE_2026-08-20.md`
+
+G.3 establishes the first accepted canonical eligibility aggregate through a companion `EligibilityAssessmentRevision` record rather than silently redefining legacy `EligibilityAssessment` rows.
+
+Accepted aggregate identity:
 
 ```text
-verification_floor_satisfied
+eligibility:<tenant_key>:<lead_id>:<pathway_id>
 ```
 
-from:
+Accepted first-version contract:
 
 ```text
-gateway_authorized_for_execution
-eligible_for_effect_integration
+version = 1
+lifecycle_status = active
+supersedes_revision_id = null
 ```
 
-G.2 never commits the effect. It persists only:
+G.3 refuses an implicit second active revision because E.2 does not yet carry an expected canonical eligibility-revision precondition.
 
-```text
-governance:verification-floor:<verification_floor_fingerprint>
-```
-
-and deliberately leaves:
-
-```text
-governance:<original E.2 idempotency key>
-```
-
-unused for the future canonical governance+effect transaction.
-
-The accepted tests already prove an exact G.2 rerun reuses its floor Activity and does not consume the future canonical idempotency slot.
-
-### G.3 — First Canonical Eligibility Effect — next
-
-G.3 is not a generic mutation framework. It is the smallest production-quality effect boundary for the already-proven R3 eligibility vertical.
-
-Before any mutation is accepted, G.3 must define the canonical `EligibilityAssessment` aggregate contract.
-
-Required questions:
-
-1. What is the stable aggregate identity: Lead eligibility stream, Profile-version assessment, or explicit assessment series?
-2. Is canonical truth append-only with supersession rather than in-place mutation?
-3. What explicit version field guards optimistic concurrency after the current `Profile.profile_version` precondition?
-4. How does a new assessment supersede or coexist with older legacy `EligibilityAssessment` rows?
-5. Which fields are canonical decision truth versus informational model metadata?
-6. How are E.2 intent, F.1 readiness, G.1 verification and G.2 floor fingerprints linked durably?
-7. What Activity is the semantic eligibility effect, and what governance Activity directly causes it?
-8. What does replay return when the original E.2 idempotency key already committed the same effect?
-
-G.3 acceptance target:
+Accepted canonical transaction:
 
 ```text
 accepted G.2 eligible_for_effect_integration
-→ revalidate current case/profile/context/verification lineage
-→ reconstruct exact MaterialAction
-→ fresh final Command Gateway evaluation with verification floor satisfied
-→ stage canonical governance:<original idempotency key>
-→ create versioned/superseding EligibilityAssessment effect
-→ stage semantic eligibility Activity caused by governance authorization
-→ commit all in one transaction
-→ exact replay returns existing canonical effect without duplicate mutation
+→ reconstruct exact E.2 MaterialAction
+→ revalidate accepted lineage/current state
+→ fresh final Command Gateway evaluation
+→ stage governance:<original E.2 idempotency key>
+→ create EligibilityAssessment
+→ create EligibilityAssessmentRevision v1
+→ stage semantic MATERIAL eligibility Activity
+→ validate staged trace/causation
+→ commit once
 ```
 
-The final Gateway evaluation and canonical effect must be atomic enough that authorization cannot be committed without the effect and the effect cannot be committed without authorization.
+Exact retries return durable `IDEMPOTENT_REPLAY` only after validating the persisted assessment/revision/semantic effect and all E.2/F.1/G.1/G.2/G.3 fingerprints.
 
-G.3 must not automatically:
+The G.3 `EligibilityAssessment.overall_score = 0.0` field is a legacy compatibility value only. There is no accepted canonical numerical eligibility score, and future governed read/API/UI surfaces must not present 0.0 as a calculated zero eligibility score.
 
-- send client-facing communications;
-- mutate an application;
-- submit to government;
-- trigger external action;
-- treat model confidence as truth;
-- bypass Human/Board authority at A0/A1/A2 or reserved actions.
+Migration `0077_canonical_eligibility_assessment_revision` adds one companion table without rewriting existing eligibility rows.
 
-### Bounded hardening after proof, not before proof
+G.3 does not publish a client-facing decision, mutate an application, submit externally or create reassessment/version-2 semantics.
 
-The E→G vertical has now exposed stable seams worth extracting, but the project will not stop the vertical to perform cosmetic decomposition.
+### G.4 — Governed Eligibility Orchestration + Vertical Consolidation — next
 
-Accepted hardening candidates:
+G.4 operationalizes the accepted v1 vertical without weakening its boundaries.
 
-- one canonical mobility `LeadIntent → domain` mapping in the mobility domain layer;
-- one documented system-bound-agent `OrganizationCommandContext` constructor;
-- a public pathway publication-integrity contract instead of importing a private helper;
-- shared canonical reference/fingerprint resolution only where semantics are identical across real consumers;
-- targeted freshness invalidation only after the complete ContextBundle dependency set can be expired safely.
+Primary target:
 
-`session.expire_all()` remains intentionally conservative in E.2/G.1 until a narrower mechanism can prove it refreshes Lead, Profile, WorkItem, Position, pathway, Evidence, VerifiedRules, SourceSnapshots, CountryPolicy and other hash-bearing dependencies. Performance cleanup must not weaken stale-state protection.
+```text
+trusted request / WorkItem trigger
+→ trusted tenant + position + capability authority resolution
+→ governed E.2 proposal
+→ F.1 readiness
+→ G.1 independent verifier work
+→ G.2 verification-floor integration
+→ G.3 canonical effect
+→ durable trace + canonical effect identity returned/inspectable
+```
+
+G.4 must not route through the legacy immediate-persistence `/api/v1/eligibility/evaluate` path.
+
+Only stable seams now proven across multiple slices may be consolidated as part of G.4:
+
+- canonical mobility `LeadIntent → domain` mapping in the mobility domain layer;
+- documented system-bound-agent `OrganizationCommandContext` constructor;
+- public pathway publication-integrity contract;
+- eligibility action reconstruction/original E.2 payload helpers where semantics are identical;
+- shared canonical reference/fingerprint resolution only where multiple real consumers prove the same contract.
+
+This is consolidation for a real vertical, not permission to create `GenericEffectEngine`, `UniversalIntentBus`, generic Peer Review Network or other speculative horizontal framework.
+
+`session.expire_all()` remains intentionally conservative in E.2/G.1 until a narrower dependency resolver can prove it refreshes every hash-bearing ContextBundle input safely.
+
+### G.5 — Eligibility Reassessment / Supersession — after G.4
+
+Only after canonical v1 is operationally reachable should reassessment introduce an explicit canonical eligibility revision precondition into the material-action contract.
+
+Target shape:
+
+```text
+expected_eligibility_revision_version = 1
+→ new governed proposal/readiness/verification/authorization
+→ revision v2 ACTIVE
+→ revision v1 SUPERSEDED
+```
+
+No in-place mutation of prior canonical revision truth.
 
 ---
 
@@ -819,18 +852,18 @@ Accepted hardening candidates:
 
 The repository already has an `/api/v1/eligibility/evaluate` HTTP path, but it belongs to the legacy eligibility engine/controlled-agent flow and persists `EligibilityAssessment` directly.
 
-That legacy endpoint is **not** evidence that the E.2→F.1→G.1→G.2 governed vertical is externally orchestrated.
+That legacy endpoint is **not** the accepted V1.3 governance boundary.
 
-Do not expose the new governed vertical through a production HTTP/router or worker surface before G.3 seals the canonical effect contract. Otherwise an API could report `AUTO_EXECUTE` without owning the atomic canonical effect that result is supposed to authorize.
+Now that G.3 has sealed the canonical effect contract, G.4 may expose a minimal governed orchestration surface, but it must:
 
-After G.3 acceptance, expose a minimal orchestration surface that:
-
-- resolves authenticated tenant/actor context correctly;
-- resolves CapabilityAuthority rather than accepting it from untrusted request JSON;
-- preserves explicit provider-egress/sensitivity policy;
-- never lets the API caller forge runtime/position authority;
-- returns durable trace/effect identifiers;
-- remains separate from client-facing/external-action authorization.
+- resolve authenticated tenant/actor context correctly;
+- resolve `OrganizationPosition` and `CapabilityAuthority` server-side rather than accepting authority from untrusted request JSON;
+- preserve explicit provider-egress/sensitivity policy for case facts;
+- create/use the correct proposer and independent-verifier WorkItems;
+- never let the API caller forge runtime, verifier or position authority;
+- return durable trace/effect identifiers;
+- preserve asynchronous/review semantics where appropriate rather than forcing the entire chain into one synchronous POST;
+- keep client-facing publication and external action as separately governed capabilities.
 
 ---
 
@@ -880,7 +913,7 @@ The combined architecture contains:
 - scheduling/triggers/webhooks;
 - runtime telemetry.
 
-This is the principal future destination for compatible Munder donor features, but only after vertical execution contracts are proven.
+This is the principal future destination for compatible Munder donor features, but only after vertical execution contracts are proven and operationally reachable.
 
 Permanent distinctions:
 
@@ -891,7 +924,7 @@ provider transcript != canonical OrganizationActivity automatically
 Mission Room state != canonical truth automatically
 ```
 
-No generic Peer Review Network, Mission Room or runtime fabric should displace the current first governed eligibility-effect proof.
+No generic Peer Review Network, Mission Room or runtime fabric should displace G.4/G.5 eligibility operationalization.
 
 ---
 
@@ -1052,8 +1085,9 @@ V1.3-C   Transparency Foundation                          COMPLETE / PASS / SEAL
 V1.3-D   Context + persistent employee/runtime foundation COMPLETE / PASS / SEALED through D.3
 V1.3-E   First Governed Mobility Vertical                 COMPLETE / PASS / SEALED through E.2
 V1.3-F   Decision Readiness                               COMPLETE / PASS / SEALED through F.1
-V1.3-G   Independent Verification + effect bridge         COMPLETE / PASS / SEALED through G.2
-V1.3-G.3 First Canonical Eligibility Effect               NEXT / NOT YET IMPLEMENTED
+V1.3-G   Independent Verification + canonical effect      COMPLETE / PASS / SEALED through G.3
+V1.3-G.4 Governed Eligibility Orchestration + consolidation NEXT / NOT YET IMPLEMENTED
+V1.3-G.5 Eligibility Reassessment / Supersession          NOT STARTED
 V1.3-H   Organizational Immune System + circuit breaking  NOT STARTED
 V1.3-I   Earned Autonomy                                  NOT STARTED
 V1.3-J   AIOS Organization Fabric + Munder donor work     NOT STARTED
@@ -1073,6 +1107,8 @@ A
 → F
 → G.1 / G.2
 → G.3 canonical effect
+→ G.4 governed orchestration
+→ G.5 reassessment / supersession
 → H
 → I
 → J / K
@@ -1087,31 +1123,23 @@ The sequence is not a licence to build large horizontal frameworks before produc
 
 ## 23. Immediate implementation order
 
-1. **V1.3-G.3 — first canonical EligibilityAssessment effect**
-   - inspect the current `EligibilityAssessment` model, persistence functions, references and legacy router behavior;
-   - freeze canonical aggregate identity/version/supersession semantics before changing schema;
-   - decide whether a migration is required; do not assume the existing row shape is sufficient;
-   - consume only an accepted G.2 result with `eligible_for_effect_integration = true`;
-   - revalidate E.2/F.1/G.1/G.2 lineage and current case/profile/context state;
-   - perform a fresh final Gateway evaluation rather than trusting a stale prior `AUTO_EXECUTE` forever;
-   - preserve the exact E.2 MaterialAction fingerprint and original idempotency key;
-   - write canonical `governance:<idempotency_key>` authorization and the EligibilityAssessment effect atomically;
-   - write a semantic eligibility Activity caused by the canonical governance authorization;
-   - guarantee exact idempotent replay without duplicate assessment/effect Activity;
-   - no client-facing, application or external action in G.3.
+1. **V1.3-G.4 — governed eligibility orchestration + vertical consolidation**
+   - inspect existing worker/WorkItem orchestration, trusted auth context, provider selection and capability-authority resolution before choosing HTTP versus worker boundaries;
+   - create a trusted entrypoint that advances the accepted E.2 → F.1 → G.1 → G.2 → G.3 vertical without routing through legacy immediate eligibility persistence;
+   - preserve separate proposer/verifier WorkItems and independent runtime/provider/model constraints;
+   - resolve authority/runtime/provider inputs server-side from trusted contracts/configuration;
+   - return durable trace and canonical effect identity rather than raw model-owned truth;
+   - do not make client-facing publication or external action implicit;
+   - consolidate only the proven shared eligibility helpers needed by this orchestration: system-agent command context, intent→domain mapping, pathway publication integrity and exact eligibility action reconstruction/reference helpers;
+   - do not create a generic effect framework or universal workflow abstraction.
 
-2. **Bounded vertical hardening where it directly reduces G.3 duplication/risk**
-   - canonical mobility intent→domain mapping;
-   - system-bound-agent command-context helper;
-   - public pathway publication-integrity function;
-   - shared reference/fingerprint resolver only for proven identical semantics;
-   - keep conservative `session.expire_all()` until a complete narrower dependency expiry is proven safe.
+2. **V1.3-G.5 — eligibility reassessment / supersession**
+   - extend the material-action contract with an explicit expected canonical eligibility revision version;
+   - preserve append-only prior revisions;
+   - support v2+ only through explicit supersession semantics and optimistic concurrency;
+   - rerun readiness/verification/Gateway authorization for each material reassessment.
 
-3. **Minimal API/worker orchestration — only after G.3 acceptance**
-   - do not reuse the legacy eligibility endpoint as the new governance boundary;
-   - resolve authority/runtime/provider inputs server-side from trusted configuration/contracts;
-   - expose durable trace/effect identity and preserve tenant isolation;
-   - external/client action remains a separately governed capability.
+3. **Then continue Organizational Immune System / earned-autonomy work** using actual vertical telemetry and failure modes from the operational eligibility path.
 
 4. Continue real mobility verticals before broad Organization Fabric/Munder expansion.
 
