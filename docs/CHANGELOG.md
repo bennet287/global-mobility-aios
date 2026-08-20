@@ -22,6 +22,103 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-G.4.1 ELIGIBILITY VERTICAL CONTRACT CONSOLIDATION — COMPLETE / PASS / SEALED
+
+### Status
+
+**The first governed eligibility vertical now has its proven shared semantic seams consolidated without changing the accepted E.2→G.4 behavior or introducing a speculative horizontal framework.**
+
+Accepted implementation head:
+
+```text
+65ed83270389d5de88d917c5562077c1fbf9c8de
+```
+
+Accepted consolidation:
+
+```text
+E.2 + F.1
+→ one mobility_intent_domain(...)
+
+E.2 + G.1 + downstream G.2/G.3 execution identity
+→ one system_bound_agent_command_context(...)
+
+F.1
+→ public pathway_publication_integrity_blockers(...)
+→ no direct catalogue-private publication blocker import
+
+G.2 / G.3
+→ public eligibility_command_context(...)
+→ public original_eligibility_attempt_payload(...)
+→ public rebuild_eligibility_action(...)
+→ no G.3 private G.2 helper imports
+```
+
+Permanent rule:
+
+> **Consolidate proven meaning; do not generalize merely because code looks similar.**
+
+G.4.1 intentionally does not replace `session.expire_all()` and does not force E.2/F.1/G.1 through one generic reference/fingerprint resolver because those consumers still have materially different authority and failure semantics.
+
+### Acceptance test defect verified
+
+The first focused run reported one failure in `test_g4_1_g3_consumes_public_g2_action_contracts`.
+
+The implementation was verified correct. The test asserted that the substring `_command_context` was absent from the G.3 source, which falsely matched the intended public symbol `eligibility_command_context`.
+
+The repair changed only the anti-regression test to inspect exact module symbols. This was a test defect, not a production defect.
+
+### Accepted evidence
+
+```text
+G.4.1 focused contract tests   7 passed / 1 warning / 0 failed
+Pathway catalogue regression   2 passed / 1 warning / 0 failed
+E.2 → G.4.1 vertical           88 passed / 1 warning / 0 failed
+Repository policy              PASS
+Full API regression            1057 passed / 5 skipped / 1 warning / 0 failed
+Full API duration              400.30s
+Database migration check       PASS
+Migration head                 0077_canonical_eligibility_assessment_revision
+Registered tables              119
+Local DB schema                PASS
+Actual tables                  119
+Physical tables                120 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_G4_1_ELIGIBILITY_VERTICAL_CONTRACT_CONSOLIDATION.md
+docs/V1_3_G4_1_ACCEPTANCE_2026-08-20.md
+```
+
+### Roadmap effect
+
+The active roadmap advances from **V12.15 to V12.16**.
+
+```text
+V1.3-A     COMPLETE / PASS / SEALED
+V1.3-B     COMPLETE / PASS / SEALED
+V1.3-C     COMPLETE / PASS / SEALED through C.4
+V1.3-D     COMPLETE / PASS / SEALED through D.3
+V1.3-E     COMPLETE / PASS / SEALED through E.2
+V1.3-F     COMPLETE / PASS / SEALED through F.1
+V1.3-G     COMPLETE / PASS / SEALED through G.4.1
+V1.3-G.4   Governed Eligibility Orchestration — COMPLETE / PASS / SEALED
+V1.3-G.4.1 Eligibility Vertical Contract Consolidation — COMPLETE / PASS / SEALED
+V1.3-G.5   Eligibility Reassessment / Supersession — NEXT
+```
+
+G.5 must introduce an explicit expected canonical eligibility revision precondition before any v2+ revision effect is allowed. Prior canonical eligibility truth remains append-only; reassessment must repeat readiness, blind independent verification, verification-floor integration and fresh final Command Gateway authorization.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed because no attached status checks were present on the accepted implementation head.
+
+---
+
 ## 2026-08-20 — V1.3-G.4 GOVERNED ELIGIBILITY ORCHESTRATION — COMPLETE / PASS / SEALED
 
 ### Status
