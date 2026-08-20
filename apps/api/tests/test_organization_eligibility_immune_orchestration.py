@@ -4,15 +4,18 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.main import app
+from app.models.domain import OrganizationActivity
 from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.routers.organization_eligibility import governed_eligibility_execution_plan
 from app.routers.organization_records import organization_command_context
 from app.services.organization_eligibility_immune_system import (
+    ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
     EligibilityCircuitState,
     EligibilityImmuneIncidentKind,
+    eligibility_circuit_status,
     record_eligibility_immune_incident,
 )
 from app.services.organization_eligibility_orchestration import (
@@ -22,6 +25,7 @@ from app.services.organization_eligibility_orchestration import (
 )
 from app.services.organization_eligibility_revision_precondition import eligibility_aggregate_key
 from app.services.organization_governance_kernel import GatewayOutcome
+from app.services.organization_transparency import transparency_activity_record
 from tests.test_organization_eligibility_orchestration import (
     _fixture,
     _human_context,
@@ -188,3 +192,90 @@ def test_h1_http_open_circuit_returns_conflict_before_provider_egress(
     }
     assert producer.calls == []
     assert verifier.calls == []
+
+
+def test_h1_verifier_disagreement_emits_warning_incident_without_opening_circuit(
+    db_session: Session,
+) -> None:
+    lead, _, graph, proposal_work, verification_work = _fixture(db_session)
+    aggregate = _aggregate(lead=lead, graph=graph)
+    plan, producer, verifier = _plan(
+        graph,
+        verifier_conclusion="supports_potential_ineligibility",
+    )
+    key = "h1-observe-verifier-disagreement"
+
+    result = orchestrate_governed_eligibility(
+        db_session,
+        tenant_key="tenant-a",
+        proposal_work_item_id=proposal_work.id,
+        verification_work_item_id=verification_work.id,
+        idempotency_key=key,
+        execution_plan=plan,
+    )
+
+    assert result.state is GovernedEligibilityOrchestrationState.VERIFICATION_DISAGREES
+    assert result.verification_activity_id is not None
+    assert result.canonical_effect_committed is False
+    assert len(producer.calls) == 1
+    assert len(verifier.calls) == 1
+
+    incident = db_session.exec(
+        select(OrganizationActivity).where(
+            OrganizationActivity.tenant_key == "tenant-a",
+            OrganizationActivity.activity_key
+            == f"immune:eligibility:{aggregate}:incident:{key}:verifier-disagreement",
+        )
+    ).first()
+    assert incident is not None
+    assert incident.activity_type == ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE
+    assert incident.causation_activity_id == result.verification_activity_id
+    payload = transparency_activity_record(incident).payload
+    assert payload["incident_kind"] == EligibilityImmuneIncidentKind.VERIFIER_DISAGREEMENT.value
+    assert payload["severity"] == "warning"
+    assert payload["automatic_circuit_action"] == "none"
+    assert payload["authority_effect"] == "restrict_only"
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.CLOSED
+
+
+def test_h1_insufficient_basis_is_not_mislabeled_as_verifier_disagreement(
+    db_session: Session,
+) -> None:
+    lead, _, graph, proposal_work, verification_work = _fixture(db_session)
+    aggregate = _aggregate(lead=lead, graph=graph)
+    plan, _, _ = _plan(
+        graph,
+        verifier_conclusion="insufficient_basis",
+    )
+    key = "h1-insufficient-basis-not-disagreement"
+
+    result = orchestrate_governed_eligibility(
+        db_session,
+        tenant_key="tenant-a",
+        proposal_work_item_id=proposal_work.id,
+        verification_work_item_id=verification_work.id,
+        idempotency_key=key,
+        execution_plan=plan,
+    )
+
+    assert result.state is GovernedEligibilityOrchestrationState.VERIFICATION_INSUFFICIENT_BASIS
+    incidents = list(
+        db_session.exec(
+            select(OrganizationActivity).where(
+                OrganizationActivity.tenant_key == "tenant-a",
+                OrganizationActivity.source_object_type == "eligibility_aggregate",
+                OrganizationActivity.source_object_id == aggregate,
+                OrganizationActivity.activity_type == ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
+            )
+        ).all()
+    )
+    assert incidents == []
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.CLOSED
