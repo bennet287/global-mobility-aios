@@ -4,20 +4,24 @@
 #   python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
 #
 # This file intentionally pins every direct dependency declared in requirements.txt
-# to the repository's current declared minimum baseline. It establishes a deterministic
-# candidate set for CI and release verification, but those versions are not claimed
-# accepted until the production-proof lanes actually install and test them.
+# to the repository's current declared minimum baseline. Extras remain declared in
+# requirements.txt; constraints use only normalized distribution names because pip
+# does not permit extras in constraint entries.
+#
+# This establishes a deterministic candidate set for CI and release verification,
+# but those versions are not claimed accepted until the production-proof lanes
+# actually install and test them.
 #
 # This is not yet a complete transitive lock. Transitive lock generation may be added
 # after this baseline is proven across the supported Python/PostgreSQL lanes.
 
 fastapi==0.115.0
-uvicorn[standard]==0.30.0
+uvicorn==0.30.0
 pydantic==2.8.0
 pydantic-settings==2.4.0
 sqlmodel==0.0.22
 alembic==1.13.0
-psycopg[binary]==3.2.0
+psycopg==3.2.0
 qdrant-client==1.12.0
 redis==5.0.0
 celery==5.4.0
