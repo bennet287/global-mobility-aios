@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.11  
+**Roadmap generation:** V12.12  
 **Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -15,13 +15,14 @@
 **V1.3-C:** Transparency Foundation — COMPLETE / PASS / SEALED through C.4  
 **V1.3-D:** Context + persistent employee/runtime foundation — COMPLETE / PASS / SEALED through D.3  
 **V1.3-E:** First Governed Mobility Vertical — COMPLETE / PASS / SEALED through E.2  
-**Current active stage:** V1.3-F — Decision Readiness — NEXT / NOT YET IMPLEMENTED  
+**V1.3-F:** Decision Readiness — COMPLETE / PASS / SEALED through F.1  
+**Current active stage:** V1.3-G — Independent Verification + Peer Review Network — NEXT / NOT YET IMPLEMENTED  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS; Munder donor adoption remains controlled and subordinate to AIOS contracts  
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
 
-This is the canonical active roadmap for V12.11.
+This is the canonical active roadmap for V12.12.
 
 > **V11 preserves the checkpoint. V12 proves and implements the direction.**
 
@@ -251,6 +252,22 @@ git diff --check              clean
 V12 branch                    clean / synchronized
 ```
 
+### V1.3-F.1
+
+```text
+Repository policy             PASS
+Full API regression           996 passed / 5 skipped / 1 warning / 0 failed
+Duration                      359.39s
+Database migration check      PASS
+Migration head                0076_organization_position_active_identity
+Registered tables             118
+Local DB schema               PASS
+Actual tables                 118
+Physical tables               119 incl. alembic_version
+git diff --check              clean
+V12 branch                    clean / synchronized
+```
+
 Acceptance records:
 
 - `docs/V1_3_D1_ACCEPTANCE_2026-08-20.md`
@@ -258,6 +275,7 @@ Acceptance records:
 - `docs/V1_3_D3_ACCEPTANCE_2026-08-20.md`
 - `docs/V1_3_E1_ACCEPTANCE_2026-08-20.md`
 - `docs/V1_3_E2_ACCEPTANCE_2026-08-20.md`
+- `docs/V1_3_F1_ACCEPTANCE_2026-08-20.md`
 
 Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
 
@@ -366,6 +384,8 @@ C.1–C.4 provide durable trace reconstruction, explicit causation, non-executin
 
 E.2 is the first accepted domain vertical to reuse that substrate for a model-generated material eligibility proposal that AIOS refuses to execute.
 
+F.1 is the first accepted downstream deterministic routing layer that proves a governed proposal is ready—or not ready—to enter independent verification without altering the prior governance outcome.
+
 ---
 
 ## 9. Context Broker — accepted foundation
@@ -450,7 +470,7 @@ The provider/model remains technical execution metadata.
 
 ## 11. V1.3-E — first governed mobility vertical — accepted
 
-V1.3-E is now COMPLETE / PASS / SEALED through E.2.
+V1.3-E is COMPLETE / PASS / SEALED through E.2.
 
 ### E.1 — Governed Mobility Pathway Brief
 
@@ -523,102 +543,125 @@ The existing deterministic `eligibility_engine.py` and `pathway_catalogue.py` re
 
 ---
 
-## 12. V1.3-F — Decision Readiness — next active stage
+## 12. V1.3-F — Decision Readiness — accepted through F.1
 
-Decision Readiness is the next implementation stage.
+V1.3-F.1 is COMPLETE / PASS / SEALED.
 
-Its purpose is to determine whether a model-generated material recommendation is sufficiently grounded and operationally ready to proceed to required verification or review.
+Canonical records:
 
-It is **routing/quality infrastructure, not authorization**.
+- `docs/V1_3_F1_ELIGIBILITY_DECISION_READINESS.md`
+- `docs/V1_3_F1_ACCEPTANCE_2026-08-20.md`
 
-Permanent rule:
+F.1 answers only whether an already-governed E.2 R3 proposal is sufficiently complete and internally consistent to enter genuinely independent verification.
 
-> **Scores route; deterministic gates authorize.**
-
-F must not mutate eligibility truth and must not turn an R3 proposal into an executable action merely because a score is high.
-
-### F should evaluate
-
-At minimum:
-
-- current case/profile completeness and freshness;
-- required fact presence;
-- governed Evidence coverage;
-- VerifiedRule coverage and effective state;
-- CountryPolicy availability/version;
-- unresolved ContextBundle unknowns;
-- contradictions;
-- pathway/case compatibility;
-- material Evidence gaps;
-- model proposal citation coverage;
-- whether independent verification is required;
-- whether an appropriate independent verifier is available;
-- whether a human/legal/Board floor exists independently of score.
-
-### F should output a typed readiness result
-
-Target shape:
+Accepted chain:
 
 ```text
-DecisionReadinessResult
-├── readiness_state
-├── score / component scores
-├── blocking_gates[]
-├── evidence_gaps[]
-├── contradictions[]
-├── verification_requirement
-├── required_review_reasons[]
-├── context_hash
-├── intent_fingerprint
-└── deterministic readiness fingerprint
+E.2 REVIEW_REQUIRED eligibility proposal
+→ durable E.2 governance record verification
+→ fresh ContextBundle
+→ current Lead / Profile / pathway state
+→ deterministic readiness gates
+→ READY_FOR_INDEPENDENT_VERIFICATION
+   or NOT_READY
+   or HUMAN_INPUT_REQUIRED
 ```
 
-The exact implementation shape must be derived from repository truth rather than frozen from this roadmap alone.
+F.1 does not authorize `eligibility.transition` and does not mutate eligibility truth.
 
-### F must not do
+### Accepted deterministic gates
 
-F must not:
+```text
+proposal_state_actionable
+governed_authority_complete
+required_case_facts_present
+pathway_publication_integrity
+material_fact_preconditions
+```
 
-- authorize `eligibility.transition`;
-- remove the current R3 independent-verification floor;
-- let confidence become authority;
-- create a generic policy engine beside the Command Gateway;
-- introduce Mission Rooms, Dynamic Squads, Flight Recorder or broad Organization Fabric work merely to support one readiness calculation;
-- automatically send case data to an external provider;
-- create canonical eligibility state.
+The current material-fact gate recognizes the existing explicit pathway criterion:
+
+```text
+binding_job_offer_in_austria_required
+```
+
+Known false material facts produce `NOT_READY`; unresolved required human facts produce `HUMAN_INPUT_REQUIRED`.
+
+### Score and profile-readiness separation
+
+F.1 emits a descriptive readiness score based on deterministic gate results, but the score has no authorization effect.
+
+The existing Profile `completeness_score` / `readiness_stage` describe intake completeness and are not material eligibility authorization gates.
+
+Permanent:
+
+```text
+model confidence ≠ readiness gate
+readiness score  ≠ authorization
+profile completeness ≠ material Decision Readiness
+```
+
+### Durable E.2 trust boundary
+
+F.1 does not trust a free-form or forged in-memory proposal. It verifies the durable E.2 attempt itself carries the expected `eligibility.transition`, `REVIEW_REQUIRED`, `POLICY_REVIEW_REQUIRED`, R3 and exact action/intent/context/runtime fingerprints.
+
+A BLOCKed E.2 proposal cannot enter Decision Readiness by replacing its in-memory evaluation.
+
+### Read-only accepted posture
+
+F.1 creates no LLM call, AgentRun, OrganizationActivity, EligibilityAssessment, eligibility mutation, application mutation, client-facing recommendation or external action.
+
+Accepted result safety properties remain:
+
+```text
+independent_verification_required = true
+authorization_effect              = false
+canonical_commit_allowed          = false
+```
 
 ### Relationship to G
 
+Only:
+
 ```text
-E.2 material proposal
-        ↓
-F Decision Readiness
-        ↓
-not ready → remain blocked/review-routed
-ready for verification → G independent verifier
-        ↓
-G verification result
-        ↓
-future deterministic authorization integration
+EligibilityDecisionReadinessResult.state
+    == READY_FOR_INDEPENDENT_VERIFICATION
 ```
 
-A high readiness score is never proof of correctness and never substitutes for independent verification where the constitution requires it.
+may enter the first G independent-verification slice.
+
+A READY result is not proof of correctness and never substitutes for independent verification where the constitution requires it.
 
 ---
 
-## 13. V1.3-G — Independent Verification + Peer Review Network
+## 13. V1.3-G — Independent Verification + Peer Review Network — next active stage
 
 For R3+ material eligibility/recommendation work, genuinely independent verification remains required before canonical commitment.
 
-The verifier must be meaningfully independent in model/runtime/context/conclusion exposure as required by risk.
+The next bounded implementation target is G.1: verify one F.1-ready eligibility proposal with meaningful independence from the proposing execution.
 
-Verification modes may later include:
+G.1 must prove independence rather than merely call the same provider twice with the same prompt/context.
+
+At minimum the design must distinguish:
+
+- proposing employee/runtime identity;
+- verifier employee/runtime identity;
+- provider/model independence group;
+- verifier input from proposer conclusion exposure;
+- Evidence/rule basis reviewed;
+- agreement / disagreement / insufficient-basis result;
+- deterministic verification fingerprint;
+- durable Board-inspectable verification lineage.
+
+G.1 must not automatically authorize eligibility mutation merely because a verifier agrees. The first verification slice should establish independent evidence-based verification and durable lineage; the subsequent authorization integration can then determine exactly how a satisfied R3 verification floor is represented to the Command Gateway.
+
+Potential verification modes remain:
 
 - PRE_COMMIT;
 - POST_COMMIT;
 - BACKGROUND where safe.
 
-G must prove independence rather than merely call the same provider twice with the same prompt/context.
+For the current R3 eligibility vertical, PRE_COMMIT is the appropriate first mode.
 
 ---
 
@@ -837,8 +880,8 @@ V1.3-B   Minimal Governance Kernel                        COMPLETE / PASS / SEAL
 V1.3-C   Transparency Foundation                          COMPLETE / PASS / SEALED through C.4
 V1.3-D   Context + persistent employee/runtime foundation COMPLETE / PASS / SEALED through D.3
 V1.3-E   First Governed Mobility Vertical                 COMPLETE / PASS / SEALED through E.2
-V1.3-F   Decision Readiness                               NEXT / NOT YET IMPLEMENTED
-V1.3-G   Independent Verification + Peer Review Network   NOT STARTED
+V1.3-F   Decision Readiness                               COMPLETE / PASS / SEALED through F.1
+V1.3-G   Independent Verification + Peer Review Network   NEXT / NOT YET IMPLEMENTED
 V1.3-H   Organizational Immune System + circuit breaking  NOT STARTED
 V1.3-I   Earned Autonomy                                  NOT STARTED
 V1.3-J   AIOS Organization Fabric + Munder donor work     NOT STARTED
@@ -871,27 +914,29 @@ The sequence is not a licence to build large horizontal frameworks before produc
 
 ## 22. Immediate implementation order
 
-1. **V1.3-F.1 — Decision Readiness foundation**
-   - inspect current eligibility/readiness engines before designing anything;
-   - reuse current `ContextBundle`, `EligibilityTransitionIntent`, governance and transparency contracts;
-   - define deterministic readiness blockers and component signals;
-   - produce a typed readiness result bound to `context_hash` + `intent_fingerprint`;
-   - no eligibility mutation;
-   - no relaxation of R3 verification;
-   - no generic policy/intent framework.
+1. **V1.3-G.1 — independent verification of one F.1-ready eligibility proposal**
+   - inspect current independent-review / certification / provider-runtime contracts before designing anything;
+   - accept only `READY_FOR_INDEPENDENT_VERIFICATION` F.1 results;
+   - establish a verifier `OrganizationPosition` distinct from the proposer;
+   - establish runtime/provider/model independence requirements appropriate to R3;
+   - minimize proposer-conclusion exposure where feasible rather than asking a second model to rubber-stamp the first;
+   - verify governed case facts, Evidence and VerifiedRules;
+   - emit a typed agreement / disagreement / insufficient-basis verification result;
+   - persist durable Board-inspectable verification lineage;
+   - no eligibility mutation in the first G.1 slice;
+   - no generic Peer Review Network framework before the real vertical proves the contract.
 
-2. **V1.3-G — independent verification**
-   - establish a verifier identity/runtime independent from the proposing execution;
-   - verify claims/evidence/rules rather than merely restating the proposal;
-   - persist verification lineage;
-   - feed deterministic authorization only after the verification contract is accepted.
+2. **R3 verification-floor integration — only after G.1 acceptance**
+   - define exactly how a valid independent-verification result satisfies the existing E.2 verification floor;
+   - preserve Command Gateway authority, optimistic concurrency and idempotency;
+   - do not let verifier agreement bypass scope/authority/autonomy/expected-version gates;
+   - preserve explicit governance → effect causation.
 
-3. **First authorized eligibility effect — only after F/G acceptance**
+3. **First authorized eligibility effect — only after F/G and verification-floor integration acceptance**
    - reuse the existing Command Gateway;
-   - preserve optimistic concurrency and idempotency;
-   - persist explicit governance → effect causation;
-   - Board-inspectable lineage;
-   - no client/external action unless separately authorized.
+   - persist explicit canonical effect lineage;
+   - keep client/external action separately governed;
+   - retain Board-inspectable reconstruction.
 
 4. Continue vertical product workflows before broad Munder/Organization Fabric expansion.
 
