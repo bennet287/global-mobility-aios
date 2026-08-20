@@ -16,115 +16,215 @@ Frozen V11 reference branch final documentation head
   ac130deaafa7aa44068e9459facbda2b4df327d6
 ```
 
-The V12 fork origin remains `dd2f2cd`; the later `ac130dea` V11 commit only cleaned V11's own roadmap/documentation after V12 had already branched.
-
-Earlier history remains available through V11, Git history and the archived changelogs.
-
 > **V11 preserves the reference product checkpoint. V12 is the active implementation line.**
+
+Exact historical diffs remain available through Git history, the frozen V11 branch and archived changelogs.
+
+---
+
+## 2026-08-20 — FINAL COMBINED AIOS + MUNDER DIFFLIN ARCHITECTURE — DOCUMENTATION CHECKPOINT
+
+### Status
+
+**The Global Mobility AIOS V1.3 architecture has been consolidated with the selected compatible capabilities from Munder Difflin v0.4.4. This is an architecture/documentation checkpoint only; it does not claim runtime implementation or PASS for the newly described Munder-derived subsystems.**
+
+New canonical documents:
+
+```text
+docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md
+docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md
+```
+
+Updated canonical surfaces:
+
+```text
+README.md
+docs/ROADMAP.md
+docs/CHANGELOG.md
+```
+
+### Final architecture decision
+
+Munder Difflin v0.4.4 is now treated as a **frozen strategic donor / controlled adoption programme** rather than merely an informal architecture reference.
+
+The governing rule is:
+
+> **Global Mobility AIOS remains the product, domain model, constitutional authority, canonical truth system and governing architecture. Munder supplies implementation mechanics where compatible.**
+
+AIOS retains exclusive ownership of:
+
+- Human Owner / Board supremacy;
+- organizational meaning;
+- OrganizationPosition identity;
+- Mission/WorkItem semantics;
+- Evidence and SourceSnapshots;
+- VerifiedRules and domain meaning;
+- authority and delegation;
+- Earned Autonomy;
+- risk tiers and Decision Readiness;
+- Organizational Immune System semantics;
+- Command Gateway decisions;
+- canonical state;
+- Board Transparency and Decision Lineage;
+- Global Mobility business truth.
+
+### Explicitly preserved V1.3 primitives
+
+The combined architecture explicitly preserves and strengthens:
+
+- Human Owner / Board supreme authority;
+- Board by exception;
+- cross-cutting Transparency Layer;
+- Decision Lineage;
+- persistent AI employees;
+- Memory ≠ Truth;
+- Context Broker / ContextBundle;
+- Capability ≠ Authority ≠ Autonomy ≠ Risk;
+- capability-specific A0–A5 Earned Autonomy;
+- SHADOW → RECOMMEND → SUPERVISED → AUTONOMOUS → HIGH-TRUST maturity progression;
+- Decision Readiness;
+- R0–R5 risk-tiered verification;
+- genuinely independent verification;
+- AI-to-AI escalation;
+- Materiality Registry;
+- typed MaterialAction;
+- Canonicalization Gateway;
+- Command Gateway;
+- optimistic concurrency and idempotency;
+- Organizational Immune System;
+- consequence-aware recovery semantics;
+- performance/scalability doctrine;
+- Evidence trust ladder;
+- provider/framework independence.
+
+### New explicitly adopted combined-architecture features
+
+The final combined architecture adds or makes explicit:
+
+- **AIOS Organization Fabric**;
+- **Agent Runtime Fabric**;
+- **Organizational Communication Fabric**;
+- **Dynamic Mission Squads**;
+- **Mission Rooms / organizational blackboards**;
+- **employee presence and heartbeats**;
+- **agent relationship intelligence**;
+- **Skills runtime integrated with Capability Registry**;
+- **Event Nervous System** for triggers, schedules and proactive work;
+- **Professional Peer Review Network**;
+- **Organizational Flight Recorder**;
+- **Replay / counterfactual evaluation**;
+- **Shadow Employees**;
+- **AI Economics and budget-aware routing**;
+- **intelligent provider/runtime routing**;
+- **Organization/Decision Graph**;
+- **Living Organization** with modern 2D/2.5D cartoon AI employees;
+- **semantic animation tied to genuine organizational state**;
+- **specialized Engineering Workspace using CLI agents/worktrees/IDE concepts**;
+- future executive voice/realtime interaction.
+
+### Munder donor mapping
+
+High-value Munder donor areas include:
+
+```text
+Hive messaging / routing
+provider/runtime abstraction
+PTY/CLI execution
+Skills
+task coordination
+circuit breaking
+triggers / scheduling / heartbeats
+webhooks / integration broker
+memory mechanics
+transcripts / telemetry
+token and cost signals
+graph / live-scene mechanics
+Git worktrees / IDE concepts
+voice / realtime concepts
+```
+
+Hard architectural rejects remain:
+
+```text
+SQLite/file state as canonical authority
+GOD-style unlimited implicit authority
+direct agent mutation of authoritative state
+provider-owned organizational semantics
+retro pixel-office presentation as final AIOS UI
+```
+
+### Living Organization decision
+
+The Munder 2D-office idea is retained only as a conceptual/runtime donor. AIOS will pursue a **premium modern 2D/2.5D Living Organization with modern cartoon AI employees**.
+
+Visual behavior must be semantic:
+
+```text
+employee approaches colleague → real conversation
+employees cluster → real collaboration
+employee joins Mission Room → real Mission participation
+cross-department movement → real handoff/delegation
+warning state → real Immune System intervention
+AI CEO presence → real executive involvement
+Board Room movement → real authority escalation
+```
+
+No fabricated busywork should be generated merely to make the interface look alive.
+
+### Roadmap effect
+
+The active roadmap advances from **V12.8 to V12.9** and expands later V1.3 stages:
+
+```text
+V1.3-D  Context Broker + Agent Identity + Runtime Profiles
+V1.3-E  First Governed Vertical Workflow
+V1.3-F  Decision Readiness
+V1.3-G  Independent Verification + Peer Review Network
+V1.3-H  Organizational Immune System + circuit breaking
+V1.3-I  Earned Autonomy
+V1.3-J  AIOS Organization Fabric + Munder donor integration
+V1.3-K  Agent Runtime / Coworker Execution + connectors
+V1.3-L  Living Organization + modern characters + Organization Graph
+V1.3-M  Full Board Transparency Experience + Flight Recorder
+V1.3-N  Organizational Learning + Replay + Shadow Employees + AI Economics
+```
+
+The dependency remains:
+
+> **Governance before unrestricted execution. Transparency before increased autonomy.**
+
+### Current implementation truth preserved
+
+This architecture update does **not** change the active implementation truth:
+
+```text
+V1.3-A    COMPLETE / PASS / SEALED
+V1.3-B.1  COMPLETE / PASS / SEALED
+V1.3-B.2  COMPLETE / PASS / SEALED
+V1.3-C.1  COMPLETE / PASS / SEALED
+V1.3-C.2  COMPLETE / PASS / SEALED
+V1.3-C.3  COMPLETE / PASS / SEALED
+V1.3-C.4  IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+```
+
+No new migration, domain table, runtime dependency or autonomous external authority is claimed by this documentation checkpoint.
 
 ---
 
 ## 2026-08-20 — V1.3-C.4 BOARD/COCKPIT TRANSPARENCY READ CONTRACT — IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 
-### Status
+The fourth V1.3-C slice is implemented on V12. The first governed material-action trace can be read through a bounded, authenticated Board-facing API contract without exposing arbitrary raw Activity/governance payloads. Canonical Windows-checkout acceptance remains required before C.4 is marked PASS.
 
-**The fourth V1.3-C slice is implemented on V12. The first governed material-action trace can now be read through a bounded, authenticated Board-facing API contract without exposing arbitrary raw Activity/governance payloads. Canonical Windows-checkout acceptance is still required before C.4 is marked PASS.**
-
-Implementation commits:
-
-```text
-4c8267bfa91e7cdc38b6e485792d72bdd39b3df3
-feat: add board transparency read schemas
-
-b9d59d403bfb53efdc2f235478ba5e0c31d67639
-feat: add board transparency read contract
-
-a17d81b6ad5af6259c40f1bd6c4184b944e37a8b
-feat: register organization transparency router
-
-40e04a86b06dc2e0e3b1a573c17d6cad67a03e92
-test: cover board transparency read contract
-
-f7572eb491e33bca2175f64eb99c701c7fd956f0
-docs: define v1.3-c.4 board transparency contract
-
-01ea83594938b5b819e17a40025ed04e1343ab96
-docs: advance roadmap to v12.8 board transparency
-```
-
-### Product-facing API
-
-Added under the existing organization API namespace:
+Product-facing API:
 
 ```text
 GET /api/v1/organization/transparency/traces/{trace_id}
 GET /api/v1/organization/transparency/work-items/{work_item_id}
 ```
 
-The router is registered through the canonical router registry rather than creating a parallel application surface.
+Current access remains limited to the existing trusted Board mapping. Tenant isolation, safe bounded projections and fail-closed malformed-data behavior are preserved.
 
-### Board-safe projection
-
-The trace endpoint returns a typed, whitelisted governance decision projection including:
-
-- action type and capability;
-- gateway outcome/reason;
-- effective risk tier and consequence class;
-- human-review/post-review semantics;
-- constitutional Activity class;
-- actor/department/position/authority context;
-- source and WorkItem identity;
-- action fingerprint and idempotency key;
-- timestamp.
-
-The associated records expose bounded Activity metadata, trace identity and explicit `causation_activity_id`.
-
-Raw internal payload JSON is **not** part of the response schema.
-
-### Current access boundary
-
-C.4 is deliberately limited to the existing trusted:
-
-```text
-role = admin
-position_key = board
-```
-
-mapping. Other authenticated organization roles receive `403`.
-
-This is not claimed as final sensitivity/retention/privilege policy. Broader access remains deferred until explicit data-class policy exists.
-
-### Tenant and integrity behavior
-
-C.4 preserves strict tenant isolation. Foreign trace IDs and foreign WorkItems are non-disclosing.
-
-Malformed durable governance data fails closed with a safe `409` response instead of returning persistence details or traceback content.
-
-### Focused tests added
-
-Five API-level tests cover:
-
-1. Board trace reads expose whitelisted governance semantics and C.3 explicit causation;
-2. non-Board authenticated roles are denied;
-3. trace reads remain tenant-scoped and non-disclosing;
-4. WorkItem transparency history is bounded and rejects foreign/missing WorkItems;
-5. malformed governance data fails closed without leaking internals.
-
-No canonical pytest PASS is claimed yet.
-
-### Non-claims
-
-C.4 does not yet implement:
-
-- Cockpit UI rendering;
-- generalized organization-wide search;
-- final sensitivity/privilege policy;
-- ToolActionRecord;
-- AgentConversation / AgentMessage transparency;
-- Evidence/VerifiedRule/SourceSnapshot decision lineage;
-- a migration;
-- canonical C.4 PASS;
-- GitHub CI PASS.
+C.4 does not yet claim Cockpit UI rendering, organization-wide search, final sensitivity policy, ToolActionRecord, AgentConversation/AgentMessage transparency, complete Evidence/Rule lineage, migration changes, canonical C.4 PASS or GitHub CI PASS.
 
 See `docs/V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md`.
 
@@ -132,123 +232,23 @@ See `docs/V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md`.
 
 ## 2026-08-20 — V1.3-C.3 EXPLICIT GOVERNANCE → EFFECT CAUSATION — COMPLETE / PASS / SEALED
 
-### Status
+C.3 sealed explicit authorization-to-effect lineage for the first governed WorkItem mutation path. Canonical acceptance was reported all green by the Human Owner from the prescribed Windows V12 sequence. Exact final pytest counts were not restated and are not invented.
 
-**Canonical C.3 acceptance was reported all green by the Human Owner from the prescribed Windows V12 checkout sequence. Exact final pytest counts were not restated, so they are not invented.**
+The last separately evidenced full API baseline before C.3 remains C.2's `922 passed / 5 skipped / 1 warning / 0 failed` and is not relabeled as a C.3 result.
 
-Implementation commits:
-
-```text
-d40e5a2aa7b662129d674851f2854f29a6d635c8
-feat: link governed work effect to authorization
-
-ef28c75a457a298e3194a8ae3ce0ed4638ab30e6
-test: cover explicit governance effect causation
-
-e05c8da5892cecc108af632ceef16906f9208b63
-docs: define v1.3-c.3 explicit causation
-```
-
-Acceptance record:
-
-```text
-3c0cca1dc4fa0526ac04a8f60efd8370bf090683
-docs: seal v1.3-c.3 acceptance
-
-docs/V1_3_C3_ACCEPTANCE_2026-08-20.md
-```
-
-### Accepted behavior
-
-The successful governed WorkItem path now records explicit authorization-to-effect lineage:
-
-```text
-Governance authorization Activity
-        │
-        │ activity.id
-        ▼
-organization.work.assigned.v1
-causation_activity_id = governance Activity id
-```
-
-Accepted properties:
-
-- governance authorization is staged first inside the atomic unit;
-- WorkItem mutation, audit and semantic effect remain in the same transaction;
-- the effect explicitly points to its governance cause;
-- trace correlation remains intact;
-- exact successful replay does not duplicate the causal chain;
-- effect-storage failure rolls back authorization and mutation together;
-- no migration/new domain table was required.
-
-### Canonical acceptance truth
-
-The prescribed C.3 sequence covered:
-
-- `v10.22` roadmap compatibility regression;
-- focused B.1/B.2/C.1/C.2/C.3 suite;
-- repository policy;
-- full API regression;
-- migration check;
-- local schema check;
-- `git diff --check`;
-- clean/synchronized status.
-
-The Human Owner reported all checks green. Exact final counts were not restated and are therefore deliberately omitted.
-
-The last separately evidenced API baseline before C.3 remains C.2's `922 passed / 5 skipped / 1 warning / 0 failed`; it is not relabeled as a C.3 result.
-
-No GitHub CI PASS is claimed.
+See `docs/V1_3_C3_ACCEPTANCE_2026-08-20.md`.
 
 ---
 
 ## 2026-08-20 — V1.3-C.2 NON-EXECUTING MATERIAL ATTEMPT TRANSPARENCY — COMPLETE / PASS / SEALED
 
-### Status
+C.2 sealed durable Board-inspectable transparency for blocked/review-routed material governance attempts even when no domain mutation occurs.
 
-**C.2 is sealed. Material governance attempts that are blocked or routed to review remain durable and Board-inspectable even when no domain mutation occurs.**
-
-Accepted API evidence:
+Accepted full API evidence:
 
 ```text
-Repository policy             PASS
-Full API regression           922 passed / 5 skipped / 1 warning / 0 failed in 320.37s
-Migration check               PASS
-Migration head                0076_organization_position_active_identity
-Registered tables             118
-Local DB schema               PASS / 118 actual tables
-Physical tables               119 incl. alembic_version
-git diff --check              clean
-git status                    clean / synchronized
+922 passed / 5 skipped / 1 warning / 0 failed
 ```
-
-The focused C.2 chain and protected roadmap regression were reported green; exact focused counts were not restated and are not invented.
-
-### Accepted behavior
-
-```text
-BLOCK / REVIEW_REQUIRED
-        ↓
-NO domain mutation
-        +
-durable governance-attempt Activity
-        ↓
-Board-inspectable trace
-```
-
-Successful-command idempotency remains:
-
-```text
-governance:<idempotency_key>
-```
-
-Attempt identity remains:
-
-```text
-governance:attempt:<trace_id>
-```
-
-This prevents denied/review attempts from poisoning later legitimate successful-command replay semantics.
 
 See `docs/V1_3_C2_NON_EXECUTING_ATTEMPT_TRANSPARENCY.md` and `docs/V1_3_C2_ACCEPTANCE_2026-08-20.md`.
 
@@ -256,26 +256,14 @@ See `docs/V1_3_C2_NON_EXECUTING_ATTEMPT_TRANSPARENCY.md` and `docs/V1_3_C2_ACCEP
 
 ## 2026-08-20 — V1.3-C.1 TRANSPARENCY TRACE FOUNDATION — COMPLETE / PASS / SEALED
 
-### Status
+C.1 established the tenant-scoped durable transparency projection over `OrganizationActivity`.
 
-**C.1 established the accepted tenant-scoped durable transparency projection over the existing `OrganizationActivity` substrate.**
-
-Canonical evidence:
+Accepted evidence:
 
 ```text
-Focused B.1+B.2+C.1          31 passed / 1 warning / 0 failed in 5.40s
-Repository policy             PASS
-Full API regression           917 passed / 5 skipped / 1 warning / 0 failed in 317.64s
-Migration check               PASS
-Migration head                0076_organization_position_active_identity
-Registered tables             118
-Local DB schema               PASS / 118 actual tables
-Physical tables               119 incl. alembic_version
-git diff --check              clean
-git status                    clean / synchronized
+Focused B.1+B.2+C.1          31 passed / 1 warning / 0 failed
+Full API regression           917 passed / 5 skipped / 1 warning / 0 failed
 ```
-
-Accepted behavior includes shared trace correlation across governance authorization and WorkItem effect, typed Board-inspectable reconstruction, tenant isolation, legacy/unclassified Activity treatment without fake constitutional semantics, fail-closed malformed trace handling, and WorkItem history visibility.
 
 See `docs/V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md` and `docs/V1_3_C1_ACCEPTANCE_2026-08-20.md`.
 
@@ -283,107 +271,38 @@ See `docs/V1_3_C1_TRANSPARENCY_TRACE_FOUNDATION.md` and `docs/V1_3_C1_ACCEPTANCE
 
 ## 2026-08-20 — V1.3-B.2 GOVERNED WORKITEM ASSIGNMENT — COMPLETE / PASS / SEALED
 
-### Status
+B.2 sealed the first real material domain mutation executed through the V1.3 Governance Kernel.
 
-**B.2 is sealed as the first real material domain mutation executed through the V1.3 Governance Kernel.**
-
-Implementation commits:
+Accepted evidence:
 
 ```text
-e21585b4d50495c6dbddd52563e60757dfd9cfc3
-feat: route work assignment through governance kernel
-
-3779a8e4507d4c98d07aa818d5e71e20c1123e8c
-test: cover governed work assignment path
+Focused B.1 + B.2             25 passed / 1 warning / 0 failed
+Full API regression           911 passed / 5 skipped / 1 warning / 0 failed
 ```
-
-Canonical evidence:
-
-```text
-Focused B.1 + B.2             25 passed / 1 warning / 0 failed in 3.08s
-Repository policy             PASS
-Full API regression           911 passed / 5 skipped / 1 warning / 0 failed in 316.36s
-Migration check               PASS
-Migration head                0076_organization_position_active_identity
-Registered tables             118
-Local DB schema               PASS
-git diff --check              clean
-git status                    clean / synchronized
-```
-
-Accepted behavior:
-
-- authorized R1/A4 assignment auto-executes;
-- exact successful retries are idempotent after aggregate-state advancement;
-- stale competing commands fail closed;
-- conflicting idempotency-key reuse fails closed;
-- A2 requires review and does not mutate;
-- WorkItem mutation, assignment audit, semantic Activity and governance Activity are atomic;
-- governance Activity storage failure prevents an opaque autonomous mutation.
-
-No migration or new registered domain table was required.
 
 ---
 
 ## 2026-08-20 — V1.3-B.1 MINIMAL GOVERNANCE KERNEL — COMPLETE / PASS / SEALED AS FOUNDATION
 
-### Status
+B.1 accepted deterministic capability authority, A0–A5 routing, R0–R5 risk floors, typed MaterialAction, expected-version handling, idempotency, Board-reserved protection, trace identity and OrganizationActivity-compatible governance projection.
 
-**B.1 is the accepted deterministic foundation for subsequent V1.3 material-action integration.**
-
-Implementation:
+Accepted full API regression:
 
 ```text
-d351ad85f5c3464178b56dd9da6ac5c83090a27a
-feat: start v1.3-b governance kernel
+905 passed / 5 skipped / 1 warning / 0 failed
 ```
-
-Canonical evidence:
-
-```text
-Focused Governance Kernel     19 passed / 1 warning / 0 failed in 0.16s
-Repository policy             PASS
-Full API regression           905 passed / 5 skipped / 1 warning / 0 failed in 325.63s
-Migration check               PASS
-Migration head                0076_organization_position_active_identity
-Registered tables             118
-Local DB schema               PASS / 118 actual tables
-Physical tables               119 incl. alembic_version
-git diff --check              clean
-git status                    clean / synchronized
-```
-
-B.1 accepts tenant/actor-bound `CapabilityAuthority`, capability/action/scope authority, A0–A5 routing, R0–R5 risk floors, typed `MaterialAction`, expected-version decisions, idempotency replay/conflict decisions, deterministic policy disposition, Board-reserved protection, trace identity and `OrganizationActivity`-compatible governance projection.
-
-Government submission remains R5 + Board-reserved even for A5 capability autonomy.
 
 ---
 
 ## 2026-08-20 — V1.3-A CONSTITUTIONAL CONTRACTS — COMPLETE / PASS / SEALED
 
-Implementation:
+Accepted full API regression:
 
 ```text
-7779c1f8e5d3db2e72e047667774284d7cc5f5af
-feat: freeze v1.3 constitutional contracts
+886 passed / 5 skipped / 1 warning / 0 failed
 ```
 
-Canonical evidence:
-
-```text
-Constitutional tests          13 passed / 1 warning / 0 failed
-Repository policy             PASS
-v10.22 regression rerun       1 passed / 1 warning
-Full API regression           886 passed / 5 skipped / 1 warning / 0 failed
-Migration check               PASS
-Migration head                0076_organization_position_active_identity
-Registered tables             118
-Local DB schema               PASS / 118 actual tables
-git diff --check              clean
-git status                    clean / synchronized
-```
-
-The historical roadmap compatibility repair permanently preserves:
+Historical compatibility markers permanently preserved:
 
 ```text
 v10.22
@@ -391,34 +310,11 @@ multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-No GitHub CI PASS was claimed.
-
 ---
 
 ## 2026-08-19 — V12 ROADMAP / README ALIGNMENT
 
-V12 documentation was separated from the frozen V11 reference after the branch split.
-
-Representative alignment commits:
-
-```text
-4a347d418408a199198832e211f13555cf1ee5e9
-docs: align v12 readme with v1.3 direction
-
-dac2529f4dee279cddc738c9310960afb32cc139
-docs: establish v12 implementation roadmap
-
-c894fba4fb3f04d992614952cafe843978011a21
-docs: align v12 roadmap and changelog
-```
-
-Repository-generation distinction:
-
-```text
-Git branch V11/V12 = repository development generation
-Architecture V1.3 = high-autonomy organization architecture version
-Roadmap V12.x = active V12 delivery-plan generation
-```
+V12 documentation was separated from the frozen V11 reference after the branch split and aligned to the V1.3 direction.
 
 ---
 
@@ -431,14 +327,7 @@ roadmap/global-mobility-aios-v11
 @ dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
 ```
 
-Initial branch-transition commit:
-
-```text
-2120ba7f509d9f556534d859628755e2608d2955
-docs: record v12 development branch transition
-```
-
-The frozen V11 branch later received only its own documentation cleanup and remains the reference checkpoint.
+The frozen V11 branch remains the reference/recovery checkpoint.
 
 ---
 
