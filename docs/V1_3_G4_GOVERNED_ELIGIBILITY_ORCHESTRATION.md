@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Accepted implementation head:** `9ffd677e89473a9a495bc6a01fdfd80a2d9784e9`  
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -128,6 +129,8 @@ The authenticated human initiator is mapped through the existing trusted organiz
 
 The human initiator does **not** become the E.2/G.2/G.3 material-action actor. The producer `OrganizationPosition` from the trusted execution plan remains the organizational actor.
 
+The global auth middleware remains the canonical mutation-role boundary. A reviewer is denied before the route resolves its trusted execution-plan/provider dependency.
+
 ## Provider-egress boundary
 
 The route's default execution-plan dependency intentionally returns:
@@ -241,55 +244,51 @@ Therefore G.4 does not automatically:
 
 G.3 remains the only canonical effect in this vertical.
 
-## Focused tests
+## Accepted tests
 
-`apps/api/tests/test_organization_eligibility_orchestration.py` covers:
+Canonical local acceptance on implementation head `9ffd677e89473a9a495bc6a01fdfd80a2d9784e9`:
 
-1. trusted A5 orchestration reaches the accepted G.3 canonical effect;
-2. exact post-commit retry resolves durable effect identity without model calls;
-3. A1 stops after verified floor and creates no canonical effect;
-4. verifier disagreement stops before G.2/G.3;
-5. non-independent/untrusted execution plan fails before runtime;
-6. HTTP route fails closed with 503 when no trusted execution policy is installed;
-7. trusted dependency override executes the route end-to-end;
-8. request JSON cannot smuggle provider/runtime/position/autonomy fields;
-9. reviewer/non-operator human initiation is denied;
-10. human initiator cannot replace the producer CapabilityAuthority actor.
+```text
+G.4 focused orchestration/API          10 passed / 1 warning / 0 failed
+G.4 + OpenAPI boundary                 11 passed / 1 warning / 0 failed
+E.2 → G.4 governed eligibility vertical
+                                       81 passed / 1 warning / 0 failed
+Repository policy                      PASS
+Full API regression                    1050 passed / 5 skipped / 1 warning / 0 failed
+Duration                               488.05s
+Database migration check               PASS
+Migration head                         0077_canonical_eligibility_assessment_revision
+Registered tables                      119
+Local DB schema                        PASS
+Actual tables                          119
+Physical tables                        120 incl. alembic_version
+git diff --check                       clean
+V12 branch                             clean / synchronized
+```
 
-Pytest's actual collected count is canonical.
+The known Starlette/httpx deprecation warning remains non-blocking. No dependency change is implied.
+
+The canonical acceptance record is:
+
+- `docs/V1_3_G4_ACCEPTANCE_2026-08-20.md`
 
 ## Migration posture
 
 G.4 adds no migration.
 
-Expected migration head remains:
+Accepted migration head remains:
 
 ```text
 0077_canonical_eligibility_assessment_revision
 ```
 
-Expected schema remains:
+Accepted schema remains:
 
 ```text
 registered tables 119
 actual tables     119
 physical tables   120 including alembic_version
 ```
-
-## Acceptance gate
-
-Canonical G.4 acceptance should include:
-
-- focused orchestration/API tests;
-- E.2→G.4 vertical neighborhood;
-- existing organization/OpenAPI boundary test;
-- repository policy;
-- full API regression;
-- migration/schema checks;
-- `git diff --check`;
-- clean synchronized V12 branch.
-
-No GitHub CI PASS may be claimed without attached check evidence.
 
 ## Deliberate non-claims
 
@@ -303,16 +302,20 @@ G.4 does not claim:
 - a generic canonical-effect framework;
 - Mission Room / Organization Fabric implementation;
 - client-facing eligibility publication;
-- external action authorization.
+- external action authorization;
+- completion of every critic-driven helper consolidation item.
 
-## Next bounded consolidation
+## Next bounded slice — G.4.1 Eligibility Vertical Contract Consolidation
 
-After G.4 orchestration behavior is accepted, the now-proven vertical may promote only stable shared seams, especially:
+G.4 is now accepted as the orchestration slice. The critic-verified shared-seam cleanup remains explicitly separate rather than being falsely marked complete.
 
-- public E.2 action reconstruction helpers currently shared through G.2/G.3 internals;
-- one mobility intent→domain mapping;
-- one documented system-bound-agent command-context constructor;
+G.4.1 may promote only stable shared seams, especially:
+
+- public E.2 action reconstruction/original-payload helpers currently shared through G.2/G.3 internals;
+- one canonical mobility `LeadIntent → domain` mapping;
+- one documented system-bound-agent `OrganizationCommandContext` constructor;
 - public pathway publication-integrity contract;
+- shared canonical reference/fingerprint resolution only where multiple real consumers prove identical semantics;
 - narrower freshness invalidation only when the complete ContextBundle dependency set is proven.
 
-These are vertical hardening steps, not an invitation to create a horizontal AI framework.
+G.4.1 must not introduce `GenericEffectEngine`, `UniversalIntentBus`, a generic Peer Review Network, or another speculative horizontal framework.
