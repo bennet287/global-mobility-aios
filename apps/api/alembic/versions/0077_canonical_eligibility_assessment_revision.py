@@ -15,8 +15,24 @@ branch_labels = None
 depends_on = None
 
 
+# PostgreSQL identifiers are limited to 63 bytes. Most index names below fit the
+# repository's existing explicit naming convention, but these two do not. Keep the
+# shortened spellings deterministic instead of relying on backend-specific truncation.
+_POSTGRES_SAFE_INDEX_NAMES = {
+    "verification_floor_activity_id": "ix_eligibility_revisions_verification_floor_activity",
+    "verification_floor_fingerprint": "ix_eligibility_revisions_verification_floor_fp",
+}
+
+
 def _uuid() -> sa.Uuid:
     return sa.Uuid()
+
+
+def _index_name(column: str) -> str:
+    return _POSTGRES_SAFE_INDEX_NAMES.get(
+        column,
+        f"ix_eligibility_assessment_revisions_{column}",
+    )
 
 
 def upgrade() -> None:
@@ -144,7 +160,7 @@ def upgrade() -> None:
         "created_at",
     ):
         op.create_index(
-            f"ix_eligibility_assessment_revisions_{column}",
+            _index_name(column),
             "eligibility_assessment_revisions",
             [column],
         )
