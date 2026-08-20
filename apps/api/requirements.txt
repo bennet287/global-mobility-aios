@@ -26,7 +26,8 @@ opentelemetry-instrumentation-fastapi>=0.49b0
 opentelemetry-exporter-otlp>=1.28
 
 # ClamAV — optional upload malware-scanning adapter (Technology Radar V1.1 Wave 1).
-# Requires a running clamd daemon when CLAMAV_ENABLED=true; the Python client is installed by default.
-clamd>=1.0.0
+# Requires a running clamd daemon when CLAMAV_ENABLED=true; 1.0.2 is the minimum
+# client release with standalone setuptools packaging and a universal wheel.
+clamd>=1.0.2
 
 pytest>=8.3
