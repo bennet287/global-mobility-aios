@@ -22,8 +22,9 @@ from app.services.organization_transparency import TransparencyDataError, transp
 
 INDEPENDENT_ELIGIBILITY_ACTIVITY_TYPE = "verification.eligibility.independent.v1"
 ELIGIBILITY_VERIFICATION_FLOOR_ACTIVITY_TYPE = "governance.eligibility.verification_floor.v1"
-ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE = "organization.eligibility.assessment_committed.v1"
+ELIGIBILITY_CANONICAL_GOVERNANCE_ACTIVITY_TYPE = "governance.eligibility.transition.auto_execute"
 ELIGIBILITY_CANONICAL_GOVERNANCE_RECORD_KIND = "eligibility_canonical_effect_authorization"
+ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE = "organization.eligibility.assessment_committed.v1"
 ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION = "eligibility-canonical-effect.v1"
 
 
@@ -69,7 +70,7 @@ class CanonicalEligibilityLineage:
     @property
     def proposal_activity_id(self) -> UUID:
         proposal_activity_id = self.verification_activity.causation_activity_id
-        if proposal_activity_id is None:  # defensive; validator proves this before returning
+        if proposal_activity_id is None:
             raise CanonicalEligibilityLineageError(
                 "validated eligibility verification unexpectedly lacks its proposal cause",
                 code="validated_lineage_missing_proposal_cause",
@@ -95,14 +96,14 @@ def _fail(
     )
 
 
-def _payload(activity: OrganizationActivity, *, label: str) -> dict[str, Any]:
+def _record(activity: OrganizationActivity, *, label: str, source_activity_id: UUID | None):
     try:
-        return dict(transparency_activity_record(activity).payload)
+        return transparency_activity_record(activity)
     except TransparencyDataError as exc:
         raise CanonicalEligibilityLineageError(
             f"canonical eligibility {label} Activity is malformed",
             code=f"malformed_{label}_activity",
-            source_activity_id=activity.id,
+            source_activity_id=source_activity_id or activity.id,
             details={"activity_id": str(activity.id)},
         ) from exc
 
@@ -113,7 +114,7 @@ def _require_activity_identity(
     tenant_key: str,
     revision: EligibilityAssessmentRevision,
     label: str,
-    expected_activity_type: str | None = None,
+    expected_activity_type: str,
 ) -> None:
     if activity.tenant_key != tenant_key:
         _fail(
@@ -135,7 +136,7 @@ def _require_activity_identity(
             activity_profile_id=str(activity.profile_id),
             revision_profile_id=str(revision.profile_id),
         )
-    if expected_activity_type is not None and activity.activity_type != expected_activity_type:
+    if activity.activity_type != expected_activity_type:
         _fail(
             f"canonical eligibility {label} Activity has the wrong type",
             code=f"{label}_activity_type_mismatch",
@@ -167,17 +168,40 @@ def _require_payload_fields(
         )
 
 
+def _assessment_payload(
+    assessment: EligibilityAssessment,
+    *,
+    governance_activity_id: UUID,
+) -> dict[str, Any]:
+    try:
+        payload = json.loads(assessment.assessment_json or "{}")
+    except json.JSONDecodeError as exc:
+        raise CanonicalEligibilityLineageError(
+            "canonical eligibility assessment payload is malformed",
+            code="malformed_assessment_payload",
+            source_activity_id=governance_activity_id,
+            details={"assessment_id": str(assessment.id)},
+        ) from exc
+    if not isinstance(payload, dict):
+        _fail(
+            "canonical eligibility assessment payload must be an object",
+            code="assessment_payload_not_object",
+            source_activity_id=governance_activity_id,
+            assessment_id=str(assessment.id),
+        )
+    return payload
+
+
 def validate_canonical_eligibility_lineage(
     session: Session,
     *,
     tenant_key: str,
     revision: EligibilityAssessmentRevision,
 ) -> CanonicalEligibilityLineage:
-    """Validate one committed eligibility revision against the single canonical lineage contract.
+    """Validate one committed eligibility revision against the single canonical contract.
 
-    The validator is intentionally domain-specific and read-only. G.3 replay, G.4 replay
-    and H.1 preflight all depend on this contract so Activity identity, revision identity,
-    fingerprints and causation cannot drift independently between callers.
+    G.3 replay, G.4 replay and H.1 preflight all depend on this read-only,
+    domain-specific contract so durable identity cannot drift between callers.
     """
 
     tenant = str(tenant_key or "").strip()
@@ -188,6 +212,7 @@ def validate_canonical_eligibility_lineage(
             "canonical eligibility revision belongs to a different tenant",
             code="revision_tenant_mismatch",
             integrity_scope="aggregate",
+            source_activity_id=revision.governance_activity_id,
             revision_id=str(revision.id),
             revision_tenant_key=revision.tenant_key,
             expected_tenant_key=tenant,
@@ -345,23 +370,10 @@ def validate_canonical_eligibility_lineage(
             pathway_domain=pathway.domain,
         )
 
-    try:
-        assessment_payload = json.loads(assessment.assessment_json or "{}")
-    except json.JSONDecodeError as exc:
-        raise CanonicalEligibilityLineageError(
-            "canonical eligibility assessment payload is malformed",
-            code="malformed_assessment_payload",
-            source_activity_id=governance.id,
-            details={"assessment_id": str(assessment.id)},
-        ) from exc
-    if not isinstance(assessment_payload, dict):
-        _fail(
-            "canonical eligibility assessment payload must be an object",
-            code="assessment_payload_not_object",
-            source_activity_id=governance.id,
-            assessment_id=str(assessment.id),
-        )
-
+    assessment_payload = _assessment_payload(
+        assessment,
+        governance_activity_id=governance.id,
+    )
     expected_previous_version = None if revision.version == 1 else revision.version - 1
     supersedes_id = (
         str(revision.supersedes_revision_id)
@@ -393,33 +405,20 @@ def validate_canonical_eligibility_lineage(
             payload_state=assessment_payload.get("proposed_state"),
         )
 
-    _require_activity_identity(
-        verification,
-        tenant_key=tenant,
-        revision=revision,
-        label="verification",
-        expected_activity_type=INDEPENDENT_ELIGIBILITY_ACTIVITY_TYPE,
-    )
-    _require_activity_identity(
-        floor,
-        tenant_key=tenant,
-        revision=revision,
-        label="verification_floor",
-        expected_activity_type=ELIGIBILITY_VERIFICATION_FLOOR_ACTIVITY_TYPE,
-    )
-    _require_activity_identity(
-        governance,
-        tenant_key=tenant,
-        revision=revision,
-        label="governance",
-    )
-    _require_activity_identity(
-        semantic,
-        tenant_key=tenant,
-        revision=revision,
-        label="semantic",
-        expected_activity_type=ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE,
-    )
+    expected_activity_types = {
+        "verification": (verification, INDEPENDENT_ELIGIBILITY_ACTIVITY_TYPE),
+        "verification_floor": (floor, ELIGIBILITY_VERIFICATION_FLOOR_ACTIVITY_TYPE),
+        "governance": (governance, ELIGIBILITY_CANONICAL_GOVERNANCE_ACTIVITY_TYPE),
+        "semantic": (semantic, ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE),
+    }
+    for label, (activity, expected_type) in expected_activity_types.items():
+        _require_activity_identity(
+            activity,
+            tenant_key=tenant,
+            revision=revision,
+            label=label,
+            expected_activity_type=expected_type,
+        )
 
     for label, activity in {
         "verification": verification,
@@ -458,10 +457,27 @@ def validate_canonical_eligibility_lineage(
             revision_version=revision.version,
         )
 
-    verification_record = transparency_activity_record(verification)
-    floor_record = transparency_activity_record(floor)
-    governance_record = transparency_activity_record(governance)
-    semantic_record = transparency_activity_record(semantic)
+    verification_record = _record(
+        verification,
+        label="verification",
+        source_activity_id=governance.id,
+    )
+    floor_record = _record(
+        floor,
+        label="verification_floor",
+        source_activity_id=governance.id,
+    )
+    governance_record = _record(
+        governance,
+        label="governance",
+        source_activity_id=governance.id,
+    )
+    semantic_record = _record(
+        semantic,
+        label="semantic",
+        source_activity_id=governance.id,
+    )
+
     for label, record in {
         "verification": verification_record,
         "verification_floor": floor_record,
