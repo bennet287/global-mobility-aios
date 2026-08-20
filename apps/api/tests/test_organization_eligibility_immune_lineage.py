@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from uuid import uuid4
 
 import pytest
@@ -44,7 +45,7 @@ def _incident_payloads(
     return [transparency_activity_record(row).payload for row in rows]
 
 
-def _committed_v1(session: Session):
+def _committed_v1(session: Session, *, idempotency_key: str = "h1-lineage-v1"):
     _, _, graph, proposal_work, verification_work = _fixture(session)
     plan, producer, verifier = _plan(graph)
     result = orchestrate_governed_eligibility(
@@ -52,13 +53,58 @@ def _committed_v1(session: Session):
         tenant_key="tenant-a",
         proposal_work_item_id=proposal_work.id,
         verification_work_item_id=verification_work.id,
-        idempotency_key="h1-lineage-v1",
+        idempotency_key=idempotency_key,
         execution_plan=plan,
     )
     assert result.revision_id is not None
     revision = session.get(EligibilityAssessmentRevision, result.revision_id)
     assert revision is not None
     return result, revision, graph, proposal_work, verification_work, plan, producer, verifier
+
+
+def _critical_durable_incidents(
+    session: Session,
+    *,
+    aggregate_key: str,
+) -> list[dict[str, object]]:
+    return [
+        payload
+        for payload in _incident_payloads(session, aggregate_key=aggregate_key)
+        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
+        and payload["severity"] == "critical"
+        and payload["automatic_circuit_action"] == "open"
+    ]
+
+
+def _mutate_lineage_identity(
+    session: Session,
+    *,
+    revision: EligibilityAssessmentRevision,
+    mutation: str,
+) -> None:
+    activity_id = {
+        "verification_type": revision.verification_activity_id,
+        "floor_type": revision.verification_floor_activity_id,
+        "governance_record_kind": revision.governance_activity_id,
+        "semantic_type": revision.semantic_activity_id,
+    }[mutation]
+    assert activity_id is not None
+    activity = session.get(OrganizationActivity, activity_id)
+    assert activity is not None
+
+    if mutation == "verification_type":
+        activity.activity_type = "verification.unrelated.v1"
+    elif mutation == "floor_type":
+        activity.activity_type = "governance.unrelated.floor.v1"
+    elif mutation == "semantic_type":
+        activity.activity_type = "organization.unrelated.semantic.v1"
+    else:
+        payload = json.loads(activity.payload_json or "{}")
+        payload["governance_record_kind"] = "unrelated_governance_record"
+        activity.payload_json = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+    session.add(activity)
+    session.commit()
 
 
 def test_h1_torn_durable_lineage_opens_exact_aggregate_before_fresh_provider_egress(
@@ -104,15 +150,8 @@ def test_h1_torn_durable_lineage_opens_exact_aggregate_before_fresh_provider_egr
         aggregate_key=aggregate,
     )
     assert status.state is EligibilityCircuitState.OPEN
-    incidents = _incident_payloads(db_session, aggregate_key=aggregate)
-    durable = [
-        payload
-        for payload in incidents
-        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
-    ]
+    durable = _critical_durable_incidents(db_session, aggregate_key=aggregate)
     assert len(durable) == 1
-    assert durable[0]["severity"] == "critical"
-    assert durable[0]["automatic_circuit_action"] == "open"
     assert durable[0]["authority_effect"] == "restrict_only"
 
 
@@ -176,11 +215,7 @@ def test_h1_unrepaired_lineage_reopens_after_human_recovery(
         tenant_key="tenant-a",
         aggregate_key=aggregate,
     ).state is EligibilityCircuitState.OPEN
-    durable = [
-        payload
-        for payload in _incident_payloads(db_session, aggregate_key=aggregate)
-        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
-    ]
+    durable = _critical_durable_incidents(db_session, aggregate_key=aggregate)
     assert len(durable) == 2
 
 
@@ -272,12 +307,7 @@ def test_h1_assessment_identity_drift_opens_before_fresh_provider_egress(
         tenant_key="tenant-a",
         aggregate_key=aggregate,
     ).state is EligibilityCircuitState.OPEN
-    durable = [
-        payload
-        for payload in _incident_payloads(db_session, aggregate_key=aggregate)
-        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
-    ]
-    assert len(durable) == 1
+    assert len(_critical_durable_incidents(db_session, aggregate_key=aggregate)) == 1
 
 
 def test_h1_semantic_revision_identity_drift_opens_before_fresh_provider_egress(
@@ -321,12 +351,92 @@ def test_h1_semantic_revision_identity_drift_opens_before_fresh_provider_egress(
         tenant_key="tenant-a",
         aggregate_key=aggregate,
     ).state is EligibilityCircuitState.OPEN
-    durable = [
-        payload
-        for payload in _incident_payloads(db_session, aggregate_key=aggregate)
-        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
-    ]
-    assert len(durable) == 1
+    assert len(_critical_durable_incidents(db_session, aggregate_key=aggregate)) == 1
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "verification_type",
+        "floor_type",
+        "governance_record_kind",
+        "semantic_type",
+    ],
+)
+def test_h1_adversarial_activity_identity_drift_opens_critical_circuit_before_provider_egress(
+    db_session: Session,
+    mutation: str,
+) -> None:
+    (
+        _,
+        revision,
+        _,
+        proposal_work,
+        verification_work,
+        plan,
+        producer,
+        verifier,
+    ) = _committed_v1(db_session, idempotency_key=f"h1-adversarial-base-{mutation}")
+    aggregate = revision.aggregate_key
+    _mutate_lineage_identity(db_session, revision=revision, mutation=mutation)
+    producer.calls.clear()
+    verifier.calls.clear()
+
+    with pytest.raises(GovernedEligibilityOrchestrationIntegrityError, match="circuit is open"):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key=f"h1-adversarial-fresh-{mutation}",
+            execution_plan=plan,
+            expected_eligibility_revision_version=1,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.OPEN
+    assert len(_critical_durable_incidents(db_session, aggregate_key=aggregate)) == 1
+
+
+def test_g4_historical_replay_uses_canonical_lineage_validator_before_provider_egress(
+    db_session: Session,
+) -> None:
+    key = "g4-shared-lineage-validator"
+    (
+        first,
+        revision,
+        _,
+        proposal_work,
+        verification_work,
+        plan,
+        producer,
+        verifier,
+    ) = _committed_v1(db_session, idempotency_key=key)
+    assert first.revision_id == revision.id
+    _mutate_lineage_identity(db_session, revision=revision, mutation="semantic_type")
+    producer.calls.clear()
+    verifier.calls.clear()
+
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="durable lineage validation",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key=key,
+            execution_plan=plan,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
 
 
 def test_h1_unresolvable_scope_fails_without_fabricating_circuit_target(
