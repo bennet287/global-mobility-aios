@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, replace
 from uuid import UUID
 
@@ -19,6 +18,12 @@ from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.services.organization_activity import stage_activity
 from app.services.organization_command import canonical_fingerprint, canonical_json
 from app.services.organization_decision_readiness import EligibilityDecisionReadinessResult
+from app.services.organization_eligibility_lineage import (
+    ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE,
+    ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
+    CanonicalEligibilityLineageError,
+    canonical_eligibility_lineage_for_governance,
+)
 from app.services.organization_eligibility_revision_precondition import (
     EligibilityRevisionPreconditionError,
     eligibility_aggregate_key,
@@ -55,10 +60,6 @@ from app.services.organization_transparency import (
     activities_for_trace,
     transparency_activity_record,
 )
-
-
-ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION = "eligibility-canonical-effect.v1"
-ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE = "organization.eligibility.assessment_committed.v1"
 
 
 class EligibilityCanonicalEffectError(RuntimeError):
@@ -322,32 +323,22 @@ def _validate_replay(
     evaluation: GatewayEvaluation,
     governance_activity: OrganizationActivity,
 ) -> GovernedEligibilityCanonicalEffectResult:
-    """Validate a durable historical effect without requiring it to remain ACTIVE."""
+    """Validate a durable historical effect against the canonical lineage contract."""
 
-    revisions = list(
-        session.exec(
-            select(EligibilityAssessmentRevision).where(
-                EligibilityAssessmentRevision.tenant_key == proposal.context.tenant_key,
-                EligibilityAssessmentRevision.governance_activity_id == governance_activity.id,
-            )
-        ).all()
-    )
-    if len(revisions) != 1:
-        raise EligibilityCanonicalEffectIntegrityError(
-            "canonical governance replay does not resolve to exactly one EligibilityAssessment revision"
+    try:
+        lineage = canonical_eligibility_lineage_for_governance(
+            session,
+            tenant_key=proposal.context.tenant_key,
+            governance_activity_id=governance_activity.id,
         )
-    revision = revisions[0]
-    assessment = session.get(EligibilityAssessment, revision.assessment_id)
-    semantic = (
-        session.get(OrganizationActivity, revision.semantic_activity_id)
-        if revision.semantic_activity_id is not None
-        else None
-    )
-    if assessment is None or semantic is None:
+    except CanonicalEligibilityLineageError as exc:
         raise EligibilityCanonicalEffectIntegrityError(
-            "canonical eligibility replay is missing its assessment or semantic Activity"
-        )
+            f"canonical eligibility replay failed durable lineage validation: {exc.code}"
+        ) from exc
 
+    revision = lineage.revision
+    assessment = lineage.assessment
+    semantic = lineage.semantic_activity
     _, pathway = _pathway_identity(session, proposal)
     expected_aggregate_key = _aggregate_key(
         tenant_key=proposal.context.tenant_key,
@@ -371,8 +362,6 @@ def _validate_replay(
         raise EligibilityCanonicalEffectIntegrityError("persisted revision has the wrong canonical revision version")
     if revision.supersedes_revision_id != precondition.supersedes_revision_id:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision has the wrong supersession lineage")
-    if revision.lifecycle_status not in {"active", "superseded"}:
-        raise EligibilityCanonicalEffectIntegrityError("persisted revision has an invalid lifecycle status")
     if revision.original_action_fingerprint != proposal.evaluation.action_fingerprint:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision belongs to a different E.2 action")
     if revision.intent_fingerprint != proposal.intent_fingerprint:
@@ -383,6 +372,10 @@ def _validate_replay(
         raise EligibilityCanonicalEffectIntegrityError("persisted revision belongs to a different G.1 verification")
     if revision.verification_floor_fingerprint != floor.verification_floor_fingerprint:
         raise EligibilityCanonicalEffectIntegrityError("persisted revision belongs to a different G.2 floor")
+    if lineage.verification_activity.id != verification.verification_activity.id:
+        raise EligibilityCanonicalEffectIntegrityError("persisted revision names a different G.1 verification Activity")
+    if lineage.verification_floor_activity.id != floor.reevaluation_activity.id:
+        raise EligibilityCanonicalEffectIntegrityError("persisted revision names a different G.2 floor Activity")
     if assessment.lead_id != proposal.intent.lead_id:
         raise EligibilityCanonicalEffectIntegrityError("persisted assessment belongs to a different Lead")
     if assessment.profile_id != proposal.intent.profile_id or assessment.profile_version != proposal.intent.profile_version:
@@ -391,79 +384,13 @@ def _validate_replay(
         raise EligibilityCanonicalEffectIntegrityError("persisted assessment has a different eligibility state")
     if assessment.target_country != pathway.country or assessment.domain != pathway.domain:
         raise EligibilityCanonicalEffectIntegrityError("persisted assessment has the wrong pathway scope")
-    try:
-        assessment_payload = json.loads(assessment.assessment_json or "{}")
-    except json.JSONDecodeError as exc:
-        raise EligibilityCanonicalEffectIntegrityError("persisted assessment payload is malformed") from exc
-    expected_assessment_fields = {
-        "schema_version": ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
-        "canonical_revision_version": revision.version,
-        "proposed_state": proposal.intent.proposed_state.value,
-        "pathway_version_id": str(proposal.intent.pathway_version_id),
-        "intent_fingerprint": proposal.intent_fingerprint,
-        "readiness_fingerprint": readiness.readiness_fingerprint,
-        "verification_fingerprint": verification.verification_fingerprint,
-        "verification_floor_fingerprint": floor.verification_floor_fingerprint,
-        "governed": True,
-    }
-    for key, value in expected_assessment_fields.items():
-        if assessment_payload.get(key) != value:
-            raise EligibilityCanonicalEffectIntegrityError(
-                f"persisted assessment payload conflicts on field {key!r}"
-            )
-    stored_supersedes = assessment_payload.get("supersedes_revision_id")
-    expected_supersedes = (
-        str(revision.supersedes_revision_id) if revision.supersedes_revision_id is not None else None
-    )
-    if stored_supersedes not in {None, expected_supersedes}:
-        raise EligibilityCanonicalEffectIntegrityError(
-            "persisted assessment payload conflicts on supersession lineage"
-        )
-
-    try:
-        governance_record = transparency_activity_record(governance_activity)
-        semantic_record = transparency_activity_record(semantic)
-    except TransparencyDataError as exc:
-        raise EligibilityCanonicalEffectIntegrityError("persisted eligibility lineage Activity is malformed") from exc
-    if governance_record.causation_activity_id != floor.reevaluation_activity.id:
-        raise EligibilityCanonicalEffectIntegrityError("persisted canonical governance has the wrong G.2 cause")
-    if governance_record.constitutional_activity_class is not ConstitutionalActivityClass.MATERIAL:
-        raise EligibilityCanonicalEffectIntegrityError("persisted canonical governance is not MATERIAL")
-    expected_governance_payload = {
-        "governance_record_kind": "eligibility_canonical_effect_authorization",
-        "outcome": GatewayOutcome.AUTO_EXECUTE.value,
-        "action_fingerprint": proposal.evaluation.action_fingerprint,
-        "verification_floor_fingerprint": floor.verification_floor_fingerprint,
-        "effect_fingerprint": revision.effect_fingerprint,
-    }
-    for key, value in expected_governance_payload.items():
-        if governance_record.payload.get(key) != value:
-            raise EligibilityCanonicalEffectIntegrityError(
-                f"persisted canonical governance conflicts on field {key!r}"
-            )
-
-    if semantic_record.activity_type != ELIGIBILITY_CANONICAL_EFFECT_ACTIVITY_TYPE:
-        raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity has the wrong type")
-    if semantic_record.causation_activity_id != governance_activity.id:
-        raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity has the wrong cause")
-    if semantic_record.constitutional_activity_class is not ConstitutionalActivityClass.MATERIAL:
-        raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity is not MATERIAL")
-    if (
-        semantic_record.source_object_id != str(assessment.id)
-        or semantic_record.source_object_version != str(revision.version)
-    ):
-        raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity has the wrong source")
-    if semantic_record.payload.get("effect_fingerprint") != revision.effect_fingerprint:
-        raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity fingerprint conflicts")
-    if semantic_record.payload.get("revision_id") != str(revision.id):
-        raise EligibilityCanonicalEffectIntegrityError("persisted semantic eligibility Activity names the wrong revision")
 
     return GovernedEligibilityCanonicalEffectResult(
         schema_version=ELIGIBILITY_CANONICAL_EFFECT_SCHEMA_VERSION,
         evaluation=evaluation,
         assessment=assessment,
         revision=revision,
-        governance_activity=governance_activity,
+        governance_activity=lineage.governance_activity,
         semantic_activity=semantic,
         canonical_effect_committed=True,
         mutated=False,
