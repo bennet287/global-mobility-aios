@@ -16,6 +16,7 @@ from app.services.organization_eligibility_immune_system import (
     EligibilityCircuitState,
     EligibilityImmuneIncidentKind,
     EligibilityImmuneIncidentSeverity,
+    EligibilityImmuneSystemError,
     close_eligibility_circuit,
     eligibility_circuit_status,
     eligibility_immune_system_context,
@@ -201,7 +202,7 @@ def test_h1_incident_replay_is_idempotent_and_does_not_duplicate_open(db_session
     assert replay.circuit_status.state is EligibilityCircuitState.OPEN
     assert len(_activities(db_session, tenant_key="tenant-a", aggregate_key=aggregate)) == count
 
-    with pytest.raises(Exception, match="idempotency key conflicts"):
+    with pytest.raises(EligibilityImmuneSystemError, match="idempotency key conflicts"):
         record_eligibility_immune_incident(
             db_session,
             tenant_key="tenant-a",
