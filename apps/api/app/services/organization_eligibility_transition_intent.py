@@ -9,6 +9,7 @@ from uuid import UUID
 from sqlmodel import Session
 
 from app.core.organization_constitution import (
+    AutonomyLevel,
     ConsequenceClass,
     MaterialActionType,
     OrganizationActivityClass as ConstitutionalActivityClass,
@@ -494,13 +495,6 @@ def governed_eligibility_transition_intent(
         _case_and_pathway_payload(session, context=context)
     )
     prompt_payload = canonical_json(payload)
-    prompt_fingerprint = canonical_fingerprint(
-        {
-            "system_prompt": _SYSTEM_PROMPT,
-            "payload": payload,
-            "runtime_binding_hash": binding.binding_hash,
-        }
-    )
 
     try:
         response: LLMResponse = provider.complete(
@@ -572,16 +566,20 @@ def governed_eligibility_transition_intent(
         consequence_class=ConsequenceClass.APPEND_ONLY_CORRECTION,
     )
 
-    # This is the explicit E.2 floor. R3 is constitutionally material and requires
-    # independent verification, but the generic B.1 kernel does not infer whether that
-    # verifier has been satisfied. Until F/G exist, E.2 supplies HUMAN_REQUIRED and
-    # therefore cannot auto-execute even if the position's nominal autonomy is A3-A5.
+    # Preserve A0 as an unconditional prohibition. For A1-A5, the explicit E.2
+    # verification floor is stricter than nominal autonomy and forces human review
+    # until independent verification exists.
+    policy_disposition = (
+        PolicyDisposition.ALLOW
+        if authority.autonomy_level is AutonomyLevel.A0
+        else PolicyDisposition.HUMAN_REQUIRED
+    )
     evaluation = evaluate_material_action(
         command_context,
         authority,
         action,
         current_version=current_profile.profile_version,
-        policy_disposition=PolicyDisposition.HUMAN_REQUIRED,
+        policy_disposition=policy_disposition,
     )
     if evaluation.effective_risk_tier is not RiskTier.R3:
         raise EligibilityIntentIntegrityError("eligibility transition lost its constitutional R3 floor")
