@@ -22,6 +22,52 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — MUNDER DIFFLIN v0.4.4 FROZEN DONOR SOURCE — VENDORED INTO AIOS
+
+### Status
+
+**The exact Munder Difflin `v0.4.4` donor baseline is now available inside the Global Mobility AIOS repository for direct AI-assistant and developer inspection. This is a reference/provenance import only and does not claim runtime adoption of Munder subsystems.**
+
+Vendored location:
+
+```text
+vendor/munder-difflin/v0.4.4/
+```
+
+Provenance:
+
+```text
+upstream repository  chaitanyagiri/munder-difflin
+upstream tag         v0.4.4
+upstream commit      4b6f8b71ef904a1df908c03430934d1ecda9a744
+uploaded ZIP SHA256  8c7a152873f72a2ddbb2f508a02bfe49903c8feb1ba59d1aaec30befa4b6e82a
+```
+
+The snapshot preserves source, tests, runtime resources/Skills, tools/scripts/prototypes, package/configuration material and the primary upstream architecture/specification documents. `SOURCE_MANIFEST.txt` and `AIOS_VENDOR_METADATA.md` are included for inspection and provenance.
+
+The donor snapshot remains **read-only reference material**. AIOS production implementation must continue through explicit DIRECT REUSE / PORT / ADAPT / REIMPLEMENT / REJECT decisions and AIOS-owned modules behind the Context Broker, authority/autonomy contracts, Evidence model, Canonicalization, Command Gateway, Transparency Layer and Organizational Immune System.
+
+### Licensing boundary
+
+Munder's upstream `LICENSE` states that the bundled LimeZu pixel-art assets are not covered by the MIT source-code license and that the free-version visual assets are non-commercial. Those art assets are intentionally excluded from the AIOS vendor snapshot; the relevant attribution notice is retained where available.
+
+This also matches the accepted product direction: Munder's pixel-office presentation is not the AIOS target. The Living Organization will use a completely redesigned premium modern 2D/2.5D cartoon-character system.
+
+Heavy documentation media, generated website output, release binaries, caches, logs and generated build output are also intentionally excluded.
+
+Canonical records:
+
+```text
+docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md
+docs/MUNDER_DIFFLIN_VENDOR_SNAPSHOT_V0_4_4.md
+vendor/munder-difflin/v0.4.4/AIOS_VENDOR_METADATA.md
+vendor/munder-difflin/v0.4.4/SOURCE_MANIFEST.txt
+```
+
+No migration, database mutation, production dependency, authority expansion, runtime behavior or acceptance-state change is claimed by this import.
+
+---
+
 ## 2026-08-20 — FINAL COMBINED AIOS + MUNDER DIFFLIN ARCHITECTURE — DOCUMENTATION CHECKPOINT
 
 ### Status
