@@ -107,7 +107,7 @@ def _mutate_lineage_identity(
     session.commit()
 
 
-def test_h1_torn_durable_lineage_opens_exact_aggregate_before_fresh_provider_egress(
+def test_h1_cross_linked_durable_lineage_opens_exact_aggregate_before_fresh_provider_egress(
     db_session: Session,
 ) -> None:
     (
@@ -122,7 +122,11 @@ def test_h1_torn_durable_lineage_opens_exact_aggregate_before_fresh_provider_egr
     ) = _committed_v1(db_session)
     aggregate = revision.aggregate_key
 
-    revision.semantic_activity_id = uuid4()
+    # Corrupt lineage in a way that remains valid under the real composite FK:
+    # the revision points its semantic slot at an existing same-tenant governance Activity.
+    # PostgreSQL must accept the row so H.1, rather than the database FK, proves the
+    # higher-order canonical lineage invariant and opens the restrictive circuit.
+    revision.semantic_activity_id = revision.governance_activity_id
     db_session.add(revision)
     db_session.commit()
     producer.calls.clear()
@@ -169,7 +173,7 @@ def test_h1_unrepaired_lineage_reopens_after_human_recovery(
         verifier,
     ) = _committed_v1(db_session)
     aggregate = revision.aggregate_key
-    revision.semantic_activity_id = uuid4()
+    revision.semantic_activity_id = revision.governance_activity_id
     db_session.add(revision)
     db_session.commit()
     producer.calls.clear()
