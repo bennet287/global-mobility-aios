@@ -1,0 +1,163 @@
+name: V12 Production Proof
+
+on:
+  push:
+    branches:
+      - main
+      - "roadmap/**"
+  pull_request:
+
+concurrency:
+  group: v12-production-proof-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  repository-policy:
+    name: Repository policy and constraints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository policy
+        run: python scripts/check_repo_policy.py --root .
+
+      - name: Release consistency
+        run: python scripts/check_release_consistency.py --root .
+
+      - name: Python dependency constraints
+        run: python scripts/check_python_dependency_constraints.py
+
+      - name: Diff hygiene
+        run: git diff --check HEAD^
+
+  backend-sqlite:
+    name: Backend regression (SQLite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            apps/api/requirements.txt
+            apps/api/constraints.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+
+      - name: Compile Python sources
+        run: python -m compileall -q apps/api/app scripts
+
+      - name: Backend pytest regression
+        run: python -m pytest apps/api/tests -q
+
+      - name: Migration consistency
+        run: python scripts/check_database_migrations.py
+
+      - name: Local schema contract
+        run: python scripts/check_local_db_schema.py
+
+  frontend:
+    name: Frontend tests, types and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Design foundation tests
+        run: npm run test:design-foundation
+
+      - name: Request/auth tests
+        run: npm run test:request-auth
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+      - name: Compiled auth tests
+        run: npm run test:compiled-auth
+
+  postgres-governance:
+    name: PostgreSQL governance contracts
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: global_mobility_aios_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d global_mobility_aios_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/global_mobility_aios_test
+      GMAI_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/global_mobility_aios_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            apps/api/requirements.txt
+            apps/api/constraints.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+
+      - name: Upgrade isolated PostgreSQL schema through Alembic
+        run: python -m alembic -c alembic.ini upgrade head
+
+      - name: Verify migration contract
+        run: python scripts/check_database_migrations.py
+
+      - name: Run governed eligibility PostgreSQL contracts
+        run: >-
+          python -m pytest -q
+          apps/api/tests/test_organization_eligibility_effect.py
+          apps/api/tests/test_organization_eligibility_orchestration.py
+          apps/api/tests/test_organization_eligibility_lineage_contract.py
+          apps/api/tests/test_organization_eligibility_immune_system.py
+          apps/api/tests/test_organization_eligibility_immune_orchestration.py
+          apps/api/tests/test_organization_eligibility_immune_lineage.py
+          apps/api/tests/test_organization_eligibility_postgres_contract.py
