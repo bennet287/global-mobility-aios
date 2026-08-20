@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -195,7 +195,9 @@ profile_id/profile_version = accepted E.2 profile binding
 target_country/domain = governed pathway
 ```
 
-`overall_score` is intentionally not synthesized from model confidence or Decision Readiness. There is no canonical eligibility score in the accepted E.2/F.1/G.1/G.2 contract.
+`overall_score` is intentionally not synthesized from model confidence or Decision Readiness. There is no canonical eligibility score in the accepted E.2/F.1/G.1/G.2/G.3 contract.
+
+For governed G.3 rows, `overall_score = 0.0` is only a compatibility value required by the legacy `EligibilityAssessment` shape. Governed read/API/UI surfaces must not interpret or present it as a calculated zero eligibility score.
 
 The structured `assessment_json` records:
 
@@ -319,7 +321,12 @@ The canonical eligibility assessment remains an internal organizational truth ob
 12. torn persisted canonical state fails closed on replay;
 13. Lead state is not changed and external/client action remains unauthorized.
 
-Parameterization means pytest's collected count is canonical and must be recorded from the actual acceptance run.
+Accepted focused result:
+
+```text
+15 passed / 1 warning / 0 failed
+Duration: 9.50s
+```
 
 ## Migration posture
 
@@ -329,27 +336,42 @@ G.3 introduces one migration:
 0077_canonical_eligibility_assessment_revision
 ```
 
-Expected registered/physical table counts increase by one after the migration.
+Accepted schema truth:
+
+```text
+registered_tables = 119
+actual_tables     = 119
+physical_tables   = 120 incl. alembic_version
+```
 
 No existing eligibility row is rewritten by the migration.
 
-## Acceptance gate
+## Acceptance
 
-Canonical G.3 acceptance should include:
+Canonical acceptance record:
 
-- focused G.3 tests;
-- G.2 + G.3 integration tests;
-- E.2 → F.1 → G.1 → G.2 → G.3 vertical tests;
-- D → G.3 governed vertical neighborhood where practical;
-- repository policy;
-- protected V10.22 roadmap regression if ROADMAP changes;
-- full API regression;
-- Alembic migration upgrade to head;
-- migration/schema checks;
-- `git diff --check`;
-- clean synchronized V12 branch.
+- `docs/V1_3_G3_ACCEPTANCE_2026-08-20.md`
 
-No GitHub CI PASS may be claimed without attached status/check evidence.
+Accepted evidence includes:
+
+```text
+Migration-boundary repairs     2 passed / 1 warning / 0 failed
+G.3 focused                    15 passed / 1 warning / 0 failed
+Full API regression            1040 passed / 5 skipped / 1 warning / 0 failed
+Duration                       505.33s
+Repository policy              PASS
+Protected v10.22 regression    1 passed / 1 warning / 0 failed
+Migration check                PASS
+Migration head                 0077_canonical_eligibility_assessment_revision
+Registered tables              119
+Local DB schema                PASS
+Actual tables                  119
+Physical tables                120 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+No GitHub CI PASS is claimed because no attached status/check evidence was observed for the accepted implementation head.
 
 ## Non-claims
 
@@ -366,12 +388,12 @@ G.3 does not claim:
 
 ## Direction after G.3
 
-After G.3 acceptance, the first governed eligibility vertical will have proven proposal → readiness → independent verification → authorization → canonical effect end to end.
+The first governed eligibility vertical has now proven proposal → readiness → independent verification → authorization → canonical effect end to end.
 
-The next bounded work should then be selected from proven needs, including:
+The next bounded work should consolidate and operationalize the proven vertical before broad Organization Fabric work:
 
-1. extract stable duplicated vertical helpers (intent→domain mapping, system-agent command context, public pathway publication-integrity contract, reference/freshness helpers);
-2. define reassessment/supersession using an explicit expected canonical eligibility revision;
-3. expose a governed HTTP/worker orchestration surface that calls the accepted vertical rather than the legacy immediate-persistence path.
+1. extract stable duplicated vertical helpers where semantics are now proven identical (intent→domain mapping, system-agent command context, public pathway publication-integrity contract, eligibility action reconstruction/reference helpers);
+2. expose a trusted governed HTTP/worker orchestration surface that calls the accepted vertical rather than the legacy immediate-persistence path;
+3. then define reassessment/supersession using an explicit expected canonical eligibility revision version.
 
-Do not jump to Mission Rooms, generic Peer Review Network, Flight Recorder or broad Munder runtime expansion before this first canonical effect is accepted.
+Do not jump to Mission Rooms, generic Peer Review Network, Flight Recorder or broad Munder runtime expansion before the accepted first vertical is operationally reachable through a governed surface.
