@@ -22,6 +22,162 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-20 — V1.3-G.3 FIRST CANONICAL ELIGIBILITY EFFECT — COMPLETE / PASS / SEALED
+
+### Status
+
+**The first governed eligibility vertical is now accepted end to end through canonical organizational truth. AIOS can take a persistent employee's governed eligibility proposal, deterministically establish Decision Readiness, run a blind independent verifier, satisfy the R3 verification floor, obtain fresh final Command Gateway authorization and atomically commit a canonical eligibility assessment with durable version/lineage semantics.**
+
+Accepted chain:
+
+```text
+E.2 governed eligibility proposal
+→ F.1 deterministic Decision Readiness
+→ G.1 blind independent AGREES verification
+→ G.2 verification-floor integration
+→ fresh final Command Gateway authorization
+→ governance:<original E.2 idempotency key>
+→ EligibilityAssessment
+→ EligibilityAssessmentRevision v1
+→ semantic MATERIAL eligibility Activity
+```
+
+Permanent boundary:
+
+```text
+model proposal ≠ canonical truth
+independent verification ≠ authorization
+Gateway authorization ≠ external/client publication
+canonical eligibility truth ≠ application mutation / government action
+```
+
+### Canonical aggregate and migration
+
+G.3 adds one companion canonical model/table:
+
+```text
+EligibilityAssessmentRevision
+eligibility_assessment_revisions
+```
+
+Migration:
+
+```text
+0077_canonical_eligibility_assessment_revision
+```
+
+Accepted aggregate identity:
+
+```text
+eligibility:<tenant_key>:<lead_id>:<pathway_id>
+```
+
+Accepted first-slice version semantics:
+
+```text
+version = 1
+lifecycle_status = active
+supersedes_revision_id = null
+```
+
+Legacy `EligibilityAssessment` rows are not silently promoted. Only an assessment linked through `EligibilityAssessmentRevision` is a V1.3 governed canonical eligibility effect.
+
+A second active canonical revision is intentionally refused until reassessment/supersession carries an explicit canonical eligibility revision precondition.
+
+### Atomic authorization + effect
+
+G.3 revalidates the accepted E.2/F.1/G.1/G.2 chain and reconstructs the exact original `MaterialAction` and original E.2 idempotency key.
+
+Only a fresh final:
+
+```text
+GatewayOutcome.AUTO_EXECUTE
+```
+
+may enter the canonical transaction.
+
+A0/A1/A2 therefore cannot commit. A3 persists `post_review_required=true`; A4/A5 remain subject to the same Gateway authority/scope/risk/version/policy gates.
+
+Fresh G.3 stages:
+
+```text
+canonical governance authorization Activity
++ EligibilityAssessment
++ EligibilityAssessmentRevision
++ semantic eligibility Activity
+```
+
+and commits once. A synthetic mid-transaction failure must roll the whole G.3 unit back.
+
+### Canonical idempotency / replay
+
+G.3 is the first eligibility slice that consumes:
+
+```text
+governance:<original E.2 idempotency key>
+```
+
+Exact retries return the durable canonical effect as `IDEMPOTENT_REPLAY` without duplicate assessment/revision/semantic Activity.
+
+Replay validates the persisted assessment/revision/effect and the E.2 action, E.2 intent, F.1 readiness, G.1 verification, G.2 floor and G.3 effect fingerprints. Torn or inconsistent state fails closed rather than being silently repaired.
+
+### Governed score semantics
+
+The compatibility `EligibilityAssessment.overall_score` is written as `0.0` because the accepted governed contract has **no canonical numerical eligibility score**. That value must not be presented by future governed read/API/UI surfaces as a calculated zero eligibility score.
+
+### Accepted evidence
+
+```text
+Migration-boundary repairs     2 passed / 1 warning / 0 failed
+G.3 focused                    15 passed / 1 warning / 0 failed
+Repository policy              PASS
+Protected v10.22 regression    1 passed / 1 warning / 0 failed
+Full API regression            1040 passed / 5 skipped / 1 warning / 0 failed
+Full API duration              505.33s
+Database migration check       PASS
+Migration head                 0077_canonical_eligibility_assessment_revision
+Registered tables              119
+Local DB schema                PASS
+Actual tables                  119
+Physical tables                120 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+Canonical records:
+
+```text
+docs/V1_3_G3_CANONICAL_ELIGIBILITY_EFFECT.md
+docs/V1_3_G3_ACCEPTANCE_2026-08-20.md
+```
+
+The migration initially exposed two stale repository tests that hard-coded 0076 as the migration head/ceiling. Those tests were corrected without changing G.3 production code, then the full suite passed at 1040.
+
+### Roadmap effect
+
+The active roadmap advances from **V12.13 to V12.14**.
+
+```text
+V1.3-A   COMPLETE / PASS / SEALED
+V1.3-B   COMPLETE / PASS / SEALED
+V1.3-C   COMPLETE / PASS / SEALED through C.4
+V1.3-D   COMPLETE / PASS / SEALED through D.3
+V1.3-E   COMPLETE / PASS / SEALED through E.2
+V1.3-F   COMPLETE / PASS / SEALED through F.1
+V1.3-G   COMPLETE / PASS / SEALED through G.3
+V1.3-G.4 Governed Eligibility Orchestration + Vertical Consolidation — NEXT
+```
+
+G.4 will operationalize the accepted v1 vertical through a trusted orchestration boundary and consolidate only the now-proven shared eligibility seams needed to do so. It must not route through the legacy immediate-persistence `/api/v1/eligibility/evaluate` path and must not become a generic workflow/effect framework.
+
+Reassessment/supersession follows only after canonical v1 is operationally reachable and will require an explicit expected canonical eligibility revision version.
+
+Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
+
+No GitHub CI PASS is claimed without attached status/check evidence.
+
+---
+
 ## 2026-08-20 — V1.3-G.1 + G.2 INDEPENDENT VERIFICATION AND R3 FLOOR INTEGRATION — COMPLETE / PASS / SEALED
 
 ### Status
