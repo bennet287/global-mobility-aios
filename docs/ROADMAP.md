@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.7  
+**Roadmap generation:** V12.8  
 **Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -14,13 +14,14 @@
 **V1.3-B.2:** Governed WorkItem Assignment — **COMPLETE / PASS / SEALED**  
 **V1.3-C.1:** Transparency Trace Foundation — **COMPLETE / PASS / SEALED**  
 **V1.3-C.2:** Non-Executing Material Attempt Transparency — **COMPLETE / PASS / SEALED**  
-**Current Track C slice:** V1.3-C.3 — Explicit Governance → Effect Causation — **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
+**V1.3-C.3:** Explicit Governance → Effect Causation — **COMPLETE / PASS / SEALED**  
+**Current Track C slice:** V1.3-C.4 — Board/Cockpit Transparency Read Contract — **IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING**  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS with Docling started; Presidio queued  
 **Code migration head:** `0076_organization_position_active_identity`
 
 <!-- CURRENT_MIGRATION_HEAD: 0076_organization_position_active_identity -->
 
-This is the canonical active roadmap for V12. It describes the product, the preserved runtime truth, the high-autonomy organization architecture, the active implementation sequence, the acceptance evidence required before each slice becomes PASS, and the external product-validation path that must increasingly justify further architectural expansion.
+This is the canonical active roadmap for V12. It describes the product, preserved runtime truth, high-autonomy organization architecture, active implementation sequence, acceptance evidence required before each slice becomes PASS, and the external product-validation path that must increasingly justify further architectural expansion.
 
 ---
 
@@ -248,9 +249,15 @@ The focused C.2 chain and protected roadmap regression were reported green in th
 
 See [V1_3_C2_ACCEPTANCE_2026-08-20.md](V1_3_C2_ACCEPTANCE_2026-08-20.md).
 
-The single warning remains the pre-existing Starlette/httpx TestClient deprecation warning.
+### V1.3-C.3 final acceptance — 2026-08-20
 
-No GitHub CI PASS is claimed without attached check/status evidence.
+The prescribed canonical Windows V12 acceptance sequence was run and the Human Owner reported **all checks green**. It covered the protected `v10.22` regression, focused B/C governance-transparency chain, repository policy, full API regression, migration/schema checks, `git diff --check`, and clean synchronized status.
+
+The exact final pytest counts were not restated, so they are intentionally not invented. The last separately evidenced full-API baseline before C.3 remains the C.2 result above and is not relabeled as a C.3 run.
+
+See [V1_3_C3_ACCEPTANCE_2026-08-20.md](V1_3_C3_ACCEPTANCE_2026-08-20.md).
+
+The known warning remains the pre-existing Starlette/httpx TestClient deprecation warning. No GitHub CI PASS is claimed without attached check/status evidence.
 
 ---
 
@@ -681,7 +688,7 @@ See [V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md](V1_3_B2_GOVERNED_WORK_ASSIGNMENT.md) a
 
 ### B conclusion
 
-B now has enough runtime evidence to support downstream architecture without adding more framework breadth merely because it is possible.
+B has enough runtime evidence to support downstream architecture without adding more framework breadth merely because it is possible.
 
 Potential later B work—explicit aggregate version columns, persisted policy registry, additional governed command types—must be demand-driven by the real vertical workflow.
 
@@ -749,9 +756,7 @@ trace-scoped durable governance Attempt Activity
 Board-inspectable trace
 ```
 
-#### Successful-command idempotency remains separate
-
-Sealed B.2 success identity remains:
+Successful-command idempotency remains:
 
 ```text
 governance:<idempotency_key>
@@ -773,7 +778,7 @@ Accepted C.2 API baseline:
 
 ### C.3 — Explicit Governance → Effect Causation
 
-**State:** IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING.
+**State:** COMPLETE / PASS / SEALED.
 
 Delivered:
 
@@ -781,9 +786,10 @@ Delivered:
 apps/api/app/services/organization_governed_work.py
 apps/api/tests/test_organization_transparency_causation.py
 docs/V1_3_C3_EXPLICIT_GOVERNANCE_EFFECT_CAUSATION.md
+docs/V1_3_C3_ACCEPTANCE_2026-08-20.md
 ```
 
-C.3 strengthens the successful B.2/C.1 path from shared trace correlation to explicit causal lineage:
+Accepted causal lineage:
 
 ```text
 Governance authorization Activity
@@ -794,36 +800,67 @@ organization.work.assigned.v1
 causation_activity_id = governance Activity id
 ```
 
-The governance Activity is staged first inside the same transaction. The WorkItem mutation, assignment audit and semantic effect are then staged with the governance UUID as the effect cause. Any failure rolls back the entire unit.
+The governance Activity is staged first inside the same transaction. The WorkItem mutation, assignment audit and semantic effect are then staged with the governance UUID as the effect cause. Any failure rolls back the entire unit. Exact successful replay does not duplicate the causal chain.
 
-The semantic effect keeps the accepted `organization.work.assigned.v1` event contract and semantic v1 source-version calculation while the Activity command fingerprint additionally covers the causal reference.
+Canonical acceptance was reported all green; exact final pytest counts were not restated and are therefore not invented.
 
-Focused C.3 tests cover explicit causation, idempotent replay without duplicate causal records, and rollback when the causally linked effect cannot be stored.
+### C.4 — Board/Cockpit Transparency Read Contract
 
-### Later C slices — only when a product/vertical consumer requires them
+**State:** IMPLEMENTED / CANONICAL REPOSITORY ACCEPTANCE PENDING.
 
-Candidates include:
+Delivered:
 
-- bounded Board/Cockpit transparency query DTO/API;
+```text
+apps/api/app/schemas_organization_transparency.py
+apps/api/app/routers/organization_transparency.py
+apps/api/app/core/router_registry.py
+apps/api/tests/test_organization_transparency_api.py
+docs/V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md
+```
+
+Product-facing boundary:
+
+```text
+GET /api/v1/organization/transparency/traces/{trace_id}
+GET /api/v1/organization/transparency/work-items/{work_item_id}
+```
+
+C.4 reuses the existing authenticated organization namespace and C.1 trace service. It does not expose raw Activity/governance payload JSON. The response is a whitelisted Board projection of gateway decision fields plus bounded Activity metadata and explicit causation.
+
+Current access is deliberately limited to the trusted admin→board organization role mapping. Operator/reviewer/sales/read-only widening is deferred until explicit sensitivity/retention policy exists.
+
+C.4 also preserves strict tenant isolation and maps malformed durable governance data to a safe non-leaking `409` response.
+
+Focused API tests cover Board-safe projection, Board-only access, tenant non-disclosure, WorkItem history, explicit causation and malformed-data failure.
+
+See [V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md](V1_3_C4_BOARD_TRANSPARENCY_READ_CONTRACT.md).
+
+### Later C work — only when a real product/vertical consumer requires it
+
+Potential later transparency work includes:
+
 - AgentConversation / AgentMessage semantics;
-- retention/sensitivity boundaries;
+- retention/sensitivity/privilege boundaries;
 - ToolActionRecord;
 - Evidence / VerifiedRule / SourceSnapshot decision lineage;
+- organization-wide grounded search;
 - aggregation of repetitive attempts without losing drill-down history;
 - broader ActivityLineage traversal only where a real consumer needs it.
 
-Broader C acceptance target:
+Broader C acceptance target remains:
 
-- reconstruct a governed decision from outcome back to actor/policy/Evidence;
-- trace material collaboration/tool actions;
+- reconstruct governed decisions from outcome back to actor/policy/Evidence;
+- trace material collaboration and tool actions;
 - hide secrets and legally sensitive data appropriately;
-- summarize normal activity rather than Board-spam it.
+- summarize healthy activity instead of Board-spamming it.
+
+After C.4 acceptance, do not expand generic C infrastructure by default. Prefer V1.3-D/E prerequisites or a small Cockpit consumer when it materially improves real owner/professional validation.
 
 ---
 
 ## 23. V1.3-D — Context & Agent Identity
 
-Implement only after the minimum C visibility floor is sufficient:
+Implement after the minimum C visibility floor is sufficient:
 
 - persistent Agent identity;
 - Position / Department linkage;
@@ -993,6 +1030,8 @@ Build progressive, grounded inspection surfaces such as:
 
 The Board should receive summaries and exceptions at the top level with drill-down access to the durable underlying record.
 
+C.4 is an early backend contract for this future surface; it is not itself the completed M experience.
+
 ---
 
 ## 33. V1.3-N — Learning & Optimization
@@ -1128,7 +1167,7 @@ Convert principles into explicit policy over time:
 - jurisdiction-specific submission authority;
 - consent and human-accountability requirements.
 
-Board transparency must coexist with lawful sensitivity controls.
+Board transparency must coexist with lawful sensitivity controls. C.4 therefore begins Board-only and whitelisted rather than treating transparency as permission to disclose arbitrary internal payloads.
 
 ---
 
@@ -1321,32 +1360,33 @@ Historical regression-protected roadmap markers such as `v10.22`, **multi-batch 
 6. Material decisions require lineage.
 7. Material attempts that are blocked or review-routed must not silently disappear.
 8. Material organization effects should explicitly identify their authorizing governance Activity when a direct causal relationship exists.
-9. Agents may hold real delegated authority.
-10. Authority is capability-specific and bounded.
-11. Autonomy is earned and capability-specific.
-12. Agents cannot self-promote authority/autonomy.
-13. Memory is not canonical truth.
-14. Memory provides continuity; Evidence provides authority.
-15. Material truth crosses typed deterministic canonicalization.
-16. Material autonomous mutations cross the Command Gateway as runtime integration expands.
-17. Scores/readiness route; deterministic gates authorize.
-18. Verification depth scales with risk/uncertainty/novelty.
-19. Legal/policy human requirements override confidence.
-20. Parallel agents use explicit version/concurrency controls.
-21. External frameworks provide capability; AIOS owns semantics/authority.
-22. Immune-system intervention must be explainable.
-23. Restrictions should be scope-limited where possible.
-24. Irreversible actions receive stronger prechecks.
-25. Recovery distinguishes reversible/compensatable/irreversible/append-only correction.
-26. Learning preserves labeled outcomes/corrections.
-27. Governance cost scales with risk rather than being maximal everywhere.
-28. Context is scoped/lazy/versioned.
-29. Governance is not a global execution mutex.
-30. Summaries do not replace required underlying records.
-31. Secrets/protected data remain secure under transparency.
-32. Conversation is Activity but not authority.
-33. Provider-local state/logs do not silently become canonical AIOS truth.
-34. Agents may be wrong while thinking; AIOS may not be wrong silently when committing truth.
+9. Product transparency interfaces must expose bounded governed semantics, not arbitrary internal payloads.
+10. Agents may hold real delegated authority.
+11. Authority is capability-specific and bounded.
+12. Autonomy is earned and capability-specific.
+13. Agents cannot self-promote authority/autonomy.
+14. Memory is not canonical truth.
+15. Memory provides continuity; Evidence provides authority.
+16. Material truth crosses typed deterministic canonicalization.
+17. Material autonomous mutations cross the Command Gateway as runtime integration expands.
+18. Scores/readiness route; deterministic gates authorize.
+19. Verification depth scales with risk/uncertainty/novelty.
+20. Legal/policy human requirements override confidence.
+21. Parallel agents use explicit version/concurrency controls.
+22. External frameworks provide capability; AIOS owns semantics/authority.
+23. Immune-system intervention must be explainable.
+24. Restrictions should be scope-limited where possible.
+25. Irreversible actions receive stronger prechecks.
+26. Recovery distinguishes reversible/compensatable/irreversible/append-only correction.
+27. Learning preserves labeled outcomes/corrections.
+28. Governance cost scales with risk rather than being maximal everywhere.
+29. Context is scoped/lazy/versioned.
+30. Governance is not a global execution mutex.
+31. Summaries do not replace required underlying records.
+32. Secrets/protected data remain secure under transparency.
+33. Conversation is Activity but not authority.
+34. Provider-local state/logs do not silently become canonical AIOS truth.
+35. Agents may be wrong while thinking; AIOS may not be wrong silently when committing truth.
 
 ---
 
@@ -1360,10 +1400,11 @@ V1.3-B.1   COMPLETE / PASS / SEALED AS FOUNDATION
 V1.3-B.2   COMPLETE / PASS / SEALED
 V1.3-C.1   COMPLETE / PASS / SEALED
 V1.3-C.2   COMPLETE / PASS / SEALED
-V1.3-C.3   IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+V1.3-C.3   COMPLETE / PASS / SEALED
+V1.3-C.4   IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
 ```
 
-Immediate action: run canonical C.3 acceptance before adding another transparency abstraction.
+Immediate action: run canonical C.4 acceptance before advancing to D or exposing this contract in the Cockpit UI.
 
 Required focused chain:
 
@@ -1372,14 +1413,15 @@ pytest apps/api/tests/test_organization_governance_kernel.py \
        apps/api/tests/test_organization_governed_work.py \
        apps/api/tests/test_organization_transparency.py \
        apps/api/tests/test_organization_transparency_attempts.py \
-       apps/api/tests/test_organization_transparency_causation.py -q
+       apps/api/tests/test_organization_transparency_causation.py \
+       apps/api/tests/test_organization_transparency_api.py -q
 ```
 
-Then repository policy, full API regression, migration/schema checks, `git diff --check`, and clean synchronized status.
+Then repository policy, full API regression, migration/schema checks, `git diff --check`, and clean synchronized status. The protected `v10.22` roadmap regression must also remain green after this roadmap generation update.
 
-If C.3 passes, prefer the next step with a real product consumer: a bounded Board/Cockpit transparency read contract or the D/E vertical prerequisites. Do not extend generic lineage machinery merely because more graph abstractions are possible.
+If C.4 passes, the default next architectural move should be **V1.3-D Context & Agent Identity** so the first real mobility vertical can receive purpose-scoped governed context. A small Cockpit transparency consumer may proceed earlier only if it materially improves Phase 13.17 owner acceptance; do not let UI work become fake-live activity or a substitute for D/E.
 
-At the same time, Track A Phase 13.17 and Track D external-validation preparation should continue independently rather than waiting for the complete V1.3 architecture.
+Track A Phase 13.17 and Track D external-validation preparation continue independently rather than waiting for complete V1.3 architecture.
 
 ---
 
