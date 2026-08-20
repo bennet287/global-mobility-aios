@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytest
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationActivity
+from app.models.domain import EligibilityAssessment, OrganizationActivity
 from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.services.organization_eligibility_immune_system import (
     ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
@@ -230,6 +230,103 @@ def test_h1_invalid_canonical_revision_lifecycle_opens_aggregate_circuit(
     assert len(aggregate_incidents) == 1
     assert aggregate_incidents[0]["severity"] == "critical"
     assert aggregate_incidents[0]["automatic_circuit_action"] == "open"
+
+
+def test_h1_assessment_identity_drift_opens_before_fresh_provider_egress(
+    db_session: Session,
+) -> None:
+    (
+        _,
+        revision,
+        _,
+        proposal_work,
+        verification_work,
+        plan,
+        producer,
+        verifier,
+    ) = _committed_v1(db_session)
+    aggregate = revision.aggregate_key
+    assessment = db_session.get(EligibilityAssessment, revision.assessment_id)
+    assert assessment is not None
+    assessment.profile_version += 1
+    db_session.add(assessment)
+    db_session.commit()
+    producer.calls.clear()
+    verifier.calls.clear()
+
+    with pytest.raises(GovernedEligibilityOrchestrationIntegrityError, match="circuit is open"):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="h1-assessment-identity-drift",
+            execution_plan=plan,
+            expected_eligibility_revision_version=1,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.OPEN
+    durable = [
+        payload
+        for payload in _incident_payloads(db_session, aggregate_key=aggregate)
+        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
+    ]
+    assert len(durable) == 1
+
+
+def test_h1_semantic_revision_identity_drift_opens_before_fresh_provider_egress(
+    db_session: Session,
+) -> None:
+    (
+        _,
+        revision,
+        _,
+        proposal_work,
+        verification_work,
+        plan,
+        producer,
+        verifier,
+    ) = _committed_v1(db_session)
+    aggregate = revision.aggregate_key
+    assert revision.semantic_activity_id is not None
+    semantic = db_session.get(OrganizationActivity, revision.semantic_activity_id)
+    assert semantic is not None
+    semantic.source_object_version = "999"
+    db_session.add(semantic)
+    db_session.commit()
+    producer.calls.clear()
+    verifier.calls.clear()
+
+    with pytest.raises(GovernedEligibilityOrchestrationIntegrityError, match="circuit is open"):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="h1-semantic-identity-drift",
+            execution_plan=plan,
+            expected_eligibility_revision_version=1,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.OPEN
+    durable = [
+        payload
+        for payload in _incident_payloads(db_session, aggregate_key=aggregate)
+        if payload["incident_kind"] == EligibilityImmuneIncidentKind.DURABLE_LINEAGE_INTEGRITY.value
+    ]
+    assert len(durable) == 1
 
 
 def test_h1_unresolvable_scope_fails_without_fabricating_circuit_target(
