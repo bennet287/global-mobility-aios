@@ -8,6 +8,7 @@ from app.services import organization_decision_readiness
 from app.services import organization_eligibility_effect
 from app.services import organization_eligibility_transition_intent
 from app.services import organization_eligibility_verification_floor
+from app.services import organization_independent_eligibility_verification
 from app.services.mobility_domain import mobility_intent_domain
 from app.services.organization_command import system_bound_agent_command_context
 
@@ -64,6 +65,13 @@ def test_g4_1_e2_uses_shared_domain_and_system_agent_contracts() -> None:
 
     assert "def _intent_domain(" not in source
     assert "mobility_intent_domain" in source
+    assert "def _command_context(" not in source
+    assert "system_bound_agent_command_context" in source
+
+
+def test_g4_1_g1_uses_shared_system_agent_contract() -> None:
+    source = inspect.getsource(organization_independent_eligibility_verification)
+
     assert "def _command_context(" not in source
     assert "system_bound_agent_command_context" in source
 
