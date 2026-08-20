@@ -47,6 +47,15 @@ IGNORE_DIRS = {
     "build",
 }
 
+# Third-party reference snapshots are declared explicitly and are not substring-
+# scanned as if their upstream comments/changelogs were Global Mobility AIOS source.
+# The scanner still walks these trees for suspicious artifact filenames and rejects
+# undeclared vendor roots. Direct production dependency approval remains governed by
+# docs/REPOSITORY_POLICY.md rather than by editing vendored upstream text.
+DECLARED_REFERENCE_VENDOR_ROOTS = {
+    "munder-difflin",
+}
+
 ALLOWLIST_FILES = {
     "REPOSITORY_POLICY.md",
     "0001-approved-repository-strategy.md",
@@ -69,6 +78,12 @@ def is_ignored(path: Path) -> bool:
 
 def suspicious_artifact_name(path: Path) -> bool:
     return any(pattern.match(path.name) for pattern in SUSPICIOUS_ARTIFACT_NAME_PATTERNS)
+
+
+def reference_vendor_root(relative: Path) -> str | None:
+    if not relative.parts or relative.parts[0] != "vendor":
+        return None
+    return relative.parts[1] if len(relative.parts) > 1 else ""
 
 
 def should_scan(path: Path) -> bool:
@@ -94,6 +109,14 @@ def main() -> int:
             violations.append(
                 f"{relative} has a suspicious shell-redirection artifact filename"
             )
+
+        vendor_root = reference_vendor_root(relative)
+        if vendor_root is not None:
+            if vendor_root not in DECLARED_REFERENCE_VENDOR_ROOTS:
+                violations.append(
+                    f"{relative} belongs to undeclared vendor root: {vendor_root or '<missing>'}"
+                )
+            continue
 
         if not should_scan(path) or path.name in ALLOWLIST_FILES:
             continue
