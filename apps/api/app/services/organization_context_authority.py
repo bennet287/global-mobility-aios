@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Protocol
 from uuid import UUID
 
@@ -68,10 +68,14 @@ class ContextAuthorityAdapter(Protocol):
     ) -> ContextAuthorityContribution: ...
 
 
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant {value!r} is not permitted")
+
+
 def _json_object(raw: str | None, *, label: str) -> dict[str, object]:
     candidate = raw if raw not in (None, "") else "{}"
     try:
-        decoded = json.loads(candidate)
+        decoded = json.loads(candidate, parse_constant=_reject_json_constant)
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         raise ContextAuthorityError(f"{label} is not valid JSON") from exc
     if not isinstance(decoded, dict):
@@ -89,7 +93,7 @@ def _uuid(value: str | UUID | None, *, label: str) -> UUID:
 def _uuid_list(raw: str | None, *, label: str) -> tuple[UUID, ...]:
     candidate = raw if raw not in (None, "") else "[]"
     try:
-        decoded = json.loads(candidate)
+        decoded = json.loads(candidate, parse_constant=_reject_json_constant)
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         raise ContextAuthorityError(f"{label} is not valid JSON") from exc
     if not isinstance(decoded, list):
@@ -216,15 +220,22 @@ def _active_country_policy(
     return policy
 
 
+def _utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def _effective_now(
     *,
     effective_from: datetime | None,
     effective_to: datetime | None,
     resolved_at: datetime,
 ) -> bool:
-    if effective_from is not None and effective_from > resolved_at:
+    current = _utc(resolved_at)
+    if effective_from is not None and _utc(effective_from) > current:
         return False
-    if effective_to is not None and effective_to < resolved_at:
+    if effective_to is not None and _utc(effective_to) < current:
         return False
     return True
 
