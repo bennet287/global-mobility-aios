@@ -20,10 +20,10 @@ from app.models.domain import (
     MobilityPathway,
     MobilityPathwayVersion,
     OrganizationActivity,
-    OrganizationActorType,
     Profile,
 )
 from app.services.llm_client import LLMProvider, LLMProviderError, LLMResponse
+from app.services.mobility_domain import mobility_intent_domain
 from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.organization_activity import stage_activity
 from app.services.organization_agent_runtime import (
@@ -36,6 +36,7 @@ from app.services.organization_command import (
     OrganizationCommandContext,
     canonical_fingerprint,
     canonical_json,
+    system_bound_agent_command_context,
 )
 from app.services.organization_context_broker import (
     ContextBundle,
@@ -149,18 +150,6 @@ def _fingerprinted_record(
     return record
 
 
-def _intent_domain(lead: Lead) -> str:
-    value = getattr(lead.intent, "value", lead.intent)
-    normalized = str(value or "unknown").strip().casefold()
-    if normalized in {"study_abroad", "study", "student"}:
-        return "study"
-    if normalized in {"overseas_job", "work", "job", "employment"}:
-        return "work"
-    if normalized in {"visa", "permanent", "residency", "immigration"}:
-        return "visa"
-    return "general"
-
-
 def _required_case_facts(facts: dict[str, Any]) -> dict[str, Any]:
     target_country = str(facts.get("target_country") or "").strip()
     goal = str(facts.get("goal") or "").strip()
@@ -240,7 +229,7 @@ def _case_and_pathway_payload(
     case_payload = _required_case_facts(facts)
     if str(case_payload["target_country"]).casefold() != pathway.country.casefold():
         raise EligibilityIntentIntegrityError("case target country does not match the governed pathway")
-    if _intent_domain(lead).casefold() != pathway.domain.casefold():
+    if mobility_intent_domain(lead).casefold() != pathway.domain.casefold():
         raise EligibilityIntentIntegrityError("case intent domain does not match the governed pathway")
 
     evidence_tokens = {
@@ -374,21 +363,6 @@ def _validated_intent(
         rule_basis=rule_basis,
         rationale=rationale.strip(),
         confidence=confidence_value,
-    )
-
-
-def _command_context(context: ContextBundle) -> OrganizationCommandContext:
-    """Bind persistent position identity, never runtime/provider identity, as actor."""
-
-    return OrganizationCommandContext(
-        tenant_key=context.tenant_key,
-        actor_id=context.position.position_key,
-        actor_type=OrganizationActorType.agent,
-        authenticated_user_id="system",
-        role="operator",
-        department=context.position.department,
-        position_key=context.position.position_key,
-        authority_level=context.position.authority_level,
     )
 
 
@@ -542,7 +516,12 @@ def governed_eligibility_transition_intent(
         raise EligibilityIntentIntegrityError("eligibility intent profile precondition is stale")
 
     intent_fingerprint = canonical_fingerprint(intent)
-    command_context = _command_context(current_context)
+    command_context = system_bound_agent_command_context(
+        tenant_key=current_context.tenant_key,
+        position_key=current_context.position.position_key,
+        department=current_context.position.department,
+        authority_level=current_context.position.authority_level,
+    )
     scope_key = f"{pathway.country.casefold()}:{pathway.domain.casefold()}"
     action = MaterialAction(
         action_type=MaterialActionType.ELIGIBILITY_TRANSITION,
