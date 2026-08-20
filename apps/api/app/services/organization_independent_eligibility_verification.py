@@ -38,6 +38,7 @@ from app.services.organization_context_broker import (
 )
 from app.services.organization_decision_readiness import (
     DECISION_READINESS_SCHEMA_VERSION,
+    DecisionReadinessError,
     DecisionReadinessState,
     EligibilityDecisionReadinessResult,
     assess_eligibility_decision_readiness,
@@ -206,7 +207,12 @@ def _fresh_readiness(
         raise IndependentEligibilityVerificationIntegrityError(
             "G.1 accepts only READY_FOR_INDEPENDENT_VERIFICATION proposals"
         )
-    current = assess_eligibility_decision_readiness(session, proposal=proposal)
+    try:
+        current = assess_eligibility_decision_readiness(session, proposal=proposal)
+    except DecisionReadinessError as exc:
+        raise IndependentEligibilityVerificationIntegrityError(
+            "Decision Readiness is no longer valid for independent verification"
+        ) from exc
     if current.readiness_fingerprint != readiness.readiness_fingerprint:
         raise IndependentEligibilityVerificationIntegrityError(
             "Decision Readiness changed before independent verification"
