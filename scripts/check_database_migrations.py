@@ -38,6 +38,9 @@ def main() -> int:
     if not heads:
         print("Alembic has no migration head.", file=sys.stderr)
         return 1
+    if len(heads) != 1:
+        print(f"Alembic must have exactly one controlled head; found {heads}.", file=sys.stderr)
+        return 1
     if not revisions:
         print("Alembic has no revisions.", file=sys.stderr)
         return 1
@@ -46,37 +49,45 @@ def main() -> int:
         return 1
 
     database_url = normalize_database_url(settings.database_url)
-    current_revision = None
-    if is_sqlite_url(database_url):
-        engine = create_engine(database_url, connect_args={"check_same_thread": False})
+    connect_args = {"check_same_thread": False} if is_sqlite_url(database_url) else {}
+    engine = create_engine(database_url, connect_args=connect_args, pool_pre_ping=True)
+    try:
         schema_result = check_local_db_schema(engine)
         if schema_result["status"] != "ok":
-            print("Database migration check found local SQLite schema drift.", file=sys.stderr)
+            print("Database migration check found physical schema drift.", file=sys.stderr)
             print(f"database_url={mask_database_url(database_url)}", file=sys.stderr)
             print(f"missing_tables={schema_result['missing_tables']}", file=sys.stderr)
             print(f"missing_columns={schema_result['missing_columns']}", file=sys.stderr)
+            print(f"extra_tables={schema_result['extra_tables']}", file=sys.stderr)
             return 1
+
         inspector = inspect(engine)
         if "alembic_version" not in inspector.get_table_names():
             print("Database migration check found no Alembic version table.", file=sys.stderr)
             return 1
         with engine.connect() as connection:
-            revisions = [str(row[0]) for row in connection.execute(text("SELECT version_num FROM alembic_version"))]
-        if revisions != heads:
-            print("Database migration check found local SQLite revision mismatch.", file=sys.stderr)
-            print(f"database_revision={','.join(revisions) if revisions else '<empty>'}", file=sys.stderr)
+            database_revisions = [
+                str(row[0])
+                for row in connection.execute(text("SELECT version_num FROM alembic_version"))
+            ]
+        if database_revisions != heads:
+            print("Database migration check found database revision mismatch.", file=sys.stderr)
+            print(
+                f"database_revision={','.join(database_revisions) if database_revisions else '<empty>'}",
+                file=sys.stderr,
+            )
             print(f"migration_heads={','.join(heads)}", file=sys.stderr)
             return 1
-        current_revision = revisions[0]
 
-    print("Database migration check passed.")
-    print(f"database_url={mask_database_url(database_url)}")
-    print(f"migration_heads={','.join(heads)}")
-    print(f"registered_tables={len(table_names)}")
-    if is_sqlite_url(database_url):
+        print("Database migration check passed.")
+        print(f"database_url={mask_database_url(database_url)}")
+        print(f"migration_heads={','.join(heads)}")
+        print(f"registered_tables={len(table_names)}")
         print("physical_schema=ok")
-        print(f"database_revision={current_revision}")
-    return 0
+        print(f"database_revision={database_revisions[0]}")
+        return 0
+    finally:
+        engine.dispose()
 
 
 if __name__ == "__main__":
