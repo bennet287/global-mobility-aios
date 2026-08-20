@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.16  
+**Roadmap generation:** V12.17  
 **Date:** 2026-08-20  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -16,14 +16,14 @@
 **V1.3-D:** Context + persistent employee/runtime foundation — COMPLETE / PASS / SEALED through D.3  
 **V1.3-E:** First Governed Mobility Vertical — COMPLETE / PASS / SEALED through E.2  
 **V1.3-F:** Decision Readiness — COMPLETE / PASS / SEALED through F.1  
-**V1.3-G:** Independent Verification + canonical effect + orchestration + vertical contract consolidation — COMPLETE / PASS / SEALED through G.4.1  
-**Current active stage:** V1.3-G.5 — Eligibility Reassessment / Supersession — NEXT / NOT YET IMPLEMENTED  
+**V1.3-G:** Independent Verification + canonical effect + orchestration + vertical contract consolidation + reassessment/supersession — COMPLETE / PASS / SEALED through G.5  
+**Current active stage:** V1.3-H — Organizational Immune System + circuit breaking — NEXT / NOT YET IMPLEMENTED  
 **Technology Radar state:** Wave 1 PILOT COMPLETE / TRIAL-ELIGIBLE; Wave 2 IN PROGRESS; Munder donor adoption remains controlled and subordinate to AIOS contracts  
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
 
-This is the canonical active roadmap for V12.16.
+This is the canonical active roadmap for V12.17.
 
 > **V11 preserves the checkpoint. V12 proves and implements the direction.**
 
@@ -315,6 +315,29 @@ git diff --check               clean
 V12 branch                     clean / synchronized
 ```
 
+### V1.3-G.5
+
+```text
+G.5 precondition + G.3 baseline          20 passed / 1 warning / 0 failed
+G.5 E.2/G.2 integration                 38 passed / 1 warning / 0 failed
+G.5 canonical-effect core               28 passed / 1 warning / 0 failed
+E.2 → G.5 effect vertical               84 passed / 1 warning / 0 failed
+G.4 + G.5 orchestration/API             15 passed / 1 warning / 0 failed
+E.2 → G.5 full governed vertical        99 passed / 1 warning / 0 failed
+Platform hardening                      8 passed / 1 warning / 0 failed
+Repository policy                       PASS
+Full API regression                     1075 passed / 5 skipped / 1 warning / 0 failed
+Duration                                397.94s
+Database migration check                PASS
+Migration head                          0077_canonical_eligibility_assessment_revision
+Registered tables                       119
+Local DB schema                         PASS
+Actual tables                           119
+Physical tables                         120 incl. alembic_version
+git diff --check                        clean
+V12 branch                              clean / synchronized
+```
+
 Acceptance records include:
 
 - `docs/V1_3_D1_ACCEPTANCE_2026-08-20.md`
@@ -328,6 +351,7 @@ Acceptance records include:
 - `docs/V1_3_G3_ACCEPTANCE_2026-08-20.md`
 - `docs/V1_3_G4_ACCEPTANCE_2026-08-20.md`
 - `docs/V1_3_G4_1_ACCEPTANCE_2026-08-20.md`
+- `docs/V1_3_G5_ACCEPTANCE_2026-08-20.md`
 
 Known non-blocking warning remains the existing Starlette/httpx deprecation warning. No dependency change is implied.
 
@@ -434,7 +458,7 @@ Organization
 
 C.1–C.4 provide durable trace reconstruction, explicit causation, non-executing-attempt transparency and the Board/Cockpit read boundary.
 
-The accepted first R3 eligibility lineage is operationally reachable as:
+The accepted R3 eligibility lineage is operationally reachable as:
 
 ```text
 trusted G.4 organization request / WorkItems
@@ -445,9 +469,13 @@ trusted G.4 organization request / WorkItems
 → G.3 canonical governance authorization
 → G.3 semantic EligibilityAssessment effect
 → G.4 durable trace/effect identifiers
+→ G.5 explicit canonical revision precondition for reassessment
+→ append-only supersession lineage
 ```
 
 G.4.1 changes no lineage semantics; it consolidates only the shared mobility-domain, system-bound-agent, publication-integrity and eligibility-action reconstruction contracts used by that accepted chain.
+
+G.5 adds explicit canonical revision concurrency and historical replay without converting reassessment into a separate truth system.
 
 ---
 
@@ -486,6 +514,8 @@ E.2 extends case freshness by versioning bound Lead/Profile references with cano
 CountryPolicy whole-record fingerprinting is accepted for current stale detection but should be narrowed to semantic-field fingerprinting before long-lived replay depends on it.
 
 G.4.1 deliberately leaves `session.expire_all()` in E.2/G.1 because a narrower dependency-aware freshness resolver has not yet proven complete coverage of all ContextBundle hash-bearing inputs.
+
+G.5 keeps those conservative freshness boundaries and adds a separate eligibility-revision precondition rather than weakening the existing Profile and ContextBundle checks.
 
 ---
 
@@ -577,6 +607,8 @@ E.2 establishes that confidence is informational only, A0 remains prohibited, ca
 
 G.4.1 replaces E.2's duplicate intent-domain and command-context helpers with accepted shared public contracts without changing the E.2 material-action fingerprint semantics.
 
+G.5 extends E.2 with an eligibility-specific canonical revision precondition while preserving `MaterialAction.expected_version = Profile.profile_version`.
+
 ---
 
 ## 12. V1.3-F — Decision Readiness — accepted through F.1
@@ -612,9 +644,9 @@ G.4.1 now makes pathway publication integrity a public service contract used by 
 
 ---
 
-## 13. V1.3-G — Independent Verification + canonical effect + orchestration + contract consolidation
+## 13. V1.3-G — Independent Verification + canonical effect + orchestration + contract consolidation + reassessment
 
-V1.3-G is COMPLETE / PASS / SEALED through G.4.1.
+V1.3-G is COMPLETE / PASS / SEALED through G.5.
 
 ### G.1 — Blind Independent Eligibility Verification — accepted
 
@@ -668,7 +700,7 @@ Accepted aggregate identity:
 eligibility:<tenant_key>:<lead_id>:<pathway_id>
 ```
 
-Accepted first-version contract:
+Accepted first-version contract at the G.3 seal:
 
 ```text
 version = 1
@@ -684,7 +716,7 @@ Exact retries return durable `IDEMPOTENT_REPLAY` only after validating the persi
 
 Migration `0077_canonical_eligibility_assessment_revision` adds the companion revision table without rewriting legacy eligibility rows.
 
-G.3 deliberately refuses an implicit second active canonical revision because E.2 did not yet carry an expected canonical eligibility-revision precondition. G.5 exists to add that missing contract before v2+ effects.
+At the G.3 seal, implicit second revisions were deliberately refused because E.2 lacked an expected canonical eligibility-revision precondition. G.5 later added that missing contract without rewriting the historical G.3 acceptance truth.
 
 ### G.4 — Governed Eligibility Orchestration — accepted
 
@@ -693,13 +725,13 @@ Canonical records:
 - `docs/V1_3_G4_GOVERNED_ELIGIBILITY_ORCHESTRATION.md`
 - `docs/V1_3_G4_ACCEPTANCE_2026-08-20.md`
 
-Accepted route:
+Accepted G.4 route:
 
 ```text
 POST /api/v1/organization/eligibility/orchestrate
 ```
 
-Accepted request surface:
+Original G.4 accepted request surface:
 
 ```text
 proposal_work_item_id
@@ -727,6 +759,8 @@ The default execution-plan dependency fails closed with HTTP 503 until governed 
 Exact post-commit retries validate durable G.1/G.2/G.3 lineage and return `IDEMPOTENT_REPLAY` without calling either model again.
 
 G.4 does not route through the legacy immediate-persistence `/api/v1/eligibility/evaluate` path and creates no implicit communication, Application mutation, client publication or external action.
+
+G.5 extends this same route with one optional caller concurrency assertion, `expected_eligibility_revision_version`, while preserving the server-owned provider/runtime/authority boundary.
 
 ### G.4.1 — Eligibility Vertical Contract Consolidation — accepted
 
@@ -769,37 +803,56 @@ Permanent rule:
 
 > **Consolidate proven meaning; do not generalize merely because code looks similar.**
 
-### G.5 — Eligibility Reassessment / Supersession — next
+### G.5 — Eligibility Reassessment / Supersession — accepted
 
-G.5 is the next bounded implementation slice.
+Canonical records:
 
-It must introduce explicit canonical eligibility revision concurrency before any v2+ effect is allowed.
+- `docs/V1_3_G5_ELIGIBILITY_REASSESSMENT_SUPERSESSION.md`
+- `docs/V1_3_G5_ACCEPTANCE_2026-08-20.md`
 
-Target shape:
+Accepted implementation head:
 
 ```text
-current canonical revision v1 ACTIVE
-+ expected_eligibility_revision_version = 1
-→ new governed E.2-style reassessment proposal
-→ deterministic F.1-style readiness
-→ new blind G.1 verification
-→ G.2 verification floor
-→ fresh final Command Gateway authorization
-→ revision v2 ACTIVE
-→ revision v1 SUPERSEDED
+e50a67d5167ace79423c62b3a729c45a82032bb8
 ```
 
-Required principles:
+G.5 introduces a second, eligibility-specific optimistic-concurrency contract while preserving the existing Profile precondition:
 
-- no in-place mutation of prior canonical revision truth;
-- exact optimistic concurrency on the expected canonical revision;
-- stale reassessment fails closed;
-- each material reassessment repeats readiness + independent verification + Gateway authorization;
-- exact retry remains idempotent;
-- supersession lineage is Board-inspectable;
-- reassessment does not imply client publication, external action or government submission.
+```text
+MaterialAction.expected_version = Profile.profile_version
+expected_eligibility_revision_version = active canonical eligibility revision version
+```
 
-G.5 should extend the proven eligibility-specific contracts rather than invent a generic versioned-effect engine.
+Accepted reassessment shape:
+
+```text
+current canonical revision vN ACTIVE
++ expected_eligibility_revision_version = vN
+→ E.2 governed reassessment proposal
+→ F.1 Decision Readiness
+→ G.1 new blind independent verification
+→ G.2 verification floor + revision revalidation
+→ G.3 fresh final Command Gateway authorization
+→ atomic vN ACTIVE → SUPERSEDED
+→ new vN+1 ACTIVE
+→ new.supersedes_revision_id = prior revision id
+```
+
+Missing or stale revision expectations fail closed. More than one active canonical revision is an aggregate-integrity failure. There is no implicit reassessment and no last-write-wins behavior.
+
+The supersession transaction is append-only with respect to prior assessment/revision content. Failure rolls back the prior lifecycle change and all new effect rows/activities.
+
+Historical idempotent replay is preserved after supersession: retrying a prior revision's original idempotency key resolves that durable historical effect without requiring the prior revision to remain ACTIVE and without re-calling models.
+
+The governed HTTP route accepts only the optional concurrency assertion:
+
+```text
+expected_eligibility_revision_version >= 1
+```
+
+in addition to the existing G.4 request fields. Provider, model, autonomy, risk, actor, scope and `CapabilityAuthority` remain trusted server-side policy.
+
+G.5 creates no client publication, external communication, Application mutation or government submission.
 
 ---
 
@@ -823,15 +876,18 @@ Its boundary remains intentionally narrow:
 - proposal and verifier use separate WorkItems;
 - the API caller cannot forge runtime, verifier or position authority;
 - the response returns durable trace/effect identifiers rather than raw provider-owned truth;
-- client-facing publication and external action remain separately governed capabilities.
+- client-facing publication and external action remain separately governed capabilities;
+- G.5 permits `expected_eligibility_revision_version` only as an optimistic-concurrency assertion, not as authority or runtime policy.
 
 The accepted route is synchronous orchestration over sealed services; it does not yet claim durable mid-pipeline worker resume after process interruption.
 
-G.5 should first preserve the accepted synchronous lineage/idempotency contract. Durable resumable worker orchestration may follow only when it does not weaken the canonical reassessment contract.
+Future durable resumable worker orchestration must preserve the accepted G.5 canonical reassessment and replay contract.
 
 ---
 
-## 15. Organizational Immune System
+## 15. Organizational Immune System — next
+
+V1.3-H is the next bounded implementation stage.
 
 Target components remain:
 
@@ -858,7 +914,9 @@ Desired behavior: nearly invisible when healthy, extremely capable when abnormal
 
 Munder-derived circuit-breaker/runtime telemetry work belongs inside this system, not beside it.
 
-The eligibility vertical now provides real future input for this layer: stale context, independent-verifier disagreement, policy review, replay, canonical-effect concurrency and future reassessment conflicts.
+The eligibility vertical now provides real input for this layer: stale context, independent-verifier disagreement, policy review, stale canonical revision conflicts, historical replay, torn durable lineage, canonical-effect concurrency and reassessment rollback.
+
+The first H slice should therefore start from concrete governed signals already produced by the repository rather than inventing a generic anomaly platform first.
 
 ---
 
@@ -890,7 +948,7 @@ provider transcript != canonical OrganizationActivity automatically
 Mission Room state != canonical truth automatically
 ```
 
-No generic Peer Review Network, Mission Room or runtime fabric should displace G.5 reassessment work.
+No generic Peer Review Network, Mission Room or runtime fabric should displace H-stage immune-system work.
 
 ---
 
@@ -973,7 +1031,7 @@ Quality × Risk × Latency × Cost
 
 D.3 policy fingerprint semantics must be hardened before long-lived replay treats policy hashes as durable semantic versions.
 
-G.5 reassessment will add the first multi-revision canonical eligibility lineage and should therefore remain explicitly replay-safe and append-only.
+G.5 now provides the first multi-revision canonical eligibility lineage and preserves historical replay after supersession. H can use conflict/retry/rollback signals from that real lineage as immune-system inputs.
 
 ---
 
@@ -1053,11 +1111,11 @@ V1.3-C     Transparency Foundation                          COMPLETE / PASS / SE
 V1.3-D     Context + persistent employee/runtime foundation COMPLETE / PASS / SEALED through D.3
 V1.3-E     First Governed Mobility Vertical                 COMPLETE / PASS / SEALED through E.2
 V1.3-F     Decision Readiness                               COMPLETE / PASS / SEALED through F.1
-V1.3-G     Verification + canonical eligibility vertical    COMPLETE / PASS / SEALED through G.4.1
+V1.3-G     Verification + canonical eligibility vertical    COMPLETE / PASS / SEALED through G.5
 V1.3-G.4   Governed Eligibility Orchestration               COMPLETE / PASS / SEALED
 V1.3-G.4.1 Eligibility Vertical Contract Consolidation      COMPLETE / PASS / SEALED
-V1.3-G.5   Eligibility Reassessment / Supersession          NEXT / NOT YET IMPLEMENTED
-V1.3-H     Organizational Immune System + circuit breaking  NOT STARTED
+V1.3-G.5   Eligibility Reassessment / Supersession          COMPLETE / PASS / SEALED
+V1.3-H     Organizational Immune System + circuit breaking  NEXT / NOT YET IMPLEMENTED
 V1.3-I     Earned Autonomy                                  NOT STARTED
 V1.3-J     AIOS Organization Fabric + Munder donor work     NOT STARTED
 V1.3-K     Agent Runtime / Coworker Execution + connectors  NOT STARTED
@@ -1093,18 +1151,18 @@ The sequence is not a licence to build large horizontal frameworks before produc
 
 ## 23. Immediate implementation order
 
-1. **V1.3-G.5 — eligibility reassessment / supersession**
-   - extend the eligibility material-action contract with an explicit expected canonical eligibility revision version/precondition;
-   - derive current canonical aggregate/revision from tenant + Lead + stable pathway identity;
-   - require the expected revision to match the current active canonical revision before runtime material work can proceed;
-   - preserve prior `EligibilityAssessmentRevision` rows append-only;
-   - support v2+ only through explicit ACTIVE → SUPERSEDED lineage;
-   - rerun deterministic readiness, blind independent verification, verification-floor integration and fresh final Gateway authorization for every reassessment;
-   - guarantee exact retry/idempotency and stale-revision failure;
-   - keep reassessment internal: no automatic client publication, external communication, Application mutation or government submission;
-   - do not create a generic versioned-effect framework merely to support one proven eligibility aggregate.
+1. **V1.3-H — Organizational Immune System + circuit breaking**
+   - inventory concrete governed failure/anomaly signals already emitted by E.2–G.5 before defining any new generic detector;
+   - define deterministic incident/circuit-breaker contracts that can constrain or pause bounded capabilities without creating a parallel authority system;
+   - distinguish observation, incident classification, execution constraint, recovery and escalation;
+   - make circuit state Board-inspectable while preserving Board-by-exception;
+   - begin with one or two real eligibility-vertical signals such as repeated stale canonical-revision conflicts, torn lineage/integrity failure, runtime/provider health failure or repeated independent-verifier disagreement;
+   - preserve capability-specific authority and autonomy semantics; immune-system controls may reduce/stop execution but may not self-grant capability or authority;
+   - make recovery explicit and auditable rather than silently reopening execution;
+   - keep blast radius bounded to the affected tenant/capability/scope where possible;
+   - do not build a generic monitoring platform merely because H contains monitoring concepts.
 
-2. **After G.5, use real eligibility lineage/conflict telemetry to begin Organizational Immune System work** rather than inventing anomaly/circuit-breaker semantics in isolation.
+2. **After the first H slice, use observed incident/recovery telemetry to shape Earned Autonomy (V1.3-I)** rather than promoting agents from static scores alone.
 
 3. Continue real mobility verticals before broad Organization Fabric/Munder expansion.
 
