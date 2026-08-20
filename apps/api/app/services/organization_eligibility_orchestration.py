@@ -31,6 +31,7 @@ from app.services.organization_eligibility_immune_system import (
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
     EligibilityIntentError,
+    EligibilityIntentRuntimeError,
     governed_eligibility_transition_intent,
 )
 from app.services.organization_eligibility_verification_floor import (
@@ -40,6 +41,7 @@ from app.services.organization_eligibility_verification_floor import (
 from app.services.organization_governance_kernel import CapabilityAuthority, GatewayOutcome
 from app.services.organization_independent_eligibility_verification import (
     IndependentEligibilityVerificationError,
+    IndependentEligibilityVerificationRuntimeError,
     IndependentVerificationDisposition,
     verify_eligibility_proposal_independently,
 )
@@ -377,6 +379,23 @@ def orchestrate_governed_eligibility(
             idempotency_key=key,
             expected_eligibility_revision_version=expected_eligibility_revision_version,
         )
+    except EligibilityIntentRuntimeError as exc:
+        try:
+            record_eligibility_immune_incident(
+                session,
+                tenant_key=tenant,
+                aggregate_key=circuit_scope.aggregate_key,
+                incident_key=f"{key}:producer-runtime-health",
+                kind=EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE,
+                summary="Eligibility producer runtime failed before a governed proposal could complete.",
+            )
+        except EligibilityImmuneSystemError as incident_exc:
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "producer runtime failure could not be persisted as an immune-system incident"
+            ) from incident_exc
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "governed eligibility proposal runtime failed"
+        ) from exc
     except EligibilityIntentError as exc:
         raise GovernedEligibilityOrchestrationIntegrityError(
             "governed eligibility proposal stage failed"
@@ -453,6 +472,25 @@ def orchestrate_governed_eligibility(
             provider=execution_plan.verifier_provider,
             idempotency_key=f"{key}:independent-verification",
         )
+    except IndependentEligibilityVerificationRuntimeError as exc:
+        try:
+            record_eligibility_immune_incident(
+                session,
+                tenant_key=tenant,
+                aggregate_key=circuit_scope.aggregate_key,
+                incident_key=f"{key}:verifier-runtime-health",
+                kind=EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE,
+                summary="Eligibility verifier runtime failed before independent verification could complete.",
+                source_activity_id=proposal.attempt_activity.id,
+                correlation_key=str(proposal.evaluation.trace_id),
+            )
+        except EligibilityImmuneSystemError as incident_exc:
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "verifier runtime failure could not be persisted as an immune-system incident"
+            ) from incident_exc
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "independent eligibility verification runtime failed"
+        ) from exc
     except IndependentEligibilityVerificationError as exc:
         raise GovernedEligibilityOrchestrationIntegrityError(
             "independent eligibility verification stage failed"
