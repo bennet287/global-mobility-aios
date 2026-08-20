@@ -3,15 +3,14 @@
 **Evidence date:** 2026-08-21  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Accepted baseline remains:** V1.3-G.5  
-**Latest fully tested backend source/dependency-candidate head:** `ddac84b054c92c872f6df668e8c6f7a2a76e270c`  
-**Latest successful constrained-install + focused runtime-proof head:** `78ad35efa68973e4e28f135195fabce4c9cd49fb`  
-**Status:** PARTIAL PROOF RECORDED / FULL BACKEND ON CONSTRAINED ENVIRONMENT + FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
+**Latest fully tested constrained-backend head:** `c4d958c6b6d16f3fbd2dd06d3968049f192ee9f0`  
+**Status:** PARTIAL PROOF RECORDED / BACKEND CONSTRAINED RUNTIME PASS / FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
 
 This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. Failed proof attempts are intentionally preserved as evidence. It does not seal H.1 and does not authorize H.2.
 
 ## 1. Backend / SQLite evidence
 
-### Original backend candidate
+### Original H.1 backend candidate
 
 The original H.1 proof candidate passed the full backend suite on:
 
@@ -56,7 +55,7 @@ The full backend suite on the same head then passed:
 duration = 511.09s
 ```
 
-### Backend source revalidation before deterministic downgrade
+### Backend source revalidation before deterministic dependency downgrade
 
 The full backend suite was run again on:
 
@@ -80,14 +79,67 @@ Result:
 duration = 513.70s
 ```
 
-Worktree evidence at completion:
+This was valid source-tree evidence, but it occurred before the proof environment was downgraded to the deterministic direct-dependency candidates.
+
+### Full deterministic constrained backend — PASS
+
+After the direct-dependency compatibility candidates were successfully installed and the FastAPI HTTP-204 contract repair was applied, the complete backend suite was run on:
 
 ```text
+c4d958c6b6d16f3fbd2dd06d3968049f192ee9f0
+```
+
+Runtime:
+
+```text
+Python 3.13.12
+fastapi=0.115.0
+starlette=0.38.6
+pydantic=2.8.0
+sqlmodel=0.0.22
+alembic=1.13.0
+PyYAML=6.0.3
+clamd=1.0.2
+psycopg=3.2.2
+psycopg-binary=3.2.2
+pytest=8.3.0
+```
+
+Pre-test dependency checks:
+
+```text
+Python dependency constraints passed for 25 direct dependencies.
+pip check → No broken requirements found.
+```
+
+Full backend result:
+
+```text
+1105 passed
+7 skipped
+1 warning
+0 failed
+duration = 536.28s (0:08:56)
+```
+
+Post-test repository/release evidence:
+
+```text
+Repository policy check passed.
+Release consistency check passed. Alembic head: 0077_canonical_eligibility_assessment_revision
 git diff --check = clean
 roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
 ```
 
-That run occurred before the proof environment was deterministically downgraded to the direct-dependency compatibility candidates. Therefore a full backend rerun on the constrained environment remains required before the backend lane can be called final for the candidate set.
+This closes the deterministic Python backend runtime sub-gate for the current candidate set.
+
+The only warning in the constrained full suite is:
+
+```text
+UserWarning: Field "model_metadata_json" has conflict with protected namespace "model_".
+```
+
+This is a Pydantic 2.8 compatibility warning. It did not affect application import, collection, route registration, persistence tests, or any of the 1105 passing tests. It remains visible as a follow-up compatibility item and is not expanded into the H.1 correction unless later proof demonstrates behavioral impact.
 
 ## 2. SQLite migration / physical schema evidence
 
@@ -119,7 +171,7 @@ Migration head remains:
 
 ## 3. PostgreSQL governed eligibility / H.1 behavior
 
-### First real PostgreSQL behavioral attempt — failed
+### First real PostgreSQL behavioral attempt — FAILED
 
 The first real PostgreSQL 16 governed eligibility/H.1 suite ran on:
 
@@ -189,7 +241,7 @@ governance_revision_cardinality
 
 rather than obsolete caller-era prose.
 
-### PostgreSQL behavioral retest — passed
+### PostgreSQL behavioral retest — PASS
 
 The governed eligibility/H.1 suite was rerun on:
 
@@ -206,13 +258,11 @@ Result:
 duration = 589.67s
 ```
 
-This establishes real PostgreSQL behavioral evidence for the shared G.3/G.4/H.1 lineage repair.
+This establishes real PostgreSQL behavioral evidence for the shared G.3/G.4/H.1 lineage repair. It does **not** by itself establish the fresh-database PostgreSQL migration gate.
 
-It does **not** by itself establish the fresh-database PostgreSQL migration gate.
+## 4. Fresh PostgreSQL migration proof — prior failure repaired, current-head retest required
 
-## 4. Fresh PostgreSQL migration proof — prior failure and repair pending retest
-
-A fresh PostgreSQL 16 Alembic upgrade through `0077` failed because a generated index identifier exceeded PostgreSQL's 63-character limit:
+A fresh PostgreSQL 16 Alembic upgrade through `0077` previously failed because a generated index identifier exceeded PostgreSQL's 63-character limit:
 
 ```text
 ix_eligibility_assessment_revisions_verification_floor_activity_id
@@ -228,13 +278,18 @@ exceeds maximum length of 63 characters
 
 Because Alembic aborted transactionally, the subsequent physical-schema check correctly reported the database as incomplete. That output is not treated as a separate model-drift defect.
 
-`0077_canonical_eligibility_assessment_revision.py` has since been repaired to use bounded explicit index names for the overlong identifiers.
+`0077_canonical_eligibility_assessment_revision.py` has since been repaired to use explicit PostgreSQL-safe index names:
+
+```text
+ix_eligibility_revisions_verification_floor_activity
+ix_eligibility_revisions_verification_floor_fp
+```
 
 Required proof still outstanding:
 
 ```text
 fresh PostgreSQL 16 database
-→ alembic upgrade head succeeds
+→ alembic upgrade head succeeds from empty DB
 → database revision == 0077_canonical_eligibility_assessment_revision
 → registered/physical schema check passes
 → governed eligibility/H.1 PostgreSQL suite passes on the same current candidate
@@ -242,7 +297,7 @@ fresh PostgreSQL 16 database
 
 Until that sequence is observed on the current repaired head, the PostgreSQL Production Proof lane is not marked PASS.
 
-## 5. Repository policy / release consistency / dependency contract
+## 5. Repository policy / release consistency
 
 Repeated local proof has established:
 
@@ -253,11 +308,11 @@ Python dependency constraints passed for 25 direct dependencies.
 git diff --check = clean
 ```
 
-The constrained-environment focused proof on `78ad35efa68973e4e28f135195fabce4c9cd49fb` again passed repository policy, release consistency and diff hygiene, and the local branch matched `origin/roadmap/global-mobility-aios-v12` at completion.
+The current constrained full-backend proof on `c4d958c6b6d16f3fbd2dd06d3968049f192ee9f0` again passed these checks and completed with the local branch synchronized with `origin/roadmap/global-mobility-aios-v12`.
 
 ## 6. Deterministic Python dependency-install proof
 
-The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. Acceptance requires the candidate to install in the supported proof environment and pass runtime tests.
+The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. The current candidate has now proven installability and backend runtime compatibility on the Human Owner's CPython 3.13 Windows proof environment.
 
 ### Constraint syntax defect — repaired
 
@@ -292,7 +347,7 @@ The earlier `clamd==1.0.0` candidate failed during package metadata generation b
 ImportError: cannot import name '_get_unpatched' from 'setuptools.dist'
 ```
 
-The application adapter uses `clamd.ClamdNetworkSocket`. The bounded repair preserved the package/API and moved only the declared minimum/candidate to:
+The application adapter uses `clamd.ClamdNetworkSocket`. The repair preserved the package/API and moved the declared minimum/candidate to:
 
 ```text
 requirements.txt: clamd>=1.0.2
@@ -332,7 +387,7 @@ requirements.txt: psycopg[binary]>=3.2.2
 constraints.txt:  psycopg==3.2.2
 ```
 
-### Successful constrained install — PASS
+### Successful constrained installation — PASS
 
 On:
 
@@ -340,9 +395,9 @@ On:
 59cdcb3af3a5661660e3d5b9e8575983014263ee
 ```
 
-the direct-dependency constraint checker passed for all 25 declared direct dependencies and the constrained installation completed successfully.
+the constraint checker passed for all 25 declared direct dependencies and the constrained installation completed successfully.
 
-The proof environment then reported exactly:
+Installed critical candidates:
 
 ```text
 PyYAML=6.0.3
@@ -351,16 +406,15 @@ psycopg=3.2.2
 psycopg-binary=3.2.2
 ```
 
-and:
+Integrity:
 
 ```text
-pip check
-→ No broken requirements found.
+pip check → No broken requirements found.
 ```
 
-This closes the deterministic install failure sequence for the direct dependency candidates.
+The same deterministic environment subsequently passed the focused compatibility test and the complete backend suite recorded above.
 
-## 7. Constrained runtime compatibility proof
+## 7. Constrained runtime compatibility repair
 
 ### FastAPI 0.115 exposed an invalid 204 response contract
 
@@ -388,28 +442,9 @@ Repair:
 78ad35efa68973e4e28f135195fabce4c9cd49fb
 ```
 
-The route now explicitly uses an empty `Response` for HTTP 204 and disables response-model generation for that endpoint.
+The route now uses an explicit empty `Response` for HTTP 204 and disables response-model generation for that endpoint.
 
-### Focused constrained-environment runtime proof — PASS
-
-On `78ad35efa68973e4e28f135195fabce4c9cd49fb`, the exact environment was:
-
-```text
-fastapi=0.115.0
-starlette=0.38.6
-PyYAML=6.0.3
-clamd=1.0.2
-psycopg=3.2.2
-psycopg-binary=3.2.2
-```
-
-`pip check` again returned:
-
-```text
-No broken requirements found.
-```
-
-The focused application-import / HTTP-204 / malware-adapter regression then passed:
+Focused constrained-environment runtime proof then passed:
 
 ```text
 12 passed
@@ -418,21 +453,7 @@ The focused application-import / HTTP-204 / malware-adapter regression then pass
 duration = 0.91s
 ```
 
-The single warning in this constrained proof is:
-
-```text
-UserWarning: Field "model_metadata_json" has conflict with protected namespace "model_".
-```
-
-This is a Pydantic 2.8 compatibility warning. It does not currently break route registration, test collection, or the focused runtime behavior and is retained as a follow-up compatibility item rather than expanded into the H.1 production-proof correction.
-
-The remaining backend proof is now:
-
-```text
-full apps/api/tests suite on this exact constrained environment
-```
-
-because the earlier 1105-test pass occurred before the environment was downgraded to the deterministic compatibility candidates.
+The full constrained backend suite subsequently passed 1105 tests, establishing that the repair is compatible across the complete backend surface.
 
 ## 8. Frontend production-proof evidence and blockers
 
@@ -475,10 +496,11 @@ Constrained application import                  PASS
 HTTP 204 checklist contract                     PASS
 ClamAV adapter compatibility                    PASS
 Focused constrained runtime regression          PASS (12 passed)
-Full backend on constrained environment          REQUIRED
+Full backend on constrained environment          PASS (1105 passed / 7 skipped / 1 warning)
 PostgreSQL governed H.1 behavior                PASS (57 passed on earlier repaired head)
 Fresh PostgreSQL Alembic upgrade                RETEST REQUIRED after identifier repair
 Fresh PostgreSQL physical schema/head           RETEST REQUIRED
+Current-head PostgreSQL governed H.1 suite      RETEST REQUIRED on same fresh DB
 Frontend design/request-auth                    PASS on earlier candidate; current rerun required
 Frontend TypeScript/build                       PASS on earlier candidate; current rerun required
 Compiled frontend auth                          REPAIRED / RETEST REQUIRED
@@ -507,12 +529,11 @@ H.2 remains:
 BLOCKED
 ```
 
-Permanent sequencing remains:
+Permanent sequencing now is:
 
 ```text
-full backend on constrained environment
-→ fresh PostgreSQL migration/schema/H.1 proof
-→ frontend security repair + frontend production proof
+fresh PostgreSQL migration/schema/H.1 proof
+→ frontend security repair + current frontend production proof
 → CI/settings evidence where available
 → reconcile ROADMAP / CHANGELOG / H.1 acceptance records
 → seal H.1 only if all required evidence is green
