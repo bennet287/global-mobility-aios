@@ -4,11 +4,10 @@
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Accepted baseline remains:** V1.3-G.5  
 **Latest fully tested backend source/dependency-candidate head:** `ddac84b054c92c872f6df668e8c6f7a2a76e270c`  
-**Latest dependency-proof attempt head:** `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6`  
-**Current dependency-repair candidate head:** `4a09646ea9d93b96071e312b73510f5b9aace634`  
-**Status:** PARTIAL PROOF RECORDED / DEPENDENCY INSTALL RETEST + FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
+**Latest successful constrained-install + focused runtime-proof head:** `78ad35efa68973e4e28f135195fabce4c9cd49fb`  
+**Status:** PARTIAL PROOF RECORDED / FULL BACKEND ON CONSTRAINED ENVIRONMENT + FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
 
-This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. It deliberately preserves failed proof attempts as evidence. It does not seal H.1 and does not authorize H.2.
+This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. Failed proof attempts are intentionally preserved as evidence. It does not seal H.1 and does not authorize H.2.
 
 ## 1. Backend / SQLite evidence
 
@@ -32,7 +31,7 @@ duration = 417.39s
 
 ### Canonical-lineage repair candidate
 
-After the PostgreSQL behavioral defects described below were repaired, the focused SQLite regression on:
+After the PostgreSQL behavioral defects were repaired, the focused SQLite regression on:
 
 ```text
 5eccb70a5b5cf15a37944511292831f058a70e0c
@@ -57,9 +56,9 @@ The full backend suite on the same head then passed:
 duration = 511.09s
 ```
 
-### Current backend source tree under the dependency-proof candidate
+### Backend source revalidation before deterministic downgrade
 
-After the production-proof infrastructure repairs and the PyYAML candidate-pin correction, the full backend suite was run again on:
+The full backend suite was run again on:
 
 ```text
 ddac84b054c92c872f6df668e8c6f7a2a76e270c
@@ -88,13 +87,7 @@ git diff --check = clean
 roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
 ```
 
-The single recurring warning is:
-
-```text
-StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-```
-
-The later dependency-repair commits change only declared dependency minimum/exact candidates and proof documentation; they do not change application source. Therefore the 1105-test backend result remains source-tree evidence, while each changed dependency candidate still requires deterministic install/runtime proof before acceptance.
+That run occurred before the proof environment was deterministically downgraded to the direct-dependency compatibility candidates. Therefore a full backend rerun on the constrained environment remains required before the backend lane can be called final for the candidate set.
 
 ## 2. SQLite migration / physical schema evidence
 
@@ -215,7 +208,7 @@ duration = 589.67s
 
 This establishes real PostgreSQL behavioral evidence for the shared G.3/G.4/H.1 lineage repair.
 
-It does **not** by itself establish the fresh-database PostgreSQL migration gate, because the same production-proof sequence exposed the independent migration defect below.
+It does **not** by itself establish the fresh-database PostgreSQL migration gate.
 
 ## 4. Fresh PostgreSQL migration proof — prior failure and repair pending retest
 
@@ -233,9 +226,9 @@ Identifier 'ix_eligibility_assessment_revisions_verification_floor_activity_id'
 exceeds maximum length of 63 characters
 ```
 
-Because Alembic aborted transactionally, the subsequent physical-schema check correctly reported the database as incomplete. That missing-schema output is not treated as an independent model drift defect.
+Because Alembic aborted transactionally, the subsequent physical-schema check correctly reported the database as incomplete. That output is not treated as a separate model-drift defect.
 
-`0077_canonical_eligibility_assessment_revision.py` has since been repaired to use bounded explicit index names for identifiers that exceed the PostgreSQL limit.
+`0077_canonical_eligibility_assessment_revision.py` has since been repaired to use bounded explicit index names for the overlong identifiers.
 
 Required proof still outstanding:
 
@@ -251,7 +244,7 @@ Until that sequence is observed on the current repaired head, the PostgreSQL Pro
 
 ## 5. Repository policy / release consistency / dependency contract
 
-Earlier local proof established:
+Repeated local proof has established:
 
 ```text
 Repository policy check passed.
@@ -260,20 +253,11 @@ Python dependency constraints passed for 25 direct dependencies.
 git diff --check = clean
 ```
 
-On dependency-proof attempt head `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6`, the Human Owner reran the relevant checks and observed:
-
-```text
-Python dependency constraints passed for 25 direct dependencies.
-Repository policy check passed.
-Release consistency check passed. Alembic head: 0077_canonical_eligibility_assessment_revision
-git diff --check = clean
-```
-
-The branch/worktree was synchronized at the beginning and end of that attempt.
+The constrained-environment focused proof on `78ad35efa68973e4e28f135195fabce4c9cd49fb` again passed repository policy, release consistency and diff hygiene, and the local branch matched `origin/roadmap/global-mobility-aios-v12` at completion.
 
 ## 6. Deterministic Python dependency-install proof
 
-The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. Acceptance requires the candidate to install in the supported proof environment and then pass runtime tests.
+The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. Acceptance requires the candidate to install in the supported proof environment and pass runtime tests.
 
 ### Constraint syntax defect — repaired
 
@@ -284,11 +268,11 @@ uvicorn[standard]==...
 psycopg[binary]==...
 ```
 
-Modern pip rejects extras in constraint entries. Extras remain in `requirements.txt`; constraints now use normalized distribution names.
+Modern pip rejects extras in constraint entries. Extras remain in `requirements.txt`; constraints use normalized distribution names.
 
 ### PyYAML minimum candidate — failed, repaired
 
-On Python 3.13.12, the `pyyaml==6.0.0` candidate fell back to an old source-build path and failed with:
+On Python 3.13.12, `pyyaml==6.0.0` fell back to an old source-build path and failed with:
 
 ```text
 AttributeError: 'build_ext' object has no attribute 'cython_sources'
@@ -300,80 +284,38 @@ The exact candidate was moved to:
 pyyaml==6.0.3
 ```
 
-and later install attempts successfully resolved the wheel-backed PyYAML 6.0.3 candidate.
+### clamd minimum candidate — failed, repaired
 
-### clamd minimum candidate — failed, repaired and adapter-proven
-
-An earlier constrained-install attempt reached:
-
-```text
-clamd==1.0.0
-```
-
-and failed during package metadata generation because that release uses the obsolete `d2to1` / old setuptools build path:
+The earlier `clamd==1.0.0` candidate failed during package metadata generation because that release uses an obsolete `d2to1` / old setuptools build path:
 
 ```text
 ImportError: cannot import name '_get_unpatched' from 'setuptools.dist'
 ```
 
-The application adapter uses the `clamd.ClamdNetworkSocket` client API. The bounded repair preserved that package/API and moved only the declared minimum/candidate to:
+The application adapter uses `clamd.ClamdNetworkSocket`. The bounded repair preserved the package/API and moved only the declared minimum/candidate to:
 
 ```text
 requirements.txt: clamd>=1.0.2
 constraints.txt:  clamd==1.0.2
 ```
 
-On `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6`, the environment confirmed:
+### Psycopg binary minimum candidate — failed, repaired
+
+The constrained install on `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6` failed because:
 
 ```text
-PyYAML=6.0.3
-clamd=1.0.2
-pip check: No broken requirements found.
+psycopg==3.2.0
 ```
 
-The targeted malware adapter contract then passed:
-
-```text
-11 passed
-1 warning
-0 failed
-duration = 0.13s
-```
-
-This establishes the ClamAV adapter compatibility itself. It does **not** mark the overall constrained install PASS because pip failed later in the same install attempt on the Psycopg candidate below.
-
-### Psycopg binary minimum candidate — failed, repaired, retest pending
-
-The constrained install on:
-
-```text
-2808dd4fe91e18bb382c9d95e1f2502cb9461ab6
-```
-
-failed while resolving:
-
-```text
-psycopg[binary]>=3.2
-constraints.txt: psycopg==3.2.0
-```
-
-Psycopg 3.2.0's `binary` extra resolves to:
+resolved its `binary` extra to:
 
 ```text
 psycopg-binary==3.2.0.dev1
 ```
 
-which has no matching distribution for the Human Owner's CPython 3.13 Windows production-proof environment. The observed terminal failure was:
+which has no matching distribution for the CPython 3.13 Windows proof environment.
 
-```text
-ERROR: Could not find a version that satisfies the requirement
-psycopg-binary==3.2.0.dev1
-ERROR: No matching distribution found for psycopg-binary==3.2.0.dev1
-```
-
-This is treated as another invalid minimum compatibility candidate, not as an application or database behavior failure.
-
-The bounded repair moves the floor/exact direct candidate to the first 3.2-series release with a published CPython 3.13 Windows binary wheel:
+Repairs:
 
 ```text
 291a2ec9f56e79cb5c33fa90ef822e19ba215305
@@ -390,18 +332,109 @@ requirements.txt: psycopg[binary]>=3.2.2
 constraints.txt:  psycopg==3.2.2
 ```
 
-Required dependency proof now outstanding:
+### Successful constrained install — PASS
+
+On:
 
 ```text
-constraint checker PASS on current repair head
-constrained pip install PASS on current repair head
-installed psycopg / psycopg-binary versions confirmed
-pip check PASS after successful constrained install
+59cdcb3af3a5661660e3d5b9e8575983014263ee
 ```
 
-The existing PyYAML/clamd version output, `pip check`, and 11-test malware adapter result are retained as real evidence from the failed-install attempt, but they do not substitute for a complete successful constrained install.
+the direct-dependency constraint checker passed for all 25 declared direct dependencies and the constrained installation completed successfully.
 
-## 7. Frontend production-proof evidence and blockers
+The proof environment then reported exactly:
+
+```text
+PyYAML=6.0.3
+clamd=1.0.2
+psycopg=3.2.2
+psycopg-binary=3.2.2
+```
+
+and:
+
+```text
+pip check
+→ No broken requirements found.
+```
+
+This closes the deterministic install failure sequence for the direct dependency candidates.
+
+## 7. Constrained runtime compatibility proof
+
+### FastAPI 0.115 exposed an invalid 204 response contract
+
+After the successful constrained install, the targeted malware test initially failed during application import before any malware-scanning assertion ran.
+
+FastAPI 0.115 rejected:
+
+```text
+DELETE /api/v1/application-authority-checklist-items/{item_id}
+status_code = 204
+handler return = None using default response machinery
+```
+
+with:
+
+```text
+AssertionError: Status code 204 must not have a response body
+```
+
+This was treated as a real API contract defect rather than hidden by raising the FastAPI floor.
+
+Repair:
+
+```text
+78ad35efa68973e4e28f135195fabce4c9cd49fb
+```
+
+The route now explicitly uses an empty `Response` for HTTP 204 and disables response-model generation for that endpoint.
+
+### Focused constrained-environment runtime proof — PASS
+
+On `78ad35efa68973e4e28f135195fabce4c9cd49fb`, the exact environment was:
+
+```text
+fastapi=0.115.0
+starlette=0.38.6
+PyYAML=6.0.3
+clamd=1.0.2
+psycopg=3.2.2
+psycopg-binary=3.2.2
+```
+
+`pip check` again returned:
+
+```text
+No broken requirements found.
+```
+
+The focused application-import / HTTP-204 / malware-adapter regression then passed:
+
+```text
+12 passed
+1 warning
+0 failed
+duration = 0.91s
+```
+
+The single warning in this constrained proof is:
+
+```text
+UserWarning: Field "model_metadata_json" has conflict with protected namespace "model_".
+```
+
+This is a Pydantic 2.8 compatibility warning. It does not currently break route registration, test collection, or the focused runtime behavior and is retained as a follow-up compatibility item rather than expanded into the H.1 production-proof correction.
+
+The remaining backend proof is now:
+
+```text
+full apps/api/tests suite on this exact constrained environment
+```
+
+because the earlier 1105-test pass occurred before the environment was downgraded to the deterministic compatibility candidates.
+
+## 8. Frontend production-proof evidence and blockers
 
 Earlier frontend evidence established:
 
@@ -411,7 +444,7 @@ request-auth tests:       4 passed / 0 failed
 TypeScript/build path:    Next.js production build completed successfully
 ```
 
-The compiled-auth verifier then failed because it asserted local API port `8002` while the canonical repository client configuration/default uses port `8000`. The proof harness has since been corrected to the canonical configuration and the workflow now supplies deterministic public build-time auth configuration.
+The compiled-auth verifier then failed because it asserted local API port `8002` while the canonical repository client configuration/default uses port `8000`. The proof harness has since been corrected to canonical configuration and the workflow now supplies deterministic public build-time auth configuration.
 
 That correction still requires a current-head frontend rerun.
 
@@ -423,24 +456,29 @@ Separately, `npm ci` reported:
 1 critical
 ```
 
-and specifically warned that the pinned Next.js `15.2.4` release has a security vulnerability. This security signal is **not waived**. A bounded patched Next.js dependency update and current frontend/audit/type/build/compiled-auth proof are required before the Production Proof Gate can be sealed.
+and specifically warned that pinned Next.js `15.2.4` has a security vulnerability. This security signal is **not waived**. A bounded patched Next.js dependency update and current frontend/audit/type/build/compiled-auth proof are required before the Production Proof Gate can be sealed.
 
-## 8. Current evidence matrix
+## 9. Current evidence matrix
 
 ```text
 Focused SQLite H.1 / lineage regression         PASS (55 passed)
-Full backend regression                         PASS (1105 passed / 7 skipped)
-Backend source revalidation on Python 3.13.12   PASS (1105 passed / 7 skipped)
+Full backend regression, pre-constraint env      PASS (1105 passed / 7 skipped)
 SQLite migration consistency                    PASS
 SQLite physical schema                          PASS
 Repository policy                               PASS
 Release consistency                             PASS
-Direct dependency constraint structure          PASS (25 dependencies on 2808dd4...)
-PostgreSQL governed H.1 behavior                PASS (57 passed)
+Direct dependency constraint structure          PASS (25 dependencies)
+Constrained dependency installation             PASS
+Constrained exact dependency versions           PASS
+Constrained pip integrity                       PASS
+Constrained application import                  PASS
+HTTP 204 checklist contract                     PASS
+ClamAV adapter compatibility                    PASS
+Focused constrained runtime regression          PASS (12 passed)
+Full backend on constrained environment          REQUIRED
+PostgreSQL governed H.1 behavior                PASS (57 passed on earlier repaired head)
 Fresh PostgreSQL Alembic upgrade                RETEST REQUIRED after identifier repair
 Fresh PostgreSQL physical schema/head           RETEST REQUIRED
-ClamAV adapter compatibility                    PASS (11 passed on clamd 1.0.2)
-Constrained dependency installation             FAILED on psycopg 3.2.0 candidate; RETEST REQUIRED after 3.2.2 repair
 Frontend design/request-auth                    PASS on earlier candidate; current rerun required
 Frontend TypeScript/build                       PASS on earlier candidate; current rerun required
 Compiled frontend auth                          REPAIRED / RETEST REQUIRED
@@ -449,7 +487,7 @@ GitHub Actions current-head execution           NOT YET PROVEN
 Required-check/branch-protection enforcement    NOT YET VERIFIED
 ```
 
-## 9. Acceptance state
+## 10. Acceptance state
 
 H.1 remains:
 
@@ -472,7 +510,7 @@ BLOCKED
 Permanent sequencing remains:
 
 ```text
-constrained dependency proof
+full backend on constrained environment
 → fresh PostgreSQL migration/schema/H.1 proof
 → frontend security repair + frontend production proof
 → CI/settings evidence where available
