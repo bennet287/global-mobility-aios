@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / CANONICAL ACCEPTANCE PENDING
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
@@ -74,11 +74,11 @@ Authority, scope, risk, version and Board-reserved checks still take precedence 
 G.2 accepts only a G.1 result that is durably `AGREES` and that still carries:
 
 ```text
-independent_verification_completed        = true
+independent_verification_completed          = true
 eligible_for_verification_floor_integration = true
-command_gateway_floor_satisfied           = false
-authorization_effect                      = false
-canonical_commit_allowed                  = false
+command_gateway_floor_satisfied             = false
+authorization_effect                        = false
+canonical_commit_allowed                    = false
 ```
 
 The last three false values are important. G.1 is evidence of independent verification, not authority.
@@ -167,7 +167,7 @@ An exact G.2 rerun reuses the deterministic floor record rather than creating du
 
 ## Durable lineage
 
-The intended trace is:
+The accepted trace is:
 
 ```text
 E.2 governance attempt
@@ -268,7 +268,7 @@ G.2 creates no:
 15. trace causation remains E.2 → G.1 → G.2;
 16. no `EligibilityAssessment` is created by G.2.
 
-Parameterization means pytest's collected result is canonical and must be recorded from the local acceptance run rather than inferred from this list.
+Parameterization collects 14 focused pytest cases in the accepted implementation.
 
 ## Migration posture
 
@@ -284,21 +284,35 @@ It reuses the accepted:
 - G.1 durable blind verification;
 - `OrganizationActivity` and trace transparency substrate.
 
-## Acceptance gate
+## Acceptance evidence
 
-Canonical G.2 acceptance should include:
+Canonical acceptance is sealed in:
 
-- focused G.2 tests;
-- G.1 + G.2 integration tests;
-- E.2 → F.1 → G.1 → G.2 vertical tests;
-- D → G.2 vertical neighborhood where practical;
-- repository policy;
-- full API regression;
-- migration/schema checks;
-- `git diff --check`;
-- clean synchronized V12 branch.
+```text
+docs/V1_3_G2_ACCEPTANCE_2026-08-20.md
+```
 
-No GitHub CI PASS may be claimed without attached check evidence.
+Accepted evidence:
+
+```text
+G.2 focused                    14 passed / 1 warning / 0 failed
+G.1 + G.2                     29 passed / 1 warning / 0 failed
+E.2 + F.1 + G.1 + G.2         56 passed / 1 warning / 0 failed
+D.1–D.3 + E.1–E.2 + F.1–G.2  95 passed / 1 warning / 0 failed
+Repository policy              PASS
+Full API regression            1025 passed / 5 skipped / 1 warning / 0 failed
+Full API duration              536.84s
+Database migration check       PASS
+Migration head                 0076_organization_position_active_identity
+Registered tables              118
+Local DB schema                PASS
+Actual tables                  118
+Physical tables                119 incl. alembic_version
+git diff --check               clean
+V12 branch                     clean / synchronized
+```
+
+No GitHub CI PASS is claimed without attached check evidence.
 
 ## Non-claims
 
@@ -314,9 +328,9 @@ G.2 does not claim:
 
 ## Direction after G.2
 
-Only after G.2 acceptance should AIOS implement the first canonical eligibility effect.
+The next bounded slice is the first canonical eligibility effect.
 
-That next slice must first define explicit `EligibilityAssessment` identity/version/lineage semantics instead of silently mutating the legacy aggregate.
+That slice must first define explicit `EligibilityAssessment` identity/version/lineage semantics instead of silently mutating the legacy aggregate.
 
 Target shape:
 
