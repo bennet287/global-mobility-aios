@@ -2,13 +2,12 @@
 
 **Date:** 2026-08-20  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTATION IN PROGRESS / PRECONDITION FOUNDATION ACCEPTANCE PENDING
+**Accepted implementation head:** `e50a67d5167ace79423c62b3a729c45a82032bb8`  
+**Status:** COMPLETE / PASS / SEALED
 
 ## Purpose
 
 G.5 extends the accepted governed eligibility vertical from one canonical revision to safe, append-only reassessment and supersession.
-
-The first implementation unit is deliberately the concurrency contract, not the v2 mutation itself.
 
 Permanent rule:
 
@@ -16,13 +15,15 @@ Permanent rule:
 
 This preserves the existing Profile-version precondition and prevents last-write-wins reassessment.
 
+The final accepted contract is not a generic versioning framework. It is a bounded eligibility-domain capability integrated into the already-governed E.2 → F.1 → G.1 → G.2 → G.3/G.4 chain.
+
 ## Why a second version precondition is required
 
-The accepted E.2 `MaterialAction.expected_version` already protects the immutable `Profile.profile_version` used to construct the eligibility proposal.
+The accepted E.2 `MaterialAction.expected_version` protects the immutable `Profile.profile_version` used to construct the eligibility proposal.
 
-G.5 must not repurpose that field for canonical eligibility revision concurrency because doing so would trade away the Profile guard.
+G.5 does not repurpose that field for canonical eligibility revision concurrency because doing so would trade away the Profile guard.
 
-Therefore the final G.5 action contract will carry two distinct facts:
+The sealed action contract therefore carries two distinct concurrency facts:
 
 ```text
 Profile precondition
@@ -34,9 +35,9 @@ Canonical eligibility precondition
 
 These values protect different state and must never be conflated.
 
-## Implemented precondition foundation
+## Canonical revision precondition service
 
-New bounded service:
+Bounded service:
 
 ```text
 app.services.organization_eligibility_revision_precondition
@@ -78,7 +79,7 @@ supersedes_revision_id
 is_reassessment
 ```
 
-## Accepted transition semantics targeted by G.5
+## Accepted transition semantics
 
 ### Initial canonical effect
 
@@ -127,28 +128,82 @@ more than one ACTIVE revision
 
 G.5 never attempts to guess which active row is authoritative.
 
+## E.2 integration
+
+E.2 resolves the eligibility revision precondition before provider/model execution.
+
+It then revalidates the same precondition after runtime latency, alongside the existing canonical case/context and Profile freshness checks.
+
+The material action retains:
+
+```text
+expected_version = Profile.profile_version
+```
+
+and carries the eligibility-specific revision contract in `proposed_change`:
+
+```text
+eligibility_aggregate_key
+expected_eligibility_revision_version
+expected_eligibility_revision_id
+next_eligibility_revision_version
+```
+
+The durable E.2 governance attempt records the same facts so later stages reconstruct the accepted action rather than infer new concurrency state.
+
+An already-existing canonical revision with no explicit reassessment expectation fails before model egress.
+
+## G.2 integration
+
+G.2 reconstructs the exact accepted E.2 `MaterialAction`, including the eligibility revision expectation.
+
+Fresh verification-floor integration revalidates the canonical revision and fails closed if it moved after E.2.
+
+A narrowly-scoped `require_current_revision=False` reconstruction path exists only to resolve durable historical replay. It does not authorize fresh reassessment and is not a bypass for normal execution.
+
 ## Time-of-check / time-of-use safety
 
-The new precondition object is intentionally re-resolvable.
-
-Target execution shape:
+The final accepted execution shape is:
 
 ```text
 resolve expected canonical revision
-→ governed proposal/runtime work
-→ readiness
-→ blind independent verification
-→ verification-floor integration
-→ re-resolve exact canonical revision immediately before effect
+→ governed E.2 proposal/runtime work
+→ revalidate after runtime latency
+→ F.1 Decision Readiness
+→ G.1 blind independent verification
+→ G.2 revision revalidation + verification floor
+→ G.3 revision revalidation immediately before effect
 → fresh final Command Gateway authorization
 → atomic supersession transaction
 ```
 
-`require_eligibility_revision_precondition_current(...)` proves an intervening canonical commit invalidates an earlier precondition.
+An intervening canonical commit invalidates the earlier revision precondition.
 
-## Historical replay requirement
+## Atomic supersession contract
 
-G.5 must preserve durable idempotent replay as historical truth.
+The G.3 canonical-effect transaction now supports both initial creation and explicit reassessment.
+
+For reassessment, one transaction commits:
+
+```text
+fresh final authorization
++ prior ACTIVE revision → SUPERSEDED
++ new EligibilityAssessment
++ new EligibilityAssessmentRevision vN+1 ACTIVE
++ supersedes_revision_id → prior revision
++ canonical governance Activity
++ semantic MATERIAL Activity
+```
+
+Any failure rolls back the entire transition, including the lifecycle change on the prior revision.
+
+Prior assessment/revision content is never rewritten in place.
+
+There must be exactly one ACTIVE canonical revision for a healthy eligibility aggregate after commit.
+
+## Historical replay
+
+Historical effect identity is distinct from the currently active aggregate revision.
 
 After:
 
@@ -157,60 +212,93 @@ v1 ACTIVE
 → v2 ACTIVE / v1 SUPERSEDED
 ```
 
-an exact retry of the original v1 idempotency key must still resolve the original v1 canonical effect. It must not fail merely because v1 is no longer active.
+an exact retry of the original v1 idempotency key still resolves the original v1 canonical effect.
 
-Likewise, a later v3 must not erase the replayability of v1 or v2.
+The replay path:
 
-This requires G.3/G.4 replay validation to distinguish:
+- does not call provider models again;
+- does not require the persisted revision to remain ACTIVE;
+- computes/validates effect identity against the persisted revision's actual version;
+- preserves assessment, governance, verification-floor and semantic lineage checks;
+- fails closed on torn or conflicting durable state.
 
-```text
-historical effect identity
-```
+The same principle applies to later revisions: supersession does not erase replayability.
 
-from:
+## G.4 orchestration integration
 
-```text
-currently active aggregate revision
-```
-
-before G.5 is sealed.
-
-## Atomic supersession requirement
-
-The future G.5 effect transaction must commit as one unit:
+The domain-specific G.4 orchestrator accepts:
 
 ```text
-fresh final authorization
-+ prior ACTIVE revision -> SUPERSEDED
-+ new EligibilityAssessment
-+ new EligibilityAssessmentRevision vN+1 ACTIVE
-+ supersedes_revision_id -> prior revision
-+ semantic MATERIAL Activity
+expected_eligibility_revision_version: int | None
 ```
 
-Any failure must roll back the entire transition, including the lifecycle change on the prior revision.
+Initial v1 creation omits it.
 
-Prior assessment/revision content is never rewritten in place.
+A reassessment must explicitly supply the version believed current.
 
-## Material-action integration still required
+The orchestrator continues to receive provider/runtime selection and `CapabilityAuthority` only through the trusted server-side `GovernedEligibilityExecutionPlan`.
 
-The precondition foundation does **not yet** claim reassessment execution.
+A post-commit retry resolves durable effect lineage before model execution. Reusing an idempotency key with a different revision expectation is rejected before either model is called.
 
-Before G.5 can be accepted, the expected canonical eligibility revision must be wired through the accepted E.2→F.1→G.1→G.2→G.3/G.4 chain so that:
+## Governed HTTP boundary
 
-1. E.2 validates it before and after runtime latency;
-2. the reconstructed eligibility `MaterialAction` carries it without changing the existing Profile `expected_version` meaning;
-3. the durable E.2 attempt records it;
-4. G.2 revalidates it before verification-floor authorization;
-5. G.3 revalidates it immediately before the effect transaction;
-6. the G.4 request may supply only this concurrency expectation as data, never runtime/provider/authority policy;
-7. exact replay verifies the expected revision belongs to the persisted effect lineage.
+`POST /api/v1/organization/eligibility/orchestrate` now permits one additional request field:
 
-Until that integration exists, G.5 is **not** COMPLETE and no v2 effect is authorized.
+```json
+{
+  "expected_eligibility_revision_version": 1
+}
+```
 
-## No migration in the precondition foundation
+When supplied it must be at least `1`.
 
-The existing `EligibilityAssessmentRevision` model already contains the required fields:
+This field is a caller concurrency assertion only. It is not authority, autonomy, risk or execution policy.
+
+Request JSON still cannot choose:
+
+```text
+tenant authority
+producer/verifier OrganizationPosition
+provider
+model
+autonomy level
+risk tier
+scope
+CapabilityAuthority
+```
+
+`ConfigDict(extra="forbid")` remains in force.
+
+The authenticated human initiator does not become the material actor. The producer `OrganizationPosition` remains the action actor.
+
+## Verification and authorization invariants
+
+Every new canonical reassessment still traverses:
+
+```text
+E.2 proposal
+→ F.1 Decision Readiness
+→ G.1 blind independent verification
+→ G.2 verification-floor integration
+→ fresh Command Gateway authorization
+→ G.3 atomic canonical effect
+```
+
+The constitutional R3 floor remains intact.
+
+Scores may route; deterministic gates authorize.
+
+Independent verification does not become authority.
+
+Provider output does not become canonical truth automatically.
+
+Operational autonomy must not create organizational opacity.
+
+## Database contract
+
+No migration was required for G.5.
+
+The existing `EligibilityAssessmentRevision` model already contains:
 
 ```text
 version
@@ -218,9 +306,7 @@ lifecycle_status
 supersedes_revision_id
 ```
 
-No schema change is required merely to define the concurrency contract.
-
-Canonical migration truth therefore remains:
+Accepted database truth remains:
 
 ```text
 0077_canonical_eligibility_assessment_revision
@@ -229,35 +315,59 @@ actual tables     119
 physical tables   120 including alembic_version
 ```
 
-## Deliberate non-claims
+## Acceptance evidence
 
-This implementation unit does not claim:
-
-- v2+ canonical effect creation;
-- lifecycle supersession mutation;
-- G.4 HTTP reassessment support;
-- replacement of `session.expire_all()`;
-- generic versioned-effect infrastructure;
-- generic optimistic-concurrency framework;
-- client-facing eligibility publication;
-- application mutation or government submission.
-
-## Focused acceptance gate for this implementation unit
-
-Before integrating the contract into E.2/G.2/G.3/G.4, verify at minimum:
+Canonical Human Owner local evidence:
 
 ```text
-apps/api/tests/test_organization_eligibility_revision_precondition.py
-apps/api/tests/test_organization_eligibility_effect.py
+G.5 precondition + G.3 baseline          20 passed / 1 warning / 0 failed
+G.5 E.2/G.2 integration                 38 passed / 1 warning / 0 failed
+G.5 canonical-effect core               28 passed / 1 warning / 0 failed
+E.2 → G.5 effect vertical               84 passed / 1 warning / 0 failed
+G.4 + G.5 orchestration/API             15 passed / 1 warning / 0 failed
+E.2 → G.5 full governed vertical        99 passed / 1 warning / 0 failed
+Platform hardening                      8 passed / 1 warning / 0 failed
+Repository policy                       PASS
+Full API regression                     1075 passed / 5 skipped / 1 warning / 0 failed
+Duration                                397.94s
+Database migration check                PASS
+Migration head                          0077_canonical_eligibility_assessment_revision
+Registered tables                       119
+Actual tables                           119
+Physical tables                         120 incl. alembic_version
+git diff --check                        clean
+V12 branch                              clean / synchronized
 ```
 
-The focused tests must prove:
+Detailed acceptance record:
 
-- initial v1 requires absence of an active canonical revision;
-- existing v1 requires an explicit expected revision for reassessment;
-- exact expected v1 resolves legal next version v2 and the correct supersedes target;
-- stale/invalid expectations fail closed;
-- an intervening canonical commit invalidates a previously resolved no-revision precondition;
-- existing G.3 v1/replay behavior remains green.
+- `docs/V1_3_G5_ACCEPTANCE_2026-08-20.md`
 
-ROADMAP/CHANGELOG remain at accepted V12.16 until this foundation and its downstream integration are observed through canonical local test evidence.
+The observed warning is the existing Starlette/httpx TestClient deprecation warning and is non-blocking.
+
+No GitHub CI PASS is claimed without attached status/check evidence.
+
+## Deliberate non-claims
+
+G.5 does not claim:
+
+- client-facing eligibility publication;
+- application mutation;
+- government submission;
+- unrestricted external execution;
+- generic versioned-effect infrastructure;
+- generic optimistic-concurrency framework;
+- replacement of conservative `session.expire_all()` freshness boundaries;
+- automatic autonomy promotion;
+- Phase 13.17 PASS;
+- GitHub CI PASS without evidence.
+
+## Programme transition
+
+G.5 is COMPLETE / PASS / SEALED.
+
+The canonical next V1.3 stage is:
+
+> **V1.3-H — Organizational Immune System + circuit breaking**
+
+The next stage should use the governed material-effect and transparency foundations to detect unsafe organizational conditions, constrain execution deterministically, and support recovery without converting every anomaly into Human Owner / Board interruption.
