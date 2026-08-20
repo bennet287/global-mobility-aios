@@ -30,6 +30,11 @@ from app.services.organization_decision_readiness import (
     EligibilityDecisionReadinessResult,
     assess_eligibility_decision_readiness,
 )
+from app.services.organization_eligibility_revision_precondition import (
+    EligibilityRevisionPreconditionError,
+    eligibility_aggregate_key,
+    require_eligibility_revision_precondition_current,
+)
 from app.services.organization_eligibility_transition_intent import (
     ELIGIBILITY_INTENT_SCHEMA_VERSION,
     GOVERNED_ELIGIBILITY_CAPABILITY,
@@ -210,6 +215,22 @@ def _durable_verification(
     return activity
 
 
+def _revision_precondition_payload(
+    proposal: GovernedEligibilityTransitionIntentResult,
+) -> dict[str, object]:
+    precondition = proposal.eligibility_revision_precondition
+    return {
+        "eligibility_aggregate_key": precondition.aggregate_key,
+        "expected_eligibility_revision_version": precondition.expected_revision_version,
+        "expected_eligibility_revision_id": (
+            str(precondition.current_revision_id)
+            if precondition.current_revision_id is not None
+            else None
+        ),
+        "next_eligibility_revision_version": precondition.next_revision_version,
+    }
+
+
 def original_eligibility_attempt_payload(
     session: Session,
     proposal: GovernedEligibilityTransitionIntentResult,
@@ -233,6 +254,11 @@ def original_eligibility_attempt_payload(
     idempotency_key = payload.get("idempotency_key")
     if not isinstance(idempotency_key, str) or not idempotency_key.strip():
         raise EligibilityVerificationFloorIntegrityError("durable E.2 attempt lacks its idempotency key")
+    for key, value in _revision_precondition_payload(proposal).items():
+        if payload.get(key) != value:
+            raise EligibilityVerificationFloorIntegrityError(
+                f"durable E.2 revision precondition conflicts on field {key!r}"
+            )
     return payload
 
 
@@ -241,8 +267,14 @@ def rebuild_eligibility_action(
     *,
     proposal: GovernedEligibilityTransitionIntentResult,
     idempotency_key: str,
+    require_current_revision: bool = True,
 ) -> tuple[MaterialAction, Profile]:
-    """Reconstruct the exact accepted E.2 eligibility MaterialAction from canonical state."""
+    """Reconstruct the exact accepted E.2 eligibility MaterialAction from canonical state.
+
+    Fresh G.2/G.3 evaluation requires the canonical eligibility revision precondition to
+    remain current. Historical replay may set ``require_current_revision=False`` so a
+    superseded revision remains replayable without weakening the original fingerprint.
+    """
 
     profile = session.get(Profile, proposal.intent.profile_id)
     if profile is None or profile.profile_version != proposal.intent.profile_version:
@@ -253,6 +285,29 @@ def rebuild_eligibility_action(
     pathway = session.get(MobilityPathway, pathway_version.pathway_id)
     if pathway is None:
         raise EligibilityVerificationFloorIntegrityError("governed pathway is unavailable")
+
+    precondition = proposal.eligibility_revision_precondition
+    expected_aggregate_key = eligibility_aggregate_key(
+        tenant_key=proposal.context.tenant_key,
+        lead_id=proposal.intent.lead_id,
+        pathway_id=pathway.id,
+    )
+    if precondition.aggregate_key != expected_aggregate_key:
+        raise EligibilityVerificationFloorIntegrityError(
+            "eligibility revision precondition belongs to a different aggregate"
+        )
+    if require_current_revision:
+        try:
+            precondition = require_eligibility_revision_precondition_current(
+                session,
+                precondition=precondition,
+                lead_id=proposal.intent.lead_id,
+                pathway_id=pathway.id,
+            )
+        except EligibilityRevisionPreconditionError as exc:
+            raise EligibilityVerificationFloorIntegrityError(
+                "canonical eligibility revision precondition is stale"
+            ) from exc
 
     action = MaterialAction(
         action_type=MaterialActionType.ELIGIBILITY_TRANSITION,
@@ -269,6 +324,14 @@ def rebuild_eligibility_action(
             "context_hash": proposal.context.context_hash,
             "runtime_binding_hash": proposal.runtime_binding.binding_hash,
             "intent_fingerprint": proposal.intent_fingerprint,
+            "eligibility_aggregate_key": precondition.aggregate_key,
+            "expected_eligibility_revision_version": precondition.expected_revision_version,
+            "expected_eligibility_revision_id": (
+                str(precondition.current_revision_id)
+                if precondition.current_revision_id is not None
+                else None
+            ),
+            "next_eligibility_revision_version": precondition.next_revision_version,
         },
         scope_key=f"{pathway.country.casefold()}:{pathway.domain.casefold()}",
         evidence_refs=tuple(sorted((*proposal.intent.evidence_basis, *proposal.intent.rule_basis))),
@@ -377,6 +440,7 @@ def _persist_floor_reevaluation(
             "verification_activity_id": str(verification.verification_activity.id),
             "readiness_fingerprint": verification.readiness_fingerprint,
             "original_e2_action_fingerprint": proposal.evaluation.action_fingerprint,
+            **_revision_precondition_payload(proposal),
             "gateway_authorized_for_execution": evaluation.authorized_for_execution,
             "eligible_for_effect_integration": evaluation.authorized_for_execution,
             "canonical_effect_committed": False,
@@ -403,7 +467,8 @@ def integrate_eligibility_verification_floor(
     `governance:<idempotency_key>` success record. It proves only that a durable,
     agreeing independent verification may remove E.2's domain-specific HUMAN_REQUIRED
     policy floor. The existing Command Gateway still decides authority, scope, risk,
-    version and autonomy outcomes from scratch.
+    Profile version and autonomy outcomes from scratch, while G.5 separately enforces
+    the canonical eligibility revision precondition carried by the E.2 action.
     """
 
     current_readiness = _fresh_readiness(session, proposal=proposal, readiness=readiness)
