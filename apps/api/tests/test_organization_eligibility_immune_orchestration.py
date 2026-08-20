@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -11,6 +13,7 @@ from app.models.domain import OrganizationActivity
 from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.routers.organization_eligibility import governed_eligibility_execution_plan
 from app.routers.organization_records import organization_command_context
+from app.services.llm_client import LLMProvider, LLMProviderError, LLMResponse
 from app.services.organization_eligibility_immune_system import (
     ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
     EligibilityCircuitState,
@@ -31,6 +34,28 @@ from tests.test_organization_eligibility_orchestration import (
     _human_context,
     _plan,
 )
+
+
+class _FailingProvider(LLMProvider):
+    def __init__(self, *, name: str, model: str) -> None:
+        self.name = name
+        self.model = model
+        self.calls: list[dict[str, Any]] = []
+
+    def complete(
+        self,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        response_format: dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        self.calls.append(
+            {
+                "system_prompt": system_prompt,
+                "messages": messages,
+                "response_format": response_format,
+            }
+        )
+        raise LLMProviderError("synthetic H.1 runtime outage")
 
 
 def _aggregate(*, lead, graph) -> str:
@@ -274,6 +299,105 @@ def test_h1_insufficient_basis_is_not_mislabeled_as_verifier_disagreement(
         ).all()
     )
     assert incidents == []
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.CLOSED
+
+
+def test_h1_producer_runtime_failure_emits_warning_without_opening_circuit(
+    db_session: Session,
+) -> None:
+    lead, _, graph, proposal_work, verification_work = _fixture(db_session)
+    aggregate = _aggregate(lead=lead, graph=graph)
+    plan, _, verifier = _plan(graph)
+    failing = _FailingProvider(
+        name=plan.producer_runtime_profile.provider_key,
+        model=plan.producer_runtime_profile.model_key or "",
+    )
+    plan = replace(plan, producer_provider=failing)
+    key = "h1-producer-runtime-health"
+
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="proposal runtime failed",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key=key,
+            execution_plan=plan,
+        )
+
+    assert len(failing.calls) == 1
+    assert verifier.calls == []
+    incident = db_session.exec(
+        select(OrganizationActivity).where(
+            OrganizationActivity.tenant_key == "tenant-a",
+            OrganizationActivity.activity_key
+            == f"immune:eligibility:{aggregate}:incident:{key}:producer-runtime-health",
+        )
+    ).first()
+    assert incident is not None
+    assert incident.causation_activity_id is None
+    payload = transparency_activity_record(incident).payload
+    assert payload["incident_kind"] == EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE.value
+    assert payload["severity"] == "warning"
+    assert payload["automatic_circuit_action"] == "none"
+    assert eligibility_circuit_status(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+    ).state is EligibilityCircuitState.CLOSED
+
+
+def test_h1_verifier_runtime_failure_emits_warning_linked_to_proposal(
+    db_session: Session,
+) -> None:
+    lead, _, graph, proposal_work, verification_work = _fixture(db_session)
+    aggregate = _aggregate(lead=lead, graph=graph)
+    plan, producer, _ = _plan(graph)
+    failing = _FailingProvider(
+        name=plan.verifier_runtime_profile.provider_key,
+        model=plan.verifier_runtime_profile.model_key or "",
+    )
+    plan = replace(plan, verifier_provider=failing)
+    key = "h1-verifier-runtime-health"
+
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="verification runtime failed",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key=key,
+            execution_plan=plan,
+        )
+
+    assert len(producer.calls) == 1
+    assert len(failing.calls) == 1
+    incident = db_session.exec(
+        select(OrganizationActivity).where(
+            OrganizationActivity.tenant_key == "tenant-a",
+            OrganizationActivity.activity_key
+            == f"immune:eligibility:{aggregate}:incident:{key}:verifier-runtime-health",
+        )
+    ).first()
+    assert incident is not None
+    assert incident.causation_activity_id is not None
+    cause = db_session.get(OrganizationActivity, incident.causation_activity_id)
+    assert cause is not None
+    assert cause.activity_key.startswith("governance:attempt:")
+    payload = transparency_activity_record(incident).payload
+    assert payload["incident_kind"] == EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE.value
+    assert payload["severity"] == "warning"
+    assert payload["automatic_circuit_action"] == "none"
     assert eligibility_circuit_status(
         db_session,
         tenant_key="tenant-a",
