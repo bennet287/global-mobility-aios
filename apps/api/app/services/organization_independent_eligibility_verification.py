@@ -276,12 +276,13 @@ def _verifier_binding(
         raise IndependentEligibilityVerificationIntegrityError(
             "verifier runtime must use a different independence group"
         )
-    if (
-        binding.provider_key == proposer_binding.provider_key
-        and binding.model_key == proposer_binding.model_key
-    ):
+    if binding.provider_key == proposer_binding.provider_key:
         raise IndependentEligibilityVerificationIntegrityError(
-            "verifier may not reuse the proposer's exact provider/model identity"
+            "G.1 verifier must use a different provider from the proposer"
+        )
+    if binding.model_key == proposer_binding.model_key:
+        raise IndependentEligibilityVerificationIntegrityError(
+            "G.1 verifier must use a different model identity from the proposer"
         )
     return binding
 
@@ -539,7 +540,7 @@ def _persist_verification(
         occurred_at=now_utc(),
         correlation_key=str(proposal.evaluation.trace_id),
         payload={
-            "constitutional_activity_class": "material",
+            "constitutional_activity_class": "MATERIAL",
             "verification_schema_version": INDEPENDENT_ELIGIBILITY_VERIFICATION_SCHEMA_VERSION,
             "verification_mode": "PRE_COMMIT",
             "verification_kind": "independent_eligibility_verification",
@@ -594,7 +595,7 @@ def verify_eligibility_proposal_independently(
     """Run G.1 blind independent verification without authorizing eligibility mutation.
 
     The verifier uses a separate WorkItem and OrganizationPosition, a runtime in a
-    different independence group, and a non-identical provider/model identity. The
+    different independence group, and a different provider/model identity. The
     verifier sees the governed case/pathway Evidence and rules but never receives the
     proposing model's conclusion, rationale, or confidence. AIOS compares conclusions
     only after the verifier responds.
