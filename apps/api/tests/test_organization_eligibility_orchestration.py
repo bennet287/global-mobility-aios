@@ -7,8 +7,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
+from app.core.organization_constitution import AutonomyLevel
 from app.main import app
-from app.models.domain import EligibilityAssessment, OrganizationActorType, OrganizationPosition
+from app.models.domain import EligibilityAssessment, OrganizationActorType
 from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.routers.organization_eligibility import governed_eligibility_execution_plan
 from app.routers.organization_records import organization_command_context
@@ -186,7 +187,7 @@ def test_g4_a1_stops_after_verified_floor_without_canonical_effect(db_session: S
     _, _, graph, proposal_work, verification_work = _fixture(db_session)
     plan, _, _ = _plan(
         graph,
-        authority=_authority_with(autonomy="A1"),
+        authority=_authority_with(autonomy=AutonomyLevel.A1),
     )
     before = len(list(db_session.exec(select(EligibilityAssessment)).all()))
 
