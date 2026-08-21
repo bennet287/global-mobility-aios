@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.18 — production-proof correction  
-**Date:** 2026-08-20  
+**Roadmap generation:** V12.18 — production-proof correction accepted  
+**Date:** 2026-08-21  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`  
@@ -10,11 +10,10 @@
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
 **Active organization architecture:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` + `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`  
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme  
-**Last accepted V1.3 checkpoint:** V12.17 / V1.3-G.5 — COMPLETE / PASS / SEALED  
-**Current implementation candidate:** V1.3-H.1 — Eligibility Immune Circuit Foundation — IMPLEMENTED / ACCEPTANCE PENDING  
-**Current proof programme:** H.1 canonical-lineage consolidation + V12 Production Proof Gate — IMPLEMENTED / ACCEPTANCE PENDING  
-**H.1 seal:** PAUSED pending real regression / PostgreSQL / frontend / repository proof  
-**H.2:** BLOCKED until H.1 and the Production Proof Gate are accepted  
+**Last accepted V1.3 checkpoint:** V12.18 / V1.3-H.1 — COMPLETE / PASS / SEALED on acceptance candidate `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`  
+**Current proof programme:** V12 Production Proof Gate — ACCEPTED / GREEN — GitHub Actions run `32463849415`  
+**Required-check enforcement:** NOT VERIFIED — repository-settings action required before H.2  
+**H.2:** BLOCKED pending required-check enforcement verification  
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
@@ -108,12 +107,13 @@ Current V1.3 state:
 | V1.3-E First Governed Mobility Vertical | COMPLETE / PASS / SEALED through E.2 | Governed mobility brief and eligibility intent accepted |
 | V1.3-F Decision Readiness | COMPLETE / PASS / SEALED through F.1 | Deterministic readiness routing accepted |
 | V1.3-G Independent Verification + canonical eligibility | COMPLETE / PASS / SEALED through G.5 | Blind verification, verification floor, canonical effect, orchestration and reassessment accepted |
-| V1.3-H.1 Eligibility Immune Circuit | IMPLEMENTED / ACCEPTANCE PENDING | Restrictive aggregate circuit and signal wiring exist; seal paused |
-| V12 Production Proof Gate | IMPLEMENTED / ACCEPTANCE PENDING | CI/real-DB/frontend/dependency proof infrastructure exists; green evidence not yet recorded |
-| V1.3-H.2 | BLOCKED | No additional Immune System feature slice until H.1 proof is accepted |
+| V1.3-H.1 Eligibility Immune Circuit | COMPLETE / PASS / SEALED | Restrictive aggregate circuit, canonical-lineage consolidation and proof accepted |
+| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes all passed on run `32463849415` |
+| Required GitHub check enforcement | NOT VERIFIED | Repository settings/ruleset verification remains required before H.2 |
+| V1.3-H.2 | BLOCKED | No H.2 production transition guardrails until required-check enforcement is verified |
 | V1.3-I Earned Autonomy | NOT STARTED | Follows accepted H-stage safety/measurement foundations |
 
-The accepted baseline remains **G.5** until the H.1 proof programme produces actual evidence.
+The accepted V1.3 baseline is now **H.1**. Detailed acceptance evidence is preserved in `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
 
 ---
 
@@ -141,36 +141,39 @@ No V1.3, canonical eligibility-effect, Immune System, CI or Munder work may eras
 
 ---
 
-## 5. Last accepted quality evidence — V1.3-G.5
+## 5. Latest accepted quality evidence — V1.3-H.1
 
 Historical accepted results are not represented as rerun unless actually rerun.
 
-The latest accepted V1.3 evidence remains:
+The previously accepted G.5 checkpoint remains preserved by its acceptance records. H.1 adds the following accepted proof without rewriting G.5 history:
 
 ```text
-G.5 precondition + G.3 baseline          20 passed / 1 warning / 0 failed
-G.5 E.2/G.2 integration                 38 passed / 1 warning / 0 failed
-G.5 canonical-effect core               28 passed / 1 warning / 0 failed
-E.2 → G.5 effect vertical               84 passed / 1 warning / 0 failed
-G.4 + G.5 orchestration/API             15 passed / 1 warning / 0 failed
-E.2 → G.5 full governed vertical        99 passed / 1 warning / 0 failed
-Platform hardening                      8 passed / 1 warning / 0 failed
-Repository policy                       PASS
-Full API regression                     1075 passed / 5 skipped / 1 warning / 0 failed
-Duration                                397.94s
-Database migration check                PASS
-Migration head                          0077_canonical_eligibility_assessment_revision
-Registered tables                       119
-Local DB schema                         PASS
-Actual tables                           119
-Physical tables                         120 incl. alembic_version
-git diff --check                        clean
-V12 branch                              clean / synchronized
+Deterministic constrained backend         1105 passed / 7 skipped / 1 warning / 0 failed
+Python dependency constraints             PASS — 25 direct dependencies
+pip check                                 PASS
+Fresh PostgreSQL 16 Alembic               PASS — 0001 → 0077
+Registered SQLModel tables                119
+Fresh PostgreSQL physical schema          PASS
+Fresh PostgreSQL governed H.1             57 passed / 1 warning / 0 failed
+Frontend npm ci                           PASS
+Frontend high-severity audit              PASS — 0 vulnerabilities
+Frontend design foundation                28/28 PASS
+Frontend request/auth                     4/4 PASS
+Frontend TypeScript                       PASS
+Frontend Next.js production build         PASS
+Frontend compiled auth                    PASS
+Repository policy                         PASS
+Release consistency                       PASS
+Canonical receipt audit                   20 checked / 2 stale corrected / Linux CI PASS
+GitHub Production Proof run 32463849415   4/4 jobs PASS
+Acceptance candidate                      0b19d61a417de2d372e101d4e132a6a0a6c2a84f
 ```
 
-Canonical acceptance records are preserved under `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5.
+The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
 
-No current H.1 test count, PostgreSQL PASS, frontend PASS or GitHub CI PASS is claimed until those checks actually run.
+Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5 and `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1.
+
+No claim is made that GitHub branch protection or rulesets currently require the Production Proof checks.
 
 ---
 
@@ -258,7 +261,7 @@ Request JSON cannot select tenant authority, OrganizationPosition, provider/mode
 
 ---
 
-## 8. Current H.1 implementation candidate
+## 8. Accepted H.1 Eligibility Immune Circuit Foundation
 
 Canonical design record:
 
@@ -298,7 +301,7 @@ Fresh G.4 execution performs circuit/lineage preflight before provider egress. E
 
 ---
 
-## 9. H.1 release blocker resolved in implementation — acceptance still pending
+## 9. H.1 canonical-lineage blocker — resolved and accepted
 
 The H.1 candidate previously duplicated part of the G.3/G.4 durable-lineage invariant.
 
@@ -344,11 +347,11 @@ The shared validator proves:
 
 Aggregate validation additionally requires one contiguous revision chain with exactly one latest ACTIVE revision.
 
-This repair is **implemented but not yet accepted**.
+This repair is **ACCEPTED / SEALED** as part of V1.3-H.1.
 
 ---
 
-## 10. Adversarial H.1 regression requirement
+## 10. Adversarial H.1 regression — accepted
 
 The acceptance surface intentionally corrupts committed lineage rather than testing only valid fixtures.
 
@@ -375,16 +378,17 @@ canonical validator rejects corruption
 → verifier calls = 0
 ```
 
-G.3/G.4 replay must fail closed on the same canonical invariant.
+G.3/G.4 replay fails closed on the same canonical invariant.
 
 ---
 
-## 11. Production Proof Gate — required before H.2
+## 11. Production Proof Gate — accepted / green
 
-Canonical proof record:
+Canonical proof records:
 
 ```text
 docs/V1_3_H1_PRODUCTION_PROOF_GATE.md
+docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
 ```
 
 CI workflow:
@@ -393,7 +397,17 @@ CI workflow:
 .github/workflows/v12-production-proof.yml
 ```
 
-The gate contains four lanes.
+Final accepted GitHub-hosted run:
+
+```text
+candidate = 0b19d61a417de2d372e101d4e132a6a0a6c2a84f
+run       = 32463849415
+
+Repository policy and constraints   PASS
+Backend regression (SQLite)         PASS
+Frontend tests, types and build     PASS
+PostgreSQL governance contracts     PASS
+```
 
 ### 11.1 Repository policy / dependency contract
 
@@ -404,7 +418,9 @@ Python direct-dependency constraints
 diff hygiene
 ```
 
-Repository policy now also rejects shell-redirection-like tracked filenames. The accidental `apps/api/=5.4` artifact has been removed.
+Repository policy rejects shell-redirection-like tracked filenames. The accidental `apps/api/=5.4` artifact has been removed.
+
+A canonical Git-blob audit also corrected exactly two stale evidence receipts without changing the evidence JSON or weakening SHA validation; the GitHub-hosted Linux backend lane subsequently passed.
 
 ### 11.2 Full backend regression — SQLite
 
@@ -421,14 +437,27 @@ SQLite remains the broad fast regression environment. It is not sufficient produ
 
 ### 11.3 Frontend proof
 
+Accepted frontend baseline:
+
+```text
+next=16.3.1
+react=19.0.8
+react-dom=19.0.8
+```
+
+Accepted proof:
+
 ```text
 npm ci
-design-foundation tests
-request/auth tests
+npm audit --audit-level=high → 0 vulnerabilities
+design-foundation tests → 28/28
+request/auth tests → 4/4
 TypeScript --noEmit
 Next.js production build
 compiled-auth tests
 ```
+
+The GitHub frontend lane uses Node 24 so the CI runtime matches the proven request/auth test contract.
 
 There is not yet a Playwright/browser workflow suite. A browser golden journey is required before aggressive frontend restructuring.
 
@@ -444,6 +473,15 @@ GMAI_TEST_DATABASE_URL=postgresql+psycopg://...
 
 The focused lane covers existing G.3/G.4/G.5/H.1 semantics plus explicit cross-session contracts for stale reassessment and circuit recovery/reopen behavior.
 
+Accepted fresh PostgreSQL evidence:
+
+```text
+Alembic 0001 → 0077              PASS
+registered tables                 119
+physical schema                   PASS
+governed H.1                      57 passed / 1 warning / 0 failed
+```
+
 ---
 
 ## 12. Python dependency reproducibility
@@ -454,7 +492,7 @@ Backend direct dependencies remain declared in:
 apps/api/requirements.txt
 ```
 
-Exact direct-dependency constraints now live in:
+Exact direct-dependency constraints live in:
 
 ```text
 apps/api/constraints.txt
@@ -470,9 +508,9 @@ The API Docker image and V12 Production Proof workflow use the same constraints.
 
 Current claim boundary:
 
-> **This is a direct-dependency reproducibility baseline, not yet a complete transitive lock.**
+> **This is a direct-dependency reproducibility baseline, not a complete transitive lock.**
 
-A transitive lock may be added after this baseline is proven on the supported environments.
+The accepted constrained candidate passed installation, `pip check`, application import and the complete backend regression.
 
 ---
 
@@ -490,7 +528,7 @@ The concentration of models in `domain.py` is a maintainability risk, but the mi
 
 Do not create independent migration heads merely to mirror code-module boundaries.
 
-The production-proof migration checker now validates:
+The production-proof migration checker validates:
 
 ```text
 exactly one Alembic head
@@ -504,7 +542,7 @@ for SQLite and PostgreSQL when those databases are supplied.
 
 ## 14. Complexity/decomposition programme — sequenced, not simultaneous
 
-Large-module concentration is accepted as a maintainability risk. It is not a reason to begin four broad refactors before the proof system is reliable.
+Large-module concentration is accepted as a maintainability risk. It is not a reason to begin four broad refactors at once.
 
 Known concentration areas include:
 
@@ -546,55 +584,59 @@ Permanent rule:
 
 ---
 
-## 15. H.1 acceptance gate
+## 15. H.1 acceptance gate — satisfied
 
-H.1 remains **ACCEPTANCE PENDING** until all required proof is real:
+H.1 is **COMPLETE / PASS / SEALED**. The acceptance checklist is satisfied by real evidence:
 
-1. shared canonical-lineage focused tests pass;
-2. adversarial Activity-identity corruption tests pass;
-3. fresh structural corruption produces CRITICAL circuit OPEN before provider calls;
-4. G.3/G.4 historical replay fails closed on corrupted lineage;
-5. full backend regression passes;
-6. Alembic + physical schema checks pass;
-7. frontend Node tests pass;
-8. TypeScript check passes;
-9. Next.js production build passes;
-10. PostgreSQL migration upgrade passes;
-11. PostgreSQL migration/schema contract passes;
-12. focused PostgreSQL governance contracts pass;
-13. cross-session stale reassessment contract passes;
-14. cross-session circuit recovery/reopen contract passes;
-15. repository policy passes;
-16. dependency constraint enforcement passes;
-17. branch/head/docs are synchronized;
-18. required-check enforcement in GitHub repository settings is either verified or explicitly recorded as a remaining settings action.
+1. shared canonical-lineage focused tests — PASS;
+2. adversarial Activity-identity corruption tests — PASS;
+3. fresh structural corruption produces CRITICAL circuit OPEN before provider calls — PASS;
+4. G.3/G.4 historical replay fails closed on corrupted lineage — PASS;
+5. full backend regression — PASS;
+6. Alembic + physical schema checks — PASS;
+7. frontend Node tests — PASS;
+8. TypeScript check — PASS;
+9. Next.js production build — PASS;
+10. PostgreSQL migration upgrade — PASS;
+11. PostgreSQL migration/schema contract — PASS;
+12. focused PostgreSQL governance contracts — PASS;
+13. cross-session stale reassessment contract — PASS;
+14. cross-session circuit recovery/reopen contract — PASS;
+15. repository policy — PASS;
+16. dependency constraint enforcement — PASS;
+17. acceptance candidate and evidence records synchronized — PASS;
+18. required-check enforcement — explicitly recorded as the remaining repository-settings action, as permitted by the H.1 gate.
 
-No H.1 acceptance document is created before this gate is satisfied.
+Acceptance record:
+
+```text
+docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
+```
 
 ---
 
 ## 16. Immediate execution order
 
-This ordering is authoritative for the next work:
+This ordering remains authoritative:
 
 ```text
-1. H.1 seal paused
-2. canonical eligibility-lineage consolidation
-3. adversarial regression
-4. full H.1 / governed-vertical acceptance
-5. Production Proof Gate green on SQLite + frontend + PostgreSQL
-6. reconcile ROADMAP / CHANGELOG / acceptance record
-7. verify required GitHub check enforcement
-8. only then begin H.2
+1. H.1 seal paused                                      COMPLETE
+2. canonical eligibility-lineage consolidation          COMPLETE
+3. adversarial regression                               COMPLETE
+4. full H.1 / governed-vertical acceptance              COMPLETE
+5. Production Proof Gate green                          COMPLETE
+6. reconcile acceptance records / roadmap truth         COMPLETE
+7. verify required GitHub check enforcement             NEXT / NOT VERIFIED
+8. only then begin H.2                                   BLOCKED
 ```
 
-Steps 2–3 and the CI implementation for step 5 are currently implemented. They remain acceptance-pending until executed successfully.
+The next authorized work is repository-settings verification and, independently, proof-oriented follow-on work that does not begin H.2 semantics.
 
 ---
 
 ## 17. V1.3-H.2 — blocked future scope
 
-H.2 must not begin until section 15 is green.
+H.2 remains blocked until required GitHub check enforcement is verified.
 
 Potential bounded H.2 work includes only evidence-driven extensions such as:
 
@@ -700,7 +742,7 @@ Still required later:
 - backup/restore proof;
 - observability SLOs and alert routing;
 - load/concurrency benchmarks beyond the focused canonical eligibility contract;
-- security/dependency scanning policy;
+- security/dependency scanning policy beyond the accepted npm high-severity gate;
 - production deployment rehearsal;
 - provider outage/degradation drills;
 - database restore and migration rollback/forward-recovery evidence;
@@ -714,9 +756,7 @@ These should be added based on production risk, not to maximize tooling count.
 
 The repository does **not** currently claim:
 
-- H.1 PASS or SEALED;
-- green results for the newly added V12 Production Proof workflow;
-- mandatory branch-protection enforcement of the new checks;
+- mandatory branch-protection/ruleset enforcement of the Production Proof checks;
 - complete PostgreSQL coverage of every backend test;
 - a complete transitive Python lock;
 - Playwright/browser E2E coverage;
@@ -739,14 +779,16 @@ Accepted architecture / history:
 - `docs/CHANGELOG.md`
 - `docs/V1_3_G5_ELIGIBILITY_REASSESSMENT_SUPERSESSION.md`
 - `docs/V1_3_G5_ACCEPTANCE_2026-08-20.md`
-
-Current acceptance-pending work:
-
 - `docs/V1_3_H1_ELIGIBILITY_IMMUNE_CIRCUIT_FOUNDATION.md`
 - `docs/V1_3_H1_PRODUCTION_PROOF_GATE.md`
-- `.github/workflows/v12-production-proof.yml`
+- `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`
+- `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.18 acceptance changelog)
 
-The accepted changelog remains anchored at G.5 until the current proof gate produces real acceptance evidence. Pending implementation history is preserved by Git commits and the H.1 proof records above; it must not be misrepresented as accepted delivery.
+Current repository-settings prerequisite:
+
+- verify required GitHub check enforcement before H.2 begins.
+
+The accepted baseline is H.1. The technical Production Proof Gate is green. No branch-protection/ruleset enforcement claim is made until repository settings are directly verified.
 
 ---
 
@@ -754,11 +796,11 @@ The accepted changelog remains anchored at G.5 until the current proof gate prod
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The delivery correction is:
+The delivery correction succeeded in converting architectural safety claims into continuously executable proof:
 
-> **The next risk is no longer lack of architectural ideas. It is the gap between architectural sophistication and continuously enforced production proof.**
+> **The next risk is no longer lack of architectural ideas. It is maintaining the discipline that architectural sophistication remains continuously proven and repository-enforced.**
 
-Therefore the project now prioritizes invariant consolidation, adversarial regression, mandatory-quality workflow execution, real PostgreSQL proof, dependency/repository hygiene and operational evidence before adding another Immune System feature slice.
+Therefore the project now prioritizes required-check enforcement verification, browser golden-journey proof and incremental semantic decomposition before expanding safety architecture.
 
 The governing sequence is:
 
@@ -769,6 +811,7 @@ G.5 accepted baseline
 → adversarial proof
 → Production Proof Gate
 → H.1 acceptance/seal
+→ verify required GitHub check enforcement
 → H.2
 → Earned Autonomy
 → broader Organization Fabric / operational scale
