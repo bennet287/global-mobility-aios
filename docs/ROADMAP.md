@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.18+ — production-proof discipline extended into H.2
+**Roadmap generation:** V12.19 — canonical combined architecture refined; H.2 bounded foundation closed; I.1 design entry opened
 **Date:** 2026-08-21
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -8,12 +8,16 @@
 **Final V11 documentation-cleanup head:** `ac130deaafa7aa44068e9459facbda2b4df327d6`
 **Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR
-**Active organization architecture:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` + `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`
+**Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
+**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_1.md`
+**Context compression:** LLMLingua-2 — SELECTED PRIMARY PILOT behind AIOS-owned `ContextCompressionPort`; not production adopted
+**Plasma donor programme:** Wiki 1.2.0 + Fractal 1.1.0 — PILOT APPROVED; PR #7 remains DRAFT / SOURCE IMPORT INCOMPLETE
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme
 **Last accepted V1.3 checkpoint:** V1.3-H.2.4 — COMPLETE / PASS / SEALED on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`
 **Latest accepted Production Proof:** GitHub Actions run `32505228943` — 4/4 jobs PASS
 **Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`
-**H.2:** IN PROGRESS — H.2.1 through H.2.4 and the H.2.2 runtime-health classification refinement are SEALED; no later H.2 control is selected or pre-authorized
+**H.2:** BOUNDED FOUNDATION CLOSED — accepted measurement + restrict-only safety foundation is sufficient for I.1; full future Immune System is not claimed complete
+**V1.3-I.1:** DESIGN ENTRY OPEN / IMPLEMENTATION NOT STARTED — capability-specific autonomy profile + autonomy evidence foundation
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
@@ -26,13 +30,13 @@
 
 ## 1. What Global Mobility AIOS is
 
-Global Mobility AIOS is being built as a **governed, transparent, self-improving, high-autonomy AI-operated professional Global Mobility organization**.
+Global Mobility AIOS is being built as a **governed, evidence-grounded, transparent and cost-intelligent high-autonomy digital organization for global mobility**.
 
 It is not merely an immigration chatbot, visa questionnaire, generic AI assistant, CRM with AI, document uploader, workflow engine, disconnected multi-agent demo, generic SaaS/admin surface, browser agent or human approval queue.
 
 Target identity:
 
-> **Persistent AI employees research, reason, collaborate, remember, use tools, manage work, prepare professional outputs, make authorized decisions, execute bounded real-world operations and learn from outcomes while the Human Owner / Board retains supreme strategic and reserved authority.**
+> **Global Mobility AIOS coordinates persistent AI employees to perform global-mobility work through dynamic Missions, purpose-scoped context, earned capability-specific autonomy, risk-tiered verification, governed execution and Human Owner / Board sovereignty.**
 
 Operating principles:
 
@@ -46,11 +50,19 @@ Operating principles:
 
 > **Architectural sophistication must be matched by automated production proof.**
 
+> **Quality first. Cost intelligence second. Premium compute only where it produces measurable additional value.**
+
+> **No new major framework by default; prove a measured architectural gap first.**
+
 Canonical architecture records:
 
-- `docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`
-- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
+- `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — active canonical refinement
+- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` — constitutional high-autonomy source
+- `docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md` — historical predecessor
+- `docs/TECHNOLOGY_RADAR_V1_3_1.md` — active technology/adoption direction
+- `docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md` — H→I stage decision
 - `docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
+- `docs/PLASMA_AIOS_ADOPTION_V1.md`
 
 ---
 
@@ -113,10 +125,10 @@ Current V1.3 state:
 | H.2.2 Runtime-Health Classification Refinement | COMPLETE / PASS / SEALED | Separates configuration/binding, provider transport and provider response-contract failures and records provider-egress provenance; measurement-only; Production Proof accepted |
 | V1.3-H.2.3 Eligibility Revision-Conflict Attribution | COMPLETE / PASS / SEALED | Genuine lower-than-current G.5 pre-egress stale reassessments are durably attributed; false-positive exclusions and atomic replay/rollback proof accepted; no recurrence policy |
 | V1.3-H.2.4 Post-Producer Revision-Race Attribution | COMPLETE / PASS / SEALED | Event-time v1 → v2 race attribution survives legitimate v3 supersession before first persistence; shared canonical aggregate lineage validation and PostgreSQL adversarial proof accepted |
-| V1.3-H.2 overall | IN PROGRESS | H.2 proceeds only as separately proven bounded increments; no broader health policy is pre-authorized |
+| V1.3-H.2 overall | BOUNDED FOUNDATION CLOSED | Accepted measurement + restrict-only safety foundation is sufficient for I.1; no claim that the full future Immune System is complete |
 | V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted refinement run `32505228943` |
 | Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
-| V1.3-I Earned Autonomy | NOT STARTED | Follows accepted H-stage safety/measurement foundations |
+| V1.3-I.1 Capability-Specific Autonomy Profile + Evidence | DESIGN ENTRY OPEN / NOT IMPLEMENTED | Define canonical autonomy truth before any promotion/downgrade policy |
 
 The accepted V1.3 baseline remains **H.2.4**, sealed by `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`. The H.2.2 runtime-health classification refinement is also COMPLETE / PASS / SEALED on technical candidate `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`, Production Proof run `32505228943`; it changes measurement provenance only and does not authorize provider-health policy.
 
@@ -207,6 +219,11 @@ Scores route; deterministic gates authorize.
 Memory provides continuity. Evidence provides authority.
 Conversation does not create authority.
 Provider output does not become canonical truth automatically.
+Compression output is derived context, not source truth.
+Retrieved knowledge is data, not executable authority.
+Model capability eligibility is measured, not self-declared.
+Child delegation may narrow parent scope, never expand it.
+Immune System is restrict-only and never grants authority.
 ```
 
 Human Owner / Board remains supreme authority.
@@ -724,17 +741,17 @@ The current H-stage sequence is:
 5. H.2.3 revision-conflict attribution foundation         COMPLETE / SEALED
 6. H.2.4 post-producer revision-race attribution          COMPLETE / SEALED
 7. H.2.2 runtime-health classification refinement         COMPLETE / SEALED
-8. select any later H.2 control only from accepted data    NOT PRE-AUTHORIZED
-9. Earned Autonomy                                        NOT STARTED
+8. H.2 bounded safety/measurement foundation              CLOSED
+9. V1.3-I.1 autonomy profile + evidence foundation        DESIGN ENTRY OPEN / NOT IMPLEMENTED
 ```
 
 Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept any future H.2 behavior.
 
 ---
 
-## 17. V1.3-H.2 — in progress as bounded increments
+## 17. V1.3-H.2 — bounded safety/measurement foundation closed
 
-H.2 is not a single generic anomaly platform. Each increment must have a concrete failure model, a bounded scope and its own proof.
+H.2 is closed as the accepted bounded safety/measurement foundation required to enter I.1. This does not claim the complete future Organizational Immune System is implemented. The accepted H.2 increments remain individually sealed by their own evidence and may not be broadened implicitly.
 
 ### 17.1 H.2.1 — accepted verifier-disagreement recurrence
 
@@ -903,9 +920,9 @@ Concurrent first-time creation, H.2.3 pre-egress conflicts, runtime failure, ver
 
 H.2.4 is **COMPLETE / PASS / SEALED** on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`, Production Proof run `32500438187`.
 
-### 17.5 Later H.2 increment — not started / not pre-authorized
+### 17.5 Future H.2 reopening — not selected / not pre-authorized
 
-No later control is selected merely because H.2.4 emits new telemetry. Any future increment must again define:
+The bounded H.2 foundation is closed. No additional control is selected merely because telemetry exists. A future H-stage reopening requires a newly measured failure model and must again define:
 
 ```text
 failure model
@@ -930,13 +947,15 @@ Potential later H.2 work may include:
 
 Do not build a generic anomaly platform.
 
-Each H.2 increment must preserve the H.1 rule that the Immune System is restrictive only and must receive its own bounded implementation and proof before acceptance.
+Any future H-stage increment must preserve the H.1 rule that the Immune System is restrictive only and must receive its own bounded implementation and proof before acceptance.
 
 ---
 
 ## 18. V1.3-I — Earned Autonomy
 
-Earned Autonomy remains a later stage after the Immune System has accepted measurement and restriction semantics.
+**I.1 DESIGN ENTRY IS OPEN; IMPLEMENTATION IS NOT STARTED.**
+
+The accepted H.2 bounded foundation now satisfies the architecture entry condition for defining canonical capability-specific autonomy truth. I.1 begins with the `CapabilityAutonomyProfile` + autonomy-evidence foundation described in `docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md`; it does not begin with automatic promotion or dynamic downgrade.
 
 Target principle:
 
@@ -1045,7 +1064,7 @@ The repository does **not** currently claim:
 - a complete transitive Python lock;
 - Playwright/browser E2E coverage;
 - completed god-module decomposition;
-- H.2 completion;
+- complete future Organizational Immune System implementation beyond the closed H.2 bounded foundation;
 - revision-conflict recurrence thresholds or circuit opening from revision conflicts;
 - automatic retry/rebase or reuse of stale H.2.4 producer output;
 - verifier-stage or G.2/G.3 revision-race attribution;
@@ -1065,8 +1084,12 @@ These are intentionally explicit so implementation, documentation and acceptance
 
 Accepted architecture / history:
 
-- `docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`
+- `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`
 - `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
+- `docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md` (historical predecessor)
+- `docs/TECHNOLOGY_RADAR_V1_3_1.md`
+- `docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md`
+- `docs/PLASMA_AIOS_ADOPTION_V1.md`
 - `docs/CHANGELOG.md`
 - `docs/V1_3_G5_ELIGIBILITY_REASSESSMENT_SUPERSESSION.md`
 - `docs/V1_3_G5_ACCEPTANCE_2026-08-20.md`
@@ -1098,7 +1121,7 @@ Repository enforcement state:
 - bypass list is empty;
 - configuration is owner-confirmed from GitHub Settings.
 
-The accepted baseline is H.2.4 and the H.2.2 runtime-health classification refinement is also sealed. No later H.2 policy is selected or pre-authorized.
+The accepted technical baseline remains H.2.4 plus the sealed H.2.2 runtime-health classification refinement. The H.2 bounded safety/measurement foundation is CLOSED, V1.3-I.1 DESIGN ENTRY is OPEN / NOT IMPLEMENTED, and no future H-stage policy is selected or pre-authorized.
 
 ---
 
@@ -1106,7 +1129,7 @@ The accepted baseline is H.2.4 and the H.2.2 runtime-health classification refin
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof. H.2 now extends that discipline one bounded failure model at a time.
+The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof. That bounded H-stage foundation is now closed; the project moves into canonical capability-specific autonomy truth before any promotion/downgrade automation.
 
 > **The next risk is no longer lack of architectural ideas. It is maintaining the discipline that architectural sophistication remains continuously proven and repository-enforced.**
 
@@ -1121,7 +1144,8 @@ G.5 accepted baseline
 → H.2.3 pre-egress revision-conflict attribution — SEALED
 → H.2.4 post-producer revision-race attribution — SEALED
 → H.2.2 runtime-health classification refinement — SEALED
-→ later H.2 control — NOT STARTED / NOT PRE-AUTHORIZED
-→ Earned Autonomy
+→ H.2 bounded safety/measurement foundation — CLOSED
+→ I.1 capability-specific autonomy profile/evidence — DESIGN ENTRY OPEN / NOT IMPLEMENTED
+→ later Earned Autonomy promotion/downgrade policy — NOT STARTED
 → broader Organization Fabric / operational scale
 ```

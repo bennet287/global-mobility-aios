@@ -22,6 +22,81 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-21 — V12.19 CANONICAL COMBINED ARCHITECTURE & H→I DIRECTION
+
+### Status
+
+**DOCUMENTATION / ARCHITECTURE DIRECTION — NO NEW RUNTIME ACCEPTANCE CLAIM**
+
+The active project direction is now consolidated in:
+
+```text
+docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md
+docs/TECHNOLOGY_RADAR_V1_3_1.md
+docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md
+docs/CHANGELOG_2026-08-21_CANONICAL_COMBINED_ARCHITECTURE_REFINEMENT.md
+```
+
+### Stage direction
+
+```text
+H.1                              SEALED
+H.2.1                            SEALED
+H.2.2                            SEALED
+H.2.2 classification refinement SEALED
+H.2.3                            SEALED
+H.2.4                            SEALED
+H.2 bounded safety/measurement foundation
+                                  CLOSED
+V1.3-I.1 capability-specific autonomy profile/evidence
+                                  DESIGN ENTRY OPEN / IMPLEMENTATION NOT STARTED
+```
+
+Closing H.2 means the accepted measurement + restrict-only safety foundation is sufficient to define canonical autonomy truth. It does **not** claim that the complete future Organizational Immune System is implemented.
+
+### Canonical architecture refinements
+
+- the Organizational Immune System is cross-cutting and **restrict-only**; it never grants authority, autonomy or permission;
+- LLMLingua-2 is the **selected primary compression pilot** behind an AIOS-owned `ContextCompressionPort`, not a claim of inherently safe or production-adopted compression;
+- compression output is a derived execution artifact and never source truth;
+- initial R3–R5 protected context defaults to zero semantic compression for mandatory Evidence, critical VerifiedRules, exact money/dates/identifiers, authority/autonomy/risk/policy constraints, contradictions and material action/source identifiers;
+- Plasma Wiki remains beneath Context Broker: retrieved knowledge is data, not executable authority;
+- Plasma Fractal children must map to native Mission/WorkItem semantics, remain within parent delegated scope, and do not automatically satisfy independent-verifier requirements;
+- the Model Router may choose only among runtimes/models that earned capability eligibility through measured AIOS evaluation;
+- the Cost Governor optimizes total governed outcome cost beneath authority, risk, quality, Evidence, verification, privacy, SLA and reliability floors;
+- no new major agent framework is added by default without a measured architectural gap.
+
+### Accepted technical anchors unchanged
+
+```text
+H.2.4 technical candidate
+e7584b90fc967e828960ae0730a35d8646fba74f
+Production Proof 32500438187 — 4/4 PASS
+
+H.2.2 runtime-health classification technical candidate
+25b19728e7dc35f3f0450f6ae839fa57fe36c1e4
+Production Proof 32505228943 — 4/4 PASS
+```
+
+### Plasma PR #7
+
+PR #7 remains **DRAFT / SOURCE IMPORT INCOMPLETE**. Vendoring is not production adoption. Green scaffolding CI does not prove that the exact pinned donor trees have been imported/audited.
+
+### Explicit non-claims
+
+This documentation change does not claim:
+
+- I.1 runtime implementation;
+- automatic autonomy promotion or downgrade;
+- complete future Immune-System implementation;
+- LLMLingua-2 production adoption;
+- Plasma production adoption;
+- Model Router production implementation;
+- Cost Governor production implementation;
+- PR #7 source-import completion or merge readiness.
+
+---
+
 ## 2026-08-20 — V1.3-G.5 ELIGIBILITY REASSESSMENT / SUPERSESSION — COMPLETE / PASS / SEALED
 
 ### Status
