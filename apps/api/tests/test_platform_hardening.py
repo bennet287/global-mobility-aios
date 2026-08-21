@@ -81,11 +81,12 @@ def test_auth_policy_registry_preserves_sensitive_role_boundaries() -> None:
 
 def test_router_registry_contains_compatibility_and_security_critical_routes() -> None:
     features = [spec.feature for spec in ROUTER_SPECS]
-    assert len(features) == 66
+    assert len(features) == 67
     assert "auth" in features
     assert "organization-governance" in features
     assert "organization-records" in features
     assert "organization-transparency" in features
+    assert "organization-autonomy-promotion-transparency" in features
     assert "organization-governed-eligibility" in features
     assert "external-validation" in features
     assert "document-access" in features

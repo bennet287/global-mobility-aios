@@ -31,7 +31,7 @@ _RATE_FIELDS = (
 
 
 class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
-    """Append-only Board-authored criteria for one exact autonomy promotion step."""
+    """Append-only Board-authored criteria for one exact I.1 autonomy profile."""
 
     __tablename__ = "capability_autonomy_promotion_policies"
     __table_args__ = (
@@ -47,19 +47,18 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
         ),
         UniqueConstraint(
             "tenant_key",
-            "position_key",
-            "capability_key",
-            "context_scope",
-            "from_autonomy_level",
-            "target_autonomy_level",
-            "evidence_policy_version",
+            "profile_id",
             "policy_sequence",
-            name="uq_cap_auto_prom_policy_scope_sequence",
+            name="uq_cap_auto_prom_policy_profile_sequence",
         ),
         UniqueConstraint(
             "tenant_key",
             "supersedes_policy_id",
             name="uq_cap_auto_prom_policy_supersedes",
+        ),
+        CheckConstraint(
+            "profile_sequence >= 1",
+            name="ck_cap_auto_prom_profile_sequence_positive",
         ),
         CheckConstraint(
             "policy_sequence >= 1",
@@ -118,12 +117,21 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
             name="ck_cap_auto_prom_policy_not_self_superseding",
         ),
         CheckConstraint(
+            "length(profile_record_fingerprint) = 64",
+            name="ck_cap_auto_prom_profile_fingerprint",
+        ),
+        CheckConstraint(
             "length(decision_activity_fingerprint) = 64",
             name="ck_cap_auto_prom_policy_activity_fingerprint",
         ),
         CheckConstraint(
             "length(record_fingerprint) = 64",
             name="ck_cap_auto_prom_policy_record_fingerprint",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_key", "profile_id"],
+            ["capability_autonomy_profiles.tenant_key", "capability_autonomy_profiles.id"],
+            name="fk_cap_auto_prom_policy_profile_tenant",
         ),
         ForeignKeyConstraint(
             ["position_id"],
@@ -141,17 +149,13 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
             name="fk_cap_auto_prom_policy_supersedes_tenant",
         ),
         Index(
-            "ix_cap_auto_prom_policy_scope_seq",
+            "ix_cap_auto_prom_policy_profile_seq",
             "tenant_key",
-            "position_key",
-            "capability_key",
-            "context_scope",
-            "from_autonomy_level",
-            "target_autonomy_level",
-            "evidence_policy_version",
+            "profile_id",
             "policy_sequence",
         ),
         Index("ix_cap_auto_prom_policy_tenant", "tenant_key"),
+        Index("ix_cap_auto_prom_policy_profile", "profile_id"),
         Index("ix_cap_auto_prom_policy_position_key", "position_key"),
         Index("ix_cap_auto_prom_policy_capability", "capability_key"),
         Index("ix_cap_auto_prom_policy_context", "context_scope"),
@@ -166,6 +170,9 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     tenant_key: str
+    profile_id: UUID
+    profile_sequence: int
+    profile_record_fingerprint: str = Field(max_length=64)
     position_id: UUID
     position_key: str
     capability_key: str

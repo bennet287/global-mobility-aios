@@ -24,6 +24,9 @@ def upgrade() -> None:
         "capability_autonomy_promotion_policies",
         sa.Column("id", _uuid(), nullable=False),
         sa.Column("tenant_key", sa.String(), nullable=False),
+        sa.Column("profile_id", _uuid(), nullable=False),
+        sa.Column("profile_sequence", sa.Integer(), nullable=False),
+        sa.Column("profile_record_fingerprint", sa.String(length=64), nullable=False),
         sa.Column("position_id", _uuid(), nullable=False),
         sa.Column("position_key", sa.String(), nullable=False),
         sa.Column("capability_key", sa.String(), nullable=False),
@@ -55,6 +58,10 @@ def upgrade() -> None:
         sa.Column("effective_from", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_by", sa.String(), nullable=False),
+        sa.CheckConstraint(
+            "profile_sequence >= 1",
+            name="ck_cap_auto_prom_profile_sequence_positive",
+        ),
         sa.CheckConstraint(
             "policy_sequence >= 1",
             name="ck_cap_auto_prom_policy_sequence_positive",
@@ -142,12 +149,21 @@ def upgrade() -> None:
             name="ck_cap_auto_prom_policy_not_self_superseding",
         ),
         sa.CheckConstraint(
+            "length(profile_record_fingerprint) = 64",
+            name="ck_cap_auto_prom_profile_fingerprint",
+        ),
+        sa.CheckConstraint(
             "length(decision_activity_fingerprint) = 64",
             name="ck_cap_auto_prom_policy_activity_fingerprint",
         ),
         sa.CheckConstraint(
             "length(record_fingerprint) = 64",
             name="ck_cap_auto_prom_policy_record_fingerprint",
+        ),
+        sa.ForeignKeyConstraint(
+            ["tenant_key", "profile_id"],
+            ["capability_autonomy_profiles.tenant_key", "capability_autonomy_profiles.id"],
+            name="fk_cap_auto_prom_policy_profile_tenant",
         ),
         sa.ForeignKeyConstraint(
             ["position_id"],
@@ -173,14 +189,9 @@ def upgrade() -> None:
         ),
         sa.UniqueConstraint(
             "tenant_key",
-            "position_key",
-            "capability_key",
-            "context_scope",
-            "from_autonomy_level",
-            "target_autonomy_level",
-            "evidence_policy_version",
+            "profile_id",
             "policy_sequence",
-            name="uq_cap_auto_prom_policy_scope_sequence",
+            name="uq_cap_auto_prom_policy_profile_sequence",
         ),
         sa.UniqueConstraint(
             "tenant_key",
@@ -189,8 +200,9 @@ def upgrade() -> None:
         ),
     )
     for name, columns in (
-        ("ix_cap_auto_prom_policy_scope_seq", ["tenant_key", "position_key", "capability_key", "context_scope", "from_autonomy_level", "target_autonomy_level", "evidence_policy_version", "policy_sequence"]),
+        ("ix_cap_auto_prom_policy_profile_seq", ["tenant_key", "profile_id", "policy_sequence"]),
         ("ix_cap_auto_prom_policy_tenant", ["tenant_key"]),
+        ("ix_cap_auto_prom_policy_profile", ["profile_id"]),
         ("ix_cap_auto_prom_policy_position_key", ["position_key"]),
         ("ix_cap_auto_prom_policy_capability", ["capability_key"]),
         ("ix_cap_auto_prom_policy_context", ["context_scope"]),
