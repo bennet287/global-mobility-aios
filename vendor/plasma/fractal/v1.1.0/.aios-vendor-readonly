@@ -1,0 +1,4 @@
+READ_ONLY_UPSTREAM_DONOR
+upstream=plasma-ai/fractal
+version=1.1.0
+commit=e629ae2b80250ab502feefe3d9d0266bc58f15b2
