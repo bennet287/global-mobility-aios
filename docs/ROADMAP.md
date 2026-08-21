@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.22 — I.3 autonomy promotion eligibility policy foundation implemented / acceptance pending
+**Roadmap generation:** V12.22 — I.3 autonomy promotion eligibility policy foundation accepted and sealed
 **Date:** 2026-08-22
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -13,13 +13,13 @@
 **Context compression:** LLMLingua-2 — SELECTED PRIMARY PILOT behind AIOS-owned `ContextCompressionPort`; not production adopted
 **Plasma donor programme:** Wiki 1.2.0 + Fractal 1.1.0 — PILOT APPROVED; PR #7 remains DRAFT / SOURCE IMPORT INCOMPLETE
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme
-**Last accepted V1.3 checkpoint:** V1.3-I.2 — COMPLETE / PASS / SEALED on technical candidate `c23e64a95770b1736ac9921486f8d017d17f930b`
-**Latest accepted Production Proof:** GitHub Actions run `32533230630` — 4/4 jobs PASS
+**Last accepted V1.3 checkpoint:** V1.3-I.3 — COMPLETE / PASS / SEALED on technical candidate `77b2e9adb30d69419158930b31c0bc10515cb6a7`
+**Latest accepted Production Proof:** GitHub Actions run `32536826352` — 4/4 jobs PASS
 **Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`
 **H.2:** BOUNDED FOUNDATION CLOSED — accepted measurement + restrict-only safety foundation is sufficient for I-stage work; full future Immune System is not claimed complete
 **V1.3-I.1:** COMPLETE / PASS / SEALED — canonical capability/context autonomy profile + deterministic evidence lineage + Board transparency foundation; no automatic promotion/downgrade
-**V1.3-I.2:** COMPLETE / PASS / SEALED — immutable exact-profile shadow observations + deterministic Board evidence profile; no autonomy mutation or promotion/downgrade policy
-**V1.3-I.3:** IMPLEMENTED / ACCEPTANCE PENDING — Board-authored one-step promotion criteria + deterministic eligibility read model; no autonomy mutation
+**V1.3-I.2:** COMPLETE / PASS / SEALED — immutable exact-profile shadow observations + deterministic Board evidence profile; no autonomy mutation
+**V1.3-I.3:** COMPLETE / PASS / SEALED — exact-I.1-profile Board promotion criteria + deterministic eligibility read model; no autonomy mutation or authority grant
 **Code migration head:** `0080_capability_autonomy_promotion_policy_foundation`
 
 <!-- CURRENT_MIGRATION_HEAD: 0080_capability_autonomy_promotion_policy_foundation -->
@@ -56,19 +56,20 @@ Operating principles:
 
 > **No new major framework by default; prove a measured architectural gap first.**
 
-Canonical architecture records:
+Canonical architecture and acceptance records:
 
 - `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — active canonical refinement
 - `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` — constitutional high-autonomy source
 - `docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md` — historical predecessor
 - `docs/TECHNOLOGY_RADAR_V1_3_1.md` — active technology/adoption direction
 - `docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md` — H→I stage decision
-- `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md` — accepted I.1 implementation contract
-- `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_ACCEPTANCE_2026-08-21.md` — accepted I.1 proof and seal
-- `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_FOUNDATION_2026-08-22.md` — accepted I.2 implementation contract
-- `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md` — accepted I.2 proof and seal
-- `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_FOUNDATION_2026-08-22.md` — active I.3 implementation/acceptance contract
-- `docs/V12_22_PENDING_CHANGELOG.md` — active I.3 pending proof record
+- `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md`
+- `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_ACCEPTANCE_2026-08-21.md`
+- `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_FOUNDATION_2026-08-22.md`
+- `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md`
+- `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_FOUNDATION_2026-08-22.md`
+- `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md`
+- `docs/V12_22_PENDING_CHANGELOG.md` — historical filename; content closed as V12.22 acceptance changelog
 - `docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 - `docs/PLASMA_AIOS_ADOPTION_V1.md`
 
@@ -129,20 +130,22 @@ Current V1.3 state:
 | V1.3-G Independent Verification + canonical eligibility | COMPLETE / PASS / SEALED through G.5 | Blind verification, verification floor, canonical effect, orchestration and reassessment accepted |
 | V1.3-H.1 Eligibility Immune Circuit | COMPLETE / PASS / SEALED | Restrictive aggregate circuit, canonical-lineage consolidation and proof accepted |
 | V1.3-H.2.1 Eligibility Warning Recurrence Guard | COMPLETE / PASS / SEALED | Third verifier disagreement in one recovery epoch opens the exact aggregate circuit; PostgreSQL concurrency proof accepted |
-| V1.3-H.2.2 Eligibility Runtime-Health Attribution | COMPLETE / PASS / SEALED | Trusted producer/verifier runtime identity is durably paired with runtime-health warnings; atomicity and identity-drift adversarial proof accepted; no provider-health policy yet |
-| H.2.2 Runtime-Health Classification Refinement | COMPLETE / PASS / SEALED | Separates configuration/binding, provider transport and provider response-contract failures and records provider-egress provenance; measurement-only; Production Proof accepted |
-| V1.3-H.2.3 Eligibility Revision-Conflict Attribution | COMPLETE / PASS / SEALED | Genuine lower-than-current G.5 pre-egress stale reassessments are durably attributed; false-positive exclusions and atomic replay/rollback proof accepted; no recurrence policy |
-| V1.3-H.2.4 Post-Producer Revision-Race Attribution | COMPLETE / PASS / SEALED | Event-time v1 → v2 race attribution survives legitimate v3 supersession before first persistence; shared canonical aggregate lineage validation and PostgreSQL adversarial proof accepted |
-| V1.3-H.2 overall | BOUNDED FOUNDATION CLOSED | Accepted measurement + restrict-only safety foundation is sufficient for I-stage work; no claim that the full future Immune System is complete |
-| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted I.2 run `32533230630` |
+| V1.3-H.2.2 Eligibility Runtime-Health Attribution | COMPLETE / PASS / SEALED | Trusted producer/verifier runtime identity is durably paired with runtime-health warnings; atomicity and identity-drift adversarial proof accepted |
+| H.2.2 Runtime-Health Classification Refinement | COMPLETE / PASS / SEALED | Configuration/binding, transport and response-contract failures are distinguished; measurement-only |
+| V1.3-H.2.3 Eligibility Revision-Conflict Attribution | COMPLETE / PASS / SEALED | Genuine pre-egress stale reassessments are durably attributed; no recurrence policy |
+| V1.3-H.2.4 Post-Producer Revision-Race Attribution | COMPLETE / PASS / SEALED | Event-time revision-race attribution survives legitimate later supersession |
+| V1.3-H.2 overall | BOUNDED FOUNDATION CLOSED | Accepted measurement + restrict-only safety foundation is sufficient for I-stage work; full future Immune System is not claimed |
+| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted I.3 run `32536826352` |
 | Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
-| V1.3-I.1 Capability-Specific Autonomy Profile + Evidence | COMPLETE / PASS / SEALED | Canonical capability/context autonomy truth, append-only supersession, deterministic Activity evidence lineage, Board ceiling enforcement and Board read model are accepted on exact technical candidate `581df5d99b65f0a7a49ace228ee707b881d508fa` |
-| V1.3-I.2 Shadow Autonomy Evidence Profile | COMPLETE / PASS / SEALED | Immutable observations are frozen to one exact I.1 profile; deterministic counts/rates and a Board-only read projection are accepted on exact technical candidate `c23e64a95770b1736ac9921486f8d017d17f930b`; no promotion/downgrade policy exists |
-| V1.3-I.3 Promotion Eligibility Policy | IMPLEMENTED / ACCEPTANCE PENDING | Board-authored append-only one-step promotion criteria and deterministic eligibility evaluation exist at migration `0080`; no autonomy mutation is implemented and acceptance remains blocked on exact-candidate proof |
+| V1.3-I.1 Capability-Specific Autonomy Profile + Evidence | COMPLETE / PASS / SEALED | Canonical capability/context autonomy truth and Board ceiling accepted on `581df5d99b65f0a7a49ace228ee707b881d508fa` |
+| V1.3-I.2 Shadow Autonomy Evidence Profile | COMPLETE / PASS / SEALED | Immutable exact-profile measurements and deterministic Board evidence projection accepted on `c23e64a95770b1736ac9921486f8d017d17f930b` |
+| V1.3-I.3 Promotion Eligibility Policy | COMPLETE / PASS / SEALED | Board-authored policy is frozen to the exact I.1 profile revision and deterministically evaluates I.2 evidence without mutating autonomy; accepted on `77b2e9adb30d69419158930b31c0bc10515cb6a7` |
 
-The accepted V1.3 baseline remains **I.2**, sealed by `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md` on technical candidate `c23e64a95770b1736ac9921486f8d017d17f930b`, Production Proof run `32533230630`. I.3 is implemented but unaccepted; I.1, H.2.4 and the H.2.2 runtime-health classification refinement remain sealed parent checkpoints and continue to constrain later work.
+The accepted V1.3 baseline is now **I.3**, sealed by `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md` on exact technical candidate `77b2e9adb30d69419158930b31c0bc10515cb6a7`, Production Proof run `32536826352`.
 
-I.3 adds policy/evaluation truth only. `ELIGIBLE` is evidence satisfaction, not promotion permission. I.3 does not pre-authorize an autonomy change, automatic promotion/downgrade, a Dynamic Autonomy Manager, agent self-promotion or any weakening of Human/Board/legal/professional authority floors.
+I.3 adds policy/evaluation truth only. `ELIGIBLE` is evidence satisfaction, not permission. No actual autonomy-change mechanism is accepted or implemented.
+
+A new sequencing constraint is now explicit: **the project must not jump directly from I.3 to executable promotion.** Before any autonomy-changing increment may consume I.3 eligibility, a separate bounded foundation must establish typed/source-qualified performance evidence, temporal evidence-aging/window semantics and an operationally bounded Board projection.
 
 ---
 
@@ -166,58 +169,81 @@ multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-No V1.3, canonical eligibility-effect, Immune System, CI or Munder work may erase this provenance contract.
+No V1.3, canonical eligibility-effect, Immune System, CI or Earned Autonomy work may erase this provenance contract.
 
 ---
 
-## 5. Latest accepted quality evidence — I.2
+## 5. Latest accepted quality evidence — I.3
 
 Historical accepted results are not represented as rerun unless actually rerun.
 
-H.1 through H.2.4, the H.2.2 runtime-health classification refinement and I.1 remain sealed by their own acceptance records. I.2 remains the latest accepted technical baseline while I.3 proof is pending:
+I.3 is the latest accepted technical baseline:
 
 ```text
-GitHub backend regression                         1147 passed / 13 skipped / 1 warning / 0 failed
-Fresh PostgreSQL 16 Alembic                       PASS — 0001 → 0079
-Registered SQLModel tables                        122
-Fresh PostgreSQL physical schema                  PASS
-GitHub PostgreSQL governed suite                  96 passed / 1 warning / 0 failed
-I.2 concurrent same-profile/same-source race      PASS
-I.2 exact idempotent replay                       PASS
-I.2 deterministic evidence metrics/fingerprints   PASS
-I.2 current-profile-only new observation rule     PASS
-Frontend npm ci                                   PASS
-Frontend high-severity audit                      PASS — 0 vulnerabilities
-Frontend design foundation                        PASS — 28/28
-Frontend request/auth                             PASS — 4/4
-Frontend TypeScript                               PASS
-Frontend Next.js 16.3.1 build                     PASS
-Frontend compiled auth                            PASS
-Repository policy                                 PASS
-Release consistency                               PASS — 0079
-Python dependency constraints                     PASS
-Diff hygiene                                      PASS — exact-head workflow check
-GitHub Production Proof run 32533230630           4/4 jobs PASS
-Accepted technical candidate                      c23e64a95770b1736ac9921486f8d017d17f930b
+Accepted technical candidate                      77b2e9adb30d69419158930b31c0bc10515cb6a7
+GitHub Production Proof run                       32536826352 — 4/4 jobs PASS
+Standalone Repository Policy run                  32536826350 — PASS
+Python                                            3.12.14
+Alembic                                           PASS — 0001 → 0080
+Registered SQLModel application tables            123
+Fresh SQLite physical schema                      PASS
+Fresh PostgreSQL 16 physical schema               PASS
+Backend regression                               1158 passed / 15 skipped / 1 warning / 0 failed
+PostgreSQL governed/autonomy suite                 98 passed / 1 warning / 0 failed
+I.3 exact-profile policy binding                  PASS
+I.3 same-level I.1 supersession invalidation       PASS
+I.3 Board-ceiling reduction adversarial proof      PASS
+I.3 physical decision + constitutional AUTHORITY   PASS
+I.3 finite-rate / NaN / infinity rejection         PASS
+I.3 policy semantic-fingerprint drift              PASS
+I.2 drift surfaced through I.3                     PASS
+I.3 recovery exact-boundary behavior               PASS
+I.3 competing initial PostgreSQL policy race       PASS
+I.3 stale PostgreSQL supersession                  PASS
+Frontend npm ci                                    PASS
+Frontend high-severity audit                       PASS
+Frontend design foundation                         PASS
+Frontend request/auth                              PASS
+Frontend TypeScript                                PASS
+Frontend Next.js production build                  PASS
+Frontend compiled auth                             PASS
+Repository policy                                  PASS
+Release consistency                                PASS — 0080
+Python dependency constraints                      PASS
+Diff hygiene                                       PASS
 ```
-
-I.3 current implementation expectations are separately tracked and are not acceptance evidence:
-
-```text
-Alembic implementation head                       0080_capability_autonomy_promotion_policy_foundation
-Expected registered application tables            123
-Focused I.3 policy/evaluator tests                ADDED / PROOF PENDING
-Real PostgreSQL I.3 policy concurrency tests      ADDED / PROOF PENDING
-Exact-candidate V12 Production Proof              PENDING
-```
-
-For historical continuity, I.1 was sealed on `581df5d99b65f0a7a49ace228ee707b881d508fa`, Production Proof run `32529241957`; H.2.4 was sealed on `e7584b90fc967e828960ae0730a35d8646fba74f`, run `32500438187`; and the H.2.2 classification refinement was sealed on `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`, run `32505228943`.
 
 The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
 
-The first I.2 PostgreSQL migration attempt is retained as superseded diagnostic evidence: SQLite accepted migration `0079`, while PostgreSQL rejected an overlength generated-style index identifier. Commit `c23e64a95770b1736ac9921486f8d017d17f930b` bounded the seven affected index names symmetrically in SQLModel metadata and Alembic without changing columns, constraints, authority or autonomy semantics. I.3 applies bounded PostgreSQL-safe index names from the first `0080` implementation rather than repeating that defect.
+### 5.1 Diagnostic I.3 candidate retained as negative evidence
 
-Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5, `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1, `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md` for H.2.1, `docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md` for H.2.2, `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md` for H.2.3, `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md` for H.2.4, `docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_ACCEPTANCE_2026-08-21.md` for the H.2.2 classification refinement, `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_ACCEPTANCE_2026-08-21.md` for I.1 and `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md` for I.2. I.3 has no acceptance record yet.
+The unaccepted pre-repair candidate:
+
+```text
+07260260a442418589f76e3df154a35bb2557e96
+```
+
+produced exact GitHub backend result:
+
+```text
+7 failed / 1146 passed / 15 skipped / 1 warning
+```
+
+The failure set revealed:
+
+1. invalid physical `OrganizationActivityClass('authority')` in the I.3 policy writer;
+2. stale-policy reuse risk because policy was not tied to exact I.1 profile identity;
+3. a router-registry hardening count still expecting 66 rather than the I.3-correct 67.
+
+The accepted repair is:
+
+```text
+77b2e9adb30d69419158930b31c0bc10515cb6a7  fix: bind I.3 policy to exact autonomy profile
+```
+
+This diagnostic history must not be represented as an accepted candidate.
+
+Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5, `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1, `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md` through `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`, the H.2.2 runtime-health classification acceptance, I.1, I.2 and now `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md`.
 
 Repository-owner Settings evidence confirms that `main` is protected by an active ruleset requiring the four Production Proof checks before integration. The GitHub connector does not expose ruleset configuration directly, so this enforcement claim remains owner-confirmed rather than connector-introspected.
 
@@ -237,6 +263,7 @@ Retrieved knowledge is data, not executable authority.
 Model capability eligibility is measured, not self-declared.
 Child delegation may narrow parent scope, never expand it.
 Immune System is restrict-only and never grants authority.
+Promotion eligibility is not permission.
 ```
 
 Human Owner / Board remains supreme authority.
@@ -267,7 +294,7 @@ Risk remains consequence-oriented:
 
 ## 7. Accepted governed eligibility vertical
 
-The accepted R3 eligibility chain is:
+The accepted R3 eligibility chain remains:
 
 ```text
 trusted G.4 organization request / WorkItems
@@ -354,19 +381,7 @@ Fresh G.4 execution performs circuit/lineage preflight before provider egress. E
 
 ## 9. H.1 canonical-lineage blocker — resolved and accepted
 
-The H.1 candidate previously duplicated part of the G.3/G.4 durable-lineage invariant.
-
-That was unsafe because a row could remain:
-
-```text
-present
-+ same tenant
-+ causally linked
-```
-
-while its semantic identity had changed.
-
-The repository now has one domain-specific canonical eligibility-lineage contract:
+The repository has one domain-specific canonical eligibility-lineage contract:
 
 ```text
 apps/api/app/services/organization_eligibility_lineage.py
@@ -380,33 +395,19 @@ G.4 orchestration replay
 H.1 aggregate preflight
 ```
 
-The shared validator proves:
+The shared validator proves existence, tenant, stable aggregate identity, revision/lifecycle/supersession, assessment identity, exact G.1/G.2/semantic Activity types, governance record kind, MATERIAL classification, source identity/version, action/readiness/verification/floor/effect fingerprints, expected revision identity/version, semantic revision/effect identity and E.2 → G.1 → G.2 → G.3 causation.
 
-- existence;
-- tenant;
-- stable aggregate identity;
-- revision/lifecycle/supersession;
-- assessment identity;
-- exact G.1/G.2/semantic Activity types;
-- canonical governance record kind;
-- MATERIAL classification;
-- source type/id/version;
-- action/readiness/verification/floor/effect fingerprints;
-- expected revision identity/version;
-- semantic revision/effect identity;
-- E.2 → G.1 → G.2 → G.3 → semantic causation.
+Aggregate validation requires one contiguous revision chain with exactly one latest ACTIVE revision.
 
-Aggregate validation additionally requires one contiguous revision chain with exactly one latest ACTIVE revision.
-
-This repair is **ACCEPTED / SEALED** as part of V1.3-H.1.
+This repair remains **ACCEPTED / SEALED** as part of V1.3-H.1.
 
 ---
 
-## 10. Adversarial H.1 regression — accepted
+## 10. Adversarial H-stage regression — accepted
 
-The acceptance surface intentionally corrupts committed lineage rather than testing only valid fixtures.
+The H-stage acceptance surface intentionally corrupts committed lineage rather than testing only valid fixtures.
 
-Corruptions include:
+Representative corruptions include:
 
 ```text
 verification Activity type
@@ -419,12 +420,12 @@ missing semantic lineage
 invalid revision lifecycle
 ```
 
-Required fresh-execution behavior:
+Required fresh-execution behavior remains:
 
 ```text
 canonical validator rejects corruption
-→ CRITICAL incident
-→ exact aggregate circuit OPEN
+→ CRITICAL incident where applicable
+→ exact aggregate circuit OPEN for accepted structural classes
 → producer calls = 0
 → verifier calls = 0
 ```
@@ -435,59 +436,24 @@ G.3/G.4 replay fails closed on the same canonical invariant.
 
 ## 11. Production Proof Gate — accepted / continuously reused
 
-Canonical H.1 proof records:
-
-```text
-docs/V1_3_H1_PRODUCTION_PROOF_GATE.md
-docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
-```
-
 CI workflow:
 
 ```text
 .github/workflows/v12-production-proof.yml
 ```
 
-Original accepted H.1 GitHub-hosted run:
+Accepted proof lineage includes:
 
 ```text
-candidate = 0b19d61a417de2d372e101d4e132a6a0a6c2a84f
-run       = 32463849415
+H.1    0b19d61a417de2d372e101d4e132a6a0a6c2a84f  run 32463849415
+H.2.1  9e63c358b9692529278595201250c4dc8bb1ff47  run 32469756908
+H.2.2  c5c2a68ac3a9caf2551204d61862b6ad0b6281eb  run 32473526874
+H.2.3  17edeca46af2b9cc7e0a6111ec2b3270f4bb1283  run 32480405051
+H.2.4  e7584b90fc967e828960ae0730a35d8646fba74f  run 32500438187
+I.1    581df5d99b65f0a7a49ace228ee707b881d508fa  run 32529241957
+I.2    c23e64a95770b1736ac9921486f8d017d17f930b  run 32533230630
+I.3    77b2e9adb30d69419158930b31c0bc10515cb6a7  run 32536826352
 ```
-
-Accepted H.2.1 GitHub-hosted run:
-
-```text
-candidate = 9e63c358b9692529278595201250c4dc8bb1ff47
-run       = 32469756908
-```
-
-Accepted H.2.2 GitHub-hosted run:
-
-```text
-candidate = c5c2a68ac3a9caf2551204d61862b6ad0b6281eb
-run       = 32473526874
-```
-
-Accepted H.2.3 GitHub-hosted run:
-
-```text
-candidate = 17edeca46af2b9cc7e0a6111ec2b3270f4bb1283
-run       = 32480405051
-
-Repository policy and constraints   PASS
-Backend regression (SQLite)         PASS
-Frontend tests, types and build     PASS
-PostgreSQL governance contracts     PASS
-```
-
-H.2.4 is accepted and sealed on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`; run `32500438187` passed all four lanes.
-
-I.1 is accepted and sealed on technical candidate `581df5d99b65f0a7a49ace228ee707b881d508fa`; run `32529241957` passed all four lanes after exact-head checkout hardening.
-
-I.2 is accepted and sealed on technical candidate `c23e64a95770b1736ac9921486f8d017d17f930b`; run `32533230630` passed all four lanes, including fresh `0079` migration/schema proof and the concurrent same-source observation race.
-
-I.3 acceptance is pending. Diagnostic or superseded I.3 workflow runs must not be represented as accepted evidence.
 
 ### 11.1 Repository policy / dependency contract
 
@@ -498,13 +464,11 @@ Python direct-dependency constraints
 diff hygiene
 ```
 
-Repository policy rejects shell-redirection-like tracked filenames. The accidental `apps/api/=5.4` artifact has been removed.
-
-A canonical Git-blob audit also corrected exactly two stale evidence receipts without changing the evidence JSON or weakening SHA validation; the GitHub-hosted Linux backend lane subsequently passed.
-
-Candidate-local proof should use `git diff --check HEAD^` when validating committed diff hygiene; plain `git diff --check` only inspects uncommitted working-tree changes and is insufficient for this gate.
+Candidate proof uses exact-head checkout. Candidate-local diff proof must use `git diff --check HEAD^`; plain `git diff --check` only inspects uncommitted working-tree changes.
 
 ### 11.2 Full backend regression — SQLite
+
+The accepted I.3 backend proof runs:
 
 ```text
 constrained Python dependency install
@@ -515,19 +479,17 @@ migration head + physical schema verification
 local schema contract
 ```
 
-SQLite remains the broad fast regression environment. It is not sufficient production-database proof by itself.
-
-Latest accepted I.2 backend result:
+Latest accepted result:
 
 ```text
-1147 passed / 13 skipped / 1 warning / 0 failed
+1158 passed / 15 skipped / 1 warning / 0 failed
 ```
 
-I.3 acceptance will replace this latest-evidence block only after an exact I.3 candidate passes the full gate.
+SQLite is the broad regression environment, not a substitute for PostgreSQL production-database proof.
 
 ### 11.3 Frontend proof
 
-Accepted frontend baseline:
+Accepted frontend baseline remains:
 
 ```text
 next=16.3.1
@@ -535,51 +497,35 @@ react=19.0.8
 react-dom=19.0.8
 ```
 
-Accepted proof:
+Accepted proof includes:
 
 ```text
 npm ci
-npm audit --audit-level=high → 0 vulnerabilities
-design-foundation tests → PASS
-request/auth tests → PASS
-TypeScript --noEmit → PASS
-Next.js production build → PASS
-compiled-auth tests → PASS
+npm audit --audit-level=high
+design-foundation tests
+request/auth tests
+TypeScript --noEmit
+Next.js production build
+compiled-auth verification
 ```
 
-The GitHub frontend lane uses Node 24 so the CI runtime matches the proven request/auth test contract.
+The GitHub frontend lane uses Node 24.
 
-There is not yet a Playwright/browser workflow suite. A browser golden journey is required before aggressive frontend restructuring.
+There is not yet a Playwright/browser workflow suite. A browser golden journey remains required before aggressive frontend restructuring.
 
 ### 11.4 PostgreSQL governance proof
 
-A real PostgreSQL 16 service is migrated through the single Alembic head, physically checked against SQLModel metadata, then used by focused governance tests.
+A real PostgreSQL 16 service is migrated through the single Alembic head, checked against SQLModel metadata, then used by focused governance/autonomy tests.
 
-The same pytest fixture switches to PostgreSQL only when:
+I.1 added competing-profile and stale-supersession proofs. I.2 added concurrent same-profile/same-source observation exclusion. I.3 adds dedicated competing initial promotion-policy writers and stale cross-session policy supersession on exact-profile scope.
 
-```text
-GMAI_TEST_DATABASE_URL=postgresql+psycopg://...
-```
-
-The focused lane covers G.3/G.4/G.5/H.1 and accepted H.2 eligibility safety contracts. Accepted H.2.4 additionally includes `test_organization_eligibility_revision_runtime_race.py` and its adversarial companion, including the real cross-session post-producer race and pre-persistence v3 supersession contracts.
-
-I.1 extends the governed PostgreSQL surface with competing-profile and stale-supersession proofs. I.2 adds the concurrent same-profile/same-source observation race. I.3 now adds `test_organization_autonomy_promotion_policy_postgres.py` to the same Production Proof PostgreSQL job for competing initial promotion-policy writers and stale cross-session policy supersession; those new contracts remain proof-pending until an exact I.3 candidate passes.
-
-Latest accepted PostgreSQL evidence remains I.2:
+Latest accepted PostgreSQL evidence:
 
 ```text
-Alembic 0001 → 0079                 PASS
-registered tables                    122
+Alembic 0001 → 0080                 PASS
+registered application tables       123
 physical schema                      PASS
-governed eligibility/autonomy suite  96 passed / 1 warning / 0 failed
-```
-
-Current I.3 implementation expectation:
-
-```text
-Alembic head                          0080_capability_autonomy_promotion_policy_foundation
-expected registered tables            123
-I.3 PostgreSQL policy contracts       PROOF PENDING
+governed eligibility/autonomy suite 98 passed / 1 warning / 0 failed
 ```
 
 ---
@@ -610,62 +556,58 @@ Current claim boundary:
 
 > **This is a direct-dependency reproducibility baseline, not a complete transitive lock.**
 
-The accepted constrained candidate passed installation, `pip check`, application import and the complete backend regression.
-
 ---
 
 ## 13. Migration/data-model doctrine
 
-The current implementation declares one controlled Alembic head:
+The current accepted implementation declares one controlled Alembic head:
 
 ```text
 0080_capability_autonomy_promotion_policy_foundation
 ```
 
-I.1 adds two bounded companion tables to the single SQLModel registry:
+I.1 adds:
 
 ```text
 capability_autonomy_profiles
 capability_autonomy_evidence
 ```
 
-I.2 adds one bounded append-only observation table:
+I.2 adds:
 
 ```text
 capability_autonomy_evidence_observations
 ```
 
-I.3 adds one bounded append-only Board policy table:
+I.3 adds:
 
 ```text
 capability_autonomy_promotion_policies
 ```
 
-The accepted I.2 checkpoint has 122 registered application tables at migration `0079`. The I.3 implementation expects 123 registered application tables at migration `0080`; that expectation is not accepted until fresh SQLite and PostgreSQL schema proof pass on an exact candidate.
+Accepted I.3 schema:
 
-The concentration of models in `domain.py` is a maintainability risk, but the migration doctrine remains:
+```text
+migration head                       0080
+registered application tables        123
+physical tables on SQLite             124 including alembic_version
+fresh SQLite schema                   PASS
+fresh PostgreSQL schema               PASS
+```
+
+The migration doctrine remains:
 
 > **Split model modules by bounded context; retain one SQLModel metadata registry and one controlled linear Alembic lineage/head.**
 
 Do not create independent migration heads merely to mirror code-module boundaries.
 
-The production-proof migration checker validates:
-
-```text
-exactly one Alembic head
-physical schema matches registered SQLModel tables/columns
-alembic_version equals the declared head
-```
-
-for SQLite and PostgreSQL when those databases are supplied.
-
-H.2.4 intentionally introduced no new table or migration. I.1 introduced two companion tables through linear migration `0078`; I.2 extended the same lineage with one observation table through `0079`; I.3 continues the same lineage with one Board promotion-policy table through `0080`.
+Migration `0080` was corrected in place before acceptance because its earlier shape had never been accepted/sealed. No `0081` was created merely to preserve an unaccepted defective `0080` schema.
 
 ---
 
 ## 14. Complexity/decomposition programme — sequenced, not simultaneous
 
-Large-module concentration is accepted as a maintainability risk. It is not a reason to begin four broad refactors at once.
+Large-module concentration is accepted as a maintainability risk. It is not a reason to begin broad simultaneous refactors.
 
 Known concentration areas include:
 
@@ -676,20 +618,11 @@ apps/web/lib/api.ts
 apps/web/app/globals.css
 ```
 
-Sequence after the Production Proof Gate:
-
 ### 14.1 Backend model decomposition
 
-Extract bounded-context model modules while preserving:
+Extract bounded-context model modules while preserving one metadata registry and one migration lineage.
 
-```text
-one SQLModel metadata registry
-one canonical table identity per model
-one linear Alembic lineage/head
-no migration-history rewrite
-```
-
-I.1 follows this doctrine through `app/models/autonomy_profile.py`; I.2 continues it through `app/models/autonomy_evidence_profile.py`; I.3 adds `app/models/autonomy_promotion_policy.py`. All remain registered in the existing shared SQLModel metadata surface.
+I.1 uses `app/models/autonomy_profile.py`; I.2 uses `app/models/autonomy_evidence_profile.py`; I.3 uses `app/models/autonomy_promotion_policy.py`.
 
 ### 14.2 Frontend API decomposition
 
@@ -711,75 +644,25 @@ Permanent rule:
 
 ## 15. H.1 through H.2.4 acceptance gates — satisfied
 
-H.1 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
+H.1, H.2.1, H.2.2, H.2.3 and H.2.4 remain **COMPLETE / PASS / SEALED** under their individual acceptance records.
 
-H.2.1 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md`.
+H.2.1 proves recurrence thresholding and exact aggregate circuit opening.
 
-H.2.2 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md`.
+H.2.2 proves trusted runtime-health attribution and atomicity without provider-health policy.
 
-H.2.3 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md`.
-
-H.2.4 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`.
-
-H.2.1 acceptance proves:
-
-1. first and second verifier disagreements remain warning-only;
-2. the third disagreement opens the exact aggregate circuit;
-3. warning + OPEN transition are atomic;
-4. incident replay cannot duplicate OPEN;
-5. human-admin recovery starts a new recurrence epoch;
-6. unrelated warning kinds do not contribute to the disagreement threshold;
-7. fresh execution after recurrence OPEN is blocked before provider egress;
-8. PostgreSQL serializes concurrent threshold crossing to exactly one OPEN.
-
-H.2.2 acceptance additionally proves:
-
-1. producer and verifier runtime-health failures receive trusted server-side attribution;
-2. runtime position/profile/provider/model identity is durable and fingerprinted;
-3. verifier attribution preserves proposal causation and trace correlation;
-4. attribution + warning replay is deterministic;
-5. a torn pair fails closed;
-6. injected failure between attribution staging and warning persistence rolls the pair back atomically;
-7. replay with changed trusted runtime identity fails closed;
-8. repeated runtime-health warnings remain observation-only and do not open an aggregate circuit;
-9. H.2.1 recurrence semantics remain unchanged;
-10. broad backend, frontend, migration/schema, PostgreSQL and repository proof are green.
-
-H.2.3 acceptance additionally proves:
-
-1. only lower-than-current pre-egress revision expectations become the H.2.3 conflict subtype;
-2. stale reassessment is rejected before producer or verifier provider egress;
-3. expected and observed canonical revision identity is durable and reconciled;
-4. missing, future and no-current expectations are excluded from H.2.3 incident attribution;
-5. post-provider races remain generic stale state rather than being misclassified;
-6. attribution + warning is atomic and replay-deterministic;
-7. torn pairs and changed conflict snapshots fail closed;
-8. repeated revision-conflict warnings remain observation-only and do not open a circuit;
-9. full SQLite, fresh PostgreSQL, frontend and repository proof are green.
-
-H.2.4 acceptance additionally proves:
-
-1. a valid reassessment may advance during producer runtime without stale output becoming canonical;
-2. producer egress is recorded while verifier egress remains false;
-3. the event-time observed revision remains durable even if superseded before first attribution persistence;
-4. a legitimate v3 may supersede event-time v2 before first persistence without losing the v1 → v2 explanation;
-5. the current ACTIVE head and event-time revision must belong to the same contiguous canonical aggregate lineage;
-6. replay, torn-pair, snapshot-drift and runtime-identity protections remain fail-closed;
-7. full SQLite, fresh PostgreSQL, frontend and repository proof are green.
-
-Accepted H.2.4 technical candidate:
+The H.2.2 classification refinement separates:
 
 ```text
-e7584b90fc967e828960ae0730a35d8646fba74f
+configuration_or_binding_failure      provider_egress_occurred=false
+provider_transport_failure            provider_egress_occurred=true
+provider_response_contract_failure    provider_egress_occurred=true
 ```
 
-Accepted H.2.4 GitHub run:
+H.2.3 proves pre-egress revision-conflict attribution without automatic retry/rebase.
 
-```text
-32500438187
-```
+H.2.4 proves post-producer revision-race attribution while stale output remains prohibited from canonical effect.
 
-The H.2.2 runtime-health classification refinement is **COMPLETE / PASS / SEALED** on technical candidate `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`, Production Proof run `32505228943`.
+The bounded H.2 foundation is closed. It may be reopened only by a separately measured failure model with explicit scope/window/blast-radius/recovery semantics.
 
 ---
 
@@ -800,192 +683,24 @@ The current H→I stage sequence is:
 10. I.1 exact-candidate Production Proof                  COMPLETE / PASS — run 32529241957
 11. V1.3-I.2 shadow autonomy evidence profile             COMPLETE / PASS / SEALED
 12. I.2 exact-candidate V12 Production Proof              COMPLETE / PASS — run 32533230630
-13. V1.3-I.3 promotion eligibility policy foundation      IMPLEMENTED / ACCEPTANCE PENDING
-14. I.3 exact-candidate V12 Production Proof              PENDING
-15. Later actual autonomy-change/demotion policy          NOT STARTED
+13. V1.3-I.3 promotion eligibility policy foundation      COMPLETE / PASS / SEALED
+14. I.3 exact-candidate V12 Production Proof              COMPLETE / PASS — run 32536826352
+15. I.4 qualified + temporal evidence evaluation          NOT STARTED — REQUIRED BEFORE AUTONOMY MUTATION
+16. Actual capability promotion/demotion mutation         NOT STARTED
+17. Autonomy-change lineage / recovery / human override   NOT STARTED
 ```
 
-Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities. They do not pre-accept I.3 or any future autonomy mutation path.
+Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities. They do not pre-authorize later autonomy mutation.
 
 ---
 
 ## 17. V1.3-H.2 — bounded safety/measurement foundation closed
 
-H.2 is closed as the accepted bounded safety/measurement foundation required to enter I-stage work. This does not claim the complete future Organizational Immune System is implemented. The accepted H.2 increments remain individually sealed by their own evidence and may not be broadened implicitly.
+H.2 remains closed as the accepted bounded safety/measurement foundation required to enter I-stage work. This does not claim the complete future Organizational Immune System is implemented.
 
-### 17.1 H.2.1 — accepted verifier-disagreement recurrence
-
-Canonical records:
+Future H-stage reopening requires a newly measured failure model and explicit:
 
 ```text
-docs/V1_3_H2_1_ELIGIBILITY_WARNING_RECURRENCE_GUARD.md
-docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md
-```
-
-Accepted policy:
-
-```text
-incident kind  = verifier_disagreement
-threshold      = 3
-scope          = exact tenant + canonical eligibility aggregate
-recovery epoch = stream start or latest authorized circuit close
-```
-
-The individual incident remains WARNING; the repeated pattern causes a restrict-only OPEN.
-
-### 17.2 H.2.2 — accepted runtime-health attribution foundation
-
-Canonical records:
-
-```text
-docs/V1_3_H2_2_ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION.md
-docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md
-```
-
-H.2.2 makes G.4 runtime failure provenance durable:
-
-```text
-execution role
-failure stage
-OrganizationPosition
-runtime profile identity/version/fingerprint
-runtime class / adapter
-provider / model
-independence group
-```
-
-The values come only from the trusted server-side execution plan. They are paired atomically with the existing `runtime_health_failure` warning.
-
-Accepted control semantics remain intentionally non-restrictive:
-
-```text
-runtime-health warning         observation-only
-runtime recurrence threshold   none
-provider-health score          none
-cross-aggregate quarantine     none
-automatic recovery             none
-```
-
-H.2.2 deliberately does **not** add a runtime recurrence threshold, provider-health score, cross-aggregate quarantine or automatic recovery. Those require a separately justified scope/time/blast-radius policy.
-
-### 17.2A H.2.2 runtime-health classification refinement — accepted
-
-Canonical refinement records:
-
-```text
-docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_REFINEMENT_2026-08-21.md
-docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_ACCEPTANCE_2026-08-21.md
-```
-
-The refinement adds measurement provenance only:
-
-```text
-configuration_or_binding_failure      provider_egress_occurred=false
-provider_transport_failure            provider_egress_occurred=true
-provider_response_contract_failure    provider_egress_occurred=true
-```
-
-It does not create a provider-health score, recurrence threshold, quarantine, automatic failover, authority change or autonomy change. Already-durable H.2.2 v1 records are not rewritten.
-
-This refinement is **COMPLETE / PASS / SEALED** on technical candidate `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`, proven by GitHub Actions run `32505228943` across all four V12 Production Proof lanes.
-
-### 17.3 H.2.3 — accepted pre-egress revision-conflict attribution foundation
-
-Canonical records:
-
-```text
-docs/V1_3_H2_3_REVISION_CONFLICT_ATTRIBUTION_FOUNDATION.md
-docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md
-```
-
-Accepted classification:
-
-```text
-aggregate has exactly one ACTIVE revision
-caller expectation >= 1
-caller expectation < current ACTIVE revision
-conflict detected before producer provider egress
-```
-
-Accepted durable pair:
-
-```text
-organization.immune.eligibility_revision_conflict_attributed.v1
-+
-organization.immune.eligibility_incident.v1
-  kind = revision_conflict
-  severity = warning
-```
-
-The attribution records the expected revision and observed current revision identity/version with `provider_egress_occurred=false`.
-
-Accepted control semantics remain observation-only:
-
-```text
-revision-conflict warning       observation-only
-revision recurrence threshold   none
-circuit action                  none
-automatic retry/rebase          none
-authority/autonomy effect       none
-```
-
-Missing expectations, future expectations, nonexistent-current expectations, aggregate corruption and post-provider revision races are deliberately excluded from this incident class.
-
-### 17.4 H.2.4 — accepted post-producer revision-race attribution
-
-Canonical records:
-
-```text
-docs/V1_3_H2_4_POST_PRODUCER_REVISION_RACE_ATTRIBUTION.md
-docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md
-```
-
-Accepted classification:
-
-```text
-exact current reassessment revision accepted before producer egress
-producer provider returns successfully
-same canonical aggregate advances during producer runtime
-post-producer E.2 revalidation captures the event-time advancement
-verifier egress = false
-canonical effect from stale attempt = false
-```
-
-Accepted durable pair:
-
-```text
-organization.immune.eligibility_revision_runtime_race_attributed.v1
-+
-organization.immune.eligibility_incident.v1
-  kind = revision_conflict
-  severity = warning
-```
-
-The attribution records the resolved and event-time observed canonical revision identities plus trusted producer position/runtime/provider/model identity.
-
-The repaired persistence contract also accepts a legitimate newer v3 that supersedes observed v2 before the first attribution write, but only when the shared canonical aggregate lineage validator proves the current head, observed revision and resolved revision belong to one contiguous lineage.
-
-Accepted control semantics remain intentionally non-restrictive:
-
-```text
-post-producer race warning       observation-only
-revision recurrence threshold    none
-circuit action                   none
-automatic retry/rebase           none
-reuse stale producer output      prohibited by fail-closed path
-authority/autonomy effect        none
-```
-
-Concurrent first-time creation, H.2.3 pre-egress conflicts, runtime failure, verifier-stage races, G.2/G.3 races and transaction rollback remain explicitly excluded.
-
-H.2.4 is **COMPLETE / PASS / SEALED** on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`, Production Proof run `32500438187`.
-
-### 17.5 Future H.2 reopening — not selected / not pre-authorized
-
-The bounded H.2 foundation is closed. No additional control is selected merely because telemetry exists. A future H-stage reopening requires a newly measured failure model and must again define:
-
-```text
-failure model
 measurement scope
 time/window or recovery epoch
 minimum evidence/sample contract
@@ -996,18 +711,7 @@ interaction with existing aggregate circuit
 authority/autonomy non-effect
 ```
 
-Potential later H.2 work may include:
-
-- rolling-window anomaly policy;
-- incident aggregation;
-- bounded root-cause classification;
-- provider/runtime health scoring;
-- broader but still scope-limited blast-radius controls;
-- automatic escalation routing where constitutionally valid.
-
-Do not build a generic anomaly platform.
-
-Any future H-stage increment must preserve the H.1 rule that the Immune System is restrictive only and must receive its own bounded implementation and proof before acceptance.
+Potential later work may include rolling-window anomaly policy, incident aggregation, bounded root-cause classification, provider/runtime health scoring and scope-limited blast-radius controls. None are pre-authorized.
 
 ---
 
@@ -1017,13 +721,6 @@ Any future H-stage increment must preserve the H.1 rule that the Immune System i
 
 **I.1 FOUNDATION IS COMPLETE / PASS / SEALED.**
 
-Canonical records:
-
-```text
-docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md
-docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_ACCEPTANCE_2026-08-21.md
-```
-
 Accepted technical candidate and proof:
 
 ```text
@@ -1031,62 +728,28 @@ candidate = 581df5d99b65f0a7a49ace228ee707b881d508fa
 run       = 32529241957
 ```
 
-The I.1 foundation creates canonical append-only autonomy truth at the exact scope:
+I.1 creates canonical append-only autonomy truth at exact tenant + persistent OrganizationPosition + capability + context scope + evidence-policy version.
 
-```text
-tenant
-+ persistent OrganizationPosition
-+ capability
-+ context scope
-+ evidence-policy version
-```
-
-Accepted canonical records:
+Accepted records:
 
 ```text
 CapabilityAutonomyProfile
 CapabilityAutonomyEvidence
 ```
 
-Accepted invariants:
+Accepted invariants include explicit A0–A5 autonomy, Board ceiling, separate authority/risk ceilings, append-only profile supersession, deterministic Activity evidence lineage, idempotency, expected profile sequence and Board-only canonical writer.
 
-```text
-A0–A5 autonomy is explicit and capability/context-specific
-Board ceiling is explicit and enforced
-Authority requirement is stored separately from autonomy
-Risk ceiling is stored separately from autonomy
-profile revisions are append-only
-supersession is explicit and cannot fork one predecessor into two children
-evidence lineage points to canonical OrganizationActivity IDs + captured fingerprints
-exact idempotent replay reuses canonical truth
-divergent idempotency reuse fails closed
-existing-profile updates require expected_profile_sequence
-PostgreSQL uses current-profile row locking plus database uniqueness constraints
-agents cannot invoke the canonical profile writer
-only authenticated internal Human Board/admin context may establish the profile
-HTTP exposes read-only Board transparency; no autonomy POST/PUT/PATCH/DELETE route exists
-```
-
-Current Board read surface:
+Board read surface:
 
 ```text
 GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}?context_scope=...
 ```
 
-The read model validates contiguous profile supersession, decision-Activity identity, evidence ordering, source-Activity fingerprint continuity, evidence-record fingerprints and the profile semantic fingerprint before returning current profile plus revision history. Raw Activity payload JSON is not exposed.
-
-I.1 does **not** implement a Dynamic Autonomy Manager. It does not automatically promote or downgrade agents. It does not grant authority from scores, provider/model identity, confidence or self-evaluation.
+I.1 does not automatically promote or downgrade agents.
 
 ### 18.2 I.2 — accepted shadow autonomy evidence profile foundation
 
 **I.2 IS COMPLETE / PASS / SEALED.**
-
-Canonical records:
-
-```text
-docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_FOUNDATION_2026-08-22.md
-docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md
-```
 
 Accepted technical candidate and proof:
 
@@ -1095,31 +758,17 @@ candidate = c23e64a95770b1736ac9921486f8d017d17f930b
 run       = 32533230630
 ```
 
-I.2 adds one append-only canonical measurement record:
+I.2 adds one append-only measurement record:
 
 ```text
 CapabilityAutonomyEvidenceObservation
 ```
 
-Every observation is frozen to an exact I.1 profile and therefore to one tenant, persistent OrganizationPosition, capability, context scope, profile sequence and evidence-policy version. It captures a canonical source `OrganizationActivity` ID plus the source fingerprint observed at commit time.
+Every observation is frozen to an exact I.1 profile and a canonical source `OrganizationActivity` identity/fingerprint.
 
-The internal writer accepts only trusted Human Board/admin attestation or trusted server-side SYSTEM measurement context. AGENT, WORKER and EXTERNAL_HUMAN actors cannot self-grade into canonical autonomy evidence.
+Trusted writers are Human Board/admin or trusted server SYSTEM measurement context. AGENT, WORKER and EXTERNAL_HUMAN actors cannot self-grade canonical evidence.
 
-The observation contract records measurement facts only:
-
-```text
-human review outcome
-evidence grounding
-verifier contradiction
-policy compliance
-freshness compliance
-critical error
-recovery outcome
-SLA outcome
-incident count
-```
-
-No caller-supplied rate or autonomy score is persisted. The Board read model derives counts and rates deterministically from immutable observations, with explicit denominators and `null` for undefined zero-denominator rates.
+The projection derives execution volume, grounding, human review outcomes, contradiction, compliance, freshness, critical errors, recovery, SLA and incident metrics with explicit denominators and `null` for undefined rates.
 
 Board read surface:
 
@@ -1127,21 +776,25 @@ Board read surface:
 GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}/evidence?context_scope=...
 ```
 
-The read projection validates I.1 profile integrity, exact profile/scope continuity, source Activity fingerprint continuity, observation semantic fingerprints and duplicate-source exclusion. It returns only evidence for the current I.1 profile; exact idempotent replay of already-durable historical observations remains resolvable without pooling historical evidence into the current profile.
+I.2 is measurement only and does not mutate autonomy.
 
-I.2 deliberately has no HTTP write route and does not mutate `CapabilityAutonomyProfile`, Board ceiling, authority requirement, risk ceiling, `CapabilityAuthority` or Command Gateway decisions.
+### 18.3 I.3 — accepted promotion eligibility policy foundation
 
-Accepted proof additionally establishes fresh SQLite and PostgreSQL migration/schema parity at `0079`, 122 registered application tables and real PostgreSQL concurrent same-profile/same-source exclusion.
+**I.3 IS COMPLETE / PASS / SEALED.**
 
-### 18.3 I.3 — promotion eligibility policy foundation — implementation pending acceptance
-
-**I.3 IS IMPLEMENTED / ACCEPTANCE PENDING.**
-
-Canonical records:
+Accepted records:
 
 ```text
 docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_FOUNDATION_2026-08-22.md
+docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md
 docs/V12_22_PENDING_CHANGELOG.md
+```
+
+Accepted technical candidate and proof:
+
+```text
+candidate = 77b2e9adb30d69419158930b31c0bc10515cb6a7
+run       = 32536826352
 ```
 
 I.3 adds one append-only Board policy record:
@@ -1150,39 +803,35 @@ I.3 adds one append-only Board policy record:
 CapabilityAutonomyPromotionPolicy
 ```
 
-The exact policy scope is:
+The accepted canonical policy is bound to the **exact immutable I.1 profile revision**:
 
 ```text
 tenant
++ profile_id
++ profile_sequence witness
++ profile_record_fingerprint witness
 + persistent OrganizationPosition
 + capability
 + context scope
 + current autonomy level
 + exactly-next autonomy level
-+ exact I.1 evidence-policy version
++ evidence-policy version
 ```
 
-The internal writer is Human Board/admin only. It validates the current I.1 profile, requires a one-level promotion target, rejects targets above the current Board ceiling, binds policy version to the current I.1 evidence-policy version, and records an immutable Board decision Activity plus semantic fingerprint. Policy revisions are append-only with explicit supersession, expected sequence, idempotency and PostgreSQL locking/uniqueness protection.
+This exact-profile binding is required because a same-level I.1 supersession may change authority requirement, risk ceiling, Board ceiling or other profile semantics while retaining `A2` and the same evidence-policy string. Such a new profile does not inherit the old policy.
 
-The policy expresses explicit criteria rather than a hidden aggregate score:
+The internal writer is Human Board/admin only, requires a one-level target and rejects targets above the current Board ceiling.
+
+Accepted Activity representation:
 
 ```text
-minimum qualifying execution volume
-minimum human-reviewed sample
-minimum evidence-grounding rate
-minimum human acceptance rate
-maximum human modification rate
-maximum human rejection rate
-maximum verifier-contradiction rate
-minimum policy-compliance rate
-minimum freshness-compliance rate
-maximum critical-error count
-optional minimum recovery sample + recovery-success rate
-minimum SLA-met rate
-maximum incident count
+physical activity_class = decision
+constitutional_activity_class = AUTHORITY
 ```
 
-The deterministic evaluator recomputes one of:
+Policy revisions are append-only and protected by idempotency, expected policy sequence, exact-profile uniqueness, semantic fingerprint, captured profile fingerprint, Board Activity fingerprint and PostgreSQL concurrency controls.
+
+The evaluator returns:
 
 ```text
 ELIGIBLE
@@ -1190,61 +839,57 @@ INSUFFICIENT_EVIDENCE
 HOLD
 ```
 
-`ELIGIBLE` means only that current validated I.2 evidence satisfies current Board-authored criteria. It does not mutate autonomy or grant permission. A known quality/safety failure dominates insufficient sample and returns `HOLD`; undefined I.2 rates remain unevaluable rather than being invented.
+`ELIGIBLE` is not permission. It does not mutate `CapabilityAutonomyProfile`, Board ceiling, authority/risk ceilings, `CapabilityAuthority`, Command Gateway decisions or external state.
 
-Board transparency surface:
+Board read surface:
 
 ```text
 GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}/promotion-eligibility?context_scope=...
 ```
 
-There is deliberately no I.3 HTTP write route. No `CapabilityAutonomyProfile`, Board ceiling, `CapabilityAuthority`, Command Gateway authority or external action is mutated by the evaluator.
+There is no I.3 HTTP mutation route.
 
-Current migration shape:
+### 18.4 I.4 — qualified + temporal autonomy evidence evaluation — next required boundary
 
-```text
-0079_capability_autonomy_evidence_profile_foundation
-→ 0080_capability_autonomy_promotion_policy_foundation
-```
+**I.4 IS NOT STARTED.**
 
-Expected registered application tables:
+This is the next required bounded prerequisite before any actual promotion/demotion mutation design.
 
-```text
-123
-```
-
-Acceptance is blocked on an exact candidate passing full SQLite, fresh PostgreSQL migration/schema and I.3 concurrency contracts, frontend proof and repository consistency. Until then I.2 remains the accepted baseline.
-
-Target principle for later I-stage mutation work remains:
+The motivation is explicit rather than speculative. Accepted I.2/I.3 still retain these limitations:
 
 ```text
-promotion requires measured evidence
-downgrade may be faster than promotion
-scope is capability-specific
-agents cannot self-promote
-Board ceilings remain supreme
-eligibility is not permission
+I.2 measurement facts are trusted attestation inputs rather than fully derived typed-domain facts
+freshness_compliant is frozen per observation
+no accepted maximum observation age
+no accepted rolling evaluation window
+no accepted evaluation_as_of contract
+no accepted minimum-recent-execution threshold
+current evidence projection materializes observation provenance in Python
+I.3 transparency nests the current evidence profile
+I.2 index layout is not yet query-driven operational-scale tuned
 ```
 
-The Immune System may reduce autonomy; it does not grant authority.
+I.4 should define, at minimum:
+
+```text
+typed/source-qualified performance evidence
+canonical derivation or explicit authoritative attestation provenance
+temporal evaluation boundary / evidence aging
+minimum recent execution/review contract
+bounded aggregate Board projection
+paged evidence provenance separated from promotion eligibility
+query-driven data-access/index expectations
+```
+
+I.4 must remain non-authorizing unless a later separately accepted stage explicitly adds autonomy-change semantics.
+
+Only after I.4 is separately implemented and proven should actual capability-specific promotion/demotion mutation be designed.
 
 ---
 
 ## 19. Organization Fabric and Munder adoption
 
-The future Organization Fabric includes:
-
-- persistent employee/runtime binding;
-- organizational communication;
-- Missions/WorkItems;
-- Dynamic Mission Squads;
-- presence/heartbeats;
-- Mission Rooms;
-- Skills/Capability Registry;
-- memory mechanics;
-- Event Nervous System;
-- scheduling/triggers/webhooks;
-- runtime telemetry.
+The future Organization Fabric includes persistent employee/runtime binding, organizational communication, Missions/WorkItems, Dynamic Mission Squads, presence/heartbeats, Mission Rooms, Skills/Capability Registry, memory mechanics, Event Nervous System, scheduling/triggers/webhooks and runtime telemetry.
 
 Munder v0.4.4 remains a controlled donor. AIOS retains exclusive ownership of organizational semantics, authority, Evidence, risk, Decision Readiness, Command Gateway decisions and canonical state.
 
@@ -1289,9 +934,9 @@ Board visibility does not imply Board interruption.
 
 The top-level Human Owner / Board experience remains the **Global Mobility AIOS Cockpit**; Board Room is a module inside that control surface.
 
-H.2.2 improves the future Incident drill-down by making runtime-health warnings attributable to a trusted execution role/runtime identity. Its accepted classification refinement additionally distinguishes configuration/binding failures from provider transport and response-contract failures without creating a provider-health policy. H.2.3 makes pre-egress stale reassessment contention inspectable as an exact expected-versus-current canonical revision snapshot. Accepted H.2.4 extends that explainability to stale producer work when the canonical revision advances during producer latency, without changing control authority.
+Accepted I.1 provides autonomy-profile history. Accepted I.2 provides measurement evidence. Accepted I.3 provides criterion-by-criterion promotion eligibility while preserving no autonomy mutation path.
 
-Accepted I.1 extends the existing Board-only transparency facade with a canonical capability-autonomy history view. Accepted I.2 adds a separate measurement-only evidence profile beneath that same autonomy namespace. I.3 adds a proof-pending read-only promotion-eligibility view that exposes each Board-authored threshold beside the observed I.2 metric and pass/evaluable state. The Cockpit still gains no autonomy mutation path from these reads.
+Operational-scale improvement remains necessary before autonomy evidence grows indefinitely: future I.4 should separate bounded aggregate eligibility metrics from paginated provenance rather than nesting an unbounded lifetime observation list.
 
 ---
 
@@ -1305,12 +950,14 @@ Still required later:
 - controlled failure/recovery drills;
 - backup/restore proof;
 - observability SLOs and alert routing;
-- load/concurrency benchmarks beyond the focused canonical eligibility/autonomy contracts;
+- load/concurrency benchmarks beyond focused canonical eligibility/autonomy contracts;
 - security/dependency scanning policy beyond the accepted npm high-severity gate;
 - production deployment rehearsal;
 - provider outage/degradation drills;
 - database restore and migration rollback/forward-recovery evidence;
-- long-lived cost/latency/quality telemetry.
+- long-lived cost/latency/quality telemetry;
+- bounded/paginated autonomy evidence transparency;
+- query-driven autonomy evidence index tuning.
 
 These should be added based on production risk, not to maximize tooling count.
 
@@ -1320,7 +967,7 @@ These should be added based on production risk, not to maximize tooling count.
 
 The repository does **not** currently claim:
 
-- connector-introspected proof of the GitHub ruleset configuration; the enforcement record is owner-confirmed from repository Settings;
+- connector-introspected proof of the GitHub ruleset configuration; enforcement remains owner-confirmed from repository Settings;
 - complete PostgreSQL coverage of every backend test;
 - a complete transitive Python lock;
 - Playwright/browser E2E coverage;
@@ -1329,23 +976,29 @@ The repository does **not** currently claim:
 - revision-conflict recurrence thresholds or circuit opening from revision conflicts;
 - automatic retry/rebase or reuse of stale H.2.4 producer output;
 - verifier-stage or G.2/G.3 revision-race attribution;
-- reassessment rollback policy;
 - provider/runtime health scoring or provider-wide quarantine;
 - rolling-window runtime anomaly policy;
 - automatic Immune System recovery;
-- accepted I.3 promotion eligibility or promotion thresholds before exact-candidate proof;
-- automatic earned-autonomy promotion or dynamic downgrade;
-- an autonomy-change command;
-- downgrade thresholds;
+- automatic earned-autonomy promotion;
+- automatic dynamic downgrade/demotion;
+- any autonomy-change command;
 - a Dynamic Autonomy Manager;
+- autonomy-change lineage after a real level change;
+- recovery-based automatic autonomy restoration;
+- typed deterministic derivation of every I.2 measurement field from canonical domain records;
+- accepted promotion evidence maximum-age / rolling-window policy;
+- accepted `evaluation_as_of` policy;
+- accepted minimum-recent-execution threshold;
+- operational-scale paginated autonomy evidence transparency;
+- final query-optimized I.2 index layout;
 - agent self-promotion or self-grading as permission;
 - provider/model-specific autonomy grants;
 - a single organization-wide autonomy score;
 - confidence or score as permission;
-- full Organizational Immune System implementation;
+- replacement of Board ceilings or Command Gateway authority;
 - production-scale operational readiness.
 
-These are intentionally explicit so implementation, documentation and acceptance state remain consistent.
+These non-claims are intentional. I.3 is accepted precisely as a **non-authorizing eligibility foundation**, not as an executable promotion system.
 
 ---
 
@@ -1373,7 +1026,7 @@ Accepted architecture / history:
 - `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md`
 - `docs/V1_3_H2_4_POST_PRODUCER_REVISION_RACE_ATTRIBUTION.md`
 - `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`
-- `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.18 acceptance changelog)
+- `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as V12.18 acceptance changelog)
 
 Accepted H.2.2 classification-refinement records:
 
@@ -1384,18 +1037,19 @@ Accepted I.1 records:
 
 - `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md`
 - `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_ACCEPTANCE_2026-08-21.md`
-- `docs/V12_20_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.20 I.1 acceptance changelog)
+- `docs/V12_20_PENDING_CHANGELOG.md` (historical filename; content closed as V12.20 I.1 acceptance changelog)
 
 Accepted I.2 records:
 
 - `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_FOUNDATION_2026-08-22.md`
 - `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md`
-- `docs/V12_21_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.21 I.2 acceptance changelog)
+- `docs/V12_21_PENDING_CHANGELOG.md` (historical filename; content closed as V12.21 I.2 acceptance changelog)
 
-Active I.3 records:
+Accepted I.3 records:
 
 - `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_FOUNDATION_2026-08-22.md`
-- `docs/V12_22_PENDING_CHANGELOG.md`
+- `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md`
+- `docs/V12_22_PENDING_CHANGELOG.md` (historical filename; content closed as V12.22 I.3 acceptance changelog)
 
 Repository enforcement state:
 
@@ -1407,7 +1061,7 @@ Repository enforcement state:
 - bypass list is empty;
 - configuration is owner-confirmed from GitHub Settings.
 
-The accepted technical baseline remains V1.3-I.2. I.3 is IMPLEMENTED / ACCEPTANCE PENDING and does not alter I.1 autonomy truth automatically. H.2.4 and the H.2.2 runtime-health classification refinement remain sealed parent checkpoints; the H.2 bounded safety/measurement foundation remains CLOSED. No automatic promotion/downgrade or actual autonomy-change path is selected or pre-authorized.
+The accepted technical baseline is now V1.3-I.3. H.2 remains the closed bounded safety/measurement parent foundation; I.1 and I.2 remain sealed parent checkpoints. No actual promotion/demotion or Dynamic Autonomy Manager is selected or pre-authorized.
 
 ---
 
@@ -1415,9 +1069,19 @@ The accepted technical baseline remains V1.3-I.2. I.3 is IMPLEMENTED / ACCEPTANC
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof. The bounded H-stage foundation is closed, I.1 canonical autonomy truth is sealed, I.2 provides the accepted non-authorizing shadow measurement layer, and I.3 now implements the next bounded layer: Board-authored capability-specific criteria plus deterministic eligibility transparency. That implementation is intentionally not yet accepted and still cannot change autonomy.
+The project has now converted the first three Earned Autonomy layers into repository-enforced truth:
 
-> **The next risk is no longer lack of architectural ideas. It is maintaining the discipline that architectural sophistication remains continuously proven and repository-enforced.**
+```text
+I.1 — what autonomy is currently allowed for this exact capability/context
+I.2 — what measured performance exists for this exact profile revision
+I.3 — whether current evidence satisfies exact-profile Board-authored promotion criteria
+```
+
+The critic-driven I.3 review improved the architecture rather than merely changing tests: the accepted policy is now bound to the exact immutable I.1 profile revision, uses valid physical `decision` Activity classification plus constitutional `AUTHORITY`, rejects non-finite rate thresholds, fails closed on profile/policy/evidence drift and has real PostgreSQL concurrency proof.
+
+The remaining concerns are intentionally not swept into the I.3 seal. Trusted-attestation evidence provenance, temporal evidence decay/windowing, bounded/paginated evidence reads and query-driven index tuning remain real work. Because I.3 itself cannot change autonomy, those are sequenced into the next required evidence-evaluation boundary rather than used to retroactively invalidate sealed I.2 measurement truth.
+
+> **The next risk is not lack of an eligibility algorithm. It is accidentally treating eligibility as permission before evidence provenance and time boundaries are strong enough for an executable autonomy change.**
 
 The governing sequence is now:
 
@@ -1435,8 +1099,10 @@ G.5 accepted baseline
 → I.1 exact-candidate Production Proof run 32529241957 — SEALED
 → I.2 shadow autonomy evidence profile — SEALED
 → I.2 exact-candidate Production Proof run 32533230630 — SEALED
-→ I.3 Board-authored promotion eligibility policy — IMPLEMENTED / ACCEPTANCE PENDING
-→ I.3 exact-candidate Production Proof — PENDING
-→ later actual autonomy-change/demotion/recovery policy — NOT STARTED
+→ I.3 exact-profile Board promotion eligibility policy — SEALED
+→ I.3 exact-candidate Production Proof run 32536826352 — SEALED
+→ I.4 qualified + temporal autonomy evidence evaluation — NOT STARTED / REQUIRED NEXT
+→ actual capability promotion/demotion mutation — NOT STARTED
+→ autonomy-change lineage / recovery / Human override — NOT STARTED
 → broader Organization Fabric / operational scale
 ```
