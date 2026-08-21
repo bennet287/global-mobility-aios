@@ -283,3 +283,30 @@ def test_i1_transparency_fails_closed_on_evidence_fingerprint_drift(
             capability_key="eligibility.proposal",
             context_scope="austria:skilled-worker",
         )
+
+
+def test_i1_transparency_fails_closed_on_profile_fingerprint_drift(
+    db_session: Session,
+) -> None:
+    _position(db_session)
+    board = _board_context()
+    evidence = _evidence_activity(db_session, board, key="profile-drift")
+    profile = _establish(
+        db_session,
+        board,
+        evidence_activity_ids=(evidence.id,),
+        idempotency_key="i1-profile-drift",
+    )
+
+    profile.authority_requirement = "L3"
+    db_session.add(profile)
+    db_session.commit()
+
+    with pytest.raises(AutonomyProfileIntegrityError, match="profile record fingerprint"):
+        capability_autonomy_profile_snapshot(
+            db_session,
+            tenant_key="default",
+            position_key="case_operations_specialist",
+            capability_key="eligibility.proposal",
+            context_scope="austria:skilled-worker",
+        )
