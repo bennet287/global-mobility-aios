@@ -1,6 +1,6 @@
 # Global Mobility AIOS — V1.3 H.2 Foundation Closure & I.1 Entry Decision — 2026-08-21
 
-**Status:** ARCHITECTURAL STAGE DECISION — H.2 BOUNDED FOUNDATION READY TO CLOSE; I.1 DESIGN ENTRY OPEN  
+**Status:** ARCHITECTURAL STAGE DECISION — H.2 BOUNDED FOUNDATION CLOSED; I.1 DESIGN ENTRY OPEN  
 **Runtime effect:** none by itself  
 **Latest accepted technical checkpoint:** H.2.4 `e7584b90fc967e828960ae0730a35d8646fba74f`  
 **Latest accepted H.2 refinement:** `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4` — Production Proof `32505228943`  
@@ -10,7 +10,7 @@
 
 ## 1. Decision
 
-The accepted H.1/H.2 work is sufficient to close **H.2 as the bounded Organizational Immune System safety/measurement foundation** and move the Track C design programme into V1.3-I Earned Autonomy.
+The accepted H.1/H.2 work is sufficient and **H.2 is now closed as the bounded Organizational Immune System safety/measurement foundation**. Track C design moves into V1.3-I Earned Autonomy.
 
 This decision does **not** claim that the complete future Organizational Immune System is implemented.
 
@@ -283,8 +283,8 @@ No migration/model design is accepted merely by this document; the implementatio
 
 ```text
 Track C — High-Autonomy Organization
-H.2 bounded foundation closure
-→ I.1 canonical autonomy profile/evidence
+H.2 bounded foundation CLOSED
+→ I.1 canonical autonomy profile/evidence DESIGN ENTRY OPEN
 → later Earned Autonomy promotion/downgrade policy
 → J Agent Organization Runtime
 
