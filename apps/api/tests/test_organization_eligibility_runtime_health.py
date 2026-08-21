@@ -7,7 +7,10 @@ import pytest
 from sqlmodel import Session, select
 
 from app.models.domain import OrganizationActivity
-from app.services.organization_agent_runtime import runtime_profile_fingerprint
+from app.services.organization_agent_runtime import (
+    RuntimeClass,
+    runtime_profile_fingerprint,
+)
 from app.services.organization_eligibility_immune_system import (
     ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
     EligibilityCircuitState,
@@ -20,6 +23,9 @@ from app.services.organization_eligibility_orchestration import (
     orchestrate_governed_eligibility,
 )
 from app.services.organization_eligibility_revision_precondition import eligibility_aggregate_key
+from app.services.organization_eligibility_runtime_failure import (
+    EligibilityRuntimeFailureClassification,
+)
 from app.services.organization_eligibility_runtime_health import (
     ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION_ACTIVITY_TYPE,
     ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION_SCHEMA_VERSION,
@@ -63,6 +69,8 @@ def _assert_runtime_attribution(
     failure_stage: str,
     position_key: str,
     runtime_profile,
+    failure_classification: EligibilityRuntimeFailureClassification,
+    provider_egress_occurred: bool,
 ) -> None:
     assert activity.activity_type == ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION_ACTIVITY_TYPE
     assert activity.source_object_type == "eligibility_aggregate"
@@ -76,6 +84,15 @@ def _assert_runtime_attribution(
     assert payload["incident_kind"] == EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE.value
     assert payload["execution_role"] == role.value
     assert payload["failure_stage"] == failure_stage
+    assert (
+        payload["runtime_failure_classification"]
+        == failure_classification.value
+    )
+    assert payload["provider_egress_occurred"] is provider_egress_occurred
+    assert (
+        payload["classification_contract"]
+        == "eligibility-runtime-failure-classification.v1"
+    )
     assert payload["position_key"] == position_key
     assert payload["runtime_profile_key"] == runtime_profile.profile_key
     assert payload["runtime_profile_version"] == runtime_profile.profile_version
@@ -149,6 +166,10 @@ def test_h2_2_producer_runtime_failure_is_attributed_to_trusted_execution_plan(
         failure_stage="e2_proposal_runtime",
         position_key=plan.producer_position_key,
         runtime_profile=plan.producer_runtime_profile,
+        failure_classification=(
+            EligibilityRuntimeFailureClassification.PROVIDER_TRANSPORT_FAILURE
+        ),
+        provider_egress_occurred=True,
     )
     incident_payload = transparency_activity_record(incident).payload
     assert incident_payload["severity"] == "warning"
@@ -221,12 +242,132 @@ def test_h2_2_verifier_runtime_failure_is_attributed_and_proposal_linked(
         failure_stage="g1_independent_verification_runtime",
         position_key=plan.verifier_position_key,
         runtime_profile=plan.verifier_runtime_profile,
+        failure_classification=(
+            EligibilityRuntimeFailureClassification.PROVIDER_TRANSPORT_FAILURE
+        ),
+        provider_egress_occurred=True,
     )
     assert eligibility_circuit_status(
         db_session,
         tenant_key="tenant-a",
         aggregate_key=aggregate,
     ).state is EligibilityCircuitState.CLOSED
+
+
+def test_h2_2_unsupported_producer_runtime_is_configuration_failure_without_provider_egress(
+    db_session: Session,
+) -> None:
+    lead, _, graph, proposal_work, verification_work = _fixture(db_session)
+    aggregate = eligibility_aggregate_key(
+        tenant_key="tenant-a",
+        lead_id=lead.id,
+        pathway_id=graph["pathway"].id,
+    )
+    plan, producer, verifier = _plan(graph)
+    plan = replace(
+        plan,
+        producer_runtime_profile=replace(
+            plan.producer_runtime_profile,
+            runtime_class=RuntimeClass.CLI,
+        ),
+    )
+    key = "h2-2-producer-unsupported-runtime"
+    incident_key = f"{key}:producer-runtime-health"
+
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="proposal runtime failed",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key=key,
+            execution_plan=plan,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+
+    attribution = _activity(
+        db_session,
+        tenant_key="tenant-a",
+        activity_key=(
+            f"immune:eligibility:{aggregate}:runtime-attribution:{incident_key}"
+        ),
+    )
+    assert attribution is not None
+    _assert_runtime_attribution(
+        attribution,
+        aggregate_key=aggregate,
+        incident_activity_key=(
+            f"immune:eligibility:{aggregate}:incident:{incident_key}"
+        ),
+        role=EligibilityRuntimeExecutionRole.PRODUCER,
+        failure_stage="e2_proposal_runtime",
+        position_key=plan.producer_position_key,
+        runtime_profile=plan.producer_runtime_profile,
+        failure_classification=(
+            EligibilityRuntimeFailureClassification.CONFIGURATION_OR_BINDING_FAILURE
+        ),
+        provider_egress_occurred=False,
+    )
+
+
+def test_h2_2_producer_response_identity_failure_is_response_contract_after_egress(
+    db_session: Session,
+) -> None:
+    lead, _, graph, proposal_work, verification_work = _fixture(db_session)
+    aggregate = eligibility_aggregate_key(
+        tenant_key="tenant-a",
+        lead_id=lead.id,
+        pathway_id=graph["pathway"].id,
+    )
+    plan, producer, verifier = _plan(graph)
+    producer.response_model = "deepseek-reasoner-drifted"
+    key = "h2-2-producer-response-contract"
+    incident_key = f"{key}:producer-runtime-health"
+
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="proposal runtime failed",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key=key,
+            execution_plan=plan,
+        )
+
+    assert len(producer.calls) == 1
+    assert verifier.calls == []
+
+    attribution = _activity(
+        db_session,
+        tenant_key="tenant-a",
+        activity_key=(
+            f"immune:eligibility:{aggregate}:runtime-attribution:{incident_key}"
+        ),
+    )
+    assert attribution is not None
+    _assert_runtime_attribution(
+        attribution,
+        aggregate_key=aggregate,
+        incident_activity_key=(
+            f"immune:eligibility:{aggregate}:incident:{incident_key}"
+        ),
+        role=EligibilityRuntimeExecutionRole.PRODUCER,
+        failure_stage="e2_proposal_runtime",
+        position_key=plan.producer_position_key,
+        runtime_profile=plan.producer_runtime_profile,
+        failure_classification=(
+            EligibilityRuntimeFailureClassification.PROVIDER_RESPONSE_CONTRACT_FAILURE
+        ),
+        provider_egress_occurred=True,
+    )
 
 
 def test_h2_2_runtime_attribution_pair_is_idempotent(db_session: Session) -> None:

@@ -9,6 +9,9 @@ from sqlmodel import Session, select
 from app.models.domain import OrganizationActivity
 from app.services.organization_eligibility_immune_system import EligibilityImmuneSystemError
 from app.services.organization_eligibility_revision_precondition import eligibility_aggregate_key
+from app.services.organization_eligibility_runtime_failure import (
+    EligibilityRuntimeFailureProvenance,
+)
 from app.services.organization_eligibility_runtime_health import (
     EligibilityRuntimeExecutionRole,
     EligibilityRuntimeHealthAttributionError,
@@ -114,6 +117,60 @@ def test_h2_2_runtime_attribution_replay_rejects_trusted_runtime_identity_drift(
             position_key=plan.producer_position_key,
             runtime_profile=drifted_profile,
             summary=summary,
+        )
+
+    after = _immune_activities(db_session, aggregate_key=aggregate)
+    assert [row.id for row in after] == before_ids
+    assert first.attribution_activity.id == after[0].id
+    assert first.incident.incident_activity.id == after[1].id
+
+
+def test_h2_2_runtime_attribution_replay_rejects_failure_classification_drift(
+    db_session: Session,
+) -> None:
+    _, _, graph, _, _ = _fixture(db_session)
+    plan, _, _ = _plan(graph)
+    aggregate = _aggregate()
+    incident_key = "runtime-failure-classification-drift"
+    summary = "Synthetic producer runtime failure classification drift proof."
+
+    first = record_attributed_eligibility_runtime_health_incident(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+        incident_key=incident_key,
+        execution_role=EligibilityRuntimeExecutionRole.PRODUCER,
+        position_key=plan.producer_position_key,
+        runtime_profile=plan.producer_runtime_profile,
+        summary=summary,
+        failure_provenance=(
+            EligibilityRuntimeFailureProvenance.provider_transport()
+        ),
+    )
+    before_ids = [
+        row.id
+        for row in _immune_activities(
+            db_session,
+            aggregate_key=aggregate,
+        )
+    ]
+
+    with pytest.raises(
+        EligibilityRuntimeHealthAttributionError,
+        match="idempotency key conflicts with persisted attribution",
+    ):
+        record_attributed_eligibility_runtime_health_incident(
+            db_session,
+            tenant_key="tenant-a",
+            aggregate_key=aggregate,
+            incident_key=incident_key,
+            execution_role=EligibilityRuntimeExecutionRole.PRODUCER,
+            position_key=plan.producer_position_key,
+            runtime_profile=plan.producer_runtime_profile,
+            summary=summary,
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
         )
 
     after = _immune_activities(db_session, aggregate_key=aggregate)

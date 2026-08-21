@@ -22,11 +22,19 @@ from app.models.domain import (
     OrganizationActivity,
     Profile,
 )
-from app.services.llm_client import LLMProvider, LLMProviderError, LLMResponse
+from app.services.llm_client import (
+    LLMProvider,
+    LLMProviderConfigurationError,
+    LLMProviderError,
+    LLMProviderResponseContractError,
+    LLMProviderTransportError,
+    LLMResponse,
+)
 from app.services.mobility_domain import mobility_intent_domain
 from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.organization_activity import stage_activity
 from app.services.organization_agent_runtime import (
+    AgentRuntimeError,
     AgentRuntimeProfile,
     EmployeeRuntimeBinding,
     RuntimeClass,
@@ -49,6 +57,9 @@ from app.services.organization_eligibility_revision_precondition import (
     EligibilityRevisionPreconditionError,
     require_eligibility_revision_precondition_current,
     resolve_eligibility_revision_precondition,
+)
+from app.services.organization_eligibility_runtime_failure import (
+    EligibilityRuntimeFailureProvenance,
 )
 from app.services.organization_governance_kernel import (
     CapabilityAuthority,
@@ -76,6 +87,18 @@ class EligibilityIntentIntegrityError(EligibilityIntentError):
 
 class EligibilityIntentRuntimeError(EligibilityIntentError):
     """The selected technical runtime cannot execute the E.2 pilot safely."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        failure_provenance: EligibilityRuntimeFailureProvenance | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.failure_provenance = (
+            failure_provenance
+            or EligibilityRuntimeFailureProvenance.configuration_or_binding()
+        )
 
 
 class EligibilityIntentOutputError(EligibilityIntentError):
@@ -471,7 +494,12 @@ def governed_eligibility_transition_intent(
     """
 
     if runtime_profile.runtime_class is not RuntimeClass.HOSTED_API:
-        raise EligibilityIntentRuntimeError("E.2 currently supports only hosted_api runtime bindings")
+        raise EligibilityIntentRuntimeError(
+            "E.2 currently supports only hosted_api runtime bindings",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
+        )
 
     context = build_work_item_context_bundle(
         session,
@@ -480,12 +508,20 @@ def governed_eligibility_transition_intent(
         work_item_id=work_item_id,
         purpose=ContextPurpose.REVIEW,
     )
-    binding = bind_employee_runtime(
-        session,
-        context=context,
-        profile=runtime_profile,
-        required_capability="structured_output",
-    )
+    try:
+        binding = bind_employee_runtime(
+            session,
+            context=context,
+            profile=runtime_profile,
+            required_capability="structured_output",
+        )
+    except AgentRuntimeError as exc:
+        raise EligibilityIntentRuntimeError(
+            "E.2 runtime binding failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
+        ) from exc
     payload, lead, profile, pathway, pathway_version, evidence_tokens, rule_tokens = (
         _case_and_pathway_payload(session, context=context)
     )
@@ -509,13 +545,51 @@ def governed_eligibility_transition_intent(
             messages=[{"role": "user", "content": prompt_payload}],
             response_format={"type": "json_object"},
         )
+    except LLMProviderConfigurationError as exc:
+        raise EligibilityIntentRuntimeError(
+            "E.2 runtime execution configuration failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
+        ) from exc
+    except LLMProviderResponseContractError as exc:
+        raise EligibilityIntentRuntimeError(
+            "E.2 provider response contract failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
+        ) from exc
+    except LLMProviderTransportError as exc:
+        raise EligibilityIntentRuntimeError(
+            "E.2 provider transport failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_transport()
+            ),
+        ) from exc
     except LLMProviderError as exc:
-        raise EligibilityIntentRuntimeError("E.2 runtime execution failed") from exc
+        # Backward-compatible fallback for custom providers that still raise the
+        # historical base error after the provider execution boundary is entered.
+        raise EligibilityIntentRuntimeError(
+            "E.2 runtime execution failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_transport()
+            ),
+        ) from exc
 
     if response.provider != binding.provider_key:
-        raise EligibilityIntentRuntimeError("runtime response provider does not match the bound profile")
+        raise EligibilityIntentRuntimeError(
+            "runtime response provider does not match the bound profile",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
+        )
     if binding.model_key is not None and response.model != binding.model_key:
-        raise EligibilityIntentRuntimeError("runtime response model does not match the bound profile")
+        raise EligibilityIntentRuntimeError(
+            "runtime response model does not match the bound profile",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
+        )
 
     intent = _validated_intent(
         response.content,

@@ -357,6 +357,7 @@ def orchestrate_governed_eligibility(
                 position_key=execution_plan.producer_position_key,
                 runtime_profile=execution_plan.producer_runtime_profile,
                 summary="Eligibility producer runtime failed before a governed proposal could complete.",
+                failure_provenance=exc.failure_provenance,
             )
         except (EligibilityImmuneSystemError, RuntimeError) as incident_exc:
             raise GovernedEligibilityOrchestrationIntegrityError(
@@ -503,6 +504,7 @@ def orchestrate_governed_eligibility(
                 position_key=execution_plan.verifier_position_key,
                 runtime_profile=execution_plan.verifier_runtime_profile,
                 summary="Eligibility verifier runtime failed before independent verification could complete.",
+                failure_provenance=exc.failure_provenance,
                 source_activity_id=proposal.attempt_activity.id,
                 correlation_key=str(proposal.evaluation.trace_id),
             )

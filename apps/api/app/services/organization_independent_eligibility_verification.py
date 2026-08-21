@@ -15,10 +15,18 @@ from app.models.domain import (
     Profile,
     now_utc,
 )
-from app.services.llm_client import LLMProvider, LLMProviderError, LLMResponse
+from app.services.llm_client import (
+    LLMProvider,
+    LLMProviderConfigurationError,
+    LLMProviderError,
+    LLMProviderResponseContractError,
+    LLMProviderTransportError,
+    LLMResponse,
+)
 from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.organization_activity import stage_activity
 from app.services.organization_agent_runtime import (
+    AgentRuntimeError,
     AgentRuntimeProfile,
     EmployeeRuntimeBinding,
     RuntimeClass,
@@ -46,6 +54,9 @@ from app.services.organization_eligibility_transition_intent import (
     EligibilityProposedState,
     GovernedEligibilityTransitionIntentResult,
 )
+from app.services.organization_eligibility_runtime_failure import (
+    EligibilityRuntimeFailureProvenance,
+)
 from app.services.organization_mobility_pathway_brief import (
     MobilityPathwayBriefError,
     _governed_payload,
@@ -66,6 +77,18 @@ class IndependentEligibilityVerificationIntegrityError(IndependentEligibilityVer
 
 class IndependentEligibilityVerificationRuntimeError(IndependentEligibilityVerificationError):
     """The verifier runtime cannot safely execute the G.1 contract."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        failure_provenance: EligibilityRuntimeFailureProvenance | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.failure_provenance = (
+            failure_provenance
+            or EligibilityRuntimeFailureProvenance.configuration_or_binding()
+        )
 
 
 class IndependentEligibilityVerificationOutputError(IndependentEligibilityVerificationError):
@@ -267,14 +290,25 @@ def _verifier_binding(
 ) -> EmployeeRuntimeBinding:
     if runtime_profile.runtime_class is not RuntimeClass.HOSTED_API:
         raise IndependentEligibilityVerificationRuntimeError(
-            "G.1 currently supports only hosted_api verifier runtimes"
+            "G.1 currently supports only hosted_api verifier runtimes",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
         )
-    binding = bind_employee_runtime(
-        session,
-        context=context,
-        profile=runtime_profile,
-        required_capability="structured_output",
-    )
+    try:
+        binding = bind_employee_runtime(
+            session,
+            context=context,
+            profile=runtime_profile,
+            required_capability="structured_output",
+        )
+    except AgentRuntimeError as exc:
+        raise IndependentEligibilityVerificationRuntimeError(
+            "G.1 verifier runtime binding failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
+        ) from exc
     proposer_binding = proposal.runtime_binding
     if binding.position_key == proposer_binding.position_key:
         raise IndependentEligibilityVerificationIntegrityError(
@@ -626,7 +660,10 @@ def verify_eligibility_proposal_independently(
     )
     if provider.name != binding.provider_key:
         raise IndependentEligibilityVerificationRuntimeError(
-            "verifier provider adapter does not match the bound runtime"
+            "verifier provider adapter does not match the bound runtime",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
         )
     payload, evidence_tokens, rule_tokens = _blind_verifier_payload(
         session,
@@ -641,18 +678,49 @@ def verify_eligibility_proposal_independently(
             messages=[{"role": "user", "content": prompt_payload}],
             response_format={"type": "json_object"},
         )
-    except LLMProviderError as exc:
+    except LLMProviderConfigurationError as exc:
         raise IndependentEligibilityVerificationRuntimeError(
-            "independent verifier runtime execution failed"
+            "independent verifier runtime configuration failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.configuration_or_binding()
+            ),
+        ) from exc
+    except LLMProviderResponseContractError as exc:
+        raise IndependentEligibilityVerificationRuntimeError(
+            "independent verifier provider response contract failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
+        ) from exc
+    except LLMProviderTransportError as exc:
+        raise IndependentEligibilityVerificationRuntimeError(
+            "independent verifier provider transport failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_transport()
+            ),
+        ) from exc
+    except LLMProviderError as exc:
+        # Backward-compatible custom-provider fallback after provider invocation.
+        raise IndependentEligibilityVerificationRuntimeError(
+            "independent verifier runtime execution failed",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_transport()
+            ),
         ) from exc
 
     if response.provider != binding.provider_key:
         raise IndependentEligibilityVerificationRuntimeError(
-            "verifier response provider does not match bound runtime"
+            "verifier response provider does not match bound runtime",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
         )
     if response.model != binding.model_key:
         raise IndependentEligibilityVerificationRuntimeError(
-            "verifier response model does not match bound runtime"
+            "verifier response model does not match bound runtime",
+            failure_provenance=(
+                EligibilityRuntimeFailureProvenance.provider_response_contract()
+            ),
         )
 
     draft = _validated_draft(

@@ -48,6 +48,18 @@ class LLMProviderError(Exception):
     pass
 
 
+class LLMProviderConfigurationError(LLMProviderError):
+    """Provider execution cannot start because local/provider configuration is invalid."""
+
+
+class LLMProviderTransportError(LLMProviderError):
+    """Provider request reached the external execution boundary but transport/service failed."""
+
+
+class LLMProviderResponseContractError(LLMProviderError):
+    """Provider returned a response that cannot satisfy the adapter response contract."""
+
+
 class LLMProvider(ABC):
     name: str
 
@@ -81,7 +93,9 @@ class _OpenAICompatibleProvider(LLMProvider):
         response_format: dict[str, Any] | None = None,
     ) -> LLMResponse:
         if not self.api_key:
-            raise LLMProviderError(f"{self.name} API key is not configured.")
+            raise LLMProviderConfigurationError(
+                f"{self.name} API key is not configured."
+            )
 
         payload_messages = [{"role": "system", "content": system_prompt}]
         payload_messages.extend(messages)
@@ -107,13 +121,21 @@ class _OpenAICompatibleProvider(LLMProvider):
                     json=payload,
                 )
                 response.raise_for_status()
-                data = response.json()
         except httpx.HTTPStatusError as exc:
-            raise LLMProviderError(
+            raise LLMProviderTransportError(
                 f"{self.name} API returned {exc.response.status_code}: {exc.response.text}"
             ) from exc
         except httpx.RequestError as exc:
-            raise LLMProviderError(f"{self.name} API request failed: {exc}") from exc
+            raise LLMProviderTransportError(
+                f"{self.name} API request failed: {exc}"
+            ) from exc
+
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise LLMProviderResponseContractError(
+                f"Unexpected {self.name} response body: invalid JSON"
+            ) from exc
 
         try:
             choice = data["choices"][0]
@@ -123,7 +145,7 @@ class _OpenAICompatibleProvider(LLMProvider):
             model = data.get("model", self.default_model)
             usage = data.get("usage", {})
         except (KeyError, IndexError, TypeError) as exc:
-            raise LLMProviderError(
+            raise LLMProviderResponseContractError(
                 f"Unexpected {self.name} response structure: {json.dumps(data, default=str)[:500]}"
             ) from exc
 
@@ -183,10 +205,10 @@ class LLMProviderFactory:
     def get_provider(cls, name: str | None = None) -> LLMProvider:
         name = (name or settings.llm_provider or "").lower().strip()
         if not name:
-            raise LLMProviderError("No LLM provider configured.")
+            raise LLMProviderConfigurationError("No LLM provider configured.")
         provider_cls = cls._providers.get(name)
         if provider_cls is None:
-            raise LLMProviderError(
+            raise LLMProviderConfigurationError(
                 f"Unknown LLM provider: {name}. Available: {list(cls._providers)}"
             )
         return provider_cls()

@@ -10,6 +10,10 @@ from app.models.domain import OrganizationActivity, OrganizationActivityClass, n
 from app.services.organization_activity import stage_activity
 from app.services.organization_agent_runtime import AgentRuntimeProfile, runtime_profile_fingerprint
 from app.services.organization_command import canonical_fingerprint
+from app.services.organization_eligibility_runtime_failure import (
+    ELIGIBILITY_RUNTIME_FAILURE_CLASSIFICATION_SCHEMA_VERSION,
+    EligibilityRuntimeFailureProvenance,
+)
 from app.services.organization_eligibility_immune_system import (
     ELIGIBILITY_IMMUNE_CAPABILITY,
     ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
@@ -99,6 +103,7 @@ def record_attributed_eligibility_runtime_health_incident(
     position_key: str,
     runtime_profile: AgentRuntimeProfile,
     summary: str,
+    failure_provenance: EligibilityRuntimeFailureProvenance | None = None,
     source_activity_id: UUID | None = None,
     correlation_key: str | None = None,
 ) -> AttributedEligibilityRuntimeHealthIncidentResult:
@@ -127,6 +132,15 @@ def record_attributed_eligibility_runtime_health_incident(
             "unsupported eligibility runtime execution role"
         ) from exc
 
+    provenance = (
+        failure_provenance
+        or EligibilityRuntimeFailureProvenance.configuration_or_binding()
+    )
+    if not isinstance(provenance, EligibilityRuntimeFailureProvenance):
+        raise EligibilityRuntimeHealthAttributionError(
+            "runtime failure provenance must use the trusted H.2.2 classification contract"
+        )
+
     attribution_key = _attribution_activity_key(
         aggregate_key=aggregate,
         incident_key=key,
@@ -140,7 +154,10 @@ def record_attributed_eligibility_runtime_health_incident(
         f"profile {runtime_profile.profile_key!r}."
     )
     runtime_profile_fp = runtime_profile_fingerprint(runtime_profile)
-    attribution_payload = {
+
+    # Preserve the accepted H.2.2 v1 fingerprint so already-durable historical
+    # attributions remain replayable without being silently rewritten.
+    legacy_attribution_payload = {
         "attribution_contract": ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION_SCHEMA_VERSION,
         "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
         "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
@@ -163,6 +180,18 @@ def record_attributed_eligibility_runtime_health_incident(
         "authority_effect": "none",
         "provider_health_policy_applied": False,
     }
+    legacy_attribution_fingerprint = canonical_fingerprint(
+        legacy_attribution_payload
+    )
+
+    attribution_payload = {
+        **legacy_attribution_payload,
+        "classification_contract": (
+            ELIGIBILITY_RUNTIME_FAILURE_CLASSIFICATION_SCHEMA_VERSION
+        ),
+        "runtime_failure_classification": provenance.classification.value,
+        "provider_egress_occurred": provenance.provider_egress_occurred,
+    }
     attribution_fingerprint = canonical_fingerprint(attribution_payload)
     attribution_payload["attribution_fingerprint"] = attribution_fingerprint
 
@@ -183,9 +212,39 @@ def record_attributed_eligibility_runtime_health_incident(
             "runtime-health attribution and incident must exist as one atomic pair"
         )
     if existing_attribution is not None:
+        try:
+            persisted_record = transparency_activity_record(existing_attribution)
+        except TransparencyDataError as exc:
+            raise EligibilityRuntimeHealthAttributionError(
+                "persisted eligibility runtime-health attribution Activity is malformed"
+            ) from exc
+
+        classification_fields = {
+            "classification_contract",
+            "runtime_failure_classification",
+            "provider_egress_occurred",
+        }
+        present_classification_fields = {
+            field
+            for field in classification_fields
+            if field in persisted_record.payload
+        }
+        if (
+            present_classification_fields
+            and present_classification_fields != classification_fields
+        ):
+            raise EligibilityRuntimeHealthAttributionError(
+                "persisted runtime-health classification provenance is incomplete"
+            )
+
+        expected_fingerprint = (
+            attribution_fingerprint
+            if present_classification_fields
+            else legacy_attribution_fingerprint
+        )
         if not _matching_existing_attribution(
             existing_attribution,
-            attribution_fingerprint=attribution_fingerprint,
+            attribution_fingerprint=expected_fingerprint,
             summary=attribution_summary,
             source_activity_id=source_activity_id,
             correlation_key=correlation_key,

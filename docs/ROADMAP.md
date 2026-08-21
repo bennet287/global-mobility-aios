@@ -10,10 +10,10 @@
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR
 **Active organization architecture:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` + `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme
-**Last accepted V1.3 checkpoint:** V1.3-H.2.3 — COMPLETE / PASS / SEALED on technical candidate `17edeca46af2b9cc7e0a6111ec2b3270f4bb1283`
-**Latest accepted Production Proof:** GitHub Actions run `32480405051` — 4/4 jobs PASS
+**Last accepted V1.3 checkpoint:** V1.3-H.2.4 — COMPLETE / PASS / SEALED on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`
+**Latest accepted Production Proof:** GitHub Actions run `32500438187` — 4/4 jobs PASS
 **Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`
-**H.2:** IN PROGRESS — H.2.1, H.2.2 and H.2.3 SEALED; H.2.4 post-producer revision-race attribution is an IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
+**H.2:** IN PROGRESS — H.2.1 through H.2.4 are SEALED; the H.2.2 runtime-health classification refinement is IMPLEMENTED / PRODUCTION PROOF PENDING; no later H.2 control is pre-authorized
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
@@ -110,14 +110,15 @@ Current V1.3 state:
 | V1.3-H.1 Eligibility Immune Circuit | COMPLETE / PASS / SEALED | Restrictive aggregate circuit, canonical-lineage consolidation and proof accepted |
 | V1.3-H.2.1 Eligibility Warning Recurrence Guard | COMPLETE / PASS / SEALED | Third verifier disagreement in one recovery epoch opens the exact aggregate circuit; PostgreSQL concurrency proof accepted |
 | V1.3-H.2.2 Eligibility Runtime-Health Attribution | COMPLETE / PASS / SEALED | Trusted producer/verifier runtime identity is durably paired with runtime-health warnings; atomicity and identity-drift adversarial proof accepted; no provider-health policy yet |
+| H.2.2 Runtime-Health Classification Refinement | IMPLEMENTED / ACCEPTANCE PENDING | Separates configuration/binding, provider transport and provider response-contract failures and records provider-egress provenance; measurement-only; Production Proof pending |
 | V1.3-H.2.3 Eligibility Revision-Conflict Attribution | COMPLETE / PASS / SEALED | Genuine lower-than-current G.5 pre-egress stale reassessments are durably attributed; false-positive exclusions and atomic replay/rollback proof accepted; no recurrence policy |
-| V1.3-H.2.4 Post-Producer Revision-Race Attribution | IMPLEMENTED / ACCEPTANCE PENDING | A previously valid reassessment that advances during producer runtime is attributed with trusted producer runtime identity; observation-only; Production Proof pending |
+| V1.3-H.2.4 Post-Producer Revision-Race Attribution | COMPLETE / PASS / SEALED | Event-time v1 → v2 race attribution survives legitimate v3 supersession before first persistence; shared canonical aggregate lineage validation and PostgreSQL adversarial proof accepted |
 | V1.3-H.2 overall | IN PROGRESS | H.2 proceeds only as separately proven bounded increments; no broader health policy is pre-authorized |
-| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted H.2.3 run `32480405051` |
+| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted H.2.4 run `32500438187` |
 | Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
 | V1.3-I Earned Autonomy | NOT STARTED | Follows accepted H-stage safety/measurement foundations |
 
-The accepted V1.3 baseline remains **H.2.3** until H.2.4 satisfies its full proof gate. Detailed H.2.3 evidence is preserved in `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md`.
+The accepted V1.3 baseline is now **H.2.4**, sealed by `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md` against Production Proof run `32500438187`. The active bounded candidate is the H.2.2 runtime-health classification refinement; it changes measurement provenance only and does not authorize provider-health policy.
 
 ---
 
@@ -145,32 +146,28 @@ No V1.3, canonical eligibility-effect, Immune System, CI or Munder work may eras
 
 ---
 
-## 5. Latest accepted quality evidence — V1.3-H.2.3
+## 5. Latest accepted quality evidence — V1.3-H.2.4
 
 Historical accepted results are not represented as rerun unless actually rerun.
 
-H.1, H.2.1 and H.2.2 remain sealed by their own acceptance records. H.2.3 adds the following accepted proof:
+H.1 through H.2.3 remain sealed by their own acceptance records. H.2.4 adds the following accepted proof:
 
 ```text
-GitHub backend regression                         1127 passed / 8 skipped / 1 warning / 0 failed
+GitHub backend regression                         1135 passed / 10 skipped / 1 warning / 0 failed
 Fresh PostgreSQL 16 Alembic                       PASS — 0001 → 0077
 Registered SQLModel tables                        119
 Fresh PostgreSQL physical schema                  PASS
-GitHub PostgreSQL governed suite                  80 passed / 1 warning / 0 failed
-H.2.3 stale v1 expectation against current v2     PASS — attributed before provider egress
-H.2.3 producer/verifier egress                    PASS — zero provider calls
-H.2.3 durable expected/current revision snapshot  PASS
-H.2.3 missing/future/no-current exclusions        PASS
-H.2.3 exact replay                                PASS — no duplicate pair
-H.2.3 repeated conflicts remain observe           PASS — no circuit open
-H.2.3 post-provider race exclusion                PASS
-H.2.3 paired-write rollback atomicity             PASS
-H.2.3 conflict snapshot drift reject              PASS
-H.2.3 torn-pair fail-closed                       PASS
+GitHub PostgreSQL governed suite                  90 passed / 1 warning / 0 failed
+H.2.4 v1 → v2 post-producer race                  PASS
+H.2.4 first attribution after v3 supersession     PASS — critic blocker closed
+H.2.4 event-time v2 snapshot preserved            PASS
+H.2.4 v3 remains sole ACTIVE head                 PASS
+Shared canonical aggregate lineage validation     PASS
+Existing H.2.4 replay/rollback/torn-pair proofs   PASS
 Frontend npm ci                                   PASS
-Frontend high-severity audit                      PASS
-Frontend design foundation                        PASS
-Frontend request/auth                             PASS
+Frontend high-severity audit                      PASS — 0 vulnerabilities
+Frontend design foundation                        PASS — 28/28
+Frontend request/auth                             PASS — 4/4
 Frontend TypeScript                               PASS
 Frontend Next.js 16.3.1 build                     PASS
 Frontend compiled auth                            PASS
@@ -178,15 +175,15 @@ Repository policy                                 PASS
 Release consistency                               PASS — 0077
 Python dependency constraints                     PASS — 25 direct dependencies
 Diff hygiene                                      PASS — git diff --check HEAD^
-GitHub Production Proof run 32480405051           4/4 jobs PASS
-Accepted technical candidate                      17edeca46af2b9cc7e0a6111ec2b3270f4bb1283
+GitHub Production Proof run 32500438187           4/4 jobs PASS
+Accepted technical candidate                      e7584b90fc967e828960ae0730a35d8646fba74f
 ```
 
 The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
 
 The first H.2.3 proof run `32479407154` is retained as superseded diagnostic evidence: repository policy, frontend and PostgreSQL passed, while broad SQLite exposed one stale pre-H.2.3 error-message assertion. Commit `17edeca...` aligned only that legacy test expectation; the H.2.3 runtime implementation remained unchanged.
 
-Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5, `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1, `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md` for H.2.1, `docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md` for H.2.2 and `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md` for H.2.3.
+Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5, `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1, `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md` for H.2.1, `docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md` for H.2.2, `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md` for H.2.3 and `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md` for H.2.4.
 
 Repository-owner Settings evidence confirms that `main` is protected by an active ruleset requiring the four Production Proof checks before integration. The GitHub connector does not expose ruleset configuration directly, so this enforcement claim remains owner-confirmed rather than connector-introspected.
 
@@ -445,7 +442,7 @@ Frontend tests, types and build     PASS
 PostgreSQL governance contracts     PASS
 ```
 
-H.2.4 is currently a candidate and does not replace the accepted H.2.3 evidence until its exact head passes all four lanes.
+H.2.4 is accepted and sealed on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`; run `32500438187` passed all four lanes.
 
 ### 11.1 Repository policy / dependency contract
 
@@ -517,15 +514,15 @@ The same pytest fixture switches to PostgreSQL only when:
 GMAI_TEST_DATABASE_URL=postgresql+psycopg://...
 ```
 
-The focused lane covers G.3/G.4/G.5/H.1 and accepted H.2 eligibility safety contracts. The current H.2.4 candidate additionally includes `test_organization_eligibility_revision_runtime_race.py`, including its real cross-session post-producer race contract.
+The focused lane covers G.3/G.4/G.5/H.1 and accepted H.2 eligibility safety contracts. Accepted H.2.4 additionally includes `test_organization_eligibility_revision_runtime_race.py` and its adversarial companion, including the real cross-session post-producer race and pre-persistence v3 supersession contracts.
 
-Latest accepted PostgreSQL evidence remains H.2.3 until the H.2.4 candidate passes:
+Latest accepted PostgreSQL evidence is H.2.4:
 
 ```text
 Alembic 0001 → 0077              PASS
 registered tables                 119
 physical schema                   PASS
-governed eligibility suite        80 passed / 1 warning / 0 failed
+governed eligibility suite        90 passed / 1 warning / 0 failed
 ```
 
 ---
@@ -632,7 +629,7 @@ Permanent rule:
 
 ---
 
-## 15. H.1, H.2.1, H.2.2 and H.2.3 acceptance gates — satisfied
+## 15. H.1 through H.2.4 acceptance gates — satisfied
 
 H.1 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
 
@@ -641,6 +638,8 @@ H.2.1 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_1_ACCEPTANCE_2026-08-2
 H.2.2 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md`.
 
 H.2.3 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md`.
+
+H.2.4 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`.
 
 H.2.1 acceptance proves:
 
@@ -678,19 +677,29 @@ H.2.3 acceptance additionally proves:
 8. repeated revision-conflict warnings remain observation-only and do not open a circuit;
 9. full SQLite, fresh PostgreSQL, frontend and repository proof are green.
 
-Accepted H.2.3 technical candidate:
+H.2.4 acceptance additionally proves:
+
+1. a valid reassessment may advance during producer runtime without stale output becoming canonical;
+2. producer egress is recorded while verifier egress remains false;
+3. the event-time observed revision remains durable even if superseded before first attribution persistence;
+4. a legitimate v3 may supersede event-time v2 before first persistence without losing the v1 → v2 explanation;
+5. the current ACTIVE head and event-time revision must belong to the same contiguous canonical aggregate lineage;
+6. replay, torn-pair, snapshot-drift and runtime-identity protections remain fail-closed;
+7. full SQLite, fresh PostgreSQL, frontend and repository proof are green.
+
+Accepted H.2.4 technical candidate:
 
 ```text
-17edeca46af2b9cc7e0a6111ec2b3270f4bb1283
+e7584b90fc967e828960ae0730a35d8646fba74f
 ```
 
-Accepted H.2.3 GitHub run:
+Accepted H.2.4 GitHub run:
 
 ```text
-32480405051
+32500438187
 ```
 
-H.2.4 is not part of this satisfied acceptance section yet. Its candidate record is `docs/V1_3_H2_4_POST_PRODUCER_REVISION_RACE_ATTRIBUTION.md`.
+The H.2.2 runtime-health classification refinement is the current implementation candidate and remains **PRODUCTION PROOF PENDING**.
 
 ---
 
@@ -704,10 +713,11 @@ The current H-stage sequence is:
 3. H.2.1 verifier-disagreement recurrence guard           COMPLETE / SEALED
 4. H.2.2 runtime-health attribution foundation            COMPLETE / SEALED
 5. H.2.3 revision-conflict attribution foundation         COMPLETE / SEALED
-6. H.2.4 post-producer revision-race attribution          IMPLEMENTED / ACCEPTANCE PENDING
-7. prove exact H.2.4 candidate in all four CI lanes        REQUIRED
-8. select any later H.2 control only from accepted data    NOT PRE-AUTHORIZED
-9. Earned Autonomy                                        NOT STARTED
+6. H.2.4 post-producer revision-race attribution          COMPLETE / SEALED
+7. H.2.2 runtime-health classification refinement         IMPLEMENTED / PRODUCTION PROOF PENDING
+8. prove exact refinement candidate in all four CI lanes   REQUIRED
+9. select any later H.2 control only from accepted data    NOT PRE-AUTHORIZED
+10. Earned Autonomy                                       NOT STARTED
 ```
 
 Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept any future H.2 behavior.
@@ -773,6 +783,26 @@ automatic recovery             none
 
 H.2.2 deliberately does **not** add a runtime recurrence threshold, provider-health score, cross-aggregate quarantine or automatic recovery. Those require a separately justified scope/time/blast-radius policy.
 
+### 17.2A H.2.2 runtime-health classification refinement — implementation candidate
+
+Canonical candidate record:
+
+```text
+docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_REFINEMENT_2026-08-21.md
+```
+
+The refinement adds measurement provenance only:
+
+```text
+configuration_or_binding_failure      provider_egress_occurred=false
+provider_transport_failure            provider_egress_occurred=true
+provider_response_contract_failure    provider_egress_occurred=true
+```
+
+It does not create a provider-health score, recurrence threshold, quarantine, automatic failover, authority change or autonomy change. Already-durable H.2.2 v1 records are not rewritten.
+
+This refinement remains **PRODUCTION PROOF PENDING** until the exact candidate passes all four V12 Production Proof lanes.
+
 ### 17.3 H.2.3 — accepted pre-egress revision-conflict attribution foundation
 
 Canonical records:
@@ -815,26 +845,27 @@ authority/autonomy effect       none
 
 Missing expectations, future expectations, nonexistent-current expectations, aggregate corruption and post-provider revision races are deliberately excluded from this incident class.
 
-### 17.4 H.2.4 — post-producer revision-race attribution candidate
+### 17.4 H.2.4 — accepted post-producer revision-race attribution
 
-Canonical candidate record:
+Canonical records:
 
 ```text
 docs/V1_3_H2_4_POST_PRODUCER_REVISION_RACE_ATTRIBUTION.md
+docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md
 ```
 
-Candidate classification:
+Accepted classification:
 
 ```text
 exact current reassessment revision accepted before producer egress
 producer provider returns successfully
-same canonical aggregate advances to a newer ACTIVE revision during producer runtime
-post-producer E.2 revalidation detects the advancement
+same canonical aggregate advances during producer runtime
+post-producer E.2 revalidation captures the event-time advancement
 verifier egress = false
 canonical effect from stale attempt = false
 ```
 
-Candidate durable pair:
+Accepted durable pair:
 
 ```text
 organization.immune.eligibility_revision_runtime_race_attributed.v1
@@ -844,9 +875,11 @@ organization.immune.eligibility_incident.v1
   severity = warning
 ```
 
-The attribution records the resolved and newly observed canonical revision identities plus trusted producer position/runtime/provider/model identity.
+The attribution records the resolved and event-time observed canonical revision identities plus trusted producer position/runtime/provider/model identity.
 
-Candidate control semantics remain intentionally non-restrictive:
+The repaired persistence contract also accepts a legitimate newer v3 that supersedes observed v2 before the first attribution write, but only when the shared canonical aggregate lineage validator proves the current head, observed revision and resolved revision belong to one contiguous lineage.
+
+Accepted control semantics remain intentionally non-restrictive:
 
 ```text
 post-producer race warning       observation-only
@@ -857,9 +890,9 @@ reuse stale producer output      prohibited by fail-closed path
 authority/autonomy effect        none
 ```
 
-Concurrent first-time creation, H.2.3 pre-egress conflicts, runtime failure, verifier-stage races, G.2/G.3 races and transaction rollback are explicitly excluded.
+Concurrent first-time creation, H.2.3 pre-egress conflicts, runtime failure, verifier-stage races, G.2/G.3 races and transaction rollback remain explicitly excluded.
 
-H.2.4 remains **ACCEPTANCE PENDING** until the exact candidate passes broad SQLite regression, fresh PostgreSQL 16 including the cross-session callback race, frontend proof, repository policy and diff hygiene.
+H.2.4 is **COMPLETE / PASS / SEALED** on technical candidate `e7584b90fc967e828960ae0730a35d8646fba74f`, Production Proof run `32500438187`.
 
 ### 17.5 Later H.2 increment — not started / not pre-authorized
 
@@ -969,7 +1002,7 @@ Board visibility does not imply Board interruption.
 
 The top-level Human Owner / Board experience remains the **Global Mobility AIOS Cockpit**; Board Room is a module inside that control surface.
 
-H.2.2 improves the future Incident drill-down by making runtime-health warnings attributable to a trusted execution role/runtime identity. H.2.3 additionally makes pre-egress stale reassessment contention inspectable as an exact expected-versus-current canonical revision snapshot. The H.2.4 candidate extends that explainability to stale producer work when the canonical revision advances during producer latency, without changing control authority.
+H.2.2 improves the future Incident drill-down by making runtime-health warnings attributable to a trusted execution role/runtime identity. Its current classification refinement additionally distinguishes configuration/binding failures from provider transport and response-contract failures without creating a provider-health policy. H.2.3 makes pre-egress stale reassessment contention inspectable as an exact expected-versus-current canonical revision snapshot. Accepted H.2.4 extends that explainability to stale producer work when the canonical revision advances during producer latency, without changing control authority.
 
 ---
 
@@ -1004,7 +1037,6 @@ The repository does **not** currently claim:
 - Playwright/browser E2E coverage;
 - completed god-module decomposition;
 - H.2 completion;
-- accepted H.2.4 behavior before its Production Proof completes;
 - revision-conflict recurrence thresholds or circuit opening from revision conflicts;
 - automatic retry/rebase or reuse of stale H.2.4 producer output;
 - verifier-stage or G.2/G.3 revision-race attribution;
@@ -1038,11 +1070,13 @@ Accepted architecture / history:
 - `docs/V1_3_H2_2_ACCEPTANCE_2026-08-21.md`
 - `docs/V1_3_H2_3_REVISION_CONFLICT_ATTRIBUTION_FOUNDATION.md`
 - `docs/V1_3_H2_3_ACCEPTANCE_2026-08-21.md`
+- `docs/V1_3_H2_4_POST_PRODUCER_REVISION_RACE_ATTRIBUTION.md`
+- `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`
 - `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.18 acceptance changelog)
 
-Current acceptance-pending record:
+Current acceptance-pending refinement record:
 
-- `docs/V1_3_H2_4_POST_PRODUCER_REVISION_RACE_ATTRIBUTION.md`
+- `docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_REFINEMENT_2026-08-21.md`
 
 Repository enforcement state:
 
@@ -1054,7 +1088,7 @@ Repository enforcement state:
 - bypass list is empty;
 - configuration is owner-confirmed from GitHub Settings.
 
-The accepted baseline remains H.2.3. H.2.4 is implemented but not yet accepted; no later H.2 policy is pre-authorized.
+The accepted baseline is H.2.4. The H.2.2 runtime-health classification refinement is the current proof candidate; no later H.2 policy is pre-authorized.
 
 ---
 
@@ -1075,7 +1109,8 @@ G.5 accepted baseline
 → H.2.1 verifier-disagreement recurrence — SEALED
 → H.2.2 trusted runtime-health attribution — SEALED
 → H.2.3 pre-egress revision-conflict attribution — SEALED
-→ H.2.4 post-producer revision-race attribution — IMPLEMENTED / ACCEPTANCE PENDING
+→ H.2.4 post-producer revision-race attribution — SEALED
+→ H.2.2 runtime-health classification refinement — IMPLEMENTED / PRODUCTION PROOF PENDING
 → later H.2 control — NOT STARTED / NOT PRE-AUTHORIZED
 → Earned Autonomy
 → broader Organization Fabric / operational scale
