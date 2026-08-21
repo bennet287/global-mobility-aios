@@ -1,8 +1,8 @@
 # V12.21 Pending Changelog — V1.3-I.2 Shadow Autonomy Evidence Profile Foundation
 
-**Date:** 2026-08-22  
-**Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / ACCEPTANCE PENDING  
+**Date:** 2026-08-22
+**Branch:** `roadmap/global-mobility-aios-v12`
+**Status:** IMPLEMENTED / ACCEPTANCE PENDING
 **Last accepted V1.3 checkpoint:** I.1 — technical candidate `581df5d99b65f0a7a49ace228ee707b881d508fa`, Production Proof run `32529241957`
 
 This record captures the I.2 implementation state without claiming COMPLETE / PASS / SEALED before the exact post-documentation candidate passes the V12 Production Proof gate.
