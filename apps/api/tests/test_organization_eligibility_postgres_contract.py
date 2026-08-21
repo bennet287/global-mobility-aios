@@ -8,9 +8,13 @@ import pytest
 from sqlmodel import Session, select
 
 from app.core.organization_constitution import AutonomyLevel, RiskTier
+from app.models.autonomy_evidence_profile import CapabilityAutonomyEvidenceObservation
 from app.models.autonomy_profile import CapabilityAutonomyProfile
 from app.models.domain import OrganizationActorType, OrganizationPosition
 from app.models.eligibility_revision import EligibilityAssessmentRevision
+from app.services.organization_autonomy_evidence_profile import (
+    establish_capability_autonomy_evidence_observation,
+)
 from app.services.organization_autonomy_profile import establish_capability_autonomy_profile
 from app.services.organization_command import (
     DependencyConflict,
@@ -316,3 +320,63 @@ def test_postgres_stale_cross_session_autonomy_supersession_is_rejected(
     )
     assert [profile.profile_sequence for profile in profiles] == [1, 2]
     assert profiles[1].supersedes_profile_id == profiles[0].id
+
+
+def test_postgres_same_source_autonomy_observation_is_counted_once(
+    db_session: Session,
+) -> None:
+    evidence = _seed_autonomy_contract(db_session, evidence_key="postgres-i2-profile")
+    profile = _write_autonomy_profile(
+        db_session,
+        actor_id="board-i2-profile",
+        evidence_activity_id=evidence.id,
+        idempotency_key="i2-postgres-profile",
+        expected_profile_sequence=None,
+    )
+    source = _evidence_activity(
+        db_session,
+        _autonomy_board("board-i2-source"),
+        key="postgres-i2-source",
+    )
+    engine = db_session.get_bind()
+    barrier = Barrier(2)
+
+    def compete(index: int) -> tuple[str, str]:
+        with Session(engine) as session:
+            barrier.wait()
+            try:
+                observation = establish_capability_autonomy_evidence_observation(
+                    session,
+                    _autonomy_board(f"board-i2-racer-{index}"),
+                    profile_id=profile.id,
+                    source_activity_id=source.id,
+                    human_review_outcome="accepted",
+                    evidence_grounded=True,
+                    verifier_contradiction=False,
+                    policy_compliant=True,
+                    freshness_compliant=True,
+                    critical_error=False,
+                    recovery_outcome="not_applicable",
+                    sla_met=True,
+                    incident_count=0,
+                    idempotency_key=f"i2-postgres-observation-{index}",
+                )
+                return "committed", str(observation.id)
+            except DependencyConflict as exc:
+                return "rejected", type(exc).__name__
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        outcomes = list(pool.map(compete, (1, 2)))
+
+    assert sorted(outcome for outcome, _ in outcomes) == ["committed", "rejected"]
+    db_session.expire_all()
+    observations = list(
+        db_session.exec(
+            select(CapabilityAutonomyEvidenceObservation).where(
+                CapabilityAutonomyEvidenceObservation.tenant_key == "default",
+                CapabilityAutonomyEvidenceObservation.profile_id == profile.id,
+                CapabilityAutonomyEvidenceObservation.source_activity_id == source.id,
+            )
+        ).all()
+    )
+    assert len(observations) == 1
