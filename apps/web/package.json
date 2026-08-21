@@ -6,15 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "test:design-foundation": "node --test scripts/design-foundation.test.mjs",
     "test:request-auth": "node --experimental-strip-types --test lib/request-client.test.mjs",
     "test:compiled-auth": "node scripts/verify-compiled-client-auth.mjs"
   },
   "dependencies": {
-    "next": "15.2.4",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "next": "16.3.1",
+    "react": "19.0.8",
+    "react-dom": "19.0.8",
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
