@@ -1,0 +1,7 @@
+# https://docs.x.ai/build/settings/reference
+
+[ui]
+permission_mode = "always-approve"
+
+[cli]
+auto_update = false

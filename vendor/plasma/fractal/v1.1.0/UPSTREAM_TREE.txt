@@ -1,0 +1,7 @@
+Plasma Fractal frozen donor target
+version=1.1.0
+commit=e629ae2b80250ab502feefe3d9d0266bc58f15b2
+repository=plasma-ai/fractal
+license=Apache-2.0
+
+The complete upstream Git tree at this commit was inspected before staging this vendor import. Full source bytes must be imported from this exact revision; do not substitute current main.

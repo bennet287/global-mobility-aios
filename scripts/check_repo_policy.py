@@ -54,6 +54,7 @@ IGNORE_DIRS = {
 # docs/REPOSITORY_POLICY.md rather than by editing vendored upstream text.
 DECLARED_REFERENCE_VENDOR_ROOTS = {
     "munder-difflin",
+    "plasma",
 }
 
 ALLOWLIST_FILES = {

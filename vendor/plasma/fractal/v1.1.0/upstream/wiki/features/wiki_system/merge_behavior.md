@@ -1,0 +1,54 @@
+---
+name: features/wiki_system/merge_behavior
+desc: |
+  How wikis merge across git branches: the custom merge driver for index
+  files, which regions auto-resolve versus conflict, and the parent's
+  reconciliation duties after integrating children.
+created: 2026-07-21T04:51:58Z
+updated: 2026-07-21T04:51:58Z
+---
+
+# features/wiki_system/merge_behavior
+
+[[features/wiki_system/_index|..]]
+
+***
+
+Sibling nodes evolve the same project wiki on parallel git branches (the merge
+topology: [[architecture/worktrees]]), so `_index.md` files — whose generated
+link blocks churn on every update — would conflict constantly under plain
+three-way merging. The wiki ships a custom git merge driver for them, wired by
+`.gitattributes` (`**/_index.md merge=wiki`) and registered in the repo-local
+git config by `wiki init` and `wiki config`. Fractal commits the attribute in
+the user node's baseline, so every branch in the tree merges indexes through the
+driver.
+
+## What the driver does
+
+The driver splits an `_index.md` at the `***` separator. Above it, the
+frontmatter merges field-aware: the regenerated keys and the generated link
+block normalize to "ours" — `wiki update` owns them, so their churn must never
+conflict — while authored keys (`title`, `desc`, `created`, `category`, `tags`,
+`sources`) get a normal three-way merge that can conflict. On add/add merges
+(both sides created the page) `created` joins the take-ours set, since both
+stamps come from independent update runs. A side whose frontmatter is
+undetectable is treated as unchanged from base, never as a deletion; a side that
+dropped the `***` separator its base carried cannot be split into regions, so it
+surfaces a whole-file conflict with a repair hint. Everything below `***` is
+authored content and merges three-way, with a hint comment planted above add/add
+body conflicts.
+
+Because the link block takes ours, a merge drops the other branch's link rows —
+by design: the next `wiki update` (which the fractal commit pipeline runs; see
+[[features/wiki_system/index_regeneration]]) regenerates the block from the
+merged filesystem, and a merged-in `title` shows in the H1 only after that
+post-merge update.
+
+## The parent's reconciliation job
+
+Children link only to pages that existed when they wrote, so freshly merged
+siblings leave stale cross-links behind. Index rows refresh mechanically at
+commit, but prose links do not: after integrating children, the parent runs
+`wiki lint` and repairs or prunes what it reports — now-resolvable links become
+wikilinks, still-dangling ones stay plain text — and refreshes any navigation
+tables it authored, which lint cannot see.

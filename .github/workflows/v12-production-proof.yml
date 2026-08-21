@@ -39,7 +39,7 @@ jobs:
         run: python scripts/check_python_dependency_constraints.py
 
       - name: Diff hygiene
-        run: git diff --check HEAD^
+        run: git diff --check HEAD^ -- . ':(exclude)vendor/**'
 
   backend-sqlite:
     name: Backend regression (SQLite)

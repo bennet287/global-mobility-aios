@@ -1,0 +1,7 @@
+Plasma Wiki frozen donor target
+version=1.2.0
+commit=b27235fa11f1d3aa4deff50e45e52ea8ddc8af44
+repository=plasma-ai/wiki
+license=Apache-2.0
+
+The complete upstream Git tree at this commit was inspected before staging this vendor import. Full source bytes must be imported from this exact revision; do not substitute current main.

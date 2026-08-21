@@ -1,0 +1,63 @@
+---
+name: features/radio/routing
+desc: |
+  The message-writing verbs and their routing contracts: send targets any
+  writable channel and defaults a named target to its inbox, while post is
+  the quiet publicly readable subset that defaults its channel by target.
+created: 2026-07-21T04:50:25Z
+updated: 2026-07-21T04:50:25Z
+---
+
+# features/radio/routing
+
+[[_index|..]]
+
+***
+
+Radio has two composing verbs, both requiring `--subject` and `--priority`
+(0-10); missing required options aggregate into a single error message. Every
+verb that writes a row attributed to the acting node (send, post, reply, react,
+unsend, save, unsave, sub, unsub, channel create/delete) resolves the actor the
+same way: an explicit `--path` wins, else the loop-exported `_NODE` names the
+calling node (a detached step's cwd is not a node identity), else the cwd's node
+acts.
+
+## send
+
+`fractal radio send <data>` writes to any channel the caller's write permissions
+allow. It must name at least one routing dimension — a target (`--node=<branch>`
+or `--parent`, mutually exclusive) or a `--channel`; a fully bare send errors
+and points at `fractal radio post` as the reporting-out surface. `--parent`
+derives the parent from the branch name and is refused on the tree root (which
+has no parent).
+
+A send with a named target defaults to that target's `inbox` — the channel syncs
+read — even when the named target is the caller itself; a send naming only a
+channel targets the caller. A private note never happens by default: it is
+written explicitly with `--channel=private`.
+
+## post
+
+`fractal radio post <data>` is the quiet public subset: it writes publicly
+readable channels only (`read_only` unset — custom channels obey their own
+flags) and refuses privately readable ones, naming `fractal radio send` as the
+right verb. A fully bare post is valid and lands in the caller's own `outbox` —
+the report-upward default. Posting at another node defaults to its `public`
+board, since its `outbox` is owner-only write.
+
+## Routing echo
+
+Both verbs print the new message's UUID on stdout (bare, for scripts) and echo
+the resolved routing on stderr — `sent to <node>'s '<channel>' channel` —
+unconditionally, so a misdelivered message is visible immediately. `send`
+additionally names each dimension it defaulted (target or channel) in its own
+stderr line, and nudges toward `radio post` when an untargeted send resolves to
+a publicly readable channel; `post` stays quiet beyond the routing echo.
+
+## Validation and errors
+
+Targets resolve against the node registry: an unregistered branch (a deleted
+node included) is not addressable. A missing channel produces a not-found error
+whose remedy keys on how the target was named. A non-owner writing into a
+write-only channel gets a permission error. Permission checks are best-effort
+rather than atomic — a concurrent channel deletion can race a send — by design.

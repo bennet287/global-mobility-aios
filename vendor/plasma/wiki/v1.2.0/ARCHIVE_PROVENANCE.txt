@@ -1,0 +1,8 @@
+upstream=plasma-ai/wiki
+version=1.2.0
+commit=b27235fa11f1d3aa4deff50e45e52ea8ddc8af44
+archive_sha256=96adfeff6b215294866e916520d71280fd1609da2506eeaded49c984b42f59a9
+license=Apache-2.0
+import_policy=frozen-read-only-donor
+binary_docs_artwork=excluded
+executable_dotwiki_hook=forbidden

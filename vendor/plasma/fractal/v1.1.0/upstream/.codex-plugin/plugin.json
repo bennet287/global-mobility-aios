@@ -1,0 +1,16 @@
+{
+  "name": "fractal",
+  "version": "1.1.0",
+  "description": "Hierarchical agent loops with recursive self-organization.",
+  "author": {
+    "name": "Plasma AI",
+    "email": "eng@plasma.ai",
+    "url": "https://plasma.ai"
+  },
+  "skills": "./fractal/skills/",
+  "interface": {
+    "displayName": "Fractal",
+    "shortDescription": "Hierarchical agent loops with recursive self-organization.",
+    "category": "Development"
+  }
+}
