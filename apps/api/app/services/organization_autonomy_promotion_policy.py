@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -668,7 +668,7 @@ def _validated_policy_revision(
     return AutonomyPromotionPolicyRevisionSnapshot(
         policy_id=policy.id,
         policy_sequence=policy.policy_sequence,
-        lifecycle_status="CURRENT" if False else "HISTORICAL",
+        lifecycle_status="HISTORICAL",
         from_autonomy_level=policy.from_autonomy_level,
         target_autonomy_level=policy.target_autonomy_level,
         evidence_policy_version=policy.evidence_policy_version,
@@ -754,12 +754,7 @@ def capability_autonomy_promotion_policy_snapshot(
         )
         previous = row
     current = rows[-1]
-    revisions[-1] = AutonomyPromotionPolicyRevisionSnapshot(
-        **{
-            **revisions[-1].__dict__,
-            "lifecycle_status": "CURRENT",
-        }
-    )
+    revisions[-1] = replace(revisions[-1], lifecycle_status="CURRENT")
     return CapabilityAutonomyPromotionPolicySnapshot(
         position_key=position_key,
         capability_key=capability_key,
@@ -818,16 +813,13 @@ def capability_autonomy_promotion_eligibility_snapshot(
 ) -> AutonomyPromotionEligibilitySnapshot | None:
     """Evaluate current I.2 evidence against current Board criteria without mutation."""
 
-    try:
-        evidence_profile = capability_autonomy_evidence_profile_snapshot(
-            session,
-            tenant_key=tenant_key,
-            position_key=position_key,
-            capability_key=capability_key,
-            context_scope=context_scope,
-        )
-    except AutonomyEvidenceProfileIntegrityError:
-        raise
+    evidence_profile = capability_autonomy_evidence_profile_snapshot(
+        session,
+        tenant_key=tenant_key,
+        position_key=position_key,
+        capability_key=capability_key,
+        context_scope=context_scope,
+    )
     if evidence_profile is None:
         return None
     if evidence_profile.current_autonomy_level == AutonomyLevel.A5.value:
