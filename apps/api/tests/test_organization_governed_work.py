@@ -170,7 +170,7 @@ def test_exact_retry_replays_after_first_execution_advances_work_item_state(
 
     first = governed_assign_work_item(organization_session, agent_context, authority, **command)
     advanced_version = work_item_precondition_version(first.work_item)
-    assert advanced_version != expected_version
+    assert advanced_version > expected_version
 
     activity_count_before = organization_session.exec(
         select(func.count()).select_from(OrganizationActivity)
@@ -194,11 +194,17 @@ def test_new_idempotency_key_with_stale_precondition_is_blocked(
     human_context: OrganizationCommandContext,
     agent_context: OrganizationCommandContext,
     authority: CapabilityAuthority,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     work = _work(organization_session, human_context, "b2-stale-work")
     expected_version = work_item_precondition_version(work)
+    frozen_updated_at = work.updated_at
+    monkeypatch.setattr(
+        "app.services.organization_governed_work.now_utc",
+        lambda: frozen_updated_at,
+    )
 
-    governed_assign_work_item(
+    first = governed_assign_work_item(
         organization_session,
         agent_context,
         authority,
@@ -208,6 +214,9 @@ def test_new_idempotency_key_with_stale_precondition_is_blocked(
         idempotency_key="b2-stale-first",
         reason="First assignment.",
     )
+    assert first.evaluation.outcome is GatewayOutcome.AUTO_EXECUTE
+    assert work_item_precondition_version(first.work_item) > expected_version
+
     stale = governed_assign_work_item(
         organization_session,
         agent_context,
@@ -221,6 +230,7 @@ def test_new_idempotency_key_with_stale_precondition_is_blocked(
 
     assert stale.evaluation.outcome is GatewayOutcome.BLOCK
     assert stale.evaluation.reason is GatewayReason.STALE_VERSION
+    assert stale.mutated is False
     assert stale.work_item.assigned_position_key == "case_operations_specialist"
     assert _governance_activity(organization_session, "b2-stale-second") is None
 
