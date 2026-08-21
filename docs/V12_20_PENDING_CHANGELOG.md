@@ -23,6 +23,8 @@ d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c  test: advance organization migration b
 8d2956802ab0960ce53e444c3a8a27dd554b921b  test: cover cross-platform evidence receipt hashing
 88d9b8b42421b3fdd6b67192790d573df08c61e2  fix: restore canonical evidence pack receipt hash
 68205518ff0751d8e34f0afa8e53924fd4ce9141  ci: prove exact PR head in production gate
+27d77884f1c2e29e8153600d57c38266efd68f61  fix: make governed work preconditions monotonic
+da4e9a9f333f4397ed4a78a46aac505aa53530ee  test: freeze governed work stale-version clock
 ```
 
 The final acceptance candidate is intentionally not named yet because this pending record itself advances the branch head and must be included in the exact-candidate proof.
@@ -142,6 +144,18 @@ The PR-triggered workflow previously checked GitHub's synthetic merge commit. It
 
 These gate hardenings do not change I.1 authority, autonomy, schema or runtime semantics. Because they advance the branch head, I.1 remains ACCEPTANCE PENDING until the post-hardening exact candidate is green.
 
+### Governed WorkItem precondition monotonicity diagnostic
+
+The Python 3.12 Windows SQLite Production Proof on candidate `baee972de1a85d814aaa91bde1f8b66fe5fe7e96` progressed to a single remaining failure after 1,142 tests passed and 12 were skipped. `test_stale_material_attempt_is_persisted_and_does_not_change_work` showed that a second command using the old WorkItem precondition could still receive `AUTO_EXECUTE` when the first assignment did not advance the timestamp-derived version token.
+
+The governance kernel's stale-version comparison was correct. The defect was at the WorkItem mutation boundary: `_stage_assignment` assigned `updated_at = now_utc()` but did not guarantee that the new timestamp was strictly later than the prior persisted value. On a clock/storage-resolution collision, `work_item_precondition_version()` could therefore return the same microsecond token before and after a real mutation.
+
+Commit `27d77884f1c2e29e8153600d57c38266efd68f61` makes assignment timestamps monotonic. A successful reassignment now uses the current wall clock when it is later than the previous timestamp and otherwise advances the canonical timestamp by one microsecond. This preserves the timestamp-based precondition contract while guaranteeing that a real mutation invalidates the prior token.
+
+Commit `da4e9a9f333f4397ed4a78a46aac505aa53530ee` makes the regression deterministic by freezing the service clock at the WorkItem's original timestamp. The first assignment must still create a strictly greater precondition version, while a different idempotency key that reuses the old version must fail closed as `STALE_VERSION` without mutating work.
+
+No schema, migration, authority, autonomy, idempotency-replay or Board-governance semantics changed. I.1 remains ACCEPTANCE PENDING until the new exact candidate passes the required proof gates.
+
 ## Board / Cockpit transparency
 
 The existing Board-only transparency facade now includes:
@@ -188,7 +202,8 @@ The repository now contains contract coverage for:
 - migration head `0078`;
 - PostgreSQL competing initial-profile creation;
 - PostgreSQL stale cross-session supersession rejection;
-- cross-platform LF/CRLF stability for canonical JSON evidence-pack receipts.
+- cross-platform LF/CRLF stability for canonical JSON evidence-pack receipts;
+- deterministic monotonic WorkItem precondition advancement under a frozen clock.
 
 These tests are present but are **not represented as globally accepted** in this pending record until the exact post-fix candidate passes the required Production Proof gates.
 
