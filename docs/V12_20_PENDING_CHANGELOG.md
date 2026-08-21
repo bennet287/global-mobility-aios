@@ -1,10 +1,13 @@
-# V12.20 Pending Changelog — V1.3-I.1 Capability Autonomy Truth Foundation
+# V12.20 Acceptance Changelog — V1.3-I.1 Capability Autonomy Truth Foundation
 
 **Date:** 2026-08-21  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / ACCEPTANCE PENDING
+**Status:** ACCEPTED / COMPLETE / PASS / SEALED  
+**Accepted technical candidate:** `581df5d99b65f0a7a49ace228ee707b881d508fa`  
+**Accepted Production Proof:** GitHub Actions run `32529241957`  
+**Acceptance record:** `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_ACCEPTANCE_2026-08-21.md`
 
-This record captures the I.1 implementation state without claiming COMPLETE / PASS / SEALED before the exact candidate passes V12 Production Proof.
+This file retains its historical `PENDING_CHANGELOG` filename for continuity, but the I.1 delivery recorded here is now closed and accepted. The full code/runtime proof applies to the exact technical candidate above; later acceptance-documentation commits reconcile repository truth without pretending the full code suite reran on those docs-only SHAs.
 
 ## Implementation lineage
 
@@ -25,9 +28,9 @@ d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c  test: advance organization migration b
 68205518ff0751d8e34f0afa8e53924fd4ce9141  ci: prove exact PR head in production gate
 27d77884f1c2e29e8153600d57c38266efd68f61  fix: make governed work preconditions monotonic
 da4e9a9f333f4397ed4a78a46aac505aa53530ee  test: freeze governed work stale-version clock
+581df5d99b65f0a7a49ace228ee707b881d508fa  docs: record governed work stale-version repair
+607f9a746ca1d8486052d1ed081edafc0289d14a  docs: seal V1.3 I.1 autonomy profile foundation
 ```
-
-The final acceptance candidate is intentionally not named yet because this pending record itself advances the branch head and must be included in the exact-candidate proof.
 
 ## Canonical implementation
 
@@ -50,7 +53,7 @@ to:
 0078_capability_autonomy_profile_foundation
 ```
 
-The profile truth is scoped by tenant, persistent OrganizationPosition, capability and context. It records explicit A0–A5 autonomy, an independent Board ceiling, authority requirement, R0–R5 risk ceiling, evidence-policy version, immutable supersession lineage, Board governance Activity identity, idempotency key and deterministic record fingerprint.
+The profile truth is scoped by tenant, persistent `OrganizationPosition`, capability and context. It records explicit A0–A5 autonomy, an independent Board ceiling, authority requirement, R0–R5 risk ceiling, evidence-policy version, immutable supersession lineage, Board governance Activity identity, idempotency key and deterministic record fingerprint.
 
 The evidence companion links a profile revision to canonical `OrganizationActivity` rows and captures the source Activity fingerprint observed when the Board decision was committed.
 
@@ -67,15 +70,15 @@ authenticated internal human
 + same-tenant canonical Activity evidence
 ```
 
-The command stages the Board governance Activity, autonomy profile and evidence links in one transaction.
+The command stages the Board governance Activity, autonomy profile, evidence links and audit mutations in one transaction.
 
-There is deliberately no I.1 POST/PUT/PATCH/DELETE autonomy route. Agents cannot invoke the canonical writer, and request JSON cannot self-select or promote autonomy.
+There is deliberately no I.1 `POST`, `PUT`, `PATCH` or `DELETE` autonomy route. Agents cannot invoke the canonical writer, and request JSON cannot self-select or promote autonomy.
 
 Capability, authority, autonomy and risk remain separate. I.1 records autonomy truth; it does not mint `CapabilityAuthority`, replace the Command Gateway or weaken legal/professional/Board review floors.
 
 ## Append-only / replay / concurrency contract
 
-The implementation preserves prior profile rows unchanged and derives current/superseded lifecycle from the append-only chain.
+The accepted implementation preserves prior profile rows unchanged and derives current/superseded lifecycle from the append-only chain.
 
 Concurrency and replay protections include:
 
@@ -86,9 +89,10 @@ unique scope + profile_sequence
 unique tenant + supersedes_profile_id
 unique tenant + idempotency_key
 exact semantic record fingerprint
+exact evidence record fingerprint
 ```
 
-Exact idempotent replay returns the existing canonical profile. Divergent reuse of the same idempotency key fails closed.
+Exact idempotent replay returns existing canonical truth. Divergent reuse of the same idempotency key fails closed.
 
 Competing first-profile creation and stale cross-session supersession are exercised by real-PostgreSQL contract tests inside the existing `test_organization_eligibility_postgres_contract.py`, which is already part of the Production Proof PostgreSQL lane. No second PostgreSQL test framework or workflow is introduced.
 
@@ -98,17 +102,13 @@ The first focused PostgreSQL proof on candidate `331ac66e7c2319c5a05edd603dd5555
 
 The failure was a real PostgreSQL-only persistence-order defect: `CapabilityAutonomyEvidence` could be flushed before its parent `CapabilityAutonomyProfile`, causing `fk_cap_autonomy_evidence_profile_tenant` to reject the child row. The initial-profile race therefore produced two rejected writers, and the stale-supersession test could not establish its seed profile.
 
-Commit `584a590550213df2106605f56c04249c555dc4a5` repairs only that ordering boundary. The command now explicitly flushes the parent profile before queuing evidence rows. The Board decision Activity, parent profile, evidence rows and audit records still belong to the same caller-owned transaction; any later failure rolls the complete unit back. No schema, migration, authority, autonomy or concurrency semantics changed.
+Commit `584a590550213df2106605f56c04249c555dc4a5` repairs only that ordering boundary. The command explicitly flushes the parent profile before queuing evidence rows. The Board decision Activity, parent profile, evidence rows and audit records still belong to the same caller-owned transaction; any later failure rolls the complete unit back. No schema, authority, autonomy or concurrency semantics changed.
 
-The focused repair verification on candidate `fe0ca59242b22c1ad11478fa5f4a4f92ecf8b9af` then passed repository policy, release consistency, diff hygiene, Python compilation, all four focused SQLite I.1 contracts, and both real-PostgreSQL autonomy concurrency contracts.
+The focused repair verification on candidate `fe0ca59242b22c1ad11478fa5f4a4f92ecf8b9af` then passed repository policy, release consistency, diff hygiene, Python compilation, all focused SQLite I.1 contracts and both real-PostgreSQL autonomy concurrency contracts.
 
-## Full Production Proof diagnostic
+## Full Production Proof diagnostics before acceptance
 
-The next full local Production Proof attempt confirmed candidate `fe0ca59242b22c1ad11478fa5f4a4f92ecf8b9af` and passed repository policy, release consistency, Python dependency constraints and diff hygiene.
-
-The local virtual environment was Python 3.13.12, while the canonical GitHub Production Proof workflow provisions Python 3.12. That environment mismatch is not treated as an application defect and cannot by itself provide exact CI-runtime parity.
-
-The full SQLite backend regression completed with:
+A full local proof on `fe0ca59242b22c1ad11478fa5f4a4f92ecf8b9af` exposed two repository-truth issues:
 
 ```text
 1140 passed
@@ -116,49 +116,102 @@ The full SQLite backend regression completed with:
 2 failed
 ```
 
-Both failures were repository-truth drift outside the I.1 command implementation:
+The failures were:
 
-1. `test_coverage_evidence_packs.py` detected that the tracked receipt for `v10_22_2_africa_tranche_1A_ready_9.json` still declared SHA-256 `e7527b1e...`, while the Windows checkout calculated `59e16db2...` from raw bytes. Commit `1114df38bbd8765c11d2f1bfdcfd2fbca65f065d` temporarily reconciled the receipt to that Windows byte representation.
-2. `test_organization_records_api.py` still encoded the pre-I.1 architecture ceiling by asserting that no numbered migration may exceed `0077`. Commit `d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c` now explicitly requires `0078_capability_autonomy_profile_foundation.py` and forbids migrations beyond `0078`.
+1. a platform-dependent raw-byte SHA receipt for `v10_22_2_africa_tranche_1A_ready_9.json`;
+2. a stale architecture test that still forbade migration numbers beyond `0077`.
 
-The same run independently passed the SQLite migration consistency and local physical-schema contracts at migration head `0078`, with 121 registered/application tables and the expected Alembic infrastructure table.
+The migration-boundary test was advanced to require `0078`. The receipt path was hardened so canonical JSON hashing normalizes CRLF/CR to LF, and regression coverage proves LF and CRLF checkout representations validate against one canonical receipt. The evidence-pack JSON itself was not changed.
 
-Frontend Production Proof steps completed successfully on Node 24, including dependency installation/audit, design-foundation tests, request/auth tests, TypeScript, production build and compiled-auth verification. The PostgreSQL governance lane had started on a fresh healthy PostgreSQL 16 instance when the captured output ended; no result from that local full governed PostgreSQL suite is claimed from that transcript.
+The first Python 3.12 exact-candidate local rerun on `02decd17fa52652c99dffdfccc90db74a3192b9d` also exposed that the ignored developer `.env` enabled the coverage-tranche assistant. Repository defaults and `.env.example` remained disabled, so subsequent local proof explicitly forced `COVERAGE_TRANCHE_ASSISTANT_ENABLED=false` to match the clean workflow environment.
 
-### Cross-platform receipt and exact-candidate CI hardening
+GitHub Actions run `32525735708` then provided independent evidence that frontend and PostgreSQL were green while exposing the cross-platform evidence receipt and synthetic-merge diff-hygiene issues. Those gate issues were repaired before final acceptance.
 
-The first Python 3.12 exact-candidate local rerun on `02decd17fa52652c99dffdfccc90db74a3192b9d` passed repository policy and constraints but stopped in the SQLite lane with two local feature-flag assertions because the ignored developer `.env` enabled the coverage-tranche assistant. Repository defaults and `.env.example` remain disabled; subsequent local proof must explicitly force `COVERAGE_TRANCHE_ASSISTANT_ENABLED=false` to match the clean workflow environment.
+### Exact-head CI hardening
 
-GitHub Actions run `32525735708` on the same PR state provided independent clean-environment evidence:
+The PR-triggered workflow previously checked GitHub's synthetic merge commit. Its `git diff --check HEAD^` therefore compared the entire long-lived V12 branch delta against `main` and surfaced unrelated historical whitespace instead of the acceptance candidate.
 
-```text
-Frontend tests, types and build: PASS
-PostgreSQL governance contracts: PASS
-Backend regression (SQLite): FAIL — evidence receipt only
-Repository policy and constraints: FAIL — PR synthetic-merge diff hygiene only
-```
-
-The GitHub Linux checkout calculated canonical LF bytes for `v10_22_2_africa_tranche_1A_ready_9.json` as SHA-256 `e7527b1e...`, while the existing Windows working tree calculated `59e16db2...` from CRLF bytes. Raw-byte hashing of a tracked JSON text file was therefore platform-dependent. Commit `00d4443fb62ad3640930c124938c04cc478bbbae` now normalizes JSON CRLF/CR line endings to LF before receipt hashing. Commit `8d2956802ab0960ce53e444c3a8a27dd554b921b` adds a regression contract proving LF and CRLF representations validate against the same receipt. Commit `88d9b8b42421b3fdd6b67192790d573df08c61e2` restores the receipt to the canonical normalized hash `e7527b1e...`; the evidence-pack content remains unchanged.
-
-The PR-triggered workflow previously checked GitHub's synthetic merge commit. Its `git diff --check HEAD^` therefore compared the entire long-lived V12 branch delta against `main` and surfaced unrelated historical whitespace instead of the exact acceptance candidate. Commit `68205518ff0751d8e34f0afa8e53924fd4ce9141` makes every V12 Production Proof job check out `${{ github.event.pull_request.head.sha || github.sha }}` so pull-request and push runs prove the exact candidate head. Repository-policy checkout still uses depth 2 so last-commit diff hygiene remains available.
-
-These gate hardenings do not change I.1 authority, autonomy, schema or runtime semantics. Because they advance the branch head, I.1 remains ACCEPTANCE PENDING until the post-hardening exact candidate is green.
+Commit `68205518ff0751d8e34f0afa8e53924fd4ce9141` makes every V12 Production Proof job check out `${{ github.event.pull_request.head.sha || github.sha }}`. Repository-policy checkout retains depth 2 so last-commit diff hygiene remains available.
 
 ### Governed WorkItem precondition monotonicity diagnostic
 
-The Python 3.12 Windows SQLite Production Proof on candidate `baee972de1a85d814aaa91bde1f8b66fe5fe7e96` progressed to a single remaining failure after 1,142 tests passed and 12 were skipped. `test_stale_material_attempt_is_persisted_and_does_not_change_work` showed that a second command using the old WorkItem precondition could still receive `AUTO_EXECUTE` when the first assignment did not advance the timestamp-derived version token.
+The final Python 3.12 Windows SQLite regression before acceptance reached one remaining failure after 1,142 tests passed and 12 were skipped. `test_stale_material_attempt_is_persisted_and_does_not_change_work` showed that a second command using the old WorkItem precondition could still receive `AUTO_EXECUTE` if the first assignment failed to advance the timestamp-derived token.
 
-The governance kernel's stale-version comparison was correct. The defect was at the WorkItem mutation boundary: `_stage_assignment` assigned `updated_at = now_utc()` but did not guarantee that the new timestamp was strictly later than the prior persisted value. On a clock/storage-resolution collision, `work_item_precondition_version()` could therefore return the same microsecond token before and after a real mutation.
+The governance kernel's stale-version comparison was correct. The defect was at the WorkItem mutation boundary: `_stage_assignment` assigned `updated_at = now_utc()` without guaranteeing strict advancement.
 
-Commit `27d77884f1c2e29e8153600d57c38266efd68f61` makes assignment timestamps monotonic. A successful reassignment now uses the current wall clock when it is later than the previous timestamp and otherwise advances the canonical timestamp by one microsecond. This preserves the timestamp-based precondition contract while guaranteeing that a real mutation invalidates the prior token.
+Commit `27d77884f1c2e29e8153600d57c38266efd68f61` makes successful assignment timestamps monotonic: wall-clock time is used when later than the previous value; otherwise the canonical timestamp advances by one microsecond.
 
-Commit `da4e9a9f333f4397ed4a78a46aac505aa53530ee` makes the regression deterministic by freezing the service clock at the WorkItem's original timestamp. The first assignment must still create a strictly greater precondition version, while a different idempotency key that reuses the old version must fail closed as `STALE_VERSION` without mutating work.
+Commit `da4e9a9f333f4397ed4a78a46aac505aa53530ee` freezes the service clock at the original timestamp and proves the invariant deterministically.
 
-No schema, migration, authority, autonomy, idempotency-replay or Board-governance semantics changed. I.1 remains ACCEPTANCE PENDING until the new exact candidate passes the required proof gates.
+Focused Python 3.12 verification on accepted candidate `581df5d99b65f0a7a49ace228ee707b881d508fa` completed with:
+
+```text
+11 passed / 1 warning / 0 failed
+repository policy                 PASS
+release consistency               PASS — 0078
+```
+
+The local shell subsequently printed Git diff usage because the PowerShell diff command form was invalid. That command is not used as acceptance evidence. Exact-head GitHub Production Proof independently passed the canonical diff-hygiene step.
+
+## Accepted Production Proof
+
+The exact technical candidate `581df5d99b65f0a7a49ace228ee707b881d508fa` passed GitHub Actions run `32529241957` across all four required lanes:
+
+```text
+Repository policy and constraints        PASS
+Backend regression (SQLite)              PASS
+Frontend tests, types and build          PASS
+PostgreSQL governance contracts          PASS
+```
+
+All four jobs explicitly checked out the exact candidate SHA.
+
+Accepted backend evidence:
+
+```text
+Python                                    3.12
+full SQLite regression                    1143 passed / 12 skipped / 1 warning / 0 failed
+Alembic SQLite                            0001 -> 0078 PASS
+migration head                            0078_capability_autonomy_profile_foundation
+registered SQLModel tables                121
+physical schema                           PASS
+local schema contract                     PASS
+```
+
+Accepted PostgreSQL evidence:
+
+```text
+PostgreSQL                                16
+Alembic PostgreSQL                        0001 -> 0078 PASS
+migration head                            0078_capability_autonomy_profile_foundation
+registered SQLModel tables                121
+physical schema                           PASS
+governed eligibility/autonomy suite       95 passed / 1 warning / 0 failed
+competing initial-profile writers         PASS
+stale cross-session supersession          PASS
+```
+
+Accepted frontend/repository evidence:
+
+```text
+Node                                      24
+npm install/audit                         PASS — 0 vulnerabilities
+design foundation                         PASS — 28/28
+request/auth                              PASS — 4/4
+TypeScript                                PASS
+Next.js 16.3.1 production build           PASS
+compiled auth                             PASS
+repository policy                         PASS
+release consistency                       PASS — 0078
+Python dependency constraints             PASS
+diff hygiene                              PASS
+```
+
+The known Pydantic `model_metadata_json` protected-namespace warning remains visible and non-blocking.
 
 ## Board / Cockpit transparency
 
-The existing Board-only transparency facade now includes:
+The existing Board-only transparency facade includes:
 
 ```text
 GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}?context_scope=...
@@ -180,13 +233,11 @@ evidence record fingerprint integrity
 profile semantic record fingerprint integrity
 ```
 
-The profile fingerprint is recomputed from persisted tenant/scope/autonomy/ceiling/authority/risk/policy/governance/idempotency/evidence semantics on every Board read. This closes the gap where a direct database mutation that remained under the Board ceiling could otherwise have escaped the simpler ceiling-only integrity check.
-
 The API returns the current profile plus revision/evidence history without exposing raw Activity payload JSON.
 
-## Test surface added / changed
+## Accepted test surface
 
-The repository now contains contract coverage for:
+Acceptance now includes contract coverage for:
 
 - Human Board-only establishment;
 - agent self-promotion refusal;
@@ -205,13 +256,10 @@ The repository now contains contract coverage for:
 - cross-platform LF/CRLF stability for canonical JSON evidence-pack receipts;
 - deterministic monotonic WorkItem precondition advancement under a frozen clock.
 
-These tests are present but are **not represented as globally accepted** in this pending record until the exact post-fix candidate passes the required Production Proof gates.
-
 ## Explicit non-claims
 
-This implementation does not claim:
+I.1 acceptance does not claim:
 
-- I.1 COMPLETE / PASS / SEALED before exact-candidate proof;
 - automatic autonomy promotion;
 - automatic dynamic downgrade;
 - a Dynamic Autonomy Manager;
@@ -221,6 +269,7 @@ This implementation does not claim:
 - confidence or score as permission;
 - replacement of the Command Gateway;
 - weakening of human/professional/legal/Board review floors;
-- completion of the wider Earned Autonomy stage.
+- completion of the wider Earned Autonomy stage;
+- completion of the future Organizational Immune System.
 
-The accepted V1.3 baseline remains H.2.4 plus the sealed H.2.2 runtime-health classification refinement until exact-candidate Production Proof is green and I.1 acceptance is explicitly recorded.
+The accepted V1.3 technical baseline is now I.1, with H.2.4 and the H.2.2 runtime-health classification refinement preserved as sealed parent checkpoints.
