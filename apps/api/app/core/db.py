@@ -128,6 +128,9 @@ def register_models() -> None:
         CapabilityAutonomyEvidence,
         CapabilityAutonomyProfile,
     )
+    from app.models.autonomy_evidence_profile import (  # noqa: F401
+        CapabilityAutonomyEvidenceObservation,
+    )
     from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
 
 def create_db_and_tables() -> None:
