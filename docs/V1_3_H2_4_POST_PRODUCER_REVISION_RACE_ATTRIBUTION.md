@@ -147,10 +147,14 @@ H.2.4 follows the already-accepted H.2.2/H.2.3 pairing discipline without introd
 - attribution and warning are committed as one transactional pair;
 - an injected failure after attribution staging rolls back the pair;
 - exact replay of the same attribution snapshot reuses the same pair;
+- historical replay remains valid after a later canonical revision supersedes the revision that was ACTIVE when the incident was first recorded;
+- replay validates the immutable persisted attribution before requiring any current-lifecycle condition;
 - a torn pair fails closed;
 - the same incident key cannot be replayed with changed revision snapshots;
 - the same incident key cannot be replayed with changed trusted producer runtime identity;
 - no timestamp-only duplicate attribution is created.
+
+The `observed_current_lifecycle_status = active` field is an event-time fact. It does not require that historical revision to remain ACTIVE forever.
 
 ## 7. Circuit and recurrence semantics
 
@@ -207,6 +211,7 @@ organization_eligibility_revision_precondition.py
 
 organization_eligibility_revision_runtime_race.py
   trusted atomic attribution + existing H.1 warning pair
+  historical replay independent of later lifecycle advancement
 
 organization_eligibility_orchestration.py
   only the post-producer exception boundary may assert provider egress
@@ -214,8 +219,11 @@ organization_eligibility_orchestration.py
 test_organization_eligibility_revision_runtime_race.py
   normal, adversarial and PostgreSQL cross-session proof
 
+test_organization_eligibility_revision_runtime_race_adversarial.py
+  historical attribution replay after a later canonical supersession
+
 v12-production-proof.yml
-  H.2.4 test file included in the real PostgreSQL lane
+  both H.2.4 test files included in the real PostgreSQL lane
 ```
 
 No migration, new authority surface, generic anomaly framework or provider-health policy is introduced.
@@ -234,13 +242,14 @@ The H.2.4 implementation candidate must prove at minimum:
 8. concurrent first-time canonical creation does not create an H.2.4 attribution;
 9. H.2.3 pre-egress conflicts remain H.2.3 and do not become H.2.4;
 10. exact attribution replay does not duplicate the pair;
-11. repeated H.2.4 races do not open the aggregate circuit;
-12. failure between attribution staging and incident persistence rolls back atomically;
-13. a torn pair fails closed;
-14. replay with changed revision snapshot fails closed;
-15. replay with changed trusted producer runtime identity fails closed;
-16. a real PostgreSQL cross-session winner can advance the revision during producer runtime and produce the same bounded attribution;
-17. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
+11. historical replay of a `v1 -> v2` incident still succeeds after a legitimate `v3` supersedes `v2`;
+12. repeated H.2.4 races do not open the aggregate circuit;
+13. failure between attribution staging and incident persistence rolls back atomically;
+14. a torn pair fails closed;
+15. replay with changed revision snapshot fails closed;
+16. replay with changed trusted producer runtime identity fails closed;
+17. a real PostgreSQL cross-session winner can advance the revision during producer runtime and produce the same bounded attribution;
+18. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
 
 ## 12. Explicit non-claims
 
