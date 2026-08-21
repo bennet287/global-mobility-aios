@@ -1,10 +1,10 @@
 # Plasma AI → Global Mobility AIOS Controlled Adoption V1
 
-**Date:** 2026-08-21  
-**Status:** CONTROLLED ADOPTION / PILOT APPROVED — NOT PRODUCTION ADOPTED  
-**Track:** Technology Radar / Platform Evolution  
-**AIOS branch context:** `roadmap/global-mobility-aios-v12`  
-**Accepted V1.3 baseline at assessment:** H.2.4 COMPLETE / PASS / SEALED  
+**Date:** 2026-08-21
+**Status:** CONTROLLED ADOPTION / PILOT APPROVED — NOT PRODUCTION ADOPTED
+**Track:** Technology Radar / Platform Evolution
+**AIOS branch context:** `roadmap/global-mobility-aios-v12`
+**Accepted V1.3 baseline at assessment:** H.2.4 COMPLETE / PASS / SEALED
 **Active safety candidate at assessment:** H.2.2 runtime-health classification refinement — IMPLEMENTED / PRODUCTION PROOF PENDING
 
 ---
