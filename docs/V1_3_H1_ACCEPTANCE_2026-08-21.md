@@ -6,7 +6,8 @@
 **GitHub Actions run:** `32463849415`  
 **H.1 status:** ACCEPTED / SEALED  
 **Production Proof Gate:** ACCEPTED / GREEN  
-**H.2 status:** BLOCKED pending required-check enforcement verification
+**Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED  
+**H.2 status:** READY TO BEGIN
 
 ## 1. Acceptance decision
 
@@ -21,7 +22,8 @@ The acceptance is based on converged proof across:
 - frontend dependency-security repair and reproducible install;
 - frontend design, request/auth, TypeScript, production-build and compiled-auth proof;
 - repository policy, release consistency, dependency-constraint and diff-hygiene proof;
-- a complete GitHub-hosted Linux Production Proof workflow with all four jobs green.
+- a complete GitHub-hosted Linux Production Proof workflow with all four jobs green;
+- repository-owner confirmation that `main` is protected by an active ruleset requiring the Production Proof checks before integration.
 
 This acceptance does not weaken the permanent safety rule:
 
@@ -244,30 +246,51 @@ The H.1 Production Proof Gate is satisfied as follows:
 11. repository policy — PASS;
 12. Python constraint enforcement — PASS;
 13. acceptance candidate and evidence record synchronized — PASS;
-14. required-check enforcement — **explicitly recorded as the remaining repository-settings action**.
+14. required-check enforcement — CONFIGURED / OWNER-CONFIRMED on `main`.
 
-Item 14 follows the gate's own acceptance rule: enforcement may be verified before H.1 acceptance or explicitly recorded as a remaining repository-settings action. No claim is made that GitHub branch protection or rulesets currently require the checks.
+The configured `main` ruleset is recorded as:
 
-## 10. Repository-settings action and H.2 boundary
+```text
+ruleset name                         Production proof enforcement
+enforcement                          Active
+target                               main
+bypass list                          empty
+require pull request before merging  enabled
+require status checks to pass        enabled
+require branch up to date            enabled
+restrict deletions                   enabled
+block force pushes                   enabled
+```
 
-The available GitHub connector evidence does not expose repository branch-protection/ruleset configuration sufficiently to prove required-check enforcement.
+Required GitHub Actions checks:
 
-Therefore the current truth is:
+```text
+Repository policy and constraints
+Backend regression (SQLite)
+Frontend tests, types and build
+PostgreSQL governance contracts
+```
+
+## 10. Repository enforcement and H.2 boundary
+
+The GitHub connector available to this project does not expose repository-ruleset configuration directly. The repository owner completed the Settings → Rules → Rulesets flow on 2026-08-21 and confirmed creation of the active `Production proof enforcement` ruleset after configuring the exact controls above.
+
+Therefore the current repository truth is:
 
 ```text
 Production Proof workflow exists             YES
 Production Proof workflow executes           YES
 Final four-lane candidate is green            YES
-Required-check enforcement in repo settings   NOT VERIFIED
+Required-check enforcement on main            CONFIGURED / OWNER-CONFIRMED
 ```
 
-The roadmap's stricter H.2 sequencing is preserved:
+The stricter H.2 sequencing prerequisite is now satisfied:
 
 ```text
 H.1 ACCEPTED / SEALED
 + Production Proof ACCEPTED / GREEN
-+ verify required GitHub check enforcement
-→ only then begin H.2 production transition guardrails
++ required GitHub check enforcement configured
+→ H.2 may begin
 ```
 
 Accordingly:
@@ -275,7 +298,7 @@ Accordingly:
 ```text
 H.1 = ACCEPTED / SEALED
 Production Proof Gate = ACCEPTED / GREEN
-H.2 = BLOCKED pending required-check enforcement verification
+H.2 = READY TO BEGIN
 ```
 
-No H.2 implementation is authorized by this acceptance record alone.
+This record authorizes entry into H.2 planning/implementation under the accepted V1.3 architecture. It does not pre-accept any future H.2 change; each H.2 increment remains subject to its own bounded implementation and proof requirements.
