@@ -1,10 +1,10 @@
 # Global Mobility AIOS — V1.3 H.2.2 Eligibility Runtime-Health Attribution Foundation
 
-**Stage:** V1.3-H.2.2  
-**Status:** IMPLEMENTATION CANDIDATE / ACCEPTANCE PENDING  
-**Parent accepted baseline:** V1.3-H.2.1 — COMPLETE / PASS / SEALED  
-**Parent accepted candidate:** `9e63c358b9692529278595201250c4dc8bb1ff47`  
-**Parent Production Proof:** GitHub Actions run `32469756908`  
+**Stage:** V1.3-H.2.2
+**Status:** IMPLEMENTATION CANDIDATE / ACCEPTANCE PENDING
+**Parent accepted baseline:** V1.3-H.2.1 — COMPLETE / PASS / SEALED
+**Parent accepted candidate:** `9e63c358b9692529278595201250c4dc8bb1ff47`
+**Parent Production Proof:** GitHub Actions run `32469756908`
 **Scope:** G.4 `mobility.eligibility` producer/verifier runtime-health failures only
 
 ## 1. Purpose
