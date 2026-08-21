@@ -179,6 +179,7 @@ jobs:
           apps/api/tests/test_organization_eligibility_immune_orchestration.py
           apps/api/tests/test_organization_eligibility_revision_conflict.py
           apps/api/tests/test_organization_eligibility_revision_conflict_adversarial.py
+          apps/api/tests/test_organization_eligibility_revision_runtime_race.py
           apps/api/tests/test_organization_eligibility_runtime_health.py
           apps/api/tests/test_organization_eligibility_runtime_health_adversarial.py
           apps/api/tests/test_organization_eligibility_immune_lineage.py
