@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 from sqlmodel import Session
 
@@ -135,6 +137,70 @@ def test_h2_4_initial_attribution_survives_observed_revision_superseded_before_p
     db_session.refresh(observed)
     db_session.refresh(current)
     assert observed.lifecycle_status == "superseded"
+    assert current.lifecycle_status == "active"
+
+
+@pytest.mark.skipif(
+    not os.getenv("GMAI_TEST_DATABASE_URL", "").startswith("postgresql"),
+    reason="real PostgreSQL H.2.4 pre-persistence race requires GMAI_TEST_DATABASE_URL",
+)
+def test_h2_4_postgres_cross_session_v3_supersession_before_first_attribution(
+    db_session: Session,
+) -> None:
+    _, graph, proposal_work, verification_work, first, second, aggregate = _commit_v1_v2(
+        db_session
+    )
+    plan, _, _ = _plan(graph)
+    race = _race_snapshot(
+        db_session,
+        first_revision_id=first.revision_id,
+        second_revision_id=second.revision_id,
+        aggregate_key=aggregate,
+    )
+    cached_observed = db_session.get(EligibilityAssessmentRevision, second.revision_id)
+    assert cached_observed is not None
+    assert cached_observed.lifecycle_status == "active"
+
+    engine = db_session.get_bind()
+    with Session(engine) as winner_session:
+        v3_plan, _, _ = _plan(graph)
+        v3 = orchestrate_governed_eligibility(
+            winner_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="h2-4-postgres-pre-persistence-v3",
+            execution_plan=v3_plan,
+            expected_eligibility_revision_version=2,
+        )
+        assert v3.state is GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED
+        assert v3.revision_id is not None
+        v3_revision_id = v3.revision_id
+
+    # Deliberately prove the original Session still carries the event-time ACTIVE v2
+    # snapshot before H.2.4 reconciles it against current PostgreSQL truth.
+    assert cached_observed.lifecycle_status == "active"
+
+    result = record_attributed_eligibility_revision_runtime_race(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+        incident_key="h2-4-postgres-pre-persistence-v3-race",
+        race=race,
+        position_key=plan.producer_position_key,
+        runtime_profile=plan.producer_runtime_profile,
+        summary="Synthetic PostgreSQL H.2.4 event-time race persisted after cross-session v3.",
+    )
+
+    payload = transparency_activity_record(result.attribution_activity).payload
+    assert payload["observed_current_revision_id"] == str(second.revision_id)
+    assert payload["observed_current_revision_version"] == 2
+    assert payload["observed_current_lifecycle_status"] == "active"
+
+    db_session.refresh(cached_observed)
+    current = db_session.get(EligibilityAssessmentRevision, v3_revision_id)
+    assert current is not None
+    assert cached_observed.lifecycle_status == "superseded"
     assert current.lifecycle_status == "active"
 
 
