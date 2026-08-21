@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
+import pytest
 from sqlmodel import Session
 
 from app.services.organization_eligibility_orchestration import (
@@ -7,6 +10,7 @@ from app.services.organization_eligibility_orchestration import (
     orchestrate_governed_eligibility,
 )
 from app.services.organization_eligibility_revision_runtime_race import (
+    EligibilityRevisionRuntimeRaceAttributionError,
     record_attributed_eligibility_revision_runtime_race,
 )
 from tests.test_organization_eligibility_orchestration import _plan
@@ -70,3 +74,48 @@ def test_h2_4_historical_attribution_replay_survives_later_canonical_supersessio
     assert replay.attribution_activity.id == original.attribution_activity.id
     assert replay.incident.incident_activity.id == original.incident.incident_activity.id
     assert replay.incident.replayed is True
+
+
+def test_h2_4_replay_rejects_changed_revision_snapshot(
+    db_session: Session,
+) -> None:
+    _, graph, _, _, first, second, aggregate = _commit_v1_v2(db_session)
+    plan, _, _ = _plan(graph)
+    race = _race_snapshot(
+        db_session,
+        first_revision_id=first.revision_id,
+        second_revision_id=second.revision_id,
+        aggregate_key=aggregate,
+    )
+    incident_key = "h2-4-revision-snapshot-drift"
+    summary = "Synthetic H.2.4 revision snapshot drift proof."
+
+    record_attributed_eligibility_revision_runtime_race(
+        db_session,
+        tenant_key="tenant-a",
+        aggregate_key=aggregate,
+        incident_key=incident_key,
+        race=race,
+        position_key=plan.producer_position_key,
+        runtime_profile=plan.producer_runtime_profile,
+        summary=summary,
+    )
+
+    drifted_race = replace(
+        race,
+        observed_current_revision_version=race.observed_current_revision_version + 1,
+    )
+    with pytest.raises(
+        EligibilityRevisionRuntimeRaceAttributionError,
+        match="idempotency key conflicts",
+    ):
+        record_attributed_eligibility_revision_runtime_race(
+            db_session,
+            tenant_key="tenant-a",
+            aggregate_key=aggregate,
+            incident_key=incident_key,
+            race=drifted_race,
+            position_key=plan.producer_position_key,
+            runtime_profile=plan.producer_runtime_profile,
+            summary=summary,
+        )
