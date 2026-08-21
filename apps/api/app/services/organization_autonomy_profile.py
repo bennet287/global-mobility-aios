@@ -348,6 +348,11 @@ def establish_capability_autonomy_profile(
             created_by=context.actor_id,
         )
         session.add(profile)
+        # The evidence table uses a composite tenant/profile foreign key and there is
+        # intentionally no ORM relationship between these immutable companion models.
+        # Flush the parent row explicitly before queuing child evidence so PostgreSQL
+        # never observes a child-before-parent insert while preserving one transaction.
+        session.flush([profile])
         evidence_rows: list[CapabilityAutonomyEvidence] = []
         for index, activity in enumerate(evidence_activities, start=1):
             evidence = CapabilityAutonomyEvidence(
