@@ -708,7 +708,7 @@ Accepted H.2.4 GitHub run:
 32500438187
 ```
 
-The H.2.2 runtime-health classification refinement is the current implementation candidate and remains **PRODUCTION PROOF PENDING**.
+The H.2.2 runtime-health classification refinement is **COMPLETE / PASS / SEALED** on technical candidate `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`, Production Proof run `32505228943`.
 
 ---
 
@@ -793,10 +793,11 @@ H.2.2 deliberately does **not** add a runtime recurrence threshold, provider-hea
 
 ### 17.2A H.2.2 runtime-health classification refinement — accepted
 
-Canonical candidate record:
+Canonical refinement records:
 
 ```text
 docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_REFINEMENT_2026-08-21.md
+docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_ACCEPTANCE_2026-08-21.md
 ```
 
 The refinement adds measurement provenance only:
@@ -1082,9 +1083,10 @@ Accepted architecture / history:
 - `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`
 - `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.18 acceptance changelog)
 
-Current acceptance-pending refinement record:
+Accepted H.2.2 classification-refinement records:
 
 - `docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_REFINEMENT_2026-08-21.md`
+- `docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_ACCEPTANCE_2026-08-21.md`
 
 Repository enforcement state:
 
