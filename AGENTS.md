@@ -27,7 +27,7 @@ The central safety rule is that visa, immigration, legal, scholarship, and job c
 global-mobility-aios/
 ├── apps/
 │   ├── api/                  # FastAPI backend (main app, routers, models, services, tests, alembic)
-│   └── web/                  # Next.js 15 operator dashboard + truth review queue
+│   └── web/                  # Next.js 16 operator dashboard + truth review queue
 ├── agents/                   # AI department role cards (Markdown contracts)
 ├── workflows/                # LangGraph + n8n workflows
 ├── knowledge/                # Official source registry and RAG documents
@@ -47,7 +47,7 @@ global-mobility-aios/
 
 ### Backend (`apps/api/`)
 
-- **Python 3.12**
+- **Python 3.12 or 3.13**
 - **FastAPI 0.115+** with **Uvicorn**
 - **Pydantic v2** + **Pydantic-Settings** for configuration
 - **SQLModel** for ORM/models
@@ -76,8 +76,9 @@ These optional AI dependencies are intentionally separated and are **not** insta
 
 ### Frontend (`apps/web/`)
 
-- **Next.js 15.2.4** with App Router
-- **React 19**
+- **Node.js 24** — accepted/proven frontend runtime; root `.nvmrc` declares the required major
+- **Next.js 16.3.1** with App Router
+- **React 19.0.8**
 - **TypeScript 5.8**
 - Plain CSS (`globals.css`) — no Tailwind or component library in this branch
 
@@ -113,14 +114,15 @@ apps/api/
 │   │   └── db.py             # SQLModel engine, sessions, model registration
 │   ├── models/
 │   │   └── domain.py         # SQLModel entities (single source of table definitions)
-│   ├── routers/              # ~30 FastAPI routers (JSON API + HTML admin pages)
+│   ├── routers/              # FastAPI routers (JSON API + HTML admin pages)
 │   ├── services/             # Business logic: truth engine, documents, audit, controlled agents, LLM client, role-card loader
 │   └── workflows/
 │       └── intake_graph.py   # Optional LangGraph skeleton
-├── tests/                    # pytest suite (26 test files + conftest.py)
+├── tests/                    # pytest regression suite + conftest.py
 ├── Dockerfile
 ├── .dockerignore
-├── requirements.txt          # Core Python dependencies
+├── requirements.txt          # Core Python dependency declarations
+├── constraints.txt           # Reviewed direct-dependency production-proof constraints
 └── requirements-ai.txt       # Optional AI/LLM dependencies
 ```
 
@@ -131,13 +133,15 @@ apps/web/
 ├── app/
 │   ├── globals.css           # Custom CSS design system
 │   ├── layout.tsx            # Root layout
-│   └── page.tsx              # Single-page operator dashboard
+│   └── page.tsx              # Operator dashboard
 ├── lib/
 │   └── api.ts                # Typed API client and endpoint helpers
+├── scripts/                  # Frontend proof scripts
 ├── Dockerfile
 ├── README.md
 ├── next.config.js
 ├── package.json
+├── package-lock.json
 └── tsconfig.json
 ```
 
@@ -186,7 +190,9 @@ it. Use a Miniconda or pyenv Python 3.13 install on Windows, or the system Pytho
 3.12/3.13 on Linux/macOS.
 
 Create the virtual environment at the project root (so both `apps/api` and the
-quality scripts use the same interpreter):
+quality scripts use the same interpreter). Local installs must use the same
+`requirements.txt` + `constraints.txt` contract as Docker and Production Proof CI;
+installing from `requirements.txt` alone is not the accepted reproducibility baseline.
 
 ```bash
 # Use Python 3.13 explicitly; adjust the path to your Python 3.13 executable.
@@ -197,12 +203,14 @@ C:/miniconda3/python.exe -m venv .venv
 
 # Windows
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r apps\api\requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r apps\api\requirements.txt -c apps\api\constraints.txt
+.\.venv\Scripts\python.exe -m pip check
 
 # Linux/macOS
 source .venv/bin/activate
-pip install --upgrade pip
-pip install -r apps/api/requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+python -m pip check
 ```
 
 VS Code should automatically pick up `.vscode/settings.json`, which pins the
@@ -226,12 +234,22 @@ uvicorn app.main:app --reload
 
 ### Frontend (local without Docker)
 
+The accepted frontend proof baseline is **Node.js 24**. The repository-root
+`.nvmrc` declares this major. Use Node 24 before installing or testing frontend
+dependencies; Node 20 is not the accepted proof runtime.
+
 ```bash
+# From the repository root, with nvm available:
+nvm use
+
 cd apps/web
-npm install
+npm ci
 export NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 npm run dev
 ```
+
+On Windows without `nvm`, use any Node 24 installation and verify it with
+`node --version` before running `npm ci`.
 
 ### Production / Demo
 
@@ -253,7 +271,8 @@ Startup order in production:
 ### Backend Tests
 
 The test suite lives in `apps/api/tests/` and uses **pytest**. Make sure the
-project-level `.venv` is active and has `apps/api` on `PYTHONPATH`.
+project-level `.venv` was installed with both `requirements.txt` and
+`constraints.txt` and has `apps/api` on `PYTHONPATH`.
 
 ```bash
 # Windows
@@ -264,31 +283,35 @@ source .venv/bin/activate
 PYTHONPATH=apps/api python -m pytest apps/api/tests -q
 ```
 
-Key fixtures in `apps/api/tests/conftest.py`:
+Key fixtures in `apps/api/tests/conftest.py` include isolated SQLite behavior and
+optional PostgreSQL execution through `GMAI_TEST_DATABASE_URL`. The V12 Production
+Proof workflow supplies a real PostgreSQL 16 service for governed eligibility
+contracts.
 
-- In-memory SQLite engine with `StaticPool`
-- `db_session` monkey-patches `app.core.db.engine`
-- `raw_client` overrides `get_session`
-- `client` sets `X-GMAI-Role: admin` and `X-GMAI-User: pytest-admin`
-- Helper factories: `create_lead`, `create_document`, `create_application`, `create_truth_claim`
-
-Test coverage includes:
-
-- Auth roles / login
-- DB URL normalization and schema checks
-- FastAPI lifespan
-- Pydantic v2 compatibility
-- UTC timestamp compatibility
-- Controlled agents and review queue
-- Truth resolution / official sources
-- Document uploads / verification
-- Audit logs, client communications, authority onboarding
-- Release / demo readiness gates
-- Local quality gate integration
+Test coverage includes authentication and roles, migrations/schema checks,
+controlled agents, Truth Engine and official sources, documents, audit and client
+communications, governance/eligibility lineage, Immune System behavior, release
+policy and production-proof contracts.
 
 ### Frontend Tests
 
-There is currently **no testing setup** for the web frontend. The project does not include `jest`, `vitest`, `@playwright/test`, or any test files.
+The frontend has lightweight Node-based contract tests plus TypeScript/build
+proof. There is **not yet a Playwright/browser E2E suite**.
+
+From `apps/web` under Node 24:
+
+```bash
+npm ci
+npm audit --audit-level=high
+npm run test:design-foundation
+npm run test:request-auth
+npx tsc --noEmit
+npm run build
+npm run test:compiled-auth
+```
+
+The compiled-auth proof expects the same public auth/base-URL environment used by
+`.github/workflows/v12-production-proof.yml`.
 
 ### Quality Gate Scripts
 
@@ -307,6 +330,13 @@ python scripts/check_docker_profile.py
 python scripts/check_local_db_schema.py
 python scripts/check_mvp_release.py
 python scripts/check_github_release_ready.py
+```
+
+The V12 proof-specific checks also include:
+
+```bash
+python scripts/check_release_consistency.py --root .
+python scripts/check_python_dependency_constraints.py
 ```
 
 Demo helpers:
@@ -372,13 +402,13 @@ Admin UI:
 
 ## Code Style Guidelines
 
-- **Python 3.12**, **TypeScript 5.8 strict mode**.
+- **Python 3.12/3.13**, **Node.js 24 for frontend proof**, **TypeScript 5.8 strict mode**.
 - Backend uses **Pydantic v2** models for both settings and request/response schemas. Do not introduce Pydantic v1 patterns.
 - All primary keys are **UUIDs**.
 - Complex data is stored in `*_json` string columns in the SQLModel tables.
 - Routers are versioned with tags like `tags=["document-upload-v3.5"]`.
 - JSON API routes are usually under `/api/v1/...`; admin HTML routes are under `/admin/...`.
-- The frontend is a single-page Next.js App Router app. Almost all UI code is in `app/page.tsx`.
+- The frontend uses the Next.js App Router.
 - Custom CSS variables are defined in `app/globals.css`; no Tailwind or UI component library is currently used.
 - Keep AI dependencies isolated in `requirements-ai.txt`; do not add them to `requirements.txt` unless production execution truly requires them.
 - Maintain the deterministic, review-gated controlled-agent pattern: outputs should be `client_facing: False` and `human_review_required: True` by default.
@@ -397,7 +427,9 @@ Admin UI:
 
 ## Deployment and CI
 
-- **CI**: `.github/workflows/repo-policy-check.yml` runs `python scripts/check_repo_policy.py --root .` on every PR and push to `main`.
+- **Production Proof CI**: `.github/workflows/v12-production-proof.yml` runs repository policy/constraints, full backend SQLite regression, frontend install/audit/tests/types/build/compiled-auth, and PostgreSQL 16 governance contracts.
+- **Accepted frontend CI runtime**: Node.js 24.
+- **Backend reproducibility contract**: install `requirements.txt` with `constraints.txt`; CI and the API Docker image use the same direct-dependency constraint file.
 - **Release packaging**: `scripts/export_mvp_release_bundle.py` and `scripts/export_mvp_release_archive.py` generate artifacts under `release_exports/`.
 - **Production stack**: `docker-compose.prod.yml` runs PostgreSQL + Alembic migration job + API only. Redis, Qdrant, MinIO, n8n, and the web frontend build are excluded from this profile and are planned for later phases.
 
@@ -407,11 +439,11 @@ Admin UI:
 2. **Deterministic controlled agents with optional LLM augmentation** — v4.0 agents default to rule-based templates when `LLM_PROVIDER` is empty. When configured, they call DeepSeek or Moonshot using the markdown role cards as system prompts, but always fall back to deterministic templates on failure and remain review-gated.
 3. **Autonomous multi-tasking with Celery** — agents can receive a batch of tasks, execute them asynchronously in a background worker, and queue all outputs for final human review. No task waits for approval before the next one starts.
 4. **Truth Engine as a safety gate** — every visa/job/study/scholarship claim must pass source verification.
-4. **Human-in-the-loop by default** — sensitive workflows pause for human review.
-5. **Audit-everything** — `AgentRun`, `AuditLog`, `SourceCheckRun`, `SourceSnapshot`, `HumanReview` provide traceability.
-6. **Source provenance over RAG volume** — `knowledge/rag/README.md` forbids unattributed immigration rules.
-7. **Versioned features** — code and docs use explicit version markers (e.g., `v4.0`, `v5.6`) in filenames, router comments, and audit `source` fields.
-8. **Local-first, Docker-optional** — default SQLite/localhost config; docker-compose provides the full local dependency stack.
+5. **Human-in-the-loop by default** — sensitive workflows pause for human review.
+6. **Audit-everything** — `AgentRun`, `AuditLog`, `SourceCheckRun`, `SourceSnapshot`, `HumanReview` provide traceability.
+7. **Source provenance over RAG volume** — `knowledge/rag/README.md` forbids unattributed immigration rules.
+8. **Versioned features** — code and docs use explicit version markers (e.g., `v4.0`, `v5.6`) in filenames, router comments, and audit `source` fields.
+9. **Local-first, Docker-optional** — default SQLite/localhost config; docker-compose provides the full local dependency stack.
 
 ## Useful Reference Files
 
@@ -422,6 +454,6 @@ Admin UI:
 - `docs/REPOSITORY_POLICY.md` — Dependency and repository allowlist
 - `docs/SECURITY_AND_COMPLIANCE.md` — Security rules
 - `docs/TRUTH_ENGINE_SPEC.md` — Truth Engine requirements
-- `docs/TEST_SUITE_V2_9.md` — Test suite documentation
+- `docs/TEST_SUITE_V2_9.md` — Historical v2.9 test-suite record; current installation must follow constrained dependency instructions
 - `docs/CONTROLLED_AI_AGENTS_V4_0.md` — Controlled agent design
 - `docs/DOCKER_PRODUCTION_PROFILE_V3_3.md` — Production deployment guide
