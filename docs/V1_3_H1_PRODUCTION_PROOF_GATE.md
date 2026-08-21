@@ -7,7 +7,8 @@
 **Acceptance candidate:** `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`  
 **GitHub Actions run:** `32463849415`  
 **H.1 seal:** ACCEPTED / SEALED  
-**H.2:** BLOCKED pending required-check enforcement verification
+**Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED  
+**H.2:** READY TO BEGIN
 
 ## 1. Why this gate exists
 
@@ -276,25 +277,47 @@ Can Alembic produce the expected PostgreSQL schema?
 Can the governed services satisfy their behavioral contracts on PostgreSQL?
 ```
 
-## 8. CI enforcement versus CI existence
+## 8. CI enforcement versus CI existence — CLOSED
 
-The workflow exists and has executed successfully, but a workflow file alone does not make checks branch-protection-required.
+The workflow exists and has executed successfully. Repository-owner settings evidence now also establishes the integration-enforcement layer on `main`.
 
-H.1 acceptance distinguishes:
+The distinction remains important:
 
 ```text
 CI workflow exists and executes successfully
 ```
 
-from:
+is not the same claim as:
 
 ```text
 repository rules require those checks before protected-branch integration
 ```
 
-The first condition is proven. The second condition has not been verified from GitHub repository rules/settings and is explicitly retained as a remaining repository-settings action.
+Both conditions are now satisfied for the accepted boundary.
 
-No claim is made that branch protection or a ruleset currently requires these checks.
+The configured active ruleset is recorded as:
+
+```text
+ruleset name                         Production proof enforcement
+target                               main
+bypass list                          empty
+require pull request before merging  enabled
+require status checks to pass        enabled
+require branch up to date            enabled
+restrict deletions                   enabled
+block force pushes                   enabled
+```
+
+Required GitHub Actions checks:
+
+```text
+Repository policy and constraints
+Backend regression (SQLite)
+Frontend tests, types and build
+PostgreSQL governance contracts
+```
+
+The GitHub connector available to this project does not expose repository-ruleset configuration directly; the settings evidence is therefore recorded as repository-owner-confirmed rather than connector-introspected.
 
 ## 9. H.1 acceptance gate — SATISFIED
 
@@ -313,7 +336,7 @@ H.1 was accepted on 2026-08-21 after the following conditions were proven:
 11. repository policy with the accidental artifact removed — PASS;
 12. Python constraint enforcement — PASS;
 13. acceptance candidate and evidence record synchronization — PASS;
-14. required-check enforcement — explicitly recorded as the remaining repository-settings action, as permitted by this gate.
+14. required-check enforcement — CONFIGURED / OWNER-CONFIRMED on `main`.
 
 Accepted deterministic backend evidence includes:
 
@@ -363,24 +386,22 @@ Detailed acceptance evidence is preserved in:
 docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
 ```
 
-## 10. H.2 entry condition
+## 10. H.2 entry condition — SATISFIED
 
-H.1 is now accepted and the Production Proof Gate is green, but the roadmap retains one stricter repository-governance prerequisite before H.2 begins:
-
-```text
-verify required GitHub check enforcement
-```
+The stricter repository-governance prerequisite is now closed.
 
 Current transition state:
 
 ```text
 H.1 canonical lineage repair        ACCEPTED / SEALED
 Production Proof Gate               ACCEPTED / GREEN
-Required-check enforcement          NOT VERIFIED
-H.2                                 BLOCKED
+Required-check enforcement          CONFIGURED / OWNER-CONFIRMED
+H.2                                 READY TO BEGIN
 ```
 
-Only after required-check enforcement is verified should work proceed into H.2 production transition guardrails, recurrence thresholds, anomaly aggregation, broader blast-radius policy or additional Immune System capabilities.
+Work may now proceed into H.2 production transition guardrails, recurrence thresholds, anomaly aggregation, broader blast-radius policy or additional Immune System capabilities, subject to the same bounded-implementation and proof discipline established by H.1.
+
+No future H.2 increment is pre-accepted by this entry decision.
 
 ## 11. Decomposition sequencing
 
