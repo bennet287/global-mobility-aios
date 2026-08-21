@@ -1,16 +1,17 @@
 # Global Mobility AIOS — V1.3 H.2.4 Post-Producer Revision-Race Attribution
 
 **Stage:** V1.3-H.2.4
-**Status:** ACCEPTED / COMPLETE / PASS / SEALED
-**Accepted technical candidate:** `393629a4608d7fbba1fcc314dbadeb9426c767cc`
-**Accepted Production Proof:** GitHub Actions run `32484882964`
-**Acceptance record:** `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`
+**Status:** REOPENED / REPAIR CANDIDATE / PRODUCTION PROOF PENDING
+**Prior technical candidate:** `393629a4608d7fbba1fcc314dbadeb9426c767cc`
+**Prior Production Proof:** GitHub Actions run `32484882964` — retained as historical regression evidence, not current acceptance evidence
+**Current repair code candidate:** `405b9261d35fe9ada0e831953f9593f13096df82`
+**Reopening record:** `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`
 **Parent accepted checkpoint:** V1.3-H.2.3 — `17edeca46af2b9cc7e0a6111ec2b3270f4bb1283`
 **Parent Production Proof:** run `32480405051`
 
 ## 1. Purpose
 
-H.2.4 covers one concrete optimistic-concurrency race that H.2.3 deliberately excluded.
+H.2.4 covers one concrete optimistic-concurrency race that H.2.3 deliberately excludes.
 
 A governed reassessment begins against the exact current canonical eligibility revision. The producer runtime is then called. While that producer call is in flight, another governed reassessment commits a newer canonical revision for the same aggregate. When E.2 revalidates the previously accepted revision precondition after producer latency, the original revision is no longer current.
 
@@ -61,6 +62,8 @@ observed_current_revision_version > resolved_current_revision_version
 observed_current_revision_id != resolved_current_revision_id
 ```
 
+`observed_current_lifecycle_status = active` describes the event-time observation made by the immediate post-producer check. It is not a requirement that the same revision still be ACTIVE when the attribution pair is eventually persisted.
+
 ## 3. Explicit exclusions
 
 H.2.4 does not classify:
@@ -101,7 +104,7 @@ EligibilityRevisionPostResolutionAdvance
 
 ## 5. Durable attribution pair
 
-For one accepted H.2.4 race, AIOS persists one atomic pair in the existing aggregate immune stream:
+For one H.2.4 race, AIOS persists one atomic pair in the existing aggregate immune stream:
 
 ```text
 organization.immune.eligibility_revision_runtime_race_attributed.v1
@@ -143,23 +146,70 @@ automatic_retry_applied = false
 
 Runtime identity comes only from the trusted server-side execution plan and reuses the accepted runtime-profile fingerprint contract.
 
-## 6. Replay and atomicity
+## 6. Event-time reconciliation repair
+
+The prior candidate correctly made historical replay independent of later lifecycle advancement, but first persistence still required the observed revision to remain ACTIVE.
+
+That left one real gap:
+
+```text
+v1 accepted
+producer executes
+v2 commits
+post-producer check captures v1 -> v2
+v3 commits before the first H.2.4 attribution write
+v2 becomes superseded
+prior first-write validation rejects v2 because it is no longer ACTIVE
+```
+
+The stale path remained fail-closed, but the durable explanation could be lost. H.2.4 is therefore reopened until the repair is fully proven.
+
+The repair treats the detected v2 as an event-time canonical snapshot and accepts later supersession only under the existing canonical eligibility lineage contract.
+
+First persistence now requires:
+
+```text
+resolved revision identity/version/tenant/aggregate match
+resolved revision is superseded
+
+observed revision identity/version/tenant/aggregate match
+observed lifecycle is active OR superseded
+
+exactly one current ACTIVE revision exists
+if observed remains active, it is the current head
+if observed is superseded, the current ACTIVE revision is strictly newer
+
+validate_canonical_eligibility_lineage(...) succeeds for the descendant chain
+current head traces contiguously back to the resolved revision
+observed revision is encountered on that same chain
+```
+
+This uses the accepted shared validator:
+
+```text
+apps/api/app/services/organization_eligibility_lineage.py
+```
+
+No parallel H.2.4 canonical lineage truth is introduced.
+
+## 7. Replay and atomicity
 
 H.2.4 follows the already-accepted H.2.2/H.2.3 pairing discipline without introducing a generic incident framework:
 
 - attribution and warning are committed as one transactional pair;
-- an injected failure after attribution staging rolls back the pair;
+- an injected failure after attribution staging rolls the pair back;
 - exact replay of the same attribution snapshot reuses the same pair;
 - historical replay remains valid after a later canonical revision supersedes the revision that was ACTIVE when the incident was first recorded;
+- first persistence may also survive that legitimate supersession when the canonical descendant chain proves the event-time snapshot remains valid history;
 - replay validates the immutable persisted attribution before requiring any current-lifecycle condition;
 - a torn pair fails closed;
 - the same incident key cannot be replayed with changed revision snapshots;
 - the same incident key cannot be replayed with changed trusted producer runtime identity;
 - no timestamp-only duplicate attribution is created.
 
-The `observed_current_lifecycle_status = active` field is an event-time fact. It does not require that historical revision to remain ACTIVE forever.
+The `observed_current_lifecycle_status = active` field remains an event-time fact.
 
-## 7. Circuit and recurrence semantics
+## 8. Circuit and recurrence semantics
 
 The paired incident remains the existing H.1 `revision_conflict` WARNING.
 
@@ -179,7 +229,7 @@ Repeated H.2.4 observations therefore remain observation-only in this increment.
 
 A future restrictive policy would require its own accepted measurement window, threshold, contention semantics, false-positive controls, blast radius and recovery contract.
 
-## 8. Recovery semantics
+## 9. Recovery semantics
 
 H.2.4 does not automatically retry or rebase the stale reassessment.
 
@@ -194,74 +244,86 @@ submit with a fresh idempotency key
 
 Automatically recycling the producer output would be unsafe because the output was generated against a superseded canonical state.
 
-## 9. Why this is not REASSESSMENT_ROLLBACK
+## 10. Why this is not REASSESSMENT_ROLLBACK
 
 G.5 supersession is committed transactionally: governance Activity, assessment, predecessor lifecycle transition, new revision and semantic Activity succeed together or the database transaction rolls back.
 
 A failed transaction therefore leaves no committed canonical effect that requires an Immune System rollback incident.
 
-The V1.3 consequence model also states that recovery semantics belong to consequential business actions rather than blanket database rollback. Canonical eligibility history is append-only/superseding truth.
+The V1.3 consequence model states that recovery semantics belong to consequential business actions rather than blanket database rollback. Canonical eligibility history is append-only/superseding truth.
 
 H.2.4 therefore attributes stale provider work; it does not manufacture rollback semantics around an already-atomic database transaction.
 
-## 10. Accepted implementation surface
+## 11. Current repair implementation surface
 
-The accepted increment is intentionally bounded to:
+The repair remains bounded to:
 
 ```text
 organization_eligibility_revision_precondition.py
-  typed post-resolution advance signal
+  existing typed post-resolution advance signal — unchanged by this repair
 
 organization_eligibility_revision_runtime_race.py
   trusted atomic attribution + existing H.1 warning pair
+  event-time first-write reconciliation through shared canonical lineage
   historical replay independent of later lifecycle advancement
 
 organization_eligibility_orchestration.py
-  only the post-producer exception boundary may assert provider egress
+  existing trusted post-producer boundary — unchanged by this repair
 
 test_organization_eligibility_revision_runtime_race.py
-  normal, exclusion and real PostgreSQL cross-session proof
+  existing normal, exclusion and PostgreSQL cross-session proof
 
 test_organization_eligibility_revision_runtime_race_adversarial.py
-  atomicity, torn-pair, identity/snapshot drift and historical replay proof
+  adds exact pre-persistence v3 supersession interleaving
 
 v12-production-proof.yml
-  both H.2.4 test files included in the real PostgreSQL lane
+  already executes both H.2.4 test files in PostgreSQL and all backend tests on SQLite
+```
+
+Repair commits:
+
+```text
+3c69772b37e1389075a5c2da4a02bc8f54796672
+  fix: preserve H.2.4 event-time revision race attribution
+
+405b9261d35fe9ada0e831953f9593f13096df82
+  test: cover H.2.4 pre-persistence supersession race
 ```
 
 No migration, new authority surface, generic anomaly framework or provider-health policy is introduced.
 
-## 11. Accepted proof obligations
+## 12. Re-acceptance proof obligations
 
-The accepted candidate proves:
+The repaired candidate must prove at minimum:
 
 1. a real accepted `v1` reassessment precondition can become `v2` during producer runtime;
 2. the stale attempt calls the producer exactly once;
 3. the stale attempt calls the verifier zero times;
 4. the stale attempt commits no new canonical revision/effect;
-5. the attribution records original `v1` and observed current `v2` identity;
+5. the attribution records original `v1` and observed event-time `v2` identity;
 6. trusted producer position/runtime/provider/model identity is durably fingerprinted;
 7. the paired incident is `revision_conflict / warning` with no automatic circuit action;
 8. concurrent first-time canonical creation does not create an H.2.4 attribution;
 9. H.2.3 pre-egress conflicts remain H.2.3 and do not become H.2.4;
 10. exact attribution replay does not duplicate the pair;
 11. historical replay of a `v1 -> v2` incident still succeeds after a legitimate `v3` supersedes `v2`;
-12. repeated H.2.4 races do not open the aggregate circuit;
-13. failure between attribution staging and incident persistence rolls back atomically;
-14. a torn pair fails closed;
-15. replay with changed revision snapshot fails closed;
-16. replay with changed trusted producer runtime identity fails closed;
-17. a real PostgreSQL cross-session winner can advance the revision during producer runtime and produce the same bounded attribution;
-18. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
+12. first persistence of a `v1 -> v2` event-time snapshot succeeds when legitimate `v3` supersedes `v2` before the attribution write;
+13. that first-write repair preserves `v2` as superseded and `v3` as the single ACTIVE head;
+14. the event-time attribution still records `observed_current_lifecycle_status = active`;
+15. repeated H.2.4 races do not open the aggregate circuit;
+16. failure between attribution staging and incident persistence rolls back atomically;
+17. a torn pair fails closed;
+18. replay with changed revision snapshot fails closed;
+19. replay with changed trusted producer runtime identity fails closed;
+20. a real PostgreSQL cross-session winner can advance the revision during producer runtime and produce the same bounded attribution;
+21. the new pre-persistence supersession regression passes in the real PostgreSQL lane;
+22. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
 
-## 12. Accepted Production Proof
+## 13. Prior Production Proof — historical, not current acceptance
 
-Exact accepted evidence:
+Run `32484882964` on `393629a4608d7fbba1fcc314dbadeb9426c767cc` completed successfully:
 
 ```text
-technical candidate                        393629a4608d7fbba1fcc314dbadeb9426c767cc
-GitHub Actions run                         32484882964
-workflow conclusion                        completed / success
 Repository policy and constraints          PASS
 Backend regression (SQLite)                PASS — 1134 passed / 9 skipped / 1 warning / 0 failed
 Frontend tests, types and build            PASS
@@ -270,19 +332,18 @@ Alembic                                    PASS — 0001 -> 0077
 registered SQLModel tables                 119
 physical schema                            PASS
 Python dependency constraints              PASS — 25 direct dependencies
-diff hygiene                               PASS — git diff --check HEAD^
+diff hygiene                               PASS
 ```
 
-Frontend proof includes Node 24, `npm ci`, zero high-severity audit findings, 28/28 design-foundation tests, 4/4 request/auth tests, TypeScript, Next.js 16.3.1 production build and compiled-auth verification.
+That run remains trustworthy evidence for the tested surface but cannot seal the repaired H.2.4 because it did not contain the newly required pre-persistence v3 interleaving.
 
-The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
+## 14. Separate H.2.2 classification follow-up
 
-Superseded diagnostic runs are retained in the dedicated acceptance record:
+A separate verified review finding concerns H.2.2 runtime-health attribution: configuration/binding failures are not yet durably separated from provider transport/response failures with explicit provider-egress provenance suitable for future health scoring.
 
-- `32483957652` — intermediate candidate canceled by a newer branch push; no test failure;
-- `32484077398` — one adversarial-test construction error from using `dataclasses.replace()` on the exception snapshot object; runtime H.2.4 behavior was not the failing operation. The accepted `393629a...` repair changed only that test construction.
+That is not part of this H.2.4 repair. H.2.2 remains observation-only, and no provider-health scoring or quarantine policy is introduced here.
 
-## 13. Explicit non-claims
+## 15. Explicit non-claims
 
 H.2.4 does not claim or authorize:
 
@@ -300,17 +361,17 @@ H.2.4 does not claim or authorize:
 - H.2 completion;
 - Earned Autonomy.
 
-## 14. Current state
+## 16. Current state
 
 ```text
 H.1      COMPLETE / PASS / SEALED
 H.2.1    COMPLETE / PASS / SEALED
-H.2.2    COMPLETE / PASS / SEALED
+H.2.2    COMPLETE / PASS / SEALED — classification refinement identified
 H.2.3    COMPLETE / PASS / SEALED
-H.2.4    COMPLETE / PASS / SEALED
+H.2.4    REOPENED / REPAIR CANDIDATE / PRODUCTION PROOF PENDING
 H.2      IN PROGRESS
 later H.2 increment  NOT STARTED / NOT PRE-AUTHORIZED
 I        NOT STARTED
 ```
 
-H.2.4 is sealed by `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`. Any later H.2 control must again be selected from accepted data and actual failure semantics rather than from symmetry.
+The accepted V1.3 checkpoint remains H.2.3 until an exact repaired H.2.4 candidate passes the full GitHub-hosted V12 Production Proof and this document is reconciled to that evidence.
