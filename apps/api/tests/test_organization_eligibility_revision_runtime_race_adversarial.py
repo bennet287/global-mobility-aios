@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import replace
-
 import pytest
 from sqlmodel import Session
 
 from app.services.organization_eligibility_orchestration import (
     GovernedEligibilityOrchestrationState,
     orchestrate_governed_eligibility,
+)
+from app.services.organization_eligibility_revision_precondition import (
+    EligibilityRevisionPostResolutionAdvance,
 )
 from app.services.organization_eligibility_revision_runtime_race import (
     EligibilityRevisionRuntimeRaceAttributionError,
@@ -101,8 +102,13 @@ def test_h2_4_replay_rejects_changed_revision_snapshot(
         summary=summary,
     )
 
-    drifted_race = replace(
-        race,
+    drifted_race = EligibilityRevisionPostResolutionAdvance(
+        tenant_key=race.tenant_key,
+        aggregate_key=race.aggregate_key,
+        expected_revision_version=race.expected_revision_version,
+        resolved_revision_id=race.resolved_revision_id,
+        resolved_revision_version=race.resolved_revision_version,
+        observed_current_revision_id=race.observed_current_revision_id,
         observed_current_revision_version=race.observed_current_revision_version + 1,
     )
     with pytest.raises(
