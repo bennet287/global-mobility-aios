@@ -1,11 +1,13 @@
-# V12.21 Pending Changelog — V1.3-I.2 Shadow Autonomy Evidence Profile Foundation
+# V12.21 Acceptance Changelog — V1.3-I.2 Shadow Autonomy Evidence Profile Foundation
 
 **Date:** 2026-08-22
 **Branch:** `roadmap/global-mobility-aios-v12`
-**Status:** IMPLEMENTED / ACCEPTANCE PENDING
-**Last accepted V1.3 checkpoint:** I.1 — technical candidate `581df5d99b65f0a7a49ace228ee707b881d508fa`, Production Proof run `32529241957`
+**Status:** ACCEPTED / COMPLETE / PASS / SEALED
+**Accepted technical candidate:** `c23e64a95770b1736ac9921486f8d017d17f930b`
+**Accepted Production Proof:** GitHub Actions run `32533230630`
+**Acceptance record:** `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md`
 
-This record captures the I.2 implementation state without claiming COMPLETE / PASS / SEALED before the exact post-documentation candidate passes the V12 Production Proof gate.
+This file retains its historical `PENDING_CHANGELOG` filename for continuity, but the I.2 delivery recorded here is now closed and accepted. The full code/runtime proof applies to the exact technical candidate above; later acceptance-documentation commits reconcile repository truth without pretending the full code suite reran on those docs-only SHAs.
 
 ## Implementation lineage
 
@@ -20,9 +22,9 @@ dc828bd5c5e4d54e95ad792308f40ea7a6d9b97a  test: advance organization migration b
 9de51be193f023e887ecc59f1a425003fd19be37  test: add I.2 PostgreSQL observation race contract
 12a2c2288a0291ae108638381c82fe5251bd2836  docs: mark I.2 shadow evidence implementation acceptance pending
 7f15bb8c13098694e6b2c194261c09377e8016ee  docs: fix V12.21 changelog diff hygiene
+c23e64a95770b1736ac9921486f8d017d17f930b  fix: bound I.2 PostgreSQL index identifiers
+50a11765c5029ed00ddc3a10e65a0f7b3f5c4d23  docs: seal V1.3 I.2 shadow autonomy evidence profile foundation
 ```
-
-The final acceptance candidate is intentionally not named yet because this pending changelog itself advances the branch head and must be included in exact-candidate proof.
 
 ## Canonical I.2 scope
 
@@ -88,7 +90,7 @@ There is deliberately no I.2 POST/PUT/PATCH/DELETE HTTP route.
 
 ## Replay / integrity / concurrency
 
-The implementation protects:
+The accepted implementation protects:
 
 ```text
 unique tenant + idempotency_key
@@ -172,23 +174,82 @@ I.2 adds exactly one registered application table:
 capability_autonomy_evidence_observations
 ```
 
-Expected exact-candidate application-table count:
+Accepted application-table count:
 
 ```text
 122
 ```
 
-This `0079` / 122-table schema claim is **acceptance pending** until the exact candidate passes fresh SQLite and PostgreSQL migration/physical-schema proof.
+Fresh SQLite and PostgreSQL migration/physical-schema proof both verified `0079_capability_autonomy_evidence_profile_foundation`, 122 registered application tables and matching physical schema.
 
 ### PostgreSQL identifier-length diagnostic and repair
 
 The first exact I.2 PostgreSQL migration attempt reached `0079` but failed before schema verification because an explicitly constructed index name exceeded PostgreSQL's 63-character identifier limit. SQLite accepted the same identifier, so this was a real cross-dialect migration defect rather than an I.2 measurement-policy issue.
 
-The repair replaces the seven overlength automatic-style index names with bounded explicit names in both SQLModel metadata and migration `0079`. No columns, constraints, uniqueness, foreign keys, measurement semantics, authority boundaries or autonomy behavior changed.
+The repair in `c23e64a95770b1736ac9921486f8d017d17f930b` replaces the seven overlength automatic-style index names with bounded explicit names in both SQLModel metadata and migration `0079`. No columns, constraints, uniqueness, foreign keys, measurement semantics, authority boundaries or autonomy behavior changed.
 
-## Test surface implemented
+The repaired exact candidate then migrated a fresh PostgreSQL 16 database through `0079` and passed physical-schema verification before the governed PostgreSQL contract suite executed.
 
-The repository now contains I.2 coverage for:
+## Accepted Production Proof
+
+The exact technical candidate `c23e64a95770b1736ac9921486f8d017d17f930b` passed GitHub Actions run `32533230630` across all four required lanes:
+
+```text
+Repository policy and constraints        PASS
+Backend regression (SQLite)              PASS
+Frontend tests, types and build          PASS
+PostgreSQL governance contracts          PASS
+```
+
+All jobs explicitly checked out the exact accepted candidate SHA.
+
+Accepted backend evidence:
+
+```text
+Python                                    3.12.14
+full SQLite regression                    1147 passed / 13 skipped / 1 warning / 0 failed
+Alembic SQLite                            0001 -> 0079 PASS
+migration head                            0079_capability_autonomy_evidence_profile_foundation
+registered SQLModel tables                122
+physical schema                           PASS
+local schema contract                     PASS — 122 actual application tables / 123 physical including alembic_version
+```
+
+Accepted PostgreSQL evidence:
+
+```text
+PostgreSQL                                16
+Alembic PostgreSQL                        0001 -> 0079 PASS
+migration head                            0079_capability_autonomy_evidence_profile_foundation
+registered SQLModel tables                122
+physical schema                           PASS
+governed eligibility/autonomy suite       96 passed / 1 warning / 0 failed
+concurrent same-profile/same-source race  PASS
+```
+
+Accepted frontend/repository evidence:
+
+```text
+Node                                      24
+npm install/audit                         PASS — 0 vulnerabilities
+design foundation                         PASS — 28/28
+request/auth                              PASS — 4/4
+TypeScript                                PASS
+Next.js 16.3.1 production build           PASS
+compiled auth                             PASS
+repository policy                         PASS
+release consistency                       PASS — 0079
+Python dependency constraints             PASS
+diff hygiene                              PASS
+```
+
+The known Pydantic `model_metadata_json` protected-namespace warning remains visible and non-blocking.
+
+The duplicate-key message visible in the PostgreSQL service log during the adversarial race is expected rejected-writer behavior exercised by the concurrency contract; the governed pytest lane itself passed 96/96 tests.
+
+## Accepted test surface
+
+Acceptance includes contract coverage for:
 
 - Human Board observation establishment;
 - trusted SYSTEM observation establishment;
@@ -210,13 +271,10 @@ The repository now contains I.2 coverage for:
 - organization architecture ceiling `0079`;
 - real PostgreSQL concurrent same-profile/same-source observation exclusion.
 
-These tests are present but are **not represented as accepted** until the exact post-documentation candidate passes the complete proof gate.
-
 ## Explicit non-claims
 
 I.2 does not claim:
 
-- COMPLETE / PASS / SEALED before exact-candidate proof;
 - automatic autonomy promotion;
 - automatic autonomy downgrade;
 - promotion eligibility or recommendation;
@@ -233,4 +291,4 @@ I.2 does not claim:
 - completion of the wider Earned Autonomy stage;
 - completion of the future Organizational Immune System.
 
-The accepted V1.3 baseline remains I.1 until exact-candidate V12 Production Proof is green and I.2 acceptance is explicitly recorded.
+The accepted V1.3 baseline is now I.2. The acceptance record is `docs/V1_3_I2_SHADOW_AUTONOMY_EVIDENCE_PROFILE_ACCEPTANCE_2026-08-22.md`, anchored to exact technical candidate `c23e64a95770b1736ac9921486f8d017d17f930b` and Production Proof run `32533230630`.
