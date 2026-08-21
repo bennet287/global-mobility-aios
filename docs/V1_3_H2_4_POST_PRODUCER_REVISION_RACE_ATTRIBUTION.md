@@ -1,7 +1,7 @@
 # Global Mobility AIOS — V1.3 H.2.4 Post-Producer Revision-Race Attribution
 
 **Stage:** V1.3-H.2.4
-**Status:** DESIGN BOUNDARY / IMPLEMENTATION NOT YET ACCEPTED
+**Status:** IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
 **Parent accepted checkpoint:** V1.3-H.2.3 — `17edeca46af2b9cc7e0a6111ec2b3270f4bb1283`
 **Parent reconciled branch head:** `6ce751047b3a1cdd96f601d7c313eb847feebb1a`
 
@@ -80,7 +80,7 @@ Those are different failure models and must not be collapsed into one incident c
 
 ## 4. Canonical signal boundary
 
-The low-level G.5 revalidation helper may expose a narrow typed stale subtype when a previously accepted reassessment precondition is later observed to have advanced to a newer single ACTIVE canonical revision.
+The low-level G.5 revalidation helper exposes `EligibilityRevisionPostResolutionAdvance` only when a previously accepted reassessment precondition is later observed to have advanced to a newer single ACTIVE canonical revision.
 
 The low-level subtype describes canonical state only. It does not itself claim provider egress.
 
@@ -92,13 +92,13 @@ This preserves H.2.3 semantics:
 EligibilityRevisionPreconditionConflict
     = stale conflict already known before provider egress
 
-post-resolution advancement subtype
+EligibilityRevisionPostResolutionAdvance
     = previously valid reassessment became stale later
 ```
 
 ## 5. Durable attribution pair
 
-For one accepted H.2.4 race, AIOS should persist one atomic pair in the existing aggregate immune stream:
+For one accepted H.2.4 race, AIOS persists one atomic pair in the existing aggregate immune stream:
 
 ```text
 organization.immune.eligibility_revision_runtime_race_attributed.v1
@@ -108,7 +108,7 @@ organization.immune.eligibility_incident.v1
   severity = warning
 ```
 
-The attribution should record at minimum:
+The attribution records at minimum:
 
 ```text
 failure_stage = e2_revision_precondition_post_producer_egress
@@ -138,7 +138,7 @@ recurrence_policy_applied = false
 automatic_retry_applied = false
 ```
 
-Runtime identity must come only from the trusted server-side execution plan and reuse the existing runtime-profile fingerprint contract.
+Runtime identity comes only from the trusted server-side execution plan and reuses the accepted runtime-profile fingerprint contract.
 
 ## 6. Replay and atomicity
 
@@ -197,7 +197,30 @@ The V1.3 consequence model also states that recovery semantics belong to consequ
 
 H.2.4 therefore attributes stale provider work; it does not manufacture rollback semantics around an already-atomic database transaction.
 
-## 10. Proof obligations
+## 10. Implementation surface
+
+The current candidate is intentionally bounded to:
+
+```text
+organization_eligibility_revision_precondition.py
+  typed post-resolution advance signal
+
+organization_eligibility_revision_runtime_race.py
+  trusted atomic attribution + existing H.1 warning pair
+
+organization_eligibility_orchestration.py
+  only the post-producer exception boundary may assert provider egress
+
+test_organization_eligibility_revision_runtime_race.py
+  normal, adversarial and PostgreSQL cross-session proof
+
+v12-production-proof.yml
+  H.2.4 test file included in the real PostgreSQL lane
+```
+
+No migration, new authority surface, generic anomaly framework or provider-health policy is introduced.
+
+## 11. Proof obligations
 
 The H.2.4 implementation candidate must prove at minimum:
 
@@ -219,7 +242,7 @@ The H.2.4 implementation candidate must prove at minimum:
 16. a real PostgreSQL cross-session winner can advance the revision during producer runtime and produce the same bounded attribution;
 17. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
 
-## 11. Explicit non-claims
+## 12. Explicit non-claims
 
 H.2.4 does not claim or authorize:
 
@@ -237,14 +260,14 @@ H.2.4 does not claim or authorize:
 - H.2 completion;
 - Earned Autonomy.
 
-## 12. Entry state
+## 13. Current state
 
 ```text
 H.1      COMPLETE / PASS / SEALED
 H.2.1    COMPLETE / PASS / SEALED
 H.2.2    COMPLETE / PASS / SEALED
 H.2.3    COMPLETE / PASS / SEALED
-H.2.4    DESIGN BOUNDARY / IMPLEMENTATION NOT YET ACCEPTED
+H.2.4    IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
 H.2      IN PROGRESS
 I        NOT STARTED
 ```
