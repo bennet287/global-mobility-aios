@@ -1,8 +1,8 @@
 # V1.3 Plasma Controlled Adoption Roadmap — 2026-08-21
 
-**Status:** TRACK B PILOT PROGRAMME — APPROVED TO START  
-**Production authority effect:** NONE  
-**Accepted V1.3 baseline:** H.2.4 COMPLETE / PASS / SEALED  
+**Status:** TRACK B PILOT PROGRAMME — APPROVED TO START
+**Production authority effect:** NONE
+**Accepted V1.3 baseline:** H.2.4 COMPLETE / PASS / SEALED
 **Active Track C candidate:** H.2.2 runtime-health classification refinement — PRODUCTION PROOF PENDING
 
 ---
