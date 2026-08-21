@@ -46,6 +46,36 @@ class EligibilityRevisionPreconditionConflict(EligibilityRevisionPreconditionSta
         self.current_revision_version = current_revision_version
 
 
+class EligibilityRevisionPostResolutionAdvance(EligibilityRevisionPreconditionStale):
+    """A valid reassessment precondition advanced after it was initially resolved.
+
+    This subtype is state-only. It proves that a previously accepted reassessment
+    revision was superseded by a newer ACTIVE revision before a later revalidation.
+    It does not itself claim that provider egress occurred; H.2.4 applies that meaning
+    only at the trusted E.2/G.4 post-producer boundary.
+    """
+
+    def __init__(
+        self,
+        *,
+        tenant_key: str,
+        aggregate_key: str,
+        expected_revision_version: int,
+        resolved_revision_id: UUID,
+        resolved_revision_version: int,
+        observed_current_revision_id: UUID,
+        observed_current_revision_version: int,
+    ) -> None:
+        super().__init__("canonical eligibility revision advanced after precondition resolution")
+        self.tenant_key = tenant_key
+        self.aggregate_key = aggregate_key
+        self.expected_revision_version = expected_revision_version
+        self.resolved_revision_id = resolved_revision_id
+        self.resolved_revision_version = resolved_revision_version
+        self.observed_current_revision_id = observed_current_revision_id
+        self.observed_current_revision_version = observed_current_revision_version
+
+
 class EligibilityRevisionAggregateIntegrityError(EligibilityRevisionPreconditionError):
     """Canonical eligibility aggregate lifecycle state is internally inconsistent."""
 
@@ -208,10 +238,29 @@ def require_eligibility_revision_precondition_current(
             pathway_id=pathway_id,
             expected_revision_version=precondition.expected_revision_version,
         )
+    except EligibilityRevisionPreconditionConflict as exc:
+        if (
+            precondition.current_revision_id is not None
+            and precondition.current_revision_version is not None
+            and precondition.expected_revision_version == precondition.current_revision_version
+            and exc.tenant_key == precondition.tenant_key
+            and exc.aggregate_key == precondition.aggregate_key
+            and exc.current_revision_id != precondition.current_revision_id
+            and exc.current_revision_version > precondition.current_revision_version
+        ):
+            raise EligibilityRevisionPostResolutionAdvance(
+                tenant_key=precondition.tenant_key,
+                aggregate_key=precondition.aggregate_key,
+                expected_revision_version=precondition.expected_revision_version,
+                resolved_revision_id=precondition.current_revision_id,
+                resolved_revision_version=precondition.current_revision_version,
+                observed_current_revision_id=exc.current_revision_id,
+                observed_current_revision_version=exc.current_revision_version,
+            ) from exc
+        raise EligibilityRevisionPreconditionStale(
+            "canonical eligibility revision changed after precondition resolution"
+        ) from exc
     except EligibilityRevisionPreconditionError as exc:
-        # Deliberately collapse any later race back to the generic stale type. H.2.3
-        # attributes only conflicts known before provider egress; a revision change
-        # discovered after runtime latency is a separate failure model.
         raise EligibilityRevisionPreconditionStale(
             "canonical eligibility revision changed after precondition resolution"
         ) from exc
