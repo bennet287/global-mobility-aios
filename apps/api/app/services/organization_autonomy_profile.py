@@ -85,6 +85,52 @@ def _autonomy_rank(level: AutonomyLevel) -> int:
     return int(level.value[1])
 
 
+def _profile_record_fingerprint(
+    *,
+    tenant_key: str,
+    position_key: str,
+    capability_key: str,
+    context_scope: str,
+    autonomy_level: str,
+    board_ceiling: str,
+    authority_requirement: str,
+    risk_ceiling: str,
+    evidence_policy_version: str,
+    governance_source: str,
+    idempotency_key: str,
+    evidence: Sequence[tuple[UUID, str]],
+) -> str:
+    """Fingerprint the immutable semantic content of one autonomy profile revision.
+
+    Chain sequence/supersession are validated independently so historical idempotent
+    replay remains resolvable even after a later revision becomes current.
+    """
+
+    return canonical_fingerprint(
+        {
+            "contract_version": AUTONOMY_PROFILE_CONTRACT_VERSION,
+            "tenant_key": tenant_key,
+            "position_key": position_key,
+            "capability_key": capability_key,
+            "context_scope": context_scope,
+            "autonomy_level": autonomy_level,
+            "board_ceiling": board_ceiling,
+            "authority_requirement": authority_requirement,
+            "risk_ceiling": risk_ceiling,
+            "evidence_policy_version": evidence_policy_version,
+            "governance_source": governance_source,
+            "idempotency_key": idempotency_key,
+            "evidence": [
+                {
+                    "source_activity_id": str(activity_id),
+                    "source_activity_fingerprint": activity_fingerprint,
+                }
+                for activity_id, activity_fingerprint in evidence
+            ],
+        }
+    )
+
+
 def _scope_statement(
     *,
     tenant_key: str,
@@ -188,28 +234,22 @@ def establish_capability_autonomy_profile(
             )
         )
 
-    semantic_command = {
-        "contract_version": AUTONOMY_PROFILE_CONTRACT_VERSION,
-        "tenant_key": context.tenant_key,
-        "position_key": position_key,
-        "capability_key": capability_key,
-        "context_scope": context_scope,
-        "autonomy_level": autonomy.value,
-        "board_ceiling": ceiling.value,
-        "authority_requirement": authority_requirement,
-        "risk_ceiling": risk.value,
-        "evidence_policy_version": evidence_policy_version,
-        "expected_profile_sequence": expected_profile_sequence,
-        "governance_source": AUTONOMY_PROFILE_GOVERNANCE_SOURCE,
-        "evidence": [
-            {
-                "source_activity_id": str(activity.id),
-                "source_activity_fingerprint": activity.record_fingerprint,
-            }
-            for activity in evidence_activities
-        ],
-    }
-    record_fingerprint = canonical_fingerprint(semantic_command)
+    record_fingerprint = _profile_record_fingerprint(
+        tenant_key=context.tenant_key,
+        position_key=position_key,
+        capability_key=capability_key,
+        context_scope=context_scope,
+        autonomy_level=autonomy.value,
+        board_ceiling=ceiling.value,
+        authority_requirement=authority_requirement,
+        risk_ceiling=risk.value,
+        evidence_policy_version=evidence_policy_version,
+        governance_source=AUTONOMY_PROFILE_GOVERNANCE_SOURCE,
+        idempotency_key=idempotency_key,
+        evidence=tuple(
+            (activity.id, activity.record_fingerprint) for activity in evidence_activities
+        ),
+    )
     replay = _existing_idempotent_profile(
         session,
         tenant_key=context.tenant_key,
@@ -413,6 +453,8 @@ def capability_autonomy_profile_snapshot(
             RiskTier(profile.risk_ceiling)
         except ValueError as exc:
             raise AutonomyProfileIntegrityError("autonomy profile contains invalid constitutional tiers") from exc
+        if profile.governance_source != AUTONOMY_PROFILE_GOVERNANCE_SOURCE:
+            raise AutonomyProfileIntegrityError("autonomy profile governance source is inconsistent")
 
         decision = tenant_record(
             session,
@@ -421,11 +463,13 @@ def capability_autonomy_profile_snapshot(
             tenant_key,
             label="autonomy profile decision activity",
         )
+        expected_superseded_decision_id = previous.decision_activity_id if previous is not None else None
         if (
             decision.activity_type != AUTONOMY_PROFILE_ACTIVITY_TYPE
             or decision.source_object_type != AUTONOMY_PROFILE_SOURCE_TYPE
             or decision.source_object_id != str(profile.id)
             or decision.source_object_version != str(profile.profile_sequence)
+            or decision.supersedes_activity_id != expected_superseded_decision_id
         ):
             raise AutonomyProfileIntegrityError("autonomy profile decision Activity lineage is inconsistent")
 
@@ -470,6 +514,26 @@ def capability_autonomy_profile_snapshot(
                     record_fingerprint=evidence.record_fingerprint,
                 )
             )
+
+        expected_profile_fingerprint = _profile_record_fingerprint(
+            tenant_key=profile.tenant_key,
+            position_key=profile.position_key,
+            capability_key=profile.capability_key,
+            context_scope=profile.context_scope,
+            autonomy_level=profile.autonomy_level,
+            board_ceiling=profile.board_ceiling,
+            authority_requirement=profile.authority_requirement,
+            risk_ceiling=profile.risk_ceiling,
+            evidence_policy_version=profile.evidence_policy_version,
+            governance_source=profile.governance_source,
+            idempotency_key=profile.idempotency_key,
+            evidence=tuple(
+                (evidence.source_activity_id, evidence.source_activity_fingerprint)
+                for evidence in evidence_rows
+            ),
+        )
+        if profile.record_fingerprint != expected_profile_fingerprint:
+            raise AutonomyProfileIntegrityError("autonomy profile record fingerprint is inconsistent")
 
         revisions.append(
             AutonomyProfileRevisionSnapshot(
