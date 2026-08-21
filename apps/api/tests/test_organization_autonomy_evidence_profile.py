@@ -9,7 +9,7 @@ from sqlmodel import Session
 from app.core.organization_constitution import AutonomyLevel, RiskTier
 from app.models.autonomy_evidence_profile import CapabilityAutonomyEvidenceObservation
 from app.models.autonomy_profile import CapabilityAutonomyProfile
-from app.models.domain import OrganizationActorType, OrganizationPosition
+from app.models.domain import OrganizationActorType, OrganizationPosition, now_utc
 from app.services.organization_activity import append_activity
 from app.services.organization_autonomy_evidence_profile import (
     AutonomyEvidenceProfileIntegrityError,
@@ -99,6 +99,7 @@ def _activity(
         summary="Synthetic canonical outcome used to prove I.2 shadow measurement.",
         source_object_type="governed_capability_outcome",
         source_object_id=key,
+        occurred_at=now_utc(),
         payload={"test_contract": "v1.3-i.2", "qualifying": True},
     )
 
