@@ -1,7 +1,9 @@
 # Global Mobility AIOS — V1.3 H.2.2 Runtime-Health Classification Refinement — 2026-08-21
 
 **Stage:** V1.3-H.2.2 follow-up refinement
-**Status:** IMPLEMENTED / PRODUCTION PROOF PENDING
+**Status:** COMPLETE / PASS / SEALED
+**Accepted technical candidate:** `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`
+**Accepted Production Proof:** `32505228943`
 **Parent accepted H.2.2 candidate:** `c5c2a68ac3a9caf2551204d61862b6ad0b6281eb`
 **Parent accepted H.2.2 Production Proof:** `32473526874`
 **Latest accepted V1.3 checkpoint:** V1.3-H.2.4
@@ -14,7 +16,7 @@ This is a bounded measurement/provenance refinement to the already-sealed H.2.2 
 
 It does not introduce H.2.5, provider-health scoring, provider quarantine, a recurrence threshold, automatic failover, automatic recovery, authority, or autonomy.
 
-The verified problem is that the accepted H.2.2 attribution could represent both:
+The verified problem was that the accepted H.2.2 attribution could represent both:
 
 ```text
 unsupported/configuration/runtime-binding failure before provider egress
@@ -24,9 +26,9 @@ provider/runtime failure after the provider execution boundary
 
 with the same undifferentiated `runtime_health_failure` provenance.
 
-That is harmless while H.2.2 remains observation-only, but unsafe as future measurement input because configuration failures must not silently become evidence of provider outages.
+That was harmless while H.2.2 remained observation-only, but unsafe as future measurement input because configuration failures must not silently become evidence of provider outages.
 
-## 2. Classification contract
+## 2. Accepted classification contract
 
 New H.2.2 attributions explicitly carry:
 
@@ -36,7 +38,7 @@ provider_egress_occurred
 classification_contract
 ```
 
-Bounded classifications:
+Accepted classifications:
 
 ```text
 configuration_or_binding_failure
@@ -44,7 +46,7 @@ provider_transport_failure
 provider_response_contract_failure
 ```
 
-Semantics:
+Accepted semantics:
 
 ```text
 configuration_or_binding_failure
@@ -59,7 +61,7 @@ provider_response_contract_failure
 
 For this contract, `provider_egress_occurred=true` means the external provider execution boundary was entered. It does not assert that a remote provider successfully processed the request.
 
-## 3. Failure boundaries
+## 3. Accepted failure boundaries
 
 Examples classified before provider egress:
 
@@ -114,20 +116,48 @@ autonomy effect               none
 
 The Immune System remains restrict-only and this refinement adds no new restriction.
 
-## 6. Acceptance obligations
+## 6. Accepted proof
 
-Before this refinement may be marked accepted:
+Accepted technical candidate:
 
-1. unsupported producer runtime must prove zero provider calls and persist `configuration_or_binding_failure / false`;
-2. provider transport failure must persist `provider_transport_failure / true`;
-3. provider response identity mismatch must persist `provider_response_contract_failure / true`;
-4. verifier runtime-health attribution must retain proposal causation and correlation;
-5. changed failure classification on replay must fail closed;
-6. existing H.2.2 atomic rollback, torn-pair, identity-drift and observation-only proofs must remain green;
-7. broad SQLite backend regression must remain green;
-8. fresh PostgreSQL governed eligibility contracts must remain green;
-9. frontend proof must remain green;
-10. repository policy, dependency, release and diff-hygiene checks must remain green;
-11. all four V12 Production Proof jobs must pass on the exact candidate.
+```text
+25b19728e7dc35f3f0450f6ae839fa57fe36c1e4
+```
 
-Until that proof exists, this record is an implementation candidate only.
+Accepted GitHub Production Proof:
+
+```text
+32505228943
+```
+
+Evidence:
+
+```text
+Repository policy and constraints     PASS
+Backend regression (SQLite)           PASS — 1138 passed / 10 skipped / 1 warning / 0 failed
+Frontend tests, types and build       PASS
+PostgreSQL governance contracts       PASS — 93 passed / 1 warning / 0 failed
+Fresh PostgreSQL 16 migration         PASS — 0001 → 0077
+Registered SQLModel tables            119
+Physical PostgreSQL schema            PASS
+Database revision                     0077_canonical_eligibility_assessment_revision
+```
+
+The exact candidate also proved:
+
+1. unsupported producer runtime persists `configuration_or_binding_failure / false` and makes zero provider calls;
+2. provider transport failure persists `provider_transport_failure / true`;
+3. provider response identity mismatch persists `provider_response_contract_failure / true`;
+4. verifier runtime-health attribution retains proposal causation and correlation;
+5. changed failure classification on replay fails closed;
+6. incomplete classification provenance fails closed;
+7. already-durable legacy H.2.2 records remain replayable without rewriting;
+8. existing H.2.2 atomic rollback, torn-pair, identity-drift and observation-only proofs remain green;
+9. repository policy, dependency, release, migration/schema and diff-hygiene checks remain green;
+10. all four V12 Production Proof jobs passed on the exact candidate.
+
+## 7. Acceptance conclusion
+
+The H.2.2 runtime-health classification refinement is **COMPLETE / PASS / SEALED**.
+
+It improves measurement fidelity only. It does not authorize provider-health scoring, provider-wide quarantine, runtime recurrence thresholds, automatic failover, automatic recovery, authority changes or autonomy changes.
