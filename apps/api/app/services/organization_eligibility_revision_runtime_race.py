@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from sqlmodel import Session, select
 
@@ -16,6 +17,10 @@ from app.services.organization_eligibility_immune_system import (
     EligibilityImmuneIncidentResult,
     eligibility_immune_system_context,
     record_eligibility_immune_incident,
+)
+from app.services.organization_eligibility_lineage import (
+    CanonicalEligibilityLineageError,
+    validate_canonical_eligibility_lineage,
 )
 from app.services.organization_eligibility_revision_precondition import (
     EligibilityRevisionPostResolutionAdvance,
@@ -113,6 +118,129 @@ def _matching_existing_attribution(
     )
 
 
+def _fresh_revision(
+    session: Session,
+    *,
+    revision_id: UUID,
+) -> EligibilityAssessmentRevision | None:
+    return session.exec(
+        select(EligibilityAssessmentRevision)
+        .where(EligibilityAssessmentRevision.id == revision_id)
+        .execution_options(populate_existing=True)
+    ).first()
+
+
+def _reconcile_event_time_revision_snapshot(
+    session: Session,
+    *,
+    tenant_key: str,
+    aggregate_key: str,
+    race: EligibilityRevisionPostResolutionAdvance,
+) -> None:
+    """Prove an observed event-time revision remains on the canonical descendant chain."""
+
+    resolved_revision = _fresh_revision(
+        session,
+        revision_id=race.resolved_revision_id,
+    )
+    observed_revision = _fresh_revision(
+        session,
+        revision_id=race.observed_current_revision_id,
+    )
+    if (
+        resolved_revision is None
+        or resolved_revision.tenant_key != tenant_key
+        or resolved_revision.aggregate_key != aggregate_key
+        or resolved_revision.version != race.resolved_revision_version
+        or resolved_revision.lifecycle_status != "superseded"
+    ):
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "resolved revision snapshot cannot be reconciled with durable superseded lineage"
+        )
+    if (
+        observed_revision is None
+        or observed_revision.tenant_key != tenant_key
+        or observed_revision.aggregate_key != aggregate_key
+        or observed_revision.version != race.observed_current_revision_version
+        or observed_revision.lifecycle_status not in {"active", "superseded"}
+    ):
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "observed revision snapshot cannot be reconciled with durable canonical lineage"
+        )
+
+    active_revisions = list(
+        session.exec(
+            select(EligibilityAssessmentRevision)
+            .where(
+                EligibilityAssessmentRevision.tenant_key == tenant_key,
+                EligibilityAssessmentRevision.aggregate_key == aggregate_key,
+                EligibilityAssessmentRevision.lifecycle_status == "active",
+            )
+            .order_by(EligibilityAssessmentRevision.version.desc())
+            .execution_options(populate_existing=True)
+        ).all()
+    )
+    if len(active_revisions) != 1:
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "eligibility aggregate must have exactly one current ACTIVE revision"
+        )
+    current_revision = active_revisions[0]
+    if current_revision.id == observed_revision.id:
+        if observed_revision.lifecycle_status != "active":
+            raise EligibilityRevisionRuntimeRaceAttributionError(
+                "observed revision lifecycle conflicts with the current ACTIVE revision"
+            )
+    elif (
+        observed_revision.lifecycle_status != "superseded"
+        or current_revision.version <= observed_revision.version
+    ):
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "a superseded observed revision requires a newer current ACTIVE descendant"
+        )
+
+    observed_seen = False
+    cursor = current_revision
+    while True:
+        fresh_cursor = _fresh_revision(session, revision_id=cursor.id)
+        if fresh_cursor is None:
+            raise EligibilityRevisionRuntimeRaceAttributionError(
+                "canonical revision descendant chain contains a missing revision"
+            )
+        if fresh_cursor.supersedes_revision_id is not None:
+            _fresh_revision(
+                session,
+                revision_id=fresh_cursor.supersedes_revision_id,
+            )
+        try:
+            lineage = validate_canonical_eligibility_lineage(
+                session,
+                tenant_key=tenant_key,
+                revision=fresh_cursor,
+            )
+        except CanonicalEligibilityLineageError as exc:
+            raise EligibilityRevisionRuntimeRaceAttributionError(
+                "revision runtime-race snapshot conflicts with canonical eligibility lineage"
+            ) from exc
+
+        if fresh_cursor.id == observed_revision.id:
+            observed_seen = True
+        if fresh_cursor.id == resolved_revision.id:
+            break
+        if (
+            fresh_cursor.version <= resolved_revision.version
+            or lineage.predecessor_revision is None
+        ):
+            raise EligibilityRevisionRuntimeRaceAttributionError(
+                "revision runtime-race snapshot is not on the current canonical descendant chain"
+            )
+        cursor = lineage.predecessor_revision
+
+    if not observed_seen:
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "observed revision snapshot is not on the current canonical descendant chain"
+        )
+
+
 def record_attributed_eligibility_revision_runtime_race(
     session: Session,
     *,
@@ -132,10 +260,11 @@ def record_attributed_eligibility_revision_runtime_race(
     canonical effect have not. The paired REVISION_CONFLICT incident remains warning-only
     and does not participate in H.2.1 recurrence.
 
-    Historical replay validates the immutable persisted attribution before requiring
-    the once-observed revision to remain current. A later canonical revision may
-    legitimately supersede that observed revision without invalidating the historical
-    incident snapshot.
+    First persistence treats the observed revision as an event-time snapshot. It may
+    already have become superseded, but only if the durable canonical aggregate proves
+    that it remains on the contiguous descendant chain from the resolved revision to the
+    single newer ACTIVE head. Historical replay validates the immutable persisted
+    attribution before requiring that once-observed revision to remain current.
     """
 
     tenant = _required_text(tenant_key, label="tenant_key")
@@ -241,34 +370,12 @@ def record_attributed_eligibility_revision_runtime_race(
             incident=replay,
         )
 
-    resolved_revision = session.get(
-        EligibilityAssessmentRevision,
-        race.resolved_revision_id,
+    _reconcile_event_time_revision_snapshot(
+        session,
+        tenant_key=tenant,
+        aggregate_key=aggregate,
+        race=race,
     )
-    observed_revision = session.get(
-        EligibilityAssessmentRevision,
-        race.observed_current_revision_id,
-    )
-    if (
-        resolved_revision is None
-        or resolved_revision.tenant_key != tenant
-        or resolved_revision.aggregate_key != aggregate
-        or resolved_revision.version != race.resolved_revision_version
-        or resolved_revision.lifecycle_status != "superseded"
-    ):
-        raise EligibilityRevisionRuntimeRaceAttributionError(
-            "resolved revision snapshot cannot be reconciled with durable superseded lineage"
-        )
-    if (
-        observed_revision is None
-        or observed_revision.tenant_key != tenant
-        or observed_revision.aggregate_key != aggregate
-        or observed_revision.version != race.observed_current_revision_version
-        or observed_revision.lifecycle_status != "active"
-    ):
-        raise EligibilityRevisionRuntimeRaceAttributionError(
-            "observed revision snapshot cannot be reconciled with the current ACTIVE revision"
-        )
 
     context = eligibility_immune_system_context(tenant_key=tenant)
     try:
