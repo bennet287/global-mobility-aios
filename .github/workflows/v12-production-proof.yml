@@ -192,3 +192,4 @@ jobs:
           apps/api/tests/test_organization_eligibility_runtime_health_adversarial.py
           apps/api/tests/test_organization_eligibility_immune_lineage.py
           apps/api/tests/test_organization_eligibility_postgres_contract.py
+          apps/api/tests/test_organization_autonomy_promotion_policy_postgres.py
