@@ -151,6 +151,13 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
             "evidence_policy_version",
             "policy_sequence",
         ),
+        Index("ix_cap_auto_prom_policy_tenant", "tenant_key"),
+        Index("ix_cap_auto_prom_policy_position_key", "position_key"),
+        Index("ix_cap_auto_prom_policy_capability", "capability_key"),
+        Index("ix_cap_auto_prom_policy_context", "context_scope"),
+        Index("ix_cap_auto_prom_policy_from", "from_autonomy_level"),
+        Index("ix_cap_auto_prom_policy_target", "target_autonomy_level"),
+        Index("ix_cap_auto_prom_policy_evidence_ver", "evidence_policy_version"),
         Index("ix_cap_auto_prom_policy_position", "position_id"),
         Index("ix_cap_auto_prom_policy_activity", "decision_activity_id"),
         Index("ix_cap_auto_prom_policy_record_fp", "record_fingerprint"),
@@ -158,15 +165,15 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    tenant_key: str = Field(index=True)
+    tenant_key: str
     position_id: UUID
-    position_key: str = Field(index=True)
-    capability_key: str = Field(index=True)
-    context_scope: str = Field(index=True)
-    policy_sequence: int = Field(index=True)
-    from_autonomy_level: str = Field(index=True)
-    target_autonomy_level: str = Field(index=True)
-    evidence_policy_version: str = Field(index=True)
+    position_key: str
+    capability_key: str
+    context_scope: str
+    policy_sequence: int
+    from_autonomy_level: str
+    target_autonomy_level: str
+    evidence_policy_version: str
     min_qualifying_execution_volume: int
     min_human_reviewed_count: int
     min_evidence_grounding_rate: float
@@ -185,7 +192,7 @@ class CapabilityAutonomyPromotionPolicy(SQLModel, table=True):
     supersedes_policy_id: UUID | None = Field(default=None)
     decision_activity_id: UUID
     decision_activity_fingerprint: str = Field(max_length=64)
-    idempotency_key: str = Field(index=True)
+    idempotency_key: str
     record_fingerprint: str = Field(max_length=64)
     effective_from: datetime = Field(default_factory=now_utc)
     created_at: datetime = Field(default_factory=now_utc)
