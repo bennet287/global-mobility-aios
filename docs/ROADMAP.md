@@ -12,8 +12,8 @@
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme  
 **Last accepted V1.3 checkpoint:** V12.18 / V1.3-H.1 — COMPLETE / PASS / SEALED on acceptance candidate `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`  
 **Current proof programme:** V12 Production Proof Gate — ACCEPTED / GREEN — GitHub Actions run `32463849415`  
-**Required-check enforcement:** NOT VERIFIED — repository-settings action required before H.2  
-**H.2:** BLOCKED pending required-check enforcement verification  
+**Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`  
+**H.2:** READY TO BEGIN  
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
@@ -109,8 +109,8 @@ Current V1.3 state:
 | V1.3-G Independent Verification + canonical eligibility | COMPLETE / PASS / SEALED through G.5 | Blind verification, verification floor, canonical effect, orchestration and reassessment accepted |
 | V1.3-H.1 Eligibility Immune Circuit | COMPLETE / PASS / SEALED | Restrictive aggregate circuit, canonical-lineage consolidation and proof accepted |
 | V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes all passed on run `32463849415` |
-| Required GitHub check enforcement | NOT VERIFIED | Repository settings/ruleset verification remains required before H.2 |
-| V1.3-H.2 | BLOCKED | No H.2 production transition guardrails until required-check enforcement is verified |
+| Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
+| V1.3-H.2 | READY TO BEGIN | H.1, Production Proof and protected-main entry prerequisites are satisfied; future H.2 increments require their own proof |
 | V1.3-I Earned Autonomy | NOT STARTED | Follows accepted H-stage safety/measurement foundations |
 
 The accepted V1.3 baseline is now **H.1**. Detailed acceptance evidence is preserved in `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
@@ -173,7 +173,7 @@ The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains
 
 Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5 and `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1.
 
-No claim is made that GitHub branch protection or rulesets currently require the Production Proof checks.
+Repository-owner Settings evidence confirms that `main` is protected by an active ruleset requiring the four Production Proof checks before integration. The GitHub connector does not expose ruleset configuration directly, so this enforcement claim is recorded as owner-confirmed rather than connector-introspected.
 
 ---
 
@@ -605,7 +605,7 @@ H.1 is **COMPLETE / PASS / SEALED**. The acceptance checklist is satisfied by re
 15. repository policy — PASS;
 16. dependency constraint enforcement — PASS;
 17. acceptance candidate and evidence records synchronized — PASS;
-18. required-check enforcement — explicitly recorded as the remaining repository-settings action, as permitted by the H.1 gate.
+18. required-check enforcement — CONFIGURED / OWNER-CONFIRMED on `main`.
 
 Acceptance record:
 
@@ -617,7 +617,7 @@ docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
 
 ## 16. Immediate execution order
 
-This ordering remains authoritative:
+The H.1 correction sequence is complete and H.2 entry is now authorized:
 
 ```text
 1. H.1 seal paused                                      COMPLETE
@@ -626,17 +626,17 @@ This ordering remains authoritative:
 4. full H.1 / governed-vertical acceptance              COMPLETE
 5. Production Proof Gate green                          COMPLETE
 6. reconcile acceptance records / roadmap truth         COMPLETE
-7. verify required GitHub check enforcement             NEXT / NOT VERIFIED
-8. only then begin H.2                                   BLOCKED
+7. configure required GitHub check enforcement          COMPLETE / OWNER-CONFIRMED
+8. begin H.2 as bounded, separately proven increments   READY
 ```
 
-The next authorized work is repository-settings verification and, independently, proof-oriented follow-on work that does not begin H.2 semantics.
+The next authorized architectural work is V1.3-H.2. Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept any H.2 behavior.
 
 ---
 
-## 17. V1.3-H.2 — blocked future scope
+## 17. V1.3-H.2 — ready to begin
 
-H.2 remains blocked until required GitHub check enforcement is verified.
+H.2 entry prerequisites are satisfied. H.2 itself is not yet implemented or accepted.
 
 Potential bounded H.2 work includes only evidence-driven extensions such as:
 
@@ -649,6 +649,8 @@ Potential bounded H.2 work includes only evidence-driven extensions such as:
 - automatic escalation routing where constitutionally valid.
 
 Do not begin with a generic anomaly platform.
+
+Each H.2 increment must preserve the H.1 rule that the Immune System is restrictive only and must receive its own bounded implementation and proof before acceptance.
 
 ---
 
@@ -756,12 +758,12 @@ These should be added based on production risk, not to maximize tooling count.
 
 The repository does **not** currently claim:
 
-- mandatory branch-protection/ruleset enforcement of the Production Proof checks;
+- connector-introspected proof of the GitHub ruleset configuration; the enforcement record is owner-confirmed from repository Settings;
 - complete PostgreSQL coverage of every backend test;
 - a complete transitive Python lock;
 - Playwright/browser E2E coverage;
 - completed god-module decomposition;
-- H.2 implementation;
+- H.2 implementation or acceptance;
 - earned-autonomy implementation;
 - full Organizational Immune System implementation;
 - production-scale operational readiness.
@@ -784,11 +786,17 @@ Accepted architecture / history:
 - `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`
 - `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.18 acceptance changelog)
 
-Current repository-settings prerequisite:
+Repository enforcement state:
 
-- verify required GitHub check enforcement before H.2 begins.
+- active `Production proof enforcement` ruleset targets `main`;
+- pull request integration is required;
+- branches must be up to date before merging;
+- all four V12 Production Proof checks are required;
+- deletions and force pushes are restricted;
+- bypass list is empty;
+- configuration is owner-confirmed from GitHub Settings.
 
-The accepted baseline is H.1. The technical Production Proof Gate is green. No branch-protection/ruleset enforcement claim is made until repository settings are directly verified.
+The accepted baseline is H.1. The Production Proof Gate is green. H.2 is ready to begin under the accepted proof discipline.
 
 ---
 
@@ -796,11 +804,11 @@ The accepted baseline is H.1. The technical Production Proof Gate is green. No b
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The delivery correction succeeded in converting architectural safety claims into continuously executable proof:
+The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof:
 
 > **The next risk is no longer lack of architectural ideas. It is maintaining the discipline that architectural sophistication remains continuously proven and repository-enforced.**
 
-Therefore the project now prioritizes required-check enforcement verification, browser golden-journey proof and incremental semantic decomposition before expanding safety architecture.
+With the H.1 proof and `main` enforcement boundary closed, the project may now enter H.2 while continuing browser golden-journey proof and incremental semantic decomposition before aggressive refactoring.
 
 The governing sequence is:
 
@@ -811,8 +819,8 @@ G.5 accepted baseline
 → adversarial proof
 → Production Proof Gate
 → H.1 acceptance/seal
-→ verify required GitHub check enforcement
-→ H.2
+→ required GitHub check enforcement
+→ H.2 — READY TO BEGIN
 → Earned Autonomy
 → broader Organization Fabric / operational scale
 ```
