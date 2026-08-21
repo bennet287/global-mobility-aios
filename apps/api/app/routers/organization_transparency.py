@@ -10,11 +10,18 @@ from app.core.db import get_session
 from app.models.domain import OrganizationalWorkItem
 from app.routers.organization_records import organization_command_context
 from app.schemas_organization_autonomy import CapabilityAutonomyProfileTransparencyRead
+from app.schemas_organization_autonomy_evidence import (
+    CapabilityAutonomyEvidenceProfileTransparencyRead,
+)
 from app.schemas_organization_transparency import (
     GovernanceDecisionRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
     WorkItemTransparencyRead,
+)
+from app.services.organization_autonomy_evidence_profile import (
+    AutonomyEvidenceProfileIntegrityError,
+    capability_autonomy_evidence_profile_snapshot,
 )
 from app.services.organization_autonomy_profile import (
     AutonomyProfileIntegrityError,
@@ -256,6 +263,43 @@ def read_capability_autonomy_profile(
     except HTTPException:
         raise
     except (AutonomyProfileIntegrityError, OrganizationCommandError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Organization transparency data is inconsistent.",
+        ) from exc
+
+
+@router.get(
+    "/autonomy/profiles/{position_key}/{capability_key}/evidence",
+    response_model=CapabilityAutonomyEvidenceProfileTransparencyRead,
+)
+def read_capability_autonomy_evidence_profile(
+    position_key: str,
+    capability_key: str,
+    context_scope: str = Query(..., min_length=1),
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> CapabilityAutonomyEvidenceProfileTransparencyRead:
+    """Return the validated measurement-only Board view for the current I.1 profile."""
+
+    _require_board(context)
+    try:
+        snapshot = capability_autonomy_evidence_profile_snapshot(
+            session,
+            tenant_key=context.tenant_key,
+            position_key=position_key,
+            capability_key=capability_key,
+            context_scope=context_scope,
+        )
+        if snapshot is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Organization transparency resource not found.",
+            )
+        return CapabilityAutonomyEvidenceProfileTransparencyRead.model_validate(snapshot)
+    except HTTPException:
+        raise
+    except (AutonomyEvidenceProfileIntegrityError, OrganizationCommandError) as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Organization transparency data is inconsistent.",
