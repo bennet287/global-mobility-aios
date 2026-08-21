@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from uuid import UUID
 
 from sqlmodel import Session, select
 
@@ -20,7 +19,7 @@ from app.services.organization_eligibility_immune_system import (
 )
 from app.services.organization_eligibility_lineage import (
     CanonicalEligibilityLineageError,
-    validate_canonical_eligibility_lineage,
+    validate_canonical_eligibility_aggregate_lineage,
 )
 from app.services.organization_eligibility_revision_precondition import (
     EligibilityRevisionPostResolutionAdvance,
@@ -118,16 +117,12 @@ def _matching_existing_attribution(
     )
 
 
-def _fresh_revision(
-    session: Session,
-    *,
-    revision_id: UUID,
-) -> EligibilityAssessmentRevision | None:
-    return session.exec(
-        select(EligibilityAssessmentRevision)
-        .where(EligibilityAssessmentRevision.id == revision_id)
-        .execution_options(populate_existing=True)
-    ).first()
+def _expire_cached_revision_state(session: Session) -> None:
+    """Force canonical aggregate validation to observe current database revision state."""
+
+    for instance in tuple(session.identity_map.values()):
+        if isinstance(instance, EligibilityAssessmentRevision):
+            session.expire(instance)
 
 
 def _reconcile_event_time_revision_snapshot(
@@ -137,16 +132,36 @@ def _reconcile_event_time_revision_snapshot(
     aggregate_key: str,
     race: EligibilityRevisionPostResolutionAdvance,
 ) -> None:
-    """Prove an observed event-time revision remains on the canonical descendant chain."""
+    """Reconcile an event-time observation through the canonical aggregate contract."""
 
-    resolved_revision = _fresh_revision(
-        session,
-        revision_id=race.resolved_revision_id,
+    _expire_cached_revision_state(session)
+    try:
+        lineages = validate_canonical_eligibility_aggregate_lineage(
+            session,
+            tenant_key=tenant_key,
+            aggregate_key=aggregate_key,
+        )
+    except CanonicalEligibilityLineageError as exc:
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "revision runtime-race snapshot conflicts with canonical eligibility aggregate lineage"
+        ) from exc
+
+    if not lineages:
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "revision runtime-race aggregate has no canonical eligibility lineage"
+        )
+
+    revisions = tuple(lineage.revision for lineage in lineages)
+    resolved_revision = next(
+        (revision for revision in revisions if revision.id == race.resolved_revision_id),
+        None,
     )
-    observed_revision = _fresh_revision(
-        session,
-        revision_id=race.observed_current_revision_id,
+    observed_revision = next(
+        (revision for revision in revisions if revision.id == race.observed_current_revision_id),
+        None,
     )
+    current_revision = revisions[-1]
+
     if (
         resolved_revision is None
         or resolved_revision.tenant_key != tenant_key
@@ -167,24 +182,11 @@ def _reconcile_event_time_revision_snapshot(
         raise EligibilityRevisionRuntimeRaceAttributionError(
             "observed revision snapshot cannot be reconciled with durable canonical lineage"
         )
-
-    active_revisions = list(
-        session.exec(
-            select(EligibilityAssessmentRevision)
-            .where(
-                EligibilityAssessmentRevision.tenant_key == tenant_key,
-                EligibilityAssessmentRevision.aggregate_key == aggregate_key,
-                EligibilityAssessmentRevision.lifecycle_status == "active",
-            )
-            .order_by(EligibilityAssessmentRevision.version.desc())
-            .execution_options(populate_existing=True)
-        ).all()
-    )
-    if len(active_revisions) != 1:
+    if observed_revision.version <= resolved_revision.version:
         raise EligibilityRevisionRuntimeRaceAttributionError(
-            "eligibility aggregate must have exactly one current ACTIVE revision"
+            "observed revision is not a descendant of the resolved revision"
         )
-    current_revision = active_revisions[0]
+
     if current_revision.id == observed_revision.id:
         if observed_revision.lifecycle_status != "active":
             raise EligibilityRevisionRuntimeRaceAttributionError(
@@ -196,48 +198,6 @@ def _reconcile_event_time_revision_snapshot(
     ):
         raise EligibilityRevisionRuntimeRaceAttributionError(
             "a superseded observed revision requires a newer current ACTIVE descendant"
-        )
-
-    observed_seen = False
-    cursor = current_revision
-    while True:
-        fresh_cursor = _fresh_revision(session, revision_id=cursor.id)
-        if fresh_cursor is None:
-            raise EligibilityRevisionRuntimeRaceAttributionError(
-                "canonical revision descendant chain contains a missing revision"
-            )
-        if fresh_cursor.supersedes_revision_id is not None:
-            _fresh_revision(
-                session,
-                revision_id=fresh_cursor.supersedes_revision_id,
-            )
-        try:
-            lineage = validate_canonical_eligibility_lineage(
-                session,
-                tenant_key=tenant_key,
-                revision=fresh_cursor,
-            )
-        except CanonicalEligibilityLineageError as exc:
-            raise EligibilityRevisionRuntimeRaceAttributionError(
-                "revision runtime-race snapshot conflicts with canonical eligibility lineage"
-            ) from exc
-
-        if fresh_cursor.id == observed_revision.id:
-            observed_seen = True
-        if fresh_cursor.id == resolved_revision.id:
-            break
-        if (
-            fresh_cursor.version <= resolved_revision.version
-            or lineage.predecessor_revision is None
-        ):
-            raise EligibilityRevisionRuntimeRaceAttributionError(
-                "revision runtime-race snapshot is not on the current canonical descendant chain"
-            )
-        cursor = lineage.predecessor_revision
-
-    if not observed_seen:
-        raise EligibilityRevisionRuntimeRaceAttributionError(
-            "observed revision snapshot is not on the current canonical descendant chain"
         )
 
 
@@ -261,10 +221,10 @@ def record_attributed_eligibility_revision_runtime_race(
     and does not participate in H.2.1 recurrence.
 
     First persistence treats the observed revision as an event-time snapshot. It may
-    already have become superseded, but only if the durable canonical aggregate proves
-    that it remains on the contiguous descendant chain from the resolved revision to the
-    single newer ACTIVE head. Historical replay validates the immutable persisted
-    attribution before requiring that once-observed revision to remain current.
+    already have become superseded, but only if the shared canonical aggregate validator
+    proves that it remains on the contiguous revision chain beneath the single ACTIVE
+    head. Historical replay validates the immutable persisted attribution without
+    reinterpreting that event-time lifecycle fact.
     """
 
     tenant = _required_text(tenant_key, label="tenant_key")
