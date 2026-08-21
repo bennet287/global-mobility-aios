@@ -131,6 +131,11 @@ def record_attributed_eligibility_revision_runtime_race(
     response, so provider egress is known to have occurred while verifier egress and a
     canonical effect have not. The paired REVISION_CONFLICT incident remains warning-only
     and does not participate in H.2.1 recurrence.
+
+    Historical replay validates the immutable persisted attribution before requiring
+    the once-observed revision to remain current. A later canonical revision may
+    legitimately supersede that observed revision without invalidating the historical
+    incident snapshot.
     """
 
     tenant = _required_text(tenant_key, label="tenant_key")
@@ -147,35 +152,6 @@ def record_attributed_eligibility_revision_runtime_race(
         aggregate_key=aggregate,
         race=race,
     )
-
-    resolved_revision = session.get(
-        EligibilityAssessmentRevision,
-        race.resolved_revision_id,
-    )
-    observed_revision = session.get(
-        EligibilityAssessmentRevision,
-        race.observed_current_revision_id,
-    )
-    if (
-        resolved_revision is None
-        or resolved_revision.tenant_key != tenant
-        or resolved_revision.aggregate_key != aggregate
-        or resolved_revision.version != race.resolved_revision_version
-        or resolved_revision.lifecycle_status != "superseded"
-    ):
-        raise EligibilityRevisionRuntimeRaceAttributionError(
-            "resolved revision snapshot cannot be reconciled with durable superseded lineage"
-        )
-    if (
-        observed_revision is None
-        or observed_revision.tenant_key != tenant
-        or observed_revision.aggregate_key != aggregate
-        or observed_revision.version != race.observed_current_revision_version
-        or observed_revision.lifecycle_status != "active"
-    ):
-        raise EligibilityRevisionRuntimeRaceAttributionError(
-            "observed revision snapshot cannot be reconciled with the current ACTIVE revision"
-        )
 
     attribution_key = _attribution_activity_key(
         aggregate_key=aggregate,
@@ -263,6 +239,35 @@ def record_attributed_eligibility_revision_runtime_race(
             schema_version=ELIGIBILITY_REVISION_RUNTIME_RACE_ATTRIBUTION_SCHEMA_VERSION,
             attribution_activity=existing_attribution,
             incident=replay,
+        )
+
+    resolved_revision = session.get(
+        EligibilityAssessmentRevision,
+        race.resolved_revision_id,
+    )
+    observed_revision = session.get(
+        EligibilityAssessmentRevision,
+        race.observed_current_revision_id,
+    )
+    if (
+        resolved_revision is None
+        or resolved_revision.tenant_key != tenant
+        or resolved_revision.aggregate_key != aggregate
+        or resolved_revision.version != race.resolved_revision_version
+        or resolved_revision.lifecycle_status != "superseded"
+    ):
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "resolved revision snapshot cannot be reconciled with durable superseded lineage"
+        )
+    if (
+        observed_revision is None
+        or observed_revision.tenant_key != tenant
+        or observed_revision.aggregate_key != aggregate
+        or observed_revision.version != race.observed_current_revision_version
+        or observed_revision.lifecycle_status != "active"
+    ):
+        raise EligibilityRevisionRuntimeRaceAttributionError(
+            "observed revision snapshot cannot be reconciled with the current ACTIVE revision"
         )
 
     context = eligibility_immune_system_context(tenant_key=tenant)
