@@ -35,7 +35,12 @@ from app.services.organization_eligibility_revision_conflict import (
     record_attributed_eligibility_revision_conflict,
 )
 from app.services.organization_eligibility_revision_precondition import (
+    EligibilityRevisionPostResolutionAdvance,
     EligibilityRevisionPreconditionConflict,
+)
+from app.services.organization_eligibility_revision_runtime_race import (
+    EligibilityRevisionRuntimeRaceAttributionError,
+    record_attributed_eligibility_revision_runtime_race,
 )
 from app.services.organization_eligibility_runtime_health import (
     EligibilityRuntimeExecutionRole,
@@ -276,6 +281,10 @@ def orchestrate_governed_eligibility(
     expectations and revision races discovered after provider latency are intentionally
     excluded from this attribution contract.
 
+    H.2.4 attributes one distinct race: a valid reassessment revision advances during
+    producer runtime. The producer call has happened, but verifier egress and canonical
+    effect integration have not. The warning remains observation-only and grants nothing.
+
     Exact retries after a committed effect resolve directly from durable canonical
     governance/revision lineage and do not call either model again. Replay still checks
     that the caller supplied the same revision expectation as the committed operation.
@@ -357,15 +366,41 @@ def orchestrate_governed_eligibility(
             "governed eligibility proposal runtime failed"
         ) from exc
     except EligibilityIntentError as exc:
-        conflict = exc.__cause__
-        if isinstance(conflict, EligibilityRevisionPreconditionConflict):
+        cause = exc.__cause__
+        if isinstance(cause, EligibilityRevisionPostResolutionAdvance):
+            try:
+                record_attributed_eligibility_revision_runtime_race(
+                    session,
+                    tenant_key=tenant,
+                    aggregate_key=circuit_scope.aggregate_key,
+                    incident_key=f"{key}:revision-runtime-race",
+                    race=cause,
+                    position_key=execution_plan.producer_position_key,
+                    runtime_profile=execution_plan.producer_runtime_profile,
+                    summary=(
+                        "Eligibility reassessment became stale after producer egress because "
+                        "a newer canonical revision committed during producer runtime."
+                    ),
+                )
+            except (
+                EligibilityRevisionRuntimeRaceAttributionError,
+                EligibilityImmuneSystemError,
+                RuntimeError,
+            ) as incident_exc:
+                raise GovernedEligibilityOrchestrationIntegrityError(
+                    "post-producer revision race could not be persisted as an immune-system incident"
+                ) from incident_exc
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "governed eligibility revision advanced during producer runtime"
+            ) from exc
+        if isinstance(cause, EligibilityRevisionPreconditionConflict):
             try:
                 record_attributed_eligibility_revision_conflict(
                     session,
                     tenant_key=tenant,
                     aggregate_key=circuit_scope.aggregate_key,
                     incident_key=f"{key}:revision-conflict",
-                    conflict=conflict,
+                    conflict=cause,
                     summary=(
                         "Eligibility reassessment supplied a superseded canonical revision "
                         "expectation before provider execution."
