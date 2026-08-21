@@ -1,11 +1,11 @@
 # Global Mobility AIOS — Technology Radar V1.3
 
-**Date:** 2026-08-21  
-**Status:** ACTIVE CANDIDATE V1.3 — platform evolution / evaluation / controlled adoption track  
-**Accepted product baseline:** Phase 13.16.10 COMPLETE / PASS  
-**Active product stream:** Phase 13.17 IN PROGRESS / PAUSED BY EVALUATOR  
-**Accepted V1.3 baseline:** H.2.4 COMPLETE / PASS / SEALED  
-**Active Track C candidate:** H.2.2 runtime-health classification refinement — PRODUCTION PROOF PENDING  
+**Date:** 2026-08-21
+**Status:** ACTIVE CANDIDATE V1.3 — platform evolution / evaluation / controlled adoption track
+**Accepted product baseline:** Phase 13.16.10 COMPLETE / PASS
+**Active product stream:** Phase 13.17 IN PROGRESS / PAUSED BY EVALUATOR
+**Accepted V1.3 baseline:** H.2.4 COMPLETE / PASS / SEALED
+**Active Track C candidate:** H.2.2 runtime-health classification refinement — PRODUCTION PROOF PENDING
 **Historical predecessor:** `TECHNOLOGY_RADAR_V1_2.md`
 
 Technology Radar V1.3 preserves the Munder strategic-donor decision and adds Plasma AI as two separately evaluated controlled-adoption candidates: Plasma Wiki and Plasma Fractal.
