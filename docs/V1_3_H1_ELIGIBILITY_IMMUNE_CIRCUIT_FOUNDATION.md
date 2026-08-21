@@ -1,10 +1,12 @@
 # Global Mobility AIOS — V1.3-H.1 Eligibility Immune Circuit Foundation
 
 **Date:** 2026-08-20  
+**Accepted:** 2026-08-21  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / ACCEPTANCE PENDING  
-**Seal state:** PAUSED — canonical-lineage + production-proof acceptance required  
-**Next feature slice:** H.2 BLOCKED until the proof gate is green
+**Status:** ACCEPTED / SEALED  
+**Production Proof Gate:** ACCEPTED / GREEN  
+**Acceptance record:** `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`  
+**H.2:** BLOCKED pending required-check enforcement verification
 
 ## Purpose
 
@@ -148,7 +150,7 @@ canonical_eligibility_lineage_for_governance(...)
 validate_canonical_eligibility_aggregate_lineage(...)
 ```
 
-G.3 replay, G.4 replay and H.1 preflight now consume this same contract.
+G.3 replay, G.4 replay and H.1 preflight consume this same contract.
 
 Permanent rule:
 
@@ -187,7 +189,7 @@ A structural defect receives a deterministic problem fingerprint. If a human clo
 
 ## Adversarial identity-corruption proof
 
-H.1 is not accepted merely because valid fixtures pass.
+H.1 was not accepted merely because valid fixtures pass.
 
 The focused regression deliberately mutates already-committed durable lineage, including:
 
@@ -212,11 +214,11 @@ canonical validator rejects lineage
 → verifier provider calls = 0
 ```
 
-Historical G.3/G.4 replay also uses the same validator and must fail closed on the same identity corruption.
+Historical G.3/G.4 replay also uses the same validator and fails closed on the same identity corruption.
 
 ## Current automatic signal wiring
 
-H.1 is already wired to these concrete G.4 signals:
+H.1 is wired to these concrete G.4 signals:
 
 ```text
 open aggregate circuit
@@ -306,12 +308,13 @@ tenant-a / aggregate-B
 tenant-b / aggregate-A-like identifier
 ```
 
-## Production proof gate
+## Production proof gate — accepted
 
-H.1 acceptance now explicitly depends on:
+H.1 acceptance depends on:
 
 ```text
 docs/V1_3_H1_PRODUCTION_PROOF_GATE.md
+docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
 ```
 
 and CI implementation:
@@ -320,26 +323,40 @@ and CI implementation:
 .github/workflows/v12-production-proof.yml
 ```
 
-The proof gate adds:
+The accepted proof surface includes:
 
 - full backend pytest regression on SQLite;
 - repository policy and release-consistency checks;
 - direct Python dependency constraint enforcement;
 - migration and local schema checks;
+- frontend reproducible install and high-severity security audit;
 - frontend Node tests;
 - TypeScript checking;
 - Next.js production build;
+- compiled frontend auth verification;
 - a real PostgreSQL 16 lane;
 - Alembic upgrade on PostgreSQL;
 - focused G.3/G.4/G.5/H.1 PostgreSQL tests;
 - cross-session stale reassessment proof;
 - cross-session circuit recovery/reopen proof.
 
+Final GitHub-hosted acceptance run:
+
+```text
+candidate = 0b19d61a417de2d372e101d4e132a6a0a6c2a84f
+run       = 32463849415
+
+Repository policy and constraints   PASS
+Backend regression (SQLite)         PASS
+Frontend tests, types and build     PASS
+PostgreSQL governance contracts     PASS
+```
+
 Normal pytest remains SQLite by default. Setting `GMAI_TEST_DATABASE_URL` routes the same shared fixtures through an explicitly isolated PostgreSQL database.
 
-The workflow existing in the repository is not the same as proving repository branch protection requires it. Required-check enforcement must be independently verified before it is claimed.
+The workflow existing and passing is not the same as proving repository branch protection requires it. Required-check enforcement is not claimed as verified and remains a repository-settings prerequisite before H.2 begins.
 
-## Repository/dependency hygiene added with this checkpoint
+## Repository/dependency hygiene accepted with this checkpoint
 
 The accidental tracked shell-redirection artifact:
 
@@ -349,9 +366,9 @@ apps/api/=5.4
 
 has been removed.
 
-`check_repo_policy.py` now rejects suspicious redirection-like filenames before extension filtering while preserving the existing content scan coverage.
+`check_repo_policy.py` rejects suspicious redirection-like filenames before extension filtering while preserving the existing content scan coverage.
 
-Direct backend dependency reproducibility now uses:
+Direct backend dependency reproducibility uses:
 
 ```text
 apps/api/requirements.txt
@@ -366,15 +383,17 @@ python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
 
 The API Dockerfile uses the same constraint baseline.
 
-Current claim boundary: this is an exact **direct-dependency** constraint baseline, not yet a complete transitive lock.
+Current claim boundary: this is an exact **direct-dependency** constraint baseline, not a complete transitive lock.
 
-## Deliberate non-claims
+Frontend dependency security is accepted on the bounded Next 16 baseline after a reproducible `npm ci` and zero-vulnerability high-severity audit.
 
-H.1 does not yet claim:
+Cross-platform receipt integrity was also repaired by replacing exactly two stale Windows-checkout SHA receipts with hashes of the canonical Git blob bytes. Evidence JSON and SHA validation semantics were not changed.
 
-- acceptance/seal;
-- green production-proof CI;
-- branch-protection enforcement of the new workflow;
+## Deliberate non-claims after H.1 acceptance
+
+H.1 does not claim:
+
+- branch-protection/ruleset enforcement of the Production Proof workflow;
 - automatic wiring from **every** E.2–G.5 exception into incident creation;
 - automatic `REVISION_CONFLICT` emission from every G.5 conflict path;
 - automatic `REASSESSMENT_ROLLBACK` emission from every contained rollback path;
@@ -386,15 +405,15 @@ H.1 does not yet claim:
 - earned-autonomy changes;
 - generic incident-management infrastructure;
 - Munder circuit-breaker adoption;
-- new database schema;
+- new H.1 database schema;
 - Playwright/browser E2E coverage;
 - completed large-module decomposition.
 
-Those follow only after the H.1 candidate and production-proof infrastructure are accepted.
+Those remain future bounded work and may not be inferred from the H.1 seal.
 
-## Acceptance-pending test surface
+## Accepted test/proof surface
 
-Focused eligibility/H.1 suites now include:
+Focused eligibility/H.1 suites include:
 
 ```text
 apps/api/tests/test_organization_eligibility_effect.py
@@ -406,12 +425,35 @@ apps/api/tests/test_organization_eligibility_immune_lineage.py
 apps/api/tests/test_organization_eligibility_postgres_contract.py
 ```
 
-H.1 acceptance additionally requires the full backend suite, migration/schema checks, frontend proof and PostgreSQL lane described by the production-proof document.
+Accepted evidence includes:
 
-No test count or PASS status is recorded until those commands actually run.
+```text
+full deterministic constrained backend
+1105 passed / 7 skipped / 1 warning / 0 failed
+
+fresh PostgreSQL 16 governed H.1
+57 passed / 1 warning / 0 failed
+
+local frontend
+npm audit high = 0 vulnerabilities
+28/28 design tests
+4/4 request/auth tests
+TypeScript PASS
+Next.js production build PASS
+compiled auth PASS
+
+GitHub Actions run 32463849415
+all four Production Proof jobs PASS
+```
+
+The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
 
 ## Acceptance truth
 
-This document describes the implemented H.1 candidate only. It does **not** mark H.1 accepted or sealed.
+H.1 is **ACCEPTED / SEALED** as of 2026-08-21.
 
-The last accepted architecture checkpoint remains V1.3-G.5. H.2 is paused until the canonical-lineage repair and production-proof gate have real green evidence and repository truth is reconciled.
+The Production Proof Gate is **ACCEPTED / GREEN** on candidate `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`, GitHub Actions run `32463849415`.
+
+Required GitHub check enforcement is **NOT VERIFIED** and is explicitly recorded as the remaining repository-settings action.
+
+H.2 remains **BLOCKED** until that enforcement is verified. No H.2 implementation is authorized by the H.1 acceptance alone.
