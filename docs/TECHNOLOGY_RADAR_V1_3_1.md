@@ -6,7 +6,7 @@
 **Architecture reference:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`  
 **Accepted V1.3 baseline:** H.2.4 COMPLETE / PASS / SEALED  
 **H.2.2 runtime-health classification refinement:** COMPLETE / PASS / SEALED — Production Proof `32505228943`  
-**Track C next decision:** close H.2 bounded foundation and open V1.3-I.1 design/entry  
+**Track C:** H.2 BOUNDED FOUNDATION CLOSED; V1.3-I.1 DESIGN ENTRY OPEN / IMPLEMENTATION NOT STARTED  
 
 Technology Radar V1.3.1 preserves the evidence-driven adoption model and adds the canonical Context Intelligence / AI Economics decisions.
 
@@ -254,13 +254,13 @@ H.2.2                            SEALED
 H.2.2 classification refinement SEALED
 H.2.3                            SEALED
 H.2.4                            SEALED
+H.2 bounded foundation          CLOSED
+I.1 autonomy profile/evidence   DESIGN ENTRY OPEN / NOT IMPLEMENTED
 ```
 
 No later H.2 control is selected merely because telemetry exists.
 
-The next architectural decision is closure of H.2 as the bounded Immune-System safety/measurement foundation, followed by V1.3-I.1 capability-specific autonomy profile/evidence design.
-
-Technology pilots may continue in parallel only when they are non-authoritative and cannot destabilize the Track C acceptance sequence.
+Track C now proceeds to V1.3-I.1 canonical capability-specific autonomy profile/evidence design. Technology pilots may continue in parallel only when they are non-authoritative and cannot destabilize Track C acceptance.
 
 ---
 
