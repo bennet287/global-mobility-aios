@@ -1,0 +1,7 @@
+upstream=plasma-ai/fractal
+version=1.1.0
+commit=e629ae2b80250ab502feefe3d9d0266bc58f15b2
+archive_sha256=64de38681085d2737019f9f9a8bbb3a4d997d4babc62eeec4667db2e076d9364
+license=Apache-2.0
+import_policy=frozen-read-only-donor
+binary_docs_artwork=excluded
