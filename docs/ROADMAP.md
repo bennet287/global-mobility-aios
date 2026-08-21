@@ -1,19 +1,19 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.18+ — production-proof discipline extended into H.2  
-**Date:** 2026-08-21  
-**Active development branch:** `roadmap/global-mobility-aios-v12`  
-**V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
-**Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`  
-**Final V11 documentation-cleanup head:** `ac130deaafa7aa44068e9459facbda2b4df327d6`  
-**Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`  
-**Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
-**Active organization architecture:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` + `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`  
-**Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme  
-**Last accepted V1.3 checkpoint:** V1.3-H.2.1 — COMPLETE / PASS / SEALED on technical candidate `9e63c358b9692529278595201250c4dc8bb1ff47`  
-**Latest accepted Production Proof:** GitHub Actions run `32469756908` — 4/4 jobs PASS  
-**Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`  
-**H.2:** IN PROGRESS — H.2.1 SEALED; H.2.2 runtime-health attribution candidate ACCEPTANCE PENDING  
+**Roadmap generation:** V12.18+ — production-proof discipline extended into H.2
+**Date:** 2026-08-21
+**Active development branch:** `roadmap/global-mobility-aios-v12`
+**V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
+**Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
+**Final V11 documentation-cleanup head:** `ac130deaafa7aa44068e9459facbda2b4df327d6`
+**Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`
+**Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR
+**Active organization architecture:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` + `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`
+**Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme
+**Last accepted V1.3 checkpoint:** V1.3-H.2.1 — COMPLETE / PASS / SEALED on technical candidate `9e63c358b9692529278595201250c4dc8bb1ff47`
+**Latest accepted Production Proof:** GitHub Actions run `32469756908` — 4/4 jobs PASS
+**Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`
+**H.2:** IN PROGRESS — H.2.1 SEALED; H.2.2 runtime-health attribution candidate ACCEPTANCE PENDING
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
