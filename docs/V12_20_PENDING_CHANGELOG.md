@@ -19,6 +19,10 @@ b34822d7a6af169f4be0410e179aa2be197513f0  docs: mark I.1 implementation acceptan
 584a590550213df2106605f56c04249c555dc4a5  fix: order autonomy profile persistence before evidence
 1114df38bbd8765c11d2f1bfdcfd2fbca65f065d  fix: reconcile Africa evidence pack receipt
 d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c  test: advance organization migration boundary to I.1
+00d4443fb62ad3640930c124938c04cc478bbbae  fix: normalize evidence pack receipt hashing
+8d2956802ab0960ce53e444c3a8a27dd554b921b  test: cover cross-platform evidence receipt hashing
+88d9b8b42421b3fdd6b67192790d573df08c61e2  fix: restore canonical evidence pack receipt hash
+68205518ff0751d8e34f0afa8e53924fd4ce9141  ci: prove exact PR head in production gate
 ```
 
 The final acceptance candidate is intentionally not named yet because this pending record itself advances the branch head and must be included in the exact-candidate proof.
@@ -112,14 +116,31 @@ The full SQLite backend regression completed with:
 
 Both failures were repository-truth drift outside the I.1 command implementation:
 
-1. `test_coverage_evidence_packs.py` detected that the tracked receipt for `v10_22_2_africa_tranche_1A_ready_9.json` still declared SHA-256 `e7527b1e...`, while the checked-out canonical JSON calculated to `59e16db2...`. Commit `1114df38bbd8765c11d2f1bfdcfd2fbca65f065d` reconciles the receipt only; the evidence pack content is unchanged.
+1. `test_coverage_evidence_packs.py` detected that the tracked receipt for `v10_22_2_africa_tranche_1A_ready_9.json` still declared SHA-256 `e7527b1e...`, while the Windows checkout calculated `59e16db2...` from raw bytes. Commit `1114df38bbd8765c11d2f1bfdcfd2fbca65f065d` temporarily reconciled the receipt to that Windows byte representation.
 2. `test_organization_records_api.py` still encoded the pre-I.1 architecture ceiling by asserting that no numbered migration may exceed `0077`. Commit `d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c` now explicitly requires `0078_capability_autonomy_profile_foundation.py` and forbids migrations beyond `0078`.
 
 The same run independently passed the SQLite migration consistency and local physical-schema contracts at migration head `0078`, with 121 registered/application tables and the expected Alembic infrastructure table.
 
-Frontend Production Proof steps completed successfully on Node 24, including dependency installation/audit, design-foundation tests, request/auth tests, TypeScript, production build and compiled-auth verification. The PostgreSQL governance lane had started on a fresh healthy PostgreSQL 16 instance when the captured output ended; no result from the full governed PostgreSQL suite is claimed here.
+Frontend Production Proof steps completed successfully on Node 24, including dependency installation/audit, design-foundation tests, request/auth tests, TypeScript, production build and compiled-auth verification. The PostgreSQL governance lane had started on a fresh healthy PostgreSQL 16 instance when the captured output ended; no result from that local full governed PostgreSQL suite is claimed from that transcript.
 
-Because the two backend repository-drift fixes advance the branch head, all acceptance evidence must be rerun against the new exact candidate. I.1 remains ACCEPTANCE PENDING.
+### Cross-platform receipt and exact-candidate CI hardening
+
+The first Python 3.12 exact-candidate local rerun on `02decd17fa52652c99dffdfccc90db74a3192b9d` passed repository policy and constraints but stopped in the SQLite lane with two local feature-flag assertions because the ignored developer `.env` enabled the coverage-tranche assistant. Repository defaults and `.env.example` remain disabled; subsequent local proof must explicitly force `COVERAGE_TRANCHE_ASSISTANT_ENABLED=false` to match the clean workflow environment.
+
+GitHub Actions run `32525735708` on the same PR state provided independent clean-environment evidence:
+
+```text
+Frontend tests, types and build: PASS
+PostgreSQL governance contracts: PASS
+Backend regression (SQLite): FAIL — evidence receipt only
+Repository policy and constraints: FAIL — PR synthetic-merge diff hygiene only
+```
+
+The GitHub Linux checkout calculated canonical LF bytes for `v10_22_2_africa_tranche_1A_ready_9.json` as SHA-256 `e7527b1e...`, while the existing Windows working tree calculated `59e16db2...` from CRLF bytes. Raw-byte hashing of a tracked JSON text file was therefore platform-dependent. Commit `00d4443fb62ad3640930c124938c04cc478bbbae` now normalizes JSON CRLF/CR line endings to LF before receipt hashing. Commit `8d2956802ab0960ce53e444c3a8a27dd554b921b` adds a regression contract proving LF and CRLF representations validate against the same receipt. Commit `88d9b8b42421b3fdd6b67192790d573df08c61e2` restores the receipt to the canonical normalized hash `e7527b1e...`; the evidence-pack content remains unchanged.
+
+The PR-triggered workflow previously checked GitHub's synthetic merge commit. Its `git diff --check HEAD^` therefore compared the entire long-lived V12 branch delta against `main` and surfaced unrelated historical whitespace instead of the exact acceptance candidate. Commit `68205518ff0751d8e34f0afa8e53924fd4ce9141` makes every V12 Production Proof job check out `${{ github.event.pull_request.head.sha || github.sha }}` so pull-request and push runs prove the exact candidate head. Repository-policy checkout still uses depth 2 so last-commit diff hygiene remains available.
+
+These gate hardenings do not change I.1 authority, autonomy, schema or runtime semantics. Because they advance the branch head, I.1 remains ACCEPTANCE PENDING until the post-hardening exact candidate is green.
 
 ## Board / Cockpit transparency
 
@@ -166,7 +187,8 @@ The repository now contains contract coverage for:
 - absence of an autonomy write API;
 - migration head `0078`;
 - PostgreSQL competing initial-profile creation;
-- PostgreSQL stale cross-session supersession rejection.
+- PostgreSQL stale cross-session supersession rejection;
+- cross-platform LF/CRLF stability for canonical JSON evidence-pack receipts.
 
 These tests are present but are **not represented as globally accepted** in this pending record until the exact post-fix candidate passes the required Production Proof gates.
 
