@@ -34,10 +34,12 @@ ELIGIBILITY_IMMUNE_CAPABILITY = "mobility.eligibility"
 ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE = "organization.immune.eligibility_incident.v1"
 ELIGIBILITY_IMMUNE_CIRCUIT_OPEN_ACTIVITY_TYPE = "organization.immune.eligibility_circuit_opened.v1"
 ELIGIBILITY_IMMUNE_CIRCUIT_CLOSED_ACTIVITY_TYPE = "organization.immune.eligibility_circuit_closed.v1"
+ELIGIBILITY_IMMUNE_RECURRENCE_POLICY_VERSION = "eligibility-immune-recurrence.v1"
+ELIGIBILITY_VERIFIER_DISAGREEMENT_RECURRENCE_THRESHOLD = 3
 
 
 class EligibilityImmuneSystemError(RuntimeError):
-    """Base error for the bounded H.1 eligibility immune-system slice."""
+    """Base error for the bounded eligibility immune-system capability."""
 
 
 class EligibilityCircuitOpen(EligibilityImmuneSystemError):
@@ -96,6 +98,13 @@ class EligibilityImmuneIncidentResult:
     circuit_status: EligibilityCircuitStatus
     circuit_opened: bool
     replayed: bool
+
+
+@dataclass(frozen=True)
+class _EligibilityWarningRecurrenceState:
+    observed_count: int
+    threshold: int
+    epoch_boundary_activity_id: UUID | None
 
 
 def eligibility_immune_system_context(
@@ -201,6 +210,12 @@ def _severity(kind: EligibilityImmuneIncidentKind) -> EligibilityImmuneIncidentS
     return EligibilityImmuneIncidentSeverity.WARNING
 
 
+def _recurrence_threshold(kind: EligibilityImmuneIncidentKind) -> int | None:
+    if kind is EligibilityImmuneIncidentKind.VERIFIER_DISAGREEMENT:
+        return ELIGIBILITY_VERIFIER_DISAGREEMENT_RECURRENCE_THRESHOLD
+    return None
+
+
 def _validated_scope(*, tenant_key: str, aggregate_key: str) -> tuple[str, str]:
     tenant = str(tenant_key or "").strip()
     aggregate = str(aggregate_key or "").strip()
@@ -239,6 +254,78 @@ def _control_activities(
             )
             .order_by(OrganizationActivity.stream_sequence.desc())
         ).all()
+    )
+
+
+def _latest_recovery_boundary(
+    session: Session,
+    *,
+    tenant_key: str,
+    aggregate_key: str,
+) -> OrganizationActivity | None:
+    for activity in _control_activities(
+        session,
+        tenant_key=tenant_key,
+        aggregate_key=aggregate_key,
+    ):
+        if activity.activity_type == ELIGIBILITY_IMMUNE_CIRCUIT_CLOSED_ACTIVITY_TYPE:
+            return activity
+    return None
+
+
+def _warning_recurrence_state(
+    session: Session,
+    *,
+    tenant_key: str,
+    aggregate_key: str,
+    kind: EligibilityImmuneIncidentKind,
+) -> _EligibilityWarningRecurrenceState | None:
+    """Count one supported warning kind in the current human-recovery epoch.
+
+    ``stage_activity`` has already staged/flushed the new incident before this helper is
+    called. On PostgreSQL that same staging operation locks the aggregate Activity stream,
+    so concurrent warning writers serialize before recurrence is evaluated.
+    """
+
+    threshold = _recurrence_threshold(kind)
+    if threshold is None:
+        return None
+
+    boundary = _latest_recovery_boundary(
+        session,
+        tenant_key=tenant_key,
+        aggregate_key=aggregate_key,
+    )
+    statement = select(OrganizationActivity).where(
+        OrganizationActivity.tenant_key == tenant_key,
+        OrganizationActivity.source_object_type == "eligibility_aggregate",
+        OrganizationActivity.source_object_id == aggregate_key,
+        OrganizationActivity.activity_type == ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE,
+    )
+    if boundary is not None:
+        statement = statement.where(
+            OrganizationActivity.stream_sequence > boundary.stream_sequence
+        )
+    rows = session.exec(statement.order_by(OrganizationActivity.stream_sequence)).all()
+
+    observed = 0
+    for row in rows:
+        try:
+            record = transparency_activity_record(row)
+        except TransparencyDataError as exc:
+            raise EligibilityImmuneSystemError(
+                "persisted eligibility incident Activity is malformed during recurrence evaluation"
+            ) from exc
+        if (
+            record.payload.get("incident_kind") == kind.value
+            and record.payload.get("severity") == EligibilityImmuneIncidentSeverity.WARNING.value
+        ):
+            observed += 1
+
+    return _EligibilityWarningRecurrenceState(
+        observed_count=observed,
+        threshold=threshold,
+        epoch_boundary_activity_id=boundary.id if boundary is not None else None,
     )
 
 
@@ -418,16 +505,21 @@ def record_eligibility_immune_incident(
     source_activity_id: UUID | None = None,
     correlation_key: str | None = None,
 ) -> EligibilityImmuneIncidentResult:
-    """Append one deterministic eligibility incident and open only on critical integrity loss.
+    """Append one deterministic eligibility incident and apply restrictive policy.
 
-    Verifier disagreement, ordinary revision conflicts, runtime-health failures and a
-    successfully-contained reassessment rollback are observable warning signals in H.1;
-    they do not independently disable the aggregate. Structural canonical-state or
-    durable-lineage integrity failures are critical and immediately open the circuit.
+    Structural canonical-state or durable-lineage integrity failures are critical and
+    immediately open the circuit under H.1. Runtime-health failures, ordinary revision
+    conflicts, verifier disagreement and successfully-contained reassessment rollback
+    remain warning signals.
 
-    For a new critical incident, the incident Activity and mandatory circuit-open
-    Activity are staged and committed as one transaction. An incident can therefore not
-    become durable while its required restrictive side effect is lost.
+    H.2.1 adds exactly one warning recurrence policy: the third verifier disagreement
+    in the current recovery epoch opens the aggregate circuit. The individual incident
+    remains WARNING; the repeated pattern causes the restrictive control transition.
+    Other warning kinds remain observation-only in this slice.
+
+    When policy requires an open, the incident Activity and circuit-open Activity are
+    staged and committed as one transaction. An incident therefore cannot become durable
+    while its required restrictive side effect is lost.
     """
 
     tenant, aggregate = _validated_scope(
@@ -436,6 +528,7 @@ def record_eligibility_immune_incident(
     )
     incident_kind = EligibilityImmuneIncidentKind(kind)
     severity = _severity(incident_kind)
+    recurrence_threshold = _recurrence_threshold(incident_kind)
     key = str(incident_key or "").strip()
     if not key:
         raise EligibilityImmuneSystemError("incident_key is required")
@@ -497,6 +590,28 @@ def record_eligibility_immune_incident(
     )
     circuit_opened = False
     try:
+        incident_payload: dict[str, object] = {
+            "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
+            "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
+            "aggregate_key": aggregate,
+            "incident_key": key,
+            "incident_kind": incident_kind.value,
+            "severity": severity.value,
+            "incident_fingerprint": incident_fingerprint,
+            "automatic_circuit_action": (
+                "open" if severity is EligibilityImmuneIncidentSeverity.CRITICAL else "none"
+            ),
+            "authority_effect": "restrict_only",
+        }
+        if recurrence_threshold is not None:
+            incident_payload.update(
+                {
+                    "recurrence_policy": ELIGIBILITY_IMMUNE_RECURRENCE_POLICY_VERSION,
+                    "recurrence_threshold": recurrence_threshold,
+                    "recurrence_epoch": "since_last_authorized_close",
+                }
+            )
+
         incident = stage_activity(
             session,
             context,
@@ -511,27 +626,73 @@ def record_eligibility_immune_incident(
             source_object_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
             causation_activity_id=source_activity_id,
             occurred_at=now_utc(),
-            payload={
-                "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
-                "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
-                "aggregate_key": aggregate,
-                "incident_key": key,
-                "incident_kind": incident_kind.value,
-                "severity": severity.value,
-                "incident_fingerprint": incident_fingerprint,
-                "automatic_circuit_action": (
-                    "open" if severity is EligibilityImmuneIncidentSeverity.CRITICAL else "none"
-                ),
-                "authority_effect": "restrict_only",
-            },
+            payload=incident_payload,
             correlation_key=correlation_key,
         )
 
-        if (
-            severity is EligibilityImmuneIncidentSeverity.CRITICAL
-            and before.state is EligibilityCircuitState.CLOSED
-        ):
-            open_key = f"immune:eligibility:{aggregate}:circuit:open:{key}"
+        recurrence = (
+            _warning_recurrence_state(
+                session,
+                tenant_key=tenant,
+                aggregate_key=aggregate,
+                kind=incident_kind,
+            )
+            if severity is EligibilityImmuneIncidentSeverity.WARNING
+            else None
+        )
+        recurrence_opens = (
+            recurrence is not None
+            and recurrence.observed_count >= recurrence.threshold
+        )
+        policy_requires_open = (
+            severity is EligibilityImmuneIncidentSeverity.CRITICAL or recurrence_opens
+        )
+
+        if policy_requires_open and before.state is EligibilityCircuitState.CLOSED:
+            if severity is EligibilityImmuneIncidentSeverity.CRITICAL:
+                open_key = f"immune:eligibility:{aggregate}:circuit:open:{key}"
+                open_summary = (
+                    "Governed eligibility execution is disabled for this canonical aggregate "
+                    "until an authorized recovery closes the circuit."
+                )
+                open_payload: dict[str, object] = {
+                    "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
+                    "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
+                    "aggregate_key": aggregate,
+                    "state": EligibilityCircuitState.OPEN.value,
+                    "cause_incident_activity_id": str(incident.id),
+                    "authority_effect": "restrict_only",
+                }
+            else:
+                if recurrence is None:
+                    raise EligibilityImmuneSystemError(
+                        "eligibility recurrence policy required an open without recurrence state"
+                    )
+                open_key = f"immune:eligibility:{aggregate}:circuit:open:recurrence:{key}"
+                open_summary = (
+                    "Repeated independent eligibility-verifier disagreement reached the deterministic "
+                    "recurrence threshold; governed execution is disabled for this canonical aggregate "
+                    "until an authorized recovery closes the circuit."
+                )
+                open_payload = {
+                    "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
+                    "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
+                    "aggregate_key": aggregate,
+                    "state": EligibilityCircuitState.OPEN.value,
+                    "cause_incident_activity_id": str(incident.id),
+                    "trigger": "warning_recurrence",
+                    "recurrence_policy": ELIGIBILITY_IMMUNE_RECURRENCE_POLICY_VERSION,
+                    "incident_kind": incident_kind.value,
+                    "recurrence_count": recurrence.observed_count,
+                    "recurrence_threshold": recurrence.threshold,
+                    "recurrence_epoch_boundary_activity_id": (
+                        str(recurrence.epoch_boundary_activity_id)
+                        if recurrence.epoch_boundary_activity_id is not None
+                        else None
+                    ),
+                    "authority_effect": "restrict_only",
+                }
+
             stage_activity(
                 session,
                 context,
@@ -540,23 +701,13 @@ def record_eligibility_immune_incident(
                 activity_class=OrganizationActivityClass.blocker,
                 activity_type=ELIGIBILITY_IMMUNE_CIRCUIT_OPEN_ACTIVITY_TYPE,
                 title="Eligibility circuit opened",
-                summary=(
-                    "Governed eligibility execution is disabled for this canonical aggregate "
-                    "until an authorized recovery closes the circuit."
-                ),
+                summary=open_summary,
                 source_object_type="eligibility_aggregate",
                 source_object_id=aggregate,
                 source_object_version=ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
                 causation_activity_id=incident.id,
                 occurred_at=now_utc(),
-                payload={
-                    "immune_contract": ELIGIBILITY_IMMUNE_SYSTEM_SCHEMA_VERSION,
-                    "capability": ELIGIBILITY_IMMUNE_CAPABILITY,
-                    "aggregate_key": aggregate,
-                    "state": EligibilityCircuitState.OPEN.value,
-                    "cause_incident_activity_id": str(incident.id),
-                    "authority_effect": "restrict_only",
-                },
+                payload=open_payload,
                 correlation_key=correlation_key,
             )
             circuit_opened = True
@@ -595,6 +746,10 @@ def close_eligibility_circuit(
     to attempt execution, so the first slice requires retained human admin authority.
     It still does not grant CapabilityAuthority, autonomy or permission for any material
     action; downstream governance remains unchanged.
+
+    H.2.1 also treats the durable close Activity as the boundary of a new warning
+    recurrence epoch. Historical incidents remain visible, but only post-recovery
+    verifier disagreements count toward a future recurrence open.
     """
 
     try:
