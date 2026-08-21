@@ -8,9 +8,12 @@
 **Production Proof Gate:** ACCEPTED / GREEN  
 **Acceptance candidate:** `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`  
 **GitHub Actions run:** `32463849415`  
-**H.2:** BLOCKED pending required-check enforcement verification
+**Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED  
+**H.2:** READY TO BEGIN
 
 This record began as the V12.18 acceptance-pending changelog so implementation work remained visible without being falsely promoted before production proof existed. The production-proof correction is now accepted. Detailed acceptance evidence is preserved in `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
+
+Repository-owner verification subsequently confirmed an active `Production proof enforcement` ruleset on `main` requiring pull-request integration, up-to-date branches, all four Production Proof checks, deletion protection, and force-push protection. The GitHub connector does not expose ruleset introspection, so that repository-settings fact remains explicitly classified as owner-confirmed rather than connector-introspected.
 
 ## H.1 canonical lineage consolidation
 
@@ -121,7 +124,7 @@ The repository-policy lane was repaired to fetch the parent commit before runnin
 
 The frontend lane was aligned to Node 24 after the previous Node 20.20.2 run rejected the request/auth test's `--experimental-strip-types` flag. The final Node 24 run passed every frontend step.
 
-A repository workflow existing and passing is not equivalent to branch protection requiring the checks. Required-check enforcement remains a separately recorded repository-settings action and is not claimed as verified.
+Required-check enforcement is now configured on `main` through the owner-confirmed `Production proof enforcement` ruleset. This is intentionally distinguished from the technical CI evidence above: workflow success proves the candidate; the ruleset establishes the protected integration boundary.
 
 ## Frontend security repair
 
@@ -154,6 +157,14 @@ compiled auth                  PASS
 
 Next 16-generated TypeScript/route-type configuration was accepted. The obsolete `next lint` package script was removed rather than leaving a knowingly invalid command.
 
+The repository now also declares the accepted frontend proof runtime through root `.nvmrc`:
+
+```text
+24
+```
+
+`AGENTS.md` instructs developers to use Node 24 for frontend proof-equivalent work and documents the existing Node contract tests/build checks rather than claiming the frontend has no tests.
+
 ## Dependency reproducibility
 
 Added:
@@ -180,6 +191,8 @@ full backend                        1105 passed / 7 skipped / 1 warning / 0 fail
 ```
 
 Compatibility corrections retained in the accepted baseline include PyYAML `6.0.3`, clamd `1.0.2`, psycopg/psycopg-binary `3.2.2`, and an explicit bodyless FastAPI HTTP 204 checklist DELETE response.
+
+Post-acceptance developer instructions were reconciled so `AGENTS.md` and the historical `docs/TEST_SUITE_V2_9.md` use the same `requirements.txt` + `constraints.txt` installation contract as Docker and Production Proof CI. Installing `requirements.txt` alone is not represented as a proof-equivalent environment.
 
 ## Repository hygiene and evidence portability
 
@@ -232,10 +245,10 @@ Current accepted state:
 ```text
 H.1 = ACCEPTED / SEALED
 Production Proof Gate = ACCEPTED / GREEN
-Required-check enforcement = NOT VERIFIED
-H.2 = BLOCKED
+Required-check enforcement = CONFIGURED / OWNER-CONFIRMED
+H.2 = READY TO BEGIN
 ```
 
-The H.1 gate explicitly permits required-check enforcement to be recorded as a remaining repository-settings action at acceptance. The roadmap retains a stricter H.2 entry sequence: required GitHub check enforcement must be verified before H.2 production transition guardrails begin.
+The protected-main entry prerequisite is satisfied. H.2 is authorized to begin as a bounded future implementation stage; it is not pre-accepted and each H.2 increment must carry its own implementation and proof evidence.
 
-No H.2 implementation is authorized by this changelog entry alone.
+No H.2 implementation is claimed by this changelog entry alone.
