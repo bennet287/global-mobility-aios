@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from sqlmodel import Session, select
@@ -49,16 +49,29 @@ class GovernedWorkAssignmentResult:
     mutated: bool
 
 
+def _normalized_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def work_item_precondition_version(work_item: OrganizationalWorkItem) -> int:
     """Return a stable integer precondition token from the canonical updated_at value."""
 
-    value = work_item.updated_at
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
-    normalized = value.astimezone(timezone.utc)
+    normalized = _normalized_utc(work_item.updated_at)
     epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
     delta = normalized - epoch
     return ((delta.days * 86_400) + delta.seconds) * 1_000_000 + delta.microseconds
+
+
+def _next_work_item_updated_at(previous: datetime) -> datetime:
+    """Return a timestamp that strictly advances the optimistic precondition token."""
+
+    previous_utc = _normalized_utc(previous)
+    candidate = _normalized_utc(now_utc())
+    if candidate <= previous_utc:
+        return previous_utc + timedelta(microseconds=1)
+    return candidate
 
 
 def _governance_activity(
@@ -191,8 +204,9 @@ def _stage_assignment(
 
     before = snapshot(work_item)
     previous_position_key = work_item.assigned_position_key
+    previous_updated_at = work_item.updated_at
     work_item.assigned_position_key = assigned_position_key
-    work_item.updated_at = now_utc()
+    work_item.updated_at = _next_work_item_updated_at(previous_updated_at)
     session.add(work_item)
 
     stage_mutations(
