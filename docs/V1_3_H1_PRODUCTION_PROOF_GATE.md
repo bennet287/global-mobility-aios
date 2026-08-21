@@ -1,11 +1,13 @@
 # Global Mobility AIOS — V1.3-H.1 Production Proof Gate
 
 **Date:** 2026-08-20  
+**Accepted:** 2026-08-21  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / ACCEPTANCE PENDING  
-**Accepted baseline remains:** V1.3-G.5  
-**H.1 seal:** PAUSED pending proof below  
-**H.2:** BLOCKED until this gate is accepted
+**Status:** ACCEPTED / GREEN  
+**Acceptance candidate:** `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`  
+**GitHub Actions run:** `32463849415`  
+**H.1 seal:** ACCEPTED / SEALED  
+**H.2:** BLOCKED pending required-check enforcement verification
 
 ## 1. Why this gate exists
 
@@ -15,7 +17,7 @@ The corrective principle is:
 
 > **Do not add another architectural safety concept while the current safety invariants are not continuously proven.**
 
-The immediate sequence is therefore:
+The immediate sequence was therefore:
 
 ```text
 H.1 seal paused
@@ -26,6 +28,7 @@ H.1 seal paused
 → frontend build/type/test proof
 → repository/dependency hygiene proof
 → accept H.1
+→ verify required-check enforcement
 → only then begin H.2
 ```
 
@@ -88,9 +91,9 @@ Permanent rule:
 
 ## 3. Adversarial regression contract
 
-H.1 must not be accepted merely because valid fixtures pass.
+H.1 was not accepted merely because valid fixtures passed.
 
-Adversarial tests now deliberately corrupt durable committed lineage, including:
+Adversarial tests deliberately corrupt durable committed lineage, including:
 
 ```text
 verification Activity type
@@ -114,7 +117,7 @@ shared canonical validator detects corruption
 → governed execution remains blocked
 ```
 
-Historical G.3/G.4 replay must also fail closed when the same canonical lineage contract is violated.
+Historical G.3/G.4 replay also fails closed when the same canonical lineage contract is violated.
 
 ## 4. Repository hygiene contract
 
@@ -126,7 +129,7 @@ apps/api/=5.4
 
 was shell/Powershell redirection output rather than product source and has been removed.
 
-Repository policy now rejects suspicious tracked artifact filenames beginning with redirection-like markers such as:
+Repository policy rejects suspicious tracked artifact filenames beginning with redirection-like markers such as:
 
 ```text
 =...
@@ -136,11 +139,13 @@ Repository policy now rejects suspicious tracked artifact filenames beginning wi
 
 The existing content-policy scan coverage remains intact.
 
+Cross-platform production proof additionally exposed two stale SHA-256 receipt files whose values reflected Windows checkout bytes rather than canonical Git blob bytes. A complete audit checked 20 receipt-bearing evidence packs, found exactly two stale receipts, and corrected only those receipt files. The evidence JSON was unchanged and SHA validation was not weakened.
+
 ## 5. Python dependency reproducibility
 
 `apps/api/requirements.txt` remains the direct dependency declaration surface.
 
-A new explicit direct-dependency constraint baseline exists at:
+An explicit direct-dependency constraint baseline exists at:
 
 ```text
 apps/api/constraints.txt
@@ -158,9 +163,9 @@ Repository automation checks that every direct requirement has exactly one match
 
 Current claim boundary:
 
-> **This is a direct-dependency reproducibility baseline, not yet a complete transitive lock.**
+> **This is a direct-dependency reproducibility baseline, not a complete transitive lock.**
 
-A future transitive lock may be introduced after the constrained baseline is proven across supported Python/PostgreSQL environments. H.1 acceptance does not depend on inventing a second package-management system.
+The accepted deterministic backend candidate passed constraint validation, constrained installation, `pip check`, application import and the full backend suite.
 
 ## 6. CI production-proof workflow
 
@@ -207,16 +212,27 @@ SQLite remains useful for fast broad regression. It is not treated as sufficient
 
 ### 6.3 Frontend tests, types and build
 
-Proves the current frontend surface without pretending browser E2E already exists:
+The accepted frontend lane uses Node 24 and proves:
 
 ```text
 npm ci
+npm audit --audit-level=high
 design-foundation Node tests
 request/auth Node tests
 TypeScript --noEmit
 Next.js production build
 compiled-auth Node tests
 ```
+
+The accepted frontend dependency baseline is:
+
+```text
+next=16.3.1
+react=19.0.8
+react-dom=19.0.8
+```
+
+The final audit reports zero vulnerabilities.
 
 Playwright/browser golden-journey coverage remains a follow-on production-proof requirement before aggressive frontend decomposition.
 
@@ -262,12 +278,12 @@ Can the governed services satisfy their behavioral contracts on PostgreSQL?
 
 ## 8. CI enforcement versus CI existence
 
-The workflow is now repository code, but a workflow file alone does not make checks branch-protection-required.
+The workflow exists and has executed successfully, but a workflow file alone does not make checks branch-protection-required.
 
-H.1 acceptance therefore distinguishes:
+H.1 acceptance distinguishes:
 
 ```text
-CI workflow exists and executes
+CI workflow exists and executes successfully
 ```
 
 from:
@@ -276,43 +292,95 @@ from:
 repository rules require those checks before protected-branch integration
 ```
 
-The second condition must be verified from GitHub repository rules/settings before it is claimed as mandatory enforcement.
+The first condition is proven. The second condition has not been verified from GitHub repository rules/settings and is explicitly retained as a remaining repository-settings action.
 
-## 9. H.1 acceptance gate
+No claim is made that branch protection or a ruleset currently requires these checks.
 
-H.1 remains **IMPLEMENTED / ACCEPTANCE PENDING** until all of the following are true:
+## 9. H.1 acceptance gate — SATISFIED
 
-1. canonical eligibility-lineage focused tests pass;
-2. H.1 adversarial identity-corruption tests pass;
-3. G.3 and G.4 historical replay regression passes through the shared validator;
-4. full backend regression passes;
-5. migration and local schema checks pass;
-6. frontend Node tests pass;
-7. TypeScript check passes;
-8. production Next.js build passes;
-9. PostgreSQL migration upgrade passes;
-10. focused PostgreSQL governance contracts pass;
-11. repository policy passes with the accidental artifact removed;
-12. Python constraint enforcement passes;
-13. branch/head and documentation state are synchronized;
-14. GitHub-required-check enforcement is either verified or explicitly recorded as a remaining repository-settings action.
+H.1 was accepted on 2026-08-21 after the following conditions were proven:
 
-No test count or PASS status is recorded here until the command/workflow actually runs.
+1. canonical eligibility-lineage focused tests — PASS;
+2. H.1 adversarial identity-corruption tests — PASS;
+3. G.3 and G.4 historical replay regression through the shared validator — PASS;
+4. full backend regression — PASS;
+5. migration and local schema checks — PASS;
+6. frontend Node tests — PASS;
+7. TypeScript check — PASS;
+8. production Next.js build — PASS;
+9. PostgreSQL migration upgrade — PASS;
+10. focused PostgreSQL governance contracts — PASS;
+11. repository policy with the accidental artifact removed — PASS;
+12. Python constraint enforcement — PASS;
+13. acceptance candidate and evidence record synchronization — PASS;
+14. required-check enforcement — explicitly recorded as the remaining repository-settings action, as permitted by this gate.
+
+Accepted deterministic backend evidence includes:
+
+```text
+1105 passed
+7 skipped
+1 warning
+0 failed
+```
+
+Accepted fresh PostgreSQL 16 evidence includes:
+
+```text
+Alembic 0001 → 0077              PASS
+registered tables                 119
+physical schema                   PASS
+governed eligibility/H.1 suite    57 passed / 1 warning / 0 failed
+```
+
+Accepted local frontend evidence includes:
+
+```text
+npm ci                            PASS
+npm audit --audit-level=high      PASS — 0 vulnerabilities
+design foundation                 28/28 PASS
+request/auth                      4/4 PASS
+TypeScript                        PASS
+Next.js production build          PASS
+compiled auth                     PASS
+```
+
+Final GitHub-hosted acceptance run:
+
+```text
+candidate = 0b19d61a417de2d372e101d4e132a6a0a6c2a84f
+run       = 32463849415
+
+Repository policy and constraints   PASS
+Backend regression (SQLite)         PASS
+Frontend tests, types and build     PASS
+PostgreSQL governance contracts     PASS
+```
+
+Detailed acceptance evidence is preserved in:
+
+```text
+docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
+```
 
 ## 10. H.2 entry condition
 
-H.2 must not start simply because H.1 code exists.
-
-Entry condition:
+H.1 is now accepted and the Production Proof Gate is green, but the roadmap retains one stricter repository-governance prerequisite before H.2 begins:
 
 ```text
-H.1 canonical lineage repair accepted
-+ production-proof gate green
-+ repository truth reconciled
-→ H.2 may begin
+verify required GitHub check enforcement
 ```
 
-Only after that should work proceed into recurrence thresholds, anomaly aggregation, broader blast-radius policy or additional Immune System capabilities.
+Current transition state:
+
+```text
+H.1 canonical lineage repair        ACCEPTED / SEALED
+Production Proof Gate               ACCEPTED / GREEN
+Required-check enforcement          NOT VERIFIED
+H.2                                 BLOCKED
+```
+
+Only after required-check enforcement is verified should work proceed into H.2 production transition guardrails, recurrence thresholds, anomaly aggregation, broader blast-radius policy or additional Immune System capabilities.
 
 ## 11. Decomposition sequencing
 
