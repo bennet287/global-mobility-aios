@@ -13,6 +13,9 @@ This record captures the I.1 implementation state without claiming COMPLETE / PA
 ca14bce1649871df42cc25b20ee3b5ff26b2fcdd  feat: add I.1 capability autonomy truth foundation
 4a533117c729df94f09f4f6d641505e44443a412  test: wire I.1 migration and PostgreSQL contracts
 b34822d7a6af169f4be0410e179aa2be197513f0  docs: mark I.1 implementation acceptance pending
+97315a58b311384ac095a983c406f5e02966ced3  docs: record I.1 implementation pending proof
+395ec3548a3d3749baba4aff4f543445cac0e669  fix: verify autonomy profile fingerprints on read
+1e5f7755a6afd7d01e5783c4b9c75cf2179f45ff  test: cover autonomy profile fingerprint drift
 ```
 
 The final acceptance candidate is intentionally not named yet because this pending record itself advances the branch head and must be included in the exact-candidate proof.
@@ -92,16 +95,21 @@ The read model validates:
 
 ```text
 contiguous profile sequence
-exact supersession chain
+exact profile supersession chain
+exact decision-Activity supersession chain
 autonomy <= Board ceiling
 valid autonomy/risk tiers
+fixed Human Board governance source
 decision Activity type/source/version identity
 deterministic evidence ordering
 source Activity fingerprint continuity
 evidence record fingerprint integrity
+profile semantic record fingerprint integrity
 ```
 
-It returns the current profile plus revision/evidence history without exposing raw Activity payload JSON.
+The profile fingerprint is recomputed from persisted tenant/scope/autonomy/ceiling/authority/risk/policy/governance/idempotency/evidence semantics on every Board read. This closes the gap where a direct database mutation that remained under the Board ceiling could otherwise have escaped the simpler ceiling-only integrity check.
+
+The API returns the current profile plus revision/evidence history without exposing raw Activity payload JSON.
 
 ## Test surface added / changed
 
@@ -114,7 +122,8 @@ The repository now contains contract coverage for:
 - divergent idempotency conflict;
 - append-only v1→v2 supersession;
 - deterministic evidence lineage;
-- fail-closed evidence fingerprint drift;
+- fail-closed evidence Activity fingerprint drift;
+- fail-closed profile semantic fingerprint drift even when the mutated value remains otherwise valid;
 - Board-only read API;
 - absence of an autonomy write API;
 - migration head `0078`;
