@@ -36,29 +36,34 @@ docs/TEST_SUITE_V2_9.md
 apps/api/requirements.txt
 ```
 
-`pytest` is now listed as a development/test dependency.
+`pytest` was added as a development/test dependency at this historical checkpoint.
 
 ## Test database
 
-The suite uses an in-memory SQLite database through SQLModel and overrides FastAPI's `get_session` dependency.
+The original v2.9 suite used an in-memory SQLite database through SQLModel and overrode FastAPI's `get_session` dependency.
 
-This keeps tests isolated from the local development database.
+This kept tests isolated from the local development database.
 
 ## Run
+
+This document records the historical v2.9 suite, but commands should be run against the **current repository dependency contract**. The accepted V12 production-proof baseline requires `requirements.txt` together with `constraints.txt`; do not install `requirements.txt` alone for a proof-equivalent environment.
 
 From the repository root:
 
 ```powershell
-pip install -r apps/api/requirements.txt
+python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+python -m pip check
 $env:PYTHONPATH = "apps/api"
-pytest apps/api/tests -q
+python -m pytest apps/api/tests -q
 ```
 
-Also keep the existing checks:
+Also keep the repository checks appropriate to the current branch, including:
 
 ```powershell
 python -m compileall apps/api/app apps/api/tests
 python scripts/check_repo_policy.py --root .
+python scripts/check_release_consistency.py --root .
+python scripts/check_python_dependency_constraints.py
 ```
 
 ## Covered behavior
@@ -79,4 +84,4 @@ Audit log API can filter by action and include before/after states.
 
 ## Note
 
-This is the first regression layer, not a complete production test suite. Later versions should add fixtures for demo data reset, authentication/role permissions, PostgreSQL runs, and negative API validation cases.
+v2.9 was the first regression layer, not the current complete production-proof suite. The active V12 proof additionally covers the broader backend regression, constrained dependencies, migrations and physical schema, a PostgreSQL 16 governance lane, and frontend install/security/tests/types/build/compiled-auth checks. See `.github/workflows/v12-production-proof.yml` and the current H.1 Production Proof records for the accepted proof boundary.
