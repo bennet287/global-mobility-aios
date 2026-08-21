@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 from uuid import uuid4
 
 import pytest
@@ -302,3 +304,44 @@ def test_h2_1_recurrence_open_blocks_fresh_g4_before_provider_egress(
 
     assert producer.calls == []
     assert verifier.calls == []
+
+
+def test_h2_1_postgres_concurrent_threshold_crossing_appends_one_open(
+    db_session: Session,
+) -> None:
+    engine = db_session.get_bind()
+    if engine.dialect.name != "postgresql":
+        pytest.skip("concurrent stream-lock contract requires PostgreSQL")
+
+    aggregate = _aggregate()
+    _record_disagreement(db_session, aggregate_key=aggregate, key="concurrent-disagreement-1")
+    _record_disagreement(db_session, aggregate_key=aggregate, key="concurrent-disagreement-2")
+
+    barrier = Barrier(2)
+
+    def record_crossing(key: str):
+        with Session(engine) as session:
+            barrier.wait(timeout=10)
+            return _record_disagreement(session, aggregate_key=aggregate, key=key)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [
+            executor.submit(record_crossing, "concurrent-disagreement-3a"),
+            executor.submit(record_crossing, "concurrent-disagreement-3b"),
+        ]
+        results = [future.result(timeout=30) for future in futures]
+
+    assert sum(1 for result in results if result.circuit_opened) == 1
+    assert all(result.circuit_status.state is EligibilityCircuitState.OPEN for result in results)
+
+    db_session.expire_all()
+    activities = _activities(db_session, aggregate_key=aggregate)
+    incidents = [
+        row for row in activities if row.activity_type == ELIGIBILITY_IMMUNE_INCIDENT_ACTIVITY_TYPE
+    ]
+    opens = [
+        row for row in activities if row.activity_type == ELIGIBILITY_IMMUNE_CIRCUIT_OPEN_ACTIVITY_TYPE
+    ]
+    assert len(incidents) == 4
+    assert len(opens) == 1
+    assert opens[0].causation_activity_id in {result.incident_activity.id for result in results}
