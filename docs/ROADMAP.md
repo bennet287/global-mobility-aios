@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.19 — canonical combined architecture refined; H.2 bounded foundation closed; I.1 design entry opened
+**Roadmap generation:** V12.20 — I.1 capability-specific autonomy truth foundation implemented; acceptance pending
 **Date:** 2026-08-21
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -17,10 +17,10 @@
 **Latest accepted Production Proof:** GitHub Actions run `32505228943` — 4/4 jobs PASS
 **Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`
 **H.2:** BOUNDED FOUNDATION CLOSED — accepted measurement + restrict-only safety foundation is sufficient for I.1; full future Immune System is not claimed complete
-**V1.3-I.1:** DESIGN ENTRY OPEN / IMPLEMENTATION NOT STARTED — capability-specific autonomy profile + autonomy evidence foundation
-**Code migration head:** `0077_canonical_eligibility_assessment_revision`
+**V1.3-I.1:** IMPLEMENTED / ACCEPTANCE PENDING — canonical capability/context autonomy profile + deterministic evidence lineage + Board transparency foundation; no automatic promotion/downgrade
+**Code migration head:** `0078_capability_autonomy_profile_foundation`
 
-<!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
+<!-- CURRENT_MIGRATION_HEAD: 0078_capability_autonomy_profile_foundation -->
 
 > **V11 preserves the checkpoint. V12 proves and implements the direction.**
 
@@ -61,6 +61,7 @@ Canonical architecture records:
 - `docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md` — historical predecessor
 - `docs/TECHNOLOGY_RADAR_V1_3_1.md` — active technology/adoption direction
 - `docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md` — H→I stage decision
+- `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md` — active I.1 implementation contract
 - `docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 - `docs/PLASMA_AIOS_ADOPTION_V1.md`
 
@@ -128,9 +129,11 @@ Current V1.3 state:
 | V1.3-H.2 overall | BOUNDED FOUNDATION CLOSED | Accepted measurement + restrict-only safety foundation is sufficient for I.1; no claim that the full future Immune System is complete |
 | V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted refinement run `32505228943` |
 | Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
-| V1.3-I.1 Capability-Specific Autonomy Profile + Evidence | DESIGN ENTRY OPEN / NOT IMPLEMENTED | Define canonical autonomy truth before any promotion/downgrade policy |
+| V1.3-I.1 Capability-Specific Autonomy Profile + Evidence | IMPLEMENTED / ACCEPTANCE PENDING | Canonical capability/context autonomy truth, append-only supersession, deterministic Activity evidence lineage, Board ceiling enforcement and Board read model are implemented; exact-candidate proof is still required |
 
 The accepted V1.3 baseline remains **H.2.4**, sealed by `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`. The H.2.2 runtime-health classification refinement is also COMPLETE / PASS / SEALED on technical candidate `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4`, Production Proof run `32505228943`; it changes measurement provenance only and does not authorize provider-health policy.
+
+I.1 is now implemented but **not yet accepted**. Until the exact implementation/documentation candidate passes the required SQLite, PostgreSQL, frontend and repository proof gates, no COMPLETE / PASS / SEALED claim is valid.
 
 ---
 
@@ -542,7 +545,9 @@ GMAI_TEST_DATABASE_URL=postgresql+psycopg://...
 
 The focused lane covers G.3/G.4/G.5/H.1 and accepted H.2 eligibility safety contracts. Accepted H.2.4 additionally includes `test_organization_eligibility_revision_runtime_race.py` and its adversarial companion, including the real cross-session post-producer race and pre-persistence v3 supersession contracts.
 
-Latest accepted PostgreSQL evidence is H.2.4:
+I.1 extends the already-executed `test_organization_eligibility_postgres_contract.py` with real PostgreSQL competing-profile and stale-supersession proofs so the existing Production Proof lane exercises the new autonomy concurrency contract without introducing a second PostgreSQL test framework.
+
+Latest **accepted** PostgreSQL evidence remains H.2.4:
 
 ```text
 Alembic 0001 → 0077              PASS
@@ -550,6 +555,8 @@ registered tables                 119
 physical schema                   PASS
 governed eligibility suite        90 passed / 1 warning / 0 failed
 ```
+
+The I.1 migration/runtime proof for `0078` is acceptance-pending and is not represented above as already passed.
 
 ---
 
@@ -585,11 +592,20 @@ The accepted constrained candidate passed installation, `pip check`, application
 
 ## 13. Migration/data-model doctrine
 
-The accepted schema currently has 119 registered SQLModel tables and one controlled Alembic head:
+The current implementation declares one controlled Alembic head:
 
 ```text
-0077_canonical_eligibility_assessment_revision
+0078_capability_autonomy_profile_foundation
 ```
+
+I.1 adds exactly two bounded companion tables to the single SQLModel registry:
+
+```text
+capability_autonomy_profiles
+capability_autonomy_evidence
+```
+
+The prior accepted H.2.4 checkpoint had 119 registered SQLModel tables at migration 0077. The current I.1 branch therefore declares 121 registered domain tables before the infrastructure `alembic_version` table; that updated physical-schema claim remains acceptance-pending until Production Proof verifies the exact candidate.
 
 The concentration of models in `domain.py` is a maintainability risk, but the migration doctrine remains:
 
@@ -607,7 +623,7 @@ alembic_version equals the declared head
 
 for SQLite and PostgreSQL when those databases are supplied.
 
-H.2.4 intentionally introduces no new table or migration.
+H.2.4 intentionally introduced no new table or migration. I.1 introduces the two companion tables through linear migration `0078` and registers them through the existing model registry.
 
 ---
 
@@ -636,6 +652,8 @@ one canonical table identity per model
 one linear Alembic lineage/head
 no migration-history rewrite
 ```
+
+I.1 follows this doctrine by adding `app/models/autonomy_profile.py` as a companion model module while registering it in the existing shared SQLModel metadata surface.
 
 ### 14.2 Frontend API decomposition
 
@@ -731,7 +749,7 @@ The H.2.2 runtime-health classification refinement is **COMPLETE / PASS / SEALED
 
 ## 16. Immediate execution order
 
-The current H-stage sequence is:
+The current H→I stage sequence is:
 
 ```text
 1. H.1 canonical lineage + circuit foundation             COMPLETE / SEALED
@@ -742,10 +760,11 @@ The current H-stage sequence is:
 6. H.2.4 post-producer revision-race attribution          COMPLETE / SEALED
 7. H.2.2 runtime-health classification refinement         COMPLETE / SEALED
 8. H.2 bounded safety/measurement foundation              CLOSED
-9. V1.3-I.1 autonomy profile + evidence foundation        DESIGN ENTRY OPEN / NOT IMPLEMENTED
+9. V1.3-I.1 autonomy profile + evidence foundation        IMPLEMENTED / ACCEPTANCE PENDING
+10. Exact-candidate V12 Production Proof                   REQUIRED BEFORE I.1 ACCEPTANCE
 ```
 
-Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept any future H.2 behavior.
+Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept I.1 or any future autonomy policy.
 
 ---
 
@@ -953,11 +972,61 @@ Any future H-stage increment must preserve the H.1 rule that the Immune System i
 
 ## 18. V1.3-I — Earned Autonomy
 
-**I.1 DESIGN ENTRY IS OPEN; IMPLEMENTATION IS NOT STARTED.**
+**I.1 FOUNDATION IS IMPLEMENTED; ACCEPTANCE IS PENDING.**
 
-The accepted H.2 bounded foundation now satisfies the architecture entry condition for defining canonical capability-specific autonomy truth. I.1 begins with the `CapabilityAutonomyProfile` + autonomy-evidence foundation described in `docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md`; it does not begin with automatic promotion or dynamic downgrade.
+Canonical implementation contract:
 
-Target principle:
+```text
+docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md
+```
+
+The I.1 foundation now creates canonical append-only autonomy truth at the exact scope:
+
+```text
+tenant
++ persistent OrganizationPosition
++ capability
++ context scope
++ evidence-policy version
+```
+
+Implemented canonical records:
+
+```text
+CapabilityAutonomyProfile
+CapabilityAutonomyEvidence
+```
+
+Implemented invariants:
+
+```text
+A0–A5 autonomy is explicit and capability/context-specific
+Board ceiling is explicit and enforced
+Authority requirement is stored separately from autonomy
+Risk ceiling is stored separately from autonomy
+profile revisions are append-only
+supersession is explicit and cannot fork one predecessor into two children
+evidence lineage points to canonical OrganizationActivity IDs + captured fingerprints
+exact idempotent replay reuses canonical truth
+divergent idempotency reuse fails closed
+existing-profile updates require expected_profile_sequence
+PostgreSQL uses current-profile row locking plus database uniqueness constraints
+agents cannot invoke the canonical profile writer
+only authenticated internal Human Board/admin context may establish the profile
+HTTP exposes read-only Board transparency; no autonomy POST/PUT/PATCH/DELETE route exists
+```
+
+Current Board read surface:
+
+```text
+GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}?context_scope=...
+```
+
+The read model validates contiguous profile supersession, decision-Activity identity, evidence ordering and evidence fingerprint integrity before returning the current profile plus revision history. Raw Activity payload JSON is not exposed.
+
+This foundation does **not** yet implement a Dynamic Autonomy Manager. It does not automatically promote or downgrade agents. It does not grant authority from scores, provider/model identity, confidence or self-evaluation.
+
+Target principle for later I-stage policy remains:
 
 ```text
 promotion requires measured evidence
@@ -968,6 +1037,8 @@ Board ceilings remain supreme
 ```
 
 The Immune System may reduce autonomy; it does not grant authority.
+
+I.1 acceptance requires the exact candidate to pass the V12 Production Proof repository, SQLite, frontend and real PostgreSQL lanes. Until that proof is green and recorded, this section remains **IMPLEMENTED / ACCEPTANCE PENDING**.
 
 ---
 
@@ -1032,6 +1103,8 @@ The top-level Human Owner / Board experience remains the **Global Mobility AIOS 
 
 H.2.2 improves the future Incident drill-down by making runtime-health warnings attributable to a trusted execution role/runtime identity. Its accepted classification refinement additionally distinguishes configuration/binding failures from provider transport and response-contract failures without creating a provider-health policy. H.2.3 makes pre-egress stale reassessment contention inspectable as an exact expected-versus-current canonical revision snapshot. Accepted H.2.4 extends that explainability to stale producer work when the canonical revision advances during producer latency, without changing control authority.
 
+I.1 extends the existing Board-only transparency facade with a canonical capability-autonomy history view. The Cockpit can inspect which profile is current, which revision it superseded, its Board ceiling, independent authority/risk bounds, evidence-policy version and exact canonical Activity evidence lineage without receiving raw payload JSON or gaining a new autonomy write path.
+
 ---
 
 ## 21. Operational proof still to add after this gate
@@ -1044,7 +1117,7 @@ Still required later:
 - controlled failure/recovery drills;
 - backup/restore proof;
 - observability SLOs and alert routing;
-- load/concurrency benchmarks beyond the focused canonical eligibility contract;
+- load/concurrency benchmarks beyond the focused canonical eligibility/autonomy contracts;
 - security/dependency scanning policy beyond the accepted npm high-severity gate;
 - production deployment rehearsal;
 - provider outage/degradation drills;
@@ -1072,7 +1145,12 @@ The repository does **not** currently claim:
 - provider/runtime health scoring or provider-wide quarantine;
 - rolling-window runtime anomaly policy;
 - automatic Immune System recovery;
-- earned-autonomy implementation;
+- accepted I.1 autonomy-profile implementation before exact-candidate proof is green;
+- automatic earned-autonomy promotion or dynamic downgrade;
+- a Dynamic Autonomy Manager;
+- agent self-promotion or self-grading as permission;
+- provider/model-specific autonomy grants;
+- a single organization-wide autonomy score;
 - full Organizational Immune System implementation;
 - production-scale operational readiness.
 
@@ -1111,6 +1189,10 @@ Accepted H.2.2 classification-refinement records:
 - `docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_REFINEMENT_2026-08-21.md`
 - `docs/V1_3_H2_2_RUNTIME_HEALTH_CLASSIFICATION_ACCEPTANCE_2026-08-21.md`
 
+Active I.1 implementation record:
+
+- `docs/V1_3_I1_CAPABILITY_AUTONOMY_PROFILE_FOUNDATION_2026-08-21.md` — IMPLEMENTED / ACCEPTANCE PENDING
+
 Repository enforcement state:
 
 - active `Production proof enforcement` ruleset targets `main`;
@@ -1121,7 +1203,7 @@ Repository enforcement state:
 - bypass list is empty;
 - configuration is owner-confirmed from GitHub Settings.
 
-The accepted technical baseline remains H.2.4 plus the sealed H.2.2 runtime-health classification refinement. The H.2 bounded safety/measurement foundation is CLOSED, V1.3-I.1 DESIGN ENTRY is OPEN / NOT IMPLEMENTED, and no future H-stage policy is selected or pre-authorized.
+The accepted technical baseline remains H.2.4 plus the sealed H.2.2 runtime-health classification refinement. The H.2 bounded safety/measurement foundation is CLOSED. V1.3-I.1 is IMPLEMENTED / ACCEPTANCE PENDING, and no automatic promotion/downgrade policy or future H-stage policy is selected or pre-authorized.
 
 ---
 
@@ -1129,7 +1211,7 @@ The accepted technical baseline remains H.2.4 plus the sealed H.2.2 runtime-heal
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof. That bounded H-stage foundation is now closed; the project moves into canonical capability-specific autonomy truth before any promotion/downgrade automation.
+The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof. That bounded H-stage foundation is closed. The first I-stage implementation now adds canonical capability-specific autonomy truth, append-only evidence-backed profile history and Board inspection without introducing automatic promotion or a second governance framework.
 
 > **The next risk is no longer lack of architectural ideas. It is maintaining the discipline that architectural sophistication remains continuously proven and repository-enforced.**
 
@@ -1145,7 +1227,8 @@ G.5 accepted baseline
 → H.2.4 post-producer revision-race attribution — SEALED
 → H.2.2 runtime-health classification refinement — SEALED
 → H.2 bounded safety/measurement foundation — CLOSED
-→ I.1 capability-specific autonomy profile/evidence — DESIGN ENTRY OPEN / NOT IMPLEMENTED
+→ I.1 capability-specific autonomy profile/evidence — IMPLEMENTED / ACCEPTANCE PENDING
+→ exact-candidate Production Proof — REQUIRED
 → later Earned Autonomy promotion/downgrade policy — NOT STARTED
 → broader Organization Fabric / operational scale
 ```
