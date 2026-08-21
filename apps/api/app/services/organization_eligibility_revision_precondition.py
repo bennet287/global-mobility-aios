@@ -20,6 +20,32 @@ class EligibilityRevisionPreconditionStale(EligibilityRevisionPreconditionError)
     """The supplied canonical eligibility revision expectation is no longer current."""
 
 
+class EligibilityRevisionPreconditionConflict(EligibilityRevisionPreconditionStale):
+    """A previously current revision was superseded before this reassessment began.
+
+    H.2.3 consumes this narrow subtype only for pre-provider optimistic-concurrency
+    attribution. It is deliberately not raised for missing expectations, future/invalid
+    expectations, a missing canonical revision, aggregate corruption, or the later
+    post-provider revalidation boundary.
+    """
+
+    def __init__(
+        self,
+        *,
+        tenant_key: str,
+        aggregate_key: str,
+        expected_revision_version: int,
+        current_revision_id: UUID,
+        current_revision_version: int,
+    ) -> None:
+        super().__init__("canonical eligibility revision precondition is stale")
+        self.tenant_key = tenant_key
+        self.aggregate_key = aggregate_key
+        self.expected_revision_version = expected_revision_version
+        self.current_revision_id = current_revision_id
+        self.current_revision_version = current_revision_version
+
+
 class EligibilityRevisionAggregateIntegrityError(EligibilityRevisionPreconditionError):
     """Canonical eligibility aggregate lifecycle state is internally inconsistent."""
 
@@ -93,6 +119,7 @@ def resolve_eligibility_revision_precondition(
     * active revision + no expectation -> fail closed; reassessment must be explicit;
     * no active revision + expectation -> stale expectation;
     * active revision version != expectation -> stale expectation;
+    * active revision newer than expectation -> narrow pre-egress conflict subtype;
     * exact active revision expectation -> next revision supersedes that exact row.
 
     Multiple active revisions are always an aggregate-integrity failure. This helper
@@ -141,6 +168,14 @@ def resolve_eligibility_revision_precondition(
             "canonical eligibility reassessment requires expected revision version"
         )
     if current.version != expected_revision_version:
+        if expected_revision_version < current.version:
+            raise EligibilityRevisionPreconditionConflict(
+                tenant_key=tenant_key,
+                aggregate_key=aggregate_key,
+                expected_revision_version=expected_revision_version,
+                current_revision_id=current.id,
+                current_revision_version=current.version,
+            )
         raise EligibilityRevisionPreconditionStale(
             "canonical eligibility revision precondition is stale"
         )
@@ -174,6 +209,9 @@ def require_eligibility_revision_precondition_current(
             expected_revision_version=precondition.expected_revision_version,
         )
     except EligibilityRevisionPreconditionError as exc:
+        # Deliberately collapse any later race back to the generic stale type. H.2.3
+        # attributes only conflicts known before provider egress; a revision change
+        # discovered after runtime latency is a separate failure model.
         raise EligibilityRevisionPreconditionStale(
             "canonical eligibility revision changed after precondition resolution"
         ) from exc

@@ -30,6 +30,13 @@ from app.services.organization_eligibility_lineage import (
     CanonicalEligibilityLineageError,
     canonical_eligibility_lineage_for_governance,
 )
+from app.services.organization_eligibility_revision_conflict import (
+    EligibilityRevisionConflictAttributionError,
+    record_attributed_eligibility_revision_conflict,
+)
+from app.services.organization_eligibility_revision_precondition import (
+    EligibilityRevisionPreconditionConflict,
+)
 from app.services.organization_eligibility_runtime_health import (
     EligibilityRuntimeExecutionRole,
     record_attributed_eligibility_runtime_health_incident,
@@ -264,6 +271,11 @@ def orchestrate_governed_eligibility(
     blocks fresh execution before either provider is called. Exact replay of a durable
     committed effect remains historical and does not perform new execution.
 
+    H.2.3 attributes only a genuine stale reassessment expectation discovered at E.2's
+    initial G.5 precondition boundary. That warning is observation-only. Missing/future
+    expectations and revision races discovered after provider latency are intentionally
+    excluded from this attribution contract.
+
     Exact retries after a committed effect resolve directly from durable canonical
     governance/revision lineage and do not call either model again. Replay still checks
     that the caller supplied the same revision expectation as the committed operation.
@@ -345,6 +357,31 @@ def orchestrate_governed_eligibility(
             "governed eligibility proposal runtime failed"
         ) from exc
     except EligibilityIntentError as exc:
+        conflict = exc.__cause__
+        if isinstance(conflict, EligibilityRevisionPreconditionConflict):
+            try:
+                record_attributed_eligibility_revision_conflict(
+                    session,
+                    tenant_key=tenant,
+                    aggregate_key=circuit_scope.aggregate_key,
+                    incident_key=f"{key}:revision-conflict",
+                    conflict=conflict,
+                    summary=(
+                        "Eligibility reassessment supplied a superseded canonical revision "
+                        "expectation before provider execution."
+                    ),
+                )
+            except (
+                EligibilityRevisionConflictAttributionError,
+                EligibilityImmuneSystemError,
+                RuntimeError,
+            ) as incident_exc:
+                raise GovernedEligibilityOrchestrationIntegrityError(
+                    "revision conflict could not be persisted as an immune-system incident"
+                ) from incident_exc
+            raise GovernedEligibilityOrchestrationIntegrityError(
+                "governed eligibility revision precondition conflicted with the current canonical revision"
+            ) from exc
         raise GovernedEligibilityOrchestrationIntegrityError(
             "governed eligibility proposal stage failed"
         ) from exc
