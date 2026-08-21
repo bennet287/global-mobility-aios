@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.18 — production-proof correction accepted  
+**Roadmap generation:** V12.18+ — production-proof discipline extended into H.2  
 **Date:** 2026-08-21  
 **Active development branch:** `roadmap/global-mobility-aios-v12`  
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`  
@@ -10,10 +10,10 @@
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR  
 **Active organization architecture:** `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` + `GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`  
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme  
-**Last accepted V1.3 checkpoint:** V12.18 / V1.3-H.1 — COMPLETE / PASS / SEALED on acceptance candidate `0b19d61a417de2d372e101d4e132a6a0a6c2a84f`  
-**Current proof programme:** V12 Production Proof Gate — ACCEPTED / GREEN — GitHub Actions run `32463849415`  
+**Last accepted V1.3 checkpoint:** V1.3-H.2.1 — COMPLETE / PASS / SEALED on technical candidate `9e63c358b9692529278595201250c4dc8bb1ff47`  
+**Latest accepted Production Proof:** GitHub Actions run `32469756908` — 4/4 jobs PASS  
 **Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`  
-**H.2:** READY TO BEGIN  
+**H.2:** IN PROGRESS — H.2.1 SEALED; H.2.2 runtime-health attribution candidate ACCEPTANCE PENDING  
 **Code migration head:** `0077_canonical_eligibility_assessment_revision`
 
 <!-- CURRENT_MIGRATION_HEAD: 0077_canonical_eligibility_assessment_revision -->
@@ -108,12 +108,14 @@ Current V1.3 state:
 | V1.3-F Decision Readiness | COMPLETE / PASS / SEALED through F.1 | Deterministic readiness routing accepted |
 | V1.3-G Independent Verification + canonical eligibility | COMPLETE / PASS / SEALED through G.5 | Blind verification, verification floor, canonical effect, orchestration and reassessment accepted |
 | V1.3-H.1 Eligibility Immune Circuit | COMPLETE / PASS / SEALED | Restrictive aggregate circuit, canonical-lineage consolidation and proof accepted |
-| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes all passed on run `32463849415` |
+| V1.3-H.2.1 Eligibility Warning Recurrence Guard | COMPLETE / PASS / SEALED | Third verifier disagreement in one recovery epoch opens the exact aggregate circuit; PostgreSQL concurrency proof accepted |
+| V1.3-H.2.2 Eligibility Runtime-Health Attribution | IMPLEMENTATION CANDIDATE / ACCEPTANCE PENDING | Trusted producer/verifier runtime identity is durably paired with runtime-health warnings; no provider-health policy yet |
+| V1.3-H.2 overall | IN PROGRESS | H.2 proceeds only as separately proven bounded increments |
+| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted H.2.1 run `32469756908` |
 | Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
-| V1.3-H.2 | READY TO BEGIN | H.1, Production Proof and protected-main entry prerequisites are satisfied; future H.2 increments require their own proof |
 | V1.3-I Earned Autonomy | NOT STARTED | Follows accepted H-stage safety/measurement foundations |
 
-The accepted V1.3 baseline is now **H.1**. Detailed acceptance evidence is preserved in `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
+The accepted V1.3 baseline is now **H.2.1**. Detailed evidence is preserved in `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md`.
 
 ---
 
@@ -141,39 +143,40 @@ No V1.3, canonical eligibility-effect, Immune System, CI or Munder work may eras
 
 ---
 
-## 5. Latest accepted quality evidence — V1.3-H.1
+## 5. Latest accepted quality evidence — V1.3-H.2.1
 
 Historical accepted results are not represented as rerun unless actually rerun.
 
-The previously accepted G.5 checkpoint remains preserved by its acceptance records. H.1 adds the following accepted proof without rewriting G.5 history:
+H.1 remains sealed by its own acceptance records. H.2.1 adds the following accepted proof:
 
 ```text
-Deterministic constrained backend         1105 passed / 7 skipped / 1 warning / 0 failed
-Python dependency constraints             PASS — 25 direct dependencies
-pip check                                 PASS
-Fresh PostgreSQL 16 Alembic               PASS — 0001 → 0077
-Registered SQLModel tables                119
-Fresh PostgreSQL physical schema          PASS
-Fresh PostgreSQL governed H.1             57 passed / 1 warning / 0 failed
-Frontend npm ci                           PASS
-Frontend high-severity audit              PASS — 0 vulnerabilities
-Frontend design foundation                28/28 PASS
-Frontend request/auth                     4/4 PASS
-Frontend TypeScript                       PASS
-Frontend Next.js production build         PASS
-Frontend compiled auth                    PASS
-Repository policy                         PASS
-Release consistency                       PASS
-Canonical receipt audit                   20 checked / 2 stale corrected / Linux CI PASS
-GitHub Production Proof run 32463849415   4/4 jobs PASS
-Acceptance candidate                      0b19d61a417de2d372e101d4e132a6a0a6c2a84f
+H.2.1 local focused SQLite              33 passed / 1 skipped / 1 warning / 0 failed
+Fresh PostgreSQL 16 Alembic             PASS — 0001 → 0077
+Registered SQLModel tables              119
+Fresh PostgreSQL physical schema        PASS
+H.2.1 local PostgreSQL recurrence       7 passed / 1 warning / 0 failed
+PostgreSQL concurrent threshold crossing PASS — exactly one OPEN transition
+GitHub backend regression               1111 passed / 8 skipped / 1 warning / 0 failed
+GitHub PostgreSQL governed suite         64 passed / 1 warning / 0 failed
+Frontend npm ci                         PASS
+Frontend high-severity audit            PASS — 0 vulnerabilities
+Frontend design foundation              28/28 PASS
+Frontend request/auth                    4/4 PASS
+Frontend TypeScript                     PASS
+Frontend Next.js 16.3.1 build           PASS
+Frontend compiled auth                   PASS
+Repository policy                        PASS
+Release consistency                      PASS — 0077
+Python dependency constraints            PASS — 25 direct dependencies
+GitHub Production Proof run 32469756908  4/4 jobs PASS
+Accepted technical candidate             9e63c358b9692529278595201250c4dc8bb1ff47
 ```
 
 The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
 
-Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5 and `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1.
+Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5, `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1 and `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md` for H.2.1.
 
-Repository-owner Settings evidence confirms that `main` is protected by an active ruleset requiring the four Production Proof checks before integration. The GitHub connector does not expose ruleset configuration directly, so this enforcement claim is recorded as owner-confirmed rather than connector-introspected.
+Repository-owner Settings evidence confirms that `main` is protected by an active ruleset requiring the four Production Proof checks before integration. The GitHub connector does not expose ruleset configuration directly, so this enforcement claim remains owner-confirmed rather than connector-introspected.
 
 ---
 
@@ -382,9 +385,9 @@ G.3/G.4 replay fails closed on the same canonical invariant.
 
 ---
 
-## 11. Production Proof Gate — accepted / green
+## 11. Production Proof Gate — accepted / continuously reused
 
-Canonical proof records:
+Canonical H.1 proof records:
 
 ```text
 docs/V1_3_H1_PRODUCTION_PROOF_GATE.md
@@ -397,11 +400,18 @@ CI workflow:
 .github/workflows/v12-production-proof.yml
 ```
 
-Final accepted GitHub-hosted run:
+Original accepted H.1 GitHub-hosted run:
 
 ```text
 candidate = 0b19d61a417de2d372e101d4e132a6a0a6c2a84f
 run       = 32463849415
+```
+
+Latest accepted H.2.1 GitHub-hosted run:
+
+```text
+candidate = 9e63c358b9692529278595201250c4dc8bb1ff47
+run       = 32469756908
 
 Repository policy and constraints   PASS
 Backend regression (SQLite)         PASS
@@ -471,15 +481,15 @@ The same pytest fixture switches to PostgreSQL only when:
 GMAI_TEST_DATABASE_URL=postgresql+psycopg://...
 ```
 
-The focused lane covers existing G.3/G.4/G.5/H.1 semantics plus explicit cross-session contracts for stale reassessment and circuit recovery/reopen behavior.
+The focused lane covers G.3/G.4/G.5/H.1 and accepted H.2 eligibility safety contracts. H.2.2 adds its runtime-health attribution test file to this lane before acceptance.
 
-Accepted fresh PostgreSQL evidence:
+Latest accepted PostgreSQL evidence from H.2.1:
 
 ```text
 Alembic 0001 → 0077              PASS
 registered tables                 119
 physical schema                   PASS
-governed H.1                      57 passed / 1 warning / 0 failed
+governed eligibility suite        64 passed / 1 warning / 0 failed
 ```
 
 ---
@@ -538,6 +548,8 @@ alembic_version equals the declared head
 
 for SQLite and PostgreSQL when those databases are supplied.
 
+H.2.2 intentionally introduces no new table or migration.
+
 ---
 
 ## 14. Complexity/decomposition programme — sequenced, not simultaneous
@@ -584,71 +596,116 @@ Permanent rule:
 
 ---
 
-## 15. H.1 acceptance gate — satisfied
+## 15. H.1 and H.2.1 acceptance gates — satisfied
 
-H.1 is **COMPLETE / PASS / SEALED**. The acceptance checklist is satisfied by real evidence:
+H.1 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`.
 
-1. shared canonical-lineage focused tests — PASS;
-2. adversarial Activity-identity corruption tests — PASS;
-3. fresh structural corruption produces CRITICAL circuit OPEN before provider calls — PASS;
-4. G.3/G.4 historical replay fails closed on corrupted lineage — PASS;
-5. full backend regression — PASS;
-6. Alembic + physical schema checks — PASS;
-7. frontend Node tests — PASS;
-8. TypeScript check — PASS;
-9. Next.js production build — PASS;
-10. PostgreSQL migration upgrade — PASS;
-11. PostgreSQL migration/schema contract — PASS;
-12. focused PostgreSQL governance contracts — PASS;
-13. cross-session stale reassessment contract — PASS;
-14. cross-session circuit recovery/reopen contract — PASS;
-15. repository policy — PASS;
-16. dependency constraint enforcement — PASS;
-17. acceptance candidate and evidence records synchronized — PASS;
-18. required-check enforcement — CONFIGURED / OWNER-CONFIRMED on `main`.
+H.2.1 is **COMPLETE / PASS / SEALED** under `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md`.
 
-Acceptance record:
+H.2.1 acceptance proves:
+
+1. first and second verifier disagreements remain warning-only;
+2. the third disagreement opens the exact aggregate circuit;
+3. warning + OPEN transition are atomic;
+4. incident replay cannot duplicate OPEN;
+5. human-admin recovery starts a new recurrence epoch;
+6. unrelated warning kinds do not contribute to the disagreement threshold;
+7. fresh execution after recurrence OPEN is blocked before provider egress;
+8. PostgreSQL serializes concurrent threshold crossing to exactly one OPEN;
+9. broad backend, frontend, migration/schema and repository proof remain green;
+10. required GitHub checks remain the integration enforcement boundary on `main`.
+
+Accepted technical candidate:
 
 ```text
-docs/V1_3_H1_ACCEPTANCE_2026-08-21.md
+9e63c358b9692529278595201250c4dc8bb1ff47
+```
+
+Accepted GitHub run:
+
+```text
+32469756908
 ```
 
 ---
 
 ## 16. Immediate execution order
 
-The H.1 correction sequence is complete and H.2 entry is now authorized:
+The current H-stage sequence is:
 
 ```text
-1. H.1 seal paused                                      COMPLETE
-2. canonical eligibility-lineage consolidation          COMPLETE
-3. adversarial regression                               COMPLETE
-4. full H.1 / governed-vertical acceptance              COMPLETE
-5. Production Proof Gate green                          COMPLETE
-6. reconcile acceptance records / roadmap truth         COMPLETE
-7. configure required GitHub check enforcement          COMPLETE / OWNER-CONFIRMED
-8. begin H.2 as bounded, separately proven increments   READY
+1. H.1 canonical lineage + circuit foundation             COMPLETE / SEALED
+2. Production Proof + required-check enforcement          COMPLETE
+3. H.2.1 verifier-disagreement recurrence guard           COMPLETE / SEALED
+4. H.2.2 runtime-health attribution foundation            IMPLEMENTATION CANDIDATE
+5. H.2.2 focused + broad + PostgreSQL Production Proof    PENDING
+6. H.2.2 acceptance reconciliation                        PENDING
+7. later H.2 health/anomaly controls                      NOT AUTHORIZED BY H.2.2
+8. Earned Autonomy                                        NOT STARTED
 ```
 
-The next authorized architectural work is V1.3-H.2. Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept any H.2 behavior.
+Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities and do not pre-accept any H.2 behavior.
 
 ---
 
-## 17. V1.3-H.2 — ready to begin
+## 17. V1.3-H.2 — in progress as bounded increments
 
-H.2 entry prerequisites are satisfied. H.2 itself is not yet implemented or accepted.
+H.2 is not a single generic anomaly platform. Each increment must have a concrete failure model, a bounded scope and its own proof.
 
-Potential bounded H.2 work includes only evidence-driven extensions such as:
+### 17.1 H.2.1 — accepted verifier-disagreement recurrence
 
-- recurrence thresholds;
+Canonical records:
+
+```text
+docs/V1_3_H2_1_ELIGIBILITY_WARNING_RECURRENCE_GUARD.md
+docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md
+```
+
+Accepted policy:
+
+```text
+incident kind  = verifier_disagreement
+threshold      = 3
+scope          = exact tenant + canonical eligibility aggregate
+recovery epoch = stream start or latest authorized circuit close
+```
+
+The individual incident remains WARNING; the repeated pattern causes a restrict-only OPEN.
+
+### 17.2 H.2.2 — runtime-health attribution candidate
+
+Candidate record:
+
+```text
+docs/V1_3_H2_2_ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION.md
+```
+
+H.2.2 first makes G.4 runtime failure provenance durable:
+
+```text
+execution role
+failure stage
+OrganizationPosition
+runtime profile identity/version/fingerprint
+runtime class / adapter
+provider / model
+independence group
+```
+
+The values come only from the trusted server-side execution plan. They are paired atomically with the existing `runtime_health_failure` warning.
+
+H.2.2 deliberately does **not** add a runtime recurrence threshold, provider-health score, cross-aggregate quarantine or automatic recovery. Those require a separately justified scope/time/blast-radius policy after the attribution contract is proven.
+
+Potential later H.2 work remains evidence-driven and may include:
+
 - rolling-window anomaly policy;
 - incident aggregation;
-- root-cause classification;
+- bounded root-cause classification;
 - provider/runtime health scoring;
 - broader but still scope-limited blast-radius controls;
 - automatic escalation routing where constitutionally valid.
 
-Do not begin with a generic anomaly platform.
+Do not build a generic anomaly platform.
 
 Each H.2 increment must preserve the H.1 rule that the Immune System is restrictive only and must receive its own bounded implementation and proof before acceptance.
 
@@ -731,6 +788,8 @@ Board visibility does not imply Board interruption.
 
 The top-level Human Owner / Board experience remains the **Global Mobility AIOS Cockpit**; Board Room is a module inside that control surface.
 
+H.2.2 improves the future Incident drill-down by making runtime-health warnings attributable to a trusted execution role/runtime identity without changing control authority.
+
 ---
 
 ## 21. Operational proof still to add after this gate
@@ -763,7 +822,11 @@ The repository does **not** currently claim:
 - a complete transitive Python lock;
 - Playwright/browser E2E coverage;
 - completed god-module decomposition;
-- H.2 implementation or acceptance;
+- H.2 completion;
+- H.2.2 acceptance before its candidate passes the required proof;
+- provider/runtime health scoring or provider-wide quarantine;
+- rolling-window runtime anomaly policy;
+- automatic Immune System recovery;
 - earned-autonomy implementation;
 - full Organizational Immune System implementation;
 - production-scale operational readiness.
@@ -784,7 +847,13 @@ Accepted architecture / history:
 - `docs/V1_3_H1_ELIGIBILITY_IMMUNE_CIRCUIT_FOUNDATION.md`
 - `docs/V1_3_H1_PRODUCTION_PROOF_GATE.md`
 - `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md`
+- `docs/V1_3_H2_1_ELIGIBILITY_WARNING_RECURRENCE_GUARD.md`
+- `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md`
 - `docs/V12_18_PENDING_CHANGELOG.md` (historical filename; content closed as the V12.18 acceptance changelog)
+
+Active H.2 candidate record:
+
+- `docs/V1_3_H2_2_ELIGIBILITY_RUNTIME_HEALTH_ATTRIBUTION.md`
 
 Repository enforcement state:
 
@@ -796,7 +865,7 @@ Repository enforcement state:
 - bypass list is empty;
 - configuration is owner-confirmed from GitHub Settings.
 
-The accepted baseline is H.1. The Production Proof Gate is green. H.2 is ready to begin under the accepted proof discipline.
+The accepted baseline is H.2.1. H.2.2 is an implementation candidate and remains acceptance-pending until its focused and Production Proof evidence is green.
 
 ---
 
@@ -804,23 +873,19 @@ The accepted baseline is H.1. The Production Proof Gate is green. H.2 is ready t
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof:
+The delivery correction succeeded in converting architectural safety claims into continuously executable and repository-enforced proof. H.2 now extends that discipline one bounded failure model at a time.
 
 > **The next risk is no longer lack of architectural ideas. It is maintaining the discipline that architectural sophistication remains continuously proven and repository-enforced.**
 
-With the H.1 proof and `main` enforcement boundary closed, the project may now enter H.2 while continuing browser golden-journey proof and incremental semantic decomposition before aggressive refactoring.
-
-The governing sequence is:
+The governing sequence is now:
 
 ```text
 G.5 accepted baseline
-→ H.1 candidate
-→ canonical lineage repair
-→ adversarial proof
-→ Production Proof Gate
-→ H.1 acceptance/seal
-→ required GitHub check enforcement
-→ H.2 — READY TO BEGIN
+→ H.1 canonical lineage + circuit foundation — SEALED
+→ Production Proof + required GitHub checks — SEALED
+→ H.2.1 verifier-disagreement recurrence — SEALED
+→ H.2.2 trusted runtime-health attribution — CANDIDATE / ACCEPTANCE PENDING
+→ evidence-driven runtime/anomaly restriction increments
 → Earned Autonomy
 → broader Organization Fabric / operational scale
 ```

@@ -30,6 +30,10 @@ from app.services.organization_eligibility_lineage import (
     CanonicalEligibilityLineageError,
     canonical_eligibility_lineage_for_governance,
 )
+from app.services.organization_eligibility_runtime_health import (
+    EligibilityRuntimeExecutionRole,
+    record_attributed_eligibility_runtime_health_incident,
+)
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
     EligibilityIntentError,
@@ -323,15 +327,17 @@ def orchestrate_governed_eligibility(
         )
     except EligibilityIntentRuntimeError as exc:
         try:
-            record_eligibility_immune_incident(
+            record_attributed_eligibility_runtime_health_incident(
                 session,
                 tenant_key=tenant,
                 aggregate_key=circuit_scope.aggregate_key,
                 incident_key=f"{key}:producer-runtime-health",
-                kind=EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE,
+                execution_role=EligibilityRuntimeExecutionRole.PRODUCER,
+                position_key=execution_plan.producer_position_key,
+                runtime_profile=execution_plan.producer_runtime_profile,
                 summary="Eligibility producer runtime failed before a governed proposal could complete.",
             )
-        except EligibilityImmuneSystemError as incident_exc:
+        except (EligibilityImmuneSystemError, RuntimeError) as incident_exc:
             raise GovernedEligibilityOrchestrationIntegrityError(
                 "producer runtime failure could not be persisted as an immune-system incident"
             ) from incident_exc
@@ -416,17 +422,19 @@ def orchestrate_governed_eligibility(
         )
     except IndependentEligibilityVerificationRuntimeError as exc:
         try:
-            record_eligibility_immune_incident(
+            record_attributed_eligibility_runtime_health_incident(
                 session,
                 tenant_key=tenant,
                 aggregate_key=circuit_scope.aggregate_key,
                 incident_key=f"{key}:verifier-runtime-health",
-                kind=EligibilityImmuneIncidentKind.RUNTIME_HEALTH_FAILURE,
+                execution_role=EligibilityRuntimeExecutionRole.VERIFIER,
+                position_key=execution_plan.verifier_position_key,
+                runtime_profile=execution_plan.verifier_runtime_profile,
                 summary="Eligibility verifier runtime failed before independent verification could complete.",
                 source_activity_id=proposal.attempt_activity.id,
                 correlation_key=str(proposal.evaluation.trace_id),
             )
-        except EligibilityImmuneSystemError as incident_exc:
+        except (EligibilityImmuneSystemError, RuntimeError) as incident_exc:
             raise GovernedEligibilityOrchestrationIntegrityError(
                 "verifier runtime failure could not be persisted as an immune-system incident"
             ) from incident_exc
