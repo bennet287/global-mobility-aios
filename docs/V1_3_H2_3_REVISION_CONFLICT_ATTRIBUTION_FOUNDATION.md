@@ -1,7 +1,10 @@
 # Global Mobility AIOS — V1.3 H.2.3 Eligibility Revision-Conflict Attribution Foundation
 
 **Stage:** V1.3-H.2.3
-**Status:** IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
+**Status:** COMPLETE / PASS / SEALED
+**Accepted technical candidate:** `17edeca46af2b9cc7e0a6111ec2b3270f4bb1283`
+**Accepted Production Proof:** GitHub Actions run `32480405051`
+**Implementation candidate:** `870520af3fc69e5f17145502ec6c8de079353daa`
 **Parent accepted checkpoint:** V1.3-H.2.2 — `c5c2a68ac3a9caf2551204d61862b6ad0b6281eb`
 **Parent accepted Production Proof:** run `32473526874`
 
@@ -121,9 +124,9 @@ submit with a fresh idempotency key
 
 This is normal optimistic-concurrency recovery, not an authority or circuit-recovery action.
 
-## 7. Proof obligations
+## 7. Accepted proof
 
-The implementation candidate must prove at minimum:
+The accepted candidate proves:
 
 1. a real `v1 -> v2` stale reassessment expecting `v1` is attributed before provider egress;
 2. producer and verifier providers receive zero calls for that stale attempt;
@@ -131,15 +134,70 @@ The implementation candidate must prove at minimum:
 4. the paired immune incident is `revision_conflict / warning` with no automatic circuit action;
 5. missing expectations do not create revision-conflict incidents;
 6. future expectations do not create revision-conflict incidents;
-7. exact replay does not duplicate the pair;
-8. repeated conflict observations do not open the aggregate circuit;
-9. post-provider revision revalidation remains generic stale state and is not classified as the pre-egress subtype;
-10. failure between attribution staging and incident persistence rolls back atomically;
-11. replay with a changed conflict snapshot fails closed;
-12. the same tests pass on fresh PostgreSQL 16 in the Production Proof lane;
-13. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
+7. an expectation against a nonexistent canonical revision does not create an H.2.3 incident;
+8. exact replay does not duplicate the pair;
+9. repeated conflict observations do not open the aggregate circuit;
+10. post-provider revision revalidation remains generic stale state and is not classified as the pre-egress subtype;
+11. failure between attribution staging and incident persistence rolls back atomically;
+12. replay with a changed conflict snapshot fails closed;
+13. an incident-only/torn pair fails closed rather than being silently repaired;
+14. fresh PostgreSQL 16 runs the H.2.3 normal and adversarial contracts successfully;
+15. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
 
-## 8. Explicit non-claims
+### 7.1 Accepted GitHub Production Proof
+
+```text
+run                                      32480405051
+head                                     17edeca46af2b9cc7e0a6111ec2b3270f4bb1283
+workflow conclusion                      completed / success
+Repository policy and constraints        PASS
+Backend regression (SQLite)              PASS
+Frontend tests, types and build          PASS
+PostgreSQL governance contracts          PASS
+```
+
+### 7.2 Backend SQLite evidence
+
+```text
+full backend regression                   1127 passed
+skipped                                   8
+known warning                              1
+failed                                     0
+Alembic SQLite 0001 -> 0077               PASS
+migration/physical schema                 PASS
+registered tables                         119
+local schema contract                     PASS
+```
+
+### 7.3 PostgreSQL 16 evidence
+
+```text
+fresh PostgreSQL 16                       PASS
+Alembic 0001 -> 0077                      PASS
+migration head                            0077_canonical_eligibility_assessment_revision
+registered SQLModel tables                119
+physical schema                           PASS
+governed eligibility suite                80 passed / 1 warning / 0 failed
+H.2.3 normal attribution tests            PASS
+H.2.3 adversarial false-positive tests    PASS
+H.2.3 torn-pair fail-closed               PASS
+H.2.3 rollback atomicity                  PASS
+H.2.3 conflict-snapshot drift rejection   PASS
+```
+
+### 7.4 Frontend and repository evidence
+
+The accepted run also proves constrained dependency installation, `pip check`, Python compilation, repository policy, release consistency, direct Python dependency constraints, `git diff --check HEAD^`, `npm ci`, the high-severity frontend dependency audit, design foundation tests, request/auth tests, TypeScript, Next.js production build and compiled-auth tests.
+
+The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
+
+## 8. Acceptance note on the superseded failed run
+
+The first H.2.3 proof run (`32479407154`) already passed repository policy, frontend and PostgreSQL. Its broad SQLite lane found one stale pre-H.2.3 regression assertion that expected the former generic `proposal stage failed` message. The H.2.3 behavior itself had correctly produced the new specific pre-egress revision-conflict error and zero provider calls.
+
+Commit `17edeca46af2b9cc7e0a6111ec2b3270f4bb1283` changed only that legacy test expectation. No H.2.3 runtime implementation changed. The replacement run `32480405051` then passed all four Production Proof jobs.
+
+## 9. Explicit non-claims
 
 H.2.3 does not claim or authorize:
 
@@ -155,15 +213,16 @@ H.2.3 does not claim or authorize:
 - H.2 completion;
 - Earned Autonomy.
 
-## 9. Current checkpoint state
+## 10. Accepted checkpoint state
 
 ```text
 H.1      COMPLETE / PASS / SEALED
 H.2.1    COMPLETE / PASS / SEALED
 H.2.2    COMPLETE / PASS / SEALED
-H.2.3    IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
+H.2.3    COMPLETE / PASS / SEALED
 H.2      IN PROGRESS
+H.2.4    NOT STARTED
 I        NOT STARTED
 ```
 
-H.2.3 must not be marked accepted or sealed until its exact implementation candidate passes the full GitHub-hosted Production Proof, including the fresh PostgreSQL governed eligibility lane.
+Any later restriction based on revision-conflict frequency must receive a separate failure-model, scope/window, threshold, blast-radius, false-positive and recovery contract before implementation.
