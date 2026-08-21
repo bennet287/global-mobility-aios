@@ -109,21 +109,14 @@ def upgrade() -> None:
         "capability_key",
         "context_scope",
         "profile_sequence",
-        "evidence_policy_version",
         "source_activity_id",
-        "source_activity_fingerprint",
-        "human_review_outcome",
         "evidence_grounded",
-        "verifier_contradiction",
         "policy_compliant",
-        "freshness_compliant",
         "critical_error",
         "recovery_outcome",
         "sla_met",
         "idempotency_key",
         "record_fingerprint",
-        "created_by_actor_type",
-        "created_by_actor_key",
         "created_at",
     ):
         op.create_index(
@@ -131,6 +124,16 @@ def upgrade() -> None:
             "capability_autonomy_evidence_observations",
             [column],
         )
+    for name, column in (
+        ("ix_cap_auto_obs_evidence_policy", "evidence_policy_version"),
+        ("ix_cap_auto_obs_source_fingerprint", "source_activity_fingerprint"),
+        ("ix_cap_auto_obs_human_review", "human_review_outcome"),
+        ("ix_cap_auto_obs_verifier_contradiction", "verifier_contradiction"),
+        ("ix_cap_auto_obs_freshness_compliant", "freshness_compliant"),
+        ("ix_cap_auto_obs_created_actor_type", "created_by_actor_type"),
+        ("ix_cap_auto_obs_created_actor_key", "created_by_actor_key"),
+    ):
+        op.create_index(name, "capability_autonomy_evidence_observations", [column])
     op.create_index(
         "ix_cap_autonomy_observation_profile_created",
         "capability_autonomy_evidence_observations",

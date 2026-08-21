@@ -83,6 +83,13 @@ class CapabilityAutonomyEvidenceObservation(SQLModel, table=True):
             "profile_id",
             "created_at",
         ),
+        Index("ix_cap_auto_obs_evidence_policy", "evidence_policy_version"),
+        Index("ix_cap_auto_obs_source_fingerprint", "source_activity_fingerprint"),
+        Index("ix_cap_auto_obs_human_review", "human_review_outcome"),
+        Index("ix_cap_auto_obs_verifier_contradiction", "verifier_contradiction"),
+        Index("ix_cap_auto_obs_freshness_compliant", "freshness_compliant"),
+        Index("ix_cap_auto_obs_created_actor_type", "created_by_actor_type"),
+        Index("ix_cap_auto_obs_created_actor_key", "created_by_actor_key"),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
@@ -93,20 +100,20 @@ class CapabilityAutonomyEvidenceObservation(SQLModel, table=True):
     capability_key: str = Field(index=True)
     context_scope: str = Field(index=True)
     profile_sequence: int = Field(index=True)
-    evidence_policy_version: str = Field(index=True)
+    evidence_policy_version: str
     source_activity_id: UUID = Field(index=True)
-    source_activity_fingerprint: str = Field(max_length=64, index=True)
-    human_review_outcome: str = Field(index=True)
+    source_activity_fingerprint: str = Field(max_length=64)
+    human_review_outcome: str
     evidence_grounded: bool = Field(index=True)
-    verifier_contradiction: bool = Field(index=True)
+    verifier_contradiction: bool
     policy_compliant: bool = Field(index=True)
-    freshness_compliant: bool = Field(index=True)
+    freshness_compliant: bool
     critical_error: bool = Field(index=True)
     recovery_outcome: str = Field(index=True)
     sla_met: bool = Field(index=True)
     incident_count: int = Field(default=0)
     idempotency_key: str = Field(index=True)
     record_fingerprint: str = Field(max_length=64, index=True)
-    created_by_actor_type: str = Field(index=True)
-    created_by_actor_key: str = Field(index=True)
+    created_by_actor_type: str
+    created_by_actor_key: str
     created_at: datetime = Field(default_factory=now_utc, index=True)

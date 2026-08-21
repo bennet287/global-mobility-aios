@@ -19,6 +19,7 @@ cc509a9d9c2aaf6734f29569d8ad9f2274337476  test: advance fresh migration head to 
 dc828bd5c5e4d54e95ad792308f40ea7a6d9b97a  test: advance organization migration boundary to I.2
 9de51be193f023e887ecc59f1a425003fd19be37  test: add I.2 PostgreSQL observation race contract
 12a2c2288a0291ae108638381c82fe5251bd2836  docs: mark I.2 shadow evidence implementation acceptance pending
+7f15bb8c13098694e6b2c194261c09377e8016ee  docs: fix V12.21 changelog diff hygiene
 ```
 
 The final acceptance candidate is intentionally not named yet because this pending changelog itself advances the branch head and must be included in exact-candidate proof.
@@ -178,6 +179,12 @@ Expected exact-candidate application-table count:
 ```
 
 This `0079` / 122-table schema claim is **acceptance pending** until the exact candidate passes fresh SQLite and PostgreSQL migration/physical-schema proof.
+
+### PostgreSQL identifier-length diagnostic and repair
+
+The first exact I.2 PostgreSQL migration attempt reached `0079` but failed before schema verification because an explicitly constructed index name exceeded PostgreSQL's 63-character identifier limit. SQLite accepted the same identifier, so this was a real cross-dialect migration defect rather than an I.2 measurement-policy issue.
+
+The repair replaces the seven overlength automatic-style index names with bounded explicit names in both SQLModel metadata and migration `0079`. No columns, constraints, uniqueness, foreign keys, measurement semantics, authority boundaries or autonomy behavior changed.
 
 ## Test surface implemented
 
