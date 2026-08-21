@@ -583,11 +583,6 @@ def record_eligibility_immune_incident(
             replayed=True,
         )
 
-    before = eligibility_circuit_status(
-        session,
-        tenant_key=tenant,
-        aggregate_key=aggregate,
-    )
     circuit_opened = False
     try:
         incident_payload: dict[str, object] = {
@@ -630,6 +625,14 @@ def record_eligibility_immune_incident(
             correlation_key=correlation_key,
         )
 
+        # Re-read control state only after stage_activity has acquired/held the aggregate
+        # Activity-stream lock on PostgreSQL. This prevents a concurrent writer from
+        # acting on a stale pre-lock CLOSED snapshot and appending a redundant OPEN.
+        current = eligibility_circuit_status(
+            session,
+            tenant_key=tenant,
+            aggregate_key=aggregate,
+        )
         recurrence = (
             _warning_recurrence_state(
                 session,
@@ -648,7 +651,7 @@ def record_eligibility_immune_incident(
             severity is EligibilityImmuneIncidentSeverity.CRITICAL or recurrence_opens
         )
 
-        if policy_requires_open and before.state is EligibilityCircuitState.CLOSED:
+        if policy_requires_open and current.state is EligibilityCircuitState.CLOSED:
             if severity is EligibilityImmuneIncidentSeverity.CRITICAL:
                 open_key = f"immune:eligibility:{aggregate}:circuit:open:{key}"
                 open_summary = (
