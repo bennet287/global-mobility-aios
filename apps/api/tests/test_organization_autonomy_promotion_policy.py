@@ -11,9 +11,7 @@ from app.models.autonomy_profile import CapabilityAutonomyProfile
 from app.models.autonomy_promotion_policy import CapabilityAutonomyPromotionPolicy
 from app.models.domain import OrganizationActivity, OrganizationActorType, OrganizationPosition, now_utc
 from app.services.organization_activity import append_activity
-from app.services.organization_autonomy_evidence_profile import (
-    establish_capability_autonomy_evidence_observation,
-)
+from app.services.organization_autonomy_evidence_profile import establish_capability_autonomy_evidence_observation
 from app.services.organization_autonomy_profile import establish_capability_autonomy_profile
 from app.services.organization_autonomy_promotion_policy import (
     PROMOTION_ELIGIBLE,
@@ -80,12 +78,7 @@ def _position(session: Session) -> OrganizationPosition:
     return position
 
 
-def _activity(
-    session: Session,
-    context: OrganizationCommandContext,
-    *,
-    key: str,
-) -> OrganizationActivity:
+def _activity(session: Session, context: OrganizationCommandContext, *, key: str) -> OrganizationActivity:
     return append_activity(
         session,
         context,
@@ -112,9 +105,7 @@ def _profile(
     expected_profile_sequence: int | None = None,
     evidence_activity_ids: tuple[UUID, ...] | None = None,
 ) -> CapabilityAutonomyProfile:
-    evidence_ids = evidence_activity_ids
-    if evidence_ids is None:
-        evidence_ids = (_activity(session, board, key=f"profile-{key}").id,)
+    evidence_ids = evidence_activity_ids or (_activity(session, board, key=f"profile-{key}").id,)
     return establish_capability_autonomy_profile(
         session,
         board,
@@ -220,46 +211,36 @@ def _observation(
     )
 
 
-def test_i3_policy_is_board_only_one_step_ceiling_bounded_and_idempotent(
-    db_session: Session,
-) -> None:
+def test_i3_policy_is_board_only_one_step_ceiling_bounded_and_idempotent(db_session: Session) -> None:
     _position(db_session)
     board = _board_context()
-    _profile(db_session, board)
+    first_evidence = _activity(db_session, board, key="low-ceiling-profile")
+    _profile(
+        db_session,
+        board,
+        key="low-ceiling",
+        board_ceiling=AutonomyLevel.A2,
+        evidence_activity_ids=(first_evidence.id,),
+    )
 
     with pytest.raises(InvalidHumanActor):
         _policy(db_session, _agent_context(), key="agent")
     with pytest.raises(InvalidTransition, match="exactly one autonomy level"):
-        _policy(
-            db_session,
-            board,
-            key="two-step",
-            target_level=AutonomyLevel.A4,
-        )
-
-    # A3 is one step above A2, but a lower current Board ceiling still blocks policy creation.
-    current = db_session.exec(
-        __import__("sqlmodel").select(CapabilityAutonomyProfile).where(
-            CapabilityAutonomyProfile.tenant_key == "default"
-        )
-    ).first()
-    assert current is not None
-    current.board_ceiling = "A2"
-    db_session.add(current)
-    db_session.commit()
-    with pytest.raises(Exception):
+        _policy(db_session, board, key="two-step", target_level=AutonomyLevel.A4)
+    with pytest.raises(AuthorityDenied, match="Board ceiling"):
         _policy(db_session, board, key="above-ceiling")
-    current.board_ceiling = "A3"
-    db_session.add(current)
-    db_session.commit()
 
+    second_evidence = _activity(db_session, board, key="normal-ceiling-profile")
+    _profile(
+        db_session,
+        board,
+        key="normal-ceiling",
+        board_ceiling=AutonomyLevel.A3,
+        expected_profile_sequence=1,
+        evidence_activity_ids=(first_evidence.id, second_evidence.id),
+    )
     with pytest.raises(InvalidTransition, match="evidence version"):
-        _policy(
-            db_session,
-            board,
-            key="wrong-version",
-            evidence_policy_version="autonomy-evidence-v2",
-        )
+        _policy(db_session, board, key="wrong-version", evidence_policy_version="autonomy-evidence-v2")
     with pytest.raises(InvalidTransition, match="between 0 and 1"):
         _policy(db_session, board, key="bad-rate", min_grounding=1.1)
     with pytest.raises(InvalidTransition, match="min_recovery_applicable_count"):
@@ -297,29 +278,19 @@ def test_i3_policy_is_board_only_one_step_ceiling_bounded_and_idempotent(
         )
 
 
-def test_i3_policy_supersession_is_append_only_and_fails_closed_on_drift(
-    db_session: Session,
-) -> None:
+def test_i3_policy_supersession_is_append_only_and_fails_closed_on_drift(db_session: Session) -> None:
     _position(db_session)
     board = _board_context()
     _profile(db_session, board)
     first = _policy(db_session, board, key="v1")
-
     with pytest.raises(InvalidTransition, match="expected_policy_sequence"):
         _policy(db_session, board, key="missing-sequence")
     with pytest.raises(InvalidTransition, match="stale"):
         _policy(db_session, board, key="stale", expected_policy_sequence=2)
-
-    second = _policy(
-        db_session,
-        board,
-        key="v2",
-        expected_policy_sequence=1,
-        min_volume=3,
-        min_reviewed=3,
-    )
+    second = _policy(db_session, board, key="v2", expected_policy_sequence=1, min_volume=3, min_reviewed=3)
     assert second.policy_sequence == 2
     assert second.supersedes_policy_id == first.id
+
     snapshot = capability_autonomy_promotion_policy_snapshot(
         db_session,
         tenant_key="default",
@@ -350,9 +321,7 @@ def test_i3_policy_supersession_is_append_only_and_fails_closed_on_drift(
         )
 
 
-def test_i3_eligibility_states_are_deterministic_and_do_not_mutate_autonomy(
-    db_session: Session,
-) -> None:
+def test_i3_eligibility_states_are_deterministic_and_do_not_mutate_autonomy(db_session: Session) -> None:
     _position(db_session)
     board = _board_context()
     profile = _profile(db_session, board)
@@ -385,27 +354,12 @@ def test_i3_eligibility_states_are_deterministic_and_do_not_mutate_autonomy(
     assert preserved is not None and preserved.autonomy_level == "A2"
 
 
-def test_i3_quality_failure_dominates_sample_deficit_and_recovery_sample_is_explicit(
-    db_session: Session,
-) -> None:
+def test_i3_quality_failure_dominates_sample_deficit_and_recovery_sample_is_explicit(db_session: Session) -> None:
     _position(db_session)
     board = _board_context()
     profile = _profile(db_session, board)
-    _policy(
-        db_session,
-        board,
-        key="quality",
-        min_recovery_count=1,
-        min_recovery_rate=1.0,
-    )
-    _observation(
-        db_session,
-        board,
-        profile,
-        key="bad",
-        critical_error=True,
-        recovery="not_applicable",
-    )
+    _policy(db_session, board, key="quality", min_recovery_count=1, min_recovery_rate=1.0)
+    _observation(db_session, board, profile, key="bad", critical_error=True, recovery="not_applicable")
     hold = capability_autonomy_promotion_eligibility_snapshot(
         db_session,
         tenant_key="default",
@@ -415,28 +369,15 @@ def test_i3_quality_failure_dominates_sample_deficit_and_recovery_sample_is_expl
     )
     assert hold is not None
     assert hold.eligibility_state == PROMOTION_HOLD
-    assert any(
-        item.criterion_key == "critical_error_count" and item.passed is False
-        for item in hold.criteria
-    )
-    assert any(
-        item.criterion_key == "recovery_applicable_count" and item.passed is False
-        for item in hold.criteria
-    )
+    assert any(item.criterion_key == "critical_error_count" and item.passed is False for item in hold.criteria)
+    assert any(item.criterion_key == "recovery_applicable_count" and item.passed is False for item in hold.criteria)
 
 
-def test_i3_current_profile_supersession_invalidates_old_policy_scope(
-    db_session: Session,
-) -> None:
+def test_i3_current_profile_supersession_invalidates_old_policy_scope(db_session: Session) -> None:
     _position(db_session)
     board = _board_context()
-    first_profile_evidence = _activity(db_session, board, key="profile-v1")
-    profile = _profile(
-        db_session,
-        board,
-        key="v1",
-        evidence_activity_ids=(first_profile_evidence.id,),
-    )
+    first_evidence = _activity(db_session, board, key="profile-v1")
+    profile = _profile(db_session, board, key="v1", evidence_activity_ids=(first_evidence.id,))
     _policy(db_session, board, key="v1")
     _observation(db_session, board, profile, key="first")
 
@@ -448,7 +389,7 @@ def test_i3_current_profile_supersession_invalidates_old_policy_scope(
         autonomy_level=AutonomyLevel.A3,
         board_ceiling=AutonomyLevel.A4,
         expected_profile_sequence=1,
-        evidence_activity_ids=(first_profile_evidence.id, second_evidence.id),
+        evidence_activity_ids=(first_evidence.id, second_evidence.id),
     )
     assert capability_autonomy_promotion_eligibility_snapshot(
         db_session,
@@ -469,10 +410,7 @@ def test_i3_transparency_is_board_only_get_only_and_exposes_criteria(
     profile = _profile(db_session, board)
     policy = _policy(db_session, board, key="api", min_volume=1, min_reviewed=1)
     _observation(db_session, board, profile, key="api")
-    path = (
-        f"{BASE}/{POSITION_KEY}/{CAPABILITY_KEY}/promotion-eligibility"
-        f"?context_scope=austria%3Askilled-worker"
-    )
+    path = f"{BASE}/{POSITION_KEY}/{CAPABILITY_KEY}/promotion-eligibility?context_scope=austria%3Askilled-worker"
 
     response = client.get(path)
     assert response.status_code == 200, response.text
@@ -489,10 +427,11 @@ def test_i3_transparency_is_board_only_get_only_and_exposes_criteria(
         headers={"X-GMAI-Role": "operator", "X-GMAI-User": "operator-user"},
     )
     assert denied.status_code == 403
-    for method in (raw_client.post, raw_client.put, raw_client.patch, raw_client.delete):
-        result = method(
+    for method in ("POST", "PUT", "PATCH", "DELETE"):
+        result = raw_client.request(
+            method,
             path,
             headers={"X-GMAI-Role": "admin", "X-GMAI-User": "board-human"},
-            json={} if method is not raw_client.delete else None,
+            json={},
         )
         assert result.status_code == 405
