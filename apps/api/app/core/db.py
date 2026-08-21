@@ -131,6 +131,9 @@ def register_models() -> None:
     from app.models.autonomy_evidence_profile import (  # noqa: F401
         CapabilityAutonomyEvidenceObservation,
     )
+    from app.models.autonomy_promotion_policy import (  # noqa: F401
+        CapabilityAutonomyPromotionPolicy,
+    )
     from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
 
 def create_db_and_tables() -> None:
