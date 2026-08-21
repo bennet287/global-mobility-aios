@@ -103,6 +103,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Frontend high-severity dependency audit
+        run: npm audit --audit-level=high
+
       - name: Design foundation tests
         run: npm run test:design-foundation
 
