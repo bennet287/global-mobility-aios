@@ -16,6 +16,7 @@ b34822d7a6af169f4be0410e179aa2be197513f0  docs: mark I.1 implementation acceptan
 97315a58b311384ac095a983c406f5e02966ced3  docs: record I.1 implementation pending proof
 395ec3548a3d3749baba4aff4f543445cac0e669  fix: verify autonomy profile fingerprints on read
 1e5f7755a6afd7d01e5783c4b9c75cf2179f45ff  test: cover autonomy profile fingerprint drift
+584a590550213df2106605f56c04249c555dc4a5  fix: order autonomy profile persistence before evidence
 ```
 
 The final acceptance candidate is intentionally not named yet because this pending record itself advances the branch head and must be included in the exact-candidate proof.
@@ -82,6 +83,16 @@ exact semantic record fingerprint
 Exact idempotent replay returns the existing canonical profile. Divergent reuse of the same idempotency key fails closed.
 
 Competing first-profile creation and stale cross-session supersession are exercised by real-PostgreSQL contract tests inside the existing `test_organization_eligibility_postgres_contract.py`, which is already part of the Production Proof PostgreSQL lane. No second PostgreSQL test framework or workflow is introduced.
+
+### PostgreSQL persistence-order diagnostic and repair
+
+The first focused PostgreSQL proof on candidate `331ac66e7c2319c5a05edd603dd55550938d31aa` successfully migrated a fresh PostgreSQL 16 database through `0078` and verified 121 registered tables with a matching physical schema, but both I.1 concurrency tests failed before their intended concurrency assertions.
+
+The failure was a real PostgreSQL-only persistence-order defect: `CapabilityAutonomyEvidence` could be flushed before its parent `CapabilityAutonomyProfile`, causing `fk_cap_autonomy_evidence_profile_tenant` to reject the child row. The initial-profile race therefore produced two rejected writers, and the stale-supersession test could not establish its seed profile.
+
+Commit `584a590550213df2106605f56c04249c555dc4a5` repairs only that ordering boundary. The command now explicitly flushes the parent profile before queuing evidence rows. The Board decision Activity, parent profile, evidence rows and audit records still belong to the same caller-owned transaction; any later failure rolls the complete unit back. No schema, migration, authority, autonomy or concurrency semantics changed.
+
+This diagnostic is not represented as acceptance. The focused PostgreSQL contracts must be rerun on the new exact candidate.
 
 ## Board / Cockpit transparency
 
