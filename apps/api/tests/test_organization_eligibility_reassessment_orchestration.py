@@ -185,7 +185,10 @@ def test_g5_g4_stale_new_reassessment_fails_before_models(db_session: Session) -
     producer.calls.clear()
     verifier.calls.clear()
 
-    with pytest.raises(GovernedEligibilityOrchestrationIntegrityError, match="proposal stage failed"):
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="revision precondition conflicted",
+    ):
         _run(
             db_session,
             proposal_work_item_id=proposal_work.id,
