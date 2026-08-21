@@ -17,6 +17,8 @@ b34822d7a6af169f4be0410e179aa2be197513f0  docs: mark I.1 implementation acceptan
 395ec3548a3d3749baba4aff4f543445cac0e669  fix: verify autonomy profile fingerprints on read
 1e5f7755a6afd7d01e5783c4b9c75cf2179f45ff  test: cover autonomy profile fingerprint drift
 584a590550213df2106605f56c04249c555dc4a5  fix: order autonomy profile persistence before evidence
+1114df38bbd8765c11d2f1bfdcfd2fbca65f065d  fix: reconcile Africa evidence pack receipt
+d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c  test: advance organization migration boundary to I.1
 ```
 
 The final acceptance candidate is intentionally not named yet because this pending record itself advances the branch head and must be included in the exact-candidate proof.
@@ -92,7 +94,32 @@ The failure was a real PostgreSQL-only persistence-order defect: `CapabilityAuto
 
 Commit `584a590550213df2106605f56c04249c555dc4a5` repairs only that ordering boundary. The command now explicitly flushes the parent profile before queuing evidence rows. The Board decision Activity, parent profile, evidence rows and audit records still belong to the same caller-owned transaction; any later failure rolls the complete unit back. No schema, migration, authority, autonomy or concurrency semantics changed.
 
-This diagnostic is not represented as acceptance. The focused PostgreSQL contracts must be rerun on the new exact candidate.
+The focused repair verification on candidate `fe0ca59242b22c1ad11478fa5f4a4f92ecf8b9af` then passed repository policy, release consistency, diff hygiene, Python compilation, all four focused SQLite I.1 contracts, and both real-PostgreSQL autonomy concurrency contracts.
+
+## Full Production Proof diagnostic
+
+The next full local Production Proof attempt confirmed candidate `fe0ca59242b22c1ad11478fa5f4a4f92ecf8b9af` and passed repository policy, release consistency, Python dependency constraints and diff hygiene.
+
+The local virtual environment was Python 3.13.12, while the canonical GitHub Production Proof workflow provisions Python 3.12. That environment mismatch is not treated as an application defect and cannot by itself provide exact CI-runtime parity.
+
+The full SQLite backend regression completed with:
+
+```text
+1140 passed
+12 skipped
+2 failed
+```
+
+Both failures were repository-truth drift outside the I.1 command implementation:
+
+1. `test_coverage_evidence_packs.py` detected that the tracked receipt for `v10_22_2_africa_tranche_1A_ready_9.json` still declared SHA-256 `e7527b1e...`, while the checked-out canonical JSON calculated to `59e16db2...`. Commit `1114df38bbd8765c11d2f1bfdcfd2fbca65f065d` reconciles the receipt only; the evidence pack content is unchanged.
+2. `test_organization_records_api.py` still encoded the pre-I.1 architecture ceiling by asserting that no numbered migration may exceed `0077`. Commit `d4516bbc4f9b2b579b2a799a7c5473fd21b59b3c` now explicitly requires `0078_capability_autonomy_profile_foundation.py` and forbids migrations beyond `0078`.
+
+The same run independently passed the SQLite migration consistency and local physical-schema contracts at migration head `0078`, with 121 registered/application tables and the expected Alembic infrastructure table.
+
+Frontend Production Proof steps completed successfully on Node 24, including dependency installation/audit, design-foundation tests, request/auth tests, TypeScript, production build and compiled-auth verification. The PostgreSQL governance lane had started on a fresh healthy PostgreSQL 16 instance when the captured output ended; no result from the full governed PostgreSQL suite is claimed here.
+
+Because the two backend repository-drift fixes advance the branch head, all acceptance evidence must be rerun against the new exact candidate. I.1 remains ACCEPTANCE PENDING.
 
 ## Board / Cockpit transparency
 
@@ -141,7 +168,7 @@ The repository now contains contract coverage for:
 - PostgreSQL competing initial-profile creation;
 - PostgreSQL stale cross-session supersession rejection.
 
-These tests are present but are **not represented as passed** in this pending record until they actually run on the exact candidate.
+These tests are present but are **not represented as globally accepted** in this pending record until the exact post-fix candidate passes the required Production Proof gates.
 
 ## Explicit non-claims
 
