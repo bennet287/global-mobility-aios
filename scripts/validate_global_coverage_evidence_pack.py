@@ -27,6 +27,15 @@ def discover_canonical_evidence_packs() -> list[Path]:
     return sorted(paths, key=lambda path: path.name)
 
 
+def _canonical_receipt_bytes(pack_path: Path) -> bytes:
+    payload = pack_path.read_bytes()
+    if pack_path.suffix.casefold() == ".json":
+        # Evidence-pack receipts must be stable across Git checkouts. JSON is tracked
+        # as text, so normalize checkout-specific CRLF/CR line endings before hashing.
+        payload = payload.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return payload
+
+
 def validate_sha256_receipt(pack_path: Path) -> str | None:
     receipt_path = pack_path.with_name(f"{pack_path.name}.sha256")
     if not receipt_path.exists():
@@ -37,7 +46,7 @@ def validate_sha256_receipt(pack_path: Path) -> str | None:
     expected = fields[0].lower()
     if len(expected) != 64 or any(character not in "0123456789abcdef" for character in expected):
         raise ValueError(f"invalid SHA-256 receipt: {receipt_path}")
-    actual = hashlib.sha256(pack_path.read_bytes()).hexdigest()
+    actual = hashlib.sha256(_canonical_receipt_bytes(pack_path)).hexdigest()
     if actual != expected:
         raise ValueError(
             f"SHA-256 receipt mismatch for {pack_path}: expected {expected}, calculated {actual}"
