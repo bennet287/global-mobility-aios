@@ -4,7 +4,8 @@
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Accepted baseline remains:** V1.3-G.5  
 **Latest fully tested constrained-backend head:** `c4d958c6b6d16f3fbd2dd06d3968049f192ee9f0`  
-**Status:** PARTIAL PROOF RECORDED / BACKEND CONSTRAINED RUNTIME PASS / FRESH POSTGRESQL MIGRATION PROOF + FRONTEND SECURITY PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
+**Latest fresh PostgreSQL 16 proof head:** `76f0a7b7abe9312a25571f11624126b5d00a22b4`  
+**Status:** PARTIAL PROOF RECORDED / BACKEND + FRESH POSTGRESQL H.1 PROOF PASS / FRONTEND SECURITY + CURRENT FRONTEND PROOF REQUIRED / H.1 ACCEPTANCE STILL PENDING
 
 This record captures real Human Owner local verification for the V12.18 H.1/Production Proof candidate. Failed proof attempts are intentionally preserved as evidence. It does not seal H.1 and does not authorize H.2.
 
@@ -190,56 +191,22 @@ duration = 908.01s
 
 The failure was retained rather than hidden.
 
-### Behavioral repair 1 — canonical governance outcome representation
+### Behavioral repairs
 
-The shared canonical lineage validator expected lowercase:
-
-```text
-outcome = auto_execute
-```
-
-while the sealed governance projection persists:
-
-```text
-outcome = AUTO_EXECUTE
-```
-
-Repair:
+Three bounded repairs followed:
 
 ```text
 78d310d6fa8c4dd5ba0eeea35ef726b24e4bd548
 fix: align canonical governance outcome with persisted contract
-```
 
-### Behavioral repair 2 — PostgreSQL-valid adversarial lineage corruption
-
-Two H.1 tests previously used a random `semantic_activity_id`. Real PostgreSQL correctly rejected that mutation through the composite foreign key before H.1 could evaluate higher-order lineage integrity.
-
-Repair:
-
-```text
 ad2bd9a339601d6fb14d7b0404b9ab8129d32223
 test: make H.1 lineage corruption PostgreSQL-valid
-```
 
-The corruption now cross-links to an existing same-tenant Activity, preserving referential integrity while violating canonical semantic lineage.
-
-### Behavioral repair 3 — stable replay failure code
-
-Repair:
-
-```text
 a192fafd9290013a7f99e946bb1f43c929760297
 test: assert canonical replay cardinality failure code
 ```
 
-The replay test now asserts:
-
-```text
-governance_revision_cardinality
-```
-
-rather than obsolete caller-era prose.
+The first aligned the shared canonical validator with the sealed governance projection's persisted `AUTO_EXECUTE` representation. The second changed adversarial corruption from a random foreign-key-breaking activity ID to a real same-tenant cross-link so PostgreSQL could preserve referential integrity while H.1 evaluated higher-order lineage integrity. The third asserted the stable `governance_revision_cardinality` failure code rather than obsolete caller-era prose.
 
 ### PostgreSQL behavioral retest — PASS
 
@@ -258,9 +225,11 @@ Result:
 duration = 589.67s
 ```
 
-This establishes real PostgreSQL behavioral evidence for the shared G.3/G.4/H.1 lineage repair. It does **not** by itself establish the fresh-database PostgreSQL migration gate.
+This established real PostgreSQL behavioral evidence for the shared G.3/G.4/H.1 lineage repair, but it did not yet establish a fresh-database migration proof.
 
-## 4. Fresh PostgreSQL migration proof — prior failure repaired, current-head retest required
+## 4. Fresh PostgreSQL 16 migration / schema / H.1 proof — PASS
+
+### Prior migration failure
 
 A fresh PostgreSQL 16 Alembic upgrade through `0077` previously failed because a generated index identifier exceeded PostgreSQL's 63-character limit:
 
@@ -276,26 +245,72 @@ Identifier 'ix_eligibility_assessment_revisions_verification_floor_activity_id'
 exceeds maximum length of 63 characters
 ```
 
-Because Alembic aborted transactionally, the subsequent physical-schema check correctly reported the database as incomplete. That output is not treated as a separate model-drift defect.
+Because Alembic aborted transactionally, the subsequent incomplete-schema output was not treated as an independent model-drift defect.
 
-`0077_canonical_eligibility_assessment_revision.py` has since been repaired to use explicit PostgreSQL-safe index names:
+`0077_canonical_eligibility_assessment_revision.py` was repaired to use explicit PostgreSQL-safe index names:
 
 ```text
 ix_eligibility_revisions_verification_floor_activity
 ix_eligibility_revisions_verification_floor_fp
 ```
 
-Required proof still outstanding:
+### Current fresh-database proof
+
+On:
 
 ```text
-fresh PostgreSQL 16 database
-→ alembic upgrade head succeeds from empty DB
-→ database revision == 0077_canonical_eligibility_assessment_revision
-→ registered/physical schema check passes
-→ governed eligibility/H.1 PostgreSQL suite passes on the same current candidate
+76f0a7b7abe9312a25571f11624126b5d00a22b4
 ```
 
-Until that sequence is observed on the current repaired head, the PostgreSQL Production Proof lane is not marked PASS.
+the Human Owner started a fresh `postgres:16` container with an empty `global_mobility_aios_test` database and pointed both `DATABASE_URL` and `GMAI_TEST_DATABASE_URL` at that isolated database.
+
+Pre-proof environment integrity:
+
+```text
+Python 3.13.12
+pip check → No broken requirements found.
+```
+
+Alembic then successfully executed the complete controlled migration sequence:
+
+```text
+0001_mvp1_baseline
+→ ...
+→ 0076_organization_position_active_identity
+→ 0077_canonical_eligibility_assessment_revision
+```
+
+No PostgreSQL identifier failure recurred.
+
+The physical schema/head checker then passed:
+
+```text
+Database migration check passed.
+database_url=postgresql+psycopg://postgres:***@127.0.0.1:55432/global_mobility_aios_test
+migration_heads=0077_canonical_eligibility_assessment_revision
+registered_tables=119
+physical_schema=ok
+database_revision=0077_canonical_eligibility_assessment_revision
+```
+
+On the same fresh PostgreSQL database and same candidate head, the governed eligibility/H.1 suite passed:
+
+```text
+57 passed
+1 warning
+0 failed
+duration = 973.50s (0:16:13)
+```
+
+Final repository truth remained:
+
+```text
+76f0a7b7abe9312a25571f11624126b5d00a22b4
+roadmap/global-mobility-aios-v12...origin/roadmap/global-mobility-aios-v12
+git diff --check = clean
+```
+
+This closes the fresh PostgreSQL migration/schema/H.1 backend production-proof sub-gate. The recurring warning is the same non-blocking Pydantic 2.8 `model_metadata_json` protected-namespace warning already recorded in the constrained backend proof.
 
 ## 5. Repository policy / release consistency
 
@@ -308,11 +323,11 @@ Python dependency constraints passed for 25 direct dependencies.
 git diff --check = clean
 ```
 
-The current constrained full-backend proof on `c4d958c6b6d16f3fbd2dd06d3968049f192ee9f0` again passed these checks and completed with the local branch synchronized with `origin/roadmap/global-mobility-aios-v12`.
+The current constrained full-backend and fresh PostgreSQL proofs both completed on synchronized V12 branch heads with clean repository state.
 
-## 6. Deterministic Python dependency-install proof
+## 6. Deterministic Python dependency-install proof — PASS
 
-The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. The current candidate has now proven installability and backend runtime compatibility on the Human Owner's CPython 3.13 Windows proof environment.
+The constraints file is a direct-dependency compatibility candidate, not yet a complete transitive lock. The current candidate has proven installability and backend runtime compatibility on the Human Owner's CPython 3.13 Windows proof environment.
 
 ### Constraint syntax defect — repaired
 
@@ -333,7 +348,7 @@ On Python 3.13.12, `pyyaml==6.0.0` fell back to an old source-build path and fai
 AttributeError: 'build_ext' object has no attribute 'cython_sources'
 ```
 
-The exact candidate was moved to:
+The exact candidate moved to:
 
 ```text
 pyyaml==6.0.3
@@ -341,13 +356,7 @@ pyyaml==6.0.3
 
 ### clamd minimum candidate — failed, repaired
 
-The earlier `clamd==1.0.0` candidate failed during package metadata generation because that release uses an obsolete `d2to1` / old setuptools build path:
-
-```text
-ImportError: cannot import name '_get_unpatched' from 'setuptools.dist'
-```
-
-The application adapter uses `clamd.ClamdNetworkSocket`. The repair preserved the package/API and moved the declared minimum/candidate to:
+The earlier `clamd==1.0.0` candidate failed during package metadata generation because that release uses an obsolete `d2to1` / old setuptools build path. The repair preserved the `clamd.ClamdNetworkSocket` API while moving the candidate to:
 
 ```text
 requirements.txt: clamd>=1.0.2
@@ -356,71 +365,28 @@ constraints.txt:  clamd==1.0.2
 
 ### Psycopg binary minimum candidate — failed, repaired
 
-The constrained install on `2808dd4fe91e18bb382c9d95e1f2502cb9461ab6` failed because:
-
-```text
-psycopg==3.2.0
-```
-
-resolved its `binary` extra to:
-
-```text
-psycopg-binary==3.2.0.dev1
-```
-
-which has no matching distribution for the CPython 3.13 Windows proof environment.
-
-Repairs:
-
-```text
-291a2ec9f56e79cb5c33fa90ef822e19ba215305
-fix: raise psycopg binary floor for Python 3.13
-
-4a09646ea9d93b96071e312b73510f5b9aace634
-fix: pin psycopg binary-compatible candidate
-```
-
-Current contract:
+The earlier `psycopg==3.2.0` constraint resolved the `binary` extra to unavailable `psycopg-binary==3.2.0.dev1` on CPython 3.13 Windows. The repaired contract is:
 
 ```text
 requirements.txt: psycopg[binary]>=3.2.2
 constraints.txt:  psycopg==3.2.2
 ```
 
-### Successful constrained installation — PASS
-
-On:
-
-```text
-59cdcb3af3a5661660e3d5b9e8575983014263ee
-```
-
-the constraint checker passed for all 25 declared direct dependencies and the constrained installation completed successfully.
-
-Installed critical candidates:
+The successful constrained install proved:
 
 ```text
 PyYAML=6.0.3
 clamd=1.0.2
 psycopg=3.2.2
 psycopg-binary=3.2.2
-```
-
-Integrity:
-
-```text
 pip check → No broken requirements found.
 ```
 
-The same deterministic environment subsequently passed the focused compatibility test and the complete backend suite recorded above.
+The same deterministic environment subsequently passed the focused compatibility test and complete 1105-test backend suite.
 
 ## 7. Constrained runtime compatibility repair
 
-### FastAPI 0.115 exposed an invalid 204 response contract
-
-After the successful constrained install, the targeted malware test initially failed during application import before any malware-scanning assertion ran.
-
-FastAPI 0.115 rejected:
+FastAPI 0.115 exposed an invalid API contract during application import:
 
 ```text
 DELETE /api/v1/application-authority-checklist-items/{item_id}
@@ -428,23 +394,15 @@ status_code = 204
 handler return = None using default response machinery
 ```
 
-with:
-
-```text
-AssertionError: Status code 204 must not have a response body
-```
-
-This was treated as a real API contract defect rather than hidden by raising the FastAPI floor.
-
-Repair:
+FastAPI correctly rejected the route because HTTP 204 must not have a response body. The route was repaired on:
 
 ```text
 78ad35efa68973e4e28f135195fabce4c9cd49fb
 ```
 
-The route now uses an explicit empty `Response` for HTTP 204 and disables response-model generation for that endpoint.
+It now uses an explicit empty `Response` for HTTP 204 and disables response-model generation for that endpoint.
 
-Focused constrained-environment runtime proof then passed:
+Focused proof:
 
 ```text
 12 passed
@@ -453,9 +411,9 @@ Focused constrained-environment runtime proof then passed:
 duration = 0.91s
 ```
 
-The full constrained backend suite subsequently passed 1105 tests, establishing that the repair is compatible across the complete backend surface.
+The subsequent full constrained backend suite passed all 1105 runnable tests, establishing compatibility across the backend surface.
 
-## 8. Frontend production-proof evidence and blockers
+## 8. Frontend production-proof evidence and remaining blocker
 
 Earlier frontend evidence established:
 
@@ -465,11 +423,17 @@ request-auth tests:       4 passed / 0 failed
 TypeScript/build path:    Next.js production build completed successfully
 ```
 
-The compiled-auth verifier then failed because it asserted local API port `8002` while the canonical repository client configuration/default uses port `8000`. The proof harness has since been corrected to canonical configuration and the workflow now supplies deterministic public build-time auth configuration.
+The compiled-auth verifier previously failed because it asserted local API port `8002` while the canonical repository client configuration/default uses port `8000`. The proof harness has since been corrected to canonical configuration and the workflow supplies deterministic public build-time auth configuration. That correction still requires a current-head frontend rerun.
 
-That correction still requires a current-head frontend rerun.
+The current frontend dependency baseline remains:
 
-Separately, `npm ci` reported:
+```text
+next=15.2.4
+react=19.0.0
+react-dom=19.0.0
+```
+
+Earlier `npm ci`/audit evidence reported:
 
 ```text
 4 vulnerabilities
@@ -477,7 +441,15 @@ Separately, `npm ci` reported:
 1 critical
 ```
 
-and specifically warned that pinned Next.js `15.2.4` has a security vulnerability. This security signal is **not waived**. A bounded patched Next.js dependency update and current frontend/audit/type/build/compiled-auth proof are required before the Production Proof Gate can be sealed.
+The security signal is not waived. Upstream security verification performed during the 2026-08-21 proof shows that the old React2Shell-only patch targets are no longer sufficient because later 2026 advisories affect earlier patched lines as well. The bounded current repair target is therefore at least:
+
+```text
+Next.js 15.x security floor: 15.5.21
+React 19.0.x security floor: 19.0.8
+React DOM 19.0.x:            19.0.8
+```
+
+The frontend package and lockfile must be regenerated together and then proven with a fresh install, audit, existing design/request-auth tests, TypeScript, production build, and compiled-client-auth verification. The lockfile will not be hand-edited.
 
 ## 9. Current evidence matrix
 
@@ -498,13 +470,13 @@ ClamAV adapter compatibility                    PASS
 Focused constrained runtime regression          PASS (12 passed)
 Full backend on constrained environment          PASS (1105 passed / 7 skipped / 1 warning)
 PostgreSQL governed H.1 behavior                PASS (57 passed on earlier repaired head)
-Fresh PostgreSQL Alembic upgrade                RETEST REQUIRED after identifier repair
-Fresh PostgreSQL physical schema/head           RETEST REQUIRED
-Current-head PostgreSQL governed H.1 suite      RETEST REQUIRED on same fresh DB
+Fresh PostgreSQL Alembic upgrade                PASS (empty PostgreSQL 16 DB → 0077)
+Fresh PostgreSQL physical schema/head           PASS (119 registered tables / physical_schema=ok / revision=0077)
+Current-head PostgreSQL governed H.1 suite      PASS (57 passed / 1 warning)
 Frontend design/request-auth                    PASS on earlier candidate; current rerun required
 Frontend TypeScript/build                       PASS on earlier candidate; current rerun required
 Compiled frontend auth                          REPAIRED / RETEST REQUIRED
-Frontend dependency security                    BLOCKED by known high/critical audit findings
+Frontend dependency security                    BLOCKED until patched package+lock candidate is proven
 GitHub Actions current-head execution           NOT YET PROVEN
 Required-check/branch-protection enforcement    NOT YET VERIFIED
 ```
@@ -520,7 +492,7 @@ IMPLEMENTED / ACCEPTANCE PENDING
 The Production Proof Gate remains:
 
 ```text
-IMPLEMENTED / PARTIALLY PROVEN / NOT SEALED
+IMPLEMENTED / BACKEND + POSTGRESQL PROVEN / FRONTEND + CI EVIDENCE PENDING / NOT SEALED
 ```
 
 H.2 remains:
@@ -532,8 +504,7 @@ BLOCKED
 Permanent sequencing now is:
 
 ```text
-fresh PostgreSQL migration/schema/H.1 proof
-→ frontend security repair + current frontend production proof
+frontend security repair + current frontend production proof
 → CI/settings evidence where available
 → reconcile ROADMAP / CHANGELOG / H.1 acceptance records
 → seal H.1 only if all required evidence is green
