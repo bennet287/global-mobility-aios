@@ -3,19 +3,24 @@ from __future__ import annotations
 from typing import Any, Mapping
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import OrganizationalWorkItem
 from app.routers.organization_records import organization_command_context
+from app.schemas_organization_autonomy import CapabilityAutonomyProfileTransparencyRead
 from app.schemas_organization_transparency import (
     GovernanceDecisionRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
     WorkItemTransparencyRead,
 )
-from app.services.organization_command import OrganizationCommandContext
+from app.services.organization_autonomy_profile import (
+    AutonomyProfileIntegrityError,
+    capability_autonomy_profile_snapshot,
+)
+from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError
 from app.services.organization_transparency import (
     GovernedActionTrace,
     TransparencyActivityRecord,
@@ -214,6 +219,43 @@ def read_work_item_transparency(
             records=[_record_read(record) for record in records],
         )
     except TransparencyDataError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Organization transparency data is inconsistent.",
+        ) from exc
+
+
+@router.get(
+    "/autonomy/profiles/{position_key}/{capability_key}",
+    response_model=CapabilityAutonomyProfileTransparencyRead,
+)
+def read_capability_autonomy_profile(
+    position_key: str,
+    capability_key: str,
+    context_scope: str = Query(..., min_length=1),
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> CapabilityAutonomyProfileTransparencyRead:
+    """Return the validated append-only Board view of one capability autonomy chain."""
+
+    _require_board(context)
+    try:
+        snapshot = capability_autonomy_profile_snapshot(
+            session,
+            tenant_key=context.tenant_key,
+            position_key=position_key,
+            capability_key=capability_key,
+            context_scope=context_scope,
+        )
+        if snapshot is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Organization transparency resource not found.",
+            )
+        return CapabilityAutonomyProfileTransparencyRead.model_validate(snapshot)
+    except HTTPException:
+        raise
+    except (AutonomyProfileIntegrityError, OrganizationCommandError) as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Organization transparency data is inconsistent.",

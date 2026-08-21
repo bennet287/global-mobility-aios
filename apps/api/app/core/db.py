@@ -124,6 +124,10 @@ def register_models() -> None:
         VentureReviewDecision,
         WorkflowRun,
     )
+    from app.models.autonomy_profile import (  # noqa: F401
+        CapabilityAutonomyEvidence,
+        CapabilityAutonomyProfile,
+    )
     from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
 
 def create_db_and_tables() -> None:
