@@ -172,7 +172,7 @@ def test_fresh_database_upgrades_to_current_schema(tmp_path: Path) -> None:
         assert expected_indexes <= {index["name"] for index in inspector.get_indexes(table_name)}
     with create_engine(database_url).connect() as connection:
         assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == (
-            "0079_capability_autonomy_evidence_profile_foundation"
+            "0080_capability_autonomy_promotion_policy_foundation"
         )
         position_inspector = inspect(connection)
         position_indexes = {
