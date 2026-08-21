@@ -1,9 +1,12 @@
 # Global Mobility AIOS — V1.3 H.2.4 Post-Producer Revision-Race Attribution
 
 **Stage:** V1.3-H.2.4
-**Status:** IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
+**Status:** ACCEPTED / COMPLETE / PASS / SEALED
+**Accepted technical candidate:** `393629a4608d7fbba1fcc314dbadeb9426c767cc`
+**Accepted Production Proof:** GitHub Actions run `32484882964`
+**Acceptance record:** `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`
 **Parent accepted checkpoint:** V1.3-H.2.3 — `17edeca46af2b9cc7e0a6111ec2b3270f4bb1283`
-**Parent reconciled branch head:** `6ce751047b3a1cdd96f601d7c313eb847feebb1a`
+**Parent Production Proof:** run `32480405051`
 
 ## 1. Purpose
 
@@ -201,9 +204,9 @@ The V1.3 consequence model also states that recovery semantics belong to consequ
 
 H.2.4 therefore attributes stale provider work; it does not manufacture rollback semantics around an already-atomic database transaction.
 
-## 10. Implementation surface
+## 10. Accepted implementation surface
 
-The current candidate is intentionally bounded to:
+The accepted increment is intentionally bounded to:
 
 ```text
 organization_eligibility_revision_precondition.py
@@ -217,10 +220,10 @@ organization_eligibility_orchestration.py
   only the post-producer exception boundary may assert provider egress
 
 test_organization_eligibility_revision_runtime_race.py
-  normal, adversarial and PostgreSQL cross-session proof
+  normal, exclusion and real PostgreSQL cross-session proof
 
 test_organization_eligibility_revision_runtime_race_adversarial.py
-  historical attribution replay after a later canonical supersession
+  atomicity, torn-pair, identity/snapshot drift and historical replay proof
 
 v12-production-proof.yml
   both H.2.4 test files included in the real PostgreSQL lane
@@ -228,9 +231,9 @@ v12-production-proof.yml
 
 No migration, new authority surface, generic anomaly framework or provider-health policy is introduced.
 
-## 11. Proof obligations
+## 11. Accepted proof obligations
 
-The H.2.4 implementation candidate must prove at minimum:
+The accepted candidate proves:
 
 1. a real accepted `v1` reassessment precondition can become `v2` during producer runtime;
 2. the stale attempt calls the producer exactly once;
@@ -251,7 +254,35 @@ The H.2.4 implementation candidate must prove at minimum:
 17. a real PostgreSQL cross-session winner can advance the revision during producer runtime and produce the same bounded attribution;
 18. broad SQLite backend, frontend, migration/schema and repository-policy lanes remain green.
 
-## 12. Explicit non-claims
+## 12. Accepted Production Proof
+
+Exact accepted evidence:
+
+```text
+technical candidate                        393629a4608d7fbba1fcc314dbadeb9426c767cc
+GitHub Actions run                         32484882964
+workflow conclusion                        completed / success
+Repository policy and constraints          PASS
+Backend regression (SQLite)                PASS — 1134 passed / 9 skipped / 1 warning / 0 failed
+Frontend tests, types and build            PASS
+PostgreSQL governance contracts            PASS — 88 passed / 1 warning / 0 failed
+Alembic                                    PASS — 0001 -> 0077
+registered SQLModel tables                 119
+physical schema                            PASS
+Python dependency constraints              PASS — 25 direct dependencies
+diff hygiene                               PASS — git diff --check HEAD^
+```
+
+Frontend proof includes Node 24, `npm ci`, zero high-severity audit findings, 28/28 design-foundation tests, 4/4 request/auth tests, TypeScript, Next.js 16.3.1 production build and compiled-auth verification.
+
+The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
+
+Superseded diagnostic runs are retained in the dedicated acceptance record:
+
+- `32483957652` — intermediate candidate canceled by a newer branch push; no test failure;
+- `32484077398` — one adversarial-test construction error from using `dataclasses.replace()` on the exception snapshot object; runtime H.2.4 behavior was not the failing operation. The accepted `393629a...` repair changed only that test construction.
+
+## 13. Explicit non-claims
 
 H.2.4 does not claim or authorize:
 
@@ -269,16 +300,17 @@ H.2.4 does not claim or authorize:
 - H.2 completion;
 - Earned Autonomy.
 
-## 13. Current state
+## 14. Current state
 
 ```text
 H.1      COMPLETE / PASS / SEALED
 H.2.1    COMPLETE / PASS / SEALED
 H.2.2    COMPLETE / PASS / SEALED
 H.2.3    COMPLETE / PASS / SEALED
-H.2.4    IMPLEMENTATION CANDIDATE / PRODUCTION PROOF PENDING
+H.2.4    COMPLETE / PASS / SEALED
 H.2      IN PROGRESS
+later H.2 increment  NOT STARTED / NOT PRE-AUTHORIZED
 I        NOT STARTED
 ```
 
-H.2.4 must not be marked accepted or sealed until its exact implementation candidate passes the full GitHub-hosted V12 Production Proof including the fresh PostgreSQL governed eligibility lane.
+H.2.4 is sealed by `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`. Any later H.2 control must again be selected from accepted data and actual failure semantics rather than from symmetry.
