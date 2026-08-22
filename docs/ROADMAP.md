@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
 
-**Roadmap generation:** V12.23 — I.4 qualified + temporal autonomy evidence evaluation implementation in progress / acceptance pending; I.3 remains the latest sealed checkpoint
+**Roadmap generation:** V12.23 — I.4 qualified + temporal autonomy evidence evaluation COMPLETE / PASS / SEALED; next autonomy-mutation design gate NOT STARTED
 **Date:** 2026-08-22
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -13,14 +13,15 @@
 **Context compression:** LLMLingua-2 — SELECTED PRIMARY PILOT behind AIOS-owned `ContextCompressionPort`; not production adopted
 **Plasma donor programme:** Wiki 1.2.0 + Fractal 1.1.0 — PILOT APPROVED; PR #7 remains DRAFT / SOURCE IMPORT INCOMPLETE
 **Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme
-**Last accepted V1.3 checkpoint:** V1.3-I.3 — COMPLETE / PASS / SEALED on technical candidate `77b2e9adb30d69419158930b31c0bc10515cb6a7`; profile-precondition hardening SEALED on `108231d75b4c7413c1759c003e121fdcca206d7c`
-**Latest accepted Production Proof:** GitHub Actions run `32539026789` — 4/4 jobs PASS for I.3 profile-precondition hardening
+**Last accepted V1.3 checkpoint:** V1.3-I.4 — COMPLETE / PASS / SEALED on technical candidate `46727cd130923f4ede825965cea3a011537a930b`
+**Latest accepted Production Proof:** GitHub Actions run `32560318311` — 4/4 jobs PASS for I.4
+**Latest standalone Repository Policy:** GitHub Actions run `32560318310` — PASS for exact I.4 technical candidate
 **Required-check enforcement:** CONFIGURED / OWNER-CONFIRMED — active `Production proof enforcement` ruleset on `main`
 **H.2:** BOUNDED FOUNDATION CLOSED — accepted measurement + restrict-only safety foundation is sufficient for I-stage work; full future Immune System is not claimed complete
 **V1.3-I.1:** COMPLETE / PASS / SEALED — canonical capability/context autonomy profile + deterministic evidence lineage + Board transparency foundation; no automatic promotion/downgrade
 **V1.3-I.2:** COMPLETE / PASS / SEALED — immutable exact-profile shadow observations + deterministic Board evidence profile; no autonomy mutation
 **V1.3-I.3:** COMPLETE / PASS / SEALED — exact-I.1-profile Board promotion criteria + deterministic eligibility read model; profile-precondition serialization hardening separately SEALED; no autonomy mutation or authority grant
-**V1.3-I.4:** IMPLEMENTATION IN PROGRESS / ACCEPTANCE PENDING — qualified + temporal evidence policy/model/migration/read scaffolding is being implemented; no acceptance or autonomy mutation claimed
+**V1.3-I.4:** COMPLETE / PASS / SEALED — exact-profile, source-qualified, temporal and operationally bounded promotion-grade evidence evaluation; no autonomy mutation or authority grant
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
 <!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
@@ -71,8 +72,10 @@ Canonical architecture and acceptance records:
 - `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_FOUNDATION_2026-08-22.md`
 - `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md`
 - `docs/V1_3_I3_PROFILE_PRECONDITION_HARDENING_ACCEPTANCE_2026-08-22.md`
-- `docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_FOUNDATION_2026-08-22.md` — I.4 implementation contract; acceptance not claimed
-- `docs/V12_22_PENDING_CHANGELOG.md` — historical filename; content closed as V12.22 acceptance changelog
+- `docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_FOUNDATION_2026-08-22.md`
+- `docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_ACCEPTANCE_2026-08-22.md`
+- `docs/V12_22_PENDING_CHANGELOG.md` — historical filename; content closed as V12.22 I.3 acceptance changelog
+- `docs/V12_23_PENDING_CHANGELOG.md` — historical filename; content closed as V12.23 I.4 acceptance changelog
 - `docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 - `docs/PLASMA_AIOS_ADOPTION_V1.md`
 
@@ -138,22 +141,22 @@ Current V1.3 state:
 | V1.3-H.2.3 Eligibility Revision-Conflict Attribution | COMPLETE / PASS / SEALED | Genuine pre-egress stale reassessments are durably attributed; no recurrence policy |
 | V1.3-H.2.4 Post-Producer Revision-Race Attribution | COMPLETE / PASS / SEALED | Event-time revision-race attribution survives legitimate later supersession |
 | V1.3-H.2 overall | BOUNDED FOUNDATION CLOSED | Accepted measurement + restrict-only safety foundation is sufficient for I-stage work; full future Immune System is not claimed |
-| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted hardening run `32539026789` |
+| V12 Production Proof Gate | ACCEPTED / GREEN | Repository, backend SQLite, frontend and PostgreSQL lanes are continuously executable; latest accepted I.4 run `32560318311` |
 | Required GitHub check enforcement | CONFIGURED / OWNER-CONFIRMED | Active `Production proof enforcement` ruleset protects `main` and requires all four Production Proof checks |
 | V1.3-I.1 Capability-Specific Autonomy Profile + Evidence | COMPLETE / PASS / SEALED | Canonical capability/context autonomy truth and Board ceiling accepted on `581df5d99b65f0a7a49ace228ee707b881d508fa` |
 | V1.3-I.2 Shadow Autonomy Evidence Profile | COMPLETE / PASS / SEALED | Immutable exact-profile measurements and deterministic Board evidence projection accepted on `c23e64a95770b1736ac9921486f8d017d17f930b` |
 | V1.3-I.3 Promotion Eligibility Policy | COMPLETE / PASS / SEALED | Board-authored policy is frozen to the exact I.1 profile revision and deterministically evaluates I.2 evidence without mutating autonomy; foundation accepted on `77b2e9adb30d69419158930b31c0bc10515cb6a7`, profile-precondition hardening sealed on `108231d75b4c7413c1759c003e121fdcca206d7c` |
-| V1.3-I.4 Qualified + Temporal Evidence Evaluation | IMPLEMENTATION IN PROGRESS / ACCEPTANCE PENDING | Current code introduces the I.4 Board evaluation-policy schema/service/read scaffolding at migration 0081; canonical qualification/evaluation proof is not yet accepted |
+| V1.3-I.4 Qualified + Temporal Evidence Evaluation | COMPLETE / PASS / SEALED | Exact-profile, canonical-source-qualified, temporally bounded promotion-grade evidence evaluation accepted on `46727cd130923f4ede825965cea3a011537a930b`; no autonomy mutation |
 
-The accepted V1.3 baseline is **I.3**, sealed by `docs/V1_3_I3_AUTONOMY_PROMOTION_ELIGIBILITY_POLICY_ACCEPTANCE_2026-08-22.md` on exact foundation candidate `77b2e9adb30d69419158930b31c0bc10515cb6a7`, Production Proof run `32536826352`.
+The accepted V1.3 baseline is now **I.4**, sealed by `docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_ACCEPTANCE_2026-08-22.md` on exact technical candidate `46727cd130923f4ede825965cea3a011537a930b`, Production Proof run `32560318311`.
 
-The later command-concurrency refinement is separately sealed by `docs/V1_3_I3_PROFILE_PRECONDITION_HARDENING_ACCEPTANCE_2026-08-22.md` on exact hardening candidate `108231d75b4c7413c1759c003e121fdcca206d7c`, Production Proof run `32539026789`.
+I.1, I.2 and I.3 remain sealed parent checkpoints. The later I.3 command-concurrency refinement remains separately sealed by `docs/V1_3_I3_PROFILE_PRECONDITION_HARDENING_ACCEPTANCE_2026-08-22.md` on candidate `108231d75b4c7413c1759c003e121fdcca206d7c`, Production Proof run `32539026789`.
 
-I.3 adds policy/evaluation truth only. `ELIGIBLE` is evidence satisfaction, not permission. No actual autonomy-change mechanism is accepted or implemented.
+I.3 adds policy/eligibility truth only. `ELIGIBLE` is evidence satisfaction, not permission. I.4 adds stricter promotion-grade evidence qualification and temporal/bounded evaluation, but it also remains non-authorizing.
 
-I.4 is now under implementation but remains **ACCEPTANCE PENDING**. The current repository has advanced its code migration head to `0081_capability_autonomy_evidence_evaluation_policy`; this does not change the latest accepted technical baseline, which remains I.3 plus its separately sealed profile-precondition hardening.
+No actual autonomy-change mechanism is accepted or implemented.
 
-A sequencing constraint remains explicit: **the project must not jump directly from I.3 to executable promotion.** Before any autonomy-changing increment may consume I.3 eligibility, I.4 must separately establish and prove typed/source-qualified performance evidence, temporal evidence-aging/window semantics and an operationally bounded Board projection.
+A sequencing constraint remains explicit: **the project must not jump directly from evidence eligibility into autonomous self-promotion.** A later capability-specific mutation increment requires a separate bounded design and proof covering Board-only authority, exact current-profile serialization, I.3 policy applicability, I.4 promotion-grade readiness, Board ceilings, append-only change lineage, Human override/recovery behavior and real PostgreSQL races.
 
 ---
 
@@ -181,36 +184,39 @@ No V1.3, canonical eligibility-effect, Immune System, CI or Earned Autonomy work
 
 ---
 
-## 5. Latest accepted quality evidence — I.3 + profile-precondition hardening
+## 5. Latest accepted quality evidence — I.4
 
 Historical accepted results are not represented as rerun unless actually rerun.
 
-The I.3 foundation remains accepted on `77b2e9adb30d69419158930b31c0bc10515cb6a7`, run `32536826352`. The latest separately accepted technical refinement is the profile-precondition hardening:
+The latest accepted technical checkpoint is I.4:
 
 ```text
-Hardening technical candidate                     108231d75b4c7413c1759c003e121fdcca206d7c
-GitHub Production Proof run                       32539026789 — 4/4 jobs PASS
-Standalone Repository Policy run                  32539026838 — PASS
+I.4 technical candidate                           46727cd130923f4ede825965cea3a011537a930b
+GitHub Production Proof run                       32560318311 — 4/4 jobs PASS
+Standalone Repository Policy run                  32560318310 — PASS
 Python                                             3.12.14
-Alembic                                            PASS — 0001 → 0080
-Registered SQLModel application tables             123
-Fresh SQLite physical schema                       PASS
-Fresh PostgreSQL 16 physical schema                PASS
-Backend regression                                1159 passed / 16 skipped / 1 warning / 0 failed
-PostgreSQL governed/autonomy suite                  99 passed / 1 warning / 0 failed
-I.3 exact-profile policy binding                   PASS
-I.3 explicit expected_profile_id precondition       PASS
-I.3 profile-row PostgreSQL FOR UPDATE serialization PASS
-I.3 supersession-wins stale policy race             PASS
-I.3 same-level I.1 supersession invalidation        PASS
-I.3 Board-ceiling reduction adversarial proof       PASS
-I.3 physical decision + constitutional AUTHORITY    PASS
-I.3 finite-rate / NaN / infinity rejection          PASS
-I.3 policy semantic-fingerprint drift               PASS
-I.2 drift surfaced through I.3                      PASS
-I.3 recovery exact-boundary behavior                PASS
-I.3 competing initial PostgreSQL policy race        PASS
-I.3 stale PostgreSQL policy supersession             PASS
+Alembic                                            PASS — 0001 → 0081
+Registered SQLModel application tables             124
+Fresh SQLite physical tables                       125 including alembic_version
+Fresh PostgreSQL 16 schema                         PASS
+Backend SQLite regression                         1172 passed / 19 skipped / 1 warning / 0 failed
+PostgreSQL governed/autonomy suite                  102 passed / 1 warning / 0 failed
+I.4 exact-profile evaluation-policy binding        PASS
+I.4 current-profile PostgreSQL serialization       PASS
+I.4 qualification adapter                          PASS — eligibility.proposal only
+I.4 canonical eligibility-lineage validation       PASS
+I.4 raw I.2 attestation disagreement tests         PASS
+I.4 observation/source age separation              PASS
+I.4 old-source/new-observation non-refresh          PASS
+I.4 future-dated evidence fail-closed behavior      PASS
+I.4 bounded candidate count                         PASS
+I.4 explicit terminal Human review derivation       PASS
+I.4 ambiguous review ordering fail-closed behavior  PASS
+I.4 bounded summary transparency                    PASS
+I.4 stable capped cursor provenance                 PASS
+I.4 no HTTP mutation route                          PASS
+I.4 no autonomy/Board-ceiling/authority mutation    PASS
+I.4 PostgreSQL profile-supersession race            PASS
 Frontend npm ci                                     PASS
 Frontend high-severity audit                        PASS
 Frontend design foundation                          PASS
@@ -219,18 +225,18 @@ Frontend TypeScript                                 PASS
 Frontend Next.js production build                   PASS
 Frontend compiled auth                              PASS
 Repository policy                                   PASS
-Release consistency                                 PASS — 0080
+Release consistency                                 PASS — 0081
 Python dependency constraints                       PASS
 Diff hygiene                                        PASS
 ```
 
-Those are historical accepted I.3 hardening results. Current I.4 migration/schema work at `0081` is not represented by the accepted counts above and must earn separate exact-head proof.
-
 The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains visible and non-blocking.
+
+The final I.4 repair was deliberately test-boundary-only: SQLite-loaded `OrganizationHumanAction.occurred_at` values were normalized to aware UTC before tests constructed explicit `evaluation_as_of` values. The production evaluator still rejects timezone-naive explicit evaluation timestamps.
 
 ### 5.1 Diagnostic I.3 candidate retained as negative evidence
 
-The unaccepted pre-repair candidate:
+The unaccepted pre-repair I.3 candidate:
 
 ```text
 07260260a442418589f76e3df154a35bb2557e96
@@ -248,7 +254,7 @@ The failure set revealed:
 2. stale-policy reuse risk because policy was not tied to exact I.1 profile identity;
 3. a router-registry hardening count still expecting 66 rather than the I.3-correct 67.
 
-The accepted repair is:
+The accepted I.3 foundation repair remains:
 
 ```text
 77b2e9adb30d69419158930b31c0bc10515cb6a7  fix: bind I.3 policy to exact autonomy profile
@@ -256,13 +262,13 @@ The accepted repair is:
 
 This diagnostic history must not be represented as an accepted candidate.
 
-### 5.2 Post-acceptance profile-precondition hardening
+### 5.2 I.3 profile-precondition hardening — retained sealed parent
 
 A later adversarial review identified a narrower transaction race: exact-profile binding made a stale policy inert, but a Board command could still report success for a profile that became historical during the transaction.
 
-The sealed refinement adds an optional caller `expected_profile_id` precondition and, for every new write, serializes I.3 policy establishment with I.1 profile supersession on the exact current profile row. PostgreSQL locks that row with `FOR UPDATE`, reruns canonical current-profile validation after the lock, revalidates autonomy/evidence-version/Board-ceiling semantics, and performs a final current-profile recheck before commit.
+The sealed refinement added caller `expected_profile_id` preconditioning and serialized I.3 policy establishment with I.1 profile supersession on the exact current profile row. PostgreSQL locks that row with `FOR UPDATE`, reruns canonical current-profile validation after the lock, revalidates autonomy/evidence-version/Board-ceiling semantics, and performs a final current-profile recheck before commit.
 
-The real PostgreSQL contract deliberately makes I.1 supersession win the v1 row lock, proves the I.3 writer is waiting on a lock through `pg_stat_activity`, commits v2, then requires the waiting writer to reject v1 as stale and persist no policy for the historical command attempt.
+The real PostgreSQL contract deliberately makes I.1 supersession win the v1 row lock, proves the I.3 writer waits, commits v2, then requires the waiting writer to reject v1 as stale and persist no policy for the historical command attempt.
 
 Canonical hardening record:
 
@@ -270,7 +276,7 @@ Canonical hardening record:
 docs/V1_3_I3_PROFILE_PRECONDITION_HARDENING_ACCEPTANCE_2026-08-22.md
 ```
 
-Canonical acceptance records include `docs/V1_3_*_ACCEPTANCE_2026-08-20.md` for D.1 through G.5, `docs/V1_3_H1_ACCEPTANCE_2026-08-21.md` for H.1, `docs/V1_3_H2_1_ACCEPTANCE_2026-08-21.md` through `docs/V1_3_H2_4_ACCEPTANCE_2026-08-21.md`, the H.2.2 runtime-health classification acceptance, I.1, I.2, I.3 and the I.3 profile-precondition hardening record.
+I.4 reuses this exact current-profile concurrency doctrine for evaluation-policy establishment.
 
 Repository-owner Settings evidence confirms that `main` is protected by an active ruleset requiring the four Production Proof checks before integration. The GitHub connector does not expose ruleset configuration directly, so this enforcement claim remains owner-confirmed rather than connector-introspected.
 
@@ -291,6 +297,7 @@ Model capability eligibility is measured, not self-declared.
 Child delegation may narrow parent scope, never expand it.
 Immune System is restrict-only and never grants authority.
 Promotion eligibility is not permission.
+Qualified evidence is not permission.
 ```
 
 Human Owner / Board remains supreme authority.
@@ -414,19 +421,20 @@ The repository has one domain-specific canonical eligibility-lineage contract:
 apps/api/app/services/organization_eligibility_lineage.py
 ```
 
-Consumers:
+Consumers now include:
 
 ```text
 G.3 canonical-effect replay
 G.4 orchestration replay
 H.1 aggregate preflight
+I.4 governed-eligibility promotion-grade source qualification
 ```
 
 The shared validator proves existence, tenant, stable aggregate identity, revision/lifecycle/supersession, assessment identity, exact G.1/G.2/semantic Activity types, governance record kind, MATERIAL classification, source identity/version, action/readiness/verification/floor/effect fingerprints, expected revision identity/version, semantic revision/effect identity and E.2 → G.1 → G.2 → G.3 causation.
 
 Aggregate validation requires one contiguous revision chain with exactly one latest ACTIVE revision.
 
-This repair remains **ACCEPTED / SEALED** as part of V1.3-H.1.
+This contract remains **ACCEPTED / SEALED** and is intentionally reused rather than partially reimplemented by I.4.
 
 ---
 
@@ -457,7 +465,7 @@ canonical validator rejects corruption
 → verifier calls = 0
 ```
 
-G.3/G.4 replay fails closed on the same canonical invariant.
+G.3/G.4 replay and I.4 source qualification fail closed on the same canonical invariant.
 
 ---
 
@@ -481,6 +489,7 @@ I.1    581df5d99b65f0a7a49ace228ee707b881d508fa  run 32529241957
 I.2    c23e64a95770b1736ac9921486f8d017d17f930b  run 32533230630
 I.3    77b2e9adb30d69419158930b31c0bc10515cb6a7  run 32536826352
 I.3-H  108231d75b4c7413c1759c003e121fdcca206d7c  run 32539026789  profile-precondition hardening
+I.4    46727cd130923f4ede825965cea3a011537a930b  run 32560318311  qualified + temporal evidence evaluation
 ```
 
 ### 11.1 Repository policy / dependency contract
@@ -496,7 +505,7 @@ Candidate proof uses exact-head checkout. Candidate-local diff proof must use `g
 
 ### 11.2 Full backend regression — SQLite
 
-The latest accepted hardening proof runs:
+The latest accepted I.4 proof runs:
 
 ```text
 constrained Python dependency install
@@ -510,7 +519,7 @@ local schema contract
 Latest accepted result:
 
 ```text
-1159 passed / 16 skipped / 1 warning / 0 failed
+1172 passed / 19 skipped / 1 warning / 0 failed
 ```
 
 SQLite is the broad regression environment, not a substitute for PostgreSQL production-database proof.
@@ -545,19 +554,17 @@ There is not yet a Playwright/browser workflow suite. A browser golden journey r
 
 A real PostgreSQL 16 service is migrated through the single Alembic head, checked against SQLModel metadata, then used by focused governance/autonomy tests.
 
-I.1 added competing-profile and stale-supersession proofs. I.2 added concurrent same-profile/same-source observation exclusion. I.3 added dedicated competing initial promotion-policy writers and stale cross-session policy supersession on exact-profile scope. The post-acceptance I.3 hardening additionally proves that policy establishment serializes with I.1 profile supersession on the exact profile row and rejects a supersession-wins stale command.
+I.1 added competing-profile and stale-supersession proofs. I.2 added concurrent same-profile/same-source observation exclusion. I.3 added competing initial promotion-policy writers and stale cross-session policy supersession. I.3 hardening proved policy establishment serializes with I.1 profile supersession on the exact profile row. I.4 extends this discipline to evaluation-policy establishment and proves profile-supersession-wins stale-policy rejection while also exercising governed evidence qualification.
 
 Latest accepted PostgreSQL evidence:
 
 ```text
-Alembic 0001 → 0080                 PASS
-registered application tables       123
-physical schema                      PASS
-governed eligibility/autonomy suite 99 passed / 1 warning / 0 failed
-profile-supersession lock race       PASS
+Alembic 0001 → 0081                  PASS
+registered application tables        124
+physical schema                       PASS
+governed eligibility/autonomy suite  102 passed / 1 warning / 0 failed
+I.4 profile-supersession lock race    PASS
 ```
-
-Current I.4 schema work advances the repository migration head to `0081`; no PostgreSQL acceptance count for I.4 is claimed until an exact I.4 candidate completes Production Proof.
 
 ---
 
@@ -591,13 +598,7 @@ Current claim boundary:
 
 ## 13. Migration/data-model doctrine
 
-The latest **accepted** schema checkpoint remains I.3 at:
-
-```text
-0080_capability_autonomy_promotion_policy_foundation
-```
-
-The current **code** migration head is:
+The latest accepted schema checkpoint is I.4 at:
 
 ```text
 0081_capability_autonomy_evidence_evaluation_policy
@@ -622,32 +623,23 @@ I.3 adds:
 capability_autonomy_promotion_policies
 ```
 
-I.4 implementation currently adds:
+I.4 adds:
 
 ```text
 capability_autonomy_evidence_evaluation_policies
 ```
 
-Accepted I.3 schema:
+Accepted I.4 schema:
 
 ```text
-migration head                       0080
-registered application tables        123
-physical tables on SQLite             124 including alembic_version
-fresh SQLite schema                   PASS
-fresh PostgreSQL schema               PASS
+migration head                        0081
+registered application tables         124
+physical tables                        125 including alembic_version
+fresh SQLite schema                    PASS
+fresh PostgreSQL 16 schema             PASS
 ```
 
-Current I.4 implementation expectation, still acceptance pending:
-
-```text
-code migration head                  0081
-registered application tables        124
-physical tables on SQLite             125 including alembic_version
-exact-head SQLite/PostgreSQL proof    PENDING
-```
-
-The profile-precondition hardening changes writer concurrency semantics only; it adds no migration or table.
+The I.3 profile-precondition hardening changed writer concurrency semantics only; it added no migration or table.
 
 The migration doctrine remains:
 
@@ -655,7 +647,7 @@ The migration doctrine remains:
 
 Do not create independent migration heads merely to mirror code-module boundaries.
 
-Migration `0080` was corrected in place before acceptance because its earlier shape had never been accepted/sealed. I.4 now legitimately advances the unaccepted development head to `0081_capability_autonomy_evidence_evaluation_policy`; acceptance of that migration remains contingent on I.4 exact-head proof.
+Migration `0080` was corrected in place before acceptance because its earlier shape had never been accepted/sealed. I.4 legitimately advanced the lineage to `0081_capability_autonomy_evidence_evaluation_policy`; that migration is now accepted/sealed on exact candidate `46727cd130923f4ede825965cea3a011537a930b`.
 
 ---
 
@@ -740,10 +732,11 @@ The current H→I stage sequence is:
 13. V1.3-I.3 promotion eligibility policy foundation      COMPLETE / PASS / SEALED
 14. I.3 exact-candidate V12 Production Proof              COMPLETE / PASS — run 32536826352
 15. I.3 profile-precondition hardening                    COMPLETE / PASS / SEALED — run 32539026789
-16. I.4 qualified + temporal evidence evaluation          IMPLEMENTATION IN PROGRESS / ACCEPTANCE PENDING
-17. I.4 exact-candidate Production Proof                  PENDING
-18. Actual capability promotion/demotion mutation         NOT STARTED
-19. Autonomy-change lineage / recovery / human override   NOT STARTED
+16. I.4 qualified + temporal evidence evaluation          COMPLETE / PASS / SEALED
+17. I.4 exact-candidate V12 Production Proof              COMPLETE / PASS — run 32560318311
+18. Actual capability promotion/demotion mutation design  NOT STARTED
+19. Autonomy-change lineage / recovery / Human override   NOT STARTED
+20. Mutation implementation and Production Proof          NOT STARTED / NOT PRE-AUTHORIZED
 ```
 
 Browser golden-journey proof and incremental semantic decomposition remain parallel proof/maintainability priorities. They do not pre-authorize later autonomy mutation.
@@ -824,7 +817,7 @@ Every observation is frozen to an exact I.1 profile and a canonical source `Orga
 
 Trusted writers are Human Board/admin or trusted server SYSTEM measurement context. AGENT, WORKER and EXTERNAL_HUMAN actors cannot self-grade canonical evidence.
 
-The projection derives execution volume, grounding, human review outcomes, contradiction, compliance, freshness, critical errors, recovery, SLA and incident metrics with explicit denominators and `null` for undefined rates.
+The historical I.2 projection derives execution volume, grounding, Human review outcomes, contradiction, compliance, freshness, critical errors, recovery, SLA and incident metrics with explicit denominators and `null` for undefined rates. Those remain immutable measurement facts; I.4 does not silently upgrade them into promotion-grade truth without canonical qualification.
 
 Board read surface:
 
@@ -882,11 +875,11 @@ tenant
 + evidence-policy version
 ```
 
-This exact-profile binding is required because a same-level I.1 supersession may change authority requirement, risk ceiling, Board ceiling or other profile semantics while retaining `A2` and the same evidence-policy string. Such a new profile does not inherit the old policy.
+This exact-profile binding is required because a same-level I.1 supersession may change authority requirement, risk ceiling, Board ceiling or other profile semantics while retaining the same autonomy level/evidence-policy label. Such a new profile does not inherit the old policy.
 
 The internal writer is Human Board/admin only, requires a one-level target and rejects targets above the current Board ceiling.
 
-The hardening adds optional `expected_profile_id` caller preconditioning and serializes every new policy write with I.1 supersession using the exact current profile row lock plus canonical post-lock revalidation. Therefore a supersession-wins transaction causes the waiting I.3 writer to reject stale rather than reporting success for a now-historical profile.
+The hardening adds caller `expected_profile_id` preconditioning and serializes every new policy write with I.1 supersession using the exact current profile row lock plus canonical post-lock revalidation.
 
 Accepted Activity representation:
 
@@ -915,59 +908,91 @@ GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capabili
 
 There is no I.3 HTTP mutation route.
 
-### 18.4 I.4 — qualified + temporal autonomy evidence evaluation — implementation in progress
+### 18.4 I.4 — accepted qualified + temporal autonomy evidence evaluation
 
-**I.4 IS IMPLEMENTATION IN PROGRESS / ACCEPTANCE PENDING.**
+**I.4 IS COMPLETE / PASS / SEALED.**
 
-Canonical implementation contract:
+Canonical records:
 
 ```text
 docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_FOUNDATION_2026-08-22.md
+docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_ACCEPTANCE_2026-08-22.md
+docs/V12_23_PENDING_CHANGELOG.md
 ```
 
-The purpose remains the next required bounded prerequisite before any actual promotion/demotion mutation design. It must prevent trusted I.2 measurement attestations from being silently treated as promotion-grade evidence without canonical qualification and time boundaries.
+Accepted technical candidate and proof:
 
-Current committed I.4 scaffolding includes:
+```text
+candidate = 46727cd130923f4ede825965cea3a011537a930b
+run       = 32560318311
+policy    = 32560318310
+```
+
+I.4 adds one append-only Board evaluation-policy record:
 
 ```text
 CapabilityAutonomyEvidenceEvaluationPolicy
-migration 0081_capability_autonomy_evidence_evaluation_policy
-Board-authored append-only policy service
-Board-only summary/provenance read schemas and router scaffolding
-split I.4 evaluation contract layer
 ```
 
-The current model/policy scope is exact-profile and remains non-authorizing. The implementation contract requires canonical source qualification, separate observation/source age checks, bounded candidate evaluation, capped cursor provenance, exact-profile PostgreSQL writer serialization and full Production Proof before acceptance.
+The policy is bound to one exact immutable I.1 profile revision and uses I.3-hardened current-profile serialization. It owns the qualification contract, maximum observation age, maximum canonical source age and maximum candidate count. I.3 remains owner of promotion-quality thresholds.
 
-Accepted I.2/I.3 limitations motivating I.4 remain:
+The first and only accepted promotion-grade qualification adapter is intentionally capability-specific:
 
 ```text
-I.2 measurement facts are trusted attestation inputs rather than fully derived typed-domain facts
-freshness_compliant is frozen per observation
-no accepted maximum observation age
-no accepted rolling evaluation window
-no accepted evaluation_as_of contract
-no accepted minimum-recent-execution threshold
-current evidence projection materializes observation provenance in Python
-I.3 transparency nests the current evidence profile
-I.2 index layout is not yet query-driven operational-scale tuned
+capability = eligibility.proposal
+qualification_contract = governed-eligibility-canonical-effect.v1
+source semantic effect = organization.eligibility.assessment_committed.v1
 ```
 
-I.4 implementation must define and prove, at minimum:
+Qualification reuses the accepted canonical E.2 → F.1 → G.1 → G.2 → G.3 eligibility-lineage validator. An arbitrary same-tenant Activity is not promotion-grade merely because a trusted I.2 writer referenced it.
+
+For the supported adapter, I.4 derives only facts proven by canonical domain truth. Governed eligibility lineage proves qualifying execution, Evidence/rule grounding, non-contradictory accepted verification and execution-policy compliance. Human outcome is derived only from exact-revision immutable `OrganizationHumanAction` terminal actions:
 
 ```text
-typed/source-qualified performance evidence
-canonical derivation or explicit authoritative attestation provenance
-temporal evaluation boundary / evidence aging
-minimum recent execution/review contract where required by the accepted policy
-bounded aggregate Board projection
-paged evidence provenance separated from promotion eligibility
-query-driven data-access/index expectations
+approved           → accepted
+requested_changes  → modified
+rejected           → rejected
+no qualifying terminal action by evaluation_as_of → not_reviewed
 ```
 
-I.4 must remain non-authorizing. The current migration/model/service scaffolding is **not** an acceptance claim, and the failed diagnostic run on partial implementation must not be represented as accepted proof.
+Generic `reviewed`, attested, acknowledged, assigned or resolved actions do not imply acceptance. Ambiguous equal-time conflicting terminal outcomes fail closed.
 
-Only after I.4 is fully implemented and separately proven should actual capability-specific promotion/demotion mutation be designed.
+Dimensions without exact typed canonical linkage remain unavailable rather than inherited from raw I.2 attestations. In I.4 v1 these include execution-specific source-freshness quality, critical-error outcome, recovery result, SLA and incident attribution where exact linkage is absent.
+
+Temporal evaluation is explicit and strict:
+
+```text
+observation age = evaluation_as_of - observation.created_at
+source age      = evaluation_as_of - source Activity.occurred_at
+```
+
+Both are separately bounded. New observation writes cannot refresh old canonical sources. Future-dated evidence fails closed. Explicit internal `evaluation_as_of` must be timezone-aware; Board HTTP transparency uses server time.
+
+Accepted Board read surfaces:
+
+```text
+GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}/evidence-evaluation?context_scope=...
+
+GET /api/v1/organization/transparency/autonomy/profiles/{position_key}/{capability_key}/evidence-evaluation/provenance?context_scope=...&limit=...&cursor=...
+```
+
+The summary does not nest unbounded lifetime observations. Provenance is stable/capped cursor pagination. Candidate overflow fails closed rather than silently truncating metrics. Raw Activity payload JSON is not exposed.
+
+There is no I.4 HTTP mutation route and no autonomy mutation.
+
+Accepted proof:
+
+```text
+SQLite regression                    1172 passed / 19 skipped / 1 warning / 0 failed
+PostgreSQL governed/autonomy suite   102 passed / 1 warning / 0 failed
+Alembic                               0001 → 0081 PASS
+registered application tables        124
+physical tables                      125 including alembic_version
+frontend                              PASS
+repository/release/deps/diff          PASS
+```
+
+I.4 closes the qualified/temporal/bounded evidence prerequisite. It does **not** pre-authorize a promotion/demotion command.
 
 ---
 
@@ -1018,9 +1043,9 @@ Board visibility does not imply Board interruption.
 
 The top-level Human Owner / Board experience remains the **Global Mobility AIOS Cockpit**; Board Room is a module inside that control surface.
 
-Accepted I.1 provides autonomy-profile history. Accepted I.2 provides measurement evidence. Accepted I.3 provides criterion-by-criterion promotion eligibility while preserving no autonomy mutation path. The profile-precondition hardening additionally makes Board policy-write success linearizable against I.1 profile supersession.
+Accepted I.1 provides autonomy-profile history. Accepted I.2 provides immutable measurement evidence. Accepted I.3 provides criterion-by-criterion promotion eligibility while preserving no autonomy mutation path. Accepted I.4 provides source-qualified, temporal and bounded promotion-grade evaluation plus capped provenance.
 
-I.4 is implementing the bounded evidence-evaluation boundary: summary metrics must avoid unbounded lifetime observation nesting, while detailed provenance is separated into a capped cursor-based read. This remains acceptance pending until exact-head proof.
+Future mutation/change-lineage transparency must fit this same Cockpit model and must not create a second hidden autonomy truth.
 
 ---
 
@@ -1040,10 +1065,12 @@ Still required later:
 - provider outage/degradation drills;
 - database restore and migration rollback/forward-recovery evidence;
 - long-lived cost/latency/quality telemetry;
-- bounded/paginated autonomy evidence transparency acceptance proof;
-- query-driven autonomy evidence index tuning.
+- query-driven autonomy evidence index tuning based on measured query plans/workload;
+- production-scale evaluation/provenance load tests before broad capability expansion.
 
 These should be added based on production risk, not to maximize tooling count.
+
+The bounded/paginated autonomy evidence transparency acceptance proof previously listed here is no longer pending; it is part of sealed I.4.
 
 ---
 
@@ -1069,11 +1096,9 @@ The repository does **not** currently claim:
 - a Dynamic Autonomy Manager;
 - autonomy-change lineage after a real level change;
 - recovery-based automatic autonomy restoration;
-- accepted typed deterministic derivation of every promotion-grade measurement dimension from canonical domain records;
-- accepted promotion evidence maximum-age / rolling-window policy;
-- accepted `evaluation_as_of` policy;
-- accepted minimum-recent-execution threshold;
-- accepted operational-scale paginated autonomy evidence transparency;
+- generic promotion-grade evidence adapters for arbitrary capabilities;
+- typed deterministic derivation of every historical I.2 measurement dimension;
+- execution-attributed critical-error/recovery/SLA/incident semantics without typed linkage;
 - final query-optimized I.2 index layout;
 - agent self-promotion or self-grading as permission;
 - provider/model-specific autonomy grants;
@@ -1082,7 +1107,9 @@ The repository does **not** currently claim:
 - replacement of Board ceilings or Command Gateway authority;
 - production-scale operational readiness.
 
-These non-claims are intentional. I.3 remains the latest accepted **non-authorizing eligibility foundation**. I.4 is an unaccepted development layer until exact-head Production Proof establishes its stronger evidence semantics.
+These non-claims are intentional. I.4 is the latest accepted **non-authorizing promotion-grade evidence foundation**. Actual autonomy mutation remains a separate future design/proof problem.
+
+The repository **does** now claim, specifically and only within sealed I.4, accepted maximum observation/source-age policy, explicit timezone-aware deterministic `evaluation_as_of`, bounded candidate evaluation and operationally bounded/cursor-paged I.4 evidence transparency for the supported `eligibility.proposal` qualification adapter.
 
 ---
 
@@ -1136,9 +1163,11 @@ Accepted I.3 records:
 - `docs/V1_3_I3_PROFILE_PRECONDITION_HARDENING_ACCEPTANCE_2026-08-22.md`
 - `docs/V12_22_PENDING_CHANGELOG.md` (historical filename; content closed as V12.22 I.3 acceptance changelog)
 
-I.4 implementation contract / acceptance-pending record:
+Accepted I.4 records:
 
 - `docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_FOUNDATION_2026-08-22.md`
+- `docs/V1_3_I4_QUALIFIED_TEMPORAL_AUTONOMY_EVIDENCE_EVALUATION_ACCEPTANCE_2026-08-22.md`
+- `docs/V12_23_PENDING_CHANGELOG.md` (historical filename; content closed as V12.23 I.4 acceptance changelog)
 
 Repository enforcement state:
 
@@ -1150,7 +1179,7 @@ Repository enforcement state:
 - bypass list is empty;
 - configuration is owner-confirmed from GitHub Settings.
 
-The accepted technical baseline remains V1.3-I.3, with profile-precondition hardening separately sealed. H.2 remains the closed bounded safety/measurement parent foundation; I.1 and I.2 remain sealed parent checkpoints. I.4 is implementation in progress / acceptance pending. No actual promotion/demotion or Dynamic Autonomy Manager is selected or pre-authorized.
+The accepted technical baseline is V1.3-I.4. H.2 remains the closed bounded safety/measurement parent foundation; I.1, I.2 and I.3 remain sealed parent checkpoints. No actual promotion/demotion or Dynamic Autonomy Manager is selected or pre-authorized.
 
 ---
 
@@ -1158,20 +1187,46 @@ The accepted technical baseline remains V1.3-I.3, with profile-precondition hard
 
 Global Mobility AIOS is not changing direction away from high-autonomy architecture.
 
-The project has converted the first three Earned Autonomy layers into repository-enforced accepted truth and is now implementing the fourth, stricter evidence boundary:
+The project has converted the first four Earned Autonomy layers into repository-enforced accepted truth:
 
 ```text
 I.1 — what autonomy is currently allowed for this exact capability/context
 I.2 — what measured performance exists for this exact profile revision
 I.3 — whether current evidence satisfies exact-profile Board-authored promotion criteria
-I.4 — which evidence is canonically qualified and temporally admissible for future promotion-grade evaluation — IMPLEMENTATION / ACCEPTANCE PENDING
+I.4 — which evidence is canonically qualified and temporally admissible for promotion-grade evaluation
 ```
 
-The critic-driven I.3 review improved the architecture rather than merely changing tests: the accepted policy is bound to the exact immutable I.1 profile revision, uses valid physical `decision` Activity classification plus constitutional `AUTHORITY`, rejects non-finite rate thresholds, fails closed on profile/policy/evidence drift and has real PostgreSQL concurrency proof. The later profile-precondition hardening closes the remaining transaction-success race by serializing policy establishment with I.1 supersession on the exact profile row and rejecting supersession-wins stale commands.
+I.3 critic-driven review improved the architecture rather than merely changing tests: the accepted policy is bound to the exact immutable I.1 profile revision, uses valid physical `decision` Activity classification plus constitutional `AUTHORITY`, rejects non-finite rate thresholds, fails closed on profile/policy/evidence drift and has real PostgreSQL concurrency proof. The later profile-precondition hardening closed the remaining transaction-success race by serializing policy establishment with I.1 supersession on the exact profile row and rejecting supersession-wins stale commands.
 
-The remaining concerns are intentionally not swept into the I.3 seal. Trusted-attestation evidence provenance, temporal evidence decay/windowing, bounded/paginated evidence reads and query-driven index tuning are the reason I.4 exists. Current I.4 model/migration/policy/read scaffolding advances the development schema to `0081`, but acceptance remains pending until the canonical qualification/evaluation implementation and exact Production Proof are complete.
+I.4 then closed the concerns deliberately deferred from I.3: promotion-grade source qualification now reuses canonical domain lineage instead of trusting raw I.2 flags; temporal evaluation separates observation age from canonical source age; candidate evaluation is bounded; provenance is capped/paged separately from the summary; unsupported derivations remain unavailable; and the evaluation-policy writer carries exact-profile PostgreSQL serialization. The exact candidate passed all four Production Proof lanes.
 
-> **The next risk is not lack of an eligibility algorithm. It is accidentally treating eligibility as permission before evidence provenance and time boundaries are strong enough for an executable autonomy change.**
+The next risk has therefore moved forward:
+
+> **The next risk is accidentally turning a correct evidence decision into autonomous authority without a Board-bounded, linearizable, append-only autonomy-change contract.**
+
+The next stage is **design first**, not an implicit mutation hook. It must define, before implementation:
+
+```text
+Human Board-only command authority
+exact expected current profile identity
+one-level capability/context transition semantics
+I.3 policy applicability requirement
+I.4 promotion_grade_ready requirement
+Board ceiling recheck under lock
+current-profile PostgreSQL serialization
+append-only new CapabilityAutonomyProfile transition
+canonical autonomy-change decision Activity lineage
+prior/new profile fingerprints and causation
+Human override/reversal semantics
+recovery semantics without history rewrite
+separate promotion vs demotion rules
+no agent self-promotion
+no automatic invocation
+real PostgreSQL races
+separate exact-candidate Production Proof
+```
+
+No new stage number is invented here before the canonical architecture/design record names that increment.
 
 The governing sequence is now:
 
@@ -1192,9 +1247,10 @@ G.5 accepted baseline
 → I.3 exact-profile Board promotion eligibility policy — SEALED
 → I.3 exact-candidate Production Proof run 32536826352 — SEALED
 → I.3 profile-precondition hardening run 32539026789 — SEALED
-→ I.4 qualified + temporal autonomy evidence evaluation — IMPLEMENTATION IN PROGRESS / ACCEPTANCE PENDING
-→ I.4 exact-candidate Production Proof — PENDING
-→ actual capability promotion/demotion mutation — NOT STARTED
+→ I.4 qualified + temporal autonomy evidence evaluation — SEALED
+→ I.4 exact-candidate Production Proof run 32560318311 — SEALED
+→ actual capability promotion/demotion mutation design — NOT STARTED
 → autonomy-change lineage / recovery / Human override — NOT STARTED
+→ implementation + separate Production Proof — NOT STARTED / NOT PRE-AUTHORIZED
 → broader Organization Fabric / operational scale
 ```
