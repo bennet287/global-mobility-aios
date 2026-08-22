@@ -1,6 +1,6 @@
 # V12.23 Pending Changelog — V1.3-I.4 Qualified + Temporal Autonomy Evidence Evaluation
 
-**Date:** 2026-08-22  
+**Date:** 2026-08-22
 **Status:** IMPLEMENTED / ACCEPTANCE PENDING
 
 ## Scope
