@@ -67,6 +67,7 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
       label: "Cockpit",
       items: [
         { label: "Cockpit Overview", href: "/cockpit", icon: "cockpit" },
+        { label: "Live Organization", href: "/cockpit/live-organization", icon: "cockpit" },
         { label: "Owner Inbox", href: "/owner-inbox", icon: "review" },
         { label: "Board Room", href: "/board-room", icon: "board" },
         { label: "External Validation", href: "/validation", icon: "review" },
@@ -160,7 +161,7 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
 export function explicitExperienceForPath(pathname: string | null): WorkspaceExperience | null {
   if (!pathname) return null;
   if (pathname === "/" || pathname.startsWith("/leads/")) return "operator";
-  if (pathname === "/cockpit" || pathname === "/owner-inbox" || pathname.startsWith("/board-room") || pathname.startsWith("/workspace/") || pathname === "/cross-department-friction") return "owner";
+  if (pathname.startsWith("/cockpit") || pathname === "/owner-inbox" || pathname.startsWith("/board-room") || pathname.startsWith("/workspace/") || pathname === "/cross-department-friction") return "owner";
   if (pathname === "/my-mobility" || pathname.startsWith("/portal")) return "mobility";
   return null;
 }
