@@ -1,23 +1,24 @@
 # Global Mobility AIOS — V12.25 Integration Capability Programme
 
 **Date:** 2026-08-22
-**Status:** ACTIVE PROGRAMME DIRECTION / DOCUMENTATION-ONLY ENTRY
+**Status:** ACTIVE CAPABILITY REFERENCE / SUBORDINATE TO MASTER ROADMAP
 **Active branch:** `roadmap/global-mobility-aios-v12`
 **Accepted runtime baseline:** K.1 COMPLETE / PASS / SEALED
-**Next product milestone:** L — Live Organization
+**Current product milestone:** L — Live Organization
+**Master scheduling authority:** `ROADMAP.md`
 **Technology direction:** `TECHNOLOGY_RADAR_V1_3_2.md`
 **Integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Capability radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 
-V12.25 adds a formal enterprise-integration track without changing the active product sequence or claiming production adoption of any new provider.
+This document defines integration capability boundaries and proof expectations. It does **not** independently schedule implementation.
+
+If this document uses terms such as E1, E2, pilot, research or candidate, those terms describe capability grouping/evidence posture only. `ROADMAP.md` determines whether the work is PRIMARY, REQUIRED ENABLEMENT, SUPPORTING PARALLEL or DEFERRED / DEMAND-GATED.
 
 ---
 
-## 1. Why V12.25 exists
+## 1. Why this programme exists
 
-The project has reached the point where missing infrastructure can become a production risk even when the AI architecture is sound.
-
-The project therefore needs to solve two problems simultaneously:
+Global Mobility AIOS must solve two production risks at the same time:
 
 ```text
 avoid architecture/framework sprawl
@@ -25,80 +26,65 @@ avoid architecture/framework sprawl
 avoid neglecting essential production infrastructure
 ```
 
-The permanent decision is:
+Permanent doctrine:
 
 > **Build mobility-specific intelligence and governance natively. Integrate mature commodity capability behind AIOS-owned contracts.**
 
----
-
-## 2. Current accepted sequence
+The governing trigger is product necessity:
 
 ```text
-I.1 capability autonomy profile                  SEALED
-I.2 shadow autonomy evidence                     SEALED
-I.3 promotion eligibility policy                 SEALED
-I.4 qualified/temporal evidence evaluation       SEALED
-J.1 Austria Agent Organization Runtime           SEALED
+product need
+→ architectural gap
+→ native vs integration vs donor decision
+→ bounded contract
+→ implementation when ROADMAP.md activates the dependency
+```
+
+Not:
+
+```text
+useful technology exists
+→ integrate it
+→ invent the need later
+```
+
+---
+
+## 2. Product sequence remains authoritative
+
+The accepted organization sequence remains:
+
+```text
+I.1 capability autonomy profile                   SEALED
+I.2 shadow autonomy evidence                      SEALED
+I.3 promotion eligibility policy                  SEALED
+I.4 qualified/temporal evidence evaluation        SEALED
+J.1 Austria Agent Organization Runtime            SEALED
 K.1 bounded specialist Execution/Coworker Runtime SEALED
-L Live Organization                              NEXT
-M Board Transparency Experience                  LATER
-N Learning & Optimization                        LATER
+L Live Organization                               CURRENT
+M Board Transparency Experience                   NEXT AFTER L ACCEPTANCE
+N Learning & Optimization                         THEN
 ```
 
-The new integration programme runs in parallel. It does not reorder L/M/N.
+Integration work may strengthen those milestones but may not replace their proof.
 
 ---
 
-## 3. V12.25 tracks
+## 3. Integration capability groups
 
-### Track P — Product / Live Organization
+These groups are a taxonomy, not a standalone delivery sequence.
 
-Primary next product work remains L.
+### E0 — Architecture / ownership
 
-L target:
-
-```text
-real Austria objective / owner
-→ accepted WorkItems
-→ current canonical ContextBundles
-→ bounded specialist execution
-→ durable specialist outputs
-→ owner synthesis readiness
-→ material owner synthesis result
-→ persisted OrganizationActivity / decisions
-→ blocked-work reason where applicable
-→ runtime/tool lineage
-→ Evidence / rule provenance where available
-→ authority/autonomy state
-→ latency / retries / governance telemetry
-→ Cockpit read model backed only by persisted AIOS truth
-```
-
-### Track E — Enterprise Integration Foundation
-
-```text
-E0 Architecture + capability radar
-E1 Observability + secrets + backup foundations
-E2 Identity + Communications contracts
-E3 E-signature + governed communications trial
-E4 Accounting / ERP / payments — demand gated
-```
-
-Track E may support Track P but may not replace product proof with infrastructure work.
-
----
-
-## 4. V12.25-E0 — Architecture and ownership — DOCUMENTED
-
-E0 establishes:
+Defines:
 
 - integration classes;
-- port/adapter sovereignty model;
-- data ownership matrix;
+- port/adapter sovereignty;
+- data ownership;
 - identity-vs-authority separation;
-- telemetry-vs-canonical-activity separation;
+- telemetry-vs-canonical-Activity separation;
 - secret/reference separation;
-- communications/payment materiality path;
+- communications/payment materiality boundaries;
 - ERP boundary;
 - adoption lifecycle and scoring;
 - integration security envelope.
@@ -111,55 +97,73 @@ docs/AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md
 docs/TECHNOLOGY_RADAR_V1_3_2.md
 ```
 
-E0 is documentation/direction only. It creates no runtime acceptance claim.
+E0 is architecture/direction only and creates no runtime acceptance claim.
 
----
+### E1 — Production foundations
 
-## 5. V12.25-E1 — Production foundation — NEXT PARALLEL PILOTS
+#### E1.1 — Runtime observability / correlation
 
-E1 should be implemented in bounded sub-slices rather than as one platform rewrite.
+Capability need:
 
-### E1.1 — L telemetry correlation
+- correlate a real organization cycle across request/objective, WorkItem, ContextBundle, AgentRun, OrganizationExecutionAttempt, durable output and canonical effect where applicable;
+- diagnose latency, retries and provider/runtime failure;
+- preserve privacy and lineage boundaries.
 
-Goal:
+Permanent distinction:
 
-- use existing OpenTelemetry direction;
-- correlate the first L organization cycle across request/objective, WorkItem, ContextBundle, AgentRun, OrganizationExecutionAttempt and durable output;
-- preserve `OrganizationActivity` as canonical business/governance truth;
-- capture latency/retry/runtime telemetry without Evidence/secret leakage.
+```text
+engineering telemetry != canonical OrganizationActivity
+```
 
-Acceptance requires observable end-to-end correlation plus privacy/lineage tests.
+OpenTelemetry is the current preferred/trial-eligible implementation direction because an optional vendor-neutral pilot exists. The product requirement is operational correlation, not OpenTelemetry by constitutional decree.
 
-### E1.2 — Secrets-manager pilot
+For current scheduling classification, see `ROADMAP.md`.
 
-Goal:
+#### E1.2 — Secrets-management boundary
 
-- define a minimal `SecretsPort` or equivalent configuration boundary only where proven necessary;
-- pilot one non-production credential path;
-- keep secret material out of ContextBundle, prompt, memory and activity;
-- prove rotation/revocation/recovery behavior before broader adoption.
+Capability need when a real credential lifecycle requires it:
 
-No production secret migration is pre-authorized.
+- AIOS-owned secrets port/configuration boundary;
+- secret material excluded from ContextBundle, prompt, memory and Activity;
+- rotation/revocation/recovery proof;
+- minimum provider coupling.
 
-### E1.3 — Backup / restore proof
+Permanent rule:
 
-Goal:
+```text
+secret != prompt
+secret != ContextBundle
+secret != memory
+secret != OrganizationActivity
+```
+
+OpenBao-class infrastructure remains a candidate, not an automatically scheduled dependency.
+
+#### E1.3 — Backup / isolated restore
+
+Capability need:
 
 - classify canonical/derived/cache/external state;
-- establish PostgreSQL + object-storage backup policy;
-- produce an isolated restore proof;
+- protect PostgreSQL + object-storage state as applicable;
+- restore into an isolated environment;
 - verify migration/schema/canonical-state integrity after restoration;
-- define initial RPO/RTO targets.
+- define RPO/RTO targets appropriate to the deployment.
 
-A backup file without restore evidence does not pass.
+Permanent rule:
 
----
+```text
+backup created != recovery proven
+```
 
-## 6. V12.25-E2 — Identity and communications contract
+Backup/restore becomes a release blocker when the actual deployment/recoverability dependency requires it, not merely because backup tooling is available.
 
-### E2.1 — Identity benchmark
+### E2 — Identity + communications
 
-Research Keycloak and Authentik-class candidates.
+#### Identity
+
+Candidate capability:
+
+- benchmark Keycloak / Authentik-class IdPs when a multi-user/deployment authentication need reaches the active product path.
 
 Required contract:
 
@@ -171,9 +175,9 @@ AIOS authorizes
 
 No IdP may own Board authority, `OrganizationPosition`, capability authority, autonomy or material-action policy.
 
-### E2.2 — Communications Gateway contract
+#### Communications Gateway
 
-Define:
+When governed outbound communications become an active product dependency, define:
 
 - `CommunicationIntent` semantics;
 - tenant/case/recipient scope;
@@ -188,53 +192,67 @@ Define:
 
 Provider selection remains secondary to contract correctness.
 
----
+### E3 — E-signature / governed professional execution
 
-## 7. V12.25-E3 — External professional execution
+Demand/dependency gated.
 
-Demand/sequence gated.
+Candidate capability work includes:
 
-Candidate work:
-
-- EU DSS validation pilot;
-- open-source signing-platform evaluation;
+- EU DSS validation;
+- signing-platform evaluation;
 - exact AIOS document-version binding;
 - governed communications trial;
 - external-result reconciliation.
 
-No government submission or other reserved action is authorized merely by completing E3.
+No government submission or other reserved action is authorized merely by implementing E3 infrastructure.
 
----
+### E4 — Commercial / ERP / payments
 
-## 8. V12.25-E4 — Commercial / ERP / payments
+Demand gated.
 
-Explicitly demand gated.
-
-### ERP/accounting
+#### ERP/accounting
 
 ERPNext/Odoo-class systems remain integration candidates, not AIOS core platforms.
 
-Before a pilot:
+Before activation:
 
 - real invoicing/accounting demand must exist;
 - master-system ownership must be defined;
 - mobility case truth must remain AIOS-owned;
-- no dual-master data model may be introduced casually.
+- dual-master models must be avoided unless explicitly justified.
 
-### Payments
+#### Payments
 
-Before design advances:
+Before activation:
 
-- exact financial authority classes must be defined;
+- exact financial authority classes must exist;
 - amount/currency/beneficiary semantics must be typed;
 - Board/human floors must be mapped;
 - reconciliation and refund/compensation semantics must be specified.
 
 ---
 
-## 9. Integration prioritization scorecard
+## 4. Integration sovereignty rules
 
-Each candidate should be assessed on a 0–5 scale for:
+Permanent rules:
+
+> **Identity providers authenticate; AIOS authorizes.**
+
+> **Telemetry observes AIOS truth; it does not become AIOS truth.**
+
+> **Secrets may be injected into runtimes; they may not become context or memory.**
+
+> **External execution requires governed intent, provenance, idempotency and recovery semantics.**
+
+> **ERP/accounting may own bounded back-office ledgers; it never owns mobility truth or Board authority.**
+
+> **No integration may bypass the Command Gateway for a material action.**
+
+---
+
+## 5. Candidate prioritization scorecard
+
+When `ROADMAP.md` identifies a capability gap that may require integration, candidate solutions may be assessed on a 0–5 scale for:
 
 ```text
 necessity
@@ -249,17 +267,17 @@ integration complexity (inverse)
 replacement ease
 ```
 
-A high score does not authorize adoption. It prioritizes research/pilot work.
+A high score does not authorize adoption or scheduling. It informs the build/integrate/adapt decision for an already-demonstrated need.
 
 High-risk capabilities additionally require materiality/authority mapping.
 
 ---
 
-## 10. Required documentation for every adopted integration
+## 6. Required evidence for production ADOPT
 
-Before production ADOPT:
+Before production adoption of an integration, prove as applicable:
 
-- capability problem statement;
+- capability problem statement linked to an active roadmap dependency;
 - architecture contract/port;
 - selected implementation and version strategy;
 - security/privacy assessment;
@@ -269,61 +287,61 @@ Before production ADOPT:
 - failure/recovery/compensation semantics;
 - observability policy;
 - test/benchmark evidence;
-- deployment/backup plan;
+- deployment/backup expectations;
 - rollback/replacement plan;
 - acceptance record;
 - ROADMAP/CHANGELOG reconciliation.
 
 ---
 
-## 11. Live Organization must remain the proving ground
+## 7. Live Organization as the current proving ground
 
-The next integrations should be justified through actual L needs.
+Current L needs may pull integration capability forward only where the need is concrete.
 
-Example:
+Valid example:
 
 ```text
-L needs runtime latency / retries / cross-run correlation
-→ OpenTelemetry E1.1 has a measurable product use
+L needs cross-run latency/retry/runtime diagnosis
+→ observability/correlation is an active capability gap
+→ evaluate/use the existing OpenTelemetry direction
 ```
 
-Not:
+Invalid example:
 
 ```text
 observability product exists
 → integrate it
-→ invent use later
+→ invent a product use later
 ```
 
 This rule applies to every candidate.
 
 ---
 
-## 12. CI / acceptance doctrine
+## 8. CI / acceptance doctrine
 
-Forward heavy proof runs should use the accepted Woodpecker direction once current repository wiring is confirmed.
-
-Historical GitHub Actions proofs remain valid historical evidence and must not be relabeled.
-
-For every new runtime slice:
+For every activated runtime/integration slice:
 
 ```text
 implementation
 → focused tests
 → migration/schema verification if affected
-→ repository policy/diff hygiene
+→ security/privacy/authority checks if affected
+→ repository policy / complete PR diff hygiene
 → Woodpecker proof lanes
 → documentation reconciliation
 → acceptance only after observed PASS
 ```
 
-Documentation-only commits do not inherit a runtime PASS automatically.
+Historical GitHub Actions evidence remains historical evidence and must not be relabeled as Woodpecker proof.
+
+Documentation-only commits do not inherit runtime acceptance automatically.
 
 ---
 
-## 13. Non-goals
+## 9. Non-goals
 
-V12.25 does not authorize:
+This programme does not independently authorize:
 
 - full ERP implementation;
 - payment execution;
@@ -333,50 +351,42 @@ V12.25 does not authorize:
 - automatic signing/submission;
 - new generic agent frameworks;
 - another organization datastore;
-- observability data as canonical activity;
+- observability data as canonical Activity;
 - secrets in AI context;
-- external provider ownership of AIOS authority.
+- external provider ownership of AIOS authority;
+- implementation merely because a candidate is listed in a Radar.
 
 ---
 
-## 14. Success criteria
+## 10. Success criteria
 
-The programme succeeds if the project becomes more operationally mature without becoming more externally coupled.
+The programme succeeds if activated integrations improve product and production outcomes without increasing external ownership of AIOS semantics.
 
-Target effects:
+Desired effects:
 
 ```text
-runtime traceability        ↑
-credential hygiene          ↑
-recoverability              ↑
-integration replaceability  ↑
+runtime traceability         ↑
+credential hygiene           ↑
+recoverability               ↑
+integration replaceability   ↑
 external-action auditability ↑
-production readiness        ↑
+production readiness         ↑
 
-provider lock-in            ↓
-secret sprawl               ↓
-mean diagnosis time         ↓
-duplicate external actions  ↓
-architecture duplication    ↓
+provider lock-in             ↓
+secret sprawl                ↓
+mean diagnosis time          ↓
+duplicate external actions   ↓
+architecture duplication     ↓
 ```
 
 ---
 
-## 15. Next implementation decision
+## 11. Scheduling authority
 
-The project should continue into **L Live Organization** and select only integration work that directly strengthens that proof.
+This document intentionally has **no independent implementation queue**.
 
-Recommended immediate parallel ordering:
+The active classification and timing for observability, backup, secrets, identity, communications, e-signature, ERP and payments are defined in `ROADMAP.md`.
 
-```text
-1. L Live Organization core
-2. E1.1 OpenTelemetry correlation for L
-3. E1.3 backup / isolated restore proof
-4. E1.2 secrets-manager bounded pilot
-5. E2.1 identity benchmark
-6. E2.2 Communications Gateway contract
-```
+When product necessity changes, update `ROADMAP.md` first, then reconcile this capability reference and the relevant Radar/architecture records.
 
-ERP, payments and broad e-signature adoption remain later/demand-gated.
-
-> **The Integration Radar is a production-maturity track, not a substitute for proving the AI organization.**
+> **The Integration Radar and programme help choose and govern capability. They do not choose what the product builds next.**
