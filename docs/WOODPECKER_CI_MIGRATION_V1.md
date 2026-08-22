@@ -1,9 +1,9 @@
 # Global Mobility AIOS — Woodpecker CI Migration V1
 
-**Status:** IMPLEMENTED FOR PARITY PILOT / NOT YET CANONICAL CI  
-**Date:** 2026-08-22  
-**Source control / PR forge:** GitHub remains in place  
-**CI execution candidate:** Woodpecker CI self-hosted  
+**Status:** IMPLEMENTED FOR PARITY PILOT / NOT YET CANONICAL CI
+**Date:** 2026-08-22
+**Source control / PR forge:** GitHub remains in place
+**CI execution candidate:** Woodpecker CI self-hosted
 
 ## Objective
 
