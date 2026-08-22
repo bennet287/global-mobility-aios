@@ -1,0 +1,18 @@
+when:
+  - event: [push, pull_request]
+
+environment:
+  DATABASE_URL: sqlite:///./ci-production-proof.db
+
+steps:
+  - name: backend-regression-sqlite
+    image: python:3.12-bookworm
+    commands:
+      - python -m pip install --upgrade pip
+      - python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+      - python -m pip check
+      - python -m compileall -q apps/api/app scripts
+      - python -m alembic -c alembic.ini upgrade head
+      - python -m pytest apps/api/tests -q
+      - python scripts/check_database_migrations.py
+      - python scripts/check_local_db_schema.py
