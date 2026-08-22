@@ -416,7 +416,7 @@ def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Sess
     )
     accepted = _snapshot(
         db_session,
-        evaluation_as_of=approved.occurred_at + timedelta(microseconds=1),
+        evaluation_as_of=_aware_utc(approved.occurred_at) + timedelta(microseconds=1),
         tenant_key=CANONICAL_TENANT_KEY,
     )
     assert accepted is not None
@@ -431,12 +431,12 @@ def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Sess
         key="requested-changes",
         action_type=OrganizationHumanActionType.requested_changes,
         work_item_id=proposal_work.id,
-        occurred_at=approved.occurred_at + timedelta(seconds=1),
+        occurred_at=_aware_utc(approved.occurred_at) + timedelta(seconds=1),
         tenant_key=CANONICAL_TENANT_KEY,
     )
     modified = _snapshot(
         db_session,
-        evaluation_as_of=changed.occurred_at + timedelta(microseconds=1),
+        evaluation_as_of=_aware_utc(changed.occurred_at) + timedelta(microseconds=1),
         tenant_key=CANONICAL_TENANT_KEY,
     )
     assert modified is not None
