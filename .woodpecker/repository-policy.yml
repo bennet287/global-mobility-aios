@@ -3,7 +3,7 @@ clone:
     image: woodpeckerci/plugin-git
     settings:
       partial: false
-      depth: 2
+      depth: 64
       lfs: false
       fetch-target-branch: true
 

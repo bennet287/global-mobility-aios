@@ -12,7 +12,6 @@ import subprocess
 TRANSITION_BRANCH = "roadmap/global-mobility-aios-v12"
 TRANSITION_PR = "8"
 TRANSITION_BASELINE = "8624d7f9891a3af6bcbd3693c1286984f5c1fbfd"
-TRANSITION_FETCH_DEPTHS = (64, 256, 1024)
 
 
 def _run_git(*args: str) -> subprocess.CompletedProcess[str]:
@@ -28,32 +27,12 @@ def _has_commit(sha: str) -> bool:
     return _run_git("cat-file", "-e", f"{sha}^{{commit}}").returncode == 0
 
 
-def _ensure_transition_commit() -> None:
+def _require_transition_commit() -> None:
     if _has_commit(TRANSITION_BASELINE):
         return
-
-    branch_ref = f"+refs/heads/{TRANSITION_BRANCH}:refs/remotes/origin/{TRANSITION_BRANCH}"
-    last_output = ""
-    for depth in TRANSITION_FETCH_DEPTHS:
-        fetched = _run_git(
-            "fetch",
-            "--no-tags",
-            f"--depth={depth}",
-            "origin",
-            branch_ref,
-        )
-        last_output = fetched.stdout
-        if fetched.returncode != 0:
-            continue
-        if _has_commit(TRANSITION_BASELINE):
-            print(f"Fetched V12 diff-hygiene history at depth {depth}.")
-            return
-
-    if last_output:
-        print(last_output, end="")
     raise RuntimeError(
-        "Unable to materialize V12 diff-hygiene baseline "
-        f"{TRANSITION_BASELINE} from {TRANSITION_BRANCH}"
+        "V12 diff-hygiene baseline is not present in the CI checkout. "
+        f"Expected {TRANSITION_BASELINE}; increase policy checkout depth rather than fetching unauthenticated history."
     )
 
 
@@ -86,7 +65,7 @@ def _select_base() -> tuple[str, str]:
         return "HEAD^", "non-PR latest-commit hygiene"
 
     if woodpecker_pr == TRANSITION_PR or github_head == TRANSITION_BRANCH:
-        _ensure_transition_commit()
+        _require_transition_commit()
         return TRANSITION_BASELINE, "V12 long-lived-branch transition baseline"
 
     target = woodpecker_target or github_base
