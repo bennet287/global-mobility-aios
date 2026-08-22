@@ -29,7 +29,11 @@ from app.services.organization_command import (
     OrganizationCommandContext,
     canonical_fingerprint,
 )
-from app.services.organization_context_broker import ContextPurpose, build_work_item_context_bundle
+from app.services.organization_context_broker import (
+    ContextPurpose,
+    ContextReference,
+    build_work_item_context_bundle,
+)
 from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
     AUSTRIA_MOBILITY_REGULATORY_POSITION,
@@ -92,6 +96,23 @@ def _json_object(value: str | None, *, label: str) -> dict[str, object]:
     if not isinstance(parsed, dict):
         raise DependencyConflict(f"{label} must be a JSON object")
     return parsed
+
+
+def _context_reference_payloads(
+    references: tuple[ContextReference, ...],
+) -> list[dict[str, str]]:
+    """Serialize the exact normalized ContextBundle authority references consumed by K.1."""
+
+    payloads: list[dict[str, str]] = []
+    for reference in references:
+        payload = {
+            "kind": reference.kind,
+            "identifier": reference.identifier,
+        }
+        if reference.version is not None:
+            payload["version"] = reference.version
+        payloads.append(payload)
+    return payloads
 
 
 def _plan_work_id(plan: AustriaMobilityObjectivePlan, position_key: str) -> UUID:
@@ -385,12 +406,22 @@ def execute_austria_specialist_work(
                 "position_key": position_key,
             }
         )
+        context_reference_provenance = {
+            "context_evidence_refs": _context_reference_payloads(binding.context.evidence_refs),
+            "context_verified_rule_refs": _context_reference_payloads(
+                binding.context.verified_rule_refs
+            ),
+            "context_source_snapshot_refs": _context_reference_payloads(
+                binding.context.source_snapshot_refs
+            ),
+        }
         provenance = {
             "contract_version": AUSTRIA_MOBILITY_SPECIALIST_EXECUTION_CONTRACT_VERSION,
             "root_work_item_id": str(root.id),
             "work_item_id": str(work.id),
             "position_key": position_key,
             "context_hash": binding.context.context_hash,
+            **context_reference_provenance,
             "runtime_binding_hash": binding.runtime.binding_hash,
             "runtime_profile_key": binding.runtime.runtime_profile_key,
             "runtime_profile_version": binding.runtime.runtime_profile_version,
@@ -453,6 +484,7 @@ def execute_austria_specialist_work(
                 "type": "context_bundle",
                 "context_hash": binding.context.context_hash,
                 "purpose": binding.context.purpose.value,
+                **context_reference_provenance,
             },
             {
                 "type": "runtime_binding",

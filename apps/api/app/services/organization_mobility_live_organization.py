@@ -9,6 +9,7 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    AgentRun,
     OrganizationActivity,
     OrganizationActivityClass,
     OrganizationBlocker,
@@ -44,6 +45,11 @@ from app.services.organization_work import complete_work_item
 AUSTRIA_LIVE_ORGANIZATION_CONTRACT_VERSION = "austria-live-organization-owner-synthesis.v1"
 AUSTRIA_LIVE_ORGANIZATION_ACTIVITY_TYPE = "organization.mobility.owner_synthesis.completed.v1"
 SOURCE = "organization_mobility_live_organization"
+_CONTEXT_REFERENCE_FIELDS = (
+    "context_evidence_refs",
+    "context_verified_rule_refs",
+    "context_source_snapshot_refs",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -151,6 +157,79 @@ def _json_object(value: str | None, *, label: str) -> dict[str, Any]:
 
 def _json_dump(value: object) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _context_reference_tokens(value: object, *, label: str) -> tuple[str, ...]:
+    """Normalize persisted ContextReference payloads without consulting newer authority state."""
+
+    if value is None:
+        return ()
+    if not isinstance(value, list):
+        raise DependencyConflict(f"{label} must be a list")
+    tokens: list[str] = []
+    seen: set[str] = set()
+    for index, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise DependencyConflict(f"{label}[{index}] must be an object")
+        kind = item.get("kind")
+        identifier = item.get("identifier")
+        version = item.get("version")
+        if not isinstance(kind, str) or not kind.strip():
+            raise DependencyConflict(f"{label}[{index}].kind must be a non-empty string")
+        if not isinstance(identifier, str) or not identifier.strip():
+            raise DependencyConflict(f"{label}[{index}].identifier must be a non-empty string")
+        if version is not None and (not isinstance(version, str) or not version.strip()):
+            raise DependencyConflict(f"{label}[{index}].version must be a non-empty string or null")
+        token = f"{kind}:{identifier}"
+        if version is not None:
+            token = f"{token}@{version}"
+        if token in seen:
+            raise DependencyConflict(f"{label} contains duplicate reference {token}")
+        seen.add(token)
+        tokens.append(token)
+    return tuple(tokens)
+
+
+def _persisted_context_reference_tokens(
+    session: Session,
+    payload: dict[str, Any],
+    *,
+    position_key: str,
+) -> dict[str, tuple[str, ...]]:
+    """Return K-consumed authority refs only when durable output and AgentRun agree exactly."""
+
+    agent_run_value = payload.get("agent_run_id")
+    if not isinstance(agent_run_value, str) or not agent_run_value:
+        raise DependencyConflict(f"{position_key} durable output lacks AgentRun provenance")
+    try:
+        agent_run_id = UUID(agent_run_value)
+    except ValueError as exc:
+        raise DependencyConflict(f"{position_key} durable output contains invalid AgentRun provenance") from exc
+    agent_run = session.get(AgentRun, agent_run_id)
+    if agent_run is None:
+        raise DependencyConflict(f"{position_key} AgentRun provenance is unavailable")
+    agent_input = _json_object(agent_run.input_json, label=f"{position_key} AgentRun input")
+    run_context = agent_input.get("context")
+    provenance = run_context.get("k1_provenance") if isinstance(run_context, dict) else None
+    if not isinstance(provenance, dict):
+        raise DependencyConflict(f"{position_key} AgentRun lacks K.1 provenance")
+
+    resolved: dict[str, tuple[str, ...]] = {}
+    for field in _CONTEXT_REFERENCE_FIELDS:
+        durable_tokens = _context_reference_tokens(
+            payload.get(field),
+            label=f"{position_key} durable output {field}",
+        )
+        agent_run_tokens = _context_reference_tokens(
+            provenance.get(field),
+            label=f"{position_key} AgentRun {field}",
+        )
+        if durable_tokens != agent_run_tokens:
+            raise DependencyConflict(
+                f"{position_key} persisted context authority refs do not match the AgentRun provenance"
+            )
+        resolved[field] = durable_tokens
+    return resolved
 
 
 def _canonical_objective(
@@ -711,6 +790,34 @@ def austria_live_organization_snapshot(
         )
         for position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS
     )
+    domain_evidence_refs: set[str] = set()
+    verified_rule_refs: set[str] = set()
+    for position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
+        child = children[position_key]
+        if child.status != "completed":
+            continue
+        reason = austria_specialist_execution_evidence_reason(
+            session,
+            root=root,
+            child=child,
+            position_key=position_key,
+        )
+        if reason is not None:
+            continue
+        _, specialist_payload, _ = _current_output(
+            session,
+            root=root,
+            child=child,
+            position_key=position_key,
+        )
+        context_refs = _persisted_context_reference_tokens(
+            session,
+            specialist_payload,
+            position_key=position_key,
+        )
+        domain_evidence_refs.update(context_refs["context_evidence_refs"])
+        verified_rule_refs.update(context_refs["context_verified_rule_refs"])
+
     ids = [root.id, *(child.id for child in children.values())]
     blockers = _active_blockers(session, tenant_key=tenant_key, work_item_ids=ids)
     blocker_snapshots = tuple(
@@ -773,8 +880,8 @@ def austria_live_organization_snapshot(
         total_retry_count=total_retry_count,
         activity_count=len(activities),
         activities=tuple(activities),
-        domain_evidence_refs=(),
-        verified_rule_refs=(),
+        domain_evidence_refs=tuple(sorted(domain_evidence_refs)),
+        verified_rule_refs=tuple(sorted(verified_rule_refs)),
     )
 
 
