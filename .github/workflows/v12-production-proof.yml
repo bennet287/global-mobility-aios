@@ -40,7 +40,13 @@ jobs:
         run: python scripts/check_python_dependency_constraints.py
 
       - name: Diff hygiene
-        run: git diff --check HEAD^ -- . ':(exclude)vendor/**'
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}"
+            git diff --check "origin/${{ github.event.pull_request.base.ref }}" HEAD -- . ':(exclude)vendor/**'
+          else
+            git diff --check HEAD^ -- . ':(exclude)vendor/**'
+          fi
 
   backend-sqlite:
     name: Backend regression (SQLite)
