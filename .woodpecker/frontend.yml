@@ -1,0 +1,21 @@
+when:
+  - event: [push, pull_request]
+
+environment:
+  NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+  NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+  NEXT_PUBLIC_GMAI_ROLE: admin
+  NEXT_PUBLIC_GMAI_USER: frontend-operator
+
+steps:
+  - name: frontend-tests-types-build
+    image: node:24-bookworm
+    commands:
+      - cd apps/web
+      - npm ci
+      - npm audit --audit-level=high
+      - npm run test:design-foundation
+      - npm run test:request-auth
+      - npx tsc --noEmit
+      - npm run build
+      - npm run test:compiled-auth
