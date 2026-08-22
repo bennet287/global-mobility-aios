@@ -47,6 +47,9 @@ from tests.test_organization_autonomy_promotion_policy import (
 from tests.test_organization_eligibility_effect import _floor_ready
 
 
+CANONICAL_TENANT_KEY = "tenant-a"
+
+
 def _evaluation_policy(
     session: Session,
     *,
@@ -55,10 +58,11 @@ def _evaluation_policy(
     max_source_age_seconds: int = 3600,
     max_candidate_observations: int = 100,
     expected_policy_sequence: int | None = None,
+    tenant_key: str = "default",
 ) -> CapabilityAutonomyEvidenceEvaluationPolicy:
     return establish_capability_autonomy_evidence_evaluation_policy(
         session,
-        _board_context(),
+        _board_context(tenant_key),
         position_key=POSITION_KEY,
         capability_key=CAPABILITY_KEY,
         context_scope=CONTEXT_SCOPE,
@@ -84,10 +88,15 @@ def _canonical_effect(session: Session):
     )
 
 
-def _ordinary_source(session: Session, *, key: str) -> OrganizationActivity:
+def _ordinary_source(
+    session: Session,
+    *,
+    key: str,
+    tenant_key: str = "default",
+) -> OrganizationActivity:
     return append_activity(
         session,
-        _board_context(),
+        _board_context(tenant_key),
         activity_key=f"i4-unqualified:{key}",
         stream_key="i4-unqualified",
         activity_class="operational",
@@ -116,10 +125,11 @@ def _observation(
     recovery: str = "not_applicable",
     sla_met: bool = True,
     incident_count: int = 0,
+    tenant_key: str = "default",
 ):
     return establish_capability_autonomy_evidence_observation(
         session,
-        _board_context(),
+        _board_context(tenant_key),
         profile_id=profile.id,
         source_activity_id=source.id,
         human_review_outcome=review,
@@ -142,10 +152,11 @@ def _human_review(
     key: str,
     action_type: OrganizationHumanActionType,
     occurred_at=None,
+    tenant_key: str = "default",
 ):
     return append_human_action(
         session,
-        _board_context(),
+        _board_context(tenant_key),
         action_key=f"i4-human-review-{key}",
         action_type=action_type,
         outcome=f"I.4 human review {key}",
@@ -157,12 +168,18 @@ def _human_review(
     )
 
 
-def _foundation(session: Session, *, candidate_bound: int = 100):
+def _foundation(
+    session: Session,
+    *,
+    candidate_bound: int = 100,
+    tenant_key: str = "default",
+):
     _position(session)
-    profile = _profile(session, _board_context(), key="i4")
+    board = _board_context(tenant_key)
+    profile = _profile(session, board, key="i4")
     _policy(
         session,
-        _board_context(),
+        board,
         key="i4",
         min_volume=1,
         min_reviewed=1,
@@ -171,14 +188,20 @@ def _foundation(session: Session, *, candidate_bound: int = 100):
         session,
         key="v1",
         max_candidate_observations=candidate_bound,
+        tenant_key=tenant_key,
     )
     return profile, evaluation_policy
 
 
-def _snapshot(session: Session, *, evaluation_as_of=None):
+def _snapshot(
+    session: Session,
+    *,
+    evaluation_as_of=None,
+    tenant_key: str = "default",
+):
     return capability_autonomy_evidence_evaluation_snapshot(
         session,
-        tenant_key="default",
+        tenant_key=tenant_key,
         position_key=POSITION_KEY,
         capability_key=CAPABILITY_KEY,
         context_scope=CONTEXT_SCOPE,
@@ -260,9 +283,13 @@ def test_i4_policy_is_board_only_append_only_bounded_and_idempotent(db_session: 
 def test_i4_qualifies_only_canonical_effect_and_ignores_i2_quality_attestations(
     db_session: Session,
 ) -> None:
-    profile, _ = _foundation(db_session)
+    profile, _ = _foundation(db_session, tenant_key=CANONICAL_TENANT_KEY)
     effect = _canonical_effect(db_session)
-    ordinary = _ordinary_source(db_session, key="ordinary")
+    ordinary = _ordinary_source(
+        db_session,
+        key="ordinary",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
     _observation(
         db_session,
         profile,
@@ -277,10 +304,17 @@ def test_i4_qualifies_only_canonical_effect_and_ignores_i2_quality_attestations(
         recovery="failed",
         sla_met=False,
         incident_count=7,
+        tenant_key=CANONICAL_TENANT_KEY,
     )
-    _observation(db_session, profile, ordinary, key="ordinary")
+    _observation(
+        db_session,
+        profile,
+        ordinary,
+        key="ordinary",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
 
-    snapshot = _snapshot(db_session)
+    snapshot = _snapshot(db_session, tenant_key=CANONICAL_TENANT_KEY)
     assert snapshot is not None
     assert snapshot.candidate_count == 2
     assert snapshot.qualified_count == 1
@@ -320,17 +354,24 @@ def test_i4_qualifies_only_canonical_effect_and_ignores_i2_quality_attestations(
 
 
 def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Session) -> None:
-    profile, _ = _foundation(db_session)
+    profile, _ = _foundation(db_session, tenant_key=CANONICAL_TENANT_KEY)
     effect = _canonical_effect(db_session)
-    _observation(db_session, profile, effect.semantic_activity, key="human-review")
+    _observation(
+        db_session,
+        profile,
+        effect.semantic_activity,
+        key="human-review",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
 
     _human_review(
         db_session,
         effect,
         key="generic-reviewed",
         action_type=OrganizationHumanActionType.reviewed,
+        tenant_key=CANONICAL_TENANT_KEY,
     )
-    before_terminal = _snapshot(db_session)
+    before_terminal = _snapshot(db_session, tenant_key=CANONICAL_TENANT_KEY)
     assert before_terminal is not None
     assert before_terminal.metrics.human_not_reviewed_count == 1
     assert before_terminal.metrics.human_reviewed_count == 0
@@ -340,8 +381,13 @@ def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Sess
         effect,
         key="approved",
         action_type=OrganizationHumanActionType.approved,
+        tenant_key=CANONICAL_TENANT_KEY,
     )
-    accepted = _snapshot(db_session, evaluation_as_of=approved.occurred_at + timedelta(microseconds=1))
+    accepted = _snapshot(
+        db_session,
+        evaluation_as_of=approved.occurred_at + timedelta(microseconds=1),
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
     assert accepted is not None
     assert accepted.metrics.human_accepted_count == 1
     assert accepted.metrics.human_reviewed_count == 1
@@ -354,8 +400,13 @@ def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Sess
         key="requested-changes",
         action_type=OrganizationHumanActionType.requested_changes,
         occurred_at=approved.occurred_at + timedelta(seconds=1),
+        tenant_key=CANONICAL_TENANT_KEY,
     )
-    modified = _snapshot(db_session, evaluation_as_of=changed.occurred_at + timedelta(microseconds=1))
+    modified = _snapshot(
+        db_session,
+        evaluation_as_of=changed.occurred_at + timedelta(microseconds=1),
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
     assert modified is not None
     assert modified.metrics.human_modified_count == 1
     assert modified.metrics.human_accepted_count == 0
@@ -363,9 +414,15 @@ def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Sess
 
 
 def test_i4_conflicting_equal_time_terminal_human_reviews_fail_closed(db_session: Session) -> None:
-    profile, _ = _foundation(db_session)
+    profile, _ = _foundation(db_session, tenant_key=CANONICAL_TENANT_KEY)
     effect = _canonical_effect(db_session)
-    _observation(db_session, profile, effect.semantic_activity, key="ambiguous-review")
+    _observation(
+        db_session,
+        profile,
+        effect.semantic_activity,
+        key="ambiguous-review",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
     same_time = now_utc()
     _human_review(
         db_session,
@@ -373,6 +430,7 @@ def test_i4_conflicting_equal_time_terminal_human_reviews_fail_closed(db_session
         key="same-time-approved",
         action_type=OrganizationHumanActionType.approved,
         occurred_at=same_time,
+        tenant_key=CANONICAL_TENANT_KEY,
     )
     _human_review(
         db_session,
@@ -380,23 +438,34 @@ def test_i4_conflicting_equal_time_terminal_human_reviews_fail_closed(db_session
         key="same-time-rejected",
         action_type=OrganizationHumanActionType.rejected,
         occurred_at=same_time,
+        tenant_key=CANONICAL_TENANT_KEY,
     )
     with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="ambiguous"):
-        _snapshot(db_session, evaluation_as_of=same_time + timedelta(microseconds=1))
+        _snapshot(
+            db_session,
+            evaluation_as_of=same_time + timedelta(microseconds=1),
+            tenant_key=CANONICAL_TENANT_KEY,
+        )
 
 
 def test_i4_torn_canonical_lineage_and_i2_source_fingerprint_drift_fail_closed(
     db_session: Session,
 ) -> None:
-    profile, _ = _foundation(db_session)
+    profile, _ = _foundation(db_session, tenant_key=CANONICAL_TENANT_KEY)
     effect = _canonical_effect(db_session)
-    _observation(db_session, profile, effect.semantic_activity, key="lineage-drift")
+    _observation(
+        db_session,
+        profile,
+        effect.semantic_activity,
+        key="lineage-drift",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
 
     effect.verification_activity.activity_type = "verification.eligibility.corrupted.v1"
     db_session.add(effect.verification_activity)
     db_session.commit()
     with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="lineage"):
-        _snapshot(db_session)
+        _snapshot(db_session, tenant_key=CANONICAL_TENANT_KEY)
 
     # Restore the non-source lineage row, then corrupt the I.2 source witness itself.
     effect.verification_activity.activity_type = "verification.eligibility.independent.v1"
@@ -406,17 +475,23 @@ def test_i4_torn_canonical_lineage_and_i2_source_fingerprint_drift_fail_closed(
     db_session.add(effect.semantic_activity)
     db_session.commit()
     with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="I.2 evidence integrity"):
-        _snapshot(db_session)
+        _snapshot(db_session, tenant_key=CANONICAL_TENANT_KEY)
 
 
 def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_session: Session) -> None:
-    profile, policy = _foundation(db_session)
+    profile, policy = _foundation(db_session, tenant_key=CANONICAL_TENANT_KEY)
     effect = _canonical_effect(db_session)
-    _observation(db_session, profile, effect.semantic_activity, key="age")
+    _observation(
+        db_session,
+        profile,
+        effect.semantic_activity,
+        key="age",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
 
     narrow = establish_capability_autonomy_evidence_evaluation_policy(
         db_session,
-        _board_context(),
+        _board_context(CANONICAL_TENANT_KEY),
         position_key=POSITION_KEY,
         capability_key=CAPABILITY_KEY,
         context_scope=CONTEXT_SCOPE,
@@ -429,8 +504,16 @@ def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_s
         expected_policy_sequence=policy.policy_sequence,
     )
     as_of = narrow.effective_from + timedelta(seconds=2)
-    first = _snapshot(db_session, evaluation_as_of=as_of)
-    second = _snapshot(db_session, evaluation_as_of=as_of)
+    first = _snapshot(
+        db_session,
+        evaluation_as_of=as_of,
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
+    second = _snapshot(
+        db_session,
+        evaluation_as_of=as_of,
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
     assert first == second
     assert first is not None
     assert first.qualified_count == 0
@@ -439,7 +522,7 @@ def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_s
 
     newest = establish_capability_autonomy_evidence_evaluation_policy(
         db_session,
-        _board_context(),
+        _board_context(CANONICAL_TENANT_KEY),
         position_key=POSITION_KEY,
         capability_key=CAPABILITY_KEY,
         context_scope=CONTEXT_SCOPE,
@@ -454,6 +537,7 @@ def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_s
     stale_observation = _snapshot(
         db_session,
         evaluation_as_of=newest.effective_from + timedelta(seconds=2),
+        tenant_key=CANONICAL_TENANT_KEY,
     )
     assert stale_observation is not None
     assert stale_observation.excluded_stale_observation_count == 1
@@ -461,15 +545,25 @@ def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_s
 
 
 def test_i4_future_source_time_fails_closed(db_session: Session) -> None:
-    profile, _ = _foundation(db_session)
+    profile, _ = _foundation(db_session, tenant_key=CANONICAL_TENANT_KEY)
     effect = _canonical_effect(db_session)
-    _observation(db_session, profile, effect.semantic_activity, key="future-source")
+    _observation(
+        db_session,
+        profile,
+        effect.semantic_activity,
+        key="future-source",
+        tenant_key=CANONICAL_TENANT_KEY,
+    )
     as_of = now_utc()
     effect.semantic_activity.occurred_at = as_of + timedelta(minutes=1)
     db_session.add(effect.semantic_activity)
     db_session.commit()
     with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="after evaluation_as_of"):
-        _snapshot(db_session, evaluation_as_of=as_of)
+        _snapshot(
+            db_session,
+            evaluation_as_of=as_of,
+            tenant_key=CANONICAL_TENANT_KEY,
+        )
 
 
 def test_i4_candidate_bound_fails_closed_without_silent_truncation(db_session: Session) -> None:
