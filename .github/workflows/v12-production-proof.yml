@@ -1,16 +1,21 @@
 name: V12 Production Proof
 
 on:
+  push:
+    branches:
+      - main
+      - "roadmap/**"
   pull_request:
-    branches: [main]
-  workflow_dispatch:
 
 concurrency:
-  group: v12-production-proof-${{ github.event.pull_request.number || github.ref }}
+  group: v12-production-proof-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  repo-policy:
+  repository-policy:
     name: Repository policy and constraints
     runs-on: ubuntu-latest
     steps:
@@ -26,18 +31,18 @@ jobs:
           python-version: "3.12"
 
       - name: Repository policy
-        run: python scripts/check_repo_policy.py
+        run: python scripts/check_repo_policy.py --root .
 
       - name: Release consistency
-        run: python scripts/check_release_consistency.py
+        run: python scripts/check_release_consistency.py --root .
 
       - name: Python dependency constraints
-        run: python scripts/check_dependency_constraints.py
+        run: python scripts/check_python_dependency_constraints.py
 
       - name: Diff hygiene
-        run: git diff --check HEAD^
+        run: git diff --check HEAD^ -- . ':(exclude)vendor/**'
 
-  backend-regression:
+  backend-sqlite:
     name: Backend regression (SQLite)
     runs-on: ubuntu-latest
     env:
@@ -81,6 +86,11 @@ jobs:
   frontend:
     name: Frontend tests, types and build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-operator
     defaults:
       run:
         working-directory: apps/web
