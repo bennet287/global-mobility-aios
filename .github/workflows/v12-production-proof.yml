@@ -195,3 +195,4 @@ jobs:
           apps/api/tests/test_organization_autonomy_promotion_policy_postgres.py
           apps/api/tests/test_organization_autonomy_evidence_evaluation_postgres.py
           apps/api/tests/test_organization_mobility_objective_execution_postgres.py
+          apps/api/tests/test_organization_mobility_live_organization_postgres.py

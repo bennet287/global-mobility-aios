@@ -305,13 +305,21 @@ def bind_austria_specialist_runtimes(
     return tuple(bindings)
 
 
-def _specialist_execution_evidence_reason(
+def austria_specialist_execution_evidence_reason(
     session: Session,
     *,
     root: OrganizationalWorkItem,
     child: OrganizationalWorkItem,
     position_key: str,
 ) -> str | None:
+    """Return why one completed specialist lacks current K.1 execution evidence.
+
+    ``None`` means the durable output, AgentRun and OrganizationExecutionAttempt all
+    resolve to the exact current WorkItem/position lineage. The validator is public so
+    later organization-runtime slices can reuse the K.1 provenance contract without
+    reaching through a private service helper.
+    """
+
     outputs = session.exec(
         select(OrganizationalActionOutput).where(
             OrganizationalActionOutput.output_key == austria_specialist_output_key(child.id)
@@ -459,7 +467,7 @@ def austria_objective_readiness(
             pending.append(position_key)
             reasons.append(f"{position_key} work is {child.status}, not completed")
             continue
-        execution_reason = _specialist_execution_evidence_reason(
+        execution_reason = austria_specialist_execution_evidence_reason(
             session,
             root=root,
             child=child,

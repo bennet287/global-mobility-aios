@@ -253,6 +253,17 @@ def read_austria_live_organization(
     """Return one exact persisted Austria owner/specialist cycle for Board inspection."""
 
     _require_board(context)
+    root_exists = session.exec(
+        select(OrganizationalWorkItem.id).where(
+            OrganizationalWorkItem.id == root_work_item_id,
+            OrganizationalWorkItem.tenant_key == context.tenant_key,
+        )
+    ).first()
+    if root_exists is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization transparency resource not found.",
+        )
     try:
         snapshot = austria_live_organization_snapshot(
             session,

@@ -30,8 +30,8 @@ from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
     AUSTRIA_MOBILITY_REGULATORY_POSITION,
     AUSTRIA_MOBILITY_SPECIALIST_POSITIONS,
-    _specialist_execution_evidence_reason,
     austria_objective_readiness,
+    austria_specialist_execution_evidence_reason,
     austria_specialist_output_key,
 )
 from app.services.organization_transparency import (
@@ -210,7 +210,7 @@ def _current_output(
     child: OrganizationalWorkItem,
     position_key: str,
 ) -> tuple[OrganizationalActionOutput, dict[str, Any], dict[str, Any]]:
-    reason = _specialist_execution_evidence_reason(
+    reason = austria_specialist_execution_evidence_reason(
         session,
         root=root,
         child=child,
@@ -589,7 +589,7 @@ def _specialist_snapshot(
             OrganizationalActionOutput.output_key == austria_specialist_output_key(child.id)
         )
     ).all()
-    reason = _specialist_execution_evidence_reason(
+    reason = austria_specialist_execution_evidence_reason(
         session,
         root=root,
         child=child,
@@ -620,12 +620,14 @@ def _specialist_snapshot(
     except DependencyConflict:
         payload = {}
         impact = {}
+
     def _uuid(key: str) -> UUID | None:
         value = payload.get(key)
         try:
             return UUID(str(value)) if value else None
         except ValueError:
             return None
+
     latency = payload.get("latency_ms")
     retry = payload.get("retry_count")
     return AustriaLiveSpecialistSnapshot(
