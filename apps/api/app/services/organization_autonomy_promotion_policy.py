@@ -259,14 +259,30 @@ def _idempotent_policy(
     return existing
 
 
-def _current_profile(
+def _locked_current_profile(
     session: Session,
     *,
     tenant_key: str,
     position_key: str,
     capability_key: str,
     context_scope: str,
-) -> CapabilityAutonomyProfile | None:
+    profile_id: UUID,
+) -> CapabilityAutonomyProfile:
+    statement = select(CapabilityAutonomyProfile).where(
+        CapabilityAutonomyProfile.tenant_key == tenant_key,
+        CapabilityAutonomyProfile.id == profile_id,
+    )
+    if session.get_bind().dialect.name == "postgresql":
+        statement = statement.with_for_update()
+    profile = session.exec(statement).first()
+    if profile is None:
+        raise InvalidTransition("expected autonomy profile is stale")
+    if (
+        profile.position_key != position_key
+        or profile.capability_key != capability_key
+        or profile.context_scope != context_scope
+    ):
+        raise InvalidTransition("expected autonomy profile is stale")
     try:
         snapshot = capability_autonomy_profile_snapshot(
             session,
@@ -276,16 +292,10 @@ def _current_profile(
             context_scope=context_scope,
         )
     except AutonomyProfileIntegrityError as exc:
-        raise AutonomyPromotionPolicyIntegrityError("current I.1 autonomy profile integrity failed") from exc
-    if snapshot is None:
-        return None
-    return tenant_record(
-        session,
-        CapabilityAutonomyProfile,
-        snapshot.current_profile_id,
-        tenant_key,
-        label="current autonomy profile",
-    )
+        raise InvalidTransition("current I.1 autonomy profile integrity failed") from exc
+    if snapshot is None or snapshot.current_profile_id != profile_id:
+        raise InvalidTransition("expected autonomy profile is stale")
+    return profile
 
 
 def establish_capability_autonomy_promotion_policy(
@@ -314,6 +324,7 @@ def establish_capability_autonomy_promotion_policy(
     max_incident_count: int,
     policy_reason: str,
     idempotency_key: str,
+    expected_profile_id: UUID | None = None,
     expected_policy_sequence: int | None = None,
 ) -> CapabilityAutonomyPromotionPolicy:
     """Append Board-authored promotion criteria without changing autonomy truth."""
@@ -394,10 +405,13 @@ def establish_capability_autonomy_promotion_policy(
         raise InvalidTransition("current I.1 autonomy profile integrity failed") from exc
     if current_profile_snapshot is None:
         raise InvalidReference("current capability autonomy profile was not found")
+    observed_profile_id = current_profile_snapshot.current_profile_id
+    if expected_profile_id is not None and expected_profile_id != observed_profile_id:
+        raise InvalidTransition("expected autonomy profile is stale")
     current_profile = tenant_record(
         session,
         CapabilityAutonomyProfile,
-        current_profile_snapshot.current_profile_id,
+        observed_profile_id,
         context.tenant_key,
         label="current autonomy profile",
     )
@@ -456,6 +470,21 @@ def establish_capability_autonomy_promotion_policy(
     )
     if replay is not None:
         return replay
+
+    current_profile = _locked_current_profile(
+        session,
+        tenant_key=context.tenant_key,
+        position_key=position_key,
+        capability_key=capability_key,
+        context_scope=context_scope,
+        profile_id=observed_profile_id,
+    )
+    if current_profile.autonomy_level != from_level.value:
+        raise InvalidTransition("promotion policy from level must match current I.1 autonomy")
+    if current_profile.evidence_policy_version != evidence_policy_version:
+        raise InvalidTransition("promotion policy evidence version must match current I.1 profile")
+    if _autonomy_rank(target_level) > _autonomy_rank(current_profile.board_ceiling):
+        raise AuthorityDenied("promotion policy target exceeds the Human Board ceiling")
 
     current_statement = _profile_policy_statement(
         tenant_key=context.tenant_key,
@@ -561,6 +590,14 @@ def establish_capability_autonomy_promotion_policy(
     )
     session.add(policy)
     try:
+        _locked_current_profile(
+            session,
+            tenant_key=context.tenant_key,
+            position_key=position_key,
+            capability_key=capability_key,
+            context_scope=context_scope,
+            profile_id=current_profile.id,
+        )
         commit_mutations(
             session,
             mutations=(
