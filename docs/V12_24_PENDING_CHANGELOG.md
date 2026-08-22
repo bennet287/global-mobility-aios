@@ -56,16 +56,26 @@ Vendoring remains distinct from production adoption. Plasma still has no authori
 
 ## First measurable engineering slice
 
-V12.24 begins with a non-authorizing mobility outcome-evaluation harness.
+V12.24 begins with a non-authorizing mobility outcome-evaluation harness in:
 
-Requirements:
+```text
+apps/api/app/evaluations/mobility_outcomes.py
+apps/api/tests/test_mobility_outcome_evaluation.py
+```
 
-- evaluation cases carry explicit provenance (`SYNTHETIC`, `PROFESSIONALLY_REVIEWED`, `HISTORICAL`, `LIVE_SHADOW`);
-- metrics preserve numerator and denominator rather than emitting a universal score;
-- unlabeled dimensions remain undefined rather than treated as failure or success;
-- synthetic fixtures prove harness behavior only and do not establish immigration correctness;
-- first curated domain scope will be Austria;
-- production/canonical state must not depend on benchmark labels.
+Evaluation cases carry explicit provenance:
+
+```text
+SYNTHETIC
+OFFICIAL_SOURCE_CURATED
+PROFESSIONALLY_REVIEWED
+HISTORICAL
+LIVE_SHADOW
+```
+
+`OFFICIAL_SOURCE_CURATED` is intentionally distinct from professional review. Such a case must carry source provenance and cannot be represented as a professional/legal validation.
+
+The harness preserves numerator and denominator rather than emitting a universal quality score. Unlabeled dimensions remain undefined rather than treated as success or failure.
 
 Initial metric families:
 
@@ -79,7 +89,40 @@ rule/source citation correctness
 escalation correctness where labeled
 ```
 
-Operational measurement will add risk-tiered Governance Amplification Factor, latency and intervention evidence as real J/K/L workflows become executable.
+Operational measurement also introduces risk-tiered Governance Amplification Factor:
+
+```text
+GAF = governed completion cost / minimally viable raw task cost
+```
+
+with risk-tiered p50/p95 latency, human/Board interventions, verifier calls and stale/retry counts.
+
+## Austria official-source-curated seed
+
+The first source-curated dataset is:
+
+```text
+apps/api/evaluations/mobility_cases/austria_rwr_shortage_2026_v1.json
+```
+
+Scope:
+
+```text
+Austria
+Red-White-Red Card — Skilled Workers in Shortage Occupations
+2026 source boundary
+Software Engineer (DI) / data-processing shortage occupation example
+```
+
+The seed currently contains three synthetic-person fact patterns whose **labels are curated from current official Austrian sources**:
+
+1. known absence of a binding Austrian job offer → current prerequisite fails;
+2. strong route-specific facts/points → benchmark expects review rather than claiming an authority decision;
+3. route identified but simplified points below the published 55-point minimum.
+
+The source set is pinned in the dataset to Austrian government migration/administration pages. The dataset explicitly states `professional_review_status = NOT_REVIEWED`.
+
+This is meaningful domain-evidence progress, but it is not yet a professionally validated gold set and does not establish live-case accuracy.
 
 ## Explicit non-claims
 
