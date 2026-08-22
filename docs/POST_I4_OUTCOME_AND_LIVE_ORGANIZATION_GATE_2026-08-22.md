@@ -65,7 +65,7 @@ I.2 shadow evidence measurement                      SEALED
 I.3 promotion eligibility policy                     SEALED
 I.4 qualified + temporal evidence evaluation         SEALED
 
-Outcome Evaluation foundation                        NEXT
+Outcome Evaluation foundation                        IN PROGRESS
 J — Agent Organization Runtime                      PRIORITY
 K — bounded Execution / Coworker Runtime            PRIORITY
 L — Live Organization                               PRIORITY
@@ -89,12 +89,19 @@ Gold/evaluation cases must carry explicit provenance classes:
 
 ```text
 SYNTHETIC
+OFFICIAL_SOURCE_CURATED
 PROFESSIONALLY_REVIEWED
 HISTORICAL
 LIVE_SHADOW
 ```
 
-Synthetic cases are useful for harness correctness and adversarial coverage. They must never be represented as professional/legal validation.
+Provenance meanings:
+
+- `SYNTHETIC` proves harness behavior and adversarial coverage only.
+- `OFFICIAL_SOURCE_CURATED` means labels were manually curated from explicit official-source evidence and carry source provenance; it is not professional/legal review.
+- `PROFESSIONALLY_REVIEWED` requires a review reference and may support stronger domain-correctness claims within the exact reviewed boundary.
+- `HISTORICAL` requires traceable historical outcome/evidence provenance.
+- `LIVE_SHADOW` evaluates current cases without turning benchmark labels into execution authority.
 
 A professionally reviewed or historical case must identify its review/evidence basis and evaluation-as-of boundary. Live-shadow cases must remain non-authorizing unless a separately governed workflow permits action.
 
@@ -129,7 +136,7 @@ No universal scalar “mobility quality score” is authorized by this gate.
 
 ## 5. First benchmark scope — Austria
 
-The first benchmark should remain deliberately bounded instead of claiming global coverage.
+The first benchmark remains deliberately bounded instead of claiming global coverage.
 
 Initial target:
 
@@ -148,7 +155,15 @@ Existing Austria candidate-integrity, pathway-catalogue, official-source, canoni
 
 They are not automatically gold legal cases.
 
-A serious domain benchmark requires curated official evidence and, where appropriate, professional review.
+The first `OFFICIAL_SOURCE_CURATED` seed now exists at:
+
+```text
+apps/api/evaluations/mobility_cases/austria_rwr_shortage_2026_v1.json
+```
+
+It is scoped to the 2026 Austrian Red-White-Red Card route for Skilled Workers in Shortage Occupations and currently contains three source-curated synthetic-person fact patterns. The dataset explicitly records `professional_review_status = NOT_REVIEWED`.
+
+This seed is meaningful domain-evidence progress, but a serious domain benchmark still requires broader curated coverage and, where appropriate, professional review/historical/live-shadow validation.
 
 ---
 
@@ -164,13 +179,15 @@ Initial proof must demonstrate at least:
 
 ```text
 Client goal
-→ Mission
+→ Mission/objective
 → persistent responsible position
 → delegated WorkItems
 → specialist collaboration
-→ durable OrganizationActivity / conversation lineage
-→ result returned to mission owner
+→ durable OrganizationActivity / collaboration lineage
+→ result returned to mission/objective owner
 ```
+
+Existing `OrganizationalWorkItem`, parent/child work, `DelegationRecord`, `OrganizationalActionOutput`, persistent `OrganizationPosition`, Context Broker and runtime-binding primitives should be reused before introducing a new Mission persistence model. A new primitive requires a measured semantic gap.
 
 Do not add a new agent framework merely to satisfy J. Candidate runtimes/donor patterns must show a measurable gap versus native AIOS execution.
 
@@ -187,7 +204,7 @@ L requires **real runtime organizational activity, not simulated dashboard data*
 The proof should expose:
 
 ```text
-Mission
+Mission/objective
 agents / persistent positions
 WorkItems
 collaboration
@@ -342,7 +359,7 @@ Users should not need to understand WorkItem internals, A-level terminology, pol
 
 ## 13. Documentation/current-state reconciliation
 
-Plasma PR #7 has been merged into the V12 branch. Current-state documentation must no longer describe it as an open draft/source-import-incomplete PR.
+Plasma PR #7 has been merged into the V12 branch at merge commit `33425eb2b465b2dc14d9e43c556457e5135b626a`. Current-state documentation must no longer describe it as an open draft/source-import-incomplete PR.
 
 Historical dated changelog statements remain historical facts and should not be rewritten. New current-state records supersede them explicitly.
 
@@ -357,15 +374,16 @@ This gate is not satisfied by creating evaluation schemas alone.
 Before another major autonomy architecture expansion, the repository should show evidence of:
 
 1. a versioned mobility evaluation harness with explicit case provenance and denominator-safe metrics;
-2. an initial curated Austria benchmark beyond synthetic harness tests;
-3. at least one real J→K→L vertical where persistent AI employees cooperate on mobility work;
-4. domain-correctness results on that vertical;
-5. cost, latency and governance-overhead measurements;
-6. Context Broker adversarial results;
-7. at least one workflow-level recovery/irreversibility proof;
-8. Cockpit visibility into the real organization activity;
-9. clear My Mobility UX that does not expose internal architecture unnecessarily;
-10. any donor/framework expansion justified by benchmark evidence rather than availability.
+2. an initial official-source-curated Austria benchmark beyond synthetic harness-only tests;
+3. broader/professionally reviewed, historical or live-shadow validation sufficient for the claims being made;
+4. at least one real J→K→L vertical where persistent AI employees cooperate on mobility work;
+5. domain-correctness results on that vertical;
+6. cost, latency and governance-overhead measurements;
+7. Context Broker adversarial results;
+8. at least one workflow-level recovery/irreversibility proof;
+9. Cockpit visibility into the real organization activity;
+10. clear My Mobility UX that does not expose internal architecture unnecessarily;
+11. any donor/framework expansion justified by benchmark evidence rather than availability.
 
 The first iterations may be small. The key requirement is that claimed usefulness is measured rather than inferred from architectural sophistication.
 
@@ -376,7 +394,7 @@ The first iterations may be small. The key requirement is that claimed usefulnes
 This gate does **not** claim:
 
 - current professional immigration accuracy;
-- completed Austria gold sets;
+- a professionally validated Austria gold set;
 - live-case outcome validation;
 - a complete Live Organization;
 - donor production adoption;
