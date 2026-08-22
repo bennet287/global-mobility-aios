@@ -65,16 +65,35 @@ I.2 shadow evidence measurement                      SEALED
 I.3 promotion eligibility policy                     SEALED
 I.4 qualified + temporal evidence evaluation         SEALED
 
-Outcome Evaluation foundation                        IN PROGRESS
-J — Agent Organization Runtime                      PRIORITY
-K — bounded Execution / Coworker Runtime            PRIORITY
-L — Live Organization                               PRIORITY
+Outcome Evaluation foundation                        PROVEN BASELINE
+J.1 — Austria Agent Organization Runtime             COMPLETE / PASS / SEALED
+K.1 — bounded specialist Execution/Coworker Runtime  NEXT / NOT STARTED
+L — Live Organization                               NOT STARTED
 Mobility gold sets + professional/shadow evaluation REQUIRED
 Cost / latency / governance-overhead measurement    REQUIRED
 
 Actual autonomy mutation                             PAUSED / NOT STARTED
 Dynamic Autonomy Manager                             NOT STARTED
 Automatic promotion/demotion                         NOT STARTED
+```
+
+Outcome Evaluation baseline proof:
+
+```text
+technical candidate  a89112e72f6b764d581c907809f8ed9fffdc8202
+Production Proof     32563394000 — 4/4 PASS
+```
+
+J.1 acceptance proof:
+
+```text
+technical candidate       b30ae8d885f8f54285b2342a873acfe5c94ca525
+Production Proof          32565671588 — 4/4 PASS
+Repository Policy Check   32565671592 — PASS
+SQLite                    1188 passed / 19 skipped / 0 failed
+PostgreSQL 16              102 passed / 0 failed
+migration head             0081_capability_autonomy_evidence_evaluation_policy
+registered app tables      124
 ```
 
 A later bounded autonomy-mutation increment may be reconsidered only after the project demonstrates useful real mobility work and has enough outcome evidence to justify the operational risk.
@@ -171,31 +190,73 @@ This seed is meaningful domain-evidence progress, but a serious domain benchmark
 
 The canonical V1.3 sequence remains controlling.
 
-### J — Agent Organization Runtime
+### J.1 — Austria Agent Organization Runtime — ACCEPTED
 
-Prove persistent AI employees can participate in one organizational task with native AIOS identity, authority, context and messaging semantics.
-
-Initial proof must demonstrate at least:
+Acceptance record:
 
 ```text
-Client goal
-→ Mission/objective
-→ persistent responsible position
-→ delegated WorkItems
-→ specialist collaboration
-→ durable OrganizationActivity / collaboration lineage
-→ result returned to mission/objective owner
+docs/V1_3_J1_AUSTRIA_MOBILITY_OBJECTIVE_RUNTIME_ACCEPTANCE_2026-08-22.md
 ```
 
-Existing `OrganizationalWorkItem`, parent/child work, `DelegationRecord`, `OrganizationalActionOutput`, persistent `OrganizationPosition`, Context Broker and runtime-binding primitives should be reused before introducing a new Mission persistence model. A new primitive requires a measured semantic gap.
+J.1 proved the first bounded native organization topology by reusing existing primitives rather than introducing a new Mission store or agent framework.
 
-Do not add a new agent framework merely to satisfy J. Candidate runtimes/donor patterns must show a measurable gap versus native AIOS execution.
+Accepted topology:
 
-### K — Execution / Coworker Runtime
+```text
+Austria mobility objective
+→ mobility_operations_lead
+   ├─ pathway_operations_specialist WorkItem
+   └─ regulatory_intelligence_analyst WorkItem
+→ fresh canonical ContextBundles
+→ provider-neutral EmployeeRuntimeBindings
+→ structural specialist-completion gate
+→ owner synthesis readiness
+```
 
-Add only the bounded execution capabilities needed by the selected real mobility slice, behind AIOS-owned adapters and authority controls.
+Accepted J.1 properties include:
 
-Examples may include official-source retrieval, documents/files and other tools required by the benchmark. Do not prebuild the complete future tool estate.
+```text
+persistent position ownership
+exact-replay objective creation
+no duplicate objective topology
+existing OrganizationActivity lineage
+fresh ContextBundle per specialist WorkItem
+runtime/provider identity does not grant authority
+tool availability remains bounded by Context Authority
+stale ContextBundle runtime rebinding fails closed
+owner synthesis blocked until both required specialist WorkItems complete
+```
+
+J.1 does not execute the specialist work. It does not create legal conclusions, authoritative Contributions or durable specialist action outputs. That boundary remains K.1.
+
+### K.1 — bounded Execution / Coworker Runtime — NEXT
+
+K.1 should add only the bounded execution capabilities needed by the selected Austria mobility slice, behind AIOS-owned adapters and existing authority controls.
+
+K.1 must reuse J.1 WorkItems and current canonical ContextBundles and should prefer existing execution/output primitives such as:
+
+```text
+OrganizationExecutionAttempt
+OrganizationalActionOutput
+OrganizationActivity
+controlled/native AIOS execution services
+```
+
+Initial K.1 proof should require:
+
+```text
+two required specialist WorkItems execute from current canonical context
+one durable current-work output per required specialist
+output provenance bound to exact WorkItem/context/runtime identity
+exact replay / idempotency
+stale context fails closed
+provider/model identity remains non-authorizing
+no external side effects in the initial slice
+owner synthesis requires current durable specialist execution evidence
+latency / retry / governance measurement hooks
+```
+
+Do not add a new agent framework merely to satisfy K. Candidate runtimes/donor patterns must show a measured gap versus native AIOS execution.
 
 ### L — Live Organization
 
@@ -385,6 +446,8 @@ Before another major autonomy architecture expansion, the repository should show
 10. clear My Mobility UX that does not expose internal architecture unnecessarily;
 11. any donor/framework expansion justified by benchmark evidence rather than availability.
 
+Current progress satisfies items 1 and 2 at the stated non-professional benchmark boundary and establishes the J.1 organization-runtime prerequisite for item 4. It does not yet satisfy the full J→K→L vertical.
+
 The first iterations may be small. The key requirement is that claimed usefulness is measured rather than inferred from architectural sophistication.
 
 ---
@@ -396,6 +459,7 @@ This gate does **not** claim:
 - current professional immigration accuracy;
 - a professionally validated Austria gold set;
 - live-case outcome validation;
+- K.1 bounded specialist execution acceptance;
 - a complete Live Organization;
 - donor production adoption;
 - bounded autonomy mutation;
