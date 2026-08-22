@@ -36,11 +36,15 @@ ADOPT
 Additional governance states:
 
 ```text
+ASSESS
+DONOR CANDIDATE
 WATCH
 DEFER
 REJECT
 STRATEGIC DONOR
 ```
+
+`ASSESS` means the technology is relevant enough for bounded architectural study but has no active implementation claim. `DONOR CANDIDATE` means concepts may be studied or adapted without adopting the external runtime or persistence model.
 
 No state below `ADOPT` is a production-adoption claim.
 
@@ -53,6 +57,7 @@ No state below `ADOPT` is a production-adoption claim.
 | Technology | AIOS capability | State |
 |---|---|---|
 | Munder Difflin v0.4.4 | Organization Fabric / runtime / communication / Skills donor | STRATEGIC DONOR / CONTROLLED ADOPTION |
+| DeepSeek Harness (developer preview) | execution-harness composition / runtime provenance / replay / sandbox donor candidate | ASSESS / DONOR CANDIDATE — NOT ADOPTED |
 | Plasma Wiki 1.2.0 | Context-efficient project/organizational knowledge beneath Context Broker | PINNED DONOR PRESENT / PILOT APPROVED |
 | Plasma Fractal 1.1.0 | Recursive bounded Mission decomposition / hierarchical execution | PINNED DONOR PRESENT / PILOT APPROVED — SANDBOXED ENGINEERING ONLY |
 | LLMLingua-2 | Context/token compression behind `ContextCompressionPort` | SELECTED PRIMARY PILOT |
@@ -79,6 +84,99 @@ The Plasma vendor source import is now present in the V12 repository. Vendoring 
 | OpenFGA | relationship authorization beneath AIOS semantics | DEFERRED PILOT |
 | DSPy | offline AI-program optimization | RESEARCH |
 | EU DSS | electronic-signature validation | RESEARCH |
+
+### DeepSeek Harness donor-candidate posture
+
+Official upstream posture at this review point:
+
+- DeepSeek Harness is an open-source MIT-licensed agent harness in **developer preview**;
+- upstream explicitly warns that compatibility-breaking changes are expected;
+- the Cordis kernel provides a plugin architecture where models, tools, skills, sessions, sandboxes, storage, agent loops, scheduling and UI are composable plugins;
+- the runtime is local-first by default but may store session context, tool records, paths, runtime logs, configured service addresses and API keys locally;
+- upstream recommends a dedicated VM/container with restricted privileges because the harness can execute code and access local systems.
+
+Official references:
+
+- `https://www.deepseek.com/harness/en/`
+- `https://github.com/deepseek-ai/deepseek-harness`
+- `https://www.deepseek.com/harness/en/data-processing/`
+- `https://www.deepseek.com/harness/en/privacy/`
+
+AIOS interest is architectural, not authority-bearing. Highest-value concepts to study later are:
+
+```text
+Cordis/plugin lifecycle
+append-only execution trajectory concepts
+session replay / resume / fork
+runtime inspection
+sandbox abstraction
+tool/service dependency composition
+subagent scheduling mechanics
+provider/runtime composition
+```
+
+The append-only trajectory concept is especially relevant to execution provenance and diagnosis, but AIOS must preserve a stricter separation:
+
+```text
+runtime trajectory / technical execution evidence
+!=
+canonical OrganizationActivity
+```
+
+AIOS may persist enough typed execution evidence to reconstruct, inspect and replay a run. It does **not** establish unrestricted hidden chain-of-thought retention as a product requirement.
+
+If Harness is ever evaluated as an adapter, the boundary must remain:
+
+```text
+GLOBAL MOBILITY AIOS
+  OrganizationPosition
+  Objective / Mission / WorkItem
+  ContextBundle
+  Evidence / VerifiedRule
+  Capability / Authority / Autonomy / Risk
+  Governance
+  OrganizationalActionOutput
+  OrganizationActivity
+  Outcome
+        ↓
+  provider-neutral RuntimePort
+        ↓
+  optional DeepSeek Harness adapter
+        ↓
+  model / tool / sandbox / session plugins
+```
+
+Permanent rejection rules:
+
+```text
+Harness runtime capability != AIOS organizational authority
+plugin installed != capability authorized
+capability available != action authorized
+provider/model identity != autonomy
+Harness session/storage != canonical AIOS business truth
+Harness trajectory != canonical OrganizationActivity
+Harness storage != long-lived AIOS secrets authority
+```
+
+A future adapter must use AIOS-owned credential/secrets boundaries and scoped runtime injection rather than treating Harness-local credential storage as the organization credential authority.
+
+Current scheduling decision:
+
+```text
+Technology Radar:       ASSESS
+Donor status:           DONOR CANDIDATE
+Strategic donor:        NOT YET
+Runtime adapter:        POSSIBLE FUTURE
+Production adoption:    NO
+L dependency:           NO
+Immediate benchmark:    NO
+Authority:              NONE
+Scheduling:             DEFERRED / GAP-TRIGGERED
+```
+
+A bounded evaluation becomes justified only when the native AIOS runtime exposes a measured gap that these concepts might solve. The first plausible evaluation context is the future AIOS Engineering workforce, where coding-agent shell/file/sandbox mechanics fit the upstream product domain more naturally than regulated mobility execution.
+
+DeepSeek Harness discovery does not change L/M/N priority and does not create an independent implementation programme.
 
 ### New enterprise-integration capability candidates
 
@@ -147,6 +245,8 @@ engineering telemetry != canonical AIOS Activity
 ```
 
 L should prove organization behavior using persisted AIOS truth; observability provides correlated operational evidence.
+
+DeepSeek Harness is not an L dependency and is not scheduled by this section.
 
 ---
 
@@ -415,7 +515,9 @@ Wave E4 — demand gated
   payment adapter design
 ```
 
-No wave automatically authorizes the next.
+No wave automatically authorizes the next. This section is descriptive capability grouping only; `ROADMAP.md` is the scheduling authority.
+
+DeepSeek Harness does not enter any active wave merely by being listed as an ASSESS / DONOR CANDIDATE technology.
 
 ---
 
@@ -424,6 +526,8 @@ No wave automatically authorizes the next.
 > **Do not add another major agent framework unless a measured architectural gap cannot be addressed cleanly by AIOS + the current donor/adapter set.**
 
 At the same time, the Technology Radar must proactively identify necessary infrastructure gaps instead of waiting for them to be discovered ad hoc.
+
+DeepSeek Harness is specifically governed by this rule: assessment is allowed; adoption requires a measured gap and bounded comparison against the native AIOS runtime.
 
 ---
 
