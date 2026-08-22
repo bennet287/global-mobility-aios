@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -19,3 +21,9 @@ jobs:
 
       - name: Check migration and roadmap consistency
         run: python scripts/check_release_consistency.py
+
+      - name: Check Python dependency constraints
+        run: python scripts/check_python_dependency_constraints.py
+
+      - name: Check multi-commit diff hygiene
+        run: python scripts/check_diff_hygiene.py

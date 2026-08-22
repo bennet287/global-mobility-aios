@@ -21,9 +21,4 @@ steps:
       - python scripts/check_repo_policy.py --root .
       - python scripts/check_release_consistency.py --root .
       - python scripts/check_python_dependency_constraints.py
-      - |
-        if [ -n "${CI_COMMIT_PULL_REQUEST:-}" ] && [ -n "${CI_COMMIT_TARGET_BRANCH:-}" ]; then
-          git diff --check "origin/${CI_COMMIT_TARGET_BRANCH}" HEAD -- . ':(exclude)vendor/**'
-        else
-          git diff --check HEAD^ -- . ':(exclude)vendor/**'
-        fi
+      - python scripts/check_diff_hygiene.py
