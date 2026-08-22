@@ -1,10 +1,10 @@
 # Global Mobility AIOS — V1.3 J.1 Austria Mobility Objective Runtime Acceptance
 
-**Date:** 2026-08-22  
-**Status:** COMPLETE / PASS / SEALED  
-**Technical candidate:** `b30ae8d885f8f54285b2342a873acfe5c94ca525`  
-**V12 Production Proof:** `32565671588` — 4/4 PASS  
-**Repository Policy Check:** `32565671592` — PASS  
+**Date:** 2026-08-22
+**Status:** COMPLETE / PASS / SEALED
+**Technical candidate:** `b30ae8d885f8f54285b2342a873acfe5c94ca525`
+**V12 Production Proof:** `32565671588` — 4/4 PASS
+**Repository Policy Check:** `32565671592` — PASS
 **Parent programme:** V12.24 Outcome Evidence + Live Organization Programme
 
 ## 1. Accepted scope
