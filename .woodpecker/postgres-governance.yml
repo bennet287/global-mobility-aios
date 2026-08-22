@@ -11,7 +11,7 @@ steps:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/global_mobility_aios_test
       GMAI_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/global_mobility_aios_test
     commands:
-      - python -m pip install --upgrade pip
+      - python -m pip --version
       - python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
       - python -m pip check
       - |

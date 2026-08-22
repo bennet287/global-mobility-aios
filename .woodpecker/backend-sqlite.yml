@@ -10,7 +10,7 @@ steps:
     environment:
       DATABASE_URL: sqlite:///./ci-production-proof.db
     commands:
-      - python -m pip install --upgrade pip
+      - python -m pip --version
       - python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
       - python -m pip check
       - python -m compileall -q apps/api/app scripts
