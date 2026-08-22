@@ -4,83 +4,214 @@
 
 Global Mobility AIOS is being built to perform the professional organizational work required to move people, talent, families, businesses and capital across borders.
 
-It combines global-mobility intelligence, official-source Evidence, document intelligence, case/work orchestration, persistent AI employees, an AI executive hierarchy, dynamic Mission Squads, provider-independent runtimes, Skills and tools, organizational memory, governed execution, human professional review, organizational learning and Human Owner / Board oversight inside one auditable operating environment.
+It combines global-mobility intelligence, official-source Evidence, document intelligence, case/work orchestration, persistent AI employees, provider-independent runtimes, organizational memory, governed execution, human professional review, Board oversight, organizational learning and production-grade integration boundaries inside one auditable operating environment.
 
-The project is deliberately more ambitious than an immigration chatbot, CRM with AI, workflow-automation product, multi-agent demo, generic SaaS admin panel or agent framework wrapped in a UI.
+The project is deliberately more ambitious than an immigration chatbot, CRM with AI, workflow-automation product, multi-agent demo, generic SaaS admin panel, ERP core or agent framework wrapped in a UI.
 
-The canonical architecture direction is:
+The active architecture direction is:
 
-> **Global Mobility AIOS V1.3 + governed Organization Fabric + Context Intelligence + provider-independent Model Routing + Organizational Immune System + Earned Autonomy + Board Transparency, with Munder, Plasma and LLMLingua used only behind AIOS-owned boundaries.**
+> **Global Mobility AIOS V1.3 + governed Organization Fabric + Context Intelligence + Organizational Immune System + Earned Autonomy + Board Transparency + provider-independent runtime + production integration fabric, with external technologies used only behind AIOS-owned boundaries.**
 
 Operating principles:
 
-> **AIOS does the work. Humans govern the exceptions and retained authority.**
-
-> **The safety infrastructure exists to enable autonomy, not suppress it.**
+> **AIOS does the work. Humans govern exceptions and retained authority.**
 
 > **Board by exception. Transparency by default.**
 
-> **Agents are allowed to be wrong while thinking; AIOS is not allowed to be wrong silently when committing truth.**
+> **Agents may be wrong while thinking; AIOS may not be wrong silently when committing truth.**
 
 > **Quality first. Cost intelligence second. Premium compute only where it produces measurable additional value.**
 
 > **No new major framework by default: prove a measured architectural gap before adding another donor/runtime framework.**
 
+> **No necessary production infrastructure should remain absent merely because it is not a differentiating AI feature.**
+
 ---
 
-## Current Development Line
-
-Active development:
+## Current development line
 
 ```text
 roadmap/global-mobility-aios-v12
 ```
 
-Frozen V11 reference:
+Frozen reference:
 
 ```text
 roadmap/global-mobility-aios-v11
 └── V12 fork origin: dd2f2cd6e9e47179b1fd744ba3f56daf7c787449
 ```
 
-V11 remains a frozen architecture/recovery/reference checkpoint. New V1.3 implementation proceeds on V12 unless explicitly reopened.
+Current accepted product baseline: **Phase 13.16.10 — COMPLETE / PASS**.
 
-Current accepted product baseline: **Phase 13.16.10 — COMPLETE / PASS**.  
-Phase 13.17 owner-led human acceptance remains **IN PROGRESS / PAUSED BY EVALUATOR**.  
+Phase 13.17 owner-led human acceptance remains **IN PROGRESS / PAUSED BY EVALUATOR**.
 
-Current V1.3 organization state:
+Current high-autonomy / organization sequence:
 
 ```text
-H.1                              SEALED
-H.2.1                            SEALED
-H.2.2                            SEALED
-H.2.2 classification refinement SEALED
-H.2.3                            SEALED
-H.2.4                            SEALED
-H.2 bounded foundation          CLOSED
-V1.3-I.1 autonomy profile/evidence
-                                  DESIGN ENTRY OPEN / IMPLEMENTATION NOT STARTED
+I.1 capability autonomy profile                  SEALED
+I.2 shadow autonomy evidence                     SEALED
+I.3 promotion eligibility policy                 SEALED
+I.4 qualified / temporal evidence evaluation     SEALED
+Outcome Evaluation baseline                      PROVEN
+J.1 Austria Agent Organization Runtime           SEALED
+K.1 bounded specialist Execution/Coworker Runtime SEALED
+L Live Organization                              NEXT
+M Board Transparency Experience                  LATER
+N Learning & Optimization                        LATER
 ```
 
-Latest accepted Production Proof is run `32505228943` on technical candidate `25b19728e7dc35f3f0450f6ae839fa57fe36c1e4` (4/4 lanes PASS). H.2 closure is an architectural stage decision built on accepted evidence; it introduces no new runtime behavior.
+No actual autonomy mutation mechanism is accepted or implemented.
 
 ---
 
-## Final Combined Architecture
+## Latest accepted runtime checkpoint — K.1
 
-The complete canonical combined project architecture is documented in:
+K.1 is **COMPLETE / PASS / SEALED** on technical candidate:
 
-- [`docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`](docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md) — active canonical combined architecture
+```text
+9a7df63511e45f6a0945ae933929522314a04ec3
+```
+
+Accepted evidence:
+
+```text
+GitHub Actions Production Proof 32582805820 — 4/4 PASS
+Repository Policy Check         32582805835 — PASS
+SQLite                          1194 passed / 20 skipped / 1 warning / 0 failed
+PostgreSQL 16                   103 passed / 1 warning / 0 failed
+Migration head                  0081_capability_autonomy_evidence_evaluation_policy
+Registered application tables  124
+Woodpecker push #17             4/4 PASS
+Woodpecker PR #18               4/4 PASS
+```
+
+Accepted runtime path:
+
+```text
+accepted J.1 specialist WorkItem
+→ current canonical ContextBundle
+→ revalidated provider-neutral EmployeeRuntimeBinding
+→ native OrganizationExecutionAttempt
+→ controlled-agent runner / AgentRun
+→ one stable current-work OrganizationalActionOutput
+→ WorkItem completion
+→ owner-synthesis readiness only when both specialist outputs remain provenance-valid
+```
+
+K.1 required no new table, migration, Mission model or external agent framework.
+
+---
+
+## Next product increment — L Live Organization
+
+L must prove one real persisted owner-led organization cycle rather than simulated dashboard state.
+
+Target:
+
+```text
+real Austria objective / owner
+→ mobility_operations_lead
+   ├─ pathway_operations_specialist
+   └─ regulatory_intelligence_analyst
+→ current specialist WorkItems
+→ canonical ContextBundles
+→ bounded execution
+→ durable specialist outputs
+→ owner synthesis readiness
+→ material owner synthesis result
+→ OrganizationActivity / decisions
+→ blocked-work reason where applicable
+→ runtime/tool lineage
+→ Evidence / rule provenance where available
+→ authority/autonomy state
+→ latency / retry / governance telemetry
+→ Cockpit read model backed only by persisted AIOS truth
+```
+
+L may use observability infrastructure to strengthen proof, but engineering telemetry must never replace canonical AIOS Activity/Decision lineage.
+
+---
+
+## V12.25 — Integration & Capability programme
+
+V12.25 adds a formal production-infrastructure track in parallel with L/M/N.
+
+Core doctrine:
+
+> **Build differentiating mobility intelligence and governance natively. Integrate mature commodity capability behind AIOS-owned contracts.**
+
+Target integration fabric:
+
+```text
+AIOS domain / organization semantics
+            ↓
+AIOS-owned port / contract
+            ↓
+authority + policy + provenance boundary
+            ↓
+replaceable adapter
+            ↓
+external/open-source infrastructure
+```
+
+Priority direction:
+
+```text
+P0 NOW
+  OpenTelemetry correlation for L
+  secrets-management research / bounded pilot
+  backup + isolated restore proof
+
+P0/P1 DESIGN
+  Identity / SSO benchmark
+  Communications Gateway contract
+
+P1 LATER
+  e-signature validation/signing pilot
+  governed communications trial
+
+DEMAND GATED
+  accounting / ERP adapter
+  payments
+```
+
+Permanent integration rules:
+
+- identity providers authenticate; AIOS authorizes;
+- telemetry observes AIOS truth; it does not become AIOS truth;
+- secrets may be injected into runtimes but may not become context, prompt, memory or activity;
+- backup acceptance requires restore evidence;
+- communications/payment/signature execution must preserve authority, idempotency, provenance and recovery semantics;
+- ERP/accounting may own bounded back-office ledgers but never mobility truth or Board authority;
+- no material integration may bypass the Command Gateway.
+
+---
+
+## Canonical documentation
+
+Active/current direction:
+
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — active V12.25 roadmap
+- [`docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`](docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md) — canonical combined architecture
 - [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md) — constitutional high-autonomy source
-- [`docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`](docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md) — historical predecessor
-- [`docs/TECHNOLOGY_RADAR_V1_3_1.md`](docs/TECHNOLOGY_RADAR_V1_3_1.md) — active technology/adoption direction
-- [`docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md`](docs/V1_3_H2_FOUNDATION_CLOSURE_AND_I1_ENTRY_2026-08-21.md) — H→I stage decision
-- [`docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`](docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md)
-- [`docs/PLASMA_AIOS_ADOPTION_V1.md`](docs/PLASMA_AIOS_ADOPTION_V1.md)
-- [`docs/ROADMAP.md`](docs/ROADMAP.md)
-- [`docs/CHANGELOG.md`](docs/CHANGELOG.md)
+- [`docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`](docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md) — enterprise integration sovereignty/boundary architecture
+- [`docs/AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`](docs/AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md) — capability-gap / integration radar
+- [`docs/TECHNOLOGY_RADAR_V1_3_2.md`](docs/TECHNOLOGY_RADAR_V1_3_2.md) — active Technology Radar
+- [`docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md`](docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md) — V12.25 integration programme
+- [`docs/V12_25_PENDING_CHANGELOG.md`](docs/V12_25_PENDING_CHANGELOG.md) — V12.25 documentation/direction changelog
+- [`docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md`](docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md) — latest accepted runtime checkpoint
+- [`docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`](docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md) — Munder donor programme
+- [`docs/PLASMA_AIOS_ADOPTION_V1.md`](docs/PLASMA_AIOS_ADOPTION_V1.md) — Plasma donor programme
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — historical active-line changelog; V12.25 successor entry is recorded separately above
 
-The combined architecture is summarized below.
+Historical predecessor:
+
+- [`docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md`](docs/GLOBAL_MOBILITY_AIOS_FINAL_COMBINED_ARCHITECTURE_V1.md)
+- [`docs/TECHNOLOGY_RADAR_V1_3_1.md`](docs/TECHNOLOGY_RADAR_V1_3_1.md) — superseded historical radar
+
+---
+
+## Architecture at a glance
 
 ```text
                      HUMAN OWNER / BOARD
@@ -97,8 +228,7 @@ The combined architecture is summarized below.
           │
    ORGANIZATION RUNTIME
           │
-Persistent Employees
-Missions / WorkItems / Squads
+Persistent Employees / WorkItems
           │
      ┌────┴──────────────────────────────┐
      │                                   │
@@ -112,8 +242,7 @@ Context Broker                       Runtime Ports
 ├── Knowledge                    └── other adapters
 │   └── Plasma Wiki
 └── ContextCompressionPort
-    └── LLMLingua-2
-        SELECTED PRIMARY PILOT
+    └── LLMLingua-2 pilot
      │
 Context integrity
      │
@@ -121,16 +250,15 @@ ContextBundle
      │
 Model Router
      │
-deterministic / local / hosted / frontier
+AgentRun / OrganizationExecutionAttempt
      │
-AgentRun
+OrganizationalActionOutput
      │
 Typed Proposed Intent
      │
 Canonicalization
      │
-Evidence / Readiness /
-Verification / Policy
+Evidence / Readiness / Verification / Policy
      │
 Immune-System restrictive preflight
      │
@@ -140,149 +268,58 @@ ALLOW / BLOCK / ESCALATE
      │
 Canonical State
      │
-Activity / Decision / Tool /
-Context / Cost Lineage
+Activity / Decision / Tool / Context / Cost Lineage
      │
-Outcome
-     │
-Learning + Performance
+Outcome / Learning
 ```
 
-Transparency, governance, the Immune System and learning are cross-cutting rather than merely sequential.
+Cross-cutting production fabric:
+
+```text
+IdentityPort
+SecretsPort
+ObservabilityPort
+BackupPort
+CommunicationPort
+SignaturePort
+AccountingPort / ERPPort
+PaymentPort
+```
+
+These are architecture boundaries; not every port is implemented or adopted yet.
 
 ---
 
-## Human Authority Model
+## Human authority model
 
-The **Human Owner / Board is the supreme authority** of Global Mobility AIOS.
+The **Human Owner / Board is the supreme authority**.
 
-No AI CEO, employee, runtime, model, Skill, connector, Munder-derived component or external framework may grant itself authority beyond Board-defined limits.
-
-Normal healthy work should happen below the Board.
+No AI CEO, employee, runtime, model, Skill, connector, Munder/Plasma component, IdP, ERP or external provider may grant itself authority beyond Board-defined limits.
 
 > **The Board governs the organization; it does not manually operate it.**
 
----
-
-## Board Transparency
-
-Operational autonomy must never create organizational opacity.
-
-The Board has on-demand visibility into relevant:
-
-- agent-to-agent conversations;
-- delegation chains;
-- decisions/recommendations;
-- Evidence and SourceSnapshots;
-- VerifiedRules;
-- tool and external actions;
-- policy decisions;
-- contradictions/escalations;
-- incidents/circuit breakers;
-- autonomy promotions/downgrades;
-- execution history;
-- recovery and learning outcomes.
-
-```text
-Board visibility ≠ Board interruption
-```
-
-Target drill-down:
-
-```text
-Organization
-→ Department
-→ Mission
-→ Case
-→ WorkItem
-→ Squad
-→ Agent
-→ Conversation
-→ Decision
-→ Tool Action
-→ Evidence / Rule
-→ Canonical Effect
-→ Outcome
-```
+Normal healthy work should happen below the Board.
 
 ---
 
-## Context Broker
-
-Agents receive purpose-scoped context, not unrestricted organizational data.
-
-> **More relevant truth, not more tokens.**
-
-A `ContextBundle` may contain employee identity, authority, autonomy, Mission, WorkItem, case facts, relevant Evidence, VerifiedRules, SourceSnapshots, known unknowns, contradictions, relevant prior decisions/collaboration summaries, allowed tools/connectors, sensitivity, risk tier, policy version and context hash.
-
-Context should be lazy-loaded and material AgentRun lineage should bind the effective ContextBundle.
-
----
-
-## Context Intelligence, Model Routing and AI Economics
-
-The Context Broker remains the sovereign boundary for purpose-scoped context. External knowledge and compression mechanisms sit beneath AIOS-owned contracts.
+## Capability, authority, autonomy and risk
 
 ```text
-Evidence / VerifiedRules / Memory / Knowledge
-                  ↓
-             Context Broker
-                  ↓
-     protected vs compressible partition
-                  ↓
-        ContextCompressionPort
-                  ↓
-       LLMLingua-2 primary pilot
-                  ↓
-     compression-integrity validation
-                  ↓
-          derived ContextBundle
-```
-
-Permanent boundaries:
-
-```text
-compression output != source truth
-retrieved knowledge != executable authority
-model self-confidence != capability eligibility
-```
-
-For initial R3–R5 work, mandatory Evidence, critical VerifiedRules, exact money/dates/identifiers, authority/autonomy/risk constraints, policy constraints, contradictions, material-action parameters and source/version identifiers default to **zero semantic compression**.
-
-Plasma Wiki is a controlled project/organizational knowledge pilot beneath Context Broker. It is not Evidence, a VerifiedRule or canonical legal truth. Custom `.wiki/wiki.py` hooks remain excluded from the first pilot.
-
-The Model Router may select only among runtimes/models that have earned capability eligibility through measured AIOS evaluation. Official regulatory sources remain authoritative; models synthesize governed SourceSnapshots/Evidence rather than becoming the source.
-
-AI Economics optimizes beneath constitutional quality floors:
-
-> **Minimize total governed outcome cost subject to authority, risk, required quality, Evidence, verification, privacy, SLA and reliability constraints.**
-
-Budget pressure may reroute, defer, restrict or escalate. It may never silently lower required quality.
-
----
-
-## Capability, Authority, Autonomy and Risk
-
-These remain separate:
-
-```text
-Capability = what the runtime can technically do
-Authority  = what the organization permits
-Autonomy   = how independently it may exercise that authority
-Risk       = consequence of the specific action
+Capability = what runtime can technically do
+Authority  = what organization permits
+Autonomy   = how independently authority may be exercised
+Risk       = consequence of the action
 ```
 
 Permanent rule:
 
 ```text
-CAN DO ≠ MAY DO
+CAN DO != MAY DO
 ```
 
 ---
 
 ## Earned Autonomy — A0 to A5
-
-Autonomy is capability-specific, not one rating for an entire employee.
 
 | Level | Meaning |
 |---|---|
@@ -293,43 +330,19 @@ Autonomy is capability-specific, not one rating for an entire employee.
 | A4 | Autonomous with monitoring and valid recovery controls |
 | A5 | Fully autonomous bounded operation |
 
-Example:
+Autonomy remains capability/context specific. Agents cannot self-promote.
 
-```text
-Austria Immigration Specialist
-
-Official-source research       A5
-Document extraction            A5
-Evidence assessment            A4
-Eligibility assessment         A4
-Client explanation             A3
-Evidence certification         A2
-Government submission          Human / Board reserved
-```
-
-Operational maturity may progress separately through:
-
-```text
-SHADOW
-   ↓
-RECOMMEND
-   ↓
-SUPERVISED
-   ↓
-AUTONOMOUS
-   ↓
-HIGH-TRUST AUTONOMOUS
-```
-
-Agents cannot self-promote.
+I.1–I.4 establish evidence and policy foundations only; no autonomy mutation is accepted.
 
 ---
 
-## Decision Readiness and Risk-Tiered Verification
+## Decision Readiness and verification
 
 > **Scores route; gates authorize.**
 
 Decision Readiness never overrides mandatory Evidence, authority, policy, contradictions, concurrency, verification or human-review requirements.
+
+Risk-tiered verification:
 
 | Risk | Typical work | Verification |
 |---|---|---|
@@ -338,136 +351,22 @@ Decision Readiness never overrides mandatory Evidence, authority, policy, contra
 | R2 | client-facing preparation | Evidence validation |
 | R3 | eligibility / material recommendation | blind independent verification |
 | R4 | certification / regulatory publication | independent verification + fresh source + proper authority |
-| R5 | government submission / critical reserved action | full AI preparation + required Human/Board authority |
+| R5 | government submission / critical reserved action | full AI preparation + required Human/Board gate |
 
 ---
 
-## Organizational Immune System
-
-The Immune System is a cross-cutting **restrict-only** quality and safety layer. It may detect, constrain, quarantine, downgrade, block or escalate, but it never grants authority, autonomy or permission:
+## Evidence and trust model
 
 ```text
-Evidence Integrity Monitor
-Contradiction Detector
-Anomaly Detector
-Decision Readiness Engine
-Capability Performance Monitor
-Dynamic Autonomy Manager
-Circuit Breakers
-Runtime Health Monitor
-Rate / Budget Protection
-Blast-Radius Controller
-Incident Detector
-Root-Cause Classifier
-Escalation Router
-Shadow Evaluation Engine
-Learning Feedback
-```
-
-Target behavior:
-
-> **Almost invisible during healthy operation; highly capable when abnormal behavior appears.**
-
----
-
-## Munder Difflin v0.4.4 Adoption
-
-Munder Difflin is now a **frozen strategic donor / controlled adoption programme**, not a competing architecture.
-
-High-value donor areas include:
-
-- Hive messaging and routing;
-- runtime/provider abstraction;
-- CLI/PTY execution;
-- Skills;
-- task coordination;
-- circuit breaking;
-- triggers/schedules/heartbeats;
-- webhook/integration patterns;
-- memory mechanics;
-- transcripts and telemetry;
-- token/cost tracking;
-- graph/live-scene mechanics;
-- engineering worktrees and IDE concepts;
-- voice/realtime concepts.
-
-AIOS rejects Munder assumptions that conflict with its architecture, including SQLite/file state as authoritative truth, GOD-style implicit unlimited authority, direct material state mutation by agents and the retro pixel-office presentation.
-
-See [`docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`](docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md).
-
----
-
-## Living Organization
-
-Munder's 2D office concept is completely transformed into a premium modern **2D/2.5D Living Organization** with persistent modern cartoon AI employees.
-
-Visible behavior must derive from real state:
-
-```text
-employee approaches colleague
-→ real AgentConversation
-
-employees cluster
-→ real collaboration
-
-employee joins Mission Room
-→ actual Mission participation
-
-cross-department movement
-→ real delegation/handoff
-
-warning state
-→ Immune System intervention
-
-AI CEO appears
-→ actual executive involvement
-
-employee approaches Board Room
-→ real authority escalation
-```
-
-No fake organizational activity should be generated merely to make the interface look busy.
-
-Living Organization is also a Board Transparency navigation layer.
-
----
-
-## Product Surfaces
-
-### Global Mobility AIOS Cockpit
-
-Top-level Human Owner / Board surface for organization health, strategy, performance, quality, risk, autonomy, incidents, transparency, AI Economics, learning and the Living Organization.
-
-### Board Room
-
-Reserved-authority module **inside Cockpit**, not the name of the entire Owner experience.
-
-### Operations
-
-Professional/operator workspace for cases, Evidence, documents, applications, review, exceptions, blockers, authority workflows and remediation.
-
-### My Mobility
-
-Journey-centric end-user experience for goals, pathways, progress, Evidence needs, documents, deadlines, costs, risk, messages, application status and future mobility.
-
-### Employer / Partner / Professional Surfaces
-
-Role-specific experiences that reuse the same canonical identity, Evidence, authority and case model.
-
----
-
-## Trust Model
-
-```text
-L0  model speculation
-L1  conversation / memory / hypothesis
-L2  retrieved information
-L3  captured SourceSnapshot
-L4  governed Evidence
-L5  reviewed candidate
-L6  VerifiedRule / certified governed fact
-L7  governed case conclusion
-L8  approved authority-bearing action
+L0 model speculation
+L1 conversation / memory / hypothesis
+L2 retrieved information
+L3 SourceSnapshot
+L4 governed Evidence
+L5 reviewed candidate
+L6 VerifiedRule / certified governed fact
+L7 governed case conclusion
+L8 approved authority-bearing action
 ```
 
 Forbidden shortcuts:
@@ -482,53 +381,119 @@ L6 ↛ L8 automatically
 
 ---
 
-## Delivery Dependency
+## Context Intelligence
+
+Agents receive purpose-scoped context, not unrestricted organizational data.
+
+> **More relevant truth, not more tokens.**
+
+LLMLingua-2 remains a selected primary pilot behind `ContextCompressionPort`.
+
+Permanent distinction:
 
 ```text
-Governance / Constitutional Contracts
-          ↓
-Transparency + Context + Organization Semantics
-          ↓
-Governed Eligibility / Decision Readiness / Verification
-          ↓
-H.2 bounded Immune safety/measurement foundation — CLOSED
-          ↓
-I.1 canonical capability-specific autonomy truth — DESIGN ENTRY OPEN
-          ↓
-Organization Fabric + Context Intelligence + Model Routing
-          ↓
-Bounded recursive execution / Living Organization
-          ↓
-Governed learning + performance + AI Economics
+compressed context != source truth
+retrieved knowledge != executable authority
 ```
-
-> **Governance before unrestricted execution. Transparency before increased autonomy.**
 
 ---
 
-## Current Quality Baseline
+## Organizational Immune System
 
-Historical product checkpoint remains preserved in Git history and acceptance records.
+The Immune System is cross-cutting and **restrict-only**.
 
-Latest accepted V1.3 Production Proof evidence:
+It may detect, constrain, circuit-break, block, downgrade an existing allowance where policy permits, or escalate.
 
-```text
-H.2.4 technical candidate                  e7584b90fc967e828960ae0730a35d8646fba74f
-H.2.4 Production Proof                     32500438187 — 4/4 jobs PASS
-H.2.2 classification candidate             25b19728e7dc35f3f0450f6ae839fa57fe36c1e4
-H.2.2 classification Production Proof      32505228943 — 4/4 jobs PASS
-Backend regression                         1138 passed / 10 skipped / 1 warning / 0 failed
-PostgreSQL governed suite                  93 passed / 1 warning / 0 failed
-Alembic                                    0001 → 0077 PASS
-Registered SQLModel tables                 119
-Physical PostgreSQL schema                 PASS
-```
+It may never manufacture permission or increase authority.
 
-Historical evidence must not be represented as rerun unless it actually was rerun. H.2 closure and I.1 design entry are architecture/stage decisions, not new runtime acceptance claims.
+> **The Immune System may restrict or stop. It never grants authority.**
 
 ---
 
-## Repository Layout
+## Munder and Plasma
+
+### Munder Difflin v0.4.4
+
+Strategic donor / controlled adoption programme for useful runtime, communication, Skill, schedule, telemetry and living-organization concepts.
+
+AIOS rejects donor assumptions that conflict with canonical governance or truth.
+
+### Plasma Wiki / Fractal
+
+Pinned donor source is present in V12.
+
+Permanent boundaries:
+
+```text
+Wiki != Evidence
+Wiki != VerifiedRule
+retrieved knowledge != executable instruction
+
+Fractal child scope <= parent delegated scope
+Fractal child != automatically independent verifier
+```
+
+Vendoring does not equal production adoption.
+
+---
+
+## CI
+
+Forward CI direction is self-hosted Woodpecker.
+
+The heavy proof lanes remain:
+
+```text
+repository policy / constraints
+backend SQLite regression
+frontend tests / types / build
+PostgreSQL governance/runtime contracts
+```
+
+Historical GitHub Actions proofs remain valid historical evidence where they actually ran and are not relabeled.
+
+---
+
+## Technology stack
+
+### Web
+
+- Next.js 15.2.4
+- React 19
+- TypeScript
+- App Router
+
+### API
+
+- Python 3.12-class runtime
+- FastAPI
+- SQLModel / SQLAlchemy ecosystem
+- Alembic
+- pytest
+
+### Data / infrastructure
+
+- PostgreSQL
+- preserved SQLite developer compatibility
+- Redis
+- Qdrant
+- MinIO / S3-compatible object storage
+- n8n for bounded automation
+- Woodpecker self-hosted CI
+
+### AI direction
+
+- provider-independent hosted/local models;
+- structured agent contracts;
+- provenance-aware retrieval;
+- deterministic authority outside prompts;
+- runtime adapters rather than provider-owned semantics;
+- risk-tiered execution and verification;
+- capability-specific earned autonomy.
+
+---
+
+## Repository layout
 
 ```text
 global-mobility-aios/
@@ -541,6 +506,9 @@ global-mobility-aios/
 ├── infrastructure/
 ├── docs/
 ├── scripts/
+├── vendor/
+│   ├── munder-difflin/
+│   └── plasma/
 ├── docker-compose.yml
 ├── alembic.ini
 └── .env.example
@@ -548,112 +516,48 @@ global-mobility-aios/
 
 ---
 
-## Quick Start
-
-Docker-oriented environment:
-
-```powershell
-Copy-Item .env.example .env.docker
-docker compose up --build
-```
-
-Common endpoints:
+## Current migration truth
 
 ```text
-API health       http://localhost:8000/health
-API docs         http://localhost:8000/docs
-Web              http://localhost:3000
-n8n              http://localhost:5678
-MinIO console    http://localhost:9001
-Qdrant dashboard http://localhost:6333/dashboard
+0081_capability_autonomy_evidence_evaluation_policy
 ```
 
-Host-side API example:
+Current accepted K.1 application-table count:
 
-```powershell
-cd D:\global-mobility-aios
-& .\.venv\Scripts\Activate.ps1
-cd .\apps\api
-..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```text
+124
 ```
 
-Web:
-
-```powershell
-cd D:\global-mobility-aios\apps\web
-npm install
-npm run dev
-```
+V12.25 integration architecture is documentation/direction and does not imply a schema change.
 
 ---
 
-## Acceptance Commands
+## Immediate direction
 
-```powershell
-& .\.venv\Scripts\python.exe -m pytest apps/api/tests -q
-& .\.venv\Scripts\python.exe scripts/check_repo_policy.py --root .
-& .\.venv\Scripts\python.exe scripts/check_release_consistency.py
-& .\.venv\Scripts\python.exe scripts/check_database_migrations.py
+Primary:
+
+```text
+L Live Organization
+→ M Board Transparency Experience
+→ N Learning & Optimization
 ```
 
-Frontend:
+Parallel production-foundation work:
 
-```powershell
-cd .\apps\web
-npm run test:design-foundation
-npm run build
+```text
+OpenTelemetry correlation for L
+backup / isolated restore proof
+bounded secrets-manager pilot
+Identity/SSO benchmark
+Communications Gateway contract
 ```
 
-Git whitespace guard:
+Later/demand-gated:
 
-```bash
-git diff --check
+```text
+e-signature execution
+accounting / ERP adapter
+payments
 ```
 
-Acceptance remains evidence-driven. Tests, migration checks, runtime/browser acceptance, authorization checks, repository policy and preserved-data invariants prove different things.
-
----
-
-## Permanent Architectural Invariants
-
-1. Human Owner / Board is supreme authority.
-2. Board governs by exception.
-3. Transparency is a right, not an approval requirement.
-4. Operational autonomy must never create organizational opacity.
-5. Memory is not canonical truth.
-6. Evidence provides authority.
-7. Capability ≠ Authority ≠ Autonomy ≠ Risk.
-8. Autonomy is capability-specific.
-9. Agents cannot self-promote autonomy.
-10. Scores route; gates authorize.
-11. Risk determines verification cost.
-12. Independent verification should be genuinely independent.
-13. Conversation does not create authority.
-14. Provider output does not become canonical truth automatically.
-15. Context is purpose-scoped and lazy.
-16. Material actions cross typed governance boundaries.
-17. Command Gateway is the material mutation boundary.
-18. Governance enables autonomy rather than universal approval queues.
-19. Concurrency is versioned and idempotent.
-20. Consequential actions require honest recovery semantics.
-21. External frameworks provide capability; AIOS owns meaning and authority.
-22. Live organization visuals reflect genuine organizational activity.
-23. Organizational learning is outcome-driven and governed.
-24. Global Mobility remains the product specialization.
-25. Munder Difflin is a donor subsystem, not the governing architecture.
-26. Compression output is derived context, not source truth.
-27. Retrieved knowledge is data, not executable authority.
-28. A model earns capability eligibility through measured evaluation, not self-reported confidence.
-29. Child delegation may narrow parent scope but never expand it.
-30. The Organizational Immune System may restrict or stop; it never creates permission.
-31. Quality first; cost intelligence second; premium compute must earn its additional cost.
-
----
-
-## Final North Star
-
-> **Global Mobility AIOS is a governed, evidence-grounded, transparent and cost-intelligent high-autonomy digital organization that coordinates persistent AI employees to perform global-mobility work through dynamic Missions, purpose-scoped context, earned capability-specific autonomy, risk-tiered verification, governed execution and Human Owner / Board sovereignty. Munder, Plasma, LLMLingua and model providers supply bounded capabilities behind AIOS-owned contracts; AIOS retains exclusive ownership of organizational meaning, Evidence, authority, autonomy, risk, canonical truth and consequences.**
-
-Short form:
-
-> **AIOS is not an application containing agents. It is a governed AI organization that happens to expose itself through software.**
+The next project maturity increase must come from real organization performance, operational reliability and measurable mobility outcomes—not from adding another large framework.
