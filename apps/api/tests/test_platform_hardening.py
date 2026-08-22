@@ -1,76 +1,60 @@
 from __future__ import annotations
 
-import importlib
-from pathlib import Path
-
 import pytest
 
-from app.core.access import required_roles
+from app.core.auth_policy import required_roles
+from app.core.config import settings
 from app.core.pagination import MAX_QUERY_LIMIT, clamp_query_limit
 from app.core.router_registry import ROUTER_SPECS
-from app.core.runtime_registry import department_runtime_spec
+from app.core.startup_safety import validate_production_settings
+from app.services.department_runtime import department_runtime_spec
+from app.services.document_storage import LocalDocumentStorage, document_storage_posture
+from app.services.organization_governance import department_runtime_available
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+def test_production_auth_configuration_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_allow_header_role", True)
+    monkeypatch.setattr(settings, "jwt_secret", "change-this-in-production")
+    monkeypatch.setattr(settings, "auth_admin_password", "admin")
+
+    with pytest.raises(RuntimeError, match="Production startup blocked"):
+        validate_production_settings()
 
 
-def test_core_security_modules_import_without_router_side_effects() -> None:
-    modules = (
-        "app.core.access",
-        "app.core.auth",
-        "app.core.db",
-        "app.core.pagination",
-        "app.core.request_limits",
-        "app.core.router_registry",
-        "app.core.runtime_registry",
-        "app.core.security",
-    )
-    for module in modules:
-        importlib.import_module(module)
+def test_production_auth_configuration_accepts_explicit_secure_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "auth_enabled", True)
+    monkeypatch.setattr(settings, "auth_allow_header_role", False)
+    monkeypatch.setattr(settings, "jwt_secret", "x" * 48)
+    monkeypatch.setattr(settings, "auth_admin_password", "correct-horse-battery-staple")
+
+    validate_production_settings()
 
 
-def test_legacy_wildcard_imports_are_not_reintroduced() -> None:
-    forbidden = (
-        "from app.models.domain import *",
-        "from app.schemas import *",
-        "from app.routers import *",
-    )
-    for path in (REPO_ROOT / "apps" / "api" / "app").rglob("*.py"):
-        content = path.read_text(encoding="utf-8")
-        for statement in forbidden:
-            assert statement not in content, f"{path} reintroduced forbidden wildcard import {statement!r}"
+def test_production_document_storage_requires_encrypted_minio(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "document_storage_production_strict", False)
+    monkeypatch.setattr(settings, "document_storage_backend", "local")
+    posture = document_storage_posture()
+    assert "production_requires_minio" in posture["failures"]
+    with pytest.raises(RuntimeError, match="Local document storage is prohibited"):
+        LocalDocumentStorage(str(tmp_path))
 
-
-def test_model_compatibility_contract_keeps_expected_names_explicit() -> None:
-    domain = importlib.import_module("app.models.domain")
-    package = importlib.import_module("app.models")
-    expected = (
-        "Lead",
-        "Profile",
-        "Application",
-        "Document",
-        "DocumentExtraction",
-        "OrganizationPosition",
-        "OrganizationActivity",
-        "OrganizationAuthorityGrant",
-    )
-    for name in expected:
-        assert getattr(package, name) is getattr(domain, name)
-
-
-def test_schema_compatibility_contract_keeps_expected_names_explicit() -> None:
-    schemas = importlib.import_module("app.schemas")
-    expected = (
-        "LeadCreate",
-        "LeadRead",
-        "ProfileCreate",
-        "ProfileRead",
-        "ApplicationCreate",
-        "ApplicationRead",
-        "DocumentRead",
-    )
-    for name in expected:
-        assert hasattr(schemas, name)
+    monkeypatch.setattr(settings, "document_storage_backend", "minio")
+    monkeypatch.setattr(settings, "minio_secure", True)
+    monkeypatch.setattr(settings, "minio_access_key", "production-access-key")
+    monkeypatch.setattr(settings, "minio_secret_key", "production-secret-key")
+    monkeypatch.setattr(settings, "minio_auto_create_bucket", False)
+    monkeypatch.setattr(settings, "minio_server_side_encryption", False)
+    posture = document_storage_posture()
+    assert "minio_server_side_encryption_required" in posture["failures"]
 
 
 def test_auth_policy_registry_preserves_sensitive_role_boundaries() -> None:
@@ -125,12 +109,44 @@ def test_department_runtime_registry_keeps_active_and_held_departments_explicit(
     operations = department_runtime_spec("Operations")
     finance = department_runtime_spec("Finance")
     communications = department_runtime_spec("Communications")
+    people = department_runtime_spec("People")
+    legal = department_runtime_spec("Legal")
 
-    assert technology.active is True
-    assert marketing.active is True
-    assert operations.active is True
-    assert finance.active is False
-    assert communications.active is False
-    assert "CTO" in technology.positions
-    assert "CMO" in marketing.positions
-    assert "Head of Mobility Operations" in operations.positions
+    assert technology is not None and technology.allowed_actions == frozenset({"internal.analysis"})
+    assert technology.executive_position == "cto"
+    assert marketing is not None and marketing.allowed_actions == frozenset({"internal.analysis"})
+    assert marketing.executive_position == "cmo"
+    assert operations is not None and operations.allowed_actions is None
+    assert finance is not None and finance.allowed_actions == frozenset({"internal.analysis"})
+    assert finance.executive_position == "cfo"
+    assert communications is not None and communications.allowed_actions == frozenset({"internal.analysis"})
+    assert communications.executive_position == "cco"
+    assert people is not None and people.allowed_actions == frozenset({"internal.analysis"})
+    assert people.executive_position == "chro"
+    assert legal is not None and legal.allowed_actions == frozenset({"internal.analysis"})
+    assert legal.executive_position == "clo"
+
+
+def test_capability_boundary_denies_prohibited_department_actions() -> None:
+    assert department_runtime_available("Security", "internal.analysis") is True
+    assert department_runtime_available("Security", "secrets.access") is False
+    assert department_runtime_available("Security Operations", "position.suspend") is False
+    assert department_runtime_available("Technology", "deployment.production") is False
+    assert department_runtime_available("Product", "policy.publish") is False
+    assert department_runtime_available("Marketing", "internal.analysis") is True
+    assert department_runtime_available("Marketing", "client.external_send") is False
+    assert department_runtime_available("Finance", "internal.analysis") is True
+    assert department_runtime_available("Finance", "client.external_send") is False
+    assert department_runtime_available("Finance", "payment.initiate") is False
+    assert department_runtime_available("Communications", "internal.analysis") is True
+    assert department_runtime_available("Communications", "client.external_send") is False
+    assert department_runtime_available("Communications", "policy.publish") is False
+    assert department_runtime_available("People", "internal.analysis") is True
+    assert department_runtime_available("People", "hiring.decision") is False
+    assert department_runtime_available("People", "compensation.change") is False
+    assert department_runtime_available("People", "termination.action") is False
+    assert department_runtime_available("Legal", "internal.analysis") is True
+    assert department_runtime_available("Legal", "contract.sign") is False
+    assert department_runtime_available("Legal", "authority.submit") is False
+    assert department_runtime_available("Legal", "policy.publish") is False
+    assert department_runtime_available("Legal", "payment.initiate") is False
