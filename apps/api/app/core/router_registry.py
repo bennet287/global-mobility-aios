@@ -53,6 +53,7 @@ from app.routers import (
     official_sources,
     opportunities,
     operations,
+    organization_autonomy_evidence_evaluation_transparency,
     organization_autonomy_promotion_transparency,
     organization_eligibility,
     organization_governance,
@@ -141,6 +142,10 @@ ROUTER_SPECS: tuple[RouterSpec, ...] = (
     RouterSpec(
         organization_autonomy_promotion_transparency.router,
         feature="organization-autonomy-promotion-transparency",
+    ),
+    RouterSpec(
+        organization_autonomy_evidence_evaluation_transparency.router,
+        feature="organization-autonomy-evidence-evaluation-transparency",
     ),
     RouterSpec(auto_communications.router, feature="auto-communications"),
     RouterSpec(public_intake.router, feature="public-intake"),
