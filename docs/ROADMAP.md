@@ -1,6 +1,6 @@
-# Global Mobility AIOS — Active V12 Product, Platform & High-Autonomy Roadmap
+# Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.25 — K.1 COMPLETE / PASS / SEALED; L Live Organization NEXT; Integration & Capability programme ACTIVE IN PARALLEL
+**Roadmap generation:** V12.27 — necessity-driven master orchestration; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-22
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -9,29 +9,122 @@
 **Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR
 **Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
+**Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_2.md`
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
-**Context compression:** LLMLingua-2 — SELECTED PRIMARY PILOT behind AIOS-owned `ContextCompressionPort`; not production adopted
-**Plasma donor programme:** Wiki 1.2.0 + Fractal 1.1.0 pinned donor source PRESENT IN V12; PILOT APPROVED; not production adopted
-**Munder donor baseline:** `v0.4.4` — strategic donor / controlled adoption programme
+**Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last accepted organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
 **K.1 canonical proof:** GitHub Actions Production Proof `32582805820` — 4/4 PASS; Woodpecker push #17 and PR #18 — 4/4 PASS
+**Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
-**Next product milestone:** L — Live Organization proof
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
 <!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
 
-> **V11 preserves the checkpoint. V12 proves and implements the direction.**
+> **Product necessity pulls technology into the project. Technology does not push the product around.**
+
+> **Nothing necessary gets forgotten, but nothing gets implemented merely because it appears in a Radar, donor programme or architecture document.**
 
 > **Governance before unrestricted execution. Transparency before increased autonomy. Production proof before acceptance.**
 
-> **Build differentiating mobility intelligence and governance natively. Integrate mature commodity capability behind AIOS-owned contracts.**
+---
+
+## 1. Purpose and roadmap authority
+
+`ROADMAP.md` is the master orchestration document for Global Mobility AIOS.
+
+It answers:
+
+```text
+WHAT is the next necessary product capability?
+WHY is it necessary now?
+WHAT dependencies must be satisfied?
+WHICH supporting workstreams are allowed to advance?
+WHAT proof closes the milestone?
+WHAT becomes primary only after acceptance?
+```
+
+Detailed documents remain canonical for their own domains, but they do not independently determine implementation order.
+
+```text
+ROADMAP.md                         MASTER — WHAT + WHEN + WHY
+│
+├─ Architecture documents         HOW SYSTEM BOUNDARIES ARE STRUCTURED
+├─ Frontend / UX Programme        HOW HUMAN EXPERIENCE EVOLVES
+├─ Technology Radar               CANDIDATE TECHNOLOGY + ADOPTION EVIDENCE
+├─ Integration Radar              EXTERNAL CAPABILITY DECISIONS
+├─ Donor programmes               SAFE REUSE / ADAPT / REIMPLEMENT RULES
+├─ Acceptance records             PROOF OF COMPLETION
+└─ CHANGELOG                      WHAT ACTUALLY CHANGED
+```
+
+If a child document appears to imply an implementation order that conflicts with this roadmap, this roadmap controls scheduling until the conflict is explicitly reconciled.
 
 ---
 
-## 1. Product identity
+## 2. Governing necessity sequence
+
+Every substantive capability follows this sequence:
+
+```text
+NEED
+ ↓
+PRODUCT CAPABILITY
+ ↓
+ARCHITECTURAL GAP
+ ↓
+BUILD vs INTEGRATE vs ADAPT DONOR
+ ↓
+DESIGN + IMPLEMENT
+ ↓
+VERIFY
+ ↓
+ACCEPT
+ ↓
+NEXT NECESSARY CAPABILITY
+```
+
+A discovered technology, donor feature or integration is not itself a product need.
+
+A technology may move from evaluation into implementation only when all of the following are true:
+
+1. a current or near-term product capability has a demonstrated gap;
+2. the owning architectural boundary is clear;
+3. native build vs integration vs donor adaptation has been compared;
+4. authority, privacy, data ownership and recovery implications are understood;
+5. the selected approach has a bounded acceptance path;
+6. the work does not displace a more necessary product dependency without an explicit reason.
+
+---
+
+## 3. Work classification
+
+Every active item must have one scheduling classification.
+
+### PRIMARY
+
+The current product milestone. It receives implementation priority and determines what supporting work is necessary.
+
+### REQUIRED ENABLEMENT
+
+A dependency that must be satisfied for the current milestone to be accepted because the product cannot be truthful, safe, operable or verifiable without it.
+
+### SUPPORTING PARALLEL
+
+Useful work that directly strengthens the current or immediately next milestone but is not allowed to become a competing programme or delay primary proof without evidence.
+
+### DEFERRED / DEMAND-GATED
+
+Valid future capability whose implementation trigger has not arrived.
+
+Permanent rule:
+
+> **A candidate can be important without being current.**
+
+---
+
+## 4. Product identity
 
 Global Mobility AIOS is a **governed, evidence-grounded, transparent and cost-intelligent high-autonomy digital organization for global mobility**.
 
@@ -65,7 +158,9 @@ Operating principles:
 
 ---
 
-## 2. Complete mobility lifecycle target
+## 5. Complete mobility lifecycle target
+
+The long-term product target remains the complete mobility lifecycle:
 
 ```text
 Goal
@@ -92,9 +187,11 @@ Goal
 
 The lifecycle must support changed goals, employers and jurisdictions; rejected applications; expired Evidence; superseded rules; family dependencies; long-lived case history; reassessment; and future mobility strategy.
 
+L/M/N are not the end of the product. They establish the organizational operating capability needed to expand this lifecycle without losing truth, authority or provenance.
+
 ---
 
-## 3. Constitutional ownership
+## 6. Constitutional ownership
 
 Permanent separation:
 
@@ -129,24 +226,7 @@ External infrastructure may provide capability but may not redefine those semant
 
 ---
 
-## 4. Acceptance-state vocabulary
-
-```text
-IMPLEMENTED
-  code/docs exist
-
-ACCEPTANCE PENDING
-  implementation exists but required proof is incomplete
-
-COMPLETE / PASS / SEALED
-  accepted evidence exists and repository truth is reconciled
-```
-
-A running test is not a PASS. A documentation commit does not inherit a previous runtime PASS automatically.
-
----
-
-## 5. Current V1.3 / organization state
+## 7. Current accepted state
 
 | Stage | State | Meaning |
 |---|---|---|
@@ -165,15 +245,15 @@ A running test is not a PASS. A documentation commit does not inherit a previous
 | Outcome Evaluation baseline | PROVEN BASELINE | outcome evidence before autonomy mutation |
 | J.1 Austria Agent Organization Runtime | COMPLETE / PASS / SEALED | native Austria organization topology + runtime bindings |
 | K.1 Bounded Specialist Execution / Coworker Runtime | COMPLETE / PASS / SEALED | durable specialist execution evidence + stronger owner synthesis gate |
-| L Live Organization | NEXT / NOT STARTED | first real persisted owner-led organization cycle |
-| M Board Transparency Experience | NOT STARTED | owner/Board live organization inspection |
-| N Learning & Optimization | NOT STARTED | measured learning, performance and optimization |
+| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | persisted owner-led cycle + bounded command + Cockpit consumption exist; full acceptance proof remains open |
+| M Board Transparency Experience | NOT STARTED | full owner/Board transparency experience after L acceptance |
+| N Learning & Optimization | NOT STARTED | measured learning, performance, AI economics and controlled optimization |
 
 No actual autonomy mutation mechanism is accepted or implemented.
 
 ---
 
-## 6. K.1 accepted baseline
+## 8. K.1 accepted baseline
 
 Technical candidate:
 
@@ -194,22 +274,7 @@ Woodpecker push #17             4/4 PASS
 Woodpecker PR #18               4/4 PASS
 ```
 
-Accepted runtime path:
-
-```text
-accepted J.1 specialist WorkItem
-→ current canonical ContextBundle
-→ revalidated provider-neutral EmployeeRuntimeBinding
-→ native OrganizationExecutionAttempt
-→ existing controlled-agent runner / AgentRun
-→ one stable current-work OrganizationalActionOutput
-→ WorkItem completion
-→ owner-synthesis readiness only when both specialist outputs remain provenance-valid
-```
-
-K.1 adds no new table, migration, Mission model or external agent framework.
-
-Permanent K.1 invariants:
+Permanent K.1 invariants remain:
 
 - exact replay does not duplicate current-work output, AgentRun or execution attempt;
 - stale/mismatched context/runtime/provenance fails closed;
@@ -223,158 +288,221 @@ Acceptance record:
 
 ---
 
-## 7. L — Live Organization — NEXT
+## 9. Three-horizon master direction
 
-L is the next bounded product increment.
+### NOW — L Live Organization
 
-It must prove a real persisted organization cycle rather than simulated dashboard state.
+**Classification:** PRIMARY
 
-Target:
+L must prove that the governed organization operates as a real product capability, not merely as service functions or synthetic dashboard state.
+
+Current bounded path:
 
 ```text
-real Austria objective / owner
-→ mobility_operations_lead
-   ├─ pathway_operations_specialist
-   └─ regulatory_intelligence_analyst
-→ current specialist WorkItems
-→ canonical ContextBundles
-→ bounded executions
-→ durable OrganizationalActionOutputs
+canonical Austria objective
+→ accepted K.1 specialist WorkItems
+→ current ContextBundles / runtime bindings
+→ bounded specialist executions
+→ durable specialist outputs
 → owner synthesis readiness
-→ material owner synthesis result
-→ OrganizationActivity / decisions
-→ blocked-work reason where applicable
-→ runtime/tool lineage
-→ Evidence / rule provenance where available
-→ autonomy / authority state
-→ latency / retry / governance telemetry
-→ Cockpit read model backed only by persisted AIOS truth
+→ Board/admin-human bounded owner-synthesis command
+→ one durable owner OrganizationalActionOutput
+→ one MATERIAL OrganizationActivity
+→ root objective completion
+→ exact replay without duplicate evidence
+→ Board-safe persisted projection
+→ Owner Cockpit Live Organization surface
 ```
 
-L must not introduce:
+Current L implementation exists, but acceptance remains open until the required proof below is observed.
 
-- dashboard-only fake organization state;
-- a second organization store;
-- a new agent framework without measured necessity;
-- direct material mutation outside existing governance;
-- external irreversible actions merely to make the demo appear live.
+#### L REQUIRED ENABLEMENT
 
----
+These capabilities are part of closing L, independent of which tools implement them:
 
-## 8. L acceptance dimensions
+1. **exact current-head backend/PostgreSQL/frontend/policy proof**;
+2. **browser-level product proof** for authentication, loading, ready, blocked/error, owner command and replay behavior;
+3. **truthful UX states** for current organization state, missing evidence, blocked work and retained authority;
+4. **professional-review workflow** for the Austria benchmark before professional/legal correctness is claimed;
+5. **first professionally reviewed Austria tranche**, used to discover disagreement/error classes before setting a large arbitrary case target;
+6. **live-model/retrieval/provider-failure evaluation** on reviewed cases before claiming realistic AI reasoning quality;
+7. **Evidence / VerifiedRule lineage** wherever regulated claims enter the L cycle;
+8. **operational correlation** across the real L cycle sufficient to diagnose latency, retries and runtime failure without confusing telemetry with canonical Activity.
 
-L should prove at minimum:
+#### L UX work
 
-1. one real persisted Austria objective/owner cycle;
-2. exact WorkItem and execution provenance;
-3. owner synthesis only from current valid specialist evidence;
-4. persisted organization Activity/Decision state;
-5. fail-closed blocked-work presentation;
-6. runtime/tool lineage;
-7. Evidence/VerifiedRule provenance where the workflow uses regulated claims;
-8. authority/autonomy visibility;
-9. latency/retry telemetry;
-10. Cockpit read model derived only from persisted AIOS truth;
-11. no simulated completion/history used to populate the live experience;
-12. deterministic replay/refresh behavior.
-
----
-
-## 9. Enterprise Integration & Capability programme — ACTIVE IN PARALLEL
-
-V12.25 introduces a production-maturity integration track.
-
-Canonical records:
+UX work starts before and alongside implementation, but UX capability is the requirement—not a specific design tool.
 
 ```text
-docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md
-docs/AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md
-docs/TECHNOLOGY_RADAR_V1_3_2.md
-docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md
-docs/V12_25_PENDING_CHANGELOG.md
+UX0 experience / information-architecture audit
+→ UX1 bounded design-system foundation required by real L/M surfaces
+→ UX2 Live Organization co-design against actual L contracts
 ```
 
-Core doctrine:
+Rules:
 
-```text
-AIOS domain / organization semantics
-→ AIOS-owned contract / port
-→ authority / policy / provenance boundary
-→ replaceable adapter
-→ external/open-source infrastructure
-```
+- UX0 and UX2 operate on real current routes/contracts, including `/cockpit/live-organization`;
+- UX1 builds only primitives/tokens/patterns actually required by L/M;
+- Penpot is the preferred design environment, not an L acceptance prerequisite by name;
+- Storybook remains a candidate component workbench until bounded adoption proves value;
+- mock design state may never be represented as accepted live organization state.
 
-The integration programme exists to proactively find necessary infrastructure while preventing external platforms from becoming AIOS authority.
+#### L production foundation
 
----
+**Observability/correlation:** REQUIRED ENABLEMENT for operational maturity of L.
 
-## 10. Integration priorities
-
-### E0 — Architecture / ownership — DOCUMENTED
-
-- integration classes;
-- data ownership matrix;
-- identity-vs-authority separation;
-- telemetry-vs-canonical-activity separation;
-- secret/reference separation;
-- Communications/Signature/ERP/Payment boundaries;
-- adoption lifecycle and scoring.
-
-### E1 — Production foundation — NEXT PARALLEL PILOTS
-
-#### E1.1 Observability for L
-
-Use OpenTelemetry direction to correlate L across WorkItem, ContextBundle, AgentRun, OrganizationExecutionAttempt, durable output and canonical effect where applicable.
-
-Permanent distinction:
+OpenTelemetry is the current preferred/trial-eligible implementation direction because an optional vendor-neutral pilot already exists. The requirement is traceable L behavior; OpenTelemetry itself does not become business truth.
 
 ```text
 engineering telemetry != canonical OrganizationActivity
 ```
 
-#### E1.2 Secrets-manager bounded pilot
+**Backup / isolated restore:** SUPPORTING PARALLEL production foundation. It becomes a release/deployment blocker when the deployment target requires recoverability proof; it must not displace current L product proof merely because backup tooling exists.
 
-Research OpenBao-class infrastructure behind an AIOS-owned secrets boundary.
+**Secrets management:** SUPPORTING PARALLEL production foundation. Introduce a secrets-manager boundary when a real credential lifecycle requires it; do not migrate secrets speculatively.
+
+#### L donor use
+
+Munder Difflin is a SUPPORTING PARALLEL donor only where a demonstrated L/UX2 gap exists.
+
+Relevant candidates include:
+
+- presence/heartbeat mechanics;
+- event synchronization;
+- transcripts/tool signals;
+- runtime/cost telemetry concepts;
+- live-organization scene mechanics.
+
+Rejected donor assumptions remain rejected:
+
+- donor authority model;
+- donor state as canonical AIOS truth;
+- direct authoritative mutation;
+- pixel-art/game-like presentation as the product design language;
+- decorative/random activity that implies work not present in canonical state.
+
+### NEXT — M Board Transparency Experience
+
+**Classification:** PRIMARY only after L acceptance.
+
+M turns accepted Live Organization truth into the complete Human Owner / Board transparency experience.
+
+Expected capability set:
 
 ```text
-secret != prompt
-secret != ContextBundle
-secret != memory
-secret != OrganizationActivity
+UX3 Cockpit + Board Room
+→ organization / objective / employee drill-down
+→ evidence + provenance inspection
+→ risk / authority / autonomy inspection
+→ incidents / blockers / intervention paths
+→ performance / quality / latency / cost visibility
+→ reusable accessible frontend components
+→ truthful organization visualization where operationally useful
 ```
 
-#### E1.3 Backup / isolated restore proof
+Munder living-organization mechanics may be adapted only where they improve comprehension of accepted AIOS state.
 
-Research PostgreSQL/object backup tooling and prove restore into an isolated environment.
+M does not create new business truth for presentation.
 
-```text
-backup created != recovery proven
-```
+### THEN — N Learning & Optimization
 
-### E2 — Identity + communications contract
+**Classification:** PRIMARY only after M acceptance.
 
-- benchmark Keycloak / Authentik-class IdPs;
-- define provider-neutral Communications Gateway;
-- retain AIOS authorization regardless of IdP/provider.
+N converts accumulated outcomes and runtime evidence into measured improvement.
 
-### E3 — E-signature / governed external communications
+Expected capability set:
 
-- EU DSS validation research;
-- open-source signing platform evaluation;
-- exact AIOS document-version binding;
-- governed communication trial.
+- outcome measurement;
+- professional modification/rejection analysis;
+- runtime performance optimization;
+- AI Economics / cost per successful governed outcome;
+- provider/model routing evaluation;
+- retrieval/context optimization;
+- evaluation evolution;
+- organizational learning;
+- controlled autonomy evolution only when outcome evidence justifies it.
 
-### E4 — Commercial operations — DEMAND GATED
+No autonomy increase is implied merely by having more telemetry or more model options.
 
-- ERPNext/Odoo accounting/ERP integration benchmark;
-- payment adapter design;
-- no full ERP core implementation.
+### LATER — mobility lifecycle expansion
+
+After L/M/N establish the operating system, the roadmap returns to the next highest-value lifecycle gap.
+
+Potential capabilities include:
+
+- identity / SSO;
+- communications;
+- e-signature;
+- external authority workflows;
+- post-approval operations;
+- business/corporate mobility expansion;
+- ERP/accounting;
+- payments;
+- additional jurisdictions and professional verticals.
+
+Their exact order is selected by product necessity, not by this list order.
 
 ---
 
-## 11. Integration sovereignty rules
+## 10. Technology Radar role
 
-Permanent rules:
+The Technology Radar is a **decision/support layer**, not an implementation roadmap.
+
+It answers:
+
+```text
+What technology could satisfy a demonstrated capability gap?
+What evidence have we gathered?
+What is its adoption state?
+What risks, costs and replacement implications exist?
+```
+
+It does not answer:
+
+```text
+What should the team implement next?
+```
+
+That answer belongs here in `ROADMAP.md`.
+
+Radar states such as `RESEARCH`, `PILOT`, `TRIAL-ELIGIBLE`, `WATCH`, `DEFER`, `ADOPT` or `REJECT` describe evidence/adoption posture, not scheduling priority.
+
+Examples:
+
+- OpenTelemetry is pulled forward because L has a concrete correlation need;
+- ERPNext/Odoo remain deferred because ERP is not on the current product dependency path;
+- LLMLingua-2 remains a selected context-compression pilot but advances only when a measured context/runtime need warrants it;
+- Promptfoo remains useful evaluation infrastructure but does not become a milestone by itself;
+- a new generic agent framework remains rejected by default unless a measured gap cannot be solved cleanly with current runtime contracts.
+
+---
+
+## 11. Donor programme role
+
+Donor programmes are capability accelerators, not alternative architectures or product roadmaps.
+
+For every donor capability:
+
+```text
+product need
+→ measured gap
+→ donor candidate
+→ DIRECT REUSE / PORT / ADAPT / REIMPLEMENT / REJECT
+→ AIOS-owned boundary
+→ bounded proof
+```
+
+Munder Difflin, Plasma, LLMLingua and future donors remain subordinate to AIOS semantics and current product necessity.
+
+Vendoring, pinning or documenting a donor never means production adoption.
+
+---
+
+## 12. Enterprise integration role
+
+Enterprise integrations are **dependency- and demand-triggered**.
+
+Permanent boundaries:
 
 > **Identity providers authenticate; AIOS authorizes.**
 
@@ -388,79 +516,116 @@ Permanent rules:
 
 > **No integration may bypass the Command Gateway for a material action.**
 
----
+Current scheduling posture:
 
-## 12. Technology Radar V1.3.2
-
-Active radar:
-
-`docs/TECHNOLOGY_RADAR_V1_3_2.md`
-
-Current direction summary:
-
-```text
-Munder Difflin v0.4.4      STRATEGIC DONOR
-Plasma Wiki / Fractal      PINNED DONOR PRESENT / PILOT APPROVED
-LLMLingua-2                SELECTED PRIMARY PILOT
-OpenTelemetry              PILOT COMPLETE / TRIAL-ELIGIBLE; priority for L
-Promptfoo                   PILOT COMPLETE / TRIAL-ELIGIBLE
-ClamAV                      PILOT COMPLETE / TRIAL-ELIGIBLE
-Docling                     PILOT IN PROGRESS
-Presidio                    QUEUED PILOT
-urlwatch                    QUEUED PILOT
-pgvector vs Qdrant          BENCHMARK
-Langfuse                    RESEARCH / PILOT CANDIDATE
-OpenBao-class secrets       RESEARCH NOW
-Keycloak / Authentik        RESEARCH NOW
-Backup/DR toolchain         RESEARCH NOW
-EU DSS / signing platforms  RESEARCH / WATCH
-ERPNext / Odoo              WATCH / DEFER
-Payments                    DEFER PROVIDER SELECTION
-New generic agent framework REJECT BY DEFAULT unless measured gap
-```
-
-Vendoring does not equal production adoption.
+| Capability | Classification | Trigger |
+|---|---|---|
+| L telemetry correlation | REQUIRED ENABLEMENT | real L runtime/cockpit diagnosis |
+| Backup / isolated restore | SUPPORTING PARALLEL | production recoverability requirement |
+| Secrets manager | SUPPORTING PARALLEL | real secret lifecycle / rotation requirement |
+| Identity / SSO | DEFERRED until dependency | multi-user/deployment authentication need |
+| Communications Gateway | DEFERRED until dependency | governed outbound communication capability |
+| E-signature | DEFERRED until dependency | signed-document workflow enters product path |
+| ERP/accounting | DEMAND-GATED | real commercial/back-office ledger demand |
+| Payments | DEMAND-GATED | typed financial execution need + authority model |
 
 ---
 
-## 13. CI direction
+## 13. UX / frontend role
 
-Forward CI direction is self-hosted Woodpecker.
+Frontend design is a first-class product workstream, not a late cosmetic layer.
 
-Historical GitHub Actions runs remain truthful historical evidence and must not be relabeled.
-
-Forward heavy proof dimensions remain:
+It must begin early enough to influence product semantics and interaction, while remaining grounded in canonical contracts.
 
 ```text
-repository policy / constraints
-backend SQLite regression
-frontend tests / types / build
-PostgreSQL governance/runtime contracts
+canonical product need
+→ real read/write contract
+→ information architecture
+→ interaction design
+→ reusable implementation
+→ accessibility/responsive/state verification
+→ browser/product proof
 ```
 
-Acceptance rule:
+Preferred tooling may change without changing the product requirement.
+
+Penpot, Storybook or future design tools can improve execution, but no tool is constitutional product authority.
+
+Next.js/React remains production frontend authority until explicitly changed through the same necessity-driven process.
+
+---
+
+## 14. Acceptance gate
+
+Acceptance is the gate between primary milestones.
+
+For every substantive milestone, apply the relevant dimensions from this sequence:
 
 ```text
 implementation
 → focused tests
 → schema/migration verification where affected
-→ repository policy / diff hygiene
-→ Woodpecker proof
+→ PostgreSQL/concurrency proof where state races matter
+→ frontend tests/types/build where affected
+→ browser E2E/accessibility/responsive proof where product interaction matters
+→ security/privacy/authority checks where affected
+→ repository policy + complete PR diff hygiene
+→ Woodpecker forward proof
 → documentation reconciliation
-→ COMPLETE / PASS / SEALED only after observed PASS
+→ COMPLETE / PASS / SEALED only after observed evidence
 ```
 
-Documentation-only changes do not create a new runtime acceptance boundary automatically.
+A running test is not a PASS.
+
+A documentation commit does not inherit a previous runtime PASS automatically.
+
+A design frame is not product proof.
+
+A deterministic fallback test is not live-model correctness proof.
+
+A source-curated benchmark is not professional correctness proof.
+
+A backup file is not recovery proof.
+
+A telemetry span is not canonical OrganizationActivity.
+
+Only after acceptance does the next dependent milestone become the primary implementation target.
 
 ---
 
-## 14. Product surfaces
+## 15. Current L acceptance dimensions
+
+L must eventually prove, as applicable to the accepted scope:
+
+1. one real persisted Austria objective/owner cycle;
+2. exact WorkItem/execution/runtime provenance;
+3. owner synthesis only from current valid specialist evidence;
+4. persisted material OrganizationActivity/Decision state;
+5. deterministic replay without duplicate current evidence;
+6. explicit PostgreSQL concurrent owner-synthesis behavior;
+7. fail-closed blocked/tampered/stale state behavior;
+8. Board/admin-human bounded operator command path;
+9. Cockpit consumption backed only by persisted AIOS truth;
+10. browser interaction for the real command/read/failure path;
+11. Evidence/VerifiedRule lineage where regulated claims are used;
+12. authority/autonomy/provider-model non-authority visibility;
+13. latency/retry/governance measurements;
+14. operational correlation sufficient to diagnose the L cycle;
+15. professional review before professional/legal correctness claims;
+16. live-model/retrieval/provider-failure evaluation before realistic AI-reasoning claims;
+17. no simulated completion/history used to populate the live experience.
+
+The exact acceptance record may split these into bounded proof slices, but no slice may silently claim evidence belonging to another.
+
+---
+
+## 16. Product surfaces
 
 ### Global Mobility AIOS Cockpit
 
 Top-level Human Owner / Board organizational command surface.
 
-Target modules:
+Target modules include:
 
 ```text
 Organization
@@ -494,7 +659,7 @@ Department-specific composed views over canonical organization state without cre
 
 ---
 
-## 15. Evidence / truth hierarchy
+## 17. Evidence / truth hierarchy
 
 ```text
 L0 model speculation
@@ -516,11 +681,11 @@ L2 ↛ L7
 L6 ↛ L8 automatically
 ```
 
-Memory provides continuity. Evidence provides authority.
+> **Memory provides continuity. Evidence provides authority.**
 
 ---
 
-## 16. Earned Autonomy — preserved
+## 18. Earned autonomy and Immune System
 
 Capability-specific A0–A5 semantics remain:
 
@@ -545,35 +710,27 @@ SHADOW
 
 I.1–I.4 establish evidence/policy foundations only. They do not authorize self-promotion.
 
----
-
-## 17. Organizational Immune System — restriction only
-
-The Immune System may observe, classify, restrict, circuit-break, block and escalate.
-
-It may not create or increase authority.
-
-Permanent invariant:
+The Organizational Immune System may observe, classify, restrict, circuit-break, block and escalate.
 
 > **The Immune System may restrict or stop. It never manufactures permission.**
 
 ---
 
-## 18. Context Intelligence
+## 19. Context Intelligence
 
 The Context Broker remains responsible for purpose-scoped context, Evidence/VerifiedRule retrieval, organizational memory, relevance, freshness, sensitivity, contradictions, context lineage and optional compression eligibility.
-
-Permanent rule:
 
 > **More relevant truth, not more tokens.**
 
 LLMLingua-2 remains a pilot behind an AIOS-owned `ContextCompressionPort`; compressed context remains derived execution context, never source truth.
 
+Its pilot status does not grant it implementation priority over current L needs.
+
 ---
 
-## 19. Outcome and production metrics
+## 20. Outcome and production metrics
 
-Product/organization metrics:
+Product/organization metrics include:
 
 - autonomous completion rate;
 - human interventions per material actions;
@@ -591,7 +748,7 @@ Product/organization metrics:
 - lineage completeness;
 - transparency lag.
 
-Integration/production metrics:
+Production/integration metrics include:
 
 - trace completeness;
 - mean time to diagnose runtime failures;
@@ -606,9 +763,11 @@ Integration/production metrics:
 - replacement effort;
 - integration operating cost.
 
+Metrics guide prioritization only when tied to an actual product or production need.
+
 ---
 
-## 20. Historical compatibility contract — protected
+## 21. Historical compatibility contract — protected
 
 The active V12 roadmap preserves historical markers meaningful to Evidence provenance and repository compatibility.
 
@@ -628,11 +787,11 @@ multi-batch tranche operations
 0032_initial_rule_assertions
 ```
 
-These markers must not be erased by later V1.3, organization-runtime, CI, autonomy or integration work.
+These markers must not be erased by later organization-runtime, CI, autonomy, integration, UX or roadmap-reorganization work.
 
 ---
 
-## 21. Current schema / storage guardrails
+## 22. Schema / storage guardrails
 
 Current accepted migration head:
 
@@ -646,72 +805,70 @@ Current accepted application-table count at K.1:
 124
 ```
 
-No schema change is implied by the V12.25 documentation/integration direction.
+No schema change is implied by this roadmap reorganization.
 
 Guardrails:
 
-- migrations forward, bounded and data-preserving;
+- migrations are forward, bounded and data-preserving;
 - preserved developer SQLite history must not be fabricated/rewritten for UI appearance;
 - PostgreSQL remains authoritative deployment/integration relational target;
 - isolated PostgreSQL environments are preferred for migration/concurrency contracts;
-- external integrations do not gain direct canonical DB mutation shortcuts.
+- external integrations do not gain direct canonical DB mutation shortcuts;
+- legacy tenant-qualification gaps are corrected when the affected capability is on the active dependency path or when they create a demonstrated security/integrity risk.
 
 ---
 
-## 22. Coordinated tracks
-
-### Track A — Product / Human Experience
-
-- Phase 13.17 acceptance;
-- Cockpit/Operations/My Mobility refinement;
-- L Live Organization experience;
-- accessibility/responsiveness/human acceptance.
-
-### Track B — Technology / Integration Radar
-
-- existing document/privacy/retrieval pilots;
-- E0/E1 integration programme;
-- evidence-driven adoption only.
-
-### Track C — High-Autonomy Organization
-
-- I.1–I.4 sealed;
-- J.1 sealed;
-- K.1 sealed;
-- L next;
-- M/N later;
-- autonomy mutation deferred until outcome evidence justifies design.
-
-Tracks may proceed in parallel but may not silently introduce incompatible contracts.
-
----
-
-## 23. Immediate implementation ordering
-
-Primary product order:
+## 23. Current roadmap horizon map
 
 ```text
-1. L Live Organization core
-2. M Board Transparency Experience
-3. N Learning & Optimization
-```
+NOW — L LIVE ORGANIZATION
+│
+├─ PRIMARY
+│  └─ close real persisted L product operation
+│
+├─ REQUIRED ENABLEMENT
+│  ├─ exact current-head proof
+│  ├─ browser E2E for real Cockpit/auth/command/failure paths
+│  ├─ UX0 / UX2 against real contracts
+│  ├─ bounded UX1 primitives needed by L/M
+│  ├─ professional-review workflow + first reviewed Austria tranche
+│  ├─ live-model/retrieval/provider-failure evaluation
+│  ├─ Evidence / VerifiedRule lineage where regulated claims are used
+│  └─ operational L-cycle correlation
+│
+├─ SUPPORTING PARALLEL
+│  ├─ backup / isolated restore foundation
+│  ├─ secrets boundary when a real credential lifecycle requires it
+│  └─ selective Munder analysis for demonstrated L/UX2 gaps
+│
+└─ DEFERRED
+   ├─ broad IdP migration
+   ├─ governed outbound communications platform work
+   ├─ e-signature implementation
+   ├─ ERP/accounting
+   └─ payments
 
-Immediate parallel integration order:
+NEXT — M BOARD TRANSPARENCY EXPERIENCE
+│
+├─ UX3 Cockpit + Board Room
+├─ organization visualization
+├─ evidence/provenance drill-down
+├─ risk/authority/autonomy interactions
+├─ reusable accessibility/component proof
+└─ donor adaptations only where proven useful
 
-```text
-1. E1.1 OpenTelemetry correlation for L
-2. E1.3 backup / isolated restore proof
-3. E1.2 secrets-manager bounded pilot
-4. E2.1 identity benchmark
-5. E2.2 Communications Gateway contract
-```
+THEN — N LEARNING & OPTIMIZATION
+│
+├─ outcome measurement
+├─ runtime performance
+├─ AI Economics
+├─ model/provider routing evaluation
+├─ context/retrieval optimization
+├─ organizational learning
+└─ controlled autonomy evolution only from evidence
 
-Demand-gated later:
-
-```text
-e-signature execution
-accounting / ERP adapter
-payments
+LATER — NEXT NECESSARY MOBILITY LIFECYCLE CAPABILITY
+└─ integrations/infrastructure are pulled in by the chosen product dependency
 ```
 
 ---
@@ -729,29 +886,32 @@ The current roadmap does not authorize:
 - Dynamic Autonomy Manager behavior;
 - automatic promotion/demotion;
 - full ERP implementation;
-- broad production SSO migration;
+- broad production SSO migration merely because IdPs are on the Radar;
 - another generic agent framework;
-- fake live-organization state.
+- fake live-organization state;
+- implementation of a donor feature merely because the donor contains it;
+- adoption of Penpot, Storybook, OpenTelemetry or any other tool as constitutional product authority.
 
 ---
 
 ## 25. Definition of success
 
-The next project maturity increase must come from demonstrated organization performance rather than additional architecture alone.
+The next project maturity increase must come from demonstrated product operation and professional correctness rather than additional architecture alone.
 
-Success requires:
+Success path:
 
 ```text
-real mobility objective
-→ real canonical context
-→ real bounded organization work
-→ durable execution evidence
-→ truthful owner synthesis
-→ observable organization state
-→ governed decisions/actions
+real customer / mobility case
+→ official-source retrieval and governed Evidence
+→ specialist execution
+→ owner synthesis
+→ human/professional review where required
+→ customer/operator-facing explanation and next action
+→ tracked outcome
+→ professional correctness evidence
 → measurable quality / latency / cost / recovery
 ```
 
-The Integration & Capability programme succeeds when it improves production readiness and outcome reliability without increasing provider ownership of AIOS semantics.
+The project succeeds when architecture, UX, infrastructure, integrations, Radars and donors all serve that path without becoming independent reasons to build.
 
-> **Architecture is now sufficiently rich. Prove the organization, harden the production foundation, and integrate only where measured need justifies it.**
+> **ROADMAP.md determines when and why. Architecture determines where. UX determines how humans experience it. Radars identify candidate technology. Donor programmes define safe reuse. Woodpecker and acceptance records determine whether it is complete.**
