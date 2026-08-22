@@ -5,6 +5,7 @@
 **Status:** ACCEPTED / COMPLETE / PASS / SEALED
 **Accepted technical candidate:** `77b2e9adb30d69419158930b31c0bc10515cb6a7`
 **Accepted Production Proof:** GitHub Actions run `32536826352`
+**Post-acceptance profile-precondition hardening:** ACCEPTED / PASS / SEALED on `108231d75b4c7413c1759c003e121fdcca206d7c`, run `32539026789`
 **Parent accepted checkpoint:** I.2 — `c23e64a95770b1736ac9921486f8d017d17f930b`, run `32533230630`
 
 This historical filename remains `V12_22_PENDING_CHANGELOG.md`, matching prior V12 convention, but its contents are now closed as the V12.22 I.3 acceptance changelog.
@@ -121,10 +122,45 @@ Focused proof now includes:
 - Board-only GET and no HTTP mutation route;
 - platform router registry 67-feature hardening.
 
-The governed PostgreSQL lane proves:
+The original governed PostgreSQL I.3 lane proves:
 
 - competing initial policy writers do not fork exact-profile canonical policy truth;
 - stale cross-session policy supersession is rejected.
+
+## Post-acceptance profile-precondition hardening
+
+A later adversarial review identified a narrower command-success race that did not permit stale policy reuse but could allow a Board command to report success for a profile that became historical during the transaction.
+
+The accepted hardening candidate is:
+
+```text
+108231d75b4c7413c1759c003e121fdcca206d7c
+```
+
+It adds:
+
+- optional caller `expected_profile_id` optimistic precondition;
+- exact current I.1 profile row locking with PostgreSQL `FOR UPDATE` for every new policy write;
+- canonical current-profile snapshot revalidation after the profile lock is acquired;
+- autonomy/evidence-version/Board-ceiling revalidation under the same profile lock;
+- final locked current-profile recheck before atomic policy/audit commit;
+- a fast same-level v1 → v2 stale-profile-precondition regression;
+- a deterministic PostgreSQL supersession-wins race proving the I.3 writer actually waits on the I.1 profile row lock and rejects stale after v2 becomes current.
+
+The real PostgreSQL race contract proves:
+
+```text
+I.1 supersession owns v1 FOR UPDATE lock
+→ I.3 writer for expected v1 blocks on that exact row
+→ I.1 commits v2
+→ I.3 resumes and revalidates
+→ stale v1 command is rejected
+→ zero policy rows persist for the stale attempt
+```
+
+The inverse ordering is also safe by construction: if I.3 owns the current-profile row lock first, I.1 supersession waits until the I.3 transaction completes, so the Board policy was established against a genuinely current profile at the serialization point.
+
+This refinement adds no migration, table, HTTP write route, authority grant, Board-ceiling change or autonomy mutation.
 
 ## Migration / schema acceptance
 
@@ -141,23 +177,23 @@ Accepted registered application-table count:
 123
 ```
 
-Exact-candidate schema proof passed on fresh SQLite and PostgreSQL 16.
+Exact-candidate schema proof passed on fresh SQLite and PostgreSQL 16. The post-acceptance profile-precondition hardening does not change schema.
 
 ## Exact Production Proof
 
-Accepted exact technical candidate:
+Original accepted I.3 technical candidate:
 
 ```text
 77b2e9adb30d69419158930b31c0bc10515cb6a7
 ```
 
-Accepted run:
+Original accepted run:
 
 ```text
 GitHub Actions V12 Production Proof 32536826352
 ```
 
-Results:
+Original accepted results:
 
 ```text
 Repository policy and constraints             PASS
@@ -177,6 +213,27 @@ PostgreSQL governed/autonomy suite            98 passed / 1 warning / 0 failed
 
 V12 Production Proof                          4 / 4 jobs PASS
 Standalone Repository Policy run 32536826350  PASS
+```
+
+Post-acceptance hardening exact candidate and proof:
+
+```text
+candidate                                      108231d75b4c7413c1759c003e121fdcca206d7c
+run                                            32539026789
+Repository policy and constraints              PASS
+Release consistency                            PASS — 0080
+Python dependency constraints                  PASS
+Diff hygiene                                   PASS
+Backend regression (SQLite)                    1159 passed / 16 skipped / 1 warning / 0 failed
+SQLite registered/actual application tables    123 / 123
+SQLite physical schema                         PASS
+Frontend tests/types/build                     PASS
+PostgreSQL 16 migration/schema                 PASS — 0001 → 0080
+PostgreSQL registered application tables       123
+PostgreSQL governed/autonomy suite             99 passed / 1 warning / 0 failed
+I.3 profile-supersession lock race              PASS
+V12 Production Proof                           4 / 4 jobs PASS
+Standalone Repository Policy run 32539026838   PASS
 ```
 
 The known Pydantic 2.8 `model_metadata_json` protected-namespace warning remains non-blocking and pre-existing.
@@ -204,7 +261,7 @@ This is future direction, not an accepted implementation.
 
 ## Explicit non-claims
 
-I.3 acceptance does not claim or implement:
+I.3 acceptance and its profile-precondition hardening do not claim or implement:
 
 - automatic promotion;
 - automatic downgrade/demotion;
@@ -228,6 +285,8 @@ I.3 acceptance does not claim or implement:
 
 ## Closure
 
-V1.3-I.3 is **COMPLETE / PASS / SEALED** on technical candidate `77b2e9adb30d69419158930b31c0bc10515cb6a7`, Production Proof run `32536826352`.
+V1.3-I.3 remains **COMPLETE / PASS / SEALED** on its original technical foundation candidate `77b2e9adb30d69419158930b31c0bc10515cb6a7`, Production Proof run `32536826352`.
 
-The accepted output is a Board-authored deterministic eligibility signal only. Future autonomy mutation remains NOT STARTED and is gated behind separate evidence-qualification and temporal-evaluation proof.
+The later profile-precondition/concurrency refinement is separately **ACCEPTED / PASS / SEALED** on technical candidate `108231d75b4c7413c1759c003e121fdcca206d7c`, Production Proof run `32539026789`.
+
+The accepted output remains a Board-authored deterministic eligibility signal only. Future autonomy mutation remains NOT STARTED and is gated behind separate evidence-qualification and temporal-evaluation proof.
