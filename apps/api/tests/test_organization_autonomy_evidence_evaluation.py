@@ -9,10 +9,11 @@ from app.models.autonomy_evidence_evaluation_policy import (
     CapabilityAutonomyEvidenceEvaluationPolicy,
 )
 from app.models.autonomy_profile import CapabilityAutonomyProfile
-from app.models.domain import OrganizationActivity, now_utc
+from app.models.domain import OrganizationActivity, OrganizationHumanActionType, now_utc
 from app.services.organization_activity import append_activity
 from app.services.organization_autonomy_evidence_evaluation import (
     AutonomyEvidenceEvaluationBoundExceeded,
+    AutonomyEvidenceEvaluationIntegrityError,
     capability_autonomy_evidence_evaluation_provenance_page,
     capability_autonomy_evidence_evaluation_snapshot,
 )
@@ -32,6 +33,7 @@ from app.services.organization_autonomy_evidence_profile import (
 )
 from app.services.organization_command import IdempotencyConflict, InvalidHumanActor, InvalidTransition
 from app.services.organization_eligibility_effect import commit_governed_eligibility_effect
+from app.services.organization_human_action import append_human_action
 from tests.test_organization_autonomy_promotion_policy import (
     CAPABILITY_KEY,
     CONTEXT_SCOPE,
@@ -70,9 +72,9 @@ def _evaluation_policy(
     )
 
 
-def _canonical_source(session: Session) -> OrganizationActivity:
+def _canonical_effect(session: Session):
     proposal, readiness, verification, floor, authority, *_ = _floor_ready(session)
-    result = commit_governed_eligibility_effect(
+    return commit_governed_eligibility_effect(
         session,
         proposal=proposal,
         readiness=readiness,
@@ -80,7 +82,6 @@ def _canonical_source(session: Session) -> OrganizationActivity:
         floor=floor,
         authority=authority,
     )
-    return result.semantic_activity
 
 
 def _ordinary_source(session: Session, *, key: str) -> OrganizationActivity:
@@ -106,23 +107,53 @@ def _observation(
     source: OrganizationActivity,
     *,
     key: str,
+    review: str = "accepted",
+    grounded: bool = True,
+    contradiction: bool = False,
+    policy_compliant: bool = True,
+    freshness_compliant: bool = True,
+    critical_error: bool = False,
     recovery: str = "not_applicable",
+    sla_met: bool = True,
+    incident_count: int = 0,
 ):
     return establish_capability_autonomy_evidence_observation(
         session,
         _board_context(),
         profile_id=profile.id,
         source_activity_id=source.id,
-        human_review_outcome="accepted",
-        evidence_grounded=True,
-        verifier_contradiction=False,
-        policy_compliant=True,
-        freshness_compliant=True,
-        critical_error=False,
+        human_review_outcome=review,
+        evidence_grounded=grounded,
+        verifier_contradiction=contradiction,
+        policy_compliant=policy_compliant,
+        freshness_compliant=freshness_compliant,
+        critical_error=critical_error,
         recovery_outcome=recovery,
-        sla_met=True,
-        incident_count=0,
+        sla_met=sla_met,
+        incident_count=incident_count,
         idempotency_key=f"i4-observation-{key}",
+    )
+
+
+def _human_review(
+    session: Session,
+    effect,
+    *,
+    key: str,
+    action_type: OrganizationHumanActionType,
+    occurred_at=None,
+):
+    return append_human_action(
+        session,
+        _board_context(),
+        action_key=f"i4-human-review-{key}",
+        action_type=action_type,
+        outcome=f"I.4 human review {key}",
+        occurred_at=occurred_at or now_utc(),
+        lead_id=effect.assessment.lead_id,
+        source_object_type="eligibility_assessment",
+        source_object_id=str(effect.assessment.id),
+        source_object_version=str(effect.revision.version),
     )
 
 
@@ -226,11 +257,27 @@ def test_i4_policy_is_board_only_append_only_bounded_and_idempotent(db_session: 
     assert [row.policy_sequence for row in rows] == [1, 2]
 
 
-def test_i4_qualifies_only_validated_canonical_eligibility_effects(db_session: Session) -> None:
+def test_i4_qualifies_only_canonical_effect_and_ignores_i2_quality_attestations(
+    db_session: Session,
+) -> None:
     profile, _ = _foundation(db_session)
-    canonical = _canonical_source(db_session)
+    effect = _canonical_effect(db_session)
     ordinary = _ordinary_source(db_session, key="ordinary")
-    _observation(db_session, profile, canonical, key="canonical")
+    _observation(
+        db_session,
+        profile,
+        effect.semantic_activity,
+        key="canonical-adversarial-i2",
+        review="rejected",
+        grounded=False,
+        contradiction=True,
+        policy_compliant=False,
+        freshness_compliant=True,
+        critical_error=True,
+        recovery="failed",
+        sla_met=False,
+        incident_count=7,
+    )
     _observation(db_session, profile, ordinary, key="ordinary")
 
     snapshot = _snapshot(db_session)
@@ -239,9 +286,20 @@ def test_i4_qualifies_only_validated_canonical_eligibility_effects(db_session: S
     assert snapshot.qualified_count == 1
     assert snapshot.excluded_unqualified_source_count == 1
     assert snapshot.metrics.qualifying_execution_volume == 1
+    # These are derived from the canonical G.1/G.2/G.3 effect, not copied from
+    # deliberately contradictory I.2 attestation inputs above.
     assert snapshot.metrics.evidence_grounding_rate == 1.0
-    assert snapshot.metrics.human_acceptance_rate == 1.0
+    assert snapshot.metrics.verifier_contradiction_rate == 0.0
     assert snapshot.metrics.policy_compliance_rate == 1.0
+    assert snapshot.metrics.human_not_reviewed_count == 1
+    assert snapshot.metrics.human_reviewed_count == 0
+    assert snapshot.metrics.human_acceptance_rate is None
+    assert snapshot.metrics.freshness_compliance_rate is None
+    assert snapshot.metrics.critical_error_count is None
+    assert snapshot.metrics.recovery_applicable_count is None
+    assert snapshot.metrics.recovery_success_rate is None
+    assert snapshot.metrics.sla_met_rate is None
+    assert snapshot.metrics.incident_count is None
     assert snapshot.missing_derivation_fields == I4_ALWAYS_UNAVAILABLE_DERIVATIONS
     assert snapshot.promotion_grade_ready is False
     assert {item.disposition for item in snapshot.recent_provenance} == {
@@ -251,21 +309,111 @@ def test_i4_qualifies_only_validated_canonical_eligibility_effects(db_session: S
     qualified = next(
         item for item in snapshot.recent_provenance if item.disposition == PROVENANCE_QUALIFIED
     )
-    assert qualified.canonical_revision_id is not None
-    assert qualified.effect_fingerprint is not None
-    assert profile.autonomy_level == "A2"
+    assert qualified.canonical_revision_id == effect.revision.id
+    assert qualified.effect_fingerprint == effect.revision.effect_fingerprint
+    assert qualified.human_review_outcome == "not_reviewed"
+    assert qualified.evidence_grounded is True
+    assert qualified.verifier_contradiction is False
+    assert qualified.policy_compliant is True
     db_session.refresh(profile)
     assert profile.autonomy_level == "A2"
 
 
+def test_i4_derives_only_explicit_terminal_human_review_actions(db_session: Session) -> None:
+    profile, _ = _foundation(db_session)
+    effect = _canonical_effect(db_session)
+    _observation(db_session, profile, effect.semantic_activity, key="human-review")
+
+    _human_review(
+        db_session,
+        effect,
+        key="generic-reviewed",
+        action_type=OrganizationHumanActionType.reviewed,
+    )
+    before_terminal = _snapshot(db_session)
+    assert before_terminal is not None
+    assert before_terminal.metrics.human_not_reviewed_count == 1
+    assert before_terminal.metrics.human_reviewed_count == 0
+
+    approved = _human_review(
+        db_session,
+        effect,
+        key="approved",
+        action_type=OrganizationHumanActionType.approved,
+    )
+    accepted = _snapshot(db_session, evaluation_as_of=approved.occurred_at + timedelta(microseconds=1))
+    assert accepted is not None
+    assert accepted.metrics.human_accepted_count == 1
+    assert accepted.metrics.human_reviewed_count == 1
+    assert accepted.metrics.human_acceptance_rate == 1.0
+    assert accepted.recent_provenance[0].human_review_outcome == "accepted"
+
+    changed = _human_review(
+        db_session,
+        effect,
+        key="requested-changes",
+        action_type=OrganizationHumanActionType.requested_changes,
+        occurred_at=approved.occurred_at + timedelta(seconds=1),
+    )
+    modified = _snapshot(db_session, evaluation_as_of=changed.occurred_at + timedelta(microseconds=1))
+    assert modified is not None
+    assert modified.metrics.human_modified_count == 1
+    assert modified.metrics.human_accepted_count == 0
+    assert modified.recent_provenance[0].human_review_outcome == "modified"
+
+
+def test_i4_conflicting_equal_time_terminal_human_reviews_fail_closed(db_session: Session) -> None:
+    profile, _ = _foundation(db_session)
+    effect = _canonical_effect(db_session)
+    _observation(db_session, profile, effect.semantic_activity, key="ambiguous-review")
+    same_time = now_utc()
+    _human_review(
+        db_session,
+        effect,
+        key="same-time-approved",
+        action_type=OrganizationHumanActionType.approved,
+        occurred_at=same_time,
+    )
+    _human_review(
+        db_session,
+        effect,
+        key="same-time-rejected",
+        action_type=OrganizationHumanActionType.rejected,
+        occurred_at=same_time,
+    )
+    with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="ambiguous"):
+        _snapshot(db_session, evaluation_as_of=same_time + timedelta(microseconds=1))
+
+
+def test_i4_torn_canonical_lineage_and_i2_source_fingerprint_drift_fail_closed(
+    db_session: Session,
+) -> None:
+    profile, _ = _foundation(db_session)
+    effect = _canonical_effect(db_session)
+    _observation(db_session, profile, effect.semantic_activity, key="lineage-drift")
+
+    effect.verification_activity.activity_type = "verification.eligibility.corrupted.v1"
+    db_session.add(effect.verification_activity)
+    db_session.commit()
+    with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="lineage"):
+        _snapshot(db_session)
+
+    # Restore the non-source lineage row, then corrupt the I.2 source witness itself.
+    effect.verification_activity.activity_type = "verification.eligibility.independent.v1"
+    db_session.add(effect.verification_activity)
+    db_session.commit()
+    effect.semantic_activity.record_fingerprint = "0" * 64
+    db_session.add(effect.semantic_activity)
+    db_session.commit()
+    with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="I.2 evidence integrity"):
+        _snapshot(db_session)
+
+
 def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_session: Session) -> None:
     profile, policy = _foundation(db_session)
-    canonical = _canonical_source(db_session)
-    _observation(db_session, profile, canonical, key="age")
+    effect = _canonical_effect(db_session)
+    _observation(db_session, profile, effect.semantic_activity, key="age")
 
-    # Supersede the broad policy with a source-age bound smaller than the
-    # observation-age bound. At the exact same as-of instant the disposition is
-    # deterministic and no stored I.2 freshness flag is reinterpreted.
     narrow = establish_capability_autonomy_evidence_evaluation_policy(
         db_session,
         _board_context(),
@@ -289,8 +437,6 @@ def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_s
     assert first.excluded_stale_source_count == 1
     assert first.recent_provenance[0].disposition == PROVENANCE_STALE_SOURCE
 
-    # Make the observation window even narrower than the source window; the
-    # observation-age exclusion is the first temporal boundary.
     newest = establish_capability_autonomy_evidence_evaluation_policy(
         db_session,
         _board_context(),
@@ -312,6 +458,18 @@ def test_i4_applies_observation_and_source_age_boundaries_deterministically(db_s
     assert stale_observation is not None
     assert stale_observation.excluded_stale_observation_count == 1
     assert stale_observation.recent_provenance[0].disposition == PROVENANCE_STALE_OBSERVATION
+
+
+def test_i4_future_source_time_fails_closed(db_session: Session) -> None:
+    profile, _ = _foundation(db_session)
+    effect = _canonical_effect(db_session)
+    _observation(db_session, profile, effect.semantic_activity, key="future-source")
+    as_of = now_utc()
+    effect.semantic_activity.occurred_at = as_of + timedelta(minutes=1)
+    db_session.add(effect.semantic_activity)
+    db_session.commit()
+    with pytest.raises(AutonomyEvidenceEvaluationIntegrityError, match="after evaluation_as_of"):
+        _snapshot(db_session, evaluation_as_of=as_of)
 
 
 def test_i4_candidate_bound_fails_closed_without_silent_truncation(db_session: Session) -> None:
