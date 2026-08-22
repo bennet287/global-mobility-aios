@@ -29,6 +29,8 @@ PROVENANCE_UNQUALIFIED_SOURCE = "UNQUALIFIED_SOURCE"
 I4_ALWAYS_UNAVAILABLE_DERIVATIONS = (
     "freshness_compliance_rate",
     "critical_error_count",
+    "recovery_applicable_count",
+    "recovery_success_rate",
     "sla_met_rate",
     "incident_count",
 )
