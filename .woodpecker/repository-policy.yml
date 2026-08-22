@@ -7,7 +7,7 @@ clone:
       lfs: false
 
 when:
-  - event: [push, pull_request]
+  - event: [push, pull_request, manual]
 
 steps:
   - name: repository-policy-and-constraints
