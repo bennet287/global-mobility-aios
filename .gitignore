@@ -38,5 +38,10 @@ apps/web/.next-docker/
 apps/web/out/
 .turbo/
 *.tsbuildinfo
+
+# Browser E2E generated output
+apps/web/e2e/test-results/
+apps/web/e2e/playwright-report/
+
 # Local patch-application backups; never source-controlled.
 .gmai-patch-backups/

@@ -21,3 +21,17 @@ steps:
       - npx tsc --noEmit
       - npm run build
       - npm run test:compiled-auth
+
+  - name: live-organization-browser-e2e
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    environment:
+      CI: "true"
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-operator
+    commands:
+      - cd apps/web/e2e
+      - npm ci
+      - npm audit --audit-level=high
+      - npm test
