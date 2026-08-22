@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
+from pathlib import Path
 
 import pytest
 
@@ -108,6 +110,17 @@ def test_professionally_reviewed_case_requires_review_provenance() -> None:
     assert reviewed.provenance is MobilityCaseProvenance.PROFESSIONALLY_REVIEWED
 
 
+def test_official_source_curated_case_requires_source_provenance() -> None:
+    with pytest.raises(ValueError, match="provenance_references"):
+        _synthetic_case(provenance=MobilityCaseProvenance.OFFICIAL_SOURCE_CURATED)
+
+    curated = _synthetic_case(
+        provenance=MobilityCaseProvenance.OFFICIAL_SOURCE_CURATED,
+        provenance_references=("https://www.migration.gv.at/index.php?id=1050",),
+    )
+    assert curated.provenance is MobilityCaseProvenance.OFFICIAL_SOURCE_CURATED
+
+
 def test_evaluation_as_of_requires_timezone_awareness() -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
         _synthetic_case(evaluation_as_of=datetime(2026, 8, 22, 8, 0))
@@ -213,3 +226,44 @@ def test_workflow_measurement_rejects_invalid_costs() -> None:
             governed_completion_cost_eur=0.1,
             latency_ms=10,
         )
+
+
+def test_austria_official_source_curated_seed_is_explicitly_non_professional_and_structured() -> None:
+    path = Path("apps/api/evaluations/mobility_cases/austria_rwr_shortage_2026_v1.json")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+
+    assert payload["schema_version"] == "mobility-gold-v1"
+    assert payload["provenance"] == MobilityCaseProvenance.OFFICIAL_SOURCE_CURATED.value
+    assert payload["professional_review_status"] == "NOT_REVIEWED"
+    assert "not professional legal review" in payload["claim_boundary"].lower()
+    assert len(payload["sources"]) >= 3
+    assert {source["url"].split("/")[2] for source in payload["sources"]} <= {
+        "www.migration.gv.at",
+        "www.oesterreich.gv.at",
+    }
+    assert len(payload["cases"]) == 3
+
+    source_refs = tuple(source["url"] for source in payload["sources"])
+    for item in payload["cases"]:
+        expected = item["expected"]
+        case = MobilityGoldCase(
+            case_id=item["case_id"],
+            jurisdiction=payload["jurisdiction"],
+            evaluation_as_of=datetime.fromisoformat(payload["evaluation_as_of"]),
+            provenance=MobilityCaseProvenance(payload["provenance"]),
+            expected_pathway_keys=frozenset(expected["pathway_keys"]),
+            expected_eligibility=MobilityEligibilityLabel(expected["eligibility"]),
+            expected_required_evidence=frozenset(expected["required_evidence"]),
+            expected_missing_evidence=frozenset(expected["missing_evidence"]),
+            expected_contradictions=frozenset(expected["contradictions"]),
+            expected_rule_or_source_refs=frozenset(expected["rule_or_source_refs"]),
+            expected_escalation_required=expected["escalation_required"],
+            provenance_references=source_refs,
+            notes=item["rationale"],
+        )
+        assert case.provenance is MobilityCaseProvenance.OFFICIAL_SOURCE_CURATED
+
+    by_id = {item["case_id"]: item for item in payload["cases"]}
+    assert by_id["at-rwr-shortage-software-di-no-job-offer-2026-01"]["expected"]["eligibility"] == "INELIGIBLE"
+    assert by_id["at-rwr-shortage-software-di-strong-points-2026-01"]["expected"]["eligibility"] == "REVIEW_REQUIRED"
+    assert by_id["at-rwr-shortage-software-di-under-points-2026-01"]["expected"]["eligibility"] == "INELIGIBLE"
