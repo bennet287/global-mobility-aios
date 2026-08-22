@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-import sys
 
 # PR #8 is a long-lived product branch that predates the stronger multi-commit
 # diff-hygiene gate. Its accepted history contains known whitespace debt and
@@ -15,10 +14,9 @@ TRANSITION_PR = "8"
 TRANSITION_BASELINE = "8624d7f9891a3af6bcbd3693c1286984f5c1fbfd"
 
 
-def _run_git(*args: str, check: bool = False) -> subprocess.CompletedProcess[str]:
+def _run_git(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["git", *args],
-        check=check,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
