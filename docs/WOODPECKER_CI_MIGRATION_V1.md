@@ -18,6 +18,8 @@ The migration preserves the existing four proof lanes:
 
 GitHub remains the repository, pull-request and review surface. Woodpecker receives GitHub webhook events and reports workflow status back to the forge.
 
+The first parity run is triggered only after the repository is activated in Woodpecker so the GitHub webhook path is exercised end to end.
+
 ## Architecture
 
 ```text
