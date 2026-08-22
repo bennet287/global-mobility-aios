@@ -1,15 +1,16 @@
 # Munder Difflin v0.4.4 → Global Mobility AIOS Adoption Programme V1
 
-**Date:** 2026-08-20  
-**Status:** Strategic donor / controlled adoption programme  
-**Donor baseline:** Munder Difflin `v0.4.4`  
-**AIOS implementation line:** `roadmap/global-mobility-aios-v12`  
+**Date:** 2026-08-22
+**Status:** Strategic donor / controlled adoption programme
+**Donor baseline:** Munder Difflin `v0.4.4`
+**AIOS implementation line:** `roadmap/global-mobility-aios-v12`
+**Frontend design programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 
 ## 1. Purpose
 
-Munder Difflin v0.4.4 is a frozen upstream donor for the Global Mobility AIOS Organization Fabric. It is not the governing architecture, canonical truth system, domain model or authority model.
+Munder Difflin v0.4.4 is a frozen upstream donor for the Global Mobility AIOS Organization Fabric. It is not the governing architecture, canonical truth system, domain model, authority model or final product-design system.
 
-The objective is maximum useful feature adoption without inheriting Munder's architectural ceilings.
+The objective is maximum useful feature adoption without inheriting Munder's architectural or visual ceilings.
 
 > **External capability may be adopted aggressively. AIOS meaning and authority remain sovereign.**
 
@@ -90,7 +91,8 @@ Munder-derived code must not become authoritative for:
 - Command Gateway decisions;
 - Board-reserved actions;
 - professional/human-review requirements;
-- final business outcomes.
+- final business outcomes;
+- AIOS information architecture, design tokens or final visual identity.
 
 ## 5. Runtime relationship
 
@@ -206,7 +208,7 @@ Munder runtime telemetry, transcripts, token/cost signals and tool activity shou
 
 Provider-native logs remain technical evidence, not automatically canonical OrganizationActivity.
 
-## 12. Living Organization relationship
+## 12. Living Organization + frontend relationship
 
 Munder's 2D office is a conceptual/runtime donor, not the target visual system.
 
@@ -217,11 +219,12 @@ AIOS target:
 Retain or study:
 
 - scene/event synchronization;
-- presence state;
+- presence state and heartbeat mechanics;
 - character positioning;
 - collaboration grouping;
 - live message/tool signals;
-- runtime-driven animation.
+- runtime-driven animation;
+- transcript and execution-timeline concepts.
 
 Replace completely:
 
@@ -230,6 +233,24 @@ Replace completely:
 - random wandering;
 - game-like decorative busywork;
 - GOD-character metaphors.
+
+Frontend ownership is now explicit:
+
+```text
+Munder donor mechanics
+        ↓ selective adaptation
+canonical AIOS organization/read-model state
+        ↓
+AIOS interaction semantics
+        ↓
+Penpot + AIOS Design System
+        ↓
+repository-owned React components / Storybook workbench
+        ↓
+Next.js Cockpit / Board Room / Operations / My Mobility
+```
+
+Munder may influence mechanics; it does not define the AIOS product identity. Meaningful animation must be derived from real persisted/runtime state and may never manufacture apparent organizational activity.
 
 ## 13. Engineering-workforce relationship
 
@@ -256,13 +277,13 @@ M14  webhooks/integration broker
 M15  memory mechanics
 M16  Organization/Decision Graph
 M17  Living Organization runtime
-M18  modern character system
+M18  modern character system via AIOS Design System
 M19  executive voice/realtime
 M20  engineering worktrees/IDE
 M21  optional desktop runtime
 ```
 
-These slices are subordinate to the main V1.3 programme. Governance and transparency dependencies must be satisfied before powerful external execution is enabled.
+These slices are subordinate to the main V1.3 programme. Governance and transparency dependencies must be satisfied before powerful external execution is enabled. M17/M18 are additionally subordinate to real L read-model state and the frontend UX programme.
 
 ## 15. Acceptance requirements
 
@@ -286,6 +307,14 @@ Every adoption slice should demonstrate, as applicable:
 - repository-policy compliance;
 - truthful acceptance evidence.
 
+Frontend-facing donor slices must additionally demonstrate:
+
+- no fake live organization state;
+- canonical read-model fidelity;
+- accessibility/responsive behavior where applicable;
+- AIOS design-token/component ownership;
+- no donor visual identity leakage into the final product by accident.
+
 ## 16. Final adoption rule
 
-> **Use Munder Difflin aggressively where it accelerates AIOS runtime capability, but never let donor implementation replace AIOS constitutional authority, Evidence, governance, canonical truth or Global Mobility domain semantics.**
+> **Use Munder Difflin aggressively where it accelerates AIOS runtime capability, but never let donor implementation replace AIOS constitutional authority, Evidence, governance, canonical truth, Global Mobility domain semantics or final product-design authority.**
