@@ -1,5 +1,8 @@
 when:
-  - event: [push, pull_request, manual]
+  - event: pull_request
+  - event: push
+    branch: main
+  - event: manual
 
 steps:
   - name: postgres-governance-contracts
