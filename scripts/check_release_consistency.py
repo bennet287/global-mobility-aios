@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -9,6 +10,7 @@ from typing import Any
 
 REVISION_RE = re.compile(r"\*\*Code migration head:\*\*\s*`([^`]+)`")
 MARKER_RE = re.compile(r"<!--\s*CURRENT_MIGRATION_HEAD:\s*([^\s]+)\s*-->")
+README_NEXT_RE = re.compile(r"^- Next\.js\s+([^\s]+)\s*$", re.MULTILINE)
 
 
 def _literal_assignment(tree: ast.Module, name: str) -> Any:
@@ -48,6 +50,8 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     versions_dir = root / "apps" / "api" / "alembic" / "versions"
     roadmap = root / "docs" / "ROADMAP.md"
+    readme = root / "README.md"
+    web_package = root / "apps" / "web" / "package.json"
 
     revisions, parents = migration_graph(versions_dir)
     unknown_parents = sorted(parents - revisions)
@@ -76,13 +80,26 @@ def main() -> int:
     elif marker.group(1) != head:
         failures.append(f"ROADMAP machine migration marker is {marker.group(1)!r}, expected {head!r}")
 
+    package = json.loads(web_package.read_text(encoding="utf-8"))
+    next_version = str(package.get("dependencies", {}).get("next", "")).strip()
+    readme_text = readme.read_text(encoding="utf-8")
+    readme_next = README_NEXT_RE.search(readme_text)
+    if not next_version:
+        failures.append("apps/web/package.json is missing dependencies.next")
+    if readme_next is None:
+        failures.append("README.md is missing the Web stack Next.js version line")
+    elif next_version and readme_next.group(1) != next_version:
+        failures.append(
+            f"README Next.js version is {readme_next.group(1)!r}, expected package.json {next_version!r}"
+        )
+
     if failures:
         print("Release consistency check failed:")
         for failure in failures:
             print(f"- {failure}")
         return 1
 
-    print(f"Release consistency check passed. Alembic head: {head}")
+    print(f"Release consistency check passed. Alembic head: {head}; Next.js: {next_version}")
     return 0
 
 

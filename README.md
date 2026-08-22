@@ -458,7 +458,7 @@ Historical GitHub Actions proofs remain valid historical evidence where they act
 
 ### Web
 
-- Next.js 15.2.4
+- Next.js 16.3.1
 - React 19
 - TypeScript
 - App Router
