@@ -175,7 +175,7 @@ jobs:
       - name: Verify PostgreSQL migration and physical schema contract
         run: python scripts/check_database_migrations.py
 
-      - name: Run governed eligibility PostgreSQL contracts
+      - name: Run governed PostgreSQL contracts
         run: >-
           python -m pytest -q
           apps/api/tests/test_organization_eligibility_effect.py
@@ -194,3 +194,4 @@ jobs:
           apps/api/tests/test_organization_eligibility_postgres_contract.py
           apps/api/tests/test_organization_autonomy_promotion_policy_postgres.py
           apps/api/tests/test_organization_autonomy_evidence_evaluation_postgres.py
+          apps/api/tests/test_organization_mobility_objective_execution_postgres.py
