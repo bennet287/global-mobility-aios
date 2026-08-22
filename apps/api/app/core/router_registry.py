@@ -57,6 +57,7 @@ from app.routers import (
     organization_autonomy_promotion_transparency,
     organization_eligibility,
     organization_governance,
+    organization_mobility_live_commands,
     organization_records,
     organization_transparency,
     partner_api,
@@ -137,6 +138,7 @@ ROUTER_SPECS: tuple[RouterSpec, ...] = (
     RouterSpec(automation.router, feature="automation"),
     RouterSpec(organization_governance.router, feature="organization-governance"),
     RouterSpec(organization_records.router, feature="organization-records"),
+    RouterSpec(organization_mobility_live_commands.router, feature="organization-live-commands"),
     RouterSpec(organization_eligibility.router, feature="organization-governed-eligibility"),
     RouterSpec(organization_transparency.router, feature="organization-transparency"),
     RouterSpec(
