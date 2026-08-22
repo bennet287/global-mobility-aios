@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import os
 from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
 from threading import Barrier
+from time import monotonic, sleep
+from uuid import UUID
 
 import pytest
 from sqlmodel import Session, select
 
 from app.core.organization_constitution import AutonomyLevel
+from app.models.autonomy_profile import CapabilityAutonomyProfile
 from app.models.autonomy_promotion_policy import CapabilityAutonomyPromotionPolicy
 from app.services.organization_autonomy_promotion_policy import establish_capability_autonomy_promotion_policy
 from app.services.organization_command import DependencyConflict, InvalidTransition
@@ -31,6 +35,7 @@ def _write_policy(
     idempotency_key: str,
     expected_policy_sequence: int | None,
     min_volume: int = 2,
+    expected_profile_id: UUID | None = None,
 ):
     return establish_capability_autonomy_promotion_policy(
         session,
@@ -57,6 +62,7 @@ def _write_policy(
         max_incident_count=0,
         policy_reason=f"PostgreSQL I.3 policy {idempotency_key}",
         idempotency_key=idempotency_key,
+        expected_profile_id=expected_profile_id,
         expected_policy_sequence=expected_policy_sequence,
     )
 
@@ -162,3 +168,80 @@ def test_postgres_stale_cross_session_i3_policy_supersession_is_rejected(
     )
     assert [row.policy_sequence for row in rows] == [1, 2]
     assert rows[1].supersedes_policy_id == rows[0].id
+
+
+def test_postgres_i3_policy_rejects_profile_supersession_that_wins_profile_lock(
+    db_session: Session,
+) -> None:
+    evidence = _seed_autonomy_contract(db_session, evidence_key="postgres-i3-profile-lock-race")
+    first_profile = _write_autonomy_profile(
+        db_session,
+        actor_id="board-i3-profile-lock-v1",
+        evidence_activity_id=evidence.id,
+        idempotency_key="i3-postgres-profile-lock-v1",
+        expected_profile_sequence=None,
+    )
+    engine = db_session.get_bind()
+    pid_queue: Queue[int] = Queue()
+
+    def write_inflight_policy() -> tuple[str, str]:
+        with Session(engine) as session:
+            pid = session.connection().exec_driver_sql("SELECT pg_backend_pid()").scalar_one()
+            pid_queue.put(int(pid))
+            try:
+                _write_policy(
+                    session,
+                    actor_id="board-i3-profile-lock-policy",
+                    idempotency_key="i3-postgres-profile-lock-policy",
+                    expected_policy_sequence=None,
+                    expected_profile_id=first_profile.id,
+                )
+                return "committed", "unexpected"
+            except InvalidTransition as exc:
+                return "rejected", str(exc)
+
+    with Session(engine) as supersession_session:
+        locked_profile = supersession_session.exec(
+            select(CapabilityAutonomyProfile)
+            .where(CapabilityAutonomyProfile.id == first_profile.id)
+            .with_for_update()
+        ).one()
+        assert locked_profile.id == first_profile.id
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(write_inflight_policy)
+            policy_pid = pid_queue.get(timeout=5)
+            deadline = monotonic() + 5
+            while monotonic() < deadline:
+                wait_event_type = supersession_session.connection().exec_driver_sql(
+                    "SELECT wait_event_type FROM pg_stat_activity WHERE pid = %s",
+                    (policy_pid,),
+                ).scalar_one_or_none()
+                if wait_event_type == "Lock":
+                    break
+                sleep(0.02)
+            else:
+                pytest.fail("inflight I.3 policy writer never blocked on the I.1 profile lock")
+
+            second_profile = _write_autonomy_profile(
+                supersession_session,
+                actor_id="board-i3-profile-lock-v2",
+                evidence_activity_id=evidence.id,
+                idempotency_key="i3-postgres-profile-lock-v2",
+                expected_profile_sequence=1,
+            )
+            assert second_profile.profile_sequence == 2
+            outcome, detail = future.result(timeout=5)
+
+    assert outcome == "rejected"
+    assert "expected autonomy profile is stale" in detail
+    db_session.expire_all()
+    policies = list(
+        db_session.exec(
+            select(CapabilityAutonomyPromotionPolicy).where(
+                CapabilityAutonomyPromotionPolicy.tenant_key == "default",
+                CapabilityAutonomyPromotionPolicy.profile_id == first_profile.id,
+            )
+        ).all()
+    )
+    assert policies == []
