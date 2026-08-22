@@ -1,12 +1,11 @@
 when:
   - event: [push, pull_request, manual]
 
-environment:
-  DATABASE_URL: sqlite:///./ci-production-proof.db
-
 steps:
   - name: backend-regression-sqlite
     image: python:3.12-bookworm
+    environment:
+      DATABASE_URL: sqlite:///./ci-production-proof.db
     commands:
       - python -m pip install --upgrade pip
       - python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
