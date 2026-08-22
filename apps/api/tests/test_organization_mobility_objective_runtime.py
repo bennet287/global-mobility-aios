@@ -89,8 +89,6 @@ def test_j1_creates_one_root_and_two_persistent_specialist_work_items(db_session
         assert work.department == position.department
         assert work.authority_level == position.authority_level
 
-    # Three creations plus the root running transition are durably visible through the
-    # existing Activity ledger; J.1 does not add a second Mission/event store.
     assert objective_activity_count(db_session, root_work_item_id=plan.root_work_item.id) >= 4
 
 
@@ -143,8 +141,6 @@ def test_j1_binds_each_specialist_through_fresh_context_without_runtime_authorit
         assert set(item.runtime.allowed_tools).issubset(set(item.context.allowed_tools))
         assert set(item.runtime.allowed_tools).issubset(set(profiles[item.position_key].available_tools))
 
-    # Runtime identity is technical only. Rebinding the same employee/context to a
-    # different provider changes binding identity but not employee/context authority.
     pathway_context = bindings[0].context
     alternate = bind_employee_runtime(
         db_session,
@@ -191,7 +187,7 @@ def test_j1_stale_specialist_context_cannot_be_rebound_after_work_state_change(d
         )
 
 
-def test_j1_owner_synthesis_readiness_requires_both_specialists_to_complete(db_session: Session) -> None:
+def test_k1_gate_rejects_workitem_completion_without_durable_execution_evidence(db_session: Session) -> None:
     _foundation(db_session)
     context = _human_context()
     plan = create_austria_mobility_objective(
@@ -208,49 +204,30 @@ def test_j1_owner_synthesis_readiness_requires_both_specialists_to_complete(db_s
     assert initial.ready_for_owner_synthesis is False
     assert set(initial.pending_positions) == set(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
 
-    pathway = start_work_item(
-        db_session,
-        context,
-        work_item_id=plan.pathway_work_item.id,
-        reason="Start pathway specialist work.",
-    )
-    complete_work_item(
-        db_session,
-        context,
-        work_item_id=pathway.id,
-        reason="Pathway specialist bounded analysis completed.",
-    )
-    halfway = austria_objective_readiness(
+    for work in (plan.pathway_work_item, plan.regulatory_work_item):
+        running = start_work_item(
+            db_session,
+            context,
+            work_item_id=work.id,
+            reason="Start specialist work without K.1 execution proof.",
+        )
+        complete_work_item(
+            db_session,
+            context,
+            work_item_id=running.id,
+            reason="Structurally complete without controlled-agent execution evidence.",
+        )
+
+    readiness = austria_objective_readiness(
         db_session,
         tenant_key="default",
         root_work_item_id=plan.root_work_item.id,
     )
-    assert halfway.ready_for_owner_synthesis is False
-    assert halfway.completed_positions == (AUSTRIA_MOBILITY_PATHWAY_POSITION,)
-    assert halfway.pending_positions == (AUSTRIA_MOBILITY_REGULATORY_POSITION,)
-
-    regulatory = start_work_item(
-        db_session,
-        context,
-        work_item_id=plan.regulatory_work_item.id,
-        reason="Start regulatory specialist work.",
-    )
-    complete_work_item(
-        db_session,
-        context,
-        work_item_id=regulatory.id,
-        reason="Regulatory specialist bounded analysis completed.",
-    )
-    ready = austria_objective_readiness(
-        db_session,
-        tenant_key="default",
-        root_work_item_id=plan.root_work_item.id,
-    )
-
-    assert ready.ready_for_owner_synthesis is True
-    assert ready.pending_positions == ()
-    assert set(ready.completed_positions) == set(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
-    assert ready.reasons == ()
+    assert readiness.ready_for_owner_synthesis is False
+    assert readiness.completed_positions == ()
+    assert set(readiness.pending_positions) == set(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
+    assert len(readiness.reasons) == 2
+    assert all("K.1 durable output" in reason for reason in readiness.reasons)
 
 
 def test_j1_runtime_profile_cannot_forge_completed_specialist_work(db_session: Session) -> None:
