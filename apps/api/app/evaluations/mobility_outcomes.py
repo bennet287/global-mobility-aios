@@ -9,6 +9,7 @@ from typing import Iterable, Mapping
 
 class MobilityCaseProvenance(StrEnum):
     SYNTHETIC = "SYNTHETIC"
+    OFFICIAL_SOURCE_CURATED = "OFFICIAL_SOURCE_CURATED"
     PROFESSIONALLY_REVIEWED = "PROFESSIONALLY_REVIEWED"
     HISTORICAL = "HISTORICAL"
     LIVE_SHADOW = "LIVE_SHADOW"
@@ -49,6 +50,7 @@ class MobilityGoldCase:
     expected_contradictions: frozenset[str] | None = None
     expected_rule_or_source_refs: frozenset[str] | None = None
     expected_escalation_required: bool | None = None
+    provenance_references: tuple[str, ...] = ()
     review_reference: str | None = None
     notes: str | None = None
 
@@ -59,6 +61,8 @@ class MobilityGoldCase:
             raise ValueError("jurisdiction is required")
         if self.evaluation_as_of.tzinfo is None:
             raise ValueError("evaluation_as_of must be timezone-aware")
+        if self.provenance is MobilityCaseProvenance.OFFICIAL_SOURCE_CURATED and not self.provenance_references:
+            raise ValueError("official-source-curated cases require provenance_references")
         if self.provenance is MobilityCaseProvenance.PROFESSIONALLY_REVIEWED and not (
             self.review_reference and self.review_reference.strip()
         ):
