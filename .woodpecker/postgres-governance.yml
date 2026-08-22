@@ -1,5 +1,5 @@
 when:
-  - event: [push, pull_request]
+  - event: [push, pull_request, manual]
 
 environment:
   DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/global_mobility_aios_test
@@ -12,7 +12,8 @@ steps:
       - python -m pip install --upgrade pip
       - python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
       - python -m pip check
-      - python - <<'PY'
+      - |
+        python - <<'PY'
         import socket, time
         deadline = time.time() + 60
         while time.time() < deadline:
