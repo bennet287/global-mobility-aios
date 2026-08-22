@@ -14,6 +14,11 @@ from app.schemas_organization_autonomy_evidence import (
     CapabilityAutonomyEvidenceProfileTransparencyRead,
 )
 from app.schemas_organization_transparency import (
+    AustriaLiveBlockerRead,
+    AustriaLiveOrganizationLatestRead,
+    AustriaLiveOrganizationSnapshotRead,
+    AustriaLiveSpecialistRead,
+    AustriaOwnerSynthesisRead,
     GovernanceDecisionRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
@@ -28,6 +33,11 @@ from app.services.organization_autonomy_profile import (
     capability_autonomy_profile_snapshot,
 )
 from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError
+from app.services.organization_mobility_live_organization import (
+    AustriaLiveOrganizationSnapshot,
+    austria_live_organization_snapshot,
+    latest_austria_live_organization_snapshot,
+)
 from app.services.organization_transparency import (
     GovernedActionTrace,
     TransparencyActivityRecord,
@@ -50,10 +60,6 @@ router = APIRouter(
 
 
 def _require_board(context: OrganizationCommandContext) -> None:
-    # C.4 deliberately exposes the first Cockpit/Board read facade only to the
-    # current trusted admin→board role mapping. Broader professional visibility
-    # belongs to later sensitivity/retention policy work, not an implicit widening
-    # of this first material-transparency API.
     if context.role != "admin" or context.position_key != "board":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -176,6 +182,88 @@ def _safe_trace(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Organization transparency data is inconsistent.",
+        ) from exc
+
+
+def _live_snapshot_read(snapshot: AustriaLiveOrganizationSnapshot) -> AustriaLiveOrganizationSnapshotRead:
+    return AustriaLiveOrganizationSnapshotRead(
+        generated_at=snapshot.generated_at,
+        root_work_item_id=snapshot.root_work_item_id,
+        objective_key=snapshot.objective_key,
+        owner_position_key=snapshot.owner_position_key,
+        root_status=snapshot.root_status,
+        cycle_status=snapshot.cycle_status,
+        owner_synthesis_state=snapshot.owner_synthesis_state,
+        ready_for_owner_synthesis=snapshot.ready_for_owner_synthesis,
+        readiness_reasons=list(snapshot.readiness_reasons),
+        authority_level=snapshot.authority_level,
+        authority_posture=snapshot.authority_posture,
+        autonomy_profile_state=snapshot.autonomy_profile_state,
+        provider_model_authority=snapshot.provider_model_authority,
+        external_action_authorized=snapshot.external_action_authorized,
+        specialist_outputs=[
+            AustriaLiveSpecialistRead.model_validate(item) for item in snapshot.specialist_outputs
+        ],
+        owner_synthesis=(
+            AustriaOwnerSynthesisRead.model_validate(snapshot.owner_synthesis)
+            if snapshot.owner_synthesis is not None
+            else None
+        ),
+        blockers=[AustriaLiveBlockerRead.model_validate(item) for item in snapshot.blockers],
+        total_latency_ms=snapshot.total_latency_ms,
+        max_latency_ms=snapshot.max_latency_ms,
+        total_retry_count=snapshot.total_retry_count,
+        activity_count=snapshot.activity_count,
+        activities=[_record_read(record) for record in snapshot.activities],
+        domain_evidence_refs=list(snapshot.domain_evidence_refs),
+        verified_rule_refs=list(snapshot.verified_rule_refs),
+    )
+
+
+@router.get("/live-organization/austria/latest", response_model=AustriaLiveOrganizationLatestRead)
+def read_latest_austria_live_organization(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> AustriaLiveOrganizationLatestRead:
+    """Return the latest persisted Austria organization cycle for Board/Cockpit inspection."""
+
+    _require_board(context)
+    try:
+        snapshot = latest_austria_live_organization_snapshot(session, tenant_key=context.tenant_key)
+        return AustriaLiveOrganizationLatestRead(
+            established=snapshot is not None,
+            snapshot=_live_snapshot_read(snapshot) if snapshot is not None else None,
+        )
+    except (OrganizationCommandError, TransparencyDataError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Live organization transparency data is inconsistent.",
+        ) from exc
+
+
+@router.get(
+    "/live-organization/austria/{root_work_item_id}",
+    response_model=AustriaLiveOrganizationSnapshotRead,
+)
+def read_austria_live_organization(
+    root_work_item_id: UUID,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> AustriaLiveOrganizationSnapshotRead:
+    """Return one exact persisted Austria owner/specialist cycle for Board inspection."""
+
+    _require_board(context)
+    try:
+        snapshot = austria_live_organization_snapshot(
+            session,
+            tenant_key=context.tenant_key,
+            root_work_item_id=root_work_item_id,
+        )
+        return _live_snapshot_read(snapshot)
+    except (OrganizationCommandError, TransparencyDataError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Live organization transparency data is inconsistent.",
         ) from exc
 
 
