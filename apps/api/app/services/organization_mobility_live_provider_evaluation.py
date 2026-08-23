@@ -35,6 +35,27 @@ _SUPPORTED_PROVIDER_MODELS = {
     "deepseek": ("deepseek_api_key", "deepseek_model"),
     "moonshot": ("moonshot_api_key", "moonshot_model"),
 }
+_DURABLE_PROVENANCE_FIELDS = (
+    "root_work_item_id",
+    "work_item_id",
+    "position_key",
+    "context_hash",
+    "context_evidence_refs",
+    "context_verified_rule_refs",
+    "context_source_snapshot_refs",
+    "runtime_binding_hash",
+    "runtime_profile_key",
+    "runtime_profile_version",
+    "runtime_profile_fingerprint",
+    "runtime_class",
+    "adapter_key",
+    "provider_key",
+    "model_key",
+    "provider_model_authority",
+    "allowed_tools",
+    "execution_attempt_id",
+    "execution_token",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +104,7 @@ class AustriaLiveProviderEvaluation:
     specialist_evaluations: tuple[AustriaLiveProviderSpecialistEvaluation, ...]
     live_provider_success_count: int
     provider_failure_count: int
+    configured_selection_matches_all_specialists: bool
     all_specialists_live_provider_succeeded: bool
     all_specialists_authority_grounded: bool
     fresh_retrieval_provenance_complete: bool
@@ -90,6 +112,16 @@ class AustriaLiveProviderEvaluation:
     full_l_reasoning_evidence_candidate: bool
     provider_model_authority: bool
     external_action_authorized: bool
+
+
+def _json_object(value: str | None, *, label: str) -> dict[str, object]:
+    try:
+        parsed = json.loads(value or "{}")
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise DependencyConflict(f"{label} is invalid JSON") from exc
+    if not isinstance(parsed, dict):
+        raise DependencyConflict(f"{label} must be a JSON object")
+    return parsed
 
 
 def configured_live_provider_selection(*, require_api_key: bool) -> AustriaLiveProviderSelection:
@@ -206,20 +238,38 @@ def _specialist_evaluation(
         raise DependencyConflict(
             f"{result.position_key} live-provider evaluation output lineage is invalid"
         )
-    try:
-        payload = json.loads(output.output_json or "{}")
-    except (TypeError, json.JSONDecodeError) as exc:
+
+    payload = _json_object(
+        output.output_json,
+        label=f"{result.position_key} live-provider ActionOutput",
+    )
+    if (
+        payload.get("work_item_id") != str(result.work_item_id)
+        or payload.get("position_key") != result.position_key
+        or payload.get("execution_attempt_id") != str(result.execution_attempt_id)
+        or payload.get("agent_run_id") != str(result.agent_run_id)
+        or payload.get("agent_run_id") != str(agent_run.id)
+    ):
         raise DependencyConflict(
-            f"{result.position_key} live-provider evaluation output is invalid JSON"
-        ) from exc
-    if not isinstance(payload, dict):
-        raise DependencyConflict(
-            f"{result.position_key} live-provider evaluation output must be a JSON object"
+            f"{result.position_key} live-provider execution identifiers diverged"
         )
-    if payload.get("agent_run_id") != str(agent_run.id):
+
+    agent_input = _json_object(
+        agent_run.input_json,
+        label=f"{result.position_key} live-provider AgentRun input",
+    )
+    run_context = agent_input.get("context")
+    provenance = run_context.get("k1_provenance") if isinstance(run_context, dict) else None
+    if not isinstance(provenance, dict):
         raise DependencyConflict(
-            f"{result.position_key} live-provider evaluation AgentRun lineage diverged"
+            f"{result.position_key} live-provider AgentRun lacks K.1 provenance"
         )
+    for field in _DURABLE_PROVENANCE_FIELDS:
+        if payload.get(field) != provenance.get(field):
+            raise DependencyConflict(
+                f"{result.position_key} live-provider ActionOutput/AgentRun provenance diverged"
+            )
+
     controlled_output = payload.get("controlled_output")
     if not isinstance(controlled_output, dict):
         raise DependencyConflict(
@@ -294,7 +344,16 @@ def compile_austria_live_provider_evaluation(
         not in {ProviderOutcome.SUCCEEDED.value, ProviderOutcome.NOT_INVOKED.value}
         for item in specialist_evaluations
     )
-    all_live = live_success_count == len(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
+    selection_matches = all(
+        item.configured_provider is not None
+        and item.configured_provider.casefold() == selection.provider_key.casefold()
+        and item.configured_model == selection.model_key
+        for item in specialist_evaluations
+    )
+    all_live = (
+        live_success_count == len(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
+        and selection_matches
+    )
     all_grounded = all(
         item.grounding_state == GroundingState.AUTHORITY_GROUNDED.value
         for item in specialist_evaluations
@@ -311,6 +370,7 @@ def compile_austria_live_provider_evaluation(
         specialist_evaluations=specialist_evaluations,
         live_provider_success_count=live_success_count,
         provider_failure_count=provider_failure_count,
+        configured_selection_matches_all_specialists=selection_matches,
         all_specialists_live_provider_succeeded=all_live,
         all_specialists_authority_grounded=all_grounded,
         fresh_retrieval_provenance_complete=fresh_complete,
