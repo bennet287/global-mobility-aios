@@ -1,8 +1,8 @@
 # L Live Organization — Acceptance Operations
 
 **Status:** L IMPLEMENTED / ACCEPTANCE PENDING
-**Technical predecessor:** `a85384e60f9275332e02971ae8a9997899393b40`
-**Technical proof:** Woodpecker Pipeline #70 — 4/4 PASS
+**Technical predecessor:** `1037f020adfb8e8b99849050bd75cf1035ed2e96`
+**Technical proof:** Woodpecker Pipeline #72 — 4/4 PASS
 **Migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
 This runbook covers the remaining evidence work for L. It does not redefine AIOS authority, benchmark truth, or milestone acceptance.
@@ -116,25 +116,53 @@ Do not expose API keys in logs, screenshots, review records, commits, or chat tr
 
 ## Professional-review handoff
 
-The source benchmark remains immutable and `NOT_REVIEWED`. Prepare a review packet for an independent qualified professional:
+The source benchmark remains immutable and `NOT_REVIEWED`. The first real tranche should review all three current Austria benchmark cases together. Prepare the immutable reviewer packet outside the repository:
 
 ```powershell
 python scripts/prepare_austria_professional_review.py `
   --prepare-packet `
-  --case-id at-rwr-shortage-software-di-no-job-offer-2026-01 `
-  --output .test-tmp/austria-professional-review-packet.json
+  --output D:\austria-professional-review-packet.json
 ```
 
-The packet includes the exact source-case fingerprint, supplied facts, source labels, official-source references, claim boundary, and allowed review decisions.
+The packet includes each exact source-case fingerprint, supplied facts, source labels, official-source references, claim boundary, and allowed review decisions.
 
-The external reviewer must return a `mobility-professional-review-v1` bundle containing genuine durable references for:
+Prepare a separate fail-closed return template for the reviewer:
+
+```powershell
+python scripts/prepare_austria_professional_review.py `
+  --prepare-return-template `
+  --output D:\austria-professional-review-return.json
+```
+
+The return template pre-binds only AIOS-owned source identity fields: benchmark/schema identity, each `source_case_id`, and each exact `source_case_fingerprint`. Reviewer-owned fields intentionally remain `null`, including:
+
+- review/batch identifiers;
+- `created_at` and `reviewed_at`;
+- professional review record reference;
+- reviewer identity reference;
+- reviewer credential/standing reference;
+- `independent_review`;
+- review decision;
+- reviewed labels;
+- reviewer notes.
+
+An untouched return template is intentionally invalid and must not be treated as professional evidence.
+
+The external reviewer must complete the `mobility-professional-review-v1` return bundle with genuine durable references for:
 
 - the professional review record;
 - the reviewer identity;
 - the reviewer credential/standing evidence;
-- a timezone-aware review timestamp;
-- the exact case fingerprint;
+- timezone-aware creation/review timestamps;
+- the exact case fingerprint already bound by AIOS;
 - the independent-review assertion only when independence has actually been established.
+
+Decision semantics:
+
+- `CONFIRMED` — retain the source labels exactly and return them as `reviewed_labels`;
+- `CORRECTED` — return the complete corrected `reviewed_labels`; at least one labeled dimension must differ;
+- `DISPUTED` — held outside the promoted professional denominator;
+- `NEEDS_MORE_FACTS` — held outside the promoted professional denominator.
 
 AIOS validates those references structurally. It does **not** prove that the referenced person exists, is independent, or holds the claimed credential. Real-world verification evidence must be retained outside the compiler and linked by those references.
 
@@ -142,7 +170,7 @@ Validate a returned bundle with:
 
 ```powershell
 python scripts/prepare_austria_professional_review.py `
-  --validate-bundle <PATH_TO_REAL_REVIEW_BUNDLE.json>
+  --validate-bundle D:\austria-professional-review-return.json
 ```
 
 Exit code `0` means at least one CONFIRMED/CORRECTED case is structurally promotable. It still does not replace real-world reviewer/credential verification.

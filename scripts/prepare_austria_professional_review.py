@@ -22,6 +22,7 @@ from app.evaluations.professional_review import (  # noqa: E402
 
 
 HANDOFF_CONTRACT_VERSION = "austria-professional-review-handoff.v1"
+RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-return-template.v1"
 DEFAULT_SOURCE_PATH = ROOT / "apps" / "api" / "evaluations" / "mobility_cases" / "austria_rwr_shortage_2026_v1.json"
 
 
@@ -41,15 +42,20 @@ def _labels_payload(labels: MobilityReviewedLabels) -> dict[str, object]:
     }
 
 
-def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[str, object]:
+def _requested_case_ids(source_path: Path, case_ids: tuple[str, ...]) -> tuple[object, tuple[str, ...]]:
     source_set = load_official_source_gold_set(source_path)
-    raw = json.loads(source_path.read_text(encoding="utf-8"))
-    raw_cases = {case["case_id"]: case for case in raw["cases"]}
-
     requested = case_ids or tuple(case.case_id for case in source_set.cases)
-    unknown = sorted(set(requested) - set(raw_cases))
+    known = {case.case_id for case in source_set.cases}
+    unknown = sorted(set(requested) - known)
     if unknown:
         raise ValueError(f"unknown Austria professional-review case_id values: {', '.join(unknown)}")
+    return source_set, requested
+
+
+def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[str, object]:
+    source_set, requested = _requested_case_ids(source_path, case_ids)
+    raw = json.loads(source_path.read_text(encoding="utf-8"))
+    raw_cases = {case["case_id"]: case for case in raw["cases"]}
 
     cases: list[dict[str, object]] = []
     for case_id in requested:
@@ -95,10 +101,39 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
             "Supply durable professional_review_reference, reviewer_reference and reviewer_credential_reference values.",
             "Set independent_review=true only when independence has actually been established outside AIOS.",
             "Do not use test-only, placeholder or fabricated reviewer/credential references for acceptance evidence.",
+            "Use --prepare-return-template to generate the exact fail-closed JSON return skeleton.",
             "Run this tool with --validate-bundle before treating the tranche as structurally promotable.",
         ],
         "case_count": len(cases),
         "cases": cases,
+    }
+
+
+def build_return_template(source_path: Path, case_ids: tuple[str, ...]) -> dict[str, object]:
+    source_set, requested = _requested_case_ids(source_path, case_ids)
+    reviews = [
+        {
+            "review_id": None,
+            "source_case_id": case_id,
+            "source_case_fingerprint": source_set.fingerprint_for(case_id),
+            "reviewed_at": None,
+            "professional_review_reference": None,
+            "reviewer_reference": None,
+            "reviewer_credential_reference": None,
+            "independent_review": None,
+            "decision": None,
+            "reviewed_labels": None,
+            "notes": None,
+        }
+        for case_id in requested
+    ]
+    return {
+        "schema_version": PROFESSIONAL_REVIEW_SCHEMA_VERSION,
+        "review_batch_id": None,
+        "source_benchmark_key": source_set.benchmark_key,
+        "source_schema_version": source_set.schema_version,
+        "created_at": None,
+        "reviews": reviews,
     }
 
 
@@ -133,17 +168,38 @@ def validate_review_bundle(source_path: Path, review_path: Path) -> dict[str, ob
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Prepare an immutable-fingerprint Austria professional-review handoff packet or validate a completed "
-            "independent review bundle. This tool never fabricates professional review and never verifies real-world credentials."
+            "Prepare an immutable-fingerprint Austria professional-review handoff packet, prepare a fail-closed reviewer "
+            "return template, or validate a completed independent review bundle. This tool never fabricates professional "
+            "review and never verifies real-world credentials."
         )
     )
     parser.add_argument("--source-path", type=Path, default=DEFAULT_SOURCE_PATH)
     modes = parser.add_mutually_exclusive_group(required=True)
     modes.add_argument("--prepare-packet", action="store_true")
+    modes.add_argument("--prepare-return-template", action="store_true")
     modes.add_argument("--validate-bundle", type=Path)
     parser.add_argument("--case-id", action="append", default=[])
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
+
+
+def _emit_prepared(payload: dict[str, object], *, output: Path | None, contract_version: str) -> None:
+    rendered = _json(payload) + "\n"
+    if output is None:
+        print(rendered, end="")
+        return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(rendered, encoding="utf-8")
+    print(
+        _json(
+            {
+                "contract_version": contract_version,
+                "status": "prepared",
+                "output": str(output),
+                "case_count": len(payload.get("reviews", payload.get("cases", []))),
+            }
+        )
+    )
 
 
 def main() -> int:
@@ -151,26 +207,16 @@ def main() -> int:
     try:
         if args.prepare_packet:
             payload = build_review_packet(args.source_path, tuple(args.case_id))
-            rendered = _json(payload) + "\n"
-            if args.output is not None:
-                args.output.parent.mkdir(parents=True, exist_ok=True)
-                args.output.write_text(rendered, encoding="utf-8")
-                print(
-                    _json(
-                        {
-                            "contract_version": HANDOFF_CONTRACT_VERSION,
-                            "status": "prepared",
-                            "output": str(args.output),
-                            "case_count": payload["case_count"],
-                        }
-                    )
-                )
-            else:
-                print(rendered, end="")
+            _emit_prepared(payload, output=args.output, contract_version=HANDOFF_CONTRACT_VERSION)
+            return 0
+
+        if args.prepare_return_template:
+            payload = build_return_template(args.source_path, tuple(args.case_id))
+            _emit_prepared(payload, output=args.output, contract_version=RETURN_TEMPLATE_CONTRACT_VERSION)
             return 0
 
         if args.case_id:
-            raise ValueError("--case-id is only valid with --prepare-packet")
+            raise ValueError("--case-id is only valid with --prepare-packet or --prepare-return-template")
         report = validate_review_bundle(args.source_path, args.validate_bundle)
         print(_json(report))
         return 0 if report["first_real_tranche_structural_candidate"] else 2
