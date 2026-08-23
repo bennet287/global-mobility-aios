@@ -7,10 +7,16 @@ import { WorkspaceShell } from "../../../components/WorkspaceShell";
 import { useBackendStatus } from "../../../hooks/useBackendStatus";
 import {
   type AustriaLiveOrganizationLatest,
+  LiveOrganizationRequestError,
   getLatestAustriaLiveOrganization,
   synthesizeAustriaOwner,
 } from "../../../lib/live-organization";
 import { titleCase } from "../../../lib/utils";
+
+type LiveOrganizationLoadError = {
+  status: number | null;
+  message: string;
+};
 
 function positionLabel(value: string): string {
   return value.replaceAll("_", " ");
@@ -33,11 +39,24 @@ function timeLabel(value?: string | null): string {
   }).format(date);
 }
 
+function unavailableTitle(error: LiveOrganizationLoadError | null): string {
+  if (error?.status === 401) return "Board authentication required";
+  if (error?.status === 403) return "Board access not permitted";
+  if (error) return "Live organization unavailable";
+  return "Austria live cycle not yet established";
+}
+
+function errorLabel(error: LiveOrganizationLoadError): string {
+  if (error.status === 401) return "Board authentication required.";
+  if (error.status === 403) return "Board transparency access denied.";
+  return "Live organization data unavailable.";
+}
+
 export default function AustriaLiveOrganizationPage() {
   const { health, error: healthError } = useBackendStatus();
   const [latest, setLatest] = useState<AustriaLiveOrganizationLatest | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LiveOrganizationLoadError | null>(null);
   const [commandSubmitting, setCommandSubmitting] = useState(false);
   const [commandMessage, setCommandMessage] = useState<string | null>(null);
 
@@ -47,7 +66,15 @@ export default function AustriaLiveOrganizationPage() {
     try {
       setLatest(await getLatestAustriaLiveOrganization());
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Live organization data is unavailable.");
+      setLatest(null);
+      setError(
+        loadError instanceof LiveOrganizationRequestError
+          ? { status: loadError.status, message: loadError.message }
+          : {
+              status: null,
+              message: loadError instanceof Error ? loadError.message : "Live organization data is unavailable.",
+            },
+      );
     } finally {
       setLoading(false);
     }
@@ -104,6 +131,24 @@ export default function AustriaLiveOrganizationPage() {
         ? "partial"
         : "ready";
 
+  const heroTitle = snapshot
+    ? titleCase(snapshot.cycle_status)
+    : loading
+      ? "Loading persisted Austria cycle"
+      : unavailableTitle(error);
+
+  const authorityState = snapshot
+    ? titleCase(snapshot.authority_posture)
+    : loading
+      ? "Loading"
+      : error?.status === 401
+        ? "Authentication required"
+        : error?.status === 403
+          ? "Access denied"
+          : error
+            ? "Unavailable"
+            : "Not established";
+
   return (
     <WorkspaceShell health={health}>
       <Topbar
@@ -118,14 +163,21 @@ export default function AustriaLiveOrganizationPage() {
           <div className="cockpit-live-line">
             <span className="cockpit-live-dot" aria-hidden="true" />
             <span>Persisted organization cycle</span>
-            <small>{snapshot ? `Updated ${timeLabel(snapshot.generated_at)}` : "No simulated state"}</small>
+            <small>
+              {snapshot
+                ? `Updated ${timeLabel(snapshot.generated_at)}`
+                : loading
+                  ? "Loading persisted state"
+                  : error
+                    ? "Persisted state unavailable"
+                    : "No simulated state"}
+            </small>
           </div>
-          <h2 id="live-organization-state-title">
-            {snapshot ? titleCase(snapshot.cycle_status) : "Austria live cycle not yet established"}
-          </h2>
+          <h2 id="live-organization-state-title">{heroTitle}</h2>
           <p>
-            This Cockpit surface reads the canonical Austria owner/specialist cycle only from persisted AIOS records.
-            It does not manufacture completion, evidence, runtime status, or authority for presentation.
+            {error
+              ? "The Cockpit could not read the canonical Austria owner/specialist projection, so it does not infer whether a live cycle exists, what its authority posture is, or whether work is ready."
+              : "This Cockpit surface reads the canonical Austria owner/specialist cycle only from persisted AIOS records. It does not manufacture completion, evidence, runtime status, or authority for presentation."}
           </p>
           <div className="cockpit-command-actions">
             <button
@@ -144,11 +196,15 @@ export default function AustriaLiveOrganizationPage() {
 
         <aside className="cockpit-command-state" aria-label="Live organization authority posture">
           <span>Authority posture</span>
-          <strong>{snapshot ? titleCase(snapshot.authority_posture) : "Not established"}</strong>
+          <strong>{authorityState}</strong>
           <p>
             {snapshot
               ? `Provider/model authority: ${snapshot.provider_model_authority ? "present" : "none"}. External action: ${snapshot.external_action_authorized ? "authorized" : "not authorized"}.`
-              : "No objective record is currently available to project an authority posture."}
+              : error
+                ? "No authority posture is inferred while the persisted projection is unavailable."
+                : loading
+                  ? "Waiting for the authoritative persisted projection."
+                  : "No objective record is currently available to project an authority posture."}
           </p>
           <div className="cockpit-state-rule">
             <i aria-hidden="true" />
@@ -167,7 +223,7 @@ export default function AustriaLiveOrganizationPage() {
 
       {error ? (
         <div className="cockpit-partial-note" role="status">
-          <strong>Live organization data unavailable.</strong><span>{error}</span>
+          <strong>{errorLabel(error)}</strong><span>{error.message}</span>
         </div>
       ) : null}
       {commandMessage ? (

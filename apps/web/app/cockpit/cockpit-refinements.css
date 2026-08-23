@@ -1,0 +1,400 @@
+/* Cockpit refinement pass — executive density, truthful empty states, and exception-first emphasis. */
+
+/* 1. One canonical global state language lives in the Topbar. */
+.workspace-state {
+  min-width: 92px;
+  justify-content: center;
+  letter-spacing: .08em;
+  font-weight: 820;
+}
+
+.workspace-state.ready { color: var(--green-strong); }
+.workspace-state.partial { color: var(--amber); }
+.workspace-state.offline { color: var(--red); }
+.workspace-state.loading,
+.workspace-state.idle { color: var(--ink-muted); }
+
+/* 2. Keep the hero premium, but make it earn its footprint. */
+.cockpit-command {
+  gap: 24px;
+  padding: clamp(26px, 3.25vw, 42px);
+  border-radius: 26px;
+}
+
+.cockpit-command::before {
+  inset: -38% auto auto 51%;
+  width: 430px;
+  height: 430px;
+  opacity: .78;
+}
+
+.cockpit-command-copy h2 {
+  max-width: 880px;
+  margin: 14px 0 13px;
+  font-size: clamp(36px, 4.15vw, 62px);
+  line-height: 1;
+}
+
+.cockpit-command-copy > p {
+  max-width: 760px;
+  font-size: 13.5px;
+  line-height: 1.62;
+}
+
+.cockpit-command-actions { margin-top: 20px; }
+
+.cockpit-command-state {
+  padding: 21px;
+  border-radius: 18px;
+}
+
+.cockpit-command-state > strong { font-size: 28px; }
+.cockpit-command-state > p { font-size: 12px; line-height: 1.58; }
+
+.cockpit-command-metrics {
+  margin-top: 0;
+  padding-top: 18px;
+}
+
+.cockpit-command-metrics article { padding: 0 16px; }
+.cockpit-command-metrics strong { font-size: clamp(22px, 1.85vw, 30px); }
+.cockpit-command-metrics span { margin-top: 4px; font-size: 10px; line-height: 1.4; }
+
+/* Make partial-state detail readable and clearly subordinate to the global status. */
+.cockpit-partial-note {
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cockpit-partial-note strong { white-space: nowrap; }
+
+/* 3. Adaptive hierarchy: preserve the authority model without making zero-state scaffolding enormous. */
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) {
+  padding-bottom: 20px;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .organization-pulse-map {
+  min-height: 0;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-enterprise-stack {
+  gap: 0;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-executive-layer {
+  margin-top: 16px;
+  padding: 18px 20px;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-executive-grid {
+  margin-top: 10px;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-executive-grid > .pulse-layer-empty {
+  min-height: 0;
+  padding: 13px 15px;
+  border-style: solid;
+  font-size: 0;
+  text-align: left;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-executive-grid > .pulse-layer-empty::after {
+  content: "Organization foundation exists; no active operational positions are currently instantiated.";
+  color: var(--ink-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-operational-layer,
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-focus-panel,
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-layer-connector.domain {
+  display: none;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-layer-connector.execution {
+  height: 22px;
+}
+
+.cockpit-pulse:has(.pulse-executive-grid > .pulse-layer-empty):has(.pulse-domain-grid > .pulse-layer-empty) .pulse-runtime-fabric {
+  margin-top: 14px;
+}
+
+/* 4. Board-by-exception: a real owner intervention should become visually dominant. */
+.owner-attention {
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.owner-attention:has(.owner-attention-state.needs-attention) {
+  border-color: color-mix(in srgb, var(--amber) 48%, var(--line));
+  box-shadow: 0 22px 58px color-mix(in srgb, var(--amber-glow) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.7);
+  transform: translateY(-2px);
+}
+
+.owner-attention:has(.owner-attention-state.needs-attention) .cockpit-surface-header h3 {
+  font-size: clamp(25px, 2.3vw, 34px);
+}
+
+.owner-attention:has(.owner-attention-state.needs-attention) .owner-authority-orbit {
+  transform: scale(1.05);
+}
+
+/* 5. Jurisdiction intelligence earns the map only when reviewed signals exist. */
+.global-mobility-pulse:has(.global-map-empty) .global-coverage-map {
+  min-height: 150px;
+  height: auto;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(145deg, rgba(22, 27, 48, .98), rgba(13, 17, 31, .98));
+}
+
+.global-mobility-pulse:has(.global-map-empty) .global-world-shape,
+.global-mobility-pulse:has(.global-map-empty) .global-map-legend {
+  display: none;
+}
+
+.global-mobility-pulse:has(.global-map-empty) .global-map-empty {
+  position: static;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 0;
+  color: rgba(246, 243, 235, .72);
+  font-size: 0;
+  text-align: center;
+  transform: none;
+}
+
+.global-mobility-pulse:has(.global-map-empty) .global-map-empty::before {
+  content: "No professionally reviewed jurisdiction signal yet.";
+  display: block;
+  color: #f6f3eb;
+  font-family: var(--font-editorial);
+  font-size: clamp(22px, 2.4vw, 31px);
+  line-height: 1.08;
+}
+
+.global-mobility-pulse:has(.global-map-empty) .global-map-empty::after {
+  content: "External Validation and Source Review remain the next evidence gates before the geographic view expands.";
+  display: block;
+  margin-top: 9px;
+  color: rgba(246, 243, 235, .56);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.global-mobility-pulse:has(.global-map-empty) .global-signal-list {
+  display: none;
+}
+
+.global-mobility-pulse:has(.global-map-empty) footer {
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+/* 6. Compress known-zero states; let exceptions and active work consume the space. */
+.live-organization:has(.activity-empty-state) .live-activity-list {
+  min-height: 0;
+}
+
+.live-organization:has(.activity-empty-state) .activity-empty-state {
+  min-height: 0;
+  gap: 12px;
+  padding: 22px 8px 14px;
+}
+
+.live-organization:has(.activity-empty-state) .activity-coverage-viz {
+  display: none;
+}
+
+.live-organization:has(.activity-empty-state) .activity-empty-state > div:last-child {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.live-organization:has(.activity-empty-state) .activity-empty-state > div:last-child > strong {
+  font-family: var(--font-editorial);
+  font-size: 23px;
+  font-weight: 400;
+}
+
+.live-organization:has(.activity-empty-state) .activity-empty-state > div:last-child > p {
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.live-organization:has(.activity-empty-state) .activity-coverage-note {
+  margin-top: 8px;
+  padding-top: 11px;
+}
+
+.cockpit-operational-intelligence:not(:has(.cockpit-lane-list)) .operational-intelligence-grid {
+  gap: 9px;
+}
+
+.cockpit-operational-intelligence:not(:has(.cockpit-lane-list)) .cockpit-lane {
+  min-height: 102px;
+  padding: 14px;
+}
+
+.cockpit-operational-intelligence:not(:has(.cockpit-lane-list)) .cockpit-lane .cockpit-empty-line {
+  min-height: 0;
+  padding: 10px 0 0;
+  border: 0;
+  background: transparent;
+  font-size: 11.5px;
+}
+
+/* 7. Operational typography: keep the editorial hierarchy, raise the readable floor. */
+.cockpit-surface,
+.cockpit-operational-intelligence,
+.cockpit-control-dock,
+.cockpit-partial-note {
+  --cockpit-readable-small: 11.5px;
+}
+
+.cockpit-surface p,
+.cockpit-surface small,
+.cockpit-lane p,
+.cockpit-lane small,
+.pulse-layer-empty,
+.cockpit-empty-line,
+.operational-intelligence-footer,
+.activity-coverage-note {
+  line-height: 1.52;
+}
+
+.cockpit-surface p,
+.cockpit-empty-line { font-size: 12.5px; }
+.cockpit-surface small,
+.cockpit-lane small,
+.operational-intelligence-footer,
+.activity-coverage-note { font-size: var(--cockpit-readable-small); }
+
+.premium-label,
+.cockpit-surface-header .premium-label,
+.pulse-layer-heading small,
+.pulse-focus-panel small {
+  font-size: 10px;
+  letter-spacing: .11em;
+}
+
+/* 8. The compact rail already has hover/focus expansion and tooltips. Strengthen discoverability without a second nav system. */
+@media (min-width: 1181px) {
+  .workspace-rail:hover,
+  .workspace-rail:focus-within {
+    width: 264px;
+  }
+
+  .workspace-rail:hover .rail-text,
+  .workspace-rail:focus-within .rail-text {
+    font-size: 12.5px;
+  }
+}
+
+.rail-hover-label {
+  z-index: 120;
+  min-width: 142px;
+  box-shadow: 0 14px 34px rgba(7, 8, 14, .24);
+}
+
+/* 9. Turn the bottom control dock into unmistakable navigation cards. */
+.cockpit-control-dock {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.cockpit-control-dock > a {
+  position: relative;
+  min-height: 116px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 18px 44px 18px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 17px;
+  color: #f5f2ea;
+  background: linear-gradient(145deg, #202641, #111521);
+  box-shadow: 0 12px 34px rgba(15, 18, 31, .11);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.cockpit-control-dock > a::after {
+  content: "→";
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  color: rgba(245,242,234,.5);
+  font-size: 18px;
+  transition: transform .18s ease, color .18s ease;
+}
+
+.cockpit-control-dock > a:hover,
+.cockpit-control-dock > a:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(196,199,242,.28);
+  box-shadow: 0 20px 44px rgba(15, 18, 31, .18);
+}
+
+.cockpit-control-dock > a:hover::after,
+.cockpit-control-dock > a:focus-visible::after {
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.cockpit-control-dock > a > span {
+  color: rgba(196,199,242,.72);
+  font-size: 9.5px;
+  font-weight: 780;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.cockpit-control-dock > a > strong {
+  font-family: var(--font-editorial);
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+
+.cockpit-control-dock > a > small {
+  max-width: 30ch;
+  color: rgba(245,242,234,.58);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+/* Live Organization: a disabled owner command must look unmistakably unavailable. */
+.cockpit-command .premium-button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+  filter: saturate(.4);
+  box-shadow: none;
+  transform: none;
+}
+
+@media (max-width: 1180px) {
+  .cockpit-control-dock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .cockpit-command {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+
+  .cockpit-command-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; }
+  .cockpit-command-metrics article { border-right: 0; padding: 0 12px 0 0; }
+  .cockpit-control-dock { grid-template-columns: 1fr; }
+}
