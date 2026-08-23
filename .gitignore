@@ -31,6 +31,13 @@ mvp-release-bundle-*.md
 mvp-release-bundle-*.json
 mvp-release-archive-*.zip
 
+# Local Woodpecker/proof artifacts; never source-control credentials or throwaway proof state.
+.env.woodpecker
+.env.woodpecker.backup.*
+.venv312-proof/
+backend-sqlite-regression.log
+docker-compose.woodpecker.yml.backup.*
+
 # Next.js frontend generated output
 .next/
 apps/web/.next/
