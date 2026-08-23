@@ -126,16 +126,24 @@ def _grounded_context_builder(
     )
 
 
+def _patch_grounded_context_builder(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Execution and runtime binding intentionally resolve context independently.
+    # A controlled grounded fixture must therefore replace both import sites so
+    # the runtime's stale-context guard still validates the exact same bundle.
+    for target in (
+        "app.services.organization_mobility_objective_execution.build_work_item_context_bundle",
+        "app.services.organization_agent_runtime.build_work_item_context_bundle",
+    ):
+        monkeypatch.setattr(target, _grounded_context_builder)
+
+
 def test_k1_persists_consumed_context_refs_and_l_projects_only_persisted_lineage(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
     _force_deterministic(monkeypatch)
-    monkeypatch.setattr(
-        "app.services.organization_mobility_objective_execution.build_work_item_context_bundle",
-        _grounded_context_builder,
-    )
+    _patch_grounded_context_builder(monkeypatch)
     context = _human_context()
     plan = create_austria_mobility_objective(
         db_session,
@@ -220,10 +228,7 @@ def test_l_rejects_ref_only_tampering_between_output_and_agent_run(
 ) -> None:
     ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
     _force_deterministic(monkeypatch)
-    monkeypatch.setattr(
-        "app.services.organization_mobility_objective_execution.build_work_item_context_bundle",
-        _grounded_context_builder,
-    )
+    _patch_grounded_context_builder(monkeypatch)
     context = _human_context()
     plan = create_austria_mobility_objective(
         db_session,
