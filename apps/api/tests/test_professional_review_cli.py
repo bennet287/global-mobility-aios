@@ -7,7 +7,8 @@ import subprocess
 import sys
 
 
-SCRIPT = Path("scripts/prepare_austria_professional_review.py")
+ROOT = Path(__file__).resolve().parents[3]
+SCRIPT = ROOT / "scripts" / "prepare_austria_professional_review.py"
 CASE_ID = "at-rwr-shortage-software-di-no-job-offer-2026-01"
 
 
@@ -17,6 +18,7 @@ def _run(*args: str) -> subprocess.CompletedProcess[str]:
         check=False,
         capture_output=True,
         text=True,
+        cwd=ROOT,
     )
 
 
