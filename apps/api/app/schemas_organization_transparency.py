@@ -74,6 +74,30 @@ class WorkItemTransparencyRead(TransparencyRead):
     records: list[TransparencyRecordRead]
 
 
+class AustriaLiveRuntimeQualityRead(TransparencyRead):
+    contract_version: str
+    execution_mode: str
+    provider_outcome: str
+    configured_provider: str | None
+    configured_model: str | None
+    response_provider: str | None
+    response_model: str | None
+    configured_runtime_matches_binding: bool | None
+    provider_egress_occurred: bool | None
+    fallback_to_template: bool
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    estimated_cost_usd: float | None
+    grounding_state: str
+    evidence_ref_count: int
+    verified_rule_ref_count: int
+    source_snapshot_ref_count: int
+    fresh_retrieval_provenance_present: bool
+    provider_model_authority: bool
+    warnings: list[str]
+
+
 class AustriaLiveSpecialistRead(TransparencyRead):
     position_key: str
     work_item_id: UUID
@@ -90,6 +114,7 @@ class AustriaLiveSpecialistRead(TransparencyRead):
     confidence: float | None
     provider_model_authority: bool
     external_action_authorized: bool
+    runtime_quality: AustriaLiveRuntimeQualityRead | None = None
 
 
 class AustriaLiveBlockerRead(TransparencyRead):

@@ -17,6 +17,7 @@ from app.schemas_organization_transparency import (
     AustriaLiveBlockerRead,
     AustriaLiveOrganizationLatestRead,
     AustriaLiveOrganizationSnapshotRead,
+    AustriaLiveRuntimeQualityRead,
     AustriaLiveSpecialistRead,
     AustriaOwnerSynthesisRead,
     GovernanceDecisionRead,
@@ -33,8 +34,12 @@ from app.services.organization_autonomy_profile import (
     capability_autonomy_profile_snapshot,
 )
 from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError
+from app.services.organization_mobility_live_diagnostics import (
+    austria_live_specialist_runtime_quality,
+)
 from app.services.organization_mobility_live_organization import (
     AustriaLiveOrganizationSnapshot,
+    AustriaLiveSpecialistSnapshot,
     austria_live_organization_snapshot,
     latest_austria_live_organization_snapshot,
 )
@@ -185,7 +190,28 @@ def _safe_trace(
         ) from exc
 
 
-def _live_snapshot_read(snapshot: AustriaLiveOrganizationSnapshot) -> AustriaLiveOrganizationSnapshotRead:
+def _live_specialist_read(
+    session: Session,
+    item: AustriaLiveSpecialistSnapshot,
+) -> AustriaLiveSpecialistRead:
+    base = AustriaLiveSpecialistRead.model_validate(item)
+    runtime_quality = austria_live_specialist_runtime_quality(session, item)
+    return base.model_copy(
+        update={
+            "runtime_quality": (
+                AustriaLiveRuntimeQualityRead.model_validate(runtime_quality)
+                if runtime_quality is not None
+                else None
+            )
+        }
+    )
+
+
+def _live_snapshot_read(
+    snapshot: AustriaLiveOrganizationSnapshot,
+    *,
+    session: Session,
+) -> AustriaLiveOrganizationSnapshotRead:
     return AustriaLiveOrganizationSnapshotRead(
         generated_at=snapshot.generated_at,
         root_work_item_id=snapshot.root_work_item_id,
@@ -202,7 +228,7 @@ def _live_snapshot_read(snapshot: AustriaLiveOrganizationSnapshot) -> AustriaLiv
         provider_model_authority=snapshot.provider_model_authority,
         external_action_authorized=snapshot.external_action_authorized,
         specialist_outputs=[
-            AustriaLiveSpecialistRead.model_validate(item) for item in snapshot.specialist_outputs
+            _live_specialist_read(session, item) for item in snapshot.specialist_outputs
         ],
         owner_synthesis=(
             AustriaOwnerSynthesisRead.model_validate(snapshot.owner_synthesis)
@@ -232,7 +258,9 @@ def read_latest_austria_live_organization(
         snapshot = latest_austria_live_organization_snapshot(session, tenant_key=context.tenant_key)
         return AustriaLiveOrganizationLatestRead(
             established=snapshot is not None,
-            snapshot=_live_snapshot_read(snapshot) if snapshot is not None else None,
+            snapshot=(
+                _live_snapshot_read(snapshot, session=session) if snapshot is not None else None
+            ),
         )
     except (OrganizationCommandError, TransparencyDataError) as exc:
         raise HTTPException(
@@ -270,7 +298,7 @@ def read_austria_live_organization(
             tenant_key=context.tenant_key,
             root_work_item_id=root_work_item_id,
         )
-        return _live_snapshot_read(snapshot)
+        return _live_snapshot_read(snapshot, session=session)
     except (OrganizationCommandError, TransparencyDataError) as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
