@@ -1,0 +1,32 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { test } from "node:test";
+
+const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
+
+test("Cockpit uses one global state vocabulary and adaptive evidence-first refinements", async () => {
+  const [topbar, refinements, layout, sidebar] = await Promise.all([
+    read("components/Topbar.tsx"),
+    read("app/cockpit/cockpit-refinements.css"),
+    read("app/cockpit/layout.tsx"),
+    read("components/Sidebar.tsx"),
+  ]);
+
+  assert.match(topbar, /ready: "READY"/);
+  assert.match(topbar, /partial: "PARTIAL"/);
+  assert.match(topbar, /offline: "DEGRADED"/);
+  assert.match(topbar, /loading: "CONNECTING"/);
+  assert.match(topbar, /aria-label=\{`\$\{stateLabel\}\. \$\{stateDescription\}`\}/);
+
+  assert.match(layout, /cockpit-refinements\.css/);
+  assert.match(refinements, /Organization foundation exists; no active operational positions are currently instantiated\./);
+  assert.match(refinements, /No professionally reviewed jurisdiction signal yet\./);
+  assert.match(refinements, /\.owner-attention:has\(\.owner-attention-state\.needs-attention\)/);
+  assert.match(refinements, /\.live-organization:has\(\.activity-empty-state\)/);
+  assert.match(refinements, /\.cockpit-control-dock > a/);
+  assert.doesNotMatch(refinements, /content:\s*"[1-9][0-9]*"/);
+
+  assert.match(sidebar, /role="tooltip"/);
+  assert.match(sidebar, /onMouseEnter=\{\(event\) => showRailTooltip/);
+  assert.match(sidebar, /onFocus=\{\(event\) => showRailTooltip/);
+});
