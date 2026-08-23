@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import socket
 from dataclasses import replace
-from typing import Callable
 from uuid import UUID
 
 import httpx
-from sqlmodel import Session
+from sqlmodel import Session, select
 
+from app.models.domain import AgentRun, OrganizationalActionOutput
 from app.services.organization_command import DependencyConflict
 from app.services.organization_mobility_fresh_retrieval import (
     attach_fresh_retrieval_evidence,
@@ -16,12 +16,14 @@ from app.services.organization_mobility_fresh_retrieval import (
 )
 from app.services.organization_mobility_live_provider_evaluation import (
     AustriaLiveProviderEvaluation,
+    configured_live_provider_selection,
     execute_austria_live_provider_evaluation,
     load_austria_mobility_objective_plan,
 )
 from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
     AUSTRIA_MOBILITY_REGULATORY_POSITION,
+    austria_specialist_output_key,
 )
 from app.services.source_retrieval import Resolver
 
@@ -29,7 +31,7 @@ from app.services.source_retrieval import Resolver
 _MISSING_FRESHNESS_WARNING = "fresh retrieval provenance is not present in the K.1 execution contract"
 
 
-def _fresh_execution_preflight(plan) -> None:
+def _fresh_execution_preflight(session: Session, plan) -> None:
     if plan.root_work_item.status in {"completed", "cancelled", "failed", "rejected", "returned"}:
         raise DependencyConflict("live-provider evaluation requires a non-terminal Austria objective")
     conflicts: list[str] = []
@@ -37,12 +39,17 @@ def _fresh_execution_preflight(plan) -> None:
         (AUSTRIA_MOBILITY_PATHWAY_POSITION, plan.pathway_work_item),
         (AUSTRIA_MOBILITY_REGULATORY_POSITION, plan.regulatory_work_item),
     ):
+        output_exists = session.exec(
+            select(OrganizationalActionOutput.id).where(
+                OrganizationalActionOutput.output_key == austria_specialist_output_key(work.id)
+            )
+        ).first() is not None
+        if output_exists:
+            conflicts.append(f"{position_key}:current_k1_output_exists")
         if work.status not in {"queued", "running"}:
             conflicts.append(f"{position_key}:status={work.status}")
         if work.execution_attempts >= work.max_execution_attempts:
             conflicts.append(f"{position_key}:execution_attempts_exhausted")
-        if work.output_json not in (None, "", "{}"):
-            conflicts.append(f"{position_key}:work_output_exists")
     if conflicts:
         raise DependencyConflict(
             "live-provider evaluation requires both specialists to be fresh executable candidates: "
@@ -56,14 +63,8 @@ def _enrich_freshness(
 ) -> AustriaLiveProviderEvaluation:
     enriched = []
     for specialist in evaluation.specialist_evaluations:
-        output = session.get(
-            __import__("app.models.domain", fromlist=["OrganizationalActionOutput"]).OrganizationalActionOutput,
-            specialist.action_output_id,
-        )
-        agent_run = session.get(
-            __import__("app.models.domain", fromlist=["AgentRun"]).AgentRun,
-            specialist.agent_run_id,
-        )
+        output = session.get(OrganizationalActionOutput, specialist.action_output_id)
+        agent_run = session.get(AgentRun, specialist.agent_run_id)
         if output is None or agent_run is None:
             raise DependencyConflict(
                 f"{specialist.position_key} fresh-retrieval evaluation lineage is unavailable"
@@ -122,12 +123,13 @@ def execute_austria_live_provider_cycle(
     ActionOutput/AgentRun lineage after execution.
     """
 
+    configured_live_provider_selection(require_api_key=True)
     plan = load_austria_mobility_objective_plan(
         session,
         tenant_key=tenant_key,
         root_work_item_id=root_work_item_id,
     )
-    _fresh_execution_preflight(plan)
+    _fresh_execution_preflight(session, plan)
     attestations = refresh_austria_authority_snapshots(
         session,
         plan,
