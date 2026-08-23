@@ -4,6 +4,7 @@ import path from "node:path";
 
 const outputDirectory = path.resolve(process.argv[2] || ".next");
 const chunksDirectory = path.join(outputDirectory, "static", "chunks");
+const clientConfigPath = path.resolve("lib", "client-api-config.ts");
 
 async function javascriptFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -14,6 +15,28 @@ async function javascriptFiles(directory) {
   }));
   return nested.flat();
 }
+
+const publicEnvNames = [
+  "NEXT_PUBLIC_API_BASE_URL",
+  "NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE",
+  "NEXT_PUBLIC_GMAI_ROLE",
+  "NEXT_PUBLIC_GMAI_USER",
+];
+
+// Next/Turbopack may either preserve public env reads or inline their build-time
+// values. Verify the static-read contract in the source module, then verify the
+// resolved security semantics in the compiled client chunk.
+const clientConfigSource = await readFile(clientConfigPath, "utf8");
+for (const envName of publicEnvNames) {
+  assert.ok(
+    clientConfigSource.includes(`process.env.${envName}`),
+    `Client API config lost static public env read ${envName}`,
+  );
+}
+assert.ok(
+  clientConfigSource.includes('process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"'),
+  "Client API config lost the canonical loopback API fallback",
+);
 
 const files = await javascriptFiles(chunksDirectory);
 const candidates = [];
@@ -31,16 +54,16 @@ for (const file of files) {
 assert.equal(candidates.length, 1, "Expected one compiled client chunk containing the Eligibility API/config path");
 const [{ file, source }] = candidates;
 
+const effectiveApiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+const effectiveRole = process.env.NEXT_PUBLIC_GMAI_ROLE || "admin";
+const effectiveUser = process.env.NEXT_PUBLIC_GMAI_USER || "frontend-operator";
+
 for (const expected of [
   "x-gmai-role",
   "x-gmai-user",
-  "http://127.0.0.1:8000",
-  "NEXT_PUBLIC_API_BASE_URL",
-  "NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE",
-  "NEXT_PUBLIC_GMAI_ROLE",
-  "NEXT_PUBLIC_GMAI_USER",
-  "frontend-operator",
-  "admin",
+  effectiveApiBase,
+  effectiveRole,
+  effectiveUser,
   "credentials",
   "include",
   "no-store",
@@ -52,10 +75,9 @@ for (const loopbackHost of ["127.0.0.1", "localhost", "::1"]) {
   assert.ok(source.includes(loopbackHost), `Compiled client lost loopback guard ${loopbackHost}`);
 }
 
-assert.match(
-  source,
-  /NEXT_PUBLIC_API_BASE_URL[^;]{0,240}http:\/\/127\.0\.0\.1:8000/,
-  "Compiled client lost the canonical loopback API fallback",
+assert.ok(
+  source.includes('"production"') || source.includes("'production'") || source.includes("production"),
+  "Compiled client lost the production fail-closed branch",
 );
 assert.match(
   source,
@@ -67,17 +89,14 @@ assert.match(
   /x-gmai-user[^;]{0,260}frontend-operator/,
   "Compiled client lost the bounded default local user",
 );
-assert.ok(
-  source.includes('"production"') || source.includes("'production'") || source.includes("production"),
-  "Compiled client lost the production fail-closed branch",
-);
 
 console.log(JSON.stringify({
   status: "pass",
   chunk: path.relative(process.cwd(), file),
   eligibility_get: true,
   eligibility_post: true,
-  compiled_public_env_contract: true,
+  public_env_static_source_contract: true,
+  compiled_effective_api_base: effectiveApiBase,
   canonical_loopback_fallback: "http://127.0.0.1:8000",
   local_header_role_guard_present: true,
   production_non_loopback_fail_closed_guard_present: true,
