@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
 **Roadmap generation:** V12.27 — necessity-driven master orchestration; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
-**Date:** 2026-08-22
+**Date:** 2026-08-23
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
@@ -14,8 +14,9 @@
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_2.md`
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
-**Last accepted organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
-**K.1 canonical proof:** GitHub Actions Production Proof `32582805820` — 4/4 PASS; Woodpecker push #17 and PR #18 — 4/4 PASS
+**Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
+**K.1 canonical proof:** GitHub Actions Production Proof `32582805820` — 4/4 PASS; Repository Policy `32582805835`; Woodpecker push #17 and PR #18 — 4/4 PASS
+**Latest L technical proof checkpoint:** `a85384e60f9275332e02971ae8a9997899393b40` — Woodpecker PR Pipeline #70 4/4 PASS; L remains unsealed pending external acceptance evidence
 **Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
@@ -245,7 +246,7 @@ External infrastructure may provide capability but may not redefine those semant
 | Outcome Evaluation baseline | PROVEN BASELINE | outcome evidence before autonomy mutation |
 | J.1 Austria Agent Organization Runtime | COMPLETE / PASS / SEALED | native Austria organization topology + runtime bindings |
 | K.1 Bounded Specialist Execution / Coworker Runtime | COMPLETE / PASS / SEALED | durable specialist execution evidence + stronger owner synthesis gate |
-| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | persisted owner-led cycle + bounded command + Cockpit consumption exist; full acceptance proof remains open |
+| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | technical/product proof checkpoint is green; real professional-review, live-provider/failure and guarded fresh-retrieval acceptance evidence remain |
 | M Board Transparency Experience | NOT STARTED | full owner/Board transparency experience after L acceptance |
 | N Learning & Optimization | NOT STARTED | measured learning, performance, AI economics and controlled optimization |
 
@@ -300,6 +301,8 @@ Current bounded path:
 
 ```text
 canonical Austria objective
+→ canonical pathway authority / Evidence / VerifiedRule / source-snapshot lineage
+→ guarded fresh official-source equivalence check where freshness is claimed
 → accepted K.1 specialist WorkItems
 → current ContextBundles / runtime bindings
 → bounded specialist executions
@@ -314,20 +317,31 @@ canonical Austria objective
 → Owner Cockpit Live Organization surface
 ```
 
-Current L implementation exists, but acceptance remains open until the required proof below is observed.
+Current L implementation exists, but acceptance remains open until the required external proof below is observed.
+
+Latest technical checkpoint:
+
+```text
+a85384e60f9275332e02971ae8a9997899393b40
+Woodpecker PR Pipeline #70 — 4/4 PASS
+```
+
+At that checkpoint, exact-head CI, real grounded J→K→L backend lineage/replay proof, persisted Cockpit truth, Evidence/VerifiedRule lineage, guarded freshness plumbing, and operational correlation are technically proven. The deterministic J→K→L integration test remains **lineage/integration proof only**; it is not live-model-quality proof.
 
 #### L REQUIRED ENABLEMENT
 
-These capabilities are part of closing L, independent of which tools implement them:
+Current status of the acceptance capabilities:
 
-1. **exact current-head backend/PostgreSQL/frontend/policy proof**;
-2. **browser-level product proof** for authentication, loading, ready, blocked/error, owner command and replay behavior;
-3. **truthful UX states** for current organization state, missing evidence, blocked work and retained authority;
-4. **professional-review workflow** for the Austria benchmark before professional/legal correctness is claimed;
-5. **first professionally reviewed Austria tranche**, used to discover disagreement/error classes before setting a large arbitrary case target;
-6. **live-model/retrieval/provider-failure evaluation** on reviewed cases before claiming realistic AI reasoning quality;
-7. **Evidence / VerifiedRule lineage** wherever regulated claims enter the L cycle;
-8. **operational correlation** across the real L cycle sufficient to diagnose latency, retries and runtime failure without confusing telemetry with canonical Activity.
+1. **COMPLETE — exact current-head backend/PostgreSQL/frontend/policy proof** at `a85384e6...`, Woodpecker #70 4/4 PASS;
+2. **COMPLETE — browser/product behavior proof** for the bounded Cockpit read/command/failure/replay surface; route-controlled browser proof is UX/product proof, not backend integration proof;
+3. **COMPLETE — truthful UX states** for current organization state, missing evidence, blocked work and retained authority;
+4. **IMPLEMENTED — professional-review workflow/compiler** for the Austria benchmark; implementation alone is not professional correctness evidence;
+5. **REMAINING — first real independent professionally reviewed Austria tranche**, used to discover disagreement/error classes before setting a larger target;
+6. **REMAINING — real live-model success + provider-failure evidence and one guarded real fresh-retrieval L-cycle** before realistic AI-reasoning/freshness claims;
+7. **COMPLETE — Evidence / VerifiedRule / source-snapshot lineage** wherever the bounded Austria regulated claims enter the L cycle;
+8. **COMPLETE — operational correlation** sufficient to diagnose latency, retries and runtime/provider failure without confusing telemetry with canonical Activity.
+
+Operational execution and reviewer handoff are documented in `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`.
 
 #### L UX work
 
@@ -380,6 +394,17 @@ Rejected donor assumptions remain rejected:
 - direct authoritative mutation;
 - pixel-art/game-like presentation as the product design language;
 - decorative/random activity that implies work not present in canonical state.
+
+#### Post-L extraction rule
+
+The Austria objective/runtime and Live Organization services are intentionally allowed to remain route-specific while L acceptance is stabilizing. After L is sealed — or when a second country/route creates demonstrated duplication — extract only proven seams such as:
+
+- mobility-domain canonical-source resolution;
+- reusable specialist execution-evidence reasoning;
+- route/country-agnostic objective-topology validation;
+- read-model, owner-synthesis/materialization, lineage-validation and lifecycle/replay responsibilities.
+
+Do not perform a broad Austria-to-generic refactor before L acceptance merely to reduce file size. A second vertical should validate the abstraction rather than be forced into a speculative DSL.
 
 ### NEXT — M Board Transparency Experience
 
@@ -582,6 +607,8 @@ A documentation commit does not inherit a previous runtime PASS automatically.
 A design frame is not product proof.
 
 A deterministic fallback test is not live-model correctness proof.
+
+A deterministic J→K→L backend test may prove integration/lineage while still proving nothing about real-provider response quality.
 
 A source-curated benchmark is not professional correctness proof.
 
@@ -799,13 +826,15 @@ Current accepted migration head:
 0081_capability_autonomy_evidence_evaluation_policy
 ```
 
-Current accepted application-table count at K.1:
+Current accepted application-table count at K.1 and the latest L technical checkpoint:
 
 ```text
 124
 ```
 
-No schema change is implied by this roadmap reorganization.
+Physical PostgreSQL schema includes the infrastructure `alembic_version` table in addition to the 124 registered application tables.
+
+No schema change is implied by this roadmap reconciliation.
 
 Guardrails:
 
@@ -826,22 +855,25 @@ NOW — L LIVE ORGANIZATION
 ├─ PRIMARY
 │  └─ close real persisted L product operation
 │
-├─ REQUIRED ENABLEMENT
-│  ├─ exact current-head proof
-│  ├─ browser E2E for real Cockpit/auth/command/failure paths
-│  ├─ UX0 / UX2 against real contracts
-│  ├─ bounded UX1 primitives needed by L/M
-│  ├─ professional-review workflow + first reviewed Austria tranche
-│  ├─ live-model/retrieval/provider-failure evaluation
-│  ├─ Evidence / VerifiedRule lineage where regulated claims are used
+├─ COMPLETED TECHNICAL/PRODUCT PROOF
+│  ├─ exact current-head proof at a85384e6 / Woodpecker #70 4/4
+│  ├─ real J→K→L backend lineage + replay proof
+│  ├─ Cockpit Board command/read/failure product behavior
+│  ├─ Evidence / VerifiedRule / source-snapshot lineage
 │  └─ operational L-cycle correlation
+│
+├─ REMAINING ACCEPTANCE EVIDENCE
+│  ├─ first real independent professionally reviewed Austria tranche
+│  ├─ real configured-provider success + real provider-failure evidence
+│  └─ real guarded fresh-retrieval Austria L-cycle
 │
 ├─ SUPPORTING PARALLEL
 │  ├─ backup / isolated restore foundation
 │  ├─ secrets boundary when a real credential lifecycle requires it
 │  └─ selective Munder analysis for demonstrated L/UX2 gaps
 │
-└─ DEFERRED
+└─ DEFERRED UNTIL L SEAL / DEMONSTRATED SECOND-VERTICAL NEED
+   ├─ broad Austria-to-generic runtime extraction
    ├─ broad IdP migration
    ├─ governed outbound communications platform work
    ├─ e-signature implementation
