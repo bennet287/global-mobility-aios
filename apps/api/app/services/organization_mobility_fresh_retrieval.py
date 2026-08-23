@@ -36,6 +36,7 @@ from app.services.source_retrieval import Resolver, execute_source_monitor
 
 FRESH_RETRIEVAL_SCOPE = "pre_k1_official_source_equivalence"
 FRESH_RETRIEVAL_EVIDENCE_CONTRACT_VERSION = "austria-fresh-retrieval-evidence.v1"
+FRESH_RETRIEVAL_MAX_AGE_SECONDS = 900
 _ACCEPTED_FRESH_RUN_STATUSES = frozenset({"baseline", "unchanged", "not_modified"})
 _SNAPSHOT_PRODUCING_STATUSES = frozenset({"baseline", "unchanged", "changed"})
 
@@ -198,6 +199,10 @@ def _attestation_for_run(
         )
     if run.status not in _ACCEPTED_FRESH_RUN_STATUSES or run.completed_at is None:
         raise DependencyConflict("fresh official-source retrieval did not reach an accepted terminal state")
+    if run.regulatory_change_id is not None:
+        raise DependencyConflict(
+            "fresh official-source retrieval produced a regulatory change; governance review is required before K.1"
+        )
 
     if run.status == "not_modified":
         if run.snapshot_id is not None:
@@ -381,6 +386,8 @@ def _validate_attestation(
         raise DependencyConflict("fresh retrieval basis run fingerprint diverged")
     if run.status != attestation.retrieval_status or run.completed_at is None:
         raise DependencyConflict("fresh retrieval run status/completion diverged")
+    if run.regulatory_change_id is not None:
+        raise DependencyConflict("fresh retrieval run unexpectedly carries regulatory-change provenance")
     if run.completed_at.isoformat() != attestation.retrieval_completed_at:
         raise DependencyConflict("fresh retrieval completion timestamp diverged")
     if (
@@ -474,8 +481,11 @@ def _ensure_retrieval_precedes_agent_run(
         run = session.get(SourceRetrievalRun, attestation.source_retrieval_run_id)
         if run is None or run.completed_at is None:
             raise DependencyConflict("fresh retrieval completion lineage is unavailable")
-        if _utc(run.completed_at) > _utc(agent_run.created_at):
+        age_seconds = (_utc(agent_run.created_at) - _utc(run.completed_at)).total_seconds()
+        if age_seconds < 0:
             raise DependencyConflict("fresh retrieval occurred after the controlled AgentRun started")
+        if age_seconds > FRESH_RETRIEVAL_MAX_AGE_SECONDS:
+            raise DependencyConflict("fresh retrieval is too old for the controlled AgentRun")
 
 
 def attach_fresh_retrieval_evidence(
