@@ -14,7 +14,7 @@ REQUESTED_HEADERS = "content-type,x-gmai-role,x-gmai-user"
 @pytest.mark.parametrize(
     ("path", "method"),
     [
-        (f"/api/v1/eligibility/{uuid.uuid4()}/latest", "GET"),
+        ("/api/v1/eligibility/00000000-0000-4000-8000-000000000001/latest", "GET"),
         ("/api/v1/eligibility/evaluate", "POST"),
     ],
 )

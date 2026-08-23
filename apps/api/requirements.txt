@@ -34,3 +34,4 @@ opentelemetry-exporter-otlp>=1.28
 clamd>=1.0.2
 
 pytest>=8.3
+pytest-xdist>=3.8

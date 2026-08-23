@@ -15,6 +15,6 @@ steps:
       - python -m pip check
       - python -m compileall -q apps/api/app scripts
       - python -m alembic -c alembic.ini upgrade head
-      - python -m pytest apps/api/tests -q
+      - python -m pytest apps/api/tests -q -n 4 --dist=loadscope
       - python scripts/check_database_migrations.py
       - python scripts/check_local_db_schema.py

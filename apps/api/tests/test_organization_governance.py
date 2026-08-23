@@ -4203,7 +4203,7 @@ def test_incomplete_communications_evidence_holds_the_whole_work_item(
     assert db_session.exec(select(OrganizationalActionOutput)).all() == []
 
 
-@pytest.mark.parametrize("suspended_position", COMMUNICATIONS_DELEGATES)
+@pytest.mark.parametrize("suspended_position", sorted(COMMUNICATIONS_DELEGATES))
 def test_suspended_required_communications_specialist_holds_then_resumes_work(
     raw_client, db_session: Session, suspended_position
 ) -> None:
@@ -4427,7 +4427,7 @@ def test_incomplete_people_evidence_holds_the_whole_work_item(
     assert db_session.exec(select(OrganizationalActionOutput)).all() == []
 
 
-@pytest.mark.parametrize("suspended_position", PEOPLE_DELEGATES)
+@pytest.mark.parametrize("suspended_position", sorted(PEOPLE_DELEGATES))
 def test_suspended_required_people_specialist_holds_then_resumes_work(
     raw_client, db_session: Session, suspended_position
 ) -> None:
@@ -4650,7 +4650,7 @@ def test_incomplete_legal_evidence_holds_the_whole_work_item(
     assert db_session.exec(select(OrganizationalActionOutput)).all() == []
 
 
-@pytest.mark.parametrize("suspended_position", LEGAL_DELEGATES)
+@pytest.mark.parametrize("suspended_position", sorted(LEGAL_DELEGATES))
 def test_suspended_required_legal_specialist_holds_then_resumes_work(
     raw_client, db_session: Session, suspended_position
 ) -> None:
