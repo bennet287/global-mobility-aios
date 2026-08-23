@@ -1,8 +1,8 @@
 # L Live Organization — Acceptance Operations
 
-**Status:** L IMPLEMENTED / ACCEPTANCE PENDING  
-**Technical predecessor:** `a85384e60f9275332e02971ae8a9997899393b40`  
-**Technical proof:** Woodpecker Pipeline #70 — 4/4 PASS  
+**Status:** L IMPLEMENTED / ACCEPTANCE PENDING
+**Technical predecessor:** `a85384e60f9275332e02971ae8a9997899393b40`
+**Technical proof:** Woodpecker Pipeline #70 — 4/4 PASS
 **Migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
 This runbook covers the remaining evidence work for L. It does not redefine AIOS authority, benchmark truth, or milestone acceptance.
