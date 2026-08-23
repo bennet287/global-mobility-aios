@@ -108,6 +108,16 @@ export type AustriaOwnerSynthesisCommand = {
   replayed: boolean;
 };
 
+export class LiveOrganizationRequestError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "LiveOrganizationRequestError";
+    this.status = status;
+  }
+}
+
 const apiFetch = createApiFetch(CLIENT_API_CONFIG);
 
 async function liveRequest<T>(path: string, init?: RequestInit): Promise<T> {
@@ -120,7 +130,7 @@ async function liveRequest<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // Preserve the status-based fallback when a proxy or server returns non-JSON.
     }
-    throw new Error(detail);
+    throw new LiveOrganizationRequestError(response.status, detail);
   }
   return response.json() as Promise<T>;
 }
