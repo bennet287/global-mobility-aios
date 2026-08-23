@@ -1,14 +1,24 @@
 from __future__ import annotations
 
+import json
 import socket
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Mapping
 from uuid import UUID
 
 import httpx
 from sqlmodel import Session, select
 
-from app.models.domain import SourceMonitor, SourceRetrievalRun, SourceSnapshot
+from app.models.domain import (
+    AgentRun,
+    OrganizationalActionOutput,
+    SourceMonitor,
+    SourceRetrievalRun,
+    SourceSnapshot,
+    now_utc,
+)
+from app.services.audit_log import record_audit
 from app.services.organization_command import DependencyConflict, canonical_fingerprint
 from app.services.organization_context_broker import (
     ContextPurpose,
@@ -25,6 +35,7 @@ from app.services.source_retrieval import Resolver, execute_source_monitor
 
 
 FRESH_RETRIEVAL_SCOPE = "pre_k1_official_source_equivalence"
+FRESH_RETRIEVAL_EVIDENCE_CONTRACT_VERSION = "austria-fresh-retrieval-evidence.v1"
 _ACCEPTED_FRESH_RUN_STATUSES = frozenset({"baseline", "unchanged", "not_modified"})
 _SNAPSHOT_PRODUCING_STATUSES = frozenset({"baseline", "unchanged", "changed"})
 
@@ -67,6 +78,32 @@ class AustriaFreshRetrievalAttestation:
             "content_equivalent_to_governed": self.content_equivalent_to_governed,
             "freshness_verified": self.freshness_verified,
         }
+
+
+def _utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _json_object(value: str | None, *, label: str) -> dict[str, object]:
+    try:
+        parsed = json.loads(value or "{}")
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise DependencyConflict(f"{label} is invalid JSON") from exc
+    if not isinstance(parsed, dict):
+        raise DependencyConflict(f"{label} must be a JSON object")
+    return parsed
+
+
+def _json_list(value: str | None, *, label: str) -> list[object]:
+    try:
+        parsed = json.loads(value or "[]")
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise DependencyConflict(f"{label} is invalid JSON") from exc
+    if not isinstance(parsed, list):
+        raise DependencyConflict(f"{label} must be a JSON array")
+    return parsed
 
 
 def _specialist_work(plan: AustriaMobilityObjectivePlan, position_key: str):
@@ -131,7 +168,7 @@ def _snapshot_basis_run_for_not_modified(
                 SourceRetrievalRun.monitor_id == run.monitor_id,
                 SourceRetrievalRun.id != run.id,
                 SourceRetrievalRun.snapshot_id.is_not(None),
-                SourceRetrievalRun.status.in_(_SNAPSHOT_PRODUCING_STATUSES),
+                SourceRetrievalRun.status.in_(tuple(_SNAPSHOT_PRODUCING_STATUSES)),
                 SourceRetrievalRun.completed_at.is_not(None),
             )
             .order_by(SourceRetrievalRun.completed_at.desc())
@@ -221,7 +258,7 @@ def refresh_austria_authority_snapshots(
     """Fresh-check every governed Austria snapshot immediately before K.1.
 
     Retrieval is allowed to create monitoring snapshots/change records, but K.1 never
-    switches authority to them. Execution receives an attestation only when the fresh
+    switches authority to them. The L cycle receives an attestation only when the fresh
     official-source check is content-equivalent to the already governed snapshot. A
     detected change fails closed and remains in the regulatory-review workflow.
     """
@@ -271,7 +308,10 @@ def _attestation_from_payload(value: object) -> AustriaFreshRetrievalAttestation
         candidate = value.get(field)
         if not isinstance(candidate, str) or not candidate.strip():
             raise DependencyConflict(f"fresh retrieval attestation {field} is invalid")
-    if value.get("freshness_verified") is not True or value.get("content_equivalent_to_governed") is not True:
+    if (
+        value.get("freshness_verified") is not True
+        or value.get("content_equivalent_to_governed") is not True
+    ):
         raise DependencyConflict("fresh retrieval attestation must explicitly prove equivalence")
     try:
         return AustriaFreshRetrievalAttestation(
@@ -324,9 +364,13 @@ def _validate_attestation(
     monitor = session.get(SourceMonitor, attestation.source_monitor_id)
     run = session.get(SourceRetrievalRun, attestation.source_retrieval_run_id)
     basis_run = session.get(SourceRetrievalRun, attestation.snapshot_basis_retrieval_run_id)
-    if None in (governed, checked, monitor, run, basis_run):
+    if any(item is None for item in (governed, checked, monitor, run, basis_run)):
         raise DependencyConflict("fresh retrieval attestation durable lineage is unavailable")
-    assert governed is not None and checked is not None and monitor is not None and run is not None and basis_run is not None
+    assert governed is not None
+    assert checked is not None
+    assert monitor is not None
+    assert run is not None
+    assert basis_run is not None
     if canonical_fingerprint(governed) != attestation.governed_source_snapshot_version:
         raise DependencyConflict("fresh retrieval governed snapshot fingerprint diverged")
     if canonical_fingerprint(checked) != attestation.checked_source_snapshot_version:
@@ -356,7 +400,11 @@ def _validate_attestation(
     ):
         raise DependencyConflict("fresh retrieval content-equivalence proof diverged")
     if run.status == "not_modified":
-        if run.snapshot_id is not None or basis_run.id == run.id or basis_run.snapshot_id != checked.id:
+        if (
+            run.snapshot_id is not None
+            or basis_run.id == run.id
+            or basis_run.snapshot_id != checked.id
+        ):
             raise DependencyConflict("fresh retrieval 304 basis lineage is invalid")
     else:
         if run.snapshot_id != checked.id or basis_run.id != run.id:
@@ -370,7 +418,7 @@ def validate_fresh_retrieval_attestations(
     source_snapshot_refs: tuple[ContextReference, ...],
     attestations: Mapping[UUID, AustriaFreshRetrievalAttestation] | None,
 ) -> tuple[dict[str, object], ...]:
-    """Validate execution-supplied fresh checks against current durable DB lineage."""
+    """Validate execution-cycle fresh checks against current durable DB lineage."""
 
     if not attestations:
         return ()
@@ -397,41 +445,197 @@ def validate_fresh_retrieval_attestations(
     return tuple(payloads)
 
 
-def validate_persisted_fresh_retrieval_provenance(
-    session: Session,
-    provenance: Mapping[str, object],
-) -> int:
-    """Revalidate persisted K.1 freshness claims against SourceRetrievalRun lineage."""
-
-    raw_attestations = provenance.get("context_fresh_retrieval_attestations")
-    if raw_attestations in (None, []):
-        return 0
-    if not isinstance(raw_attestations, list):
-        raise DependencyConflict("persisted fresh retrieval provenance must be a list")
-    raw_refs = provenance.get("context_source_snapshot_refs")
+def _source_snapshot_refs_from_output(payload: Mapping[str, object]) -> tuple[ContextReference, ...]:
+    raw_refs = payload.get("context_source_snapshot_refs")
     if not isinstance(raw_refs, list):
-        raise DependencyConflict("persisted freshness requires source snapshot references")
+        raise DependencyConflict("K.1 output lacks source snapshot references for freshness proof")
     references: list[ContextReference] = []
     for value in raw_refs:
         if not isinstance(value, dict):
-            raise DependencyConflict("persisted source snapshot reference is invalid")
+            raise DependencyConflict("K.1 source snapshot reference is invalid")
         kind = value.get("kind")
         identifier = value.get("identifier")
         version = value.get("version")
         if not isinstance(kind, str) or not isinstance(identifier, str):
-            raise DependencyConflict("persisted source snapshot reference is incomplete")
+            raise DependencyConflict("K.1 source snapshot reference is incomplete")
         if version is not None and not isinstance(version, str):
-            raise DependencyConflict("persisted source snapshot version is invalid")
+            raise DependencyConflict("K.1 source snapshot version is invalid")
         references.append(ContextReference(kind=kind, identifier=identifier, version=version))
+    return tuple(references)
+
+
+def _ensure_retrieval_precedes_agent_run(
+    session: Session,
+    *,
+    attestations: Mapping[UUID, AustriaFreshRetrievalAttestation],
+    agent_run: AgentRun,
+) -> None:
+    for attestation in attestations.values():
+        run = session.get(SourceRetrievalRun, attestation.source_retrieval_run_id)
+        if run is None or run.completed_at is None:
+            raise DependencyConflict("fresh retrieval completion lineage is unavailable")
+        if _utc(run.completed_at) > _utc(agent_run.created_at):
+            raise DependencyConflict("fresh retrieval occurred after the controlled AgentRun started")
+
+
+def attach_fresh_retrieval_evidence(
+    session: Session,
+    *,
+    action_output_id: UUID,
+    agent_run_id: UUID,
+    execution_attempt_id: UUID,
+    work_item_id: UUID,
+    position_key: str,
+    attestations: Mapping[UUID, AustriaFreshRetrievalAttestation],
+    actor: str,
+) -> int:
+    """Bind pre-K.1 retrieval checks to the exact durable K.1 output/AgentRun lineage."""
+
+    output = session.get(OrganizationalActionOutput, action_output_id)
+    agent_run = session.get(AgentRun, agent_run_id)
+    if output is None or agent_run is None:
+        raise DependencyConflict("fresh retrieval cannot attach to unavailable K.1 lineage")
+    if (
+        output.work_item_id != work_item_id
+        or output.accountable_position_key != position_key
+        or output.status != "completed"
+    ):
+        raise DependencyConflict("fresh retrieval target K.1 output lineage is invalid")
+    payload = _json_object(output.output_json, label="K.1 output")
+    if (
+        payload.get("agent_run_id") != str(agent_run_id)
+        or payload.get("execution_attempt_id") != str(execution_attempt_id)
+        or payload.get("work_item_id") != str(work_item_id)
+        or payload.get("position_key") != position_key
+    ):
+        raise DependencyConflict("fresh retrieval target execution identifiers diverged")
+    references = _source_snapshot_refs_from_output(payload)
+    validated = validate_fresh_retrieval_attestations(
+        session,
+        source_snapshot_refs=references,
+        attestations=attestations,
+    )
+    if not validated:
+        raise DependencyConflict("fresh retrieval evidence requires at least one governed snapshot")
+    _ensure_retrieval_precedes_agent_run(
+        session,
+        attestations=attestations,
+        agent_run=agent_run,
+    )
+    evidence = {
+        "contract_version": FRESH_RETRIEVAL_EVIDENCE_CONTRACT_VERSION,
+        "work_item_id": str(work_item_id),
+        "position_key": position_key,
+        "execution_attempt_id": str(execution_attempt_id),
+        "agent_run_id": str(agent_run_id),
+        "freshness_scope": FRESH_RETRIEVAL_SCOPE,
+        "attestation_count": len(validated),
+        "attestations": list(validated),
+        "freshness_verified": True,
+        "provider_model_authority": False,
+        "external_action_authorized": False,
+    }
+    existing = payload.get("fresh_retrieval_evidence")
+    if existing is not None:
+        if existing != evidence:
+            raise DependencyConflict("K.1 output already has conflicting fresh retrieval evidence")
+        return len(validated)
+
+    output_evidence = _json_list(output.evidence_json, label="K.1 evidence")
+    output_evidence.append({"type": "fresh_retrieval_evidence", **evidence})
+    payload["fresh_retrieval_evidence"] = evidence
+    output.output_json = json.dumps(payload, default=str, sort_keys=True, separators=(",", ":"))
+    output.evidence_json = json.dumps(
+        output_evidence,
+        default=str,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    output.updated_at = now_utc()
+    session.add(output)
+    record_audit(
+        session,
+        action="austria_specialist_fresh_retrieval_evidence_attached",
+        entity_type="organizational_action_output",
+        entity_id=output.id,
+        after_state={
+            "work_item_id": str(work_item_id),
+            "position_key": position_key,
+            "execution_attempt_id": str(execution_attempt_id),
+            "agent_run_id": str(agent_run_id),
+            "attestation_count": len(validated),
+            "external_action_authorized": False,
+        },
+        actor=actor,
+        source="austria_live_retrieval_l_v1",
+    )
+    session.commit()
+    session.refresh(output)
+    return len(validated)
+
+
+def validate_action_output_fresh_retrieval_evidence(
+    session: Session,
+    *,
+    output: OrganizationalActionOutput,
+    agent_run: AgentRun,
+) -> int:
+    """Revalidate persisted L-cycle freshness evidence against live DB retrieval lineage."""
+
+    payload = _json_object(output.output_json, label="K.1 output")
+    raw_evidence = payload.get("fresh_retrieval_evidence")
+    if raw_evidence is None:
+        return 0
+    if not isinstance(raw_evidence, dict):
+        raise DependencyConflict("persisted fresh retrieval evidence must be an object")
+    if raw_evidence.get("contract_version") != FRESH_RETRIEVAL_EVIDENCE_CONTRACT_VERSION:
+        raise DependencyConflict("persisted fresh retrieval evidence has the wrong contract version")
+    if (
+        raw_evidence.get("work_item_id") != str(output.work_item_id)
+        or raw_evidence.get("position_key") != output.accountable_position_key
+        or raw_evidence.get("agent_run_id") != str(agent_run.id)
+        or raw_evidence.get("freshness_scope") != FRESH_RETRIEVAL_SCOPE
+        or raw_evidence.get("freshness_verified") is not True
+        or raw_evidence.get("provider_model_authority") is not False
+        or raw_evidence.get("external_action_authorized") is not False
+    ):
+        raise DependencyConflict("persisted fresh retrieval evidence lineage/authority is invalid")
+    execution_attempt_id = raw_evidence.get("execution_attempt_id")
+    if not isinstance(execution_attempt_id, str) or payload.get("execution_attempt_id") != execution_attempt_id:
+        raise DependencyConflict("persisted fresh retrieval execution-attempt lineage diverged")
+    if payload.get("agent_run_id") != str(agent_run.id):
+        raise DependencyConflict("persisted fresh retrieval AgentRun lineage diverged")
+
+    raw_attestations = raw_evidence.get("attestations")
+    if not isinstance(raw_attestations, list):
+        raise DependencyConflict("persisted fresh retrieval attestations must be a list")
     parsed = [_attestation_from_payload(value) for value in raw_attestations]
     by_snapshot: dict[UUID, AustriaFreshRetrievalAttestation] = {}
     for attestation in parsed:
         if attestation.governed_source_snapshot_id in by_snapshot:
-            raise DependencyConflict("persisted fresh retrieval provenance contains duplicates")
+            raise DependencyConflict("persisted fresh retrieval evidence contains duplicate snapshots")
         by_snapshot[attestation.governed_source_snapshot_id] = attestation
+    references = _source_snapshot_refs_from_output(payload)
     validated = validate_fresh_retrieval_attestations(
         session,
-        source_snapshot_refs=tuple(references),
+        source_snapshot_refs=references,
         attestations=by_snapshot,
     )
+    if raw_evidence.get("attestation_count") != len(validated) or not validated:
+        raise DependencyConflict("persisted fresh retrieval attestation count diverged")
+    _ensure_retrieval_precedes_agent_run(
+        session,
+        attestations=by_snapshot,
+        agent_run=agent_run,
+    )
+
+    evidence_items = _json_list(output.evidence_json, label="K.1 evidence")
+    matching = [
+        item
+        for item in evidence_items
+        if isinstance(item, dict) and item.get("type") == "fresh_retrieval_evidence"
+    ]
+    expected_item = {"type": "fresh_retrieval_evidence", **raw_evidence}
+    if len(matching) != 1 or matching[0] != expected_item:
+        raise DependencyConflict("persisted fresh retrieval ActionOutput evidence diverged")
     return len(validated)
