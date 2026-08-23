@@ -38,14 +38,17 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
 
-    # Remote LLM providers (switchable based on active subscription)
-    llm_provider: str = ""  # "deepseek" or "moonshot"; empty = deterministic template only
+    # Remote LLM providers (switchable based on active subscription/free-tier access)
+    llm_provider: str = ""  # "deepseek", "moonshot", or "gemini"; empty = deterministic template only
     deepseek_api_key: str = ""
     deepseek_model: str = "deepseek-chat"
     deepseek_base_url: str = "https://api.deepseek.com"
     moonshot_api_key: str = ""
     moonshot_model: str = "kimi-k1-5"
     moonshot_base_url: str = "https://api.moonshot.cn/v1"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.7-flash"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
     llm_temperature: float = 0.2
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True

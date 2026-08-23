@@ -132,6 +132,68 @@ def test_live_model_success_projects_provider_tokens_cost_and_grounding() -> Non
     assert snapshot.fresh_retrieval_provenance_present is False
 
 
+def test_gemini_missing_generic_audit_model_recovers_exact_bound_model_only() -> None:
+    output = {
+        "summary": "live bounded Gemini output",
+        "_llm_meta": {
+            "provider": "gemini",
+            "model": "gemini-3.7-flash",
+            "finish_reason": "stop",
+            "prompt_tokens": 100,
+            "completion_tokens": 20,
+            "total_tokens": 120,
+            "estimated_cost_usd": None,
+        },
+    }
+    snapshot = _evaluate(
+        _agent_input(
+            configured_provider="gemini",
+            configured_model=None,
+            bound_provider="gemini",
+            bound_model="gemini-3.7-flash",
+        ),
+        output,
+    )
+
+    assert snapshot.execution_mode is ModelExecutionMode.LIVE_MODEL_SUCCEEDED
+    assert snapshot.configured_provider == "gemini"
+    assert snapshot.configured_model == "gemini-3.7-flash"
+    assert snapshot.response_provider == "gemini"
+    assert snapshot.response_model == "gemini-3.7-flash"
+    assert snapshot.configured_runtime_matches_binding is True
+    assert snapshot.estimated_cost_usd is None
+    assert (
+        "Gemini configured model provenance recovered from exact K.1 bound runtime"
+        in snapshot.warnings
+    )
+
+
+def test_missing_generic_audit_model_is_not_recovered_for_other_providers() -> None:
+    output = {
+        "summary": "live bounded output",
+        "_llm_meta": {
+            "provider": "deepseek",
+            "model": "deepseek-chat",
+        },
+    }
+    snapshot = _evaluate(
+        _agent_input(
+            configured_provider="deepseek",
+            configured_model=None,
+            bound_provider="deepseek",
+            bound_model="deepseek-chat",
+        ),
+        output,
+    )
+
+    assert snapshot.configured_model is None
+    assert snapshot.configured_runtime_matches_binding is False
+    assert (
+        "configured LLM provider/model does not match the bound runtime profile"
+        in snapshot.warnings
+    )
+
+
 @pytest.mark.parametrize(
     ("reason", "expected_outcome", "expected_egress"),
     [
