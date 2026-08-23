@@ -48,23 +48,23 @@ Phase 13.17 owner-led human acceptance remains **IN PROGRESS / PAUSED BY EVALUAT
 Current high-autonomy / organization sequence:
 
 ```text
-I.1 capability autonomy profile                  SEALED
-I.2 shadow autonomy evidence                     SEALED
-I.3 promotion eligibility policy                 SEALED
-I.4 qualified / temporal evidence evaluation     SEALED
-Outcome Evaluation baseline                      PROVEN
-J.1 Austria Agent Organization Runtime           SEALED
+I.1 capability autonomy profile                   SEALED
+I.2 shadow autonomy evidence                      SEALED
+I.3 promotion eligibility policy                  SEALED
+I.4 qualified / temporal evidence evaluation      SEALED
+Outcome Evaluation baseline                       PROVEN
+J.1 Austria Agent Organization Runtime            SEALED
 K.1 bounded specialist Execution/Coworker Runtime SEALED
-L Live Organization                              NEXT
-M Board Transparency Experience                  LATER
-N Learning & Optimization                        LATER
+L Live Organization                               IMPLEMENTED / ACCEPTANCE PENDING
+M Board Transparency Experience                   AFTER L ACCEPTANCE
+N Learning & Optimization                         AFTER M ACCEPTANCE
 ```
 
 No actual autonomy mutation mechanism is accepted or implemented.
 
 ---
 
-## Latest accepted runtime checkpoint — K.1
+## Latest sealed runtime checkpoint — K.1
 
 K.1 is **COMPLETE / PASS / SEALED** on technical candidate:
 
@@ -102,14 +102,25 @@ K.1 required no new table, migration, Mission model or external agent framework.
 
 ---
 
-## Next product increment — L Live Organization
+## Current product increment — L Live Organization
 
-L must prove one real persisted owner-led organization cycle rather than simulated dashboard state.
+L is **IMPLEMENTED / ACCEPTANCE PENDING**. It must prove one real persisted owner-led organization cycle rather than simulated dashboard state.
 
-Target:
+Latest technical proof checkpoint:
+
+```text
+a85384e60f9275332e02971ae8a9997899393b40
+Woodpecker PR Pipeline #70 — 4/4 PASS
+```
+
+The exact-head technical checkpoint proves the bounded J→K→L backend lineage/replay path, persisted Cockpit truth, operational correlation and current freshness plumbing. The deterministic J→K→L integration test is lineage/integration proof, **not live-model-quality proof**.
+
+Current path:
 
 ```text
 real Austria objective / owner
+→ canonical pathway authority + Evidence / VerifiedRule / source-snapshot lineage
+→ guarded fresh official-source equivalence check where freshness is claimed
 → mobility_operations_lead
    ├─ pathway_operations_specialist
    └─ regulatory_intelligence_analyst
@@ -122,11 +133,20 @@ real Austria objective / owner
 → OrganizationActivity / decisions
 → blocked-work reason where applicable
 → runtime/tool lineage
-→ Evidence / rule provenance where available
 → authority/autonomy state
 → latency / retry / governance telemetry
 → Cockpit read model backed only by persisted AIOS truth
 ```
+
+Remaining L acceptance evidence:
+
+```text
+first real independent professionally reviewed Austria tranche
+real configured-provider success + real provider-failure evidence
+real guarded fresh-retrieval Austria L-cycle
+```
+
+Operational commands, one-shot/recovery semantics, Board authentication requirements and professional-review handoff are documented in [`docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`](docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md).
 
 L may use observability infrastructure to strengthen proof, but engineering telemetry must never replace canonical AIOS Activity/Decision lineage.
 
@@ -191,7 +211,8 @@ Permanent integration rules:
 
 Active/current direction:
 
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — active V12.25 roadmap
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — active V12.27 necessity-driven master roadmap
+- [`docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`](docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md) — L acceptance/operator runbook
 - [`docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`](docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md) — canonical combined architecture
 - [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md) — constitutional high-autonomy source
 - [`docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`](docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md) — enterprise integration sovereignty/boundary architecture
@@ -199,7 +220,7 @@ Active/current direction:
 - [`docs/TECHNOLOGY_RADAR_V1_3_2.md`](docs/TECHNOLOGY_RADAR_V1_3_2.md) — active Technology Radar
 - [`docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md`](docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md) — V12.25 integration programme
 - [`docs/V12_25_PENDING_CHANGELOG.md`](docs/V12_25_PENDING_CHANGELOG.md) — V12.25 documentation/direction changelog
-- [`docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md`](docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md) — latest accepted runtime checkpoint
+- [`docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md`](docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md) — latest sealed runtime checkpoint
 - [`docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`](docs/MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md) — Munder donor programme
 - [`docs/PLASMA_AIOS_ADOPTION_V1.md`](docs/PLASMA_AIOS_ADOPTION_V1.md) — Plasma donor programme
 - [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — historical active-line changelog; V12.25 successor entry is recorded separately above
@@ -522,13 +543,13 @@ global-mobility-aios/
 0081_capability_autonomy_evidence_evaluation_policy
 ```
 
-Current accepted K.1 application-table count:
+Current registered application-table count:
 
 ```text
 124
 ```
 
-V12.25 integration architecture is documentation/direction and does not imply a schema change.
+No schema change is introduced by the current L acceptance-hardening work.
 
 ---
 
@@ -537,7 +558,10 @@ V12.25 integration architecture is documentation/direction and does not imply a 
 Primary:
 
 ```text
-L Live Organization
+L Live Organization acceptance
+  → first real independent professional-review tranche
+  → real configured-provider success + provider-failure evidence
+  → real guarded fresh-retrieval Austria L-cycle
 → M Board Transparency Experience
 → N Learning & Optimization
 ```
@@ -545,11 +569,10 @@ L Live Organization
 Parallel production-foundation work:
 
 ```text
-OpenTelemetry correlation for L
 backup / isolated restore proof
-bounded secrets-manager pilot
-Identity/SSO benchmark
-Communications Gateway contract
+bounded secrets-manager pilot when a real credential lifecycle requires it
+Identity/SSO benchmark when deployment/multi-user need pulls it forward
+Communications Gateway contract when governed outbound communication becomes necessary
 ```
 
 Later/demand-gated:
@@ -558,6 +581,7 @@ Later/demand-gated:
 e-signature execution
 accounting / ERP adapter
 payments
+broad Austria-to-generic runtime extraction until L is sealed or a second vertical proves the abstraction
 ```
 
 The next project maturity increase must come from real organization performance, operational reliability and measurable mobility outcomes—not from adding another large framework.

@@ -28,6 +28,7 @@ from app.services.organization_mobility_live_provider_cycle import (  # noqa: E4
     execute_austria_live_provider_cycle,
 )
 from app.services.organization_mobility_live_provider_evaluation import (  # noqa: E402
+    LIVE_PROVIDER_RESPONSE_MODEL_MATCH_POLICY,
     configured_live_provider_selection,
 )
 from app.services.organization_mobility_objective_runtime import (  # noqa: E402
@@ -37,7 +38,7 @@ from app.services.organization_mobility_objective_runtime import (  # noqa: E402
 )
 
 
-CLI_CONTRACT_VERSION = "austria-live-provider-evaluation-cli.v2"
+CLI_CONTRACT_VERSION = "austria-live-provider-evaluation-cli.v3"
 _TERMINAL_ROOT_STATUSES = {"completed", "cancelled", "failed", "rejected", "returned"}
 
 
@@ -69,6 +70,7 @@ def _configuration_report(database_url: str) -> dict[str, object]:
         selection_ready = True
     except OrganizationCommandError:
         pass
+    fallback_disabled = settings.llm_fallback_to_template is False
     return {
         "contract_version": CLI_CONTRACT_VERSION,
         "mode": "check-config",
@@ -77,8 +79,11 @@ def _configuration_report(database_url: str) -> dict[str, object]:
         "model_key": model,
         "api_key_configured": api_key_present,
         "fallback_to_template": settings.llm_fallback_to_template,
-        "live_provider_ready": selection_ready,
+        "provider_selection_ready": selection_ready,
+        "live_provider_acceptance_ready": selection_ready and fallback_disabled,
+        "response_model_match_policy": LIVE_PROVIDER_RESPONSE_MODEL_MATCH_POLICY,
         "fresh_retrieval_required_for_execute_live": True,
+        "execute_live_consumes_fresh_objective": True,
         "secrets_exposed": False,
     }
 
@@ -162,7 +167,10 @@ def _parse_args() -> argparse.Namespace:
         description=(
             "Evaluate the Austria K.1 runtime through a guarded L cycle: verify current official-source "
             "content against governed snapshots, then execute the configured live LLM provider. "
-            "This tool never creates an objective and never grants external-action authority."
+            "Acceptance execution requires template fallback disabled, uses exact provider/model response "
+            "identity, never creates an objective, and never grants external-action authority. A live run "
+            "consumes the selected fresh objective; after partial execution failure use a newly created "
+            "objective for the next complete acceptance attempt."
         )
     )
     parser.add_argument("--database-url", default=settings.database_url)
@@ -227,13 +235,13 @@ def main() -> int:
             file=sys.stderr,
         )
         return 2
-    except Exception as exc:
+    except Exception:
         print(
             _json(
                 {
                     "contract_version": CLI_CONTRACT_VERSION,
                     "status": "failed",
-                    "error_type": type(exc).__name__,
+                    "error_type": "unexpected_runtime_failure",
                     "error": "live-provider/retrieval evaluation failed; inspect durable execution evidence",
                 }
             ),

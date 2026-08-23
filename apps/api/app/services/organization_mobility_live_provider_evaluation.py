@@ -32,6 +32,7 @@ from app.services.organization_mobility_runtime_quality import (
 
 
 AUSTRIA_LIVE_PROVIDER_EVALUATION_CONTRACT_VERSION = "austria-live-provider-evaluation.v1"
+LIVE_PROVIDER_RESPONSE_MODEL_MATCH_POLICY = "exact-v1"
 _SUPPORTED_PROVIDER_MODELS = {
     "deepseek": ("deepseek_api_key", "deepseek_model"),
     "moonshot": ("moonshot_api_key", "moonshot_model"),
@@ -257,6 +258,23 @@ def _require_fresh_live_execution_candidate(
         )
 
 
+def _response_matches_configured_selection(quality) -> bool:
+    """Fail closed unless the provider-reported identity exactly matches configured selection.
+
+    No alias/version normalization is accepted yet. If a provider introduces a documented
+    alias, that mapping must be reviewed and added explicitly rather than inferred here.
+    """
+
+    return (
+        quality.configured_provider is not None
+        and quality.configured_model is not None
+        and quality.response_provider is not None
+        and quality.response_model is not None
+        and quality.response_provider.casefold() == quality.configured_provider.casefold()
+        and quality.response_model == quality.configured_model
+    )
+
+
 def _specialist_evaluation(
     session: Session,
     result: AustriaSpecialistExecutionResult,
@@ -327,6 +345,7 @@ def _specialist_evaluation(
             f"{result.position_key} live-provider runtime-quality provenance is inconsistent"
         ) from exc
 
+    response_selection_matches = _response_matches_configured_selection(quality)
     live_provider_succeeded = (
         quality.execution_mode is ModelExecutionMode.LIVE_MODEL_SUCCEEDED
         and quality.provider_outcome is ProviderOutcome.SUCCEEDED
@@ -334,7 +353,14 @@ def _specialist_evaluation(
         and quality.provider_egress_occurred is True
         and quality.fallback_to_template is False
         and quality.provider_model_authority is False
+        and response_selection_matches
     )
+    warnings = quality.warnings
+    if quality.execution_mode is ModelExecutionMode.LIVE_MODEL_SUCCEEDED and not response_selection_matches:
+        warnings = (
+            *warnings,
+            "provider response identity does not satisfy exact configured provider/model match policy",
+        )
     return AustriaLiveProviderSpecialistEvaluation(
         position_key=result.position_key,
         work_item_id=result.work_item_id,
@@ -361,7 +387,7 @@ def _specialist_evaluation(
         fresh_retrieval_provenance_present=quality.fresh_retrieval_provenance_present,
         provider_model_authority=quality.provider_model_authority,
         live_provider_succeeded=live_provider_succeeded,
-        warnings=quality.warnings,
+        warnings=warnings,
     )
 
 
@@ -389,6 +415,9 @@ def compile_austria_live_provider_evaluation(
         item.configured_provider is not None
         and item.configured_provider.casefold() == selection.provider_key.casefold()
         and item.configured_model == selection.model_key
+        and item.response_provider is not None
+        and item.response_provider.casefold() == selection.provider_key.casefold()
+        and item.response_model == selection.model_key
         for item in specialist_evaluations
     )
     all_live = (
@@ -429,6 +458,10 @@ def execute_austria_live_provider_evaluation(
     root_work_item_id: UUID,
     actor: str = "l-live-provider-evaluation",
 ) -> AustriaLiveProviderEvaluation:
+    if settings.llm_fallback_to_template:
+        raise DependencyConflict(
+            "live-provider acceptance execution requires llm_fallback_to_template=false"
+        )
     selection = configured_live_provider_selection(require_api_key=True)
     plan = load_austria_mobility_objective_plan(
         session,
