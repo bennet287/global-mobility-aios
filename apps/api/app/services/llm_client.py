@@ -84,6 +84,7 @@ class _OpenAICompatibleProvider(LLMProvider):
     base_url: str
     api_key: str
     default_model: str
+    include_temperature: bool = True
 
     def __init__(self, api_key: str, default_model: str, base_url: str | None = None):
         self.api_key = api_key
@@ -107,8 +108,9 @@ class _OpenAICompatibleProvider(LLMProvider):
         payload: dict[str, Any] = {
             "model": self.default_model,
             "messages": payload_messages,
-            "temperature": settings.llm_temperature,
         }
+        if self.include_temperature:
+            payload["temperature"] = settings.llm_temperature
         if response_format:
             payload["response_format"] = response_format
 
@@ -204,6 +206,10 @@ class GeminiProvider(_OpenAICompatibleProvider):
 
     name = "gemini"
     base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+    # Gemini 3.7 deprecates sampling parameters such as temperature. Keep the shared
+    # compatibility adapter configurable instead of sending an obsolete parameter at
+    # the acceptance boundary.
+    include_temperature = False
 
     def __init__(
         self,
