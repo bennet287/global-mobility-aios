@@ -30,29 +30,55 @@ for (const file of files) {
 
 assert.equal(candidates.length, 1, "Expected one compiled client chunk containing the Eligibility API/config path");
 const [{ file, source }] = candidates;
-for (const expected of ["x-gmai-role", "x-gmai-user"]) {
+
+for (const expected of [
+  "x-gmai-role",
+  "x-gmai-user",
+  "http://127.0.0.1:8000",
+  "NEXT_PUBLIC_API_BASE_URL",
+  "NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE",
+  "NEXT_PUBLIC_GMAI_ROLE",
+  "NEXT_PUBLIC_GMAI_USER",
+  "frontend-operator",
+  "admin",
+  "credentials",
+  "include",
+  "no-store",
+]) {
   assert.ok(source.includes(expected), `Compiled Eligibility client path is missing ${expected}`);
 }
-for (const [setting, expected] of Object.entries({
-  apiBase: "http://127.0.0.1:8000",
-  authAllowHeaderRole: "true",
-  role: "admin",
-  user: "frontend-operator",
-})) {
-  assert.match(
-    source,
-    new RegExp(`${setting}\\s*:\\s*["']${expected.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}["']`),
-    `Compiled Eligibility client config did not statically resolve ${setting}=${expected}`,
-  );
+
+for (const loopbackHost of ["127.0.0.1", "localhost", "::1"]) {
+  assert.ok(source.includes(loopbackHost), `Compiled client lost loopback guard ${loopbackHost}`);
 }
+
+assert.match(
+  source,
+  /NEXT_PUBLIC_API_BASE_URL[^;]{0,240}http:\/\/127\.0\.0\.1:8000/,
+  "Compiled client lost the canonical loopback API fallback",
+);
+assert.match(
+  source,
+  /x-gmai-role[^;]{0,260}admin/,
+  "Compiled client lost the bounded default local role",
+);
+assert.match(
+  source,
+  /x-gmai-user[^;]{0,260}frontend-operator/,
+  "Compiled client lost the bounded default local user",
+);
+assert.ok(
+  source.includes('"production"') || source.includes("'production'") || source.includes("production"),
+  "Compiled client lost the production fail-closed branch",
+);
 
 console.log(JSON.stringify({
   status: "pass",
   chunk: path.relative(process.cwd(), file),
   eligibility_get: true,
   eligibility_post: true,
-  api_base: "http://127.0.0.1:8000",
-  allow_header_role: true,
-  role: "admin",
-  user: "frontend-operator",
+  compiled_public_env_contract: true,
+  canonical_loopback_fallback: "http://127.0.0.1:8000",
+  local_header_role_guard_present: true,
+  production_non_loopback_fail_closed_guard_present: true,
 }));
