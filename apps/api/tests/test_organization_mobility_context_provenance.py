@@ -40,6 +40,9 @@ from app.services.organization_mobility_objective_runtime import (
 )
 
 
+SOURCE_REPLAY_CONFLICT = "canonical Austria objective already bound to a different pathway version"
+
+
 def _human_context() -> OrganizationCommandContext:
     return OrganizationCommandContext(
         tenant_key="default",
@@ -222,6 +225,12 @@ def _second_published_version(session: Session, graph: dict[str, object]) -> Mob
     return row
 
 
+def _assert_same_plan_ids(first, replay) -> None:
+    assert replay.root_work_item.id == first.root_work_item.id
+    assert replay.pathway_work_item.id == first.pathway_work_item.id
+    assert replay.regulatory_work_item.id == first.regulatory_work_item.id
+
+
 def test_source_grounded_k1_persists_real_authority_refs_and_l_projects_persisted_lineage(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
@@ -395,7 +404,7 @@ def test_grounded_objective_replay_rejects_conflicting_pathway_source(db_session
         pathway_version_id=first_version.id,
     )
 
-    with pytest.raises(DependencyConflict):
+    with pytest.raises(DependencyConflict, match=SOURCE_REPLAY_CONFLICT):
         create_austria_mobility_objective(
             db_session,
             context,
@@ -405,8 +414,97 @@ def test_grounded_objective_replay_rejects_conflicting_pathway_source(db_session
 
     pathway_work = db_session.get(OrganizationalWorkItem, first.pathway_work_item.id)
     regulatory_work = db_session.get(OrganizationalWorkItem, first.regulatory_work_item.id)
-    assert pathway_work is not None and pathway_work.source_object_id == str(first_version.id)
-    assert regulatory_work is not None and regulatory_work.source_object_id == str(first_version.id)
+    assert pathway_work is not None
+    assert regulatory_work is not None
+    for work in (pathway_work, regulatory_work):
+        assert work.source_object_type == "mobility_pathway_version"
+        assert work.source_object_id == str(first_version.id)
+        assert work.source_object_version == str(first_version.version_number)
+
+
+def test_grounded_objective_same_source_replay_returns_same_work_items(db_session: Session) -> None:
+    ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
+    graph = _authority_graph(db_session)
+    version = graph["pathway_version"]
+    context = _human_context()
+    objective_key = "at-rwr-shortage-2026-same-source-replay"
+
+    first = create_austria_mobility_objective(
+        db_session,
+        context,
+        objective_key=objective_key,
+        pathway_version_id=version.id,
+    )
+    replay = create_austria_mobility_objective(
+        db_session,
+        context,
+        objective_key=objective_key,
+        pathway_version_id=version.id,
+    )
+
+    _assert_same_plan_ids(first, replay)
+
+
+def test_grounded_objective_replay_rejects_dropping_pathway_source(db_session: Session) -> None:
+    ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
+    graph = _authority_graph(db_session)
+    version = graph["pathway_version"]
+    context = _human_context()
+    objective_key = "at-rwr-shortage-2026-grounded-to-unbound"
+
+    first = create_austria_mobility_objective(
+        db_session,
+        context,
+        objective_key=objective_key,
+        pathway_version_id=version.id,
+    )
+
+    with pytest.raises(DependencyConflict, match=SOURCE_REPLAY_CONFLICT):
+        create_austria_mobility_objective(
+            db_session,
+            context,
+            objective_key=objective_key,
+        )
+
+    pathway_work = db_session.get(OrganizationalWorkItem, first.pathway_work_item.id)
+    regulatory_work = db_session.get(OrganizationalWorkItem, first.regulatory_work_item.id)
+    assert pathway_work is not None
+    assert regulatory_work is not None
+    for work in (pathway_work, regulatory_work):
+        assert work.source_object_type == "mobility_pathway_version"
+        assert work.source_object_id == str(version.id)
+        assert work.source_object_version == str(version.version_number)
+
+
+def test_ungrounded_objective_replay_rejects_adding_pathway_source(db_session: Session) -> None:
+    ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
+    graph = _authority_graph(db_session)
+    version = graph["pathway_version"]
+    context = _human_context()
+    objective_key = "at-rwr-shortage-2026-unbound-to-grounded"
+
+    first = create_austria_mobility_objective(
+        db_session,
+        context,
+        objective_key=objective_key,
+    )
+
+    with pytest.raises(DependencyConflict, match=SOURCE_REPLAY_CONFLICT):
+        create_austria_mobility_objective(
+            db_session,
+            context,
+            objective_key=objective_key,
+            pathway_version_id=version.id,
+        )
+
+    pathway_work = db_session.get(OrganizationalWorkItem, first.pathway_work_item.id)
+    regulatory_work = db_session.get(OrganizationalWorkItem, first.regulatory_work_item.id)
+    assert pathway_work is not None
+    assert regulatory_work is not None
+    for work in (pathway_work, regulatory_work):
+        assert work.source_object_type is None
+        assert work.source_object_id is None
+        assert work.source_object_version is None
 
 
 def test_grounded_objective_rejects_wrong_or_unpublished_source_before_topology(

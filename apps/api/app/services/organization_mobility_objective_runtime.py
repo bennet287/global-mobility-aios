@@ -197,6 +197,48 @@ def _published_austria_pathway_version_source(
     return pathway_version
 
 
+def _preflight_austria_objective_source_replay(
+    session: Session,
+    context: OrganizationCommandContext,
+    *,
+    objective_key: str,
+    source_object_type: str | None,
+    source_object_id: str | None,
+    source_object_version: str | None,
+) -> None:
+    """Reject semantic source changes before generic WorkItem idempotency handling.
+
+    The J.1 objective owns two specialist WorkItems whose canonical source binding must
+    remain stable across replay. The lookup is tenant-scoped so this preflight never
+    reveals another tenant's globally unique idempotency key; the generic WorkItem layer
+    remains responsible for cross-tenant key conflicts and all non-source drift.
+    """
+
+    expected_binding = (
+        source_object_type,
+        source_object_id,
+        source_object_version,
+    )
+    for suffix in ("pathway", "regulatory"):
+        existing = session.exec(
+            select(OrganizationalWorkItem).where(
+                OrganizationalWorkItem.tenant_key == context.tenant_key,
+                OrganizationalWorkItem.idempotency_key == _work_key(context, objective_key, suffix),
+            )
+        ).first()
+        if existing is None:
+            continue
+        existing_binding = (
+            existing.source_object_type,
+            existing.source_object_id,
+            existing.source_object_version,
+        )
+        if existing_binding != expected_binding:
+            raise DependencyConflict(
+                "canonical Austria objective already bound to a different pathway version"
+            )
+
+
 def create_austria_mobility_objective(
     session: Session,
     context: OrganizationCommandContext,
@@ -223,6 +265,14 @@ def create_austria_mobility_objective(
     source_object_id = str(pathway_source.id) if pathway_source is not None else None
     source_object_version = (
         str(pathway_source.version_number) if pathway_source is not None else None
+    )
+    _preflight_austria_objective_source_replay(
+        session,
+        context,
+        objective_key=key,
+        source_object_type=source_object_type,
+        source_object_id=source_object_id,
+        source_object_version=source_object_version,
     )
     owner = _active_position(session, AUSTRIA_MOBILITY_OBJECTIVE_OWNER_POSITION)
     pathway = _active_position(session, AUSTRIA_MOBILITY_PATHWAY_POSITION)
