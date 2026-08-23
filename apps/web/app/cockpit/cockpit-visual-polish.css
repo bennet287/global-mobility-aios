@@ -1,0 +1,80 @@
+/* Final Cockpit visual acceptance polish — legibility without inventing state. */
+
+/* Dense organization cards must remain readable at normal desktop zoom. */
+.pulse-executive-card > div > small {
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.pulse-executive-card > div > strong {
+  font-size: 11px;
+  line-height: 1.28;
+}
+
+.pulse-executive-card > div > p {
+  font-size: 9.25px;
+  line-height: 1.42;
+}
+
+.pulse-executive-card > em {
+  font-size: 8px;
+}
+
+.pulse-domain-card small {
+  font-size: 8.25px;
+  line-height: 1.35;
+}
+
+.pulse-domain-card strong {
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+.pulse-domain-card p {
+  font-size: 9.25px;
+  line-height: 1.4;
+}
+
+/* Preserve density while giving each domain enough room for the larger type. */
+.pulse-domain-card {
+  min-height: 72px;
+  padding: 11px 12px;
+}
+
+/* The successful no-cycle projection is already stated in the hero; keep the
+   persisted-truth follow-up compact rather than presenting a second hero. */
+section[aria-labelledby="live-cycle-empty-title"] {
+  min-height: 0;
+  padding: 18px 20px;
+}
+
+section[aria-labelledby="live-cycle-empty-title"] .cockpit-surface-header {
+  margin-bottom: 6px;
+}
+
+section[aria-labelledby="live-cycle-empty-title"] .cockpit-surface-header h3 {
+  font-size: 20px;
+}
+
+section[aria-labelledby="live-cycle-empty-title"] .cockpit-empty-line {
+  min-height: 0;
+  padding: 5px 0 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+/* Slightly raise the remaining executive-readout floor without changing the
+   editorial display hierarchy. */
+.pulse-layer-heading > span,
+.pulse-runtime-fabric,
+.pulse-focus-panel,
+.owner-attention,
+.cockpit-operational-intelligence {
+  font-size: 12px;
+}
+
+@media (max-width: 1180px) {
+  .pulse-executive-card > div > strong { font-size: 10.75px; }
+  .pulse-domain-card strong { font-size: 10.25px; }
+}
