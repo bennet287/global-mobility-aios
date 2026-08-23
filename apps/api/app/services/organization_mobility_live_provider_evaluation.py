@@ -20,6 +20,7 @@ from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_REGULATORY_POSITION,
     AUSTRIA_MOBILITY_SPECIALIST_POSITIONS,
     AustriaMobilityObjectivePlan,
+    austria_specialist_output_key,
 )
 from app.services.organization_mobility_runtime_quality import (
     AustriaMobilityRuntimeQualityError,
@@ -220,6 +221,41 @@ def load_austria_mobility_objective_plan(
     )
 
 
+def _specialist_work(plan: AustriaMobilityObjectivePlan, position_key: str) -> OrganizationalWorkItem:
+    if position_key == AUSTRIA_MOBILITY_PATHWAY_POSITION:
+        return plan.pathway_work_item
+    if position_key == AUSTRIA_MOBILITY_REGULATORY_POSITION:
+        return plan.regulatory_work_item
+    raise DependencyConflict(f"unsupported Austria specialist position: {position_key}")
+
+
+def _require_fresh_live_execution_candidate(
+    session: Session,
+    plan: AustriaMobilityObjectivePlan,
+) -> None:
+    if plan.root_work_item.status in {"completed", "cancelled", "failed", "rejected", "returned"}:
+        raise DependencyConflict("live-provider evaluation requires a non-terminal Austria objective")
+    conflicts: list[str] = []
+    for position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
+        work = _specialist_work(plan, position_key)
+        output_exists = session.exec(
+            select(OrganizationalActionOutput.id).where(
+                OrganizationalActionOutput.output_key == austria_specialist_output_key(work.id)
+            )
+        ).first() is not None
+        if output_exists:
+            conflicts.append(f"{position_key}:current_k1_output_exists")
+        if work.status not in {"queued", "running"}:
+            conflicts.append(f"{position_key}:status={work.status}")
+        if work.execution_attempts >= work.max_execution_attempts:
+            conflicts.append(f"{position_key}:execution_attempts_exhausted")
+    if conflicts:
+        raise DependencyConflict(
+            "live-provider evaluation requires both specialists to be fresh executable candidates: "
+            + ", ".join(conflicts)
+        )
+
+
 def _specialist_evaluation(
     session: Session,
     result: AustriaSpecialistExecutionResult,
@@ -394,6 +430,7 @@ def execute_austria_live_provider_evaluation(
         tenant_key=tenant_key,
         root_work_item_id=root_work_item_id,
     )
+    _require_fresh_live_execution_candidate(session, plan)
     context = system_bound_agent_command_context(
         tenant_key=tenant_key,
         position_key=AUSTRIA_MOBILITY_OBJECTIVE_OWNER_POSITION,
