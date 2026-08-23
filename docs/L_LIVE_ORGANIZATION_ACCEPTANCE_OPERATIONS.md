@@ -24,7 +24,19 @@ No provider/model identity grants organizational authority. No L acceptance evid
 
 The transparency and owner-synthesis routes are intentionally Board-only. The organization auth mapping resolves `admin` to `position_key=board`; operator and specialist identities are not permitted to use these Board endpoints.
 
-Local development may use header-auth and defaults to the admin role when no local role is configured. Production/non-loopback requests rely on the authenticated application session/cookie. Therefore the Owner Cockpit must be opened under a Board/admin-authenticated session. A 403 under an operator session is expected governance behavior, not a reason to weaken the route.
+The browser client sends local header-auth on loopback development by default, using role `admin` when no public local role is configured. The API intentionally keeps `AUTH_ALLOW_HEADER_ROLE=false` by default, so local development must opt in explicitly before those headers are accepted.
+
+For a local Cockpit session, start the API on loopback only:
+
+```powershell
+$env:PYTHONPATH="apps/api"
+$env:AUTH_ALLOW_HEADER_ROLE="true"
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Do not enable header-role auth on an externally reachable production API. Production/non-loopback use must rely on the authenticated application session/cookie. A 401 means the request was not authenticated; a 403 under an operator/specialist session is expected governance behavior and is not a reason to weaken the Board route.
+
+The Live Organization UI must also preserve this distinction: an authentication/access failure means persisted state is **unavailable**, not that no Austria cycle exists. Only a successful `established=false` response may be rendered as “no cycle exists yet.”
 
 ## Live-provider acceptance configuration
 
