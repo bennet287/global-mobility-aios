@@ -176,9 +176,9 @@ class DeepSeekProvider(_OpenAICompatibleProvider):
         base_url: str | None = None,
     ):
         super().__init__(
-            api_key=api_key or settings.deepseek_api_key,
-            default_model=model or settings.deepseek_model,
-            base_url=base_url or settings.deepseek_base_url or self.base_url,
+            api_key=settings.deepseek_api_key if api_key is None else api_key,
+            default_model=settings.deepseek_model if model is None else model,
+            base_url=settings.deepseek_base_url if base_url is None else base_url,
         )
 
 
@@ -193,9 +193,9 @@ class MoonshotProvider(_OpenAICompatibleProvider):
         base_url: str | None = None,
     ):
         super().__init__(
-            api_key=api_key or settings.moonshot_api_key,
-            default_model=model or settings.moonshot_model,
-            base_url=base_url or settings.moonshot_base_url or self.base_url,
+            api_key=settings.moonshot_api_key if api_key is None else api_key,
+            default_model=settings.moonshot_model if model is None else model,
+            base_url=settings.moonshot_base_url if base_url is None else base_url,
         )
 
 
@@ -212,9 +212,9 @@ class GeminiProvider(_OpenAICompatibleProvider):
         base_url: str | None = None,
     ):
         super().__init__(
-            api_key=api_key or settings.gemini_api_key,
-            default_model=model or settings.gemini_model,
-            base_url=base_url or settings.gemini_base_url or self.base_url,
+            api_key=settings.gemini_api_key if api_key is None else api_key,
+            default_model=settings.gemini_model if model is None else model,
+            base_url=settings.gemini_base_url if base_url is None else base_url,
         )
 
     def complete(
