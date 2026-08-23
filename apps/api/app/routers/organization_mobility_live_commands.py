@@ -10,7 +10,12 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.models.domain import OrganizationalActionOutput, OrganizationalWorkItem
 from app.routers.organization_records import organization_command_context
-from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError, require_human
+from app.services.organization_command import (
+    ConcurrentWriteConflict,
+    OrganizationCommandContext,
+    OrganizationCommandError,
+    require_human,
+)
 from app.services.organization_mobility_live_organization import (
     austria_owner_synthesis_output_key,
     synthesize_austria_objective_owner,
@@ -77,10 +82,10 @@ def _replay_after_integrity_conflict(
     """Normalize only a concurrently materialized L.1 output into exact replay.
 
     The service-level PostgreSQL race proof intentionally demonstrates that the losing
-    transaction reaches the database uniqueness boundary. The HTTP/operator boundary is
+    transaction reaches a database concurrency boundary. The HTTP/operator boundary is
     friendlier: after rollback, it only retries as replay when the canonical owner output
-    now exists. Unrelated integrity errors remain conflicts rather than being disguised as
-    successful idempotency.
+    now exists. Unrelated integrity/dependency errors remain conflicts rather than being
+    disguised as successful idempotency.
     """
 
     session.rollback()
@@ -141,7 +146,7 @@ def synthesize_austria_owner_command(
             tenant_key=context.tenant_key,
             root_work_item_id=root_work_item_id,
         )
-    except IntegrityError:
+    except (IntegrityError, ConcurrentWriteConflict):
         result = _replay_after_integrity_conflict(
             session,
             tenant_key=context.tenant_key,

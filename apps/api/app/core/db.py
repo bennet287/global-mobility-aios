@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+from sqlalchemy import UniqueConstraint
 from sqlmodel import SQLModel, Session, create_engine
 
 from app.core.config import settings
@@ -13,6 +14,18 @@ engine = create_engine(
     connect_args=connect_args,
     pool_pre_ping=not is_sqlite_url(DATABASE_URL),
 )
+
+
+def _register_legacy_metadata_constraints() -> None:
+    """Keep SQLModel metadata aligned with named constraints already owned by migrations."""
+
+    table = SQLModel.metadata.tables["organizational_action_outputs"]
+    constraint_name = "uq_organizational_action_output_key"
+    if not any(constraint.name == constraint_name for constraint in table.constraints):
+        table.append_constraint(
+            UniqueConstraint("output_key", name=constraint_name)
+        )
+
 
 def register_models() -> None:
     from app.models.domain import (  # noqa: F401
@@ -139,10 +152,14 @@ def register_models() -> None:
     )
     from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
 
+    _register_legacy_metadata_constraints()
+
+
 def create_db_and_tables() -> None:
     register_models()
     if should_auto_create_tables(DATABASE_URL, settings.database_auto_create_tables):
         SQLModel.metadata.create_all(engine)
+
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:

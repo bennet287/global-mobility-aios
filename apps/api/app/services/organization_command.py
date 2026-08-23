@@ -52,6 +52,10 @@ class DependencyConflict(OrganizationCommandError):
     pass
 
 
+class ConcurrentWriteConflict(DependencyConflict):
+    """A safe retry may succeed after a concurrent transaction commits canonical state."""
+
+
 class ContributionSourceRejected(OrganizationCommandError):
     pass
 

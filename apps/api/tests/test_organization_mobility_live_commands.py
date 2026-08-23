@@ -7,8 +7,9 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.models.domain import OrganizationActorType
+import app.routers.organization_mobility_live_commands as live_commands
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
-from app.services.organization_command import OrganizationCommandContext
+from app.services.organization_command import ConcurrentWriteConflict, OrganizationCommandContext
 from app.services.organization_governance import ensure_foundation_positions
 from app.services.organization_mobility_objective_execution import execute_austria_specialists
 from app.services.organization_mobility_objective_runtime import (
@@ -105,6 +106,46 @@ def test_board_can_materialize_and_exactly_replay_ready_owner_synthesis(
     assert snapshot_body["cycle_status"] == "completed"
     assert snapshot_body["owner_synthesis"]["action_output_id"] == first_body["action_output_id"]
     assert snapshot_body["external_action_authorized"] is False
+
+
+def test_owner_command_normalizes_specific_retryable_conflict_into_exact_replay(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan = _ready_plan(
+        db_session,
+        monkeypatch,
+        objective_key="at-rwr-shortage-2026-live-command-retryable-race",
+    )
+    path = f"/api/v1/organization/live-organization/austria/{plan.root_work_item.id}/owner-synthesis"
+    first = client.post(path)
+    assert first.status_code == 200
+    first_body = first.json()
+
+    original = live_commands.synthesize_austria_objective_owner
+    calls = 0
+
+    def conflict_once(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise ConcurrentWriteConflict("activity stream was created concurrently")
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(
+        live_commands,
+        "synthesize_austria_objective_owner",
+        conflict_once,
+    )
+
+    replay = client.post(path)
+    assert replay.status_code == 200
+    replay_body = replay.json()
+    assert calls == 2
+    assert replay_body["replayed"] is True
+    assert replay_body["action_output_id"] == first_body["action_output_id"]
+    assert replay_body["activity_id"] == first_body["activity_id"]
 
 
 def test_owner_synthesis_command_requires_board_admin_human(

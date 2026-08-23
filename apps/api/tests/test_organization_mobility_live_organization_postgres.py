@@ -8,7 +8,13 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationActivity, OrganizationActorType, OrganizationalActionOutput, OrganizationalWorkItem
+from app.models.domain import (
+    OrganizationActivity,
+    OrganizationActivityStream,
+    OrganizationActorType,
+    OrganizationalActionOutput,
+    OrganizationalWorkItem,
+)
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
 from app.services.organization_command import OrganizationCommandContext
 from app.services.organization_governance import ensure_foundation_positions
@@ -170,13 +176,14 @@ def test_postgres_l1_concurrent_owner_synthesis_allows_exactly_one_materializati
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Prove the historic DB output-key uniqueness closes the L.1 pre-read race.
+    """Prove output-key uniqueness closes the L.1 pre-read race and remains replayable.
 
-    Both sessions are deliberately held after observing no owner output. They then race
-    the same synthesis. Exactly one transaction may materialize the owner output and
-    Activity; the other must be rejected by the database uniqueness boundary. This is
-    a persistence-safety proof, not a claim that the losing caller is already normalized
-    into a replay response.
+    The owner Activity stream is intentionally materialized before the race so the test
+    isolates the durable owner-output uniqueness boundary instead of allowing a separate
+    activity-stream creation race to win first. Both sessions are then held after seeing
+    no owner output. Exactly one may create it; PostgreSQL must reject the loser on the
+    named output-key constraint. Final state is verified before the losing command is
+    retried as exact replay.
     """
 
     plan = _prepare_ready_objective(
@@ -185,6 +192,21 @@ def test_postgres_l1_concurrent_owner_synthesis_allows_exactly_one_materializati
         objective_key="at-rwr-shortage-2026-l1-postgres-race",
     )
     root_id = plan.root_work_item.id
+    stream_key = f"organization:mobility-objective:{root_id}"
+    assert db_session.exec(
+        select(OrganizationActivityStream).where(
+            OrganizationActivityStream.tenant_key == "default",
+            OrganizationActivityStream.stream_key == stream_key,
+        )
+    ).first() is None
+    db_session.add(
+        OrganizationActivityStream(
+            tenant_key="default",
+            stream_key=stream_key,
+        )
+    )
+    db_session.commit()
+
     engine = db_session.get_bind()
     barrier = threading.Barrier(2)
     gate_lock = threading.Lock()
@@ -218,9 +240,10 @@ def test_postgres_l1_concurrent_owner_synthesis_allows_exactly_one_materializati
                     root_work_item_id=root_id,
                 )
                 return "created", str(result.action_output_id)
-            except IntegrityError:
+            except IntegrityError as exc:
                 concurrent_session.rollback()
-                return "integrity_conflict", None
+                diag = getattr(getattr(exc, "orig", None), "diag", None)
+                return "integrity_conflict", getattr(diag, "constraint_name", None)
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         outcomes = [future.result(timeout=30) for future in [
@@ -229,8 +252,10 @@ def test_postgres_l1_concurrent_owner_synthesis_allows_exactly_one_materializati
         ]]
 
     assert sorted(kind for kind, _ in outcomes) == ["created", "integrity_conflict"]
-    created_ids = [output_id for kind, output_id in outcomes if kind == "created"]
+    created_ids = [detail for kind, detail in outcomes if kind == "created"]
+    conflict_constraints = [detail for kind, detail in outcomes if kind == "integrity_conflict"]
     assert len(created_ids) == 1
+    assert conflict_constraints == ["uq_organizational_action_output_key"]
 
     output_key = austria_owner_synthesis_output_key(root_id)
     activity_key = austria_owner_synthesis_activity_key(root_id)
@@ -260,3 +285,26 @@ def test_postgres_l1_concurrent_owner_synthesis_allows_exactly_one_materializati
         assert snapshot.cycle_status == "completed"
         assert snapshot.owner_synthesis is not None
         assert snapshot.owner_synthesis.action_output_id == outputs[0].id
+
+        replay = synthesize_austria_objective_owner(
+            verification_session,
+            tenant_key="default",
+            root_work_item_id=root_id,
+        )
+        assert replay.replayed is True
+        assert replay.action_output_id == outputs[0].id
+        assert replay.activity_id == activities[0].id
+        assert len(
+            verification_session.exec(
+                select(OrganizationalActionOutput).where(
+                    OrganizationalActionOutput.output_key == output_key
+                )
+            ).all()
+        ) == 1
+        assert len(
+            verification_session.exec(
+                select(OrganizationActivity).where(
+                    OrganizationActivity.activity_key == activity_key
+                )
+            ).all()
+        ) == 1

@@ -16,6 +16,7 @@ from app.models.domain import (
 )
 from app.services.organization_command import (
     AuditMutation,
+    ConcurrentWriteConflict,
     DependencyConflict,
     IdempotencyConflict,
     OrganizationCommandContext,
@@ -237,9 +238,9 @@ def _write_activity(
         except IntegrityError as exc:
             if not _commit:
                 # Caller-owned staging must never roll back a transaction it does not own.
-                # The caller receives a retryable conflict and rolls the whole source unit
-                # of work back atomically.
-                raise DependencyConflict(
+                # The caller receives a specifically retryable conflict and rolls the
+                # whole source unit of work back atomically.
+                raise ConcurrentWriteConflict(
                     "activity stream was created concurrently; retry the source transaction"
                 ) from exc
             session.rollback()
@@ -257,7 +258,9 @@ def _write_activity(
             )
             if replay is not None:
                 return replay
-            raise DependencyConflict("activity stream was created concurrently; retry the command") from exc
+            raise ConcurrentWriteConflict(
+                "activity stream was created concurrently; retry the command"
+            ) from exc
 
     stream.last_sequence += 1
     stream.updated_at = now_utc()
@@ -309,7 +312,7 @@ def _write_activity(
         except IntegrityError as exc:
             # The staging primitive must not query or roll back after a failed flush;
             # the caller owns rollback/retry for the complete source transition.
-            raise DependencyConflict(
+            raise ConcurrentWriteConflict(
                 "concurrent activity sequence allocation failed; retry the source transaction"
             ) from exc
         return activity
@@ -336,7 +339,9 @@ def _write_activity(
         )
         if replay is not None:
             return replay
-        raise DependencyConflict("concurrent activity sequence allocation failed; retry the command") from exc
+        raise ConcurrentWriteConflict(
+            "concurrent activity sequence allocation failed; retry the command"
+        ) from exc
     return activity
 
 
