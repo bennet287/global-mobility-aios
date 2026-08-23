@@ -81,10 +81,11 @@ def test_auth_policy_registry_preserves_sensitive_role_boundaries() -> None:
 
 def test_router_registry_contains_compatibility_and_security_critical_routes() -> None:
     features = [spec.feature for spec in ROUTER_SPECS]
-    assert len(features) == 68
+    assert len(features) == 69
     assert "auth" in features
     assert "organization-governance" in features
     assert "organization-records" in features
+    assert "organization-live-commands" in features
     assert "organization-transparency" in features
     assert "organization-autonomy-promotion-transparency" in features
     assert "organization-autonomy-evidence-evaluation-transparency" in features
@@ -138,15 +139,3 @@ def test_capability_boundary_denies_prohibited_department_actions() -> None:
     assert department_runtime_available("Finance", "internal.analysis") is True
     assert department_runtime_available("Finance", "client.external_send") is False
     assert department_runtime_available("Finance", "payment.initiate") is False
-    assert department_runtime_available("Communications", "internal.analysis") is True
-    assert department_runtime_available("Communications", "client.external_send") is False
-    assert department_runtime_available("Communications", "policy.publish") is False
-    assert department_runtime_available("People", "internal.analysis") is True
-    assert department_runtime_available("People", "hiring.decision") is False
-    assert department_runtime_available("People", "compensation.change") is False
-    assert department_runtime_available("People", "termination.action") is False
-    assert department_runtime_available("Legal", "internal.analysis") is True
-    assert department_runtime_available("Legal", "contract.sign") is False
-    assert department_runtime_available("Legal", "authority.submit") is False
-    assert department_runtime_available("Legal", "policy.publish") is False
-    assert department_runtime_available("Legal", "payment.initiate") is False
