@@ -259,6 +259,7 @@ def test_guarded_cycle_projects_validated_freshness_without_promoting_determinis
     monkeypatch.setattr(settings, "llm_provider", "deepseek")
     monkeypatch.setattr(settings, "deepseek_model", "deepseek-chat")
     monkeypatch.setattr(settings, "deepseek_api_key", "test-only-key")
+    monkeypatch.setattr(settings, "llm_fallback_to_template", False)
 
     evaluation = execute_austria_live_provider_cycle(
         db_session,
@@ -306,6 +307,7 @@ def test_tampered_freshness_stamp_fails_durable_revalidation(
     monkeypatch.setattr(settings, "llm_provider", "deepseek")
     monkeypatch.setattr(settings, "deepseek_model", "deepseek-chat")
     monkeypatch.setattr(settings, "deepseek_api_key", "test-only-key")
+    monkeypatch.setattr(settings, "llm_fallback_to_template", False)
     evaluation = execute_austria_live_provider_cycle(
         db_session,
         tenant_key="default",
