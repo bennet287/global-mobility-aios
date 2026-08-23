@@ -82,6 +82,7 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
         "evaluation_as_of": source_set.evaluation_as_of.isoformat(),
         "source_professional_review_status": source_set.professional_review_status,
         "claim_boundary": source_set.claim_boundary,
+        "official_sources": raw.get("sources", []),
         "reviewer_boundary": (
             "AIOS validates source fingerprints, review structure, decision semantics and supplied reviewer/credential "
             "references. It does not verify the real-world identity, independence, professional standing or credential "
