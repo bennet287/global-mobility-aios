@@ -147,16 +147,20 @@ def test_gemini_provider_success_uses_documented_openai_compatible_endpoint():
     assert kwargs["json"]["response_format"] == {"type": "json_object"}
 
 
-def test_deepseek_provider_missing_key():
-    provider = DeepSeekProvider(api_key="", model="deepseek-chat")
-    with pytest.raises(LLMProviderError, match="API key is not configured"):
-        provider.complete("system", [{"role": "user", "content": "hi"}])
-
-
-def test_gemini_provider_missing_key():
-    provider = GeminiProvider(api_key="", model="gemini-3.7-flash")
-    with pytest.raises(LLMProviderError, match="API key is not configured"):
-        provider.complete("system", [{"role": "user", "content": "hi"}])
+@pytest.mark.parametrize(
+    ("provider_cls", "model"),
+    [
+        (DeepSeekProvider, "deepseek-chat"),
+        (MoonshotProvider, "kimi-k1-5"),
+        (GeminiProvider, "gemini-3.7-flash"),
+    ],
+)
+def test_explicit_empty_provider_key_fails_before_network_egress(provider_cls, model):
+    provider = provider_cls(api_key="", model=model)
+    with patch("httpx.Client") as client_cls:
+        with pytest.raises(LLMProviderError, match="API key is not configured"):
+            provider.complete("system", [{"role": "user", "content": "hi"}])
+    client_cls.assert_not_called()
 
 
 def test_deepseek_provider_http_error():
