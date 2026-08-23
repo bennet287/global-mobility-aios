@@ -24,8 +24,16 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /The Cockpit does not simulate a live organization cycle/);
   assert.match(page, /no Evidence is fabricated by the UI/);
   assert.match(page, /regulatory truth is not implied/);
+  assert.match(page, /Board authentication required/);
+  assert.match(page, /Board access not permitted/);
+  assert.match(page, /Live organization unavailable/);
+  assert.match(page, /does not infer whether a live cycle exists/);
+  assert.match(page, /!loading && !error && !snapshot/);
   assert.doesNotMatch(page, /Math\.random|setInterval\(/);
 
+  assert.match(api, /class LiveOrganizationRequestError extends Error/);
+  assert.match(api, /this\.status = status/);
+  assert.match(api, /throw new LiveOrganizationRequestError\(response\.status, detail\)/);
   assert.match(api, /createApiFetch\(CLIENT_API_CONFIG\)/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/austria\/latest/);
   assert.match(api, /\/api\/v1\/organization\/live-organization\/austria\/\$\{encodeURIComponent\(rootWorkItemId\)\}\/owner-synthesis/);
