@@ -57,4 +57,5 @@ def test_untouched_professional_review_return_template_cannot_validate(tmp_path:
     error = json.loads(validated.stderr)
     assert error["status"] == "failed"
     assert error["error_type"] == "ValueError"
-    assert "must be a non-empty string" in error["error"]
+    assert error["error"].startswith("reviews[0].")
+    assert "must be" in error["error"]
