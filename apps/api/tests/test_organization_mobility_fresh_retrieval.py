@@ -24,6 +24,12 @@ from app.services.organization_mobility_fresh_retrieval import (
     refresh_austria_authority_snapshots,
     validate_action_output_fresh_retrieval_evidence,
 )
+from app.services.organization_mobility_live_diagnostics import (
+    austria_live_specialist_runtime_quality,
+)
+from app.services.organization_mobility_live_organization import (
+    austria_live_organization_snapshot,
+)
 from app.services.organization_mobility_live_provider_cycle import (
     execute_austria_live_provider_cycle,
 )
@@ -241,7 +247,7 @@ def test_live_cycle_checks_provider_configuration_before_source_retrieval(
     assert called is False
 
 
-def test_guarded_cycle_reports_freshness_without_promoting_deterministic_to_live(
+def test_guarded_cycle_projects_validated_freshness_without_promoting_deterministic_to_live(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -274,6 +280,18 @@ def test_guarded_cycle_reports_freshness_without_promoting_deterministic_to_live
         and item.live_provider_succeeded is False
         for item in evaluation.specialist_evaluations
     )
+
+    live_snapshot = austria_live_organization_snapshot(
+        db_session,
+        tenant_key="default",
+        root_work_item_id=plan.root_work_item.id,
+    )
+    assert live_snapshot.ready_for_owner_synthesis is True
+    for specialist in live_snapshot.specialist_outputs:
+        quality = austria_live_specialist_runtime_quality(db_session, specialist)
+        assert quality is not None
+        assert quality.fresh_retrieval_provenance_present is True
+        assert "fresh official-source equivalence verified before K.1" in quality.warnings
 
 
 def test_tampered_freshness_stamp_fails_durable_revalidation(
