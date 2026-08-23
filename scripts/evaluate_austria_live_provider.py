@@ -35,6 +35,9 @@ from app.services.organization_mobility_objective_runtime import (  # noqa: E402
 )
 
 
+_TERMINAL_ROOT_STATUSES = {"completed", "cancelled", "failed", "rejected", "returned"}
+
+
 def _json(value: object) -> str:
     return json.dumps(value, default=str, indent=2, sort_keys=True)
 
@@ -107,7 +110,7 @@ def _candidate_roots(session: Session, tenant_key: str) -> list[dict[str, object
             if child.assigned_position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS
         }
         specialist_state: dict[str, object] = {}
-        fresh_execution_candidate = True
+        fresh_execution_candidate = root.status not in _TERMINAL_ROOT_STATUSES
         for position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
             child = child_by_position.get(position_key)
             if child is None:
@@ -120,14 +123,21 @@ def _candidate_roots(session: Session, tenant_key: str) -> list[dict[str, object
                     == austria_specialist_output_key(child.id)
                 )
             ).first() is not None
+            attempts_exhausted = child.execution_attempts >= child.max_execution_attempts
             specialist_state[position_key] = {
                 "present": True,
                 "work_item_id": str(child.id),
                 "status": child.status,
                 "execution_attempts": child.execution_attempts,
+                "max_execution_attempts": child.max_execution_attempts,
+                "execution_attempts_exhausted": attempts_exhausted,
                 "current_k1_output_exists": output_exists,
             }
-            if output_exists or child.status not in {"queued", "running"}:
+            if (
+                output_exists
+                or child.status not in {"queued", "running"}
+                or attempts_exhausted
+            ):
                 fresh_execution_candidate = False
         items.append(
             {
