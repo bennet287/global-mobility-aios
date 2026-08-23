@@ -6,7 +6,7 @@ import pytest
 from sqlmodel import Session
 
 from app.core.config import settings
-from app.models.domain import AgentRun
+from app.models.domain import AgentRun, OrganizationalWorkItem
 from app.services.organization_agent_runtime import RuntimeClass
 from app.services.organization_command import DependencyConflict
 from app.services.organization_governance import ensure_foundation_positions
@@ -14,6 +14,7 @@ from app.services.organization_mobility_live_provider_evaluation import (
     AustriaLiveProviderSelection,
     compile_austria_live_provider_evaluation,
     configured_live_provider_selection,
+    execute_austria_live_provider_evaluation,
     live_provider_runtime_profiles,
 )
 from app.services.organization_mobility_objective_execution import execute_austria_specialists
@@ -157,3 +158,36 @@ def test_live_provider_evaluation_rejects_agent_run_provenance_tampering(
             ),
             results=results,
         )
+
+
+def test_execute_live_provider_evaluation_rejects_nonfresh_root_before_mutation(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan, _ = _grounded_deterministic_execution(
+        db_session,
+        monkeypatch,
+        objective_key="at-rwr-shortage-2026-live-provider-nonfresh-preflight",
+    )
+    attempts_before = {
+        work.id: work.execution_attempts
+        for work in (plan.pathway_work_item, plan.regulatory_work_item)
+    }
+    monkeypatch.setattr(settings, "llm_provider", "deepseek")
+    monkeypatch.setattr(settings, "deepseek_model", "deepseek-chat")
+    monkeypatch.setattr(settings, "deepseek_api_key", "test-only-key")
+
+    with pytest.raises(
+        DependencyConflict,
+        match="requires both specialists to be fresh executable candidates",
+    ):
+        execute_austria_live_provider_evaluation(
+            db_session,
+            tenant_key="default",
+            root_work_item_id=plan.root_work_item.id,
+        )
+
+    for work_item_id, attempt_count in attempts_before.items():
+        work = db_session.get(OrganizationalWorkItem, work_item_id)
+        assert work is not None
+        assert work.execution_attempts == attempt_count
