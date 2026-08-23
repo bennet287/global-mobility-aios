@@ -9,6 +9,8 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     AgentRun,
+    MobilityPathway,
+    MobilityPathwayVersion,
     OrganizationActivity,
     OrganizationExecutionAttempt,
     OrganizationPosition,
@@ -93,24 +95,40 @@ def austria_completed_work_fingerprint(work: OrganizationalWorkItem) -> str:
     Execution happens while the specialist WorkItem is running, so its execution
     ContextBundle hash is intentionally historical after the final completed transition.
     This fingerprint binds the durable output to the current completed WorkItem state;
-    later topology/context/assignment/status mutation makes the evidence stale.
+    later topology/context/assignment/status mutation makes the evidence stale. Grounded
+    source identity is included only when present so historic ungrounded K.1 fingerprints
+    remain backward-compatible.
     """
 
-    return canonical_fingerprint(
-        {
-            "id": work.id,
-            "tenant_key": work.tenant_key,
-            "parent_work_item_id": work.parent_work_item_id,
-            "work_type": work.work_type,
-            "objective_key": work.objective_key,
-            "phase_key": work.phase_key,
-            "assigned_position_key": work.assigned_position_key,
-            "department": work.department,
-            "authority_level": work.authority_level,
-            "status": work.status,
-            "context_json": work.context_json,
-        }
-    )
+    payload: dict[str, object] = {
+        "id": work.id,
+        "tenant_key": work.tenant_key,
+        "parent_work_item_id": work.parent_work_item_id,
+        "work_type": work.work_type,
+        "objective_key": work.objective_key,
+        "phase_key": work.phase_key,
+        "assigned_position_key": work.assigned_position_key,
+        "department": work.department,
+        "authority_level": work.authority_level,
+        "status": work.status,
+        "context_json": work.context_json,
+    }
+    if any(
+        value is not None
+        for value in (
+            work.source_object_type,
+            work.source_object_id,
+            work.source_object_version,
+        )
+    ):
+        payload.update(
+            {
+                "source_object_type": work.source_object_type,
+                "source_object_id": work.source_object_id,
+                "source_object_version": work.source_object_version,
+            }
+        )
+    return canonical_fingerprint(payload)
 
 
 def _json_object(value: str | None, *, label: str) -> dict[str, object]:
@@ -146,11 +164,45 @@ def _work_key(context: OrganizationCommandContext, objective_key: str, suffix: s
     return f"j1:austria:{context.tenant_key}:{objective_key}:{suffix}"
 
 
+def _published_austria_pathway_version_source(
+    session: Session,
+    pathway_version_id: UUID | None,
+) -> MobilityPathwayVersion | None:
+    """Resolve the optional canonical source identity before creating any J.1 topology.
+
+    This gate intentionally validates only source identity/publication. Effectivity,
+    Evidence, VerifiedRules, source snapshots and policy remain owned by Context Authority
+    when K resolves the specialist ContextBundle.
+    """
+
+    if pathway_version_id is None:
+        return None
+    pathway_version = session.get(MobilityPathwayVersion, pathway_version_id)
+    if pathway_version is None:
+        raise DependencyConflict("Austria mobility pathway version source was not found")
+    pathway = session.get(MobilityPathway, pathway_version.pathway_id)
+    if pathway is None:
+        raise DependencyConflict("Austria mobility pathway source parent was not found")
+    if (
+        pathway.pathway_key != AUSTRIA_MOBILITY_OBJECTIVE_ROUTE
+        or pathway.country.strip().casefold() != "austria"
+    ):
+        raise DependencyConflict(
+            "mobility pathway version does not match the canonical Austria objective route"
+        )
+    if pathway.catalogue_status != "published":
+        raise DependencyConflict("Austria mobility pathway source is not published")
+    if pathway_version.lifecycle_status != "published" or pathway_version.published_at is None:
+        raise DependencyConflict("Austria mobility pathway version source is not published")
+    return pathway_version
+
+
 def create_austria_mobility_objective(
     session: Session,
     context: OrganizationCommandContext,
     *,
     objective_key: str,
+    pathway_version_id: UUID | None = None,
 ) -> AustriaMobilityObjectivePlan:
     """Create the first bounded J objective using existing WorkItem primitives only.
 
@@ -160,10 +212,18 @@ def create_austria_mobility_objective(
 
     No agent/model execution happens here. K owns execution. J.1 only establishes the
     durable organization topology and enough bounded working context for later runtime
-    binding.
+    binding. When ``pathway_version_id`` is supplied, only the specialist WorkItems are
+    bound to that canonical published source; Context Authority remains authoritative for
+    the exact Evidence/rule/snapshot versions consumed during execution.
     """
 
     key = _objective_key(objective_key)
+    pathway_source = _published_austria_pathway_version_source(session, pathway_version_id)
+    source_object_type = "mobility_pathway_version" if pathway_source is not None else None
+    source_object_id = str(pathway_source.id) if pathway_source is not None else None
+    source_object_version = (
+        str(pathway_source.version_number) if pathway_source is not None else None
+    )
     owner = _active_position(session, AUSTRIA_MOBILITY_OBJECTIVE_OWNER_POSITION)
     pathway = _active_position(session, AUSTRIA_MOBILITY_PATHWAY_POSITION)
     regulatory = _active_position(session, AUSTRIA_MOBILITY_REGULATORY_POSITION)
@@ -217,6 +277,9 @@ def create_austria_mobility_objective(
         objective_key=key,
         phase_key="J.1.pathway",
         risk_level="routine",
+        source_object_type=source_object_type,
+        source_object_id=source_object_id,
+        source_object_version=source_object_version,
         context_payload={
             "contract_version": AUSTRIA_MOBILITY_OBJECTIVE_RUNTIME_CONTRACT_VERSION,
             "country": "Austria",
@@ -244,6 +307,9 @@ def create_austria_mobility_objective(
         objective_key=key,
         phase_key="J.1.regulatory",
         risk_level="routine",
+        source_object_type=source_object_type,
+        source_object_id=source_object_id,
+        source_object_version=source_object_version,
         context_payload={
             "contract_version": AUSTRIA_MOBILITY_OBJECTIVE_RUNTIME_CONTRACT_VERSION,
             "country": "Austria",

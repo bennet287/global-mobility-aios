@@ -1,31 +1,41 @@
 from __future__ import annotations
 
 import json
-from dataclasses import replace
-from uuid import UUID
+from datetime import timedelta
+from uuid import UUID, uuid4
 
 import pytest
 from sqlmodel import Session, select
 
-from app.models.domain import AgentRun, OrganizationActorType, OrganizationalActionOutput
+from app.models.domain import (
+    AgentRun,
+    CountryPolicy,
+    MobilityPathway,
+    MobilityPathwayVersion,
+    MobilityPathwayVersionEvidence,
+    OfficialSource,
+    OrganizationActorType,
+    OrganizationalActionOutput,
+    OrganizationalWorkItem,
+    SourceSnapshot,
+    VerifiedRule,
+    now_utc,
+)
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
 from app.services.organization_command import (
     DependencyConflict,
     OrganizationCommandContext,
     canonical_fingerprint,
 )
-from app.services.organization_context_broker import (
-    ContextPurpose,
-    ContextReference,
-    build_work_item_context_bundle,
-)
 from app.services.organization_governance import ensure_foundation_positions
 from app.services.organization_mobility_live_organization import austria_live_organization_snapshot
 from app.services.organization_mobility_objective_execution import execute_austria_specialists
 from app.services.organization_mobility_objective_runtime import (
+    AUSTRIA_MOBILITY_OBJECTIVE_ROUTE,
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
     AUSTRIA_MOBILITY_REGULATORY_POSITION,
     AUSTRIA_MOBILITY_SPECIALIST_POSITIONS,
+    austria_objective_readiness,
     create_austria_mobility_objective,
 )
 
@@ -69,87 +79,172 @@ def _force_deterministic(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.services.controlled_agents.is_llm_enabled", lambda: False)
 
 
-def _grounded_context_builder(
-    session: Session,
-    *,
-    tenant_key: str,
-    position_key: str,
-    work_item_id,
-    purpose: ContextPurpose,
-):
-    base = build_work_item_context_bundle(
-        session,
-        tenant_key=tenant_key,
-        position_key=position_key,
-        work_item_id=work_item_id,
-        purpose=purpose,
+def _authority_graph(session: Session) -> dict[str, object]:
+    source = OfficialSource(
+        country="austria",
+        domain="visa",
+        name="Austrian official immigration source",
+        url=f"https://example.gv.at/{uuid4()}",
+        source_type="government",
+        authority="Austrian authority",
+        active=True,
     )
-    short = (
-        "pathway"
-        if position_key == AUSTRIA_MOBILITY_PATHWAY_POSITION
-        else "regulatory"
+    session.add(source)
+    session.commit()
+    session.refresh(source)
+
+    snapshot = SourceSnapshot(
+        official_source_id=source.id,
+        url=source.url,
+        content_hash="snapshot-v1",
+        content_text="Published Austrian mobility guidance.",
+        http_status=200,
+        retrieval_method="http",
+        parser_version="pytest-v1",
+        status="captured",
     )
-    evidence_refs = (
-        ContextReference(
-            kind="evidence",
-            identifier=f"at-{short}-evidence",
-            version="2026",
-        ),
+    session.add(snapshot)
+    session.commit()
+    session.refresh(snapshot)
+
+    rule = VerifiedRule(
+        country="austria",
+        domain="visa",
+        rule_key=f"at-rule-{uuid4()}",
+        statement="A governed Austrian mobility rule.",
+        official_source_id=source.id,
+        source_snapshot_id=snapshot.id,
+        confidence=0.99,
+        active=True,
+        effective_from=now_utc() - timedelta(days=30),
+        approved_by="pytest-reviewer",
+        published_at=now_utc() - timedelta(days=1),
     )
-    verified_rule_refs = (
-        ContextReference(
-            kind="verified_rule",
-            identifier=f"at-{short}-rule",
-            version="2026.1",
-        ),
+    session.add(rule)
+    session.commit()
+    session.refresh(rule)
+
+    pathway = MobilityPathway(
+        pathway_key=AUSTRIA_MOBILITY_OBJECTIVE_ROUTE,
+        name="Austrian shortage-occupation mobility pathway",
+        country="austria",
+        domain="visa",
+        catalogue_status="published",
+        created_by="pytest",
     )
-    source_snapshot_refs = (
-        ContextReference(
-            kind="source_snapshot",
-            identifier="at-official-source-snapshot",
-            version="2026-08-22",
-        ),
+    session.add(pathway)
+    session.commit()
+    session.refresh(pathway)
+
+    pathway_version = MobilityPathwayVersion(
+        pathway_id=pathway.id,
+        version_number=3,
+        lifecycle_status="published",
+        official_source_id=source.id,
+        source_snapshot_id=snapshot.id,
+        verified_rule_ids_json=json.dumps([str(rule.id)]),
+        eligibility_criteria_json='{"criterion":"governed"}',
+        metadata_json='{"scope":"test"}',
+        effective_from=now_utc() - timedelta(days=10),
+        human_review_required=True,
+        approved_by="pytest-reviewer",
+        published_at=now_utc() - timedelta(days=1),
+        created_by="pytest",
     )
-    context_hash = canonical_fingerprint(
+    session.add(pathway_version)
+    session.commit()
+    session.refresh(pathway_version)
+
+    evidence = MobilityPathwayVersionEvidence(
+        pathway_version_id=pathway_version.id,
+        evidence_role="primary",
+        official_source_id=source.id,
+        source_snapshot_id=snapshot.id,
+        required_for_publication=True,
+        metadata_json='{"purpose":"primary authority"}',
+    )
+    session.add(evidence)
+    session.commit()
+    session.refresh(evidence)
+
+    policy = CountryPolicy(
+        country="austria",
+        domain="visa",
+        policy_json='{"human_review_required":true,"verification_required":true}',
+        status="active",
+        last_reviewed_at=now_utc() - timedelta(days=2),
+    )
+    session.add(policy)
+    session.commit()
+    session.refresh(policy)
+
+    return {
+        "source": source,
+        "snapshot": snapshot,
+        "rule": rule,
+        "pathway": pathway,
+        "pathway_version": pathway_version,
+        "evidence": evidence,
+        "policy": policy,
+    }
+
+
+def _reference_payload(kind: str, row: object) -> list[dict[str, str]]:
+    return [
         {
-            "base_context_hash": base.context_hash,
-            "position_key": position_key,
-            "fixture": "source-grounded-context-provenance",
+            "kind": kind,
+            "identifier": str(row.id),
+            "version": canonical_fingerprint(row),
         }
+    ]
+
+
+def _second_published_version(session: Session, graph: dict[str, object]) -> MobilityPathwayVersion:
+    first = graph["pathway_version"]
+    row = MobilityPathwayVersion(
+        pathway_id=first.pathway_id,
+        version_number=first.version_number + 1,
+        lifecycle_status="published",
+        official_source_id=first.official_source_id,
+        source_snapshot_id=first.source_snapshot_id,
+        verified_rule_ids_json=first.verified_rule_ids_json,
+        eligibility_criteria_json=first.eligibility_criteria_json,
+        metadata_json='{"scope":"test-v2"}',
+        effective_from=now_utc() - timedelta(days=1),
+        human_review_required=True,
+        approved_by="pytest-reviewer",
+        published_at=now_utc(),
+        created_by="pytest",
     )
-    return replace(
-        base,
-        evidence_refs=evidence_refs,
-        verified_rule_refs=verified_rule_refs,
-        source_snapshot_refs=source_snapshot_refs,
-        context_hash=context_hash,
-    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
 
 
-def _patch_grounded_context_builder(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Execution and runtime binding intentionally resolve context independently.
-    # A controlled grounded fixture must therefore replace both import sites so
-    # the runtime's stale-context guard still validates the exact same bundle.
-    for target in (
-        "app.services.organization_mobility_objective_execution.build_work_item_context_bundle",
-        "app.services.organization_agent_runtime.build_work_item_context_bundle",
-    ):
-        monkeypatch.setattr(target, _grounded_context_builder)
-
-
-def test_k1_persists_consumed_context_refs_and_l_projects_only_persisted_lineage(
+def test_source_grounded_k1_persists_real_authority_refs_and_l_projects_persisted_lineage(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
     _force_deterministic(monkeypatch)
-    _patch_grounded_context_builder(monkeypatch)
+    graph = _authority_graph(db_session)
+    pathway_version = graph["pathway_version"]
     context = _human_context()
     plan = create_austria_mobility_objective(
         db_session,
         context,
         objective_key="at-rwr-shortage-2026-context-provenance",
+        pathway_version_id=pathway_version.id,
     )
+
+    assert plan.root_work_item.source_object_type is None
+    assert plan.root_work_item.source_object_id is None
+    assert plan.root_work_item.source_object_version is None
+    for work in (plan.pathway_work_item, plan.regulatory_work_item):
+        assert work.source_object_type == "mobility_pathway_version"
+        assert work.source_object_id == str(pathway_version.id)
+        assert work.source_object_version == str(pathway_version.version_number)
 
     execute_austria_specialists(
         db_session,
@@ -157,6 +252,13 @@ def test_k1_persists_consumed_context_refs_and_l_projects_only_persisted_lineage
         plan,
         runtime_profiles=_profiles(),
     )
+
+    expected_evidence = _reference_payload(
+        "mobility_pathway_version_evidence",
+        graph["evidence"],
+    )
+    expected_rules = _reference_payload("verified_rule", graph["rule"])
+    expected_snapshots = _reference_payload("source_snapshot", graph["snapshot"])
 
     outputs = db_session.exec(
         select(OrganizationalActionOutput).where(
@@ -168,33 +270,6 @@ def test_k1_persists_consumed_context_refs_and_l_projects_only_persisted_lineage
     assert len(outputs) == 2
     for output in outputs:
         payload = json.loads(output.output_json)
-        position_key = output.accountable_position_key
-        short = (
-            "pathway"
-            if position_key == AUSTRIA_MOBILITY_PATHWAY_POSITION
-            else "regulatory"
-        )
-        expected_evidence = [
-            {
-                "kind": "evidence",
-                "identifier": f"at-{short}-evidence",
-                "version": "2026",
-            }
-        ]
-        expected_rules = [
-            {
-                "kind": "verified_rule",
-                "identifier": f"at-{short}-rule",
-                "version": "2026.1",
-            }
-        ]
-        expected_snapshots = [
-            {
-                "kind": "source_snapshot",
-                "identifier": "at-official-source-snapshot",
-                "version": "2026-08-22",
-            }
-        ]
         assert payload["context_evidence_refs"] == expected_evidence
         assert payload["context_verified_rule_refs"] == expected_rules
         assert payload["context_source_snapshot_refs"] == expected_snapshots
@@ -212,13 +287,13 @@ def test_k1_persists_consumed_context_refs_and_l_projects_only_persisted_lineage
         tenant_key="default",
         root_work_item_id=plan.root_work_item.id,
     )
+    evidence = graph["evidence"]
+    rule = graph["rule"]
     assert snapshot.domain_evidence_refs == (
-        "evidence:at-pathway-evidence@2026",
-        "evidence:at-regulatory-evidence@2026",
+        f"mobility_pathway_version_evidence:{evidence.id}@{canonical_fingerprint(evidence)}",
     )
     assert snapshot.verified_rule_refs == (
-        "verified_rule:at-pathway-rule@2026.1",
-        "verified_rule:at-regulatory-rule@2026.1",
+        f"verified_rule:{rule.id}@{canonical_fingerprint(rule)}",
     )
 
 
@@ -228,12 +303,13 @@ def test_l_rejects_ref_only_tampering_between_output_and_agent_run(
 ) -> None:
     ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
     _force_deterministic(monkeypatch)
-    _patch_grounded_context_builder(monkeypatch)
+    graph = _authority_graph(db_session)
     context = _human_context()
     plan = create_austria_mobility_objective(
         db_session,
         context,
         objective_key="at-rwr-shortage-2026-context-ref-tamper",
+        pathway_version_id=graph["pathway_version"].id,
     )
     execute_austria_specialists(
         db_session,
@@ -262,6 +338,111 @@ def test_l_rejects_ref_only_tampering_between_output_and_agent_run(
             tenant_key="default",
             root_work_item_id=plan.root_work_item.id,
         )
+
+
+def test_grounded_source_mutation_invalidates_completed_k1_readiness(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
+    _force_deterministic(monkeypatch)
+    graph = _authority_graph(db_session)
+    context = _human_context()
+    plan = create_austria_mobility_objective(
+        db_session,
+        context,
+        objective_key="at-rwr-shortage-2026-source-mutation",
+        pathway_version_id=graph["pathway_version"].id,
+    )
+    execute_austria_specialists(
+        db_session,
+        context,
+        plan,
+        runtime_profiles=_profiles(),
+    )
+
+    pathway_work = db_session.get(OrganizationalWorkItem, plan.pathway_work_item.id)
+    assert pathway_work is not None
+    pathway_work.source_object_id = str(uuid4())
+    db_session.add(pathway_work)
+    db_session.commit()
+
+    readiness = austria_objective_readiness(
+        db_session,
+        tenant_key="default",
+        root_work_item_id=plan.root_work_item.id,
+    )
+    assert readiness.ready_for_owner_synthesis is False
+    assert AUSTRIA_MOBILITY_PATHWAY_POSITION in readiness.pending_positions
+    assert any(
+        "stale for the current completed WorkItem" in reason
+        for reason in readiness.reasons
+    )
+
+
+def test_grounded_objective_replay_rejects_conflicting_pathway_source(db_session: Session) -> None:
+    ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
+    graph = _authority_graph(db_session)
+    first_version = graph["pathway_version"]
+    second_version = _second_published_version(db_session, graph)
+    context = _human_context()
+    objective_key = "at-rwr-shortage-2026-grounded-replay"
+
+    first = create_austria_mobility_objective(
+        db_session,
+        context,
+        objective_key=objective_key,
+        pathway_version_id=first_version.id,
+    )
+
+    with pytest.raises(DependencyConflict):
+        create_austria_mobility_objective(
+            db_session,
+            context,
+            objective_key=objective_key,
+            pathway_version_id=second_version.id,
+        )
+
+    pathway_work = db_session.get(OrganizationalWorkItem, first.pathway_work_item.id)
+    regulatory_work = db_session.get(OrganizationalWorkItem, first.regulatory_work_item.id)
+    assert pathway_work is not None and pathway_work.source_object_id == str(first_version.id)
+    assert regulatory_work is not None and regulatory_work.source_object_id == str(first_version.id)
+
+
+def test_grounded_objective_rejects_wrong_or_unpublished_source_before_topology(
+    db_session: Session,
+) -> None:
+    ensure_foundation_positions(db_session, actor="pytest", repair_contracts=True)
+    graph = _authority_graph(db_session)
+    pathway = graph["pathway"]
+    pathway_version = graph["pathway_version"]
+    context = _human_context()
+
+    pathway.pathway_key = f"other-route-{uuid4()}"
+    db_session.add(pathway)
+    db_session.commit()
+    with pytest.raises(DependencyConflict, match="canonical Austria objective route"):
+        create_austria_mobility_objective(
+            db_session,
+            context,
+            objective_key="at-rwr-shortage-2026-wrong-source",
+            pathway_version_id=pathway_version.id,
+        )
+    assert db_session.exec(select(OrganizationalWorkItem)).all() == []
+
+    pathway.pathway_key = AUSTRIA_MOBILITY_OBJECTIVE_ROUTE
+    pathway_version.lifecycle_status = "draft"
+    pathway_version.published_at = None
+    db_session.add_all([pathway, pathway_version])
+    db_session.commit()
+    with pytest.raises(DependencyConflict, match="version source is not published"):
+        create_austria_mobility_objective(
+            db_session,
+            context,
+            objective_key="at-rwr-shortage-2026-unpublished-source",
+            pathway_version_id=pathway_version.id,
+        )
+    assert db_session.exec(select(OrganizationalWorkItem)).all() == []
 
 
 def test_ungrounded_k1_remains_truthfully_empty(
