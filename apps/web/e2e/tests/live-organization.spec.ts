@@ -223,7 +223,7 @@ test("shows loading then truthful empty persisted state", async ({ page }) => {
 
   await page.goto("/cockpit/live-organization");
 
-  await expect(page.getByRole("status").first()).toHaveText("loading");
+  await expect(page.getByRole("status").first()).toHaveText("CONNECTING");
   await expect(page.getByRole("heading", { name: "Austria live cycle not yet established" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "No Austria cycle exists yet" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Record bounded owner synthesis" })).toBeDisabled();
@@ -323,5 +323,5 @@ test("shows backend projection failure as a visible partial state", async ({ pag
 
   await expect(page.getByText("Live organization data unavailable.")).toBeVisible();
   await expect(page.getByText("Transparency projection unavailable")).toBeVisible();
-  await expect(page.getByRole("status").first()).toHaveText("Needs attention");
+  await expect(page.getByRole("status").first()).toHaveText("PARTIAL");
 });
