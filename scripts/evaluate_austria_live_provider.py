@@ -150,7 +150,7 @@ def _candidate_roots(session: Session, tenant_key: str) -> list[dict[str, object
                 "root_status": root.status,
                 "created_at": root.created_at,
                 "fresh_live_execution_candidate": fresh_execution_candidate,
-                "fresh_retrieval_will_be_verified_before_k1": fresh_execution_candidate,
+                "fresh_retrieval_required_before_k1": True,
                 "specialists": specialist_state,
             }
         )
