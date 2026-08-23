@@ -62,6 +62,9 @@ def _configuration_report(database_url: str) -> dict[str, object]:
     elif provider == "moonshot":
         api_key_present = bool((settings.moonshot_api_key or "").strip())
         model = (settings.moonshot_model or "").strip() or None
+    elif provider == "gemini":
+        api_key_present = bool((settings.gemini_api_key or "").strip())
+        model = (settings.gemini_model or "").strip() or None
     selection_ready = False
     try:
         selection = configured_live_provider_selection(require_api_key=True)

@@ -26,6 +26,10 @@ class LLMResponse:
         """Return a rough cost estimate based on known per-token pricing."""
         if self.total_tokens is None:
             return None
+        # Gemini may execute on free or paid tiers and this response does not carry
+        # billing-tier identity. Do not fabricate a paid/free cost estimate.
+        if self.provider == "gemini":
+            return None
         rates = {
             # DeepSeek pricing (per 1M tokens, approximate)
             ("deepseek", "deepseek-chat"): 0.00027,
@@ -74,7 +78,7 @@ class LLMProvider(ABC):
 
 
 class _OpenAICompatibleProvider(LLMProvider):
-    """Base for DeepSeek and Moonshot, both of which expose OpenAI-compatible chat endpoints."""
+    """Base for hosted providers exposing OpenAI-compatible chat-completion endpoints."""
 
     name: str
     base_url: str
@@ -84,7 +88,7 @@ class _OpenAICompatibleProvider(LLMProvider):
     def __init__(self, api_key: str, default_model: str, base_url: str | None = None):
         self.api_key = api_key
         self.default_model = default_model
-        self.base_url = base_url or self.base_url
+        self.base_url = (base_url or self.base_url).rstrip("/")
 
     def complete(
         self,
@@ -195,9 +199,45 @@ class MoonshotProvider(_OpenAICompatibleProvider):
         )
 
 
+class GeminiProvider(_OpenAICompatibleProvider):
+    """Google Gemini through the documented OpenAI-compatible chat endpoint."""
+
+    name = "gemini"
+    base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+    ):
+        super().__init__(
+            api_key=api_key or settings.gemini_api_key,
+            default_model=model or settings.gemini_model,
+            base_url=base_url or settings.gemini_base_url or self.base_url,
+        )
+
+    def complete(
+        self,
+        system_prompt: str,
+        messages: list[dict[str, str]],
+        response_format: dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        # Controlled agents require machine-readable JSON. The existing controlled-agent
+        # caller only requests json_object explicitly for the historical providers, so
+        # Gemini enforces the same contract at its adapter boundary rather than relying
+        # on prompt-only JSON compliance.
+        return super().complete(
+            system_prompt=system_prompt,
+            messages=messages,
+            response_format=response_format or {"type": "json_object"},
+        )
+
+
 class LLMProviderFactory:
     _providers: dict[str, type[LLMProvider]] = {
         "deepseek": DeepSeekProvider,
+        "gemini": GeminiProvider,
         "moonshot": MoonshotProvider,
     }
 

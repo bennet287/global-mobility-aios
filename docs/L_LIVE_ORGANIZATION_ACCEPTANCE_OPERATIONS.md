@@ -40,12 +40,38 @@ The Live Organization UI must also preserve this distinction: an authentication/
 
 ## Live-provider acceptance configuration
 
-Before a live acceptance attempt:
+Supported acceptance providers are `deepseek`, `moonshot`, and `gemini`. They share the same acceptance boundary: hosted-model execution is technical capability only; it does not grant organizational authority or external-action permission.
+
+Configure exactly one provider in the normal local secret/config path, disable deterministic fallback, and check readiness before consuming a fresh objective.
+
+DeepSeek example:
 
 ```powershell
-$env:LLM_PROVIDER = "deepseek" # or moonshot
+$env:LLM_PROVIDER = "deepseek"
+$env:DEEPSEEK_API_KEY = "<local-secret>"
+$env:DEEPSEEK_MODEL = "deepseek-chat"
 $env:LLM_FALLBACK_TO_TEMPLATE = "false"
-# Configure the matching provider API key and model in the normal secret/config path.
+python scripts/evaluate_austria_live_provider.py --check-config
+```
+
+Moonshot example:
+
+```powershell
+$env:LLM_PROVIDER = "moonshot"
+$env:MOONSHOT_API_KEY = "<local-secret>"
+$env:MOONSHOT_MODEL = "kimi-k1-5"
+$env:LLM_FALLBACK_TO_TEMPLATE = "false"
+python scripts/evaluate_austria_live_provider.py --check-config
+```
+
+Gemini example:
+
+```powershell
+$env:LLM_PROVIDER = "gemini"
+$env:GEMINI_API_KEY = "<local-secret>"
+$env:GEMINI_MODEL = "gemini-3.7-flash"
+$env:GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+$env:LLM_FALLBACK_TO_TEMPLATE = "false"
 python scripts/evaluate_austria_live_provider.py --check-config
 ```
 
@@ -59,6 +85,8 @@ Acceptance-mode invariants:
 - no undocumented alias or version normalization is accepted;
 - provider/model authority remains false;
 - fresh retrieval is required for the complete guarded L-cycle.
+
+Gemini uses Google's OpenAI-compatible chat-completions boundary through the existing AIOS-owned provider abstraction. AIOS does not infer whether a Gemini request was billed on a free or paid tier from the model response; Gemini `estimated_cost_usd` remains `null` unless a future billing-aware evidence source can establish actual cost. Billing assumptions are not acceptance evidence.
 
 The global product fallback default is intentionally not changed. The strict no-fallback rule belongs to acceptance execution so a provider failure cannot silently become a deterministic success candidate.
 
@@ -107,6 +135,8 @@ configured model    == provider-reported model
 ```
 
 Provider comparison is case-insensitive; model comparison is exact. If a provider later returns a documented alias/versioned identifier, add an explicit reviewed mapping with regression coverage. Do not infer aliases from string prefixes or silently accept a different model.
+
+The Gemini integration does not create a special alias exception. Until a documented mapping is explicitly reviewed and tested, a provider-reported value other than the configured `GEMINI_MODEL` fails the live-provider acceptance candidate exactly as it does for the other providers.
 
 ## Provider-failure evidence
 

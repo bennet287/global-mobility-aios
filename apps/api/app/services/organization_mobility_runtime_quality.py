@@ -184,6 +184,22 @@ def evaluate_austria_specialist_runtime_quality(
         agent_input.get("llm_provider"), label="AgentRun llm_provider"
     )
     configured_model = _optional_text(agent_input.get("llm_model"), label="AgentRun llm_model")
+    configured_model_from_bound_runtime = False
+    # controlled_agents.py predates the Gemini provider and therefore does not yet emit
+    # Gemini's model into its generic AgentRun audit field. K.1 *does* durably bind the exact
+    # provider/model before execution. Recover only this known omission, and only when the
+    # durable provider identity agrees; the later acceptance compiler still requires the
+    # provider-reported response model to equal the configured/bound model exactly.
+    if (
+        configured_model is None
+        and configured_provider is not None
+        and configured_provider.casefold() == "gemini"
+        and bound_provider is not None
+        and bound_provider.casefold() == "gemini"
+        and bound_model is not None
+    ):
+        configured_model = bound_model
+        configured_model_from_bound_runtime = True
     configured_match = _binding_match(
         configured_provider=configured_provider,
         configured_model=configured_model,
@@ -211,6 +227,8 @@ def evaluate_austria_specialist_runtime_quality(
 
     meta = agent_output.get("_llm_meta")
     warnings: list[str] = []
+    if configured_model_from_bound_runtime:
+        warnings.append("Gemini configured model provenance recovered from exact K.1 bound runtime")
     response_provider: str | None = None
     response_model: str | None = None
     prompt_tokens: int | None = None

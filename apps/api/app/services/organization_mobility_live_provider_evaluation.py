@@ -35,6 +35,7 @@ AUSTRIA_LIVE_PROVIDER_EVALUATION_CONTRACT_VERSION = "austria-live-provider-evalu
 LIVE_PROVIDER_RESPONSE_MODEL_MATCH_POLICY = "exact-v1"
 _SUPPORTED_PROVIDER_MODELS = {
     "deepseek": ("deepseek_api_key", "deepseek_model"),
+    "gemini": ("gemini_api_key", "gemini_model"),
     "moonshot": ("moonshot_api_key", "moonshot_model"),
 }
 _DURABLE_PROVENANCE_FIELDS = (
@@ -366,7 +367,7 @@ def _specialist_evaluation(
         work_item_id=result.work_item_id,
         execution_attempt_id=result.execution_attempt_id,
         agent_run_id=result.agent_run_id,
-        action_output_id=result.action_output_id,
+        action_output_id=output.id,
         latency_ms=result.latency_ms,
         retry_count=expected_retry_count,
         replayed=result.replayed,

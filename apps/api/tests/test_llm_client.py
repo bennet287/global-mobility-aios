@@ -6,6 +6,7 @@ import pytest
 
 from app.services.llm_client import (
     DeepSeekProvider,
+    GeminiProvider,
     LLMProviderError,
     LLMProviderFactory,
     MoonshotProvider,
@@ -58,6 +59,19 @@ def test_llm_provider_factory_returns_moonshot():
         assert isinstance(provider, MoonshotProvider)
 
 
+def test_llm_provider_factory_returns_gemini():
+    with patch("app.services.llm_client.settings") as mock_settings:
+        mock_settings.llm_provider = "gemini"
+        mock_settings.gemini_api_key = "gm-key"
+        mock_settings.gemini_model = "gemini-3.7-flash"
+        mock_settings.gemini_base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+        mock_settings.llm_temperature = 0.2
+        mock_settings.llm_timeout_seconds = 30
+
+        provider = LLMProviderFactory.get_provider()
+        assert isinstance(provider, GeminiProvider)
+
+
 def test_llm_provider_factory_raises_when_unconfigured():
     with patch("app.services.llm_client.settings") as mock_settings:
         mock_settings.llm_provider = ""
@@ -100,8 +114,47 @@ def test_deepseek_provider_success():
     assert resp.estimated_cost_usd is not None
 
 
+def test_gemini_provider_success_uses_documented_openai_compatible_endpoint():
+    provider = GeminiProvider(
+        api_key="gm-key",
+        model="gemini-3.7-flash",
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    )
+    response_data = {
+        **SAMPLE_CHAT_RESPONSE,
+        "model": "gemini-3.7-flash",
+    }
+    fake_client = _make_fake_client(response_data)
+
+    with patch("httpx.Client", return_value=fake_client):
+        # The generic controlled-agent caller currently does not pass response_format
+        # for Gemini, so the provider adapter must enforce the JSON-object contract.
+        resp = provider.complete(
+            "You are a test assistant.",
+            [{"role": "user", "content": "hi"}],
+        )
+
+    assert resp.provider == "gemini"
+    assert resp.model == "gemini-3.7-flash"
+    assert resp.content == '{"summary": "test"}'
+    assert resp.total_tokens == 120
+    assert resp.estimated_cost_usd is None
+    fake_client.post.assert_called_once()
+    args, kwargs = fake_client.post.call_args
+    assert args[0] == "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    assert kwargs["headers"]["Authorization"] == "Bearer gm-key"
+    assert kwargs["json"]["model"] == "gemini-3.7-flash"
+    assert kwargs["json"]["response_format"] == {"type": "json_object"}
+
+
 def test_deepseek_provider_missing_key():
     provider = DeepSeekProvider(api_key="", model="deepseek-chat")
+    with pytest.raises(LLMProviderError, match="API key is not configured"):
+        provider.complete("system", [{"role": "user", "content": "hi"}])
+
+
+def test_gemini_provider_missing_key():
+    provider = GeminiProvider(api_key="", model="gemini-3.7-flash")
     with pytest.raises(LLMProviderError, match="API key is not configured"):
         provider.complete("system", [{"role": "user", "content": "hi"}])
 

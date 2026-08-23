@@ -55,6 +55,29 @@ class _ControlledDeepSeekProvider:
         )
 
 
+class _ControlledGeminiProvider:
+    name = "gemini"
+
+    def __init__(self, *, response_model: str = "gemini-3.7-flash") -> None:
+        self.response_model = response_model
+
+    def complete(self, system_prompt, messages, response_format=None) -> LLMResponse:
+        return LLMResponse(
+            content=json.dumps(
+                {
+                    "summary": "Controlled Gemini response for acceptance-path regression.",
+                    "confidence": 0.61,
+                }
+            ),
+            provider=self.name,
+            model=self.response_model,
+            finish_reason="stop",
+            prompt_tokens=100,
+            completion_tokens=20,
+            total_tokens=120,
+        )
+
+
 def _fresh_grounded_plan(
     db_session: Session,
     *,
@@ -84,6 +107,22 @@ def _configure_controlled_live_provider(
     monkeypatch.setattr(settings, "deepseek_api_key", "test-only-key")
     monkeypatch.setattr(settings, "llm_fallback_to_template", False)
     provider = _ControlledDeepSeekProvider(response_model=response_model)
+    monkeypatch.setattr(
+        "app.services.controlled_agents.LLMProviderFactory.get_provider",
+        lambda: provider,
+    )
+
+
+def _configure_controlled_gemini_provider(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    response_model: str = "gemini-3.7-flash",
+) -> None:
+    monkeypatch.setattr(settings, "llm_provider", "gemini")
+    monkeypatch.setattr(settings, "gemini_model", "gemini-3.7-flash")
+    monkeypatch.setattr(settings, "gemini_api_key", "test-only-key")
+    monkeypatch.setattr(settings, "llm_fallback_to_template", False)
+    provider = _ControlledGeminiProvider(response_model=response_model)
     monkeypatch.setattr(
         "app.services.controlled_agents.LLMProviderFactory.get_provider",
         lambda: provider,
@@ -188,6 +227,35 @@ def test_configured_live_provider_selection_requires_key_and_builds_bounded_prof
         assert profile.enabled is True
 
 
+def test_configured_gemini_selection_requires_key_and_builds_same_bounded_profiles(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "llm_provider", "gemini")
+    monkeypatch.setattr(settings, "gemini_model", "gemini-3.7-flash")
+    monkeypatch.setattr(settings, "gemini_api_key", "")
+
+    with pytest.raises(DependencyConflict, match="configured gemini API key is unavailable"):
+        configured_live_provider_selection(require_api_key=True)
+
+    monkeypatch.setattr(settings, "gemini_api_key", "test-only-key")
+    selection = configured_live_provider_selection(require_api_key=True)
+    assert selection == AustriaLiveProviderSelection(
+        provider_key="gemini",
+        model_key="gemini-3.7-flash",
+    )
+
+    profiles = live_provider_runtime_profiles(selection)
+    assert set(profiles) == set(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
+    for profile in profiles.values():
+        assert profile.runtime_class is RuntimeClass.HOSTED_API
+        assert profile.adapter_key == "gemini-chat-completions"
+        assert profile.provider_key == "gemini"
+        assert profile.model_key == "gemini-3.7-flash"
+        assert profile.technical_capabilities == ("reasoning", "structured_output")
+        assert profile.available_tools == ()
+        assert profile.enabled is True
+
+
 def test_controlled_provider_adapter_proves_positive_live_acceptance_path(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
@@ -223,6 +291,46 @@ def test_controlled_provider_adapter_proves_positive_live_acceptance_path(
     )
 
 
+def test_controlled_gemini_adapter_satisfies_same_live_acceptance_path(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan = _fresh_grounded_plan(
+        db_session,
+        objective_key="at-rwr-shortage-2026-live-provider-gemini-positive-control",
+    )
+    _configure_controlled_gemini_provider(monkeypatch)
+
+    evaluation = execute_austria_live_provider_evaluation(
+        db_session,
+        tenant_key="default",
+        root_work_item_id=plan.root_work_item.id,
+    )
+
+    assert evaluation.provider_key == "gemini"
+    assert evaluation.model_key == "gemini-3.7-flash"
+    assert evaluation.live_provider_success_count == len(AUSTRIA_MOBILITY_SPECIALIST_POSITIONS)
+    assert evaluation.provider_failure_count == 0
+    assert evaluation.configured_selection_matches_all_specialists is True
+    assert evaluation.all_specialists_live_provider_succeeded is True
+    assert evaluation.all_specialists_authority_grounded is True
+    assert evaluation.live_provider_acceptance_candidate is True
+    assert evaluation.fresh_retrieval_provenance_complete is False
+    assert evaluation.full_l_reasoning_evidence_candidate is False
+    assert evaluation.provider_model_authority is False
+    assert evaluation.external_action_authorized is False
+    assert all(
+        item.configured_provider == "gemini"
+        and item.configured_model == "gemini-3.7-flash"
+        and item.response_provider == "gemini"
+        and item.response_model == "gemini-3.7-flash"
+        and item.configured_runtime_matches_binding is True
+        and item.live_provider_succeeded is True
+        and item.fallback_to_template is False
+        for item in evaluation.specialist_evaluations
+    )
+
+
 def test_provider_reported_model_mismatch_fails_closed_for_acceptance(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
@@ -248,6 +356,38 @@ def test_provider_reported_model_mismatch_fails_closed_for_acceptance(
     assert evaluation.live_provider_acceptance_candidate is False
     assert all(
         item.response_model == "deepseek-chat-provider-alias"
+        and item.live_provider_succeeded is False
+        and any("exact configured provider/model match policy" in warning for warning in item.warnings)
+        for item in evaluation.specialist_evaluations
+    )
+
+
+def test_gemini_provider_reported_model_mismatch_also_fails_closed(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan = _fresh_grounded_plan(
+        db_session,
+        objective_key="at-rwr-shortage-2026-live-provider-gemini-model-mismatch",
+    )
+    _configure_controlled_gemini_provider(
+        monkeypatch,
+        response_model="gemini-3.7-flash-provider-alias",
+    )
+
+    evaluation = execute_austria_live_provider_evaluation(
+        db_session,
+        tenant_key="default",
+        root_work_item_id=plan.root_work_item.id,
+    )
+
+    assert evaluation.live_provider_success_count == 0
+    assert evaluation.configured_selection_matches_all_specialists is False
+    assert evaluation.all_specialists_live_provider_succeeded is False
+    assert evaluation.live_provider_acceptance_candidate is False
+    assert all(
+        item.response_provider == "gemini"
+        and item.response_model == "gemini-3.7-flash-provider-alias"
         and item.live_provider_succeeded is False
         and any("exact configured provider/model match policy" in warning for warning in item.warnings)
         for item in evaluation.specialist_evaluations
