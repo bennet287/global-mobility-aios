@@ -15,7 +15,6 @@ from app.models.domain import (
     OrganizationalWorkItem,
     RegulatoryChange,
     SourceMonitor,
-    SourceRetrievalRun,
     now_utc,
 )
 from app.services.organization_command import DependencyConflict
@@ -94,14 +93,14 @@ def _matching_transport(content: str, *, etag: str = '"austria-v1"') -> httpx.Mo
     return httpx.MockTransport(handler)
 
 
-def test_fresh_retrieval_baseline_binds_to_exact_k1_outputs(
+def test_fresh_retrieval_unchanged_binds_to_exact_k1_outputs(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _force_deterministic(monkeypatch)
     graph, plan, _ = _plan_with_monitor(
         db_session,
-        objective_key="at-rwr-shortage-2026-fresh-retrieval-baseline",
+        objective_key="at-rwr-shortage-2026-fresh-retrieval-unchanged",
     )
     content = graph["snapshot"].content_text or ""
     attestations = refresh_austria_authority_snapshots(
@@ -112,7 +111,7 @@ def test_fresh_retrieval_baseline_binds_to_exact_k1_outputs(
     )
     assert len(attestations) == 1
     attestation = next(iter(attestations.values()))
-    assert attestation.retrieval_status == "baseline"
+    assert attestation.retrieval_status == "unchanged"
     assert attestation.content_equivalent_to_governed is True
     assert attestation.freshness_verified is True
 
@@ -159,7 +158,7 @@ def test_fresh_retrieval_304_uses_prior_snapshot_producing_run(
         resolver=_public_resolver,
     )
     first_attestation = next(iter(first.values()))
-    assert first_attestation.retrieval_status == "baseline"
+    assert first_attestation.retrieval_status == "unchanged"
     db_session.refresh(monitor)
     assert monitor.etag == '"austria-v1"'
 
