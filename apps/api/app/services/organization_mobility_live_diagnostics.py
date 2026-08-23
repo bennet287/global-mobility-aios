@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 
 from sqlmodel import Session
 
 from app.models.domain import AgentRun, OrganizationalActionOutput
 from app.services.organization_command import DependencyConflict
+from app.services.organization_mobility_fresh_retrieval import (
+    validate_action_output_fresh_retrieval_evidence,
+)
 from app.services.organization_mobility_live_organization import AustriaLiveSpecialistSnapshot
 from app.services.organization_mobility_runtime_quality import (
     AustriaMobilityRuntimeQualityError,
@@ -14,15 +18,19 @@ from app.services.organization_mobility_runtime_quality import (
 )
 
 
+_MISSING_FRESHNESS_WARNING = "fresh retrieval provenance is not present in the K.1 execution contract"
+
+
 def austria_live_specialist_runtime_quality(
     session: Session,
     specialist: AustriaLiveSpecialistSnapshot,
 ) -> AustriaSpecialistRuntimeQualitySnapshot | None:
-    """Compile Board-safe runtime diagnostics from the specialist's durable K.1 lineage.
+    """Compile Board-safe runtime diagnostics from the specialist's durable K.1/L lineage.
 
     Incomplete or evidence-invalid specialists have no accepted runtime-quality projection.
-    Completed evidence-valid specialists fail closed when their durable output/AgentRun lineage
-    cannot be reconciled. This function performs no provider call and no retrieval.
+    Completed evidence-valid specialists fail closed when durable output/AgentRun lineage or
+    an attached L-cycle freshness claim cannot be reconciled. This function performs no
+    provider call and no retrieval.
     """
 
     if not specialist.evidence_valid:
@@ -68,7 +76,7 @@ def austria_live_specialist_runtime_quality(
         )
 
     try:
-        return evaluate_austria_specialist_runtime_quality(
+        quality = evaluate_austria_specialist_runtime_quality(
             agent_input_json=agent_run.input_json,
             agent_output_json=agent_run.output_json,
             durable_controlled_output=controlled_output,
@@ -77,3 +85,19 @@ def austria_live_specialist_runtime_quality(
         raise DependencyConflict(
             f"{specialist.position_key} runtime-quality provenance is inconsistent"
         ) from exc
+
+    freshness_count = validate_action_output_fresh_retrieval_evidence(
+        session,
+        output=output,
+        agent_run=agent_run,
+    )
+    if freshness_count == 0:
+        return quality
+    warnings = tuple(
+        warning for warning in quality.warnings if warning != _MISSING_FRESHNESS_WARNING
+    )
+    return replace(
+        quality,
+        fresh_retrieval_provenance_present=True,
+        warnings=(*warnings, "fresh official-source equivalence verified before K.1"),
+    )
