@@ -37,6 +37,7 @@ _SUPPORTED_PROVIDER_MODELS = {
     "moonshot": ("moonshot_api_key", "moonshot_model"),
 }
 _DURABLE_PROVENANCE_FIELDS = (
+    "contract_version",
     "root_work_item_id",
     "work_item_id",
     "position_key",
@@ -279,15 +280,19 @@ def _specialist_evaluation(
         output.output_json,
         label=f"{result.position_key} live-provider ActionOutput",
     )
+    expected_retry_count = max(0, result.attempt_number - 1)
     if (
         payload.get("work_item_id") != str(result.work_item_id)
         or payload.get("position_key") != result.position_key
         or payload.get("execution_attempt_id") != str(result.execution_attempt_id)
         or payload.get("agent_run_id") != str(result.agent_run_id)
         or payload.get("agent_run_id") != str(agent_run.id)
+        or payload.get("attempt_number") != result.attempt_number
+        or payload.get("latency_ms") != result.latency_ms
+        or payload.get("retry_count") != expected_retry_count
     ):
         raise DependencyConflict(
-            f"{result.position_key} live-provider execution identifiers diverged"
+            f"{result.position_key} live-provider execution identifiers/metrics diverged"
         )
 
     agent_input = _json_object(
@@ -337,7 +342,7 @@ def _specialist_evaluation(
         agent_run_id=result.agent_run_id,
         action_output_id=result.action_output_id,
         latency_ms=result.latency_ms,
-        retry_count=max(0, result.attempt_number - 1),
+        retry_count=expected_retry_count,
         replayed=result.replayed,
         execution_mode=quality.execution_mode.value,
         provider_outcome=quality.provider_outcome.value,
