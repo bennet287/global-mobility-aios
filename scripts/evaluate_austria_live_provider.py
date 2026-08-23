@@ -24,9 +24,11 @@ from app.core.database_url import (  # noqa: E402
 )
 from app.models.domain import OrganizationalActionOutput, OrganizationalWorkItem  # noqa: E402
 from app.services.organization_command import OrganizationCommandError  # noqa: E402
+from app.services.organization_mobility_live_provider_cycle import (  # noqa: E402
+    execute_austria_live_provider_cycle,
+)
 from app.services.organization_mobility_live_provider_evaluation import (  # noqa: E402
     configured_live_provider_selection,
-    execute_austria_live_provider_evaluation,
 )
 from app.services.organization_mobility_objective_runtime import (  # noqa: E402
     AUSTRIA_MOBILITY_OBJECTIVE_OWNER_POSITION,
@@ -35,6 +37,7 @@ from app.services.organization_mobility_objective_runtime import (  # noqa: E402
 )
 
 
+CLI_CONTRACT_VERSION = "austria-live-provider-evaluation-cli.v2"
 _TERMINAL_ROOT_STATUSES = {"completed", "cancelled", "failed", "rejected", "returned"}
 
 
@@ -67,7 +70,7 @@ def _configuration_report(database_url: str) -> dict[str, object]:
     except OrganizationCommandError:
         pass
     return {
-        "contract_version": "austria-live-provider-evaluation-cli.v1",
+        "contract_version": CLI_CONTRACT_VERSION,
         "mode": "check-config",
         "database_url": mask_database_url(normalize_database_url(database_url)),
         "provider_key": provider or None,
@@ -75,6 +78,7 @@ def _configuration_report(database_url: str) -> dict[str, object]:
         "api_key_configured": api_key_present,
         "fallback_to_template": settings.llm_fallback_to_template,
         "live_provider_ready": selection_ready,
+        "fresh_retrieval_required_for_execute_live": True,
         "secrets_exposed": False,
     }
 
@@ -146,6 +150,7 @@ def _candidate_roots(session: Session, tenant_key: str) -> list[dict[str, object
                 "root_status": root.status,
                 "created_at": root.created_at,
                 "fresh_live_execution_candidate": fresh_execution_candidate,
+                "fresh_retrieval_required_before_k1": True,
                 "specialists": specialist_state,
             }
         )
@@ -155,7 +160,8 @@ def _candidate_roots(session: Session, tenant_key: str) -> list[dict[str, object
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Evaluate the persisted Austria K.1 runtime through the configured live LLM provider. "
+            "Evaluate the Austria K.1 runtime through a guarded L cycle: verify current official-source "
+            "content against governed snapshots, then execute the configured live LLM provider. "
             "This tool never creates an objective and never grants external-action authority."
         )
     )
@@ -187,7 +193,7 @@ def main() -> int:
                 print(
                     _json(
                         {
-                            "contract_version": "austria-live-provider-evaluation-cli.v1",
+                            "contract_version": CLI_CONTRACT_VERSION,
                             "mode": "list-candidates",
                             "database_url": mask_database_url(normalized_url),
                             "tenant_key": args.tenant_key,
@@ -198,7 +204,7 @@ def main() -> int:
                 return 0
 
             root_work_item_id = UUID(args.root_work_item_id)
-            evaluation = execute_austria_live_provider_evaluation(
+            evaluation = execute_austria_live_provider_cycle(
                 session,
                 tenant_key=args.tenant_key,
                 root_work_item_id=root_work_item_id,
@@ -207,12 +213,12 @@ def main() -> int:
             payload["mode"] = "execute-live"
             payload["database_url"] = mask_database_url(normalized_url)
             print(_json(payload))
-            return 0 if evaluation.live_provider_acceptance_candidate else 2
+            return 0 if evaluation.full_l_reasoning_evidence_candidate else 2
     except (OrganizationCommandError, ValueError) as exc:
         print(
             _json(
                 {
-                    "contract_version": "austria-live-provider-evaluation-cli.v1",
+                    "contract_version": CLI_CONTRACT_VERSION,
                     "status": "failed",
                     "error_type": type(exc).__name__,
                     "error": str(exc),
@@ -225,10 +231,10 @@ def main() -> int:
         print(
             _json(
                 {
-                    "contract_version": "austria-live-provider-evaluation-cli.v1",
+                    "contract_version": CLI_CONTRACT_VERSION,
                     "status": "failed",
                     "error_type": type(exc).__name__,
-                    "error": "live-provider evaluation failed; inspect durable execution evidence",
+                    "error": "live-provider/retrieval evaluation failed; inspect durable execution evidence",
                 }
             ),
             file=sys.stderr,
