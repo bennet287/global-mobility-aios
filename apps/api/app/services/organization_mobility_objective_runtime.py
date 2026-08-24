@@ -38,7 +38,7 @@ from app.services.organization_work import create_work_item, start_work_item
 
 AUSTRIA_MOBILITY_OBJECTIVE_RUNTIME_CONTRACT_VERSION = "austria-mobility-objective-runtime.v1"
 AUSTRIA_MOBILITY_SPECIALIST_EXECUTION_CONTRACT_VERSION = "austria-mobility-specialist-execution.v1"
-AUSTRIA_MOBILITY_OBJECTIVE_ROUTE = "at-rwr-skilled-worker-shortage-occupation-2026"
+AUSTRIA_MOBILITY_OBJECTIVE_ROUTE = "at-rwr-skilled-worker-shortage-occupation"
 AUSTRIA_MOBILITY_OBJECTIVE_OWNER_POSITION = "mobility_operations_lead"
 AUSTRIA_MOBILITY_PATHWAY_POSITION = "pathway_operations_specialist"
 AUSTRIA_MOBILITY_REGULATORY_POSITION = "regulatory_intelligence_analyst"
