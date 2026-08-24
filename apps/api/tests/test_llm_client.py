@@ -112,6 +112,8 @@ def test_deepseek_provider_success():
     assert resp.content == '{"summary": "test"}'
     assert resp.total_tokens == 120
     assert resp.estimated_cost_usd is not None
+    _, kwargs = fake_client.post.call_args
+    assert "temperature" in kwargs["json"]
 
 
 def test_gemini_provider_success_uses_documented_openai_compatible_endpoint():
@@ -145,6 +147,7 @@ def test_gemini_provider_success_uses_documented_openai_compatible_endpoint():
     assert kwargs["headers"]["Authorization"] == "Bearer gm-key"
     assert kwargs["json"]["model"] == "gemini-3.7-flash"
     assert kwargs["json"]["response_format"] == {"type": "json_object"}
+    assert "temperature" not in kwargs["json"]
 
 
 @pytest.mark.parametrize(
