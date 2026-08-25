@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./track-b-foundation.css";
 import { AgentChatWidget } from "../components/AgentChatWidget";
 
 const geistSans = Geist({
