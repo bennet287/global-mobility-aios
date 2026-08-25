@@ -84,12 +84,13 @@ def test_presence_progresses_without_inventing_heartbeat(db_session: Session) ->
     db_session.add(attempt)
     db_session.add(work_item)
     db_session.commit()
+    db_session.refresh(attempt)
 
     inactive = _presence(db_session, work_item)
     assert inactive.presence_state == "not_executing"
     assert inactive.execution_attempt_id == attempt.id
     assert inactive.execution_attempt_status == "completed"
-    assert inactive.observed_at == completed_at
+    assert inactive.observed_at == attempt.completed_at
     assert inactive.heartbeat_state == HEARTBEAT_NOT_ESTABLISHED
     assert inactive.authority_effect is False
 
