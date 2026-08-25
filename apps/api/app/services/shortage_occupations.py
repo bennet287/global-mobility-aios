@@ -74,6 +74,28 @@ _DASH_TRANSLATION = str.maketrans({
     "‒": "-",
 })
 
+# The immutable 2026 migration.gv.at snapshot contains two source-format
+# boundaries where distinct occupation labels are rendered as one comma-delimited
+# item.  Keep the source-derived v1 projection byte-for-byte faithful, and expand
+# only the runtime lookup labels.  This must never be used by the materializer or
+# entry hashing: the review evidence must continue to reflect the official text.
+_SOURCE_ALIAS_LOOKUP_SEGMENTATIONS: dict[str, tuple[str, ...]] = {
+    (
+        "Facharzt/ ärztin (Kinder- und Jugendchirurgie)"
+        "Facharzt/ ärztin (Innere Medizin und Pneumologie)"
+    ): (
+        "Facharzt/ ärztin (Kinder- und Jugendchirurgie)",
+        "Facharzt/ ärztin (Innere Medizin und Pneumologie)",
+    ),
+    (
+        "Werkzeugkonstrukteur/in (DI). Gebäudetechniker/in "
+        "(Heizung/Lüftung/Sanitär) (DI)"
+    ): (
+        "Werkzeugkonstrukteur/in (DI)",
+        "Gebäudetechniker/in (Heizung/Lüftung/Sanitär) (DI)",
+    ),
+}
+
 
 @dataclass(frozen=True)
 class ParsedShortageOccupation:
@@ -114,6 +136,20 @@ def _group_lookup_labels(value: str) -> set[str]:
     if english_prefix:
         labels.add(normalize_occupation(english_prefix))
     return {label for label in labels if label}
+
+
+def _lookup_alias_labels(values: Iterable[str]) -> set[str]:
+    """Return source-faithful aliases plus explicit lookup-only segmentations."""
+    labels: set[str] = set()
+    for value in values:
+        normalized = normalize_occupation(value)
+        if normalized:
+            labels.add(normalized)
+        for segmented in _SOURCE_ALIAS_LOOKUP_SEGMENTATIONS.get(value, ()):
+            segmented_normalized = normalize_occupation(segmented)
+            if segmented_normalized:
+                labels.add(segmented_normalized)
+    return labels
 
 
 def _split_top_level_commas(value: str) -> list[str]:
@@ -601,7 +637,7 @@ def lookup_shortage_occupation(
     )
     matched: list[ShortageOccupationEntry] = []
     for row in candidates:
-        aliases = [normalize_occupation(value) for value in _load(row.occupation_aliases_json, [])]
+        aliases = _lookup_alias_labels(_load(row.occupation_aliases_json, []))
         if normalized_query in _group_lookup_labels(row.occupation_group) or normalized_query in aliases:
             matched.append(row)
 
@@ -704,10 +740,15 @@ def _scope_resolution(
     inferred: list[ShortageOccupationEntry] = []
     lexical: list[ShortageOccupationEntry] = []
     for row in rows:
-        labels = [row.occupation_group, *_load(row.occupation_aliases_json, [])]
+        aliases = _load(row.occupation_aliases_json, [])
+        labels = [row.occupation_group, *aliases]
+        lookup_normalized_labels = {
+            normalize_occupation(row.occupation_group),
+            *_lookup_alias_labels(aliases),
+        }
         if any(raw_query == _raw_label(label) for label in labels):
             exact.append(row)
-        elif any(normalized_query == normalize_occupation(label) for label in labels):
+        elif normalized_query in lookup_normalized_labels:
             normalized.append(row)
         elif any(normalized_query == _unqualified_label(label) for label in labels):
             inferred.append(row)
