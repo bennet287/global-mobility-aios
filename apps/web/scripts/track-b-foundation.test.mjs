@@ -42,3 +42,16 @@ test("Track B state styling remains compact on mobile and motion-safe", async ()
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /animation: none/);
 });
+
+test("UX0 owner navigation does not duplicate Cockpit destinations", async () => {
+  const navigation = await read("lib/workspace-navigation.ts");
+  const ownerStart = navigation.indexOf("owner: [");
+  const operatorStart = navigation.indexOf("operator: [");
+  assert.ok(ownerStart >= 0 && operatorStart > ownerStart, "owner navigation block must be present");
+
+  const ownerNavigation = navigation.slice(ownerStart, operatorStart);
+  const destinations = [...ownerNavigation.matchAll(/href: "([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(destinations.length, new Set(destinations).size, "owner navigation must not repeat the same destination");
+  assert.equal(destinations.filter((href) => href === "/cockpit").length, 1, "Cockpit overview should appear once in owner navigation");
+  assert.doesNotMatch(ownerNavigation, /Open from Cockpit/);
+});
