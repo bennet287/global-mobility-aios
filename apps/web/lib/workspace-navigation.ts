@@ -85,7 +85,6 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
     {
       label: "Department workspaces",
       items: [
-        { label: "Open from Cockpit", href: "/cockpit", icon: "home" },
         { label: "Cross-department friction", href: "/cross-department-friction", icon: "review" },
       ],
     },
