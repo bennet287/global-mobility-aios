@@ -38,3 +38,33 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/austria\/latest/);
   assert.match(api, /\/api\/v1\/organization\/live-organization\/austria\/\$\{encodeURIComponent\(rootWorkItemId\)\}\/owner-synthesis/);
 });
+
+test("Munder-derived employee presence stays AIOS-owned, execution-grounded, and heartbeat-honest", async () => {
+  const [page, api, navigation, styles] = await Promise.all([
+    read("app/cockpit/live-organization/presence/page.tsx"),
+    read("lib/organization-presence.ts"),
+    read("lib/workspace-navigation.ts"),
+    read("app/track-b-foundation.css"),
+  ]);
+
+  assert.match(navigation, /label: "Employee Presence", href: "\/cockpit\/live-organization\/presence"/);
+  assert.match(page, /getLatestAustriaOrganizationPresence/);
+  assert.match(page, /durable running OrganizationExecutionAttempt/);
+  assert.match(page, /execution presence, not an online heartbeat claim/);
+  assert.match(page, /Heartbeat capability/);
+  assert.match(page, /real heartbeat lease or freshness signal has not been implemented/);
+  assert.match(page, /Presence has no authority, autonomy, evidence, or external-action effect/);
+  assert.match(page, /item\.presence_state === "executing"/);
+  assert.match(page, /item\.authority_effect/);
+  assert.match(page, /heartbeat remains explicitly not established/i);
+  assert.doesNotMatch(page, /Math\.random|setInterval\(|navigator\.onLine/);
+
+  assert.match(api, /presence_state: "executing" \| "not_executing" \| "not_established"/);
+  assert.match(api, /heartbeat_state: "not_established"/);
+  assert.match(api, /authority_effect: boolean/);
+  assert.match(api, /\/api\/v1\/organization\/transparency\/presence\/austria\/latest/);
+
+  assert.match(styles, /\.employee-presence-indicator\.executing/);
+  assert.match(styles, /@keyframes employee-presence-executing-pulse/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.employee-presence-indicator\.executing[\s\S]*animation: none/);
+});
