@@ -35,6 +35,7 @@ class OrganizationPositionPresenceSnapshot:
 def organization_position_presence_snapshot(
     session: Session,
     *,
+    tenant_key: str,
     work_item_id: UUID,
 ) -> OrganizationPositionPresenceSnapshot:
     """Project bounded position presence from durable AIOS execution state.
@@ -45,9 +46,14 @@ def organization_position_presence_snapshot(
     until a real heartbeat substrate is implemented.
     """
 
-    work_item = session.get(OrganizationalWorkItem, work_item_id)
+    work_item = session.exec(
+        select(OrganizationalWorkItem).where(
+            OrganizationalWorkItem.id == work_item_id,
+            OrganizationalWorkItem.tenant_key == tenant_key,
+        )
+    ).first()
     if work_item is None:
-        raise DependencyConflict("presence projection WorkItem was not found")
+        raise DependencyConflict("presence projection WorkItem was not found for the tenant")
 
     attempts = list(
         session.exec(
