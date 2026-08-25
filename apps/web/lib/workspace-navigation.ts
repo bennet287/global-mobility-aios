@@ -151,6 +151,8 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
   ],
 };
 
+// Department workspaces remain contextual Cockpit drill-down routes rather than a duplicated rail group.
+// `/workspace/*` is still Owner-scoped; backend authorization remains authoritative.
 export function explicitExperienceForPath(pathname: string | null): WorkspaceExperience | null {
   if (!pathname) return null;
   if (pathname === "/" || pathname.startsWith("/leads/")) return "operator";
