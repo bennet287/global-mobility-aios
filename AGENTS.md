@@ -1,230 +1,208 @@
 # Global Mobility AIOS — Agent Guide
 
-This file is written for AI coding agents that need to understand and work on the project. It is based on the actual files in the repository; do not assume anything that is not reflected here.
+This guide is for AI coding agents and developers working on the active Global Mobility AIOS repository. Treat repository state, accepted proof records, and `docs/ROADMAP.md` as authority. Do not infer capabilities, acceptance, or infrastructure that the repository does not prove.
 
-## Project Overview
+## 1. Product identity and constitutional boundaries
 
-Global Mobility AIOS is a **local-first, workflow-first AI operating system** for a global mobility / immigration agency. It is explicitly **not a chatbot**: AI agents are bounded workers inside auditable business workflows.
+Global Mobility AIOS is a **governed, evidence-grounded, transparent digital organization for global mobility**. It is not a generic chatbot, agent framework, SaaS admin dashboard, or autonomous legal/immigration decision-maker.
 
-Core capabilities:
+The core product direction is:
 
-- CRM and lead intake
-- Education / study-abroad recommendation engine
-- Overseas job / recruitment engine
-- Visa & immigration "Truth Engine" (claim verification against official sources)
-- Document handling and metadata service
-- AI department / agent role registry
-- Workflow automation via **n8n**
-- Stateful human-in-the-loop workflows via **LangGraph** (optional)
-- CRM dashboard and Truth Review Queue web app
-- Audit logging and role-based access control
+```text
+Human Owner / Board sovereignty
+→ persistent OrganizationPositions / AI employees
+→ purpose-scoped ContextBundles
+→ governed Evidence / SourceSnapshots / VerifiedRules
+→ bounded WorkItems / Missions
+→ typed material actions
+→ Command Gateway authority / autonomy / risk checks
+→ durable organizational execution
+→ Board-safe transparency and replay
+```
 
-The central safety rule is that visa, immigration, legal, scholarship, and job claims **must not be generated directly by an LLM**. They must pass through the Truth Engine and carry source URL, domain classification, country, confidence score, verification status, timestamp, and a human-review flag where needed.
+Permanent rules:
 
-## Repository Layout
+```text
+CAN DO != MAY DO
+Memory != Truth
+Model/provider identity != authority
+Telemetry != canonical OrganizationActivity
+Implementation != acceptance
+```
+
+Visa, immigration, legal, scholarship, job, tax, investment, and other regulated/material claims must remain grounded in the project's governed truth/evidence model. An LLM response is never canonical truth by itself.
+
+## 2. Active product milestone
+
+The active product milestone is **L — Live Organization**.
+
+Current status:
+
+```text
+L Live Organization              IMPLEMENTED / ACCEPTANCE PENDING
+M Board Transparency Experience  NOT STARTED
+N Learning & Optimization        NOT STARTED
+```
+
+Do not advance M merely because L code exists. L remains open until the external/live acceptance requirements in `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` are actually evidenced, including the required live-provider/fresh-retrieval and professional-review evidence.
+
+A deterministic fallback path or synthetic integration test may prove technical lineage, but it does not substitute for live-provider success or independent professional correctness evidence.
+
+## 3. Repository layout
 
 ```text
 global-mobility-aios/
 ├── apps/
-│   ├── api/                  # FastAPI backend (main app, routers, models, services, tests, alembic)
-│   └── web/                  # Next.js 16 operator dashboard + truth review queue
-├── agents/                   # AI department role cards (Markdown contracts)
-├── workflows/                # LangGraph + n8n workflows
-├── knowledge/                # Official source registry and RAG documents
-├── infrastructure/           # Deployment and monitoring planning docs
-├── docs/                     # Architecture, ADRs, data model, feature specs, test docs
-├── scripts/                  # Quality gates, policy checks, demo seeding, release helpers
-├── demo_exports/             # Generated demo snapshot artifacts
-├── release_exports/          # Generated MVP release bundle/archive artifacts
-├── docker-compose.yml        # Full local stack
-├── docker-compose.prod.yml   # Slim production stack
-├── .env.example              # Local development environment template
-├── .env.production.example   # Production environment template
-└── alembic.ini               # Default Alembic configuration
+│   ├── api/                  # FastAPI backend, Alembic, services, routers, tests
+│   └── web/                  # Next.js operator/Cockpit product surface
+│       └── e2e/              # Playwright browser E2E for Live Organization
+├── agents/                   # AI employee / department role cards
+├── workflows/                # LangGraph/n8n workflow material
+├── knowledge/                # Official-source registry and governed knowledge assets
+├── infrastructure/           # Deployment / monitoring material
+├── docs/                     # Architecture, roadmap, acceptance, runbooks, changelog
+├── scripts/                  # Quality gates and operational/acceptance tooling
+├── vendor/                   # Frozen donor/reference snapshots; not canonical runtime authority
+├── .woodpecker/              # Forward CI pipelines
+├── .github/workflows/        # Historical/fallback GitHub Actions proof workflows
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── .env.example
+├── .env.production.example
+└── alembic.ini
 ```
 
-## Technology Stack
+There is **no first-party Electron application under `apps/`**. Electron code present beneath frozen vendor snapshots (for example Munder Difflin) is donor/reference material unless a later accepted milestone explicitly adopts it. Current first-party product E2E is Chromium Playwright against the Next.js application.
+
+## 4. Technology stack
 
 ### Backend (`apps/api/`)
 
-- **Python 3.12 or 3.13**
-- **FastAPI 0.115+** with **Uvicorn**
-- **Pydantic v2** + **Pydantic-Settings** for configuration
-- **SQLModel** for ORM/models
-- **Alembic** for database migrations
-- **psycopg** for PostgreSQL; SQLite also supported for local dev
-- **Redis** for cache/state
-- **Qdrant** for vector/semantic memory
-- **MinIO** for S3-compatible object storage
-- **httpx**, **python-multipart**, **PyYAML**, **email-validator**
+- Python 3.12 or 3.13
+- FastAPI + Uvicorn
+- Pydantic v2 / Pydantic-Settings
+- SQLModel
+- Alembic
+- PostgreSQL via psycopg; SQLite for bounded local/test use
+- Redis
+- Qdrant
+- MinIO / S3-compatible document storage
+- httpx
+- Celery for background work
 
-Optional AI stack (`apps/api/requirements-ai.txt`):
+Optional AI dependencies live in `apps/api/requirements-ai.txt` and remain separated from the core dependency contract unless production necessity changes that boundary.
 
-- **LangGraph** 0.2+ (stateful workflows)
-- **CrewAI** 0.80+ (multi-agent execution)
-- **Ollama** Python client + optional `ollama` container
-- **sentence-transformers**, **unstructured**, **pypdf**
+### Remote LLM providers
 
-Remote LLM providers are supported via the `httpx` client already in `requirements.txt`:
+The first-party provider configuration in `apps/api/app/core/config.py` supports:
 
-- **DeepSeek** (`deepseek-chat`, `deepseek-reasoner`)
-- **Moonshot / Kimi** (`kimi-k1-5`, etc.)
+- DeepSeek
+- Moonshot / Kimi
+- Gemini
 
-Both expose OpenAI-compatible chat endpoints. Provider selection is controlled by `LLM_PROVIDER` in `.env`. Empty provider falls back to deterministic templates.
+Provider selection is controlled by `LLM_PROVIDER`. Current default provider settings include:
 
-These optional AI dependencies are intentionally separated and are **not** installed in the Docker image.
+```text
+DeepSeek  deepseek-chat
+Moonshot  kimi-k1-5
+Gemini    gemini-3.7-flash
+```
+
+The corresponding credential variables are:
+
+```text
+DEEPSEEK_API_KEY
+MOONSHOT_API_KEY
+GEMINI_API_KEY
+```
+
+The normal controlled-agent stack may use deterministic template fallback when configured to do so. **Milestone L live-provider acceptance is stricter:** a live configured provider must be selected with a credential, and template fallback must be disabled for an acceptance execution. Follow the L operations runbook rather than treating generic fallback behavior as acceptance evidence.
 
 ### Frontend (`apps/web/`)
 
-- **Node.js 24** — accepted/proven frontend runtime; root `.nvmrc` declares the required major
-- **Next.js 16.3.1** with App Router
-- **React 19.0.8**
-- **TypeScript 5.8**
-- Plain CSS (`globals.css`) — no Tailwind or component library in this branch
+The current package contract is:
 
-### Data Stores
+- Node.js 24 accepted proof runtime (`.nvmrc`)
+- Next.js 16.3.1
+- React / React DOM 19.0.8
+- TypeScript 5.8.3
+- App Router
+- custom CSS; no first-party Tailwind/component-library dependency in this branch
 
-- PostgreSQL (production) / SQLite (local fallback) for transactional data
-- Redis for state/cache
-- Qdrant for semantic memory
-- MinIO for document artifacts
+### Browser E2E (`apps/web/e2e/`)
 
-## Code Organization
+- Playwright 1.62.1
+- Chromium / Desktop Chrome project
+- base URL `http://127.0.0.1:3000`
+- current primary spec: `apps/web/e2e/tests/live-organization.spec.ts`
 
-### Backend (`apps/api/`)
+The Playwright config starts the already-built Next.js app with `npm --prefix .. run start`. In CI, the normal frontend build step runs before browser E2E.
 
-```text
-apps/api/
-├── alembic/                  # Alembic migrations
-│   ├── env.py
-│   ├── versions/
-│   │   ├── 0001_mvp1_baseline.py
-│   │   ├── 0002_official_source_truth_engine.py
-│   │   └── 0003_document_upload_minio.py
-│   └── alembic.ini
-├── app/
-│   ├── main.py               # FastAPI factory, lifespan, CORS, auth middleware, router inclusion
-│   ├── schemas.py            # Pydantic v2 request/response schemas
-│   ├── agents/
-│   │   └── registry.py       # Controlled agent registry and aliases
-│   ├── core/
-│   │   ├── auth.py           # Role-based auth middleware and session cookies
-│   │   ├── config.py         # Pydantic-Settings configuration
-│   │   ├── database_url.py   # URL normalization and masking
-│   │   └── db.py             # SQLModel engine, sessions, model registration
-│   ├── models/
-│   │   └── domain.py         # SQLModel entities (single source of table definitions)
-│   ├── routers/              # FastAPI routers (JSON API + HTML admin pages)
-│   ├── services/             # Business logic: truth engine, documents, audit, controlled agents, LLM client, role-card loader
-│   └── workflows/
-│       └── intake_graph.py   # Optional LangGraph skeleton
-├── tests/                    # pytest regression suite + conftest.py
-├── Dockerfile
-├── .dockerignore
-├── requirements.txt          # Core Python dependency declarations
-├── constraints.txt           # Reviewed direct-dependency production-proof constraints
-└── requirements-ai.txt       # Optional AI/LLM dependencies
-```
+## 5. Canonical organization/runtime areas
 
-### Frontend (`apps/web/`)
+Important current implementation seams include:
 
 ```text
-apps/web/
-├── app/
-│   ├── globals.css           # Custom CSS design system
-│   ├── layout.tsx            # Root layout
-│   └── page.tsx              # Operator dashboard
-├── lib/
-│   └── api.ts                # Typed API client and endpoint helpers
-├── scripts/                  # Frontend proof scripts
-├── Dockerfile
-├── README.md
-├── next.config.js
-├── package.json
-├── package-lock.json
-└── tsconfig.json
+apps/api/app/services/organization_*
+apps/api/app/routers/organization_*
+apps/api/app/models/*autonomy*
+apps/api/app/models/domain.py
+apps/api/app/core/organization_constitution.py
+apps/api/app/core/auth_policy.py
+apps/api/app/evaluations/
+apps/api/tests/test_organization_*
 ```
 
-### Agents, Workflows, Knowledge, Infrastructure
+Current L/Austria runtime/evaluation areas include:
 
-- `agents/role_cards/*.md` — Human-readable role contracts (Head of Product, AI CEO, Visa Truth Agent, Document Officer, etc.).
-- `workflows/langgraph/README.md` — Guidance for stateful human-in-the-loop graphs.
-- `workflows/n8n/lead_intake_example.json` — Example n8n workflow that forwards webhooks to the API.
-- `knowledge/official_sources/sources.yaml` — Canonical registry of authoritative sources used by the Truth Engine.
-- `knowledge/rag/README.md` — Policy placeholder requiring provenance metadata for any RAG content.
-- `infrastructure/deployment/README.md` — Current Docker Compose and future deployment targets.
-- `infrastructure/monitoring/README.md` — Recommended later-phase observability stack (Langfuse, Prometheus, Grafana, OpenTelemetry, Loki).
-
-## Build and Run Commands
-
-### Local Development (Docker Compose)
-
-```bash
-cp .env.example .env.docker
-docker compose up --build
+```text
+apps/api/app/services/organization_mobility_live_organization.py
+apps/api/app/services/organization_mobility_live_provider_cycle.py
+apps/api/app/services/organization_mobility_live_provider_evaluation.py
+apps/api/app/services/organization_mobility_fresh_retrieval.py
+apps/api/app/services/organization_mobility_objective_runtime.py
+apps/api/app/services/organization_mobility_objective_execution.py
+apps/api/app/services/organization_mobility_pathway_brief.py
+apps/api/tests/test_organization_mobility_live_*.py
+scripts/evaluate_austria_live_provider.py
+scripts/prepare_austria_professional_review.py
 ```
 
-The development Compose profile reads `.env.docker`. Keep `.env` available for
-host-only overrides; using Docker service hostnames there breaks local Python
-quality scripts.
+Do not perform a broad Austria-to-generic rewrite while L acceptance is still stabilizing unless a concrete second vertical or proven duplication requires it. Extract proven seams, not speculative abstractions.
 
-Exposed services:
+## 6. Local setup
 
-- API/docs: `http://localhost:8000/docs`
-- Web dashboard: `http://localhost:3000`
-- n8n: `http://localhost:5678`
-- MinIO console: `http://localhost:9001`
-- Qdrant dashboard: `http://localhost:6333/dashboard`
+### Python
 
-Optional local LLM:
+Use Python 3.12 or 3.13. Create the environment at repository root and install the constrained dependency contract:
 
 ```bash
-docker compose --profile local-ai up ollama
-```
-
-### Backend (local without Docker)
-
-The project requires **Python 3.12 or 3.13**. Python 3.14 is not yet supported
-because the dependency wheels used by the project are not reliably available for
-it. Use a Miniconda or pyenv Python 3.13 install on Windows, or the system Python
-3.12/3.13 on Linux/macOS.
-
-Create the virtual environment at the project root (so both `apps/api` and the
-quality scripts use the same interpreter). Local installs must use the same
-`requirements.txt` + `constraints.txt` contract as Docker and Production Proof CI;
-installing from `requirements.txt` alone is not the accepted reproducibility baseline.
-
-```bash
-# Use Python 3.13 explicitly; adjust the path to your Python 3.13 executable.
+# Windows example
 C:/miniconda3/python.exe -m venv .venv
-
-# On Linux/macOS with pyenv:
-# python3.13 -m venv .venv
-
-# Windows
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r apps\api\requirements.txt -c apps\api\constraints.txt
 .\.venv\Scripts\python.exe -m pip check
 
-# Linux/macOS
+# Linux/macOS example
+python3.13 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
 python -m pip check
 ```
 
-VS Code should automatically pick up `.vscode/settings.json`, which pins the
-workspace interpreter to `${workspaceFolder}/.venv/Scripts/python.exe`. If it
-does not, run **Python: Select Interpreter** and choose the project `.venv`.
+Do not treat an unconstrained `requirements.txt` install as the accepted reproducibility baseline.
 
-For SQLite local dev (default settings auto-create tables):
+### API
+
+SQLite/local:
 
 ```bash
 cd apps/api
 uvicorn app.main:app --reload
 ```
 
-For PostgreSQL, set `DATABASE_URL` and run migrations first:
+PostgreSQL:
 
 ```bash
 cd apps/api
@@ -232,71 +210,55 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-### Frontend (local without Docker)
+### Frontend
 
-The accepted frontend proof baseline is **Node.js 24**. The repository-root
-`.nvmrc` declares this major. Use Node 24 before installing or testing frontend
-dependencies; Node 20 is not the accepted proof runtime.
+Use Node 24:
 
 ```bash
-# From the repository root, with nvm available:
 nvm use
-
 cd apps/web
 npm ci
 export NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 npm run dev
 ```
 
-On Windows without `nvm`, use any Node 24 installation and verify it with
-`node --version` before running `npm ci`.
+On Windows without `nvm`, use a Node 24 installation and verify `node --version` before dependency installation or proof.
 
-### Production / Demo
+### Docker Compose
 
 ```bash
-# Copy and edit POSTGRES_PASSWORD, DATABASE_URL, JWT_SECRET, AUTH_ADMIN_PASSWORD
-cp .env.production.example .env.production
+cp .env.example .env.docker
+docker compose up --build
+```
 
+For production/demo configuration:
+
+```bash
+cp .env.production.example .env.production
 docker compose --env-file .env.production -f docker-compose.prod.yml up --build
 ```
 
-Startup order in production:
+Never copy local/example credentials into a real deployment unchanged.
 
-1. `postgres` healthy
-2. `api-migrate` runs `alembic -c alembic.ini upgrade head`
-3. `api` starts after migrations succeed
+## 7. Testing and proof instructions
 
-## Testing Instructions
+### Backend regression
 
-### Backend Tests
-
-The test suite lives in `apps/api/tests/` and uses **pytest**. Make sure the
-project-level `.venv` was installed with both `requirements.txt` and
-`constraints.txt` and has `apps/api` on `PYTHONPATH`.
+From repository root:
 
 ```bash
 # Windows
 .\.venv\Scripts\python.exe -m pytest apps/api/tests -q
 
 # Linux/macOS
-source .venv/bin/activate
 PYTHONPATH=apps/api python -m pytest apps/api/tests -q
 ```
 
-Key fixtures in `apps/api/tests/conftest.py` include isolated SQLite behavior and
-optional PostgreSQL execution through `GMAI_TEST_DATABASE_URL`. The V12 Production
-Proof workflow supplies a real PostgreSQL 16 service for governed eligibility
-contracts.
+`apps/api/tests/conftest.py` supports isolated SQLite behavior and optional PostgreSQL execution through `GMAI_TEST_DATABASE_URL`.
 
-Test coverage includes authentication and roles, migrations/schema checks,
-controlled agents, Truth Engine and official sources, documents, audit and client
-communications, governance/eligibility lineage, Immune System behavior, release
-policy and production-proof contracts.
+Never report a historical test count as if it were a current-head run. A previous green commit is historical evidence only.
 
-### Frontend Tests
-
-The frontend has lightweight Node-based contract tests plus TypeScript/build
-proof. There is **not yet a Playwright/browser E2E suite**.
+### Frontend contract/types/build proof
 
 From `apps/web` under Node 24:
 
@@ -310,150 +272,208 @@ npm run build
 npm run test:compiled-auth
 ```
 
-The compiled-auth proof expects the same public auth/base-URL environment used by
-`.github/workflows/v12-production-proof.yml`.
+The auth/base-URL environment should match the relevant CI pipeline when reproducing CI behavior.
 
-### Quality Gate Scripts
+### Browser E2E
 
-Run the full local quality gate from the repository root:
+The repository **does have an active Playwright/browser E2E suite**.
+
+After the `apps/web` production build exists:
 
 ```bash
-python scripts/check_local_quality.py
+cd apps/web/e2e
+npm ci
+npm audit --audit-level=high
+npm test
 ```
 
-Individual checks:
+`npm test` runs:
+
+```text
+playwright test --project=chromium
+```
+
+The browser suite is product/UX proof for the bounded Live Organization surface. It is not a substitute for backend integration, PostgreSQL concurrency, live-provider quality, professional review, or external-action acceptance.
+
+### Repository and quality gates
+
+Primary repository checks include:
 
 ```bash
 python scripts/check_repo_policy.py --root .
 python scripts/check_database_migrations.py
 python scripts/check_docker_profile.py
 python scripts/check_local_db_schema.py
-python scripts/check_mvp_release.py
-python scripts/check_github_release_ready.py
-```
-
-The V12 proof-specific checks also include:
-
-```bash
 python scripts/check_release_consistency.py --root .
 python scripts/check_python_dependency_constraints.py
 ```
 
-Demo helpers:
+Use `python scripts/check_local_quality.py` for the repository's aggregate local quality path when appropriate.
+
+Do not claim a check passed unless it was actually executed for the commit/state being described.
+
+## 8. Milestone L live-provider acceptance tooling
+
+Use the bounded operator CLI:
 
 ```bash
-python scripts/seed_demo_data.py
-python scripts/export_demo_snapshot.py
-python scripts/export_mvp_release_bundle.py
-python scripts/export_mvp_release_archive.py
+python scripts/evaluate_austria_live_provider.py --check-config
+python scripts/evaluate_austria_live_provider.py --tenant-key <tenant> --list-candidates
+python scripts/evaluate_austria_live_provider.py --tenant-key <tenant> --root-work-item-id <uuid> --execute-live
 ```
 
-### Switching LLM Providers
+The CLI:
 
-The system supports DeepSeek and Moonshot/Kimi via a provider-agnostic client:
+- masks database URLs in output;
+- reports provider/model identity without exposing secrets;
+- recognizes DeepSeek, Moonshot, and Gemini configuration;
+- requires a real configured provider credential for live selection;
+- treats `LLM_FALLBACK_TO_TEMPLATE=false` as part of live-provider acceptance readiness;
+- requires fresh retrieval before live K.1/L execution;
+- consumes the selected fresh objective on a live attempt;
+- does not create objectives automatically;
+- does not grant external-action authority.
 
-```bash
-# Use DeepSeek
-LLM_PROVIDER=deepseek
-DEEPSEEK_API_KEY=sk-...
-DEEPSEEK_MODEL=deepseek-chat
+Read `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` before an acceptance execution. A successful deterministic fallback is not live-provider acceptance.
 
-# Or use Moonshot / Kimi
-LLM_PROVIDER=moonshot
-MOONSHOT_API_KEY=sk-...
-MOONSHOT_MODEL=kimi-k1-5
+## 9. Background worker
 
-# Or disable remote LLM and use deterministic templates
-LLM_PROVIDER=
-```
-
-After changing `.env`, restart the API. The active provider is exposed at `GET /api/v1/controlled-agents/providers`.
-
-### Background Worker (Celery)
-
-Batch agent execution uses Celery with Redis:
+Celery uses Redis:
 
 ```bash
-# Docker Compose (includes worker service)
-docker compose up --build
-
-# Or run worker locally
 cd apps/api
 celery -A app.core.celery_app worker --loglevel=info --concurrency=2
 ```
 
-Official-source monitor scheduling also requires Celery Beat:
+Scheduled source-monitor work also requires Celery Beat:
 
 ```bash
 cd apps/api
 celery -A app.core.celery_app beat --loglevel=info
 ```
 
-API endpoints:
+Background execution does not expand authority. Material actions remain governed through accepted policy/Command Gateway boundaries.
 
-- `POST /api/v1/controlled-agents/run-batch` — enqueue tasks for many leads.
-- `GET /api/v1/agent-output-reviews/queue` — view pending outputs.
-- `POST /api/v1/agent-output-reviews/batch-approve` / `batch-reject` / `batch-convert` — review a batch.
+## 10. CI direction and proof semantics
 
-Admin UI:
+### Forward CI authority
 
-- `/admin/controlled-agents` — select leads and enqueue a batch.
-- `/admin/agent-output-reviews` — select outputs and bulk approve/reject/convert.
+The repository's forward CI direction is **self-hosted Woodpecker**. Active pipeline definitions are:
 
-## Code Style Guidelines
+```text
+.woodpecker/backend-sqlite.yml
+.woodpecker/frontend.yml
+.woodpecker/postgres-governance.yml
+.woodpecker/repository-policy.yml
+```
 
-- **Python 3.12/3.13**, **Node.js 24 for frontend proof**, **TypeScript 5.8 strict mode**.
-- Backend uses **Pydantic v2** models for both settings and request/response schemas. Do not introduce Pydantic v1 patterns.
-- All primary keys are **UUIDs**.
-- Complex data is stored in `*_json` string columns in the SQLModel tables.
-- Routers are versioned with tags like `tags=["document-upload-v3.5"]`.
-- JSON API routes are usually under `/api/v1/...`; admin HTML routes are under `/admin/...`.
-- The frontend uses the Next.js App Router.
-- Custom CSS variables are defined in `app/globals.css`; no Tailwind or UI component library is currently used.
-- Keep AI dependencies isolated in `requirements-ai.txt`; do not add them to `requirements.txt` unless production execution truly requires them.
-- Maintain the deterministic, review-gated controlled-agent pattern: outputs should be `client_facing: False` and `human_review_required: True` by default.
+The frontend Woodpecker pipeline currently runs both:
 
-## Security Considerations
+```text
+frontend tests/types/build/compiled-auth
+live-organization Chromium Playwright E2E
+```
 
-- **Truth Engine is mandatory** for visa, immigration, legal, scholarship, and job claims. Never generate such claims directly from an LLM in code.
-- The API uses role-based access control with roles: `admin`, `operator`, `reviewer`, `sales`, `read_only`.
-- Local dev enables header-based auth via `X-GMAI-Role` / `X-GMAI-User` when `AUTH_ALLOW_HEADER_ROLE=true`. This must be disabled in production.
-- Default credentials and secrets in `.env.example` are for local development only. Always change `JWT_SECRET`, `AUTH_ADMIN_PASSWORD`, and database credentials for production.
-- MinIO defaults in `.env.example` are insecure and must be changed for any non-local deployment.
-- All sensitive agent outputs and state transitions must write an `AuditLog` entry.
-- Document storage supports local filesystem or MinIO. Use MinIO (or another S3-compatible store) for any shared/production deployment.
-- The repository enforces an approved-source allowlist via `docs/REPOSITORY_POLICY.md` and CI. Check policy before adding new dependencies.
-- Do not store unattributed visa or immigration rules in the RAG knowledge area.
+Historical GitHub Actions workflows under `.github/workflows/` remain useful proof/fallback artifacts and may still run, but they are not the forward CI direction.
 
-## Deployment and CI
+### Exact-head rule
 
-- **Production Proof CI**: `.github/workflows/v12-production-proof.yml` runs repository policy/constraints, full backend SQLite regression, frontend install/audit/tests/types/build/compiled-auth, and PostgreSQL 16 governance contracts.
-- **Accepted frontend CI runtime**: Node.js 24.
-- **Backend reproducibility contract**: install `requirements.txt` with `constraints.txt`; CI and the API Docker image use the same direct-dependency constraint file.
-- **Release packaging**: `scripts/export_mvp_release_bundle.py` and `scripts/export_mvp_release_archive.py` generate artifacts under `release_exports/`.
-- **Production stack**: `docker-compose.prod.yml` runs PostgreSQL + Alembic migration job + API only. Redis, Qdrant, MinIO, n8n, and the web frontend build are excluded from this profile and are planned for later phases.
+A milestone may be called `COMPLETE / PASS / SEALED` only from observed proof that belongs to the accepted candidate/head under the milestone's documented gate.
 
-## Conventions to Preserve
+Permanent evidence rules:
 
-1. **Workflow-first, agent-assisted architecture** — agents are bounded workers, not autonomous authorities.
-2. **Deterministic controlled agents with optional LLM augmentation** — v4.0 agents default to rule-based templates when `LLM_PROVIDER` is empty. When configured, they call DeepSeek or Moonshot using the markdown role cards as system prompts, but always fall back to deterministic templates on failure and remain review-gated.
-3. **Autonomous multi-tasking with Celery** — agents can receive a batch of tasks, execute them asynchronously in a background worker, and queue all outputs for final human review. No task waits for approval before the next one starts.
-4. **Truth Engine as a safety gate** — every visa/job/study/scholarship claim must pass source verification.
-5. **Human-in-the-loop by default** — sensitive workflows pause for human review.
-6. **Audit-everything** — `AgentRun`, `AuditLog`, `SourceCheckRun`, `SourceSnapshot`, `HumanReview` provide traceability.
-7. **Source provenance over RAG volume** — `knowledge/rag/README.md` forbids unattributed immigration rules.
-8. **Versioned features** — code and docs use explicit version markers (e.g., `v4.0`, `v5.6`) in filenames, router comments, and audit `source` fields.
-9. **Local-first, Docker-optional** — default SQLite/localhost config; docker-compose provides the full local dependency stack.
+- a later code or docs commit does not automatically inherit exact-head PASS from an earlier commit;
+- CI that never reaches executable steps is infrastructure/runner evidence, not a repository-test result;
+- a failing workflow label alone is insufficient to say repository tests failed if no test step ran;
+- a prior green Woodpecker/GitHub Actions run remains historical proof for that exact checkpoint only;
+- focused local proof is useful but does not silently replace a required full/exact-head acceptance gate;
+- docs must distinguish implementation truth, technical proof, external acceptance, and professional correctness.
 
-## Useful Reference Files
+## 11. Code and architecture conventions
 
-- `README.md` — Quick start and MVP-1 API surface
-- `docs/GLOBAL_MOBILITY_AIOS_VISION_V1.md` — Canonical complete product scope and coverage ledger
-- `docs/ROADMAP.md` — Phased delivery plan for the canonical product scope
-- `docs/ARCHITECTURE.md` — Runtime architecture
-- `docs/REPOSITORY_POLICY.md` — Dependency and repository allowlist
-- `docs/SECURITY_AND_COMPLIANCE.md` — Security rules
-- `docs/TRUTH_ENGINE_SPEC.md` — Truth Engine requirements
-- `docs/TEST_SUITE_V2_9.md` — Historical v2.9 test-suite record; current installation must follow constrained dependency instructions
-- `docs/CONTROLLED_AI_AGENTS_V4_0.md` — Controlled agent design
-- `docs/DOCKER_PRODUCTION_PROFILE_V3_3.md` — Production deployment guide
+- Use Python 3.12/3.13 and Pydantic v2 patterns.
+- Primary keys are UUIDs unless an existing domain contract explicitly differs.
+- Keep canonical organizational meaning in AIOS-owned models/services; vendor or provider state cannot redefine it.
+- Keep external provider/model selection non-authorizing.
+- Keep material side effects behind the existing governance/authority model.
+- Preserve deterministic idempotency/replay semantics.
+- Preserve exact provenance and evidence lineage when regulated claims enter a material path.
+- Prefer public semantic contracts over cross-module imports of private helpers once the semantic seam is proven.
+- Do not introduce a generic framework merely to reduce file size or duplicate a small amount of route-specific code.
+- Keep optional AI dependencies isolated unless production necessity requires promotion.
+- Frontend uses Next.js App Router and the current custom design system/CSS.
+- Board/Cockpit surfaces must display persisted canonical truth, not fabricated activity for visual effect.
+
+## 12. Security and privacy
+
+- Never commit live credentials, API keys, JWT secrets, passwords, provider secrets, database secrets, or personal case data.
+- Example/default credentials are local-only.
+- `AUTH_ALLOW_HEADER_ROLE=true` is a local/test convenience and must not become a production authorization shortcut.
+- Provider credentials must remain secrets, not context/memory/evidence.
+- Never send case-scoped data to an external provider merely because a provider is configured; follow the accepted provider-egress/runtime policy for the capability.
+- Truth/Evidence requirements remain mandatory for regulated/material claims.
+- Tenant isolation, authority, idempotency, concurrency, and provenance checks are product safety properties, not optional hardening.
+- Repository dependency/source policy is defined by `docs/REPOSITORY_POLICY.md` and its checks.
+- Do not store unattributed immigration rules as authoritative RAG content.
+
+## 13. Vendor/donor boundaries
+
+`vendor/` contains frozen donor/reference material. Vendoring is not production adoption.
+
+Munder Difflin and Plasma may supply ideas or bounded mechanics only through an explicit AIOS-owned adoption decision. Do not import donor authority models, canonical state semantics, or visual language automatically.
+
+Do not edit frozen upstream donor snapshots merely to make first-party policy/tests green unless the repository's vendor provenance process explicitly requires a refreshed snapshot.
+
+## 14. Documentation discipline
+
+For meaningful work, reconcile the documents that define repository truth:
+
+```text
+docs/ROADMAP.md       scheduling / milestone / acceptance truth
+docs/CHANGELOG.md     meaningful delivered change
+acceptance record     proof for a sealed milestone/slice
+domain runbook/spec   operational contract when applicable
+AGENTS.md              current implementation/working guidance
+```
+
+Never rewrite historical acceptance entries to pretend later evidence existed earlier. Add a new reconciliation entry when current truth changes.
+
+When documenting a proof checkpoint, include enough identity to distinguish:
+
+```text
+commit/candidate
+proof system + run number
+what actually executed
+what remains unproven
+```
+
+## 15. Useful current references
+
+- `docs/ROADMAP.md` — master necessity-driven orchestration and milestone status
+- `docs/CHANGELOG.md` — active V12 delivery history
+- `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` — L external/live acceptance runbook
+- `docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md` — sealed K.1 baseline
+- `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — active combined architecture
+- `docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md` — organization architecture
+- `docs/AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md` — frontend/UX programme
+- `docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md` — integration boundaries
+- `docs/REPOSITORY_POLICY.md` — repository/dependency policy
+- `docs/SECURITY_AND_COMPLIANCE.md` — security guidance
+- `.woodpecker/*.yml` — forward CI definitions
+
+## 16. Working rule for agents
+
+Before changing implementation:
+
+```text
+inspect current branch/head
+→ inspect current ROADMAP/acceptance state
+→ identify the smallest necessary product gap
+→ modify implementation + tests together
+→ run the checks you can actually execute
+→ record only observed evidence
+→ reconcile ROADMAP/CHANGELOG when state meaningfully changes
+→ never promote the next dependent milestone without acceptance
+```
+
+Repository truth wins over assumptions, old chat history, stale documentation, or the apparent status of a workflow that did not execute its steps.

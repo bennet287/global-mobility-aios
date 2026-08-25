@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.27 — necessity-driven master orchestration; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
-**Date:** 2026-08-23
+**Roadmap generation:** V12.28 — repository-truth reconciliation; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Date:** 2026-08-25
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
@@ -16,7 +16,8 @@
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
 **K.1 canonical proof:** GitHub Actions Production Proof `32582805820` — 4/4 PASS; Repository Policy `32582805835`; Woodpecker push #17 and PR #18 — 4/4 PASS
-**Latest L technical proof checkpoint:** `a85384e60f9275332e02971ae8a9997899393b40` — Woodpecker PR Pipeline #70 4/4 PASS; L remains unsealed pending external acceptance evidence
+**Latest fully green L technical checkpoint:** `a85384e60f9275332e02971ae8a9997899393b40` — Woodpecker PR Pipeline #70 4/4 PASS; historical exact-checkpoint proof only
+**Pre-reconciliation source-bearing branch head:** `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8` — later than `a85384e6...`; exact-head full CI proof not established
 **Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
@@ -246,7 +247,7 @@ External infrastructure may provide capability but may not redefine those semant
 | Outcome Evaluation baseline | PROVEN BASELINE | outcome evidence before autonomy mutation |
 | J.1 Austria Agent Organization Runtime | COMPLETE / PASS / SEALED | native Austria organization topology + runtime bindings |
 | K.1 Bounded Specialist Execution / Coworker Runtime | COMPLETE / PASS / SEALED | durable specialist execution evidence + stronger owner synthesis gate |
-| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | technical/product proof checkpoint is green; real professional-review, live-provider/failure and guarded fresh-retrieval acceptance evidence remain |
+| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | latest fully green technical checkpoint exists; subsequent source changes require new exact-head proof and real professional/live-provider/fresh-retrieval acceptance evidence remains |
 | M Board Transparency Experience | NOT STARTED | full owner/Board transparency experience after L acceptance |
 | N Learning & Optimization | NOT STARTED | measured learning, performance, AI economics and controlled optimization |
 
@@ -319,20 +320,35 @@ canonical Austria objective
 
 Current L implementation exists, but acceptance remains open until the required external proof below is observed.
 
-Latest technical checkpoint:
+Latest **fully green historical L technical checkpoint**:
 
 ```text
 a85384e60f9275332e02971ae8a9997899393b40
 Woodpecker PR Pipeline #70 — 4/4 PASS
 ```
 
-At that checkpoint, exact-head CI, real grounded J→K→L backend lineage/replay proof, persisted Cockpit truth, Evidence/VerifiedRule lineage, guarded freshness plumbing, and operational correlation are technically proven. The deterministic J→K→L integration test remains **lineage/integration proof only**; it is not live-model-quality proof.
+At that exact checkpoint, CI, real grounded J→K→L backend lineage/replay proof, persisted Cockpit truth, Evidence/VerifiedRule lineage, guarded freshness plumbing, and operational correlation were technically proven. The deterministic J→K→L integration test remains **lineage/integration proof only**; it is not live-model-quality proof.
+
+Repository-truth reconciliation on 2026-08-25:
+
+```text
+pre-reconciliation source-bearing branch head
+38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8
+
+GitHub Actions V12 Production Proof
+32700187321 — workflow conclusion FAILURE, but all four jobs exposed no executed steps
+
+GitHub Actions Repository Policy Check
+32700187332 — workflow conclusion FAILURE, but the job exposed no executed steps
+```
+
+Those GitHub Actions runs are **runner/infrastructure startup evidence, not repository-test evidence**. They neither prove nor disprove the repository at `38f028f8...`. Because source changes occurred after `a85384e6...`, the old green checkpoint must not be relabeled as current-head proof. This documentation reconciliation also advances the branch again, so exact-head proof remains pending after this docs-only change.
 
 #### L REQUIRED ENABLEMENT
 
 Current status of the acceptance capabilities:
 
-1. **COMPLETE — exact current-head backend/PostgreSQL/frontend/policy proof** at `a85384e6...`, Woodpecker #70 4/4 PASS;
+1. **LATEST FULLY GREEN TECHNICAL CHECKPOINT — `a85384e6...`, Woodpecker #70 4/4 PASS; CURRENT EXACT-HEAD RE-VERIFICATION PENDING** after subsequent source/documentation changes;
 2. **COMPLETE — browser/product behavior proof** for the bounded Cockpit read/command/failure/replay surface; route-controlled browser proof is UX/product proof, not backend integration proof;
 3. **COMPLETE — truthful UX states** for current organization state, missing evidence, blocked work and retained authority;
 4. **IMPLEMENTED — professional-review workflow/compiler** for the Austria benchmark; implementation alone is not professional correctness evidence;
@@ -826,7 +842,7 @@ Current accepted migration head:
 0081_capability_autonomy_evidence_evaluation_policy
 ```
 
-Current accepted application-table count at K.1 and the latest L technical checkpoint:
+Current accepted application-table count at K.1 and the latest fully green L technical checkpoint:
 
 ```text
 124
@@ -855,12 +871,15 @@ NOW — L LIVE ORGANIZATION
 ├─ PRIMARY
 │  └─ close real persisted L product operation
 │
-├─ COMPLETED TECHNICAL/PRODUCT PROOF
-│  ├─ exact current-head proof at a85384e6 / Woodpecker #70 4/4
+├─ LATEST FULLY GREEN TECHNICAL/PRODUCT CHECKPOINT
+│  ├─ a85384e6 / Woodpecker #70 4/4 — historical exact-checkpoint proof
 │  ├─ real J→K→L backend lineage + replay proof
 │  ├─ Cockpit Board command/read/failure product behavior
 │  ├─ Evidence / VerifiedRule / source-snapshot lineage
 │  └─ operational L-cycle correlation
+│
+├─ CURRENT EXACT-HEAD PROOF
+│  └─ PENDING — later source/docs commits do not inherit a85384e6 PASS
 │
 ├─ REMAINING ACCEPTANCE EVIDENCE
 │  ├─ first real independent professionally reviewed Austria tranche

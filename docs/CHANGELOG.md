@@ -22,6 +22,74 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-25 — V12.28 REPOSITORY-TRUTH / L ACCEPTANCE & CI RECONCILIATION
+
+### Status
+
+**DOCUMENTATION / REPOSITORY-TRUTH RECONCILIATION — L REMAINS IMPLEMENTED / ACCEPTANCE PENDING**
+
+This reconciliation corrects current-roadmap and agent-guide wording after the active V12 source line advanced beyond the latest fully green L technical checkpoint.
+
+Pre-reconciliation canonical remote source head:
+
+```text
+38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8
+```
+
+The developer-local `e1f0809d80c64e553d9d7cfe361c2201e94f8737` and remote `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8` resolve to the same source tree:
+
+```text
+0bd84395becb6fd5555c61807996ad0d32cd43f9
+```
+
+The divergence is commit topology only: the remote branch carries the equivalent source as a squashed commit while the local line retains the implementation/test split. No implementation loss is implied by that history divergence.
+
+### L proof truth
+
+The latest fully green L technical checkpoint remains:
+
+```text
+a85384e60f9275332e02971ae8a9997899393b40
+Woodpecker PR Pipeline #70 — 4/4 PASS
+```
+
+That proof belongs to that exact checkpoint. It is no longer described as current-head proof after later source changes.
+
+GitHub Actions attached to `38f028f8...` reported workflow-level failures:
+
+```text
+V12 Production Proof       32700187321
+Repository Policy Check    32700187332
+```
+
+Inspection of the runs showed no executed job steps: all four Production Proof jobs and the Repository Policy job exposed no step execution. These runs therefore record runner/infrastructure startup failure, **not repository-test failure**. They also do not establish an exact-head PASS.
+
+This documentation reconciliation itself advances the branch again, so exact-head verification remains pending after this commit. A prior green checkpoint is not inherited automatically by a later code or documentation head.
+
+### Current implementation truth recorded
+
+- first-party browser E2E exists at `apps/web/e2e/`, with the current Live Organization spec at `apps/web/e2e/tests/live-organization.spec.ts` and Chromium Playwright execution;
+- there is no first-party Electron application under `apps/`; Electron material under frozen vendor snapshots remains donor/reference code unless explicitly adopted later;
+- forward CI is the self-hosted Woodpecker pipeline set under `.woodpecker/`;
+- governed remote-provider configuration supports DeepSeek, Moonshot/Kimi, and Gemini;
+- Milestone L live-provider evaluation is operated through `scripts/evaluate_austria_live_provider.py` and requires a configured credential plus disabled deterministic fallback for acceptance readiness;
+- actual live-provider success/failure evidence, one guarded real fresh-retrieval Austria L cycle, and independent professional-review evidence remain acceptance requirements.
+
+### Explicit non-claims
+
+This reconciliation does **not** claim:
+
+- a new runtime or schema change;
+- a current exact-head full CI PASS;
+- live-provider acceptance;
+- professional/legal correctness acceptance;
+- Milestone L `COMPLETE / PASS / SEALED`;
+- Milestone M implementation start.
+
+The active roadmap advances from **V12.27 to V12.28** only to reconcile repository and evidence truth.
+
+---
+
 ## 2026-08-21 — V12.19 CANONICAL COMBINED ARCHITECTURE & H→I DIRECTION
 
 ### Status
