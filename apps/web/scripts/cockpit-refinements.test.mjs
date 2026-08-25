@@ -15,10 +15,10 @@ test("Cockpit uses one global state vocabulary and adaptive evidence-first refin
   ]);
 
   assert.match(topbar, /<OperationalStatus status=\{loadStatus\} \/>/);
-  assert.match(operationalStatus, /label: "READY"/);
-  assert.match(operationalStatus, /label: "PARTIAL"/);
-  assert.match(operationalStatus, /label: "DEGRADED"/);
-  assert.match(operationalStatus, /loading:\s*\{[\s\S]*label: "CONNECTING"/);
+  assert.match(operationalStatus, /loading:\s*\{[\s\S]*?label: "CONNECTING"/);
+  assert.match(operationalStatus, /ready:\s*\{[\s\S]*?label: "READY"/);
+  assert.match(operationalStatus, /partial:\s*\{[\s\S]*?label: "PARTIAL"/);
+  assert.match(operationalStatus, /offline:\s*\{[\s\S]*?label: "DEGRADED"/);
   assert.match(operationalStatus, /aria-label=\{`\$\{metadata\.label\}\. \$\{metadata\.description\}`\}/);
 
   assert.match(layout, /cockpit-refinements\.css/);
