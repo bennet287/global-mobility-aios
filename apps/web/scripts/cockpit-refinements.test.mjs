@@ -5,19 +5,21 @@ import { test } from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("Cockpit uses one global state vocabulary and adaptive evidence-first refinements", async () => {
-  const [topbar, refinements, visualPolish, layout, sidebar] = await Promise.all([
+  const [topbar, operationalStatus, refinements, visualPolish, layout, sidebar] = await Promise.all([
     read("components/Topbar.tsx"),
+    read("components/OperationalStatus.tsx"),
     read("app/cockpit/cockpit-refinements.css"),
     read("app/cockpit/cockpit-visual-polish.css"),
     read("app/cockpit/layout.tsx"),
     read("components/Sidebar.tsx"),
   ]);
 
-  assert.match(topbar, /ready: "READY"/);
-  assert.match(topbar, /partial: "PARTIAL"/);
-  assert.match(topbar, /offline: "DEGRADED"/);
-  assert.match(topbar, /loading: "CONNECTING"/);
-  assert.match(topbar, /aria-label=\{`\$\{stateLabel\}\. \$\{stateDescription\}`\}/);
+  assert.match(topbar, /<OperationalStatus status=\{loadStatus\} \/>/);
+  assert.match(operationalStatus, /label: "READY"/);
+  assert.match(operationalStatus, /label: "PARTIAL"/);
+  assert.match(operationalStatus, /label: "DEGRADED"/);
+  assert.match(operationalStatus, /loading:\s*\{[\s\S]*label: "CONNECTING"/);
+  assert.match(operationalStatus, /aria-label=\{`\$\{metadata\.label\}\. \$\{metadata\.description\}`\}/);
 
   assert.match(layout, /cockpit-refinements\.css/);
   assert.match(layout, /cockpit-visual-polish\.css/);
