@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.models.domain import OrganizationExecutionAttempt, OrganizationalWorkItem, now_utc
@@ -108,3 +109,10 @@ def test_presence_fails_closed_for_multiple_running_attempts(db_session: Session
 
     with pytest.raises(DependencyConflict, match="multiple running execution attempts"):
         organization_position_presence_snapshot(db_session, work_item_id=work_item.id)
+
+
+def test_presence_latest_endpoint_is_registered_and_truthfully_empty(client: TestClient) -> None:
+    response = client.get("/api/v1/organization/transparency/presence/austria/latest")
+
+    assert response.status_code == 200
+    assert response.json() == {"established": False, "snapshot": None}
