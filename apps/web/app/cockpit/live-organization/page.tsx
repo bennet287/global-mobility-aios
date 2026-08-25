@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { SurfaceState } from "../../../components/SurfaceState";
 import { Topbar } from "../../../components/Topbar";
 import { WorkspaceShell } from "../../../components/WorkspaceShell";
 import { useBackendStatus } from "../../../hooks/useBackendStatus";
@@ -222,9 +223,12 @@ export default function AustriaLiveOrganizationPage() {
       </section>
 
       {error ? (
-        <div className="cockpit-partial-note" role="status">
-          <strong>{errorLabel(error)}</strong><span>{error.message}</span>
-        </div>
+        <SurfaceState
+          kind="error"
+          title={errorLabel(error)}
+          description={error.message}
+          announce
+        />
       ) : null}
       {commandMessage ? (
         <div className="cockpit-partial-note" role="status">
@@ -237,9 +241,11 @@ export default function AustriaLiveOrganizationPage() {
           <header className="cockpit-surface-header compact">
             <div><span className="premium-label">Persisted truth</span><h3 id="live-cycle-empty-title">No Austria cycle exists yet</h3></div>
           </header>
-          <div className="cockpit-empty-line">
-            No persisted J/K/L Austria objective is available. The Cockpit does not simulate a live organization cycle to fill this view.
-          </div>
+          <SurfaceState
+            kind="empty"
+            title="No persisted Austria cycle"
+            description="No persisted J/K/L Austria objective is available. The Cockpit does not simulate a live organization cycle to fill this view."
+          />
         </section>
       ) : null}
 
@@ -322,8 +328,32 @@ export default function AustriaLiveOrganizationPage() {
                 <div><span className="premium-label">Truth provenance</span><h3 id="live-provenance-title">What this L.1 cycle actually knows</h3></div>
               </header>
               <div className="operational-intelligence-grid">
-                <div className="cockpit-lane"><header><span>Domain Evidence</span><strong>{snapshot.domain_evidence_refs.length}</strong></header><p>{snapshot.domain_evidence_refs.length ? "Persisted domain Evidence references are attached." : "Not connected in this L.1 slice; no Evidence is fabricated by the UI."}</p></div>
-                <div className="cockpit-lane"><header><span>VerifiedRules</span><strong>{snapshot.verified_rule_refs.length}</strong></header><p>{snapshot.verified_rule_refs.length ? "Persisted verified-rule references are attached." : "Not connected in this L.1 slice; regulatory truth is not implied."}</p></div>
+                <div className="cockpit-lane">
+                  <header><span>Domain Evidence</span><strong>{snapshot.domain_evidence_refs.length}</strong></header>
+                  {snapshot.domain_evidence_refs.length ? (
+                    <p>Persisted domain Evidence references are attached.</p>
+                  ) : (
+                    <SurfaceState
+                      kind="not-connected"
+                      title="Not connected"
+                      description="Domain Evidence is not connected in this L.1 slice; no Evidence is fabricated by the UI."
+                      compact
+                    />
+                  )}
+                </div>
+                <div className="cockpit-lane">
+                  <header><span>VerifiedRules</span><strong>{snapshot.verified_rule_refs.length}</strong></header>
+                  {snapshot.verified_rule_refs.length ? (
+                    <p>Persisted verified-rule references are attached.</p>
+                  ) : (
+                    <SurfaceState
+                      kind="not-connected"
+                      title="Not connected"
+                      description="VerifiedRules are not connected in this L.1 slice; regulatory truth is not implied."
+                      compact
+                    />
+                  )}
+                </div>
                 <div className="cockpit-lane"><header><span>Autonomy profile</span><strong>{snapshot.autonomy_profile_state ? titleCase(snapshot.autonomy_profile_state) : "None"}</strong></header><p>No model or provider receives authority from this projection.</p></div>
                 <div className="cockpit-lane"><header><span>Owner disposition</span><strong>{snapshot.owner_synthesis ? titleCase(snapshot.owner_synthesis.disposition) : "Pending"}</strong></header><p>{snapshot.owner_synthesis?.human_review_required ? "Human review is required." : "No completed owner disposition is currently asserted."}</p></div>
               </div>

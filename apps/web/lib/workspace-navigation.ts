@@ -69,6 +69,7 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
         { label: "Cockpit Overview", href: "/cockpit", icon: "cockpit" },
         { label: "Live Organization", href: "/cockpit/live-organization", icon: "cockpit" },
         { label: "Owner Inbox", href: "/owner-inbox", icon: "review" },
+        { label: "Cross-department friction", href: "/cross-department-friction", icon: "review" },
         { label: "Board Room", href: "/board-room", icon: "board" },
         { label: "External Validation", href: "/validation", icon: "review" },
       ],
@@ -83,19 +84,11 @@ export const workspaceNavigation: Record<WorkspaceExperience, WorkspaceNavGroup[
       ],
     },
     {
-      label: "Department workspaces",
-      items: [
-        { label: "Open from Cockpit", href: "/cockpit", icon: "home" },
-        { label: "Cross-department friction", href: "/cross-department-friction", icon: "review" },
-      ],
-    },
-    {
       label: "Organization",
       items: [
         { label: "Agent Review Queue", href: "/agents/review", icon: "review" },
         { label: "Agent Console", href: "/agents/console", icon: "agents" },
         { label: "Automation Hub", href: "/automation", icon: "automation" },
-        { label: "Operations Workspace", href: "/", icon: "home" },
       ],
     },
   ],

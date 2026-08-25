@@ -42,3 +42,43 @@ test("Track B state styling remains compact on mobile and motion-safe", async ()
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /animation: none/);
 });
+
+test("Track B surface states make truth gaps reusable without manufacturing activity", async () => {
+  const [surfaceState, liveOrganization, styles] = await Promise.all([
+    read("components/SurfaceState.tsx"),
+    read("app/cockpit/live-organization/page.tsx"),
+    read("app/track-b-foundation.css"),
+  ]);
+
+  for (const kind of ["empty", "error", "blocked", "not-connected"]) {
+    assert.ok(surfaceState.includes(`"${kind}"`), `missing surface-state kind ${kind}`);
+  }
+
+  assert.match(surfaceState, /data-surface-state=\{kind\}/);
+  assert.match(surfaceState, /role=\{announce \? \(kind === "error" \? "alert" : "status"\) : undefined\}/);
+  assert.match(surfaceState, /aria-live=\{announce \? \(kind === "error" \? "assertive" : "polite"\) : undefined\}/);
+  assert.match(liveOrganization, /import \{ SurfaceState \} from "\.\.\/\.\.\/\.\.\/components\/SurfaceState"/);
+  assert.match(liveOrganization, /kind="error"[\s\S]*announce/);
+  assert.match(liveOrganization, /kind="empty"[\s\S]*No persisted Austria cycle/);
+  assert.match(liveOrganization, /kind="not-connected"[\s\S]*Domain Evidence is not connected/);
+  assert.match(liveOrganization, /kind="not-connected"[\s\S]*VerifiedRules are not connected/);
+  assert.doesNotMatch(liveOrganization, /Math\.random|setInterval\(/);
+  assert.match(styles, /\.ui-surface-state\.error/);
+  assert.match(styles, /\.ui-surface-state\.blocked/);
+  assert.match(styles, /\.ui-surface-state\.not-connected/);
+});
+
+test("UX0 removes duplicate owner navigation while preserving experience switching", async () => {
+  const navigation = await read("lib/workspace-navigation.ts");
+
+  assert.match(navigation, /shortLabel: "Cockpit"/);
+  assert.match(navigation, /shortLabel: "Operations"/);
+  assert.match(navigation, /label: "Cross-department friction", href: "\/cross-department-friction"/);
+  assert.doesNotMatch(navigation, /label: "Open from Cockpit"/);
+
+  const ownerBlock = navigation.slice(navigation.indexOf("owner: ["), navigation.indexOf("operator: ["));
+  assert.doesNotMatch(ownerBlock, /label: "Department workspaces"/);
+  assert.doesNotMatch(ownerBlock, /label: "Operations Workspace"/);
+  assert.match(ownerBlock, /label: "Organization"/);
+  assert.match(ownerBlock, /label: "Agent Console"/);
+});

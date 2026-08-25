@@ -78,6 +78,77 @@
   box-shadow: 0 0 0 4px var(--ui-state-offline-ring);
 }
 
+.ui-surface-state {
+  --ui-surface-state-fg: var(--ink-muted);
+  --ui-surface-state-bg: var(--surface-muted);
+  --ui-surface-state-border: var(--line);
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--ui-surface-state-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--ui-surface-state-bg) 88%, var(--surface));
+  color: var(--ui-surface-state-fg);
+}
+
+.ui-surface-state-mark {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 11%, transparent);
+}
+
+.ui-surface-state-copy { min-width: 0; }
+.ui-surface-state-copy strong {
+  display: block;
+  color: var(--ink);
+  font-size: var(--type-label, 0.8125rem);
+  line-height: 1.35;
+}
+.ui-surface-state-copy p {
+  margin: 4px 0 0;
+  color: var(--ink-muted);
+  font-size: var(--type-caption, 0.75rem);
+  line-height: 1.5;
+}
+
+.ui-surface-state.error {
+  --ui-surface-state-fg: var(--red);
+  --ui-surface-state-bg: var(--red-soft);
+  --ui-surface-state-border: color-mix(in srgb, var(--red) 22%, var(--line));
+}
+
+.ui-surface-state.blocked {
+  --ui-surface-state-fg: var(--amber);
+  --ui-surface-state-bg: var(--amber-soft);
+  --ui-surface-state-border: color-mix(in srgb, var(--amber) 24%, var(--line));
+}
+
+.ui-surface-state.not-connected {
+  --ui-surface-state-fg: var(--blue);
+  --ui-surface-state-bg: var(--blue-soft);
+  --ui-surface-state-border: color-mix(in srgb, var(--blue) 20%, var(--line));
+}
+
+.ui-surface-state.compact {
+  grid-template-columns: 8px minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.ui-surface-state.compact .ui-surface-state-mark {
+  width: 6px;
+  height: 6px;
+  margin-top: 4px;
+  box-shadow: none;
+}
+
 @keyframes ui-operational-status-pulse {
   0%, 100% { opacity: 0.6; transform: scale(0.92); }
   50% { opacity: 1; transform: scale(1.06); }
@@ -93,6 +164,10 @@
 
   .ui-operational-status-label {
     display: none;
+  }
+
+  .ui-surface-state {
+    padding: var(--space-3);
   }
 }
 
