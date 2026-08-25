@@ -1,0 +1,103 @@
+/* Track B UX1: narrow reusable semantics layered on the existing AIOS design system. */
+:root {
+  --ui-state-ready-fg: var(--green-strong);
+  --ui-state-ready-bg: var(--green-soft);
+  --ui-state-ready-ring: var(--green-glow);
+  --ui-state-partial-fg: var(--amber);
+  --ui-state-partial-bg: var(--amber-soft);
+  --ui-state-partial-ring: var(--amber-glow);
+  --ui-state-offline-fg: var(--red);
+  --ui-state-offline-bg: var(--red-soft);
+  --ui-state-offline-ring: var(--red-glow);
+  --ui-state-connecting-fg: var(--blue);
+  --ui-state-connecting-bg: var(--blue-soft);
+  --ui-state-connecting-ring: color-mix(in srgb, var(--blue) 14%, transparent);
+}
+
+.ui-operational-status {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, currentColor 15%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 5%, var(--surface));
+  color: var(--ui-state-connecting-fg);
+  font-size: var(--type-status, 0.6875rem);
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ui-operational-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 4px var(--ui-state-connecting-ring);
+}
+
+.ui-operational-status.idle,
+.ui-operational-status.loading {
+  color: var(--ui-state-connecting-fg);
+  background: color-mix(in srgb, var(--ui-state-connecting-bg) 62%, var(--surface));
+}
+
+.ui-operational-status.loading .ui-operational-status-dot {
+  animation: ui-operational-status-pulse 1.4s ease-in-out infinite;
+}
+
+.ui-operational-status.ready {
+  color: var(--ui-state-ready-fg);
+  background: color-mix(in srgb, var(--ui-state-ready-bg) 70%, var(--surface));
+}
+
+.ui-operational-status.ready .ui-operational-status-dot {
+  box-shadow: 0 0 0 4px var(--ui-state-ready-ring);
+}
+
+.ui-operational-status.partial {
+  color: var(--ui-state-partial-fg);
+  background: color-mix(in srgb, var(--ui-state-partial-bg) 72%, var(--surface));
+}
+
+.ui-operational-status.partial .ui-operational-status-dot {
+  box-shadow: 0 0 0 4px var(--ui-state-partial-ring);
+}
+
+.ui-operational-status.offline {
+  color: var(--ui-state-offline-fg);
+  background: color-mix(in srgb, var(--ui-state-offline-bg) 70%, var(--surface));
+}
+
+.ui-operational-status.offline .ui-operational-status-dot {
+  box-shadow: 0 0 0 4px var(--ui-state-offline-ring);
+}
+
+@keyframes ui-operational-status-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+@media (max-width: 620px) {
+  .ui-operational-status {
+    width: 30px;
+    min-height: 30px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .ui-operational-status-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-operational-status.loading .ui-operational-status-dot {
+    animation: none;
+  }
+}
