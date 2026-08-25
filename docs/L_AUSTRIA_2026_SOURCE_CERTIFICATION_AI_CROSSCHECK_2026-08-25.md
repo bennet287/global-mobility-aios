@@ -25,15 +25,15 @@ The cross-check compared the exported Austria source-certification review packet
 
 ## Model-result matrix
 
-| Model | Reported groups | Reported result | Reported mismatches | Material note |
-| --- | ---: | --- | ---: | --- |
-| Claude Sonnet 5 | 64 / 64 | `EXACT_MATCH` | 0 | Explicitly treated the #7 concatenation and #49 punctuation as source-native artifacts. |
-| DeepSeek | 64 / 64 | `EXACT_MATCH` | 0 | Reported the same source-native anomalies. Its wording that implied a “human review” is invalid because the reviewer was an AI model. |
-| Grok 4 | 64 / 64 | `EXACT_MATCH` | 0 | Reported preservation of #7, #14, #24, #49, #60, and #61 source anomalies. |
-| Kimi K2.5 | 64 / 64 | `MISMATCH` | 1 | Flagged a #7 whitespace difference around the concatenated medical-specialty labels and noted inability to recompute the exported evidence-pack hash from the packet alone. |
-| Perplexity | 64 / 64 | `MISMATCH` | 2 | Flagged #7 whitespace and interpreted #49's period + rendered line break as a structural merge error. |
+| Model | Reported groups | Reported result | Reported mismatches | Confidence | Material note |
+| --- | ---: | --- | ---: | ---: | --- |
+| Claude Sonnet 5 | 64 / 64 | `EXACT_MATCH` | 0 | 95 | Treated the #7 concatenation and #49 punctuation as source-native artifacts. |
+| DeepSeek | 64 / 64 | `EXACT_MATCH` | 0 | 100 | Reported the same source-native anomalies. Any wording presenting this AI output as a human review is invalid. |
+| Grok 4 | 64 / 64 | `EXACT_MATCH` | 0 | 98 | Reported line-by-line equality, including source-internal concatenations and punctuation, and stated that the live page matched the packet snapshot/content hash. |
+| Kimi K2.5 | 64 / 64 | `MISMATCH` | 1 | 98 | Reported one #7 whitespace normalization: two spaces between `Kinder` and `und` in the immutable snapshot versus one space in the structured alias/live page. It also could not independently recompute the entry-set/evidence-pack hashes from the packet alone. |
+| Perplexity | 64 / 64 | `MISMATCH` | 8 reported | 88 | Reported #7 whitespace, #28/#38/#51 snapshot-punctuation differences, and a #49 merge interpretation. Its count also includes #7 concatenation and #60/#61 spellings that its own explanation calls source-faithful/non-errors. |
 
-The useful consensus is narrower than “five exact matches”: all five reports support the 2026 nationwide scope and all 64 top-level groups, while two reports raised representation/structure concerns that require adjudication rather than majority voting.
+The useful consensus is narrower than “five exact matches”: all five reports support the 2026 nationwide scope, all 64 top-level groups, the ordinal order, and no missing/extra top-level group. The exact-rendering reports conflict and must be adjudicated rather than majority-voted.
 
 ## Official-source re-check on 2026-08-25
 
@@ -41,38 +41,72 @@ A fresh check of the government page confirmed:
 
 1. the page is explicitly the **2026** Austria-wide shortage-occupation list;
 2. the page contains headings numbered **1 through 64**;
-3. group **#7 Physicians** currently renders the two specialties as a concatenated sequence with no visible delimiter between `...Jugendchirurgie)` and the following `Facharzt/ ärztin (Innere Medizin und Pneumologie)` in the extracted page text;
-4. group **#49 Graduate mechanical engineers** renders `Werkzeugkonstrukteur/in (DI).` followed by `Gebäudetechniker/in (Heizung/Lüftung/Sanitär) (DI)` on the next rendered line;
-5. the source still contains spelling/presentation anomalies such as `Pysiologie`, `Thoraxhchirug`, `Photoviltaiktechniker/in`, `Argonacschweißer/in`, and `Elementarpädaog(e)in`.
+3. group **#7 Physicians** currently renders the two specialties as a concatenated sequence with no visible delimiter between `...Jugendchirurgie)` and the following `Facharzt/ ärztin (Innere Medizin und Pneumologie)`;
+4. the live page currently renders `Facharzt/ ärztin (Kinder und Jugendpsychiatrie)` with one visible space between `Kinder` and `und`;
+5. headings #28, #38, and #51 render normally on the live page; Perplexity's claimed extra-dot differences concern the packet's stored source representation and cannot be independently adjudicated without the exact immutable packet bytes;
+6. group **#49 Graduate mechanical engineers** renders `Werkzeugkonstrukteur/in (DI).` followed by `Gebäudetechniker/in (Heizung/Lüftung/Sanitär) (DI)` in the published text;
+7. the source still contains spelling/presentation anomalies such as `Pysiologie`, `Thoraxhchirug`, `Photoviltaiktechniker/in`, `Argonacschweißer/in`, and `Elementarpädaog(e)in`.
 
 These anomalies are source evidence. They must not be silently corrected in the governed source projection merely because a normalized form would look cleaner.
 
 ## Disagreement adjudication
 
-### #7 whitespace / concatenation
+### #7 `Kinder  und Jugendpsychiatrie` whitespace
 
-The model reports conflict about whether the immutable packet snapshot and structured projection contain zero, one, or two spaces at the concatenation boundary. The live government-page extraction currently shows the concatenation without a visible separator.
+Kimi and Perplexity report that the immutable packet snapshot contains **two spaces** between `Kinder` and `und`, while the structured alias and current live page contain one. Grok reports exact equality between live source, immutable snapshot, and structured entries. These model reports therefore conflict about the same packet/source representation.
 
-The current parser also performs line-wise whitespace normalization before materializing structured entries. Therefore this AI cross-check cannot establish **byte-for-byte HTML/text fidelity** at that boundary from the model reports alone.
+The current parser performs line-wise whitespace normalization before materializing structured entries. A whitespace difference of this kind is therefore plausible without implying an omitted occupation or changed semantic title, but it does mean the phrase **byte-for-byte faithful** must not be inferred from the structured projection alone.
 
 Decision:
 
 - do **not** rewrite the canonical projection from AI testimony;
-- treat #7 as a reviewer-visible representation issue;
+- treat the #7 whitespace boundary as a reviewer-visible representation checkpoint;
 - require the genuine human reviewer to compare the immutable `source_content_text` in the pinned packet with the structured #7 row;
-- preserve the existing lookup-only segmentation used to make the two concatenated specialties searchable without changing the source-derived evidence row.
+- keep hash/evidence identity pinned to the immutable snapshot rather than to the current live rendering.
 
-### #49 period + rendered line break
+### #7 concatenated specialties
 
-The government page visibly places a period after `Werkzeugkonstrukteur/in (DI).` and begins `Gebäudetechniker/in ...` on the next rendered line. Perplexity interpreted this as two separate source labels and therefore as a merge error in the structured projection.
+The current live source itself concatenates:
 
-The current runtime deliberately treats this as a known source-format artifact: the governed evidence projection preserves the source-derived text, while lookup-only segmentation exposes the two semantic labels for matching. That architecture prevents runtime search ergonomics from rewriting canonical evidence.
+`Facharzt/ ärztin (Kinder- und Jugendchirurgie)Facharzt/ ärztin (Innere Medizin und Pneumologie)`
+
+Kimi and Grok classify this as source-faithful formatting. Perplexity lists it inside its mismatch count but explicitly says the AIOS projection preserves the literal source concatenation and that it is a source-formatting anomaly rather than an AIOS textual error.
+
+Decision:
+
+- this is **not established as an AIOS extraction mismatch**;
+- preserve the source-derived evidence string;
+- preserve the existing lookup-only segmentation used to make the two specialties searchable;
+- do not let lookup segmentation rewrite entry hashing or certification evidence.
+
+### #28 / #38 / #51 source-snapshot punctuation
+
+Perplexity reports that the packet's `source_content_text` contains extra dots after these ordinals while the current live page does not. The other model reports do not reproduce this concern, and the raw reviewer packet is not stored in the repository.
+
+Decision:
+
+- mark this as **unresolved packet-snapshot representation evidence** rather than a structured-projection defect;
+- do not modify canonical data from one AI report;
+- require the human reviewer to inspect the pinned immutable packet text directly;
+- the deterministic checker verifies the snapshot text against its pinned hash, but intentionally cannot decide whether a historical immutable snapshot should equal today's live rendering.
+
+### #49 period + rendered title boundary
+
+The government page visibly places a period after `Werkzeugkonstrukteur/in (DI).` before `Gebäudetechniker/in (Heizung/Lüftung/Sanitär) (DI)`. Perplexity interprets this as two separately listed occupation titles and therefore a structural merge error when AIOS stores the source-derived string as one alias.
+
+The current runtime deliberately handles this exact string through **lookup-only segmentation** while keeping the source-derived evidence projection unchanged. That separates matching ergonomics from canonical evidence.
 
 Decision:
 
 - no canonical data change is justified by the AI report alone;
-- #49 remains a human-review checkpoint;
+- #49 remains a human-review checkpoint because the source presentation is structurally ambiguous;
 - lookup-only segmentation remains non-authoritative and must not alter entry hashing or source-certification evidence.
+
+### #60 / #61 spelling
+
+Perplexity includes these ordinals in its reported mismatch count but also states that `Elementarpädaog(e)in` appears identically in the official source and AIOS projection and is therefore **not an extraction error**.
+
+Decision: treat these as source-faithful anomaly checkpoints, not mismatches.
 
 ## Hash reproducibility finding
 
@@ -85,7 +119,7 @@ The current repository deterministically computes:
 - `source_content_text_sha256` from the immutable UTF-8 source text;
 - `evidence_pack_sha256` from an internal `canonical_evidence` object using sorted compact JSON and UTF-8 SHA-256.
 
-However, the exported v1 reviewer pack does not expose the complete internal `canonical_evidence` object used to compute `evidence_pack_sha256`. A reviewer can pin and compare the provided evidence-pack hash, but cannot independently reconstruct that exact hash from the exported packet alone without repository implementation knowledge and missing canonical inputs.
+However, the exported v1 reviewer pack does not expose the complete internal `canonical_evidence` object used to compute `evidence_pack_sha256`. A reviewer can pin and compare the provided evidence-pack hash, but cannot independently reconstruct that exact hash from the exported packet alone because not every canonical input is exported.
 
 The companion checker added with this record therefore recomputes only what the exported packet can prove directly and explicitly reports that `evidence_pack_sha256` is **not independently recomputable from the exported v1 packet**. It does not fabricate a reconstructed value.
 
@@ -123,8 +157,10 @@ It deliberately does **not**:
 This cross-check strengthens pre-review evidence but changes no acceptance state.
 
 ```text
-Austria 2026 source projection:      AI cross-check completed with two adjudicated representation concerns
+Austria 2026 source projection:      AI cross-check completed; representation disagreements remain reviewer-visible
 Top-level group count/year/scope:    64 / 2026 / national supported by all five model reports and live source re-check
+Missing/extra top-level groups:      none reported by any model
+Exact snapshot/live rendering:       CONFLICTING AI REPORTS / HUMAN CHECK REQUIRED
 Independent human source review:     STILL REQUIRED
 Independent human attestation:       NOT SATISFIED
 L professional benchmark review:     SEPARATE REQUIREMENT / NOT SATISFIED BY THIS RECORD
