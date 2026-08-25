@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { LiveOrganizationRuntimePanel } from "../../../components/LiveOrganizationRuntimePanel";
 import { SurfaceState } from "../../../components/SurfaceState";
 import { Topbar } from "../../../components/Topbar";
 import { WorkspaceShell } from "../../../components/WorkspaceShell";
@@ -12,6 +13,11 @@ import {
   getLatestAustriaLiveOrganization,
   synthesizeAustriaOwner,
 } from "../../../lib/live-organization";
+import {
+  type AustriaOrganizationPresenceLatest,
+  OrganizationPresenceRequestError,
+  getLatestAustriaOrganizationPresence,
+} from "../../../lib/organization-presence";
 import { titleCase } from "../../../lib/utils";
 
 type LiveOrganizationLoadError = {
@@ -40,6 +46,16 @@ function timeLabel(value?: string | null): string {
   }).format(date);
 }
 
+function requestError(error: unknown, fallback: string): LiveOrganizationLoadError {
+  if (error instanceof LiveOrganizationRequestError || error instanceof OrganizationPresenceRequestError) {
+    return { status: error.status, message: error.message };
+  }
+  return {
+    status: null,
+    message: error instanceof Error ? error.message : fallback,
+  };
+}
+
 function unavailableTitle(error: LiveOrganizationLoadError | null): string {
   if (error?.status === 401) return "Board authentication required";
   if (error?.status === 403) return "Board access not permitted";
@@ -56,29 +72,38 @@ function errorLabel(error: LiveOrganizationLoadError): string {
 export default function AustriaLiveOrganizationPage() {
   const { health, error: healthError } = useBackendStatus();
   const [latest, setLatest] = useState<AustriaLiveOrganizationLatest | null>(null);
+  const [presenceLatest, setPresenceLatest] = useState<AustriaOrganizationPresenceLatest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<LiveOrganizationLoadError | null>(null);
+  const [presenceError, setPresenceError] = useState<LiveOrganizationLoadError | null>(null);
   const [commandSubmitting, setCommandSubmitting] = useState(false);
   const [commandMessage, setCommandMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      setLatest(await getLatestAustriaLiveOrganization());
-    } catch (loadError) {
+    setPresenceError(null);
+
+    const [liveResult, presenceResult] = await Promise.allSettled([
+      getLatestAustriaLiveOrganization(),
+      getLatestAustriaOrganizationPresence(),
+    ]);
+
+    if (liveResult.status === "fulfilled") {
+      setLatest(liveResult.value);
+    } else {
       setLatest(null);
-      setError(
-        loadError instanceof LiveOrganizationRequestError
-          ? { status: loadError.status, message: loadError.message }
-          : {
-              status: null,
-              message: loadError instanceof Error ? loadError.message : "Live organization data is unavailable.",
-            },
-      );
-    } finally {
-      setLoading(false);
+      setError(requestError(liveResult.reason, "Live organization data is unavailable."));
     }
+
+    if (presenceResult.status === "fulfilled") {
+      setPresenceLatest(presenceResult.value);
+    } else {
+      setPresenceLatest(null);
+      setPresenceError(requestError(presenceResult.reason, "Organization presence is unavailable."));
+    }
+
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -86,6 +111,7 @@ export default function AustriaLiveOrganizationPage() {
   }, [load]);
 
   const snapshot = latest?.snapshot ?? null;
+  const presenceSnapshot = presenceLatest?.snapshot ?? null;
   const canSynthesize = Boolean(
     snapshot
     && snapshot.root_status === "running"
@@ -128,7 +154,7 @@ export default function AustriaLiveOrganizationPage() {
     ? "offline"
     : loading
       ? "loading"
-      : error || healthError
+      : error || presenceError || healthError
         ? "partial"
         : "ready";
 
@@ -251,6 +277,13 @@ export default function AustriaLiveOrganizationPage() {
 
       {snapshot ? (
         <>
+          <LiveOrganizationRuntimePanel
+            rootWorkItemId={snapshot.root_work_item_id}
+            presence={presenceSnapshot}
+            presenceError={presenceError?.message ?? null}
+            activities={snapshot.activities}
+          />
+
           <section className="cockpit-primary-grid">
             <article className="cockpit-surface" aria-labelledby="live-cycle-title">
               <header className="cockpit-surface-header compact">
