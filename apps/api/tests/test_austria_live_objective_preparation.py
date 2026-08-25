@@ -64,7 +64,7 @@ def _grounded_authority_graph(db_session: Session) -> dict[str, object]:
 
     monitor = SourceMonitor(
         official_source_id=source.id,
-        active=True,
+        status="active",
     )
     db_session.add(monitor)
     db_session.commit()
@@ -168,9 +168,34 @@ def test_live_objective_preflight_fails_closed_without_canonical_source(db_sessi
 
     assert report["candidate_creation_ready"] is False
     assert "canonical_published_austria_pathway_missing" in report["blockers"]
+    assert report["observed_austria_pathways"] == []
     assert report["provider_invoked"] is False
     assert report["external_action_authorized"] is False
     assert report["secrets_exposed"] is False
+
+
+def test_live_objective_preflight_reports_noncanonical_austria_route(db_session: Session) -> None:
+    graph = _grounded_authority_graph(db_session)
+    pathway = graph["pathway"]
+    pathway.pathway_key = f"{AUSTRIA_MOBILITY_OBJECTIVE_ROUTE}-2026"
+    db_session.add(pathway)
+    db_session.commit()
+
+    report = assess_candidate_creation(
+        db_session,
+        database_url="sqlite:///./pytest.db",
+        tenant_key="default",
+    )
+
+    assert report["candidate_creation_ready"] is False
+    assert "canonical_published_austria_pathway_missing" in report["blockers"]
+    assert report["observed_austria_pathways"] == [
+        {
+            "pathway_id": str(pathway.id),
+            "pathway_key": f"{AUSTRIA_MOBILITY_OBJECTIVE_ROUTE}-2026",
+            "catalogue_status": "published",
+        }
+    ]
 
 
 def test_live_objective_preflight_accepts_complete_grounded_authority(db_session: Session) -> None:
@@ -211,6 +236,24 @@ def test_live_objective_preflight_rejects_missing_source_monitor(db_session: Ses
         str(item).startswith(f"source_monitor_count_invalid:{graph['source'].id}:0")
         for item in report["blockers"]
     )
+
+
+def test_live_objective_preflight_rejects_inactive_source_monitor(db_session: Session) -> None:
+    graph = _grounded_authority_graph(db_session)
+    monitor = graph["monitor"]
+    monitor.status = "paused"
+    db_session.add(monitor)
+    db_session.commit()
+
+    report = assess_candidate_creation(
+        db_session,
+        database_url="sqlite:///./pytest.db",
+        tenant_key="default",
+    )
+
+    assert report["candidate_creation_ready"] is False
+    assert f"source_monitor_inactive:{monitor.id}" in report["blockers"]
+    assert report["active_source_monitor_count"] == 0
 
 
 def test_live_objective_create_uses_canonical_source_and_stays_fresh(db_session: Session) -> None:
