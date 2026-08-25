@@ -119,6 +119,99 @@ def test_create_backup_writes_dump_and_integrity_manifest(
     }
 
 
+def test_pitr_preflight_reports_configuration_readiness_without_claiming_recovery(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    compose_file = tmp_path / "docker-compose.prod.yml"
+    env_file = tmp_path / ".env.production"
+    compose_file.write_text("services: {}\n", encoding="utf-8")
+    env_file.write_text("POSTGRES_USER=gmai\nPOSTGRES_DB=gmai\n", encoding="utf-8")
+    monkeypatch.setattr(
+        backup_restore,
+        "_container_env_value",
+        lambda _base, key: {"POSTGRES_USER": "gmai", "POSTGRES_DB": "gmai"}[key],
+    )
+    monkeypatch.setattr(
+        backup_restore,
+        "_run_text",
+        lambda args: subprocess.CompletedProcess(
+            args,
+            0,
+            stdout=json.dumps(
+                {
+                    "server_version_num": 160009,
+                    "wal_level": "replica",
+                    "archive_mode": "on",
+                    "archive_command_configured": True,
+                    "max_wal_senders": 10,
+                    "data_checksums": "on",
+                    "in_recovery": False,
+                }
+            ),
+            stderr="",
+        ),
+    )
+
+    report = backup_restore.inspect_pitr_readiness(
+        compose_file=compose_file,
+        env_file=env_file,
+    )
+
+    assert report["pitr_configuration_ready"] is True
+    assert report["blockers"] == []
+    assert report["base_backup_verified"] is False
+    assert report["wal_archive_continuity_verified"] is False
+    assert report["point_in_time_restore_verified"] is False
+    assert "archive_command" not in report
+
+
+def test_pitr_preflight_names_configuration_blockers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    compose_file = tmp_path / "docker-compose.prod.yml"
+    env_file = tmp_path / ".env.production"
+    compose_file.write_text("services: {}\n", encoding="utf-8")
+    env_file.write_text("POSTGRES_USER=gmai\nPOSTGRES_DB=gmai\n", encoding="utf-8")
+    monkeypatch.setattr(backup_restore, "_container_env_value", lambda *_args: "gmai")
+    monkeypatch.setattr(
+        backup_restore,
+        "_run_text",
+        lambda args: subprocess.CompletedProcess(
+            args,
+            0,
+            stdout=json.dumps(
+                {
+                    "server_version_num": 150013,
+                    "wal_level": "minimal",
+                    "archive_mode": "off",
+                    "archive_command_configured": False,
+                    "max_wal_senders": 0,
+                    "data_checksums": "off",
+                    "in_recovery": True,
+                }
+            ),
+            stderr="",
+        ),
+    )
+
+    report = backup_restore.inspect_pitr_readiness(
+        compose_file=compose_file,
+        env_file=env_file,
+    )
+
+    assert report["pitr_configuration_ready"] is False
+    assert report["blockers"] == [
+        "postgres_major_is_not_16",
+        "wal_level_does_not_support_pitr",
+        "archive_mode_is_not_enabled",
+        "archive_command_is_not_configured",
+        "max_wal_senders_is_not_positive",
+        "inspected_server_is_in_recovery",
+    ]
+
+
 def test_create_backup_removes_partial_dump_on_pg_dump_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

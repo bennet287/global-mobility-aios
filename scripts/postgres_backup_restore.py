@@ -19,6 +19,7 @@ DEFAULT_OUTPUT_DIR = ROOT / "backups" / "postgres"
 DEFAULT_POSTGRES_IMAGE = "postgres:16-alpine"
 BACKUP_SCHEMA_VERSION = "gmai-postgres-backup-v1"
 RESTORE_SCHEMA_VERSION = "gmai-postgres-restore-verification-v1"
+PITR_PREFLIGHT_SCHEMA_VERSION = "gmai-postgres-pitr-preflight-v1"
 
 
 def _utc_now() -> datetime:
@@ -106,6 +107,86 @@ def _source_schema_metadata(base: list[str], postgres_user: str, postgres_db: st
     if table_count <= 0:
         raise RuntimeError("Source database has no public tables")
     return alembic_version, table_count
+
+
+def inspect_pitr_readiness(
+    *,
+    compose_file: Path = DEFAULT_COMPOSE_FILE,
+    env_file: Path = DEFAULT_ENV_FILE,
+) -> dict[str, object]:
+    """Read PostgreSQL WAL/archive settings without claiming PITR recovery proof."""
+
+    base = _compose_base(compose_file, env_file)
+    postgres_user = _container_env_value(base, "POSTGRES_USER")
+    postgres_db = _container_env_value(base, "POSTGRES_DB")
+    query = """
+SELECT json_build_object(
+  'server_version_num', current_setting('server_version_num')::int,
+  'wal_level', current_setting('wal_level'),
+  'archive_mode', current_setting('archive_mode'),
+  'archive_command_configured',
+    lower(trim(current_setting('archive_command'))) NOT IN ('', '(disabled)', 'true', '/bin/true', ':'),
+  'max_wal_senders', current_setting('max_wal_senders')::int,
+  'data_checksums', current_setting('data_checksums'),
+  'in_recovery', pg_is_in_recovery()
+);""".strip()
+    result = _run_text(
+        base
+        + [
+            "exec",
+            "-T",
+            "postgres",
+            "psql",
+            "-U",
+            postgres_user,
+            "-d",
+            postgres_db,
+            "-Atc",
+            query,
+        ]
+    )
+    try:
+        raw = json.loads(result.stdout.strip())
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("PostgreSQL returned invalid PITR preflight JSON") from exc
+    if not isinstance(raw, dict):
+        raise RuntimeError("PostgreSQL returned an invalid PITR preflight object")
+
+    blockers: list[str] = []
+    server_version_num = raw.get("server_version_num")
+    if not isinstance(server_version_num, int) or server_version_num // 10000 != 16:
+        blockers.append("postgres_major_is_not_16")
+    if raw.get("wal_level") not in {"replica", "logical"}:
+        blockers.append("wal_level_does_not_support_pitr")
+    if raw.get("archive_mode") not in {"on", "always"}:
+        blockers.append("archive_mode_is_not_enabled")
+    if raw.get("archive_command_configured") is not True:
+        blockers.append("archive_command_is_not_configured")
+    max_wal_senders = raw.get("max_wal_senders")
+    if not isinstance(max_wal_senders, int) or max_wal_senders <= 0:
+        blockers.append("max_wal_senders_is_not_positive")
+    if raw.get("in_recovery") is True:
+        blockers.append("inspected_server_is_in_recovery")
+
+    return {
+        "schema_version": PITR_PREFLIGHT_SCHEMA_VERSION,
+        "inspected_at": _utc_now().isoformat(),
+        "compose_service": "postgres",
+        "database": postgres_db,
+        "server_version_num": server_version_num,
+        "wal_level": raw.get("wal_level"),
+        "archive_mode": raw.get("archive_mode"),
+        "archive_command_configured": raw.get("archive_command_configured") is True,
+        "max_wal_senders": max_wal_senders,
+        "data_checksums": raw.get("data_checksums"),
+        "in_recovery": raw.get("in_recovery"),
+        "pitr_configuration_ready": not blockers,
+        "blockers": blockers,
+        "base_backup_verified": False,
+        "wal_archive_continuity_verified": False,
+        "point_in_time_restore_verified": False,
+        "secret_values_exposed": False,
+    }
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:
@@ -426,6 +507,13 @@ def _build_parser() -> argparse.ArgumentParser:
     verify_parser.add_argument("--backup", type=Path, required=True)
     verify_parser.add_argument("--image", default=DEFAULT_POSTGRES_IMAGE)
     verify_parser.add_argument("--timeout-seconds", type=int, default=60)
+    pitr_parser = subparsers.add_parser(
+        "pitr-preflight",
+        help="Inspect PostgreSQL WAL/archive configuration without claiming point-in-time recovery proof",
+    )
+    pitr_parser.add_argument("--compose-file", type=Path, default=DEFAULT_COMPOSE_FILE)
+    pitr_parser.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    pitr_parser.add_argument("--output", type=Path)
     return parser
 
 
@@ -441,6 +529,19 @@ def main() -> int:
             print(f"PostgreSQL backup created: {backup_path}")
             print(f"Integrity manifest: {manifest_path}")
             return 0
+
+        if args.command == "pitr-preflight":
+            report = inspect_pitr_readiness(
+                compose_file=args.compose_file.resolve(),
+                env_file=args.env_file.resolve(),
+            )
+            rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
+            if args.output:
+                _write_json(args.output.resolve(), report)
+                print(f"PITR configuration preflight written: {args.output.resolve()}")
+            else:
+                print(rendered, end="")
+            return 0 if report["pitr_configuration_ready"] else 2
 
         verification_path = verify_restore(
             backup_path=args.backup.resolve(),

@@ -22,6 +22,23 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-26 — Track C Technology Radar E1 bounded implementation candidate
+
+**Status: IMPLEMENTED LOCALLY / EXTERNAL PILOT AND RECOVERY PROOF PENDING**
+
+Base source head: `d861c5e2cdd34120e88c0e47f4bf3eab2c2a90fb` on
+`work/b-live-org-presence-integration-20260825`.
+
+- Added privacy-allowlisted OpenTelemetry correlation for the L live-provider cycle and specialist executions. Telemetry remains fail-open engineering data and cannot become `OrganizationActivity`, Evidence, authority, or domain truth.
+- Extended the PostgreSQL logical-backup/isolated-restore utility with a read-only PITR configuration preflight whose report keeps base-backup, WAL-continuity and point-in-time-restore proof false.
+- Added an AIOS-owned `SecretsPort`, redacted material wrapper, minimal OpenBao KV-v2 adapter, and explicit non-production lifecycle pilot for retrieval, CAS rotation, soft-delete/undelete recovery and cleanup.
+- Reviewed the active pilot portfolio without pulling unrelated tools forward: ClamAV and Promptfoo remain trial-eligible; Docling remains in progress; Presidio and urlwatch remain queued; Langfuse remains behind OpenTelemetry; LLMLingua-2 remains demand-gated.
+
+Focused local contract/runtime proof passed. No OTLP backend export, live OpenBao
+server lifecycle, PostgreSQL base backup/WAL archive, or point-in-time restore was
+executed by this entry. L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M and N do
+not advance.
+
 ## 2026-08-25 — V12.28 REPOSITORY-TRUTH / L ACCEPTANCE & CI RECONCILIATION
 
 ### Status

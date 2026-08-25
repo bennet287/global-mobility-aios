@@ -121,6 +121,34 @@ The utility fails closed when:
 
 A failed `pg_dump` or unstable-schema backup removes its partial `.dump`. A failed restore does not produce a success receipt.
 
+## PITR configuration preflight
+
+E1 also provides a read-only check of the running PostgreSQL service:
+
+```powershell
+python scripts/postgres_backup_restore.py pitr-preflight `
+  --compose-file docker-compose.prod.yml `
+  --env-file .env.production
+```
+
+It checks the PostgreSQL 16 major, `wal_level`, `archive_mode`, whether an archive
+command is configured, positive WAL sender capacity, and whether the inspected
+server is already in recovery. The archive command itself is deliberately not
+returned because it may contain infrastructure details or credentials.
+
+This proves configuration readiness only. Every report explicitly states:
+
+```text
+base_backup_verified=false
+wal_archive_continuity_verified=false
+point_in_time_restore_verified=false
+```
+
+A real PITR acceptance run still requires a representative base backup, continuous
+WAL archive, a chosen recovery target, isolated restoration, data/schema checks at
+that target, and a retained receipt. The existing `pg_dump` restore proof is useful
+logical recovery evidence, but it is not PITR.
+
 ## Verification during development
 
 Unit coverage lives in:
