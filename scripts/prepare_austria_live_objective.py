@@ -132,6 +132,21 @@ def _canonical_pathway(
     return rows[0], []
 
 
+def _observed_austria_pathways(session: Session) -> list[dict[str, object]]:
+    rows = list(session.exec(select(MobilityPathway)).all())
+    result = [
+        {
+            "pathway_id": str(row.id),
+            "pathway_key": row.pathway_key,
+            "catalogue_status": row.catalogue_status,
+        }
+        for row in rows
+        if row.country.strip().casefold() == "austria"
+    ]
+    result.sort(key=lambda item: (str(item["pathway_key"]), str(item["pathway_id"])))
+    return result
+
+
 def _current_published_version(
     session: Session,
     pathway: MobilityPathway,
@@ -296,10 +311,11 @@ def _authority_preflight(
         if len(monitors) != 1:
             blockers.append(f"source_monitor_count_invalid:{source.id}:{len(monitors)}")
             continue
-        if not monitors[0].active:
-            blockers.append(f"source_monitor_inactive:{monitors[0].id}")
+        monitor = monitors[0]
+        if (monitor.status or "").strip().casefold() != "active":
+            blockers.append(f"source_monitor_inactive:{monitor.id}")
         else:
-            active_monitors.append(monitors[0])
+            active_monitors.append(monitor)
 
     positions: list[OrganizationPosition] = []
     for position_key in _REQUIRED_POSITIONS:
@@ -340,6 +356,7 @@ def assess_candidate_creation(
 ) -> dict[str, object]:
     now = current or now_utc()
     blockers: list[str] = []
+    observed_austria_pathways = _observed_austria_pathways(session)
     pathway, pathway_blockers = _canonical_pathway(session)
     blockers.extend(pathway_blockers)
     version: MobilityPathwayVersion | None = None
@@ -376,6 +393,7 @@ def assess_candidate_creation(
         "database_url": mask_database_url(normalize_database_url(database_url)),
         "tenant_key": tenant_key,
         "route_key": AUSTRIA_MOBILITY_OBJECTIVE_ROUTE,
+        "observed_austria_pathways": observed_austria_pathways,
         "pathway_id": str(pathway.id) if pathway is not None else None,
         "pathway_version_id": str(version.id) if version is not None else None,
         "pathway_version_number": version.version_number if version is not None else None,
