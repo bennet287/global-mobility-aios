@@ -66,6 +66,7 @@ def read_latest_austria_organization_presence(
             OrganizationPositionPresenceRead.model_validate(
                 organization_position_presence_snapshot(
                     session,
+                    tenant_key=context.tenant_key,
                     work_item_id=specialist.work_item_id,
                 )
             )
