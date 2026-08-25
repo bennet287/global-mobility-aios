@@ -1,7 +1,7 @@
 # PostgreSQL Backup + Isolated Restore v1
 
-**Classification:** L SUPPORTING PARALLEL production foundation  
-**Status:** IMPLEMENTED / REAL DOCKER RECOVERY PROOF PENDING  
+**Classification:** L SUPPORTING PARALLEL production foundation
+**Status:** IMPLEMENTED / REAL DOCKER RECOVERY PROOF PENDING
 **Acceptance effect:** does not seal L and does not replace the remaining professional-review, live-provider, provider-failure, or guarded fresh-retrieval evidence gates.
 
 ## Purpose
