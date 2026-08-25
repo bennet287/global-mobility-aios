@@ -68,3 +68,34 @@ test("Munder-derived employee presence stays AIOS-owned, execution-grounded, and
   assert.match(styles, /@keyframes employee-presence-executing-pulse/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.employee-presence-indicator\.executing[\s\S]*animation: none/);
 });
+
+test("Live Organization composes presence and activity without crossing canonical cycle boundaries", async () => {
+  const [page, panel, styles] = await Promise.all([
+    read("app/cockpit/live-organization/page.tsx"),
+    read("components/LiveOrganizationRuntimePanel.tsx"),
+    read("app/track-b-foundation.css"),
+  ]);
+
+  assert.match(page, /LiveOrganizationRuntimePanel/);
+  assert.match(page, /Promise\.allSettled/);
+  assert.match(page, /getLatestAustriaLiveOrganization\(\)/);
+  assert.match(page, /getLatestAustriaOrganizationPresence\(\)/);
+  assert.match(page, /error \|\| presenceError \|\| healthError/);
+  assert.match(page, /rootWorkItemId=\{snapshot\.root_work_item_id\}/);
+  assert.match(page, /presence=\{presenceSnapshot\}/);
+  assert.match(page, /activities=\{snapshot\.activities\}/);
+
+  assert.match(panel, /presence\?\.root_work_item_id === rootWorkItemId/);
+  assert.match(panel, /No presence state is merged across cycles/);
+  assert.match(panel, /OrganizationExecutionAttempt/);
+  assert.match(panel, /Heartbeat, online\/offline liveness, authority, autonomy, and external-action permission are not inferred/);
+  assert.match(panel, /activities\.slice\(0, 5\)/);
+  assert.match(panel, /persisted OrganizationActivity records only/);
+  assert.match(panel, /href="\/cockpit\/live-organization\/presence"/);
+  assert.doesNotMatch(panel, /Math\.random|setInterval\(|navigator\.onLine/);
+
+  assert.match(styles, /\.live-runtime-grid/);
+  assert.match(styles, /\.live-runtime-presence-summary/);
+  assert.match(styles, /\.live-runtime-activity-list/);
+  assert.match(styles, /@media \(max-width: 960px\)[\s\S]*\.live-runtime-grid[\s\S]*grid-template-columns: 1fr/);
+});
