@@ -46,11 +46,13 @@ from app.services.organization_eligibility_runtime_health import (
     EligibilityRuntimeExecutionRole,
     record_attributed_eligibility_runtime_health_incident,
 )
+from app.services.organization_eligibility_runtime_session import (
+    execute_fenced_governed_eligibility_transition_intent,
+)
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
     EligibilityIntentError,
     EligibilityIntentRuntimeError,
-    governed_eligibility_transition_intent,
 )
 from app.services.organization_eligibility_verification_floor import (
     EligibilityVerificationFloorError,
@@ -335,7 +337,7 @@ def orchestrate_governed_eligibility(
         ) from exc
 
     try:
-        proposal = governed_eligibility_transition_intent(
+        producer_runtime = execute_fenced_governed_eligibility_transition_intent(
             session,
             tenant_key=tenant,
             position_key=execution_plan.producer_position_key,
@@ -346,6 +348,7 @@ def orchestrate_governed_eligibility(
             idempotency_key=key,
             expected_eligibility_revision_version=expected_eligibility_revision_version,
         )
+        proposal = producer_runtime.result
     except EligibilityIntentRuntimeError as exc:
         try:
             record_attributed_eligibility_runtime_health_incident(
