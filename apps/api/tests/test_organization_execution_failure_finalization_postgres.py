@@ -94,11 +94,15 @@ def test_postgres_takeover_and_stale_failure_have_one_durable_winner(
     barrier = Barrier(2)
     original_failure_next = failure_service._next_sequence
     original_heartbeat_next = heartbeat_service._next_sequence
+    failure_sequence_calls = 0
 
     def synchronized_failure_next(session: Session, execution_attempt_id):
+        nonlocal failure_sequence_calls
         sequence = original_failure_next(session, execution_attempt_id)
         if execution_attempt_id == attempt.id:
-            barrier.wait(timeout=10)
+            failure_sequence_calls += 1
+            if failure_sequence_calls == 1:
+                barrier.wait(timeout=10)
         return sequence
 
     def synchronized_heartbeat_next(session: Session, execution_attempt_id):
