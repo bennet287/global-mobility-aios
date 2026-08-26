@@ -57,6 +57,10 @@ The fix does **not** weaken F.1 to ignore arbitrary context changes. F.1 accepts
 
 An unfenced/manual WorkItem completion therefore remains stale-context failure. This preserves F.1's case/pathway/Evidence/rule freshness boundary while allowing the already-governed runtime lifecycle to finish before downstream deterministic review.
 
+The second focused proof exposed a deeper token-binding invariant. The runtime envelope originally advanced the generic WorkItem `updated_at` while creating `OrganizationExecutionAttempt`. Because `updated_at` participates in the ContextBundle hash, the execution token was derived from the pre-attempt running context while E.2 immediately re-resolved and consumed a different post-attempt context. The F.1 exception correctly refused to treat that as an exact fenced completion.
+
+The correction keeps the generic WorkItem `updated_at` stable during attempt creation. Runtime timing remains durable in `OrganizationExecutionAttempt.started_at`, `execution_started_at`, and the heartbeat ledger. E.2 therefore consumes the exact ContextBundle/runtime binding used to derive the execution token. A focused runtime contract now recomputes the execution token from the returned E.2 context hash and runtime-binding hash and requires an exact match.
+
 ## Required exact-head proof
 
 Before this PR leaves Draft:
