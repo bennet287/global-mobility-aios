@@ -10,7 +10,7 @@ export type OrganizationPositionPresence = {
   observed_at: string | null;
   execution_attempt_id: string | null;
   execution_attempt_status: string | null;
-  heartbeat_state: "not_established" | string;
+  heartbeat_state: "fresh" | "stale" | "not_established" | "inactive" | string;
   heartbeat_observed_at: string | null;
   heartbeat_fresh_until: string | null;
   authority_effect: boolean;
