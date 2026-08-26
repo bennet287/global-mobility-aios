@@ -6,7 +6,7 @@ import pytest
 from sqlmodel import Session
 
 from app.models.domain import OrganizationExecutionAttempt, OrganizationalWorkItem
-from app.services.organization_command import DependencyConflict
+from app.services.organization_command import DependencyConflict, InvalidTransition
 from app.services.organization_execution_heartbeat import (
     claim_execution_runtime_session,
     stage_execution_heartbeat,
@@ -124,7 +124,7 @@ def test_terminal_agent_checkpoint_is_fenced_after_explicit_takeover(db_session:
 def test_attempt_started_cannot_be_replayed_as_a_new_session_generation(db_session: Session) -> None:
     work, attempt = _running_attempt(db_session, suffix="duplicate-start")
 
-    with pytest.raises(Exception, match="attempt_started must be the first heartbeat"):
+    with pytest.raises(InvalidTransition, match="attempt_started must be the first heartbeat"):
         stage_execution_heartbeat(
             db_session,
             tenant_key="default",
