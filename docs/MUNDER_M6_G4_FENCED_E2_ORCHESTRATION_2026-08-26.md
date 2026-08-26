@@ -42,6 +42,21 @@ Runtime-session data remains technical execution-health provenance only and gran
 
 Existing G.4 producer runtime failures still propagate through E.2's typed runtime errors, so H.2.2 runtime-health attribution remains driven by the trusted execution plan. The new runtime envelope adds fenced failure provenance around that same failure; it does not replace the existing immune-system attribution contract.
 
+## F.1 lifecycle compatibility
+
+The first focused G.4 proof exposed one real integration invariant: the fenced E.2 envelope intentionally completes the producer WorkItem after a successful `agent_completed` checkpoint, while F.1 previously required the entire post-E.2 ContextBundle hash to remain identical. Because the ContextBundle includes WorkItem `status` and `updated_at`, a legitimate `running -> completed` runtime lifecycle transition looked like stale governed context.
+
+The fix does **not** weaken F.1 to ignore arbitrary context changes. F.1 accepts that hash drift only when:
+
+- the accepted E.2 context was `running` and the current WorkItem is `completed`;
+- all ContextBundle fields other than the expected WorkItem status/timestamp transition remain identical;
+- the original runtime binding still matches the accepted E.2 context;
+- the canonical WorkItem carries the exact recomputed E.2 execution token;
+- exactly one matching `OrganizationExecutionAttempt` is completed without error; and
+- its durable heartbeat ledger begins with `attempt_started`, ends with `agent_completed`, and contains no `runtime_session_failed`.
+
+An unfenced/manual WorkItem completion therefore remains stale-context failure. This preserves F.1's case/pathway/Evidence/rule freshness boundary while allowing the already-governed runtime lifecycle to finish before downstream deterministic review.
+
 ## Required exact-head proof
 
 Before this PR leaves Draft:
