@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import json
+from dataclasses import replace
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlmodel import Session, select
 
 from app.models.domain import (
+    AuditLog,
     OrganizationExecutionAttempt,
     OrganizationalActionOutput,
     OrganizationalWorkItem,
@@ -15,6 +17,7 @@ from app.schemas import ControlledAgentRunRequest
 from app.services.audit_log import record_audit
 from app.services.controlled_agents import run_controlled_agent
 from app.services.organization_agent_runtime import (
+    RUNTIME_BINDING_SCHEMA_VERSION,
     AgentRuntimeProfile,
     RuntimeBindingStale,
     runtime_profile_fingerprint,
@@ -25,6 +28,7 @@ from app.services.organization_command import (
     OrganizationCommandContext,
     canonical_fingerprint,
 )
+from app.services.organization_context_broker import _bundle_hash_payload
 from app.services.organization_execution_heartbeat import (
     HEARTBEAT_STALE,
     claim_execution_runtime_session,
@@ -73,7 +77,8 @@ _REQUIRED_BLOCKED_EXTERNAL_ACTIONS = frozenset(
 )
 _GOVERNANCE_CHECKS = (
     "canonical_objective_topology",
-    "current_context_hash",
+    "original_execution_provenance",
+    "current_context_continuity",
     "runtime_binding_revalidation",
     "controlled_agent_guardrails",
     "durable_execution_provenance",
@@ -82,21 +87,217 @@ _GOVERNANCE_CHECKS = (
 )
 
 
-def _execution_token_for(
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _parse_audit_datetime(value: object, *, label: str) -> datetime:
+    if not isinstance(value, str) or not value.strip():
+        raise DependencyConflict(f"{label} is missing from durable audit provenance")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise DependencyConflict(f"{label} is not a valid audited timestamp") from exc
+    return _as_utc(parsed)
+
+
+def _execution_token_from_hashes(
     *,
-    work: OrganizationalWorkItem,
-    binding: AustriaSpecialistRuntimeBinding,
+    work_item_id: UUID,
     attempt_number: int,
+    context_hash: str,
+    runtime_binding_hash: str,
 ) -> str:
     return canonical_fingerprint(
         {
             "contract_version": AUSTRIA_MOBILITY_SPECIALIST_EXECUTION_CONTRACT_VERSION,
-            "work_item_id": work.id,
+            "work_item_id": work_item_id,
             "attempt_number": attempt_number,
-            "context_hash": binding.context.context_hash,
-            "runtime_binding_hash": binding.runtime.binding_hash,
+            "context_hash": context_hash,
+            "runtime_binding_hash": runtime_binding_hash,
         }
     )
+
+
+def _original_start_provenance(
+    session: Session,
+    *,
+    work: OrganizationalWorkItem,
+    attempt: OrganizationExecutionAttempt,
+    position_key: str,
+) -> tuple[str, str, datetime]:
+    """Recover original K.1 hashes and the WorkItem timestamp used by that context."""
+
+    start_logs = list(
+        session.exec(
+            select(AuditLog)
+            .where(
+                AuditLog.action == "austria_specialist_execution_started",
+                AuditLog.entity_type == "organizational_work_item",
+                AuditLog.entity_id == str(work.id),
+                AuditLog.source == SOURCE,
+            )
+            .order_by(AuditLog.created_at)
+        ).all()
+    )
+    matching: list[tuple[AuditLog, dict[str, object]]] = []
+    for log in start_logs:
+        payload = _json_object(log.after_state_json, label="K.1 start audit")
+        if (
+            payload.get("attempt_number") == attempt.attempt_number
+            and payload.get("position_key") == position_key
+        ):
+            matching.append((log, payload))
+    if len(matching) != 1:
+        raise DependencyConflict(
+            "takeover resume requires exactly one durable K.1 start audit for the execution attempt"
+        )
+
+    start_log, start_payload = matching[0]
+    original_context_hash = start_payload.get("context_hash")
+    original_runtime_binding_hash = start_payload.get("runtime_binding_hash")
+    if not isinstance(original_context_hash, str) or len(original_context_hash) != 64:
+        raise DependencyConflict("K.1 start audit does not contain a valid original context hash")
+    if not isinstance(original_runtime_binding_hash, str) or len(original_runtime_binding_hash) != 64:
+        raise DependencyConflict("K.1 start audit does not contain a valid original runtime binding hash")
+
+    prior_logs = list(
+        session.exec(
+            select(AuditLog)
+            .where(
+                AuditLog.entity_type == "organizational_work_item",
+                AuditLog.entity_id == str(work.id),
+                AuditLog.created_at < start_log.created_at,
+            )
+            .order_by(AuditLog.created_at.desc())
+        ).all()
+    )
+    original_work_updated_at: datetime | None = None
+    for log in prior_logs:
+        if not log.after_state_json:
+            continue
+        payload = _json_object(log.after_state_json, label="pre-attempt WorkItem audit")
+        audited_updated_at = payload.get("updated_at")
+        if audited_updated_at is None:
+            continue
+        original_work_updated_at = _parse_audit_datetime(
+            audited_updated_at,
+            label="pre-attempt WorkItem updated_at",
+        )
+        break
+    if original_work_updated_at is None:
+        raise DependencyConflict(
+            "takeover resume cannot recover the audited WorkItem state used by the original K.1 context"
+        )
+
+    expected_token = _execution_token_from_hashes(
+        work_item_id=work.id,
+        attempt_number=attempt.attempt_number,
+        context_hash=original_context_hash,
+        runtime_binding_hash=original_runtime_binding_hash,
+    )
+    if expected_token != attempt.execution_token:
+        raise DependencyConflict(
+            "takeover resume start-audit provenance does not reproduce the execution token"
+        )
+    return original_context_hash, original_runtime_binding_hash, original_work_updated_at
+
+
+def _normalized_current_context_hash(
+    *,
+    binding: AustriaSpecialistRuntimeBinding,
+    original_work_updated_at: datetime,
+) -> str:
+    """Hash current governed context while normalizing only _start_attempt's timestamp mutation."""
+
+    context = binding.context
+    normalized_work = replace(context.work_item, updated_at=original_work_updated_at)
+    return canonical_fingerprint(
+        _bundle_hash_payload(
+            tenant_key=context.tenant_key,
+            purpose=context.purpose,
+            position=context.position,
+            work_item=normalized_work,
+            canonical_references=context.canonical_references,
+            evidence_refs=context.evidence_refs,
+            verified_rule_refs=context.verified_rule_refs,
+            source_snapshot_refs=context.source_snapshot_refs,
+            unknowns=context.unknowns,
+            contradictions=context.contradictions,
+            allowed_tools=context.allowed_tools,
+            sensitivity_labels=context.sensitivity_labels,
+            policy_version=context.policy_version,
+        )
+    )
+
+
+def _runtime_binding_hash_for_original_context(
+    *,
+    binding: AustriaSpecialistRuntimeBinding,
+    runtime_profile: AgentRuntimeProfile,
+    original_context_hash: str,
+) -> str:
+    runtime = binding.runtime
+    context = binding.context
+    return canonical_fingerprint(
+        {
+            "schema_version": RUNTIME_BINDING_SCHEMA_VERSION,
+            "tenant_key": context.tenant_key,
+            "position_key": context.position.position_key,
+            "position_version": context.position.position_version,
+            "context_hash": original_context_hash,
+            "context_purpose": context.purpose,
+            "runtime_profile_fingerprint": runtime_profile_fingerprint(runtime_profile),
+            "required_capability": "reasoning",
+            "allowed_tools": runtime.allowed_tools,
+        }
+    )
+
+
+def _validate_interrupted_execution_continuity(
+    session: Session,
+    *,
+    work: OrganizationalWorkItem,
+    attempt: OrganizationExecutionAttempt,
+    binding: AustriaSpecialistRuntimeBinding,
+    runtime_profile: AgentRuntimeProfile,
+) -> tuple[str, str]:
+    if work.execution_started_at is None:
+        raise DependencyConflict("takeover resume requires durable WorkItem execution-start provenance")
+    if _as_utc(work.updated_at) != _as_utc(work.execution_started_at):
+        raise RuntimeBindingStale(
+            "takeover resume refused because the WorkItem changed after the interrupted attempt started"
+        )
+
+    original_context_hash, original_runtime_binding_hash, original_work_updated_at = (
+        _original_start_provenance(
+            session,
+            work=work,
+            attempt=attempt,
+            position_key=binding.position_key,
+        )
+    )
+    normalized_context_hash = _normalized_current_context_hash(
+        binding=binding,
+        original_work_updated_at=original_work_updated_at,
+    )
+    if normalized_context_hash != original_context_hash:
+        raise RuntimeBindingStale(
+            "takeover resume refused because governed context changed since the interrupted attempt"
+        )
+
+    reconstructed_runtime_binding_hash = _runtime_binding_hash_for_original_context(
+        binding=binding,
+        runtime_profile=runtime_profile,
+        original_context_hash=original_context_hash,
+    )
+    if reconstructed_runtime_binding_hash != original_runtime_binding_hash:
+        raise RuntimeBindingStale(
+            "takeover resume refused because the technical runtime binding changed since the interrupted attempt"
+        )
+    return original_context_hash, original_runtime_binding_hash
 
 
 def _claim_resumable_attempt(
@@ -104,11 +305,12 @@ def _claim_resumable_attempt(
     *,
     work: OrganizationalWorkItem,
     binding: AustriaSpecialistRuntimeBinding,
+    runtime_profile: AgentRuntimeProfile,
     execution_attempt_id: UUID,
     expected_execution_token: str,
     expected_previous_fence_token: int,
     actor: str,
-) -> tuple[OrganizationExecutionAttempt, int]:
+) -> tuple[OrganizationExecutionAttempt, int, str, str]:
     if not actor.strip():
         raise ValueError("takeover resume actor is required")
     if not expected_execution_token.strip():
@@ -138,16 +340,6 @@ def _claim_resumable_attempt(
     ):
         raise DependencyConflict("takeover resume execution token conflicts with canonical work state")
 
-    expected_current_token = _execution_token_for(
-        work=work,
-        binding=binding,
-        attempt_number=attempt.attempt_number,
-    )
-    if expected_current_token != attempt.execution_token:
-        raise RuntimeBindingStale(
-            "takeover resume refused because context/runtime binding changed since the interrupted attempt"
-        )
-
     running_attempts = list(
         session.exec(
             select(OrganizationExecutionAttempt).where(
@@ -158,6 +350,14 @@ def _claim_resumable_attempt(
     )
     if len(running_attempts) != 1 or running_attempts[0].id != attempt.id:
         raise DependencyConflict("takeover resume requires exactly one canonical running execution attempt")
+
+    original_context_hash, original_runtime_binding_hash = _validate_interrupted_execution_continuity(
+        session,
+        work=work,
+        attempt=attempt,
+        binding=binding,
+        runtime_profile=runtime_profile,
+    )
 
     current = current_execution_runtime_session(
         session,
@@ -195,6 +395,8 @@ def _claim_resumable_attempt(
             "position_key": binding.position_key,
             "attempt_number": attempt.attempt_number,
             "execution_token": attempt.execution_token,
+            "original_context_hash": original_context_hash,
+            "original_runtime_binding_hash": original_runtime_binding_hash,
             "previous_fence_token": current.fence_token,
             "runtime_fence_token": takeover.fence_token,
             "runtime_writer": actor,
@@ -206,7 +408,7 @@ def _claim_resumable_attempt(
     session.commit()
     session.refresh(attempt)
     session.refresh(work)
-    return attempt, takeover.fence_token
+    return attempt, takeover.fence_token, original_context_hash, original_runtime_binding_hash
 
 
 def resume_austria_specialist_work_with_takeover(
@@ -224,14 +426,10 @@ def resume_austria_specialist_work_with_takeover(
 ) -> AustriaSpecialistExecutionResult:
     """Re-execute one interrupted K.1 specialist under a newly claimed stale-session fence.
 
-    This entry point never creates a new OrganizationExecutionAttempt. It requires the
-    caller to identify the exact running attempt, execution token, and previously observed
-    fence. The current ContextBundle/runtime binding must still reproduce the interrupted
-    attempt's execution token before a stale runtime session can be reclaimed.
-
-    The resulting controlled-agent output remains internal, review-gated, and
-    non-authorizing. A superseded worker cannot commit a late result because terminal
-    completion is staged only against the newly claimed fence.
+    The exact running attempt/token/fence must be identified. Current governed context and
+    runtime state are checked against the immutable hashes recorded by the original K.1
+    start audit, normalizing only the WorkItem.updated_at mutation made by _start_attempt.
+    No new OrganizationExecutionAttempt is created.
     """
 
     if position_key not in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
@@ -253,10 +451,16 @@ def resume_austria_specialist_work_with_takeover(
         profile=runtime_profile,
         expected_binding=expected_binding,
     )
-    attempt, runtime_fence_token = _claim_resumable_attempt(
+    (
+        attempt,
+        runtime_fence_token,
+        original_context_hash,
+        original_runtime_binding_hash,
+    ) = _claim_resumable_attempt(
         session,
         work=work,
         binding=binding,
+        runtime_profile=runtime_profile,
         execution_attempt_id=execution_attempt_id,
         expected_execution_token=expected_execution_token,
         expected_previous_fence_token=expected_previous_fence_token,
@@ -278,21 +482,19 @@ def resume_austria_specialist_work_with_takeover(
         )
         context_reference_provenance = {
             "context_evidence_refs": _context_reference_payloads(binding.context.evidence_refs),
-            "context_verified_rule_refs": _context_reference_payloads(
-                binding.context.verified_rule_refs
-            ),
-            "context_source_snapshot_refs": _context_reference_payloads(
-                binding.context.source_snapshot_refs
-            ),
+            "context_verified_rule_refs": _context_reference_payloads(binding.context.verified_rule_refs),
+            "context_source_snapshot_refs": _context_reference_payloads(binding.context.source_snapshot_refs),
         }
         provenance = {
             "contract_version": AUSTRIA_MOBILITY_SPECIALIST_EXECUTION_CONTRACT_VERSION,
             "root_work_item_id": str(root.id),
             "work_item_id": str(work.id),
             "position_key": position_key,
-            "context_hash": binding.context.context_hash,
+            "context_hash": original_context_hash,
+            "resume_context_hash": binding.context.context_hash,
             **context_reference_provenance,
-            "runtime_binding_hash": binding.runtime.binding_hash,
+            "runtime_binding_hash": original_runtime_binding_hash,
+            "resume_runtime_binding_hash": binding.runtime.binding_hash,
             "runtime_profile_key": binding.runtime.runtime_profile_key,
             "runtime_profile_version": binding.runtime.runtime_profile_version,
             "runtime_profile_fingerprint": runtime_profile_fingerprint(runtime_profile),
@@ -305,6 +507,7 @@ def resume_austria_specialist_work_with_takeover(
             "execution_attempt_id": str(attempt.id),
             "execution_token": attempt.execution_token,
             "runtime_takeover_resume": True,
+            "runtime_continuity_verified": True,
             "runtime_previous_fence_token": expected_previous_fence_token,
             "runtime_fence_token": runtime_fence_token,
         }
@@ -323,10 +526,7 @@ def resume_austria_specialist_work_with_takeover(
                 ControlledAgentRunRequest(
                     agent_name=AUSTRIA_MOBILITY_SPECIALIST_AGENT_NAMES[position_key],
                     task=work.objective,
-                    context={
-                        "facts": facts,
-                        "k1_provenance": provenance,
-                    },
+                    context={"facts": facts, "k1_provenance": provenance},
                     actor=actor,
                 ),
             )
@@ -360,22 +560,22 @@ def resume_austria_specialist_work_with_takeover(
             "completed_work_fingerprint": None,
         }
         evidence = [
-            {
-                "type": "organizational_work_item",
-                "id": str(work.id),
-                "root_work_item_id": str(root.id),
-            },
+            {"type": "organizational_work_item", "id": str(work.id), "root_work_item_id": str(root.id)},
             {
                 "type": "context_bundle",
-                "context_hash": binding.context.context_hash,
+                "context_hash": original_context_hash,
+                "resume_context_hash": binding.context.context_hash,
+                "continuity_verified": True,
                 "purpose": binding.context.purpose.value,
                 **context_reference_provenance,
             },
             {
                 "type": "runtime_binding",
-                "binding_hash": binding.runtime.binding_hash,
+                "binding_hash": original_runtime_binding_hash,
+                "resume_binding_hash": binding.runtime.binding_hash,
                 "profile_key": binding.runtime.runtime_profile_key,
                 "profile_version": binding.runtime.runtime_profile_version,
+                "continuity_verified": True,
                 "provider_model_authority": False,
             },
             {
@@ -393,11 +593,7 @@ def resume_austria_specialist_work_with_takeover(
                 "takeover_resume": True,
                 "authority_effect": False,
             },
-            {
-                "type": "agent_run",
-                "id": str(response.run_id),
-                "review_state": "human_review_required",
-            },
+            {"type": "agent_run", "id": str(response.run_id), "review_state": "human_review_required"},
         ]
         impact = {
             "client_facing": False,
@@ -463,8 +659,10 @@ def resume_austria_specialist_work_with_takeover(
                 "position_key": position_key,
                 "agent_run_id": str(response.run_id),
                 "execution_attempt_id": str(attempt.id),
-                "context_hash": binding.context.context_hash,
-                "runtime_binding_hash": binding.runtime.binding_hash,
+                "context_hash": original_context_hash,
+                "resume_context_hash": binding.context.context_hash,
+                "runtime_binding_hash": original_runtime_binding_hash,
+                "resume_runtime_binding_hash": binding.runtime.binding_hash,
                 "previous_fence_token": expected_previous_fence_token,
                 "runtime_fence_token": runtime_snapshot.fence_token,
                 "runtime_renewal_count": runtime_snapshot.renewal_count,
@@ -505,8 +703,8 @@ def resume_austria_specialist_work_with_takeover(
         return AustriaSpecialistExecutionResult(
             position_key=position_key,
             work_item_id=work.id,
-            context_hash=binding.context.context_hash,
-            runtime_binding_hash=binding.runtime.binding_hash,
+            context_hash=original_context_hash,
+            runtime_binding_hash=original_runtime_binding_hash,
             execution_attempt_id=attempt.id,
             agent_run_id=response.run_id,
             action_output_id=output.id,
@@ -515,10 +713,5 @@ def resume_austria_specialist_work_with_takeover(
             replayed=False,
         )
     except Exception as exc:
-        _mark_attempt_failed(
-            session,
-            work_item_id=work.id,
-            attempt_id=attempt.id,
-            error=exc,
-        )
+        _mark_attempt_failed(session, work_item_id=work.id, attempt_id=attempt.id, error=exc)
         raise
