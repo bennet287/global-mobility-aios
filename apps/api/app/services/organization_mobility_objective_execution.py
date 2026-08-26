@@ -46,6 +46,11 @@ from app.services.organization_mobility_objective_runtime import (
     austria_completed_work_fingerprint,
     austria_specialist_output_key,
 )
+from app.services.organization_runtime_session_supervisor import (
+    ExecutionRuntimeSessionSupervisor,
+    initial_runtime_session_or_fail,
+    stage_fenced_agent_completion,
+)
 from app.services.organization_work import complete_work_item, start_work_item
 
 
@@ -68,6 +73,7 @@ _GOVERNANCE_CHECKS = (
     "runtime_binding_revalidation",
     "controlled_agent_guardrails",
     "durable_execution_provenance",
+    "runtime_session_fencing",
 )
 
 
@@ -314,6 +320,7 @@ def _start_attempt(
             "runtime_binding_hash": binding.runtime.binding_hash,
             "external_action_authorized": False,
             "heartbeat_checkpoint": "attempt_started",
+            "runtime_fence_token": 1,
         },
         actor=actor,
         source=SOURCE,
@@ -363,9 +370,10 @@ def execute_austria_specialist_work(
 
     The slice is internal-analysis-only. It re-resolves canonical context, revalidates the
     technical runtime binding, records a native OrganizationExecutionAttempt, invokes the
-    existing controlled-agent runner, and persists exactly one stable current-work
-    OrganizationalActionOutput. Provider/model identity is recorded as provenance but is
-    never treated as organizational authority.
+    existing controlled-agent runner under a bounded fenced-session renewal supervisor,
+    and persists exactly one stable current-work OrganizationalActionOutput.
+    Provider/model identity is recorded as provenance but is never treated as
+    organizational authority.
     """
 
     if position_key not in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
@@ -406,6 +414,15 @@ def execute_austria_specialist_work(
         expected_binding=expected_binding,
     )
     attempt = _start_attempt(session, work=work, binding=binding, actor=actor)
+    runtime_session = initial_runtime_session_or_fail(
+        session,
+        tenant_key=work.tenant_key,
+        work_item_id=work.id,
+        execution_attempt_id=attempt.id,
+        position_key=position_key,
+        expected_execution_token=attempt.execution_token,
+        writer=actor,
+    )
     run_started_at = now_utc()
     try:
         raw_context = _json_object(work.context_json, label="specialist WorkItem context")
@@ -446,19 +463,30 @@ def execute_austria_specialist_work(
             "allowed_tools": list(binding.runtime.allowed_tools),
             "execution_attempt_id": str(attempt.id),
             "execution_token": attempt.execution_token,
+            "runtime_fence_token": runtime_session.fence_token,
         }
-        response = run_controlled_agent(
-            session,
-            ControlledAgentRunRequest(
-                agent_name=AUSTRIA_MOBILITY_SPECIALIST_AGENT_NAMES[position_key],
-                task=work.objective,
-                context={
-                    "facts": facts,
-                    "k1_provenance": provenance,
-                },
-                actor=actor,
-            ),
-        )
+        with ExecutionRuntimeSessionSupervisor(
+            tenant_key=work.tenant_key,
+            work_item_id=work.id,
+            execution_attempt_id=attempt.id,
+            position_key=position_key,
+            expected_execution_token=attempt.execution_token,
+            expected_fence_token=runtime_session.fence_token,
+            writer=actor,
+        ) as runtime_supervisor:
+            response = run_controlled_agent(
+                session,
+                ControlledAgentRunRequest(
+                    agent_name=AUSTRIA_MOBILITY_SPECIALIST_AGENT_NAMES[position_key],
+                    task=work.objective,
+                    context={
+                        "facts": facts,
+                        "k1_provenance": provenance,
+                    },
+                    actor=actor,
+                ),
+            )
+        runtime_snapshot = runtime_supervisor.snapshot()
         run_completed_at = now_utc()
         latency_ms = max(0, int((run_completed_at - run_started_at).total_seconds() * 1000))
 
@@ -483,6 +511,7 @@ def execute_austria_specialist_work(
             "retry_count": max(0, attempt.attempt_number - 1),
             "governance_checks": list(_GOVERNANCE_CHECKS),
             "governance_check_count": len(_GOVERNANCE_CHECKS),
+            "runtime_renewal_count": runtime_snapshot.renewal_count,
             "controlled_output": controlled_output,
             "completed_work_fingerprint": None,
         }
@@ -511,6 +540,13 @@ def execute_austria_specialist_work(
                 "execution_token": attempt.execution_token,
             },
             {
+                "type": "execution_runtime_session",
+                "fence_token": runtime_snapshot.fence_token,
+                "writer": runtime_snapshot.writer,
+                "renewal_count": runtime_snapshot.renewal_count,
+                "authority_effect": False,
+            },
+            {
                 "type": "agent_run",
                 "id": str(response.run_id),
                 "review_state": "human_review_required",
@@ -529,7 +565,7 @@ def execute_austria_specialist_work(
             accountable_position_key=position_key,
             authority_basis=(
                 "K.1 bounded internal specialist analysis on canonical AIOS WorkItem/Context authority; "
-                "provider/model identity is technical provenance only and non-authorizing."
+                "provider/model identity and runtime-session health are technical provenance only and non-authorizing."
             ),
             evidence_json=_json_dump(evidence),
             confidence=confidence,
@@ -542,13 +578,14 @@ def execute_austria_specialist_work(
         session.add(output)
         session.flush()
 
-        stage_execution_heartbeat(
+        stage_fenced_agent_completion(
             session,
             tenant_key=work.tenant_key,
             work=work,
             attempt=attempt,
             position_key=position_key,
-            checkpoint="agent_completed",
+            expected_execution_token=attempt.execution_token,
+            expected_fence_token=runtime_snapshot.fence_token,
             writer=actor,
             observed_at=run_completed_at,
         )
@@ -575,6 +612,8 @@ def execute_austria_specialist_work(
                 "execution_attempt_id": str(attempt.id),
                 "context_hash": binding.context.context_hash,
                 "runtime_binding_hash": binding.runtime.binding_hash,
+                "runtime_fence_token": runtime_snapshot.fence_token,
+                "runtime_renewal_count": runtime_snapshot.renewal_count,
                 "external_action_authorized": False,
                 "latency_ms": latency_ms,
                 "retry_count": max(0, attempt.attempt_number - 1),
