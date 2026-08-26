@@ -40,11 +40,6 @@ runtime_session_claimed after expiry
 The current fence token is therefore the durable heartbeat sequence of the latest claim
 event. A later claim invalidates every worker still holding an older token.
 
-The generic heartbeat API cannot write takeover/renewal events. Those events are accepted
-only through the fenced runtime-session claim/renew APIs. `attempt_started` must be the
-first heartbeat for an attempt, so it cannot be replayed to manufacture another fencing
-generation.
-
 ## Fail-closed bindings
 
 Runtime-session claim/renewal re-resolves and checks:
@@ -62,11 +57,6 @@ Runtime-session claim/renewal re-resolves and checks:
 A fresh session cannot be stolen. An expired session cannot be renewed; it must be
 reclaimed, which creates a new fencing generation. A stale fence or stale execution token
 fails closed.
-
-The current K.1 terminal `agent_completed` checkpoint is also fail-closed after an
-explicit takeover. Because the action-output write is still inside the surrounding K.1
-transaction at that point, a superseded original worker cannot successfully commit its
-late result through the existing terminal path.
 
 ## Authority and truth boundary
 
@@ -96,16 +86,14 @@ What this slice establishes:
 - stale-worker renewal rejection;
 - execution-token and tenant/position fail-closed checks;
 - deterministic same-writer idempotent claim behavior;
-- generic-checkpoint bypass rejection;
-- terminal fail-closed behavior when the original K.1 worker has been superseded;
-- bounded lease limits inherited from the PR #20 heartbeat contract.
+- bounded lease limits inherited from the PR #20 heartbeat contract;
+- terminal `agent_completed` fail-closed behavior for the original K.1 worker after an explicit takeover.
 
 What remains before M6 can be described as continuous trusted runtime liveness:
 
 - a production worker loop or runtime adapter that actually renews the current fence while
   useful execution is progressing;
-- an explicit resume/completion path for the worker that legitimately owns a takeover
-  fence, rather than allowing a superseded original execution to finish;
+- an explicit resume/completion path for the worker that legitimately owns a takeover fence;
 - broader runtime coverage beyond the bounded Austria K.1 execution path;
 - production/Woodpecker evidence for the final integrated writer path.
 
@@ -124,5 +112,11 @@ Before this slice leaves draft status, prove on the exact branch head:
 - repository policy and release consistency;
 - `git diff --check`;
 - empty final working tree.
+
+The first exact-head attempt on `4c741dda85e3f7218d396f3e31dcee3c5e42242e`
+correctly exposed two stale presence-test fixtures that created an execution attempt
+without also setting the canonical WorkItem execution token. The production fencing
+contract was not weakened; the fixture was corrected on the follow-up commit so WorkItem
+and attempt tokens represent the same canonical running execution.
 
 CI/Woodpecker status must be reported separately and only when actually observed.
