@@ -1,16 +1,26 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.core.organization_constitution import MaterialActionType, RiskTier
-from app.models.domain import Lead, MobilityPathway, MobilityPathwayVersion, OrganizationActivity, Profile, now_utc
+from app.models.domain import (
+    Lead,
+    MobilityPathway,
+    MobilityPathwayVersion,
+    OrganizationActivity,
+    OrganizationExecutionAttempt,
+    OrganizationalWorkItem,
+    Profile,
+    now_utc,
+)
+from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.services.mobility_domain import mobility_intent_domain
 from app.services.mobility_profiles import case_facts, current_mobility_profile
 from app.services.organization_command import OrganizationCommandError, canonical_fingerprint
@@ -20,6 +30,9 @@ from app.services.organization_context_broker import (
     ContextPurpose,
     ContextReference,
     build_work_item_context_bundle,
+)
+from app.services.organization_eligibility_runtime_session import (
+    ELIGIBILITY_RUNTIME_SESSION_CONTRACT_VERSION,
 )
 from app.services.organization_eligibility_transition_intent import (
     ELIGIBILITY_INTENT_SCHEMA_VERSION,
@@ -206,6 +219,115 @@ def _attempt_integrity(
             )
 
 
+def _fenced_runtime_completion_preserves_review_basis(
+    session: Session,
+    *,
+    proposal: GovernedEligibilityTransitionIntentResult,
+    current: ContextBundle,
+) -> bool:
+    """Accept only the exact operational drift caused by a proven E.2 runtime completion.
+
+    The E.2 runtime envelope starts the proposal WorkItem before model execution and
+    completes it only after a fenced `agent_completed` checkpoint. That intentional
+    running->completed lifecycle changes WorkItem.status/updated_at and therefore the
+    full ContextBundle hash, even though the governed case/pathway/Evidence/rule basis
+    consumed by E.2 has not changed.
+
+    F.1 must not weaken its stale-context protection generally. The narrow exception
+    below therefore requires both:
+    1. every ContextBundle field except the expected WorkItem status/timestamp drift to
+       remain byte-for-byte equivalent; and
+    2. durable execution-attempt/token/heartbeat evidence proving that this exact E.2
+       context/runtime binding reached a fenced successful terminal checkpoint.
+    """
+
+    accepted = proposal.context
+    if accepted.work_item.status != "running" or current.work_item.status != "completed":
+        return False
+    if proposal.runtime_binding.context_hash != accepted.context_hash:
+        return False
+    if proposal.runtime_binding.position_key != accepted.position.position_key:
+        return False
+
+    normalized_work = replace(
+        current.work_item,
+        status=accepted.work_item.status,
+        updated_at=accepted.work_item.updated_at,
+    )
+    normalized_current = replace(
+        current,
+        work_item=normalized_work,
+        context_hash=accepted.context_hash,
+        generated_at=accepted.generated_at,
+    )
+    if normalized_current != accepted:
+        return False
+
+    work = session.get(OrganizationalWorkItem, accepted.work_item.work_item_id)
+    if work is None:
+        return False
+    if (
+        work.status != "completed"
+        or work.execution_started_at is not None
+        or work.last_error is not None
+        or not work.execution_token
+    ):
+        return False
+
+    attempts = list(
+        session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == work.id
+            )
+        ).all()
+    )
+    matching_attempts: list[OrganizationExecutionAttempt] = []
+    for attempt in attempts:
+        expected_token = canonical_fingerprint(
+            {
+                "contract_version": ELIGIBILITY_RUNTIME_SESSION_CONTRACT_VERSION,
+                "work_item_id": work.id,
+                "position_key": accepted.position.position_key,
+                "attempt_number": attempt.attempt_number,
+                "context_hash": accepted.context_hash,
+                "runtime_binding_hash": proposal.runtime_binding.binding_hash,
+            }
+        )
+        if attempt.execution_token == expected_token and work.execution_token == expected_token:
+            matching_attempts.append(attempt)
+    if len(matching_attempts) != 1:
+        return False
+
+    attempt = matching_attempts[0]
+    if (
+        attempt.status != "completed"
+        or attempt.completed_at is None
+        or attempt.error is not None
+    ):
+        return False
+
+    events = list(
+        session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id == attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    if len(events) < 2:
+        return False
+    if events[0].sequence != 1 or events[0].checkpoint != "attempt_started":
+        return False
+    if events[-1].checkpoint != "agent_completed":
+        return False
+    if any(event.writer != attempt.actor for event in events):
+        return False
+    if any(event.checkpoint == "runtime_session_failed" for event in events):
+        return False
+    return True
+
+
 def _fresh_context(
     session: Session,
     proposal: GovernedEligibilityTransitionIntentResult,
@@ -223,9 +345,18 @@ def _fresh_context(
             "governed context is no longer eligible for Decision Readiness"
         ) from exc
     if current.context_hash != proposal.context.context_hash:
-        raise DecisionReadinessIntegrityError("ContextBundle changed after the accepted E.2 proposal")
-    if proposal.runtime_binding.context_hash != current.context_hash:
-        raise DecisionReadinessIntegrityError("runtime binding no longer matches the accepted context")
+        if not _fenced_runtime_completion_preserves_review_basis(
+            session,
+            proposal=proposal,
+            current=current,
+        ):
+            raise DecisionReadinessIntegrityError(
+                "ContextBundle changed after the accepted E.2 proposal"
+            )
+    if proposal.runtime_binding.context_hash != proposal.context.context_hash:
+        raise DecisionReadinessIntegrityError(
+            "runtime binding no longer matches the accepted E.2 execution context"
+        )
     if proposal.runtime_binding.position_key != current.position.position_key:
         raise DecisionReadinessIntegrityError("runtime binding employee identity does not match ContextBundle")
     return current
