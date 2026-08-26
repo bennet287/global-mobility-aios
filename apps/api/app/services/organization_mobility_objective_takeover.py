@@ -93,14 +93,26 @@ def _as_utc(value: datetime) -> datetime:
     return value.astimezone(timezone.utc)
 
 
-def _parse_audit_datetime(value: object, *, label: str) -> datetime:
+def _audit_datetime_candidates(value: object, *, label: str) -> tuple[datetime, ...]:
+    """Return timestamp shapes that can reproduce SQLite or PostgreSQL context hashes.
+
+    Audit JSON is serialized before commit and therefore retains its UTC offset. SQLite
+    DateTime round-trips can drop that offset, whereas PostgreSQL preserves it. The
+    original ContextBundle was built from the database-round-tripped WorkItem, so resume
+    tests both faithful representations and accepts only one that reproduces the durable
+    original context hash.
+    """
+
     if not isinstance(value, str) or not value.strip():
         raise DependencyConflict(f"{label} is missing from durable audit provenance")
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise DependencyConflict(f"{label} is not a valid audited timestamp") from exc
-    return _as_utc(parsed)
+    if parsed.tzinfo is None:
+        return (parsed,)
+    aware = parsed.astimezone(timezone.utc)
+    return (aware, aware.replace(tzinfo=None))
 
 
 def _execution_token_from_hashes(
@@ -127,8 +139,8 @@ def _original_start_provenance(
     work: OrganizationalWorkItem,
     attempt: OrganizationExecutionAttempt,
     position_key: str,
-) -> tuple[str, str, datetime]:
-    """Recover original K.1 hashes and the WorkItem timestamp used by that context."""
+) -> tuple[str, str, tuple[datetime, ...]]:
+    """Recover original K.1 hashes and timestamp candidates used by that context."""
 
     start_logs = list(
         session.exec(
@@ -174,7 +186,7 @@ def _original_start_provenance(
             .order_by(AuditLog.created_at.desc())
         ).all()
     )
-    original_work_updated_at: datetime | None = None
+    original_work_updated_at_candidates: tuple[datetime, ...] | None = None
     for log in prior_logs:
         if not log.after_state_json:
             continue
@@ -182,12 +194,12 @@ def _original_start_provenance(
         audited_updated_at = payload.get("updated_at")
         if audited_updated_at is None:
             continue
-        original_work_updated_at = _parse_audit_datetime(
+        original_work_updated_at_candidates = _audit_datetime_candidates(
             audited_updated_at,
             label="pre-attempt WorkItem updated_at",
         )
         break
-    if original_work_updated_at is None:
+    if original_work_updated_at_candidates is None:
         raise DependencyConflict(
             "takeover resume cannot recover the audited WorkItem state used by the original K.1 context"
         )
@@ -202,7 +214,11 @@ def _original_start_provenance(
         raise DependencyConflict(
             "takeover resume start-audit provenance does not reproduce the execution token"
         )
-    return original_context_hash, original_runtime_binding_hash, original_work_updated_at
+    return (
+        original_context_hash,
+        original_runtime_binding_hash,
+        original_work_updated_at_candidates,
+    )
 
 
 def _normalized_current_context_hash(
@@ -271,19 +287,26 @@ def _validate_interrupted_execution_continuity(
             "takeover resume refused because the WorkItem changed after the interrupted attempt started"
         )
 
-    original_context_hash, original_runtime_binding_hash, original_work_updated_at = (
-        _original_start_provenance(
-            session,
-            work=work,
-            attempt=attempt,
-            position_key=binding.position_key,
+    (
+        original_context_hash,
+        original_runtime_binding_hash,
+        original_work_updated_at_candidates,
+    ) = _original_start_provenance(
+        session,
+        work=work,
+        attempt=attempt,
+        position_key=binding.position_key,
+    )
+    matching_context_shapes = [
+        candidate
+        for candidate in original_work_updated_at_candidates
+        if _normalized_current_context_hash(
+            binding=binding,
+            original_work_updated_at=candidate,
         )
-    )
-    normalized_context_hash = _normalized_current_context_hash(
-        binding=binding,
-        original_work_updated_at=original_work_updated_at,
-    )
-    if normalized_context_hash != original_context_hash:
+        == original_context_hash
+    ]
+    if len(matching_context_shapes) != 1:
         raise RuntimeBindingStale(
             "takeover resume refused because governed context changed since the interrupted attempt"
         )
@@ -560,7 +583,11 @@ def resume_austria_specialist_work_with_takeover(
             "completed_work_fingerprint": None,
         }
         evidence = [
-            {"type": "organizational_work_item", "id": str(work.id), "root_work_item_id": str(root.id)},
+            {
+                "type": "organizational_work_item",
+                "id": str(work.id),
+                "root_work_item_id": str(root.id),
+            },
             {
                 "type": "context_bundle",
                 "context_hash": original_context_hash,
@@ -593,7 +620,11 @@ def resume_austria_specialist_work_with_takeover(
                 "takeover_resume": True,
                 "authority_effect": False,
             },
-            {"type": "agent_run", "id": str(response.run_id), "review_state": "human_review_required"},
+            {
+                "type": "agent_run",
+                "id": str(response.run_id),
+                "review_state": "human_review_required",
+            },
         ]
         impact = {
             "client_facing": False,
