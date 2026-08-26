@@ -45,6 +45,8 @@ export function LiveOrganizationRuntimePanel({
   const presenceMatchesCycle = presence?.root_work_item_id === rootWorkItemId;
   const positions = presence && presenceMatchesCycle ? presence.positions : [];
   const executingCount = positions.filter((item) => item.presence_state === "executing").length;
+  const freshHeartbeatCount = positions.filter((item) => item.heartbeat_state === "fresh").length;
+  const staleHeartbeatCount = positions.filter((item) => item.heartbeat_state === "stale").length;
   const recentActivities = activities.slice(0, 5);
 
   return (
@@ -85,8 +87,8 @@ export function LiveOrganizationRuntimePanel({
           <>
             <div className="live-runtime-presence-summary" aria-label="Execution presence summary">
               <div><strong>{executingCount}</strong><span>Recorded executing</span></div>
-              <div><strong>{positions.length}</strong><span>Projected positions</span></div>
-              <div><strong>{titleCase(presence.heartbeat_capability_state)}</strong><span>Heartbeat</span></div>
+              <div><strong>{freshHeartbeatCount}</strong><span>Fresh checkpoints</span></div>
+              <div><strong>{staleHeartbeatCount}</strong><span>Stale checkpoints</span></div>
             </div>
             <div className="live-runtime-presence-list">
               {positions.map((item) => (
@@ -94,13 +96,15 @@ export function LiveOrganizationRuntimePanel({
                   <span className={`employee-presence-indicator ${item.presence_state}`} aria-hidden="true" />
                   <div>
                     <strong>{positionLabel(item.position_key)}</strong>
-                    <small>{presenceLabel(item)} · observed {timeLabel(item.observed_at)}</small>
+                    <small>
+                      {presenceLabel(item)} · heartbeat {titleCase(item.heartbeat_state)} · observed {timeLabel(item.observed_at)}
+                    </small>
                   </div>
                 </div>
               ))}
             </div>
             <p className="live-runtime-boundary">
-              Execution presence is backed by durable OrganizationExecutionAttempt state only. Heartbeat, online/offline liveness, authority, autonomy, and external-action permission are not inferred.
+              Execution presence is backed by durable OrganizationExecutionAttempt state. Heartbeat fresh/stale is backed only by bounded AIOS worker-checkpoint leases; it is not continuous online/offline liveness, provider health, authority, autonomy, or external-action permission.
             </p>
           </>
         )}

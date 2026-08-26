@@ -151,6 +151,7 @@ def register_models() -> None:
         CapabilityAutonomyEvidenceEvaluationPolicy,
     )
     from app.models.eligibility_revision import EligibilityAssessmentRevision  # noqa: F401
+    from app.models.organization_presence import OrganizationExecutionHeartbeat  # noqa: F401
 
     _register_legacy_metadata_constraints()
 
