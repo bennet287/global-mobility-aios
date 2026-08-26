@@ -108,7 +108,9 @@ def _expire_current_lease(db_session: Session, attempt_id) -> OrganizationExecut
         .order_by(OrganizationExecutionHeartbeat.sequence.desc())
     ).first()
     assert heartbeat is not None
-    heartbeat.fresh_until = now_utc() - timedelta(seconds=1)
+    expired_at = now_utc()
+    heartbeat.observed_at = expired_at - timedelta(seconds=2)
+    heartbeat.fresh_until = expired_at - timedelta(seconds=1)
     db_session.add(heartbeat)
     db_session.commit()
     db_session.refresh(heartbeat)
