@@ -12,13 +12,11 @@ from app.schemas_organization_presence import (
     OrganizationPositionPresenceRead,
 )
 from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError
+from app.services.organization_execution_heartbeat import HEARTBEAT_CAPABILITY_CHECKPOINT_LEASE
 from app.services.organization_mobility_live_organization import (
     latest_austria_live_organization_snapshot,
 )
-from app.services.organization_position_presence import (
-    HEARTBEAT_NOT_ESTABLISHED,
-    organization_position_presence_snapshot,
-)
+from app.services.organization_position_presence import organization_position_presence_snapshot
 
 
 router = APIRouter(
@@ -45,12 +43,12 @@ def read_latest_austria_organization_presence(
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
 ) -> AustriaOrganizationPresenceLatestRead:
-    """Return bounded execution-derived position presence for the latest Austria cycle.
+    """Return bounded execution presence plus AIOS checkpoint-lease freshness.
 
-    Presence is derived only from durable OrganizationExecutionAttempt records. The
-    endpoint deliberately reports heartbeat capability as not established; it never
-    converts projection time, UI refresh time, provider identity, or model activity into
-    an employee heartbeat or organizational authority signal.
+    Presence is derived from durable OrganizationExecutionAttempt records. Heartbeat
+    freshness comes only from durable worker checkpoints written by the AIOS execution
+    path. Fresh/stale never means online/offline and never changes organizational
+    authority, autonomy, evidence truth, or external-action permission.
     """
 
     _require_board(context)
@@ -78,7 +76,7 @@ def read_latest_austria_organization_presence(
                 generated_at=now_utc(),
                 root_work_item_id=live_snapshot.root_work_item_id,
                 positions=positions,
-                heartbeat_capability_state=HEARTBEAT_NOT_ESTABLISHED,
+                heartbeat_capability_state=HEARTBEAT_CAPABILITY_CHECKPOINT_LEASE,
             ),
         )
     except OrganizationCommandError as exc:
