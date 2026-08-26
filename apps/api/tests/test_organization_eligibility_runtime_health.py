@@ -6,7 +6,8 @@ from uuid import uuid4
 import pytest
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationActivity
+from app.models.domain import OrganizationActivity, OrganizationExecutionAttempt
+from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.services.organization_agent_runtime import (
     RuntimeClass,
     runtime_profile_fingerprint,
@@ -142,6 +143,32 @@ def test_h2_2_producer_runtime_failure_is_attributed_to_trusted_execution_plan(
 
     assert len(failing.calls) == 1
     assert verifier.calls == []
+
+    attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == proposal_work.id
+            )
+        ).all()
+    )
+    assert len(attempts) == 1
+    runtime_attempt = attempts[0]
+    assert runtime_attempt.status == "failed"
+    runtime_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id
+                == runtime_attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in runtime_events] == [
+        "attempt_started",
+        "runtime_session_failed",
+    ]
+
     attribution_key = f"immune:eligibility:{aggregate}:runtime-attribution:{incident_key}"
     incident_activity_key = f"immune:eligibility:{aggregate}:incident:{incident_key}"
     attribution = _activity(
