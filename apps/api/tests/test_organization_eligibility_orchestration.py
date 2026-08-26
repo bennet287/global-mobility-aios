@@ -9,7 +9,12 @@ from sqlmodel import Session, select
 
 from app.core.organization_constitution import AutonomyLevel
 from app.main import app
-from app.models.domain import EligibilityAssessment, OrganizationActorType
+from app.models.domain import (
+    EligibilityAssessment,
+    OrganizationActorType,
+    OrganizationExecutionAttempt,
+)
+from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.routers.organization_eligibility import governed_eligibility_execution_plan
 from app.routers.organization_records import organization_command_context
@@ -143,6 +148,32 @@ def test_g4_orchestrates_accepted_vertical_to_first_canonical_effect(db_session:
     assert len(producer.calls) == 1
     assert len(verifier.calls) == 1
 
+    attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == proposal_work.id
+            )
+        ).all()
+    )
+    assert len(attempts) == 1
+    runtime_attempt = attempts[0]
+    assert runtime_attempt.status == "completed"
+    assert runtime_attempt.actor == "eligibility-runtime-worker"
+    runtime_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id
+                == runtime_attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in runtime_events] == [
+        "attempt_started",
+        "agent_completed",
+    ]
+
     revision = db_session.get(EligibilityAssessmentRevision, result.revision_id)
     assessment = db_session.get(EligibilityAssessment, result.assessment_id)
     assert revision is not None and assessment is not None
@@ -181,6 +212,14 @@ def test_g4_post_commit_retry_resolves_durable_effect_without_model_calls(db_ses
     assert second.revision_id == first.revision_id
     assert producer.calls == []
     assert verifier.calls == []
+    attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == proposal_work.id
+            )
+        ).all()
+    )
+    assert len(attempts) == 1
 
 
 def test_g4_a1_stops_after_verified_floor_without_canonical_effect(db_session: Session) -> None:
