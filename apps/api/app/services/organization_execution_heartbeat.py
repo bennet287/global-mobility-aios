@@ -69,6 +69,8 @@ def stage_execution_heartbeat(
     _validate_lease_seconds(lease_seconds)
     if checkpoint not in _ALLOWED_CHECKPOINTS:
         raise ValueError("unsupported execution heartbeat checkpoint")
+    if not writer.strip():
+        raise ValueError("heartbeat writer is required")
     if work.tenant_key != tenant_key:
         raise DependencyConflict("heartbeat WorkItem crosses the requested tenant boundary")
     if work.assigned_position_key != position_key:
@@ -150,11 +152,7 @@ def latest_execution_heartbeat(
 
     heartbeat = session.exec(
         select(OrganizationExecutionHeartbeat)
-        .where(
-            OrganizationExecutionHeartbeat.tenant_key == tenant_key,
-            OrganizationExecutionHeartbeat.work_item_id == work_item_id,
-            OrganizationExecutionHeartbeat.execution_attempt_id == execution_attempt_id,
-        )
+        .where(OrganizationExecutionHeartbeat.execution_attempt_id == execution_attempt_id)
         .order_by(
             OrganizationExecutionHeartbeat.sequence.desc(),
             OrganizationExecutionHeartbeat.observed_at.desc(),
@@ -162,6 +160,10 @@ def latest_execution_heartbeat(
     ).first()
     if heartbeat is None:
         return None
+    if heartbeat.tenant_key != tenant_key:
+        raise DependencyConflict("heartbeat tenant conflicts with the presence projection")
+    if heartbeat.work_item_id != work_item_id:
+        raise DependencyConflict("heartbeat WorkItem conflicts with the execution attempt")
     if heartbeat.position_key != position_key:
         raise DependencyConflict("heartbeat position conflicts with the WorkItem assignment")
     return heartbeat
