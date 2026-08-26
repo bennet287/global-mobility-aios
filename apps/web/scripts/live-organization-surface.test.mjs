@@ -39,7 +39,7 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /\/api\/v1\/organization\/live-organization\/austria\/\$\{encodeURIComponent\(rootWorkItemId\)\}\/owner-synthesis/);
 });
 
-test("Munder-derived employee presence stays AIOS-owned, execution-grounded, and heartbeat-honest", async () => {
+test("Munder-derived employee presence uses AIOS checkpoint leases without inventing online state", async () => {
   const [page, api, navigation, styles] = await Promise.all([
     read("app/cockpit/live-organization/presence/page.tsx"),
     read("lib/organization-presence.ts"),
@@ -52,15 +52,16 @@ test("Munder-derived employee presence stays AIOS-owned, execution-grounded, and
   assert.match(page, /durable running OrganizationExecutionAttempt/);
   assert.match(page, /execution presence, not an online heartbeat claim/);
   assert.match(page, /Heartbeat capability/);
-  assert.match(page, /real heartbeat lease or freshness signal has not been implemented/);
-  assert.match(page, /Presence has no authority, autonomy, evidence, or external-action effect/);
-  assert.match(page, /item\.presence_state === "executing"/);
-  assert.match(page, /item\.authority_effect/);
-  assert.match(page, /heartbeat remains explicitly not established/i);
+  assert.match(page, /bounded execution-checkpoint lease is available/);
+  assert.match(page, /Fresh\/stale describes durable worker-checkpoint freshness only/);
+  assert.match(page, /Presence and heartbeat have no authority, autonomy, evidence, or external-action effect/);
+  assert.match(page, /item\.heartbeat_state === "fresh"/);
+  assert.match(page, /item\.heartbeat_state === "stale"/);
+  assert.match(page, /long blocking provider call can legitimately make the lease stale/);
   assert.doesNotMatch(page, /Math\.random|setInterval\(|navigator\.onLine/);
 
   assert.match(api, /presence_state: "executing" \| "not_executing" \| "not_established"/);
-  assert.match(api, /heartbeat_state: "not_established"/);
+  assert.match(api, /heartbeat_state: "fresh" \| "stale" \| "not_established" \| "inactive"/);
   assert.match(api, /authority_effect: boolean/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/presence\/austria\/latest/);
 
@@ -88,7 +89,10 @@ test("Live Organization composes presence and activity without crossing canonica
   assert.match(panel, /presence\?\.root_work_item_id === rootWorkItemId/);
   assert.match(panel, /No presence state is merged across cycles/);
   assert.match(panel, /OrganizationExecutionAttempt/);
-  assert.match(panel, /Heartbeat, online\/offline liveness, authority, autonomy, and external-action permission are not inferred/);
+  assert.match(panel, /heartbeat_state === "fresh"/);
+  assert.match(panel, /heartbeat_state === "stale"/);
+  assert.match(panel, /bounded AIOS worker-checkpoint leases/);
+  assert.match(panel, /not continuous online\/offline liveness/);
   assert.match(panel, /activities\.slice\(0, 5\)/);
   assert.match(panel, /persisted OrganizationActivity records only/);
   assert.match(panel, /href="\/cockpit\/live-organization\/presence"/);
