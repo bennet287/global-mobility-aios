@@ -60,12 +60,14 @@ def read_latest_austria_organization_presence(
         if live_snapshot is None:
             return AustriaOrganizationPresenceLatestRead(established=False, snapshot=None)
 
+        generated_at = now_utc()
         positions = [
             OrganizationPositionPresenceRead.model_validate(
                 organization_position_presence_snapshot(
                     session,
                     tenant_key=context.tenant_key,
                     work_item_id=specialist.work_item_id,
+                    as_of=generated_at,
                 )
             )
             for specialist in live_snapshot.specialist_outputs
@@ -73,7 +75,7 @@ def read_latest_austria_organization_presence(
         return AustriaOrganizationPresenceLatestRead(
             established=True,
             snapshot=AustriaOrganizationPresenceSnapshotRead(
-                generated_at=now_utc(),
+                generated_at=generated_at,
                 root_work_item_id=live_snapshot.root_work_item_id,
                 positions=positions,
                 heartbeat_capability_state=HEARTBEAT_CAPABILITY_CHECKPOINT_LEASE,
