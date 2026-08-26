@@ -83,7 +83,9 @@ def _interrupted_attempt(db_session: Session, *, objective_key: str):
         .order_by(OrganizationExecutionHeartbeat.sequence.desc())
     ).first()
     assert heartbeat is not None
-    heartbeat.fresh_until = now_utc() - timedelta(seconds=1)
+    expired_at = now_utc()
+    heartbeat.observed_at = expired_at - timedelta(seconds=2)
+    heartbeat.fresh_until = expired_at - timedelta(seconds=1)
     db_session.add(heartbeat)
     db_session.commit()
     return context, plan, work, profile, attempt
