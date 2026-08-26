@@ -28,8 +28,9 @@ _RUNTIME_SESSION_CLAIM_CHECKPOINTS = frozenset({"attempt_started", RUNTIME_SESSI
 _RUNTIME_SESSION_EVENT_CHECKPOINTS = frozenset(
     {*_RUNTIME_SESSION_CLAIM_CHECKPOINTS, RUNTIME_SESSION_RENEWED}
 )
-_ALLOWED_CHECKPOINTS = frozenset(
-    {"attempt_started", "agent_completed", RUNTIME_SESSION_CLAIMED, RUNTIME_SESSION_RENEWED}
+_DIRECT_CHECKPOINTS = frozenset({"attempt_started", "agent_completed"})
+_ALL_CHECKPOINTS = frozenset(
+    {*_DIRECT_CHECKPOINTS, RUNTIME_SESSION_CLAIMED, RUNTIME_SESSION_RENEWED}
 )
 
 
@@ -113,7 +114,7 @@ def _resolve_execution_state(
     return work, attempt
 
 
-def stage_execution_heartbeat(
+def _stage_execution_heartbeat(
     session: Session,
     *,
     tenant_key: str,
@@ -121,24 +122,12 @@ def stage_execution_heartbeat(
     attempt: OrganizationExecutionAttempt,
     position_key: str,
     checkpoint: str,
-    writer: str = "organization-worker",
-    observed_at: datetime | None = None,
-    lease_seconds: int = DEFAULT_HEARTBEAT_LEASE_SECONDS,
+    writer: str,
+    observed_at: datetime | None,
+    lease_seconds: int,
 ) -> OrganizationExecutionHeartbeat:
-    """Stage one trusted execution-checkpoint lease in the caller's transaction.
-
-    The caller owns commit/rollback. The checkpoint is deliberately narrow: it proves
-    only that an AIOS worker reached this execution point. It does not prove continuous
-    liveness and has no authority, autonomy, evidence, or external-action effect.
-
-    ``attempt_started`` is also the initial runtime-session claim. Later explicit
-    ``runtime_session_claimed`` events create a new fencing generation, while
-    ``runtime_session_renewed`` extends only the current generation through the guarded
-    APIs below.
-    """
-
     _validate_lease_seconds(lease_seconds)
-    if checkpoint not in _ALLOWED_CHECKPOINTS:
+    if checkpoint not in _ALL_CHECKPOINTS:
         raise ValueError("unsupported execution heartbeat checkpoint")
     if not writer.strip():
         raise ValueError("heartbeat writer is required")
@@ -154,6 +143,9 @@ def stage_execution_heartbeat(
         raise DependencyConflict("heartbeat execution token conflicts with canonical work state")
 
     sequence = _next_sequence(session, attempt.id)
+    if checkpoint == "attempt_started" and sequence != 1:
+        raise InvalidTransition("attempt_started must be the first heartbeat for an execution attempt")
+
     recorded_at = _as_utc(observed_at or now_utc())
     heartbeat = OrganizationExecutionHeartbeat(
         heartbeat_key=f"execution-heartbeat:{attempt.id}:{sequence}",
@@ -171,6 +163,60 @@ def stage_execution_heartbeat(
     return heartbeat
 
 
+def stage_execution_heartbeat(
+    session: Session,
+    *,
+    tenant_key: str,
+    work: OrganizationalWorkItem,
+    attempt: OrganizationExecutionAttempt,
+    position_key: str,
+    checkpoint: str,
+    writer: str = "organization-worker",
+    observed_at: datetime | None = None,
+    lease_seconds: int = DEFAULT_HEARTBEAT_LEASE_SECONDS,
+) -> OrganizationExecutionHeartbeat:
+    """Stage one direct execution checkpoint in the caller's transaction.
+
+    ``attempt_started`` is the initial runtime-session claim. ``agent_completed`` remains
+    a terminal execution checkpoint. Explicit runtime-session takeover and renewal events
+    are intentionally unavailable through this generic API; callers must use the fenced
+    claim/renew functions below so they cannot bypass execution-token or generation
+    checks.
+    """
+
+    if checkpoint not in _DIRECT_CHECKPOINTS:
+        raise ValueError("runtime session checkpoints require the fenced runtime-session API")
+
+    if checkpoint == "agent_completed":
+        current = current_execution_runtime_session(
+            session,
+            tenant_key=tenant_key,
+            work_item_id=work.id,
+            execution_attempt_id=attempt.id,
+            position_key=position_key,
+        )
+        if current is None:
+            raise DependencyConflict("agent completion requires an established runtime session")
+        if current.fence_token != 1:
+            raise DependencyConflict(
+                "agent completion is fenced because the original runtime session was superseded"
+            )
+        if current.writer != writer:
+            raise DependencyConflict("agent completion writer does not own the current runtime session")
+
+    return _stage_execution_heartbeat(
+        session,
+        tenant_key=tenant_key,
+        work=work,
+        attempt=attempt,
+        position_key=position_key,
+        checkpoint=checkpoint,
+        writer=writer,
+        observed_at=observed_at,
+        lease_seconds=lease_seconds,
+    )
+
+
 def record_execution_heartbeat(
     session: Session,
     *,
@@ -183,7 +229,7 @@ def record_execution_heartbeat(
     observed_at: datetime | None = None,
     lease_seconds: int = DEFAULT_HEARTBEAT_LEASE_SECONDS,
 ) -> OrganizationExecutionHeartbeat:
-    """Persist one heartbeat checkpoint after re-resolving tenant and execution state."""
+    """Persist one direct checkpoint after re-resolving tenant and execution state."""
 
     work, attempt = _resolve_execution_state(
         session,
@@ -379,7 +425,7 @@ def claim_execution_runtime_session(
             return current
         raise DependencyConflict("runtime session is already held by a fresh fenced writer")
 
-    heartbeat = stage_execution_heartbeat(
+    heartbeat = _stage_execution_heartbeat(
         session,
         tenant_key=tenant_key,
         work=work,
@@ -471,7 +517,7 @@ def renew_execution_runtime_session(
     if _as_utc(current.fresh_until) <= current_time:
         raise InvalidTransition("expired runtime session must be reclaimed before renewal")
 
-    heartbeat = stage_execution_heartbeat(
+    heartbeat = _stage_execution_heartbeat(
         session,
         tenant_key=tenant_key,
         work=work,
