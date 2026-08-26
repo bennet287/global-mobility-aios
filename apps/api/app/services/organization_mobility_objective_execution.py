@@ -34,6 +34,7 @@ from app.services.organization_context_broker import (
     ContextReference,
     build_work_item_context_bundle,
 )
+from app.services.organization_execution_failure import finalize_execution_failure_if_fence_owned
 from app.services.organization_execution_heartbeat import stage_execution_heartbeat
 from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
@@ -334,26 +335,26 @@ def _start_attempt(
 def _mark_attempt_failed(
     session: Session,
     *,
+    tenant_key: str,
     work_item_id: UUID,
     attempt_id: UUID,
+    position_key: str,
+    expected_execution_token: str,
+    expected_fence_token: int,
+    writer: str,
     error: Exception,
-) -> None:
-    session.rollback()
-    attempt = session.get(OrganizationExecutionAttempt, attempt_id)
-    work = session.get(OrganizationalWorkItem, work_item_id)
-    completed_at = now_utc()
-    error_text = f"{type(error).__name__}: {error}"[:2000]
-    if attempt is not None:
-        attempt.status = "failed"
-        attempt.completed_at = completed_at
-        attempt.error = error_text
-        session.add(attempt)
-    if work is not None:
-        work.execution_started_at = None
-        work.last_error = error_text
-        work.updated_at = completed_at
-        session.add(work)
-    session.commit()
+) -> bool:
+    return finalize_execution_failure_if_fence_owned(
+        session,
+        tenant_key=tenant_key,
+        work_item_id=work_item_id,
+        execution_attempt_id=attempt_id,
+        position_key=position_key,
+        expected_execution_token=expected_execution_token,
+        expected_fence_token=expected_fence_token,
+        writer=writer,
+        error=error,
+    ).applied
 
 
 def execute_austria_specialist_work(
@@ -664,8 +665,13 @@ def execute_austria_specialist_work(
     except Exception as exc:
         _mark_attempt_failed(
             session,
+            tenant_key=work.tenant_key,
             work_item_id=work.id,
             attempt_id=attempt.id,
+            position_key=position_key,
+            expected_execution_token=attempt.execution_token,
+            expected_fence_token=runtime_session.fence_token,
+            writer=actor,
             error=exc,
         )
         raise
