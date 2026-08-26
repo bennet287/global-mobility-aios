@@ -7,6 +7,7 @@ from uuid import UUID
 import httpx
 from sqlmodel import Session, select
 
+from app.core.telemetry import OrganizationSpanContext, organization_span
 from app.models.domain import AgentRun, OrganizationalActionOutput
 from app.services.organization_command import DependencyConflict
 from app.services.organization_mobility_fresh_retrieval import (
@@ -123,35 +124,47 @@ def execute_austria_live_provider_cycle(
     ActionOutput/AgentRun lineage after execution.
     """
 
-    configured_live_provider_selection(require_api_key=True)
-    plan = load_austria_mobility_objective_plan(
-        session,
-        tenant_key=tenant_key,
-        root_work_item_id=root_work_item_id,
-    )
-    _fresh_execution_preflight(session, plan)
-    attestations = refresh_austria_authority_snapshots(
-        session,
-        plan,
-        transport=retrieval_transport,
-        resolver=retrieval_resolver,
-    )
+    with organization_span(
+        "organization.mobility.live_provider_cycle",
+        OrganizationSpanContext(root_work_item_id=root_work_item_id),
+    ) as telemetry:
+        try:
+            configured_live_provider_selection(require_api_key=True)
+            plan = load_austria_mobility_objective_plan(
+                session,
+                tenant_key=tenant_key,
+                root_work_item_id=root_work_item_id,
+            )
+            _fresh_execution_preflight(session, plan)
+            attestations = refresh_austria_authority_snapshots(
+                session,
+                plan,
+                transport=retrieval_transport,
+                resolver=retrieval_resolver,
+            )
+            telemetry.fresh_snapshot_count(len(attestations))
 
-    evaluation = execute_austria_live_provider_evaluation(
-        session,
-        tenant_key=tenant_key,
-        root_work_item_id=root_work_item_id,
-        actor=actor,
-    )
-    for specialist in evaluation.specialist_evaluations:
-        attach_fresh_retrieval_evidence(
-            session,
-            action_output_id=specialist.action_output_id,
-            agent_run_id=specialist.agent_run_id,
-            execution_attempt_id=specialist.execution_attempt_id,
-            work_item_id=specialist.work_item_id,
-            position_key=specialist.position_key,
-            attestations=attestations,
-            actor=actor,
-        )
-    return _enrich_freshness(session, evaluation)
+            evaluation = execute_austria_live_provider_evaluation(
+                session,
+                tenant_key=tenant_key,
+                root_work_item_id=root_work_item_id,
+                actor=actor,
+            )
+            for specialist in evaluation.specialist_evaluations:
+                attach_fresh_retrieval_evidence(
+                    session,
+                    action_output_id=specialist.action_output_id,
+                    agent_run_id=specialist.agent_run_id,
+                    execution_attempt_id=specialist.execution_attempt_id,
+                    work_item_id=specialist.work_item_id,
+                    position_key=specialist.position_key,
+                    attestations=attestations,
+                    actor=actor,
+                )
+            enriched = _enrich_freshness(session, evaluation)
+        except Exception:
+            telemetry.outcome("failed")
+            raise
+        telemetry.acceptance_candidate(enriched.full_l_reasoning_evidence_candidate)
+        telemetry.outcome("completed")
+        return enriched

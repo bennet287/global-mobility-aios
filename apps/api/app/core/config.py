@@ -1,5 +1,6 @@
 from typing import Optional
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -61,6 +62,16 @@ class Settings(BaseSettings):
     otel_exporter_otlp_endpoint: str = ""
     otel_service_name: str = "global-mobility-aios-api"
     otel_service_version: str = "0.1.0"
+
+    # SecretsPort / OpenBao KV-v2 bounded non-production pilot. Empty by default;
+    # configuring a backend never grants domain authority or enables production use.
+    secrets_backend: str = ""
+    openbao_addr: str = ""
+    openbao_token: SecretStr = SecretStr("")
+    openbao_namespace: str = ""
+    openbao_kv_mount: str = "secret"
+    openbao_pilot_path_prefix: str = "global-mobility-aios"
+    openbao_timeout_seconds: int = 10
 
     # ClamAV — optional upload malware-scanning pilot (Technology Radar V1.1 Wave 1).
     # Disabled by default. Requires a running clamd daemon reachable via CLAMAV_HOST/CLAMAV_PORT.

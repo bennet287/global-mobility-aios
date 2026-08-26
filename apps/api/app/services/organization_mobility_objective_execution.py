@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
+from app.core.telemetry import OrganizationSpanContext, organization_span
 from app.models.domain import (
     AgentRun,
     OrganizationExecutionAttempt,
@@ -624,14 +625,40 @@ def execute_austria_specialists(
         profile = runtime_profiles.get(position_key)
         if profile is None:
             raise DependencyConflict(f"runtime profile is required for {position_key}")
-        results.append(
-            execute_austria_specialist_work(
-                session,
-                context,
-                plan,
-                position_key=position_key,
-                runtime_profile=profile,
-                actor=actor,
-            )
+        work_item = (
+            plan.pathway_work_item
+            if position_key == AUSTRIA_MOBILITY_PATHWAY_POSITION
+            else plan.regulatory_work_item
         )
+        with organization_span(
+            "organization.mobility.specialist.execute",
+            OrganizationSpanContext(
+                root_work_item_id=plan.root_work_item.id,
+                work_item_id=work_item.id,
+                position_key=position_key,
+            ),
+        ) as telemetry:
+            try:
+                result = execute_austria_specialist_work(
+                    session,
+                    context,
+                    plan,
+                    position_key=position_key,
+                    runtime_profile=profile,
+                    actor=actor,
+                )
+            except Exception:
+                telemetry.outcome("failed")
+                raise
+            telemetry.execution_identifiers(
+                execution_attempt_id=result.execution_attempt_id,
+                agent_run_id=result.agent_run_id,
+                action_output_id=result.action_output_id,
+            )
+            telemetry.execution_metrics(
+                latency_ms=result.latency_ms,
+                retry_count=max(0, result.attempt_number - 1),
+            )
+            telemetry.outcome("replayed" if result.replayed else "completed")
+            results.append(result)
     return tuple(results)

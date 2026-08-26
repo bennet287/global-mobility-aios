@@ -396,6 +396,13 @@ engineering telemetry != canonical OrganizationActivity
 
 **Secrets management:** SUPPORTING PARALLEL production foundation. Introduce a secrets-manager boundary when a real credential lifecycle requires it; do not migrate secrets speculatively.
 
+**Track C / Technology Radar E1 checkpoint (2026-08-26):** a bounded local
+implementation candidate now adds L correlation spans, a read-only PostgreSQL
+PITR configuration preflight, and a non-production `SecretsPort` / OpenBao KV-v2
+lifecycle harness. This checkpoint does not claim an exported end-to-end trace,
+WAL continuity, point-in-time recovery, or a live OpenBao lifecycle. Those remain
+the advancement evidence. See `docs/TECHNOLOGY_RADAR_E1_EXECUTION_2026-08-26.md`.
+
 #### L donor use
 
 Munder Difflin is a SUPPORTING PARALLEL donor only where a demonstrated L/UX2 gap exists.
