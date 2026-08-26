@@ -744,5 +744,15 @@ def resume_austria_specialist_work_with_takeover(
             replayed=False,
         )
     except Exception as exc:
-        _mark_attempt_failed(session, work_item_id=work.id, attempt_id=attempt.id, error=exc)
+        _mark_attempt_failed(
+            session,
+            tenant_key=work.tenant_key,
+            work_item_id=work.id,
+            attempt_id=attempt.id,
+            position_key=position_key,
+            expected_execution_token=attempt.execution_token,
+            expected_fence_token=runtime_fence_token,
+            writer=actor,
+            error=exc,
+        )
         raise
