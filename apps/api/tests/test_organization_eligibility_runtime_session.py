@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 
 from app.models.domain import OrganizationExecutionAttempt, OrganizationalWorkItem
 from app.models.organization_presence import OrganizationExecutionHeartbeat
+from app.services.organization_command import canonical_fingerprint
 from app.services.llm_client import LLMProvider, LLMProviderTransportError
 from app.services.organization_eligibility_runtime_session import (
     ELIGIBILITY_RUNTIME_SESSION_CONTRACT_VERSION,
@@ -100,8 +101,18 @@ def test_fenced_e2_runtime_records_attempt_and_terminal_fence(db_session: Sessio
     assert [event.checkpoint for event in events] == ["attempt_started", "agent_completed"]
     assert all(event.writer == "eligibility-runtime-worker" for event in events)
 
-    expected_token_basis = ELIGIBILITY_RUNTIME_SESSION_CONTRACT_VERSION
-    assert expected_token_basis == "eligibility-e2-runtime-session.v1"
+    expected_token = canonical_fingerprint(
+        {
+            "contract_version": ELIGIBILITY_RUNTIME_SESSION_CONTRACT_VERSION,
+            "work_item_id": work.id,
+            "position_key": POSITION_KEY,
+            "attempt_number": attempt.attempt_number,
+            "context_hash": wrapped.result.context.context_hash,
+            "runtime_binding_hash": wrapped.result.runtime_binding.binding_hash,
+        }
+    )
+    assert expected_token == wrapped.execution_token
+    assert wrapped.result.runtime_binding.context_hash == wrapped.result.context.context_hash
 
 
 class FailingProvider(LLMProvider):
