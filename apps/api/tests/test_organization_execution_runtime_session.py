@@ -23,6 +23,12 @@ EXECUTION_TOKEN = "a" * 64
 BASE_TIME = datetime(2026, 8, 26, 8, 0, tzinfo=timezone.utc)
 
 
+def _utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def _running_attempt(
     db_session: Session,
     *,
@@ -93,8 +99,8 @@ def test_attempt_started_is_generation_one_runtime_session_claim(db_session: Ses
     assert runtime_session.fence_token == 1
     assert runtime_session.writer == "worker-a"
     assert runtime_session.execution_token == EXECUTION_TOKEN
-    assert runtime_session.observed_at == BASE_TIME
-    assert runtime_session.fresh_until == BASE_TIME + timedelta(seconds=60)
+    assert _utc(runtime_session.observed_at) == BASE_TIME
+    assert _utc(runtime_session.fresh_until) == BASE_TIME + timedelta(seconds=60)
 
 
 def test_runtime_session_renewal_preserves_fence_and_extends_lease(db_session: Session) -> None:
@@ -115,8 +121,8 @@ def test_runtime_session_renewal_preserves_fence_and_extends_lease(db_session: S
 
     assert renewed.fence_token == 1
     assert renewed.writer == "worker-a"
-    assert renewed.observed_at == BASE_TIME + timedelta(seconds=30)
-    assert renewed.fresh_until == BASE_TIME + timedelta(seconds=90)
+    assert _utc(renewed.observed_at) == BASE_TIME + timedelta(seconds=30)
+    assert _utc(renewed.fresh_until) == BASE_TIME + timedelta(seconds=90)
 
     events = list(
         db_session.exec(
