@@ -116,7 +116,8 @@ Before this slice leaves draft status, prove on the exact branch head:
 The first exact-head attempt on `4c741dda85e3f7218d396f3e31dcee3c5e42242e`
 correctly exposed two stale presence-test fixtures that created an execution attempt
 without also setting the canonical WorkItem execution token. The production fencing
-contract was not weakened; the fixture was corrected on the follow-up commit so WorkItem
-and attempt tokens represent the same canonical running execution.
+contract was not weakened; the fixture was corrected so WorkItem and attempt tokens
+represent the same canonical running execution. Exact-head proof is pending again after
+that test-only compatibility correction and this proof-record update.
 
 CI/Woodpecker status must be reported separately and only when actually observed.
