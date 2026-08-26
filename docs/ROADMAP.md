@@ -20,9 +20,9 @@
 **Pre-reconciliation source-bearing branch head:** `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8` — later than `34597abf...`; exact-head full CI proof not established
 **Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
-**Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
+**Code migration head:** `0082_organization_execution_heartbeat_lease`
 
-<!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
+<!-- CURRENT_MIGRATION_HEAD: 0082_organization_execution_heartbeat_lease -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
