@@ -52,6 +52,19 @@ function presenceDescription(item: OrganizationPositionPresence): string {
   return "No durable execution attempt has established execution presence for this position.";
 }
 
+function heartbeatDescription(item: OrganizationPositionPresence): string {
+  if (item.heartbeat_state === "fresh") {
+    return "A trusted AIOS worker checkpoint is still inside its bounded freshness lease. This is not continuous online status.";
+  }
+  if (item.heartbeat_state === "stale") {
+    return "The latest trusted worker checkpoint has exceeded its lease. Stale does not mean the employee, provider, or model is offline.";
+  }
+  if (item.heartbeat_state === "inactive") {
+    return "No heartbeat lease is active because there is no running execution attempt.";
+  }
+  return "The running execution has no durable worker checkpoint lease yet.";
+}
+
 export default function AustriaEmployeePresencePage() {
   const { health, error: healthError } = useBackendStatus();
   const [latest, setLatest] = useState<AustriaOrganizationPresenceLatest | null>(null);
@@ -87,7 +100,8 @@ export default function AustriaEmployeePresencePage() {
     const positions = snapshot?.positions ?? [];
     return {
       executing: positions.filter((item) => item.presence_state === "executing").length,
-      observed: positions.filter((item) => item.presence_state !== "not_established").length,
+      fresh: positions.filter((item) => item.heartbeat_state === "fresh").length,
+      stale: positions.filter((item) => item.heartbeat_state === "stale").length,
       total: positions.length,
     };
   }, [snapshot]);
@@ -120,24 +134,24 @@ export default function AustriaEmployeePresencePage() {
             {snapshot ? "Durable execution presence" : loading ? "Loading durable presence" : "Presence not established"}
           </h2>
           <p>
-            This view adapts the Munder Difflin presence mechanic to AIOS-owned truth. A position is shown as executing only when a durable running OrganizationExecutionAttempt exists. Refresh time, animation, model/provider activity, and page visibility never become presence evidence.
+            This view adapts the Munder Difflin presence mechanic to AIOS-owned truth. A position is shown as executing only when a durable running OrganizationExecutionAttempt exists. Heartbeat freshness comes only from trusted worker checkpoints; refresh time, animation, model/provider activity, and page visibility never become presence evidence.
           </p>
         </div>
 
         <aside className="cockpit-command-state" aria-label="Heartbeat capability posture">
           <span>Heartbeat capability</span>
           <strong>{snapshot ? titleCase(snapshot.heartbeat_capability_state) : "Not established"}</strong>
-          <p>A real heartbeat lease or freshness signal has not been implemented, so this surface makes no online/offline claim.</p>
+          <p>A bounded execution-checkpoint lease is available. Fresh/stale describes durable worker-checkpoint freshness only, not continuous online/offline liveness.</p>
           <div className="cockpit-state-rule">
             <i aria-hidden="true" />
-            <span>Presence has no authority, autonomy, evidence, or external-action effect</span>
+            <span>Presence and heartbeat have no authority, autonomy, evidence, or external-action effect</span>
           </div>
         </aside>
 
         <div className="cockpit-command-metrics" aria-label="Employee presence metrics">
           <article><strong>{snapshot ? metrics.executing : "—"}</strong><span>Recorded executing</span></article>
-          <article><strong>{snapshot ? `${metrics.observed}/${metrics.total}` : "—"}</strong><span>Execution-observed positions</span></article>
-          <article><strong>{snapshot ? titleCase(snapshot.heartbeat_capability_state) : "—"}</strong><span>Heartbeat</span></article>
+          <article><strong>{snapshot ? metrics.fresh : "—"}</strong><span>Fresh checkpoints</span></article>
+          <article><strong>{snapshot ? metrics.stale : "—"}</strong><span>Stale checkpoints</span></article>
         </div>
       </section>
 
@@ -184,12 +198,15 @@ export default function AustriaEmployeePresencePage() {
                   </div>
                 </header>
                 <p>{presenceDescription(item)}</p>
+                <p>{heartbeatDescription(item)}</p>
                 <dl>
                   <div><dt>Presence basis</dt><dd>{titleCase(item.presence_basis)}</dd></div>
-                  <div><dt>Observed</dt><dd>{timeLabel(item.observed_at)}</dd></div>
+                  <div><dt>Execution observed</dt><dd>{timeLabel(item.observed_at)}</dd></div>
                   <div><dt>Execution attempt</dt><dd>{item.execution_attempt_id ? item.execution_attempt_id.slice(0, 8) : "Not recorded"}</dd></div>
                   <div><dt>Attempt state</dt><dd>{item.execution_attempt_status ? titleCase(item.execution_attempt_status) : "Not recorded"}</dd></div>
-                  <div><dt>Heartbeat</dt><dd>{titleCase(item.heartbeat_state)}</dd></div>
+                  <div><dt>Heartbeat freshness</dt><dd>{titleCase(item.heartbeat_state)}</dd></div>
+                  <div><dt>Checkpoint observed</dt><dd>{timeLabel(item.heartbeat_observed_at)}</dd></div>
+                  <div><dt>Fresh until</dt><dd>{timeLabel(item.heartbeat_fresh_until)}</dd></div>
                   <div><dt>Authority effect</dt><dd>{item.authority_effect ? "Present" : "None"}</dd></div>
                 </dl>
               </article>
@@ -197,9 +214,9 @@ export default function AustriaEmployeePresencePage() {
           </div>
 
           <div className="employee-presence-boundary">
-            <strong>Presence boundary</strong>
+            <strong>Heartbeat boundary</strong>
             <p>
-              “Recorded executing” means only that the durable AIOS execution-attempt record is currently running. It is not proof of continuous liveness, a provider connection, human availability, or permission to act. Heartbeat remains explicitly not established.
+              A fresh checkpoint means a trusted AIOS worker reached a durable execution checkpoint within the bounded lease. It is not continuous liveness, provider health, human availability, or permission to act. A long blocking provider call can legitimately make the lease stale before execution completes, and stale is not an offline claim.
             </p>
           </div>
         </section>
