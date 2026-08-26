@@ -34,6 +34,7 @@ from app.services.organization_context_broker import (
     ContextReference,
     build_work_item_context_bundle,
 )
+from app.services.organization_execution_heartbeat import stage_execution_heartbeat
 from app.services.organization_mobility_objective_runtime import (
     AUSTRIA_MOBILITY_PATHWAY_POSITION,
     AUSTRIA_MOBILITY_REGULATORY_POSITION,
@@ -291,6 +292,16 @@ def _start_attempt(
     work.updated_at = started_at
     session.add(work)
     session.add(attempt)
+    stage_execution_heartbeat(
+        session,
+        tenant_key=work.tenant_key,
+        work=work,
+        attempt=attempt,
+        position_key=binding.position_key,
+        checkpoint="attempt_started",
+        writer=actor,
+        observed_at=started_at,
+    )
     record_audit(
         session,
         action="austria_specialist_execution_started",
@@ -302,6 +313,7 @@ def _start_attempt(
             "context_hash": binding.context.context_hash,
             "runtime_binding_hash": binding.runtime.binding_hash,
             "external_action_authorized": False,
+            "heartbeat_checkpoint": "attempt_started",
         },
         actor=actor,
         source=SOURCE,
@@ -530,6 +542,16 @@ def execute_austria_specialist_work(
         session.add(output)
         session.flush()
 
+        stage_execution_heartbeat(
+            session,
+            tenant_key=work.tenant_key,
+            work=work,
+            attempt=attempt,
+            position_key=position_key,
+            checkpoint="agent_completed",
+            writer=actor,
+            observed_at=run_completed_at,
+        )
         attempt.status = "completed"
         attempt.completed_at = run_completed_at
         session.add(attempt)
@@ -556,6 +578,7 @@ def execute_austria_specialist_work(
                 "external_action_authorized": False,
                 "latency_ms": latency_ms,
                 "retry_count": max(0, attempt.attempt_number - 1),
+                "heartbeat_checkpoint": "agent_completed",
             },
             actor=actor,
             source=SOURCE,
