@@ -45,6 +45,7 @@ def _running_attempt(
 ) -> OrganizationExecutionAttempt:
     work_item.status = "running"
     work_item.execution_attempts = 1
+    work_item.execution_token = "presence-test-token"
     attempt = OrganizationExecutionAttempt(
         attempt_key=f"presence-test:{work_item.id}:1",
         work_item_id=work_item.id,
