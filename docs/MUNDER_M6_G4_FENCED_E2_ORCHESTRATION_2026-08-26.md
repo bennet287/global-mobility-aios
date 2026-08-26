@@ -1,0 +1,60 @@
+# Munder M6 — G.4 Fenced E.2 Orchestration Wiring
+
+Date: 2026-08-26
+
+Status: BOUNDED IMPLEMENTATION / PROOF PENDING
+
+## Purpose
+
+PR #26 established a proven, domain-specific fenced runtime envelope around the governed E.2 eligibility producer. This slice makes that envelope the production G.4 producer path instead of leaving it as an alternate entry point.
+
+The change is deliberately narrow: G.4 still owns the same E.2 → F.1 → G.1 → G.2 → canonical-effect sequence and the same trusted execution-plan boundary. Only the producer invocation is routed through the already-proven E.2 runtime envelope.
+
+## What changes
+
+`orchestrate_governed_eligibility` now invokes `execute_fenced_governed_eligibility_transition_intent` for the producer stage and consumes its governed E.2 result.
+
+That means a fresh G.4 producer execution now also records:
+
+- the existing queued-to-running WorkItem transition;
+- one bounded `OrganizationExecutionAttempt`;
+- generation-one `attempt_started` runtime provenance;
+- active runtime-session renewal while the producer is executing;
+- fenced `agent_completed` terminal provenance on success;
+- shared `runtime_session_failed` failure provenance through PR #25's finalizer when the producer fails.
+
+The completed-effect replay path remains before fresh producer execution, so an exact durable replay does not create another runtime attempt or call either provider.
+
+## Deliberate non-changes
+
+This slice does not:
+
+- change E.2 truth, Evidence, VerifiedRule, revision-precondition, typed-output, Command Gateway, or canonical-effect semantics;
+- change G.4 authority or request trust boundaries;
+- fence the independent verifier yet;
+- add eligibility takeover/resume yet;
+- add a migration or a second runtime-state model;
+- treat heartbeat/runtime-session state as human, provider, model, or employee online/offline state.
+
+Runtime-session data remains technical execution-health provenance only and grants no authority or autonomy.
+
+## Failure and immune-system continuity
+
+Existing G.4 producer runtime failures still propagate through E.2's typed runtime errors, so H.2.2 runtime-health attribution remains driven by the trusted execution plan. The new runtime envelope adds fenced failure provenance around that same failure; it does not replace the existing immune-system attribution contract.
+
+## Required exact-head proof
+
+Before this PR leaves Draft:
+
+1. G.4 accepted-path tests must prove exactly one producer execution attempt and `attempt_started -> agent_completed`;
+2. committed-effect replay must prove no second producer execution attempt;
+3. producer runtime failure must preserve H.2.2 attribution and prove `attempt_started -> runtime_session_failed`;
+4. existing eligibility orchestration, runtime-health, revision-race, failure-finalization, runtime-session, supervisor, and takeover regressions must remain green;
+5. real PostgreSQL governance/runtime contracts must execute rather than skip where applicable;
+6. repository policy, release consistency, dependency constraints, diff hygiene, and clean Git status must pass on the exact head.
+
+## M6 status
+
+M6 remains PARTIAL.
+
+After this slice, the next bounded M6 adoption targets are independent-verifier runtime fencing, eligibility takeover/resume, and one additional real organization worker path.
