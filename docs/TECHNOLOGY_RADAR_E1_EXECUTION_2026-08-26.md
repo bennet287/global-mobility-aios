@@ -2,6 +2,8 @@
 
 Date: 2026-08-26  
 Base source head: `d861c5e2cdd34120e88c0e47f4bf3eab2c2a90fb`  
+E1 implementation checkpoint: `2e2366a56c1025268e90e78e62de643f7f14f584`  
+Router-inventory compatibility fix: `11213d2a503ab825c34f7dabbfd2aab02adf6c61`  
 Status: **BOUNDED IMPLEMENTATION CANDIDATE / EXTERNAL PROOF PENDING**
 
 ## Purpose and boundary
@@ -128,7 +130,7 @@ E1 reviewed the active portfolio and did not manufacture work without a measured
 | Temporal / OpenFGA | deferred pilots | remain gap-triggered |
 | DeepSeek Harness | donor candidate / assess | no L dependency or adoption |
 
-## Verification recorded for this working tree
+## Verification recorded for this candidate state
 
 Observed local proof:
 
@@ -138,7 +140,22 @@ Observed local proof:
 targeted Python compilation PASS
 OpenBao --check-config safe negative result PASS (pilot_ready=false)
 backup utility CLI exposes pitr-preflight PASS
+repository policy / migrations / dependency constraints / release consistency PASS
+frontend 36 design-surface tests + 4 request-auth tests PASS
+frontend TypeScript / Next.js 16.3.1 production build / compiled-auth PASS
+full backend: 1314 passed, 22 skipped, 1 existing Pydantic warning
+post-commit platform hardening: 8 passed, 1 existing Pydantic warning
 ```
 
-This is local working-tree proof, not Woodpecker proof and not exact-head acceptance.
-The implementation remains uncommitted at the time this record is written.
+The first full backend run exposed a stale router-inventory count introduced when the
+presence endpoint became the 70th registered router. The hardening assertion was
+updated to require `organization-presence-transparency`, and the complete backend
+rerun then passed with `1314 passed, 22 skipped`. That correction was subsequently
+committed unchanged as `11213d2a503ab825c34f7dabbfd2aab02adf6c61`, after which
+the focused platform-hardening test, repository policy, release consistency, and
+whitespace checks passed again.
+
+This is local proof for the recorded source state, not Woodpecker proof. No OTLP
+backend export, live OpenBao server lifecycle, PostgreSQL base backup/WAL archive,
+or point-in-time restore was executed by this record, so those remain external
+acceptance work rather than proven capabilities.
