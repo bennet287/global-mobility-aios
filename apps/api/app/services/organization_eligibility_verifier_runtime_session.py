@@ -25,9 +25,11 @@ from app.services.organization_execution_heartbeat import (
     DEFAULT_HEARTBEAT_LEASE_SECONDS,
     stage_execution_heartbeat,
 )
+from app.services.organization_eligibility_transition_intent import (
+    GovernedEligibilityTransitionIntentResult,
+)
 from app.services.organization_independent_eligibility_verification import (
     GovernedIndependentEligibilityVerificationResult,
-    GovernedEligibilityTransitionIntentResult,
     resolve_independent_eligibility_verifier_execution,
     verify_eligibility_proposal_independently,
 )
