@@ -38,6 +38,9 @@ from app.services.organization_decision_readiness import (
     DecisionReadinessState,
     assess_eligibility_decision_readiness,
 )
+from app.services.organization_eligibility_runtime_session import (
+    execute_fenced_governed_eligibility_transition_intent,
+)
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
     EligibilityProposedState,
@@ -511,6 +514,51 @@ def test_f1_rejects_blocked_e2_attempt_instead_of_reclassifying_authority(db_ses
     assert proposal.evaluation.outcome is GatewayOutcome.BLOCK
 
     with pytest.raises(DecisionReadinessIntegrityError, match="REVIEW_REQUIRED"):
+        assess_eligibility_decision_readiness(db_session, proposal=proposal)
+
+
+def test_f1_accepts_only_proven_fenced_e2_runtime_terminal_drift(
+    db_session: Session,
+) -> None:
+    _position(db_session)
+    lead, profile = _case(db_session)
+    graph = _authority_graph(db_session)
+    work = _work(db_session, lead=lead, profile=profile, version=graph["version"])
+    provider = FakeProvider(_safe_output(graph))
+
+    wrapped = execute_fenced_governed_eligibility_transition_intent(
+        db_session,
+        tenant_key="tenant-a",
+        position_key="austria_mobility_specialist",
+        work_item_id=work.id,
+        runtime_profile=_runtime_profile(),
+        authority=_authority(),
+        provider=provider,
+        idempotency_key=f"f1-fenced-source-{uuid4()}",
+    )
+
+    persisted_work = db_session.get(OrganizationalWorkItem, work.id)
+    assert persisted_work is not None
+    assert persisted_work.status == "completed"
+    readiness = assess_eligibility_decision_readiness(
+        db_session,
+        proposal=wrapped.result,
+    )
+    assert readiness.state is DecisionReadinessState.READY_FOR_INDEPENDENT_VERIFICATION
+    assert readiness.context_hash != wrapped.result.context.context_hash
+
+
+def test_f1_rejects_unfenced_work_completion_as_context_drift(
+    db_session: Session,
+) -> None:
+    proposal, _, _, _, work, _ = _proposal(db_session)
+    work.status = "completed"
+    work.completed_at = now_utc()
+    work.updated_at = now_utc() + timedelta(seconds=1)
+    db_session.add(work)
+    db_session.commit()
+
+    with pytest.raises(DecisionReadinessIntegrityError, match="ContextBundle changed"):
         assess_eligibility_decision_readiness(db_session, proposal=proposal)
 
 

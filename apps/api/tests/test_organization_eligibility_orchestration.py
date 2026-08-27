@@ -9,7 +9,15 @@ from sqlmodel import Session, select
 
 from app.core.organization_constitution import AutonomyLevel
 from app.main import app
-from app.models.domain import EligibilityAssessment, OrganizationActorType
+from app.models.domain import (
+    EligibilityAssessment,
+    Lead,
+    OrganizationActorType,
+    OrganizationExecutionAttempt,
+    OrganizationalWorkItem,
+    Profile,
+)
+from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.models.eligibility_revision import EligibilityAssessmentRevision
 from app.routers.organization_eligibility import governed_eligibility_execution_plan
 from app.routers.organization_records import organization_command_context
@@ -36,6 +44,55 @@ from tests.test_organization_independent_eligibility_verification import (
 )
 
 
+def _work_pair(
+    session: Session,
+    *,
+    lead: Lead,
+    profile: Profile,
+    graph: dict[str, object],
+    suffix: str,
+) -> tuple[OrganizationalWorkItem, OrganizationalWorkItem]:
+    proposal_work = _work(
+        session,
+        position_key="austria_mobility_specialist",
+        lead=lead,
+        profile=profile,
+        version=graph["version"],
+        title=f"Orchestrate governed eligibility proposal ({suffix})",
+    )
+    verification_work = _work(
+        session,
+        position_key="austria_independent_verifier",
+        lead=lead,
+        profile=profile,
+        version=graph["version"],
+        title=f"Orchestrate independent eligibility verification ({suffix})",
+    )
+    return proposal_work, verification_work
+
+
+def _fresh_work_pair(
+    session: Session,
+    *,
+    graph: dict[str, object],
+    source_work: OrganizationalWorkItem,
+    suffix: str,
+) -> tuple[OrganizationalWorkItem, OrganizationalWorkItem]:
+    if source_work.lead_id is None or source_work.profile_id is None:
+        raise AssertionError("eligibility test WorkItem is missing Lead/Profile identity")
+    lead = session.get(Lead, source_work.lead_id)
+    profile = session.get(Profile, source_work.profile_id)
+    if lead is None or profile is None:
+        raise AssertionError("eligibility test Lead/Profile identity could not be resolved")
+    return _work_pair(
+        session,
+        lead=lead,
+        profile=profile,
+        graph=graph,
+        suffix=suffix,
+    )
+
+
 def _fixture(session: Session):
     _position(
         session,
@@ -51,21 +108,12 @@ def _fixture(session: Session):
     )
     lead, profile = _case(session)
     graph = _authority_graph(session)
-    proposal_work = _work(
+    proposal_work, verification_work = _work_pair(
         session,
-        position_key="austria_mobility_specialist",
         lead=lead,
         profile=profile,
-        version=graph["version"],
-        title="Orchestrate governed eligibility proposal",
-    )
-    verification_work = _work(
-        session,
-        position_key="austria_independent_verifier",
-        lead=lead,
-        profile=profile,
-        version=graph["version"],
-        title="Orchestrate independent eligibility verification",
+        graph=graph,
+        suffix="fixture",
     )
     return lead, profile, graph, proposal_work, verification_work
 
@@ -143,12 +191,72 @@ def test_g4_orchestrates_accepted_vertical_to_first_canonical_effect(db_session:
     assert len(producer.calls) == 1
     assert len(verifier.calls) == 1
 
+    attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == proposal_work.id
+            )
+        ).all()
+    )
+    assert len(attempts) == 1
+    runtime_attempt = attempts[0]
+    assert runtime_attempt.status == "completed"
+    assert runtime_attempt.actor == "eligibility-runtime-worker"
+    runtime_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id
+                == runtime_attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in runtime_events] == [
+        "attempt_started",
+        "agent_completed",
+    ]
+
     revision = db_session.get(EligibilityAssessmentRevision, result.revision_id)
     assessment = db_session.get(EligibilityAssessment, result.assessment_id)
     assert revision is not None and assessment is not None
     assert revision.assessment_id == assessment.id
     assert revision.version == 1
     assert assessment.status == "potentially_eligible"
+
+
+def test_g4_fresh_execution_rejects_completed_proposal_work_before_provider(
+    db_session: Session,
+) -> None:
+    _, _, graph, proposal_work, verification_work = _fixture(db_session)
+    first_plan, _, _ = _plan(graph)
+    first = orchestrate_governed_eligibility(
+        db_session,
+        tenant_key="tenant-a",
+        proposal_work_item_id=proposal_work.id,
+        verification_work_item_id=verification_work.id,
+        idempotency_key="g4-terminal-work-base",
+        execution_plan=first_plan,
+    )
+    assert first.canonical_effect_committed is True
+
+    fresh_plan, producer, verifier = _plan(graph)
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="requires a queued proposal WorkItem",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="g4-terminal-work-fresh-key",
+            execution_plan=fresh_plan,
+            expected_eligibility_revision_version=1,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
 
 
 def test_g4_post_commit_retry_resolves_durable_effect_without_model_calls(db_session: Session) -> None:
@@ -181,6 +289,14 @@ def test_g4_post_commit_retry_resolves_durable_effect_without_model_calls(db_ses
     assert second.revision_id == first.revision_id
     assert producer.calls == []
     assert verifier.calls == []
+    attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == proposal_work.id
+            )
+        ).all()
+    )
+    assert len(attempts) == 1
 
 
 def test_g4_a1_stops_after_verified_floor_without_canonical_effect(db_session: Session) -> None:

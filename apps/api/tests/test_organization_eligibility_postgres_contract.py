@@ -36,6 +36,7 @@ from app.services.organization_eligibility_orchestration import (
 from tests.test_organization_autonomy_profile import _evidence_activity
 from tests.test_organization_eligibility_orchestration import (
     _fixture,
+    _fresh_work_pair,
     _human_context,
     _plan,
 )
@@ -63,14 +64,27 @@ def test_postgres_cross_session_stale_reassessment_fails_before_provider_egress(
     assert first.state is GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED
     assert first.revision_id is not None
 
+    winner_work, winner_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="postgres-reassessment-winner",
+    )
+    stale_work, stale_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="postgres-reassessment-stale",
+    )
+
     engine = db_session.get_bind()
     with Session(engine) as winner_session:
         winner_plan, winner_producer, winner_verifier = _plan(graph)
         winner = orchestrate_governed_eligibility(
             winner_session,
             tenant_key="tenant-a",
-            proposal_work_item_id=proposal_work.id,
-            verification_work_item_id=verification_work.id,
+            proposal_work_item_id=winner_work.id,
+            verification_work_item_id=winner_verification_work.id,
             idempotency_key="postgres-reassessment-winner",
             execution_plan=winner_plan,
             expected_eligibility_revision_version=1,
@@ -82,12 +96,15 @@ def test_postgres_cross_session_stale_reassessment_fails_before_provider_egress(
 
     with Session(engine) as stale_session:
         stale_plan, stale_producer, stale_verifier = _plan(graph)
-        with pytest.raises(GovernedEligibilityOrchestrationIntegrityError):
+        with pytest.raises(
+            GovernedEligibilityOrchestrationIntegrityError,
+            match="revision precondition conflicted",
+        ):
             orchestrate_governed_eligibility(
                 stale_session,
                 tenant_key="tenant-a",
-                proposal_work_item_id=proposal_work.id,
-                verification_work_item_id=verification_work.id,
+                proposal_work_item_id=stale_work.id,
+                verification_work_item_id=stale_verification_work.id,
                 idempotency_key="postgres-reassessment-stale",
                 execution_plan=stale_plan,
                 expected_eligibility_revision_version=1,

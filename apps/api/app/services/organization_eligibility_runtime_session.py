@@ -206,7 +206,12 @@ def _start_attempt(
     work.execution_token = execution_token
     work.execution_started_at = started_at
     work.last_error = None
-    work.updated_at = started_at
+    # Do not advance the generic WorkItem updated_at here. The durable
+    # OrganizationExecutionAttempt.started_at and heartbeat ledger are the runtime
+    # clock. Advancing updated_at would change the governed ContextBundle hash
+    # between the pre-attempt runtime binding and the E.2 function that immediately
+    # re-resolves that same running WorkItem, making the execution token describe a
+    # context E.2 never actually consumed.
     session.add(work)
     session.add(attempt)
     stage_execution_heartbeat(

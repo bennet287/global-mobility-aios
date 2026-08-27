@@ -6,7 +6,12 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationActivity
+from app.models.domain import (
+    OrganizationActivity,
+    OrganizationExecutionAttempt,
+    OrganizationalWorkItem,
+)
+from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.services.llm_client import LLMProvider
 from app.services.organization_agent_runtime import AgentRuntimeProfile
 from app.services.organization_decision_readiness import (
@@ -37,6 +42,8 @@ from app.services.organization_eligibility_revision_conflict import (
 from app.services.organization_eligibility_revision_precondition import (
     EligibilityRevisionPostResolutionAdvance,
     EligibilityRevisionPreconditionConflict,
+    EligibilityRevisionPreconditionError,
+    resolve_eligibility_revision_precondition,
 )
 from app.services.organization_eligibility_revision_runtime_race import (
     EligibilityRevisionRuntimeRaceAttributionError,
@@ -46,11 +53,13 @@ from app.services.organization_eligibility_runtime_health import (
     EligibilityRuntimeExecutionRole,
     record_attributed_eligibility_runtime_health_incident,
 )
+from app.services.organization_eligibility_runtime_session import (
+    execute_fenced_governed_eligibility_transition_intent,
+)
 from app.services.organization_eligibility_transition_intent import (
     GOVERNED_ELIGIBILITY_CAPABILITY,
     EligibilityIntentError,
     EligibilityIntentRuntimeError,
-    governed_eligibility_transition_intent,
 )
 from app.services.organization_eligibility_verification_floor import (
     EligibilityVerificationFloorError,
@@ -249,6 +258,94 @@ def _completed_effect_replay(
     )
 
 
+def _require_executable_proposal_work(
+    session: Session,
+    *,
+    work: OrganizationalWorkItem,
+) -> None:
+    if work.status == "queued":
+        return
+
+    # A finalized fenced failure is the only running-state retry admitted by G.4.
+    # This keeps bounded retry available without allowing a second orchestration to
+    # attach to an actively owned runtime session.
+    if (
+        work.status == "running"
+        and work.execution_started_at is None
+        and bool(work.last_error)
+        and work.execution_attempts >= 1
+        and bool(work.execution_token)
+        and work.execution_attempts < work.max_execution_attempts
+    ):
+        attempts = list(
+            session.exec(
+                select(OrganizationExecutionAttempt).where(
+                    OrganizationExecutionAttempt.work_item_id == work.id,
+                    OrganizationExecutionAttempt.attempt_number == work.execution_attempts,
+                )
+            ).all()
+        )
+        if len(attempts) == 1:
+            attempt = attempts[0]
+            events = list(
+                session.exec(
+                    select(OrganizationExecutionHeartbeat)
+                    .where(
+                        OrganizationExecutionHeartbeat.execution_attempt_id == attempt.id
+                    )
+                    .order_by(OrganizationExecutionHeartbeat.sequence)
+                ).all()
+            )
+            if (
+                attempt.status == "failed"
+                and attempt.completed_at is not None
+                and bool(attempt.error)
+                and attempt.execution_token == work.execution_token
+                and len(events) >= 2
+                and events[0].checkpoint == "attempt_started"
+                and events[-1].checkpoint == "runtime_session_failed"
+            ):
+                return
+
+    raise GovernedEligibilityOrchestrationIntegrityError(
+        "fresh governed eligibility execution requires a queued proposal WorkItem "
+        "or a durably finalized failed runtime attempt"
+    )
+
+
+def _raise_attributed_revision_conflict(
+    session: Session,
+    *,
+    tenant_key: str,
+    aggregate_key: str,
+    idempotency_key: str,
+    conflict: EligibilityRevisionPreconditionConflict,
+) -> None:
+    try:
+        record_attributed_eligibility_revision_conflict(
+            session,
+            tenant_key=tenant_key,
+            aggregate_key=aggregate_key,
+            incident_key=f"{idempotency_key}:revision-conflict",
+            conflict=conflict,
+            summary=(
+                "Eligibility reassessment supplied a superseded canonical revision "
+                "expectation before provider execution."
+            ),
+        )
+    except (
+        EligibilityRevisionConflictAttributionError,
+        EligibilityImmuneSystemError,
+        RuntimeError,
+    ) as incident_exc:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "revision conflict could not be persisted as an immune-system incident"
+        ) from incident_exc
+    raise GovernedEligibilityOrchestrationIntegrityError(
+        "governed eligibility revision precondition conflicted with the current canonical revision"
+    ) from conflict
+
+
 def orchestrate_governed_eligibility(
     session: Session,
     *,
@@ -334,8 +431,50 @@ def orchestrate_governed_eligibility(
             "governed eligibility circuit preflight could not resolve canonical scope"
         ) from exc
 
+    # A fresh G.4 execution owns one fresh proposal WorkItem. Exact durable replay
+    # was resolved above and may legitimately reference a terminal WorkItem, but a
+    # new idempotency key/reassessment must not reopen or silently reuse completed
+    # work. This keeps OrganizationWorkItem terminality aligned with the fenced
+    # execution contract and prevents concurrent operations from sharing one mutable
+    # WorkItem execution token.
+    proposal_work = session.get(OrganizationalWorkItem, proposal_work_item_id)
+    if proposal_work is None or proposal_work.tenant_key != tenant:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "proposal WorkItem is unavailable in the supplied tenant"
+        )
+    _require_executable_proposal_work(
+        session,
+        work=proposal_work,
+    )
+
+    # Resolve the deterministic G.5 precondition before opening a runtime session.
+    # E.2 resolves it again inside the fenced execution, so this is not a replacement
+    # for E.2 governance: it prevents known stale/missing/future expectations from
+    # consuming execution-attempt budget or provider/runtime resources, while the
+    # second resolution still protects the pre-provider TOCTOU boundary.
     try:
-        proposal = governed_eligibility_transition_intent(
+        resolve_eligibility_revision_precondition(
+            session,
+            tenant_key=tenant,
+            lead_id=circuit_scope.lead_id,
+            pathway_id=circuit_scope.pathway_id,
+            expected_revision_version=expected_eligibility_revision_version,
+        )
+    except EligibilityRevisionPreconditionConflict as exc:
+        _raise_attributed_revision_conflict(
+            session,
+            tenant_key=tenant,
+            aggregate_key=circuit_scope.aggregate_key,
+            idempotency_key=key,
+            conflict=exc,
+        )
+    except EligibilityRevisionPreconditionError as exc:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "governed eligibility proposal stage failed"
+        ) from exc
+
+    try:
+        producer_runtime = execute_fenced_governed_eligibility_transition_intent(
             session,
             tenant_key=tenant,
             position_key=execution_plan.producer_position_key,
@@ -346,6 +485,7 @@ def orchestrate_governed_eligibility(
             idempotency_key=key,
             expected_eligibility_revision_version=expected_eligibility_revision_version,
         )
+        proposal = producer_runtime.result
     except EligibilityIntentRuntimeError as exc:
         try:
             record_attributed_eligibility_runtime_health_incident(
@@ -395,29 +535,13 @@ def orchestrate_governed_eligibility(
                 "governed eligibility revision advanced during producer runtime"
             ) from exc
         if isinstance(cause, EligibilityRevisionPreconditionConflict):
-            try:
-                record_attributed_eligibility_revision_conflict(
-                    session,
-                    tenant_key=tenant,
-                    aggregate_key=circuit_scope.aggregate_key,
-                    incident_key=f"{key}:revision-conflict",
-                    conflict=cause,
-                    summary=(
-                        "Eligibility reassessment supplied a superseded canonical revision "
-                        "expectation before provider execution."
-                    ),
-                )
-            except (
-                EligibilityRevisionConflictAttributionError,
-                EligibilityImmuneSystemError,
-                RuntimeError,
-            ) as incident_exc:
-                raise GovernedEligibilityOrchestrationIntegrityError(
-                    "revision conflict could not be persisted as an immune-system incident"
-                ) from incident_exc
-            raise GovernedEligibilityOrchestrationIntegrityError(
-                "governed eligibility revision precondition conflicted with the current canonical revision"
-            ) from exc
+            _raise_attributed_revision_conflict(
+                session,
+                tenant_key=tenant,
+                aggregate_key=circuit_scope.aggregate_key,
+                idempotency_key=key,
+                conflict=cause,
+            )
         raise GovernedEligibilityOrchestrationIntegrityError(
             "governed eligibility proposal stage failed"
         ) from exc
