@@ -66,11 +66,13 @@ from app.services.organization_eligibility_verification_floor import (
     integrate_eligibility_verification_floor,
 )
 from app.services.organization_governance_kernel import CapabilityAuthority, GatewayOutcome
+from app.services.organization_eligibility_verifier_runtime_session import (
+    execute_fenced_independent_eligibility_verification,
+)
 from app.services.organization_independent_eligibility_verification import (
     IndependentEligibilityVerificationError,
     IndependentEligibilityVerificationRuntimeError,
     IndependentVerificationDisposition,
-    verify_eligibility_proposal_independently,
 )
 
 
@@ -607,7 +609,7 @@ def orchestrate_governed_eligibility(
         )
 
     try:
-        verification = verify_eligibility_proposal_independently(
+        verifier_runtime = execute_fenced_independent_eligibility_verification(
             session,
             proposal=proposal,
             readiness=readiness,
@@ -617,6 +619,7 @@ def orchestrate_governed_eligibility(
             provider=execution_plan.verifier_provider,
             idempotency_key=f"{key}:independent-verification",
         )
+        verification = verifier_runtime.result
     except IndependentEligibilityVerificationRuntimeError as exc:
         try:
             record_attributed_eligibility_runtime_health_incident(
