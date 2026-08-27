@@ -6,7 +6,12 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationActivity, OrganizationalWorkItem
+from app.models.domain import (
+    OrganizationActivity,
+    OrganizationExecutionAttempt,
+    OrganizationalWorkItem,
+)
+from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.services.llm_client import LLMProvider
 from app.services.organization_agent_runtime import AgentRuntimeProfile
 from app.services.organization_decision_readiness import (
@@ -253,6 +258,61 @@ def _completed_effect_replay(
     )
 
 
+def _require_executable_proposal_work(
+    session: Session,
+    *,
+    work: OrganizationalWorkItem,
+) -> None:
+    if work.status == "queued":
+        return
+
+    # A finalized fenced failure is the only running-state retry admitted by G.4.
+    # This keeps bounded retry available without allowing a second orchestration to
+    # attach to an actively owned runtime session.
+    if (
+        work.status == "running"
+        and work.execution_started_at is None
+        and bool(work.last_error)
+        and work.execution_attempts >= 1
+        and bool(work.execution_token)
+        and work.execution_attempts < work.max_execution_attempts
+    ):
+        attempts = list(
+            session.exec(
+                select(OrganizationExecutionAttempt).where(
+                    OrganizationExecutionAttempt.work_item_id == work.id,
+                    OrganizationExecutionAttempt.attempt_number == work.execution_attempts,
+                )
+            ).all()
+        )
+        if len(attempts) == 1:
+            attempt = attempts[0]
+            events = list(
+                session.exec(
+                    select(OrganizationExecutionHeartbeat)
+                    .where(
+                        OrganizationExecutionHeartbeat.execution_attempt_id == attempt.id
+                    )
+                    .order_by(OrganizationExecutionHeartbeat.sequence)
+                ).all()
+            )
+            if (
+                attempt.status == "failed"
+                and attempt.completed_at is not None
+                and bool(attempt.error)
+                and attempt.execution_token == work.execution_token
+                and len(events) >= 2
+                and events[0].checkpoint == "attempt_started"
+                and events[-1].checkpoint == "runtime_session_failed"
+            ):
+                return
+
+    raise GovernedEligibilityOrchestrationIntegrityError(
+        "fresh governed eligibility execution requires a queued proposal WorkItem "
+        "or a durably finalized failed runtime attempt"
+    )
+
+
 def _raise_attributed_revision_conflict(
     session: Session,
     *,
@@ -382,10 +442,10 @@ def orchestrate_governed_eligibility(
         raise GovernedEligibilityOrchestrationIntegrityError(
             "proposal WorkItem is unavailable in the supplied tenant"
         )
-    if proposal_work.status != "queued":
-        raise GovernedEligibilityOrchestrationIntegrityError(
-            "fresh governed eligibility execution requires a queued proposal WorkItem"
-        )
+    _require_executable_proposal_work(
+        session,
+        work=proposal_work,
+    )
 
     # Resolve the deterministic G.5 precondition before opening a runtime session.
     # E.2 resolves it again inside the fenced execution, so this is not a replacement
