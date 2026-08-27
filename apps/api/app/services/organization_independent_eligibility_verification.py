@@ -333,6 +333,38 @@ def _verifier_binding(
     return binding
 
 
+def resolve_independent_eligibility_verifier_execution(
+    session: Session,
+    *,
+    proposal: GovernedEligibilityTransitionIntentResult,
+    readiness: EligibilityDecisionReadinessResult,
+    verification_work_item_id: UUID,
+    verifier_position_key: str,
+    verifier_runtime_profile: AgentRuntimeProfile,
+) -> tuple[
+    EligibilityDecisionReadinessResult,
+    ContextBundle,
+    EmployeeRuntimeBinding,
+]:
+    """Resolve the exact governed G.1 readiness/context/runtime execution basis.
+
+    The fenced verifier runtime uses this same resolver before and after the
+    verification WorkItem enters its running lifecycle. G.1 itself resolves it again
+    immediately before provider execution, so the execution token can be bound to the
+    exact ContextBundle/runtime binding that the verifier actually consumes.
+    """
+
+    fresh_readiness, context, binding = resolve_independent_eligibility_verifier_execution(
+        session,
+        proposal=proposal,
+        readiness=readiness,
+        verification_work_item_id=verification_work_item_id,
+        verifier_position_key=verifier_position_key,
+        verifier_runtime_profile=verifier_runtime_profile,
+    )
+    return fresh_readiness, context, binding
+
+
 def _case_payload(
     session: Session,
     *,
