@@ -217,6 +217,32 @@ def test_g4_orchestrates_accepted_vertical_to_first_canonical_effect(db_session:
         "agent_completed",
     ]
 
+    verifier_attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == verification_work.id
+            )
+        ).all()
+    )
+    assert len(verifier_attempts) == 1
+    verifier_attempt = verifier_attempts[0]
+    assert verifier_attempt.status == "completed"
+    assert verifier_attempt.actor == "eligibility-verifier-runtime-worker"
+    verifier_runtime_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id
+                == verifier_attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in verifier_runtime_events] == [
+        "attempt_started",
+        "agent_completed",
+    ]
+
     revision = db_session.get(EligibilityAssessmentRevision, result.revision_id)
     assessment = db_session.get(EligibilityAssessment, result.assessment_id)
     assert revision is not None and assessment is not None
@@ -297,6 +323,14 @@ def test_g4_post_commit_retry_resolves_durable_effect_without_model_calls(db_ses
         ).all()
     )
     assert len(attempts) == 1
+    verifier_attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == verification_work.id
+            )
+        ).all()
+    )
+    assert len(verifier_attempts) == 1
 
 
 def test_g4_a1_stops_after_verified_floor_without_canonical_effect(db_session: Session) -> None:
