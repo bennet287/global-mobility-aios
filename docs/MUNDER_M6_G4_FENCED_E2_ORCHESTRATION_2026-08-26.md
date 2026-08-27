@@ -61,6 +61,22 @@ The second focused proof exposed a deeper token-binding invariant. The runtime e
 
 The correction keeps the generic WorkItem `updated_at` stable during attempt creation. Runtime timing remains durable in `OrganizationExecutionAttempt.started_at`, `execution_started_at`, and the heartbeat ledger. E.2 therefore consumes the exact ContextBundle/runtime binding used to derive the execution token. A focused runtime contract now recomputes the execution token from the returned E.2 context hash and runtime-binding hash and requires an exact match.
 
+## WorkItem lifecycle across reassessment
+
+The broader regression exposed a separate lifecycle assumption in the pre-fencing tests: multiple canonical eligibility revisions were being produced by repeatedly reusing the same proposal/verification WorkItems after the first G.4 operation had completed them.
+
+That is no longer a valid execution model once G.4 is wired through a durable runtime envelope. A completed WorkItem is terminal organizational history and must not be reopened merely because the eligibility aggregate is being reassessed. Each fresh G.4 operation therefore uses a fresh proposal WorkItem and a fresh verification WorkItem bound to the same canonical Lead/Profile/pathway authority.
+
+G.4 now resolves exact committed-effect replay first. For non-replay execution it rejects a terminal proposal WorkItem before provider egress. It also performs the deterministic G.5 revision precondition before opening a runtime session; E.2 still re-resolves that precondition inside the fenced execution, preserving the existing pre-provider and post-provider race boundaries.
+
+This keeps three identities separate:
+
+- eligibility aggregate identity survives across revisions;
+- orchestration idempotency identifies one requested canonical operation/replay;
+- WorkItem/execution-token identity belongs to one bounded organizational execution.
+
+Known stale/missing/future revision expectations therefore do not consume a fresh execution attempt or provider call, while a valid reassessment receives its own fenced WorkItem/attempt ledger.
+
 ## Required exact-head proof
 
 Before this PR leaves Draft:
