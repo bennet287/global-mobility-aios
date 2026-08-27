@@ -33,7 +33,11 @@ from app.services.organization_eligibility_revision_precondition import (
     resolve_eligibility_revision_precondition,
 )
 from app.services.organization_transparency import transparency_activity_record
-from tests.test_organization_eligibility_orchestration import _fixture, _plan
+from tests.test_organization_eligibility_orchestration import (
+    _fixture,
+    _fresh_work_pair,
+    _plan,
+)
 
 
 def _activity(
@@ -77,12 +81,18 @@ def _commit_v1_v2(session: Session):
     )
     assert first.state is GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED
 
+    winner_work, winner_verification_work = _fresh_work_pair(
+        session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-3-winner-v2",
+    )
     winner_plan, _, _ = _plan(graph)
     winner = orchestrate_governed_eligibility(
         session,
         tenant_key="tenant-a",
-        proposal_work_item_id=proposal_work.id,
-        verification_work_item_id=verification_work.id,
+        proposal_work_item_id=winner_work.id,
+        verification_work_item_id=winner_verification_work.id,
         idempotency_key="h2-3-winner-v2",
         execution_plan=winner_plan,
         expected_eligibility_revision_version=1,
@@ -90,12 +100,18 @@ def _commit_v1_v2(session: Session):
     assert winner.state is GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED
     assert winner.revision_id is not None
 
+    next_work, next_verification_work = _fresh_work_pair(
+        session,
+        graph=graph,
+        source_work=winner_work,
+        suffix="h2-3-next-operation",
+    )
     aggregate = eligibility_aggregate_key(
         tenant_key="tenant-a",
         lead_id=lead.id,
         pathway_id=graph["pathway"].id,
     )
-    return lead, graph, proposal_work, verification_work, winner, aggregate
+    return lead, graph, next_work, next_verification_work, winner, aggregate
 
 
 def _stale_conflict(
@@ -199,6 +215,12 @@ def test_h2_3_missing_and_future_expectations_do_not_emit_revision_conflicts(
         execution_plan=initial_plan,
     )
     assert first.revision_id is not None
+    proposal_work, verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-3-invalid-precondition",
+    )
     aggregate = eligibility_aggregate_key(
         tenant_key="tenant-a",
         lead_id=lead.id,
@@ -338,6 +360,12 @@ def test_h2_3_post_provider_revalidation_collapses_conflict_to_generic_stale(
         expected_revision_version=1,
     )
 
+    proposal_work, verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-3-revalidation-v2",
+    )
     winner_plan, _, _ = _plan(graph)
     winner = orchestrate_governed_eligibility(
         db_session,
