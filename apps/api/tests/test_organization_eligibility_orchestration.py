@@ -285,6 +285,32 @@ def test_g4_fresh_execution_rejects_completed_proposal_work_before_provider(
     assert verifier.calls == []
 
 
+def test_g4_rejects_nonqueued_verification_work_before_producer_egress(
+    db_session: Session,
+) -> None:
+    _, _, graph, proposal_work, verification_work = _fixture(db_session)
+    verification_work.status = "completed"
+    db_session.add(verification_work)
+    db_session.commit()
+
+    plan, producer, verifier = _plan(graph)
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="requires a queued verification WorkItem",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="g4-terminal-verifier-work",
+            execution_plan=plan,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+
+
 def test_g4_post_commit_retry_resolves_durable_effect_without_model_calls(db_session: Session) -> None:
     _, _, graph, proposal_work, verification_work = _fixture(db_session)
     plan, producer, verifier = _plan(graph)
