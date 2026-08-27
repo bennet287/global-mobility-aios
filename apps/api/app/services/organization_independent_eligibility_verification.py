@@ -354,13 +354,22 @@ def resolve_independent_eligibility_verifier_execution(
     exact ContextBundle/runtime binding that the verifier actually consumes.
     """
 
-    fresh_readiness, context, binding = resolve_independent_eligibility_verifier_execution(
+    fresh_readiness = _fresh_readiness(
         session,
         proposal=proposal,
         readiness=readiness,
+    )
+    context = _verifier_context(
+        session,
+        proposal=proposal,
         verification_work_item_id=verification_work_item_id,
         verifier_position_key=verifier_position_key,
-        verifier_runtime_profile=verifier_runtime_profile,
+    )
+    binding = _verifier_binding(
+        session,
+        proposal=proposal,
+        context=context,
+        runtime_profile=verifier_runtime_profile,
     )
     return fresh_readiness, context, binding
 
@@ -673,22 +682,13 @@ def verify_eligibility_proposal_independently(
     only after the verifier responds.
     """
 
-    fresh_readiness = _fresh_readiness(
+    fresh_readiness, context, binding = resolve_independent_eligibility_verifier_execution(
         session,
         proposal=proposal,
         readiness=readiness,
-    )
-    context = _verifier_context(
-        session,
-        proposal=proposal,
         verification_work_item_id=verification_work_item_id,
         verifier_position_key=verifier_position_key,
-    )
-    binding = _verifier_binding(
-        session,
-        proposal=proposal,
-        context=context,
-        runtime_profile=verifier_runtime_profile,
+        verifier_runtime_profile=verifier_runtime_profile,
     )
     if provider.name != binding.provider_key:
         raise IndependentEligibilityVerificationRuntimeError(
