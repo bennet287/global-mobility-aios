@@ -315,6 +315,34 @@ def _require_executable_proposal_work(
     )
 
 
+def _require_fresh_verification_work(
+    session: Session,
+    *,
+    tenant_key: str,
+    work_item_id: UUID,
+    verifier_position_key: str,
+) -> OrganizationalWorkItem:
+    work = session.exec(
+        select(OrganizationalWorkItem).where(
+            OrganizationalWorkItem.id == work_item_id,
+            OrganizationalWorkItem.tenant_key == tenant_key,
+        )
+    ).first()
+    if work is None:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "verification WorkItem is unavailable in the supplied tenant"
+        )
+    if work.assigned_position_key != verifier_position_key:
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "verification WorkItem is not assigned to the configured verifier position"
+        )
+    if work.status != "queued":
+        raise GovernedEligibilityOrchestrationIntegrityError(
+            "fresh governed eligibility execution requires a queued verification WorkItem"
+        )
+    return work
+
+
 def _raise_attributed_revision_conflict(
     session: Session,
     *,
@@ -447,6 +475,12 @@ def orchestrate_governed_eligibility(
     _require_executable_proposal_work(
         session,
         work=proposal_work,
+    )
+    _require_fresh_verification_work(
+        session,
+        tenant_key=tenant,
+        work_item_id=verification_work_item_id,
+        verifier_position_key=execution_plan.verifier_position_key,
     )
 
     # Resolve the deterministic G.5 precondition before opening a runtime session.
