@@ -208,6 +208,80 @@ def test_h2_2_producer_runtime_failure_is_attributed_to_trusted_execution_plan(
     ).state is EligibilityCircuitState.CLOSED
 
 
+def test_g4_retries_same_work_only_after_durable_fenced_failure(
+    db_session: Session,
+) -> None:
+    _, _, graph, proposal_work, verification_work = _fixture(db_session)
+    failing_plan, _, _ = _plan(graph)
+    failing = _FailingProvider(
+        name=failing_plan.producer_runtime_profile.provider_key,
+        model=failing_plan.producer_runtime_profile.model_key or "",
+    )
+    failing_plan = replace(failing_plan, producer_provider=failing)
+
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="proposal runtime failed",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="g4-fenced-retry-failure",
+            execution_plan=failing_plan,
+        )
+
+    retry_plan, retry_producer, retry_verifier = _plan(graph)
+    retried = orchestrate_governed_eligibility(
+        db_session,
+        tenant_key="tenant-a",
+        proposal_work_item_id=proposal_work.id,
+        verification_work_item_id=verification_work.id,
+        idempotency_key="g4-fenced-retry-success",
+        execution_plan=retry_plan,
+    )
+
+    assert retried.canonical_effect_committed is True
+    assert len(retry_producer.calls) == 1
+    assert len(retry_verifier.calls) == 1
+    attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt)
+            .where(OrganizationExecutionAttempt.work_item_id == proposal_work.id)
+            .order_by(OrganizationExecutionAttempt.attempt_number)
+        ).all()
+    )
+    assert [attempt.attempt_number for attempt in attempts] == [1, 2]
+    assert [attempt.status for attempt in attempts] == ["failed", "completed"]
+    first_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id == attempts[0].id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    second_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id == attempts[1].id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in first_events] == [
+        "attempt_started",
+        "runtime_session_failed",
+    ]
+    assert [event.checkpoint for event in second_events] == [
+        "attempt_started",
+        "agent_completed",
+    ]
+
+
 def test_h2_2_verifier_runtime_failure_is_attributed_and_proposal_linked(
     db_session: Session,
 ) -> None:
