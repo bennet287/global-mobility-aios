@@ -32,7 +32,11 @@ from app.services.organization_eligibility_revision_runtime_race import (
     record_attributed_eligibility_revision_runtime_race,
 )
 from app.services.organization_transparency import transparency_activity_record
-from tests.test_organization_eligibility_orchestration import _fixture, _plan
+from tests.test_organization_eligibility_orchestration import (
+    _fixture,
+    _fresh_work_pair,
+    _plan,
+)
 
 
 def _activity(
@@ -82,12 +86,18 @@ def _commit_v1(session: Session):
     )
     assert first.state is GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED
     assert first.revision_id is not None
+    next_work, next_verification_work = _fresh_work_pair(
+        session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-4-next-after-v1",
+    )
     aggregate = eligibility_aggregate_key(
         tenant_key="tenant-a",
         lead_id=lead.id,
         pathway_id=graph["pathway"].id,
     )
-    return lead, graph, proposal_work, verification_work, first, aggregate
+    return lead, graph, next_work, next_verification_work, first, aggregate
 
 
 def _commit_v1_v2(session: Session):
@@ -104,7 +114,13 @@ def _commit_v1_v2(session: Session):
     )
     assert second.state is GovernedEligibilityOrchestrationState.CANONICAL_EFFECT_COMMITTED
     assert second.revision_id is not None
-    return lead, graph, proposal_work, verification_work, first, second, aggregate
+    next_work, next_verification_work = _fresh_work_pair(
+        session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-4-next-after-v2",
+    )
+    return lead, graph, next_work, next_verification_work, first, second, aggregate
 
 
 def _race_snapshot(
@@ -137,13 +153,20 @@ def test_h2_4_revision_advance_during_producer_runtime_is_attributed_before_veri
     stale_plan, stale_producer, stale_verifier = _plan(graph)
     winner: dict[str, object] = {}
 
+    winner_work, winner_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-4-runtime-winner-v2",
+    )
+
     def commit_winner() -> None:
         winner_plan, _, _ = _plan(graph)
         result = orchestrate_governed_eligibility(
             db_session,
             tenant_key="tenant-a",
-            proposal_work_item_id=proposal_work.id,
-            verification_work_item_id=verification_work.id,
+            proposal_work_item_id=winner_work.id,
+            verification_work_item_id=winner_verification_work.id,
             idempotency_key="h2-4-runtime-winner-v2",
             execution_plan=winner_plan,
             expected_eligibility_revision_version=1,
@@ -247,13 +270,20 @@ def test_h2_4_concurrent_initial_creation_is_not_runtime_race_attribution(
     lead, _, graph, proposal_work, verification_work = _fixture(db_session)
     stale_plan, stale_producer, stale_verifier = _plan(graph)
 
+    winner_work, winner_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-4-initial-winner",
+    )
+
     def commit_initial_winner() -> None:
         winner_plan, _, _ = _plan(graph)
         winner = orchestrate_governed_eligibility(
             db_session,
             tenant_key="tenant-a",
-            proposal_work_item_id=proposal_work.id,
-            verification_work_item_id=verification_work.id,
+            proposal_work_item_id=winner_work.id,
+            verification_work_item_id=winner_verification_work.id,
             idempotency_key="h2-4-initial-winner",
             execution_plan=winner_plan,
         )
@@ -444,14 +474,21 @@ def test_h2_4_postgres_cross_session_revision_advances_during_producer_runtime(
     stale_plan, stale_producer, stale_verifier = _plan(graph)
     winner: dict[str, object] = {}
 
+    winner_work, winner_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="h2-4-postgres-winner-v2",
+    )
+
     def commit_winner_cross_session() -> None:
         with Session(engine) as winner_session:
             winner_plan, _, _ = _plan(graph)
             result = orchestrate_governed_eligibility(
                 winner_session,
                 tenant_key="tenant-a",
-                proposal_work_item_id=proposal_work.id,
-                verification_work_item_id=verification_work.id,
+                proposal_work_item_id=winner_work.id,
+                verification_work_item_id=winner_verification_work.id,
                 idempotency_key="h2-4-postgres-winner-v2",
                 execution_plan=winner_plan,
                 expected_eligibility_revision_version=1,
