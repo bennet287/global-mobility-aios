@@ -100,6 +100,13 @@ def test_fenced_g1_runtime_binds_token_to_consumed_verifier_context(
             "attempt_number": attempt.attempt_number,
             "context_hash": wrapped.result.verifier_context.context_hash,
             "runtime_binding_hash": wrapped.result.verifier_runtime_binding.binding_hash,
+            "proposal_trace_id": proposal.evaluation.trace_id,
+            "proposal_activity_id": proposal.attempt_activity.id,
+            "proposal_intent_fingerprint": proposal.intent_fingerprint,
+            "readiness_fingerprint": readiness.readiness_fingerprint,
+            "verification_idempotency_fingerprint": canonical_fingerprint(
+                {"idempotency_key": "g1-fenced-success"}
+            ),
         }
     )
     assert expected_token == wrapped.execution_token

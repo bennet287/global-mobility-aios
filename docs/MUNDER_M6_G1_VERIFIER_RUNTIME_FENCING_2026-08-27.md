@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 
-Status: BOUNDED IMPLEMENTATION / PROOF PENDING
+Status: LOCAL TECHNICAL PROOF PASS AT `b21e916ee9a6dcea0ca07b50cb9f6099791402fa` / FOLLOW-UP ACTIVE
 
 ## Purpose
 
@@ -81,8 +81,13 @@ It does not:
 ## Deliberate boundary
 
 This slice accepts only a fresh queued G.1 verification WorkItem. A failed verifier
-attempt is durably fenced, but same-WorkItem retry/takeover/resume is intentionally not
-introduced here. Eligibility takeover/resume remains a separate bounded M6 follow-up.
+attempt is durably fenced, but same-WorkItem retry/takeover/resume was intentionally not
+introduced in PR #28.
+
+The later takeover/resume follow-up preserves this historical boundary while adding a
+new explicit entry point for an interrupted still-running attempt. It also stages G.1
+verification lineage until terminal fence ownership and WorkItem completion commit
+atomically. Terminal failed-attempt retry remains outside this contract.
 
 No migration or second runtime-state model is introduced.
 

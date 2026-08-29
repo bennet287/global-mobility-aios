@@ -591,6 +591,7 @@ def _persist_verification(
     idempotency_key: str,
     provider: str,
     model: str,
+    commit: bool,
 ) -> OrganizationActivity:
     command_context = system_bound_agent_command_context(
         tenant_key=verifier_context.tenant_key,
@@ -657,8 +658,11 @@ def _persist_verification(
             "canonical_commit_allowed": False,
         },
     )
-    session.commit()
-    session.refresh(activity)
+    if commit:
+        session.commit()
+        session.refresh(activity)
+    else:
+        session.flush()
     return activity
 
 
@@ -672,6 +676,7 @@ def verify_eligibility_proposal_independently(
     verifier_runtime_profile: AgentRuntimeProfile,
     provider: LLMProvider,
     idempotency_key: str,
+    commit_verification: bool = True,
 ) -> GovernedIndependentEligibilityVerificationResult:
     """Run G.1 blind independent verification without authorizing eligibility mutation.
 
@@ -680,6 +685,10 @@ def verify_eligibility_proposal_independently(
     verifier sees the governed case/pathway Evidence and rules but never receives the
     proposing model's conclusion, rationale, or confidence. AIOS compares conclusions
     only after the verifier responds.
+
+    ``commit_verification=False`` is reserved for the fenced runtime envelope. It stages
+    verification lineage so the same transaction can prove the current runtime fence,
+    append terminal execution provenance, and complete the WorkItem atomically.
     """
 
     fresh_readiness, context, binding = resolve_independent_eligibility_verifier_execution(
@@ -820,6 +829,7 @@ def verify_eligibility_proposal_independently(
         idempotency_key=idempotency_key,
         provider=response.provider,
         model=response.model,
+        commit=commit_verification,
     )
 
     # Existing transparency read should immediately expose the durable verifier event.
