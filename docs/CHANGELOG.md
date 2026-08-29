@@ -22,6 +22,62 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-29 — PR #28 EXACT-CANDIDATE LOCAL PROOF RECONCILIATION
+
+### Status
+
+**LOCAL TECHNICAL PROOF PASS AT `b21e916ee9a6dcea0ca07b50cb9f6099791402fa` — TRACK B / MUNDER M6 REMAINS PARTIAL**
+
+The repaired PR #28 candidate completed the canonical local production-proof-equivalent sequence with a clean exact-head worktree and matching remote branch SHA:
+
+```text
+Python dependency check                              PASS
+Python compilation                                   PASS
+fresh SQLite migration                               PASS at 0082
+regression-repair focus                              7 passed / 0 failed
+PR #28 focused SQLite                               22 passed / 0 failed
+full backend SQLite                               1339 passed / 27 skipped / 0 failed
+SQLite migration + local schema                      PASS
+frontend design foundation                          36 passed / 0 failed
+frontend request/auth                                4 passed / 0 failed
+TypeScript + Next.js production build                PASS
+compiled client auth                                 PASS
+Chromium Playwright E2E                               5 passed / 0 failed
+fresh PostgreSQL 16 migration + physical schema      PASS at 0082 / 125 tables
+PostgreSQL governance/runtime                      112 passed / 0 failed
+repository policy                                    PASS
+release consistency                                  PASS
+Python dependency constraints                        PASS
+diff hygiene + git diff check                        PASS
+final worktree / local SHA / remote SHA               CLEAN / EXACT
+```
+
+This proves that the six predecessor failures were stale regression contracts rather than production fencing defects. The fixed tests preserve the implemented boundaries:
+
+- migration and architecture assertions recognize `0082_organization_execution_heartbeat_lease`;
+- each new G.5 reassessment uses fresh proposal and verifier WorkItems;
+- exact historical replay continues to resolve through its original WorkItem pair and idempotency key;
+- the stale reassessment path reaches revision-precondition conflict before provider execution;
+- G.1 blind-review, independence, truth, authorization and fresh-fence semantics remain unchanged.
+
+Non-blocking diagnostics remained limited to the existing Pydantic protected-namespace warning and Node's typeless-package warning; dependency audits reported zero vulnerabilities.
+
+Fallback GitHub Actions did not run repository steps on this candidate:
+
+```text
+V12 Production Proof       33248446280 / run #594 — attempts 1 and 2 failed before runner allocation
+Repository Policy Check    33248446278 / run #289 — attempts 1 and 2 failed before runner allocation
+job steps                  null
+```
+
+Those workflow labels are infrastructure evidence only. They neither negate the observed local proof nor establish remote CI PASS.
+
+PR #28's implemented G.1 slice is locally proof-green, but Munder M6 remains **PARTIAL**. This proof does not add verifier takeover/resume, grant authority or autonomy, authorize external action, modify canonical truth, complete M6, seal a broader milestone, or change V11.
+
+This documentation-only reconciliation follows the tested candidate. Under the exact-head rule, the full proof remains attributed to `b21e916...` and is not silently inherited by the later documentation commit.
+
+---
+
 ## 2026-08-29 — PR #28 BROADER REGRESSION CONTRACT REPAIR
 
 ### Status
