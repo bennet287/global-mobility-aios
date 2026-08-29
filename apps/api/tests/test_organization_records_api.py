@@ -754,8 +754,9 @@ def test_openapi_and_phase_architecture_boundaries() -> None:
     assert "0079_capability_autonomy_evidence_profile_foundation.py" in migration_names
     assert "0080_capability_autonomy_promotion_policy_foundation.py" in migration_names
     assert "0081_capability_autonomy_evidence_evaluation_policy.py" in migration_names
+    assert "0082_organization_execution_heartbeat_lease.py" in migration_names
     assert not any(
-        name[:4].isdigit() and int(name[:4]) > 81
+        name[:4].isdigit() and int(name[:4]) > 82
         for name in migration_names
     )
     migration_text = (repo_root / "apps/api/alembic/versions/0074_durable_contribution_activity_model.py").read_text(encoding="utf-8")

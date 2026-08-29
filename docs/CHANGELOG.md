@@ -22,6 +22,43 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-29 — PR #28 BROADER REGRESSION CONTRACT REPAIR
+
+### Status
+
+**IMPLEMENTED / EXACT-HEAD PROOF PENDING — TRACK B / MUNDER M6 REMAINS PARTIAL**
+
+Broader local proof on predecessor `b773ccf9dd8d8d6256b6eda98ef520ebdc4f73ce` established:
+
+```text
+focused SQLite verifier/orchestration/runtime-health  22 passed / 0 failed
+full backend SQLite                                  1333 passed / 27 skipped / 6 failed
+frontend design foundation                          36 passed / 0 failed
+frontend request/auth                                4 passed / 0 failed
+Next.js production build                             PASS
+compiled client auth                                 PASS
+Chromium Playwright E2E                              5 passed / 0 failed
+PostgreSQL 16 migration + physical schema            PASS at 0082 / 125 tables
+```
+
+The six SQLite failures shared two stale-test causes:
+
+- migration/schema boundary tests still expected `0081_capability_autonomy_evidence_evaluation_policy` even though the stacked runtime-fencing line correctly introduced `0082_organization_execution_heartbeat_lease`;
+- four G.5 reassessment contracts reused completed proposal and verification WorkItems for new idempotency keys, conflicting with G.4/G.1's fresh-WorkItem execution fencing.
+
+Delivered repair:
+
+- the fresh-database migration assertion and architecture boundary now recognize exact head `0082`;
+- every new G.5 reassessment execution receives a fresh proposal/verifier WorkItem pair;
+- historical exact replay continues to use the original WorkItem pair and idempotency key;
+- the stale-reassessment check now reaches the revision-precondition boundary using a fresh pair.
+
+This is a regression-proof alignment only. It changes no production service logic, database migration, authority, autonomy, Evidence/canonical-truth semantics, external-action permission, or V11 history.
+
+Exact-head full SQLite, PostgreSQL governance/runtime, repository hygiene, and remote CI proof remain pending. No PR #28 PASS or M6 completion is claimed by this entry.
+
+---
+
 ## 2026-08-25 — V12.28 REPOSITORY-TRUTH / L ACCEPTANCE & CI RECONCILIATION
 
 ### Status

@@ -349,6 +349,14 @@ Repository Policy Check    32795279598 — FAILURE, no executed job steps
 
 Those GitHub Actions runs are **runner/infrastructure startup evidence, not repository-test evidence**. They neither prove nor disprove the corresponding repository heads. Because source changes occurred after `34597abf...`, the #77 green checkpoint must not be relabeled as current-head proof. This proof-order correction advances the branch again, so exact-head proof remains pending after this documentation-only change.
 
+#### Supporting Track B / Munder M6 proof repair — 2026-08-29
+
+PR #28 remains **SUPPORTING PARALLEL / M6 PARTIAL**. On predecessor `b773ccf9dd8d8d6256b6eda98ef520ebdc4f73ce`, focused SQLite proof passed (22 tests), frontend contract/build and Chromium E2E proof passed, and the PostgreSQL 16 migration/physical-schema check passed. The broader SQLite run reached **1333 passed / 27 skipped / 6 failed**.
+
+All six failures were regression-contract drift around already-present stack boundaries: two tests still asserted migration head `0081` although the stack owns `0082_organization_execution_heartbeat_lease`, and four G.5 reassessment tests reused terminal proposal/verifier WorkItems despite G.4/G.1 fresh-WorkItem fencing. The repair aligns those tests with the accepted stack contract; it changes no production runtime, schema, authority, autonomy, canonical truth, or V11 state.
+
+Exact-head broader SQLite and workflow-equivalent PostgreSQL governance/runtime proof remain pending after the repair commit. No PR #28 PASS or M6 completion is claimed yet.
+
 #### L REQUIRED ENABLEMENT
 
 Current status of the acceptance capabilities:
