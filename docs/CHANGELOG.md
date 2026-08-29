@@ -22,6 +22,49 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-29 — V12.29 HY4 PREVIEW FRONTEND-DEVELOPMENT RADAR ENTRY
+
+### Status
+
+**DOCUMENTATION / TECHNOLOGY EVALUATION CLASSIFICATION — NO PRODUCT OR RUNTIME ADOPTION**
+
+The active Technology Radar advances from V1.3.2 to V1.3.3 and records Tencent Hy4 Preview as:
+
+```text
+RESEARCH → BOUNDED PILOT
+developer tooling only
+sanitized frontend-development comparison
+not a production AIOS runtime
+not an L dependency
+not a Milestone M start
+authority effect = none
+```
+
+### Evidence posture
+
+The entry records the official Apache-2.0 release posture, 770B/49B MoE architecture, 1M context, vendor-reported frontend/software-engineering strengths, preview limitations and eight-GPU FP8 serving profile. These are discovery facts, not AIOS acceptance evidence.
+
+The first permitted comparison is bounded to an existing L/UX2 frontend surface and must evaluate truth-boundary preservation, information hierarchy, full operational states, accessibility, responsive behavior, maintainability, tests/types/build/browser proof, latency, cost and manual correction burden.
+
+Hosted evaluation must use sanitized repository context and representative non-personal fixtures. Credentials, real mobility cases, private Evidence, personal data and unrestricted private-repository content are outside the pilot.
+
+### Explicit non-claims
+
+This documentation change does **not**:
+
+- add a provider adapter or Model Router entry;
+- change the current DeepSeek/Moonshot/Gemini governed-provider configuration;
+- self-host or deploy Hy4 Preview;
+- accept vendor benchmarks as project proof;
+- change canonical truth, authority, autonomy or risk;
+- seal Milestone L;
+- start Milestone M;
+- claim current-head production proof.
+
+`ROADMAP.md` remains the scheduling authority. L Live Organization remains **IMPLEMENTED / ACCEPTANCE PENDING**.
+
+---
+
 ## 2026-08-25 — V12.28 REPOSITORY-TRUTH / L ACCEPTANCE & CI RECONCILIATION
 
 ### Status

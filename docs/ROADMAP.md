@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.28.1 — repository-truth proof-order correction; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
-**Date:** 2026-08-25
+**Roadmap generation:** V12.29 — Hy4 Preview frontend-development pilot classification; no product/runtime adoption; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Date:** 2026-08-29
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
@@ -11,7 +11,7 @@
 **Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
 **Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
-**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_2.md`
+**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_3.md`
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
@@ -519,6 +519,7 @@ Examples:
 - ERPNext/Odoo remain deferred because ERP is not on the current product dependency path;
 - LLMLingua-2 remains a selected context-compression pilot but advances only when a measured context/runtime need warrants it;
 - Promptfoo remains useful evaluation infrastructure but does not become a milestone by itself;
+- Hy4 Preview is a `RESEARCH → BOUNDED PILOT` developer-tooling candidate for sanitized comparison on an existing L/UX2 frontend surface; it is not a production AIOS runtime, an L dependency or permission to start M;
 - a new generic agent framework remains rejected by default unless a measured gap cannot be solved cleanly with current runtime contracts.
 
 ---
@@ -595,7 +596,7 @@ canonical product need
 
 Preferred tooling may change without changing the product requirement.
 
-Penpot, Storybook or future design tools can improve execution, but no tool is constitutional product authority.
+Penpot, Storybook, Hy4 Preview or future design/development tools can improve execution, but no tool or model is constitutional product authority. Any hosted-model frontend pilot must use sanitized context and remain subject to the existing truth, privacy, accessibility, build and browser-proof gates.
 
 Next.js/React remains production frontend authority until explicitly changed through the same necessity-driven process.
 
