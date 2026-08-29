@@ -374,6 +374,21 @@ Fallback GitHub Actions runs attached to `b21e916...` did not execute repository
 
 The G.1 slice is therefore **LOCAL TECHNICAL PROOF PASS**, while M6 remains partial and no broader milestone completion, authority expansion, autonomy change, external-action permission, or V11 change is claimed. This later documentation-only reconciliation records proof for `b21e916...`; it does not transfer that full proof to the documentation commit.
 
+A stacked follow-up now implements the next bounded eligibility takeover/resume target.
+Its v2 token binds the exact proposal/readiness/idempotency identity in addition to the
+G.1 ContextBundle and runtime binding. Independent-verification Activity is staged until
+the same transaction proves the current fence, appends `agent_completed`, completes the
+attempt and completes the WorkItem. A stale worker that has been superseded cannot commit
+late verification lineage. A takeover worker must name the exact running attempt/token
+and observed prior fence, prove the lease expired, revalidate the same G.1 basis and
+advance the fencing generation before re-executing that same attempt.
+
+This follow-up is **IMPLEMENTED / EXACT-HEAD PROOF PENDING**. It adds no migration,
+parallel runtime-state model, authority/autonomy expansion, canonical eligibility effect
+or external action. M6 remains partial; after this slice is proven, the next bounded M6
+target remains one additional real organization-worker adoption.
+
+
 #### L REQUIRED ENABLEMENT
 
 Current status of the acceptance capabilities:

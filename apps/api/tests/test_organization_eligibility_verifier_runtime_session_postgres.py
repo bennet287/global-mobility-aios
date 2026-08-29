@@ -11,12 +11,17 @@ from app.models.organization_presence import OrganizationExecutionHeartbeat
 from app.services.organization_eligibility_verifier_runtime_session import (
     DEFAULT_ELIGIBILITY_VERIFIER_RUNTIME_WRITER,
     execute_fenced_independent_eligibility_verification,
+    resume_fenced_independent_eligibility_verification_with_takeover,
 )
 from tests.test_organization_independent_eligibility_verification import (
     FakeProvider,
     _setup,
     _verifier_output,
     _verifier_runtime,
+)
+from tests.test_organization_eligibility_verifier_takeover_resume import (
+    _expire_current_lease,
+    _interrupted_attempt,
 )
 
 
@@ -80,4 +85,66 @@ def test_postgres_fenced_g1_runtime_renews_active_verifier_lease(
     assert all(
         event.writer == DEFAULT_ELIGIBILITY_VERIFIER_RUNTIME_WRITER
         for event in events
+    )
+
+
+def test_postgres_g1_takeover_renews_new_fenced_session(
+    db_session: Session,
+) -> None:
+    idempotency_key = "g1-postgres-takeover-renewal"
+    proposal, readiness, graph, work, runtime_profile, attempt = _interrupted_attempt(
+        db_session,
+        idempotency_key=idempotency_key,
+    )
+    _expire_current_lease(db_session, attempt.id)
+
+    wrapped = resume_fenced_independent_eligibility_verification_with_takeover(
+        db_session,
+        proposal=proposal,
+        readiness=readiness,
+        verification_work_item_id=work.id,
+        verifier_position_key="austria_independent_verifier",
+        verifier_runtime_profile=runtime_profile,
+        provider=FakeProvider(
+            name="openai",
+            model="gpt-verifier",
+            content=_verifier_output(graph),
+            on_complete=lambda: time.sleep(0.08),
+        ),
+        idempotency_key=idempotency_key,
+        execution_attempt_id=attempt.id,
+        expected_execution_token=attempt.execution_token,
+        expected_previous_fence_token=1,
+        actor="g1-postgres-takeover-worker",
+        lease_seconds=15,
+        renewal_interval_seconds=0.01,
+    )
+
+    assert wrapped.takeover_resume is True
+    assert wrapped.previous_fence_token == 1
+    assert wrapped.fence_token == 2
+    assert wrapped.renewal_count >= 1
+    assert wrapped.execution_attempt_id == attempt.id
+
+    completed_work = db_session.get(OrganizationalWorkItem, work.id)
+    assert completed_work is not None
+    assert completed_work.status == "completed"
+    assert completed_work.execution_attempts == 1
+
+    events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(OrganizationExecutionHeartbeat.execution_attempt_id == attempt.id)
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    checkpoints = [event.checkpoint for event in events]
+    assert checkpoints[0] == "attempt_started"
+    assert checkpoints[1] == "runtime_session_claimed"
+    assert "runtime_session_renewed" in checkpoints
+    assert checkpoints[-1] == "agent_completed"
+    assert events[0].writer == "g1-worker-a"
+    assert all(
+        event.writer == "g1-postgres-takeover-worker"
+        for event in events[1:]
     )

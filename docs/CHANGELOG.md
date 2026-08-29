@@ -22,6 +22,42 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-29 — G.1 VERIFIER TAKEOVER / ATOMIC FENCED PERSISTENCE
+
+### Status
+
+**IMPLEMENTED / EXACT-HEAD PROOF PENDING — TRACK B / MUNDER M6 REMAINS PARTIAL**
+
+The next bounded M6 slice closes the persistence-order gap left by PR #28 and adds
+same-attempt takeover/resume for an interrupted independent eligibility verifier:
+
+- the G.1 runtime contract advances to v2 and binds proposal trace/activity, intent,
+  readiness, verifier ContextBundle/runtime binding, attempt number and verification
+  idempotency identity into one execution token;
+- fenced runtime callers stage the independent-verification Activity instead of
+  committing it before terminal ownership is known;
+- verification Activity, current-fence `agent_completed`, attempt completion and
+  verification WorkItem completion now commit atomically;
+- a superseded worker therefore rolls back its staged G.1 lineage after another writer
+  claims the stale session;
+- takeover requires the exact running attempt, execution token and observed prior fence,
+  revalidates the current G.1 basis, requires an expired lease, advances the fencing
+  generation and re-executes the same attempt without creating a second attempt;
+- SQLite contracts cover successful same-attempt takeover, fresh-lease refusal,
+  logical-identity drift refusal and stale-writer persistence denial;
+- the existing PostgreSQL governance lane now also proves active renewal and terminal
+  completion under the new takeover fence.
+
+Direct legacy G.1 calls retain their existing immediate-commit behavior. The deferred
+persistence mode is reserved for the fenced runtime envelope.
+
+This slice introduces no migration, new runtime-state table, authority/autonomy change,
+canonical eligibility mutation, external action, M6 completion, broader milestone seal,
+or V11 change. Full exact-head SQLite/PostgreSQL regression, repository gates and remote
+verification remain pending.
+
+---
+
 ## 2026-08-29 — PR #28 EXACT-CANDIDATE LOCAL PROOF RECONCILIATION
 
 ### Status
