@@ -198,3 +198,4 @@ jobs:
           apps/api/tests/test_organization_mobility_live_organization_postgres.py
           apps/api/tests/test_organization_execution_runtime_session_postgres.py
           apps/api/tests/test_organization_execution_failure_finalization_postgres.py
+          apps/api/tests/test_organization_eligibility_verifier_runtime_session_postgres.py

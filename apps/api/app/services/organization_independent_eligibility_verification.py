@@ -333,6 +333,47 @@ def _verifier_binding(
     return binding
 
 
+def resolve_independent_eligibility_verifier_execution(
+    session: Session,
+    *,
+    proposal: GovernedEligibilityTransitionIntentResult,
+    readiness: EligibilityDecisionReadinessResult,
+    verification_work_item_id: UUID,
+    verifier_position_key: str,
+    verifier_runtime_profile: AgentRuntimeProfile,
+) -> tuple[
+    EligibilityDecisionReadinessResult,
+    ContextBundle,
+    EmployeeRuntimeBinding,
+]:
+    """Resolve the exact governed G.1 readiness/context/runtime execution basis.
+
+    The fenced verifier runtime uses this same resolver before and after the
+    verification WorkItem enters its running lifecycle. G.1 itself resolves it again
+    immediately before provider execution, so the execution token can be bound to the
+    exact ContextBundle/runtime binding that the verifier actually consumes.
+    """
+
+    fresh_readiness = _fresh_readiness(
+        session,
+        proposal=proposal,
+        readiness=readiness,
+    )
+    context = _verifier_context(
+        session,
+        proposal=proposal,
+        verification_work_item_id=verification_work_item_id,
+        verifier_position_key=verifier_position_key,
+    )
+    binding = _verifier_binding(
+        session,
+        proposal=proposal,
+        context=context,
+        runtime_profile=verifier_runtime_profile,
+    )
+    return fresh_readiness, context, binding
+
+
 def _case_payload(
     session: Session,
     *,
@@ -641,22 +682,13 @@ def verify_eligibility_proposal_independently(
     only after the verifier responds.
     """
 
-    fresh_readiness = _fresh_readiness(
+    fresh_readiness, context, binding = resolve_independent_eligibility_verifier_execution(
         session,
         proposal=proposal,
         readiness=readiness,
-    )
-    context = _verifier_context(
-        session,
-        proposal=proposal,
         verification_work_item_id=verification_work_item_id,
         verifier_position_key=verifier_position_key,
-    )
-    binding = _verifier_binding(
-        session,
-        proposal=proposal,
-        context=context,
-        runtime_profile=verifier_runtime_profile,
+        verifier_runtime_profile=verifier_runtime_profile,
     )
     if provider.name != binding.provider_key:
         raise IndependentEligibilityVerificationRuntimeError(

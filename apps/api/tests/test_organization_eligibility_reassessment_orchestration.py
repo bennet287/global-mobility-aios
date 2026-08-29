@@ -18,6 +18,7 @@ from app.services.organization_eligibility_orchestration import (
 from app.services.organization_governance_kernel import GatewayOutcome
 from tests.test_organization_eligibility_orchestration import (
     _fixture,
+    _fresh_work_pair,
     _human_context,
     _plan,
 )
@@ -54,10 +55,16 @@ def test_g5_g4_orchestrates_explicit_v1_to_v2_supersession(db_session: Session) 
         key="g5-g4-v1",
         plan=plan,
     )
+    second_proposal_work, second_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="g5-g4-v2",
+    )
     second = _run(
         db_session,
-        proposal_work_item_id=proposal_work.id,
-        verification_work_item_id=verification_work.id,
+        proposal_work_item_id=second_proposal_work.id,
+        verification_work_item_id=second_verification_work.id,
         key="g5-g4-v2",
         plan=plan,
         expected_revision=1,
@@ -105,10 +112,16 @@ def test_g5_g4_historical_v1_replay_after_v2_skips_models(db_session: Session) -
         key="g5-g4-history-v1",
         plan=plan,
     )
+    second_proposal_work, second_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="g5-g4-history-v2",
+    )
     _run(
         db_session,
-        proposal_work_item_id=proposal_work.id,
-        verification_work_item_id=verification_work.id,
+        proposal_work_item_id=second_proposal_work.id,
+        verification_work_item_id=second_verification_work.id,
         key="g5-g4-history-v2",
         plan=plan,
         expected_revision=1,
@@ -174,10 +187,16 @@ def test_g5_g4_stale_new_reassessment_fails_before_models(db_session: Session) -
         key="g5-g4-stale-v1",
         plan=plan,
     )
+    second_proposal_work, second_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="g5-g4-stale-v2",
+    )
     _run(
         db_session,
-        proposal_work_item_id=proposal_work.id,
-        verification_work_item_id=verification_work.id,
+        proposal_work_item_id=second_proposal_work.id,
+        verification_work_item_id=second_verification_work.id,
         key="g5-g4-stale-v2",
         plan=plan,
         expected_revision=1,
@@ -185,14 +204,20 @@ def test_g5_g4_stale_new_reassessment_fails_before_models(db_session: Session) -
     producer.calls.clear()
     verifier.calls.clear()
 
+    stale_proposal_work, stale_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="g5-g4-stale-v3-attempt",
+    )
     with pytest.raises(
         GovernedEligibilityOrchestrationIntegrityError,
         match="revision precondition conflicted",
     ):
         _run(
             db_session,
-            proposal_work_item_id=proposal_work.id,
-            verification_work_item_id=verification_work.id,
+            proposal_work_item_id=stale_proposal_work.id,
+            verification_work_item_id=stale_verification_work.id,
             key="g5-g4-stale-v3-attempt",
             plan=plan,
             expected_revision=1,
@@ -208,6 +233,12 @@ def test_g5_http_explicit_revision_precondition_drives_v2(
 ) -> None:
     _, _, graph, proposal_work, verification_work = _fixture(db_session)
     plan, _, _ = _plan(graph)
+    second_proposal_work, second_verification_work = _fresh_work_pair(
+        db_session,
+        graph=graph,
+        source_work=proposal_work,
+        suffix="g5-http-v2",
+    )
     app.dependency_overrides[governed_eligibility_execution_plan] = lambda: plan
     app.dependency_overrides[organization_command_context] = lambda: _human_context()
     try:
@@ -222,8 +253,8 @@ def test_g5_http_explicit_revision_precondition_drives_v2(
         second = client.post(
             "/api/v1/organization/eligibility/orchestrate",
             json={
-                "proposal_work_item_id": str(proposal_work.id),
-                "verification_work_item_id": str(verification_work.id),
+                "proposal_work_item_id": str(second_proposal_work.id),
+                "verification_work_item_id": str(second_verification_work.id),
                 "idempotency_key": "g5-http-v2",
                 "expected_eligibility_revision_version": 1,
             },

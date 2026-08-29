@@ -217,6 +217,32 @@ def test_g4_orchestrates_accepted_vertical_to_first_canonical_effect(db_session:
         "agent_completed",
     ]
 
+    verifier_attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == verification_work.id
+            )
+        ).all()
+    )
+    assert len(verifier_attempts) == 1
+    verifier_attempt = verifier_attempts[0]
+    assert verifier_attempt.status == "completed"
+    assert verifier_attempt.actor == "eligibility-verifier-runtime-worker"
+    verifier_runtime_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id
+                == verifier_attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in verifier_runtime_events] == [
+        "attempt_started",
+        "agent_completed",
+    ]
+
     revision = db_session.get(EligibilityAssessmentRevision, result.revision_id)
     assessment = db_session.get(EligibilityAssessment, result.assessment_id)
     assert revision is not None and assessment is not None
@@ -253,6 +279,32 @@ def test_g4_fresh_execution_rejects_completed_proposal_work_before_provider(
             idempotency_key="g4-terminal-work-fresh-key",
             execution_plan=fresh_plan,
             expected_eligibility_revision_version=1,
+        )
+
+    assert producer.calls == []
+    assert verifier.calls == []
+
+
+def test_g4_rejects_nonqueued_verification_work_before_producer_egress(
+    db_session: Session,
+) -> None:
+    _, _, graph, proposal_work, verification_work = _fixture(db_session)
+    verification_work.status = "completed"
+    db_session.add(verification_work)
+    db_session.commit()
+
+    plan, producer, verifier = _plan(graph)
+    with pytest.raises(
+        GovernedEligibilityOrchestrationIntegrityError,
+        match="requires a queued verification WorkItem",
+    ):
+        orchestrate_governed_eligibility(
+            db_session,
+            tenant_key="tenant-a",
+            proposal_work_item_id=proposal_work.id,
+            verification_work_item_id=verification_work.id,
+            idempotency_key="g4-terminal-verifier-work",
+            execution_plan=plan,
         )
 
     assert producer.calls == []
@@ -297,6 +349,14 @@ def test_g4_post_commit_retry_resolves_durable_effect_without_model_calls(db_ses
         ).all()
     )
     assert len(attempts) == 1
+    verifier_attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == verification_work.id
+            )
+        ).all()
+    )
+    assert len(verifier_attempts) == 1
 
 
 def test_g4_a1_stops_after_verified_floor_without_canonical_effect(db_session: Session) -> None:

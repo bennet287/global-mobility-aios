@@ -315,6 +315,33 @@ def test_h2_2_verifier_runtime_failure_is_attributed_and_proposal_linked(
 
     assert len(producer.calls) == 1
     assert len(failing.calls) == 1
+
+    verifier_attempts = list(
+        db_session.exec(
+            select(OrganizationExecutionAttempt).where(
+                OrganizationExecutionAttempt.work_item_id == verification_work.id
+            )
+        ).all()
+    )
+    assert len(verifier_attempts) == 1
+    verifier_attempt = verifier_attempts[0]
+    assert verifier_attempt.status == "failed"
+    assert verifier_attempt.actor == "eligibility-verifier-runtime-worker"
+    verifier_runtime_events = list(
+        db_session.exec(
+            select(OrganizationExecutionHeartbeat)
+            .where(
+                OrganizationExecutionHeartbeat.execution_attempt_id
+                == verifier_attempt.id
+            )
+            .order_by(OrganizationExecutionHeartbeat.sequence)
+        ).all()
+    )
+    assert [event.checkpoint for event in verifier_runtime_events] == [
+        "attempt_started",
+        "runtime_session_failed",
+    ]
+
     attribution_key = f"immune:eligibility:{aggregate}:runtime-attribution:{incident_key}"
     incident_activity_key = f"immune:eligibility:{aggregate}:incident:{incident_key}"
     attribution = _activity(
