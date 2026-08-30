@@ -7,12 +7,12 @@ any candidate adopted.
 ## Why this exists
 
 The Radar now spans six physical Git branches and ten logical evidence lanes.
-Every generated result contains a `git_sha`. Evidence from one implementation
+Every generated result must contain a `git_sha`. Evidence from one implementation
 head must not be silently combined with results from another head.
 
-`execution_manifest.v2.json` therefore freezes the campaign snapshot. If a lane
-branch changes after the snapshot, either execute the pinned commit in its own
-worktree or deliberately create a new manifest version with the new SHA.
+`execution_manifest.v2.json` freezes the campaign snapshot. If a lane branch
+changes after the snapshot, either execute the pinned commit in its own worktree
+or deliberately create a new manifest version with the new SHA.
 
 ## Frozen physical snapshot
 
@@ -22,7 +22,7 @@ security          radar/r3-security        d908a8c7ccde463ae0dec097211562e7ef8e8
 skills            radar/r3-skills          4791546f5e23acbfc375fd8b0cb142e9f7b445a4
 interoperability  radar/r3-interop-deep    9637854aeb92dba9805fd807bcd4ea4b7d99120e
 infrastructure    radar/r3-infrastructure  654bfdd9816e1fb1242134ed5f6d8f6208a60b07
-runtime           radar/r3-runtime         310eda0d4efe4c01c86e6ee21d9e582dd46fc90f
+runtime           radar/r3-runtime         c50b6f355caeddb299db174dda959a792fea3669
 ```
 
 ## Logical acceptance lanes
@@ -42,10 +42,11 @@ memory
 orchestration
 ```
 
-The manifest further requires meaningful subgroups. Examples: Authority needs
-OpenFGA + OPA + Cedar + SpiceDB evidence; Security needs native state-diff plus
-external framework evidence; Recovery needs both logical restore/replay and
-native WAL-PITR; Orchestration needs native + Temporal + LangGraph + Agno.
+The manifest also requires meaningful subgroups. Authority needs OpenFGA + OPA
++ Cedar + SpiceDB evidence; Security needs native state-diff plus external
+framework evidence; Recovery needs both logical restore/replay and native
+WAL-PITR; Orchestration needs native + Temporal + LangGraph + Agno. Sandbox and
+Skill Registry are first-class gates rather than optional supporting evidence.
 
 ## Recommended worktrees
 
@@ -57,7 +58,7 @@ git worktree add D:\gmai-r3-security d908a8c7ccde463ae0dec097211562e7ef8e86ca
 git worktree add D:\gmai-r3-skills 4791546f5e23acbfc375fd8b0cb142e9f7b445a4
 git worktree add D:\gmai-r3-interop 9637854aeb92dba9805fd807bcd4ea4b7d99120e
 git worktree add D:\gmai-r3-infrastructure 654bfdd9816e1fb1242134ed5f6d8f6208a60b07
-git worktree add D:\gmai-r3-runtime 310eda0d4efe4c01c86e6ee21d9e582dd46fc90f
+git worktree add D:\gmai-r3-runtime c50b6f355caeddb299db174dda959a792fea3669
 ```
 
 Existing worktrees are fine if `git rev-parse HEAD` exactly matches the manifest.
@@ -66,7 +67,7 @@ Existing worktrees are fine if `git rev-parse HEAD` exactly matches the manifest
 
 Place or copy generated result JSON into one campaign evidence directory after
 each real run. Do not edit result JSON by hand. Each result must pass the common
-fingerprint verifier.
+fingerprint verifier and must carry the exact pinned `git_sha`.
 
 Then run:
 
@@ -88,8 +89,8 @@ R4 decision**. It does not mean production adoption.
 
 ## Grand Integration Trial
 
-The current Grand Trial is a ten-lane gate. It explicitly attacks these
-boundaries:
+The current Grand Trial is a ten-lane gate and its own result now records its
+exact runtime `git_sha`. It explicitly attacks these boundaries:
 
 ```text
 MEMORY != VERIFIED RULE
