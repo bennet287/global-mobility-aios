@@ -1,0 +1,53 @@
+services:
+  postgres-pitr-source:
+    image: postgres:16-alpine
+    container_name: gmai-r3-pitr-source
+    environment:
+      POSTGRES_USER: r3
+      POSTGRES_PASSWORD: r3-synthetic-password
+      POSTGRES_DB: r3_pitr
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=test ! -f /wal_archive/%f && cp %p /wal_archive/%f
+      - -c
+      - archive_timeout=1s
+    ports:
+      - "127.0.0.1:15433:5432"
+    volumes:
+      - pitr-source-data:/var/lib/postgresql/data
+      - pitr-wal-archive:/wal_archive
+      - pitr-basebackup:/basebackup
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U r3 -d r3_pitr"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  postgres-pitr-restore:
+    image: postgres:16-alpine
+    container_name: gmai-r3-pitr-restore
+    user: postgres
+    entrypoint: ["/bin/sh", "/restore/start-restore.sh"]
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_USER: r3
+      POSTGRES_PASSWORD: r3-synthetic-password
+    ports:
+      - "127.0.0.1:15434:5432"
+    volumes:
+      - pitr-restore-data:/var/lib/postgresql/data
+      - pitr-wal-archive:/wal_archive:ro
+      - pitr-basebackup:/basebackup:ro
+      - ./recovery/start-restore.sh:/restore/start-restore.sh:ro
+    profiles: ["restore"]
+
+volumes:
+  pitr-source-data:
+  pitr-restore-data:
+  pitr-wal-archive:
+  pitr-basebackup:
