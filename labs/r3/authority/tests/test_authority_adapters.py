@@ -7,12 +7,19 @@ from pathlib import Path
 import httpx
 import pytest
 
-from labs.r3.authority.adapters import OpenFgaAdapter, OpaAdapter
+from labs.r3.authority.adapters import (
+    OpenFgaAdapter,
+    OpaAdapter,
+    evaluate_aios_preflight,
+)
 from labs.r3.authority.benchmark import _percentile as benchmark_percentile
 from labs.r3.authority.run_candidate import _percentile, _run
 from labs.r3.common.generate_fixtures import build_authority_corpus
 from labs.r3.common.harness import evaluate_reference
 from labs.r3.common.verify_results import verify_result
+
+
+OPA_POLICY = Path("labs/r3/authority/opa/authority.rego")
 
 
 def _opa_transport(request: httpx.Request) -> httpx.Response:
@@ -116,7 +123,8 @@ def test_openfga_hard_deny_happens_before_provider_contact() -> None:
         client=client,
     )
     request = copy.deepcopy(build_authority_corpus()["scenarios"][0]["request"])
-    request["context"]["same_tenant"] = False
+    request["resource"]["tenant_id"] = "tenant:beta"
+    request["context"]["same_tenant"] = True
 
     observed = adapter.decide(request)
 
@@ -159,6 +167,76 @@ def test_openfga_agent_cannot_grant_authority_to_itself() -> None:
     assert observed.reason_class == "SELF_ESCALATION"
     assert observed.provider_called is False
     assert calls == 0
+
+
+def test_preflight_ignores_context_attempt_to_remove_canonical_requirements() -> None:
+    request = copy.deepcopy(
+        next(
+            scenario["request"]
+            for scenario in build_authority_corpus()["scenarios"]
+            if scenario["request"]["action"] == "government_application.submit"
+            and scenario["description"].endswith("authorized baseline")
+        )
+    )
+    request["jurisdiction"] = "DE"
+    request["human_approval"] = False
+    request["context"]["required_jurisdiction"] = None
+    request["context"]["human_approval_required"] = False
+    request["context"]["authority_required"] = False
+
+    observed = evaluate_aios_preflight(request)
+
+    assert observed is not None
+    assert observed.decision == "DENY"
+    assert observed.reason_class == "JURISDICTION_MISMATCH"
+
+
+def test_opa_policy_derives_mandatory_requirements_from_canonical_metadata() -> None:
+    policy = OPA_POLICY.read_text(encoding="utf-8")
+
+    assert "canonical_actions :=" in policy
+    assert "input.context.authority_required" not in policy
+    assert "input.context.human_approval_required" not in policy
+    assert "input.context.required_jurisdiction" not in policy
+    assert "input.context.same_tenant" not in policy
+    assert "input.context.known_action" not in policy
+
+
+@pytest.mark.parametrize("adapter_kind", ["opa", "openfga"])
+def test_invalid_json_candidate_response_fails_closed_as_malformed(
+    adapter_kind: str,
+) -> None:
+    client = httpx.Client(
+        base_url="http://candidate.test",
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                content=b"{not-json",
+                headers={"content-type": "application/json"},
+            )
+        ),
+    )
+    if adapter_kind == "opa":
+        adapter = OpaAdapter(base_url="http://candidate.test", client=client)
+    else:
+        adapter = OpenFgaAdapter(
+            base_url="http://candidate.test",
+            store_id="store",
+            authorization_model_id="model",
+            client=client,
+        )
+
+    request = next(
+        scenario["request"]
+        for scenario in build_authority_corpus()["scenarios"]
+        if scenario["request"]["action"] == "government_application.submit"
+        and scenario["description"].endswith("authorized baseline")
+    )
+    observed = adapter.decide(request)
+
+    assert observed.decision == "DENY"
+    assert observed.reason_class == "MALFORMED_RESPONSE"
+    assert observed.provider_called is True
 
 
 def test_malformed_candidate_response_fails_closed() -> None:
@@ -205,6 +283,6 @@ def test_percentile_is_deterministic() -> None:
 def test_all_authority_evidence_artifacts_are_fingerprinted() -> None:
     paths = sorted(Path("labs/r3/authority/results").glob("*.json"))
 
-    assert len(paths) == 7
+    assert len(paths) >= 7
     for path in paths:
         verify_result(path)

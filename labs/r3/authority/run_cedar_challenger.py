@@ -7,13 +7,12 @@ from pathlib import Path
 from typing import Any
 
 from labs.r3.authority.cedar_adapter import run_challenger_corpus
-from labs.r3.common.generate_fixtures import build_authority_corpus
-from labs.r3.common.harness import CONTRACT_VERSION, fingerprint, load_json, summarize_outcomes, validate_run_id
+from labs.r3.common.harness import fingerprint, load_json, summarize_outcomes, validate_run_id
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CORPUS_PATH = ROOT / "common" / "fixtures" / "authority_corpus.v1.json"
-VERSION = "v0.1.0-reference-oracle"
+VERSION = "v4.12.0"
 
 
 HARDCATEGORY_ACTIONS = {
@@ -38,12 +37,16 @@ def _git_sha() -> str:
 
 def _select_hard_scenarios(scenarios: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
-        s
-        for s in scenarios
-        if s["request"]["action"] in HARDCATEGORY_ACTIONS
-        or s["request"].get("context", {}).get("same_tenant") is False
-        or s["request"].get("delegation", {}).get("status") in {"expired", "revoked"}
-        or s["request"].get("context", {}).get("human_approval_required") is True
+        scenario
+        for scenario in scenarios
+        if scenario["request"]["action"] in HARDCATEGORY_ACTIONS
+        or scenario["request"].get("context", {}).get("same_tenant") is False
+        or scenario["request"].get("delegation", {}).get("status")
+        in {"expired", "revoked"}
+        or scenario["request"].get("context", {}).get(
+            "human_approval_required"
+        )
+        is True
     ]
 
 
@@ -54,12 +57,15 @@ def main() -> int:
     parser.add_argument(
         "--use-reference-fallback",
         action="store_true",
-        help="evaluate against the AIOS reference oracle instead of a real Cedar CLI",
+        help=(
+            "diagnostic only: evaluate against the AIOS reference oracle; "
+            "never qualifies as empirical Cedar evidence"
+        ),
     )
     parser.add_argument(
         "--hard-subset-only",
         action="store_true",
-        help="run only the ~30-40 hardest scenarios",
+        help="run the hardest authority scenarios instead of the full corpus",
     )
     args = parser.parse_args()
     validate_run_id(args.run_id)
@@ -82,8 +88,25 @@ def main() -> int:
         outcomes=outcomes,
     )
     result.pop("result_sha256")
-    result["hard_subset_only"] = args.hard_subset_only
-    result["used_reference_fallback"] = args.use_reference_fallback
+
+    fallback_count = sum(
+        1 for outcome in outcomes if outcome["used_reference_fallback"]
+    )
+    provider_calls = sum(1 for outcome in outcomes if outcome["provider_called"])
+    real_execution_count = provider_calls - fallback_count
+
+    result.update(
+        {
+            "hard_subset_only": args.hard_subset_only,
+            "provider_calls": provider_calls,
+            "reference_fallback_count": fallback_count,
+            "real_cedar_execution_count": real_execution_count,
+            "used_reference_fallback": fallback_count > 0,
+        }
+    )
+    if fallback_count or real_execution_count != len(outcomes):
+        result["decision_candidate"] = "CONTINUE_R3_WITH_SPECIFIC_GAP"
+
     result["result_sha256"] = fingerprint(result)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
@@ -94,9 +117,17 @@ def main() -> int:
     print(
         f"cedar challenger: {result['passes']}/{result['scenario_count']} passed; "
         f"failures={result['failures']}; hard_subset={args.hard_subset_only}; "
-        f"fallback={args.use_reference_fallback}; output={args.output}"
+        f"real_executions={real_execution_count}; fallback={fallback_count}; "
+        f"output={args.output}"
     )
-    return 0 if result["failures"] == 0 and result["critical_failures"] == 0 else 1
+
+    qualifies = (
+        result["failures"] == 0
+        and result["critical_failures"] == 0
+        and fallback_count == 0
+        and real_execution_count == len(outcomes)
+    )
+    return 0 if qualifies else 2
 
 
 if __name__ == "__main__":

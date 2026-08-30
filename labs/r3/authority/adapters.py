@@ -40,36 +40,49 @@ class CandidateDecision:
 
 
 def evaluate_aios_preflight(request: dict[str, Any]) -> ReferenceDecision | None:
-    """Return a hard deny, or None when the candidate may be consulted."""
+    """Return a constitutional hard deny, or None when a candidate may be consulted.
+
+    Mandatory action requirements are derived from AIOS-owned CANONICAL_ACTIONS.
+    Caller-controlled context flags may not remove authority, approval, tenant,
+    or jurisdiction requirements.
+    """
 
     actor = request.get("actor") or {}
+    action = request.get("action")
+    canonical = CANONICAL_ACTIONS.get(action)
     context = request.get("context") or {}
+    resource = request.get("resource") or {}
+
     if not actor.get("id"):
         return ReferenceDecision("DENY", "MISSING_ACTOR")
-    if request.get("action") not in ACTION_RELATIONS or not context.get(
-        "known_action", False
-    ):
+    if canonical is None or action not in ACTION_RELATIONS:
         return ReferenceDecision("DENY", "UNKNOWN_ACTION")
-    if not context.get("same_tenant", False):
+
+    tenant_id = request.get("tenant_id")
+    resource_tenant_id = resource.get("tenant_id")
+    if not tenant_id or not resource_tenant_id or tenant_id != resource_tenant_id:
         return ReferenceDecision("DENY", "CROSS_TENANT")
+
     if context.get("self_grant_attempt", False):
         return ReferenceDecision("DENY", "SELF_ESCALATION")
-    if request.get("action") == "authority.grant" and actor.get("id") == request.get(
-        "acting_for"
-    ):
+    if action == "authority.grant" and actor.get("id") == request.get("acting_for"):
         return ReferenceDecision("DENY", "SELF_ESCALATION")
     if not request.get("technical_capability", False):
         return ReferenceDecision("DENY", "CAPABILITY_MISSING")
+
     delegation = request.get("delegation")
     if delegation and delegation.get("status") in {"expired", "revoked"}:
         return ReferenceDecision("DENY", "DELEGATION_INVALID")
-    required_jurisdiction = context.get("required_jurisdiction")
+
+    required_jurisdiction = canonical["required_jurisdiction"]
     if required_jurisdiction and request.get("jurisdiction") != required_jurisdiction:
         return ReferenceDecision("DENY", "JURISDICTION_MISMATCH")
-    if context.get("human_approval_required", False) and not request.get(
+
+    if canonical["human_approval_required"] and not request.get(
         "human_approval", False
     ):
         return ReferenceDecision("DENY", "HUMAN_APPROVAL_REQUIRED")
+
     return None
 
 
@@ -83,9 +96,15 @@ class OpaAdapter:
                 "/v1/data/gmai/r3/authority/decision", json={"input": request}
             )
             response.raise_for_status()
-            result = response.json().get("result")
-        except (httpx.HTTPError, ValueError, TypeError):
+        except httpx.HTTPError:
             return CandidateDecision("DENY", "ENGINE_UNAVAILABLE", True)
+
+        try:
+            body = response.json()
+        except (ValueError, TypeError):
+            return CandidateDecision("DENY", "MALFORMED_RESPONSE", True)
+
+        result = body.get("result") if isinstance(body, dict) else None
         if not isinstance(result, dict):
             return CandidateDecision("DENY", "MALFORMED_RESPONSE", True)
         decision = result.get("decision")
@@ -114,11 +133,11 @@ class OpenFgaAdapter:
             return CandidateDecision(preflight.decision, preflight.reason_class, False)
 
         action = request["action"]
-        if not CANONICAL_ACTIONS.get(action, {}).get("authority_required", True):
+        if not CANONICAL_ACTIONS[action]["authority_required"]:
             return CandidateDecision("ALLOW", "AUTHORIZED", False)
 
         relation = ACTION_RELATIONS[action]
-        context = request["context"]
+        context = request.get("context") or {}
         tuple_key = {
             "user": request["actor"]["id"],
             "relation": relation,
@@ -130,14 +149,20 @@ class OpenFgaAdapter:
         }
         if context.get("authority_present", False):
             payload["contextual_tuples"] = {"tuple_keys": [tuple_key]}
+
         try:
             response = self._client.post(
                 f"/stores/{self._store_id}/check", json=payload
             )
             response.raise_for_status()
-            body = response.json()
-        except (httpx.HTTPError, ValueError, TypeError):
+        except httpx.HTTPError:
             return CandidateDecision("DENY", "ENGINE_UNAVAILABLE", True)
+
+        try:
+            body = response.json()
+        except (ValueError, TypeError):
+            return CandidateDecision("DENY", "MALFORMED_RESPONSE", True)
+
         allowed = body.get("allowed") if isinstance(body, dict) else None
         if not isinstance(allowed, bool):
             return CandidateDecision("DENY", "MALFORMED_RESPONSE", True)

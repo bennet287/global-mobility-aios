@@ -1,7 +1,7 @@
 {
   "contract_version": "gmai.r3.v1",
   "lanes": {
-    "authority": "R3_EVIDENCE_CAPTURED_CEDAR_INVARIANTS_MUTATION_PENDING",
+    "authority": "R3_AUTHORITY_CLOSURE_IMPLEMENTED_REAL_CEDAR_EVIDENCE_PENDING",
     "integration": "QUEUED",
     "interoperability": "QUEUED",
     "observability": "QUEUED",
