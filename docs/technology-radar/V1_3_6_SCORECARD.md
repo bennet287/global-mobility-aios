@@ -1,121 +1,193 @@
-# Technology Radar V1.3.6 — Scorecard
+# Technology Radar V1.3.6 — Deep Evidence Scorecard
 
 **Date:** 2026-08-30
-**Status:** PROVISIONAL R2 SCORES / LEADING R3 QUEUE AUTHORIZED / NO ADOPTION DECISION
+**Status:** ARCHITECTURE SCORES PRESERVED / EMPIRICAL DEPTH RECLASSIFIED / NO ADOPTION DECISION
 **Method:** `V1_3_6_RESEARCH_METHOD.md`
+**Blueprint:** `V1_3_6_DEEP_VALIDATION_BLUEPRINT.md`
 
-## 1. Weighted scoring model
+## 1. Why this changed
 
-| Dimension | Weight | Evidence expected |
+The earlier scorecard used one weighted R2 number. That remains useful for
+architecture potential but is too easy to read as proof.
+
+V1.3.6 now tracks:
+
+```text
+Architecture Score
+Security Score
+Operational Score
+Empirical Score
+
+Confidence = LOW | MEDIUM | HIGH
+
+Evidence coverage:
+  feature
+  security
+  failure
+  lifecycle
+  integration
+```
+
+No composite score may hide a sovereignty failure.
+
+## 2. Architecture Score
+
+The original R2 weights remain unchanged:
+
+| Dimension | Weight |
+|---|---:|
+| AIOS architectural fit | 20 |
+| sovereignty / replaceability | 15 |
+| security architecture | 15 |
+| authority compatibility | 10 |
+| evidence compatibility | 10 |
+| enterprise maturity | 8 |
+| interoperability | 7 |
+| self-host/data control | 5 |
+| operational simplicity | 4 |
+| licensing | 3 |
+| cost | 3 |
+| **Total** | **100** |
+
+Architecture Score answers "how promising is the design fit?" It does not answer
+"has it been proven?"
+
+## 3. Independent score classes
+
+**Security Score** comes from threat modeling, tenant/delegation/secret controls,
+real adversarial testing, fail-closed behavior, supply-chain posture and
+reproduced findings.
+
+**Operational Score** comes from deployment, upgrades, latency, availability,
+recovery, observability, backup, operator burden, resources and cost.
+
+**Empirical Score** comes only from executed evidence. T0 contributes little;
+native feature, lifecycle, adversarial, chaos, concurrency, integration and replay
+evidence progressively contribute more.
+
+Until T0–T8 result contracts are automated, use tier/coverage labels instead of
+inventing empirical numbers.
+
+## 4. Current Architecture Scores
+
+| Candidate | Architecture Score | R2 state |
 |---|---:|---|
-| AIOS architectural fit | 20 | direct fit to a demonstrated AIOS boundary/problem |
-| sovereignty / replaceability | 15 | adapter viability; no external canonical truth requirement |
-| security | 15 | fail-closed controls, tenant/delegation/secret posture |
-| authority-model compatibility | 10 | capability and authority remain separable |
-| evidence-model compatibility | 10 | no memory/telemetry/finding-to-truth shortcut |
-| enterprise maturity | 8 | governance, releases, operations and support posture |
-| interoperability | 7 | standard APIs/protocols and ecosystem integration |
-| self-hosting / data control | 5 | deployability and data-boundary control |
-| operational complexity | 4 | higher score means lower justified complexity |
-| licensing | 3 | clear and compatible research/adoption posture |
-| cost | 3 | predictable and proportionate ownership cost |
-| **Total** | **100** | hard blockers still override score |
+| OpenFGA | 88 | ASSESS |
+| OPA | 86 | ASSESS |
+| Cedar | 82 | RESEARCH challenger |
+| SpiceDB | 84 | ASSESS challenger |
+| MCP 2026-07-28 | 87 | ASSESS |
+| A2A 1.0 | 82 | RESEARCH |
+| Inspect AI | 87 | ASSESS |
+| Promptfoo | 86 | TRIAL-ELIGIBLE / RED TEAM R2 |
+| garak | 78 | RESEARCH |
 
-Scores are intentionally conservative where R3 evidence is absent. A score is not a selection or adoption claim, but a score of 85 or higher without a hard blocker now creates a duty to test or explicitly expire the candidate.
+## 5. Current empirical-depth board
 
-## 2. Hard blockers
+| Candidate/lane | T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | Confidence |
+|---|---|---|---|---|---|---|---|---|---|---|
+| OpenFGA | PASS | PASS — real 120-case corpus | PENDING | PENDING | PENDING | PARTIAL PASS | PENDING | PENDING | PENDING | MEDIUM |
+| OPA | PASS | PASS — real 120-case corpus | PENDING | PENDING | PENDING | PARTIAL PASS | PENDING | PENDING | PENDING | MEDIUM |
+| Cedar | PASS | IN PROGRESS — real CLI rerun pending after serialization repair | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| SpiceDB | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| MCP | design/contract only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| A2A | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| Security native baseline | PASS — category smoke | NOT REAL ATTACK PROOF | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| Inspect AI | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| Promptfoo | research + historical pilot context | PENDING for V1.3.6 target | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| garak | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+| Skill Registry | architecture only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
 
-Any candidate is `REJECT` or `HOLD` for the proposed shape when it requires:
+## 6. Evidence coverage
 
-- provider/framework state to become canonical AIOS organization truth;
-- skill/capability discovery to grant authority;
-- bypass of Command Gateway for material or external actions;
-- memory, telemetry or evaluator findings to become Evidence/VerifiedRule automatically;
-- secrets in prompt, ContextBundle, memory, Activity or repository state;
-- unbounded production/security testing;
-- cross-tenant authorization ambiguity or fail-open behavior;
-- an incompatible license or unresolved data-residency obligation.
+Each candidate eventually reports measured:
 
-## 3. Provisional R2 scores
+```text
+Feature coverage
+Security coverage
+Failure coverage
+Lifecycle coverage
+Integration coverage
+```
 
-| Candidate | Score | State | Principal conclusion |
-|---|---:|---|---|
-| OpenFGA | 88 | ASSESS / R2 | strongest current relationship/delegation candidate; requires canonical-data synchronization and contextual risk boundary |
-| OPA | 86 | ASSESS / R2 | strongest general policy decision candidate; relationship modeling and policy/data lifecycle need care |
-| Cedar | 82 | RESEARCH / R2 | clear principal/action/resource/context model; narrower ecosystem and operational fit need lab evidence |
-| SpiceDB | 84 | ASSESS / R2 | strong Zanzibar-style relationship graph and consistency controls; introduces a second authorization datastore |
-| MCP 2026-07-28 | 87 | ASSESS / R2 | strategically relevant tool/data protocol; requires an AIOS gateway, catalog trust and per-call authorization |
-| A2A 1.0 | 82 | RESEARCH / R2 | credible agent discovery/task interoperability; Agent Card skills are untrusted capability claims |
-| Inspect AI | 87 | ASSESS / R2 | best broad evaluation-lab foundation candidate; must remain outside canonical product truth |
-| Promptfoo | 86 | EXISTING PILOT COMPLETE / TRIAL-ELIGIBLE; RED TEAM ROLE R2 | strongest current application/MCP red-team candidate; findings require AIOS reproduction and review |
-| garak | 78 | RESEARCH / R2 | useful independent model/system scanner; overlaps with Promptfoo and is less AIOS-workflow-specific |
+The denominator is strategically relevant features/tests in the candidate Feature
+Exploitation Matrix, not every vendor feature.
 
-## 4. Authorization comparison
+Until automated, use `PENDING_MEASURED` rather than subjective percentages.
 
-| Dimension | OpenFGA | OPA | Cedar | SpiceDB |
-|---|---:|---:|---:|---:|
-| AIOS architectural fit /20 | 19 | 18 | 16 | 18 |
-| sovereignty /15 | 13 | 14 | 13 | 12 |
-| security /15 | 13 | 13 | 13 | 13 |
-| authority compatibility /10 | 10 | 9 | 9 | 10 |
-| evidence compatibility /10 | 9 | 9 | 9 | 9 |
-| enterprise maturity /8 | 7 | 8 | 6 | 7 |
-| interoperability /7 | 6 | 6 | 5 | 6 |
-| self-host/data control /5 | 5 | 5 | 5 | 5 |
-| operational simplicity /4 | 2 | 2 | 3 | 1 |
-| licensing /3 | 3 | 3 | 3 | 3 |
-| cost /3 | 1 | 2 | 0 | 0 |
-| **Total** | **88** | **86** | **82** | **84** |
+## 7. Hard blockers
 
-R2 conclusion: do not compose two policy engines by default. An isolated authorization lab should compare OpenFGA and OPA first against the exact same five-action employee fixture. Cedar and SpiceDB remain credible challengers where embedded policy or large relationship graphs prove necessary.
+A candidate is HOLD/REJECT for the proposed role if evidence shows:
 
-## 5. Interoperability comparison
+- external state must become canonical AIOS truth;
+- skill/capability discovery grants authority;
+- material action bypasses Command Gateway;
+- memory/telemetry/security finding becomes Evidence automatically;
+- privileged execution fails open;
+- tenant isolation is ambiguous;
+- secrets escape governed storage;
+- candidate cannot be replaced/rebuilt without losing canonical meaning;
+- license/data obligations are incompatible.
 
-| Question | MCP | A2A |
-|---|---|---|
-| primary boundary | agent/runtime to tools, resources and prompts | independent agent systems and durable tasks/messages/artifacts |
-| AIOS entry point | governed `McpGatewayPort` | governed `A2AGatewayPort` |
-| discovery meaning | untrusted tool/resource catalog | untrusted Agent Card/capability/skill claim |
-| authority decision | AIOS per invocation | AIOS before WorkItem/task creation and at each material transition |
-| canonical state | AIOS WorkItem/ActionOutput/Activity | AIOS WorkItem/ActionOutput/Activity |
-| main R3 risk | tool poisoning/confused deputy/credential scope | agent impersonation/skill inflation/task-state confusion |
+A 99/100 architecture score cannot override a blocker.
 
-MCP is the earlier practical assessment because AIOS has nearer-term external tool/data needs. A2A remains strategically important but should not precede a concrete remote-agent use case.
+## 8. Feature Exploitation Matrix
 
-## 6. Security/evaluation comparison
+Every active candidate must maintain:
 
-| Question | Inspect AI | Promptfoo | garak |
-|---|---|---|---|
-| best fit | structured evaluation laboratory | application/agent/MCP adversarial testing | independent model/system scanning |
-| strengths | datasets, agents, tools, scorers, sandboxes, approvals, MCP | generated attack suites, application targets, agent/MCP guides | broad probe/detector catalog and REST/model generators |
-| main limitation | framework integration and lab isolation burden | findings can be heuristic and target configuration is security-sensitive | overlap, probe volume and weaker business-workflow semantics |
-| proposed role | evaluation harness | primary Red Team attack generator | independent challenger/scanner |
-| current decision | ASSESS | TRIAL-ELIGIBLE | RESEARCH |
+| Feature | AIOS hypothesis | Test tier | Unique value expected | Result | Evidence ref |
+|---|---|---|---|---|---|
+| feature | measurable claim | T2/T3/etc | what native AIOS lacks | pending/pass/fail | artifact |
 
-R2 conclusion: use Inspect AI as the leading evaluation-lab architecture candidate, retain Promptfoo as the leading application red-team candidate, and keep garak as an independent challenger. Do not adopt all three before an R3 overlap/cost comparison.
+Major strategic features cannot remain untested beyond R3 without explicit
+exclusion rationale.
 
-## 7. Required R3 evidence
+## 9. Competitive shootouts
 
-No score may advance a candidate without:
+Authority:
 
-- exact pinned build/container and dependency inventory;
-- synthetic AIOS fixture and expected decisions;
-- positive and negative contract tests;
-- tenant, revocation, replay and failure-mode tests;
-- secrets/network isolation declaration;
-- latency and operational-complexity measurements;
-- retained result artifact hashes;
-- owner-reviewed decision record;
-- explicit cleanup and replacement path.
+```text
+OpenFGA vs OPA vs Cedar vs Native AIOS
+```
 
-## 8. Active R3 queue
+Security:
 
-| Priority | Lane | Candidates | State |
-|---:|---|---|---|
-| 1 | authority | OpenFGA vs OPA | AUTHORIZED / READY TO IMPLEMENT |
-| 2 | adversarial evaluation | Inspect AI + Promptfoo | AUTHORIZED / READY TO IMPLEMENT |
-| 3 | tool interoperability | MCP | AUTHORIZED / READY TO IMPLEMENT |
-| 4 | agent interoperability | A2A | QUEUED AFTER A WAVE A LANE FREES |
-| 5 | challenger authority | SpiceDB or Cedar | CONDITIONAL ON A PROVEN WAVE A GAP |
+```text
+Inspect AI vs Promptfoo vs garak vs Native attack corpus
+```
 
-The queue is intentionally decisive. Each lane must produce a winner, a justified complementary split, or explicit rejection/hold. “All candidates remain promising” is not an acceptable R3 result.
+Memory:
+
+```text
+Mem0 vs OpenViking vs Native memory
+```
+
+Orchestration:
+
+```text
+Temporal vs LangGraph vs Agno/AgentOS vs Native WorkItem runtime
+```
+
+Every shootout includes a "do we need this dependency?" result.
+
+## 10. Promotion rules
+
+**R2 → R3:** high Architecture Score may prioritize testing, but Feature
+Hypotheses and Feature Exploitation Matrix are mandatory.
+
+**R3 → R4:** relevant T1/T2 plus lifecycle/security/failure tiers appropriate to
+the component, no hard blocker, and measurable unique value.
+
+**R4 → R5:** shadow evidence, acceptable false-allow/deny behavior, operational
+evidence and integration/rollback design.
+
+**R5 → R6:** replaceability, security/license/operations/recovery proof and
+explicitly scoped adoption.
+
+## 11. Current decision posture
+
+Current R2 rankings still prioritize work, but V1.3.6 no longer allows "R3
+verified" language based only on T0/T1 breadth.
+
+The next scorecard revision must be driven by machine-readable deep-validation
+evidence.

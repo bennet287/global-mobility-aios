@@ -1,49 +1,39 @@
 # Global Mobility AIOS — Technology Radar V1.3.6
 
 **Date:** 2026-08-30
-**Status:** ACTIVE CANONICAL RADAR / AGGRESSIVE EXECUTION MODE / TRANCHE 1 R3 QUEUE AUTHORIZED
+**Status:** ACTIVE CANONICAL RADAR / DEEP-EVIDENCE EXECUTION MODE
 **Supersedes for active radar direction:** `TECHNOLOGY_RADAR_V1_3_5.md`
 **Research baseline:** `a9e52c28af05893a2ed6397b6bf6ba26df2f55a5`
 **Current milestone:** L — IMPLEMENTED / ACCEPTANCE PENDING
 **Milestone effect:** none; M remains NOT STARTED
 
-V1.3.6 turns the radar from a growing technology inventory into a reproducible engineering research and elimination programme. It records common methods, exact upstream pins, weighted scorecards, hard blockers, AIOS-specific test scenarios and architecture outputs, then forces credible candidates rapidly into bounded proof or out of the active queue.
+V1.3.6 is now an end-to-end technology evidence programme rather than an
+inventory, architecture scorecard or R3-only lab queue.
 
 ```text
-Technology Radar = research + architecture + controlled experiments
-Technology Radar != production adoption
-Technology Radar != Milestone M
-Research prototype != canonical AIOS implementation
-High score without timely proof = candidate expiry, not indefinite ASSESS
+Technology Radar
+  = discover
+  + understand
+  + architecture prove
+  + lab prove
+  + shadow prove
+  + integration prove
+  + scoped adoption
+  + continuous verification
+  + retirement
+
+Radar != product necessity
+Radar != production authority
+Radar != canonical truth
 ```
 
-## 1. Aggressive operating doctrine
+Canonical supporting documents:
 
-The radar optimizes for learning velocity, decisive elimination and early architectural leverage:
+- `technology-radar/V1_3_6_RESEARCH_METHOD.md`
+- `technology-radar/V1_3_6_SCORECARD.md`
+- `technology-radar/V1_3_6_DEEP_VALIDATION_BLUEPRINT.md`
 
-```text
-DISCOVER FAST
-PIN EXACTLY
-TEST THE HARDEST BOUNDARY FIRST
-RUN LEADING CANDIDATES IN PARALLEL
-PROMOTE, HOLD WITH A NAMED TRIGGER, OR KILL
-REVISIT ONLY WHEN EVIDENCE OR PRODUCT NEED CHANGES
-```
-
-Aggressive means aggressive against uncertainty and shelfware. It does not mean bypassing authority, security, evidence, licensing or production-acceptance gates.
-
-Execution rules:
-
-- an R2 candidate scoring 85 or higher with no hard blocker enters the next R3 wave automatically;
-- at most two candidates solving the same problem advance, and they use identical fixtures;
-- R0–R2 should finish within five working days per bounded question;
-- an R3 lab should finish within ten working days of entering the active queue;
-- an R3 decision record is due within two working days after evidence capture;
-- a candidate without an owner, exact pin, fixture, cleanup plan or measurable differentiator is removed from the active queue;
-- every active candidate receives a decision expiry date; expired evidence cannot support promotion;
-- failed candidates are recorded explicitly and not kept alive through vague “future evaluation” language.
-
-## 2. Permanent boundaries
+## 1. Permanent boundaries
 
 ```text
 CAN DO != MAY DO
@@ -56,173 +46,248 @@ AGENT FRAMEWORK STATE != ORGANIZATION TRUTH
 TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
 UI INTENT != COMMAND AUTHORIZATION
 EXTERNAL AGENT CLAIM != TRUST OR AUTHORITY
+MODEL OUTPUT != HUMAN APPROVAL
+R3 PASS != PRODUCTION ADOPTION
 ```
 
-## 3. Tranche 1 question set
+## 2. Canonical maturity and evidence depth
 
 ```text
-What does an AI employee know how to do?  → Skill Registry
-What may it do now?                        → Authority Engine
-How does it access tools/remote agents?    → MCP/A2A Gateways
-How are those boundaries attacked/proven? → Red Team Lab
+R0 DISCOVER
+R1 UNDERSTAND
+R2 ARCHITECTURE PROVE
+R3 LAB PROVE
+R4 SHADOW PROVE
+R5 INTEGRATION PROVE
+R6 ADOPT
+R7 CONTINUOUSLY VERIFY
+R8 RETIRE / REPLACE
 ```
 
-Memory, sandbox, durable execution/orchestration and observability remain subsequent research. Their infrastructure choices should sit beneath the governance model defined here rather than define it.
+Tracked separately:
 
-## 4. Research outputs
+```text
+T0 contract/mock
+T1 real component
+T2 native feature depth
+T3 stateful lifecycle
+T4 adversarial/security
+T5 chaos/failure/recovery
+T6 concurrency/scale/property
+T7 cross-component integration
+T8 historical replay/restore/retirement
+```
 
-### Method and scoring
+A large T0/T1 count cannot masquerade as deep R3 proof.
 
-- `technology-radar/V1_3_6_RESEARCH_METHOD.md`
-- `technology-radar/V1_3_6_SCORECARD.md`
+## 3. Whole-Radar question set
 
-The method introduces R0–R6 maturity, identical AIOS test fixtures, exact source pins, weighted scoring and hard constitutional blockers. Tranche 1 stops at R2; no isolated lab was executed.
+```text
+What does an AI employee know?                  Skill Registry
+What may it do?                                 Authority Engine
+How does it reach tools?                        MCP
+How does it cooperate with external agents?     A2A
+How is execution isolated?                      Sandbox
+How does it remember without inventing truth?   Memory/context
+How does long-running work survive failure?     Durable orchestration
+How are secrets controlled?                     SecretsPort/OpenBao
+How is behavior observed?                       OpenTelemetry/Langfuse/Phoenix
+How are boundaries attacked/evaluated?          Inspect/Promptfoo/garak
+How does the Human Owner interact safely?        Cockpit + governed UI
+How are technologies replaced/retired?          R8 exit proof
+```
 
-### Skill Registry
+## 4. Candidate map
 
-- `technology-radar/skills/AIOS_SKILL_REGISTRY_RESEARCH.md`
-- `architecture/AIOS_SKILL_REGISTRY_BLUEPRINT.md`
+### Authority
 
-Decision: canonical registry must be AIOS-native. External skills enter through content-addressed quarantine/review, and A2A may receive only a safe outbound projection. A skill or assignment never grants tools or authority.
-
-### Authority Engine
-
-- `technology-radar/authorization/OPENFGA.md`
-- `technology-radar/authorization/OPA.md`
-- `technology-radar/authorization/CEDAR.md`
-- `technology-radar/authorization/SPICEDB.md`
-- `architecture/AIOS_AUTHORITY_ENGINE_BLUEPRINT.md`
-
-| Candidate | R2 score | Decision |
+| Candidate | Architecture Score | Current evidence |
 |---|---:|---|
-| OpenFGA | 88 | ASSESS; leading relationship/delegation candidate |
-| OPA | 86 | ASSESS; leading general policy-decision candidate |
-| SpiceDB | 84 | ASSESS challenger for large relationship graphs |
-| Cedar | 82 | RESEARCH challenger for typed contextual policy |
+| OpenFGA | 88 | T1 real 120-case correctness PASS; T5 partial; native-feature depth pending |
+| OPA | 86 | T1 real 120-case correctness PASS; T5 partial; policy lifecycle pending |
+| Cedar | 82 | T0 PASS; real CLI T1 rerun pending after serialization repair |
+| SpiceDB | 84 | R2 challenger; no deep empirical evidence yet |
 
-Recommendation: a future isolated OpenFGA-vs-OPA lab using the same five-action Austria fixture. Do not compose multiple engines unless the lab proves a necessary hybrid.
+### Interoperability
 
-### MCP/A2A interoperability
-
-- `technology-radar/interoperability/MCP.md`
-- `technology-radar/interoperability/A2A.md`
-- `architecture/AIOS_INTEROPERABILITY_BLUEPRINT.md`
-
-MCP 2026-07-28 is ASSESS/R2 for governed tools/data. A2A 1.0 is RESEARCH/R2 for independent-agent interoperability. Tool catalogs, Agent Cards, AgentSkill declarations, task state and artifacts are attributed untrusted provider data until AIOS validates and accepts them.
-
-```text
-MCP → tools/data through McpGatewayPort
-A2A → external agents through A2AGatewayPort
-```
-
-Both remain behind AIOS identity, skill, capability, authority, data-egress, Command Gateway, idempotency and reconciliation controls.
-
-### Cybersecurity and Red Team Lab
-
-- `technology-radar/security/AIOS_CYBERSECURITY_SKILL_REGISTRY.md`
-- `technology-radar/security/INSPECT_AI.md`
-- `technology-radar/security/PROMPTFOO.md`
-- `technology-radar/security/GARAK.md`
-- `architecture/AIOS_RED_TEAM_LAB_BLUEPRINT.md`
-
-| Candidate | R2 score | Proposed role |
+| Candidate | Architecture Score | Current evidence |
 |---|---:|---|
-| Inspect AI | 87 | structured evaluation-lab foundation |
-| Promptfoo | 86 | application/agent/MCP attack generator; existing pilot remains trial-eligible |
-| garak | 78 | independent model/system scanner challenger |
+| MCP 2026-07-28 | 87 | R2 design; hostile-server deep lab required |
+| A2A 1.0 | 82 | R2 design; trust/task/artifact deep lab required |
 
-Tool output creates an observation only. An accepted finding requires exact reproduction, defensive-owner review, remediation and independent retest.
+### Security/evaluation
 
-## 5. LangGraph truth reconciliation
+| Candidate | Architecture Score | Current evidence |
+|---|---:|---|
+| Inspect AI | 87 | R2 only for V1.3.6 |
+| Promptfoo | 86 | research + historical pilot context; V1.3.6 target lane pending |
+| garak | 78 | R2 challenger |
+| Native security corpus | n/a | 18-category T0 smoke; not 18 resisted attacks |
 
-The repository already contains:
-
-- optional `langgraph>=0.2` dependency declaration;
-- a non-production intake graph skeleton;
-- historical architecture/workflow direction.
-
-Therefore the accurate active classification is:
+### Subsequent candidates
 
 ```text
-OPTIONAL SKELETON PRESENT
-NOT USED BY ACCEPTED J/K/L ORGANIZATION RUNTIME
-NOT A PRODUCTION-ADOPTED CONTROL PLANE
-FUTURE RuntimePort FIT REQUIRES MEASURED NEED + R3 PROOF
+Microsandbox                  sandbox/isolation
+Mem0                         lower-truth continuity memory
+OpenViking                   context/memory donor
+Temporal                     durable execution challenger
+LangGraph                    bounded execution-graph donor
+Agno/AgentOS                 agent-platform donor
+OpenTelemetry                observability baseline
+Langfuse/Phoenix             observability/eval comparison after OTEL
+SecretsPort/OpenBao          secrets control
+CopilotKit/AG-UI             governed Cockpit interaction candidate
+Hy4/future dev models        bounded development tooling
 ```
 
-V1.3.5's phrase “may later evaluate” was incomplete repository truth. V1.3.6 corrects the active classification without rewriting the historical V1.3.5 record.
+None is production-adopted merely because it appears here.
 
-## 6. R3 execution queue
+## 5. Deep-evidence correction
+
+Earlier V1.3.6 language overemphasized "R3 PASS" and test counts.
+
+Current truth:
 
 ```text
-V1.3.6 Tranche 1 research/architecture  COMPLETE at R2
-R3 Wave A                              AUTHORIZED / READY TO IMPLEMENT
-production dependencies                NONE ADDED
-runtime/schema/authority change         NONE
-L acceptance effect                    NONE
-M implementation                       NOT STARTED
+Contracts/mocks                           T0
+Real OpenFGA/OPA 120-case runs           T1
+Authority chaos                          partial T5
+Cedar real CLI                           T1 in progress
+Security 18-category native baseline     T0 smoke only
+
+Still needed:
+T2 native feature depth
+T3 lifecycle
+T4 real adversarial execution
+T5 broader failure where relevant
+T6 property/concurrency/differential
+T7 cross-stack integration
+T8 replay/rebuild/retirement
 ```
 
-### Wave A — execute first
+This does not invalidate existing work. It makes its evidence meaning precise.
 
-| Lane | Candidates | Hard question | Required outcome |
-|---|---|---|---|
-| Authority | OpenFGA vs OPA | can AIOS express employee/resource/delegation decisions without moving canonical authority out of AIOS? | one winner, bounded hybrid proof, or reject both |
-| Interoperability | MCP | can a malicious or over-broad tool catalog remain discoverable while invocation fails before provider contact? | gateway contract evidence or HOLD |
-| Adversarial evaluation | Inspect AI + Promptfoo | can attacks against authority, evidence and tool boundaries be reproduced without findings becoming truth? | complementary role proof or remove one |
+## 6. Feature-first research
 
-Wave A is authorized for isolated synthetic labs under the research method. It does not require another radar-scheduling decision. Implementation still must declare the exact environment, network/credential scope, owner, artifacts and cleanup before execution.
-
-### Wave B — start when a Wave A lane frees
+Every active candidate now needs:
 
 ```text
-A2A gateway trust-boundary fixture
-Cedar or SpiceDB challenger only if Wave A exposes a concrete gap
-AIOS Skill Registry quarantine/signature/activation fixture
-OpenTelemetry trace-correlation pilot
-backup/PITR restore proof
-SecretsPort/OpenBao isolated pilot
+Feature Potential Map
+Feature Exploitation Matrix
+Anti-Fit Matrix
+Native-build comparison
+Feature hypotheses
+Kill criteria
+Exit strategy
 ```
 
-Wave B uses a pull system: no more than three R3 lanes run concurrently, but completed or killed work is replaced immediately. Backup/restore and secrets proofs take priority over optional framework comparisons because they close production-readiness risks.
+The Radar deliberately tests the features that made the candidate interesting.
 
-### Promotion and kill rules
+## 7. Security proof rule
 
-An R3 candidate advances only when it:
+A category label returning a canned denial is not an attack.
 
-- passes positive and negative AIOS contract fixtures;
-- fails closed under outage, stale policy, revocation and malformed input;
-- preserves tenant, authority, evidence and canonical-state boundaries;
-- has acceptable measured latency and operational burden;
-- has a compatible license, replacement path and bounded blast radius.
-
-Fail any constitutional blocker: `REJECT`. Fail the core use case twice after one bounded correction: `HOLD` or `REJECT`. Pass R3: produce an R4 pilot proposal within two working days; do not silently install it in production.
-
-## 7. Subsequent execution backlog
+Security proof must derive effects from state:
 
 ```text
-sandbox/isolation comparison             NEXT QUEUE
-Temporal/durable execution               NEXT QUEUE
-memory architecture and Mem0/OpenViking  NEXT QUEUE
-LangGraph/Agno orchestration fit          TRIGGERED ONLY BY PROVEN GAP
-OpenTelemetry observability              WAVE B PRIORITY
-Langfuse/Phoenix comparison               AFTER OTEL BASELINE
-backup/PITR + restore                     WAVE B PRIORITY
-SecretsPort/OpenBao                       WAVE B PRIORITY
-final cross-tranche scorecard             CONTINUOUSLY UPDATED
+before state
+→ real adversarial payload
+→ real target
+→ after state
+→ canonical effect diff
 ```
 
-The queue advances automatically within these bounds. Product necessity and `ROADMAP.md` remain scheduling authority for changing priorities, expanding scope or moving any candidate into production.
+Primary metrics:
 
-## 8. Current L truth
+```text
+unauthorized ActionOutputs           0
+unauthorized external actions        0
+unauthorized authority grants        0
+unauthorized VerifiedRule mutation   0
+unauthorized Evidence mutation       0
+cross-tenant disclosure              0
+secret exfiltration                  0
+```
+
+## 8. Competitive and native shootouts
+
+```text
+Authority:
+OpenFGA vs OPA vs Cedar vs Native AIOS
+
+Security:
+Inspect vs Promptfoo vs garak vs Native attack corpus
+
+Memory:
+Mem0 vs OpenViking vs Native memory
+
+Orchestration:
+Temporal vs LangGraph vs Agno vs Native WorkItem runtime
+```
+
+A working candidate may be rejected if native AIOS is simpler/stronger.
+
+## 9. Grand Integration Trial
+
+Final proof combines selected architecture under one hostile synthetic mobility
+operation.
+
+Inject poisoned memory, malicious source/MCP/A2A content, fake owner approval,
+model hallucinated authority, revocation, duplicate command, provider/tool
+timeout, telemetry outage, secret request and safe durable-runtime disruption.
+
+Required:
+
+```text
+Human/Board sovereignty preserved
+Authority preserved
+Tenant boundary preserved
+Evidence/VerifiedRule truth preserved
+No unauthorized external action
+No unauthorized canonical mutation
+No secret leak
+Replay truthful
+Failure preserved
+Decision lineage reconstructable
+```
+
+## 10. Execution priority
+
+Immediate Authority closure remains useful, but it is one layer inside the deeper
+programme.
+
+```text
+Authority T1 closure
+  ├─ real Cedar
+  ├─ exact-current-head OpenFGA/OPA
+  └─ evidence rollup
+
+then deepen:
+  ├─ Authority T2/T3/T6 native-feature shootout
+  ├─ Security real attacks T1–T4
+  ├─ Skill Registry lifecycle
+  ├─ MCP hostile server
+  ├─ A2A trust lifecycle
+  ├─ OTel / secrets / recovery
+  └─ Grand Integration Trial
+```
+
+## 11. Adoption discipline
+
+R4 shadow, R5 integration, R6 scoped adoption, R7 continuous verification and R8
+retirement are explicit gates.
+
+No candidate jumps from a lab to production.
+
+## 12. Current milestone truth
 
 ```text
 L runtime acceptance evidence       COMPLETE / ACCEPTED
 AI domain corroboration harness     IMPLEMENTED / RESULT PENDING
-independent professional review     PENDING
-final exact-current-head proof      PENDING
+Independent professional review     PENDING
+Final exact-current-head proof      PENDING
 L overall                           IMPLEMENTED / ACCEPTANCE PENDING
 M                                   NOT STARTED
 ```
 
-V1.3.6 is supporting research only and cannot substitute for either remaining L acceptance gate.
+Radar work cannot substitute for L acceptance or silently start M.
