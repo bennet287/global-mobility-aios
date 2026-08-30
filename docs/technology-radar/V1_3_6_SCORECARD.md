@@ -1,7 +1,7 @@
 # Technology Radar V1.3.6 — Scorecard
 
 **Date:** 2026-08-30
-**Status:** PROVISIONAL R2 DOCUMENTARY SCORES / NO ADOPTION DECISION
+**Status:** PROVISIONAL R2 SCORES / LEADING R3 QUEUE AUTHORIZED / NO ADOPTION DECISION
 **Method:** `V1_3_6_RESEARCH_METHOD.md`
 
 ## 1. Weighted scoring model
@@ -21,7 +21,7 @@
 | cost | 3 | predictable and proportionate ownership cost |
 | **Total** | **100** | hard blockers still override score |
 
-Scores are intentionally conservative where R3 evidence is absent. A score is not a selection or adoption claim.
+Scores are intentionally conservative where R3 evidence is absent. A score is not a selection or adoption claim, but a score of 85 or higher without a hard blocker now creates a duty to test or explicitly expire the candidate.
 
 ## 2. Hard blockers
 
@@ -108,4 +108,14 @@ No score may advance a candidate without:
 - owner-reviewed decision record;
 - explicit cleanup and replacement path.
 
-The first authorized R3 recommendation is an isolated OpenFGA-vs-OPA decision lab. It is a recommendation only; V1.3.6 does not create or run that lab.
+## 8. Active R3 queue
+
+| Priority | Lane | Candidates | State |
+|---:|---|---|---|
+| 1 | authority | OpenFGA vs OPA | AUTHORIZED / READY TO IMPLEMENT |
+| 2 | adversarial evaluation | Inspect AI + Promptfoo | AUTHORIZED / READY TO IMPLEMENT |
+| 3 | tool interoperability | MCP | AUTHORIZED / READY TO IMPLEMENT |
+| 4 | agent interoperability | A2A | QUEUED AFTER A WAVE A LANE FREES |
+| 5 | challenger authority | SpiceDB or Cedar | CONDITIONAL ON A PROVEN WAVE A GAP |
+
+The queue is intentionally decisive. Each lane must produce a winner, a justified complementary split, or explicit rejection/hold. “All candidates remain promising” is not an acceptable R3 result.

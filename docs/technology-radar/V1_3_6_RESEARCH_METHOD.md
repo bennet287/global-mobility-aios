@@ -1,7 +1,7 @@
 # Technology Radar V1.3.6 — Research Method
 
 **Date:** 2026-08-30
-**Status:** ACTIVE RESEARCH METHOD / NO PRODUCTION ADOPTION
+**Status:** ACTIVE AGGRESSIVE RESEARCH METHOD / NO PRODUCTION ADOPTION
 **Scope:** V1.3.6 Tranche 1 — skills, authorization, MCP/A2A interoperability, and adversarial evaluation
 **Repository baseline:** `a9e52c28af05893a2ed6397b6bf6ba26df2f55a5`
 
@@ -56,7 +56,18 @@ R5 INTEGRATION CANDIDATE
 R6 ADOPTED
 ```
 
-V1.3.6 Tranche 1 targets R2. A candidate may reach R3 only through an isolated, non-production experiment with deterministic fixtures, explicit network/credential scope, reproducible commands and retained results. No Tranche 1 candidate reaches R4–R6 through documentation alone.
+V1.3.6 Tranche 1 completes R2 and automatically queues qualifying leaders for R3. A candidate may reach R3 only through an isolated, non-production experiment with deterministic fixtures, explicit network/credential scope, reproducible commands and retained results. No Tranche 1 candidate reaches R4–R6 through documentation alone.
+
+### Maturity clocks
+
+| Transition | Default maximum | Required disposition at expiry |
+|---|---:|---|
+| R0 → R1 | 2 working days | research or reject |
+| R1 → R2 | 3 working days | score and queue, hold with trigger, or reject |
+| R2 → R3 | next available lane; no more than 10 working days | execute or remove from active queue |
+| R3 result → decision | 2 working days | propose R4, hold with trigger, or reject |
+
+Exceptions require a named owner, reason and new expiry. “Interesting”, popularity and possible future usefulness are not valid extensions.
 
 ## 4. Six-stage assessment
 
@@ -164,9 +175,23 @@ Each decision record must state:
 - score and hard blockers;
 - next trigger and decision expiry.
 
-An untriggered candidate stays research-only even when its score is high.
+A candidate below the automatic threshold stays research-only unless a documented product need or unique differentiator triggers it. A qualifying high-score candidate must be tested promptly or explicitly expired; it cannot remain passively at R2.
 
-## 8. Tranche 1 source pins
+## 8. Aggressive queue policy
+
+Qualifying candidates do not wait for another general research approval:
+
+```text
+score >= 85 + no hard blocker       → automatic R3 queue
+score 80–84 + unique differentiator → challenger queue
+score < 80                          → HOLD/REJECT unless a critical gap is documented
+```
+
+No more than three R3 lanes run concurrently and no more than two candidates compete in one lane. Every lab attacks the highest-risk boundary first. A candidate that cannot demonstrate a measurable advantage over native AIOS capability is eliminated even if it works technically.
+
+R3 authorization covers only synthetic, isolated, non-production execution within the declared experiment contract. New hosted services, paid commitments, production credentials, personal data, authority changes and external material actions remain outside this authorization.
+
+## 9. Tranche 1 source pins
 
 Reviewed on 2026-08-30:
 

@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.33 — Technology Radar V1.3.6 Tranche 1 research architecture; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.34 — Technology Radar V1.3.6 aggressive R3 execution queue; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-30
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -413,7 +413,14 @@ Cybersecurity Skill Registry
 Inspect AI / Promptfoo / garak Red Team Lab candidates
 ```
 
-The tranche adds no dependency, migration, production adapter, authority grant or M implementation. The first possible R3 experiment is a separately authorized, isolated OpenFGA-vs-OPA fixture; it must not delay professional Austria review or final L proof.
+The tranche adds no production dependency, migration, adapter, authority grant or M implementation. Its aggressive execution amendment authorizes isolated synthetic R3 labs without another general radar-scheduling decision:
+
+```text
+Wave A: OpenFGA vs OPA | MCP gateway | Inspect AI + Promptfoo
+Wave B: A2A | Skill Registry | OpenTelemetry | backup/PITR restore | SecretsPort/OpenBao
+```
+
+At most three R3 lanes may run concurrently. Candidates must prove, advance, hold with a named trigger or be rejected on a fixed clock. Production adoption remains separately gated. Radar work must not delay professional Austria review or final L proof.
 
 Canonical research index: `docs/TECHNOLOGY_RADAR_V1_3_6.md`.
 

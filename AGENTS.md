@@ -461,7 +461,7 @@ what remains unproven
 - `docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md` — integration boundaries
 - `docs/REPOSITORY_POLICY.md` — repository/dependency policy
 - `docs/SECURITY_AND_COMPLIANCE.md` — security guidance
-- `docs/TECHNOLOGY_RADAR_V1_3_6.md` — active compact radar and Tranche 1 decisions
+- `docs/TECHNOLOGY_RADAR_V1_3_6.md` — active aggressive radar, Tranche 1 decisions and authorized bounded R3 queue
 - `docs/technology-radar/V1_3_6_RESEARCH_METHOD.md` — research/maturity/experiment contract
 - `docs/technology-radar/V1_3_6_SCORECARD.md` — provisional R2 comparative scorecard
 - `.woodpecker/*.yml` — forward CI definitions

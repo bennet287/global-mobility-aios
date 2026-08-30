@@ -22,6 +22,20 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-30 — V12.34 / TECHNOLOGY RADAR V1.3.6 AGGRESSIVE EXECUTION AMENDMENT
+
+### Status
+
+**R2 COMPLETE / BOUNDED R3 QUEUE AUTHORIZED — NO PRODUCTION ADOPTION**
+
+The Technology Radar now operates on fixed research and experiment clocks instead of allowing high-scoring candidates to remain indefinitely at `ASSESS`. Candidates must prove, promote, hold with a named trigger or be rejected.
+
+Wave A authorizes isolated synthetic R3 labs for OpenFGA vs OPA, the governed MCP gateway boundary, and complementary Inspect AI/Promptfoo adversarial evaluation. Wave B queues A2A, the AIOS Skill Registry, OpenTelemetry, backup/PITR restore and SecretsPort/OpenBao. At most three R3 lanes may operate concurrently.
+
+This amendment authorizes bounded research execution only. It adds no production dependency, hosted commitment, credential, migration, canonical state, authority grant, production adapter or M implementation. L remains `IMPLEMENTED / ACCEPTANCE PENDING` and its professional-review and final exact-current-head gates retain priority.
+
+---
+
 ## 2026-08-30 — V12.33 / TECHNOLOGY RADAR V1.3.6 TRANCHE 1 RESEARCH ARCHITECTURE
 
 ### Status
