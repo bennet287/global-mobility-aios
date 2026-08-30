@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from labs.r3.integration.governed_ui import (
     GovernedUiState,
     reconnect_with_snapshot,
@@ -104,3 +107,11 @@ def test_cross_lane_attack_fails_closed() -> None:
     assert result["secret_outage_failed_closed"] is True
     assert result["external_action_count"] == 0
     assert result["authority_mutation_count"] == 0
+
+
+def test_lane_status_never_conflates_implementation_with_adoption() -> None:
+    status_path = Path(__file__).resolve().parents[2] / "lane_status.v1.json"
+    status = json.loads(status_path.read_text(encoding="utf-8"))
+    assert status["programme_status"] == "R3_IMPLEMENTATION_SURFACE_COMPLETE_EXECUTION_PENDING"
+    assert status["evidence_status"] == "NOT_RECONCILED"
+    assert status["production_adoption"] is False
