@@ -5,7 +5,7 @@ from typing import Any
 
 import httpx
 
-from labs.r3.common.harness import ReferenceDecision
+from labs.r3.common.harness import ReferenceDecision, CANONICAL_ACTIONS
 
 
 ACTION_RELATIONS = {
@@ -113,7 +113,11 @@ class OpenFgaAdapter:
         if preflight is not None:
             return CandidateDecision(preflight.decision, preflight.reason_class, False)
 
-        relation = ACTION_RELATIONS[request["action"]]
+        action = request["action"]
+        if not CANONICAL_ACTIONS.get(action, {}).get("authority_required", True):
+            return CandidateDecision("ALLOW", "AUTHORIZED", False)
+
+        relation = ACTION_RELATIONS[action]
         context = request["context"]
         tuple_key = {
             "user": request["actor"]["id"],

@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AIOS Authority Request V1",
+  "description": "AIOS-owned canonical authorization request. Engines consume this shape; AIOS does not consume engine-native semantics as canonical truth.",
+  "type": "object",
+  "required": [
+    "request_id",
+    "actor",
+    "action",
+    "resource",
+    "jurisdiction",
+    "risk_class",
+    "technical_capability",
+    "human_approval",
+    "context"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "gmai.r3.v1"
+    },
+    "r3_run_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "actor": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["human", "agent"]
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "acting_for": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "resource": {
+      "type": "object",
+      "required": ["type", "id", "tenant_id"],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        }
+      }
+    },
+    "jurisdiction": {
+      "type": "string"
+    },
+    "risk_class": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "delegation": {
+      "type": ["object", "null"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "expired", "revoked"]
+        }
+      }
+    },
+    "human_approval": {
+      "type": "boolean"
+    },
+    "tool": {
+      "type": ["string", "null"]
+    },
+    "context": {
+      "type": "object",
+      "required": [
+        "known_action",
+        "same_tenant",
+        "authority_required",
+        "authority_present",
+        "human_approval_required",
+        "self_grant_attempt"
+      ],
+      "properties": {
+        "known_action": {
+          "type": "boolean"
+        },
+        "same_tenant": {
+          "type": "boolean"
+        },
+        "authority_required": {
+          "type": "boolean"
+        },
+        "authority_present": {
+          "type": "boolean"
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        },
+        "required_jurisdiction": {
+          "type": ["string", "null"]
+        },
+        "provider_claimed_authority": {
+          "type": "boolean"
+        },
+        "skill_advertised": {
+          "type": "boolean"
+        },
+        "self_grant_attempt": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

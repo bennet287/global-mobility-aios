@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AIOS Authority Evidence V1",
+  "description": "Machine-readable R3 authority evidence artifact. Includes candidate dispositions, invariant results, chaos results, and performance.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "r3_run_id",
+    "git_sha",
+    "candidate_versions",
+    "scenario_corpus_sha256",
+    "results",
+    "invariants",
+    "chaos",
+    "performance",
+    "candidate_dispositions"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string"
+    },
+    "r3_run_id": {
+      "type": "string"
+    },
+    "git_sha": {
+      "type": "string"
+    },
+    "candidate_versions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "scenario_corpus_sha256": {
+      "type": "string"
+    },
+    "results": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer"
+        },
+        "passed": {
+          "type": "integer"
+        },
+        "failed": {
+          "type": "integer"
+        },
+        "unauthorized_effects": {
+          "type": "integer"
+        },
+        "critical_failures": {
+          "type": "integer"
+        }
+      }
+    },
+    "invariants": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer"
+        },
+        "failed": {
+          "type": "integer"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "chaos": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer"
+        },
+        "failed": {
+          "type": "integer"
+        }
+      }
+    },
+    "performance": {
+      "type": "object"
+    },
+    "candidate_dispositions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "ADVANCE_TO_R4",
+          "CONTINUE_R3_WITH_SPECIFIC_GAP",
+          "HOLD_WITH_TRIGGER",
+          "REJECT"
+        ]
+      }
+    },
+    "result_sha256": {
+      "type": "string"
+    }
+  }
+}

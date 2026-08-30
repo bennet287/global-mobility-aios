@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AIOS Delegation V1",
+  "description": "Canonical delegation record. A delegation is a grant of authority, not a grant of capability.",
+  "type": "object",
+  "required": ["delegation_id", "grantor", "grantee", "scope", "status"],
+  "properties": {
+    "delegation_id": {
+      "type": "string"
+    },
+    "grantor": {
+      "type": "string"
+    },
+    "grantee": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "jurisdictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "expired", "revoked"]
+    },
+    "expires_at": {
+      "type": ["string", "null"]
+    }
+  }
+}

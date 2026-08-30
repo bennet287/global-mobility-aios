@@ -1,22 +1,22 @@
 {
-  "candidate": "opa",
-  "candidate_version": "v1.19.1",
+  "candidate": "openfga",
+  "candidate_version": "v1.18.1",
   "contract_version": "gmai.r3.v1",
-  "corpus_sha256": "0613e33f46d3f8f0f099b3ff0a02605f5a7b88f83f2dee24e7918ca723eef482",
+  "corpus_sha256": "0906daa4f489905b25487af32b0639dbd7ae3d0b085b6930f8274e00fc001349",
   "critical_failures": 0,
   "decision_candidate": "ADVANCE_TO_R4",
   "environment": "synthetic-isolated",
   "failures": 0,
-  "git_sha": "239f12fbdd03afa5edea0bda0f205cf2c17afd94",
+  "git_sha": "b3a165939b1fbd0552fed5cb15ba462385eb5d3b",
   "metrics": {
-    "engine_calls": 120,
+    "engine_calls": 37,
     "latency_ms": {
-      "maximum": 12.794,
-      "p50": 0.986,
-      "p95": 1.423,
-      "p99": 2.14
+      "maximum": 6.807,
+      "p50": 0.006,
+      "p95": 4.16,
+      "p99": 4.579
     },
-    "preflight_denials": 0
+    "preflight_denials": 83
   },
   "outcomes": [
     {
@@ -25,17 +25,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-001",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-002",
       "unauthorized_canonical_effects": []
     },
@@ -45,7 +45,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-003",
       "unauthorized_canonical_effects": []
     },
@@ -55,7 +55,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-004",
       "unauthorized_canonical_effects": []
     },
@@ -65,7 +65,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-005",
       "unauthorized_canonical_effects": []
     },
@@ -75,7 +75,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-006",
       "unauthorized_canonical_effects": []
     },
@@ -85,17 +85,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-007",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-008",
       "unauthorized_canonical_effects": []
     },
@@ -105,7 +105,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-009",
       "unauthorized_canonical_effects": []
     },
@@ -115,7 +115,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-010",
       "unauthorized_canonical_effects": []
     },
@@ -125,7 +125,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-011",
       "unauthorized_canonical_effects": []
     },
@@ -135,7 +135,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-012",
       "unauthorized_canonical_effects": []
     },
@@ -145,17 +145,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-013",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-014",
       "unauthorized_canonical_effects": []
     },
@@ -165,7 +165,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-015",
       "unauthorized_canonical_effects": []
     },
@@ -175,7 +175,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-016",
       "unauthorized_canonical_effects": []
     },
@@ -185,7 +185,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-017",
       "unauthorized_canonical_effects": []
     },
@@ -195,7 +195,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-018",
       "unauthorized_canonical_effects": []
     },
@@ -225,7 +225,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-021",
       "unauthorized_canonical_effects": []
     },
@@ -235,7 +235,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-022",
       "unauthorized_canonical_effects": []
     },
@@ -245,7 +245,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-023",
       "unauthorized_canonical_effects": []
     },
@@ -285,7 +285,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-027",
       "unauthorized_canonical_effects": []
     },
@@ -295,7 +295,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-028",
       "unauthorized_canonical_effects": []
     },
@@ -305,7 +305,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-029",
       "unauthorized_canonical_effects": []
     },
@@ -315,7 +315,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "JURISDICTION_MISMATCH",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-030",
       "unauthorized_canonical_effects": []
     },
@@ -345,7 +345,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-033",
       "unauthorized_canonical_effects": []
     },
@@ -355,7 +355,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-034",
       "unauthorized_canonical_effects": []
     },
@@ -365,7 +365,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-035",
       "unauthorized_canonical_effects": []
     },
@@ -375,7 +375,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "JURISDICTION_MISMATCH",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-036",
       "unauthorized_canonical_effects": []
     },
@@ -385,17 +385,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-037",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-038",
       "unauthorized_canonical_effects": []
     },
@@ -405,7 +405,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-039",
       "unauthorized_canonical_effects": []
     },
@@ -415,7 +415,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-040",
       "unauthorized_canonical_effects": []
     },
@@ -425,7 +425,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-041",
       "unauthorized_canonical_effects": []
     },
@@ -435,7 +435,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-042",
       "unauthorized_canonical_effects": []
     },
@@ -465,7 +465,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-045",
       "unauthorized_canonical_effects": []
     },
@@ -475,7 +475,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-046",
       "unauthorized_canonical_effects": []
     },
@@ -485,7 +485,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-047",
       "unauthorized_canonical_effects": []
     },
@@ -495,7 +495,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "JURISDICTION_MISMATCH",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-048",
       "unauthorized_canonical_effects": []
     },
@@ -505,17 +505,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-049",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-050",
       "unauthorized_canonical_effects": []
     },
@@ -525,7 +525,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-051",
       "unauthorized_canonical_effects": []
     },
@@ -535,7 +535,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-052",
       "unauthorized_canonical_effects": []
     },
@@ -545,7 +545,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-053",
       "unauthorized_canonical_effects": []
     },
@@ -555,7 +555,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-054",
       "unauthorized_canonical_effects": []
     },
@@ -585,7 +585,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-057",
       "unauthorized_canonical_effects": []
     },
@@ -595,7 +595,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-058",
       "unauthorized_canonical_effects": []
     },
@@ -605,7 +605,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-059",
       "unauthorized_canonical_effects": []
     },
@@ -645,7 +645,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-063",
       "unauthorized_canonical_effects": []
     },
@@ -655,7 +655,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-064",
       "unauthorized_canonical_effects": []
     },
@@ -665,7 +665,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-065",
       "unauthorized_canonical_effects": []
     },
@@ -705,7 +705,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-069",
       "unauthorized_canonical_effects": []
     },
@@ -715,7 +715,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-070",
       "unauthorized_canonical_effects": []
     },
@@ -725,7 +725,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "HUMAN_APPROVAL_REQUIRED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-071",
       "unauthorized_canonical_effects": []
     },
@@ -745,17 +745,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-073",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-074",
       "unauthorized_canonical_effects": []
     },
@@ -765,7 +765,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-075",
       "unauthorized_canonical_effects": []
     },
@@ -775,7 +775,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-076",
       "unauthorized_canonical_effects": []
     },
@@ -785,7 +785,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-077",
       "unauthorized_canonical_effects": []
     },
@@ -795,7 +795,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-078",
       "unauthorized_canonical_effects": []
     },
@@ -825,7 +825,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-081",
       "unauthorized_canonical_effects": []
     },
@@ -835,7 +835,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-082",
       "unauthorized_canonical_effects": []
     },
@@ -885,7 +885,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-087",
       "unauthorized_canonical_effects": []
     },
@@ -895,7 +895,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-088",
       "unauthorized_canonical_effects": []
     },
@@ -945,7 +945,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-093",
       "unauthorized_canonical_effects": []
     },
@@ -955,7 +955,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-094",
       "unauthorized_canonical_effects": []
     },
@@ -985,17 +985,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-097",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-098",
       "unauthorized_canonical_effects": []
     },
@@ -1005,7 +1005,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-099",
       "unauthorized_canonical_effects": []
     },
@@ -1015,7 +1015,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-100",
       "unauthorized_canonical_effects": []
     },
@@ -1025,7 +1025,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-101",
       "unauthorized_canonical_effects": []
     },
@@ -1035,7 +1035,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-102",
       "unauthorized_canonical_effects": []
     },
@@ -1065,7 +1065,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-105",
       "unauthorized_canonical_effects": []
     },
@@ -1075,7 +1075,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-106",
       "unauthorized_canonical_effects": []
     },
@@ -1095,7 +1095,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "JURISDICTION_MISMATCH",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-108",
       "unauthorized_canonical_effects": []
     },
@@ -1105,17 +1105,17 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-109",
       "unauthorized_canonical_effects": []
     },
     {
-      "expected_decision": "DENY",
-      "expected_reason_class": "AUTHORITY_MISSING",
-      "observed_decision": "DENY",
-      "observed_reason_class": "AUTHORITY_MISSING",
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "AUTHORIZED",
+      "observed_decision": "ALLOW",
+      "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-110",
       "unauthorized_canonical_effects": []
     },
@@ -1125,7 +1125,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-111",
       "unauthorized_canonical_effects": []
     },
@@ -1135,7 +1135,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-112",
       "unauthorized_canonical_effects": []
     },
@@ -1145,7 +1145,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-113",
       "unauthorized_canonical_effects": []
     },
@@ -1155,7 +1155,7 @@
       "observed_decision": "ALLOW",
       "observed_reason_class": "AUTHORIZED",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-114",
       "unauthorized_canonical_effects": []
     },
@@ -1185,7 +1185,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "CROSS_TENANT",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-117",
       "unauthorized_canonical_effects": []
     },
@@ -1195,7 +1195,7 @@
       "observed_decision": "DENY",
       "observed_reason_class": "DELEGATION_INVALID",
       "passed": true,
-      "provider_called": true,
+      "provider_called": false,
       "scenario_id": "AUTH-118",
       "unauthorized_canonical_effects": []
     },
@@ -1221,8 +1221,8 @@
     }
   ],
   "passes": 120,
-  "r3_run_id": "opa-20260830-002",
-  "result_sha256": "963a213b8819d6e8f945ca79d7c7a08d147d5f22aa5cade7d16f05612b154e0d",
+  "r3_run_id": "openfga-correctness-20260830-003",
+  "result_sha256": "a1eb94ed9639af79899eea92f057e3fc6ab3162873cfc0b04b384b94cfc64b8a",
   "scenario_count": 120,
   "unauthorized_canonical_effects": 0
 }

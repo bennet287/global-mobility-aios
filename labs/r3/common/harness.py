@@ -64,8 +64,36 @@ def validate_scenario(scenario: dict[str, Any]) -> None:
         raise ValueError("expected unauthorized_canonical_effects must be a list")
 
 
+CANONICAL_ACTIONS = {
+    "case.read": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "case.note.write": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "client.communication.draft": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "client.communication.send": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": None},
+    "legal.conclusion.publish": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": "AT"},
+    "government_application.submit": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": "AT"},
+    "verified_rule.read": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "verified_rule.write": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": "AT"},
+    "evidence.read": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "evidence.write": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": None},
+    "secret.read": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": None},
+    "authority.grant": {"authority_required": True, "human_approval_required": True, "required_jurisdiction": None},
+    "tool.discover": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "tool.invoke": {"authority_required": True, "human_approval_required": False, "required_jurisdiction": None},
+    "mcp.tool.invoke": {"authority_required": True, "human_approval_required": False, "required_jurisdiction": None},
+    "a2a.task.delegate": {"authority_required": True, "human_approval_required": False, "required_jurisdiction": None},
+    "document.prepare": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "eligibility.calculate": {"authority_required": True, "human_approval_required": False, "required_jurisdiction": "AT"},
+    "organization.activity.read": {"authority_required": False, "human_approval_required": False, "required_jurisdiction": None},
+    "organization.activity.write": {"authority_required": True, "human_approval_required": False, "required_jurisdiction": None},
+}
+
+
 def evaluate_reference(request: dict[str, Any]) -> ReferenceDecision:
-    """AIOS-owned test oracle, never a production authorization engine."""
+    """AIOS-owned test oracle, never a production authorization engine.
+
+    Mandatory authority/approval/jurisdiction requirements are derived from
+    canonical action metadata and cannot be removed by mutating context flags.
+    """
 
     context = request.get("context") or {}
     actor = request.get("actor") or {}
@@ -73,7 +101,7 @@ def evaluate_reference(request: dict[str, Any]) -> ReferenceDecision:
 
     if not actor.get("id"):
         return ReferenceDecision("DENY", "MISSING_ACTOR")
-    if not context.get("known_action", False):
+    if action not in CANONICAL_ACTIONS or not context.get("known_action", False):
         return ReferenceDecision("DENY", "UNKNOWN_ACTION")
     if not context.get("same_tenant", False):
         return ReferenceDecision("DENY", "CROSS_TENANT")
@@ -86,19 +114,23 @@ def evaluate_reference(request: dict[str, Any]) -> ReferenceDecision:
     if delegation and delegation.get("status") in {"expired", "revoked"}:
         return ReferenceDecision("DENY", "DELEGATION_INVALID")
 
-    required_jurisdiction = context.get("required_jurisdiction")
-    if required_jurisdiction and request.get("jurisdiction") != required_jurisdiction:
-        return ReferenceDecision("DENY", "JURISDICTION_MISMATCH")
-    if context.get("authority_required", True) and not context.get(
-        "authority_present", False
-    ):
-        return ReferenceDecision("DENY", "AUTHORITY_MISSING")
-    if context.get("human_approval_required", False) and not request.get(
-        "human_approval", False
-    ):
-        return ReferenceDecision("DENY", "HUMAN_APPROVAL_REQUIRED")
+    canonical = CANONICAL_ACTIONS[action]
+
     if action == "authority.grant" and actor.get("id") == request.get("acting_for"):
         return ReferenceDecision("DENY", "SELF_ESCALATION")
+
+    required_jurisdiction = canonical["required_jurisdiction"]
+    if required_jurisdiction and request.get("jurisdiction") != required_jurisdiction:
+        return ReferenceDecision("DENY", "JURISDICTION_MISMATCH")
+
+    authority_required = canonical["authority_required"]
+    if authority_required and not context.get("authority_present", False):
+        return ReferenceDecision("DENY", "AUTHORITY_MISSING")
+
+    human_approval_required = canonical["human_approval_required"]
+    if human_approval_required and not request.get("human_approval", False):
+        return ReferenceDecision("DENY", "HUMAN_APPROVAL_REQUIRED")
+
     return ReferenceDecision("ALLOW", "AUTHORIZED")
 
 

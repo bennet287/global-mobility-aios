@@ -27,8 +27,8 @@ def main() -> int:
     parser.add_argument("--candidate", choices=["openfga", "opa"], required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--opa-url", default="http://127.0.0.1:18181")
-    parser.add_argument("--openfga-url", default="http://127.0.0.1:18080")
+    parser.add_argument("--opa-url", default="http://127.0.0.1:18182")
+    parser.add_argument("--openfga-url", default="http://127.0.0.1:18081")
     args = parser.parse_args()
     validate_run_id(args.run_id)
     if args.candidate == "opa":
@@ -40,7 +40,11 @@ def main() -> int:
             authorization_model_id="unavailable-model",
         )
 
-    request = build_authority_corpus()["scenarios"][0]["request"]
+    request = next(
+        scenario["request"]
+        for scenario in build_authority_corpus()["scenarios"]
+        if scenario["request"]["action"] == "government_application.submit"
+    )
     observed = adapter.decide(request)
     passed = (
         observed.decision == "DENY"

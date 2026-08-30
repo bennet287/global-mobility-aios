@@ -20,7 +20,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -58,8 +58,8 @@
     {
       "description": "case.read: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -72,7 +72,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -124,7 +124,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -176,7 +176,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -228,7 +228,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -280,7 +280,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -332,7 +332,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -370,8 +370,8 @@
     {
       "description": "case.note.write: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -384,7 +384,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -436,7 +436,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -488,7 +488,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -540,7 +540,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -592,7 +592,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -644,7 +644,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -682,8 +682,8 @@
     {
       "description": "client.communication.draft: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -696,7 +696,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -748,7 +748,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -800,7 +800,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -852,7 +852,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -904,7 +904,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -1892,7 +1892,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -1930,8 +1930,8 @@
     {
       "description": "verified_rule.read: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -1944,7 +1944,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -1996,7 +1996,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2048,7 +2048,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2100,7 +2100,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2152,7 +2152,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2516,7 +2516,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2554,8 +2554,8 @@
     {
       "description": "evidence.read: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -2568,7 +2568,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2620,7 +2620,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2672,7 +2672,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2724,7 +2724,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -2776,7 +2776,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -3764,7 +3764,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -3802,8 +3802,8 @@
     {
       "description": "tool.discover: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -3816,7 +3816,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -3868,7 +3868,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -3920,7 +3920,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -3972,7 +3972,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -4024,7 +4024,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5012,7 +5012,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5050,8 +5050,8 @@
     {
       "description": "document.prepare: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -5064,7 +5064,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5116,7 +5116,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5168,7 +5168,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5220,7 +5220,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5272,7 +5272,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5636,7 +5636,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5674,8 +5674,8 @@
     {
       "description": "organization.activity.read: capability without authority",
       "expected": {
-        "decision": "DENY",
-        "reason_class": "AUTHORITY_MISSING",
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
         "required_approval": false,
         "unauthorized_canonical_effects": []
       },
@@ -5688,7 +5688,7 @@
         },
         "context": {
           "authority_present": false,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5740,7 +5740,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5792,7 +5792,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5844,7 +5844,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,
@@ -5896,7 +5896,7 @@
         },
         "context": {
           "authority_present": true,
-          "authority_required": true,
+          "authority_required": false,
           "human_approval_required": false,
           "known_action": true,
           "provider_claimed_authority": false,

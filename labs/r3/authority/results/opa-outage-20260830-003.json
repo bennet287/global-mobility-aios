@@ -1,16 +1,16 @@
 {
-  "candidate": "openfga",
-  "candidate_version": "v1.18.1",
+  "candidate": "opa",
+  "candidate_version": "v1.19.1",
   "contract_version": "gmai.r3.v1",
   "environment": "synthetic-isolated",
   "expected_decision": "DENY",
   "experiment": "engine-unavailable",
-  "git_sha": "46a45a064340bcc3cb1011194d12982c263b10dd",
+  "git_sha": "b3a165939b1fbd0552fed5cb15ba462385eb5d3b",
   "observed_decision": "DENY",
   "observed_reason_class": "ENGINE_UNAVAILABLE",
   "passed": true,
   "provider_called": true,
-  "r3_run_id": "openfga-outage-20260830-002",
-  "result_sha256": "5a25d46ee348fad924c1e209f10c618503e0530a6b34eb1923eb76bf976ba7a3",
+  "r3_run_id": "opa-outage-20260830-003",
+  "result_sha256": "b63020e5b359f24da92e92bf0035c5d282a8a4a0c454c124a39d5db1194ec91d",
   "unauthorized_canonical_effects": 0
 }

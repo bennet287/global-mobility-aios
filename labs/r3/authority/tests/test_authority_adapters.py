@@ -82,7 +82,13 @@ def test_engine_outage_fails_closed(adapter_kind: str) -> None:
             authorization_model_id="model",
             client=client,
         )
-    request = copy.deepcopy(build_authority_corpus()["scenarios"][0]["request"])
+    request = copy.deepcopy(
+        next(
+            scenario["request"]
+            for scenario in build_authority_corpus()["scenarios"]
+            if scenario["request"]["action"] == "government_application.submit"
+        )
+    )
 
     observed = adapter.decide(request)
 
@@ -196,9 +202,9 @@ def test_percentile_is_deterministic() -> None:
     assert benchmark_percentile([1.0, 2.0, 3.0, 4.0], 99) == 4.0
 
 
-def test_six_authority_evidence_artifacts_are_fingerprinted() -> None:
+def test_all_authority_evidence_artifacts_are_fingerprinted() -> None:
     paths = sorted(Path("labs/r3/authority/results").glob("*.json"))
 
-    assert len(paths) == 6
+    assert len(paths) == 7
     for path in paths:
         verify_result(path)

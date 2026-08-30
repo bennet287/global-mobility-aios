@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AIOS Authority Decision V1",
+  "description": "Normalized authorization decision produced by every candidate engine. AIOS canonical enforcement uses this contract, not engine-native responses.",
+  "type": "object",
+  "required": ["decision", "reason_class", "canonical_effect_authorized"],
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": ["ALLOW", "DENY"]
+    },
+    "reason_class": {
+      "type": "string"
+    },
+    "canonical_effect_authorized": {
+      "type": "boolean"
+    },
+    "candidate": {
+      "type": "string"
+    },
+    "provider_called": {
+      "type": "boolean"
+    }
+  }
+}

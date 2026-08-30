@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AIOS Human Approval V1",
+  "description": "Canonical human approval record. Model or provider assertions cannot substitute for this record.",
+  "type": "object",
+  "required": ["approval_id", "approver", "action", "resource", "status"],
+  "properties": {
+    "approval_id": {
+      "type": "string"
+    },
+    "approver": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "resource": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["granted", "denied", "revoked", "expired"]
+    },
+    "granted_at": {
+      "type": ["string", "null"]
+    },
+    "expires_at": {
+      "type": ["string", "null"]
+    }
+  }
+}

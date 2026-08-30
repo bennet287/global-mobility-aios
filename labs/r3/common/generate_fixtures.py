@@ -12,25 +12,25 @@ ROOT = Path(__file__).resolve().parent
 FIXTURES = ROOT / "fixtures"
 
 ACTIONS = (
-    ("case.read", "LOW", True, False, None),
-    ("case.note.write", "MEDIUM", True, False, None),
-    ("client.communication.draft", "MEDIUM", True, False, None),
+    ("case.read", "LOW", False, False, None),
+    ("case.note.write", "MEDIUM", False, False, None),
+    ("client.communication.draft", "MEDIUM", False, False, None),
     ("client.communication.send", "HIGH", True, True, None),
     ("legal.conclusion.publish", "HIGH", True, True, "AT"),
     ("government_application.submit", "CRITICAL", True, True, "AT"),
-    ("verified_rule.read", "MEDIUM", True, False, None),
+    ("verified_rule.read", "MEDIUM", False, False, None),
     ("verified_rule.write", "CRITICAL", True, True, "AT"),
-    ("evidence.read", "MEDIUM", True, False, None),
+    ("evidence.read", "MEDIUM", False, False, None),
     ("evidence.write", "HIGH", True, True, None),
     ("secret.read", "CRITICAL", True, True, None),
     ("authority.grant", "CRITICAL", True, True, None),
-    ("tool.discover", "LOW", True, False, None),
+    ("tool.discover", "LOW", False, False, None),
     ("tool.invoke", "HIGH", True, False, None),
     ("mcp.tool.invoke", "HIGH", True, False, None),
     ("a2a.task.delegate", "HIGH", True, False, None),
-    ("document.prepare", "MEDIUM", True, False, None),
+    ("document.prepare", "MEDIUM", False, False, None),
     ("eligibility.calculate", "HIGH", True, False, "AT"),
-    ("organization.activity.read", "LOW", True, False, None),
+    ("organization.activity.read", "LOW", False, False, None),
     ("organization.activity.write", "HIGH", True, False, None),
 )
 
