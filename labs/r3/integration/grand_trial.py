@@ -22,6 +22,7 @@ REQUIRED_LANES = {
     "recovery",
     "memory",
     "orchestration",
+    "ui",
 }
 
 
@@ -53,6 +54,7 @@ def _classify_lane(result: dict[str, Any]) -> str | None:
         "recovery": ("recovery", "pitr", "postgresql"),
         "memory": ("memory", "mem0", "openviking"),
         "orchestration": ("temporal", "langgraph", "agno", "orchestration"),
+        "ui": ("ag-ui", "agui", "copilotkit", "governed-ui"),
     }
     for lane, markers in mapping.items():
         if any(marker in haystack for marker in markers):
