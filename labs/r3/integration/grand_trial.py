@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,15 @@ REQUIRED_LANES = {
     "memory",
     "orchestration",
 }
+
+
+def _git_sha() -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -71,6 +81,8 @@ def evaluate_evidence(paths: list[Path]) -> dict[str, Any]:
             defects.append(f"unauthorized_effect:{lane}:{path.name}")
         if not result.get("result_sha256"):
             defects.append(f"missing_fingerprint:{lane}:{path.name}")
+        if not result.get("git_sha"):
+            defects.append(f"missing_git_sha:{lane}:{path.name}")
 
     missing = sorted(REQUIRED_LANES - set(lanes))
     defects.extend(f"missing_lane:{lane}" for lane in missing)
@@ -189,6 +201,7 @@ def main() -> int:
         "r3_run_id": args.run_id,
         "candidate": "gmai-r3-grand-integration-trial",
         "candidate_version": "v2",
+        "git_sha": _git_sha(),
         "environment": "synthetic-cross-lane-evidence-gated",
         "experiment": "t8-grand-integration-trial",
         "test_tiers": ["T8"],
