@@ -13,7 +13,15 @@ from scripts.evaluate_austria_ai_domain_review import (
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts" / "evaluate_austria_ai_domain_review.py"
-SOURCE = ROOT / "apps" / "api" / "evaluations" / "mobility_cases" / "austria_rwr_shortage_2026_v1.json"
+SOURCE = (
+    ROOT
+    / "apps"
+    / "api"
+    / "evaluations"
+    / "mobility_cases"
+    / "austria_rwr_shortage_2026_v1.json"
+)
+PATHWAY_KEY = "at-rwr-skilled-worker-shortage-occupation"
 
 
 def test_blind_packet_excludes_expected_labels_and_rationale() -> None:
@@ -22,6 +30,7 @@ def test_blind_packet_excludes_expected_labels_and_rationale() -> None:
     assert packet["contract_version"] == "austria-ai-domain-review-blind-packet.v1"
     assert packet["expected_labels_excluded"] is True
     assert packet["professional_review_status_effect"] == "NONE"
+    assert packet["review_scope_pathway_key"] == PATHWAY_KEY
     assert len(packet["cases"]) == 3
 
     serialized = json.dumps(packet, sort_keys=True)
@@ -32,7 +41,13 @@ def test_blind_packet_excludes_expected_labels_and_rationale() -> None:
 def test_prepare_packet_cli_writes_external_artifact(tmp_path: Path) -> None:
     output = tmp_path / "blind.json"
     result = subprocess.run(
-        [sys.executable, str(SCRIPT), "--prepare-packet", "--output", str(output)],
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--prepare-packet",
+            "--output",
+            str(output),
+        ],
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -47,9 +62,10 @@ def test_prepare_packet_cli_writes_external_artifact(tmp_path: Path) -> None:
 
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["professional_review_status_effect"] == "NONE"
+    assert payload["review_scope_pathway_key"] == PATHWAY_KEY
 
 
-def test_provider_payload_requires_exact_case_set_and_non_authority() -> None:
+def test_provider_payload_requires_exact_case_set_scope_and_non_authority() -> None:
     case_ids = ["case-a"]
     refs = {"source-a"}
     valid = {
@@ -57,7 +73,7 @@ def test_provider_payload_requires_exact_case_set_and_non_authority() -> None:
             {
                 "case_id": "case-a",
                 "classification": "INELIGIBLE",
-                "pathway_key": "pathway-a",
+                "pathway_key": PATHWAY_KEY,
                 "points_total": 30,
                 "points_breakdown": {"qualification": 30},
                 "requirements_satisfied": ["training"],
@@ -69,38 +85,97 @@ def test_provider_payload_requires_exact_case_set_and_non_authority() -> None:
         ]
     }
 
-    reviews = _validate_provider_payload(valid, case_ids=case_ids, valid_source_refs=refs)
+    reviews = _validate_provider_payload(
+        valid,
+        case_ids=case_ids,
+        valid_source_refs=refs,
+    )
     assert reviews[0]["classification"] == "INELIGIBLE"
+    assert reviews[0]["pathway_key"] == PATHWAY_KEY
 
-    invalid = json.loads(json.dumps(valid))
-    invalid["reviews"][0]["final_authority_decision"] = True
-
+    wrong_scope = json.loads(json.dumps(valid))
+    wrong_scope["reviews"][0]["pathway_key"] = "invented-route"
     try:
-        _validate_provider_payload(invalid, case_ids=case_ids, valid_source_refs=refs)
+        _validate_provider_payload(
+            wrong_scope,
+            case_ids=case_ids,
+            valid_source_refs=refs,
+        )
+    except ValueError as exc:
+        assert "declared review scope" in str(exc)
+    else:
+        raise AssertionError("wrong pathway scope must fail closed")
+
+    authority_claim = json.loads(json.dumps(valid))
+    authority_claim["reviews"][0]["final_authority_decision"] = True
+    try:
+        _validate_provider_payload(
+            authority_claim,
+            case_ids=case_ids,
+            valid_source_refs=refs,
+        )
     except ValueError as exc:
         assert "final_authority_decision=false" in str(exc)
     else:
         raise AssertionError("authority-claiming AI review must fail closed")
 
 
-def _run(provider: str, classifications: tuple[str, str, str]) -> dict[str, object]:
+def _run(
+    provider: str,
+    classifications: tuple[str, str, str],
+) -> dict[str, object]:
     case_ids = ["a", "b", "c"]
+    expected = ("INELIGIBLE", "REVIEW_REQUIRED", "INELIGIBLE")
     return {
         "provider_key": provider,
         "status": "completed",
         "structural_valid": True,
         "response_identity_match": True,
         "reviews": [
-            {"case_id": case_id, "classification": classification}
-            for case_id, classification in zip(case_ids, classifications, strict=True)
+            {
+                "case_id": case_id,
+                "classification": classification,
+            }
+            for case_id, classification in zip(
+                case_ids,
+                classifications,
+                strict=True,
+            )
         ],
         "comparison": {
-            "all_classifications_match": classifications
-            == ("INELIGIBLE", "REVIEW_REQUIRED", "INELIGIBLE"),
+            "all_classifications_match": classifications == expected,
             "all_pathways_match": True,
         },
     }
 
 
 def test_multi_model_candidate_requires_two_distinct_unanimous_matching_providers() -> None:
-    expected = ("INELIGIBLE", "REVIE]}IEU%Iˆ°€‰%91%%	1ˆ¤(€€€½¹”€ô}½ÉÉ½‰½É…Ñ¥½¹}ÍÕµµ…Éä¡m}ÉÕ¸ ‰•µ¥¹¤ˆ°•áÁ•Ñ•¥t°…Í•}¥‘Ìõl‰„ˆ°€‰ˆˆ°€‰Œ‰t¤(€€€…ÍÍ•ÉĞ½¹•l‰µÕ±Ñ¥}µ½‘•±}½ÉÉ½‰½É…Ñ¥½¹}…¹‘¥‘…Ñ”‰t¥Ì…±Í”((€€€Ñİ¼€ô}½ÉÉ½‰½É…Ñ¥½¹}ÍÕµµ…Éä (€€€€€€€m}ÉÕ¸ ‰•µ¥¹¤ˆ°•áÁ•Ñ•¤°}ÉÕ¸ ‰‘••ÁÍ••¬ˆ°•áÁ•Ñ•¥t°(€€€€€€€…Í•}¥‘Ìõl‰„ˆ°€‰ˆˆ°€‰Œ‰t°(€€€€¤(€€€…ÍÍ•ÉĞÑİ½l‰µÕ±Ñ¥}µ½‘•±}½ÉÉ½‰½É…Ñ¥½¹}…¹‘¥‘…Ñ”‰t¥ÌQÉÕ”(€€€…ÍÍ•ÉĞÑİ½l‰ÁÉ½™•ÍÍ¥½¹…±}É•Ù¥•İ}ÍÑ…ÑÕÍ}•™™•Ğ‰t€ôô€‰9=9ˆ((€€€‘¥Í…É••€ô}½ÉÉ½‰½É…Ñ¥½¹}ÍÕµµ…Éä (€€€€€€€l(€€€€€€€€€€€}ÉÕ¸ ‰•µ¥¹¤ˆ°•áÁ•Ñ•¤°(€€€€€€€€€€€}ÉÕ¸ ‰‘••ÁÍ••¬ˆ°€ ‰%91%%	1ˆ°€‰1%%	1ˆ°€‰%91%%	1ˆ¤¤°(€€€€€€€t°(€€€€€€€…Í•}¥‘Ìõl‰„ˆ°€‰ˆˆ°€‰Œ‰t°(€€€€¤(€€€…ÍÍ•ÉĞ‘¥Í…É••‘l‰µÕ±Ñ¥}µ½‘•±}½ÉÉ½‰½É…Ñ¥½¹}…¹‘¥‘…Ñ”‰t¥Ì…±Í”(
+    expected = ("INELIGIBLE", "REVIEW_REQUIRED", "INELIGIBLE")
+
+    one = _corroboration_summary(
+        [_run("gemini", expected)],
+        case_ids=["a", "b", "c"],
+    )
+    assert one["multi_model_corroboration_candidate"] is False
+
+    two = _corroboration_summary(
+        [
+            _run("gemini", expected),
+            _run("deepseek", expected),
+        ],
+        case_ids=["a", "b", "c"],
+    )
+    assert two["multi_model_corroboration_candidate"] is True
+    assert two["professional_review_status_effect"] == "NONE"
+
+    disagreed = _corroboration_summary(
+        [
+            _run("gemini", expected),
+            _run(
+                "deepseek",
+                ("INELIGIBLE", "ELIGIBLE", "INELIGIBLE"),
+            ),
+        ],
+        case_ids=["a", "b", "c"],
+    )
+    assert disagreed["multi_model_corroboration_candidate"] is False
