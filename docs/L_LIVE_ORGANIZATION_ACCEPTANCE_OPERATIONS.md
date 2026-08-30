@@ -211,6 +211,23 @@ Exit code `0` means at least one CONFIRMED/CORRECTED case is structurally promot
 
 Never use `test-only`, placeholder, invented or self-authored professional-review references as L acceptance evidence.
 
+## Supplemental AI domain corroboration — non-substitute
+
+The accepted K.1/L live-provider outputs are strong runtime/governance evidence but are not themselves a substantive independent legal benchmark review. The separate blind evaluator in `scripts/evaluate_austria_ai_domain_review.py` may be used to collect supplemental multi-provider domain corroboration while external professional review remains unavailable.
+
+Canonical details and commands are in `V1_3_L_AI_DOMAIN_CORROBORATION.md`.
+
+Permanent boundary:
+
+```text
+multi-model AI corroboration != professional review
+multi-model AI corroboration != Austrian authority determination
+```
+
+A model never receives the benchmark expected eligibility labels or rationale before answering. The pathway under review is declared explicitly as `at-rwr-skilled-worker-shortage-occupation`; this is review scope, not an expected case outcome. At least two distinct qualifying providers must independently agree with the immutable source-curated classifications for the evaluator to return a corroboration candidate.
+
+The evaluator cannot mutate `professional_review_status`, cannot create `PROFESSIONALLY_REVIEWED` provenance, and cannot authorize client-facing or external action.
+
 ## Deferred critics — after L seal
 
 These are valid engineering concerns but are not current acceptance blockers:

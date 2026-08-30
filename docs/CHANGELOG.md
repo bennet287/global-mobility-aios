@@ -22,6 +22,49 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-30 — V12.32 SUPPLEMENTAL BLIND AUSTRIA AI DOMAIN-CORROBORATION HARNESS
+
+### Status
+
+**TOOLING IMPLEMENTED / NO CORROBORATION RESULT CLAIMED / PROFESSIONAL REVIEW STILL PENDING**
+
+Added a separate AI domain-quality evaluator for the immutable three-case Austria RWR shortage-occupation benchmark:
+
+```text
+scripts/evaluate_austria_ai_domain_review.py
+apps/api/tests/test_ai_domain_review_cli.py
+docs/V1_3_L_AI_DOMAIN_CORROBORATION.md
+```
+
+The evaluator deliberately excludes benchmark expected eligibility labels and rationale from provider prompts. The pathway under review is explicitly declared as `at-rwr-skilled-worker-shortage-occupation` so models are not penalized for inventing an internal route identifier; this is scope disclosure, not disclosure of a case outcome.
+
+The harness fresh-fetches benchmark government sources through the existing source-retrieval security boundary, requires source-grounded JSON responses with `final_authority_decision=false`, records exact configured-vs-returned provider/model identity, and compares returned classifications against the immutable source-curated benchmark only after model output is returned.
+
+A multi-model corroboration candidate requires at least two distinct qualifying providers, case-by-case unanimity, and complete match against the immutable source-curated eligibility labels/pathway. Provider failures, malformed output, model-identity mismatch, disagreement, or benchmark mismatch remain visible and fail the candidate.
+
+Permanent evidence boundary:
+
+```text
+AI corroboration != professional review
+AI corroboration != Austrian authority decision
+professional_review_status effect = NONE
+```
+
+The professional-review compiler is unchanged and remains the only path that can compile genuine professional review. No production dependency, migration, canonical case mutation, external filing, client communication, authority expansion, or M implementation is introduced.
+
+Current milestone truth remains:
+
+```text
+K.1/L runtime safety evidence        ACCEPTED
+AI domain corroboration harness      IMPLEMENTED / RESULT PENDING
+Professional Austria review          PENDING
+Final exact-current-head proof       PENDING
+Overall L                            IMPLEMENTED / ACCEPTANCE PENDING
+M                                    NOT STARTED
+```
+
+The active roadmap advances from **V12.31 to V12.32** for this bounded L-validation capability only.
+
 ## 2026-08-30 — V12.31 / TECHNOLOGY RADAR V1.3.5 — EXTERNAL AGENT INFRASTRUCTURE CLASSIFICATION
 
 ### Status
