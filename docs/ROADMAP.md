@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.29 — Hy4 Preview frontend-development pilot classification; no product/runtime adoption; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
-**Date:** 2026-08-29
+**Roadmap generation:** V12.30 — L live-runtime acceptance evidence + V1.3.4 documentation reconciliation; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Date:** 2026-08-30
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
@@ -17,7 +17,9 @@
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
 **K.1 canonical proof:** GitHub Actions Production Proof `32582805820` — 4/4 PASS; Repository Policy `32582805835`; Woodpecker push #17 and PR #18 — 4/4 PASS
 **Latest fully green L technical checkpoint:** `34597abf24a348a28b25e15dccb1a22fa35b3998` — Woodpecker PR Pipeline #77 4/4 PASS; eight commits after fresh-retrieval checkpoint `a85384e6...`; historical exact-checkpoint proof only
-**Pre-reconciliation source-bearing branch head:** `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8` — later than `34597abf...`; exact-head full CI proof not established
+**Accepted L live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md` — real Gemini success, guarded fresh retrieval, real failure, owner materialization and exact replay; professional review + final exact-current-head proof remain
+**Runtime-evidence documentation baseline:** `eb890463a36e0b3c9a615bb2255c41730cd80646` — source head before this V12.30 documentation-only receipt; final exact-current-head proof remains pending
+**Historical 2026-08-25 pre-reconciliation source head:** `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8`
 **Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
@@ -247,7 +249,7 @@ External infrastructure may provide capability but may not redefine those semant
 | Outcome Evaluation baseline | PROVEN BASELINE | outcome evidence before autonomy mutation |
 | J.1 Austria Agent Organization Runtime | COMPLETE / PASS / SEALED | native Austria organization topology + runtime bindings |
 | K.1 Bounded Specialist Execution / Coworker Runtime | COMPLETE / PASS / SEALED | durable specialist execution evidence + stronger owner synthesis gate |
-| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | latest fully green technical checkpoint exists; subsequent source changes require new exact-head proof and real professional/live-provider/fresh-retrieval acceptance evidence remains |
+| L Live Organization | IMPLEMENTED / ACCEPTANCE PENDING | live-provider/fresh-retrieval/failure/owner-replay runtime evidence accepted; independent professional review and final exact-current-head proof remain |
 | M Board Transparency Experience | NOT STARTED | full owner/Board transparency experience after L acceptance |
 | N Learning & Optimization | NOT STARTED | measured learning, performance, AI economics and controlled optimization |
 
@@ -318,7 +320,7 @@ canonical Austria objective
 → Owner Cockpit Live Organization surface
 ```
 
-Current L implementation exists, but acceptance remains open until the required external proof below is observed.
+Current L implementation exists. The real guarded live-runtime cycle, independent provider-failure behavior and exact owner replay are now evidenced, but acceptance remains open until independent professional review and final exact-current-head technical proof are observed.
 
 Latest **fully green historical L technical checkpoint**:
 
@@ -327,7 +329,7 @@ Latest **fully green historical L technical checkpoint**:
 Woodpecker PR Pipeline #77 — 4/4 PASS
 ```
 
-`34597abf...` is eight commits after the guarded fresh-retrieval checkpoint `a85384e6...`. The #77 green proof therefore covers a later L descendant containing the fresh-retrieval implementation plus subsequent Live Organization frontend/acceptance hardening. It remains historical technical/product proof only: it does not establish real live-provider success, independent professional correctness, or a guarded real acceptance L cycle.
+`34597abf...` is eight commits after the guarded fresh-retrieval checkpoint `a85384e6...`. The #77 green proof therefore covers a later L descendant containing the fresh-retrieval implementation plus subsequent Live Organization frontend/acceptance hardening. It remains historical technical/product proof only. The separate 2026-08-30 runtime receipt records the later real guarded live-provider cycle; it does not convert #77 into current-head proof or establish independent professional correctness.
 
 Repository-truth reconciliation on 2026-08-25:
 
@@ -353,12 +355,12 @@ Those GitHub Actions runs are **runner/infrastructure startup evidence, not repo
 
 Current status of the acceptance capabilities:
 
-1. **LATEST FULLY GREEN TECHNICAL CHECKPOINT — `34597abf...`, Woodpecker #77 4/4 PASS; CURRENT EXACT-HEAD RE-VERIFICATION PENDING** after subsequent source/documentation changes;
+1. **LATEST FULLY GREEN TECHNICAL CHECKPOINT — `34597abf...`, Woodpecker #77 4/4 PASS; FINAL EXACT-CURRENT-HEAD RE-VERIFICATION PENDING** after professional-review and acceptance-documentation changes are complete;
 2. **COMPLETE — browser/product behavior proof** for the bounded Cockpit read/command/failure/replay surface; route-controlled browser proof is UX/product proof, not backend integration proof;
 3. **COMPLETE — truthful UX states** for current organization state, missing evidence, blocked work and retained authority;
 4. **IMPLEMENTED — professional-review workflow/compiler** for the Austria benchmark; implementation alone is not professional correctness evidence;
 5. **REMAINING — first real independent professionally reviewed Austria tranche**, used to discover disagreement/error classes before setting a larger target;
-6. **REMAINING — real live-model success + provider-failure evidence and one guarded real fresh-retrieval L-cycle** before realistic AI-reasoning/freshness claims;
+6. **COMPLETE — real live-model success + provider-failure evidence and one guarded real fresh-retrieval L-cycle**, including Board owner materialization and exact replay, recorded in `docs/V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`;
 7. **COMPLETE — Evidence / VerifiedRule / source-snapshot lineage** wherever the bounded Austria regulated claims enter the L cycle;
 8. **COMPLETE — operational correlation** sufficient to diagnose latency, retries and runtime/provider failure without confusing telemetry with canonical Activity.
 

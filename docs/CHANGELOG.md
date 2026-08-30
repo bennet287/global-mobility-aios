@@ -22,6 +22,37 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-30 — V12.30 L LIVE-RUNTIME ACCEPTANCE EVIDENCE + DOCUMENTATION RECONCILIATION
+
+### Status
+
+**LIVE RUNTIME GATES ACCEPTED / PROFESSIONAL REVIEW + FINAL EXACT-CURRENT-HEAD PROOF PENDING**
+
+The sanitized receipt at `docs/V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md` records the real guarded Austria J→K→L cycle:
+
+```text
+successful root WorkItem         3790ff54-a9b6-4ea1-a132-a5d0f1bf53fb
+owner OrganizationalActionOutput 39334c7c-ab3b-4eed-8f6b-f3d2e118a683
+MATERIAL OrganizationActivity    9aad6376-42cd-44f0-933c-26a5510a9c55
+```
+
+The cycle used real Gemini specialist execution with exact provider/model identity, deterministic fallback disabled and fresh official-source equivalence. Board-authorized owner synthesis produced the durable human-review-gated result while provider/model authority remained false and external action remained unauthorized.
+
+Exact replay returned the same owner ActionOutput and Activity identifiers with `replayed=true`; the Activity count remained `10` before and after replay. No duplicate owner output or MATERIAL Activity was created.
+
+The separate retained provider-failure history records `LLMProviderTransportError` for failed root `905ec722-4b19-44a1-b1b5-13b582275cda` and execution attempt `6a563481-d307-47e4-97d9-5a24c7566e17`, with zero fabricated ActionOutputs.
+
+This reconciliation also aligns repository metadata with the already-active `TECHNOLOGY_RADAR_V1_3_4.md`. The V1.3.4 cybersecurity-skill/red-team radar addition remains documentation and governed donor evaluation only; it is not a product/runtime adoption claim.
+
+### Remaining L gates
+
+1. genuine independent professional review of the immutable Austria benchmark with durable reviewer identity and credential/standing evidence;
+2. final exact-current-head technical proof after the professional-review receipt and all acceptance documentation are committed.
+
+This entry does not seal L, start M, authorize external action, or claim professional/legal correctness. The active roadmap advances from **V12.29 to V12.30** only to reconcile accepted runtime evidence and current documentation truth.
+
+---
+
 ## 2026-08-29 — V12.29 HY4 PREVIEW FRONTEND-DEVELOPMENT RADAR ENTRY
 
 ### Status

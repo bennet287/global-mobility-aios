@@ -1,22 +1,26 @@
 # L Live Organization — Acceptance Operations
 
 **Status:** L IMPLEMENTED / ACCEPTANCE PENDING
-**Technical predecessor:** `1037f020adfb8e8b99849050bd75cf1035ed2e96`
-**Technical proof:** Woodpecker Pipeline #72 — 4/4 PASS
+**Original technical predecessor:** `1037f020adfb8e8b99849050bd75cf1035ed2e96`
+**Original technical proof:** Woodpecker Pipeline #72 — 4/4 PASS
+**Latest fully green historical L checkpoint:** `34597abf24a348a28b25e15dccb1a22fa35b3998` — Woodpecker Pipeline #77, 4/4 PASS
+**Accepted live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`
 **Migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
-This runbook covers the remaining evidence work for L. It does not redefine AIOS authority, benchmark truth, or milestone acceptance.
+This runbook covers the evidence work for L. The live-runtime gates were accepted on 2026-08-30 in `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`; independent professional review and final exact-current-head technical proof remain. This runbook does not redefine AIOS authority, benchmark truth, or milestone acceptance.
 
 ## Acceptance boundary
 
 The deterministic J→K→L integration proof is a **lineage and backend-integration proof**, not a live-model-quality proof. It proves the persisted path through WorkItem, execution attempt, AgentRun, ActionOutput, Activity, owner synthesis and replay. Real model/provider quality must be evidenced separately.
 
-The remaining L evidence requires:
+The complete L evidence boundary requires:
 
 1. a first real independent professionally reviewed Austria benchmark tranche;
 2. a real configured-provider success that passes the live-provider acceptance gate;
 3. real provider-failure evidence;
 4. a real guarded Austria L-cycle proving current official-source equivalence immediately before K.1 execution.
+
+Items 2–4 are now recorded as accepted runtime evidence in `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`, together with Board owner materialization and exact replay. Item 1 remains open. After the professional-review receipt and all acceptance documentation are committed, final exact-current-head technical proof is also required before L may be sealed.
 
 No provider/model identity grants organizational authority. No L acceptance evidence authorizes external action.
 

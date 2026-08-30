@@ -44,7 +44,7 @@ M Board Transparency Experience  NOT STARTED
 N Learning & Optimization        NOT STARTED
 ```
 
-Do not advance M merely because L code exists. L remains open until the external/live acceptance requirements in `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` are actually evidenced, including the required live-provider/fresh-retrieval and professional-review evidence.
+Do not advance M merely because L code exists. The live-provider/fresh-retrieval/failure/replay runtime gates are recorded in `docs/V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`. L remains open until genuine independent professional-review evidence and final exact-current-head technical proof are recorded under `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`.
 
 A deterministic fallback path or synthetic integration test may prove technical lineage, but it does not substitute for live-provider success or independent professional correctness evidence.
 
