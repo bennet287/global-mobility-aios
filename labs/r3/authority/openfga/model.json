@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {"type": "agent"},
+    {
+      "type": "resource",
+      "relations": {
+        "a2a_task_delegate": {"this": {}},
+        "authority_grant": {"this": {}},
+        "case_note_write": {"this": {}},
+        "case_read": {"this": {}},
+        "client_communication_draft": {"this": {}},
+        "client_communication_send": {"this": {}},
+        "document_prepare": {"this": {}},
+        "eligibility_calculate": {"this": {}},
+        "evidence_read": {"this": {}},
+        "evidence_write": {"this": {}},
+        "government_application_submit": {"this": {}},
+        "legal_conclusion_publish": {"this": {}},
+        "mcp_tool_invoke": {"this": {}},
+        "organization_activity_read": {"this": {}},
+        "organization_activity_write": {"this": {}},
+        "secret_read": {"this": {}},
+        "tool_discover": {"this": {}},
+        "tool_invoke": {"this": {}},
+        "verified_rule_read": {"this": {}},
+        "verified_rule_write": {"this": {}}
+      },
+      "metadata": {
+        "relations": {
+          "a2a_task_delegate": {"directly_related_user_types": [{"type": "agent"}]},
+          "authority_grant": {"directly_related_user_types": [{"type": "agent"}]},
+          "case_note_write": {"directly_related_user_types": [{"type": "agent"}]},
+          "case_read": {"directly_related_user_types": [{"type": "agent"}]},
+          "client_communication_draft": {"directly_related_user_types": [{"type": "agent"}]},
+          "client_communication_send": {"directly_related_user_types": [{"type": "agent"}]},
+          "document_prepare": {"directly_related_user_types": [{"type": "agent"}]},
+          "eligibility_calculate": {"directly_related_user_types": [{"type": "agent"}]},
+          "evidence_read": {"directly_related_user_types": [{"type": "agent"}]},
+          "evidence_write": {"directly_related_user_types": [{"type": "agent"}]},
+          "government_application_submit": {"directly_related_user_types": [{"type": "agent"}]},
+          "legal_conclusion_publish": {"directly_related_user_types": [{"type": "agent"}]},
+          "mcp_tool_invoke": {"directly_related_user_types": [{"type": "agent"}]},
+          "organization_activity_read": {"directly_related_user_types": [{"type": "agent"}]},
+          "organization_activity_write": {"directly_related_user_types": [{"type": "agent"}]},
+          "secret_read": {"directly_related_user_types": [{"type": "agent"}]},
+          "tool_discover": {"directly_related_user_types": [{"type": "agent"}]},
+          "tool_invoke": {"directly_related_user_types": [{"type": "agent"}]},
+          "verified_rule_read": {"directly_related_user_types": [{"type": "agent"}]},
+          "verified_rule_write": {"directly_related_user_types": [{"type": "agent"}]}
+        }
+      }
+    }
+  ]
+}

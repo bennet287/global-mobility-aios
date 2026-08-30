@@ -1,0 +1,26 @@
+services:
+  openfga:
+    image: openfga/openfga:v1.18.1
+    command: ["run"]
+    ports:
+      - "127.0.0.1:18080:8080"
+      - "127.0.0.1:18081:8081"
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  opa:
+    image: openpolicyagent/opa:1.19.1
+    command:
+      - run
+      - --server
+      - --addr=0.0.0.0:8181
+      - --log-level=error
+      - /policies/authority.rego
+    ports:
+      - "127.0.0.1:18181:8181"
+    read_only: true
+    volumes:
+      - ./opa:/policies:ro
+    tmpfs:
+      - /tmp
