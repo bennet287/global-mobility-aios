@@ -1,0 +1,22 @@
+definition agent {}
+
+definition position {
+    relation assignee: agent
+}
+
+definition team {
+    relation member: agent | position#assignee
+}
+
+definition case {
+    relation viewer: agent | team#member
+    relation editor: agent | team#member
+    permission read = viewer + editor
+    permission write = editor
+}
+
+definition tool {
+    relation caller: agent | team#member
+    permission discover = caller
+    permission invoke = caller
+}

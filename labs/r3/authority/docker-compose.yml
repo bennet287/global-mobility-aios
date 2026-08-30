@@ -24,3 +24,17 @@ services:
       - ./opa:/policies:ro
     tmpfs:
       - /tmp
+
+  spicedb:
+    image: ghcr.io/authzed/spicedb:v1.56.0
+    command:
+      - serve
+      - --grpc-preshared-key=gmai-r3-spicedb-key
+      - --datastore-engine=memory
+      - --http-enabled=true
+    ports:
+      - "127.0.0.1:15051:50051"
+      - "127.0.0.1:18443:8443"
+    read_only: true
+    tmpfs:
+      - /tmp
