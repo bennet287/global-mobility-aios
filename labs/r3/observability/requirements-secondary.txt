@@ -1,0 +1,2 @@
+langfuse==4.15.1
+arize-phoenix==20.4.0
