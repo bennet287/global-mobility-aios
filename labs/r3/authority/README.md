@@ -1,64 +1,200 @@
 # R3 Authority Lane
 
-OpenFGA and OPA run against the identical 120-scenario AIOS corpus. Cedar
-challenges them on the hardest ~76 scenarios. This lane is isolated research:
-no engine can authorize product behavior.
+OpenFGA and OPA run against the identical 120-scenario AIOS corpus. Cedar is a
+real CLI challenger over the hard subset and can be expanded to the full corpus.
+This lane is isolated Technology Radar R3 research: no engine can authorize
+product behavior or mutate AIOS canonical authority state.
 
 ## Exact candidates
 
 ```text
-OpenFGA  v1.18.1  release commit 69efbd9
-OPA      v1.19.1  release commit 54896f9
-Cedar    challenger — reference-oracle contract until real Cedar CLI is wired
+OpenFGA  v1.18.1
+OPA      v1.19.1
+Cedar    CLI v4.12.0
 ```
 
-All pins are explicit lab dependencies, not production dependencies. The
-OpenFGA release is the current patch after security-sensitive v1.18.0 changes;
-OPA v1.19.1 was built with an updated Go toolchain addressing standard-library
-vulnerabilities.
+All pins are lab dependencies, not production dependencies.
 
-## Boundary under test
+## Constitutional boundary
 
-AIOS retains context-heavy and constitutional preconditions. The external engine
-answers only its bounded policy/relationship question. Any engine outage,
-malformed response or ambiguous result is `DENY`.
+AIOS owns canonical action metadata. Caller-controlled context cannot remove
+mandatory authority, human-approval, tenant, or jurisdiction requirements.
 
 ```text
 AIOS request
-  -> canonical action metadata (authority/approval/jurisdiction)
-  -> tenant/capability/delegation/jurisdiction/approval preflight
+  -> canonical action metadata
+  -> constitutional preflight
   -> candidate engine
-  -> normalized ALLOW/DENY + reason
-  -> machine-readable result
+  -> normalized ALLOW/DENY
+  -> machine-readable fingerprinted evidence
 ```
 
-## Run when Docker is available
+`CAN DO != MAY DO` remains the governing invariant.
 
-```bash
-docker compose -f labs/r3/authority/docker-compose.yml up -d
+## Current closure status
+
+Implementation exists for:
+
+- OpenFGA and OPA 120-case correctness harnesses.
+- 10,000-request performance benchmarks.
+- fail-closed real-engine outage probes.
+- seven-mode adapter chaos matrices.
+- 12 constitutional invariants.
+- 10 dangerous policy mutations.
+- OPA canonical-action metadata hardening.
+- real Cedar CLI policy/evaluation path.
+- unified authority evidence rollup.
+
+Real Cedar and the new closure artifacts must still be executed locally before
+the lane may be classified as R3 complete.
+
+## 1. Pull the authority branch
+
+```powershell
+cd D:\gmai-r3-authority
+git pull origin radar/r3-authority
+git rev-parse HEAD
+```
+
+Expected remote checkpoint begins with:
+
+```text
+5e4c232
+```
+
+## 2. Run unit/contract tests first
+
+```powershell
 python -m pytest labs/r3/authority/tests -q
+python -m labs.r3.common.generate_fixtures --check
+```
 
-python -m labs.r3.authority.run_candidate --candidate opa --output .test-tmp/opa-correctness.json --run-id opa-correctness-20260830-001
-python -m labs.r3.authority.run_candidate --candidate openfga --output .test-tmp/openfga-correctness.json --run-id openfga-correctness-20260830-001
+Do not continue to evidence capture if these fail.
 
-python -m labs.r3.authority.benchmark --candidate opa --run-id opa-benchmark-20260830-001 --output .test-tmp/opa-benchmark.json
-python -m labs.r3.authority.benchmark --candidate openfga --run-id openfga-benchmark-20260830-001 --output .test-tmp/openfga-benchmark.json
+## 3. Install and verify Cedar CLI
 
+Cedar CLI v4.12.0 publishes a prebuilt Windows x64 binary and official
+PowerShell installer.
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/cedar-policy/cedar/releases/download/cedar-policy-cli-v4.12.0/cedar-policy-cli-installer.ps1 | iex"
+
+cedar --version
+```
+
+The real R3 result must show zero reference-fallback executions.
+
+## 4. Start OpenFGA and OPA
+
+```powershell
+docker compose -f labs/r3/authority/docker-compose.yml up -d
+```
+
+Then execute the existing correctness and benchmark harnesses if a fresh
+current-head result is desired:
+
+```powershell
+python -m labs.r3.authority.run_candidate --candidate openfga --output labs/r3/authority/results/openfga-correctness-20260830-004.json --run-id openfga-correctness-20260830-004
+
+python -m labs.r3.authority.run_candidate --candidate opa --output labs/r3/authority/results/opa-correctness-20260830-004.json --run-id opa-correctness-20260830-004
+
+python -m labs.r3.authority.benchmark --candidate openfga --run-id openfga-benchmark-20260830-004 --output labs/r3/authority/results/openfga-benchmark-20260830-004.json
+
+python -m labs.r3.authority.benchmark --candidate opa --run-id opa-benchmark-20260830-004 --output labs/r3/authority/results/opa-benchmark-20260830-004.json
+```
+
+## 5. Run real Cedar challenger
+
+Start with the hard subset:
+
+```powershell
+python -m labs.r3.authority.run_cedar_challenger --hard-subset-only --output labs/r3/authority/results/cedar-real-20260830-004.json --run-id cedar-real-20260830-004
+```
+
+A qualifying artifact requires:
+
+```text
+reference_fallback_count = 0
+real_cedar_execution_count = scenario_count
+failures = 0
+critical_failures = 0
+```
+
+The explicit `--use-reference-fallback` option is diagnostic only and never
+qualifies as empirical Cedar evidence.
+
+## 6. Capture static controls
+
+```powershell
+python -m labs.r3.authority.static_evidence --output labs/r3/authority/results/authority-static-20260830-004.json --run-id authority-static-20260830-004
+```
+
+Required:
+
+```text
+invariants  12/12
+mutations   10/10 detected
+```
+
+## 7. Run expanded chaos matrix
+
+These tests deliberately inject connection refusal, timeout, HTTP 500,
+malformed JSON, empty result, partial result, and unknown decision.
+
+```powershell
+python -m labs.r3.authority.chaos_matrix --candidate openfga --output labs/r3/authority/results/openfga-chaos-20260830-004.json --run-id openfga-chaos-20260830-004
+
+python -m labs.r3.authority.chaos_matrix --candidate opa --output labs/r3/authority/results/opa-chaos-20260830-004.json --run-id opa-chaos-20260830-004
+```
+
+Every probe must return DENY with zero unauthorized canonical effects.
+
+## 8. Stop containers and capture real-engine outage
+
+```powershell
 docker compose -f labs/r3/authority/docker-compose.yml down --volumes
 
-python -m labs.r3.authority.chaos_probe --candidate opa --run-id opa-outage-20260830-001 --output .test-tmp/opa-outage.json
-python -m labs.r3.authority.chaos_probe --candidate openfga --run-id openfga-outage-20260830-001 --output .test-tmp/openfga-outage.json
+python -m labs.r3.authority.chaos_probe --candidate openfga --run-id openfga-outage-20260830-004 --output labs/r3/authority/results/openfga-outage-20260830-004.json
 
-python -m labs.r3.authority.run_cedar_challenger --output .test-tmp/cedar-challenger.json --run-id cedar-challenger-20260830-001 --use-reference-fallback --hard-subset-only
+python -m labs.r3.authority.chaos_probe --candidate opa --run-id opa-outage-20260830-004 --output labs/r3/authority/results/opa-outage-20260830-004.json
 ```
 
-The committed unit suite uses `httpx.MockTransport`; it proves adapter contracts
-and fail-closed behavior without claiming that either real server has passed R3.
+## 9. Verify every evidence fingerprint
 
-## Additional R3 surfaces
+```powershell
+python -m labs.r3.common.verify_results labs/r3/authority/results/*.json
+```
 
-- `labs/r3/authority/contracts/` — AIOS-owned canonical request/decision/delegation/approval/evidence schemas.
-- `labs/r3/authority/invariants.py` — 12 property invariants checked against the corpus.
-- `labs/r3/authority/policy_mutations.py` — 10 dangerous policy mutations that the reference oracle must detect.
-- `labs/r3/authority/cedar_adapter.py` — Cedar challenger contract with reference-oracle fallback.
-- `labs/r3/authority/run_cedar_challenger.py` — Cedar harness over the hard subset.
+No artifact with a fingerprint mismatch, non-zero unauthorized canonical
+effect, or critical failure is admissible.
+
+## 10. Build unified authority rollup
+
+```powershell
+python -m labs.r3.authority.rollup --run-id authority-rollup-20260830-004 --output labs/r3/authority/results/authority-r3-rollup-20260830-004.json
+```
+
+The rollup advances only when all required coverage gates are present:
+
+```text
+OpenFGA correctness 120
+OPA correctness 120
+OpenFGA benchmark >= 10,000
+OPA benchmark >= 10,000
+OpenFGA real outage fail closed
+OPA real outage fail closed
+OpenFGA adapter chaos
+OPA adapter chaos
+real Cedar hard subset >= 76 with zero fallback
+12 invariants + 10 mutations
+unauthorized canonical effects = 0
+critical failures = 0
+```
+
+Only then may the authority lane be proposed as `ADVANCE_TO_R4`.
+
+## Evidence boundary
+
+R3 PASS does not mean production adoption. OpenFGA, OPA, and Cedar remain
+Technology Radar candidates until a later separately authorized R4/shadow or
+adoption decision. No R3 result grants AI employees product authority.
