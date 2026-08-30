@@ -3,7 +3,7 @@
   "lanes": {
     "authority": "FOUNDATION_IN_PROGRESS",
     "integration": "QUEUED",
-    "interoperability": "QUEUED",
+    "interoperability": "R3_FIXTURE_IMPLEMENTED_EVIDENCE_PENDING",
     "observability": "QUEUED",
     "recovery": "QUEUED",
     "secrets": "QUEUED",

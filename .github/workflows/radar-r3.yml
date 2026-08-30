@@ -33,6 +33,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install common lab test dependency
+        run: python -m pip install pytest==8.3.0
       - name: Verify generated fixtures
         run: python -m labs.r3.common.generate_fixtures --check
       - name: Run common contract and invariant tests
@@ -67,8 +69,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install interoperability lab dependencies
+        run: python -m pip install -r labs/r3/interoperability/requirements.txt
       - name: Execute MCP and A2A lane
         run: python -m pytest labs/r3/interoperability/tests -q
+      - name: Produce machine-readable interoperability evidence
+        run: python -m labs.r3.interoperability.run_fixture --output r3-artifacts/interoperability-results.json
+      - name: Upload interoperability evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r3-interoperability-results-${{ github.sha }}
+          path: r3-artifacts/interoperability-results.json
+          if-no-files-found: error
 
   r3-security:
     if: inputs.lane == 'security' || inputs.lane == 'all'
