@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from labs.r3.reconciliation.preflight_campaign import preflight
 from labs.r3.reconciliation.reconcile_programme import _clean, _matches_group
 
 
@@ -61,3 +62,14 @@ def test_manifest_requires_logical_and_native_wal_recovery() -> None:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     groups = manifest["logical_lanes"]["recovery"]["required_evidence_groups"]
     assert set(groups) == {"logical_restore_and_replay", "native_wal_pitr"}
+
+
+def test_preflight_without_worktrees_is_non_mutating_not_ready() -> None:
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    result = preflight(manifest, {})
+
+    assert result["snapshot_ready"] is False
+    assert result["campaign_can_start"] is False
+    assert all(item["actual_head"] is None for item in result["branch_checks"].values())
+    assert all(item["match"] is False for item in result["branch_checks"].values())
+    assert any("no repository writes" in note.lower() for note in result["notes"])
