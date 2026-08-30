@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     AuditLog,
+    CountryPolicy,
     HumanReview,
     OfficialSource,
     RegulatoryAuthority,
@@ -68,6 +69,16 @@ def test_regulatory_source_onboarding_is_validated_audited_and_idempotent(
     assert len(db_session.exec(select(RegulatoryAuthority)).all()) == 1
     assert len(db_session.exec(select(OfficialSource)).all()) == 1
     assert len(db_session.exec(select(SourceMonitor)).all()) == 1
+
+    policies = list(db_session.exec(
+        select(CountryPolicy).where(
+            CountryPolicy.country == "new zealand",
+            CountryPolicy.domain == "visa",
+        )
+    ).all())
+    assert len(policies) == 1
+    assert policies[0].status == "active"
+
     audit = db_session.exec(
         select(AuditLog).where(AuditLog.action == "regulatory_source_onboarded")
     ).first()

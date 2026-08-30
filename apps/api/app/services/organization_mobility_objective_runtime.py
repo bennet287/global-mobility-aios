@@ -190,7 +190,7 @@ def _published_austria_pathway_version_source(
         raise DependencyConflict(
             "mobility pathway version does not match the canonical Austria objective route"
         )
-    if pathway.catalogue_status != "published":
+    if pathway.catalogue_status != "active":
         raise DependencyConflict("Austria mobility pathway source is not published")
     if pathway_version.lifecycle_status != "published" or pathway_version.published_at is None:
         raise DependencyConflict("Austria mobility pathway version source is not published")

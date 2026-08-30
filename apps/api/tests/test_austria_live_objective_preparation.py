@@ -92,7 +92,7 @@ def _grounded_authority_graph(db_session: Session) -> dict[str, object]:
         name="Austrian shortage-occupation mobility pathway",
         country="austria",
         domain="visa",
-        catalogue_status="published",
+        catalogue_status="active",
         created_by="pytest",
     )
     db_session.add(pathway)
@@ -193,7 +193,7 @@ def test_live_objective_preflight_reports_noncanonical_austria_route(db_session:
         {
             "pathway_id": str(pathway.id),
             "pathway_key": f"{AUSTRIA_MOBILITY_OBJECTIVE_ROUTE}-2026",
-            "catalogue_status": "published",
+            "catalogue_status": "active",
         }
     ]
 

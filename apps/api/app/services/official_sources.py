@@ -156,7 +156,7 @@ def seed_official_sources(session: Session, *, registry: Optional[Dict[str, Any]
                     commit=False,
                 )
                 seeded += 1
-                _ensure_country_policy(session, country=source.country, domain=source.domain)
+                ensure_country_policy(session, country=source.country, domain=source.domain)
 
     if commit:
         session.commit()
@@ -169,7 +169,7 @@ def seed_official_sources(session: Session, *, registry: Optional[Dict[str, Any]
     }
 
 
-def _ensure_country_policy(session: Session, *, country: str, domain: str) -> CountryPolicy:
+def ensure_country_policy(session: Session, *, country: str, domain: str) -> CountryPolicy:
     country = normalize_country(country)
     domain = normalize_domain(domain)
     policy = session.exec(

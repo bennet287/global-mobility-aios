@@ -123,7 +123,7 @@ def _canonical_pathway(
         row
         for row in rows
         if row.country.strip().casefold() == "austria"
-        and row.catalogue_status == "published"
+        and row.catalogue_status == "active"
     ]
     if not rows:
         return None, ["canonical_published_austria_pathway_missing"]

@@ -41,7 +41,7 @@ from app.schemas import (
 )
 from app.services.audit_log import record_audit
 from app.services.llm_client import LLMProviderFactory, is_llm_enabled
-from app.services.official_sources import normalize_country, normalize_domain
+from app.services.official_sources import ensure_country_policy, normalize_country, normalize_domain
 
 
 def normalize_jurisdiction_code(value: str) -> str:
@@ -205,6 +205,13 @@ def onboard_regulatory_source(
     session.add(source)
     session.flush()
 
+    country_policy = ensure_country_policy(
+        session,
+        country=source.country,
+        domain=source.domain,
+    )
+    session.flush()
+
     monitor = session.exec(
         select(SourceMonitor).where(SourceMonitor.official_source_id == source.id)
     ).first()
@@ -238,6 +245,8 @@ def onboard_regulatory_source(
             "authority_created": authority_created,
             "source_created": source_created,
             "monitor_created": monitor_created,
+            "country_policy_id": country_policy.id,
+            "country_policy_status": country_policy.status,
         },
         actor=actor,
         source="regulatory_intelligence_v7_2",
