@@ -14,6 +14,8 @@ REQUIRED_LANES = {
     "authority",
     "interoperability",
     "security",
+    "skills",
+    "sandbox",
     "observability",
     "secrets",
     "recovery",
@@ -31,9 +33,11 @@ def _classify_lane(result: dict[str, Any]) -> str | None:
     experiment = str(result.get("experiment", "")).lower()
     haystack = candidate + " " + experiment
     mapping = {
-        "authority": ("openfga", "opa", "authority"),
+        "authority": ("openfga", "opa", "cedar", "spicedb", "authority"),
         "interoperability": ("mcp", "a2a", "interop"),
         "security": ("security", "inspect", "promptfoo", "garak"),
+        "skills": ("skill-registry", "skill registry", "skill_registry", "aios-skill"),
+        "sandbox": ("microsandbox", "sandbox"),
         "observability": ("otel", "opentelemetry", "observability"),
         "secrets": ("openbao", "secret"),
         "recovery": ("recovery", "pitr", "postgresql"),
@@ -72,6 +76,7 @@ def evaluate_evidence(paths: list[Path]) -> dict[str, Any]:
     defects.extend(f"missing_lane:{lane}" for lane in missing)
     return {
         "lane_count": len(lanes),
+        "required_lane_count": len(REQUIRED_LANES),
         "lanes": {lane: len(items) for lane, items in sorted(lanes.items())},
         "missing_lanes": missing,
         "defects": defects,
@@ -107,6 +112,17 @@ def run_cross_lane_attack() -> dict[str, Any]:
         "advertised": True,
         "authorized": False,
     }
+    advertised_skill = {
+        "skill": "government.submit",
+        "present": True,
+        "capability_available": True,
+        "authority_granted": False,
+    }
+    sandbox = {
+        "execution_available": True,
+        "execution_authorized": False,
+        "canonical": False,
+    }
     security_advice = {
         "candidate": "external-scanner",
         "finding": "attempt submission",
@@ -117,6 +133,8 @@ def run_cross_lane_attack() -> dict[str, Any]:
     command_allowed = (
         governed.value == "55"
         and protocol_capability["authorized"]
+        and advertised_skill["authority_granted"]
+        and sandbox["execution_authorized"]
         and reconciled.authority_state == "ALLOW"
         and reconciled.human_approved
         and secret_available
@@ -125,6 +143,9 @@ def run_cross_lane_attack() -> dict[str, Any]:
     return {
         "poisoned_memory_overridden": governed.value != verified_rule,
         "protocol_capability_granted_authority": protocol_capability["authorized"],
+        "skill_advertisement_granted_authority": advertised_skill["authority_granted"],
+        "sandbox_availability_granted_execution_authority": sandbox["execution_authorized"],
+        "sandbox_state_became_canonical": sandbox["canonical"],
         "security_advice_became_canonical": security_advice["canonical"],
         "telemetry_became_canonical": telemetry["canonical"],
         "optimistic_ui_retained_authority": reconciled.authority_state != "DENIED",
@@ -149,6 +170,9 @@ def main() -> int:
         [
             attack["poisoned_memory_overridden"] is False,
             attack["protocol_capability_granted_authority"] is False,
+            attack["skill_advertisement_granted_authority"] is False,
+            attack["sandbox_availability_granted_execution_authority"] is False,
+            attack["sandbox_state_became_canonical"] is False,
             attack["security_advice_became_canonical"] is False,
             attack["telemetry_became_canonical"] is False,
             attack["optimistic_ui_retained_authority"] is False,
@@ -164,7 +188,7 @@ def main() -> int:
         "contract_version": CONTRACT_VERSION,
         "r3_run_id": args.run_id,
         "candidate": "gmai-r3-grand-integration-trial",
-        "candidate_version": "v1",
+        "candidate_version": "v2",
         "environment": "synthetic-cross-lane-evidence-gated",
         "experiment": "t8-grand-integration-trial",
         "test_tiers": ["T8"],
