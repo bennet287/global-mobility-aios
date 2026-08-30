@@ -2,11 +2,24 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 from labs.r3.authority.adapters import OpenFgaAdapter, OpaAdapter
 from labs.r3.common.generate_fixtures import build_authority_corpus
 from labs.r3.common.harness import CONTRACT_VERSION, fingerprint, validate_run_id
+
+
+VERSIONS = {"openfga": "v1.18.1", "opa": "v1.19.1"}
+
+
+def _git_sha() -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
 
 
 def main() -> int:
@@ -38,6 +51,9 @@ def main() -> int:
         "contract_version": CONTRACT_VERSION,
         "r3_run_id": args.run_id,
         "candidate": args.candidate,
+        "candidate_version": VERSIONS[args.candidate],
+        "git_sha": _git_sha(),
+        "environment": "synthetic-isolated",
         "experiment": "engine-unavailable",
         "expected_decision": "DENY",
         "observed_decision": observed.decision,
