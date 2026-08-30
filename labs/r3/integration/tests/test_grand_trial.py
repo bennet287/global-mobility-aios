@@ -6,7 +6,7 @@ from labs.r3.integration.governed_ui import (
     reconcile_with_canonical,
     reduce_ui_intent,
 )
-from labs.r3.integration.grand_trial import run_cross_lane_attack
+from labs.r3.integration.grand_trial import REQUIRED_LANES, _classify_lane, run_cross_lane_attack
 
 
 def test_ui_intent_never_grants_authority() -> None:
@@ -75,10 +75,30 @@ def test_disconnect_reconnect_clears_optimistic_intent() -> None:
     assert restored.authority_state == "DENIED"
 
 
+def test_grand_trial_requires_all_ten_radar_lanes() -> None:
+    assert REQUIRED_LANES == {
+        "authority",
+        "interoperability",
+        "security",
+        "skills",
+        "sandbox",
+        "observability",
+        "secrets",
+        "recovery",
+        "memory",
+        "orchestration",
+    }
+    assert _classify_lane({"candidate": "aios-skill-registry", "experiment": "lifecycle"}) == "skills"
+    assert _classify_lane({"candidate": "microsandbox", "experiment": "isolation"}) == "sandbox"
+
+
 def test_cross_lane_attack_fails_closed() -> None:
     result = run_cross_lane_attack()
     assert result["poisoned_memory_overridden"] is False
     assert result["protocol_capability_granted_authority"] is False
+    assert result["skill_advertisement_granted_authority"] is False
+    assert result["sandbox_availability_granted_execution_authority"] is False
+    assert result["sandbox_state_became_canonical"] is False
     assert result["security_advice_became_canonical"] is False
     assert result["telemetry_became_canonical"] is False
     assert result["secret_outage_failed_closed"] is True
