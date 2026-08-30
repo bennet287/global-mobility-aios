@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pytest
 
@@ -13,6 +14,7 @@ from labs.r3.interoperability.gateway import (
     TrustedIdentity,
     sign_agent_card,
 )
+from labs.r3.common.verify_results import verify_result
 
 
 REGULATORY = TrustedIdentity("agent:austria-regulatory", "tenant:alpha")
@@ -214,3 +216,10 @@ def test_a2a_exact_replay_and_conflict() -> None:
     assert replay.allowed and replay.replayed
     assert not conflict.allowed
     assert conflict.reason_class == "IDEMPOTENCY_CONFLICT"
+
+
+def test_interoperability_evidence_fingerprint_and_zero_effects() -> None:
+    paths = sorted(Path("labs/r3/interoperability/results").glob("*.json"))
+
+    assert len(paths) == 1
+    verify_result(paths[0])

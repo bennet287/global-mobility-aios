@@ -1,0 +1,180 @@
+{
+  "candidate": "aios-governed-mcp-a2a-fixture",
+  "candidate_version": "v1",
+  "contract_version": "gmai.r3.v1",
+  "corpus_sha256": "f709b86d5f035986d9d6601e1748488c484f10dfee5718b85b99b675048d7e04",
+  "critical_failures": 0,
+  "decision_candidate": "CONTINUE_R3_WITH_SPECIFIC_GAP",
+  "environment": "synthetic-isolated",
+  "failures": 0,
+  "git_sha": "0889aaad41ea3cf3574619ac7c8064ddcabc7611",
+  "outcomes": [
+    {
+      "expected_reason_class": "FILTERED",
+      "observed_reason_class": "FILTERED",
+      "passed": true,
+      "scenario_id": "MCP-001",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "FILTERED",
+      "observed_reason_class": "FILTERED",
+      "passed": true,
+      "scenario_id": "MCP-002",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "DANGEROUS_HIDDEN",
+      "observed_reason_class": "DANGEROUS_HIDDEN",
+      "passed": true,
+      "scenario_id": "MCP-003",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AUTHORIZED",
+      "observed_reason_class": "AUTHORIZED",
+      "passed": true,
+      "scenario_id": "MCP-004",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AUTHORIZED",
+      "observed_reason_class": "AUTHORIZED",
+      "passed": true,
+      "scenario_id": "MCP-005",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "UNKNOWN_TOOL",
+      "observed_reason_class": "UNKNOWN_TOOL",
+      "passed": true,
+      "scenario_id": "MCP-006",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "ARGUMENT_SCHEMA_VIOLATION",
+      "observed_reason_class": "ARGUMENT_SCHEMA_VIOLATION",
+      "passed": true,
+      "scenario_id": "MCP-007",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "CREDENTIAL_FORWARDING_DENIED",
+      "observed_reason_class": "CREDENTIAL_FORWARDING_DENIED",
+      "passed": true,
+      "scenario_id": "MCP-008",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "CROSS_TENANT",
+      "observed_reason_class": "CROSS_TENANT",
+      "passed": true,
+      "scenario_id": "MCP-009",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AUTHORITY_MISSING",
+      "observed_reason_class": "AUTHORITY_MISSING",
+      "passed": true,
+      "scenario_id": "MCP-010",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "IDEMPOTENCY_CONFLICT",
+      "observed_reason_class": "IDEMPOTENCY_CONFLICT",
+      "passed": true,
+      "scenario_id": "MCP-011",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "PROVIDER_AUTHORITY_CLAIM",
+      "observed_reason_class": "PROVIDER_AUTHORITY_CLAIM",
+      "passed": true,
+      "scenario_id": "MCP-012",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "IDENTITY_OBSERVED_CAPABILITIES_UNTRUSTED",
+      "observed_reason_class": "IDENTITY_OBSERVED_CAPABILITIES_UNTRUSTED",
+      "passed": true,
+      "scenario_id": "A2A-001",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "INVALID_AGENT_CARD_SIGNATURE",
+      "observed_reason_class": "INVALID_AGENT_CARD_SIGNATURE",
+      "passed": true,
+      "scenario_id": "A2A-002",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AGENT_CARD_CHANGED_REVIEW_REQUIRED",
+      "observed_reason_class": "AGENT_CARD_CHANGED_REVIEW_REQUIRED",
+      "passed": true,
+      "scenario_id": "A2A-003",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "UNTRUSTED_ISSUER",
+      "observed_reason_class": "UNTRUSTED_ISSUER",
+      "passed": true,
+      "scenario_id": "A2A-004",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AUTHORITY_MISSING",
+      "observed_reason_class": "AUTHORITY_MISSING",
+      "passed": true,
+      "scenario_id": "A2A-005",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "CROSS_TENANT",
+      "observed_reason_class": "CROSS_TENANT",
+      "passed": true,
+      "scenario_id": "A2A-006",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "MALICIOUS_ARTIFACT_DENIED",
+      "observed_reason_class": "MALICIOUS_ARTIFACT_DENIED",
+      "passed": true,
+      "scenario_id": "A2A-007",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "REMOTE_PRIVILEGED_TOOL_REQUEST_DENIED",
+      "observed_reason_class": "REMOTE_PRIVILEGED_TOOL_REQUEST_DENIED",
+      "passed": true,
+      "scenario_id": "A2A-008",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AUTHORIZED",
+      "observed_reason_class": "AUTHORIZED",
+      "passed": true,
+      "scenario_id": "A2A-009",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "AUTHORIZED",
+      "observed_reason_class": "AUTHORIZED",
+      "passed": true,
+      "replayed": true,
+      "scenario_id": "A2A-010",
+      "unauthorized_canonical_effects": []
+    },
+    {
+      "expected_reason_class": "IDEMPOTENCY_CONFLICT",
+      "observed_reason_class": "IDEMPOTENCY_CONFLICT",
+      "passed": true,
+      "scenario_id": "A2A-011",
+      "unauthorized_canonical_effects": []
+    }
+  ],
+  "passes": 23,
+  "r3_run_id": "interoperability-20260830-002",
+  "result_sha256": "22c44f35aa29d09aa13ff34d428bf4df4da5a236c75689d25416aa04d4b9befd",
+  "scenario_count": 23,
+  "unauthorized_canonical_effects": 0
+}

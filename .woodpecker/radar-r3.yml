@@ -17,4 +17,5 @@ steps:
       - python -m pip install --disable-pip-version-check pytest==8.3.0
       - python -m labs.r3.common.generate_fixtures --check
       - python -m pytest labs/r3/common/tests -q
+      - if find labs/r3 -path '*/results/*.json' -print -quit | grep -q .; then python -m labs.r3.common.verify_results; fi
       - python -m labs.r3.common.run_common --output .test-tmp/r3-common-results.json
