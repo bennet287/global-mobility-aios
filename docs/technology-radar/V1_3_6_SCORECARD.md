@@ -47,7 +47,7 @@ Any candidate is `REJECT` or `HOLD` for the proposed shape when it requires:
 | MCP 2026-07-28 | 87 | ASSESS / R2 | strategically relevant tool/data protocol; requires an AIOS gateway, catalog trust and per-call authorization |
 | A2A 1.0 | 82 | RESEARCH / R2 | credible agent discovery/task interoperability; Agent Card skills are untrusted capability claims |
 | Inspect AI | 87 | ASSESS / R2 | best broad evaluation-lab foundation candidate; must remain outside canonical product truth |
-| Promptfoo | 86 | TRIAL-ELIGIBLE / R2 | strongest current application/MCP red-team candidate; findings require AIOS reproduction and review |
+| Promptfoo | 86 | EXISTING PILOT COMPLETE / TRIAL-ELIGIBLE; RED TEAM ROLE R2 | strongest current application/MCP red-team candidate; findings require AIOS reproduction and review |
 | garak | 78 | RESEARCH / R2 | useful independent model/system scanner; overlaps with Promptfoo and is less AIOS-workflow-specific |
 
 ## 4. Authorization comparison
