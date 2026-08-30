@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://global-mobility-aios.invalid/r3/authority_decision.v1.schema.json",
+  "title": "AIOS R3 Authority Decision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "r3_run_id", "request_id", "decision", "reason_class", "engine", "latency_ms"],
+  "properties": {
+    "contract_version": {"const": "gmai.r3.v1"},
+    "r3_run_id": {"type": "string"},
+    "request_id": {"type": "string"},
+    "decision": {"enum": ["ALLOW", "DENY"]},
+    "reason_class": {"type": "string", "minLength": 1},
+    "engine": {"type": "string", "minLength": 1},
+    "latency_ms": {"type": "number", "minimum": 0}
+  }
+}

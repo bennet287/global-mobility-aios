@@ -1,0 +1,14 @@
+{
+  "contract_version": "gmai.r3.v1",
+  "lanes": {
+    "authority": "FOUNDATION_IN_PROGRESS",
+    "integration": "QUEUED",
+    "interoperability": "QUEUED",
+    "observability": "QUEUED",
+    "recovery": "QUEUED",
+    "secrets": "QUEUED",
+    "security": "QUEUED",
+    "skills": "QUEUED"
+  },
+  "production_adoption": false
+}

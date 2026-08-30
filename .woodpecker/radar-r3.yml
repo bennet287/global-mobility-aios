@@ -1,0 +1,20 @@
+clone:
+  - name: git
+    image: woodpeckerci/plugin-git
+    settings:
+      partial: false
+      depth: 64
+      lfs: false
+      fetch-target-branch: true
+
+when:
+  - event: manual
+
+steps:
+  - name: r3-common-contracts
+    image: python:3.12-bookworm
+    commands:
+      - python -m pip install --disable-pip-version-check pytest==8.3.0
+      - python -m labs.r3.common.generate_fixtures --check
+      - python -m pytest labs/r3/common/tests -q
+      - python -m labs.r3.common.run_common --output .test-tmp/r3-common-results.json

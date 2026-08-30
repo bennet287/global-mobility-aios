@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://global-mobility-aios.invalid/r3/authority_request.v1.schema.json",
+  "title": "AIOS R3 Authority Request V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "r3_run_id",
+    "request_id",
+    "actor",
+    "acting_for",
+    "tenant_id",
+    "action",
+    "resource",
+    "jurisdiction",
+    "risk_class",
+    "technical_capability",
+    "human_approval",
+    "delegation",
+    "tool",
+    "context"
+  ],
+  "properties": {
+    "contract_version": {"const": "gmai.r3.v1"},
+    "r3_run_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]+-[0-9]{8}-[0-9]{3}$"},
+    "request_id": {"type": "string", "minLength": 1},
+    "actor": {"$ref": "#/$defs/principal"},
+    "acting_for": {"type": ["string", "null"]},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "action": {"type": "string", "minLength": 1},
+    "resource": {"$ref": "#/$defs/resource"},
+    "jurisdiction": {"type": ["string", "null"]},
+    "risk_class": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+    "technical_capability": {"type": "boolean"},
+    "human_approval": {"type": "boolean"},
+    "delegation": {"type": ["object", "null"]},
+    "tool": {"type": ["string", "null"]},
+    "context": {"type": "object"}
+  },
+  "$defs": {
+    "principal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {"enum": ["human", "agent", "service"]},
+        "id": {"type": "string", "minLength": 1}
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "tenant_id"],
+      "properties": {
+        "type": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "tenant_id": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

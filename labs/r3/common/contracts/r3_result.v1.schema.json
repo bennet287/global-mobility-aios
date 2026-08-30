@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://global-mobility-aios.invalid/r3/r3_result.v1.schema.json",
+  "title": "AIOS R3 Result V1",
+  "type": "object",
+  "required": ["contract_version", "r3_run_id", "candidate", "candidate_version", "git_sha", "scenario_count", "passes", "failures", "critical_failures", "unauthorized_canonical_effects", "corpus_sha256", "result_sha256", "environment", "decision_candidate"],
+  "properties": {
+    "contract_version": {"const": "gmai.r3.v1"},
+    "r3_run_id": {"type": "string"},
+    "candidate": {"type": "string"},
+    "candidate_version": {"type": "string"},
+    "git_sha": {"type": "string"},
+    "scenario_count": {"type": "integer", "minimum": 0},
+    "passes": {"type": "integer", "minimum": 0},
+    "failures": {"type": "integer", "minimum": 0},
+    "critical_failures": {"type": "integer", "minimum": 0},
+    "unauthorized_canonical_effects": {"type": "integer", "minimum": 0},
+    "corpus_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "result_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "environment": {"const": "synthetic-isolated"},
+    "decision_candidate": {"enum": ["ADVANCE_TO_R4", "CONTINUE_R3_WITH_SPECIFIC_GAP", "HOLD_WITH_TRIGGER", "REJECT"]}
+  }
+}

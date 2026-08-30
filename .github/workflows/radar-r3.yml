@@ -1,0 +1,107 @@
+name: Technology Radar R3 Labs
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: Isolated synthetic R3 lane to execute
+        required: true
+        default: common
+        type: choice
+        options:
+          - common
+          - authority
+          - interoperability
+          - security
+          - skills
+          - observability
+          - all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radar-r3-${{ github.ref }}-${{ inputs.lane }}
+  cancel-in-progress: false
+
+jobs:
+  r3-common:
+    name: Shared contracts and deterministic corpora
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify generated fixtures
+        run: python -m labs.r3.common.generate_fixtures --check
+      - name: Run common contract and invariant tests
+        run: python -m pytest labs/r3/common/tests -q
+      - name: Produce machine-readable common evidence
+        run: python -m labs.r3.common.run_common --output r3-artifacts/common-results.json
+      - name: Upload common evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r3-common-results-${{ github.sha }}
+          path: r3-artifacts/common-results.json
+          if-no-files-found: error
+
+  r3-authority:
+    if: inputs.lane == 'authority' || inputs.lane == 'all'
+    needs: r3-common
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute authority lane
+        run: python -m pytest labs/r3/authority/tests -q
+
+  r3-interoperability:
+    if: inputs.lane == 'interoperability' || inputs.lane == 'all'
+    needs: r3-common
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute MCP and A2A lane
+        run: python -m pytest labs/r3/interoperability/tests -q
+
+  r3-security:
+    if: inputs.lane == 'security' || inputs.lane == 'all'
+    needs: r3-common
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute adversarial lane
+        run: python -m pytest labs/r3/security/tests -q
+
+  r3-skills:
+    if: inputs.lane == 'skills' || inputs.lane == 'all'
+    needs: r3-common
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute Skill Registry lane
+        run: python -m pytest labs/r3/skills/tests -q
+
+  r3-observability:
+    if: inputs.lane == 'observability' || inputs.lane == 'all'
+    needs: r3-common
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute observability lane
+        run: python -m pytest labs/r3/observability/tests -q

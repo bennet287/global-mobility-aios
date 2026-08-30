@@ -1,0 +1,6247 @@
+{
+  "contract_version": "gmai.r3.v1",
+  "corpus_id": "aios-authorization-corpus-v1",
+  "scenario_count": 120,
+  "scenarios": [
+    {
+      "description": "case.read: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-001",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-001",
+      "tags": [
+        "case",
+        "low",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "case.read: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-002",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-002",
+      "tags": [
+        "case",
+        "low",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "case.read: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-003",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-003",
+      "tags": [
+        "case",
+        "low",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "case.read: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-004",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-004",
+      "tags": [
+        "case",
+        "low",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "case.read: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-005",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-005",
+      "tags": [
+        "case",
+        "low",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "case.read: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-006",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-006",
+      "tags": [
+        "case",
+        "low",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "case.note.write: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.note.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-007",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-007",
+      "tags": [
+        "case",
+        "medium",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "case.note.write: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.note.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-008",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-008",
+      "tags": [
+        "case",
+        "medium",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "case.note.write: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.note.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-009",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-009",
+      "tags": [
+        "case",
+        "medium",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "case.note.write: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.note.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-010",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-010",
+      "tags": [
+        "case",
+        "medium",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "case.note.write: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.note.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-011",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-011",
+      "tags": [
+        "case",
+        "medium",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "case.note.write: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "case.note.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-012",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-012",
+      "tags": [
+        "case",
+        "medium",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "client.communication.draft: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.draft",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-013",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-013",
+      "tags": [
+        "client",
+        "medium",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "client.communication.draft: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.draft",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-014",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-014",
+      "tags": [
+        "client",
+        "medium",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "client.communication.draft: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.draft",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-015",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-015",
+      "tags": [
+        "client",
+        "medium",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "client.communication.draft: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.draft",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-016",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-016",
+      "tags": [
+        "client",
+        "medium",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "client.communication.draft: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.draft",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-017",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-017",
+      "tags": [
+        "client",
+        "medium",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "client.communication.draft: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.draft",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-018",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-018",
+      "tags": [
+        "client",
+        "medium",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "client.communication.send: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.send",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-019",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-019",
+      "tags": [
+        "client",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "client.communication.send: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.send",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-020",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-020",
+      "tags": [
+        "client",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "client.communication.send: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.send",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-021",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-021",
+      "tags": [
+        "client",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "client.communication.send: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.send",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-022",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-022",
+      "tags": [
+        "client",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "client.communication.send: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.send",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-023",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-023",
+      "tags": [
+        "client",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "client.communication.send: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "client.communication.send",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-024",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-024",
+      "tags": [
+        "client",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "legal.conclusion.publish: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "legal.conclusion.publish",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-025",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-025",
+      "tags": [
+        "legal",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "legal.conclusion.publish: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "legal.conclusion.publish",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-026",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-026",
+      "tags": [
+        "legal",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "legal.conclusion.publish: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "legal.conclusion.publish",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-027",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-027",
+      "tags": [
+        "legal",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "legal.conclusion.publish: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "legal.conclusion.publish",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-028",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-028",
+      "tags": [
+        "legal",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "legal.conclusion.publish: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "legal.conclusion.publish",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-029",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-029",
+      "tags": [
+        "legal",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "legal.conclusion.publish: wrong jurisdiction",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "JURISDICTION_MISMATCH",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "legal.conclusion.publish",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-030",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-030",
+      "tags": [
+        "legal",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "government_application.submit: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "government_application.submit",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-031",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": "mcp:government-submit"
+      },
+      "scenario_id": "AUTH-031",
+      "tags": [
+        "government_application",
+        "critical",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "government_application.submit: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "government_application.submit",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-032",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": "mcp:government-submit"
+      },
+      "scenario_id": "AUTH-032",
+      "tags": [
+        "government_application",
+        "critical",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "government_application.submit: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "government_application.submit",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-033",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": "mcp:government-submit"
+      },
+      "scenario_id": "AUTH-033",
+      "tags": [
+        "government_application",
+        "critical",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "government_application.submit: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "government_application.submit",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-034",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": "mcp:government-submit"
+      },
+      "scenario_id": "AUTH-034",
+      "tags": [
+        "government_application",
+        "critical",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "government_application.submit: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "government_application.submit",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-035",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": "mcp:government-submit"
+      },
+      "scenario_id": "AUTH-035",
+      "tags": [
+        "government_application",
+        "critical",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "government_application.submit: wrong jurisdiction",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "JURISDICTION_MISMATCH",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "government_application.submit",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-036",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": "mcp:government-submit"
+      },
+      "scenario_id": "AUTH-036",
+      "tags": [
+        "government_application",
+        "critical",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "verified_rule.read: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-037",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-037",
+      "tags": [
+        "verified_rule",
+        "medium",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "verified_rule.read: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-038",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-038",
+      "tags": [
+        "verified_rule",
+        "medium",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "verified_rule.read: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-039",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-039",
+      "tags": [
+        "verified_rule",
+        "medium",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "verified_rule.read: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-040",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-040",
+      "tags": [
+        "verified_rule",
+        "medium",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "verified_rule.read: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-041",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-041",
+      "tags": [
+        "verified_rule",
+        "medium",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "verified_rule.read: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-042",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-042",
+      "tags": [
+        "verified_rule",
+        "medium",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "verified_rule.write: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-043",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-043",
+      "tags": [
+        "verified_rule",
+        "critical",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "verified_rule.write: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-044",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-044",
+      "tags": [
+        "verified_rule",
+        "critical",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "verified_rule.write: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-045",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-045",
+      "tags": [
+        "verified_rule",
+        "critical",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "verified_rule.write: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-046",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-046",
+      "tags": [
+        "verified_rule",
+        "critical",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "verified_rule.write: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-047",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-047",
+      "tags": [
+        "verified_rule",
+        "critical",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "verified_rule.write: wrong jurisdiction",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "JURISDICTION_MISMATCH",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "verified_rule.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-048",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-048",
+      "tags": [
+        "verified_rule",
+        "critical",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "evidence.read: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-049",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-049",
+      "tags": [
+        "evidence",
+        "medium",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "evidence.read: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-050",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-050",
+      "tags": [
+        "evidence",
+        "medium",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "evidence.read: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-051",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-051",
+      "tags": [
+        "evidence",
+        "medium",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "evidence.read: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-052",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-052",
+      "tags": [
+        "evidence",
+        "medium",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "evidence.read: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-053",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-053",
+      "tags": [
+        "evidence",
+        "medium",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "evidence.read: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-054",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-054",
+      "tags": [
+        "evidence",
+        "medium",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "evidence.write: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-055",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-055",
+      "tags": [
+        "evidence",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "evidence.write: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-056",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-056",
+      "tags": [
+        "evidence",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "evidence.write: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-057",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-057",
+      "tags": [
+        "evidence",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "evidence.write: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-058",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-058",
+      "tags": [
+        "evidence",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "evidence.write: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-059",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-059",
+      "tags": [
+        "evidence",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "evidence.write: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "evidence.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-060",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-060",
+      "tags": [
+        "evidence",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "secret.read: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "secret.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-061",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-061",
+      "tags": [
+        "secret",
+        "critical",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "secret.read: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "secret.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-062",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-062",
+      "tags": [
+        "secret",
+        "critical",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "secret.read: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "secret.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-063",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-063",
+      "tags": [
+        "secret",
+        "critical",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "secret.read: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "secret.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-064",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-064",
+      "tags": [
+        "secret",
+        "critical",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "secret.read: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "secret.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-065",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-065",
+      "tags": [
+        "secret",
+        "critical",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "secret.read: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "secret.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-066",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-066",
+      "tags": [
+        "secret",
+        "critical",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "authority.grant: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "authority.grant",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-067",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-067",
+      "tags": [
+        "authority",
+        "critical",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "authority.grant: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "authority.grant",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-068",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-068",
+      "tags": [
+        "authority",
+        "critical",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "authority.grant: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "authority.grant",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-069",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-069",
+      "tags": [
+        "authority",
+        "critical",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "authority.grant: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "authority.grant",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-070",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-070",
+      "tags": [
+        "authority",
+        "critical",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "authority.grant: missing human approval",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "HUMAN_APPROVAL_REQUIRED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "authority.grant",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-071",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-071",
+      "tags": [
+        "authority",
+        "critical",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "authority.grant: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": true,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "authority.grant",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": true,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-072",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "CRITICAL",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-072",
+      "tags": [
+        "authority",
+        "critical",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "tool.discover: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.discover",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-073",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-073",
+      "tags": [
+        "tool",
+        "low",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "tool.discover: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.discover",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-074",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-074",
+      "tags": [
+        "tool",
+        "low",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "tool.discover: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.discover",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-075",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-075",
+      "tags": [
+        "tool",
+        "low",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "tool.discover: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.discover",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-076",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-076",
+      "tags": [
+        "tool",
+        "low",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "tool.discover: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.discover",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-077",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-077",
+      "tags": [
+        "tool",
+        "low",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "tool.discover: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.discover",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-078",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-078",
+      "tags": [
+        "tool",
+        "low",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "tool.invoke: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-079",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-079",
+      "tags": [
+        "tool",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "tool.invoke: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-080",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-080",
+      "tags": [
+        "tool",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "tool.invoke: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-081",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-081",
+      "tags": [
+        "tool",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "tool.invoke: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-082",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-082",
+      "tags": [
+        "tool",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "tool.invoke: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-083",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-083",
+      "tags": [
+        "tool",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "tool.invoke: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-084",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-084",
+      "tags": [
+        "tool",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "mcp.tool.invoke: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "mcp.tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-085",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-085",
+      "tags": [
+        "mcp",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "mcp.tool.invoke: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "mcp.tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-086",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-086",
+      "tags": [
+        "mcp",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "mcp.tool.invoke: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "mcp.tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-087",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-087",
+      "tags": [
+        "mcp",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "mcp.tool.invoke: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "mcp.tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-088",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-088",
+      "tags": [
+        "mcp",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "mcp.tool.invoke: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "mcp.tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-089",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-089",
+      "tags": [
+        "mcp",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "mcp.tool.invoke: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "mcp.tool.invoke",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-090",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-090",
+      "tags": [
+        "mcp",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "a2a.task.delegate: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "a2a.task.delegate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-091",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-091",
+      "tags": [
+        "a2a",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "a2a.task.delegate: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "a2a.task.delegate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-092",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-092",
+      "tags": [
+        "a2a",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "a2a.task.delegate: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "a2a.task.delegate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-093",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-093",
+      "tags": [
+        "a2a",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "a2a.task.delegate: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "a2a.task.delegate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-094",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-094",
+      "tags": [
+        "a2a",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "a2a.task.delegate: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "a2a.task.delegate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-095",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-095",
+      "tags": [
+        "a2a",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "a2a.task.delegate: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "a2a.task.delegate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-096",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-096",
+      "tags": [
+        "a2a",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "document.prepare: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "document.prepare",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-097",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-097",
+      "tags": [
+        "document",
+        "medium",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "document.prepare: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "document.prepare",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-098",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-098",
+      "tags": [
+        "document",
+        "medium",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "document.prepare: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "document.prepare",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-099",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-099",
+      "tags": [
+        "document",
+        "medium",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "document.prepare: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "document.prepare",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-100",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-100",
+      "tags": [
+        "document",
+        "medium",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "document.prepare: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "document.prepare",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-101",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-101",
+      "tags": [
+        "document",
+        "medium",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "document.prepare: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "document.prepare",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-102",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "MEDIUM",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-102",
+      "tags": [
+        "document",
+        "medium",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "eligibility.calculate: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "eligibility.calculate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-103",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-103",
+      "tags": [
+        "eligibility",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "eligibility.calculate: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "eligibility.calculate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-104",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-104",
+      "tags": [
+        "eligibility",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "eligibility.calculate: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "eligibility.calculate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-105",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-105",
+      "tags": [
+        "eligibility",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "eligibility.calculate: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "eligibility.calculate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-106",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-106",
+      "tags": [
+        "eligibility",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "eligibility.calculate: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "eligibility.calculate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-107",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-107",
+      "tags": [
+        "eligibility",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "eligibility.calculate: wrong jurisdiction",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "JURISDICTION_MISMATCH",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "eligibility.calculate",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": "AT",
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-108",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-108",
+      "tags": [
+        "eligibility",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "organization.activity.read: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-109",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-109",
+      "tags": [
+        "organization",
+        "low",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "organization.activity.read: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-110",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-110",
+      "tags": [
+        "organization",
+        "low",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "organization.activity.read: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-111",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-111",
+      "tags": [
+        "organization",
+        "low",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "organization.activity.read: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-112",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-112",
+      "tags": [
+        "organization",
+        "low",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "organization.activity.read: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-113",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-113",
+      "tags": [
+        "organization",
+        "low",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "organization.activity.read: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.read",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-114",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "LOW",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-114",
+      "tags": [
+        "organization",
+        "low",
+        "wrong_jurisdiction"
+      ]
+    },
+    {
+      "description": "organization.activity.write: authorized baseline",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-115",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-115",
+      "tags": [
+        "organization",
+        "high",
+        "authorized_baseline"
+      ]
+    },
+    {
+      "description": "organization.activity.write: capability without authority",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "AUTHORITY_MISSING",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": false,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-116",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-116",
+      "tags": [
+        "organization",
+        "high",
+        "capability_without_authority"
+      ]
+    },
+    {
+      "description": "organization.activity.write: cross tenant",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "CROSS_TENANT",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": false,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-117",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:beta",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-117",
+      "tags": [
+        "organization",
+        "high",
+        "cross_tenant"
+      ]
+    },
+    {
+      "description": "organization.activity.write: expired delegation",
+      "expected": {
+        "decision": "DENY",
+        "reason_class": "DELEGATION_INVALID",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "expired"
+        },
+        "human_approval": true,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-118",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-118",
+      "tags": [
+        "organization",
+        "high",
+        "expired_delegation"
+      ]
+    },
+    {
+      "description": "organization.activity.write: missing human approval",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": false,
+        "jurisdiction": "AT",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-119",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-119",
+      "tags": [
+        "organization",
+        "high",
+        "missing_human_approval"
+      ]
+    },
+    {
+      "description": "organization.activity.write: wrong jurisdiction",
+      "expected": {
+        "decision": "ALLOW",
+        "reason_class": "AUTHORIZED",
+        "required_approval": false,
+        "unauthorized_canonical_effects": []
+      },
+      "request": {
+        "acting_for": "human:case-owner",
+        "action": "organization.activity.write",
+        "actor": {
+          "id": "agent:austria-regulatory",
+          "type": "agent"
+        },
+        "context": {
+          "authority_present": true,
+          "authority_required": true,
+          "human_approval_required": false,
+          "known_action": true,
+          "provider_claimed_authority": false,
+          "required_jurisdiction": null,
+          "same_tenant": true,
+          "self_grant_attempt": false,
+          "skill_advertised": true
+        },
+        "contract_version": "gmai.r3.v1",
+        "delegation": {
+          "id": "delegation:001",
+          "status": "active"
+        },
+        "human_approval": true,
+        "jurisdiction": "DE",
+        "r3_run_id": "authority-20260901-001",
+        "request_id": "auth-120",
+        "resource": {
+          "id": "case:AT-001",
+          "tenant_id": "tenant:alpha",
+          "type": "case"
+        },
+        "risk_class": "HIGH",
+        "technical_capability": true,
+        "tenant_id": "tenant:alpha",
+        "tool": null
+      },
+      "scenario_id": "AUTH-120",
+      "tags": [
+        "organization",
+        "high",
+        "wrong_jurisdiction"
+      ]
+    }
+  ]
+}

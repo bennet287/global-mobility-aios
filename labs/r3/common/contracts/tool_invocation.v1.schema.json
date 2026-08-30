@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://global-mobility-aios.invalid/r3/tool_invocation.v1.schema.json",
+  "title": "AIOS R3 Tool Invocation V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "r3_run_id", "request_id", "actor_id", "tenant_id", "tool_id", "arguments", "authorization_request_id", "idempotency_key"],
+  "properties": {
+    "contract_version": {"const": "gmai.r3.v1"},
+    "r3_run_id": {"type": "string"},
+    "request_id": {"type": "string"},
+    "actor_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "tool_id": {"type": "string"},
+    "arguments": {"type": "object"},
+    "authorization_request_id": {"type": "string"},
+    "idempotency_key": {"type": "string"}
+  }
+}

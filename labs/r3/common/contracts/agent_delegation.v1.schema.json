@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://global-mobility-aios.invalid/r3/agent_delegation.v1.schema.json",
+  "title": "AIOS R3 Agent Delegation V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "r3_run_id", "delegation_id", "delegator_id", "delegate_id", "tenant_id", "actions", "resources", "status", "expires_at"],
+  "properties": {
+    "contract_version": {"const": "gmai.r3.v1"},
+    "r3_run_id": {"type": "string"},
+    "delegation_id": {"type": "string"},
+    "delegator_id": {"type": "string"},
+    "delegate_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "actions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "resources": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "status": {"enum": ["active", "expired", "revoked"]},
+    "expires_at": {"type": "string", "format": "date-time"}
+  }
+}

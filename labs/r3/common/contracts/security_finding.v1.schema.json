@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://global-mobility-aios.invalid/r3/security_finding.v1.schema.json",
+  "title": "AIOS R3 Security Finding V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "r3_run_id", "finding_id", "category", "severity", "reproduced", "unauthorized_canonical_effects", "disposition", "hold_trigger"],
+  "properties": {
+    "contract_version": {"const": "gmai.r3.v1"},
+    "r3_run_id": {"type": "string"},
+    "finding_id": {"type": "string"},
+    "category": {"type": "string"},
+    "severity": {"enum": ["SEV-0", "SEV-1", "SEV-2", "SEV-3", "SEV-4"]},
+    "reproduced": {"type": "boolean"},
+    "unauthorized_canonical_effects": {"type": "array", "items": {"type": "string"}},
+    "disposition": {"enum": ["ADVANCE_TO_R4", "CONTINUE_R3_WITH_SPECIFIC_GAP", "HOLD_WITH_TRIGGER", "REJECT"]},
+    "hold_trigger": {"type": ["string", "null"]}
+  }
+}
