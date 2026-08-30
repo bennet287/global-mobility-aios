@@ -10,87 +10,21 @@
     "skills": {"branch": "radar/r3-skills", "head": "4791546f5e23acbfc375fd8b0cb142e9f7b445a4"},
     "interoperability": {"branch": "radar/r3-interop-deep", "head": "9637854aeb92dba9805fd807bcd4ea4b7d99120e"},
     "infrastructure": {"branch": "radar/r3-infrastructure", "head": "654bfdd9816e1fb1242134ed5f6d8f6208a60b07"},
-    "runtime": {"branch": "radar/r3-runtime", "head": "310eda0d4efe4c01c86e6ee21d9e582dd46fc90f"}
+    "runtime": {"branch": "radar/r3-runtime", "head": "c50b6f355caeddb299db174dda959a792fea3669"}
   },
   "logical_lanes": {
-    "authority": {
-      "physical_branch": "authority",
-      "required_evidence_groups": {
-        "openfga": ["openfga"],
-        "opa": ["opa"],
-        "cedar": ["cedar"],
-        "spicedb": ["spicedb"]
-      }
-    },
-    "security": {
-      "physical_branch": "security",
-      "required_evidence_groups": {
-        "native_state_diff": ["aios-deep-security-target", "state-diff-adversarial"],
-        "external_frameworks": ["external-security-tool-shootout", "t4-external-security-frameworks"]
-      }
-    },
-    "skills": {
-      "physical_branch": "skills",
-      "required_evidence_groups": {
-        "registry_lifecycle": ["aios-skill-registry", "skill-registry-lifecycle"]
-      }
-    },
-    "interoperability": {
-      "physical_branch": "interoperability",
-      "required_evidence_groups": {
-        "mcp": ["mcp"],
-        "a2a": ["a2a"]
-      }
-    },
-    "observability": {
-      "physical_branch": "infrastructure",
-      "required_evidence_groups": {
-        "opentelemetry": ["opentelemetry", "otel"]
-      }
-    },
-    "secrets": {
-      "physical_branch": "infrastructure",
-      "required_evidence_groups": {
-        "openbao": ["openbao"]
-      }
-    },
-    "recovery": {
-      "physical_branch": "infrastructure",
-      "required_evidence_groups": {
-        "logical_restore_and_replay": ["postgresql-recovery", "backup-restore-replay"],
-        "native_wal_pitr": ["postgresql-native-wal-pitr", "native-wal-pitr"]
-      }
-    },
-    "sandbox": {
-      "physical_branch": "runtime",
-      "required_evidence_groups": {
-        "baseline": ["microsandbox"],
-        "depth": ["microsandbox-depth", "sandbox-depth"]
-      }
-    },
-    "memory": {
-      "physical_branch": "runtime",
-      "required_evidence_groups": {
-        "native_stress": ["memory-stress:native"],
-        "mem0": ["mem0"],
-        "openviking": ["openviking"]
-      }
-    },
-    "orchestration": {
-      "physical_branch": "runtime",
-      "required_evidence_groups": {
-        "native": ["native-aios-reference"],
-        "temporal": ["temporal"],
-        "langgraph": ["langgraph"],
-        "agno": ["agno"]
-      }
-    }
+    "authority": {"physical_branch": "authority", "required_evidence_groups": {"openfga": ["openfga"], "opa": ["opa"], "cedar": ["cedar"], "spicedb": ["spicedb"]}},
+    "security": {"physical_branch": "security", "required_evidence_groups": {"native_state_diff": ["aios-deep-security-target", "state-diff-adversarial"], "external_frameworks": ["external-security-tool-shootout", "t4-external-security-frameworks"]}},
+    "skills": {"physical_branch": "skills", "required_evidence_groups": {"registry_lifecycle": ["aios-skill-registry", "skill-registry-lifecycle"]}},
+    "interoperability": {"physical_branch": "interoperability", "required_evidence_groups": {"mcp": ["mcp"], "a2a": ["a2a"]}},
+    "observability": {"physical_branch": "infrastructure", "required_evidence_groups": {"opentelemetry": ["opentelemetry", "otel"]}},
+    "secrets": {"physical_branch": "infrastructure", "required_evidence_groups": {"openbao": ["openbao"]}},
+    "recovery": {"physical_branch": "infrastructure", "required_evidence_groups": {"logical_restore_and_replay": ["postgresql-recovery", "backup-restore-replay"], "native_wal_pitr": ["postgresql-native-wal-pitr", "native-wal-pitr"]}},
+    "sandbox": {"physical_branch": "runtime", "required_evidence_groups": {"baseline": ["microsandbox"], "depth": ["microsandbox-depth", "sandbox-depth"]}},
+    "memory": {"physical_branch": "runtime", "required_evidence_groups": {"native_stress": ["memory-stress:native"], "mem0": ["mem0"], "openviking": ["openviking"]}},
+    "orchestration": {"physical_branch": "runtime", "required_evidence_groups": {"native": ["native-aios-reference"], "temporal": ["temporal"], "langgraph": ["langgraph"], "agno": ["agno"]}}
   },
-  "grand_trial": {
-    "physical_branch": "runtime",
-    "experiment": "t8-grand-integration-trial",
-    "required_lane_count": 10
-  },
+  "grand_trial": {"physical_branch": "runtime", "experiment": "t8-grand-integration-trial", "required_lane_count": 10},
   "global_acceptance": {
     "reject_if_any_execution_blocked": true,
     "reject_if_any_failure": true,
