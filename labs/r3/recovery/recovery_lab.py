@@ -237,7 +237,7 @@ def _record(
 def run_recovery() -> dict[str, Any]:
     outcomes: list[dict[str, Any]] = []
 
-    _psql_script(SOURCE_DB, SCHEMA_SQL + "\\n" + SEED_SQL)
+    _psql_script(SOURCE_DB, SCHEMA_SQL + "\n" + SEED_SQL)
     source = canonical_snapshot(SOURCE_DB)
     source_hash = fingerprint(source)
     source_relationships = relationship_snapshot(SOURCE_DB)
