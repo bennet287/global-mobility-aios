@@ -1,0 +1,313 @@
+{
+  "contract_version": "gmai.r3.programme-inventory.v1",
+  "snapshot_date": "2026-08-31",
+  "programme": "Technology Radar V1.3.6 deep validation",
+  "claim_boundary": "IMPLEMENTATION INVENTORY ONLY; execution evidence and R4 decisions remain separate",
+  "branch_heads": {
+    "radar/r3-authority": "4b04c97f911fb263471a614457b3b9f7aac8190c",
+    "radar/r3-security": "d908a8c7ccde463ae0dec097211562e7ef8e86ca",
+    "radar/r3-skills": "4791546f5e23acbfc375fd8b0cb142e9f7b445a4",
+    "radar/r3-interop-deep": "9637854aeb92dba9805fd807bcd4ea4b7d99120e",
+    "radar/r3-infrastructure": "8b64f87e4b3599bb7c0a5f44c3768124c7365dcb",
+    "radar/r3-runtime": "fbe2fe73f6165c1f50570a4231f5fbe5a2f1b63e"
+  },
+  "runtime_r4_required_lanes": [
+    "authority",
+    "interoperability",
+    "security",
+    "skills",
+    "sandbox",
+    "observability",
+    "secrets",
+    "recovery",
+    "memory",
+    "orchestration",
+    "ui"
+  ],
+  "candidates": {
+    "authority": {
+      "branch": "radar/r3-authority",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "OpenFGA": [
+          "relationship graph",
+          "computed usersets",
+          "ListObjects",
+          "revocation",
+          "model versioning",
+          "derived rebuild",
+          "temporal conditions",
+          "T6 generated differential"
+        ],
+        "OPA": [
+          "canonical data",
+          "hot update",
+          "rollback",
+          "fail closed",
+          "historical reconstruction",
+          "signed bundle lifecycle",
+          "tamper rejection",
+          "T6 generated differential"
+        ],
+        "Cedar": [
+          "real CLI challenger",
+          "typed entities",
+          "entity hierarchy",
+          "schema validation",
+          "permit/forbid precedence"
+        ],
+        "SpiceDB": [
+          "relationship schema",
+          "nested permissions",
+          "revocation"
+        ]
+      },
+      "explicit_future_depth": [
+        "SpiceDB caveats",
+        "SpiceDB LookupResources",
+        "OPA remote bundle polling"
+      ]
+    },
+    "interoperability": {
+      "branch": "radar/r3-interop-deep",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "MCP": [
+          "real SDK",
+          "filtered discovery",
+          "per-call authority",
+          "hostile metadata",
+          "replay",
+          "Streamable HTTP"
+        ],
+        "A2A": [
+          "real SDK",
+          "Agent Card trust",
+          "task/artifact lifecycle",
+          "skill inflation",
+          "identity/version trust",
+          "network transport"
+        ]
+      }
+    },
+    "security": {
+      "branch": "radar/r3-security",
+      "status": "DEEP_IMPLEMENTATION_PENDING_EXECUTION",
+      "historical_evidence": "native 18-category baseline passed on earlier checkpoint",
+      "candidates": {
+        "native": [
+          "36-payload state-diff target",
+          "canaries",
+          "memory/source/MCP/A2A attack surfaces"
+        ],
+        "InspectAI": [
+          "external-tool adapter wired"
+        ],
+        "Promptfoo": [
+          "external-tool adapter wired"
+        ],
+        "garak": [
+          "external-tool adapter wired"
+        ]
+      }
+    },
+    "skills": {
+      "branch": "radar/r3-skills",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "AIOS Skill Registry": [
+          "quarantine",
+          "review",
+          "immutable activation",
+          "tenant/position assignment",
+          "runtime manifest",
+          "version lineage",
+          "revocation",
+          "A2A reduced projection"
+        ]
+      }
+    },
+    "sandbox": {
+      "branch": "radar/r3-runtime",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "Microsandbox": [
+          "microVM",
+          "Network.none",
+          "filesystem",
+          "timeouts",
+          "metrics",
+          "ephemeral cleanup",
+          "named volumes",
+          "snapshot/fork",
+          "concurrency",
+          "synthetic-secret behavior"
+        ]
+      }
+    },
+    "memory": {
+      "branch": "radar/r3-runtime",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "Native": [
+          "tenant isolation",
+          "VerifiedRule precedence",
+          "64-tenant concurrency/poisoning stress"
+        ],
+        "Mem0": [
+          "local Ollama/Qdrant",
+          "CRUD/search/history/delete",
+          "tenant filter",
+          "poisoning stress"
+        ],
+        "OpenViking": [
+          "local-only vectors/context",
+          "Viking URI",
+          "session context",
+          "VerifiedRule precedence"
+        ]
+      },
+      "constraints": [
+        "OpenViking AGPL-3.0 adoption review required",
+        "external candidates fail blocked rather than cloud fallback"
+      ]
+    },
+    "orchestration": {
+      "branch": "radar/r3-runtime",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "Native": [
+          "idempotency",
+          "human gate",
+          "resume semantics"
+        ],
+        "Temporal": [
+          "real test server",
+          "Worker restart",
+          "activity retry",
+          "signals/query",
+          "duplicate workflow suppression"
+        ],
+        "LangGraph": [
+          "StateGraph",
+          "checkpointing",
+          "interrupt/resume"
+        ],
+        "Agno": [
+          "Workflow",
+          "Steps",
+          "HITL",
+          "InMemoryDb"
+        ]
+      }
+    },
+    "observability": {
+      "branch": "radar/r3-infrastructure",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "OpenTelemetry": [
+          "trace hierarchy",
+          "redaction",
+          "exporter failure independence",
+          "OTLP Collector chaos"
+        ],
+        "Langfuse": [
+          "local-only trace ingestion/readback",
+          "numeric score",
+          "truth boundary"
+        ],
+        "Phoenix": [
+          "local-only OTLP ingestion",
+          "span query",
+          "dataframe export",
+          "truth boundary"
+        ]
+      }
+    },
+    "secrets": {
+      "branch": "radar/r3-infrastructure",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "OpenBao": [
+          "KV v2",
+          "ACL",
+          "bounded token TTL",
+          "deny write",
+          "rotation",
+          "history",
+          "revocation",
+          "audit",
+          "persistence depth",
+          "outage fail closed"
+        ]
+      }
+    },
+    "recovery": {
+      "branch": "radar/r3-infrastructure",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "PostgreSQL": [
+          "logical pg_dump/pg_restore",
+          "canonical fingerprints",
+          "relationship reconstruction",
+          "event replay",
+          "native WAL archive/base backup/PITR fixture"
+        ]
+      }
+    },
+    "ui": {
+      "branch": "radar/r3-runtime",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "AG-UI": [
+          "real protocol event models",
+          "protected state filtering",
+          "tool intent isolation",
+          "interrupt handling",
+          "stale revision rejection",
+          "run-error preservation"
+        ],
+        "CopilotKit": [
+          "isolated runtime 1.69.3",
+          "real info endpoint",
+          "SSE run",
+          "request middleware",
+          "per-request agent factory",
+          "A2UI metadata",
+          "frontend tool boundary"
+        ]
+      }
+    },
+    "devtooling": {
+      "branch": "radar/r3-runtime",
+      "status": "IMPLEMENTED_EXECUTION_BLOCKED_NO_CANDIDATE_OUTPUT",
+      "r4_runtime_blocking": false,
+      "candidates": {
+        "provider-neutral coding-model benchmark": [
+          "blind task packet",
+          "Microsandbox Network.none evaluation",
+          "governance correctness tests",
+          "no credentials/host volumes"
+        ]
+      }
+    },
+    "integration": {
+      "branch": "radar/r3-runtime",
+      "status": "IMPLEMENTED_EXECUTION_PENDING",
+      "candidates": {
+        "Grand Integration Trial": [
+          "11 required runtime lanes",
+          "evidence fingerprints",
+          "blocked/failure checks",
+          "cross-lane sovereignty attack",
+          "machine-readable scorecard"
+        ]
+      }
+    }
+  },
+  "non_adoption_guards": {
+    "r3_pass_is_production_adoption": false,
+    "professional_austria_review_satisfied": false,
+    "milestone_m_authorized": false
+  }
+}
