@@ -84,19 +84,33 @@ inventing empirical numbers.
 
 ## 5. Current empirical-depth board
 
-| Candidate/lane | T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | Confidence |
-|---|---|---|---|---|---|---|---|---|---|---|
-| OpenFGA | PASS | PASS — real 120-case corpus | PENDING | PENDING | PENDING | PARTIAL PASS | PENDING | PENDING | PENDING | MEDIUM |
-| OPA | PASS | PASS — real 120-case corpus | PENDING | PENDING | PENDING | PARTIAL PASS | PENDING | PENDING | PENDING | MEDIUM |
-| Cedar | PASS | IN PROGRESS — real CLI rerun pending after serialization repair | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| SpiceDB | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| MCP | design/contract only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| A2A | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| Security native baseline | PASS — category smoke | NOT REAL ATTACK PROOF | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| Inspect AI | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| Promptfoo | research + historical pilot context | PENDING for V1.3.6 target | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| garak | R2 only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
-| Skill Registry | architecture only | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING | LOW |
+This board now separates historical evidence from current deep implementation.
+`IMPLEMENTED / RUN PENDING` is not a pass.
+
+| Candidate/lane | Current implementation depth | Executed evidence posture | Confidence |
+|---|---|---|---|
+| OpenFGA | T1/T2/T3/T6/T8 harnesses, relationship graph, ListObjects, revocation, model versioning, rebuild, temporal conditions | historical 120-case correctness evidence exists on an earlier authority checkpoint; new deep/current-head runs pending | MEDIUM |
+| OPA | T1/T2/T3/T4/T6/T8 harnesses, canonical data, hot update/rollback, signed bundles, tamper rejection | historical 120-case correctness evidence exists on an earlier authority checkpoint; bundle/deep/current-head runs pending | MEDIUM |
+| Cedar | real CLI, typed entities, schema validation, hierarchy, permit/forbid | real-CLI execution must be rerun on current typed implementation | LOW |
+| SpiceDB | real service challenger, schema, nested permissions, revocation | implementation only; execution pending | LOW |
+| MCP | real SDK, authority-filtered discovery, per-call authorization, replay, Streamable HTTP | implementation only; execution pending | LOW |
+| A2A | real SDK, Agent Card trust, task/artifact lifecycle, identity/version boundaries, network transport | implementation only; execution pending | LOW |
+| Security native | 36-payload state-diff/canary target plus historical category baseline | historical 18/18 category baseline PASS; deep current evidence pending | MEDIUM-LOW |
+| Inspect AI / Promptfoo / garak | external-tool adapters wired against the governed attack target | execution pending | LOW |
+| Skill Registry | quarantine, review, immutable activation, tenant/position assignment, manifests, version/revocation lineage | execution pending | LOW |
+| Microsandbox | microVM, no-network execution, filesystem/timeout/metrics, volumes, snapshots, concurrency | execution pending | LOW |
+| Native memory / Mem0 / OpenViking | governance reference, local-only adapters, poisoning and tenant stress | execution pending; external candidates may be BLOCKED if local services are absent | LOW |
+| Native / Temporal / LangGraph / Agno orchestration | common durable lifecycle, HITL, retry/resume/checkpoint experiments | execution pending | LOW |
+| OpenTelemetry | SDK trace boundary plus real Collector chaos harness | execution pending | LOW |
+| Langfuse / Phoenix | self-hosted/local-only secondary observability harnesses | execution pending; BLOCKED if local services are absent | LOW |
+| OpenBao | KV v2, ACL/TTL/revocation/rotation/audit plus persistence depth | execution pending | LOW |
+| PostgreSQL recovery | logical restore, event replay and native WAL-PITR fixture | execution pending | LOW |
+| AG-UI | real protocol event models, protected state filtering, tool/interrupt/revision boundaries | execution pending | LOW |
+| CopilotKit | isolated v2 runtime, info/SSE/middleware/factory/A2UI boundary | execution pending | LOW |
+| Development-model benchmark | provider-neutral task packet + Microsandbox evaluator | BLOCKED until a real candidate output is supplied; non-blocking for runtime R4 | LOW |
+| Grand Integration Trial | eleven mandatory runtime lanes + fingerprint/failure/sovereignty gates | execution pending until lane artifacts exist | LOW |
+
+No candidate receives current-head empirical credit merely because its lab exists.
 
 ## 6. Evidence coverage
 
@@ -147,28 +161,41 @@ exclusion rationale.
 Authority:
 
 ```text
-OpenFGA vs OPA vs Cedar vs Native AIOS
+OpenFGA vs OPA vs Cedar vs SpiceDB vs Native AIOS
 ```
 
 Security:
 
 ```text
-Inspect AI vs Promptfoo vs garak vs Native attack corpus
+Inspect AI vs Promptfoo vs garak vs Native state-diff attack target
 ```
 
 Memory:
 
 ```text
-Mem0 vs OpenViking vs Native memory
+Mem0 vs OpenViking vs Native continuity memory
 ```
 
 Orchestration:
 
 ```text
-Temporal vs LangGraph vs Agno/AgentOS vs Native WorkItem runtime
+Temporal vs LangGraph vs Agno vs Native WorkItem semantics
 ```
 
-Every shootout includes a "do we need this dependency?" result.
+Observability:
+
+```text
+OpenTelemetry baseline vs Langfuse vs Phoenix
+```
+
+Governed UI:
+
+```text
+AG-UI protocol boundary vs CopilotKit runtime boundary vs Native Cockpit state contract
+```
+
+Development-model tooling is evaluated separately because it is not an AIOS
+runtime dependency. Its result cannot unblock a failed runtime sovereignty lane.
 
 ## 10. Promotion rules
 
@@ -186,8 +213,46 @@ explicitly scoped adoption.
 
 ## 11. Current decision posture
 
-Current R2 rankings still prioritize work, but V1.3.6 no longer allows "R3
-verified" language based only on T0/T1 breadth.
+The R3 **implementation surface is complete enough to execute the programme**, but
+the evidence surface is not reconciled. The authoritative implementation snapshot
+is `labs/r3/programme_inventory.v1.json`.
 
-The next scorecard revision must be driven by machine-readable deep-validation
-evidence.
+The runtime Grand Integration Trial now requires eleven evidence lanes:
+
+```text
+authority
+interoperability
+security
+skills
+sandbox
+observability
+secrets
+recovery
+memory
+orchestration
+ui
+```
+
+A lane artifact is unacceptable when it is missing, execution-blocked, failed,
+has critical failures, reports unauthorized canonical effects, or lacks its
+result fingerprint.
+
+Development-model tooling is intentionally outside the eleven runtime gates. It
+measures developer productivity/correctness and cannot compensate for runtime
+security or sovereignty failures.
+
+Current programme posture:
+
+```text
+R3 implementation surface     IMPLEMENTED
+R3 current-head execution     PENDING
+R3 evidence reconciliation    PENDING
+Grand Integration Trial       PENDING
+R4 decision eligibility       NOT YET ELIGIBLE
+Production adoption           NOT AUTHORIZED
+Austria professional review   NOT SATISFIED BY THIS RADAR
+Milestone M                   NOT AUTHORIZED BY THIS RADAR
+```
+
+The next scorecard change must come from actual machine-readable result artifacts,
+not from another architecture-only reassessment.
