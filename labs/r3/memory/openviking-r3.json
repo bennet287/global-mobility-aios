@@ -1,0 +1,37 @@
+{
+  "embedding": {
+    "dense": {
+      "provider": "local",
+      "model": "bge-small-zh-v1.5-f16",
+      "dimension": 512,
+      "input": "text"
+    }
+  },
+  "storage": {
+    "workspace": "./.test-tmp/openviking-r3",
+    "agfs": {
+      "backend": "local"
+    },
+    "vectordb": {
+      "backend": "local",
+      "dimension": 512
+    }
+  },
+  "retrieval": {
+    "enable_intent": false
+  },
+  "memory": {
+    "extraction_enabled": false,
+    "session_skill_extraction_enabled": false
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 1933,
+    "workers": 1,
+    "auth_mode": "dev",
+    "cors_origins": []
+  },
+  "telemetry": {
+    "enabled": false
+  }
+}
