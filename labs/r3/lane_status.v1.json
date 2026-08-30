@@ -1,14 +1,20 @@
 {
   "contract_version": "gmai.r3.v1",
+  "programme_status": "R3_IMPLEMENTATION_SURFACE_COMPLETE_EXECUTION_PENDING",
   "lanes": {
-    "authority": "R3_DEEP_T2_T3_T6_IMPLEMENTED_EXECUTION_PENDING",
-    "integration": "QUEUED",
-    "interoperability": "QUEUED",
-    "observability": "QUEUED",
-    "recovery": "QUEUED",
-    "secrets": "QUEUED",
-    "security": "QUEUED",
-    "skills": "QUEUED"
+    "authority": "IMPLEMENTED_EXECUTION_PENDING",
+    "integration": "IMPLEMENTED_EXECUTION_PENDING",
+    "interoperability": "IMPLEMENTED_ON_DEDICATED_BRANCH_EXECUTION_PENDING",
+    "observability": "IMPLEMENTED_ON_DEDICATED_BRANCH_EXECUTION_PENDING",
+    "orchestration": "IMPLEMENTED_EXECUTION_PENDING",
+    "recovery": "IMPLEMENTED_ON_DEDICATED_BRANCH_EXECUTION_PENDING",
+    "sandbox": "IMPLEMENTED_EXECUTION_PENDING",
+    "secrets": "IMPLEMENTED_ON_DEDICATED_BRANCH_EXECUTION_PENDING",
+    "security": "IMPLEMENTED_ON_DEDICATED_BRANCH_EXECUTION_PENDING",
+    "skills": "IMPLEMENTED_ON_DEDICATED_BRANCH_EXECUTION_PENDING",
+    "memory": "IMPLEMENTED_EXECUTION_PENDING"
   },
+  "evidence_status": "NOT_RECONCILED",
+  "r4_decision_status": "NOT_ELIGIBLE_UNTIL_EXECUTED_EVIDENCE_PASSES",
   "production_adoption": false
 }
