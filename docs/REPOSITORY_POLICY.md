@@ -84,12 +84,29 @@ This document defines the controlled GitHub repository set allowed for Global Mo
   - Upstream comments/changelogs may mention providers or repositories excluded by AIOS policy;
     repository-policy substring scanning therefore does not rewrite or classify those vendored
     upstream bytes as Global Mobility AIOS product source.
+- superradcompany/microsandbox, research pin `288ef7c89fe3048abff44521db2ef5ec330e4b1c` (Apache-2.0)
+- mem0ai/mem0, research pin `19cb89aff472325c707f64b2f34ae6afdbf7faf7` (Apache-2.0)
+- volcengine/OpenViking, research pin `e8cedaebd72c9bead112a337a58768368af9c5fb` (AGPL-3.0; research only)
+- agno-agi/agno, research pin `2e8ca8dd926608953e907d7e8e7388e0c310d8f5` (Apache-2.0)
+- CopilotKit/CopilotKit, research pin `a68fd0b2536dad5d88ec93d98f78e53c3627310d` (MIT)
+- ag-ui-protocol/ag-ui, research pin `1d85ef42caef8a289b5e3839f5a63ffa622e703e` (MIT)
+- mukul975/Anthropic-Cybersecurity-Skills, research pin `1b3f6b2286981381a5cc0566551ef3bb6bc38383` (Apache-2.0; community project)
+- openfga/openfga, research pin `a7dfe8491dc7f9cd5905f4e9ae6c8e1d718c4bd9` (Apache-2.0)
+- open-policy-agent/opa, research pin `8e733384254aa0211f0464852f2881f83d700bf1` (Apache-2.0)
+- cedar-policy/cedar, research pin `468eaef41a4fd27c17a02cef48b58bce7f2034fc` (Apache-2.0)
+- authzed/spicedb, research pin `1ba6b9714f0a1af73d20033c63977d963f2a9a84` (Apache-2.0)
+- modelcontextprotocol/modelcontextprotocol, research pin `ca4ab3027f7c844cd3039c956438d72e8253f7f5` (license review required)
+- a2aproject/A2A, research pin `f63dbb48271940ca5bd421f87e27e4d6ec002795` (Apache-2.0)
+- UKGovernmentBEIS/inspect_ai, research pin `56c9cae65844c87479b10e212a93b91e1a17c351` (MIT)
+- NVIDIA/garak, research pin `8ed1543b985a5722adb659584182faf6f7907d4e` (Apache-2.0; authorized defensive evaluation only)
+
+These V1.3.5/V1.3.6 entries authorize source/documentation research at the stated pins only. They are not approved package, runtime, hosted-service, skill-installation or production dependencies. Promptfoo remains separately listed as an approved pilot source above.
 
 ## Explicitly Excluded Categories
 
 1. Claude leak or clone repositories.
-2. Offensive security or exploit frameworks.
-3. Cybersecurity lab/training repositories for unrelated attack simulation.
+2. Unauthorized offensive security or exploit frameworks; bounded defensive evaluation tools require explicit policy listing and engagement scope.
+3. Cybersecurity lab/training repositories for unrelated or ungoverned attack simulation.
 4. Entertainment/unrelated repositories.
 5. AGPL-heavy dependencies for core networked production services without legal review.
 

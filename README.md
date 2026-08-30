@@ -211,13 +211,13 @@ Permanent integration rules:
 
 Active/current direction:
 
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — active V12.32 necessity-driven master roadmap
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — active V12.33 necessity-driven master roadmap
 - [`docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`](docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md) — L acceptance/operator runbook
 - [`docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md`](docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md) — canonical combined architecture
 - [`docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`](docs/HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md) — constitutional high-autonomy source
 - [`docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`](docs/ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md) — enterprise integration sovereignty/boundary architecture
 - [`docs/AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`](docs/AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md) — capability-gap / integration radar
-- [`docs/TECHNOLOGY_RADAR_V1_3_5.md`](docs/TECHNOLOGY_RADAR_V1_3_5.md) — active Technology Radar
+- [`docs/TECHNOLOGY_RADAR_V1_3_6.md`](docs/TECHNOLOGY_RADAR_V1_3_6.md) — active Technology Radar and Tranche 1 research index
 - [`docs/V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md`](docs/V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md) — accepted L live-runtime evidence; L remains acceptance-pending
 - [`docs/V1_3_L_AI_DOMAIN_CORROBORATION.md`](docs/V1_3_L_AI_DOMAIN_CORROBORATION.md) — supplemental blind multi-provider Austria AI domain-corroboration harness; not professional review
 - [`docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md`](docs/V12_25_INTEGRATION_CAPABILITY_PROGRAMME.md) — V12.25 integration programme
@@ -233,6 +233,8 @@ Historical predecessor:
 - [`docs/TECHNOLOGY_RADAR_V1_3_1.md`](docs/TECHNOLOGY_RADAR_V1_3_1.md) — superseded historical radar
 - [`docs/TECHNOLOGY_RADAR_V1_3_2.md`](docs/TECHNOLOGY_RADAR_V1_3_2.md) — superseded historical radar
 - [`docs/TECHNOLOGY_RADAR_V1_3_3.md`](docs/TECHNOLOGY_RADAR_V1_3_3.md) — superseded historical radar
+- [`docs/TECHNOLOGY_RADAR_V1_3_4.md`](docs/TECHNOLOGY_RADAR_V1_3_4.md) — superseded historical radar
+- [`docs/TECHNOLOGY_RADAR_V1_3_5.md`](docs/TECHNOLOGY_RADAR_V1_3_5.md) — superseded historical radar
 
 ---
 

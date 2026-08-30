@@ -22,6 +22,51 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-30 — V12.33 / TECHNOLOGY RADAR V1.3.6 TRANCHE 1 RESEARCH ARCHITECTURE
+
+### Status
+
+**R2 RESEARCH / ARCHITECTURE COMPLETE — NO LAB, DEPENDENCY, RUNTIME OR PRODUCTION ADOPTION**
+
+Technology Radar V1.3.6 replaces the monolithic-radar growth pattern with a compact decision index plus focused, source-pinned research records. Tranche 1 answers four foundational questions:
+
+```text
+what an AI employee knows        → AIOS Skill Registry
+what it may do                   → Authority Engine
+how it accesses tools/agents     → MCP/A2A Gateways
+how boundaries are attacked      → Red Team Lab
+```
+
+Delivered research records:
+
+- common R0–R6 method, weighted scorecard, hard blockers and AIOS reference fixtures;
+- AIOS-native Skill Registry research and blueprint;
+- OpenFGA, OPA, Cedar and SpiceDB comparison plus Authority Engine blueprint;
+- MCP 2026-07-28 and A2A 1.0 research plus governed interoperability blueprint;
+- restricted Cybersecurity Skill Registry;
+- Inspect AI, Promptfoo and garak comparison plus Red Team Lab blueprint.
+
+The repository policy now lists the exact V1.3.5/V1.3.6 research pins. Active documentation also corrects LangGraph truth: an optional dependency declaration and non-production intake skeleton exist, but LangGraph is not used by the accepted J/K/L organization runtime and is not an adopted control plane.
+
+Provisional leading candidates are OpenFGA/OPA for a future isolated authorization comparison, MCP for governed tool/data interoperability, Inspect AI for evaluation-lab structure and Promptfoo for application/MCP adversarial testing. Scores are R2 inputs, not selections.
+
+No R3 lab was executed. No external package, credential, migration, canonical state, authority, autonomy, production adapter or M implementation was added.
+
+Current milestone truth remains:
+
+```text
+L runtime acceptance evidence       COMPLETE / ACCEPTED
+AI domain corroboration harness     IMPLEMENTED / RESULT PENDING
+Professional Austria review         PENDING
+Final exact-current-head proof      PENDING
+Overall L                           IMPLEMENTED / ACCEPTANCE PENDING
+M                                   NOT STARTED
+```
+
+The active roadmap advances from **V12.32 to V12.33** only to record this supporting research architecture.
+
+---
+
 ## 2026-08-30 — V12.32 SUPPLEMENTAL BLIND AUSTRIA AI DOMAIN-CORROBORATION HARNESS
 
 ### Status

@@ -49,7 +49,7 @@ Agents are role-bound workers, not independent authorities.
 Handles business automations like forms, WhatsApp, email, reminders, and CRM transitions.
 
 ### LangGraph
-Handles stateful, auditable, human-in-loop workflows.
+An optional non-production intake skeleton exists for stateful, auditable, human-in-loop workflow research. LangGraph is not used by the accepted J/K/L organization runtime and is not canonical WorkItem, organization, authority or Activity state. Any future `RuntimePort` adoption requires a measured need and Technology Radar R3 proof.
 
 ### Data Layer
 PostgreSQL for transactional data, Qdrant for semantic memory, Redis for state/cache, MinIO for documents.

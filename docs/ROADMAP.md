@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.32 — supplemental blind multi-provider Austria AI domain-corroboration harness; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.33 — Technology Radar V1.3.6 Tranche 1 research architecture; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-30
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -11,7 +11,7 @@
 **Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
 **Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
-**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_5.md`
+**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_6.md`
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
@@ -398,6 +398,24 @@ engineering telemetry != canonical OrganizationActivity
 **Backup / isolated restore:** SUPPORTING PARALLEL production foundation. It becomes a release/deployment blocker when the deployment target requires recoverability proof; it must not displace current L product proof merely because backup tooling exists.
 
 **Secrets management:** SUPPORTING PARALLEL production foundation. Introduce a secrets-manager boundary when a real credential lifecycle requires it; do not migrate secrets speculatively.
+
+#### V1.3.6 Tranche 1 research
+
+**Classification:** SUPPORTING PARALLEL RESEARCH / NO PRODUCT OR RUNTIME ADOPTION.
+
+Technology Radar V1.3.6 records R2 architecture-fit research for:
+
+```text
+AIOS-native Skill Registry
+OpenFGA / OPA / Cedar / SpiceDB authority candidates
+MCP 2026-07-28 / A2A 1.0 governed gateways
+Cybersecurity Skill Registry
+Inspect AI / Promptfoo / garak Red Team Lab candidates
+```
+
+The tranche adds no dependency, migration, production adapter, authority grant or M implementation. The first possible R3 experiment is a separately authorized, isolated OpenFGA-vs-OPA fixture; it must not delay professional Austria review or final L proof.
+
+Canonical research index: `docs/TECHNOLOGY_RADAR_V1_3_6.md`.
 
 #### L donor use
 
