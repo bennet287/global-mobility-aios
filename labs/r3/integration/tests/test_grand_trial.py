@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from labs.r3.integration.governed_ui import GovernedUiState, reconcile_with_canonical, reduce_ui_intent
+from labs.r3.integration.governed_ui import (
+    GovernedUiState,
+    reconnect_with_snapshot,
+    reconcile_with_canonical,
+    reduce_ui_intent,
+)
 from labs.r3.integration.grand_trial import run_cross_lane_attack
 
 
@@ -20,9 +25,54 @@ def test_ui_intent_never_grants_authority() -> None:
         canonical_status="HUMAN_REVIEW_REQUIRED",
         authority_state="DENIED",
         human_approval_required=True,
+        canonical_revision=1,
     )
     assert reconciled.authority_state == "DENIED"
     assert reconciled.optimistic is False
+
+
+def test_stale_snapshot_cannot_roll_authority_backward() -> None:
+    state = GovernedUiState(
+        canonical_status="HUMAN_REVIEW_REQUIRED",
+        authority_state="DENIED",
+        human_approval_required=True,
+        human_approved=False,
+        canonical_revision=9,
+    )
+    stale = reconcile_with_canonical(
+        state,
+        canonical_status="COMPLETED",
+        authority_state="ALLOW",
+        human_approval_required=False,
+        canonical_revision=8,
+    )
+    assert stale == state
+
+
+def test_disconnect_reconnect_clears_optimistic_intent() -> None:
+    state = GovernedUiState(
+        canonical_status="HUMAN_REVIEW_REQUIRED",
+        authority_state="DENIED",
+        human_approval_required=True,
+        human_approved=False,
+        canonical_revision=4,
+    )
+    optimistic = reduce_ui_intent(state, "SUBMIT_APPLICATION")
+    disconnected = reduce_ui_intent(optimistic, "CONNECTION_LOST")
+    assert disconnected.connected is False
+    assert disconnected.authority_state == "DENIED"
+
+    restored = reconnect_with_snapshot(
+        disconnected,
+        canonical_status="HUMAN_REVIEW_REQUIRED",
+        authority_state="DENIED",
+        human_approval_required=True,
+        canonical_revision=5,
+    )
+    assert restored.connected is True
+    assert restored.optimistic is False
+    assert restored.pending_intent is None
+    assert restored.authority_state == "DENIED"
 
 
 def test_cross_lane_attack_fails_closed() -> None:
