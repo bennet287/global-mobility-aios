@@ -21,6 +21,16 @@ class CedarDecision:
     used_reference_fallback: bool
 
 
+def _cedar_entity_uid(entity_type: str, entity_id: object) -> str:
+    """Render Cedar CLI request-json entity UID syntax.
+
+    Cedar's request-json contract expects principal/action/resource as strings
+    like User::"alice", not objects with separate type/id fields.
+    """
+
+    return f"{entity_type}::{json.dumps(str(entity_id), ensure_ascii=False)}"
+
+
 def _cedar_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     action = request.get("action")
     canonical = CANONICAL_ACTIONS.get(action)
@@ -41,18 +51,18 @@ def _cedar_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     )
 
     return {
-        "principal": {
-            "type": "Agent",
-            "id": str(actor.get("id") or "missing-actor"),
-        },
-        "action": {
-            "type": "Action",
-            "id": str(action or "missing-action"),
-        },
-        "resource": {
-            "type": "Resource",
-            "id": str(resource.get("id") or "missing-resource"),
-        },
+        "principal": _cedar_entity_uid(
+            "Agent",
+            actor.get("id") or "missing-actor",
+        ),
+        "action": _cedar_entity_uid(
+            "Action",
+            action or "missing-action",
+        ),
+        "resource": _cedar_entity_uid(
+            "Resource",
+            resource.get("id") or "missing-resource",
+        ),
         "context": {
             "actor_present": bool(actor.get("id")),
             "known_action": canonical is not None,
@@ -178,7 +188,7 @@ class CedarAdapter:
             )
 
         decision = _parse_cedar_decision(completed.stdout)
-        if decision is None:
+        if completed.returncode != 0 or decision is None:
             return CedarDecision(
                 "DENY",
                 "MALFORMED_RESPONSE",

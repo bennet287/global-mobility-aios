@@ -198,3 +198,12 @@ Only then may the authority lane be proposed as `ADVANCE_TO_R4`.
 R3 PASS does not mean production adoption. OpenFGA, OPA, and Cedar remain
 Technology Radar candidates until a later separately authorized R4/shadow or
 adoption decision. No R3 result grants AI employees product authority.
+
+
+## Cedar request-json interoperability note
+
+Cedar CLI authorize --request-json expects principal, action, and resource as
+Cedar entity UID strings, for example Agent::"agent:austria-regulatory", not
+JSON objects with separate type and id fields. The R3 adapter renders that native
+CLI contract explicitly. A CLI parse or validation error is normalized to a
+fail-closed DENY / MALFORMED_RESPONSE and does not qualify as Cedar evidence.

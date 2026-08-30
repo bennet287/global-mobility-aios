@@ -56,6 +56,9 @@ def test_cedar_payload_uses_canonical_action_metadata() -> None:
     payload = _cedar_request_payload(request)
     context = payload["context"]
 
+    assert payload["principal"] == 'Agent::"agent:austria-regulatory"'
+    assert payload["action"] == 'Action::"government_application.submit"'
+    assert payload["resource"] == 'Resource::"case:AT-001"'
     assert context["authority_required"] is True
     assert context["human_approval_required"] is True
     assert context["jurisdiction_valid"] is False
@@ -68,3 +71,16 @@ def test_real_cedar_policy_is_checked_in() -> None:
     text = policy.read_text(encoding="utf-8")
     assert 'id("aios-r3-authority")' in text
     assert "context.authority_required" in text
+
+
+def test_cedar_request_json_uses_entity_uid_strings() -> None:
+    request = build_authority_corpus()["scenarios"][0]["request"]
+
+    payload = _cedar_request_payload(request)
+
+    assert isinstance(payload["principal"], str)
+    assert isinstance(payload["action"], str)
+    assert isinstance(payload["resource"], str)
+    assert payload["principal"].startswith('Agent::"')
+    assert payload["action"].startswith('Action::"')
+    assert payload["resource"].startswith('Resource::"')
