@@ -93,7 +93,11 @@ def main() -> int:
         1 for outcome in outcomes if outcome["used_reference_fallback"]
     )
     provider_calls = sum(1 for outcome in outcomes if outcome["provider_called"])
-    real_execution_count = provider_calls - fallback_count
+    real_execution_count = sum(
+        1
+        for outcome in outcomes
+        if outcome["provider_called"] and not outcome["used_reference_fallback"]
+    )
 
     result.update(
         {

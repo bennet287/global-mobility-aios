@@ -19,6 +19,7 @@ class CedarDecision:
     reason_class: str
     provider_called: bool
     used_reference_fallback: bool
+    diagnostic: str | None = None
 
 
 def _cedar_entity_uid(entity_type: str, entity_id: object) -> str:
@@ -189,11 +190,17 @@ class CedarAdapter:
 
         decision = _parse_cedar_decision(completed.stdout)
         if completed.returncode != 0 or decision is None:
+            diagnostic = " ".join(
+                part.strip()
+                for part in (completed.stderr, completed.stdout)
+                if part and part.strip()
+            )[:1000]
             return CedarDecision(
                 "DENY",
                 "MALFORMED_RESPONSE",
                 True,
                 False,
+                diagnostic or "cedar CLI returned no parseable decision",
             )
 
         reference = evaluate_reference(request)
@@ -247,6 +254,7 @@ def run_challenger_corpus(
                 "observed_reason_class": observed.reason_class,
                 "provider_called": observed.provider_called,
                 "used_reference_fallback": observed.used_reference_fallback,
+                "diagnostic": observed.diagnostic,
                 "passed": observed.decision == expected["decision"]
                 and observed.reason_class == expected["reason_class"],
                 "unauthorized_canonical_effects": [],

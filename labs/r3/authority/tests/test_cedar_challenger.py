@@ -84,3 +84,12 @@ def test_cedar_request_json_uses_entity_uid_strings() -> None:
     assert payload["principal"].startswith('Agent::"')
     assert payload["action"].startswith('Action::"')
     assert payload["resource"].startswith('Resource::"')
+
+
+def test_cedar_diagnostic_fallback_does_not_count_as_provider_call() -> None:
+    adapter = CedarAdapter(use_reference_fallback=True)
+    observed = adapter.decide(build_authority_corpus()["scenarios"][0]["request"])
+
+    assert observed.provider_called is False
+    assert observed.used_reference_fallback is True
+    assert observed.diagnostic is None
