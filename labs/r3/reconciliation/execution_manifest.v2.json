@@ -1,0 +1,106 @@
+{
+  "contract_version": "gmai.r3.execution-manifest.v2",
+  "programme": "Technology Radar V1.3.6 deep R3",
+  "snapshot_policy": "Evidence is valid only against the exact physical branch head pinned by this manifest. Mixed-head evidence is rejected.",
+  "production_adoption": false,
+  "r4_eligible_by_implementation_alone": false,
+  "physical_branches": {
+    "authority": {"branch": "radar/r3-authority", "head": "4b04c97f911fb263471a614457b3b9f7aac8190c"},
+    "security": {"branch": "radar/r3-security", "head": "d908a8c7ccde463ae0dec097211562e7ef8e86ca"},
+    "skills": {"branch": "radar/r3-skills", "head": "4791546f5e23acbfc375fd8b0cb142e9f7b445a4"},
+    "interoperability": {"branch": "radar/r3-interop-deep", "head": "9637854aeb92dba9805fd807bcd4ea4b7d99120e"},
+    "infrastructure": {"branch": "radar/r3-infrastructure", "head": "654bfdd9816e1fb1242134ed5f6d8f6208a60b07"},
+    "runtime": {"branch": "radar/r3-runtime", "head": "310eda0d4efe4c01c86e6ee21d9e582dd46fc90f"}
+  },
+  "logical_lanes": {
+    "authority": {
+      "physical_branch": "authority",
+      "required_evidence_groups": {
+        "openfga": ["openfga"],
+        "opa": ["opa"],
+        "cedar": ["cedar"],
+        "spicedb": ["spicedb"]
+      }
+    },
+    "security": {
+      "physical_branch": "security",
+      "required_evidence_groups": {
+        "native_state_diff": ["aios-deep-security-target", "state-diff-adversarial"],
+        "external_frameworks": ["external-security-tool-shootout", "t4-external-security-frameworks"]
+      }
+    },
+    "skills": {
+      "physical_branch": "skills",
+      "required_evidence_groups": {
+        "registry_lifecycle": ["aios-skill-registry", "skill-registry-lifecycle"]
+      }
+    },
+    "interoperability": {
+      "physical_branch": "interoperability",
+      "required_evidence_groups": {
+        "mcp": ["mcp"],
+        "a2a": ["a2a"]
+      }
+    },
+    "observability": {
+      "physical_branch": "infrastructure",
+      "required_evidence_groups": {
+        "opentelemetry": ["opentelemetry", "otel"]
+      }
+    },
+    "secrets": {
+      "physical_branch": "infrastructure",
+      "required_evidence_groups": {
+        "openbao": ["openbao"]
+      }
+    },
+    "recovery": {
+      "physical_branch": "infrastructure",
+      "required_evidence_groups": {
+        "logical_restore_and_replay": ["postgresql-recovery", "backup-restore-replay"],
+        "native_wal_pitr": ["postgresql-native-wal-pitr", "native-wal-pitr"]
+      }
+    },
+    "sandbox": {
+      "physical_branch": "runtime",
+      "required_evidence_groups": {
+        "baseline": ["microsandbox"],
+        "depth": ["microsandbox-depth", "sandbox-depth"]
+      }
+    },
+    "memory": {
+      "physical_branch": "runtime",
+      "required_evidence_groups": {
+        "native_stress": ["memory-stress:native"],
+        "mem0": ["mem0"],
+        "openviking": ["openviking"]
+      }
+    },
+    "orchestration": {
+      "physical_branch": "runtime",
+      "required_evidence_groups": {
+        "native": ["native-aios-reference"],
+        "temporal": ["temporal"],
+        "langgraph": ["langgraph"],
+        "agno": ["agno"]
+      }
+    }
+  },
+  "grand_trial": {
+    "physical_branch": "runtime",
+    "experiment": "t8-grand-integration-trial",
+    "required_lane_count": 10
+  },
+  "global_acceptance": {
+    "reject_if_any_execution_blocked": true,
+    "reject_if_any_failure": true,
+    "reject_if_any_critical_failure": true,
+    "reject_if_any_unauthorized_canonical_effect": true,
+    "reject_if_result_fingerprint_invalid": true,
+    "reject_if_artifact_git_sha_differs_from_pinned_head": true,
+    "require_all_evidence_groups": true,
+    "require_grand_integration_trial": true,
+    "r4_decision_after_evidence_only": true,
+    "production_adoption_requires_separate_governance": true
+  }
+}
