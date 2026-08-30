@@ -454,6 +454,48 @@ def test_live_provider_evaluation_rejects_agent_run_provenance_tampering(
         )
 
 
+def test_live_provider_evaluation_rejects_prior_attempt_before_new_execution(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan = _fresh_grounded_plan(
+        db_session,
+        objective_key="at-rwr-shortage-2026-live-provider-consumed-attempt",
+    )
+
+    work = db_session.get(
+        OrganizationalWorkItem,
+        plan.pathway_work_item.id,
+    )
+    assert work is not None
+    work.status = "running"
+    work.execution_attempts = 1
+    db_session.add(work)
+    db_session.commit()
+
+    monkeypatch.setattr(settings, "llm_provider", "deepseek")
+    monkeypatch.setattr(settings, "deepseek_model", "deepseek-chat")
+    monkeypatch.setattr(settings, "deepseek_api_key", "test-only-key")
+    monkeypatch.setattr(settings, "llm_fallback_to_template", False)
+
+    with pytest.raises(
+        DependencyConflict,
+        match="execution_attempts=1",
+    ):
+        execute_austria_live_provider_evaluation(
+            db_session,
+            tenant_key="default",
+            root_work_item_id=plan.root_work_item.id,
+        )
+
+    refreshed = db_session.get(
+        OrganizationalWorkItem,
+        plan.pathway_work_item.id,
+    )
+    assert refreshed is not None
+    assert refreshed.execution_attempts == 1
+
+
 def test_execute_live_provider_evaluation_rejects_nonfresh_root_before_mutation(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,

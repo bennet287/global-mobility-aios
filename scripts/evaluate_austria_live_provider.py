@@ -148,7 +148,7 @@ def _candidate_roots(session: Session, tenant_key: str) -> list[dict[str, object
             if (
                 output_exists
                 or child.status not in {"queued", "running"}
-                or attempts_exhausted
+                or child.execution_attempts != 0
             ):
                 fresh_execution_candidate = False
         items.append(

@@ -132,7 +132,7 @@ def _authority_graph(session: Session) -> dict[str, object]:
         name="Austrian shortage-occupation mobility pathway",
         country="austria",
         domain="visa",
-        catalogue_status="published",
+        catalogue_status="active",
         created_by="pytest",
     )
     session.add(pathway)

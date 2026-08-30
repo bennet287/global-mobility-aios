@@ -250,8 +250,10 @@ def _require_fresh_live_execution_candidate(
             conflicts.append(f"{position_key}:current_k1_output_exists")
         if work.status not in {"queued", "running"}:
             conflicts.append(f"{position_key}:status={work.status}")
-        if work.execution_attempts >= work.max_execution_attempts:
-            conflicts.append(f"{position_key}:execution_attempts_exhausted")
+        if work.execution_attempts != 0:
+            conflicts.append(
+                f"{position_key}:execution_attempts={work.execution_attempts}"
+            )
     if conflicts:
         raise DependencyConflict(
             "live-provider evaluation requires both specialists to be fresh executable candidates: "

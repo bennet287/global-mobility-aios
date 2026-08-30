@@ -220,6 +220,52 @@ def test_changed_official_source_fails_before_k1_and_persists_review_change(
         assert work.execution_attempts == attempt_count
 
 
+def test_live_cycle_rejects_previously_attempted_specialist_before_retrieval(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, plan, _ = _plan_with_monitor(
+        db_session,
+        objective_key="at-rwr-shortage-2026-consumed-live-candidate",
+    )
+
+    work = db_session.get(
+        OrganizationalWorkItem,
+        plan.pathway_work_item.id,
+    )
+    assert work is not None
+    work.status = "running"
+    work.execution_attempts = 1
+    db_session.add(work)
+    db_session.commit()
+
+    monkeypatch.setattr(settings, "llm_provider", "deepseek")
+    monkeypatch.setattr(settings, "deepseek_model", "deepseek-chat")
+    monkeypatch.setattr(settings, "deepseek_api_key", "test-only-key")
+    monkeypatch.setattr(settings, "llm_fallback_to_template", False)
+
+    retrieval_called = False
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal retrieval_called
+        retrieval_called = True
+        return httpx.Response(500)
+
+    with pytest.raises(
+        DependencyConflict,
+        match="execution_attempts=1",
+    ):
+        execute_austria_live_provider_cycle(
+            db_session,
+            tenant_key="default",
+            root_work_item_id=plan.root_work_item.id,
+            retrieval_transport=httpx.MockTransport(handler),
+            retrieval_resolver=_public_resolver,
+        )
+
+    assert retrieval_called is False
+
+
 def test_live_cycle_checks_provider_configuration_before_source_retrieval(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
