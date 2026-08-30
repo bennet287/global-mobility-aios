@@ -207,3 +207,66 @@ Cedar entity UID strings, for example Agent::"agent:austria-regulatory", not
 JSON objects with separate type and id fields. The R3 adapter renders that native
 CLI contract explicitly. A CLI parse or validation error is normalized to a
 fail-closed DENY / MALFORMED_RESPONSE and does not qualify as Cedar evidence.
+
+
+## Deep feature execution
+
+With OpenFGA and OPA running from the existing Docker Compose file, execute the
+native-feature labs:
+
+```powershell
+python -m labs.r3.authority.deep_openfga `
+  --run-id openfga-deep-20260830-006 `
+  --output labs/r3/authority/results/openfga-deep-20260830-006.json
+
+python -m labs.r3.authority.deep_opa `
+  --run-id opa-deep-20260830-006 `
+  --output labs/r3/authority/results/opa-deep-20260830-006.json
+```
+
+The OpenFGA run exercises nested position/team usersets, computed relations,
+`ListObjects`, revocation/restoration, immutable model versioning and full
+derived-store rebuild.
+
+The OPA run exercises AIOS-owned external canonical data, hot tightening,
+rollback, missing-metadata fail-closed behavior and deterministic reconstruction
+of earlier data revisions.
+
+Run generated T6 proof against both real engines:
+
+```powershell
+python -m labs.r3.authority.deep_properties `
+  --candidate openfga `
+  --iterations 2000 `
+  --seed 136 `
+  --run-id openfga-properties-20260830-006 `
+  --output labs/r3/authority/results/openfga-properties-20260830-006.json
+
+python -m labs.r3.authority.deep_properties `
+  --candidate opa `
+  --iterations 2000 `
+  --seed 136 `
+  --run-id opa-properties-20260830-006 `
+  --output labs/r3/authority/results/opa-properties-20260830-006.json
+```
+
+The generated campaign checks authority/approval monotonicity, revocation,
+cross-tenant denial, unknown actions, provider-claim non-authority,
+skill-advertisement non-authority and self-grant denial. Candidate decisions and
+reason classes are compared to the AIOS semantic oracle, and bounded
+counterexamples are retained on disagreement.
+
+After the real Cedar rerun and all current-head evidence exists:
+
+```powershell
+python -m labs.r3.common.verify_results labs/r3/authority/results/*.json
+
+python -m labs.r3.authority.deep_rollup `
+  --run-id authority-deep-rollup-20260830-006 `
+  --output labs/r3/authority/results/authority-deep-rollup-20260830-006.json
+```
+
+The deep rollup intentionally remains `CONTINUE_R3_WITH_SPECIFIC_GAP` even
+after all implemented gates pass. Remaining depth is explicit: OpenFGA
+conditions, OPA bundle lifecycle, Cedar typed entities/schema, security
+integration and cross-component integration.
