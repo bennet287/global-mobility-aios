@@ -22,6 +22,50 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-30 — V12.31 / TECHNOLOGY RADAR V1.3.5 — EXTERNAL AGENT INFRASTRUCTURE CLASSIFICATION
+
+### Status
+
+**RADAR / DOCUMENTATION ONLY — NO PRODUCTION ADOPTION; L ACCEPTANCE STATE UNCHANGED**
+
+The active Technology Radar advances from V1.3.4 to V1.3.5 and classifies six external agent-infrastructure areas against the AIOS constitutional boundary:
+
+```text
+Microsandbox        EXPLORE — sandbox provider candidate
+Mem0                EXPLORE — memory provider candidate
+OpenViking          RESEARCH — context-database donor; AGPL-3.0
+Agno / AgentOS      ASSESS — production agent-platform donor
+LangGraph           RESEARCH — bounded execution-graph donor
+CopilotKit / AG-UI  EXPLORE — governed Cockpit interaction candidate
+```
+
+Reviewed upstream heads are pinned in `docs/TECHNOLOGY_RADAR_V1_3_5.md`. The classification preserves AIOS ownership of OrganizationPosition, WorkItem/Mission meaning, ContextBundle, Evidence/VerifiedRule, authority/autonomy/risk, AgentRun/ActionOutput, OrganizationActivity, Command Gateway and Human Owner / Board sovereignty.
+
+New permanent external-infrastructure rules:
+
+```text
+MEMORY != EVIDENCE
+SANDBOX ISOLATION != EXECUTION AUTHORITY
+AGENT FRAMEWORK STATE != ORGANIZATION TRUTH
+UI INTENT != COMMAND AUTHORIZATION
+```
+
+Microsandbox is the highest-priority future sandbox candidate; CopilotKit/AG-UI is the strongest post-L/M frontend interaction candidate; Mem0 is a future lower-truth memory-provider candidate. OpenViking, Agno and LangGraph remain research/assessment donors and are not allowed to become second canonical truth, authority, organization or control-plane systems.
+
+No package was installed, no production dependency or migration was added, no runtime behavior changed, no external-action authority was granted and no M implementation began.
+
+Current milestone truth remains:
+
+```text
+L runtime acceptance evidence  COMPLETE / ACCEPTED
+Professional Austria review    PENDING
+Final exact-head proof          PENDING
+Overall L                       IMPLEMENTED / ACCEPTANCE PENDING
+M                               NOT STARTED
+```
+
+The active roadmap advances from **V12.30 to V12.31** only to reconcile this radar decision and canonical documentation pointers.
+
 ## 2026-08-30 — V12.30 L LIVE-RUNTIME ACCEPTANCE EVIDENCE + DOCUMENTATION RECONCILIATION
 
 ### Status
