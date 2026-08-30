@@ -78,7 +78,7 @@ def test_disconnect_reconnect_clears_optimistic_intent() -> None:
     assert restored.authority_state == "DENIED"
 
 
-def test_grand_trial_requires_all_ten_radar_lanes() -> None:
+def test_grand_trial_requires_all_eleven_runtime_radar_lanes() -> None:
     assert REQUIRED_LANES == {
         "authority",
         "interoperability",
@@ -90,9 +90,12 @@ def test_grand_trial_requires_all_ten_radar_lanes() -> None:
         "recovery",
         "memory",
         "orchestration",
+        "ui",
     }
     assert _classify_lane({"candidate": "aios-skill-registry", "experiment": "lifecycle"}) == "skills"
     assert _classify_lane({"candidate": "microsandbox", "experiment": "isolation"}) == "sandbox"
+    assert _classify_lane({"candidate": "ag-ui-protocol", "experiment": "interaction"}) == "ui"
+    assert _classify_lane({"candidate": "copilotkit-runtime", "experiment": "interaction"}) == "ui"
 
 
 def test_cross_lane_attack_fails_closed() -> None:
