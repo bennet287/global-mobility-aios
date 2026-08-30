@@ -1,0 +1,35 @@
+entity Agent in [Position];
+entity Position in [Team];
+entity Team;
+entity Case in [Team];
+entity Tool in [Team];
+
+action "read_case" appliesTo {
+    principal: [Agent],
+    resource: [Case],
+    context: {
+        sameTenant: Bool,
+        authorityPresent: Bool,
+        humanApproved: Bool
+    }
+};
+
+action "submit_case" appliesTo {
+    principal: [Agent],
+    resource: [Case],
+    context: {
+        sameTenant: Bool,
+        authorityPresent: Bool,
+        humanApproved: Bool
+    }
+};
+
+action "invoke_tool" appliesTo {
+    principal: [Agent],
+    resource: [Tool],
+    context: {
+        sameTenant: Bool,
+        authorityPresent: Bool,
+        humanApproved: Bool
+    }
+};

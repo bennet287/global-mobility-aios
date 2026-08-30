@@ -1,0 +1,83 @@
+[
+  {
+    "uid": {
+      "type": "Team",
+      "id": "austria"
+    },
+    "attrs": {},
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "Team",
+      "id": "other"
+    },
+    "attrs": {},
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "Position",
+      "id": "austria-regulatory"
+    },
+    "attrs": {},
+    "parents": [
+      {
+        "type": "Team",
+        "id": "austria"
+      }
+    ]
+  },
+  {
+    "uid": {
+      "type": "Agent",
+      "id": "agent-001"
+    },
+    "attrs": {},
+    "parents": [
+      {
+        "type": "Position",
+        "id": "austria-regulatory"
+      }
+    ]
+  },
+  {
+    "uid": {
+      "type": "Case",
+      "id": "AT-001"
+    },
+    "attrs": {},
+    "parents": [
+      {
+        "type": "Team",
+        "id": "austria"
+      }
+    ]
+  },
+  {
+    "uid": {
+      "type": "Case",
+      "id": "DE-001"
+    },
+    "attrs": {},
+    "parents": [
+      {
+        "type": "Team",
+        "id": "other"
+      }
+    ]
+  },
+  {
+    "uid": {
+      "type": "Tool",
+      "id": "source-retrieve"
+    },
+    "attrs": {},
+    "parents": [
+      {
+        "type": "Team",
+        "id": "austria"
+      }
+    ]
+  }
+]
