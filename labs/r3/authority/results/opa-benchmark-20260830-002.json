@@ -1,0 +1,26 @@
+{
+  "candidate": "opa",
+  "candidate_version": "v1.19.1",
+  "cold_start_allowed": true,
+  "cold_start_ms": 18.529,
+  "concurrency": 25,
+  "contract_version": "gmai.r3.v1",
+  "environment": "synthetic-isolated",
+  "error_rate": 0.0,
+  "errors": 0,
+  "git_sha": "239f12fbdd03afa5edea0bda0f205cf2c17afd94",
+  "latency_ms": {
+    "maximum": 423.428,
+    "p50": 41.372,
+    "p95": 145.966,
+    "p99": 202.045
+  },
+  "measured_requests": 10000,
+  "r3_run_id": "opa-benchmark-20260830-002",
+  "result_sha256": "0660de942c4be8d0f8b4c9c71366067860b73f296538729ae43111d774157eac",
+  "server_memory_bytes": null,
+  "throughput_requests_per_second": 451.8,
+  "unauthorized_canonical_effects": 0,
+  "warmup_errors": 0,
+  "warmup_requests": 1000
+}

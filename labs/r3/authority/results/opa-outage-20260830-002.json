@@ -1,0 +1,16 @@
+{
+  "candidate": "opa",
+  "candidate_version": "v1.19.1",
+  "contract_version": "gmai.r3.v1",
+  "environment": "synthetic-isolated",
+  "expected_decision": "DENY",
+  "experiment": "engine-unavailable",
+  "git_sha": "46a45a064340bcc3cb1011194d12982c263b10dd",
+  "observed_decision": "DENY",
+  "observed_reason_class": "ENGINE_UNAVAILABLE",
+  "passed": true,
+  "provider_called": true,
+  "r3_run_id": "opa-outage-20260830-002",
+  "result_sha256": "ff9e2ec477929d6f4546b0fae0fcf72257a6f8d3c34da8d729b51b4045337609",
+  "unauthorized_canonical_effects": 0
+}

@@ -1,0 +1,26 @@
+{
+  "candidate": "openfga",
+  "candidate_version": "v1.18.1",
+  "cold_start_allowed": true,
+  "cold_start_ms": 12.337,
+  "concurrency": 25,
+  "contract_version": "gmai.r3.v1",
+  "environment": "synthetic-isolated",
+  "error_rate": 0.0,
+  "errors": 0,
+  "git_sha": "239f12fbdd03afa5edea0bda0f205cf2c17afd94",
+  "latency_ms": {
+    "maximum": 409.635,
+    "p50": 41.45,
+    "p95": 144.783,
+    "p99": 213.329
+  },
+  "measured_requests": 10000,
+  "r3_run_id": "openfga-benchmark-20260830-002",
+  "result_sha256": "63599f1d69f6185726cb20fa4461122cc4cfe063254d7a0ee21decf4a520aa2c",
+  "server_memory_bytes": null,
+  "throughput_requests_per_second": 442.5,
+  "unauthorized_canonical_effects": 0,
+  "warmup_errors": 0,
+  "warmup_requests": 1000
+}

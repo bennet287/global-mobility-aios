@@ -1,7 +1,7 @@
 {
   "contract_version": "gmai.r3.v1",
   "lanes": {
-    "authority": "FOUNDATION_IN_PROGRESS",
+    "authority": "R3_INITIAL_EVIDENCE_CAPTURED_DECISION_PENDING",
     "integration": "QUEUED",
     "interoperability": "QUEUED",
     "observability": "QUEUED",

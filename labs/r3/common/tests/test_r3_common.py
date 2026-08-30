@@ -20,6 +20,7 @@ from labs.r3.common.harness import (
     validate_run_id,
     validate_security_findings,
 )
+from labs.r3.common.verify_results import verify_result
 
 
 COMMON_ROOT = Path(__file__).resolve().parents[1]
@@ -171,3 +172,10 @@ def test_committed_fixtures_match_deterministic_generators() -> None:
 
     assert authority == build_authority_corpus()
     assert attacks == build_attack_corpus()
+
+
+def test_committed_machine_results_have_valid_fingerprints_and_zero_effects() -> None:
+    result_paths = sorted(Path("labs/r3").glob("**/results/*.json"))
+
+    for path in result_paths:
+        verify_result(path)

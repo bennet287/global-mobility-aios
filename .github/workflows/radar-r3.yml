@@ -33,10 +33,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install common lab test dependency
+        run: python -m pip install pytest==8.3.0
       - name: Verify generated fixtures
         run: python -m labs.r3.common.generate_fixtures --check
       - name: Run common contract and invariant tests
         run: python -m pytest labs/r3/common/tests -q
+      - name: Verify committed R3 evidence fingerprints when present
+        run: |
+          if find labs/r3 -path '*/results/*.json' -print -quit | grep -q .; then
+            python -m labs.r3.common.verify_results
+          fi
       - name: Produce machine-readable common evidence
         run: python -m labs.r3.common.run_common --output r3-artifacts/common-results.json
       - name: Upload common evidence
@@ -55,6 +62,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install authority lab dependencies
+        run: python -m pip install -r labs/r3/authority/requirements.txt
       - name: Execute authority lane
         run: python -m pytest labs/r3/authority/tests -q
 
@@ -67,6 +76,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install lab test dependency
+        run: python -m pip install pytest==8.3.0
       - name: Execute MCP and A2A lane
         run: python -m pytest labs/r3/interoperability/tests -q
 
@@ -79,6 +90,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install lab test dependency
+        run: python -m pip install pytest==8.3.0
       - name: Execute adversarial lane
         run: python -m pytest labs/r3/security/tests -q
 
@@ -91,6 +104,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install lab test dependency
+        run: python -m pip install pytest==8.3.0
       - name: Execute Skill Registry lane
         run: python -m pytest labs/r3/skills/tests -q
 
@@ -103,5 +118,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install lab test dependency
+        run: python -m pip install pytest==8.3.0
       - name: Execute observability lane
         run: python -m pytest labs/r3/observability/tests -q

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+from pathlib import Path
 
 import httpx
 import pytest
@@ -11,6 +12,7 @@ from labs.r3.authority.benchmark import _percentile as benchmark_percentile
 from labs.r3.authority.run_candidate import _percentile, _run
 from labs.r3.common.generate_fixtures import build_authority_corpus
 from labs.r3.common.harness import evaluate_reference
+from labs.r3.common.verify_results import verify_result
 
 
 def _opa_transport(request: httpx.Request) -> httpx.Response:
@@ -192,3 +194,11 @@ def test_percentile_is_deterministic() -> None:
     assert _percentile([1.0, 2.0, 3.0, 4.0], 50) == 2.0
     assert _percentile([1.0, 2.0, 3.0, 4.0], 95) == 4.0
     assert benchmark_percentile([1.0, 2.0, 3.0, 4.0], 99) == 4.0
+
+
+def test_six_authority_evidence_artifacts_are_fingerprinted() -> None:
+    paths = sorted(Path("labs/r3/authority/results").glob("*.json"))
+
+    assert len(paths) == 6
+    for path in paths:
+        verify_result(path)
