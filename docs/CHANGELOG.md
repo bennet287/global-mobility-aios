@@ -22,7 +22,67 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
-## 2026-08-30 — V12.34 / TECHNOLOGY RADAR V1.3.6 AGGRESSIVE EXECUTION AMENDMENT
+## 2026-08-30 — V12.35 / TECHNOLOGY RADAR V1.3.6 DEEP-EVIDENCE LIFECYCLE AMENDMENT
+
+### Status
+
+**SAME V1.3.6 RADAR / METHOD DEEPENED ACROSS R0–R8 / NO PRODUCTION ADOPTION**
+
+V1.3.6 now distinguishes adoption maturity from evidence depth.
+
+Canonical maturity:
+
+```text
+R0 DISCOVER
+R1 UNDERSTAND
+R2 ARCHITECTURE PROVE
+R3 LAB PROVE
+R4 SHADOW PROVE
+R5 INTEGRATION PROVE
+R6 ADOPT
+R7 CONTINUOUSLY VERIFY
+R8 RETIRE / REPLACE
+```
+
+Canonical evidence depth:
+
+```text
+T0 contract/mock
+T1 real component
+T2 native feature depth
+T3 stateful lifecycle
+T4 adversarial/security
+T5 chaos/failure/recovery
+T6 concurrency/scale/property
+T7 cross-component integration
+T8 historical replay/restore/retirement
+```
+
+This amendment corrects a proof-quality weakness: a large mock/corpus count no
+longer implies deep R3 verification. Existing contracts and real OpenFGA/OPA runs
+remain valid evidence, but are reclassified precisely by tier. The 18-category
+security native baseline is explicitly T0 smoke evidence, not a claim that 18
+real adversarial attacks were resisted.
+
+The Radar now requires Feature Potential Maps, Feature Exploitation Matrices,
+Anti-Fit Matrices, native-build comparisons, feature hypotheses, kill criteria,
+confidence and evidence-coverage reporting. R4 shadow proof, R5
+replaceability/integration proof, scoped R6 adoption, R7 continuous verification
+and R8 retirement are explicit gates.
+
+A new deep-validation blueprint defines candidate-specific feature exploitation
+for authority, MCP/A2A, skills, security/evaluation, sandboxing, memory,
+orchestration, observability, secrets, recovery and governed UI interaction. It
+also defines the Technology Radar Grand Integration Trial: a synthetic hostile
+mobility operation combining poisoned memory, malicious source/MCP/A2A content,
+fake approval, revocation, replay, outages and secret canaries while requiring
+zero unauthorized canonical effects and preserved Human Owner sovereignty.
+
+No dependency, migration, production adapter, authority grant, credential,
+personal data or Milestone M implementation is introduced.
+
+## 2026-08-30 — V12.34
+ / TECHNOLOGY RADAR V1.3.6 AGGRESSIVE EXECUTION AMENDMENT
 
 ### Status
 

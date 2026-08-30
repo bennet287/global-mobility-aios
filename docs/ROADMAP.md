@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.34 — Technology Radar V1.3.6 aggressive R3 execution queue; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.35 — Technology Radar V1.3.6 deep R0–R8 evidence lifecycle; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-30
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -12,6 +12,7 @@
 **Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_6.md`
+**Technology Radar evidence method:** `technology-radar/V1_3_6_RESEARCH_METHOD.md` — R0–R8 maturity + T0–T8 evidence depth; feature-first proof, shadow/integration/adoption/reverification/retirement gates
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
