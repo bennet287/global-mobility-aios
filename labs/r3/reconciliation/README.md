@@ -63,6 +63,27 @@ git worktree add D:\gmai-r3-runtime c50b6f355caeddb299db174dda959a792fea3669
 
 Existing worktrees are fine if `git rev-parse HEAD` exactly matches the manifest.
 
+## Preflight before executing anything
+
+Run the preflight from the reconciliation worktree. It performs no repository
+writes, starts no services, reads no credentials and makes no model calls.
+
+```powershell
+python -m labs.r3.reconciliation.preflight_campaign `
+  --worktree authority=D:\gmai-r3-authority `
+  --worktree security=D:\gmai-r3-security `
+  --worktree skills=D:\gmai-r3-skills `
+  --worktree interoperability=D:\gmai-r3-interop `
+  --worktree infrastructure=D:\gmai-r3-infrastructure `
+  --worktree runtime=D:\gmai-r3-runtime `
+  --output D:\gmai-r3-evidence\campaign-preflight.json
+```
+
+Exit `0` means the exact-head snapshot and hard local requirements are ready.
+Candidate-specific dependencies are reported separately so missing Cedar,
+Promptfoo, garak, Ollama, Microsandbox, Temporal, LangGraph, Agno, etc. are
+visible before their lane run. Missing optional candidates never become a PASS.
+
 ## Evidence collection
 
 Place or copy generated result JSON into one campaign evidence directory after
@@ -89,8 +110,8 @@ R4 decision**. It does not mean production adoption.
 
 ## Grand Integration Trial
 
-The current Grand Trial is a ten-lane gate and its own result now records its
-exact runtime `git_sha`. It explicitly attacks these boundaries:
+The current Grand Trial is a ten-lane gate and its own result records its exact
+runtime `git_sha`. It explicitly attacks these boundaries:
 
 ```text
 MEMORY != VERIFIED RULE
