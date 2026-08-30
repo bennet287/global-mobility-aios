@@ -7,7 +7,7 @@
     "observability": "QUEUED",
     "recovery": "QUEUED",
     "secrets": "QUEUED",
-    "security": "R3_NATIVE_BASELINE_PASS_EXTERNAL_TOOLS_PENDING",
+    "security": "R3_T4_STATE_DIFF_CORPUS_IMPLEMENTED_EXECUTION_PENDING",
     "skills": "QUEUED"
   },
   "production_adoption": false
