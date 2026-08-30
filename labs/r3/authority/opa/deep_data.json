@@ -1,0 +1,32 @@
+{
+  "aios": {
+    "revision": "authority-data-v1",
+    "actions": {
+      "case.read": {
+        "authority_required": false,
+        "human_approval_required": false,
+        "required_jurisdiction": null
+      },
+      "client.communication.send": {
+        "authority_required": true,
+        "human_approval_required": true,
+        "required_jurisdiction": null
+      },
+      "government_application.submit": {
+        "authority_required": true,
+        "human_approval_required": true,
+        "required_jurisdiction": "AT"
+      },
+      "verified_rule.write": {
+        "authority_required": true,
+        "human_approval_required": true,
+        "required_jurisdiction": "AT"
+      },
+      "mcp.tool.invoke": {
+        "authority_required": true,
+        "human_approval_required": false,
+        "required_jurisdiction": null
+      }
+    }
+  }
+}

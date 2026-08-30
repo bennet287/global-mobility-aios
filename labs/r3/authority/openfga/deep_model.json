@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "agent"
+    },
+    {
+      "type": "position",
+      "relations": {
+        "assignee": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "assignee": {
+            "directly_related_user_types": [
+              {
+                "type": "agent"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "team",
+      "relations": {
+        "member": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "member": {
+            "directly_related_user_types": [
+              {
+                "type": "agent"
+              },
+              {
+                "type": "position",
+                "relation": "assignee"
+              },
+              {
+                "type": "team",
+                "relation": "member"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "case",
+      "relations": {
+        "viewer": {
+          "this": {}
+        },
+        "editor": {
+          "this": {}
+        },
+        "can_read": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "viewer"
+                }
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "editor"
+                }
+              }
+            ]
+          }
+        },
+        "can_write": {
+          "computedUserset": {
+            "object": "",
+            "relation": "editor"
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "viewer": {
+            "directly_related_user_types": [
+              {
+                "type": "agent"
+              },
+              {
+                "type": "team",
+                "relation": "member"
+              }
+            ]
+          },
+          "editor": {
+            "directly_related_user_types": [
+              {
+                "type": "agent"
+              },
+              {
+                "type": "team",
+                "relation": "member"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "tool",
+      "relations": {
+        "can_call": {
+          "this": {}
+        },
+        "can_discover": {
+          "computedUserset": {
+            "object": "",
+            "relation": "can_call"
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "can_call": {
+            "directly_related_user_types": [
+              {
+                "type": "agent"
+              },
+              {
+                "type": "team",
+                "relation": "member"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
