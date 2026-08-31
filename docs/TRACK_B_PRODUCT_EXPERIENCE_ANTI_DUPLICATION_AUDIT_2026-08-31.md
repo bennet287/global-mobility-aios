@@ -34,7 +34,7 @@ Track B work may improve the existing L product experience while L acceptance co
 | B2 donor capability audit | `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md` already classifies donor capabilities as ADAPT / REIMPLEMENT / REJECT and defines sovereignty boundaries | EXISTING; do not duplicate donor architecture |
 | B2 presence / heartbeat | Munder programme identifies this as a future ADAPT slice; no canonical Munder presence runtime is installed in the web dependency set | GAP / demand-gated; derive future UI only from AIOS-owned runtime state |
 | B2 event synchronization | Munder programme identifies event synchronization as donor mechanics only; AIOS must own event semantics | GAP / demand-gated; no parallel event truth |
-| B2 transcripts / tool activity | Munder programme identifies transcripts/tool timelines as future transparency inputs; existing `OrganizationActivity` transparency already provides durable activity lineage | PARTIAL NATIVE FOUNDATION; do not map provider transcripts directly to canonical activity |
+| B2 transcripts / tool activity | Munder programme identifies transcripts/tool timelines as future transparency inputs; existing `OrganizationActivity` transparency already provides durable activity lineage and the Cockpit now renders that persisted lineage | CANONICAL ACTIVITY LINEAGE IMPLEMENTED; provider transcripts/tool logs remain deferred and non-canonical unless explicitly governed |
 | B2 live employee/runtime representation | `/api/v1/organization/transparency/live-organization/austria/latest` and `/cockpit/live-organization` already project persisted owner/specialist execution, readiness, blockers, latency, retries, lineage and authority posture | IMPLEMENTED for current Austria L slice; extend rather than replace |
 | B2 collaboration visualization | No accepted current Cockpit collaboration visualization was identified in this audit | GENUINE FUTURE GAP; must derive from canonical activity/work relationships |
 | B2 cost/runtime telemetry | Backend `AustriaLiveRuntimeQualityRead` already exposes provider/model outcome, tokens, estimated cost, grounding/provenance and fallback state, but the web client previously omitted the runtime-quality type and UI | NATIVE DATA EXISTS; expose it rather than import donor telemetry state |
@@ -125,7 +125,7 @@ The following remain separate future slices and are not claimed by this tranche:
 
 - canonical employee presence / heartbeat mechanics;
 - event synchronization transport;
-- transcript and tool-activity visualization beyond current durable activity lineage;
+- provider transcript and tool-call capture/visualization beyond current durable OrganizationActivity lineage;
 - collaboration visualization;
 - Living Organization scene mechanics;
 - broader AI Economics aggregation/history;
@@ -148,3 +148,37 @@ The Track B tranche is accepted only when repository/local proof confirms:
 7. repository policy and diff hygiene remain green.
 
 This is **not** evidence that milestone M started or that Munder/CopilotKit/AG-UI were adopted.
+
+## 8. Second genuine gap selected — durable activity lineage presentation
+
+A second anti-duplication pass found that the backend already persisted and projected canonical `OrganizationActivity` records, including Board-safe trace/causation fields, while the Live Organization web surface only displayed `activity_count` and did not render `snapshot.activities`.
+
+Repository truth before this tranche:
+
+```text
+OrganizationActivity persistence             PRESENT
+TransparencyActivityRecord                   PRESENT
+Austria Live Organization activities[]        PRESENT
+frontend AustriaLiveActivity                  PRESENT / causation field omitted
+Cockpit durable activity count                PRESENT
+Cockpit durable activity-lineage rendering    MISSING
+```
+
+The non-duplicative implementation therefore mirrors the existing `causation_activity_id` field into the web client and renders the persisted activity records in the current Cockpit. It does not add a transcript database, donor event bus, presence store, simulated activity timer, collaboration authority or Munder runtime package.
+
+The dedicated implementation/acceptance record is:
+
+`TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
+
+The preceding runtime-economics tranche received local source/type/build/repository proof at exact head `693c9975995bf8fc6388773d120594e5a1a75447`. Playwright was not part of that run, and that proof does not transfer to this later tranche.
+
+Current status:
+
+```text
+runtime-economics Cockpit slice       IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / BROWSER E2E NOT OBSERVED THERE
+durable activity-lineage Cockpit      IMPLEMENTED / LOCAL CURRENT-HEAD PROOF PENDING
+provider transcript/tool capture      DEFERRED
+collaboration visualization           FUTURE GAP / DEMAND-GATED
+Munder runtime adoption               NONE
+M                                      NOT STARTED
+```
