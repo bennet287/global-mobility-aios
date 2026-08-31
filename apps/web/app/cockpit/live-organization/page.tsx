@@ -118,7 +118,7 @@ export default function AustriaLiveOrganizationPage() {
   const runtimeSummary = useMemo(() => {
     const qualities = snapshot?.specialist_outputs
       .map((item) => item.runtime_quality)
-      .filter((quality) => quality !== null) ?? [];
+      .filter((quality) => quality != null) ?? [];
     const tokenSamples = qualities
       .map((quality) => quality.total_tokens)
       .filter((value): value is number => value !== null);
@@ -382,6 +382,45 @@ export default function AustriaLiveOrganizationPage() {
                 <div className="cockpit-empty-line">No active blocker is persisted for this Austria objective.</div>
               )}
             </article>
+          </section>
+
+          <section className="cockpit-surface" aria-labelledby="live-activity-lineage-title">
+            <header className="cockpit-surface-header compact">
+              <div>
+                <span className="premium-label">Durable activity lineage</span>
+                <h3 id="live-activity-lineage-title">Persisted organizational activity</h3>
+              </div>
+              <span className="live-activity-total">{snapshot.activities.length}</span>
+            </header>
+            {snapshot.activities.length ? (
+              <div className="live-activity-list">
+                {snapshot.activities.map((activity) => (
+                  <article key={activity.activity_id}>
+                    <time>{timeLabel(activity.occurred_at)}</time>
+                    <span className={`activity-mark ${activity.board_inspectable ? "decision" : "warning"}`} aria-hidden="true" />
+                    <div>
+                      <strong>{activity.title}</strong>
+                      <p>{activity.summary}</p>
+                      <small>
+                        {positionLabel(activity.position_key || activity.actor_id)} · {titleCase(activity.role)} · {titleCase(activity.activity_type)}
+                        {activity.work_item_id ? ` · WorkItem ${activity.work_item_id.slice(0, 8)}` : ""}
+                      </small>
+                      <small>
+                        {activity.trace_id ? `Trace ${activity.trace_id}` : "No trace identifier"} ·{" "}
+                        {activity.causation_activity_id
+                          ? `Caused by ${activity.causation_activity_id.slice(0, 8)}`
+                          : "No persisted causation link"}
+                      </small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="cockpit-empty-line">No durable OrganizationActivity is persisted for this objective yet.</div>
+            )}
+            <div className="cockpit-empty-line">
+              This view renders only canonical AIOS OrganizationActivity lineage. Provider transcripts, tool logs, and donor event streams are not promoted to organizational truth.
+            </div>
           </section>
 
           <section className="cockpit-surface" aria-labelledby="live-runtime-quality-title">
