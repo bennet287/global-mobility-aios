@@ -3,9 +3,10 @@
 **Date:** 2026-08-31  
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Baseline head inspected before this ledger:** `74082e7296e17333027cebd7ca602d408f558f95`  
+**Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
+**Latest reconciliation:** V12.34 / Technology Radar V1.3.6 / Wave E2 evaluation hardening  
 **Scheduling authority:** `docs/ROADMAP.md`  
-**Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_5.md`  
+**Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_6.md`  
 **Delivery history:** `docs/CHANGELOG.md`
 
 This ledger exists to prevent a recurring implementation error: **a technology appearing in the Technology Radar must not be interpreted as proof that the external technology is installed, and an external technology not being installed must not be interpreted as proof that the underlying AIOS capability is missing.**
@@ -27,7 +28,7 @@ Those four questions must never be collapsed into one status word.
 
 ### 1.1 Radar presence != runtime implementation
 
-A technology can be `RESEARCH`, `EXPLORE`, `ASSESS`, `PILOT`, `TRIAL-ELIGIBLE`, `DEFERRED`, or a donor candidate without a first-party runtime dependency.
+A technology can be `RESEARCH`, `EXPLORE`, `ASSESS`, `BENCHMARK`, `PILOT`, `TRIAL-ELIGIBLE`, `DEFERRED`, or a donor candidate without a first-party runtime dependency.
 
 Before implementing any named technology, inspect at minimum:
 
@@ -42,7 +43,7 @@ Technology Radar state
 CHANGELOG implementation claims
 ```
 
-Do not infer implementation from chat memory, filenames under `vendor/`, workflow examples, architecture diagrams, or Radar tables alone.
+Do not infer implementation from chat memory, filenames under `vendor/`, workflow examples, architecture diagrams, donor skill names, or Radar tables alone.
 
 ### 1.2 Native capability != external-provider adoption
 
@@ -62,6 +63,9 @@ AIOS observability/correlation exists
 
 AIOS governed Cockpit/HITL interaction exists
 != CopilotKit/AG-UI is integrated
+
+AIOS deterministic adversarial contract testing exists
+!= Garak/PyRIT is integrated
 ```
 
 An external provider must solve a demonstrated gap before it is pulled into runtime.
@@ -79,7 +83,20 @@ SecretsPort + non-production OpenBao adapter IMPLEMENTED
 
 Implementation, pilot proof, production promotion, operational proof and milestone acceptance are separate claims.
 
-### 1.4 External infrastructure never becomes constitutional authority
+### 1.4 Evaluation layer != higher-order proof
+
+V12.34 adds a deterministic adversarial-contract gate. Its evidence label must remain exact:
+
+```text
+deterministic adversarial contract proof
+!= live-model attack resistance
+!= professional domain correctness
+!= operational Red Team proof
+```
+
+Likewise, a mutation-testing score, SAST finding, fuzz result or LLM-security scanner result is evidence for a bounded question; it is not organizational authority or canonical business truth.
+
+### 1.5 External infrastructure never becomes constitutional authority
 
 Permanent boundaries remain:
 
@@ -101,14 +118,29 @@ AIOS remains canonical for organization truth, Evidence/VerifiedRule semantics, 
 
 | Technology / capability | AIOS capability status | External technology status | Scheduling truth | Do not duplicate |
 |---|---|---|---|---|
+| Wave E2 AI-domain adversarial contract gate | deterministic authority/provenance/fake-consensus/prompt-boundary mutation coverage exists | **FIRST-PARTY IMPLEMENTED / FULL LOCAL-CI PROOF PENDING** | supporting L evaluation hardening | do not create a second mock/evaluator stack |
 | OpenTelemetry | vendor-neutral operational telemetry/correlation foundation exists | **PILOT COMPLETE / TRIAL-ELIGIBLE** | already supports L operational diagnosis | do not rebuild telemetry foundation |
-| Langfuse | LLM/agent observability need is substantially covered by AIOS + OpenTelemetry | **RESEARCH / PILOT CANDIDATE; no first-party Langfuse dependency observed** | demand-gated on a measured LLM-specific observability gap | do not install merely because Radar lists it |
+| Langfuse | LLM/agent observability need is substantially covered by AIOS + OpenTelemetry | **RESEARCH / PILOT CANDIDATE; no first-party Langfuse dependency observed at latest inspection** | demand-gated on a measured LLM-specific observability gap | do not install merely because Radar lists it |
 | OpenFGA | AIOS owns capability/authority/autonomy/risk and Command Gateway semantics | **DEFERRED PILOT; no first-party OpenFGA dependency observed** | only if relationship authorization complexity creates a demonstrated gap | do not treat authorization as missing |
-| OPA / Open Policy Agent | AIOS already has native policy/governance enforcement seams | **no first-party OPA adapter/dependency observed at inspected baseline** | only behind a future AIOS-owned policy-evaluation boundary if a measured need appears | do not create a second policy truth system |
+| OPA / Open Policy Agent | AIOS already has native policy/governance enforcement seams | **no first-party OPA adapter/dependency observed at latest inspection** | only behind a future AIOS-owned policy-evaluation boundary if a measured need appears | do not create a second policy truth system |
 | CopilotKit / AG-UI | governed Cockpit, persisted projection and human/Board interaction capability already exist natively | **EXPLORE / POST-L FRONTEND INTERACTION CANDIDATE; no package installed** | after L seal, aligned with M only if it improves the accepted Cockpit | do not start M or add package pre-L |
-| Promptfoo | adversarial/evaluation infrastructure capability exists | **PILOT COMPLETE / TRIAL-ELIGIBLE** | may support bounded evaluation when needed | do not restart Promptfoo pilot from zero |
+| Promptfoo | adversarial/evaluation infrastructure capability exists | **PILOT COMPLETE / TRIAL-ELIGIBLE — EXPANSION CANDIDATE** | may support stronger continuous adversarial regression | do not restart Promptfoo pilot from zero |
+| Garak | no first-party Garak integration claimed | **RESEARCH / BOUNDED LIVE-MODEL PILOT CANDIDATE** | future authorized security/evaluation need | do not treat donor mention as installation or attack authority |
+| Microsoft PyRIT | no first-party PyRIT integration claimed | **RESEARCH / RED-TEAM-LAB CANDIDATE** | future isolated authorized lab | do not run against arbitrary/production targets |
+| DeepEval | no first-party DeepEval integration claimed | **RESEARCH / BENCHMARK CANDIDATE** | only for a concrete metric/test gap | do not add a second evaluation framework without comparison |
+| Ragas-style evaluation | retrieval evaluation methods may complement AIOS Evidence/retrieval tests | **RESEARCH / BENCHMARK CANDIDATE** | retrieval/RAG quality question required | retrieved score never becomes Evidence truth |
+| Hypothesis | property-based testing can strengthen invariant-heavy Python seams | **BENCHMARK / HIGH-PRIORITY ENGINEERING CANDIDATE** | candidate next evaluation hardening tranche | inspect existing property tests/dependency state first |
+| mutation testing | test-strength measurement is a recognized gap | **RESEARCH / BOUNDED PILOT CANDIDATE** | benchmark on high-value governance/evaluation modules | mutation score != product acceptance |
+| Atheris / guided fuzzing | parser/contract fuzzing may strengthen malformed-input assurance | **RESEARCH / BOUNDED PILOT CANDIDATE** | bounded parser/contract targets only | no uncontrolled fuzzing against external systems |
+| Semgrep | SAST/custom security-rule need recognized | **PRIORITY RESEARCH / PILOT CANDIDATE** | defensive CI/security evaluation | inspect any existing scanner config first |
+| GitHub CodeQL | semantic code-security analysis candidate | **PRIORITY RESEARCH / BENCHMARK CANDIDATE** | compare against existing/other SAST coverage | avoid redundant mandatory gates without evidence |
+| Trivy | container/IaC/dependency scanning candidate | **PRIORITY RESEARCH / PILOT CANDIDATE** | production/security foundation | inspect existing container scanning first |
+| Syft + Grype | SBOM + vulnerability correlation candidates | **RESEARCH / PILOT/BENCHMARK CANDIDATES** | supply-chain evidence need | inventory/vulnerability result != exploitability truth |
+| SLSA + Sigstore | build provenance/signing candidates | **RESEARCH / TARGET CONTROL / PILOT CANDIDATE** | release artifact path must justify integration | signing infrastructure does not create AIOS authority |
+| Gitleaks-class secret scanning | repository/delivery secret detection candidate | **PRIORITY RESEARCH / PILOT CANDIDATE** | complements runtime secret handling | does not replace SecretsPort/OpenBao |
+| OWASP API assurance | FastAPI/API adversarial methodology/tooling | **PRIORITY RESEARCH / CONTINUOUS TEST TARGET** | authorized local/test environments | no unsanctioned target testing |
 | Anthropic-Cybersecurity-Skills community corpus | cybersecurity donor architecture and intake/governance design established | **RESEARCH / DONOR CANDIDATE; controlled import only** | P0/P1 donor after current L acceptance unless a separate authorized incident need exists | do not directly install/load unrestricted skills |
-| AIOS Red Team / Adversarial Security Lab | architecture, authorization model, target organization and mandatory controls are documented | **PROGRAMME STARTED AT ARCHITECTURE/RADAR LEVEL; runtime lab not claimed implemented** | offensive execution remains post-L and necessity/authorization gated | continue from V1.3.4/V1.3.5; do not redesign from scratch |
+| AIOS Red Team / Adversarial Security Lab | architecture, authorization model, target organization and mandatory controls are documented | **PROGRAMME STARTED AT ARCHITECTURE/RADAR LEVEL; runtime lab not claimed implemented** | offensive execution remains post-L and necessity/authorization gated | continue existing programme; do not redesign from scratch |
 | Backup / isolated restore | bounded recoverability proof exists | **IMPLEMENTED SUPPORTING FOUNDATION** | production release blocker only when deployment target requires it | do not recreate the already implemented proof as a new Radar wave |
 | SecretsPort | AIOS-owned secret-reference boundary exists | **IMPLEMENTED BOUNDED PILOT** | supporting parallel; production backend promotion demand-gated | extend existing port rather than create another secret system |
 | OpenBao | optional KV-v2 provider behind SecretsPort | **NON-PRODUCTION BOUNDED ADAPTER IMPLEMENTED; PRODUCTION ADOPTION NOT CLAIMED** | promote only with real deployment/rotation/recovery need and proof | do not claim production adoption |
@@ -116,7 +148,7 @@ AIOS remains canonical for organization truth, Evidence/VerifiedRule semantics, 
 | Docling | document normalization candidate | **PILOT IN PROGRESS** | continue only against the active document-intelligence need | inspect existing work before adding another parser stack |
 | Presidio | privacy/sensitive-data processing candidate | **QUEUED PILOT** | necessity-gated | not implemented merely because queued |
 | urlwatch | official-source change-monitoring candidate | **QUEUED PILOT** | necessity-gated | inspect existing source-monitoring code first |
-| LLMLingua-2 | Context Broker owns context truth and purpose-scoped assembly | **SELECTED PRIMARY COMPRESSION PILOT** | advance only on measured token/context/runtime need | compressed context never becomes Evidence |
+| LLMLingua-2 | Context Broker owns context truth and purpose-scoped assembly | **SELECTED PRIMARY COMPRESSION PILOT** | advance only on measured token/context/runtime need | R3–R5 protected context remains zero-semantic-compression by default |
 | pgvector | governed semantic retrieval candidate | **BENCHMARK** | compare only when retrieval need justifies change | do not replace Qdrant by fashion/default |
 | Qdrant | current platform semantic-retrieval capability | **CURRENT PLATFORM CAPABILITY / BENCHMARK BASELINE** | retain unless evidence favors another provider | no parallel truth store without boundary |
 | Microsandbox | future isolated execution seam identified | **EXPLORE / SANDBOX PROVIDER CANDIDATE; NOT ADOPTED** | post-L engineering/security need | sandbox capability does not grant authority |
@@ -128,7 +160,7 @@ AIOS remains canonical for organization truth, Evidence/VerifiedRule semantics, 
 
 ---
 
-## 3. Focused reconciliation of the technologies most likely to be duplicated
+## 3. Focused reconciliation of technologies most likely to be duplicated
 
 ### 3.1 Langfuse
 
@@ -198,7 +230,7 @@ OPA policy store
 
 **Repository-truth classification:** **evaluated/classified, not integrated**.
 
-Technology Radar V1.3.5 explicitly positions CopilotKit/AG-UI as a governed Cockpit interaction candidate and defers the first plausible pilot until after L is sealed / M begins. The current first-party web package contract does not include CopilotKit/AG-UI.
+Technology Radar V1.3.6 preserves CopilotKit/AG-UI as a governed Cockpit interaction candidate and defers the first plausible pilot until after L is sealed / M begins. The current first-party web package contract does not include CopilotKit/AG-UI.
 
 AIOS already owns the important semantics:
 
@@ -215,7 +247,7 @@ A later frontend library/protocol may improve interaction ergonomics, but it mus
 
 **Repository-truth classification:** **started, but not as an operational offensive runtime**.
 
-Commit `6ea70cd4a549bfbbe3951a81d38955e79343403d` added the governed cybersecurity-skill and Red Team Radar architecture. V1.3.5 preserves that posture.
+Commit `6ea70cd4a549bfbbe3951a81d38955e79343403d` added the governed cybersecurity-skill and Red Team Radar architecture. V1.3.6 preserves and expands its research frontier.
 
 Already established:
 
@@ -230,6 +262,7 @@ AdversarialEngagement authorization object design
 mandatory lab controls
 AIOS-self-red-team target classes
 Promptfoo as trial-eligible adversarial evaluation infrastructure
+Wave E2 deterministic adversarial-contract gate
 ```
 
 Not yet claimed:
@@ -240,20 +273,44 @@ unrestricted donor-skill import
 operational offensive Red Team agents
 production-target penetration authority
 Microsandbox-backed lab execution
-Garak/PyRIT adoption merely because donor skills mention them
+Garak/PyRIT integration or adoption
+live-model prompt-injection resistance
 ```
 
 Continuation rule:
 
-> **Do not create another Red Team architecture. Continue from the existing V1.3.4/V1.3.5 model when ROADMAP scheduling permits implementation.**
+> **Do not create another Red Team architecture. Continue from the existing V1.3.4→V1.3.6 model when ROADMAP scheduling permits implementation.**
 
 Until L is sealed, offensive execution remains deferred unless a separate, explicit, authorized security incident creates an immediate need.
+
+### 3.6 Wave E2 evaluation hardening
+
+**Repository-truth classification:** first-party deterministic adversarial contract tooling is implemented in:
+
+```text
+scripts/check_ai_domain_adversarial_contract.py
+apps/api/tests/test_ai_domain_adversarial_contract.py
+```
+
+It reuses the existing blind Austria AI-domain evaluator and exercises authority/provenance/corroboration/prompt-boundary failure classes. It does not add an external dependency.
+
+The correct continuation is to deepen the evidence ladder rather than recreate this gate under a new framework name:
+
+```text
+Wave E2 deterministic gate
+→ focused local/CI proof
+→ broader benchmark/edge-case corpus
+→ property/invariant benchmark where useful
+→ mutation/fuzz/fault-injection proof where useful
+→ live-provider adversarial variants
+→ isolated Red Team when authorized
+```
 
 ---
 
 ## 4. Current milestone protection
 
-At creation of this ledger:
+Current truth at V12.34:
 
 ```text
 K.1  COMPLETE / PASS / SEALED
@@ -268,7 +325,7 @@ independent professional Austria review    PENDING
 final exact-current-head technical proof   PENDING
 ```
 
-This ledger does not seal L, start M, authorize external action, grant Red Team execution authority, promote any external technology, or alter production runtime.
+This ledger does not seal L, start M, authorize external action, grant Red Team execution authority, promote any external technology, or alter production authority.
 
 ---
 
@@ -277,17 +334,19 @@ This ledger does not seal L, start M, authorize external action, grant Red Team 
 Every future session that proposes a Radar technology must answer this checklist before code changes:
 
 ```text
-[ ] What exact product problem is being solved now?
+[ ] What exact product/risk problem is being solved now?
 [ ] Does first-party AIOS already solve the capability natively?
-[ ] Is there already an AIOS-owned port/adapter for this capability?
+[ ] Is there already an AIOS-owned port/adapter/test gate for this capability?
 [ ] Is the named technology actually present in first-party dependencies/imports/config?
 [ ] Is there an existing pilot/test/receipt/commit for it?
 [ ] Does ROADMAP permit implementation now?
-[ ] Would adoption create a second truth/authority/control-plane system?
-[ ] What is the bounded acceptance test?
+[ ] Would adoption create a second truth/authority/control-plane/evaluation system?
+[ ] What is the falsifiable bounded acceptance test?
 [ ] What is explicitly NOT being claimed?
 [ ] Have ROADMAP / CHANGELOG / this ledger been reconciled if truth changes?
 ```
+
+For V1.3.6 candidates specifically, search first for existing Promptfoo, property-based tests, mutation/fuzz tooling, SAST/scanner configs, SBOM/provenance tooling and Red Team code before adding a package.
 
 If those questions cannot be answered from repository evidence, **inspect further before implementing**.
 
@@ -336,6 +395,7 @@ Update this ledger whenever any of the following occurs:
 - Red Team/Cybersecurity Skill Registry implementation begins;
 - CopilotKit/AG-UI moves from post-L candidate to bounded M pilot;
 - OpenFGA/OPA/Langfuse gains a demonstrated gap and real adapter;
+- Promptfoo/Garak/PyRIT/property/mutation/fuzz/security tooling gains a real first-party integration;
 - a previously believed-missing capability is discovered to already exist.
 
 When this ledger disagrees with newer implementation evidence, **newer repository evidence wins**, and the ledger must be reconciled in the same tranche rather than left stale.
@@ -349,12 +409,12 @@ This ledger is not a new implementation roadmap.
 The master scheduling rule remains:
 
 ```text
-ROADMAP product need
-→ demonstrated architectural gap
+ROADMAP product/risk need
+→ demonstrated architectural/evidence gap
 → native build vs existing implementation vs external provider comparison
 → bounded implementation
 → proof
 → documentation reconciliation
 ```
 
-For the current branch state, L acceptance remains primary. Red Team offensive runtime, CopilotKit/AG-UI M work, Langfuse, OpenFGA and OPA must not be pulled forward merely to consume the Technology Radar.
+For the current branch state, L acceptance remains primary. The aggressive V1.3.6 Radar expands the research frontier but does not automatically pull Red Team offensive runtime, CopilotKit/AG-UI M work, Langfuse, OpenFGA, OPA, Garak, PyRIT or any security scanner into production.
