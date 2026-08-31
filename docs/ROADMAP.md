@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.45 — Technology Radar V1.3.8 consolidation applied; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.46 — blind professional-review local proof observed + R3 interop preserved; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -13,6 +13,7 @@
 **Track B anti-duplication audit:** `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md`
 **Track B durable activity-lineage tranche:** `TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
 **L blind professional-review handoff hardening:** `L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
+**L blind professional-review local proof:** `L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
@@ -73,6 +74,8 @@ Already accepted/implemented L evidence includes real configured-provider succes
 
 Before recruiting the reviewer, V12.43 hardens the existing professional-review path against answer anchoring. The reviewer-facing packet now excludes benchmark `source_labels` and `source_rationale`; the reviewer returns independent labels (or DISPUTED / NEEDS_MORE_FACTS), and AIOS derives canonical CONFIRMED versus CORRECTED only after return through the existing `mobility-professional-review-v1` compiler. No review has been fabricated or completed by this change.
 
+The repaired handoff is now locally proven at stable exact head `d969c7dad28bd3e944d1ef6aea7170fcd67a34e0`: 19 focused professional-review tests passed, reviewer-packet blindness and fail-closed untouched-return behavior passed, the full backend suite reported 1332 passed / 22 skipped, repository gates passed, start/end HEAD remained identical, and the worktree remained clean. This is technical handoff proof only; it is not professional Austria correctness evidence.
+
 The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15dccb1a22fa35b3998` / Woodpecker PR Pipeline #77 4/4 PASS. It is historical proof only and must not be relabeled as proof for a later head.
 
 ### L evaluation hardening
@@ -124,7 +127,7 @@ cybersecurity skills and isolated Red Team
 
 The Radar remains continuously scoutable, but future additions must clear a higher bar: a material new capability, a materially stronger challenger, a major ecosystem change, or a newly demonstrated AIOS gap.
 
-V1.3.8 also records the current R3 research boundaries: `radar/r3-authority` and `radar/r3-security` are remote research branches and are not merged into V12; `radar/r3-interop` was not present on origin at the consolidation check. R3 work must converge on defined evidence/closure gates and must not displace the independent professional Austria review.
+V1.3.8 also records the current R3 research boundaries: `radar/r3-authority`, `radar/r3-security`, and now `radar/r3-interop` are preserved on origin as separate research branches and are not merged into V12. The interop checkpoint was pushed at exact SHA `aad377e401b10a95b11440442831290c5c60a9f2` after the consolidation check. R3 work must converge on defined evidence/closure gates and must not displace the independent professional Austria review.
 
 ## 4.1 SUPPORTING PARALLEL — Track B Product Experience
 
@@ -210,15 +213,15 @@ Track B runtime-economics Cockpit slice   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF
 Track B durable activity-lineage slice    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
 Munder runtime adoption                    NONE
 external mutation engine adoption         NONE
-blind professional-review handoff        IMPLEMENTED / FIRST LOCAL ATTEMPT FAILED TEST ORACLE; REPAIRED / RERUN PENDING
-independent professional Austria review   PENDING
+blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF PASS AT d969c7d...
+independent professional Austria review   NEXT RELEASE-CRITICAL GATE / PENDING
 final exact-current-head proof            PENDING
 L overall                                 IMPLEMENTED / ACCEPTANCE PENDING
 M                                         NOT STARTED
 N                                         NOT STARTED
 ```
 
-Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The current Track B audit found no further justified slice, so product-experience work pauses here. The first V12.43 local handoff proof attempt found an order-sensitive test-oracle defect and a malformed ad-hoc PowerShell verification snippet. The test oracle has been repaired without changing production semantics; the failed attempt is documented and no PASS is inherited. The next L action is to rerun focused/full backend and repository proof at the repaired exact head, then obtain the genuine independent Austria professional assessment.
+Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The blind handoff technical prerequisite is now locally proven, so the next primary action is the genuine independent Austria professional review. The current Track B audit found no further justified slice, so product-experience work pauses here. The first V12.43 local handoff proof attempt found an order-sensitive test-oracle defect and a malformed ad-hoc PowerShell verification snippet. The test oracle has been repaired without changing production semantics; the failed attempt is documented and no PASS is inherited. The next L action is to rerun focused/full backend and repository proof at the repaired exact head, then obtain the genuine independent Austria professional assessment.
 
 ## 8. Historical compatibility anchors
 
