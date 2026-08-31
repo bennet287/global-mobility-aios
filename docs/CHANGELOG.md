@@ -12,7 +12,7 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ### Status
 
-**IMPLEMENTED / CURRENT-HEAD LOCAL + BROWSER PROOF PENDING / CANONICAL AIOS ACTIVITY REUSED / NO MUNDER RUNTIME ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
+**IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT `958b7965483878dbde6fcc91c75c5ed0b4049fc0` / CANONICAL AIOS ACTIVITY REUSED / NO MUNDER RUNTIME ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
 
 A Track B anti-duplication pass found that the Austria Live Organization backend already returned durable Board-safe `OrganizationActivity` records, trace identifiers and causation fields, while the Cockpit only displayed the activity count. The missing product capability was presentation of existing lineage, not a new event/transcript system.
 
@@ -48,6 +48,28 @@ TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
 ```
 
 The previous V12.40 runtime-economics tranche was locally exercised at exact head `693c9975995bf8fc6388773d120594e5a1a75447` with 30/30 design-foundation tests, 4/4 request-auth tests, compiled-auth, TypeScript, Next.js build, repository policy, release consistency, dependency constraints, diff hygiene and git diff checks all passing. That run did not execute Playwright E2E and does not prove this later V12.41 head.
+
+Observed exact-head proof at `958b7965483878dbde6fcc91c75c5ed0b4049fc0`:
+
+```text
+frontend design-foundation               PASS — 30 / 30
+request-auth                              PASS — 4 / 4
+TypeScript noEmit                         PASS
+Next.js production build                 PASS — 41 routes
+compiled-auth                             PASS
+Chromium Playwright E2E                   PASS — 5 / 5
+frontend + E2E npm audits                 PASS — 0 vulnerabilities
+repository policy                         PASS
+release consistency                       PASS
+Python dependency constraints             PASS — 27
+diff hygiene                              PASS
+git diff --check                          PASS
+local == origin                           PASS
+frozen V11                                ac130deaafa7aa44068e9459facbda2b4df327d6
+deep-R3 backup                            3a6fea2cbbf87d424459b81f1b168ecd6baaa312
+```
+
+The Node module-type message during request-auth remained a non-failing warning; all request-auth tests passed. This proof is exact-head evidence for `958b796...` only.
 
 Dedicated record:
 
