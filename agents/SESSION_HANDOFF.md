@@ -117,6 +117,8 @@ Radar-caused runtime adoption remains **NONE**.
 6. **R3 interop recoverability is closed.** The branch is on origin at `aad377e401b10a95b11440442831290c5c60a9f2`; it remains a separate research branch and is not merged into V12.
 7. **The local acceptance transcript exposed a mixed-head run.** It began on `b711ab6...` and later reported `07c0a6...` after another process/session changed the same worktree. That run is not exact-head proof.
 8. **Full backend proof must run from repository root** using `python -m pytest apps/api/tests -q`. Running from `apps/api` can break tests that intentionally use repository-root-relative benchmark paths.
+9. **V12.47 administration/recovery documentation is locally proven.** Exact head `80deef2...` passed documentation whitespace, recovery-order/authority checks, repository gates, stable start/end SHA, frozen V11/R3 refs and clean-worktree verification.
+10. **Local ignore nuance:** the operator worktree currently has `/.local/` in `.git/info/exclude`; repository-owned `.gitignore` is intentionally narrower at `.local/professional-review/`. The broad local exclude did not invalidate proof but may hide unrelated local files.
 
 ---
 
@@ -148,8 +150,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 7. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
 8. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
-10. `AGENTS.md`
-11. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+10. `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
+11. `AGENTS.md`
+12. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -188,6 +191,7 @@ blind packet/return contract checks        PASS at d969c7d...
 untouched return fail-closed               PASS at d969c7d...
 full backend regression                    PASS — 1332 / 22 skipped at d969c7d...
 repository/stable-head local proof         PASS at d969c7d...
+V12.47 admin/recovery exact-head proof      PASS at 80deef2...
 ```
 
 Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
