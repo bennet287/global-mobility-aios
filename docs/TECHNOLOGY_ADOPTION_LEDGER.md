@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.45 / Technology Radar V1.3.8 consolidation applied
+**Latest reconciliation:** V12.46 / blind professional-review local proof + R3 interop recoverability
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -53,7 +53,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Austria Live Organization runtime quality | AIOS Board-safe transparency projection already exposes provider/model outcome, tokens, estimated provider cost, grounding/provenance and fallback state; Track B web presentation now consumes this native projection rather than adding donor telemetry truth |
 | Austria Live Organization durable activity lineage | canonical OrganizationActivity + Board-transparency causation/trace projection already exists; Track B renders that lineage in the Cockpit instead of adding Munder/provider transcript/event truth; local + Chromium browser proof observed at exact head `958b796...` |
 | Organization collaboration / coordination visualization | AIOS already exposes hierarchy focus through OrganizationPosition reporting lines, WorkItem dependency edges, cross-department friction, governed human follow-up and durable activity context; do not add a donor collaboration state/graph unless a concrete unmet UX need is proven |
-| Austria blind professional-review handoff | existing professional-review compiler retained; reviewer-facing handoff excludes benchmark labels/rationale and blind reviewer returns compile afterward into canonical CONFIRMED/CORRECTED/DISPUTED/NEEDS_MORE_FACTS semantics; first local attempt found an order-sensitive test oracle, repaired without production-semantic change; post-repair local proof pending |
+| Austria blind professional-review handoff | existing professional-review compiler retained; reviewer-facing handoff excludes benchmark labels/rationale and blind reviewer returns compile afterward into canonical CONFIRMED/CORRECTED/DISPUTED/NEEDS_MORE_FACTS semantics; stable exact-head local proof observed at `d969c7d...`: 19 focused tests, blind packet/template assertions, fail-closed untouched return, 1332 passed / 22 skipped backend regression, repository gates and stable start/end SHA; genuine professional review still pending |
 
 ## 3. V1.3.8 consolidated seam decisions — do not revive held duplicates
 
@@ -108,6 +108,24 @@ The active status source for exact per-candidate triggers is `docs/TECHNOLOGY_RA
 | Presidio | queued privacy pilot |
 | urlwatch | queued source-monitoring pilot |
 | EU DSS | HOLD_WITH_TRIGGER for material document-signature/trust requirement |
+
+## 5. R3 research-branch recoverability truth
+
+Verified separate research branches:
+
+```text
+radar/r3-authority  acd917670630abdfebe20f3f687a310f67d22b3f
+radar/r3-security   d908a8c7ccde463ae0dec097211562e7ef8e86ca
+radar/r3-interop    aad377e401b10a95b11440442831290c5c60a9f2
+```
+
+The interop branch was previously local-only and is now preserved on origin. This changes recoverability only:
+
+```text
+remote branch preservation != V12 merge
+remote branch preservation != production adoption
+remote branch preservation != L acceptance
+```
 
 ## 5. Cybersecurity / Red Team truth
 
