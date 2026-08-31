@@ -51,7 +51,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Docling | pilot in progress |
 | Qdrant | current semantic-retrieval platform capability / comparison baseline |
 | Austria Live Organization runtime quality | AIOS Board-safe transparency projection already exposes provider/model outcome, tokens, estimated provider cost, grounding/provenance and fallback state; Track B web presentation now consumes this native projection rather than adding donor telemetry truth |
-| Austria Live Organization durable activity lineage | canonical OrganizationActivity + Board-transparency causation/trace projection already exists; Track B now renders that lineage in the Cockpit instead of adding Munder/provider transcript/event truth |
+| Austria Live Organization durable activity lineage | canonical OrganizationActivity + Board-transparency causation/trace projection already exists; Track B renders that lineage in the Cockpit instead of adding Munder/provider transcript/event truth; local + Chromium browser proof observed at exact head `958b796...` |
 
 ## 3. V1.3.7 explicit challengers — Radar entry alone is not adoption
 
