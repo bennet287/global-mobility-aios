@@ -101,6 +101,9 @@ def main() -> int:
         outcomes=outcomes,
     )
     result.pop("result_sha256")
+    result["environment"] = "synthetic-isolated-real-engine"
+    result["experiment"] = "t1-real-engine-correctness"
+    result["test_tiers"] = ["T1"]
     result["metrics"] = metrics
     result["result_sha256"] = fingerprint(result)
     args.output.parent.mkdir(parents=True, exist_ok=True)
