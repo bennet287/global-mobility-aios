@@ -26,7 +26,11 @@ def _run(*args: str) -> subprocess.CompletedProcess[str]:
 def _source_labels(case_id: str) -> dict[str, object]:
     payload = json.loads(SOURCE_PATH.read_text(encoding="utf-8"))
     case = next(item for item in payload["cases"] if item["case_id"] == case_id)
-    return dict(case["expected"])
+    labels = dict(case["expected"])
+    return {
+        key: sorted(value) if isinstance(value, list) else value
+        for key, value in labels.items()
+    }
 
 
 def _complete_blind_review(
