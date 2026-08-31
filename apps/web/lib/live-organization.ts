@@ -1,6 +1,30 @@
 import { CLIENT_API_CONFIG } from "./client-api-config.ts";
 import { createApiFetch } from "./request-client.mjs";
 
+export type AustriaLiveRuntimeQuality = {
+  contract_version: string;
+  execution_mode: string;
+  provider_outcome: string;
+  configured_provider: string | null;
+  configured_model: string | null;
+  response_provider: string | null;
+  response_model: string | null;
+  configured_runtime_matches_binding: boolean | null;
+  provider_egress_occurred: boolean | null;
+  fallback_to_template: boolean;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
+  estimated_cost_usd: number | null;
+  grounding_state: string;
+  evidence_ref_count: number;
+  verified_rule_ref_count: number;
+  source_snapshot_ref_count: number;
+  fresh_retrieval_provenance_present: boolean;
+  provider_model_authority: boolean;
+  warnings: string[];
+};
+
 export type AustriaLiveSpecialist = {
   position_key: string;
   work_item_id: string;
@@ -17,6 +41,7 @@ export type AustriaLiveSpecialist = {
   confidence: number | null;
   provider_model_authority: boolean;
   external_action_authorized: boolean;
+  runtime_quality: AustriaLiveRuntimeQuality | null;
 };
 
 export type AustriaLiveBlocker = {
