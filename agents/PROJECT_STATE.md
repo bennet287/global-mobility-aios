@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.47 — project-state dashboard hardened after first local documentation gate
+**Current V12 generation:** V12.48 — V12.47 administration exact-head proof recorded
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -69,6 +69,7 @@ No Radar candidate has caused runtime adoption.
    → Need a qualified independent Austria immigration/legal reviewer.
    → Blind packet + blank return template generation has been exercised successfully.
    → Generated local files are reproducible handoff artifacts, not professional evidence.
+   → V12.47 administration/recovery proof passed at exact head `80deef2...`.
    → No fabricated or AI-generated review allowed.
 
 2. R3 authority closure
@@ -127,6 +128,7 @@ OpenViking                       DONOR_ONLY
 | `docs/TECHNOLOGY_ADOPTION_LEDGER.md` | Implementation truth vs Radar presence. |
 | `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md` | L reviewer handoff spec. |
 | `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md` | L blind-review local exact-head proof record. |
+| `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md` | V12.47 administration/recovery exact-head proof and local `.git/info/exclude` note. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
