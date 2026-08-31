@@ -15,13 +15,23 @@ python -m labs.r3.sandbox.microsandbox_lab `
   --output labs/r3/sandbox/results/sandbox-microsandbox-20260830-001.json
 ```
 
-The real microVM test exercises startup identity, command execution, guest
+The base real-microVM test exercises startup identity, command execution, guest
 filesystem, `Network.none()` egress denial, command timeout, metrics and
-ephemeral cleanup. Credential scoping, named volumes, snapshot/restore and
-concurrency remain later depth.
+ephemeral cleanup. Named-volume, snapshot/fork, concurrency and synthetic-secret
+depth is implemented separately in `microsandbox_depth_lab.py`; production
+credential scoping remains outside R3.
 
 Permanent invariant:
 
 ```text
 SANDBOX AVAILABLE != EXECUTION AUTHORIZED
+```
+
+
+## Microsandbox depth
+
+```powershell
+python -m labs.r3.sandbox.microsandbox_depth_lab `
+  --run-id sandbox-microsandbox-depth-20260831-001 `
+  --output labs/r3/sandbox/results/sandbox-microsandbox-depth-20260831-001.json
 ```
