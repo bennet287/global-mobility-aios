@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.35 — Technology Radar V1.3.7 consolidated aggressive frontier COMPLETE; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.37 — Technology Radar Wave E4 mutation-strength pilot; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -20,7 +20,9 @@
 **Latest fully green L technical checkpoint:** `34597abf24a348a28b25e15dccb1a22fa35b3998` — Woodpecker PR Pipeline #77 4/4 PASS; historical exact-checkpoint proof only
 **Accepted L live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md` — real Gemini success, guarded fresh retrieval, real failure, owner materialization and exact replay; professional review + final exact-current-head proof remain
 **Supporting Wave E1 secrets pilot:** `TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md` — SecretsPort + optional non-production OpenBao adapter; production adoption not claimed
-**Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate; higher evaluation layers remain separately proven
+**Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
+**Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
+**Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; current-head local proof pending
 **Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
@@ -69,16 +71,23 @@ The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15d
 
 ### L evaluation hardening
 
-Wave E2 adds deterministic adversarial mutation for authority escalation, route substitution, forged/missing/duplicate cases and sources, invented classifications, uncited/empty conclusions, fake consensus, provider/model mismatch, structural failures, source-label mismatch and indirect prompt-injection boundary behavior.
+Wave E2 adds deterministic adversarial input mutation for authority escalation, route substitution, forged/missing/duplicate cases and sources, invented classifications, uncited/empty conclusions, fake consensus, provider/model mismatch, structural failures, source-label mismatch and indirect prompt-injection boundary behavior.
+
+Wave E3 adds generated property/invariant testing around the same validator/corroboration seam. The focused E2+E3 suite and repository gates were locally observed passing at exact historical head `285a7f08eb5289b9f037c28293a65ad94eede91b`; that proof remains checkpoint-specific and does not transfer automatically to later heads.
+
+Wave E4 mutates selected implementation logic itself and requires focused safety probes to kill each mutant. The first-party gate covers weakened authority enforcement, route scope, mixed-source validation, rationale presence, distinct-provider thresholds, unanimity, source-label consensus and provider-identity qualification. No external mutation engine is adopted. Current mutmut 3.7.0 was rechecked but deferred because its fork-based execution requires WSL on Windows; it remains a future Linux/CI challenger.
 
 ```text
-deterministic adversarial contract proof
+deterministic adversarial input proof
+!= property proof
+!= mutation-strength proof
+!= fuzz proof
 != live-model security proof
 != professional Austria review
 != operational Red Team proof
 ```
 
-Technology Radar V1.3.7 now records the wider evaluation ladder and challengers, including Promptfoo expansion, Inspect AI, DeepEval, Ragas, Garak, PyRIT, DeepTeam, behavioral tool-use benchmarks, property testing, mutation testing and fuzzing. Their Radar state is not adoption.
+Technology Radar V1.3.7 records the wider evaluation ladder and challengers. Radar state remains distinct from runtime adoption.
 
 ### L production/supporting foundations
 
@@ -143,7 +152,10 @@ The final L acceptance proof must correspond to the final acceptance head after 
 Technology Radar V1.3.7                  COMPLETE / ACTIVE CANONICAL RADAR
 Radar-caused runtime adoption             NONE
 L runtime acceptance evidence             COMPLETE / ACCEPTED
-Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL-CI PROOF PENDING
+Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL-CURRENT-HEAD PROOF PENDING
+external mutation engine adoption         NONE
 independent professional Austria review   PENDING
 final exact-current-head proof            PENDING
 L overall                                 IMPLEMENTED / ACCEPTANCE PENDING
@@ -151,4 +163,4 @@ M                                         NOT STARTED
 N                                         NOT STARTED
 ```
 
-The next product tranche must not be displaced by additional Radar expansion unless a genuinely material technology change or missing capability is discovered.
+Supporting evaluation hardening may continue only when it directly strengthens the current L proof path and does not displace the genuine professional-review gate. After the user-requested E4 tranche is proven, the product path should return to the professional Austria review unless a concrete source defect or prerequisite is discovered.
