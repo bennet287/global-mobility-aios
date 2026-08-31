@@ -137,13 +137,13 @@ canonical live runtime projection        EXISTING
 runtime-quality token/cost backend data  EXISTING
 Cockpit runtime-economics presentation   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / BROWSER E2E NOT OBSERVED THERE
 durable OrganizationActivity projection  EXISTING / CANONICAL
-Cockpit durable activity-lineage view    IMPLEMENTED / LOCAL CURRENT-HEAD PROOF PENDING
+Cockpit durable activity-lineage view    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
 presence / heartbeat                     FUTURE GAP / DEMAND-GATED
 collaboration visualization              FUTURE GAP / DEMAND-GATED
 provider transcript/tool visualization   DEFERRED; MUST NOT BYPASS OrganizationActivity
 ```
 
-The first selected Track B gap deliberately reused the existing Board-safe `AustriaLiveRuntimeQualityRead` projection. The user locally observed its frontend/source/type/build/repository gates green at exact head `693c997...`; that run did not include Playwright and does not prove later heads. The next verified gap reuses the already-canonical `OrganizationActivity` records exposed through the Austria Live Organization transparency projection and presents their persisted trace/causation lineage in the Cockpit. No donor event, transcript or collaboration state becomes organization truth.
+The first selected Track B gap deliberately reused the existing Board-safe `AustriaLiveRuntimeQualityRead` projection. The user locally observed its frontend/source/type/build/repository gates green at exact head `693c997...`; that run did not include Playwright and does not prove later heads. The next verified gap reused the already-canonical `OrganizationActivity` records exposed through the Austria Live Organization transparency projection and presented their persisted trace/causation lineage in the Cockpit. At exact head `958b796...`, the user observed 30/30 design-foundation tests, 4/4 request-auth tests, TypeScript/build/compiled-auth, 5/5 Chromium Playwright E2E, npm audits and repository gates all pass. No donor event, transcript or collaboration state becomes organization truth.
 
 Permanent boundary:
 
@@ -192,7 +192,7 @@ Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT
 Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e...
 Track B anti-duplication audit             COMPLETE
 Track B runtime-economics Cockpit slice   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / E2E NOT OBSERVED
-Track B durable activity-lineage slice    IMPLEMENTED / LOCAL CURRENT-HEAD PROOF PENDING
+Track B durable activity-lineage slice    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
 Munder runtime adoption                    NONE
 external mutation engine adoption         NONE
 independent professional Austria review   PENDING
