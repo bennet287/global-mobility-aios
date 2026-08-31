@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.37 — Technology Radar Wave E4 mutation-strength pilot; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.39 — Wave E4 bounded mutation-strength local proof observed; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -22,7 +22,7 @@
 **Supporting Wave E1 secrets pilot:** `TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md` — SecretsPort + optional non-production OpenBao adapter; production adoption not claimed
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
-**Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; current-head local proof pending
+**Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
 **Current product milestone:** L — Live Organization
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
@@ -154,7 +154,7 @@ Radar-caused runtime adoption             NONE
 L runtime acceptance evidence             COMPLETE / ACCEPTED
 Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
-Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL-CURRENT-HEAD PROOF PENDING
+Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e...
 external mutation engine adoption         NONE
 independent professional Austria review   PENDING
 final exact-current-head proof            PENDING
@@ -163,7 +163,7 @@ M                                         NOT STARTED
 N                                         NOT STARTED
 ```
 
-Supporting evaluation hardening may continue only when it directly strengthens the current L proof path and does not displace the genuine professional-review gate. After the user-requested E4 tranche is proven, the product path should return to the professional Austria review unless a concrete source defect or prerequisite is discovered.
+Supporting evaluation hardening may continue only when it directly strengthens the current L proof path and does not displace the genuine professional-review gate. Wave E4 is now locally proven at its exact implementation head. The product path should return to the genuine professional Austria review unless a concrete source defect or prerequisite is discovered.
 
 ## 8. Historical compatibility anchors
 
