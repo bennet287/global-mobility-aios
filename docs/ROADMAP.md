@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.43 — blind professional Austria review handoff hardening; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.44 — blind professional-review acceptance-oracle repair after first local failure; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -201,7 +201,7 @@ Track B runtime-economics Cockpit slice   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF
 Track B durable activity-lineage slice    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
 Munder runtime adoption                    NONE
 external mutation engine adoption         NONE
-blind professional-review handoff        IMPLEMENTED / LOCAL PROOF PENDING
+blind professional-review handoff        IMPLEMENTED / FIRST LOCAL ATTEMPT FAILED TEST ORACLE; REPAIRED / RERUN PENDING
 independent professional Austria review   PENDING
 final exact-current-head proof            PENDING
 L overall                                 IMPLEMENTED / ACCEPTANCE PENDING
@@ -209,7 +209,7 @@ M                                         NOT STARTED
 N                                         NOT STARTED
 ```
 
-Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The current Track B audit found no further justified slice, so product-experience work pauses here. The next L action is to locally prove the blind handoff tool, then obtain the genuine independent Austria professional assessment.
+Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The current Track B audit found no further justified slice, so product-experience work pauses here. The first V12.43 local handoff proof attempt found an order-sensitive test-oracle defect and a malformed ad-hoc PowerShell verification snippet. The test oracle has been repaired without changing production semantics; the failed attempt is documented and no PASS is inherited. The next L action is to rerun focused/full backend and repository proof at the repaired exact head, then obtain the genuine independent Austria professional assessment.
 
 ## 8. Historical compatibility anchors
 
