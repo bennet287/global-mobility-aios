@@ -8,6 +8,87 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.47 PROJECT-STATE DASHBOARD + REVIEW-HANDOFF HYGIENE
+
+### Status
+
+**ADMINISTRATION / RECOVERY-DOCUMENTATION RECONCILED / LOCAL REVIEWER HANDOFF ARTIFACTS GENERATED / DIFF-HYGIENE DEFECT REPAIRED / NO RUNTIME OR MILESTONE CHANGE**
+
+A project-wide `agents/PROJECT_STATE.md` dashboard was added as the read-first navigation/state summary for new sessions. `AGENTS.md` now requires:
+
+```text
+1. PROJECT_STATE
+2. SESSION_HANDOFF
+3. verify against ROADMAP / CHANGELOG / active Radar + ledger / actual git remotes
+```
+
+The dashboard intentionally does **not** replace canonical authorities. `docs/ROADMAP.md` remains the scheduling authority; accepted proof records, Radar/ledger and actual git remotes remain authoritative for their respective domains.
+
+The first local documentation gate on head `7e32936ccb7abdf43d5cae3ca5d50f720f374ae9` observed:
+
+```text
+repository policy                     PASS
+release consistency                   PASS
+Python dependency constraints         PASS — 27 direct dependencies
+git diff --check                      PASS
+diff hygiene                          FAIL
+```
+
+The diff-hygiene failure was narrow and introduced by the new dashboard:
+
+```text
+agents/PROJECT_STATE.md:5 trailing whitespace
+agents/PROJECT_STATE.md:6 trailing whitespace
+agents/PROJECT_STATE.md:7 trailing whitespace
+```
+
+Those three trailing-space violations were removed. No product/runtime source change was required.
+
+The same operator run successfully generated the local reviewer handoff artifacts:
+
+```text
+.local/professional-review/austria-professional-review-packet.json
+.local/professional-review/austria-professional-review-return.json
+```
+
+Observed generator contracts:
+
+```text
+austria-professional-review-handoff.v2
+austria-professional-review-blind-return-template.v1
+case_count = 3
+```
+
+These generated files are reproducible local handoff artifacts only. They contain no genuine reviewer findings, identity or credential evidence and do not advance L acceptance.
+
+Repository hygiene was tightened by adding only:
+
+`.local/professional-review/`
+
+to `.gitignore`. The repository does **not** ignore all `.local/` content.
+
+Additional administration reconciliation:
+
+- `PROJECT_STATE.md` explicitly states that it is a navigation/state summary rather than a competing authority;
+- `SESSION_HANDOFF.md` now also lists `PROJECT_STATE.md` first, matching `AGENTS.md`;
+- the blind-review local proof record is included in session recovery ordering;
+- ROADMAP links the dashboard while preserving scheduling authority;
+- Technology Adoption Ledger section numbering was repaired after the R3 recoverability insertion;
+- technology/adoption truth itself remains unchanged.
+
+Current release truth remains:
+
+```text
+K.1  COMPLETE / PASS / SEALED
+L    IMPLEMENTED / ACCEPTANCE PENDING
+M    NOT STARTED
+N    NOT STARTED
+```
+
+The next release-critical gate is still the genuine qualified independent Austria professional review. The locally generated packet/template are ready to be handed to that reviewer, but they are not review evidence.
+
+---
+
 ## 2026-08-31 — V12.46 BLIND PROFESSIONAL-REVIEW LOCAL PROOF + R3 INTEROP RECOVERABILITY
 
 ### Status
