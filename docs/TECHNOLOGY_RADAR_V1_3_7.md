@@ -46,12 +46,14 @@ Radar presence is not dependency presence. Benchmark success is not adoption. Ex
 | DeepTeam | **RESEARCH / RED-TEAM BENCHMARK CANDIDATE** | compare vulnerability/attack breadth and CI ergonomics against Promptfoo/Garak/PyRIT |
 | FuzzyAI-class LLM fuzzing | **RESEARCH / SPECIALIZED FUZZ BENCHMARK** | whether automated adversarial fuzzing finds failures deterministic suites miss |
 | ToolSandbox / AgentDojo-style evaluation | **PRIORITY RESEARCH / BEHAVIORAL BENCHMARK METHODS** | evaluate real tool-use state transitions and behavioral evidence, not only verbal answers |
-| Hypothesis | **BOUNDED PILOT IMPLEMENTED / LOCAL-CI PROOF PENDING** | generated property/invariant proof on governance/evaluation seams; see Wave E3 receipt |
-| mutmut/equivalent | **RESEARCH / BOUNDED PILOT CANDIDATE** | measure whether tests kill meaningful logic mutations |
+| Hypothesis | **BOUNDED PILOT IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...** | generated property/invariant proof on governance/evaluation seams; see Wave E3 receipt |
+| mutation testing / mutmut challenger | **FIRST-PARTY BOUNDED PILOT IMPLEMENTED / MUTMUT EXTERNAL CHALLENGER DEFERRED** | selected semantic implementation mutations now measure test strength; broader mutmut campaign remains Linux/CI demand-gated |
 | Atheris/equivalent | **RESEARCH / BOUNDED FUZZ PILOT CANDIDATE** | malformed parser/contract/input resilience |
 | deterministic fault injection | **PRIORITY ENGINEERING APPROACH** | first-party provider/storage/network failure assurance before chaos-platform adoption |
 
 Wave E3 is recorded in `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md`. Hypothesis is a test-only dependency and does not enter production runtime authority or Evidence semantics.
+
+Wave E4 is recorded in `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md`. The implemented gate is first-party bounded semantic source mutation against the Austria validator/corroboration seam. `mutmut` 3.7.0 was rechecked but is not added to the dependency contract because the current mutmut 3 execution model requires OS `fork` support and therefore WSL on Windows; it remains a future Linux/CI challenger rather than production/runtime adoption.
 
 Evaluation ladder remains:
 
@@ -197,8 +199,9 @@ backup + isolated restore proof           exists
 ClamAV pilot                              exists
 SecretsPort                               exists
 non-production OpenBao adapter            exists
-Wave E2 adversarial contract gate         exists
-Wave E3 Hypothesis property suite         implemented / proof pending
+Wave E2 adversarial contract gate         implemented / local proof observed at 285a7f08...
+Wave E3 Hypothesis property suite         implemented / local proof observed at 285a7f08...
+Wave E4 mutation-strength gate            implemented / current-head local proof pending
 Docling pilot                             in progress
 Qdrant platform capability                exists
 ```
@@ -241,9 +244,11 @@ It does **not** authorize implementation of the backlog. ROADMAP scheduling rema
 ```text
 Technology Radar V1.3.7                    COMPLETE / ACTIVE CANONICAL RADAR
 runtime adoption caused by V1.3.7          NONE
-Wave E2 deterministic adversarial gate     IMPLEMENTED / LOCAL-CI PROOF PENDING
-Wave E3 property/invariant testing          IMPLEMENTED / LOCAL-CI PROOF PENDING
+Wave E2 deterministic adversarial gate     IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E3 property/invariant testing          IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E4 mutation-strength gate              IMPLEMENTED / LOCAL-CURRENT-HEAD PROOF PENDING
 Hypothesis production runtime adoption      NONE
+external mutation engine adoption           NONE
 professional Austria review                PENDING
 final exact-current-head technical proof   PENDING
 L overall                                  IMPLEMENTED / ACCEPTANCE PENDING
