@@ -73,8 +73,11 @@ Repository reconciliation also:
 - records `radar/r3-authority` at `acd917670630abdfebe20f3f687a310f67d22b3f`;
 - records `radar/r3-security` at `d908a8c7ccde463ae0dec097211562e7ef8e86ca`;
 - records that `radar/r3-interop` was still absent from origin at verification time.
+- adds a permanent exact-head rule that acceptance start SHA must equal acceptance end SHA and the worktree must not be mutated concurrently.
 
 The local interop worktree checkpoint `aad377e` cannot be pushed by the GitHub-side implementation because that commit object exists only in the user's local worktree. It remains a local recovery action.
+
+The earlier local acceptance transcript also demonstrated why the stable-head rule is necessary: the run began from `b711ab6...` but later reported `07c0a6...` as HEAD after another session changed the same worktree. That mixed-head run cannot be exact-head proof regardless of individual test outcomes.
 
 This V12.45 tranche changes documentation/classification only. It does not inherit or create technical PASS for the current head. The blind professional-review source repair still requires its canonical local regression/proof run, and the genuine independent Austria professional review remains the release-critical external gate.
 
