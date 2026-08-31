@@ -41,17 +41,31 @@ class Settings(BaseSettings):
     # Remote LLM providers (switchable based on active subscription/free-tier access)
     llm_provider: str = ""  # "deepseek", "moonshot", or "gemini"; empty = deterministic template only
     deepseek_api_key: str = ""
+    deepseek_api_key_ref: str = ""
     deepseek_model: str = "deepseek-chat"
     deepseek_base_url: str = "https://api.deepseek.com"
     moonshot_api_key: str = ""
+    moonshot_api_key_ref: str = ""
     moonshot_model: str = "kimi-k1-5"
     moonshot_base_url: str = "https://api.moonshot.cn/v1"
     gemini_api_key: str = ""
+    gemini_api_key_ref: str = ""
     gemini_model: str = "gemini-3.7-flash"
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
     llm_temperature: float = 0.2
     llm_timeout_seconds: int = 60
     llm_fallback_to_template: bool = True
+
+    # SecretsPort — bounded Technology Radar V1.3.5 Wave E1 pilot.
+    # Direct values remain backward-compatible. A *_REF value opts a credential into
+    # runtime secret resolution. OpenBao references are deliberately non-production-only
+    # until a later roadmap tranche explicitly promotes the backend.
+    secrets_openbao_address: str = "http://127.0.0.1:8200"
+    secrets_openbao_token: str = ""
+    secrets_openbao_mount: str = "secret"
+    secrets_openbao_namespace: str = ""
+    secrets_openbao_allowed_prefix: str = "aios/nonprod/"
+    secrets_openbao_timeout_seconds: int = 5
 
     # OpenTelemetry — optional, off-by-default telemetry pilot (Technology Radar V1.1 Wave 1).
     # When enabled, the app attempts to install FastAPI instrumentation and export traces to the
