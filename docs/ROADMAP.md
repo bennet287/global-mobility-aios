@@ -185,7 +185,13 @@ Measured learning, quality, AI economics and controlled optimization remain post
 green proof for commit A
 + later commit B
 != green proof for commit B
+
+acceptance start HEAD
+must equal
+acceptance end HEAD
 ```
+
+The acceptance worktree must remain stable for the full proof run. Another session/process committing, resetting or switching the same worktree invalidates exact-head attribution even if individual tests pass.
 
 The final L acceptance proof must correspond to the final acceptance head after professional-review evidence and reconciliation are committed.
 
