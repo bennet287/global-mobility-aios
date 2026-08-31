@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.37 / Technology Radar Wave E4 mutation-strength pilot  
+**Latest reconciliation:** V12.39 / Wave E4 local technical proof observed  
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
 **Delivery history:** `docs/CHANGELOG.md`
@@ -47,7 +47,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | OpenBao | optional non-production bounded adapter implemented; production adoption not claimed |
 | Wave E2 adversarial contract | first-party deterministic input-mutation gate implemented; local proof observed at historical exact head `285a7f08...`; higher-order security proof not claimed |
 | Wave E3 property/invariant testing | Hypothesis-based bounded property suite implemented; local proof observed at historical exact head `285a7f08...`; Hypothesis is test-only |
-| Wave E4 mutation strength | first-party bounded semantic implementation-mutation gate implemented; current-head local proof pending |
+| Wave E4 mutation strength | first-party bounded semantic implementation-mutation gate implemented; local exact-head proof observed at `5d8e940e...`: 8/8 selected mutants killed, 0 survived; full backend 1328 passed / 22 skipped |
 | Docling | pilot in progress |
 | Qdrant | current semantic-retrieval platform capability / comparison baseline |
 
