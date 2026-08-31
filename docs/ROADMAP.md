@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.41 — Track B canonical durable activity-lineage Cockpit tranche; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.42 — Track B deeper anti-duplication reconciliation after activity-lineage proof; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -139,7 +139,7 @@ Cockpit runtime-economics presentation   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF 
 durable OrganizationActivity projection  EXISTING / CANONICAL
 Cockpit durable activity-lineage view    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
 presence / heartbeat                     FUTURE GAP / DEMAND-GATED
-collaboration visualization              FUTURE GAP / DEMAND-GATED
+collaboration / coordination UX          EXISTING MULTI-SURFACE FOUNDATION / REFINE ONLY AGAINST PROVEN GAP
 provider transcript/tool visualization   DEFERRED; MUST NOT BYPASS OrganizationActivity
 ```
 
@@ -152,6 +152,8 @@ TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
 ```
 
 Missing measurements remain unknown rather than being inferred as zero. No new telemetry backend, presence store, event authority, donor state store or external interaction framework is adopted by this tranche.
+
+A deeper Track B anti-duplication pass also reclassified generic collaboration visualization. The broader Cockpit and cross-department experience already uses canonical `OrganizationPosition.reports_to_position_key`, `OrganizationWorkItemDependency`, blockers, human requests and durable `OrganizationActivity` to visualize hierarchy, coordination, dependencies, friction and recent signals. A parallel Munder-style collaboration graph/state store is therefore not a current gap. Richer collaboration UX remains refinement-only and must start from a specific unmet user need.
 
 ## 5. NEXT — after L acceptance
 
