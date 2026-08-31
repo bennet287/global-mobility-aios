@@ -1,10 +1,12 @@
 # Global Mobility AIOS — Session Handoff
 
-**Purpose:** This file exists so a new Kimi Code session can resume work without relying on compacted conversation history. It is living documentation, not canonical project truth. Always verify against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, and the actual git remotes.
+**Purpose:** Recover the current development state without relying on chat history. This file is living recovery documentation; repository truth, `docs/ROADMAP.md`, the active Radar, the adoption ledger, acceptance records and actual git remotes remain authoritative.
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Main HEAD:** `07c0a61` — in sync with `origin/roadmap/global-mobility-aios-v12`
+**Verified V12 remote baseline before this handoff edit:** `4d2c8d876530521974898009ce10d13a0071c872`
+
+The commit that updates this file necessarily advances V12 beyond the baseline above. **Never treat this field as a self-referential current HEAD.** At session start, verify the actual remote with `git fetch` / `git rev-parse origin/roadmap/global-mobility-aios-v12`.
 
 ---
 
@@ -19,21 +21,24 @@ N    NOT STARTED
 
 ### L remaining gates
 
-1. Genuine independent professional Austria review.
-2. Final exact-current-head full technical proof after review evidence is committed.
+1. Locally prove the repaired blind professional-review handoff on one stable exact head.
+2. Obtain a genuine qualified independent Austria professional review using the blind handoff.
+3. Compile/reconcile the real reviewer evidence and findings.
+4. Run final exact-current-head technical proof after review evidence/docs are committed.
+5. Seal L only after the professional-review and final exact-head gates are satisfied.
 
-No autonomy mutation mechanism is accepted or implemented.
+Do not fabricate professional review. AI/model review does not substitute for the independent human professional gate.
 
 ---
 
-## 2. Active branches and worktrees
+## 2. Current branch / worktree recovery truth
 
-| Branch | Local worktree | Local HEAD | Origin HEAD | Divergence |
-|--------|----------------|------------|-------------|------------|
-| `roadmap/global-mobility-aios-v12` | `D:/global-mobility-aios` | `246413c` | `246413c` | **in sync** |
-| `radar/r3-authority` | `D:/gmai-r3-authority` | `acd9176` | `acd9176` | **in sync after pull** |
-| `radar/r3-security` | `D:/gmai-r3-security` | `d908a8c` | `d908a8c` | **in sync after pull** |
-| `radar/r3-interop` | `D:/gmai-r3-interop` | `aad377e` | **not on origin** | **local only** |
+| Branch | Worktree | Last known local state | Verified origin state | Action |
+|---|---|---|---|---|
+| `roadmap/global-mobility-aios-v12` | `D:/global-mobility-aios` | local may be behind current remote after GitHub-side documentation writes | verify at session start | fetch + hard reset/ff to current origin before proof |
+| `radar/r3-authority` | `D:/gmai-r3-authority` | user reported `acd9176` after pull | `acd917670630abdfebe20f3f687a310f67d22b3f` | closure evidence only; do not keep expanding tool depth |
+| `radar/r3-security` | `D:/gmai-r3-security` | user reported `d908a8c` after pull | `d908a8c7ccde463ae0dec097211562e7ef8e86ca` | execute defined shootout or record explicit blockers |
+| `radar/r3-interop` | `D:/gmai-r3-interop` | user reported local checkpoint `aad377e` | **not present on origin** at latest verification | push local branch for recoverability; do not merge to V12 automatically |
 
 ### Recovery commands
 
@@ -41,7 +46,8 @@ No autonomy mutation mechanism is accepted or implemented.
 # Main
 cd D:\global-mobility-aios
 git status -sb
-git pull --ff-only origin roadmap/global-mobility-aios-v12
+git fetch origin roadmap/global-mobility-aios-v12
+git reset --hard origin/roadmap/global-mobility-aios-v12
 
 # Authority R3
 cd D:\gmai-r3-authority
@@ -53,75 +59,128 @@ cd D:\gmai-r3-security
 git status -sb
 git pull --ff-only origin radar/r3-security
 
-# Interop R3 (local only — push when coherent)
+# Interop R3 — local-only recoverability action
 cd D:\gmai-r3-interop
 git status -sb
 git push -u origin radar/r3-interop
 ```
 
+The GitHub-side implementation cannot push `radar/r3-interop` while `aad377e` exists only in the local worktree; the local commit object must first be sent to origin from that worktree.
+
 ---
 
 ## 3. Technology Radar state
 
-- **Radar revision:** `docs/TECHNOLOGY_RADAR_V1_3_7.md` — broad current-horizon inventory COMPLETE.
-- **Radar-caused runtime adoption:** NONE.
-- **Known scatter/duplication risk:** documented in `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`.
+**Active canonical Radar:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 
-### R3 lane status
+V1.3.7 is now a superseded historical broad-inventory baseline.
+
+The scatter audit:
+
+`docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
+
+is **COMPLETE / APPLIED**.
+
+V1.3.8 converts overlapping generic research entries into explicit seam decisions:
 
 ```text
-authority          R3_DEEP_T2_T3_T6_IMPLEMENTED_EXECUTION_PENDING
-security           R3_T4_STATE_DIFF_CORPUS_IMPLEMENTED_EXECUTION_PENDING
-interop            checkpointed locally at aad377e; not pushed to origin
-integration          QUEUED
-observability        QUEUED
-recovery             QUEUED
-secrets              QUEUED
-skills               QUEUED
+CI adversarial evaluation      Promptfoo ↔ Inspect AI
+live-model vulnerability       bounded baseline ↔ Garak
+observability                   OpenTelemetry ↔ Arize Phoenix
+SAST                            Semgrep ↔ CodeQL
+DAST/API                        OWASP ZAP ↔ Schemathesis
+dependency/container            Trivy ↔ OSV-Scanner
+secret scanning                 Gitleaks ↔ TruffleHog
+IaC                             Checkov ↔ KICS
+sandbox                         Microsandbox ↔ E2B
+relationship authorization      OpenFGA ↔ SpiceDB
+contextual policy evaluation    OPA/Rego ↔ Cedar
+retrieval                       Qdrant ↔ pgvector
 ```
+
+Other overlapping candidates are `HOLD_WITH_TRIGGER`, WATCH, DONOR_ONLY, REFERENCE/TARGET_CONTROL or REJECTED.
+
+Permanent Radar persistence rule:
+
+> No candidate may remain generic RESEARCH across two Radar revisions.
+
+Radar-caused runtime adoption remains **NONE**.
 
 ---
 
 ## 4. Recent decisions a new session must know
 
-1. **Track B anti-duplication audit (V12.42)** reclassified generic collaboration as existing AIOS-owned capability. Do not add Munder/CopilotKit/AG-UI collaboration state stores.
-2. **Technology Radar V1.3.7** is complete; future additions require a material new capability or materially stronger challenger.
-3. **R3 authority** has moved from basic benchmarking into deep validation: SpiceDB challenger, Cedar typed schema, OPA bundles, OpenFGA conditions, feature exploitation, deep rollup.
-4. **R3 security** moved from native baseline to deep state-diff corpus + external tool shootout (Inspect AI / Promptfoo / garak).
-5. **Wave E4 mutation testing** uses first-party bounded semantic mutants; external `mutmut` is deferred because it requires WSL/fork on Windows.
+1. **Track B is paused by anti-duplication discipline.** Runtime economics and durable activity lineage are implemented; collaboration/coordination already has an AIOS multi-surface foundation. Do not add donor collaboration/presence/event state without a proven product gap.
+2. **Blind professional-review hardening exists.** Reviewer packets exclude benchmark labels/rationale; AIOS derives CONFIRMED/CORRECTED only after a blind human return. Local post-repair proof is still pending.
+3. **Radar V1.3.8 is canonical.** Do not revive V1.3.7 generic RESEARCH statuses.
+4. **R3 authority is a closure problem now, not an expansion playground.** Existing OpenFGA/SpiceDB and OPA/Cedar research is sufficient for the current seam map.
+5. **R3 security should execute or explicitly block its defined external-tool shootout.** Do not continuously add scanners/evaluators.
+6. **R3 interop is still local-only** until `radar/r3-interop` is pushed.
+7. **The local acceptance transcript exposed a mixed-head run.** It began on `b711ab6...` and later reported `07c0a6...` after another process/session changed the same worktree. That run is not exact-head proof.
+8. **Full backend proof must run from repository root** using `python -m pytest apps/api/tests -q`. Running from `apps/api` can break tests that intentionally use repository-root-relative benchmark paths.
 
 ---
 
-## 5. Files to read first in a new session
+## 5. Exact-head acceptance rule
 
-1. `docs/ROADMAP.md` — scheduling truth.
-2. `docs/CHANGELOG.md` — recent delivered change.
-3. `docs/TECHNOLOGY_RADAR_V1_3_7.md` — radar inventory.
-4. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md` — duplication risks.
-5. `AGENTS.md` — conventions and proof rules.
-6. Branch-specific `README.md` files in `labs/r3/*/README.md` for R3 work.
+For any acceptance run:
+
+```text
+capture start HEAD
+→ run all required proof with no other writer/reset/commit on that worktree
+→ capture end HEAD
+→ require start HEAD == end HEAD
+```
+
+A run whose worktree HEAD changes while tests execute is invalid for exact-head attribution even if individual tests pass.
+
+Do not run acceptance while another coding agent/session is writing to the same worktree.
 
 ---
 
-## 6. Things a new session should NOT do
+## 6. Files to read first
+
+1. `agents/SESSION_HANDOFF.md`
+2. `docs/ROADMAP.md`
+3. `docs/CHANGELOG.md`
+4. `docs/TECHNOLOGY_RADAR_V1_3_8.md`
+5. `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
+6. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
+7. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
+8. `AGENTS.md`
+9. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+
+---
+
+## 7. Things a new session must NOT do
 
 - Do not advance M or N while L is unsealed.
-- Do not treat Radar presence as runtime adoption.
-- Do not add new collaboration/presence/event-transport frameworks without a specific unmet need.
-- Do not claim a historical green CI run proves the current HEAD.
-- Do not push R3 branches to main until reconciliation is explicitly scheduled.
+- Do not treat Radar presence as dependency/runtime adoption.
+- Do not create duplicate pilots merely because V1.3.7 listed a tool.
+- Do not add another relationship/policy engine to R3 authority without a materially new seam.
+- Do not merge R3 branches into V12 merely because research evidence exists.
+- Do not claim a mixed-head or historical green run proves current HEAD.
+- Do not run local acceptance concurrently with another writer on the same worktree.
+- Do not fabricate reviewer identity, credential or professional findings.
 
 ---
 
-## 7. Next likely actions
+## 8. Current next actions
 
-1. Execute remaining R3 authority deep validation and produce evidence artifacts.
-2. Execute R3 security external-tool shootout or mark missing CLIs as blocked.
-3. Push `radar/r3-interop` to origin.
-4. Return to L acceptance: obtain professional Austria review, then run final exact-current-head proof.
+Priority order:
+
+1. **Push `radar/r3-interop` from the local worktree to origin** so the checkpoint is recoverable. This is branch preservation only, not adoption or merge.
+2. **Synchronize V12 and run the current blind-review/full-backend/repository acceptance from repository root on one stable HEAD.**
+3. **Obtain the genuine independent Austria professional review** with the blind handoff.
+4. Compile/reconcile real reviewer evidence and then run final exact-current-head L proof.
+5. Seal L.
+6. Begin M only after L is sealed.
+7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
 
 ---
 
-## 8. Update rule
+## 9. Update rule
 
-When a session meaningfully changes any of the above, it must update this file before finishing. If the session only adds code/tests/docs in a single lane, update at least the branch status table.
+When a session changes milestone state, active Radar state, R3 branch state, acceptance truth, or branch recoverability, update this file before finishing.
+
+Do not try to encode this file's own final commit SHA as a permanent “current HEAD”; record a verified baseline and require the next session to verify the remote.
