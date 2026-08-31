@@ -1,12 +1,12 @@
 # Global Mobility AIOS — Technology Adoption Ledger
 
-**Date:** 2026-08-31  
-**Status:** ACTIVE REPOSITORY-TRUTH INDEX  
-**Branch:** `roadmap/global-mobility-aios-v12`  
-**Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.44 / blind professional-review acceptance-oracle repair
-**Scheduling authority:** `docs/ROADMAP.md`  
-**Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
+**Date:** 2026-08-31
+**Status:** ACTIVE REPOSITORY-TRUTH INDEX
+**Branch:** `roadmap/global-mobility-aios-v12`
+**Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
+**Latest reconciliation:** V12.45 / Technology Radar V1.3.8 consolidation applied
+**Scheduling authority:** `docs/ROADMAP.md`
+**Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
 
 This ledger prevents Radar entries from being mistaken for installed technology and prevents native AIOS capability from being mistaken for missing capability merely because an external product is absent.
@@ -55,69 +55,59 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Organization collaboration / coordination visualization | AIOS already exposes hierarchy focus through OrganizationPosition reporting lines, WorkItem dependency edges, cross-department friction, governed human follow-up and durable activity context; do not add a donor collaboration state/graph unless a concrete unmet UX need is proven |
 | Austria blind professional-review handoff | existing professional-review compiler retained; reviewer-facing handoff excludes benchmark labels/rationale and blind reviewer returns compile afterward into canonical CONFIRMED/CORRECTED/DISPUTED/NEEDS_MORE_FACTS semantics; first local attempt found an order-sensitive test oracle, repaired without production-semantic change; post-repair local proof pending |
 
-## 3. V1.3.7 explicit challengers — Radar entry alone is not adoption
+## 3. V1.3.8 consolidated seam decisions — do not revive held duplicates
 
-| Candidate | Ledger truth |
-|---|---|
-| Inspect AI | priority research / evaluation benchmark; no runtime adoption claimed |
-| ToolSandbox / AgentDojo-style methods | behavioral tool-use benchmark research; method/candidate, not AIOS truth |
-| DeepTeam | red-team benchmark research; no operational Red Team authority |
-| FuzzyAI-class tooling | specialized LLM fuzz benchmark research only |
-| OpenInference | interoperability/semantic-convention benchmark only |
-| OpenLLMetry | instrumentation donor research only |
-| Arize Phoenix | priority Langfuse/observability challenger; no integration claimed |
-| Opik/equivalent | experiment/eval-observability benchmark only |
-| Bandit | lightweight Python security baseline candidate |
-| OWASP ZAP | authorized DAST pilot candidate only |
-| Schemathesis | API property/negative-test candidate only |
-| Nuclei | authorized scanner candidate only |
-| OSV-Scanner | dependency vulnerability challenger only |
-| TruffleHog | secret-scanner challenger only |
-| OpenSSF Scorecard | upstream dependency-governance candidate only |
-| in-toto | provenance-chain research candidate only |
-| GUAC | watch; supply-chain graph candidate only if scale creates need |
-| Checkov / KICS | IaC benchmark challengers only |
-| Kubescape / kube-bench | watch; only if Kubernetes becomes a real deployment target |
-| E2B | managed sandbox challenger; not adopted |
-| Daytona-class sandbox | managed workspace challenger; current licensing/hosting must be rechecked at pilot time |
-| Nightona | watch; self-hosted Daytona-derived candidate; maturity/license must be rechecked |
-| Cedar | policy-language challenger; no policy authority granted |
-| Kyverno | watch; Kubernetes policy candidate only |
-| Storybook | component-workbench candidate; no product-truth role |
+| Seam | Incumbent / current baseline | Challenger | Held / watch truth |
+|---|---|---|---|
+| CI adversarial evaluation | Promptfoo pilot | Inspect AI | DeepEval, Ragas, PyRIT, DeepTeam HOLD_WITH_TRIGGER |
+| live-model vulnerability scan | bounded current harness | Garak | FuzzyAI HOLD_WITH_TRIGGER |
+| behavioral tool-use evaluation | first-party contracts | ToolSandbox / AgentDojo methods | distinct seam; no organization truth |
+| property testing | Hypothesis implemented | none | no duplicate pilot needed |
+| mutation strength | first-party Wave E4 gate | mutmut on Linux/CI trigger | external engine not adopted |
+| parser/contract fuzzing | deterministic/property baseline | none yet | Atheris/FuzzyAI HOLD_WITH_TRIGGER |
+| observability | OpenTelemetry foundation | Arize Phoenix | Langfuse, OpenInference, OpenLLMetry, Opik HOLD_WITH_TRIGGER |
+| SAST | Semgrep | CodeQL | Bandit HOLD_WITH_TRIGGER |
+| DAST/API | OWASP ZAP | Schemathesis | Nuclei HOLD_WITH_TRIGGER |
+| dependency/container | Trivy | OSV-Scanner | Syft, Grype, Scorecard HOLD_WITH_TRIGGER |
+| secret scanning | Gitleaks | TruffleHog | no third scanner currently justified |
+| IaC assurance | Checkov | KICS | Kubescape/kube-bench WATCH for real Kubernetes only |
+| sandbox | Microsandbox | E2B | Daytona HOLD_WITH_TRIGGER; Nightona WATCH |
+| relationship authorization | OpenFGA | SpiceDB | R3 research only; no constitutional authority |
+| contextual policy evaluation | OPA/Rego | Cedar | Kyverno WATCH for Kubernetes only |
+| retrieval | Qdrant | pgvector | no duplicate vector store pilot |
+| continuity memory | AIOS memory boundary | Mem0 | OpenViking DONOR_ONLY |
+| durable workflow | AIOS WorkItem/runtime baseline | Temporal on trigger | LangGraph/Agno DONOR_ONLY |
+| document/privacy/source | existing AIOS boundaries + Docling/ClamAV | Presidio/urlwatch bounded pilots | EU DSS HOLD_WITH_TRIGGER |
+| human-agent interaction | current AIOS Cockpit | CopilotKit / AG-UI post-L M | Storybook HOLD_WITH_TRIGGER |
 
-## 4. Existing external candidates most likely to be confused with missing capability
+The active status source for exact per-candidate triggers is `docs/TECHNOLOGY_RADAR_V1_3_8.md`.
+
+## 4. External candidates most likely to be confused with missing capability
 
 | Candidate | Current truth |
 |---|---|
-| Langfuse | research/pilot candidate; AIOS + OTel already provides baseline observability |
-| OpenFGA | deferred relationship-authorization pilot; native AIOS authorization exists |
-| OPA/Rego | research policy-engine candidate; native AIOS governance exists |
-| CopilotKit / AG-UI | post-L M interaction candidate; not installed/adopted on canonical V12 |
-| Munder Difflin | strategic donor programme only on canonical V12; no web runtime package installed; Track B must PORT/ADAPT/REIMPLEMENT only against proven gaps and may not import donor authority/state semantics |
-| Garak | bounded live-model adversarial research candidate |
-| Microsoft PyRIT | future authorized Red Team Lab candidate |
-| DeepEval | evaluation benchmark candidate |
-| Ragas | retrieval-metric benchmark candidate |
-| Hypothesis | bounded test-only property/invariant pilot implemented; no production runtime role |
-| mutmut | external mutation-engine challenger rechecked at 3.7.0; not adopted because current mutmut 3 requires `fork`/WSL on Windows; future Linux/CI campaign remains demand-gated |
-| Atheris/fuzzing | bounded parser/contract fuzz candidate |
-| Semgrep | priority SAST pilot candidate |
-| CodeQL | semantic security benchmark candidate |
-| Trivy | container/dependency/IaC pilot candidate |
-| Syft / Grype | SBOM/vulnerability candidates |
-| SLSA / Sigstore | provenance/signing target controls/candidates |
-| Gitleaks | secret-scanning pilot candidate |
-| Microsandbox | primary future isolated-execution candidate; not adopted |
-| Mem0 | continuity-memory candidate only; never Evidence |
-| OpenViking | context donor research only |
-| Agno / AgentOS | donor/assess only; cannot replace AIOS control plane |
-| LangGraph | execution-graph donor only; cannot become WorkItem truth |
-| Temporal | deferred gap-triggered durable-workflow candidate |
-| LLMLingua-2 | selected compression pilot; R3–R5 protected context remains zero-semantic-compression by default |
-| pgvector | retrieval benchmark challenger to Qdrant |
+| Langfuse | HOLD_WITH_TRIGGER; OpenTelemetry is incumbent and Phoenix is the selected platform challenger |
+| OpenFGA | relationship-authorization R3 incumbent/challenger baseline only; native AIOS authorization remains authoritative |
+| SpiceDB | relationship-authorization challenger to OpenFGA; research branch evidence does not grant authority |
+| OPA/Rego | contextual-policy R3 incumbent benchmark behind an AIOS-owned boundary only |
+| Cedar | contextual-policy challenger to OPA; typed/verification research does not grant policy authority |
+| CopilotKit / AG-UI | post-L M interaction challenger; not installed/adopted on canonical V12 |
+| Munder Difflin | strategic donor programme only; no canonical V12 runtime package; donor state cannot become organization truth |
+| Garak | bounded live-model adversarial challenger; operational Red Team authority not claimed |
+| Microsoft PyRIT | HOLD_WITH_TRIGGER for multi-turn Red Team orchestration |
+| DeepEval / Ragas | HOLD_WITH_TRIGGER; do not add while Promptfoo + Inspect/current evidence evaluation covers the seam |
+| Hypothesis | bounded test-only property pilot implemented |
+| mutmut | HOLD_WITH_TRIGGER for Linux/CI; first-party mutation gate is current baseline |
+| Semgrep / CodeQL | selected SAST incumbent/challenger pair |
+| Trivy / OSV-Scanner | selected dependency/container incumbent/challenger pair |
+| Gitleaks / TruffleHog | selected secret-scanning incumbent/challenger pair |
+| Microsandbox / E2B | selected future sandbox incumbent/challenger pair; no execution authority |
+| Mem0 | continuity-memory challenger only; MEMORY != EVIDENCE |
+| Temporal | trigger-bound durable-workflow challenger |
+| LLMLingua-2 | selected bounded compression pilot; protected R3–R5 context remains zero-semantic-compression by default |
 | Presidio | queued privacy pilot |
 | urlwatch | queued source-monitoring pilot |
-| EU DSS | document-signature/trust research |
+| EU DSS | HOLD_WITH_TRIGGER for material document-signature/trust requirement |
 
 ## 5. Cybersecurity / Red Team truth
 
@@ -151,13 +141,14 @@ Microsandbox-backed lab                     future candidate only
 
 ## 7. Radar-completion interpretation
 
-Technology Radar V1.3.7 is **complete for the broad current product horizon**. This means the major relevant lanes have explicit coverage and future additions require a material new capability, materially stronger challenger, ecosystem change or demonstrated AIOS gap.
+Technology Radar V1.3.8 is the **active consolidated current-horizon Radar**. V1.3.7 remains the historical broad inventory; V1.3.8 applies the scatter audit so duplicate candidates are trigger-bound rather than permanently active research.
 
 It does not mean all candidates should be installed.
 
 ```text
-Technology Radar V1.3.7                  COMPLETE / ACTIVE
-runtime adoption caused by V1.3.7        NONE
+Technology Radar V1.3.8                  ACTIVE / CONSOLIDATED
+scatter-audit application                 COMPLETE
+runtime adoption caused by V1.3.8        NONE
 Munder runtime adoption                  NONE ON CANONICAL V12
 external mutation engine adoption        NONE
 L                                        IMPLEMENTED / ACCEPTANCE PENDING
