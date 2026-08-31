@@ -6,6 +6,7 @@
 **Inherited baseline:** all V1.3.6 classifications remain active unless explicitly overridden here  
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`  
+**Scatter and duplication audit:** `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`  
 **Current product milestone:** L — Live Organization — IMPLEMENTED / ACCEPTANCE PENDING  
 **M milestone:** NOT STARTED
 

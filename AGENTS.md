@@ -2,6 +2,8 @@
 
 This guide is for AI coding agents and developers working on the active Global Mobility AIOS repository. Treat repository state, accepted proof records, and `docs/ROADMAP.md` as authority. Do not infer capabilities, acceptance, or infrastructure that the repository does not prove.
 
+**New session recovery:** read `agents/SESSION_HANDOFF.md` first for current branch state, open acceptance gates, and recent decisions. Verify its claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, and the actual git remotes before acting.
+
 ## 1. Product identity and constitutional boundaries
 
 Global Mobility AIOS is a **governed, evidence-grounded, transparent digital organization for global mobility**. It is not a generic chatbot, agent framework, SaaS admin dashboard, or autonomous legal/immigration decision-maker.
