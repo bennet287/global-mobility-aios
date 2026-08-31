@@ -34,8 +34,8 @@ LANE_MINIMUM_TIERS = {
     "observability": {"T1", "T2", "T5"},
     "secrets": {"T1", "T2", "T3", "T5"},
     "recovery": {"T3", "T5", "T8"},
-    "memory": {"T1", "T2", "T3", "T6"},
-    "orchestration": {"T1", "T2", "T3", "T5", "T8"},
+    "memory": {"T2", "T3", "T5", "T6"},
+    "orchestration": {"T2", "T3", "T5", "T8"},
     "ui": {"T1", "T2", "T4", "T5"},
 }
 
