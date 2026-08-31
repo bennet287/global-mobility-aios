@@ -260,6 +260,8 @@ PYTHONPATH=apps/api python -m pytest apps/api/tests -q
 
 Never report a historical test count as if it were a current-head run. A previous green commit is historical evidence only.
 
+For exact-head acceptance, capture `git rev-parse HEAD` before the first proof command and verify the same SHA after the last proof command. Do not run acceptance while another coding session, agent or process is committing/resetting the same worktree. A run whose HEAD changes while tests are executing is **not exact-head proof**, even if individual tests pass.
+
 ### Frontend contract/types/build proof
 
 From `apps/web` under Node 24:
