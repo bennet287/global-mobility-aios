@@ -22,6 +22,65 @@ Exact historical diffs remain available through Git history, the frozen V11 bran
 
 ---
 
+## 2026-08-31 — V12.33 TECHNOLOGY RADAR WAVE E1 — BOUNDED SECRETSPORT / OPENBAO PILOT
+
+### Status
+
+**BOUNDED PILOT IMPLEMENTED / FOCUSED TESTS PASS / OPENBAO PRODUCTION ADOPTION NOT CLAIMED / L ACCEPTANCE STATE UNCHANGED**
+
+Implemented the first AIOS-owned runtime secret-reference boundary justified by the existing hosted-LLM credential lifecycle:
+
+```text
+apps/api/app/core/secrets.py
+apps/api/app/core/config.py
+apps/api/app/services/llm_client.py
+apps/api/tests/test_secrets.py
+apps/api/tests/test_llm_secret_references.py
+docs/TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md
+```
+
+The boundary supports explicit `env://VARIABLE_NAME` references and a minimal `openbao://path#field` KV-v2 adapter. DeepSeek, Moonshot and Gemini retain their existing direct API-key settings when no reference is configured; optional `*_API_KEY_REF` settings opt a credential into runtime resolution.
+
+A configured reference is authoritative and fails closed. Resolution failure does not silently fall back to a direct plaintext value. Explicit provider-constructor keys still bypass secret resolution for deterministic tests and bounded operator injection.
+
+The OpenBao adapter is deliberately non-production-only. It refuses `production`/`prod`, requires a bootstrap token, defaults to the `aios/nonprod/` path scope, rejects out-of-scope paths before network egress, supports an optional namespace, reads KV-v2 through the documented data path, and does not cache returned values. The focused contract therefore demonstrates rotation visibility and revocation failure semantics without claiming a real production OpenBao deployment or operational rotation/recovery proof.
+
+Permanent boundary:
+
+```text
+secret retrieval != organizational authority
+secret backend != Context / Memory / Evidence
+provider credential != permission to execute a material action
+```
+
+### Focused verification
+
+```text
+python -m pytest -q tests/test_secrets.py tests/test_llm_secret_references.py
+10 passed
+```
+
+The focused suite covers reference parsing, environment resolution, fail-closed configured-reference behavior, OpenBao non-production and path-scope guards, KV-v2 request shape, rotation visibility, revocation failure, LLM credential-reference integration and explicit-key bypass.
+
+GitHub Actions attached to source head `b83fa84432da14d72be1014ce8021eb794154680` reported workflow-level failure, but all four Production Proof jobs exposed zero executed steps and no runner identity. This remains runner/infrastructure startup evidence, not repository-test failure and not exact-head PASS evidence.
+
+### Current truth
+
+```text
+Technology Radar Wave E1 secrets boundary  IMPLEMENTED / BOUNDED PILOT
+OpenBao production backend adoption        NOT CLAIMED
+Independent professional Austria review    PENDING
+Final exact-current-head proof              PENDING
+Overall L                                   IMPLEMENTED / ACCEPTANCE PENDING
+M                                           NOT STARTED
+```
+
+Production promotion of an OpenBao-class backend remains demand-gated on deployment need, bootstrap credential handling, least-privilege scope, real-backend rotation/revocation/recovery proof, deployment/runbook evidence and exact-current-head acceptance.
+
+The active roadmap advances from **V12.32 to V12.33** for this bounded supporting Wave E1 tranche only.
+
+---
+
 ## 2026-08-30 — V12.32 SUPPLEMENTAL BLIND AUSTRIA AI DOMAIN-CORROBORATION HARNESS
 
 ### Status
