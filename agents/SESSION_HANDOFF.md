@@ -139,15 +139,17 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 ## 6. Files to read first
 
-1. `agents/SESSION_HANDOFF.md`
-2. `docs/ROADMAP.md`
-3. `docs/CHANGELOG.md`
-4. `docs/TECHNOLOGY_RADAR_V1_3_8.md`
-5. `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
-6. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
-7. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
-8. `AGENTS.md`
-9. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+1. `agents/PROJECT_STATE.md`
+2. `agents/SESSION_HANDOFF.md`
+3. `docs/ROADMAP.md`
+4. `docs/CHANGELOG.md`
+5. `docs/TECHNOLOGY_RADAR_V1_3_8.md`
+6. `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
+7. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
+8. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
+9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
+10. `AGENTS.md`
+11. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -169,6 +171,8 @@ Do not run acceptance while another coding agent/session is writing to the same 
 Priority order:
 
 1. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
+   - Packet/template generation has been exercised locally.
+   - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
 2. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
 3. Commit the acceptance evidence and run final exact-current-head L technical proof.
 4. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
