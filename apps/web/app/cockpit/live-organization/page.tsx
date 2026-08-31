@@ -27,6 +27,21 @@ function latencyLabel(value: number | null | undefined): string {
   return `${value} ms`;
 }
 
+function tokenLabel(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "Not recorded";
+  return new Intl.NumberFormat().format(value);
+}
+
+function costLabel(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "Not recorded";
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  }).format(value);
+}
+
 function timeLabel(value?: string | null): string {
   if (!value) return "—";
   const date = new Date(value);
@@ -97,6 +112,25 @@ export default function AustriaLiveOrganizationPage() {
     return {
       valid: snapshot.specialist_outputs.filter((item) => item.evidence_valid).length,
       total: snapshot.specialist_outputs.length,
+    };
+  }, [snapshot]);
+
+  const runtimeSummary = useMemo(() => {
+    const qualities = snapshot?.specialist_outputs
+      .map((item) => item.runtime_quality)
+      .filter((quality) => quality !== null) ?? [];
+    const tokenSamples = qualities
+      .map((quality) => quality.total_tokens)
+      .filter((value): value is number => value !== null);
+    const costSamples = qualities
+      .map((quality) => quality.estimated_cost_usd)
+      .filter((value): value is number => value !== null);
+    return {
+      observed: qualities.length,
+      totalTokens: tokenSamples.length ? tokenSamples.reduce((sum, value) => sum + value, 0) : null,
+      estimatedCostUsd: costSamples.length ? costSamples.reduce((sum, value) => sum + value, 0) : null,
+      freshGrounded: qualities.filter((quality) => quality.fresh_retrieval_provenance_present).length,
+      fallbackCount: qualities.filter((quality) => quality.fallback_to_template).length,
     };
   }, [snapshot]);
 
@@ -348,6 +382,36 @@ export default function AustriaLiveOrganizationPage() {
                 <div className="cockpit-empty-line">No active blocker is persisted for this Austria objective.</div>
               )}
             </article>
+          </section>
+
+          <section className="cockpit-surface" aria-labelledby="live-runtime-quality-title">
+            <header className="cockpit-surface-header compact">
+              <div>
+                <span className="premium-label">Runtime economics & quality</span>
+                <h3 id="live-runtime-quality-title">Persisted specialist runtime signals</h3>
+              </div>
+              <span className="live-activity-total">{runtimeSummary.observed}/{snapshot.specialist_outputs.length}</span>
+            </header>
+            <div className="operational-intelligence-grid">
+              <div className="cockpit-lane"><header><span>Total tokens</span><strong>{tokenLabel(runtimeSummary.totalTokens)}</strong></header><p>Summed only from specialist runtime-quality records that persisted token usage.</p></div>
+              <div className="cockpit-lane"><header><span>Estimated provider cost</span><strong>{costLabel(runtimeSummary.estimatedCostUsd)}</strong></header><p>Derived only from persisted provider estimates; missing costs are not inferred as zero.</p></div>
+              <div className="cockpit-lane"><header><span>Fresh retrieval provenance</span><strong>{runtimeSummary.freshGrounded}/{runtimeSummary.observed}</strong></header><p>Counts runtime records that explicitly preserve fresh-retrieval provenance.</p></div>
+              <div className="cockpit-lane"><header><span>Template fallback</span><strong>{runtimeSummary.fallbackCount}</strong></header><p>Observed fallback is a runtime-quality signal, not an authority or correctness decision.</p></div>
+            </div>
+            {snapshot.specialist_outputs.map((specialist) => {
+              const quality = specialist.runtime_quality;
+              return (
+                <div className="attention-rows" key={`runtime-${specialist.work_item_id}`}>
+                  <div><span>{positionLabel(specialist.position_key)}</span><strong>{quality ? titleCase(quality.provider_outcome) : "Not recorded"}</strong></div>
+                  <div><span>Runtime</span><strong>{quality ? `${quality.response_provider || quality.configured_provider || "Unknown provider"} · ${quality.response_model || quality.configured_model || "unknown model"}` : "Not recorded"}</strong></div>
+                  <div><span>Tokens / cost</span><strong>{quality ? `${tokenLabel(quality.total_tokens)} · ${costLabel(quality.estimated_cost_usd)}` : "Not recorded"}</strong></div>
+                  <div><span>Grounding</span><strong>{quality ? titleCase(quality.grounding_state) : "Not recorded"}</strong></div>
+                </div>
+              );
+            })}
+            <div className="cockpit-empty-line">
+              Telemetry is presentation evidence only. It does not create OrganizationActivity, grant provider/model authority, or authorize external action.
+            </div>
           </section>
         </>
       ) : null}
