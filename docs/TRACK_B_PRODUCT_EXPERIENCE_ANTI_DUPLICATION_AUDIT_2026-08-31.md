@@ -223,9 +223,21 @@ Current status:
 
 ```text
 runtime-economics Cockpit slice       IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / BROWSER E2E NOT OBSERVED THERE
-durable activity-lineage Cockpit      IMPLEMENTED / LOCAL CURRENT-HEAD PROOF PENDING
+durable activity-lineage Cockpit      IMPLEMENTED / LOCAL + CHROMIUM BROWSER PROOF OBSERVED AT 958b796...
 provider transcript/tool capture      DEFERRED
-collaboration visualization           FUTURE GAP / DEMAND-GATED
+collaboration / coordination UX       EXISTING MULTI-SURFACE FOUNDATION / REFINE ONLY AGAINST PROVEN GAP
+presence / heartbeat                  DEFERRED / DEMAND-GATED
+event synchronization                 DEFERRED / NO DEMONSTRATED TRANSPORT GAP
+Living Organization scene             DEFERRED / NEED-DRIVEN ONLY
 Munder runtime adoption               NONE
 M                                      NOT STARTED
 ```
+
+
+## 10. Current Track B stopping decision
+
+After V12.41 exact-head local/browser proof and V12.42 repository-wide collaboration re-audit, no further Track B implementation is currently justified without a concrete unmet product need.
+
+The release-critical project gap is now the genuine independent professional Austria review. Repository inspection of that gate found the existing human handoff exposed benchmark labels/rationale and therefore risked reviewer anchoring. That prerequisite is being hardened in the existing professional-review tooling rather than starting another Track B slice.
+
+This stopping decision is intentional anti-duplication discipline, not abandonment of Track B.
