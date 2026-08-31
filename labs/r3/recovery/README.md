@@ -25,5 +25,15 @@ to the original snapshot.
 
 The same fixture reconstructs aggregate state at exact timestamps from a durable
 event log. That evidence is named `PITR_STYLE_EVENT_REPLAY`; it is **not**
-native PostgreSQL WAL-PITR. Native WAL archive/restore and cross-service recovery
-remain explicit gaps.
+native PostgreSQL WAL-PITR. Native WAL archive/base-backup/recovery-target-time
+proof is now implemented separately in `wal_pitr_lab.py`; cross-service recovery
+remains future depth.
+
+
+## Native WAL-PITR
+
+```powershell
+python -m labs.r3.recovery.wal_pitr_lab `
+  --run-id recovery-wal-pitr-20260831-001 `
+  --output labs/r3/recovery/results/recovery-wal-pitr-20260831-001.json
+```
