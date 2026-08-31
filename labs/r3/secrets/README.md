@@ -18,6 +18,16 @@ The lab proves real KV v2 versioning, a read-only ACL policy, bounded child-toke
 TTL, denied writes, rotation, historical version reads, token revocation, audit
 device enablement and fail-closed service outage.
 
-The `OpenBaoSecretsPort` has no plaintext/config fallback. Audit-log content,
-persistent restart behavior and dynamic database credentials remain explicit
-future depth. Dev mode is never production evidence.
+The `OpenBaoSecretsPort` has no plaintext/config fallback. Persistent restart and
+audit-depth proof is implemented separately in `persistent_openbao_lab.py`.
+Dynamic database credentials remain future depth. Dev mode is never production
+evidence.
+
+
+## Persistent OpenBao depth
+
+```powershell
+python -m labs.r3.secrets.persistent_openbao_lab `
+  --run-id secrets-openbao-persistent-20260831-001 `
+  --output labs/r3/secrets/results/secrets-openbao-persistent-20260831-001.json
+```
