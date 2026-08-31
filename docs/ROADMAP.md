@@ -1,7 +1,7 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.32 — supplemental blind multi-provider Austria AI domain-corroboration harness; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
-**Date:** 2026-08-30
+**Roadmap generation:** V12.33 — bounded Technology Radar Wave E1 SecretsPort / non-production OpenBao pilot; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
@@ -19,6 +19,7 @@
 **Latest fully green L technical checkpoint:** `34597abf24a348a28b25e15dccb1a22fa35b3998` — Woodpecker PR Pipeline #77 4/4 PASS; eight commits after fresh-retrieval checkpoint `a85384e6...`; historical exact-checkpoint proof only
 **Accepted L live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md` — real Gemini success, guarded fresh retrieval, real failure, owner materialization and exact replay; professional review + final exact-current-head proof remain
 **Supplemental L domain corroboration:** `V1_3_L_AI_DOMAIN_CORROBORATION.md` — blind fresh-source multi-provider harness implemented; no corroboration result or professional-review substitution claimed
+**Supporting Wave E1 secrets pilot:** `TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md` — AIOS-owned SecretsPort and optional non-production OpenBao KV-v2 adapter implemented for hosted-LLM credential references; production backend adoption is not claimed
 **Runtime-evidence documentation baseline:** `eb890463a36e0b3c9a615bb2255c41730cd80646` — source head before this V12.30 documentation-only receipt; final exact-current-head proof remains pending
 **Historical 2026-08-25 pre-reconciliation source head:** `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8`
 **Current product milestone:** L — Live Organization
@@ -397,7 +398,9 @@ engineering telemetry != canonical OrganizationActivity
 
 **Backup / isolated restore:** SUPPORTING PARALLEL production foundation. It becomes a release/deployment blocker when the deployment target requires recoverability proof; it must not displace current L product proof merely because backup tooling exists.
 
-**Secrets management:** SUPPORTING PARALLEL production foundation. Introduce a secrets-manager boundary when a real credential lifecycle requires it; do not migrate secrets speculatively.
+**Secrets management:** SUPPORTING PARALLEL — BOUNDED PILOT IMPLEMENTED / PRODUCTION ADOPTION NOT CLAIMED. The AIOS-owned `SecretsPort` now supports optional explicit credential references for the hosted LLM boundary, with `env://` compatibility and a non-production-only OpenBao KV-v2 adapter. A configured reference is authoritative and fails closed, the OpenBao pilot enforces the `aios/nonprod/` path scope and production-environment prohibition, and repeated resolution observes rotation/revocation instead of caching values. Direct settings remain backward-compatible when no reference is configured. Production promotion remains separately gated by deployment need, bootstrap credential handling, least-privilege policy, real-backend rotation/revocation/recovery proof and exact-current-head acceptance.
+
+The bounded implementation/proof receipt is `docs/TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md`.
 
 #### L donor use
 
@@ -572,7 +575,7 @@ Current scheduling posture:
 |---|---|---|
 | L telemetry correlation | REQUIRED ENABLEMENT | real L runtime/cockpit diagnosis |
 | Backup / isolated restore | SUPPORTING PARALLEL | production recoverability requirement |
-| Secrets manager | SUPPORTING PARALLEL | real secret lifecycle / rotation requirement |
+| Secrets manager | SUPPORTING PARALLEL | bounded SecretsPort pilot implemented; production backend promotion only on real lifecycle/rotation/deployment need |
 | Identity / SSO | DEFERRED until dependency | multi-user/deployment authentication need |
 | Communications Gateway | DEFERRED until dependency | governed outbound communication capability |
 | E-signature | DEFERRED until dependency | signed-document workflow enters product path |
@@ -898,7 +901,7 @@ NOW — L LIVE ORGANIZATION
 │
 ├─ SUPPORTING PARALLEL
 │  ├─ backup / isolated restore foundation
-│  ├─ secrets boundary when a real credential lifecycle requires it
+│  ├─ secrets boundary bounded pilot IMPLEMENTED; production backend adoption remains demand-gated
 │  └─ selective Munder analysis for demonstrated L/UX2 gaps
 │
 └─ DEFERRED UNTIL L SEAL / DEMONSTRATED SECOND-VERTICAL NEED
