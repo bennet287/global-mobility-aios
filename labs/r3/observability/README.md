@@ -23,8 +23,8 @@ python -m labs.r3.common.verify_results labs/r3/observability/results/*.json
 
 This tranche proves trace hierarchy/correlation, synthetic sensitive-attribute
 redaction, exporter-failure independence and the permanent telemetry/truth
-boundary. OTLP Collector transport, sampling, restart and volume/cost remain
-explicit later depth.
+boundary. Real OTLP Collector transport/restart/chaos is implemented in
+`collector_lab.py`; sampling economics and sustained volume/cost remain future depth.
 
 
 ## Secondary observability candidates
