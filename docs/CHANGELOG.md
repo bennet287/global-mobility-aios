@@ -8,6 +8,74 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.36 TECHNOLOGY RADAR WAVE E3 — PROPERTY / INVARIANT TESTING
+
+### Status
+
+**IMPLEMENTED / LOCAL-CI PROOF PENDING / NO PRODUCTION RUNTIME ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
+
+Wave E3 advances the evaluation-hardening ladder from one-example deterministic adversarial cases into generated property/invariant testing.
+
+Implemented:
+
+```text
+apps/api/requirements.txt
+apps/api/tests/test_ai_domain_property_invariants.py
+docs/TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md
+```
+
+Hypothesis is added as a bounded test dependency only:
+
+```text
+hypothesis>=6.112
+```
+
+The new property suite reuses the existing Austria AI-domain validation/corroboration seams instead of introducing another evaluator stack. Generated tests cover:
+
+```text
+non-False final_authority_decision values fail closed
+undeclared pathway substitutions fail closed
+unknown source references fail closed
+case-set substitutions fail closed
+valid provider-review ordering canonicalizes to benchmark order
+same-provider repetition never creates independent corroboration
+identity / structural / source-label gates remain conjunctive
+cross-provider classification disagreement cannot corroborate
+professional_review_status_effect remains NONE
+```
+
+Permanent proof boundary:
+
+```text
+property/invariant test proof
+!= exhaustive state-space proof
+!= mutation-test strength proof
+!= fuzz proof
+!= live-model adversarial resistance
+!= professional Austria correctness
+!= operational Red Team proof
+!= L acceptance
+```
+
+The connected GitHub implementation environment could author and push the files but did not execute the repository Python environment. Focused pytest, full backend, Woodpecker and exact-current-head proof therefore remain pending.
+
+Current truth:
+
+```text
+Technology Radar V1.3.7                  COMPLETE / ACTIVE CANONICAL RADAR
+Wave E2 deterministic adversarial gate   IMPLEMENTED / LOCAL-CI PROOF PENDING
+Wave E3 property/invariant testing        IMPLEMENTED / LOCAL-CI PROOF PENDING
+Hypothesis production runtime adoption    NONE
+professional Austria review               PENDING
+final exact-current-head proof            PENDING
+L                                          IMPLEMENTED / ACCEPTANCE PENDING
+M                                          NOT STARTED
+```
+
+Next evaluation-hardening candidate after E3 proof: bounded mutation testing on the same high-value evaluator/corroboration seams.
+
+---
+
 ## 2026-08-31 — V12.35 TECHNOLOGY RADAR V1.3.7 — CONSOLIDATED AGGRESSIVE FRONTIER COMPLETE
 
 ### Status
@@ -117,6 +185,7 @@ deterministic adversarial contract proof
 
 | Version | Date | Meaning |
 |---|---|---|
+| V12.36 | 2026-08-31 | Wave E3 Hypothesis property/invariant testing |
 | V12.35 | 2026-08-31 | Technology Radar V1.3.7 consolidated current-horizon frontier complete |
 | V12.34 | 2026-08-31 | Technology Radar V1.3.6 + Wave E2 adversarial contract hardening |
 | V12.33 | 2026-08-31 | bounded SecretsPort / non-production OpenBao pilot |
