@@ -42,3 +42,6 @@ opentelemetry-exporter-otlp==1.28.0
 clamd==1.0.2
 pytest==8.3.0
 pytest-xdist==3.8.0
+# Wave E3 property/invariant test dependency. Local Windows CPython 3.13 proof
+# installed and passed with 6.167.1; this remains test-only, not runtime authority.
+hypothesis==6.167.1
