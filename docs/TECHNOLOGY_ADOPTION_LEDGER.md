@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.35 / Technology Radar V1.3.7 consolidated aggressive frontier  
+**Latest reconciliation:** V12.37 / Technology Radar Wave E4 mutation-strength pilot  
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
 **Delivery history:** `docs/CHANGELOG.md`
@@ -45,11 +45,13 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | ClamAV | malware scan/quarantine pilot complete / trial-eligible |
 | SecretsPort | AIOS-owned secret-reference boundary implemented |
 | OpenBao | optional non-production bounded adapter implemented; production adoption not claimed |
-| Wave E2 adversarial contract | first-party deterministic mutation gate implemented; higher-order security proof not claimed |
+| Wave E2 adversarial contract | first-party deterministic input-mutation gate implemented; local proof observed at historical exact head `285a7f08...`; higher-order security proof not claimed |
+| Wave E3 property/invariant testing | Hypothesis-based bounded property suite implemented; local proof observed at historical exact head `285a7f08...`; Hypothesis is test-only |
+| Wave E4 mutation strength | first-party bounded semantic implementation-mutation gate implemented; current-head local proof pending |
 | Docling | pilot in progress |
 | Qdrant | current semantic-retrieval platform capability / comparison baseline |
 
-## 3. V1.3.7 new explicit challengers — none are adopted by Radar entry
+## 3. V1.3.7 explicit challengers — Radar entry alone is not adoption
 
 | Candidate | Ledger truth |
 |---|---|
@@ -91,8 +93,8 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Microsoft PyRIT | future authorized Red Team Lab candidate |
 | DeepEval | evaluation benchmark candidate |
 | Ragas | retrieval-metric benchmark candidate |
-| Hypothesis | high-priority property-testing benchmark candidate |
-| mutation testing | bounded test-strength pilot candidate |
+| Hypothesis | bounded test-only property/invariant pilot implemented; no production runtime role |
+| mutmut | external mutation-engine challenger rechecked at 3.7.0; not adopted because current mutmut 3 requires `fork`/WSL on Windows; future Linux/CI campaign remains demand-gated |
 | Atheris/fuzzing | bounded parser/contract fuzz candidate |
 | Semgrep | priority SAST pilot candidate |
 | CodeQL | semantic security benchmark candidate |
@@ -151,6 +153,7 @@ It does not mean all candidates should be installed.
 ```text
 Technology Radar V1.3.7                  COMPLETE / ACTIVE
 runtime adoption caused by V1.3.7        NONE
+external mutation engine adoption        NONE
 L                                        IMPLEMENTED / ACCEPTANCE PENDING
 M                                        NOT STARTED
 ```
