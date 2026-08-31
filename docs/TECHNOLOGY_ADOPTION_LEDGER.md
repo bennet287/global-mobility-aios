@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.40 / Track B anti-duplication + canonical runtime-economics Cockpit slice  
+**Latest reconciliation:** V12.40 / Track B anti-duplication + canonical runtime-economics Cockpit slice
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
 **Delivery history:** `docs/CHANGELOG.md`
