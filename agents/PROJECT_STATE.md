@@ -1,10 +1,10 @@
 # Global Mobility AIOS — Project State Dashboard
 
-**Purpose:** One-page live map of the entire project. Read this first, then `agents/SESSION_HANDOFF.md` for recovery commands and branch details.
+**Purpose:** One-page navigation/state summary of the entire project. Read this first, then `agents/SESSION_HANDOFF.md` for recovery commands and branch details. This dashboard summarizes canonical sources; it does not replace ROADMAP, accepted proof records, the Radar/ledger, or actual git remotes.
 
-**Last updated:** 2026-08-31  
-**Main branch:** `roadmap/global-mobility-aios-v12`  
-**Current V12 generation:** V12.46 — blind professional-review local proof observed + R3 interop preserved  
+**Last updated:** 2026-08-31
+**Main branch:** `roadmap/global-mobility-aios-v12`
+**Current V12 generation:** V12.47 — project-state dashboard hardened after first local documentation gate
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -43,7 +43,7 @@ No Radar candidate has caused runtime adoption.
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
 | **Wave E3 Properties** | `roadmap/...v12` (`scripts/check_*_properties.py`) | Implemented; Hypothesis test-only | Do not promote Hypothesis to runtime. |
 | **Wave E4 Mutation** | `roadmap/...v12` (`scripts/check_ai_domain_mutation_strength.py`) | Implemented; first-party bounded gate; mutmut deferred | Do not claim full mutation coverage. |
-| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Hardened; local exact-head proof observed at `d969c7d` | Do not fabricate reviewer evidence. |
+| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Hardened; local exact-head proof observed at `d969c7d`; reviewer packet + blank return template successfully generated locally | Generated files are handoff artifacts only; do not fabricate reviewer evidence. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -67,7 +67,8 @@ No Radar candidate has caused runtime adoption.
 ```text
 1. L professional review
    → Need a qualified independent Austria immigration/legal reviewer.
-   → Use scripts/prepare_austria_professional_review.py blind handoff.
+   → Blind packet + blank return template generation has been exercised successfully.
+   → Generated local files are reproducible handoff artifacts, not professional evidence.
    → No fabricated or AI-generated review allowed.
 
 2. R3 authority closure
@@ -141,5 +142,6 @@ Update this file when any of the following change:
 - Branch/worktree HEADs or origin presence
 - Open blocker resolved or new blocker added
 - Priority order changes
+- Professional-review handoff / evidence state changes
 
 Do not encode this file's own commit SHA as the "current HEAD". Always require verification against origin.
