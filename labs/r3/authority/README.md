@@ -56,11 +56,15 @@ git pull origin radar/r3-authority
 git rev-parse HEAD
 ```
 
-Expected current execution checkpoint begins with:
+Authority evidence-code checkpoint begins with:
 
 ```text
 77b90b4
 ```
+
+Use `labs/r3/programme_inventory.v1.json` and the programme runner for the exact
+accepted branch head at execution time; documentation-only reconciliation may be
+newer than the evidence-code checkpoint.
 
 ## 2. Run unit/contract tests first
 
