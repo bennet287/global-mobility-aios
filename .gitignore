@@ -52,3 +52,6 @@ apps/web/e2e/playwright-report/
 
 # Local patch-application backups; never source-controlled.
 .gmai-patch-backups/
+
+# Local blind professional-review handoff artifacts; reproducible and not canonical evidence.
+.local/professional-review/
