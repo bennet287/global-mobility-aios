@@ -8,11 +8,88 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.37 TECHNOLOGY RADAR WAVE E4 — MUTATION-STRENGTH TESTING
+
+### Status
+
+**IMPLEMENTED / LOCAL-CURRENT-HEAD PROOF PENDING / NO EXTERNAL MUTATION ENGINE ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
+
+Wave E4 advances evaluation hardening from adversarial input mutation and generated properties into mutation of selected implementation logic itself.
+
+Implemented:
+
+```text
+scripts/check_ai_domain_mutation_strength.py
+apps/api/tests/test_ai_domain_mutation_strength.py
+docs/TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md
+```
+
+The first-party gate applies exact semantic source mutations to `scripts/evaluate_austria_ai_domain_review.py`, loads each mutant in isolation and requires the corresponding safety probe to detect the regression. The selected mutation classes cover:
+
+```text
+weakened false-only authority enforcement
+inverted pathway/review-scope enforcement
+weakened mixed valid+forged source rejection
+weakened non-empty rationale enforcement
+changed distinct-provider corroboration threshold
+weakened unanimity cardinality
+weakened all-provider source-label agreement
+weakened provider-identity qualification
+```
+
+A mutant is counted as `KILLED` only when the baseline probe passes and the mutated implementation fails that same safety property. Any surviving declared mutant fails the Wave E4 gate.
+
+The named `mutmut` challenger was rechecked before implementation. Current public package metadata reports mutmut 3.7.0 and Python 3.13 support, but current mutmut 3 documentation requires operating-system `fork` support and therefore WSL on Windows. Because the canonical local proof operator is Windows PowerShell/CPython and this tranche only needs bounded high-value semantic mutation, mutmut is **not** added to the dependency contract. It remains a future Linux/CI challenger.
+
+Observed prior checkpoint:
+
+```text
+exact head 285a7f08eb5289b9f037c28293a65ad94eede91b
+Wave E2 adversarial gate                  PASS — 17/17 scenarios
+focused E2+E3 pytest                      PASS — 16 tests
+repository policy                         PASS
+release consistency                       PASS
+Python direct-dependency constraints      PASS — 27 dependencies
+diff hygiene                              PASS
+```
+
+That proof is historical exact-head evidence only. It does not automatically prove the later Wave E4 head.
+
+Permanent proof boundary:
+
+```text
+bounded semantic mutation strength
+!= exhaustive mutation coverage
+!= fuzzing
+!= live-model adversarial resistance
+!= professional Austria correctness
+!= operational Red Team proof
+!= L acceptance
+```
+
+Current truth:
+
+```text
+Technology Radar V1.3.7                  COMPLETE / ACTIVE CANONICAL RADAR
+Wave E2 deterministic adversarial gate   IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E3 property/invariant testing        IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E4 mutation-strength testing         IMPLEMENTED / LOCAL-CURRENT-HEAD PROOF PENDING
+external mutation engine adoption         NONE
+professional Austria review               PENDING
+final exact-current-head proof            PENDING
+L                                          IMPLEMENTED / ACCEPTANCE PENDING
+M                                          NOT STARTED
+```
+
+After E4 local proof, the product path should return to the genuine professional Austria review unless a concrete source defect or prerequisite is discovered.
+
+---
+
 ## 2026-08-31 — V12.36 TECHNOLOGY RADAR WAVE E3 — PROPERTY / INVARIANT TESTING
 
 ### Status
 
-**IMPLEMENTED / LOCAL-CI PROOF PENDING / NO PRODUCTION RUNTIME ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
+**IMPLEMENTED / LOCAL PROOF OBSERVED AT EXACT HEAD 285a7f08... / NO PRODUCTION RUNTIME ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
 
 Wave E3 advances the evaluation-hardening ladder from one-example deterministic adversarial cases into generated property/invariant testing.
 
@@ -20,17 +97,19 @@ Implemented:
 
 ```text
 apps/api/requirements.txt
+apps/api/constraints.txt
 apps/api/tests/test_ai_domain_property_invariants.py
 docs/TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md
 ```
 
-Hypothesis is added as a bounded test dependency only:
+Hypothesis is a bounded test dependency only. The repository dependency policy requires an exact constraint, and the accepted local checkpoint uses:
 
 ```text
-hypothesis>=6.112
+requirement: hypothesis>=6.112
+constraint:  hypothesis==6.167.1
 ```
 
-The new property suite reuses the existing Austria AI-domain validation/corroboration seams instead of introducing another evaluator stack. Generated tests cover:
+The property suite reuses the existing Austria AI-domain validation/corroboration seams instead of introducing another evaluator stack. Generated tests cover:
 
 ```text
 non-False final_authority_decision values fail closed
@@ -57,22 +136,9 @@ property/invariant test proof
 != L acceptance
 ```
 
-The connected GitHub implementation environment could author and push the files but did not execute the repository Python environment. Focused pytest, full backend, Woodpecker and exact-current-head proof therefore remain pending.
+Local proof was observed at exact head `285a7f08eb5289b9f037c28293a65ad94eede91b`: the 17-scenario Wave E2 gate passed; focused E2+E3 pytest reported 16 passed; repository policy, release consistency, dependency constraints and diff hygiene all passed; V12 matched remote; frozen remote V11 remained `ac130deaafa7aa44068e9459facbda2b4df327d6`.
 
-Current truth:
-
-```text
-Technology Radar V1.3.7                  COMPLETE / ACTIVE CANONICAL RADAR
-Wave E2 deterministic adversarial gate   IMPLEMENTED / LOCAL-CI PROOF PENDING
-Wave E3 property/invariant testing        IMPLEMENTED / LOCAL-CI PROOF PENDING
-Hypothesis production runtime adoption    NONE
-professional Austria review               PENDING
-final exact-current-head proof            PENDING
-L                                          IMPLEMENTED / ACCEPTANCE PENDING
-M                                          NOT STARTED
-```
-
-Next evaluation-hardening candidate after E3 proof: bounded mutation testing on the same high-value evaluator/corroboration seams.
+That local proof remains exact-checkpoint evidence only after later commits.
 
 ---
 
@@ -152,18 +218,6 @@ SECURITY FINDING != EXPLOITABILITY TRUTH
 
 “Complete” means the major relevant capability lanes now have explicit incumbents, challengers or research targets for the current product horizon. It does not permanently close technology scouting. A future Radar addition should require a material new capability, materially stronger challenger, major ecosystem change or newly demonstrated AIOS gap.
 
-### Current truth
-
-```text
-Technology Radar V1.3.7                  COMPLETE / ACTIVE CANONICAL RADAR
-runtime adoption caused by V1.3.7        NONE
-Wave E2                                  IMPLEMENTED / LOCAL-CI PROOF PENDING
-professional Austria review              PENDING
-final exact-current-head proof           PENDING
-L                                        IMPLEMENTED / ACCEPTANCE PENDING
-M                                        NOT STARTED
-```
-
 ---
 
 ## 2026-08-31 — V12.34 TECHNOLOGY RADAR V1.3.6 + WAVE E2 EVALUATION / ADVERSARIAL CONTRACT HARDENING
@@ -185,6 +239,7 @@ deterministic adversarial contract proof
 
 | Version | Date | Meaning |
 |---|---|---|
+| V12.37 | 2026-08-31 | Wave E4 bounded semantic implementation-mutation strength |
 | V12.36 | 2026-08-31 | Wave E3 Hypothesis property/invariant testing |
 | V12.35 | 2026-08-31 | Technology Radar V1.3.7 consolidated current-horizon frontier complete |
 | V12.34 | 2026-08-31 | Technology Radar V1.3.6 + Wave E2 adversarial contract hardening |
