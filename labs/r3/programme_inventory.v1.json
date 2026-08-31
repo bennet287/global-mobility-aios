@@ -9,7 +9,7 @@
     "radar/r3-skills": "4791546f5e23acbfc375fd8b0cb142e9f7b445a4",
     "radar/r3-interop-deep": "9637854aeb92dba9805fd807bcd4ea4b7d99120e",
     "radar/r3-infrastructure": "8b64f87e4b3599bb7c0a5f44c3768124c7365dcb",
-    "radar/r3-runtime": "3a6fea2cbbf87d424459b81f1b168ecd6baaa312"
+    "radar/r3-runtime": "5fbda9388f8f772a79d12a9be80e41b28f9c1d32"
   },
   "runtime_r4_required_lanes": [
     "authority",
@@ -152,6 +152,7 @@
         "Native": [
           "tenant isolation",
           "VerifiedRule precedence",
+          "native T2/T3 evidence runner",
           "64-tenant concurrency/poisoning stress"
         ],
         "Mem0": [
@@ -297,7 +298,9 @@
       "candidates": {
         "Grand Integration Trial": [
           "11 required runtime lanes",
-          "evidence fingerprints",
+          "recomputed evidence fingerprints",
+          "current-head provenance checks",
+          "minimum aggregate T-tier coverage",
           "blocked/failure checks",
           "cross-lane sovereignty attack",
           "machine-readable scorecard"
@@ -309,5 +312,16 @@
     "r3_pass_is_production_adoption": false,
     "professional_austria_review_satisfied": false,
     "milestone_m_authorized": false
+  },
+  "branch_head_policy": {
+    "radar/r3-runtime": "SNAPSHOT_ANCHOR_ONLY; execution validates the live runtime HEAD dynamically",
+    "dedicated_r3_branches": "EXACT_PINNED_HEAD for current-head evidence acceptance"
+  },
+  "execution_control": {
+    "plan": "labs/r3/programme_execution_plan.v1.json",
+    "runner": "labs/r3/run_programme.py",
+    "grand_trial": "labs/r3/integration/grand_trial.py",
+    "scorecard": "labs/r3/integration/scorecard.py",
+    "core_rule": "BLOCKED != FAILED != PASS; only fingerprint-valid current-head executed evidence counts"
   }
 }
