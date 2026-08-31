@@ -21,6 +21,18 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /snapshot\.provider_model_authority/);
   assert.match(page, /snapshot\.domain_evidence_refs/);
   assert.match(page, /snapshot\.verified_rule_refs/);
+  assert.match(page, /specialist\.runtime_quality/);
+  assert.match(page, /Runtime economics & quality/);
+  assert.match(page, /Persisted specialist runtime signals/);
+  assert.match(page, /quality\.total_tokens/);
+  assert.match(page, /quality\.estimated_cost_usd/);
+  assert.match(page, /quality\.fresh_retrieval_provenance_present/);
+  assert.match(page, /quality\.fallback_to_template/);
+  assert.match(page, /Missing costs are not inferred as zero|missing costs are not inferred as zero/i);
+  assert.match(page, /Telemetry is presentation evidence only/);
+  assert.match(page, /does not create OrganizationActivity/);
+  assert.match(page, /grant provider\/model authority/);
+  assert.match(page, /authorize external action/);
   assert.match(page, /The Cockpit does not simulate a live organization cycle/);
   assert.match(page, /no Evidence is fabricated by the UI/);
   assert.match(page, /regulatory truth is not implied/);
@@ -31,6 +43,10 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /!loading && !error && !snapshot/);
   assert.doesNotMatch(page, /Math\.random|setInterval\(/);
 
+  assert.match(api, /export type AustriaLiveRuntimeQuality/);
+  assert.match(api, /runtime_quality: AustriaLiveRuntimeQuality \| null/);
+  assert.match(api, /estimated_cost_usd: number \| null/);
+  assert.match(api, /fresh_retrieval_provenance_present: boolean/);
   assert.match(api, /class LiveOrganizationRequestError extends Error/);
   assert.match(api, /this\.status = status/);
   assert.match(api, /throw new LiveOrganizationRequestError\(response\.status, detail\)/);
