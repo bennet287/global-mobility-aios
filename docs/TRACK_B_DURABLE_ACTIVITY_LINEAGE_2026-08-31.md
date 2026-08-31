@@ -4,7 +4,7 @@
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Classification:** Track B parallel product-experience refinement; **M remains NOT STARTED**
 **Implementation checkpoint before documentation:** `cc58d872424dc3d27ee9b5d9290c2093bcf8d3c0`
-**Local proof state for this tranche:** PENDING
+**Local proof state for this tranche:** OBSERVED at exact head `958b7965483878dbde6fcc91c75c5ed0b4049fc0`
 
 ## 1. Why this tranche exists
 
@@ -138,23 +138,36 @@ That exact-head run did **not** include the Playwright E2E suite. It is therefor
 
 GitHub Actions observed for `693c997...` ended with jobs that exposed no executable steps, so those labels remain infrastructure/runner-startup evidence rather than source-test results.
 
-## 5. Acceptance requirements for this tranche
+## 5. Observed exact-head acceptance proof
 
-Do not call this tranche locally proven until the current head is exercised with, at minimum:
+The user executed the tranche acceptance path on Windows PowerShell at exact head:
 
-1. `npm run test:design-foundation`;
-2. `npm run test:request-auth`;
-3. `npx tsc --noEmit`;
-4. `npm run build`;
-5. `npm run test:compiled-auth`;
-6. Live Organization Playwright E2E;
-7. repository policy;
-8. release consistency;
-9. Python dependency constraints;
-10. diff hygiene;
-11. `git diff --check`;
-12. exact local/remote head verification;
-13. frozen V11 verification.
+`958b7965483878dbde6fcc91c75c5ed0b4049fc0`
+
+Observed:
+
+```text
+frontend npm audit                       PASS — 0 vulnerabilities
+design-foundation tests                  PASS — 30 / 30
+request-auth tests                       PASS — 4 / 4
+TypeScript noEmit                        PASS
+Next.js production build                 PASS — 41 routes generated
+compiled-auth contract                   PASS
+Playwright Chromium E2E                  PASS — 5 / 5
+E2E npm audit                            PASS — 0 vulnerabilities
+repository policy                        PASS
+release consistency                      PASS
+Python dependency constraints            PASS — 27 direct dependencies
+diff hygiene                             PASS
+git diff --check                         PASS
+working tree / origin synchronization    PASS
+frozen V11                               PASS — ac130deaafa7aa44068e9459facbda2b4df327d6
+deep-R3 local backup                     PASS — 3a6fea2cbbf87d424459b81f1b168ecd6baaa312
+```
+
+The Node `MODULE_TYPELESS_PACKAGE_JSON` message during the request-auth test was a warning only; all four tests passed.
+
+This proof belongs only to `958b796...`. Later documentation or implementation commits do not inherit exact-head PASS automatically.
 
 ## 6. What remains genuinely open
 
