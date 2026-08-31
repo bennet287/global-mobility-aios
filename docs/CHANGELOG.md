@@ -8,6 +8,78 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.45 TECHNOLOGY RADAR V1.3.8 CONSOLIDATION
+
+### Status
+
+**DOCUMENTATION / CLASSIFICATION CONSOLIDATION COMPLETE / NO RUNTIME ADOPTION / NO R3 MERGE / L ACCEPTANCE UNCHANGED / M NOT STARTED**
+
+V1.3.7 completed the broad current-horizon technology inventory but left roughly fifty candidates visible across overlapping lanes. The separate scatter audit already recommended one incumbent plus one challenger per real seam, with the remainder trigger-bound, but those dispositions were not yet canonical Radar truth.
+
+V12.45 publishes:
+
+`docs/TECHNOLOGY_RADAR_V1_3_8.md`
+
+V1.3.8 applies the audit directly:
+
+```text
+Promptfoo          incumbent CI adversarial spine
+Inspect AI         structured-evaluation challenger
+Garak              live-model vulnerability challenger
+OpenTelemetry      observability incumbent
+Arize Phoenix      observability-platform challenger
+Semgrep            SAST incumbent
+CodeQL             SAST challenger
+OWASP ZAP          DAST incumbent
+Schemathesis       API-property challenger
+Trivy              dependency/container incumbent
+OSV-Scanner        dependency challenger
+Gitleaks           secret-scanning incumbent
+TruffleHog         verified-secret challenger
+Checkov            IaC incumbent
+KICS               IaC challenger
+Microsandbox       sandbox incumbent
+E2B                managed-sandbox challenger
+OpenFGA            relationship-auth incumbent benchmark
+SpiceDB            relationship-auth challenger
+OPA/Rego           contextual-policy incumbent benchmark
+Cedar              contextual-policy challenger
+Qdrant             retrieval incumbent
+pgvector           retrieval challenger
+```
+
+Overlapping candidates are no longer generic permanent `RESEARCH` entries. They are explicitly `HOLD_WITH_TRIGGER`, WATCH, DONOR_ONLY, REFERENCE/TARGET_CONTROL or REJECTED where appropriate.
+
+New persistence rule:
+
+> No candidate may remain generic RESEARCH across two Radar revisions.
+
+The authorization lane is split into two real seams instead of treating OpenFGA, SpiceDB, OPA and Cedar as four simultaneous alternatives:
+
+```text
+relationship authorization   OpenFGA ↔ SpiceDB
+contextual policy evaluation  OPA/Rego ↔ Cedar
+```
+
+No external engine receives constitutional, WorkItem, Evidence, policy or Board authority.
+
+Repository reconciliation also:
+
+- marks V1.3.7 as a superseded historical broad-inventory baseline;
+- marks the scatter audit COMPLETE / APPLIED;
+- makes V1.3.8 the ROADMAP and adoption-ledger technology-evaluation authority;
+- removes trailing whitespace from the V1.3.7/audit lines identified by local diff hygiene;
+- preserves zero Radar-caused runtime adoption;
+- records `radar/r3-authority` at `acd917670630abdfebe20f3f687a310f67d22b3f`;
+- records `radar/r3-security` at `d908a8c7ccde463ae0dec097211562e7ef8e86ca`;
+- records that `radar/r3-interop` was still absent from origin at verification time.
+
+The local interop worktree checkpoint `aad377e` cannot be pushed by the GitHub-side implementation because that commit object exists only in the user's local worktree. It remains a local recovery action.
+
+This V12.45 tranche changes documentation/classification only. It does not inherit or create technical PASS for the current head. The blind professional-review source repair still requires its canonical local regression/proof run, and the genuine independent Austria professional review remains the release-critical external gate.
+
+---
+
 ## 2026-08-31 — V12.44 BLIND PROFESSIONAL-REVIEW ACCEPTANCE-ORACLE REPAIR
 
 ### Status
