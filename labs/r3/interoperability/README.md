@@ -27,15 +27,15 @@ Deep coverage includes real client/server negotiation, tool listing, filtered
 discovery, per-call authority, denial before provider contact, malicious metadata,
 untrusted provider results, server identity mismatch and idempotent replay.
 
-Streamable HTTP/network reconnect remains a later transport-depth experiment.
+Streamable HTTP/network reconnect is implemented in `run_mcp_network.py` and remains execution-pending.
 
 
 ## A2A 1.0 / Python SDK 1.1.3
 
 The A2A deep fixture uses real SDK AgentCard/AgentSkill types,
-DefaultRequestHandlerV2, InMemoryTaskStore and task/artifact lifecycle. It is
-handler-level isolated proof; network JSON-RPC/gRPC, streaming subscription and
-cancel/resume remain explicit later depth.
+DefaultRequestHandlerV2, InMemoryTaskStore and task/artifact lifecycle. Network
+transport, streaming/cancel/resume depth is implemented in `run_a2a_network.py`
+and remains execution-pending.
 
 Because the A2A SDK has its own dependency floor, prefer an isolated lab
 environment if the main development environment is pinned to an older httpx.
@@ -54,3 +54,16 @@ The gateway treats Agent Cards, skills, task status and artifacts as untrusted
 remote observations. Skill inflation, fake owner approval, card version changes,
 cross-tenant requests and privileged local-action requests cannot grant local
 authority or create canonical WorkItems/effects.
+
+
+## Network-depth execution
+
+```powershell
+python -m labs.r3.interoperability.run_mcp_network `
+  --run-id mcp-network-20260831-001 `
+  --output labs/r3/interoperability/results/mcp-network-20260831-001.json
+
+python -m labs.r3.interoperability.run_a2a_network `
+  --run-id a2a-network-20260831-001 `
+  --output labs/r3/interoperability/results/a2a-network-20260831-001.json
+```
