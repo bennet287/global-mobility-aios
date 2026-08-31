@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-31  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / LOCAL EXACT-HEAD PROOF OBSERVED AT `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`  
+**Status:** IMPLEMENTED / LOCAL EXACT-HEAD PROOF OBSERVED AT `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
 **Product milestone effect:** NONE — L remains IMPLEMENTED / ACCEPTANCE PENDING; M remains NOT STARTED
 
 ## 1. Purpose
