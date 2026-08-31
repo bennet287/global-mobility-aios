@@ -103,6 +103,29 @@ function specialist(positionKey: string, index: number) {
     confidence: 0.92,
     provider_model_authority: false,
     external_action_authorized: false,
+    runtime_quality: {
+      contract_version: "austria-live-provider-quality.v1",
+      execution_mode: "live_provider",
+      provider_outcome: "success",
+      configured_provider: "gemini",
+      configured_model: "gemini-3.7-flash",
+      response_provider: "gemini",
+      response_model: "gemini-3.7-flash",
+      configured_runtime_matches_binding: true,
+      provider_egress_occurred: true,
+      fallback_to_template: false,
+      prompt_tokens: 800 + index * 10,
+      completion_tokens: 200 + index * 10,
+      total_tokens: 1000 + index * 20,
+      estimated_cost_usd: 0.002 + index * 0.0005,
+      grounding_state: "fresh_retrieval",
+      evidence_ref_count: 1,
+      verified_rule_ref_count: 1,
+      source_snapshot_ref_count: 1,
+      fresh_retrieval_provenance_present: true,
+      provider_model_authority: false,
+      warnings: [],
+    },
   };
 }
 
@@ -179,6 +202,7 @@ function completedSnapshot() {
         source_object_version: null,
         work_item_id: ROOT_ID,
         trace_id: null,
+        causation_activity_id: null,
         occurred_at: "2026-08-22T20:01:00Z",
       },
     ],
@@ -255,6 +279,8 @@ test("executes the bounded owner command and reloads persisted completion", asyn
   const command = page.getByRole("button", { name: "Record bounded owner synthesis" });
   await expect(command).toBeEnabled();
   await expect(page.getByText("Owner synthesis is ready for a Board-authorized command.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Persisted specialist runtime signals" })).toBeVisible();
+  await expect(page.getByText("gemini · gemini-3.7-flash").first()).toBeVisible();
 
   await command.click();
 
@@ -263,6 +289,9 @@ test("executes the bounded owner command and reloads persisted completion", asyn
   await expect(command).toBeDisabled();
   await expect(page.getByText("Human review is required.")).toBeVisible();
   await expect(page.getByText("Not authorized", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Persisted organizational activity" })).toBeVisible();
+  await expect(page.getByText("Austria owner synthesis", { exact: true })).toBeVisible();
+  await expect(page.getByText("No persisted causation link", { exact: false })).toBeVisible();
 
   const latestRequest = recorded.find((item) => item.method === "GET" && item.path === LATEST_PATH);
   const postRequest = recorded.find((item) => item.method === "POST" && item.path === OWNER_PATH);
