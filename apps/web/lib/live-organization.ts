@@ -90,6 +90,7 @@ export type AustriaLiveActivity = {
   source_object_version: string | null;
   work_item_id: string | null;
   trace_id: string | null;
+  causation_activity_id: string | null;
   occurred_at: string;
 };
 
