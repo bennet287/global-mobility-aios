@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-31  
 **Branch:** `roadmap/global-mobility-aios-v12`  
-**Status:** IMPLEMENTED / LOCAL-CI PROOF PENDING  
+**Status:** IMPLEMENTED / LOCAL EXACT-HEAD PROOF OBSERVED AT `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`  
 **Product milestone effect:** NONE — L remains IMPLEMENTED / ACCEPTANCE PENDING; M remains NOT STARTED
 
 ## 1. Purpose
@@ -83,7 +83,7 @@ inverted route-scope mutant
 
 This repair changes only the Wave E4 mutation-strength harness. Production evaluator logic, authority semantics, source validation and corroboration behavior are unchanged.
 
-The failed local run is retained as useful evidence that the mutation gate itself was capable of refusing an invalid proof configuration. No PASS is claimed for the repaired head until the local suite is rerun.
+The failed local run is retained as useful evidence that the mutation gate itself was capable of refusing an invalid proof configuration. The repaired head was subsequently rerun locally at exact head `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72` and passed the declared mutation gate, focused suite, full backend suite and repository gates documented below.
 
 ## 5. Why this is mutation testing rather than another input-mutation suite
 
@@ -134,14 +134,14 @@ python scripts/check_python_dependency_constraints.py
 python scripts/check_diff_hygiene.py
 ```
 
-The connected GitHub implementation environment does not execute the repository Python runtime, so no local PASS, full backend PASS, Woodpecker PASS or exact-current-head acceptance is claimed by this receipt until observed externally.
+Observed local exact-head proof at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`: Wave E2 adversarial contract PASS 17/17; Wave E4 mutation gate PASS with 8/8 selected mutants killed and 0 survived; focused suite PASS 25 tests; full backend PASS 1328 passed / 22 skipped; repository policy, release consistency, Python dependency constraints and diff hygiene all PASS. GitHub Actions failure labels for this head corresponded to jobs with zero executed steps / no runner identity and therefore remain infrastructure/runner-startup evidence, not repository-test failure.
 
 ## 8. Current evaluation ladder
 
 ```text
 Wave E2 deterministic adversarial input mutation     implemented / locally proven at historical head 285a7f08...
 Wave E3 property/invariant testing                    implemented / locally proven at historical head 285a7f08...
-Wave E4 implementation mutation strength              implemented / repaired after local oracle failure / proof pending
+Wave E4 implementation mutation strength              implemented / repaired / locally proven at 5d8e940e...
 next bounded candidate                                fuzzing
 ```
 
