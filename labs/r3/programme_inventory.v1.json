@@ -4,7 +4,7 @@
   "programme": "Technology Radar V1.3.6 deep validation",
   "claim_boundary": "IMPLEMENTATION INVENTORY ONLY; execution evidence and R4 decisions remain separate",
   "branch_heads": {
-    "radar/r3-authority": "4b04c97f911fb263471a614457b3b9f7aac8190c",
+    "radar/r3-authority": "77b90b4ca644525d19b07244c3e57f00b3bec1a6",
     "radar/r3-security": "d908a8c7ccde463ae0dec097211562e7ef8e86ca",
     "radar/r3-skills": "4791546f5e23acbfc375fd8b0cb142e9f7b445a4",
     "radar/r3-interop-deep": "9637854aeb92dba9805fd807bcd4ea4b7d99120e",
