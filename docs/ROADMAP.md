@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.47 — project-state dashboard + recovery/hygiene reconciliation; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.48 — V12.47 administration exact-head proof recorded; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -15,6 +15,7 @@
 **Track B durable activity-lineage tranche:** `TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
 **L blind professional-review handoff hardening:** `L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 **L blind professional-review local proof:** `L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
+**V12.47 administration local proof:** `V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
@@ -78,6 +79,8 @@ Before recruiting the reviewer, V12.43 hardens the existing professional-review 
 The repaired handoff is now locally proven at stable exact head `d969c7dad28bd3e944d1ef6aea7170fcd67a34e0`: 19 focused professional-review tests passed, reviewer-packet blindness and fail-closed untouched-return behavior passed, the full backend suite reported 1332 passed / 22 skipped, repository gates passed, start/end HEAD remained identical, and the worktree remained clean. This is technical handoff proof only; it is not professional Austria correctness evidence.
 
 The blind reviewer packet and blank return template have also been generated successfully in the local operator worktree. These files are reproducible handoff artifacts only; they contain no genuine reviewer identity, credential, findings, or professional correctness evidence. The next L gate therefore remains external human review.
+
+The V12.47 administration/recovery layer is locally proven at exact head `80deef2618038799caa39674ebfc3d92126cfe0f`: dashboard/hand-off whitespace checks, recovery-order authority checks, repository policy/consistency/dependency/diff-hygiene gates, stable start/end SHA, frozen V11, R3 branch preservation and deep-R3 backup all passed. The operator worktree's broad `/.local/` entry in `.git/info/exclude` is documented as local-only hygiene debt; repository `.gitignore` remains intentionally narrow at `.local/professional-review/`.
 
 The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15dccb1a22fa35b3998` / Woodpecker PR Pipeline #77 4/4 PASS. It is historical proof only and must not be relabeled as proof for a later head.
 
