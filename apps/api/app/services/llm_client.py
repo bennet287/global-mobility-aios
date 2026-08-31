@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 
 from app.core.config import settings
+from app.core.secrets import SecretResolutionError, resolve_runtime_secret
 
 
 @dataclass
@@ -62,6 +63,22 @@ class LLMProviderTransportError(LLMProviderError):
 
 class LLMProviderResponseContractError(LLMProviderError):
     """Provider returned a response that cannot satisfy the adapter response contract."""
+
+
+def _setting_text(name: str) -> str:
+    value = getattr(settings, name, "")
+    return value if isinstance(value, str) else ""
+
+
+def _provider_api_key(*, value_setting: str, reference_setting: str) -> str:
+    fallback = _setting_text(value_setting)
+    reference = _setting_text(reference_setting)
+    try:
+        return resolve_runtime_secret(reference=reference, fallback=fallback)
+    except SecretResolutionError as exc:
+        raise LLMProviderConfigurationError(
+            f"{value_setting} secret reference could not be resolved."
+        ) from exc
 
 
 class LLMProvider(ABC):
@@ -178,7 +195,14 @@ class DeepSeekProvider(_OpenAICompatibleProvider):
         base_url: str | None = None,
     ):
         super().__init__(
-            api_key=settings.deepseek_api_key if api_key is None else api_key,
+            api_key=(
+                _provider_api_key(
+                    value_setting="deepseek_api_key",
+                    reference_setting="deepseek_api_key_ref",
+                )
+                if api_key is None
+                else api_key
+            ),
             default_model=settings.deepseek_model if model is None else model,
             base_url=settings.deepseek_base_url if base_url is None else base_url,
         )
@@ -195,7 +219,14 @@ class MoonshotProvider(_OpenAICompatibleProvider):
         base_url: str | None = None,
     ):
         super().__init__(
-            api_key=settings.moonshot_api_key if api_key is None else api_key,
+            api_key=(
+                _provider_api_key(
+                    value_setting="moonshot_api_key",
+                    reference_setting="moonshot_api_key_ref",
+                )
+                if api_key is None
+                else api_key
+            ),
             default_model=settings.moonshot_model if model is None else model,
             base_url=settings.moonshot_base_url if base_url is None else base_url,
         )
@@ -218,7 +249,14 @@ class GeminiProvider(_OpenAICompatibleProvider):
         base_url: str | None = None,
     ):
         super().__init__(
-            api_key=settings.gemini_api_key if api_key is None else api_key,
+            api_key=(
+                _provider_api_key(
+                    value_setting="gemini_api_key",
+                    reference_setting="gemini_api_key_ref",
+                )
+                if api_key is None
+                else api_key
+            ),
             default_model=settings.gemini_model if model is None else model,
             base_url=settings.gemini_base_url if base_url is None else base_url,
         )
