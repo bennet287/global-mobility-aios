@@ -308,15 +308,17 @@ By the next revision it must have a trigger-bound status, a bounded pilot, incum
 
 The R3 authority/security branches are research/benchmark lanes, not justification for indefinite expansion.
 
-Current verified remote branch heads at the start of this consolidation:
+Verified R3 branch preservation truth:
 
 ```text
 radar/r3-authority   acd917670630abdfebe20f3f687a310f67d22b3f
 radar/r3-security    d908a8c7ccde463ae0dec097211562e7ef8e86ca
-radar/r3-interop     not present on origin at verification time
+radar/r3-interop     aad377e401b10a95b11440442831290c5c60a9f2
 ```
 
-Authority R3 must converge on its closure evidence/runbook rather than continuously adding policy engines. Security R3 should execute its defined external-tool shootout or record explicit tool/environment blockers. Interop remains recoverability-sensitive until its local branch is pushed.
+At the start of V1.3.8 consolidation, interop was not present on origin. It was subsequently pushed from the local worktree and is now recoverable remotely. That preservation does not merge the R3 lane into V12 and does not promote any Radar candidate.
+
+Authority R3 must converge on its closure evidence/runbook rather than continuously adding policy engines. Security R3 should execute its defined external-tool shootout or record explicit tool/environment blockers. Interop recoverability risk is closed by the remote branch push; integration/adoption remains explicitly unscheduled.
 
 R3 evidence does not seal L and must not displace the independent professional Austria review.
 
