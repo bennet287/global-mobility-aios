@@ -124,7 +124,10 @@ def _probe_authority_fail_closed(module: types.ModuleType) -> bool:
 
 def _probe_route_fail_closed(module: types.ModuleType) -> bool:
     payload = _valid_payload(module)
-    payload["reviews"][0]["pathway_key"] = "invented-authority-route"  # type: ignore[index]
+    # Mutate every review so an inverted scope guard cannot appear safe merely by
+    # rejecting a different, still-valid review later in the same payload.
+    for review in payload["reviews"]:  # type: ignore[index]
+        review["pathway_key"] = "invented-authority-route"
     return _validation_rejects(module, payload)
 
 
