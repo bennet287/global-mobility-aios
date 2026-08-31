@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.40 / Track B anti-duplication + canonical runtime-economics Cockpit slice
+**Latest reconciliation:** V12.41 / Track B canonical durable activity-lineage Cockpit slice
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
 **Delivery history:** `docs/CHANGELOG.md`
@@ -51,6 +51,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Docling | pilot in progress |
 | Qdrant | current semantic-retrieval platform capability / comparison baseline |
 | Austria Live Organization runtime quality | AIOS Board-safe transparency projection already exposes provider/model outcome, tokens, estimated provider cost, grounding/provenance and fallback state; Track B web presentation now consumes this native projection rather than adding donor telemetry truth |
+| Austria Live Organization durable activity lineage | canonical OrganizationActivity + Board-transparency causation/trace projection already exists; Track B now renders that lineage in the Cockpit instead of adding Munder/provider transcript/event truth |
 
 ## 3. V1.3.7 explicit challengers — Radar entry alone is not adoption
 
