@@ -46,10 +46,12 @@ Radar presence is not dependency presence. Benchmark success is not adoption. Ex
 | DeepTeam | **RESEARCH / RED-TEAM BENCHMARK CANDIDATE** | compare vulnerability/attack breadth and CI ergonomics against Promptfoo/Garak/PyRIT |
 | FuzzyAI-class LLM fuzzing | **RESEARCH / SPECIALIZED FUZZ BENCHMARK** | whether automated adversarial fuzzing finds failures deterministic suites miss |
 | ToolSandbox / AgentDojo-style evaluation | **PRIORITY RESEARCH / BEHAVIORAL BENCHMARK METHODS** | evaluate real tool-use state transitions and behavioral evidence, not only verbal answers |
-| Hypothesis | **BENCHMARK / HIGH-PRIORITY ENGINEERING CANDIDATE** | property/invariant proof on governance/evaluation seams |
+| Hypothesis | **BOUNDED PILOT IMPLEMENTED / LOCAL-CI PROOF PENDING** | generated property/invariant proof on governance/evaluation seams; see Wave E3 receipt |
 | mutmut/equivalent | **RESEARCH / BOUNDED PILOT CANDIDATE** | measure whether tests kill meaningful logic mutations |
 | Atheris/equivalent | **RESEARCH / BOUNDED FUZZ PILOT CANDIDATE** | malformed parser/contract/input resilience |
 | deterministic fault injection | **PRIORITY ENGINEERING APPROACH** | first-party provider/storage/network failure assurance before chaos-platform adoption |
+
+Wave E3 is recorded in `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md`. Hypothesis is a test-only dependency and does not enter production runtime authority or Evidence semantics.
 
 Evaluation ladder remains:
 
@@ -196,6 +198,7 @@ ClamAV pilot                              exists
 SecretsPort                               exists
 non-production OpenBao adapter            exists
 Wave E2 adversarial contract gate         exists
+Wave E3 Hypothesis property suite         implemented / proof pending
 Docling pilot                             in progress
 Qdrant platform capability                exists
 ```
@@ -239,10 +242,12 @@ It does **not** authorize implementation of the backlog. ROADMAP scheduling rema
 Technology Radar V1.3.7                    COMPLETE / ACTIVE CANONICAL RADAR
 runtime adoption caused by V1.3.7          NONE
 Wave E2 deterministic adversarial gate     IMPLEMENTED / LOCAL-CI PROOF PENDING
+Wave E3 property/invariant testing          IMPLEMENTED / LOCAL-CI PROOF PENDING
+Hypothesis production runtime adoption      NONE
 professional Austria review                PENDING
 final exact-current-head technical proof   PENDING
 L overall                                  IMPLEMENTED / ACCEPTANCE PENDING
 M                                          NOT STARTED
 ```
 
-The next product work may proceed only after repository reconciliation for this Radar revision. The Radar itself should now return to continuous scouting mode rather than expanding indefinitely before L acceptance.
+The Radar itself remains in continuous scouting mode rather than expanding indefinitely before L acceptance. Supporting evaluation-hardening work may continue when it directly strengthens the current L proof path and does not displace the professional-review acceptance gate.
