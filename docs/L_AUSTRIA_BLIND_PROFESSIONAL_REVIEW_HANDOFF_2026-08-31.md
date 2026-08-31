@@ -205,7 +205,58 @@ deep-R3 local backup                      PASS — 3a6fea2cbbf87d424459b81f1b168
 
 That exact-head proof is historical documentation-only evidence and does not prove the later blind-review source changes.
 
-## 10. Acceptance boundary
+## 10. First local acceptance attempt and repair
+
+The first local V12.43 acceptance attempt at exact head
+`b711ab619f3d80e077270900a8922651b2ecc964` did **not** pass and must not be recorded as green proof.
+
+Observed focused professional-review result:
+
+```text
+18 passed
+1 failed
+1 warning
+```
+
+The failing test was:
+
+`test_blind_assessment_derives_confirmed_only_after_return`
+
+The canonical output and source labels were semantically equal, but the test asserted raw list equality. The professional-review model stores several label dimensions as sets and `_labels_payload(...)` serializes them in sorted order, while the source benchmark JSON preserved authoring order. The failure therefore showed order differences such as:
+
+```text
+["applicable_minimum_remuneration", "binding_job_offer"]
+vs
+["binding_job_offer", "applicable_minimum_remuneration"]
+```
+
+Repair:
+
+`apps/api/tests/test_professional_review_cli.py`
+
+The test helper now sorts all list-valued source-label dimensions before comparing them with canonical serialized output. Production compiler logic, blind-review decisions, fingerprints, authority boundaries and review semantics are unchanged.
+
+The same acceptance attempt also exposed an operator-command defect in the ad-hoc PowerShell verification snippet. Passing a PowerShell here-string directly after `python -c` stripped Python string quoting and caused `SyntaxError`. That was an acceptance-command construction error, not a repository/product failure.
+
+Future acceptance commands must therefore use PowerShell-native JSON assertions or a safe stdin/script invocation rather than the failed `python -c @'... '@` pattern.
+
+The fail-closed untouched-return check **did** behave correctly during the failed attempt: the compiler returned exit code `2`, reported `review_batch_id must be a non-empty string`, and did not create canonical review evidence.
+
+The full backend run was started after the earlier failures, but the supplied transcript ends while pytest is still printing progress dots. No full-backend PASS is claimed from that attempt.
+
+Current state after repair:
+
+```text
+blind handoff implementation          IMPLEMENTED
+test-oracle order repair              IMPLEMENTED
+local focused proof after repair      PENDING
+full backend proof after repair       PENDING
+repository gates after repair         PENDING
+professional Austria review           PENDING
+L acceptance                          PENDING
+```
+
+## 11. Acceptance boundary
 
 This change means only:
 
