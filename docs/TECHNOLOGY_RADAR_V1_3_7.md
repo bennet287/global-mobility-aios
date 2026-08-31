@@ -47,7 +47,7 @@ Radar presence is not dependency presence. Benchmark success is not adoption. Ex
 | FuzzyAI-class LLM fuzzing | **RESEARCH / SPECIALIZED FUZZ BENCHMARK** | whether automated adversarial fuzzing finds failures deterministic suites miss |
 | ToolSandbox / AgentDojo-style evaluation | **PRIORITY RESEARCH / BEHAVIORAL BENCHMARK METHODS** | evaluate real tool-use state transitions and behavioral evidence, not only verbal answers |
 | Hypothesis | **BOUNDED PILOT IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...** | generated property/invariant proof on governance/evaluation seams; see Wave E3 receipt |
-| mutation testing / mutmut challenger | **FIRST-PARTY BOUNDED PILOT IMPLEMENTED / MUTMUT EXTERNAL CHALLENGER DEFERRED** | selected semantic implementation mutations now measure test strength; broader mutmut campaign remains Linux/CI demand-gated |
+| mutation testing / mutmut challenger | **FIRST-PARTY BOUNDED PILOT IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e... / MUTMUT EXTERNAL CHALLENGER DEFERRED** | selected semantic implementation mutations now measure test strength; 8/8 selected mutants killed locally; broader mutmut campaign remains Linux/CI demand-gated |
 | Atheris/equivalent | **RESEARCH / BOUNDED FUZZ PILOT CANDIDATE** | malformed parser/contract/input resilience |
 | deterministic fault injection | **PRIORITY ENGINEERING APPROACH** | first-party provider/storage/network failure assurance before chaos-platform adoption |
 
@@ -201,7 +201,7 @@ SecretsPort                               exists
 non-production OpenBao adapter            exists
 Wave E2 adversarial contract gate         implemented / local proof observed at 285a7f08...
 Wave E3 Hypothesis property suite         implemented / local proof observed at 285a7f08...
-Wave E4 mutation-strength gate            implemented / current-head local proof pending
+Wave E4 mutation-strength gate            implemented / local proof observed at 5d8e940e...
 Docling pilot                             in progress
 Qdrant platform capability                exists
 ```
@@ -246,7 +246,7 @@ Technology Radar V1.3.7                    COMPLETE / ACTIVE CANONICAL RADAR
 runtime adoption caused by V1.3.7          NONE
 Wave E2 deterministic adversarial gate     IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E3 property/invariant testing          IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
-Wave E4 mutation-strength gate              IMPLEMENTED / LOCAL-CURRENT-HEAD PROOF PENDING
+Wave E4 mutation-strength gate              IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e...
 Hypothesis production runtime adoption      NONE
 external mutation engine adoption           NONE
 professional Austria review                PENDING
