@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.47 / project-state administration reconciliation; technology truth unchanged
+**Latest reconciliation:** V12.48 / V12.47 administration exact-head proof recorded; technology truth unchanged
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -174,3 +174,5 @@ M                                        NOT STARTED
 ```
 
 ROADMAP remains the implementation scheduler.
+
+Administration note: V12.47 PROJECT_STATE/recovery exact-head proof passed at `80deef2...`. This did not change any technology adoption state. The operator-local `.git/info/exclude` broad `/.local/` entry is local hygiene only and is not an AIOS adoption/runtime fact.
