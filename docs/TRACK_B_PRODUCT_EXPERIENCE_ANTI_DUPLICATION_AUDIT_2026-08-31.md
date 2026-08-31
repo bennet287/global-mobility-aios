@@ -36,7 +36,7 @@ Track B work may improve the existing L product experience while L acceptance co
 | B2 event synchronization | Munder programme identifies event synchronization as donor mechanics only; AIOS must own event semantics | GAP / demand-gated; no parallel event truth |
 | B2 transcripts / tool activity | Munder programme identifies transcripts/tool timelines as future transparency inputs; existing `OrganizationActivity` transparency already provides durable activity lineage and the Cockpit now renders that persisted lineage | CANONICAL ACTIVITY LINEAGE IMPLEMENTED; provider transcripts/tool logs remain deferred and non-canonical unless explicitly governed |
 | B2 live employee/runtime representation | `/api/v1/organization/transparency/live-organization/austria/latest` and `/cockpit/live-organization` already project persisted owner/specialist execution, readiness, blockers, latency, retries, lineage and authority posture | IMPLEMENTED for current Austria L slice; extend rather than replace |
-| B2 collaboration visualization | No accepted current Cockpit collaboration visualization was identified in this audit | GENUINE FUTURE GAP; must derive from canonical activity/work relationships |
+| B2 collaboration / coordination visualization | deeper re-audit found existing canonical hierarchy focus, WorkItem dependency edges, cross-department friction, durable activity context and governed follow-up surfaces | EXISTING MULTI-SURFACE FOUNDATION; do not add a parallel collaboration graph/state store; only refine against a specific unmet user need |
 | B2 cost/runtime telemetry | Backend `AustriaLiveRuntimeQualityRead` already exposes provider/model outcome, tokens, estimated cost, grounding/provenance and fallback state, but the web client previously omitted the runtime-quality type and UI | NATIVE DATA EXISTS; expose it rather than import donor telemetry state |
 | Munder/CopilotKit/AG-UI runtime dependency | `apps/web/package.json` contains Next/React/Tesseract only for runtime dependencies; no Munder, CopilotKit or AG-UI package is installed on this canonical line | NOT ADOPTED; do not infer adoption from Radar/donor docs |
 
@@ -126,7 +126,7 @@ The following remain separate future slices and are not claimed by this tranche:
 - canonical employee presence / heartbeat mechanics;
 - event synchronization transport;
 - provider transcript and tool-call capture/visualization beyond current durable OrganizationActivity lineage;
-- collaboration visualization;
+- richer collaboration-specific visualization beyond the existing organization-focus, dependency and cross-department-friction surfaces;
 - Living Organization scene mechanics;
 - broader AI Economics aggregation/history;
 - Storybook adoption;
@@ -135,7 +135,54 @@ The following remain separate future slices and are not claimed by this tranche:
 
 These should be implemented only after another anti-duplication check demonstrates a concrete gap and a bounded acceptance test.
 
-## 7. Acceptance scope
+## 7. Deeper collaboration re-audit
+
+A later repository-wide Track B pass rechecked the earlier `GENUINE FUTURE GAP` classification for collaboration visualization.
+
+The first audit was too narrow because it focused on the Austria Live Organization page. The wider canonical frontend already contains:
+
+```text
+OrganizationPosition.reports_to_position_key
+  → Cockpit organizationFocusView hierarchy / executive portfolios / operational domains
+
+OrganizationWorkItemDependency
+  → Cockpit active-dependency lane
+  → cross-department dependency detection
+  → downstream/upstream department links
+
+OrganizationBlocker + HumanActionRequest
+  → cross-department friction and governed follow-up
+
+OrganizationActivity
+  → Cockpit durable activity stream
+  → cross-department recent durable signal
+  → Austria Live Organization durable lineage
+```
+
+Therefore a new generic Munder-style collaboration store, group model or scene would duplicate existing AIOS-owned organization/work/activity semantics.
+
+Current decision:
+
+```text
+canonical coordination relationships       EXISTING
+cross-department dependency visualization   EXISTING
+organization hierarchy/focus visualization  EXISTING
+durable activity context                    EXISTING
+generic donor collaboration state           REJECT / NOT NEEDED
+richer collaboration UX                     DEMAND-GATED REFINEMENT ONLY
+```
+
+This does not claim that every possible collaboration UX is complete. It means future work must identify a concrete user problem that the existing hierarchy/dependency/friction/activity surfaces cannot solve before introducing another visualization.
+
+The remaining unimplemented Munder-derived candidates are intentionally not started now:
+
+- employee presence/heartbeat — no accepted canonical presence semantic yet;
+- event-synchronization transport — no demonstrated transport gap requiring a second event system;
+- provider transcript/tool capture — must not bypass canonical OrganizationActivity and evidence/privacy boundaries;
+- Living Organization scene/animation — must be runtime-derived and should wait for a proven user need;
+- broader AI Economics history — requires a separate product/analytics need and should not be smuggled in as a visual-only Track B change.
+
+## 8. Acceptance scope
 
 The Track B tranche is accepted only when repository/local proof confirms:
 
@@ -149,7 +196,7 @@ The Track B tranche is accepted only when repository/local proof confirms:
 
 This is **not** evidence that milestone M started or that Munder/CopilotKit/AG-UI were adopted.
 
-## 8. Second genuine gap selected — durable activity lineage presentation
+## 9. Second genuine gap selected — durable activity lineage presentation
 
 A second anti-duplication pass found that the backend already persisted and projected canonical `OrganizationActivity` records, including Board-safe trace/causation fields, while the Live Organization web surface only displayed `activity_count` and did not render `snapshot.activities`.
 
