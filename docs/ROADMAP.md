@@ -1,8 +1,9 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.46 — blind professional-review local proof observed + R3 interop preserved; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.47 — project-state dashboard + recovery/hygiene reconciliation; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
+**Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
 **Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
 **Final V11 documentation-cleanup head:** `ac130deaafa7aa44068e9459facbda2b4df327d6`
@@ -75,6 +76,8 @@ Already accepted/implemented L evidence includes real configured-provider succes
 Before recruiting the reviewer, V12.43 hardens the existing professional-review path against answer anchoring. The reviewer-facing packet now excludes benchmark `source_labels` and `source_rationale`; the reviewer returns independent labels (or DISPUTED / NEEDS_MORE_FACTS), and AIOS derives canonical CONFIRMED versus CORRECTED only after return through the existing `mobility-professional-review-v1` compiler. No review has been fabricated or completed by this change.
 
 The repaired handoff is now locally proven at stable exact head `d969c7dad28bd3e944d1ef6aea7170fcd67a34e0`: 19 focused professional-review tests passed, reviewer-packet blindness and fail-closed untouched-return behavior passed, the full backend suite reported 1332 passed / 22 skipped, repository gates passed, start/end HEAD remained identical, and the worktree remained clean. This is technical handoff proof only; it is not professional Austria correctness evidence.
+
+The blind reviewer packet and blank return template have also been generated successfully in the local operator worktree. These files are reproducible handoff artifacts only; they contain no genuine reviewer identity, credential, findings, or professional correctness evidence. The next L gate therefore remains external human review.
 
 The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15dccb1a22fa35b3998` / Woodpecker PR Pipeline #77 4/4 PASS. It is historical proof only and must not be relabeled as proof for a later head.
 
