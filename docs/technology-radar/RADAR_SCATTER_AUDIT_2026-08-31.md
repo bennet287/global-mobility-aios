@@ -1,11 +1,11 @@
 # Global Mobility AIOS — Technology Radar Scatter and Duplication Audit
 
-**Date:** 2026-08-31  
-**Radar revision audited:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
-**Status:** COMPLETE / ACTION REQUIRED  
+**Date:** 2026-08-31
+**Radar revision audited:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`
+**Status:** COMPLETE / APPLIED BY `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Purpose:** Identify overlap, reduce decision debt, and prevent parallel work on functionally identical seams.
 
-> **V1.3.7 completed the broad inventory. This audit begins the consolidation.**
+> **V1.3.7 completed the broad inventory. V1.3.8 applies this consolidation as canonical Radar truth.**
 
 ---
 
@@ -207,15 +207,15 @@ Everything else is **HOLD_WITH_TRIGGER** or **REJECTED**.
 
 ---
 
-## 5. Recommended Radar V1.3.8 action
+## 5. Radar V1.3.8 application record
 
-1. Update `docs/TECHNOLOGY_RADAR_V1_3_7.md` or publish `docs/TECHNOLOGY_RADAR_V1_3_8.md` with the consolidated seam map.
-2. Change every non-incumbent/non-challenger status from "RESEARCH / BENCHMARK CANDIDATE" to either:
-   - `HOLD_WITH_TRIGGER`
-   - `REJECT`
-   - `MERGED INTO <incumbent/challenger>`
-3. Add a rule: no candidate may remain in `RESEARCH` for more than one Radar revision without a trigger or rejection.
-4. Update `docs/TECHNOLOGY_ADOPTION_LEDGER.md` with the rejections so future sessions do not revive them.
+Applied in `docs/TECHNOLOGY_RADAR_V1_3_8.md`:
+
+1. the consolidated seam map is now part of the canonical Radar;
+2. overlapping generic RESEARCH entries are converted to incumbent/challenger, `HOLD_WITH_TRIGGER`, WATCH, donor/reference/control, or REJECTED states;
+3. the Radar now forbids generic RESEARCH from persisting across two revisions without an explicit trigger-bound disposition;
+4. the adoption ledger is reconciled so future sessions do not revive held candidates as missing capability;
+5. the authorization lane is split into relationship authorization (OpenFGA ↔ SpiceDB) and contextual policy evaluation (OPA ↔ Cedar), preserving one incumbent + one challenger per seam rather than treating four engines as one undifferentiated race.
 
 ---
 
