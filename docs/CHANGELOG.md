@@ -8,6 +8,57 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.41 TRACK B DURABLE ACTIVITY LINEAGE
+
+### Status
+
+**IMPLEMENTED / CURRENT-HEAD LOCAL + BROWSER PROOF PENDING / CANONICAL AIOS ACTIVITY REUSED / NO MUNDER RUNTIME ADOPTION / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
+
+A Track B anti-duplication pass found that the Austria Live Organization backend already returned durable Board-safe `OrganizationActivity` records, trace identifiers and causation fields, while the Cockpit only displayed the activity count. The missing product capability was presentation of existing lineage, not a new event/transcript system.
+
+Implemented:
+
+```text
+apps/web/lib/live-organization.ts
+  mirror existing causation_activity_id
+
+apps/web/app/cockpit/live-organization/page.tsx
+  render snapshot.activities as Durable activity lineage
+  show actor/position, activity type, WorkItem, trace and persisted causation
+  retain explicit non-authority wording for provider transcripts/tool logs/donor events
+  tolerate null/absent legacy runtime_quality fixture values
+
+apps/web/scripts/live-organization-surface.test.mjs
+  guard canonical activities/causation presentation
+  guard provider transcript/tool/donor non-authority boundary
+
+apps/web/e2e/tests/live-organization.spec.ts
+  refresh stale runtime_quality fixture
+  exercise runtime-economics presentation
+  exercise persisted activity-lineage presentation
+```
+
+No backend persistence/schema, donor event bus, transcript database, presence timer, Munder package, CopilotKit/AG-UI package or collaboration authority was added.
+
+Permanent boundary:
+
+```text
+provider transcript != canonical OrganizationActivity automatically
+TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
+```
+
+The previous V12.40 runtime-economics tranche was locally exercised at exact head `693c9975995bf8fc6388773d120594e5a1a75447` with 30/30 design-foundation tests, 4/4 request-auth tests, compiled-auth, TypeScript, Next.js build, repository policy, release consistency, dependency constraints, diff hygiene and git diff checks all passing. That run did not execute Playwright E2E and does not prove this later V12.41 head.
+
+Dedicated record:
+
+`docs/TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
+
+Remaining Track B gaps stay demand-gated: canonical presence/heartbeat, event synchronization transport, provider transcript/tool capture beyond durable activity lineage, semantic collaboration visualization, Living Organization scene mechanics and broader AI Economics history.
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; genuine independent professional Austria review and final post-review exact-current-head proof remain release-critical. M remains `NOT STARTED`.
+
+---
+
 ## 2026-08-31 — V12.39 WAVE E4 LOCAL PROOF OBSERVED
 
 ### Status
