@@ -8,6 +8,37 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.39 WAVE E4 LOCAL PROOF OBSERVED
+
+### Status
+
+**LOCAL EXACT-HEAD TECHNICAL PROOF OBSERVED AT `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72` / WAVE E4 PASS / FULL BACKEND PASS / CI RUNNER STARTUP FAILURE REMAINS INFRASTRUCTURE-ONLY / L ACCEPTANCE STATUS UNCHANGED / M NOT STARTED**
+
+Observed local proof on Windows PowerShell / CPython at exact head `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`:
+
+```text
+dependency install/check                       PASS — no broken requirements
+compileall                                     PASS
+Wave E2 adversarial contract                   PASS — 17 / 17 scenarios
+Wave E4 bounded semantic mutation strength     PASS — 8 / 8 mutants killed; 0 survived
+focused AI-domain + v10.22 regression suite    PASS — 25 tests
+full backend suite                             PASS — 1328 passed / 22 skipped
+repository policy                              PASS
+release consistency                            PASS
+Python dependency constraints                  PASS — 27 direct dependencies
+diff hygiene                                   PASS
+git diff --check                               PASS
+working tree / local-vs-origin                  clean and synchronized
+```
+
+The recurring Pydantic `model_metadata_json` protected-namespace warning remained non-failing and is not promoted to a source defect by this proof.
+
+GitHub Actions for this exact head reported failure labels but the observed jobs had zero executed steps / no runner identity. Per repository proof semantics, those runs are infrastructure/runner-startup evidence rather than repository-test failures and do not negate the local technical proof.
+
+This checkpoint does **not** seal L. Genuine independent professional Austria review and the final post-review exact-current-head technical proof remain mandatory.
+
+---
+
 ## 2026-08-31 — V12.38 WAVE E4 MUTATION-ORACLE REPAIR
 
 ### Status
