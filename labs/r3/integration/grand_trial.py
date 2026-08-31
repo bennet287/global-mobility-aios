@@ -25,6 +25,22 @@ REQUIRED_LANES = {
     "ui",
 }
 
+LANE_MINIMUM_TIERS = {
+    "authority": {"T1", "T2", "T3", "T5", "T6", "T8"},
+    "interoperability": {"T1", "T2", "T3", "T5"},
+    "security": {"T1", "T4"},
+    "skills": {"T2", "T3", "T8"},
+    "sandbox": {"T1", "T2", "T3", "T5"},
+    "observability": {"T1", "T2", "T5"},
+    "secrets": {"T1", "T2", "T3", "T5"},
+    "recovery": {"T3", "T5", "T8"},
+    "memory": {"T1", "T2", "T3", "T6"},
+    "orchestration": {"T1", "T2", "T3", "T5", "T8"},
+    "ui": {"T1", "T2", "T4", "T5"},
+}
+
+INVENTORY_PATH = Path(__file__).resolve().parents[1] / "programme_inventory.v1.json"
+
 
 def _git_sha() -> str:
     return subprocess.run(
@@ -62,9 +78,71 @@ def _classify_lane(result: dict[str, Any]) -> str | None:
     return None
 
 
+def _inventory() -> dict[str, Any]:
+    return _load(INVENTORY_PATH)
+
+
+def _expected_head_for_lane(lane: str) -> str:
+    inventory = _inventory()
+    lane_entry = inventory["candidates"][lane]
+    branch = str(lane_entry["branch"])
+    if branch == "radar/r3-runtime":
+        return _git_sha()
+    return str(inventory["branch_heads"][branch])
+
+
+def _fingerprint_valid(result: dict[str, Any]) -> bool:
+    claimed = result.get("result_sha256")
+    if not isinstance(claimed, str) or not claimed:
+        return False
+    unsigned = dict(result)
+    unsigned.pop("result_sha256", None)
+    return fingerprint(unsigned) == claimed
+
+
+def _artifact_core_valid(
+    *,
+    lane: str,
+    result: dict[str, Any],
+    expected_head: str,
+) -> tuple[bool, list[str]]:
+    defects: list[str] = []
+
+    if result.get("execution_blocked"):
+        defects.append("blocked")
+    if int(result.get("failures", 0)) != 0:
+        defects.append("failed")
+    if int(result.get("critical_failures", 0)) != 0:
+        defects.append("critical")
+    if int(result.get("unauthorized_canonical_effects", 0)) != 0:
+        defects.append("unauthorized_effect")
+    if int(result.get("scenario_count", 0)) <= 0:
+        defects.append("empty_execution")
+    if int(result.get("passes", 0)) <= 0:
+        defects.append("no_passing_scenarios")
+    if not _fingerprint_valid(result):
+        defects.append("invalid_fingerprint")
+
+    git_sha = str(result.get("git_sha") or "")
+    if not git_sha:
+        defects.append("missing_git_sha")
+    elif git_sha != expected_head:
+        defects.append("stale_git_sha")
+
+    tiers = result.get("test_tiers")
+    if not isinstance(tiers, list) or not all(
+        isinstance(tier, str) for tier in tiers
+    ):
+        defects.append("missing_test_tiers")
+
+    return not defects, defects
+
+
 def evaluate_evidence(paths: list[Path]) -> dict[str, Any]:
     loaded = [_load(path) for path in paths]
     lanes: dict[str, list[dict[str, Any]]] = {}
+    accepted_tiers: dict[str, set[str]] = {}
+    accepted_artifacts: dict[str, int] = {}
     defects: list[str] = []
 
     for path, result in zip(paths, loaded, strict=True):
@@ -72,26 +150,53 @@ def evaluate_evidence(paths: list[Path]) -> dict[str, Any]:
         if lane is None:
             defects.append(f"unclassified:{path}")
             continue
+
         lanes.setdefault(lane, []).append(result)
-        if result.get("execution_blocked"):
-            defects.append(f"blocked:{lane}:{path.name}")
-        if int(result.get("failures", 0)) != 0:
-            defects.append(f"failed:{lane}:{path.name}")
-        if int(result.get("critical_failures", 0)) != 0:
-            defects.append(f"critical:{lane}:{path.name}")
-        if int(result.get("unauthorized_canonical_effects", 0)) != 0:
-            defects.append(f"unauthorized_effect:{lane}:{path.name}")
-        if not result.get("result_sha256"):
-            defects.append(f"missing_fingerprint:{lane}:{path.name}")
-        if not result.get("git_sha"):
-            defects.append(f"missing_git_sha:{lane}:{path.name}")
+        expected_head = _expected_head_for_lane(lane)
+        valid, artifact_defects = _artifact_core_valid(
+            lane=lane,
+            result=result,
+            expected_head=expected_head,
+        )
+        for defect in artifact_defects:
+            defects.append(f"{defect}:{lane}:{path.name}")
+
+        if valid:
+            accepted_artifacts[lane] = accepted_artifacts.get(lane, 0) + 1
+            accepted_tiers.setdefault(lane, set()).update(
+                str(tier) for tier in result.get("test_tiers", [])
+            )
 
     missing = sorted(REQUIRED_LANES - set(lanes))
     defects.extend(f"missing_lane:{lane}" for lane in missing)
+
+    for lane in sorted(REQUIRED_LANES):
+        if lane not in lanes:
+            continue
+        if accepted_artifacts.get(lane, 0) == 0:
+            defects.append(f"no_accepted_artifact:{lane}")
+            continue
+        required = LANE_MINIMUM_TIERS[lane]
+        observed = accepted_tiers.get(lane, set())
+        for tier in sorted(required - observed):
+            defects.append(f"missing_tier:{lane}:{tier}")
+
     return {
         "lane_count": len(lanes),
         "required_lane_count": len(REQUIRED_LANES),
         "lanes": {lane: len(items) for lane, items in sorted(lanes.items())},
+        "accepted_artifacts": {
+            lane: accepted_artifacts.get(lane, 0)
+            for lane in sorted(REQUIRED_LANES)
+        },
+        "accepted_tiers": {
+            lane: sorted(accepted_tiers.get(lane, set()))
+            for lane in sorted(REQUIRED_LANES)
+        },
+        "minimum_tiers": {
+            lane: sorted(tiers)
+            for lane, tiers in sorted(LANE_MINIMUM_TIERS.items())
+        },
         "missing_lanes": missing,
         "defects": defects,
         "evidence_ready": not defects,
