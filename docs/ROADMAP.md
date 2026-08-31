@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.44 — blind professional-review acceptance-oracle repair after first local failure; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.45 — Technology Radar V1.3.8 consolidation applied; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -14,8 +14,8 @@
 **Track B durable activity-lineage tranche:** `TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
 **L blind professional-review handoff hardening:** `L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
-**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_7.md`
-**Technology Radar horizon status:** broad current-horizon inventory COMPLETE; continuous evidence-based scouting remains active
+**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
+**Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
@@ -36,7 +36,7 @@
 
 > **Aggressive Radar. Conservative production authority.**
 
-> **Technology Radar V1.3.7 completes the broad current-horizon inventory; future Radar growth requires a material new capability or materially stronger challenger, not endless tool collection.**
+> **Technology Radar V1.3.8 applies the scatter audit: one incumbent + one challenger per real seam where practical; duplicate candidates are trigger-bound HOLD/WATCH/donor/reference states rather than permanent research.**
 
 ---
 
@@ -93,7 +93,7 @@ deterministic adversarial input proof
 != operational Red Team proof
 ```
 
-Technology Radar V1.3.7 records the wider evaluation ladder and challengers. Radar state remains distinct from runtime adoption.
+Technology Radar V1.3.8 is the active consolidated Radar. It retains the evaluation ladder but removes generic duplicate RESEARCH statuses; Radar state remains distinct from runtime adoption.
 
 ### L production/supporting foundations
 
@@ -104,9 +104,9 @@ Technology Radar V1.3.7 records the wider evaluation ladder and challengers. Rad
 - ClamAV — pilot complete / trial-eligible.
 - Docling — pilot in progress.
 
-## 4. Technology Radar V1.3.7 completion boundary
+## 4. Technology Radar V1.3.8 consolidation boundary
 
-V1.3.7 completes the broad current-horizon inventory across:
+V1.3.7 completed the broad current-horizon inventory. V1.3.8 applies the scatter audit across:
 
 ```text
 AI evaluation and adversarial engineering
@@ -123,6 +123,8 @@ cybersecurity skills and isolated Red Team
 ```
 
 The Radar remains continuously scoutable, but future additions must clear a higher bar: a material new capability, a materially stronger challenger, a major ecosystem change, or a newly demonstrated AIOS gap.
+
+V1.3.8 also records the current R3 research boundaries: `radar/r3-authority` and `radar/r3-security` are remote research branches and are not merged into V12; `radar/r3-interop` was not present on origin at the consolidation check. R3 work must converge on defined evidence/closure gates and must not displace the independent professional Austria review.
 
 ## 4.1 SUPPORTING PARALLEL — Track B Product Experience
 
@@ -190,8 +192,9 @@ The final L acceptance proof must correspond to the final acceptance head after 
 ## 7. Current scheduling truth
 
 ```text
-Technology Radar V1.3.7                  COMPLETE / ACTIVE CANONICAL RADAR
+Technology Radar V1.3.8                  ACTIVE CANONICAL / CONSOLIDATED
 Radar-caused runtime adoption             NONE
+Radar scatter-audit application            COMPLETE / DUPLICATE RESEARCH STATES TRIGGER-BOUND
 L runtime acceptance evidence             COMPLETE / ACCEPTED
 Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
