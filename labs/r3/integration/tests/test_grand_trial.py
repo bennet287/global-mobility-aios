@@ -9,7 +9,14 @@ from labs.r3.integration.governed_ui import (
     reconcile_with_canonical,
     reduce_ui_intent,
 )
-from labs.r3.integration.grand_trial import REQUIRED_LANES, _classify_lane, run_cross_lane_attack
+from labs.r3.common.harness import fingerprint
+from labs.r3.integration.grand_trial import (
+    LANE_MINIMUM_TIERS,
+    REQUIRED_LANES,
+    _artifact_core_valid,
+    _classify_lane,
+    run_cross_lane_attack,
+)
 
 
 def test_ui_intent_never_grants_authority() -> None:
@@ -118,3 +125,61 @@ def test_lane_status_never_conflates_implementation_with_adoption() -> None:
     assert status["programme_status"] == "R3_IMPLEMENTATION_SURFACE_COMPLETE_EXECUTION_PENDING"
     assert status["evidence_status"] == "NOT_RECONCILED"
     assert status["production_adoption"] is False
+
+
+def _sealed_artifact(*, git_sha: str, tiers: list[str]) -> dict[str, object]:
+    result: dict[str, object] = {
+        "candidate": "openfga",
+        "experiment": "synthetic-test",
+        "git_sha": git_sha,
+        "scenario_count": 1,
+        "passes": 1,
+        "failures": 0,
+        "critical_failures": 0,
+        "unauthorized_canonical_effects": 0,
+        "test_tiers": tiers,
+        "execution_blocked": False,
+    }
+    result["result_sha256"] = fingerprint(result)
+    return result
+
+
+def test_grand_trial_recomputes_result_fingerprint() -> None:
+    artifact = _sealed_artifact(git_sha="a" * 40, tiers=["T1"])
+    valid, defects = _artifact_core_valid(
+        lane="authority",
+        result=artifact,
+        expected_head="a" * 40,
+    )
+    assert valid is True
+    assert defects == []
+
+    artifact["passes"] = 2
+    valid, defects = _artifact_core_valid(
+        lane="authority",
+        result=artifact,
+        expected_head="a" * 40,
+    )
+    assert valid is False
+    assert "invalid_fingerprint" in defects
+
+
+def test_grand_trial_rejects_stale_evidence_sha() -> None:
+    artifact = _sealed_artifact(git_sha="a" * 40, tiers=["T1"])
+    valid, defects = _artifact_core_valid(
+        lane="authority",
+        result=artifact,
+        expected_head="b" * 40,
+    )
+    assert valid is False
+    assert "stale_git_sha" in defects
+
+
+def test_minimum_tier_requirements_are_deep_not_t0_only() -> None:
+    assert {"T1", "T2", "T3", "T5", "T6", "T8"} <= LANE_MINIMUM_TIERS[
+        "authority"
+    ]
+    assert "T4" in LANE_MINIMUM_TIERS["security"]
+    assert "T8" in LANE_MINIMUM_TIERS["recovery"]
+    assert "T5" in LANE_MINIMUM_TIERS["ui"]
+    assert all("T0" not in tiers for tiers in LANE_MINIMUM_TIERS.values())
