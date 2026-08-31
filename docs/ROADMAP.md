@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.42 — Track B deeper anti-duplication reconciliation after activity-lineage proof; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.43 — blind professional Austria review handoff hardening; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -12,6 +12,7 @@
 **Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 **Track B anti-duplication audit:** `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md`
 **Track B durable activity-lineage tranche:** `TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
+**L blind professional-review handoff hardening:** `L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_7.md`
 **Technology Radar horizon status:** broad current-horizon inventory COMPLETE; continuous evidence-based scouting remains active
@@ -63,11 +64,14 @@ No actual autonomy mutation mechanism is accepted or implemented.
 L implementation and live-runtime evidence exist. Acceptance remains open until both remaining gates are observed:
 
 ```text
-1. genuine independent professional Austria review
-2. final exact-current-head full technical proof after review evidence/docs are committed
+1. genuine independent professional Austria review using the blind reviewer handoff
+2. compile/reconcile the returned review evidence
+3. final exact-current-head full technical proof after review evidence/docs are committed
 ```
 
 Already accepted/implemented L evidence includes real configured-provider success, guarded fresh official-source retrieval, real provider failure, durable specialist output, owner materialization, exact replay, Evidence/VerifiedRule/source-snapshot lineage, browser/product behavior and operational correlation.
+
+Before recruiting the reviewer, V12.43 hardens the existing professional-review path against answer anchoring. The reviewer-facing packet now excludes benchmark `source_labels` and `source_rationale`; the reviewer returns independent labels (or DISPUTED / NEEDS_MORE_FACTS), and AIOS derives canonical CONFIRMED versus CORRECTED only after return through the existing `mobility-professional-review-v1` compiler. No review has been fabricated or completed by this change.
 
 The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15dccb1a22fa35b3998` / Woodpecker PR Pipeline #77 4/4 PASS. It is historical proof only and must not be relabeled as proof for a later head.
 
@@ -192,11 +196,12 @@ L runtime acceptance evidence             COMPLETE / ACCEPTED
 Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e...
-Track B anti-duplication audit             COMPLETE
+Track B anti-duplication audit             COMPLETE / CURRENT STOPPING DECISION RECORDED
 Track B runtime-economics Cockpit slice   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / E2E NOT OBSERVED
 Track B durable activity-lineage slice    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
 Munder runtime adoption                    NONE
 external mutation engine adoption         NONE
+blind professional-review handoff        IMPLEMENTED / LOCAL PROOF PENDING
 independent professional Austria review   PENDING
 final exact-current-head proof            PENDING
 L overall                                 IMPLEMENTED / ACCEPTANCE PENDING
@@ -204,7 +209,7 @@ M                                         NOT STARTED
 N                                         NOT STARTED
 ```
 
-Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The next Track B slice must begin with the same anti-duplication test; the next L acceptance gate remains the genuine professional Austria review.
+Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The current Track B audit found no further justified slice, so product-experience work pauses here. The next L action is to locally prove the blind handoff tool, then obtain the genuine independent Austria professional assessment.
 
 ## 8. Historical compatibility anchors
 
