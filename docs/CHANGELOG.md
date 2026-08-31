@@ -8,6 +8,59 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.43 BLIND PROFESSIONAL AUSTRIA REVIEW HANDOFF HARDENING
+
+### Status
+
+**IMPLEMENTED / LOCAL PROOF PENDING / NO PROFESSIONAL REVIEW CLAIMED / L ACCEPTANCE PENDING / M NOT STARTED**
+
+The release-critical L acceptance audit found that the existing professional-review packet exposed the benchmark's `source_labels` and `source_rationale`, and asked the reviewer to choose `CONFIRMED` versus `CORRECTED`. That could anchor the reviewer to AIOS's curated answer before an independent professional assessment.
+
+V12.43 hardens the existing system rather than creating a new review stack.
+
+Implemented:
+
+```text
+scripts/prepare_austria_professional_review.py
+  handoff contract v2
+  blind_review=true
+  expected_labels_excluded=true
+  source_rationale_excluded=true
+  reviewer-facing blind return template
+  post-return compiler derives CONFIRMED vs CORRECTED
+  existing canonical mobility-professional-review-v1 compiler preserved
+
+apps/api/tests/test_professional_review_cli.py
+  require labels/rationale absent from reviewer packet
+  prove matching blind labels derive CONFIRMED
+  prove differing blind labels derive CORRECTED
+
+apps/api/tests/test_professional_review_return_template.py
+  require blind template has no canonical decision field
+  require untouched blind template fail closed
+
+docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md
+  architecture, CLI flow, credential boundary, Track B stopping decision
+```
+
+Reviewer-facing assessment states are:
+
+```text
+ASSESSED
+DISPUTED
+NEEDS_MORE_FACTS
+```
+
+For `ASSESSED`, the professional supplies their own complete reviewed labels without seeing the benchmark expected labels/rationale. AIOS compares only after the returned assessment and derives the existing canonical decision. `DISPUTED` and `NEEDS_MORE_FACTS` remain held outside the promoted professional denominator.
+
+No reviewer identity, independence, professional standing or credential is verified by AIOS. No genuine professional Austria review is claimed by this implementation.
+
+The prior V12.42 documentation-only exact-head proof at `246413cc60cb7c9dc2cbc8112f35c176f93c13fc` passed repository policy, release consistency, Python dependency constraints, diff hygiene, `git diff --check`, branch synchronization, frozen V11 verification and deep-R3 backup verification. That proof does not transfer to V12.43 source changes.
+
+Track B remains intentionally paused after deeper anti-duplication found no justified next product-experience slice. The next L action is local proof of this blind handoff, then a genuine qualified independent Austria professional review.
+
+---
+
 ## 2026-08-31 — V12.42 TRACK B COLLABORATION ANTI-DUPLICATION RECLASSIFICATION
 
 ### Status
