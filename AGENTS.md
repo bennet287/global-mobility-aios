@@ -453,6 +453,8 @@ what remains unproven
 
 - `docs/ROADMAP.md` — master necessity-driven orchestration and milestone status
 - `docs/CHANGELOG.md` — active V12 delivery history
+- `docs/TECHNOLOGY_RADAR_V1_3_8.md` — active consolidated Technology Radar
+- `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md` — applied duplication audit / rationale
 - `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md` — L external/live acceptance runbook
 - `docs/V1_3_K1_BOUNDED_SPECIALIST_EXECUTION_ACCEPTANCE_2026-08-22.md` — sealed K.1 baseline
 - `docs/GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` — active combined architecture
