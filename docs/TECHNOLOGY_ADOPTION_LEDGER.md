@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.39 / Wave E4 local technical proof observed  
+**Latest reconciliation:** V12.40 / Track B anti-duplication + canonical runtime-economics Cockpit slice  
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
 **Delivery history:** `docs/CHANGELOG.md`
@@ -50,6 +50,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Wave E4 mutation strength | first-party bounded semantic implementation-mutation gate implemented; local exact-head proof observed at `5d8e940e...`: 8/8 selected mutants killed, 0 survived; full backend 1328 passed / 22 skipped |
 | Docling | pilot in progress |
 | Qdrant | current semantic-retrieval platform capability / comparison baseline |
+| Austria Live Organization runtime quality | AIOS Board-safe transparency projection already exposes provider/model outcome, tokens, estimated provider cost, grounding/provenance and fallback state; Track B web presentation now consumes this native projection rather than adding donor telemetry truth |
 
 ## 3. V1.3.7 explicit challengers — Radar entry alone is not adoption
 
@@ -88,7 +89,8 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Langfuse | research/pilot candidate; AIOS + OTel already provides baseline observability |
 | OpenFGA | deferred relationship-authorization pilot; native AIOS authorization exists |
 | OPA/Rego | research policy-engine candidate; native AIOS governance exists |
-| CopilotKit / AG-UI | post-L M interaction candidate; not installed/adopted |
+| CopilotKit / AG-UI | post-L M interaction candidate; not installed/adopted on canonical V12 |
+| Munder Difflin | strategic donor programme only on canonical V12; no web runtime package installed; Track B must PORT/ADAPT/REIMPLEMENT only against proven gaps and may not import donor authority/state semantics |
 | Garak | bounded live-model adversarial research candidate |
 | Microsoft PyRIT | future authorized Red Team Lab candidate |
 | DeepEval | evaluation benchmark candidate |
@@ -153,6 +155,7 @@ It does not mean all candidates should be installed.
 ```text
 Technology Radar V1.3.7                  COMPLETE / ACTIVE
 runtime adoption caused by V1.3.7        NONE
+Munder runtime adoption                  NONE ON CANONICAL V12
 external mutation engine adoption        NONE
 L                                        IMPLEMENTED / ACCEPTANCE PENDING
 M                                        NOT STARTED
