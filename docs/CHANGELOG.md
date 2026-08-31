@@ -8,6 +8,50 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.42 TRACK B COLLABORATION ANTI-DUPLICATION RECLASSIFICATION
+
+### Status
+
+**DOCUMENTATION / REPOSITORY-TRUTH RECONCILIATION / NO NEW RUNTIME / NO MUNDER COLLABORATION STATE / L ACCEPTANCE UNCHANGED / M NOT STARTED**
+
+After V12.41 received local + Chromium browser proof at exact head `958b796...`, the next Track B anti-duplication pass inspected the wider product rather than only the Austria Live Organization page.
+
+The earlier audit classified collaboration visualization as a future gap. Deeper inspection found existing AIOS-owned capability:
+
+```text
+OrganizationPosition reporting hierarchy
+  → Cockpit organization focus / executive portfolio / operational domain views
+
+OrganizationWorkItemDependency
+  → active dependency lane
+  → cross-department downstream/upstream dependency visualization
+
+OrganizationBlocker + HumanActionRequest
+  → cross-department friction and governed follow-up
+
+OrganizationActivity
+  → general Cockpit durable activity
+  → cross-department recent signal
+  → Austria Live Organization durable lineage
+```
+
+Decision:
+
+```text
+generic collaboration/coordination foundation   EXISTING
+parallel Munder collaboration state/graph        NOT NEEDED / REJECT FOR NOW
+richer collaboration visualization               DEMAND-GATED REFINEMENT
+presence/heartbeat                               DEFERRED — canonical semantics not established
+event synchronization transport                  DEFERRED — no demonstrated transport gap
+provider transcript/tool capture                 DEFERRED — cannot bypass OrganizationActivity/evidence/privacy
+Living Organization scene                        DEFERRED — must be runtime-derived and need-driven
+broader AI Economics history                     DEFERRED — separate product/analytics need required
+```
+
+No implementation code or dependency changed in V12.42. This reconciliation exists specifically to prevent future duplicate Track B/Munder work.
+
+---
+
 ## 2026-08-31 — V12.41 TRACK B DURABLE ACTIVITY LINEAGE
 
 ### Status
