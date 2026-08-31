@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -137,6 +138,15 @@ def _exercise_mem0(
     }
 
 
+def _git_sha() -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", required=True)
@@ -181,9 +191,10 @@ def main() -> int:
         "r3_run_id": args.run_id,
         "candidate": f"memory-stress:{args.candidate}",
         "candidate_version": "r3-v1",
+        "git_sha": _git_sha(),
         "environment": "synthetic-isolated",
-        "experiment": "t3-t5-memory-concurrency-poisoning",
-        "test_tiers": ["T3", "T5"],
+        "experiment": "t3-t5-t6-memory-concurrency-poisoning",
+        "test_tiers": ["T3", "T5", "T6"],
         "execution_blocked": blocked,
         "block_reason": block_reason,
         "scenario_count": int(not blocked),
