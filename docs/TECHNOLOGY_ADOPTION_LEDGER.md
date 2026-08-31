@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX  
 **Branch:** `roadmap/global-mobility-aios-v12`  
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`  
-**Latest reconciliation:** V12.43 / blind professional Austria review handoff hardening
+**Latest reconciliation:** V12.44 / blind professional-review acceptance-oracle repair
 **Scheduling authority:** `docs/ROADMAP.md`  
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_7.md`  
 **Delivery history:** `docs/CHANGELOG.md`
@@ -53,7 +53,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Austria Live Organization runtime quality | AIOS Board-safe transparency projection already exposes provider/model outcome, tokens, estimated provider cost, grounding/provenance and fallback state; Track B web presentation now consumes this native projection rather than adding donor telemetry truth |
 | Austria Live Organization durable activity lineage | canonical OrganizationActivity + Board-transparency causation/trace projection already exists; Track B renders that lineage in the Cockpit instead of adding Munder/provider transcript/event truth; local + Chromium browser proof observed at exact head `958b796...` |
 | Organization collaboration / coordination visualization | AIOS already exposes hierarchy focus through OrganizationPosition reporting lines, WorkItem dependency edges, cross-department friction, governed human follow-up and durable activity context; do not add a donor collaboration state/graph unless a concrete unmet UX need is proven |
-| Austria blind professional-review handoff | existing professional-review compiler retained; reviewer-facing handoff now excludes benchmark labels/rationale and blind reviewer returns are compiled afterward into canonical CONFIRMED/CORRECTED/DISPUTED/NEEDS_MORE_FACTS semantics; local proof pending |
+| Austria blind professional-review handoff | existing professional-review compiler retained; reviewer-facing handoff excludes benchmark labels/rationale and blind reviewer returns compile afterward into canonical CONFIRMED/CORRECTED/DISPUTED/NEEDS_MORE_FACTS semantics; first local attempt found an order-sensitive test oracle, repaired without production-semantic change; post-repair local proof pending |
 
 ## 3. V1.3.7 explicit challengers — Radar entry alone is not adoption
 
