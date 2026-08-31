@@ -1,13 +1,13 @@
 # Global Mobility AIOS — Technology Radar V1.3.7
 
-**Date:** 2026-08-31  
-**Status:** ACTIVE CANONICAL RADAR REVISION — CONSOLIDATED AGGRESSIVE FRONTIER  
-**Supersedes for active radar direction:** `TECHNOLOGY_RADAR_V1_3_6.md`  
-**Inherited baseline:** all V1.3.6 classifications remain active unless explicitly overridden here  
-**Scheduling authority:** `docs/ROADMAP.md`  
-**Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`  
-**Scatter and duplication audit:** `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`  
-**Current product milestone:** L — Live Organization — IMPLEMENTED / ACCEPTANCE PENDING  
+**Date:** 2026-08-31
+**Status:** SUPERSEDED HISTORICAL RADAR REVISION — BROAD INVENTORY BASELINE
+**Superseded for active radar direction by:** `TECHNOLOGY_RADAR_V1_3_8.md`
+**Inherited baseline:** all V1.3.6 classifications remain active unless explicitly overridden here
+**Scheduling authority:** `docs/ROADMAP.md`
+**Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
+**Scatter and duplication audit:** `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
+**Current product milestone:** L — Live Organization — IMPLEMENTED / ACCEPTANCE PENDING
 **M milestone:** NOT STARTED
 
 > **Aggressive Radar. Conservative production authority.**
@@ -15,6 +15,8 @@
 > **Research broadly. Benchmark ruthlessly. Adopt narrowly.**
 
 > **External infrastructure provides capability. AIOS owns meaning, truth and authority.**
+
+V1.3.7 completed the broad Technology Radar inventory. Its candidate detail remains historical input, but its generic RESEARCH classifications are no longer active scheduling/evaluation truth. V1.3.8 applies the scatter audit and is the current canonical Radar.
 
 V1.3.7 completes the current broad Technology Radar pass before further product-milestone work. “Complete” means the major technology capability lanes relevant to the present AIOS architecture now have explicit incumbents, challengers or research targets. It does **not** mean the Radar is permanently closed: new material technologies may still enter through evidence-based scouting.
 
