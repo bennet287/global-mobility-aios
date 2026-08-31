@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Verified V12 remote baseline before this handoff edit:** `4d2c8d876530521974898009ce10d13a0071c872`
+**Verified V12 remote baseline before this handoff edit:** `52642fd8896b2ec3a8e837061509647b317a1be8`
 
 The commit that updates this file necessarily advances V12 beyond the baseline above. **Never treat this field as a self-referential current HEAD.** At session start, verify the actual remote with `git fetch` / `git rev-parse origin/roadmap/global-mobility-aios-v12`.
 
@@ -21,11 +21,10 @@ N    NOT STARTED
 
 ### L remaining gates
 
-1. Locally prove the repaired blind professional-review handoff on one stable exact head.
-2. Obtain a genuine qualified independent Austria professional review using the blind handoff.
-3. Compile/reconcile the real reviewer evidence and findings.
-4. Run final exact-current-head technical proof after review evidence/docs are committed.
-5. Seal L only after the professional-review and final exact-head gates are satisfied.
+1. Obtain a genuine qualified independent Austria professional review using the locally proven blind handoff.
+2. Compile/reconcile the real reviewer evidence and findings.
+3. Run final exact-current-head technical proof after review evidence/docs are committed.
+4. Seal L only after the professional-review and final exact-head gates are satisfied.
 
 Do not fabricate professional review. AI/model review does not substitute for the independent human professional gate.
 
@@ -38,7 +37,7 @@ Do not fabricate professional review. AI/model review does not substitute for th
 | `roadmap/global-mobility-aios-v12` | `D:/global-mobility-aios` | local may be behind current remote after GitHub-side documentation writes | verify at session start | fetch + hard reset/ff to current origin before proof |
 | `radar/r3-authority` | `D:/gmai-r3-authority` | user reported `acd9176` after pull | `acd917670630abdfebe20f3f687a310f67d22b3f` | closure evidence only; do not keep expanding tool depth |
 | `radar/r3-security` | `D:/gmai-r3-security` | user reported `d908a8c` after pull | `d908a8c7ccde463ae0dec097211562e7ef8e86ca` | execute defined shootout or record explicit blockers |
-| `radar/r3-interop` | `D:/gmai-r3-interop` | user reported local checkpoint `aad377e` | **not present on origin** at latest verification | push local branch for recoverability; do not merge to V12 automatically |
+| `radar/r3-interop` | `D:/gmai-r3-interop` | `aad377e401b10a95b11440442831290c5c60a9f2` | `aad377e401b10a95b11440442831290c5c60a9f2` | **preserved on origin; do not merge to V12 automatically** |
 
 ### Recovery commands
 
@@ -59,13 +58,13 @@ cd D:\gmai-r3-security
 git status -sb
 git pull --ff-only origin radar/r3-security
 
-# Interop R3 — local-only recoverability action
+# Interop R3 — now preserved remotely
 cd D:\gmai-r3-interop
 git status -sb
-git push -u origin radar/r3-interop
+git pull --ff-only origin radar/r3-interop
 ```
 
-The GitHub-side implementation cannot push `radar/r3-interop` while `aad377e` exists only in the local worktree; the local commit object must first be sent to origin from that worktree.
+The previous local-only interop checkpoint has now been pushed successfully. `radar/r3-interop` is recoverable on origin at `aad377e401b10a95b11440442831290c5c60a9f2`. This is preservation only, not V12 merge or adoption.
 
 ---
 
@@ -111,11 +110,11 @@ Radar-caused runtime adoption remains **NONE**.
 ## 4. Recent decisions a new session must know
 
 1. **Track B is paused by anti-duplication discipline.** Runtime economics and durable activity lineage are implemented; collaboration/coordination already has an AIOS multi-surface foundation. Do not add donor collaboration/presence/event state without a proven product gap.
-2. **Blind professional-review hardening exists.** Reviewer packets exclude benchmark labels/rationale; AIOS derives CONFIRMED/CORRECTED only after a blind human return. Local post-repair proof is still pending.
+2. **Blind professional-review hardening is locally proven.** Stable exact-head proof at `d969c7d...` passed 19 focused tests, packet/return blindness checks, fail-closed untouched return, 1332-pass backend regression, repository gates, and stable start/end SHA. Genuine human professional review is still pending.
 3. **Radar V1.3.8 is canonical.** Do not revive V1.3.7 generic RESEARCH statuses.
 4. **R3 authority is a closure problem now, not an expansion playground.** Existing OpenFGA/SpiceDB and OPA/Cedar research is sufficient for the current seam map.
 5. **R3 security should execute or explicitly block its defined external-tool shootout.** Do not continuously add scanners/evaluators.
-6. **R3 interop is still local-only** until `radar/r3-interop` is pushed.
+6. **R3 interop recoverability is closed.** The branch is on origin at `aad377e401b10a95b11440442831290c5c60a9f2`; it remains a separate research branch and is not merged into V12.
 7. **The local acceptance transcript exposed a mixed-head run.** It began on `b711ab6...` and later reported `07c0a6...` after another process/session changed the same worktree. That run is not exact-head proof.
 8. **Full backend proof must run from repository root** using `python -m pytest apps/api/tests -q`. Running from `apps/api` can break tests that intentionally use repository-root-relative benchmark paths.
 
@@ -169,13 +168,25 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Push `radar/r3-interop` from the local worktree to origin** so the checkpoint is recoverable. This is branch preservation only, not adoption or merge.
-2. **Synchronize V12 and run the current blind-review/full-backend/repository acceptance from repository root on one stable HEAD.**
-3. **Obtain the genuine independent Austria professional review** with the blind handoff.
-4. Compile/reconcile real reviewer evidence and then run final exact-current-head L proof.
-5. Seal L.
-6. Begin M only after L is sealed.
-7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+1. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
+2. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
+3. Commit the acceptance evidence and run final exact-current-head L technical proof.
+4. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
+5. Begin M only after L is sealed.
+6. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+
+Completed prerequisites that must not be repeated:
+
+```text
+radar/r3-interop remote preservation       PASS — aad377e...
+blind-review focused regression            PASS — 19 / 19 at d969c7d...
+blind packet/return contract checks        PASS at d969c7d...
+untouched return fail-closed               PASS at d969c7d...
+full backend regression                    PASS — 1332 / 22 skipped at d969c7d...
+repository/stable-head local proof         PASS at d969c7d...
+```
+
+Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
 
 ---
 
