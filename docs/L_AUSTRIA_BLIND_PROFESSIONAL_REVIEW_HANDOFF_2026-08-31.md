@@ -244,17 +244,26 @@ The fail-closed untouched-return check **did** behave correctly during the faile
 
 The full backend run was started after the earlier failures, but the supplied transcript ends while pytest is still printing progress dots. No full-backend PASS is claimed from that attempt.
 
-Current state after repair:
+Current state after repair and stable-head rerun:
 
 ```text
 blind handoff implementation          IMPLEMENTED
 test-oracle order repair              IMPLEMENTED
-local focused proof after repair      PENDING
-full backend proof after repair       PENDING
-repository gates after repair         PENDING
+local focused proof after repair      PASS — 19 / 19 at d969c7d...
+full backend proof after repair       PASS — 1332 passed / 22 skipped at d969c7d...
+repository gates after repair         PASS at d969c7d...
+stable start/end exact-head proof     PASS at d969c7d...
+R3 interop recoverability             PASS — aad377e... pushed to origin
 professional Austria review           PENDING
+final post-review exact-head proof    PENDING
 L acceptance                          PENDING
 ```
+
+The durable proof record is:
+
+`docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
+
+This local proof closes the technical prerequisite for handing the packet to a genuine reviewer. It does not create professional review evidence and does not seal L.
 
 ## 11. Acceptance boundary
 
