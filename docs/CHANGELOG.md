@@ -8,6 +8,58 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.44 BLIND PROFESSIONAL-REVIEW ACCEPTANCE-ORACLE REPAIR
+
+### Status
+
+**REPAIRED / POST-REPAIR LOCAL PROOF PENDING / NO PRODUCTION REVIEW SEMANTIC CHANGE / NO PROFESSIONAL REVIEW CLAIMED / L ACCEPTANCE PENDING / M NOT STARTED**
+
+The first local acceptance attempt for V12.43 at exact head `b711ab619f3d80e077270900a8922651b2ecc964` was not green.
+
+Observed focused suite:
+
+```text
+18 passed
+1 failed
+1 warning
+```
+
+Failure:
+
+`test_blind_assessment_derives_confirmed_only_after_return`
+
+Root cause:
+
+The test compared serialized label lists using source JSON authoring order. Canonical professional-review labels are set-backed and serialized in sorted order. The mismatch was therefore list ordering only, including `missing_evidence` and similar set-valued dimensions.
+
+Repair:
+
+```text
+apps/api/tests/test_professional_review_cli.py
+
+source-label test helper
+→ normalize every list-valued label dimension with sorted(...)
+→ compare deterministic canonical representations
+```
+
+Production `prepare_austria_professional_review.py`, the canonical `mobility-professional-review-v1` compiler, blind assessment status, fingerprint binding and CONFIRMED/CORRECTED derivation were not changed by this repair.
+
+The same local attempt exposed a separate operator-command defect: an ad-hoc PowerShell `python -c @'... '@` verification pattern stripped Python quoting and produced `SyntaxError`. That was not a repository source failure. Future acceptance commands use PowerShell-native JSON assertions instead.
+
+The untouched blind reviewer return still proved fail-closed in that attempt:
+
+```text
+exit code                            2
+error                                review_batch_id must be a non-empty string
+canonical evidence file             not created
+```
+
+The submitted transcript ended while the subsequent full backend pytest was still printing progress, so no full-backend PASS is claimed from that run.
+
+Post-repair focused tests, full backend tests and repository gates remain pending at the new exact head.
+
+---
+
 ## 2026-08-31 — V12.43 BLIND PROFESSIONAL AUSTRIA REVIEW HANDOFF HARDENING
 
 ### Status
