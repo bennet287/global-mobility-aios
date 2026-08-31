@@ -164,3 +164,9 @@ N                                         NOT STARTED
 ```
 
 Supporting evaluation hardening may continue only when it directly strengthens the current L proof path and does not displace the genuine professional-review gate. After the user-requested E4 tranche is proven, the product path should return to the professional Austria review unless a concrete source defect or prerequisite is discovered.
+
+## 8. Historical compatibility anchors
+
+Earlier accepted roadmap generations remain part of repository history even when the active scheduler is concise. In particular, **v10.22** delivered the governed **multi-batch tranche operations** workflow documented in `docs/COVERAGE_TRANCHE_OPERATIONS_V10_22.md`. That historical tranche preserved human-review and non-automatic legal-control boundaries and depended on migration `0032_initial_rule_assertions` as part of its accepted implementation lineage.
+
+These anchors are historical compatibility references only; they do not reopen v10.22 work or alter the current L scheduling priority.
