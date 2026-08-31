@@ -64,7 +64,28 @@ mutated implementation probe == unsafe/fail
 
 Any surviving selected mutant causes the gate to fail.
 
-## 4. Why this is mutation testing rather than another input-mutation suite
+## 4. Local acceptance defect discovered and repaired
+
+The first local Wave E4 run correctly failed instead of producing a false green result. The failure exposed a defect in the mutation-test oracle for the `invert-route-scope-guard` mutation.
+
+The original route probe changed only the first review's pathway. Under the inverted guard, that invalid first review escaped the intended check, but the second untouched valid review was then rejected by the inverted condition. Because the probe only observed whether *any* `ValueError` occurred, the mutant incorrectly appeared safe and survived.
+
+The repaired probe now changes the pathway on every review in the payload. Therefore:
+
+```text
+baseline implementation
+→ rejects the all-invalid pathway payload
+
+inverted route-scope mutant
+→ cannot rely on a later untouched valid review to raise a false-positive error
+→ the oracle can directly observe the weakened guard
+```
+
+This repair changes only the Wave E4 mutation-strength harness. Production evaluator logic, authority semantics, source validation and corroboration behavior are unchanged.
+
+The failed local run is retained as useful evidence that the mutation gate itself was capable of refusing an invalid proof configuration. No PASS is claimed for the repaired head until the local suite is rerun.
+
+## 5. Why this is mutation testing rather than another input-mutation suite
 
 Wave E2 changes provider outputs and checks that production validation rejects them. Wave E4 changes the implementation logic of the validator/corroboration code itself and checks that the safety test oracle notices the regression.
 
@@ -77,7 +98,7 @@ Wave E4: weakened production guard → test oracle should detect weakness
 
 The two layers are complementary and must not be conflated.
 
-## 5. Proof boundaries
+## 6. Proof boundaries
 
 ```text
 bounded semantic mutation strength
@@ -94,7 +115,7 @@ The gate is intentionally deterministic and limited to the highest-value Austria
 
 `professional_review_status_effect` remains `NONE`.
 
-## 6. Canonical local proof
+## 7. Canonical local proof
 
 From repository root after installing the constrained Python dependency set:
 
@@ -115,12 +136,12 @@ python scripts/check_diff_hygiene.py
 
 The connected GitHub implementation environment does not execute the repository Python runtime, so no local PASS, full backend PASS, Woodpecker PASS or exact-current-head acceptance is claimed by this receipt until observed externally.
 
-## 7. Current evaluation ladder
+## 8. Current evaluation ladder
 
 ```text
 Wave E2 deterministic adversarial input mutation     implemented / locally proven at historical head 285a7f08...
 Wave E3 property/invariant testing                    implemented / locally proven at historical head 285a7f08...
-Wave E4 implementation mutation strength              implemented / local-current-head proof pending
+Wave E4 implementation mutation strength              implemented / repaired after local oracle failure / proof pending
 next bounded candidate                                fuzzing
 ```
 
