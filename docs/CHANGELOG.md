@@ -8,6 +8,61 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-08-31 — V12.48 V12.47 ADMINISTRATION EXACT-HEAD PROOF RECORDED
+
+### Status
+
+**DOCUMENTATION / RECOVERY EXACT-HEAD PROOF OBSERVED AT `80deef2618038799caa39674ebfc3d92126cfe0f` / NO RUNTIME CHANGE / PROFESSIONAL REVIEW STILL PENDING / L ACCEPTANCE UNCHANGED**
+
+The V12.47 PROJECT_STATE/recovery-administration tranche completed a fully green local exact-head proof.
+
+Observed:
+
+```text
+acceptance start HEAD                  80deef2618038799caa39674ebfc3d92126cfe0f
+acceptance end HEAD                    same SHA
+origin V12 during proof                same SHA
+administration documentation whitespace PASS
+AGENTS → PROJECT_STATE recovery order   PASS
+SESSION_HANDOFF → PROJECT_STATE order   PASS
+PROJECT_STATE authority boundary        PASS
+reviewer-artifact hygiene check         PASS
+repository policy                       PASS
+release consistency                     PASS
+Python dependency constraints           PASS — 27
+diff hygiene                             PASS
+git diff --check                         PASS
+clean worktree                           PASS
+frozen V11                               PASS
+R3 authority/security/interop refs       PASS
+deep-R3 backup                           PASS
+```
+
+Durable proof record:
+
+`docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
+
+One operator-local nuance was discovered through `git check-ignore -v`: the workstation's `.git/info/exclude` currently contains a broad `/.local/` rule. The repository-owned `.gitignore` remains intentionally narrower:
+
+`.local/professional-review/`
+
+The broad local exclude did not invalidate the run, but it may hide unrelated future local files. It is therefore tracked as operator-local hygiene rather than repository state.
+
+This V12.48 reconciliation is documentation-only. Per exact-head semantics, the green proof belongs to `80deef2...` and is not silently inherited by this later documentation head.
+
+Milestone truth remains:
+
+```text
+K.1  COMPLETE / PASS / SEALED
+L    IMPLEMENTED / ACCEPTANCE PENDING
+M    NOT STARTED
+N    NOT STARTED
+```
+
+The next release-critical action remains obtaining the genuine qualified independent Austria professional review using the already generated blind packet and blank return template.
+
+---
+
 ## 2026-08-31 — V12.47 PROJECT-STATE DASHBOARD + REVIEW-HANDOFF HYGIENE
 
 ### Status
