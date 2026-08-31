@@ -1,0 +1,365 @@
+{
+  "contract_version": "gmai.r3.programme-execution-plan.v1",
+  "claim_boundary": "Execution orchestration only; a step exit 0 is still validated by the Grand Trial before R4 eligibility.",
+  "output_policy": "All evidence is written to a central execution directory; repository result folders are not mutated by the runner.",
+  "steps": [
+    {
+      "id": "authority-openfga-correctness",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.run_candidate",
+      "args": [
+        "--candidate",
+        "openfga"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-opa-correctness",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.run_candidate",
+      "args": [
+        "--candidate",
+        "opa"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-openfga-deep",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.deep_openfga",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-opa-deep",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.deep_opa",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-openfga-chaos",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.chaos_matrix",
+      "args": [
+        "--candidate",
+        "openfga"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-opa-chaos",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.chaos_matrix",
+      "args": [
+        "--candidate",
+        "opa"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-openfga-properties",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.deep_properties",
+      "args": [
+        "--candidate",
+        "openfga",
+        "--iterations",
+        "2000",
+        "--seed",
+        "136"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-opa-properties",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.deep_properties",
+      "args": [
+        "--candidate",
+        "opa",
+        "--iterations",
+        "2000",
+        "--seed",
+        "136"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "authority-openfga-conditions",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.openfga_conditions_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "authority-opa-bundles",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.opa_bundle_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "authority-cedar-typed",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.cedar_typed_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "authority-spicedb",
+      "lane": "authority",
+      "branch": "radar/r3-authority",
+      "module": "labs.r3.authority.spicedb_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "interop-mcp-deep",
+      "lane": "interoperability",
+      "branch": "radar/r3-interop-deep",
+      "module": "labs.r3.interoperability.run_mcp_deep",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "interop-mcp-network",
+      "lane": "interoperability",
+      "branch": "radar/r3-interop-deep",
+      "module": "labs.r3.interoperability.run_mcp_network",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "interop-a2a-deep",
+      "lane": "interoperability",
+      "branch": "radar/r3-interop-deep",
+      "module": "labs.r3.interoperability.run_a2a_deep",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "interop-a2a-network",
+      "lane": "interoperability",
+      "branch": "radar/r3-interop-deep",
+      "module": "labs.r3.interoperability.run_a2a_network",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "security-native-deep",
+      "lane": "security",
+      "branch": "radar/r3-security",
+      "module": "labs.r3.security.run_deep_corpus",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "security-external-tools",
+      "lane": "security",
+      "branch": "radar/r3-security",
+      "module": "labs.r3.security.run_external_tools",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "skills-lifecycle",
+      "lane": "skills",
+      "branch": "radar/r3-skills",
+      "module": "labs.r3.skills.run_lifecycle",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "sandbox-microsandbox",
+      "lane": "sandbox",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.sandbox.microsandbox_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "sandbox-microsandbox-depth",
+      "lane": "sandbox",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.sandbox.microsandbox_depth_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "observability-otel",
+      "lane": "observability",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.observability.otel_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "observability-collector",
+      "lane": "observability",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.observability.collector_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "observability-langfuse",
+      "lane": "observability",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.observability.secondary_candidates",
+      "args": [
+        "--candidate",
+        "langfuse"
+      ],
+      "required_for_r4": false
+    },
+    {
+      "id": "observability-phoenix",
+      "lane": "observability",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.observability.secondary_candidates",
+      "args": [
+        "--candidate",
+        "phoenix"
+      ],
+      "required_for_r4": false
+    },
+    {
+      "id": "secrets-openbao",
+      "lane": "secrets",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.secrets.openbao_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "secrets-openbao-persistent",
+      "lane": "secrets",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.secrets.persistent_openbao_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "recovery-logical",
+      "lane": "recovery",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.recovery.recovery_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "recovery-wal-pitr",
+      "lane": "recovery",
+      "branch": "radar/r3-infrastructure",
+      "module": "labs.r3.recovery.wal_pitr_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "memory-native",
+      "lane": "memory",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.memory.native_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "memory-native-stress",
+      "lane": "memory",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.memory.stress_lab",
+      "args": [
+        "--candidate",
+        "native"
+      ],
+      "required_for_r4": true
+    },
+    {
+      "id": "memory-mem0",
+      "lane": "memory",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.memory.mem0_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "memory-mem0-stress",
+      "lane": "memory",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.memory.stress_lab",
+      "args": [
+        "--candidate",
+        "mem0"
+      ],
+      "required_for_r4": false
+    },
+    {
+      "id": "memory-openviking",
+      "lane": "memory",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.memory.openviking_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "orchestration-native",
+      "lane": "orchestration",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.orchestration.native_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "orchestration-temporal",
+      "lane": "orchestration",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.orchestration.temporal_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "orchestration-langgraph",
+      "lane": "orchestration",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.orchestration.langgraph_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "orchestration-agno",
+      "lane": "orchestration",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.orchestration.agno_lab",
+      "args": [],
+      "required_for_r4": false
+    },
+    {
+      "id": "ui-agui",
+      "lane": "ui",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.integration.agui_lab",
+      "args": [],
+      "required_for_r4": true
+    },
+    {
+      "id": "ui-copilotkit",
+      "lane": "ui",
+      "branch": "radar/r3-runtime",
+      "module": "labs.r3.integration.copilotkit_lab",
+      "args": [],
+      "required_for_r4": false
+    }
+  ]
+}
