@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 import sys
 from pathlib import Path
@@ -11,8 +12,11 @@ API_ROOT = ROOT / "apps" / "api"
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
+from app.evaluations.mobility_outcomes import MobilityEligibilityLabel  # noqa: E402
 from app.evaluations.professional_review import (  # noqa: E402
     PROFESSIONAL_REVIEW_SCHEMA_VERSION,
+    MobilityProfessionalReview,
+    MobilityProfessionalReviewBundle,
     MobilityReviewedLabels,
     ProfessionalReviewDecision,
     compile_professional_reviews,
@@ -21,8 +25,11 @@ from app.evaluations.professional_review import (  # noqa: E402
 )
 
 
-HANDOFF_CONTRACT_VERSION = "austria-professional-review-handoff.v1"
+HANDOFF_CONTRACT_VERSION = "austria-professional-review-handoff.v2"
 RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-return-template.v1"
+BLIND_RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-blind-return-template.v1"
+BLIND_RETURN_CONTRACT_VERSION = "austria-professional-review-blind-return.v1"
+BLIND_ASSESSMENT_STATUSES = ("ASSESSED", "DISPUTED", "NEEDS_MORE_FACTS")
 DEFAULT_SOURCE_PATH = ROOT / "apps" / "api" / "evaluations" / "mobility_cases" / "austria_rwr_shortage_2026_v1.json"
 
 
@@ -42,6 +49,74 @@ def _labels_payload(labels: MobilityReviewedLabels) -> dict[str, object]:
     }
 
 
+def _empty_labels_payload() -> dict[str, object]:
+    return {
+        "pathway_keys": None,
+        "eligibility": None,
+        "required_evidence": None,
+        "missing_evidence": None,
+        "contradictions": None,
+        "rule_or_source_refs": None,
+        "escalation_required": None,
+    }
+
+
+def _required_text(value: object, *, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must be a non-empty string")
+    return value.strip()
+
+
+def _optional_text(value: object, *, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a string or null")
+    return value
+
+
+def _optional_string_set(value: object, *, field_name: str) -> frozenset[str] | None:
+    if value is None:
+        return None
+    if not isinstance(value, list):
+        raise ValueError(f"{field_name} must be a list or null")
+    normalized: set[str] = set()
+    for index, item in enumerate(value):
+        normalized.add(_required_text(item, field_name=f"{field_name}[{index}]"))
+    return frozenset(normalized)
+
+
+def _blind_reviewed_labels(value: object, *, field_name: str) -> MobilityReviewedLabels:
+    if not isinstance(value, dict):
+        raise ValueError(f"{field_name} must be an object for ASSESSED review")
+    eligibility_value = value.get("eligibility")
+    eligibility = (
+        None
+        if eligibility_value is None
+        else MobilityEligibilityLabel(_required_text(eligibility_value, field_name=f"{field_name}.eligibility"))
+    )
+    escalation_required = value.get("escalation_required")
+    if escalation_required is not None and not isinstance(escalation_required, bool):
+        raise ValueError(f"{field_name}.escalation_required must be boolean or null")
+    return MobilityReviewedLabels(
+        pathway_keys=_optional_string_set(value.get("pathway_keys"), field_name=f"{field_name}.pathway_keys"),
+        eligibility=eligibility,
+        required_evidence=_optional_string_set(
+            value.get("required_evidence"), field_name=f"{field_name}.required_evidence"
+        ),
+        missing_evidence=_optional_string_set(
+            value.get("missing_evidence"), field_name=f"{field_name}.missing_evidence"
+        ),
+        contradictions=_optional_string_set(
+            value.get("contradictions"), field_name=f"{field_name}.contradictions"
+        ),
+        rule_or_source_refs=_optional_string_set(
+            value.get("rule_or_source_refs"), field_name=f"{field_name}.rule_or_source_refs"
+        ),
+        escalation_required=escalation_required,
+    )
+
+
 def _requested_case_ids(source_path: Path, case_ids: tuple[str, ...]) -> tuple[object, tuple[str, ...]]:
     source_set = load_official_source_gold_set(source_path)
     requested = case_ids or tuple(case.case_id for case in source_set.cases)
@@ -59,50 +134,59 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
 
     cases: list[dict[str, object]] = []
     for case_id in requested:
-        source_case = source_set.case_by_id(case_id)
         raw_case = raw_cases[case_id]
         cases.append(
             {
                 "case_id": case_id,
                 "source_case_fingerprint": source_set.fingerprint_for(case_id),
                 "facts": raw_case.get("facts", {}),
-                "source_labels": _labels_payload(MobilityReviewedLabels.from_gold_case(source_case)),
-                "source_rationale": raw_case.get("rationale"),
                 "source_references": list(source_set.source_references),
-                "reviewer_decision_required": [decision.value for decision in ProfessionalReviewDecision],
+                "reviewer_assessment_status_required": list(BLIND_ASSESSMENT_STATUSES),
+                "reviewed_label_fields": list(_empty_labels_payload()),
                 "reviewer_instruction": (
-                    "Independently assess the supplied facts and cited official sources. CONFIRMED must retain "
-                    "the source labels exactly; CORRECTED must provide the complete corrected reviewed_labels; "
-                    "DISPUTED and NEEDS_MORE_FACTS are held outside the promoted professional denominator."
+                    "Independently assess the supplied facts against the cited official sources. "
+                    "Do not ask for or infer the benchmark's expected labels or rationale. "
+                    "Use ASSESSED with your complete independent reviewed_labels when you can reach a professional "
+                    "assessment; use DISPUTED when the supplied benchmark framing itself is professionally disputed; "
+                    "use NEEDS_MORE_FACTS when the supplied facts are insufficient. AIOS derives CONFIRMED versus "
+                    "CORRECTED only after your blind return is received."
                 ),
             }
         )
 
     return {
         "contract_version": HANDOFF_CONTRACT_VERSION,
-        "purpose": "Independent professional review handoff for the first real Austria benchmark tranche.",
+        "purpose": "Blind independent professional review handoff for the first real Austria benchmark tranche.",
+        "blind_review": True,
+        "expected_labels_excluded": True,
+        "source_rationale_excluded": True,
         "source_benchmark_key": source_set.benchmark_key,
         "source_schema_version": source_set.schema_version,
-        "review_schema_version": PROFESSIONAL_REVIEW_SCHEMA_VERSION,
+        "canonical_review_schema_version": PROFESSIONAL_REVIEW_SCHEMA_VERSION,
+        "blind_return_contract_version": BLIND_RETURN_CONTRACT_VERSION,
         "jurisdiction": source_set.jurisdiction,
         "evaluation_as_of": source_set.evaluation_as_of.isoformat(),
         "source_professional_review_status": source_set.professional_review_status,
         "claim_boundary": source_set.claim_boundary,
         "official_sources": raw.get("sources", []),
+        "eligibility_label_values": [value.value for value in MobilityEligibilityLabel],
         "reviewer_boundary": (
-            "AIOS validates source fingerprints, review structure, decision semantics and supplied reviewer/credential "
-            "references. It does not verify the real-world identity, independence, professional standing or credential "
-            "validity of the reviewer; those must be established outside this compiler and referenced in the submitted record."
+            "AIOS validates source fingerprints, review structure, derived decision semantics and supplied "
+            "reviewer/credential references. It does not verify the real-world identity, independence, professional "
+            "standing or credential validity of the reviewer; those must be established outside this compiler and "
+            "referenced in the submitted record."
         ),
         "submission_requirements": [
-            "Use schema_version mobility-professional-review-v1.",
+            f"Use contract_version {BLIND_RETURN_CONTRACT_VERSION} for the reviewer return.",
             "Bind every review to the exact source_case_fingerprint in this packet.",
             "Supply timezone-aware created_at and reviewed_at timestamps.",
             "Supply durable professional_review_reference, reviewer_reference and reviewer_credential_reference values.",
             "Set independent_review=true only when independence has actually been established outside AIOS.",
             "Do not use test-only, placeholder or fabricated reviewer/credential references for acceptance evidence.",
-            "Use --prepare-return-template to generate the exact fail-closed JSON return skeleton.",
-            "Run this tool with --validate-bundle before treating the tranche as structurally promotable.",
+            "Do not request or reveal source benchmark expected labels or source rationale before the reviewer returns.",
+            "Use --prepare-blind-return-template to generate the reviewer-facing fail-closed JSON return skeleton.",
+            "Use --compile-blind-return to derive the canonical mobility-professional-review-v1 bundle after return.",
+            "Run --validate-bundle on the derived canonical bundle before treating the tranche as structurally promotable.",
         ],
         "case_count": len(cases),
         "cases": cases,
@@ -110,6 +194,7 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
 
 
 def build_return_template(source_path: Path, case_ids: tuple[str, ...]) -> dict[str, object]:
+    """Legacy/internal canonical template retained for compatibility; not reviewer-facing."""
     source_set, requested = _requested_case_ids(source_path, case_ids)
     reviews = [
         {
@@ -135,6 +220,198 @@ def build_return_template(source_path: Path, case_ids: tuple[str, ...]) -> dict[
         "created_at": None,
         "reviews": reviews,
     }
+
+
+def build_blind_return_template(source_path: Path, case_ids: tuple[str, ...]) -> dict[str, object]:
+    source_set, requested = _requested_case_ids(source_path, case_ids)
+    return {
+        "contract_version": BLIND_RETURN_CONTRACT_VERSION,
+        "review_batch_id": None,
+        "source_benchmark_key": source_set.benchmark_key,
+        "source_schema_version": source_set.schema_version,
+        "created_at": None,
+        "reviews": [
+            {
+                "review_id": None,
+                "source_case_id": case_id,
+                "source_case_fingerprint": source_set.fingerprint_for(case_id),
+                "reviewed_at": None,
+                "professional_review_reference": None,
+                "reviewer_reference": None,
+                "reviewer_credential_reference": None,
+                "independent_review": None,
+                "assessment_status": None,
+                "reviewed_labels": _empty_labels_payload(),
+                "notes": None,
+            }
+            for case_id in requested
+        ],
+    }
+
+
+def compile_blind_review_return(source_path: Path, blind_path: Path) -> tuple[dict[str, object], dict[str, object]]:
+    source_set = load_official_source_gold_set(source_path)
+    payload = json.loads(blind_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("blind review return root must be an object")
+    if payload.get("contract_version") != BLIND_RETURN_CONTRACT_VERSION:
+        raise ValueError(f"contract_version must be {BLIND_RETURN_CONTRACT_VERSION}")
+
+    review_batch_id = _required_text(payload.get("review_batch_id"), field_name="review_batch_id")
+    source_benchmark_key = _required_text(
+        payload.get("source_benchmark_key"), field_name="source_benchmark_key"
+    )
+    source_schema_version = _required_text(
+        payload.get("source_schema_version"), field_name="source_schema_version"
+    )
+    if source_benchmark_key != source_set.benchmark_key:
+        raise ValueError("blind return source_benchmark_key does not match source set")
+    if source_schema_version != source_set.schema_version:
+        raise ValueError("blind return source_schema_version does not match source set")
+
+    created_at = datetime.fromisoformat(_required_text(payload.get("created_at"), field_name="created_at"))
+    reviews_value = payload.get("reviews")
+    if not isinstance(reviews_value, list):
+        raise ValueError("reviews must be a list")
+
+    reviews: list[MobilityProfessionalReview] = []
+    derived_decisions: list[dict[str, str]] = []
+    for index, raw_review in enumerate(reviews_value):
+        if not isinstance(raw_review, dict):
+            raise ValueError(f"reviews[{index}] must be an object")
+        source_case_id = _required_text(
+            raw_review.get("source_case_id"), field_name=f"reviews[{index}].source_case_id"
+        )
+        try:
+            source_case = source_set.case_by_id(source_case_id)
+        except KeyError as exc:
+            raise ValueError(f"blind return references unknown source case {source_case_id}") from exc
+        fingerprint = _required_text(
+            raw_review.get("source_case_fingerprint"),
+            field_name=f"reviews[{index}].source_case_fingerprint",
+        )
+        if fingerprint != source_set.fingerprint_for(source_case_id):
+            raise ValueError(f"blind return source fingerprint is stale for case {source_case_id}")
+
+        independent_review = raw_review.get("independent_review")
+        if not isinstance(independent_review, bool):
+            raise ValueError(f"reviews[{index}].independent_review must be boolean")
+
+        assessment_status = _required_text(
+            raw_review.get("assessment_status"), field_name=f"reviews[{index}].assessment_status"
+        ).upper()
+        if assessment_status not in BLIND_ASSESSMENT_STATUSES:
+            raise ValueError(
+                f"reviews[{index}].assessment_status must be one of {', '.join(BLIND_ASSESSMENT_STATUSES)}"
+            )
+
+        reviewed_labels: MobilityReviewedLabels | None
+        if assessment_status == "ASSESSED":
+            reviewed_labels = _blind_reviewed_labels(
+                raw_review.get("reviewed_labels"), field_name=f"reviews[{index}].reviewed_labels"
+            )
+            source_labels = MobilityReviewedLabels.from_gold_case(source_case)
+            decision = (
+                ProfessionalReviewDecision.CONFIRMED
+                if reviewed_labels == source_labels
+                else ProfessionalReviewDecision.CORRECTED
+            )
+        else:
+            if raw_review.get("reviewed_labels") not in (None, _empty_labels_payload()):
+                raise ValueError(
+                    f"reviews[{index}].reviewed_labels must be null/empty for {assessment_status}"
+                )
+            reviewed_labels = None
+            decision = ProfessionalReviewDecision(assessment_status)
+
+        review = MobilityProfessionalReview(
+            review_id=_required_text(raw_review.get("review_id"), field_name=f"reviews[{index}].review_id"),
+            source_case_id=source_case_id,
+            source_case_fingerprint=fingerprint,
+            reviewed_at=datetime.fromisoformat(
+                _required_text(raw_review.get("reviewed_at"), field_name=f"reviews[{index}].reviewed_at")
+            ),
+            professional_review_reference=_required_text(
+                raw_review.get("professional_review_reference"),
+                field_name=f"reviews[{index}].professional_review_reference",
+            ),
+            reviewer_reference=_required_text(
+                raw_review.get("reviewer_reference"), field_name=f"reviews[{index}].reviewer_reference"
+            ),
+            reviewer_credential_reference=_required_text(
+                raw_review.get("reviewer_credential_reference"),
+                field_name=f"reviews[{index}].reviewer_credential_reference",
+            ),
+            independent_review=independent_review,
+            decision=decision,
+            reviewed_labels=reviewed_labels,
+            notes=_optional_text(raw_review.get("notes"), field_name=f"reviews[{index}].notes"),
+        )
+        reviews.append(review)
+        derived_decisions.append(
+            {
+                "source_case_id": source_case_id,
+                "assessment_status": assessment_status,
+                "derived_decision": decision.value,
+            }
+        )
+
+    bundle = MobilityProfessionalReviewBundle(
+        schema_version=PROFESSIONAL_REVIEW_SCHEMA_VERSION,
+        review_batch_id=review_batch_id,
+        source_benchmark_key=source_benchmark_key,
+        source_schema_version=source_schema_version,
+        created_at=created_at,
+        reviews=tuple(reviews),
+    )
+    compiled = compile_professional_reviews(source_set, bundle)
+
+    canonical = {
+        "schema_version": bundle.schema_version,
+        "review_batch_id": bundle.review_batch_id,
+        "source_benchmark_key": bundle.source_benchmark_key,
+        "source_schema_version": bundle.source_schema_version,
+        "created_at": bundle.created_at.isoformat(),
+        "reviews": [
+            {
+                "review_id": review.review_id,
+                "source_case_id": review.source_case_id,
+                "source_case_fingerprint": review.source_case_fingerprint,
+                "reviewed_at": review.reviewed_at.isoformat(),
+                "professional_review_reference": review.professional_review_reference,
+                "reviewer_reference": review.reviewer_reference,
+                "reviewer_credential_reference": review.reviewer_credential_reference,
+                "independent_review": review.independent_review,
+                "decision": review.decision.value,
+                "reviewed_labels": (
+                    None if review.reviewed_labels is None else _labels_payload(review.reviewed_labels)
+                ),
+                "notes": review.notes,
+            }
+            for review in bundle.reviews
+        ],
+    }
+    report = {
+        "contract_version": HANDOFF_CONTRACT_VERSION,
+        "mode": "compile-blind-return",
+        "blind_return_contract_version": BLIND_RETURN_CONTRACT_VERSION,
+        "source_benchmark_key": source_set.benchmark_key,
+        "review_batch_id": bundle.review_batch_id,
+        "review_count": compiled.review_count,
+        "confirmed_count": compiled.confirmed_count,
+        "corrected_count": compiled.corrected_count,
+        "disputed_count": compiled.disputed_count,
+        "needs_more_facts_count": compiled.needs_more_facts_count,
+        "professionally_reviewed_case_count": compiled.professionally_reviewed_case_count,
+        "derived_decisions": derived_decisions,
+        "expected_labels_revealed_to_reviewer": False,
+        "source_rationale_revealed_to_reviewer": False,
+        "acceptance_boundary": (
+            "AIOS derived CONFIRMED/CORRECTED only after the blind reviewer assessment. "
+            "Structural compilation does not prove real-world identity, independence or credential validity."
+        ),
+    }
+    return canonical, report
 
 
 def validate_review_bundle(source_path: Path, review_path: Path) -> dict[str, object]:
@@ -168,15 +445,18 @@ def validate_review_bundle(source_path: Path, review_path: Path) -> dict[str, ob
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Prepare an immutable-fingerprint Austria professional-review handoff packet, prepare a fail-closed reviewer "
-            "return template, or validate a completed independent review bundle. This tool never fabricates professional "
-            "review and never verifies real-world credentials."
+            "Prepare a blind immutable-fingerprint Austria professional-review handoff packet, prepare reviewer/internal "
+            "return templates, compile a blind reviewer return into the canonical review bundle, or validate a completed "
+            "canonical independent review bundle. This tool never fabricates professional review and never verifies "
+            "real-world credentials."
         )
     )
     parser.add_argument("--source-path", type=Path, default=DEFAULT_SOURCE_PATH)
     modes = parser.add_mutually_exclusive_group(required=True)
     modes.add_argument("--prepare-packet", action="store_true")
     modes.add_argument("--prepare-return-template", action="store_true")
+    modes.add_argument("--prepare-blind-return-template", action="store_true")
+    modes.add_argument("--compile-blind-return", type=Path)
     modes.add_argument("--validate-bundle", type=Path)
     parser.add_argument("--case-id", action="append", default=[])
     parser.add_argument("--output", type=Path)
@@ -215,8 +495,32 @@ def main() -> int:
             _emit_prepared(payload, output=args.output, contract_version=RETURN_TEMPLATE_CONTRACT_VERSION)
             return 0
 
+        if args.prepare_blind_return_template:
+            payload = build_blind_return_template(args.source_path, tuple(args.case_id))
+            _emit_prepared(
+                payload,
+                output=args.output,
+                contract_version=BLIND_RETURN_TEMPLATE_CONTRACT_VERSION,
+            )
+            return 0
+
         if args.case_id:
-            raise ValueError("--case-id is only valid with --prepare-packet or --prepare-return-template")
+            raise ValueError(
+                "--case-id is only valid with --prepare-packet, --prepare-return-template or "
+                "--prepare-blind-return-template"
+            )
+
+        if args.compile_blind_return:
+            canonical, report = compile_blind_review_return(args.source_path, args.compile_blind_return)
+            if args.output is None:
+                print(_json(canonical))
+                print(_json(report), file=sys.stderr)
+            else:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(_json(canonical) + "\n", encoding="utf-8")
+                print(_json({**report, "status": "compiled", "output": str(args.output)}))
+            return 0
+
         report = validate_review_bundle(args.source_path, args.validate_bundle)
         print(_json(report))
         return 0 if report["first_real_tranche_structural_candidate"] else 2
