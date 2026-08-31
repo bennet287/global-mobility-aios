@@ -22,6 +22,11 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /snapshot\.domain_evidence_refs/);
   assert.match(page, /snapshot\.verified_rule_refs/);
   assert.match(page, /specialist\.runtime_quality/);
+  assert.match(page, /snapshot\.activities\.map/);
+  assert.match(page, /Durable activity lineage/);
+  assert.match(page, /Persisted organizational activity/);
+  assert.match(page, /activity\.causation_activity_id/);
+  assert.match(page, /Provider transcripts, tool logs, and donor event streams are not promoted to organizational truth/);
   assert.match(page, /Runtime economics & quality/);
   assert.match(page, /Persisted specialist runtime signals/);
   assert.match(page, /quality\.total_tokens/);
@@ -42,11 +47,13 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /does not infer whether a live cycle exists/);
   assert.match(page, /!loading && !error && !snapshot/);
   assert.doesNotMatch(page, /Math\.random|setInterval\(/);
+  assert.doesNotMatch(page, /provider transcript.*OrganizationActivity/i);
 
   assert.match(api, /export type AustriaLiveRuntimeQuality/);
   assert.match(api, /runtime_quality: AustriaLiveRuntimeQuality \| null/);
   assert.match(api, /estimated_cost_usd: number \| null/);
   assert.match(api, /fresh_retrieval_provenance_present: boolean/);
+  assert.match(api, /causation_activity_id: string \| null/);
   assert.match(api, /class LiveOrganizationRequestError extends Error/);
   assert.match(api, /this\.status = status/);
   assert.match(api, /throw new LiveOrganizationRequestError\(response\.status, detail\)/);
