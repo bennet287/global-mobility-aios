@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.33 — bounded Technology Radar Wave E1 SecretsPort / non-production OpenBao pilot; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.34 — Technology Radar V1.3.6 + bounded Wave E2 evaluation/adversarial contract hardening; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -11,7 +11,7 @@
 **Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
 **Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
-**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_5.md`
+**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_6.md`
 **Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
 **Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
 **Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
@@ -20,6 +20,7 @@
 **Accepted L live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md` — real Gemini success, guarded fresh retrieval, real failure, owner materialization and exact replay; professional review + final exact-current-head proof remain
 **Supplemental L domain corroboration:** `V1_3_L_AI_DOMAIN_CORROBORATION.md` — blind fresh-source multi-provider harness implemented; no corroboration result or professional-review substitution claimed
 **Supporting Wave E1 secrets pilot:** `TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md` — AIOS-owned SecretsPort and optional non-production OpenBao KV-v2 adapter implemented for hosted-LLM credential references; production backend adoption is not claimed
+**Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial mutation gate for the Austria AI-domain review contract; live-model security, professional review and Red Team runtime are not claimed
 **Runtime-evidence documentation baseline:** `eb890463a36e0b3c9a615bb2255c41730cd80646` — source head before this V12.30 documentation-only receipt; final exact-current-head proof remains pending
 **Historical 2026-08-25 pre-reconciliation source head:** `38f028f8c3123fdb5678a2ad1e9ff80ddeec35d8`
 **Current product milestone:** L — Live Organization
@@ -31,6 +32,8 @@
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
 > **Nothing necessary gets forgotten, but nothing gets implemented merely because it appears in a Radar, donor programme or architecture document.**
+
+> **Aggressive Radar. Conservative production authority.**
 
 > **Governance before unrestricted execution. Transparency before increased autonomy. Production proof before acceptance.**
 
@@ -368,6 +371,21 @@ Current status of the acceptance capabilities:
 
 Operational execution and reviewer handoff are documented in `docs/L_LIVE_ORGANIZATION_ACCEPTANCE_OPERATIONS.md`.
 
+#### L evaluation / adversarial hardening
+
+The existing live-provider/fresh-source evaluation evidence is intentionally complemented by a deterministic adversarial-contract layer rather than replaced by it.
+
+Wave E2 adds a reusable gate for authority escalation, route substitution, forged sources, missing/duplicate cases, invented classifications, uncited conclusions, empty rationales, fake provider consensus, provider/model identity mismatch, structural failure, source-label mismatch and indirect prompt-injection boundary behavior.
+
+```text
+deterministic adversarial contract proof
+!= live-model security proof
+!= professional Austria review
+!= operational Red Team proof
+```
+
+The bounded receipt is `docs/TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md`. Technology Radar V1.3.6 makes property-based testing, mutation testing, fuzzing, Garak/PyRIT and security-tooling research explicit future candidates while keeping production adoption necessity-gated.
+
 #### L UX work
 
 UX work starts before and alongside implementation, but UX capability is the requirement—not a specific design tool.
@@ -519,12 +537,16 @@ That answer belongs here in `ROADMAP.md`.
 
 Radar states such as `RESEARCH`, `PILOT`, `TRIAL-ELIGIBLE`, `WATCH`, `DEFER`, `ADOPT` or `REJECT` describe evidence/adoption posture, not scheduling priority.
 
+V1.3.6 deliberately makes Radar discovery more aggressive. Research/benchmark status is permission to investigate seriously, not permission to install indiscriminately or create a second truth/control system.
+
 Examples:
 
 - OpenTelemetry is pulled forward because L has a concrete correlation need;
 - ERPNext/Odoo remain deferred because ERP is not on the current product dependency path;
 - LLMLingua-2 remains a selected context-compression pilot but advances only when a measured context/runtime need warrants it;
-- Promptfoo remains useful evaluation infrastructure but does not become a milestone by itself;
+- Promptfoo remains useful evaluation infrastructure and may be expanded when it improves adversarial coverage, but it does not become a milestone by itself;
+- Hypothesis/mutation/fuzzing tools are high-value evaluation candidates when they expose invariant/test-strength gaps;
+- Garak/PyRIT belong only in bounded live-model or future isolated Red Team evaluation, never as implicit attack authority;
 - Hy4 Preview is a `RESEARCH → BOUNDED PILOT` developer-tooling candidate for sanitized comparison on an existing L/UX2 frontend surface; it is not a production AIOS runtime, an L dependency or permission to start M;
 - a new generic agent framework remains rejected by default unless a measured gap cannot be solved cleanly with current runtime contracts.
 
@@ -576,6 +598,7 @@ Current scheduling posture:
 | L telemetry correlation | REQUIRED ENABLEMENT | real L runtime/cockpit diagnosis |
 | Backup / isolated restore | SUPPORTING PARALLEL | production recoverability requirement |
 | Secrets manager | SUPPORTING PARALLEL | bounded SecretsPort pilot implemented; production backend promotion only on real lifecycle/rotation/deployment need |
+| Evaluation/adversarial hardening | SUPPORTING PARALLEL | deepen weak/shallow proof around material AI/governance behavior without substituting for live/professional evidence |
 | Identity / SSO | DEFERRED until dependency | multi-user/deployment authentication need |
 | Communications Gateway | DEFERRED until dependency | governed outbound communication capability |
 | E-signature | DEFERRED until dependency | signed-document workflow enters product path |
@@ -635,6 +658,8 @@ A documentation commit does not inherit a previous runtime PASS automatically.
 A design frame is not product proof.
 
 A deterministic fallback test is not live-model correctness proof.
+
+A deterministic adversarial contract gate is not live-model attack resistance.
 
 A deterministic J→K→L backend test may prove integration/lineage while still proving nothing about real-provider response quality.
 
@@ -779,6 +804,8 @@ The Context Broker remains responsible for purpose-scoped context, Evidence/Veri
 
 LLMLingua-2 remains a pilot behind an AIOS-owned `ContextCompressionPort`; compressed context remains derived execution context, never source truth.
 
+R3–R5 protected context continues to default to zero semantic compression for mandatory Evidence, critical VerifiedRules, exact money/dates/identifiers, authority/autonomy/risk/policy constraints, contradictions and material action/source identifiers unless a later accepted proof changes that contract.
+
 Its pilot status does not grant it implementation priority over current L needs.
 
 ---
@@ -896,15 +923,18 @@ NOW — L LIVE ORGANIZATION
 │
 ├─ REMAINING ACCEPTANCE EVIDENCE
 │  ├─ first real independent professionally reviewed Austria tranche
-│  ├─ real configured-provider success + real provider-failure evidence
-│  └─ real guarded fresh-retrieval Austria L-cycle
+│  └─ final exact-current-head technical proof
 │
 ├─ SUPPORTING PARALLEL
-│  ├─ backup / isolated restore foundation
+│  ├─ backup / isolated restore foundation already implemented
 │  ├─ secrets boundary bounded pilot IMPLEMENTED; production backend adoption remains demand-gated
+│  ├─ Wave E2 deterministic adversarial-contract hardening IMPLEMENTED; full local/CI proof pending
+│  ├─ aggressive evaluation/security Radar research without production-adoption implication
 │  └─ selective Munder analysis for demonstrated L/UX2 gaps
 │
-└─ DEFERRED UNTIL L SEAL / DEMONSTRATED SECOND-VERTICAL NEED
+└─ DEFERRED UNTIL L SEAL / DEMONSTRATED NEED
+   ├─ operational offensive Red Team / Microsandbox-backed lab execution
+   ├─ CopilotKit / AG-UI production pilot / M start
    ├─ broad Austria-to-generic runtime extraction
    ├─ broad IdP migration
    ├─ governed outbound communications platform work
@@ -953,6 +983,7 @@ The current roadmap does not authorize:
 - broad production SSO migration merely because IdPs are on the Radar;
 - another generic agent framework;
 - fake live-organization state;
+- unrestricted/off-scope Red Team execution;
 - implementation of a donor feature merely because the donor contains it;
 - adoption of Penpot, Storybook, OpenTelemetry or any other tool as constitutional product authority.
 
