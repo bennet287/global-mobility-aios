@@ -56,10 +56,10 @@ git pull origin radar/r3-authority
 git rev-parse HEAD
 ```
 
-Expected remote checkpoint begins with:
+Expected current execution checkpoint begins with:
 
 ```text
-5e4c232
+77b90b4
 ```
 
 ## 2. Run unit/contract tests first
@@ -266,7 +266,8 @@ python -m labs.r3.authority.deep_rollup `
   --output labs/r3/authority/results/authority-deep-rollup-20260830-006.json
 ```
 
-The deep rollup intentionally remains `CONTINUE_R3_WITH_SPECIFIC_GAP` even
-after all implemented gates pass. Remaining depth is explicit: OpenFGA
-conditions, OPA bundle lifecycle, Cedar typed entities/schema, security
-integration and cross-component integration.
+The deep authority implementation now also includes OpenFGA temporal conditions,
+OPA signed-bundle rollout/rollback/tamper rejection, Cedar typed entities/schema
+validation/permit-forbid precedence, and a SpiceDB challenger. These additions
+remain execution-pending; cross-lane security/integration evidence is supplied by
+the programme-level Grand Trial rather than by this lane alone.
