@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.46 / blind professional-review local proof + R3 interop recoverability
+**Latest reconciliation:** V12.47 / project-state administration reconciliation; technology truth unchanged
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -127,7 +127,7 @@ remote branch preservation != production adoption
 remote branch preservation != L acceptance
 ```
 
-## 5. Cybersecurity / Red Team truth
+## 6. Cybersecurity / Red Team truth
 
 The governed cybersecurity donor and AIOS Red Team / Adversarial Security Lab programme has already started at architecture/Radar level. Do not redesign it from zero.
 
@@ -142,7 +142,7 @@ Microsandbox-backed lab                     future candidate only
 
 `SKILL KNOWLEDGE != EXECUTION AUTHORITY`.
 
-## 6. Mandatory anti-duplication checklist
+## 7. Mandatory anti-duplication checklist
 
 ```text
 [ ] What exact product problem is being solved now?
@@ -157,7 +157,7 @@ Microsandbox-backed lab                     future candidate only
 [ ] Have ROADMAP / CHANGELOG / this ledger been reconciled?
 ```
 
-## 7. Radar-completion interpretation
+## 8. Radar-completion interpretation
 
 Technology Radar V1.3.8 is the **active consolidated current-horizon Radar**. V1.3.7 remains the historical broad inventory; V1.3.8 applies the scatter audit so duplicate candidates are trigger-bound rather than permanently active research.
 
