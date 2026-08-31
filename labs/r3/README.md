@@ -76,3 +76,70 @@ TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
 PROVIDER OUTPUT != AUTHORITY
 R3 PASS != PRODUCTION ADOPTION
 ```
+
+
+## Programme execution
+
+The R3 implementation surface is executed from the `radar/r3-runtime`
+worktree with a worktree-aware runner. Dedicated branches remain pinned for
+current-head evidence while the runtime worktree is resolved dynamically at
+execution time.
+
+List the core R4 evidence steps:
+
+```powershell
+python -m labs.r3.run_programme --list
+```
+
+Dry-run the complete core programme without executing candidates:
+
+```powershell
+python -m labs.r3.run_programme --dry-run
+```
+
+Execute a single lane:
+
+```powershell
+python -m labs.r3.run_programme --lane authority
+```
+
+Execute all core lanes and then invoke the hardened Grand Integration Trial:
+
+```powershell
+python -m labs.r3.run_programme --grand-trial
+```
+
+Include comparative candidates such as Cedar/SpiceDB, external red-team tools,
+Langfuse/Phoenix, Mem0/OpenViking, Temporal/LangGraph/Agno and CopilotKit:
+
+```powershell
+python -m labs.r3.run_programme --comparative --grand-trial
+```
+
+The runner discovers Git worktrees automatically and writes evidence to
+`.test-tmp/r3-programme/` by default. It never installs dependencies, injects
+credentials, creates production authority, or treats a missing prerequisite as
+PASS.
+
+Optional lane-specific Python executables can be supplied through environment
+variables such as:
+
+```text
+GMAI_R3_PYTHON_AUTHORITY
+GMAI_R3_PYTHON_INTEROPERABILITY
+GMAI_R3_PYTHON_SECURITY
+GMAI_R3_PYTHON_MEMORY
+GMAI_R3_PYTHON_ORCHESTRATION
+GMAI_R3_PYTHON_UI
+```
+
+Execution status is intentionally three-way:
+
+```text
+PASS     = command succeeded and artifact fingerprint/head validated
+BLOCKED  = prerequisite/candidate/worktree unavailable
+FAIL     = execution or artifact integrity failure
+```
+
+Only the Grand Trial may produce `R4_ELIGIBLE`, and only after all eleven
+runtime lanes satisfy their minimum evidence-depth requirements.
