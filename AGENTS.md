@@ -2,7 +2,10 @@
 
 This guide is for AI coding agents and developers working on the active Global Mobility AIOS repository. Treat repository state, accepted proof records, and `docs/ROADMAP.md` as authority. Do not infer capabilities, acceptance, or infrastructure that the repository does not prove.
 
-**New session recovery:** read `agents/SESSION_HANDOFF.md` first for current branch state, open acceptance gates, and recent decisions. Verify its claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, and the actual git remotes before acting.
+**New session recovery:**
+1. Read `agents/PROJECT_STATE.md` first for the current project map.
+2. Then read `agents/SESSION_HANDOFF.md` for recovery commands, exact branch/worktree state, and recent decisions.
+3. Verify all claims against `docs/ROADMAP.md`, `docs/CHANGELOG.md`, the active Radar/adoption ledger, and the actual git remotes before acting.
 
 ## 1. Product identity and constitutional boundaries
 
