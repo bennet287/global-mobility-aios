@@ -35,3 +35,5 @@ clamd>=1.0.2
 
 pytest>=8.3
 pytest-xdist>=3.8
+# Technology Radar Wave E3 — property/invariant testing only; not a production runtime dependency.
+hypothesis>=6.112
