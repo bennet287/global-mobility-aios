@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.39 — Wave E4 bounded mutation-strength local proof observed; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.40 — Track B product-experience anti-duplication audit + canonical runtime-economics Cockpit tranche; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
@@ -10,6 +10,7 @@
 **Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR
 **Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
 **Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
+**Track B anti-duplication audit:** `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_7.md`
 **Technology Radar horizon status:** broad current-horizon inventory COMPLETE; continuous evidence-based scouting remains active
@@ -118,6 +119,37 @@ cybersecurity skills and isolated Red Team
 
 The Radar remains continuously scoutable, but future additions must clear a higher bar: a material new capability, a materially stronger challenger, a major ecosystem change, or a newly demonstrated AIOS gap.
 
+## 4.1 SUPPORTING PARALLEL — Track B Product Experience
+
+Track B may refine the product experience while L acceptance is open, but it does **not** start milestone M. The anti-duplication audit in `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md` is the current implementation map.
+
+Audit truth:
+
+```text
+UX0 / information architecture          EXISTING / EXTEND
+workspace navigation                    EXISTING / EXTEND
+UX1 design-system foundation            EXISTING / REFINE
+UX2 Live Organization surface           EXISTING / REFINE
+Munder donor architecture               EXISTING / DO NOT REDESIGN
+Munder/CopilotKit/AG-UI runtime adoption NONE ON CANONICAL V12
+canonical live runtime projection        EXISTING
+runtime-quality token/cost backend data  EXISTING
+Cockpit runtime-economics presentation   IMPLEMENTED / LOCAL PROOF PENDING
+presence / heartbeat                     FUTURE GAP / DEMAND-GATED
+collaboration visualization              FUTURE GAP / DEMAND-GATED
+transcript/tool visualization            PARTIAL NATIVE FOUNDATION / FUTURE SLICE
+```
+
+The first selected Track B gap deliberately reuses the existing Board-safe `AustriaLiveRuntimeQualityRead` projection. The web client now mirrors and presents persisted provider/model outcome, token usage, estimated cost, grounding provenance and fallback state rather than importing donor telemetry state.
+
+Permanent boundary:
+
+```text
+TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
+```
+
+Missing measurements remain unknown rather than being inferred as zero. No new telemetry backend, presence store, event authority, donor state store or external interaction framework is adopted by this tranche.
+
 ## 5. NEXT — after L acceptance
 
 Only after L is sealed does M become primary.
@@ -155,6 +187,9 @@ L runtime acceptance evidence             COMPLETE / ACCEPTED
 Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
 Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e...
+Track B anti-duplication audit             COMPLETE
+Track B runtime-economics Cockpit slice   IMPLEMENTED / LOCAL PROOF PENDING
+Munder runtime adoption                    NONE
 external mutation engine adoption         NONE
 independent professional Austria review   PENDING
 final exact-current-head proof            PENDING
@@ -163,7 +198,7 @@ M                                         NOT STARTED
 N                                         NOT STARTED
 ```
 
-Supporting evaluation hardening may continue only when it directly strengthens the current L proof path and does not displace the genuine professional-review gate. Wave E4 is now locally proven at its exact implementation head. The product path should return to the genuine professional Austria review unless a concrete source defect or prerequisite is discovered.
+Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not displace the genuine professional-review gate or invent a second source of truth. The next Track B slice must begin with the same anti-duplication test; the next L acceptance gate remains the genuine professional Austria review.
 
 ## 8. Historical compatibility anchors
 
