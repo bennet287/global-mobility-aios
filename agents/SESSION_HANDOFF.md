@@ -2,7 +2,7 @@
 
 **Purpose:** Recover the current development state without relying on chat history. This file is living recovery documentation; repository truth, `docs/ROADMAP.md`, the active Radar, the adoption ledger, acceptance records and actual git remotes remain authoritative.
 
-**Last updated:** 2026-09-01
+**Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
 **Verified V12 remote baseline before this handoff edit:** `24a00c1025f8a69d683213fb4ffd3034d8497725`
 
@@ -21,10 +21,8 @@ N    NOT STARTED
 
 ### L remaining gates
 
-1. Obtain the same genuine qualified independent Austria reviewer’s current-fingerprint v3 reaffirmation using the proven regenerated blind handoff.
-2. Compile/reconcile the real reviewer evidence and findings.
-3. Run final exact-current-head technical proof after review evidence/docs are committed.
-4. Seal L only after the professional-review and final exact-head gates are satisfied.
+1. Run final exact-current-head technical proof after the reconciled anonymous review evidence/docs are committed.
+2. Seal L only after repository policy and the full V12 production proof pass for that exact evidence head.
 
 Do not fabricate professional review. AI/model review does not substitute for the independent human professional gate.
 
@@ -142,6 +140,8 @@ Radar-caused runtime adoption remains **NONE**.
 
 28. **V12.61 closes the current-v3 technical handoff gate.** Canonical checkpoint `24a00c1...` passed Repository Policy plus all four V12 Production Proof jobs. A source-tree-equivalent local run passed 28 focused professional-review/privacy tests and repository gates, then regenerated the blind v3 packet and blank v3 return template for all three current fingerprints. This is technical handoff proof only; same-reviewer reaffirmation, compilation/reconciliation and final exact-head L proof remain.
 
+29. **V12.62 satisfies the professional-review gate.** The same genuine independent reviewer completed the exact-current-fingerprint v3 return using privacy-safe opaque aliases. The canonical compiler derives three `CORRECTED` promotions, no confirmations, disputes, held or unreviewed cases. Eligibility remains `INELIGIBLE / ELIGIBLE / INELIGIBLE`; the professional corrections narrow source references and the no-offer case's missing-evidence label. The source seed remains immutable and `NOT_REVIEWED`; final exact-head proof for the committed bundle remains before L seal.
+
 
 ---
 
@@ -171,8 +171,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 5. `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 6. `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
 7. `docs/L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md`
-7. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
-8. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
+8. `docs/L_V12_62_ANONYMOUS_PROFESSIONAL_REVIEW_RECONCILIATION_2026-09-02.md`
+9. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
+10. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
 10. `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
 11. `docs/V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
@@ -206,27 +207,11 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Prove V12.57/V12.58 reviewer-contract state and regenerate fresh v3 artifacts.**
-   - run focused professional-review tests plus `test_mobility_outcome_evaluation.py`;
-   - run repository gates;
-   - generate `.local/professional-review/austria-professional-review-blind-packet-v3.json`;
-   - regenerate the blank blind return template;
-   - verify `reviewed_label_contract` and no expected-label/rationale leakage.
-2. **Obtain current-v3 reaffirmation from the same genuine independent Austria reviewer using the generated v3 return template.**
-   - use the fresh current-fingerprint v3 packet/template;
-   - record `independent_review=true`;
-   - populate privacy-safe, non-identifying `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference` aliases;
-   - keep the real identity/credential/engagement evidence confidential outside Git.
-3. **Compile/reconcile the current professional evidence using only repository-safe anonymous aliases.**
-   - The local `.local/` hygiene/archive blocker is closed at exact head `b2cc754...`.
-   - The non-blind legal-quality assessment is feedback only, not review evidence.
-   - No genuine reviewer findings/identity/credential evidence exists yet.
-   - Packet/template generation has been exercised locally.
-   - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
-4. Commit the acceptance evidence and run final exact-current-head L technical proof.
-5. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
-6. Begin M only after L is sealed.
-7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+1. Commit the reconciled anonymous professional-review evidence and regression coverage.
+2. Run final exact-current-head L technical proof for that evidence commit.
+3. Seal L only if repository policy and all V12 Production Proof jobs pass for the exact evidence head.
+4. Begin M only after L is sealed.
+5. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
 
 Completed prerequisites that must not be repeated:
 

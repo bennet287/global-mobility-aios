@@ -8,6 +8,26 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-02 — V12.62 ANONYMOUS PROFESSIONAL REVIEW RECONCILIATION
+
+### Status
+
+**CURRENT-FINGERPRINT BLIND REVIEW COMPILED / 3 OF 3 PROMOTED / 3 PROFESSIONAL CORRECTIONS RETAINED / PRIVACY-SAFE CANONICAL EVIDENCE COMMITTED / FINAL EXACT-HEAD PROOF PENDING**
+
+The same genuine independent Austria reviewer completed the current v3 blind return using exact source fingerprints and repository-safe opaque professional/reviewer/credential aliases. The confidential identity-to-credential mapping remains outside Git.
+
+The unmodified reviewer labels compile as three `CORRECTED` cases with no disputed, held or unreviewed cases. Eligibility remains `INELIGIBLE / ELIGIBLE / INELIGIBLE`; corrections narrow the per-case authority references and, for the no-offer case, narrow `missing_evidence` to the standalone missing binding job offer.
+
+The canonical privacy-safe bundle is now durable under `apps/api/evaluations/professional_reviews/`. New regression coverage compiles the exact bundle, proves all three `PROFESSIONALLY_REVIEWED` promotions, preserves the immutable `NOT_REVIEWED` source seed, and guards the anonymous alias boundary. The focused review/evaluation suite passes 36 tests with one existing warning. The full backend reports 1339 passed / 22 skipped with the same warning; repository policy, release consistency, dependency constraints and diff hygiene pass locally on the candidate source tree.
+
+Durable reconciliation record:
+
+`docs/L_V12_62_ANONYMOUS_PROFESSIONAL_REVIEW_RECONCILIATION_2026-09-02.md`
+
+The external professional-review gate is satisfied. L remains `IMPLEMENTED / ACCEPTANCE PENDING` until this evidence head completes the final exact-head repository policy and V12 production proof. M/N remain `NOT STARTED`.
+
+---
+
 ## 2026-09-01 — V12.61 CURRENT-V3 PROFESSIONAL-REVIEW HANDOFF PROOF
 
 ### Status
