@@ -138,6 +138,8 @@ Radar-caused runtime adoption remains **NONE**.
 25. **V12.59 aligns and enforces the reviewer return contract as v3.** The compiler now rejects legacy/free-form pathway keys, noncanonical evidence keys and prose source citations instead of silently promoting them as CORRECTED.
 26. **The supplied v3-style return is genuine but not current-compilable.** It has `independent_review=true` and non-empty reference strings, but at least Case 2 uses a stale V12.55 fingerprint, all three use legacy/free-form label vocabularies, and `contradictions=null` violates complete ASSESSED semantics. Regenerate the current v3 template and have the same reviewer re-affirm it; do not translate the labels inside AIOS.
 
+27. **Reviewer anonymity is a binding repository privacy boundary.** Do not commit the reviewer’s personal name, registration/bar number, email, firm/employer name, address, phone number or public-profile URL. Repository-bound professional/reviewer/credential references must be non-identifying opaque aliases; the real identity-to-credential mapping and supporting verification evidence remain confidential outside Git.
+
 
 ---
 
@@ -208,9 +210,9 @@ Priority order:
 2. **Obtain current-v3 reaffirmation from the same genuine independent Austria reviewer using the generated v3 return template.**
    - use the fresh current-fingerprint v3 packet/template;
    - record `independent_review=true`;
-   - populate durable `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference`;
-   - preserve independently verifiable identity/credential/engagement evidence.
-3. **Compile/reconcile the current professional evidence and durable references.**
+   - populate privacy-safe, non-identifying `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference` aliases;
+   - keep the real identity/credential/engagement evidence confidential outside Git.
+3. **Compile/reconcile the current professional evidence using only repository-safe anonymous aliases.**
    - The local `.local/` hygiene/archive blocker is closed at exact head `b2cc754...`.
    - The non-blind legal-quality assessment is feedback only, not review evidence.
    - No genuine reviewer findings/identity/credential evidence exists yet.
