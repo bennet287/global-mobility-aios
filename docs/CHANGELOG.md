@@ -6,9 +6,7 @@ Frozen V11 reference head remains `ac130deaafa7aa44068e9459facbda2b4df327d6`.
 
 The active changelog was rotated after V12.33. Exact older detail remains in Git history and `docs/archive/CHANGELOG_THROUGH_V12_33_2026-08-31.md`.
 
----
-
-## 2026-09-01 — V12.53 SECONDARY LOCAL ARCHIVE/DISCOVERY CLASSIFICATION + FAIL-FAST ACCEPTANCE
+NaN
 
 ### Status
 

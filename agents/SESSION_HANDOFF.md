@@ -125,6 +125,7 @@ Radar-caused runtime adoption remains **NONE**.
 14. **The exposed `.local/` tree is now classified.** Narrowly ignore `gmai-dev-cache/`, `gmai-dev-temp/` and existing `professional-review/`; archive legacy wrapper artifacts, phase patches, historical runtime files, SQLite backups and the historical Radar apply script outside the repository. Do not restore a blanket `/.local/` ignore.
 15. **V12.52 exposed a secondary preservation tranche.** `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt` remained untracked. Canonical V12 has no references to them; move them to the same external archive rather than ignore/delete them.
 16. **Interactive PowerShell PASS output is not authoritative.** Future acceptance instructions must run as one fail-fast script block with `$ErrorActionPreference = "Stop"`; if any gate throws, the run fails and no final PASS is printed.
+17. **V12.53 local hygiene is closed.** The fail-fast acceptance reached final PASS at exact head `b2cc754...` after all eight preservation/history items were archived outside the worktree, only narrow ignored roots remained, repository gates passed, the worktree was clean, and start/end/origin SHA matched. Repository Policy Check #452 is also green; V12 Production Proof #922 had policy+frontend green while backend/PostgreSQL were still running at the proof-record time.
 
 ---
 
@@ -162,8 +163,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 13. `docs/V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md`
 14. `docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md`
 15. `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`
-16. `AGENTS.md`
-17. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+16. `docs/V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md`
+17. `AGENTS.md`
+18. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -184,19 +186,17 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Finish the external archive by moving the three newly exposed preservation items**:
-   - `.local/archives/`
-   - `.local/discovery/`
-   - `.local/13.16.6-owner-inbox-discovery.txt`
-   Keep only `gmai-dev-cache/`, `gmai-dev-temp/`, and `professional-review/` in place under narrow repository ignore rules. Require a genuinely clean worktree before exact-head proof.
-2. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
+1. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
+   - The local `.local/` hygiene/archive blocker is closed at exact head `b2cc754...`.
    - Packet/template generation has been exercised locally.
    - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
-3. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
-4. Commit the acceptance evidence and run final exact-current-head L technical proof.
-5. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
-6. Begin M only after L is sealed.
-7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+   - Packet/template generation has been exercised locally.
+   - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
+2. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
+3. Commit the acceptance evidence and run final exact-current-head L technical proof.
+4. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
+5. Begin M only after L is sealed.
+6. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
 
 Completed prerequisites that must not be repeated:
 
@@ -213,6 +213,7 @@ GitHub policy shallow-history repair          IMPLEMENTED / CI RERUN PENDING
 post-baseline whitespace cleanup             IMPLEMENTED / CURRENT-HEAD PROOF PENDING
 .local artifact classification                EXTENDED / SECONDARY ARCHIVE ACTION PENDING
 V12.52 clean-worktree acceptance             FAIL — secondary untracked .local history state
+V12.53 fail-fast local acceptance             PASS at b2cc754...
 ```
 
 Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
