@@ -8,6 +8,72 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.57 PRELIMINARY BLIND RETURN RECONCILIATION + REVIEWER LABEL CONTRACT V3
+
+### Status
+
+**PRELIMINARY RETURN RECEIVED / CURRENT V12.55 FINGERPRINTS MATCHED / NOT PROMOTABLE / STRONG CASE ROUTE-LEVEL ELIGIBILITY CORRECTED / REVIEWER HANDOFF V3 / FRESH CURRENT-HEAD PROOF + REGENERATION PENDING**
+
+A preliminary reviewer-style return was received against the fresh V12.55 blind packet. All three source-case fingerprints matched the then-current benchmark, proving that the draft used the current blind handoff.
+
+The return is not L professional-review evidence:
+
+```text
+professional_review_reference       null on all cases
+reviewer_reference                  null on all cases
+reviewer_credential_reference       null on all cases
+independent_review                  false on cases 1 and 3
+document caveat                     preliminary draft pending credentialed practitioner review
+```
+
+The draft exposed a real v2 contract ambiguity rather than a simple legal disagreement:
+
+- reviewer used a noncanonical pathway key;
+- reviewer used a full application-document checklist instead of the bounded evidence taxonomy;
+- reviewer used prose citations rather than canonical source-ref IDs;
+- reviewer used null contradictions where AIOS distinguishes unassessed from assessed-empty;
+- reviewer used escalation for alternative-route suggestions;
+- reviewer used ELIGIBLE for the strong case while the source benchmark had encoded normal downstream review as REVIEW_REQUIRED.
+
+Official Austrian sources support route-level `ELIGIBLE` for the strong case on its asserted facts: training 30 + capped experience 20 + age 15 = 65 points, with binding job offer and remuneration asserted. Eligibility remains separate from document authentication, AMS/residence-authority approval, submission authority and final issuance.
+
+V12.57 therefore:
+
+```text
+strong case eligibility          ELIGIBLE
+strong case escalation_required  false
+reviewer handoff contract        v3
+v1/v2 reviewer packets           superseded
+ASSESSED reviewed_labels         all fields required/non-null
+canonical tested route key       at-rwr-skilled-worker-shortage-occupation
+bounded evidence keys            training / job offer / remuneration / points evidence
+rule/source refs                 official_sources[].ref identifiers
+alternative-route suggestions    notes, not pathway/escalation labels
+```
+
+The stale full-backend source-domain test is also repaired to admit direct RIS sources.
+
+Durable reconciliation:
+
+`docs/L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md`
+
+Because the Case 2 source labels/rationale changed, all V12.55 v2 reviewer artifacts and the preliminary return are now historical/stale for acceptance.
+
+Next:
+
+```text
+focused V12.57 proof + mobility outcome test
+→ repository gates
+→ regenerate fresh blind v3 packet + return template
+→ genuine credentialed independent Austria review
+→ compile/reconcile professional evidence
+→ final exact-head L proof
+```
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+
+---
+
 ## 2026-09-01 — V12.56 V12.55 BLIND REVIEWER HANDOFF EXACT-HEAD LOCAL PROOF
 
 ### Status
