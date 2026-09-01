@@ -110,7 +110,7 @@ Radar-caused runtime adoption remains **NONE**.
 ## 4. Recent decisions a new session must know
 
 1. **Track B is paused by anti-duplication discipline.** Runtime economics and durable activity lineage are implemented; collaboration/coordination already has an AIOS multi-surface foundation. Do not add donor collaboration/presence/event state without a proven product gap.
-2. **Blind professional-review hardening is locally proven.** Stable exact-head proof at `d969c7d...` passed 19 focused tests, packet/return blindness checks, fail-closed untouched return, 1332-pass backend regression, repository gates, and stable start/end SHA. Genuine human professional review is still pending.
+2. **Blind professional-review hardening is historically proven and a genuine independent review has been received.** Current acceptance still requires current-v3 reaffirmation because fingerprint-bound benchmark semantics changed after that review. Reviewer identity must remain anonymous in Git.
 3. **Radar V1.3.8 is canonical.** Do not revive V1.3.7 generic RESEARCH statuses.
 4. **R3 authority is a closure problem now, not an expansion playground.** Existing OpenFGA/SpiceDB and OPA/Cedar research is sufficient for the current seam map.
 5. **R3 security should execute or explicitly block its defined external-tool shootout.** Do not continuously add scanners/evaluators.
@@ -133,7 +133,7 @@ Radar-caused runtime adoption remains **NONE**.
 22. **V12.57 advances the handoff to v3.** Case 2 is route-level `ELIGIBLE` / no escalation on asserted facts; eligibility remains separate from document/AMS/residence approval. v3 defines canonical pathway/evidence/source vocabularies, escalation semantics, and requires every ASSESSED reviewed-label field to be populated. All v2 artifacts are stale.
 
 23. **Operator correction: the V12.55/v2 professional review was genuine and independent.** The earlier `independent_review=false` values were operator transcription mistakes. Preserve the review as real correction evidence against the historical v2 fingerprints; do not infer or fabricate null reviewer/professional/credential references.
-24. **Current acceptance requires reaffirmation, not a brand-new unrelated review.** V12.57 changed fingerprint-bound labels/rationale and reviewer semantics, so the same genuine reviewer should complete/re-affirm the fresh v3 return with current fingerprints, `independent_review=true`, complete v3 labels and durable reviewer/professional/credential references.
+24. **Current acceptance requires reaffirmation, not a brand-new unrelated review.** V12.57 changed fingerprint-bound labels/rationale and reviewer semantics, so the same genuine reviewer should complete/re-affirm the fresh v3 return with current fingerprints, `independent_review=true`, complete v3 labels and privacy-safe opaque reviewer/professional/credential aliases.
 
 25. **V12.59 aligns and enforces the reviewer return contract as v3.** The compiler now rejects legacy/free-form pathway keys, noncanonical evidence keys and prose source citations instead of silently promoting them as CORRECTED.
 26. **The supplied v3-style return is genuine but not current-compilable.** It has `independent_review=true` and non-empty reference strings, but at least Case 2 uses a stale V12.55 fingerprint, all three use legacy/free-form label vocabularies, and `contradictions=null` violates complete ASSESSED semantics. Regenerate the current v3 template and have the same reviewer re-affirm it; do not translate the labels inside AIOS.
@@ -179,8 +179,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 15. `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`
 16. `docs/V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md`
 17. `docs/L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md`
-18. `AGENTS.md`
-19. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+18. `docs/L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md`
+19. `AGENTS.md`
+20. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -194,6 +195,7 @@ Do not run acceptance while another coding agent/session is writing to the same 
 - Do not claim a mixed-head or historical green run proves current HEAD.
 - Do not run local acceptance concurrently with another writer on the same worktree.
 - Do not fabricate reviewer identity, credential or professional findings.
+- Do not disclose or encode the anonymous reviewer's personal identity, registration details, contact data, firm identity or public-profile URL anywhere in Git.
 
 ---
 
