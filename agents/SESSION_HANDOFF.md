@@ -123,6 +123,8 @@ Radar-caused runtime adoption remains **NONE**.
 12. **GitHub policy CI shallow-history defect repaired.** The policy jobs executed but `fetch-depth: 64` omitted transition baseline `8624d7f...`. Both diff-hygiene policy checkouts now use `fetch-depth: 0`, and repository policy guards the exact YAML job blocks. Current-head CI proof is pending.
 13. **Restored full-history CI exposed real post-baseline debt.** It found 22 trailing-space violations across the blind-review handoff, Radar V1.3.6 and Wave E2/E3/E4 docs. Those exact files are cleaned; no baseline or semantic change was made.
 14. **The exposed `.local/` tree is now classified.** Narrowly ignore `gmai-dev-cache/`, `gmai-dev-temp/` and existing `professional-review/`; archive legacy wrapper artifacts, phase patches, historical runtime files, SQLite backups and the historical Radar apply script outside the repository. Do not restore a blanket `/.local/` ignore.
+15. **V12.52 exposed a secondary preservation tranche.** `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt` remained untracked. Canonical V12 has no references to them; move them to the same external archive rather than ignore/delete them.
+16. **Interactive PowerShell PASS output is not authoritative.** Future acceptance instructions must run as one fail-fast script block with `$ErrorActionPreference = "Stop"`; if any gate throws, the run fails and no final PASS is printed.
 
 ---
 
@@ -159,8 +161,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 12. `docs/V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md`
 13. `docs/V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md`
 14. `docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md`
-15. `AGENTS.md`
-16. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+15. `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`
+16. `AGENTS.md`
+17. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -181,10 +184,11 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Archive the five classified recovery/history `.local/` buckets outside the worktree** and verify the remaining cache/temp/reviewer roots are ignored by repository-owned narrow rules.
-   - archive: `gmai-legacy-wrapper-artifacts-20260814/`, `patches/`, `runtime/`, `sqlite-backups/`, `technology-radar-v1/`
-   - leave in place + ignore: `gmai-dev-cache/`, `gmai-dev-temp/`, `professional-review/`
-   - require a clean worktree before exact-head proof.
+1. **Finish the external archive by moving the three newly exposed preservation items**:
+   - `.local/archives/`
+   - `.local/discovery/`
+   - `.local/13.16.6-owner-inbox-discovery.txt`
+   Keep only `gmai-dev-cache/`, `gmai-dev-temp/`, and `professional-review/` in place under narrow repository ignore rules. Require a genuinely clean worktree before exact-head proof.
 2. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
    - Packet/template generation has been exercised locally.
    - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
@@ -207,7 +211,8 @@ V12.47 admin/recovery exact-head proof      PASS at 80deef2...
 V12.48 administration acceptance           FAIL at b079428... — untracked .local/ state
 GitHub policy shallow-history repair          IMPLEMENTED / CI RERUN PENDING
 post-baseline whitespace cleanup             IMPLEMENTED / CURRENT-HEAD PROOF PENDING
-.local artifact classification                IMPLEMENTED / LOCAL ARCHIVE ACTION PENDING
+.local artifact classification                EXTENDED / SECONDARY ARCHIVE ACTION PENDING
+V12.52 clean-worktree acceptance             FAIL — secondary untracked .local history state
 ```
 
 Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
