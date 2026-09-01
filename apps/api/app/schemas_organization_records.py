@@ -455,6 +455,14 @@ class DecisionRead(OrganizationRead):
     updated_at: datetime
 
 
+class DecisionExplorerRead(DecisionRead):
+    """Read-only decision transparency view with derived lineage state."""
+
+    supersedes_decision_id: UUID | None
+    superseded_by_decision_id: UUID | None
+    is_current: bool
+
+
 class ReferenceCreate(OrganizationInput):
     reference_key: str = Field(min_length=1, max_length=255)
     reference_role: OrganizationReferenceRole

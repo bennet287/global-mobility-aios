@@ -388,6 +388,199 @@
   .cockpit-control-dock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+/* 10. Decision Explorer (M.1) — read-only decision transparency table and detail. */
+.decision-table-wrap { overflow-x: auto; }
+
+.decision-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.decision-table th,
+.decision-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  vertical-align: top;
+}
+
+.decision-table th {
+  color: rgba(196,199,242,.78);
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.decision-table tbody tr {
+  cursor: pointer;
+  transition: background .12s ease;
+}
+
+.decision-table tbody tr:hover,
+.decision-table tbody tr:focus-visible {
+  background: rgba(255,255,255,.035);
+}
+
+.decision-table tbody tr.decision-superseded { color: rgba(245,242,234,.55); }
+
+.decision-table td strong {
+  display: block;
+  font-weight: 640;
+  color: #f5f2ea;
+}
+
+.decision-table td small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(245,242,234,.45);
+  font-size: 10.5px;
+}
+
+.decision-state {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.decision-state.current {
+  color: #0e1220;
+  background: #b8f0c4;
+}
+
+.decision-state.superseded {
+  color: #f5f2ea;
+  background: rgba(245,242,234,.18);
+}
+
+.decision-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+
+.decision-pagination button {
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  color: #f5f2ea;
+  cursor: pointer;
+}
+
+.decision-pagination button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.decision-detail .decision-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.decision-detail .cockpit-lane { padding: 16px; }
+
+.decision-detail .cockpit-lane header { margin-bottom: 8px; }
+
+.decision-detail .cockpit-lane header span {
+  color: rgba(196,199,242,.72);
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.decision-detail .cockpit-lane header strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.decision-detail .cockpit-lane p {
+  margin: 0;
+  color: rgba(245,242,234,.65);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.decision-detail .cockpit-lane a {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+.decision-context,
+.decision-lineage,
+.decision-provenance {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.decision-context h4,
+.decision-lineage h4,
+.decision-provenance h4 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 680;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.decision-context-block {
+  margin-bottom: 14px;
+}
+
+.decision-context-block strong {
+  display: block;
+  margin-bottom: 4px;
+  color: rgba(196,199,242,.8);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.decision-context-block p {
+  margin: 0;
+  color: rgba(245,242,234,.78);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.decision-lineage .attention-rows,
+.decision-provenance .attention-rows {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.decision-lineage-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #a5b4fc;
+  font-size: inherit;
+  font-weight: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.decision-fingerprint {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  word-break: break-all;
+}
+
 @media (max-width: 760px) {
   .cockpit-command {
     grid-template-columns: 1fr;
@@ -397,4 +590,6 @@
   .cockpit-command-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; }
   .cockpit-command-metrics article { border-right: 0; padding: 0 12px 0 0; }
   .cockpit-control-dock { grid-template-columns: 1fr; }
+  .decision-detail .decision-detail-grid { grid-template-columns: 1fr; }
+  .decision-lineage .attention-rows { grid-template-columns: 1fr; }
 }

@@ -36,6 +36,7 @@ from app.schemas_organization_records import (
     ContributionCreate,
     ContributionRead,
     DecisionCreate,
+    DecisionExplorerRead,
     DecisionOutcome,
     DecisionRead,
     DecisionSupersede,
@@ -758,11 +759,48 @@ def create_human_action_endpoint(payload: HumanActionCreate, context: Organizati
     return _command(lambda: append_human_action(session, context, **payload.model_dump()))
 
 
-@router.get("/decisions/records", response_model=OrganizationPage[DecisionRead])
+def _decision_supersession_map(
+    session: Session,
+    tenant_key: str,
+    decision_ids: set[UUID],
+) -> dict[UUID, UUID]:
+    """Map each decision ID to the ID of the decision that supersedes it, if any."""
+    if not decision_ids:
+        return {}
+    successors = session.exec(
+        select(ExecutiveDecision.id, ExecutiveDecision.supersedes_decision_id)
+        .where(
+            ExecutiveDecision.tenant_key == tenant_key,
+            ExecutiveDecision.supersedes_decision_id.in_(decision_ids),
+        )
+    ).all()
+    return {supersedes_id: successor_id for successor_id, supersedes_id in successors}
+
+
+def _explorer_read(
+    decision: ExecutiveDecision,
+    supersession_map: dict[UUID, UUID],
+) -> DecisionExplorerRead:
+    superseded_by = supersession_map.get(decision.id)
+    is_current = superseded_by is None and decision.status not in {"superseded"}
+    base = DecisionRead.model_validate(decision).model_dump()
+    # DecisionRead uses validation_alias="record_fingerprint"; pass the alias key
+    # so Pydantic accepts it as source_version without requiring populate_by_name.
+    base["record_fingerprint"] = decision.record_fingerprint
+    return DecisionExplorerRead(
+        **base,
+        superseded_by_decision_id=superseded_by,
+        is_current=is_current,
+    )
+
+
+@router.get("/decisions/records", response_model=OrganizationPage[DecisionExplorerRead])
 def list_decision_records(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),
     status_filter: str | None = Query(default=None, alias="status"),
+    authority_level: str | None = Query(default=None, min_length=1, max_length=10),
+    decision_owner_position: str | None = Query(default=None, min_length=1, max_length=255),
     work_item_id: UUID | None = None,
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
@@ -770,11 +808,30 @@ def list_decision_records(
     conditions: list[Any] = [ExecutiveDecision.tenant_key == context.tenant_key]
     if status_filter is not None:
         conditions.append(ExecutiveDecision.status == status_filter)
+    if authority_level is not None:
+        conditions.append(ExecutiveDecision.authority_level == authority_level)
+    if decision_owner_position is not None:
+        conditions.append(ExecutiveDecision.decision_owner_position == decision_owner_position)
     if work_item_id is not None:
         conditions.append(ExecutiveDecision.work_item_id == work_item_id)
     total = session.exec(select(func.count()).select_from(ExecutiveDecision).where(*conditions)).one()
-    rows = list(session.exec(select(ExecutiveDecision).where(*conditions).order_by(ExecutiveDecision.created_at.desc(), ExecutiveDecision.id.desc()).offset((page - 1) * page_size).limit(page_size)).all())
-    return _page_result(rows, page=page, page_size=page_size, total=total)
+    rows = list(
+        session.exec(
+            select(ExecutiveDecision)
+            .where(*conditions)
+            .order_by(ExecutiveDecision.created_at.desc(), ExecutiveDecision.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        ).all()
+    )
+    decision_ids = {row.id for row in rows}
+    supersession_map = _decision_supersession_map(session, context.tenant_key, decision_ids)
+    return _page_result(
+        [_explorer_read(row, supersession_map) for row in rows],
+        page=page,
+        page_size=page_size,
+        total=total,
+    )
 
 
 @router.post("/decisions/records", response_model=DecisionRead, status_code=status.HTTP_201_CREATED)
@@ -784,9 +841,11 @@ def create_decision_record(payload: DecisionCreate, context: OrganizationCommand
     return _command(lambda: create_executive_decision(session, context, authority_level=authority_level, requested_by_position=context.position_key or "unknown", decision_owner_position=owner, **payload.model_dump()))
 
 
-@router.get("/decisions/records/{decision_id}", response_model=DecisionRead)
+@router.get("/decisions/records/{decision_id}", response_model=DecisionExplorerRead)
 def get_decision_record(decision_id: UUID, context: OrganizationCommandContext = Depends(organization_command_context), session: Session = Depends(get_session)) -> ExecutiveDecision:
-    return _tenant_detail(session, ExecutiveDecision, decision_id, context.tenant_key)
+    decision = _tenant_detail(session, ExecutiveDecision, decision_id, context.tenant_key)
+    supersession_map = _decision_supersession_map(session, context.tenant_key, {decision.id})
+    return _explorer_read(decision, supersession_map)
 
 
 @router.post("/decisions/records/{decision_id}/outcome", response_model=DecisionRead)

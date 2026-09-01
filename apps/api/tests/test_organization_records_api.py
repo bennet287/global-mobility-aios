@@ -598,6 +598,58 @@ def test_decision_authority_outcome_and_supersession(
     assert persisted_original["supersedes_decision_id"] is None
 
 
+def test_decision_explorer_read_only_filters_and_supersession_lineage(
+    client: TestClient, db_session: Session
+) -> None:
+    # M.1: Decision Explorer exposes canonical decisions with lineage and filters.
+    original = _approved_decision(client, "explorer-superseded")
+    successor = client.post(
+        f"{BASE}/decisions/records/{original['id']}/supersede",
+        json={
+            "new_decision_key": "explorer-superseded-v2",
+            "title": "Replacement decision",
+            "question": "Should the revised outcome be accepted?",
+            "recommendation": "Review the revised evidence.",
+            "reason": "New evidence requires a new append-only version.",
+        },
+    )
+    assert successor.status_code == 201, successor.text
+    successor_id = successor.json()["id"]
+
+    detail = client.get(f"{BASE}/decisions/records/{original['id']}").json()
+    assert detail["superseded_by_decision_id"] == successor_id
+    assert detail["is_current"] is False
+    assert detail["source_version"] is not None
+
+    successor_detail = client.get(f"{BASE}/decisions/records/{successor_id}").json()
+    assert successor_detail["superseded_by_decision_id"] is None
+    assert successor_detail["is_current"] is True
+
+    listing = client.get(f"{BASE}/decisions/records").json()
+    assert listing["total"] >= 2
+    original_row = next(row for row in listing["data"] if row["id"] == original["id"])
+    assert original_row["superseded_by_decision_id"] == successor_id
+    assert original_row["is_current"] is False
+    successor_row = next(row for row in listing["data"] if row["id"] == successor_id)
+    assert successor_row["supersedes_decision_id"] == original["id"]
+    assert successor_row["is_current"] is True
+
+    authority_filter = client.get(
+        f"{BASE}/decisions/records", params={"authority_level": original["authority_level"]}
+    ).json()
+    assert all(row["authority_level"] == original["authority_level"] for row in authority_filter["data"])
+
+    owner_filter = client.get(
+        f"{BASE}/decisions/records", params={"decision_owner_position": original["decision_owner_position"]}
+    ).json()
+    assert all(
+        row["decision_owner_position"] == original["decision_owner_position"] for row in owner_filter["data"]
+    )
+
+    status_filter = client.get(f"{BASE}/decisions/records", params={"status": "approved"}).json()
+    assert all(row["status"] == "approved" for row in status_filter["data"])
+
+
 def test_record_reference_validation_and_tenant_safe_owner(
     client: TestClient, db_session: Session
 ) -> None:

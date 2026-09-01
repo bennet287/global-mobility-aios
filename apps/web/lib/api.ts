@@ -5097,9 +5097,29 @@ export type OrganizationalWorkItem = {
 };
 
 export type ExecutiveDecision = {
-  id: string; authority_level: string; title: string; question: string;
-  recommendation: string; decision_owner_position: string; status: string;
+  id: string;
+  decision_key: string;
+  decision_type: "operational" | "policy" | "risk" | "exception" | "board_reserved";
+  work_item_id: string | null;
+  supersedes_decision_id: string | null;
+  superseded_by_decision_id: string | null;
+  is_current: boolean;
+  authority_level: string;
+  requested_by_position: string;
+  decision_owner_position: string;
+  title: string;
+  question: string;
+  recommendation: string;
+  effect_summary: string | null;
+  status: string;
+  decided_by: string | null;
+  decision_reason: string | null;
+  decided_at: string | null;
+  due_at: string | null;
+  expires_at: string | null;
+  source_version: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 export type RiskEscalation = {
@@ -5243,6 +5263,30 @@ export type OrganizationContribution = {
   retraction_reason: string | null;
   created_at: string;
 };
+
+export async function listOrganizationDecisionRecords(
+  params: {
+    status?: string;
+    authority_level?: string;
+    decision_owner_position?: string;
+    work_item_id?: string;
+    page?: number;
+    page_size?: number;
+  } = {},
+): Promise<OrganizationRecordPage<ExecutiveDecision>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 50));
+  if (params.status) search.set("status", params.status);
+  if (params.authority_level) search.set("authority_level", params.authority_level);
+  if (params.decision_owner_position) search.set("decision_owner_position", params.decision_owner_position);
+  if (params.work_item_id) search.set("work_item_id", params.work_item_id);
+  return request(`/api/v1/organization/decisions/records?${search.toString()}`);
+}
+
+export async function getOrganizationDecisionRecord(id: string): Promise<ExecutiveDecision> {
+  return request(`/api/v1/organization/decisions/records/${id}`);
+}
 
 export async function getOrganizationObservatorySummary(): Promise<ObservatorySummary> {
   return request("/api/v1/organization/observatory/summary");

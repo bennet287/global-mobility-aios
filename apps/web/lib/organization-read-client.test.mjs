@@ -102,3 +102,40 @@ test("Organization contribution list reaches the expected endpoint with departme
     assert.equal(call.init.credentials, "include");
   }
 });
+
+test("Decision Explorer read client reaches the decision records endpoint with filters", async () => {
+  const originalFetch = globalThis.fetch;
+  const recorder = recordingFetch();
+  globalThis.fetch = recorder.fetch;
+
+  process.env.NEXT_PUBLIC_API_BASE_URL = "http://127.0.0.1:8003";
+  process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE = "true";
+  process.env.NEXT_PUBLIC_GMAI_ROLE = "admin";
+  process.env.NEXT_PUBLIC_GMAI_USER = "frontend-operator";
+  process.env.NODE_ENV = "production";
+
+  try {
+    const api = await import(`./api.ts?organization-decisions=${Date.now()}`);
+    await api.listOrganizationDecisionRecords({ status: "approved", authority_level: "L4", page_size: 25 });
+    await api.getOrganizationDecisionRecord("decision-uuid-1234");
+  } finally {
+    globalThis.fetch = originalFetch;
+    delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    delete process.env.NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE;
+    delete process.env.NEXT_PUBLIC_GMAI_ROLE;
+    delete process.env.NEXT_PUBLIC_GMAI_USER;
+    delete process.env.NODE_ENV;
+  }
+
+  assert.deepEqual(recorder.calls.map((call) => call.input), [
+    "http://127.0.0.1:8003/api/v1/organization/decisions/records?page=1&page_size=25&status=approved&authority_level=L4",
+    "http://127.0.0.1:8003/api/v1/organization/decisions/records/decision-uuid-1234",
+  ]);
+
+  for (const call of recorder.calls) {
+    assert.equal(call.init.method, undefined);
+    assert.equal(call.headers.get("x-gmai-role"), "admin");
+    assert.equal(call.headers.get("x-gmai-user"), "frontend-operator");
+    assert.equal(call.init.credentials, "include");
+  }
+});

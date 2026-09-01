@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.63 — L Live Organization sealed; M next
+**Current V12 generation:** V12.64 — M.1 Decision Explorer in progress
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is COMPLETE / PASS / SEALED on accepted evidence head `a95f3f5...`.
 The genuine independent Austria professional-review gate promoted all three current cases, and Repository Policy plus both push/PR V12 Production Proof runs are green for that exact evidence head.
-M — Board Transparency Experience is next but begins only after the seal-status commit itself is green.
+M — Board Transparency Experience is IN PROGRESS; M.1 Decision Explorer adds a read-only list/detail surface over canonical `ExecutiveDecision` records.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 N remains blocked behind M.
 No Radar candidate has caused runtime adoption.
@@ -28,7 +28,7 @@ No Radar candidate has caused runtime adoption.
 |-----------|--------|------------------------|
 | K.1 Bounded Specialist Execution | **SEALED** | None. Canonical proof recorded. |
 | L Live Organization | **COMPLETE / PASS / SEALED** | Accepted evidence head `a95f3f5...`; no open gate. |
-| M Board Transparency Experience | **NEXT / NOT STARTED** | Begin after V12.63 seal-status CI is green. |
+| M Board Transparency Experience | **IN PROGRESS — M.1 Decision Explorer** | Implement read-only executive decision list/detail; endpoint `GET /api/v1/organization/decisions/records`; Cockpit `/cockpit/decisions`; no command surface. |
 | N Learning & Optimization | **NOT STARTED** | Wait for M. |
 
 ---
@@ -37,13 +37,14 @@ No Radar candidate has caused runtime adoption.
 
 | Workstream | Branch / location | Status | Do not... |
 |------------|-------------------|--------|-----------|
-| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed, M transition pending | Do not start N before M. |
+| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed, M.1 Decision Explorer in progress | Do not start N before M. |
 | **Track B Product Experience** | `roadmap/...v12` (`apps/web/`) | Anti-duplication complete; runtime economics + durable activity lineage implemented | Do not add Munder collaboration/presence/event state. |
 | **Wave E1 Secrets** | `roadmap/...v12` (`docs/...WAVE_E1...`) | Pilot complete / trial-eligible | Do not claim production OpenBao adoption. |
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
 | **Wave E3 Properties** | `roadmap/...v12` (`scripts/check_*_properties.py`) | Implemented; Hypothesis test-only | Do not promote Hypothesis to runtime. |
 | **Wave E4 Mutation** | `roadmap/...v12` (`scripts/check_ai_domain_mutation_strength.py`) | Implemented; first-party bounded gate; mutmut deferred | Do not claim full mutation coverage. |
 | **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Current-v3 return compiled; 3/3 professionally reviewed promotions; privacy-safe aliases committed; final evidence-head CI pending | Do not expose reviewer identity, registration data, contact data, firm identity, or public-profile links in Git. |
+| **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | Read-only list/detail over canonical `ExecutiveDecision`; filters authority/status/work-item/owner; supersession lineage exposed | Do not add create/update/delete, approval routing, or `authority_decision.py` unification in M.1. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -115,8 +116,8 @@ No Radar candidate has caused runtime adoption.
 
 In order:
 
-1. **Verify V12.63 seal-status CI.** This is the transition gate before M changes.
-2. **Begin M Board Transparency Experience** from the existing canonical Cockpit/API foundations.
+1. **Complete M.1 Decision Explorer** — backend read endpoint, Cockpit page, tests, production build, exact-head proof, commit and push.
+2. **M.2 Board Transparency navigation** — richer decision → work → evidence → supersession navigation without mutations.
 3. **Close R3 authority** evidence capture (bounded supporting work).
 4. **Execute or explicitly defer** R3 security external-tool shootout.
 

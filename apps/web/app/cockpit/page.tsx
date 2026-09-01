@@ -1075,6 +1075,7 @@ export default function CockpitPage() {
       </section>
 
       <section className="cockpit-control-links cockpit-control-dock" aria-label="Owner control surfaces">
+        <Link href="/cockpit/decisions"><span>Board transparency</span><strong>Decision Explorer</strong><small>Executive decisions & lineage</small></Link>
         <Link href="/owner-inbox"><span>Authority triage</span><strong>Owner Inbox</strong><small>Material decisions & escalations</small></Link>
         <Link href="/board-room"><span>Executive authority</span><strong>Board Room</strong><small>Decisions, control, escalations</small></Link>
         <Link href="/cross-department-friction"><span>Organizational friction</span><strong>Cross-department view</strong><small>Blockers & dependencies across units</small></Link>
