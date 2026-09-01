@@ -1,12 +1,12 @@
 # Global Mobility AIOS — Technology Radar V1.3.6
 
-**Date:** 2026-08-31  
-**Status:** ACTIVE CANONICAL RADAR REVISION  
-**Supersedes for active radar direction:** `TECHNOLOGY_RADAR_V1_3_5.md`  
-**Inherited baseline:** all V1.3.5 classifications remain unchanged unless explicitly overridden below  
-**Scheduling authority:** `docs/ROADMAP.md`  
-**Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`  
-**Current product milestone:** L — Live Organization — IMPLEMENTED / ACCEPTANCE PENDING  
+**Date:** 2026-08-31
+**Status:** ACTIVE CANONICAL RADAR REVISION
+**Supersedes for active radar direction:** `TECHNOLOGY_RADAR_V1_3_5.md`
+**Inherited baseline:** all V1.3.5 classifications remain unchanged unless explicitly overridden below
+**Scheduling authority:** `docs/ROADMAP.md`
+**Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
+**Current product milestone:** L — Live Organization — IMPLEMENTED / ACCEPTANCE PENDING
 **M milestone:** NOT STARTED
 
 V1.3.6 makes the Radar deliberately more aggressive as a discovery, benchmarking, evaluation and security instrument while preserving necessity-gated production adoption.
