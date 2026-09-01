@@ -142,10 +142,12 @@ def test_austria_source_seed_declares_asserted_fact_and_direct_ris_boundaries() 
         for case in payload["cases"]
         if case["case_id"] == "at-rwr-shortage-software-di-strong-points-2026-01"
     )
-    assert strong_case["expected"]["eligibility"] == "REVIEW_REQUIRED"
+    assert strong_case["expected"]["eligibility"] == "ELIGIBLE"
+    assert strong_case["expected"]["escalation_required"] is False
     assert strong_case["expected"]["missing_evidence"] == []
     assert "does not mean" in strong_case["fact_evidence_boundary"]
     assert "65 points" in strong_case["rationale"]
+    assert "does not authenticate documents" in strong_case["rationale"]
 
 
 def test_confirmed_review_promotes_only_reviewed_case_and_preserves_source_truth() -> None:
