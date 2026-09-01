@@ -8,6 +8,46 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.51 POST-BASELINE DIFF-HYGIENE CLEANUP
+
+### Status
+
+**DOCUMENTATION HYGIENE REPAIR IMPLEMENTED / CURRENT-HEAD LOCAL + CI PROOF PENDING / NO BASELINE OR RUNTIME CHANGE**
+
+After V12.50 restored full authenticated history, GitHub policy CI reached the intended V12 transition baseline and exposed real post-baseline whitespace debt.
+
+CI reported 22 trailing-space violations across:
+
+```text
+docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md
+docs/TECHNOLOGY_RADAR_V1_3_6.md
+docs/TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md
+docs/TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md
+docs/TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md
+```
+
+V12.51 removes only trailing spaces/tabs from those files.
+
+Not changed:
+
+```text
+transition baseline 8624d7f...
+grandfathering boundary
+document semantics
+professional-review semantics
+Radar status
+runtime/application code
+L/M/N milestone state
+```
+
+Durable record:
+
+`docs/V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md`
+
+The local V12.48 `?? .local/` clean-worktree issue remains separate and still requires inspection before the next exact-head local acceptance.
+
+---
+
 ## 2026-09-01 — V12.50 CI DIFF-HYGIENE FULL-HISTORY REPAIR
 
 ### Status
