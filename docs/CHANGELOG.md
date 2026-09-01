@@ -8,6 +8,26 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-02 — V12.63 L LIVE ORGANIZATION COMPLETE / PASS / SEALED
+
+### Status
+
+**L COMPLETE / PASS / SEALED / PROFESSIONAL REVIEW 3 OF 3 PROMOTED / EXACT EVIDENCE HEAD FULLY GREEN / M NEXT**
+
+Milestone L is sealed on accepted evidence head `a95f3f5bc4aa3c30c075253eafccc7542dae3b0a`.
+
+That head binds the privacy-safe current-v3 professional-review bundle and regression coverage to Git tree `59a848012ffc4e6586de2b1409c0e52902d3e6b5`. Repository Policy #515 passed, while V12 Production Proof #1049 (push) and #1050 (PR) both passed all four jobs. The professional-review compiler promotes all three current Austria cases with no disputes, held cases or unreviewed cases.
+
+Together with the previously accepted live-provider success, guarded fresh retrieval, real provider failure, durable owner materialization, exact replay and browser/product evidence, all L acceptance gates are satisfied.
+
+Durable seal record:
+
+`docs/V1_3_L_LIVE_ORGANIZATION_SEAL_2026-09-02.md`
+
+M — Board Transparency Experience is next but does not begin until this seal-status commit itself is green. N remains `NOT STARTED`.
+
+---
+
 ## 2026-09-02 — V12.62 ANONYMOUS PROFESSIONAL REVIEW RECONCILIATION
 
 ### Status

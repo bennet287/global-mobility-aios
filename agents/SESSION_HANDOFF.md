@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Verified V12 remote baseline before this handoff edit:** `24a00c1025f8a69d683213fb4ffd3034d8497725`
+**Verified V12 remote baseline before this handoff edit:** `a95f3f5bc4aa3c30c075253eafccc7542dae3b0a`
 
 The commit that updates this file necessarily advances V12 beyond the baseline above. **Never treat this field as a self-referential current HEAD.** At session start, verify the actual remote with `git fetch` / `git rev-parse origin/roadmap/global-mobility-aios-v12`.
 
@@ -14,15 +14,16 @@ The commit that updates this file necessarily advances V12 beyond the baseline a
 
 ```text
 K.1  COMPLETE / PASS / SEALED
-L    IMPLEMENTED / ACCEPTANCE PENDING
-M    NOT STARTED
+L    COMPLETE / PASS / SEALED
+M    NEXT / NOT STARTED
 N    NOT STARTED
 ```
 
-### L remaining gates
+### L seal
 
-1. Run final exact-current-head technical proof after the reconciled anonymous review evidence/docs are committed.
-2. Seal L only after repository policy and the full V12 production proof pass for that exact evidence head.
+Accepted evidence head `a95f3f5bc4aa3c30c075253eafccc7542dae3b0a` passed Repository Policy #515 plus V12 Production Proof #1049 push and #1050 PR, both 4/4 jobs. L is sealed.
+
+M may begin only after the V12.63 seal-status commit itself is green.
 
 Do not fabricate professional review. AI/model review does not substitute for the independent human professional gate.
 
@@ -142,6 +143,8 @@ Radar-caused runtime adoption remains **NONE**.
 
 29. **V12.62 satisfies the professional-review gate.** The same genuine independent reviewer completed the exact-current-fingerprint v3 return using privacy-safe opaque aliases. The canonical compiler derives three `CORRECTED` promotions, no confirmations, disputes, held or unreviewed cases. Eligibility remains `INELIGIBLE / ELIGIBLE / INELIGIBLE`; the professional corrections narrow source references and the no-offer case's missing-evidence label. The source seed remains immutable and `NOT_REVIEWED`; final exact-head proof for the committed bundle remains before L seal.
 
+30. **V12.63 seals L.** Exact evidence head `a95f3f5...` / tree `59a8480...` passed Repository Policy #515 and both V12 Production Proof #1049 push / #1050 PR with all four jobs. L is `COMPLETE / PASS / SEALED`; M is next after the seal-status commit's own CI.
+
 
 ---
 
@@ -172,8 +175,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 6. `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
 7. `docs/L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md`
 8. `docs/L_V12_62_ANONYMOUS_PROFESSIONAL_REVIEW_RECONCILIATION_2026-09-02.md`
-9. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
-10. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
+9. `docs/V1_3_L_LIVE_ORGANIZATION_SEAL_2026-09-02.md`
+10. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
+11. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
 10. `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
 11. `docs/V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
@@ -191,7 +195,7 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 ## 7. Things a new session must NOT do
 
-- Do not advance M or N while L is unsealed.
+- Do not advance N before M acceptance.
 - Do not treat Radar presence as dependency/runtime adoption.
 - Do not create duplicate pilots merely because V1.3.7 listed a tool.
 - Do not add another relationship/policy engine to R3 authority without a materially new seam.
@@ -207,11 +211,10 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. Commit the reconciled anonymous professional-review evidence and regression coverage.
-2. Run final exact-current-head L technical proof for that evidence commit.
-3. Seal L only if repository policy and all V12 Production Proof jobs pass for the exact evidence head.
-4. Begin M only after L is sealed.
-5. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+1. Verify the V12.63 seal-status commit's Repository Policy and V12 Production Proof runs.
+2. Begin the first bounded M Board Transparency Experience slice from canonical AIOS APIs and durable organization truth.
+3. Keep N blocked until M acceptance.
+4. R3 authority/security closure work may proceed only as bounded supporting work and must not displace M.
 
 Completed prerequisites that must not be repeated:
 

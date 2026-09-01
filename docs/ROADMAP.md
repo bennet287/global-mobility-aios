@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.62 — anonymous current-v3 professional review reconciled; K.1 COMPLETE / PASS / SEALED; L final exact-head proof pending
+**Roadmap generation:** V12.63 — L Live Organization COMPLETE / PASS / SEALED; M Board Transparency Experience next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -30,6 +30,7 @@
 **L anonymous reviewer privacy boundary:** `L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md`
 **L V12.61 current-v3 handoff proof:** `L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md`
 **L V12.62 anonymous professional-review reconciliation:** `L_V12_62_ANONYMOUS_PROFESSIONAL_REVIEW_RECONCILIATION_2026-09-02.md`
+**L V12.63 Live Organization seal:** `V1_3_L_LIVE_ORGANIZATION_SEAL_2026-09-02.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
@@ -43,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — Live Organization
+**Current product milestone:** L — SEALED; M — NEXT
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -67,21 +68,24 @@ A Radar candidate may be important without being current. Radar completion does 
 
 ```text
 K.1  COMPLETE / PASS / SEALED
-L    IMPLEMENTED / ACCEPTANCE PENDING
-M    NOT STARTED
+L    COMPLETE / PASS / SEALED
+M    NEXT / NOT STARTED
 N    NOT STARTED
 ```
 
 No actual autonomy mutation mechanism is accepted or implemented.
 
-## 3. NOW — L Live Organization
+## 3. SEALED — L Live Organization
 
-**Classification:** PRIMARY
+**Classification:** COMPLETE / PASS / SEALED
 
-L implementation, live-runtime evidence and the anonymous current-fingerprint professional review now exist. Acceptance remains open until the remaining gate is observed:
+L implementation, live-runtime evidence, the anonymous current-fingerprint professional review and final exact-evidence-head proof are accepted:
 
 ```text
-1. final exact-current-head full technical proof after review evidence/docs are committed
+accepted evidence head  a95f3f5bc4aa3c30c075253eafccc7542dae3b0a
+repository policy       PASS — run 33567100227
+production proof        PASS — push run 33567096479, 4/4 jobs
+production proof        PASS — PR run 33567100248, 4/4 jobs
 ```
 
 Already accepted/implemented L evidence includes real configured-provider success, guarded fresh official-source retrieval, real provider failure, durable specialist output, owner materialization, exact replay, Evidence/VerifiedRule/source-snapshot lineage, browser/product behavior and operational correlation.
@@ -100,7 +104,7 @@ A later V12.48 acceptance attempt at `b079428a0fd607d6fd9491847312869d6802138c` 
 
 GitHub Actions also exposed a separate source/configuration defect: both policy jobs executed successfully through repository policy, release consistency and dependency checks, then `check_diff_hygiene.py` failed setup because `fetch-depth: 64` did not contain transition baseline `8624d7f...`. V12.50 changes only those policy checkouts to full history and adds a repository-policy regression guard scoped to the exact YAML job blocks. This is a CI repair, not a weakening of the hygiene baseline. With full history restored, CI then reached the real transition-baseline diff and exposed 22 trailing-space violations across five post-baseline documentation files. V12.51 removes only those trailing spaces; the baseline, semantics, and grandfathering boundary are unchanged. Current-head local/CI proof remains pending.
 
-The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15dccb1a22fa35b3998` / Woodpecker PR Pipeline #77 4/4 PASS. It is historical proof only and must not be relabeled as proof for a later head.
+Earlier checkpoints remain historical only. The final accepted L evidence head is `a95f3f5...`; later M commits do not retroactively change or weaken that sealed evidence record.
 
 ### L evaluation hardening
 
@@ -155,7 +159,7 @@ V1.3.8 also records the current R3 research boundaries: `radar/r3-authority`, `r
 
 ## 4.1 SUPPORTING PARALLEL — Track B Product Experience
 
-Track B may refine the product experience while L acceptance is open, but it does **not** start milestone M. The anti-duplication audit in `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md` is the current implementation map.
+Before the L seal, Track B could refine the product experience without starting M. That pre-M boundary is now historical; the anti-duplication audit in `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md` remains the implementation map M must reuse.
 
 Audit truth:
 
@@ -188,13 +192,13 @@ Missing measurements remain unknown rather than being inferred as zero. No new t
 
 A deeper Track B anti-duplication pass also reclassified generic collaboration visualization. The broader Cockpit and cross-department experience already uses canonical `OrganizationPosition.reports_to_position_key`, `OrganizationWorkItemDependency`, blockers, human requests and durable `OrganizationActivity` to visualize hierarchy, coordination, dependencies, friction and recent signals. A parallel Munder-style collaboration graph/state store is therefore not a current gap. Richer collaboration UX remains refinement-only and must start from a specific unmet user need.
 
-## 5. NEXT — after L acceptance
+## 5. NEXT — M Board Transparency Experience
 
-Only after L is sealed does M become primary.
+L is sealed. M may now become primary after the V12.63 seal-status commit is green.
 
 ### M — Board Transparency Experience
 
-**Current state:** NOT STARTED
+**Current state:** NEXT / NOT STARTED
 
 Target direction remains a premium Global Mobility AIOS Cockpit with Board Room as a module, not the entire control surface. M should expose organization/objective/employee state, Evidence/provenance, authority/risk/autonomy, incidents/blockers, interventions, performance, quality, latency and cost without turning UI state into command authority.
 
@@ -241,9 +245,9 @@ Munder runtime adoption                    NONE
 external mutation engine adoption         NONE
 blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF PASS AT d969c7d...
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
-final exact-current-head proof            PENDING
-L overall                                 IMPLEMENTED / ACCEPTANCE PENDING
-M                                         NOT STARTED
+final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
+L overall                                 COMPLETE / PASS / SEALED
+M                                         NEXT / NOT STARTED
 N                                         NOT STARTED
 ```
 

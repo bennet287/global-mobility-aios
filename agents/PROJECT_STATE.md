@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.62 — anonymous current-v3 professional review reconciled
+**Current V12 generation:** V12.63 — L Live Organization sealed; M next
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -12,11 +12,11 @@
 ## 1. Executive snapshot
 
 ```text
-Milestone L — Live Organization is IMPLEMENTED but NOT SEALED.
-The genuine independent Austria professional-review gate is satisfied: the same reviewer completed the current-fingerprint v3 return, all three cases compile as privacy-safe `CORRECTED` promotions, and the confidential identity/credential mapping remains outside Git.
-The only remaining L gate is final exact-current-head technical proof for the committed review evidence.
+Milestone L — Live Organization is COMPLETE / PASS / SEALED on accepted evidence head `a95f3f5...`.
+The genuine independent Austria professional-review gate promoted all three current cases, and Repository Policy plus both push/PR V12 Production Proof runs are green for that exact evidence head.
+M — Board Transparency Experience is next but begins only after the seal-status commit itself is green.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
-No M or N work may start until L is sealed.
+N remains blocked behind M.
 No Radar candidate has caused runtime adoption.
 ```
 
@@ -27,8 +27,8 @@ No Radar candidate has caused runtime adoption.
 | Milestone | Status | Blocker / next action |
 |-----------|--------|------------------------|
 | K.1 Bounded Specialist Execution | **SEALED** | None. Canonical proof recorded. |
-| L Live Organization | **IMPLEMENTED / ACCEPTANCE PENDING** | Professional review satisfied; run final exact-current-head proof for the evidence commit. |
-| M Board Transparency Experience | **NOT STARTED** | Wait for L seal. |
+| L Live Organization | **COMPLETE / PASS / SEALED** | Accepted evidence head `a95f3f5...`; no open gate. |
+| M Board Transparency Experience | **NEXT / NOT STARTED** | Begin after V12.63 seal-status CI is green. |
 | N Learning & Optimization | **NOT STARTED** | Wait for M. |
 
 ---
@@ -37,7 +37,7 @@ No Radar candidate has caused runtime adoption.
 
 | Workstream | Branch / location | Status | Do not... |
 |------------|-------------------|--------|-----------|
-| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L acceptance in progress | Do not add M/N features. |
+| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed, M transition pending | Do not start N before M. |
 | **Track B Product Experience** | `roadmap/...v12` (`apps/web/`) | Anti-duplication complete; runtime economics + durable activity lineage implemented | Do not add Munder collaboration/presence/event state. |
 | **Wave E1 Secrets** | `roadmap/...v12` (`docs/...WAVE_E1...`) | Pilot complete / trial-eligible | Do not claim production OpenBao adoption. |
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
@@ -65,7 +65,7 @@ No Radar candidate has caused runtime adoption.
 ## 5. Open decisions / blockers
 
 ```text
-1. L final exact-head proof
+1. L seal transition
    → V12.47 administration/recovery proof passed at exact head `80deef2...`.
    → V12.48 acceptance at `b079428...` failed the clean-worktree gate because additional untracked `.local/` content was exposed after local exclude cleanup.
    → Full inventory classified eight local buckets.
@@ -91,7 +91,8 @@ No Radar candidate has caused runtime adoption.
    → Fresh exact-current-source v3 packet/template generation completed with all three current fingerprints and no expected-label/rationale exposure.
    → Same-reviewer current-fingerprint reaffirmation received and compiled without label translation.
    → All three cases are promoted as CORRECTED; eligibility remains INELIGIBLE / ELIGIBLE / INELIGIBLE.
-   → Final exact-current-head technical proof remains pending for the evidence commit.
+   → Exact evidence head `a95f3f5...` passed Repository Policy and both push/PR V12 Production Proof runs.
+   → L is COMPLETE / PASS / SEALED.
    → Reviewer anonymity is mandatory in repository artifacts: use only non-identifying opaque reviewer/professional/credential aliases; keep the real identity-to-credential mapping and supporting evidence confidential outside Git.
    → No fabricated or AI-generated review allowed.
 
@@ -114,11 +115,10 @@ No Radar candidate has caused runtime adoption.
 
 In order:
 
-1. **Run V12 exact-current-head acceptance** for the committed anonymous professional-review evidence.
-2. **Seal L** if that exact evidence head is fully green.
+1. **Verify V12.63 seal-status CI.** This is the transition gate before M changes.
+2. **Begin M Board Transparency Experience** from the existing canonical Cockpit/API foundations.
 3. **Close R3 authority** evidence capture (bounded supporting work).
 4. **Execute or explicitly defer** R3 security external-tool shootout.
-5. **Begin M.** Only after L is sealed.
 
 ---
 
@@ -166,6 +166,7 @@ OpenViking                       DONOR_ONLY
 | `docs/L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md` | Binding anonymous-reviewer rule: no identifying reviewer data in Git; opaque aliases only. |
 | `docs/L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md` | Canonical CI + source-tree-equivalent local proof and fresh anonymous current-v3 handoff generation. |
 | `docs/L_V12_62_ANONYMOUS_PROFESSIONAL_REVIEW_RECONCILIATION_2026-09-02.md` | Current-fingerprint anonymous review compilation, professional corrections and final-proof boundary. |
+| `docs/V1_3_L_LIVE_ORGANIZATION_SEAL_2026-09-02.md` | Final L seal decision and exact evidence-head proof. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
