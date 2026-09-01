@@ -8,6 +8,85 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.53 SECONDARY LOCAL ARCHIVE/DISCOVERY CLASSIFICATION + FAIL-FAST ACCEPTANCE
+
+### Status
+
+**LOCAL CLEAN-WORKTREE CORRECTION IMPLEMENTED / SECONDARY HISTORY MATERIAL PRESERVATION PENDING LOCALLY / V12.52 ACCEPTANCE FAILED / NO RUNTIME OR MILESTONE CHANGE**
+
+The V12.52 operator run successfully moved the first five preservation buckets into:
+
+`D:\gmai-local-archive-20260901`
+
+but the clean-worktree gate still failed.
+
+Newly exposed untracked paths:
+
+```text
+.local/archives/
+.local/discovery/
+.local/13.16.6-owner-inbox-discovery.txt
+```
+
+The archive root contains historical 13.16.5–13.16.10 baseline/sealed/runtime ZIPs, manifests and SHA-256 files. The discovery root contains historical mobility-user/persistence-source discovery outputs, and the root-level text file is an older owner-inbox discovery note.
+
+Repository anti-duplication/dependency search found no canonical V12 references to these names.
+
+Classification:
+
+```text
+PRESERVE OUTSIDE WORKTREE
+  .local/archives/
+  .local/discovery/
+  .local/13.16.6-owner-inbox-discovery.txt
+```
+
+No new ignore rule is added for these paths.
+
+The complete intended in-worktree ignored set remains only:
+
+```text
+.local/gmai-dev-cache/
+.local/gmai-dev-temp/
+.local/professional-review/
+```
+
+V12.52 local acceptance is explicitly **FAILED** because:
+
+```text
+git ls-files --others --exclude-standard -- .local
+→ returned secondary history/recovery files
+
+git status --porcelain
+→ ?? .local/
+```
+
+Later interactive `PASS` prints in the transcript are invalid because they executed after thrown gate statements.
+
+Permanent operator correction:
+
+```text
+canonical PowerShell acceptance
+→ run inside one enclosing fail-fast block
+→ $ErrorActionPreference = "Stop"
+→ final PASS only after every gate succeeds
+```
+
+Durable record:
+
+`docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`
+
+Milestone truth is unchanged:
+
+```text
+K.1  COMPLETE / PASS / SEALED
+L    IMPLEMENTED / ACCEPTANCE PENDING
+M    NOT STARTED
+N    NOT STARTED
+```
+
+---
+
 ## 2026-09-01 — V12.52 LOCAL ARTIFACT CLASSIFICATION + NARROW IGNORE POLICY
 
 ### Status
