@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.52 — local artifact classification + narrow cache/temp ignore policy
+**Current V12 generation:** V12.53 — secondary local archive/discovery classification + fail-fast acceptance rule
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -74,7 +74,10 @@ No Radar candidate has caused runtime adoption.
    → Full inventory classified eight local buckets.
    → `gmai-dev-cache/` + `gmai-dev-temp/` are reproducible scratch and now have narrow repository ignore rules.
    → `professional-review/` remains narrowly ignored.
-   → legacy wrapper artifacts, old patches, historical runtime files, SQLite backups and the old Radar apply script must be moved to a dated archive outside the worktree before the next exact-head run.
+   → legacy wrapper artifacts, old patches, historical runtime files, SQLite backups and the old Radar apply script were moved to the dated external archive.
+   → the next run exposed `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt`; repository search found no canonical V12 references, so all three are additional preservation/history material and must be moved to the same external archive.
+   → V12.52 remains FAILED for clean-worktree proof; later interactive PASS prints after the thrown gate are invalid.
+   → canonical PowerShell acceptance must now be one fail-fast block with final PASS only after every gate succeeds.
    → GitHub policy shallow-history defect is repaired; full-history CI then exposed 22 post-baseline trailing-space violations, and those exact files are cleaned.
    → No fabricated or AI-generated review allowed.
 
@@ -139,6 +142,7 @@ OpenViking                       DONOR_ONLY
 | `docs/V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md` | CI shallow-history root cause, repair, regression guard, and acceptance boundary. |
 | `docs/V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md` | Exact 22-line post-baseline whitespace cleanup and remaining acceptance boundary. |
 | `docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md` | Eight-bucket `.local/` classification, narrow ignore policy, and external archive rule. |
+| `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md` | Secondary archives/discovery classification and fail-fast PowerShell acceptance correction. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
