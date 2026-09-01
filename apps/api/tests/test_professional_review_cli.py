@@ -75,6 +75,7 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
     assert packet["expected_labels_excluded"] is True
     assert packet["source_rationale_excluded"] is True
     assert packet["source_professional_review_status"] == "NOT_REVIEWED"
+    assert packet["blind_return_contract_version"] == "austria-professional-review-blind-return.v3"
     assert packet["case_count"] == 1
     case = packet["cases"][0]
     assert case["case_id"] == CASE_ID
@@ -99,10 +100,10 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
     assert "mandatory legal criteria" in label_contract["eligibility"]["semantics"]["ELIGIBLE"]
     assert "Do not use this label solely" in label_contract["eligibility"]["semantics"]["REVIEW_REQUIRED"]
     assert label_contract["required_evidence"]["bounded_keys"] == [
-        "shortage_occupation_training",
-        "binding_job_offer",
         "applicable_minimum_remuneration",
+        "binding_job_offer",
         "points_evidence",
+        "shortage_occupation_training",
     ]
     assert "Alternative-route recommendations belong in notes" in label_contract["pathway_keys"]["instruction"]
 
@@ -176,6 +177,36 @@ def test_blind_assessment_derives_confirmed_only_after_return(tmp_path: Path) ->
     validated = _run("--validate-bundle", str(canonical_path))
     assert validated.returncode == 0, validated.stderr
     assert json.loads(validated.stdout)["professionally_reviewed_case_count"] == 1
+
+
+def test_blind_assessed_review_rejects_noncanonical_v3_vocabulary(tmp_path: Path) -> None:
+    prepared = _run("--prepare-blind-return-template", "--case-id", CASE_ID)
+    assert prepared.returncode == 0, prepared.stderr
+    labels = _source_labels(CASE_ID)
+    labels["pathway_keys"] = ["rwr-card-shortage-occupation"]
+    template = _complete_blind_review(json.loads(prepared.stdout), reviewed_labels=labels)
+    blind_path = tmp_path / "blind-review-noncanonical-vocabulary.json"
+    blind_path.write_text(json.dumps(template), encoding="utf-8")
+
+    compiled = _run("--compile-blind-return", str(blind_path))
+
+    assert compiled.returncode == 2
+    assert "must equal the canonical tested route key" in compiled.stderr
+
+
+def test_blind_assessed_review_rejects_noncanonical_v3_source_refs(tmp_path: Path) -> None:
+    prepared = _run("--prepare-blind-return-template", "--case-id", CASE_ID)
+    assert prepared.returncode == 0, prepared.stderr
+    labels = _source_labels(CASE_ID)
+    labels["rule_or_source_refs"] = ["AuslBG §12a(1)"]
+    template = _complete_blind_review(json.loads(prepared.stdout), reviewed_labels=labels)
+    blind_path = tmp_path / "blind-review-noncanonical-source-ref.json"
+    blind_path.write_text(json.dumps(template), encoding="utf-8")
+
+    compiled = _run("--compile-blind-return", str(blind_path))
+
+    assert compiled.returncode == 2
+    assert "contains non-canonical source refs" in compiled.stderr
 
 
 def test_blind_assessed_review_requires_all_label_fields(tmp_path: Path) -> None:
