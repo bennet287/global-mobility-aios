@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.58 — genuine independent Austria review operator correction recorded; v3 reaffirmation pending
+**Current V12 generation:** V12.59 — blind-return v3 compiler enforcement + genuine return validation attempt
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -43,7 +43,7 @@ No Radar candidate has caused runtime adoption.
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
 | **Wave E3 Properties** | `roadmap/...v12` (`scripts/check_*_properties.py`) | Implemented; Hypothesis test-only | Do not promote Hypothesis to runtime. |
 | **Wave E4 Mutation** | `roadmap/...v12` (`scripts/check_ai_domain_mutation_strength.py`) | Implemented; first-party bounded gate; mutmut deferred | Do not claim full mutation coverage. |
-| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Genuine independent v2 review received; v3 label contract implemented; current-fingerprint reaffirmation + durable refs pending | Do not fabricate reviewer identity, credentials or provenance refs. |
+| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Genuine independent review preserved; blind-return v3 compiler now enforces canonical vocab; current-fingerprint v3 reaffirmation pending | Do not rewrite reviewer labels inside AIOS or fabricate identity/credential evidence. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -87,7 +87,10 @@ No Radar candidate has caused runtime adoption.
    → A genuine independent professional return matched the fresh V12.55 fingerprints. The earlier `independent_review=false` values for Cases 1/3 were operator transcription mistakes and are superseded by V12.58.
    → It exposed a v2 label-contract ambiguity: canonical pathway/evidence/source vocabularies and ELIGIBLE vs REVIEW_REQUIRED/escalation semantics were not defined for the reviewer.
    → V12.57 corrects the strong case to route-level `ELIGIBLE` / `escalation_required=false`, versions the handoff to v3, requires complete ASSESSED labels, and defines canonical reviewer vocabulary.
-   → All v2 reviewer artifacts/returns are historical for acceptance because V12.57 changed fingerprint-bound labels/rationale. Run current-head proof, regenerate fresh v3 artifacts, and obtain a short current-v3 reaffirmation from the same genuine reviewer with durable professional/reviewer/credential references.
+   → All v2 reviewer artifacts/returns are historical for acceptance because V12.57 changed fingerprint-bound labels/rationale.
+   → A supplied v3-style return correctly records `independent_review=true` and non-empty reference strings, but still carries the historical Case 2 fingerprint plus legacy/free-form pathway/evidence/source labels and null contradictions.
+   → V12.59 aligns the reviewer return contract to `austria-professional-review-blind-return.v3` and fail-closes on noncanonical pathway/evidence/source vocabularies.
+   → Regenerate the exact current v3 packet/template and obtain same-reviewer reaffirmation using those enforced fields; independently verifiable supporting credential evidence remains required.
    → No fabricated or AI-generated review allowed.
 
 2. R3 authority closure
@@ -157,6 +160,7 @@ OpenViking                       DONOR_ONLY
 | `docs/L_V12_55_PROFESSIONAL_REVIEW_HANDOFF_LOCAL_PROOF_2026-09-01.md` | Historical exact-head V12.55 v2 handoff proof. |
 | `docs/L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md` | Historical v2 return/contract analysis; independence rejection superseded by V12.58. |
 | `docs/L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md` | Corrects review independence classification and defines v3 reaffirmation/provenance requirements. |
+| `docs/L_AUSTRIA_V3_RETURN_VALIDATION_ATTEMPT_2026-09-01.md` | Genuine review preserved; supplied v3-style return rejected for stale fingerprint / legacy vocab / incomplete ASSESSED labels. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
