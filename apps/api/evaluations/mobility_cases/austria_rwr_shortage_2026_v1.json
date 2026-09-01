@@ -5,7 +5,7 @@
   "evaluation_as_of": "2026-08-22T08:00:00+00:00",
   "provenance": "OFFICIAL_SOURCE_CURATED",
   "professional_review_status": "NOT_REVIEWED",
-  "claim_boundary": "Official-source-curated benchmark seed. This is not professional legal review and does not replace Austrian authority assessment.",
+  "claim_boundary": "Official-source-curated benchmark seed. Case facts are asserted scenario inputs for route-evaluation testing, not authenticated documents or authority findings. A true asserted fact does not prove documentary sufficiency, qualification equivalence, qualifying work-experience evidence, or authority confirmation. expected.missing_evidence is relative to the simplified asserted fact set and does not certify that an application file is document-complete. expected.required_evidence is a bounded route-evaluation evidence taxonomy, not an exhaustive residence-application document checklist. This is not professional legal review and does not replace AMS or residence-authority assessment.",
   "sources": [
     {
       "ref": "migration.gv.at:rwr-skilled-shortage",
@@ -34,6 +34,35 @@
         "fixed job and applicable minimum remuneration",
         "authority/application context"
       ]
+    },
+    {
+      "ref": "ris.bka.gv.at:auslbg-12a",
+      "url": "https://www.ris.bka.gv.at/eli/bgbl/1975/218/P12a/NOR40257948",
+      "supports": [
+        "statutory route requirements for skilled workers in shortage occupations",
+        "proof of relevant completed vocational training",
+        "minimum points requirement by reference to AuslBG Annex B",
+        "minimum remuneration requirement for the intended employment"
+      ]
+    },
+    {
+      "ref": "ris.bka.gv.at:auslbg-annex-b",
+      "url": "https://www.ris.bka.gv.at/eli/bgbl/1975/218/ANL2/NOR40252045",
+      "supports": [
+        "points criteria for skilled workers in shortage occupations",
+        "30 points for completed vocational education/training in the shortage occupation",
+        "work experience matching qualification capped at 20 points",
+        "age criteria",
+        "minimum 55 points"
+      ]
+    },
+    {
+      "ref": "ris.bka.gv.at:fachkraefteverordnung-2026-1",
+      "url": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/316/P1/NOR40274302",
+      "supports": [
+        "Fachkräfteverordnung 2026 legal basis",
+        "2026 nationwide shortage-occupation categories including graduate engineers for data processing"
+      ]
     }
   ],
   "cases": [
@@ -48,7 +77,9 @@
         "binding_job_offer_in_austria": false
       },
       "expected": {
-        "pathway_keys": ["at-rwr-skilled-worker-shortage-occupation"],
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
         "eligibility": "INELIGIBLE",
         "required_evidence": [
           "shortage_occupation_training",
@@ -64,11 +95,15 @@
         "rule_or_source_refs": [
           "migration.gv.at:rwr-skilled-shortage",
           "migration.gv.at:shortage-occupations-2026",
-          "oesterreich.gv.at:rwr-shortage-application"
+          "oesterreich.gv.at:rwr-shortage-application",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
         ],
         "escalation_required": false
       },
-      "rationale": "The occupation is represented in the 2026 Austria-wide shortage list, but the route requires a binding Austrian job offer and applicable remuneration. The known absence of a job offer is a failed current prerequisite, not merely an unknown fact."
+      "rationale": "Even if the asserted training, ten years of relevant experience and age would produce a strong points score, the route separately requires intended qualifying employment with the applicable remuneration. The stated absence of a binding Austrian job offer is therefore a current route failure on the benchmark facts. Positive training/experience assertions remain unverified scenario inputs.",
+      "fact_evidence_boundary": "Facts are asserted scenario inputs, not authenticated documents. The explicit absence of a binding Austrian job offer is treated as a known route failure for this benchmark; positive training/experience assertions do not establish documentary sufficiency or AMS confirmation."
     },
     {
       "case_id": "at-rwr-shortage-software-di-strong-points-2026-01",
@@ -82,7 +117,9 @@
         "applicable_minimum_remuneration_confirmed": true
       },
       "expected": {
-        "pathway_keys": ["at-rwr-skilled-worker-shortage-occupation"],
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
         "eligibility": "REVIEW_REQUIRED",
         "required_evidence": [
           "shortage_occupation_training",
@@ -95,11 +132,15 @@
         "rule_or_source_refs": [
           "migration.gv.at:rwr-skilled-shortage",
           "migration.gv.at:shortage-occupations-2026",
-          "oesterreich.gv.at:rwr-shortage-application"
+          "oesterreich.gv.at:rwr-shortage-application",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
         ],
         "escalation_required": true
       },
-      "rationale": "The simplified facts appear to satisfy the route-specific threshold and job/training prerequisites, but an official-source-curated benchmark must not turn that orientation into a final authority decision. Formal document and authority assessment remains required."
+      "rationale": "On the asserted benchmark facts, training contributes 30 points, ten years of qualification-matching experience reaches the 20-point cap, and age 29 contributes 15, for approximately 65 points. The route direction is therefore strong, but these are asserted scenario facts rather than authenticated qualification/employment documents; AMS and the residence authority still must assess the real evidence and remaining legal requirements. The benchmark therefore stays REVIEW_REQUIRED rather than ELIGIBLE.",
+      "fact_evidence_boundary": "All positive facts are asserted for route-evaluation testing only. missing_evidence=[] means no bounded route-evidence category is absent from the simplified asserted fact set; it does not mean qualification, work-experience, job-offer, remuneration, identity, or other application documents have been authenticated or accepted by AMS or the residence authority."
     },
     {
       "case_id": "at-rwr-shortage-software-di-under-points-2026-01",
@@ -114,7 +155,9 @@
         "applicable_minimum_remuneration_confirmed": true
       },
       "expected": {
-        "pathway_keys": ["at-rwr-skilled-worker-shortage-occupation"],
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
         "eligibility": "INELIGIBLE",
         "required_evidence": [
           "shortage_occupation_training",
@@ -127,11 +170,15 @@
         "rule_or_source_refs": [
           "migration.gv.at:rwr-skilled-shortage",
           "migration.gv.at:shortage-occupations-2026",
-          "oesterreich.gv.at:rwr-shortage-application"
+          "oesterreich.gv.at:rwr-shortage-application",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
         ],
         "escalation_required": false
       },
-      "rationale": "Under the simplified labeled facts, training contributes 30 points while no experience, language or age points are labeled, leaving the case below the published 55-point minimum."
+      "rationale": "On the asserted benchmark facts, training contributes 30 points while age 51, zero qualifying experience and zero language points add nothing, leaving the case below the statutory 55-point minimum. This route-level arithmetic does not itself authenticate the training documentation.",
+      "fact_evidence_boundary": "Facts are asserted scenario inputs, not authenticated documents. The points result is conditional on accepting the asserted training fact for benchmark arithmetic; real qualification documentation and authority assessment remain required."
     }
   ]
 }
