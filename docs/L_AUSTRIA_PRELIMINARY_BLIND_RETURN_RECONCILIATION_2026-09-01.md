@@ -1,5 +1,7 @@
 # L — Austria Preliminary Blind Return Reconciliation
 
+> **Superseding operator correction (V12.58):** the review itself was genuine and independent. The earlier `independent_review=false` values were operator transcription mistakes. This document remains useful for the v2 label-contract/fingerprint analysis, but its statements that the review was non-genuine/non-independent are superseded by `docs/L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md`. Null reviewer/professional/credential references remain structurally unresolved.
+
 **Date:** 2026-09-01
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Classification:** blind current-fingerprint draft feedback / NOT professional-review acceptance evidence
