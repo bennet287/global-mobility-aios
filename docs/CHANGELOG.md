@@ -8,6 +8,63 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.59 BLIND-RETURN V3 COMPILER ENFORCEMENT + GENUINE RETURN VALIDATION ATTEMPT
+
+### Status
+
+**GENUINE INDEPENDENT REVIEW PRESERVED / SUPPLIED RETURN NOT CURRENT-COMPILABLE / RETURN CONTRACT ALIGNED TO V3 / CANONICAL REVIEWER VOCABULARIES FAIL-CLOSED / CURRENT-HEAD PROOF + TEMPLATE-BASED REAFFIRMATION PENDING**
+
+The operator supplied a corrected reviewer return with `independent_review=true` and non-empty professional/reviewer/credential reference strings.
+
+The review itself remains genuine and independent.
+
+The supplied JSON is not promoted because:
+
+```text
+Case 2 source fingerprint       historical V12.55/v2 fingerprint
+pathway_keys                    legacy/free-form route key
+required_evidence               application-document names outside bounded taxonomy
+rule_or_source_refs             prose legal citations instead of canonical source IDs
+contradictions                  null for ASSESSED reviews
+```
+
+V12.59 aligns the reviewer return contract with handoff v3:
+
+```text
+austria-professional-review-handoff.v3
+austria-professional-review-blind-return.v3
+```
+
+The compiler now rejects:
+
+- noncanonical tested-route keys;
+- evidence keys outside the bounded Austria benchmark taxonomy;
+- rule/source references not present in `official_sources[].ref`;
+- any ASSESSED return with null reviewed-label fields.
+
+This closes a fail-closed gap where legacy/free-form labels could previously have been interpreted as broad `CORRECTED` professional reviews.
+
+The supplied reviewer/professional/credential reference strings are structurally present. Public real-world verification remains outside the compiler and was not independently resolved from the opaque identifiers during this reconciliation.
+
+Durable record:
+
+`docs/L_AUSTRIA_V3_RETURN_VALIDATION_ATTEMPT_2026-09-01.md`
+
+Next:
+
+```text
+current-head V12.59 focused proof
+→ regenerate current v3 packet + v3 blind-return template
+→ same genuine reviewer re-affirms using generated template
+→ preserve independently verifiable credential/engagement evidence
+→ compile + validate canonical professional bundle
+→ inspect CONFIRMED/CORRECTED
+→ final exact-head L technical proof
+```
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+---
+
 ## 2026-09-01 — V12.58 GENUINE INDEPENDENT REVIEW OPERATOR CORRECTION
 
 ### Status
