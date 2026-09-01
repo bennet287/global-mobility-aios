@@ -69,6 +69,31 @@ def _empty_labels_payload() -> dict[str, object]:
     }
 
 
+def _reviewer_privacy_contract() -> dict[str, object]:
+    return {
+        "repository_identity_mode": "ANONYMOUS",
+        "repository_identity_disclosure": False,
+        "requirements": [
+            (
+                "Do not include the reviewer's personal name, bar/registration number, email address, "
+                "firm/employer name, postal address, phone number, or public-profile URL in repository-bound artifacts."
+            ),
+            (
+                "Use non-identifying opaque aliases for professional_review_reference, reviewer_reference and "
+                "reviewer_credential_reference."
+            ),
+            (
+                "Keep the real identity-to-credential mapping and any confidential supporting evidence outside Git "
+                "and outside committed project artifacts."
+            ),
+            (
+                "Anonymity does not weaken the independence requirement: the real reviewer and professional standing "
+                "must still be established outside AIOS."
+            ),
+        ],
+    }
+
+
 def _reviewed_label_contract() -> dict[str, object]:
     return {
         "pathway_keys": {
@@ -317,17 +342,21 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
         "official_sources": raw.get("sources", []),
         "eligibility_label_values": [value.value for value in MobilityEligibilityLabel],
         "reviewed_label_contract": _reviewed_label_contract(),
+        "reviewer_privacy_contract": _reviewer_privacy_contract(),
         "reviewer_boundary": (
-            "AIOS validates source fingerprints, review structure, derived decision semantics and supplied "
-            "reviewer/credential references. It does not verify the real-world identity, independence, professional "
-            "standing or credential validity of the reviewer; those must be established outside this compiler and "
-            "referenced in the submitted record."
+            "AIOS validates source fingerprints, review structure, derived decision semantics and repository-safe "
+            "reviewer/credential aliases. It does not verify the real-world identity, independence, professional "
+            "standing or credential validity of the reviewer. Those must be established outside this compiler. "
+            "When reviewer anonymity is required, identifying evidence must remain outside Git and must not be "
+            "embedded in committed project artifacts."
         ),
         "submission_requirements": [
             f"Use contract_version {BLIND_RETURN_CONTRACT_VERSION} for the reviewer return.",
             "Bind every review to the exact source_case_fingerprint in this packet.",
             "Supply timezone-aware created_at and reviewed_at timestamps.",
-            "Supply durable professional_review_reference, reviewer_reference and reviewer_credential_reference values.",
+            "Supply durable repository-safe, non-identifying professional_review_reference, reviewer_reference and reviewer_credential_reference aliases.",
+            "Do not embed personal names, registration/bar numbers, emails, firm names, addresses, phone numbers or public-profile URLs in repository-bound reviewer references.",
+            "Keep the confidential identity-to-credential mapping outside Git and outside committed project artifacts.",
             "Set independent_review=true only when independence has actually been established outside AIOS.",
             "Do not use test-only, placeholder or fabricated reviewer/credential references for acceptance evidence.",
             "Do not request or reveal source benchmark expected labels or source rationale before the reviewer returns.",
