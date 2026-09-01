@@ -1,9 +1,9 @@
 # L — V12.55 Professional-Review Handoff Local Proof
 
-**Date:** 2026-09-01  
-**Branch:** `roadmap/global-mobility-aios-v12`  
-**Exact proof head:** `e2e27ba8661a6347c308271d2cc970d1f9b2d97a`  
-**Classification:** exact-head local technical handoff proof / NOT professional-review evidence  
+**Date:** 2026-09-01
+**Branch:** `roadmap/global-mobility-aios-v12`
+**Exact proof head:** `e2e27ba8661a6347c308271d2cc970d1f9b2d97a`
+**Classification:** exact-head local technical handoff proof / NOT professional-review evidence
 **Milestone impact:** L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`
 
 ## Observed fail-fast local proof
