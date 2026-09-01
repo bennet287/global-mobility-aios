@@ -117,8 +117,9 @@ Radar-caused runtime adoption remains **NONE**.
 6. **R3 interop recoverability is closed.** The branch is on origin at `aad377e401b10a95b11440442831290c5c60a9f2`; it remains a separate research branch and is not merged into V12.
 7. **The local acceptance transcript exposed a mixed-head run.** It began on `b711ab6...` and later reported `07c0a6...` after another process/session changed the same worktree. That run is not exact-head proof.
 8. **Full backend proof must run from repository root** using `python -m pytest apps/api/tests -q`. Running from `apps/api` can break tests that intentionally use repository-root-relative benchmark paths.
-9. **V12.47 administration/recovery documentation is locally proven.** Exact head `80deef2...` passed documentation whitespace, recovery-order/authority checks, repository gates, stable start/end SHA, frozen V11/R3 refs and clean-worktree verification.
-10. **Local ignore nuance:** the operator worktree currently has `/.local/` in `.git/info/exclude`; repository-owned `.gitignore` is intentionally narrower at `.local/professional-review/`. The broad local exclude did not invalidate proof but may hide unrelated local files.
+9. **V12.47 administration/recovery documentation remains historically proven.** Exact head `80deef2...` passed documentation whitespace, recovery-order/authority checks, repository gates, stable start/end SHA, frozen V11/R3 refs and clean-worktree verification.
+10. **V12.48 local acceptance failed at `b079428...`.** Removing the broad operator-local `/.local/` exclude exposed additional untracked `.local/` content; the clean-worktree gate threw correctly. The later unconditional PASS print is invalid.
+11. **Do not broaden or delete `.local/` blindly.** First inspect `git status --short --untracked-files=all -- .local` and `git ls-files --others --exclude-standard -- .local`; reviewer packet/template files are already correctly covered by repository `.gitignore`.
 
 ---
 
@@ -151,8 +152,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 8. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
 10. `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
-11. `AGENTS.md`
-12. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+11. `docs/V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
+12. `AGENTS.md`
+13. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -173,14 +175,15 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
+1. **Inspect and classify the newly exposed untracked `.local/` content** before the next exact-head run; do not delete or broadly ignore unknown files.
+2. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
    - Packet/template generation has been exercised locally.
    - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
-2. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
-3. Commit the acceptance evidence and run final exact-current-head L technical proof.
-4. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
-5. Begin M only after L is sealed.
-6. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+3. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
+4. Commit the acceptance evidence and run final exact-current-head L technical proof.
+5. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
+6. Begin M only after L is sealed.
+7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
 
 Completed prerequisites that must not be repeated:
 
@@ -192,6 +195,7 @@ untouched return fail-closed               PASS at d969c7d...
 full backend regression                    PASS — 1332 / 22 skipped at d969c7d...
 repository/stable-head local proof         PASS at d969c7d...
 V12.47 admin/recovery exact-head proof      PASS at 80deef2...
+V12.48 administration acceptance           FAIL at b079428... — untracked .local/ state
 ```
 
 Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
