@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.55 / Austria benchmark source/evidence hardening from non-blind legal feedback; technology truth unchanged
+**Latest reconciliation:** V12.57 / Austria reviewer label-contract v3 + route-level benchmark correction; technology truth unchanged
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -186,5 +186,7 @@ V12.53 extends the preservation list after the next local run exposed `.local/ar
 Those three items were subsequently archived outside the worktree, and V12.53 fail-fast local acceptance passed at exact head `b2cc754...`. This closes local administration/hygiene only and changes no technology adoption/runtime classification.
 
 Legal-quality administration note: V12.55 adds direct RIS authorities and asserted-fact/document-verification semantics to the Austria evaluation benchmark after useful but non-blind feedback. The assessment itself is not professional-review evidence, the three route outcomes are unchanged, and no technology/runtime adoption state changes.
+
+Preliminary-return administration note: V12.57 treats the current-fingerprint draft as non-promotable, corrects the strong case to route-level ELIGIBLE while preserving downstream authority/document boundaries, and versions reviewer vocabulary semantics to v3. This is evaluation-contract administration only; no Technology Radar/runtime adoption state changes.
 
 Administration note: V12.47 PROJECT_STATE/recovery exact-head proof passed at `80deef2...`. The later V12.48 attempt at `b079428...` failed its clean-worktree gate because additional untracked `.local/` state became visible after removing a broad operator-local exclude. No technology/adoption classification changes from either administration event. This did not change any technology adoption state. The operator-local `.git/info/exclude` broad `/.local/` entry is local hygiene only and is not an AIOS adoption/runtime fact.
