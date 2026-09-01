@@ -128,7 +128,9 @@ Radar-caused runtime adoption remains **NONE**.
 17. **V12.53 local hygiene is closed.** The fail-fast acceptance reached final PASS at exact head `b2cc754...` after all eight preservation/history items were archived outside the worktree, only narrow ignored roots remained, repository gates passed, the worktree was clean, and start/end/origin SHA matched. Repository Policy Check #452 is also green; V12 Production Proof #922 had policy+frontend green while backend/PostgreSQL were still running at the proof-record time.
 18. **Non-blind legal-quality feedback is not L evidence.** The assessment agreed with the three benchmark directions but explicitly saw an obsolete v1 packet with expected labels/rationale. V12.55 uses it only to harden source/evidence semantics.
 19. **V12.55 changes benchmark fingerprints.** Direct RIS §12a / Annex B / Fachkräfteverordnung sources and per-case fact-evidence boundaries are now source-fingerprint material. Previously generated packet/return artifacts are stale.
-20. **V12.55 reviewer handoff is now locally proven at exact head `e2e27ba...`.** The fail-fast run passed 21 focused tests, repository policy/consistency/dependency/diff-hygiene gates, clean worktree and stable start/end/origin SHA, then generated and verified a fresh reviewer-facing `austria-professional-review-handoff.v2` packet plus blank `austria-professional-review-blind-return.v1` template. The next action is external reviewer handoff, not more packet hardening.
+20. **V12.55 reviewer handoff v2 is historical proof only.** The exact-head `e2e27ba...` run passed, but a subsequent preliminary current-fingerprint return exposed reviewer-label semantic ambiguity.
+21. **The preliminary return is not promotable.** All reviewer/professional/credential references are null and Cases 1/3 set `independent_review=false`; the document itself says it is preliminary pending credentialed practitioner review.
+22. **V12.57 advances the handoff to v3.** Case 2 is route-level `ELIGIBLE` / no escalation on asserted facts; eligibility remains separate from document/AMS/residence approval. v3 defines canonical pathway/evidence/source vocabularies, escalation semantics, and requires every ASSESSED reviewed-label field to be populated. All v2 artifacts are stale.
 
 
 ---
@@ -191,21 +193,23 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Obtain the genuine independent Austria professional review** using only the fresh V12.55 current-head artifacts.
-   - send `.local/professional-review/austria-professional-review-blind-packet-v2.json`;
-   - send `.local/professional-review/austria-professional-review-blind-return-v1.json`;
-   - preserve reviewer identity, credential and engagement/reference evidence independently;
-   - do not expose expected labels or rationale.
-2. **Compile/reconcile the real reviewer evidence and durable reviewer/credential references.**
+1. **Prove V12.57 reviewer-contract correction and regenerate fresh v3 artifacts.**
+   - run focused professional-review tests plus `test_mobility_outcome_evaluation.py`;
+   - run repository gates;
+   - generate `.local/professional-review/austria-professional-review-blind-packet-v3.json`;
+   - regenerate the blank blind return template;
+   - verify `reviewed_label_contract` and no expected-label/rationale leakage.
+2. **Obtain the genuine independent Austria professional review** using only those v3 artifacts and preserve reviewer identity/credential/engagement evidence.
+3. **Compile/reconcile the real reviewer evidence and durable reviewer/credential references.**
    - The local `.local/` hygiene/archive blocker is closed at exact head `b2cc754...`.
    - The non-blind legal-quality assessment is feedback only, not review evidence.
    - No genuine reviewer findings/identity/credential evidence exists yet.
    - Packet/template generation has been exercised locally.
    - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
-3. Commit the acceptance evidence and run final exact-current-head L technical proof.
-4. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
-5. Begin M only after L is sealed.
-6. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+4. Commit the acceptance evidence and run final exact-current-head L technical proof.
+5. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
+6. Begin M only after L is sealed.
+7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
 
 Completed prerequisites that must not be repeated:
 
