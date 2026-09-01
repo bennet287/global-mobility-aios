@@ -66,7 +66,7 @@ def test_professional_review_cli_prepares_blind_reviewer_return_template() -> No
 
     assert result.returncode == 0, result.stderr
     template = json.loads(result.stdout)
-    assert template["contract_version"] == "austria-professional-review-blind-return.v1"
+    assert template["contract_version"] == "austria-professional-review-blind-return.v3"
     assert template["review_batch_id"] is None
     assert template["created_at"] is None
     assert len(template["reviews"]) == 3
