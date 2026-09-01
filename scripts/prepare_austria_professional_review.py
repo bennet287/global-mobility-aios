@@ -27,11 +27,18 @@ from app.evaluations.professional_review import (  # noqa: E402
 
 HANDOFF_CONTRACT_VERSION = "austria-professional-review-handoff.v3"
 RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-return-template.v1"
-BLIND_RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-blind-return-template.v1"
-BLIND_RETURN_CONTRACT_VERSION = "austria-professional-review-blind-return.v1"
+BLIND_RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-blind-return-template.v3"
+BLIND_RETURN_CONTRACT_VERSION = "austria-professional-review-blind-return.v3"
 BLIND_ASSESSMENT_STATUSES = ("ASSESSED", "DISPUTED", "NEEDS_MORE_FACTS")
 SUPERSEDED_REVIEWER_HANDOFF_CONTRACTS = ("austria-professional-review-handoff.v1", "austria-professional-review-handoff.v2")
 DEFAULT_SOURCE_PATH = ROOT / "apps" / "api" / "evaluations" / "mobility_cases" / "austria_rwr_shortage_2026_v1.json"
+TESTED_ROUTE_KEY = "at-rwr-skilled-worker-shortage-occupation"
+BOUNDED_EVIDENCE_KEYS = frozenset({
+    "shortage_occupation_training",
+    "binding_job_offer",
+    "applicable_minimum_remuneration",
+    "points_evidence",
+})
 
 
 def _json(value: object) -> str:
@@ -65,7 +72,7 @@ def _empty_labels_payload() -> dict[str, object]:
 def _reviewed_label_contract() -> dict[str, object]:
     return {
         "pathway_keys": {
-            "tested_route_key": "at-rwr-skilled-worker-shortage-occupation",
+            "tested_route_key": TESTED_ROUTE_KEY,
             "instruction": (
                 "For this tranche, use exactly the tested AIOS route key above. "
                 "Alternative-route recommendations belong in notes; if the tested route framing itself is wrong, "
@@ -95,12 +102,7 @@ def _reviewed_label_contract() -> dict[str, object]:
             },
         },
         "required_evidence": {
-            "bounded_keys": [
-                "shortage_occupation_training",
-                "binding_job_offer",
-                "applicable_minimum_remuneration",
-                "points_evidence",
-            ],
+            "bounded_keys": sorted(BOUNDED_EVIDENCE_KEYS),
             "instruction": (
                 "Use only these bounded route-evaluation evidence categories in reviewed_labels. "
                 "Passport, photographs, health insurance, criminal-record extracts, employer forms and other "
@@ -108,12 +110,7 @@ def _reviewed_label_contract() -> dict[str, object]:
             ),
         },
         "missing_evidence": {
-            "bounded_keys": [
-                "shortage_occupation_training",
-                "binding_job_offer",
-                "applicable_minimum_remuneration",
-                "points_evidence",
-            ],
+            "bounded_keys": sorted(BOUNDED_EVIDENCE_KEYS),
             "instruction": (
                 "Use [] when no bounded route-evidence category is missing from the asserted facts. "
                 "This does not certify documentary completeness."
@@ -213,6 +210,48 @@ def _blind_reviewed_labels(value: object, *, field_name: str) -> MobilityReviewe
         ),
         escalation_required=escalation_required,
     )
+
+
+def _canonical_source_ref_ids(source_path: Path) -> frozenset[str]:
+    raw = json.loads(source_path.read_text(encoding="utf-8"))
+    values: set[str] = set()
+    for index, source in enumerate(raw.get("sources", [])):
+        if not isinstance(source, dict):
+            raise ValueError(f"sources[{index}] must be an object")
+        values.add(_required_text(source.get("ref"), field_name=f"sources[{index}].ref"))
+    return frozenset(values)
+
+
+def _validate_v3_reviewed_labels(
+    labels: MobilityReviewedLabels,
+    *,
+    source_path: Path,
+    field_name: str,
+) -> None:
+    if labels.pathway_keys != frozenset({TESTED_ROUTE_KEY}):
+        raise ValueError(
+            f"{field_name}.pathway_keys must equal the canonical tested route key {TESTED_ROUTE_KEY}"
+        )
+
+    for name, values in (
+        ("required_evidence", labels.required_evidence),
+        ("missing_evidence", labels.missing_evidence),
+    ):
+        assert values is not None
+        unknown = sorted(values - BOUNDED_EVIDENCE_KEYS)
+        if unknown:
+            raise ValueError(
+                f"{field_name}.{name} contains non-canonical evidence keys: {', '.join(unknown)}"
+            )
+
+    assert labels.rule_or_source_refs is not None
+    allowed_refs = _canonical_source_ref_ids(source_path)
+    unknown_refs = sorted(labels.rule_or_source_refs - allowed_refs)
+    if unknown_refs:
+        raise ValueError(
+            f"{field_name}.rule_or_source_refs contains non-canonical source refs: "
+            f"{', '.join(unknown_refs)}"
+        )
 
 
 def _requested_case_ids(source_path: Path, case_ids: tuple[str, ...]) -> tuple[object, tuple[str, ...]]:
@@ -418,6 +457,11 @@ def compile_blind_review_return(source_path: Path, blind_path: Path) -> tuple[di
         if assessment_status == "ASSESSED":
             reviewed_labels = _blind_reviewed_labels(
                 raw_review.get("reviewed_labels"), field_name=f"reviews[{index}].reviewed_labels"
+            )
+            _validate_v3_reviewed_labels(
+                reviewed_labels,
+                source_path=source_path,
+                field_name=f"reviews[{index}].reviewed_labels",
             )
             source_labels = MobilityReviewedLabels.from_gold_case(source_case)
             decision = (
