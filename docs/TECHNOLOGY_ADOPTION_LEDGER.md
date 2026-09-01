@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.52 / local artifact classification and narrow ignore policy; technology truth unchanged
+**Latest reconciliation:** V12.53 / secondary local archive/discovery classification; technology truth unchanged
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -180,5 +180,7 @@ CI administration note: GitHub policy jobs that run `check_diff_hygiene.py` now 
 Restored full-history CI then exposed 22 post-baseline trailing-space violations across five documentation files. V12.51 removes only that whitespace; technology/adoption truth is unchanged.
 
 Local-artifact administration note: V12.52 classifies only `.local/gmai-dev-cache/`, `.local/gmai-dev-temp/` and existing `.local/professional-review/` as narrow ignored local roots. Recovery/history buckets are to be archived outside the worktree rather than hidden. This changes no technology adoption/runtime truth.
+
+V12.53 extends the preservation list after the next local run exposed `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt`. Canonical V12 has no references to those paths; they are local recovery/history material, not runtime/adoption state.
 
 Administration note: V12.47 PROJECT_STATE/recovery exact-head proof passed at `80deef2...`. The later V12.48 attempt at `b079428...` failed its clean-worktree gate because additional untracked `.local/` state became visible after removing a broad operator-local exclude. No technology/adoption classification changes from either administration event. This did not change any technology adoption state. The operator-local `.git/info/exclude` broad `/.local/` entry is local hygiene only and is not an AIOS adoption/runtime fact.
