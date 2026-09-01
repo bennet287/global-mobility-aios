@@ -8,6 +8,65 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.58 GENUINE INDEPENDENT REVIEW OPERATOR CORRECTION
+
+### Status
+
+**V12.55/V2 AUSTRIA REVIEW CONFIRMED GENUINE + INDEPENDENT BY OPERATOR / EARLIER FALSE INDEPENDENCE FLAGS WERE TRANSCRIPTION ERRORS / REVIEW PRESERVED AS REAL CORRECTION EVIDENCE / CURRENT V3 REAFFIRMATION + DURABLE STRUCTURED REFERENCES STILL PENDING**
+
+The operator corrected the structured-return interpretation:
+
+```text
+review itself         genuine
+independent review    true
+earlier false values  operator transcription mistake
+```
+
+The previous conclusion that the review itself was non-independent is superseded.
+
+The review remains genuine professional evidence against the historical V12.55/v2 fingerprints and materially informed the V12.57 strong-case and reviewer-contract correction.
+
+However, the pasted structured JSON still contained:
+
+```text
+professional_review_reference       null
+reviewer_reference                  null
+reviewer_credential_reference       null
+```
+
+AIOS must not invent those references. They remain required before canonical promotion.
+
+Because V12.57 changed fingerprint-bound Case 2 labels/rationale and superseded reviewer handoff v2 with v3:
+
+```text
+genuine old-fingerprint review
+!= automatic current-fingerprint promotion
+```
+
+The acceptance path is narrowed to the same reviewer:
+
+```text
+current-head v3 proof/regeneration
+→ same-reviewer v3 reaffirmation
+→ independent_review=true
+→ complete v3 reviewed_labels
+→ durable professional/reviewer/credential refs
+→ compile + validate
+→ final exact-current-head L technical proof
+→ required exact-head CI/Woodpecker proof
+→ seal L
+```
+
+No unrelated second reviewer is required by this correction, and no reviewer identity/credential reference is fabricated.
+
+Durable correction:
+
+`docs/L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md`
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+
+---
+
 ## 2026-09-01 — V12.57 PRELIMINARY BLIND RETURN RECONCILIATION + REVIEWER LABEL CONTRACT V3
 
 ### Status
