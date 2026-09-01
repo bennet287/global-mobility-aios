@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.57 — preliminary blind return reconciled + reviewer contract v3 + route-level eligibility correction; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.58 — genuine independent review operator correction + v3 reaffirmation path; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -25,6 +25,7 @@
 **L non-blind legal-quality feedback reconciliation:** `L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md`
 **L V12.55 handoff local proof:** `L_V12_55_PROFESSIONAL_REVIEW_HANDOFF_LOCAL_PROOF_2026-09-01.md`
 **L preliminary blind return reconciliation / v3 correction:** `L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md`
+**L genuine blind review operator correction:** `L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
@@ -76,9 +77,9 @@ No actual autonomy mutation mechanism is accepted or implemented.
 L implementation and live-runtime evidence exist. Acceptance remains open until the remaining gates are observed:
 
 ```text
-0. prove V12.57 reviewer-contract/benchmark correction locally and regenerate fresh v3 blind artifacts
-1. genuine independent credentialed Austria review using the current v3 blind handoff
-2. compile/reconcile the returned review evidence
+0. prove V12.57/V12.58 reviewer-contract state locally and regenerate fresh v3 blind artifacts
+1. obtain same-reviewer current-v3 reaffirmation with durable professional/reviewer/credential references
+2. compile/reconcile the current professional evidence
 3. final exact-current-head full technical proof after review evidence/docs are committed
 ```
 
@@ -90,7 +91,7 @@ The repaired handoff is now locally proven at stable exact head `d969c7dad28bd3e
 
 The blind reviewer packet and blank return template had previously been generated successfully in the local operator worktree. Those artifacts are reproducible handoff files only; they contain no genuine reviewer identity, credential, findings, or professional correctness evidence.
 
-A subsequent legal-quality assessment agreed with the three benchmark directions but explicitly reported that it had been given an obsolete answer-revealing v1 packet. It is therefore **non-blind feedback only**, not professional-review acceptance evidence. V12.55 applies the useful criticisms without promoting the assessment: direct RIS authorities are added, asserted facts are separated explicitly from document/authority verification, the strong-points case remains `REVIEW_REQUIRED`, and the current v2 packet rejects superseded answer-revealing handoffs. Because these source-contract changes alter immutable fingerprints, all previously generated packet/return artifacts became stale. That reset is now closed: at exact head `e2e27ba8661a6347c308271d2cc970d1f9b2d97a`, the fail-fast V12.55 handoff proof passed 21 focused tests and repository gates, retained a clean stable worktree, regenerated a fresh reviewer-facing v2 packet plus blank blind-return template, and verified that expected labels/rationale remain excluded. That v2 handoff proof is now historical. A subsequent current-fingerprint preliminary return exposed a semantic contract gap: the reviewer had no canonical definitions for pathway/evidence/source keys, ELIGIBLE vs REVIEW_REQUIRED, null-vs-empty contradictions, or escalation semantics. The return itself is non-promotable because credential/professional references are null and Cases 1/3 are not independent. V12.57 corrects Case 2 to route-level `ELIGIBLE` / no escalation on its asserted 65-point facts, versions the reviewer handoff to v3 with explicit label semantics, and marks every v2 artifact stale. The immediate L gate is therefore current-head v3 proof/regeneration, then genuine credentialed reviewer handoff.
+A subsequent legal-quality assessment agreed with the three benchmark directions but explicitly reported that it had been given an obsolete answer-revealing v1 packet. It is therefore **non-blind feedback only**, not professional-review acceptance evidence. V12.55 applies the useful criticisms without promoting the assessment: direct RIS authorities are added, asserted facts are separated explicitly from document/authority verification, the strong-points case remains `REVIEW_REQUIRED`, and the current v2 packet rejects superseded answer-revealing handoffs. Because these source-contract changes alter immutable fingerprints, all previously generated packet/return artifacts became stale. That reset is now closed: at exact head `e2e27ba8661a6347c308271d2cc970d1f9b2d97a`, the fail-fast V12.55 handoff proof passed 21 focused tests and repository gates, retained a clean stable worktree, regenerated a fresh reviewer-facing v2 packet plus blank blind-return template, and verified that expected labels/rationale remain excluded. That v2 handoff proof is now historical. A subsequent current-fingerprint preliminary return exposed a semantic contract gap: the reviewer had no canonical definitions for pathway/evidence/source keys, ELIGIBLE vs REVIEW_REQUIRED, null-vs-empty contradictions, or escalation semantics. The return itself is non-promotable because credential/professional references are null and Cases 1/3 are not independent. V12.57 corrects Case 2 to route-level `ELIGIBLE` / no escalation on its asserted 65-point facts, versions the reviewer handoff to v3 with explicit label semantics, and marks every v2 artifact stale. The reviewer was later confirmed by the operator to have been genuine and independent; the earlier false independence flags were transcription mistakes. The immediate L gate is therefore current-head v3 proof/regeneration, then a current-fingerprint reaffirmation from the same genuine reviewer with durable professional/reviewer/credential references.
 
 The V12.47 administration/recovery layer is locally proven at exact head `80deef2618038799caa39674ebfc3d92126cfe0f`: dashboard/hand-off whitespace checks, recovery-order authority checks, repository policy/consistency/dependency/diff-hygiene gates, stable start/end SHA, frozen V11, R3 branch preservation and deep-R3 backup all passed. The operator worktree's broad `/.local/` entry in `.git/info/exclude` is documented as local-only hygiene debt; repository `.gitignore` remains intentionally narrow at `.local/professional-review/`.
 
