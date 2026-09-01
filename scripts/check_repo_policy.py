@@ -112,12 +112,14 @@ def main() -> int:
             violations.append(f"{relative} is missing")
             continue
         workflow_text = workflow.read_text(encoding="utf-8", errors="ignore")
-        anchor_index = workflow_text.find(job_anchor)
-        if anchor_index < 0:
+        job_pattern = re.compile(
+            rf"(?ms)^  {re.escape(job_anchor)}\n(?P<body>.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)"
+        )
+        job_match = job_pattern.search(workflow_text)
+        if job_match is None:
             violations.append(f"{relative} is missing policy job anchor {job_anchor!r}")
             continue
-        policy_segment = workflow_text[anchor_index:]
-        if not re.search(r"fetch-depth:\s*0\b", policy_segment):
+        if not re.search(r"fetch-depth:\s*0\b", job_match.group("body")):
             violations.append(
                 f"{relative} policy checkout must use fetch-depth: 0 so "
                 "check_diff_hygiene.py can reach the V12 transition baseline"
