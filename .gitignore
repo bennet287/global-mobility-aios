@@ -55,3 +55,7 @@ apps/web/e2e/playwright-report/
 
 # Local blind professional-review handoff artifacts; reproducible and not canonical evidence.
 .local/professional-review/
+
+# Local developer cache/temp roots; reproducible and never canonical evidence.
+.local/gmai-dev-cache/
+.local/gmai-dev-temp/
