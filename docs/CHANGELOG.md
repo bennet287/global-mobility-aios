@@ -8,6 +8,53 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.60 ANONYMOUS REVIEWER PRIVACY BOUNDARY
+
+### Status
+
+**REVIEWER ANONYMITY ENFORCED / NO IDENTIFYING REVIEWER DATA IN GIT / OPAQUE PROVENANCE ALIASES ONLY / CONFIDENTIAL IDENTITY-TO-CREDENTIAL VERIFICATION OUTSIDE AIOS / L STATUS UNCHANGED**
+
+The genuine independent Austria reviewer requires anonymity.
+
+V12.60 makes that requirement a binding repository privacy invariant.
+
+Repository-bound review artifacts must not contain:
+
+```text
+personal name
+bar / professional registration number
+email / phone / postal address
+firm or employer identity when identifying
+public profile or directory URL
+aliases that directly encode those values
+```
+
+The v3 reviewer packet now exposes `reviewer_privacy_contract` and requires non-identifying opaque aliases for:
+
+```text
+professional_review_reference
+reviewer_reference
+reviewer_credential_reference
+```
+
+The real identity-to-credential mapping, independence evidence and supporting credential verification remain confidential outside Git and outside committed project artifacts.
+
+This privacy boundary does not weaken the professional-review gate:
+
+```text
+anonymous in repository != unverified in real world
+confidential external verification != public identity disclosure
+```
+
+A repository-wide search found no committed occurrence of the reviewer-specific name or registration-style identifiers supplied in chat. Public-directory lookup language from the earlier validation note was removed.
+
+Durable privacy record:
+
+`docs/L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md`
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+---
+
 ## 2026-09-01 — V12.59 BLIND-RETURN V3 COMPILER ENFORCEMENT + GENUINE RETURN VALIDATION ATTEMPT
 
 ### Status
@@ -44,7 +91,7 @@ The compiler now rejects:
 
 This closes a fail-closed gap where legacy/free-form labels could previously have been interpreted as broad `CORRECTED` professional reviews.
 
-The supplied reviewer/professional/credential reference strings are structurally present. Public real-world verification remains outside the compiler and was not independently resolved from the opaque identifiers during this reconciliation.
+The supplied reviewer/professional/credential reference strings are structurally present. Reviewer identity is confidential and must not be publicly disclosed or encoded in Git; real identity, independence and professional standing are verified outside AIOS through a confidential evidence mapping.
 
 Durable record:
 
@@ -56,7 +103,7 @@ Next:
 current-head V12.59 focused proof
 → regenerate current v3 packet + v3 blind-return template
 → same genuine reviewer re-affirms using generated template
-→ preserve independently verifiable credential/engagement evidence
+→ preserve confidential credential/engagement verification outside Git
 → compile + validate canonical professional bundle
 → inspect CONFIRMED/CORRECTED
 → final exact-head L technical proof
@@ -107,7 +154,7 @@ current-head v3 proof/regeneration
 → same-reviewer v3 reaffirmation
 → independent_review=true
 → complete v3 reviewed_labels
-→ durable professional/reviewer/credential refs
+→ privacy-safe opaque professional/reviewer/credential aliases
 → compile + validate
 → final exact-current-head L technical proof
 → required exact-head CI/Woodpecker proof
