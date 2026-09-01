@@ -5,6 +5,8 @@
 **Classification:** local-worktree hygiene / recovery preservation
 **Milestone impact:** none — L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`
 
+> **Correction:** the next local run exposed three additional preservation/history items not present in the first inventory: `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt`. See `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`. V12.52's eight-bucket inventory is therefore an initial classification, not the final complete local inventory.
+
 ## 1. Trigger
 
 Removing the workstation-only broad `/.local/` rule from `.git/info/exclude` exposed the full contents of the repository-local `.local/` tree.
