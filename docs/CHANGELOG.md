@@ -8,6 +8,66 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.49 V12.48 ADMINISTRATION ACCEPTANCE FAILED ON UNTRACKED LOCAL STATE
+
+### Status
+
+**FAILED LOCAL ACCEPTANCE RECORDED / CLEAN-WORKTREE GATE FAILED / REPOSITORY CHECKS GREEN / NO RUNTIME OR MILESTONE CHANGE**
+
+The V12.48 administration acceptance attempt at `b079428a0fd607d6fd9491847312869d6802138c` did not pass.
+
+Observed green checks included:
+
+```text
+broad operator-local /.local/ exclude removal      PASS
+reviewer packet narrow repository ignore           PASS
+reviewer return-template narrow repository ignore  PASS
+administration whitespace                           PASS
+recovery / authority consistency                    PASS
+repository policy                                   PASS
+release consistency                                 PASS
+Python dependency constraints                       PASS — 27
+diff hygiene                                        PASS
+git diff --check                                    PASS
+start HEAD == end HEAD                              PASS
+frozen V11 / R3 refs / deep-R3 backup              PASS
+```
+
+The acceptance blocker was:
+
+```text
+?? .local/
+Worktree is not clean.
+```
+
+The thrown exception correctly invalidated acceptance. A later unconditional shell line printed `Stable V12.48 documentation exact-head proof: PASS`; that print occurred after the exception and is explicitly **not** proof.
+
+The generated reviewer packet and blank reviewer-return template are not the cause: `git check-ignore -v` showed both are covered by the repository-owned narrow rule `.local/professional-review/`.
+
+Removing the workstation's broad `/.local/` entry from `.git/info/exclude` exposed some other untracked local content. That content is not yet classified.
+
+Required next local investigation:
+
+```powershell
+git status --short --untracked-files=all -- .local
+git ls-files --others --exclude-standard -- .local
+Get-ChildItem -Force .local -Recurse | Select-Object FullName, Length, LastWriteTime
+```
+
+Do not broaden `.gitignore` or delete `.local/` until those files are understood.
+
+Historical V12.47 proof at `80deef2...` remains valid for that head.
+
+Milestone truth remains:
+
+```text
+L    IMPLEMENTED / ACCEPTANCE PENDING
+M    NOT STARTED
+N    NOT STARTED
+```
+
+---
+
 ## 2026-08-31 — V12.48 V12.47 ADMINISTRATION EXACT-HEAD PROOF RECORDED
 
 ### Status
