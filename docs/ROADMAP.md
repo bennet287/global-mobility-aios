@@ -27,6 +27,7 @@
 **L preliminary blind return reconciliation / v3 correction:** `L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md`
 **L genuine blind review operator correction:** `L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md`
 **L v3 return validation attempt:** `L_AUSTRIA_V3_RETURN_VALIDATION_ATTEMPT_2026-09-01.md`
+**L anonymous reviewer privacy boundary:** `L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
