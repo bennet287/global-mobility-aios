@@ -120,7 +120,7 @@
         "pathway_keys": [
           "at-rwr-skilled-worker-shortage-occupation"
         ],
-        "eligibility": "REVIEW_REQUIRED",
+        "eligibility": "ELIGIBLE",
         "required_evidence": [
           "shortage_occupation_training",
           "binding_job_offer",
@@ -137,10 +137,10 @@
           "ris.bka.gv.at:auslbg-annex-b",
           "ris.bka.gv.at:fachkraefteverordnung-2026-1"
         ],
-        "escalation_required": true
+        "escalation_required": false
       },
-      "rationale": "On the asserted benchmark facts, training contributes 30 points, ten years of qualification-matching experience reaches the 20-point cap, and age 29 contributes 15, for approximately 65 points. The route direction is therefore strong, but these are asserted scenario facts rather than authenticated qualification/employment documents; AMS and the residence authority still must assess the real evidence and remaining legal requirements. The benchmark therefore stays REVIEW_REQUIRED rather than ELIGIBLE.",
-      "fact_evidence_boundary": "All positive facts are asserted for route-evaluation testing only. missing_evidence=[] means no bounded route-evidence category is absent from the simplified asserted fact set; it does not mean qualification, work-experience, job-offer, remuneration, identity, or other application documents have been authenticated or accepted by AMS or the residence authority."
+      "rationale": "On the asserted benchmark facts, completed shortage-occupation training contributes 30 points, ten years of qualification-matching experience reaches the 20-point cap, and age 29 contributes 15, for 65 points. A binding Austrian job offer and applicable minimum remuneration are also asserted. The mandatory route criteria are therefore satisfied on the stated facts and the route-level label is ELIGIBLE. This does not authenticate documents, bind AMS or the residence authority, authorize submission, or imply final issuance; those downstream verification and governance steps remain separate from the route-level eligibility label.",
+      "fact_evidence_boundary": "All positive facts are asserted for route-evaluation testing only. ELIGIBLE means the mandatory shortage-occupation route criteria are satisfied if these facts are accepted as true; it does not mean qualification, work-experience, job-offer, remuneration, identity, or other application documents have been authenticated or accepted by AMS or the residence authority. missing_evidence=[] means no bounded route-evidence category is absent from the asserted fact set, not that the real application file is complete."
     },
     {
       "case_id": "at-rwr-shortage-software-di-under-points-2026-01",
