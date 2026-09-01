@@ -120,6 +120,7 @@ Radar-caused runtime adoption remains **NONE**.
 9. **V12.47 administration/recovery documentation remains historically proven.** Exact head `80deef2...` passed documentation whitespace, recovery-order/authority checks, repository gates, stable start/end SHA, frozen V11/R3 refs and clean-worktree verification.
 10. **V12.48 local acceptance failed at `b079428...`.** Removing the broad operator-local `/.local/` exclude exposed additional untracked `.local/` content; the clean-worktree gate threw correctly. The later unconditional PASS print is invalid.
 11. **Do not broaden or delete `.local/` blindly.** First inspect `git status --short --untracked-files=all -- .local` and `git ls-files --others --exclude-standard -- .local`; reviewer packet/template files are already correctly covered by repository `.gitignore`.
+12. **GitHub policy CI shallow-history defect repaired.** The policy jobs executed but `fetch-depth: 64` omitted transition baseline `8624d7f...`. Both diff-hygiene policy checkouts now use `fetch-depth: 0`, and repository policy guards the exact YAML job blocks. Current-head CI proof is pending.
 
 ---
 
@@ -153,8 +154,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
 10. `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
 11. `docs/V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
-12. `AGENTS.md`
-13. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+12. `docs/V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md`
+13. `AGENTS.md`
+14. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -196,6 +198,7 @@ full backend regression                    PASS — 1332 / 22 skipped at d969c7d
 repository/stable-head local proof         PASS at d969c7d...
 V12.47 admin/recovery exact-head proof      PASS at 80deef2...
 V12.48 administration acceptance           FAIL at b079428... — untracked .local/ state
+GitHub policy shallow-history repair          IMPLEMENTED / CI RERUN PENDING
 ```
 
 Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
