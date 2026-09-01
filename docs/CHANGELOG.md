@@ -8,6 +8,64 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.50 CI DIFF-HYGIENE FULL-HISTORY REPAIR
+
+### Status
+
+**CI SOURCE/CONFIGURATION REPAIR IMPLEMENTED / CURRENT-HEAD LOCAL + CI PROOF PENDING / NO RUNTIME OR MILESTONE CHANGE**
+
+GitHub Actions is now executing workflow steps normally. The policy jobs exposed a real configuration failure rather than an infrastructure-startup failure.
+
+Both policy paths passed:
+
+```text
+repository policy
+release consistency
+Python dependency constraints
+```
+
+and then failed at multi-commit diff hygiene setup with:
+
+```text
+V12 diff-hygiene baseline is not present in the CI checkout.
+Expected 8624d7f9891a3af6bcbd3693c1286984f5c1fbfd.
+```
+
+Root cause:
+
+```text
+check_diff_hygiene.py requires accepted V12 transition baseline
+policy workflow checkout depth = 64
+baseline older than shallow window
+→ gate cannot evaluate
+```
+
+Repair:
+
+```text
+.github/workflows/repo-policy-check.yml
+  fetch-depth: 0
+
+.github/workflows/v12-production-proof.yml
+  repository-policy job only
+  fetch-depth: 0
+
+scripts/check_repo_policy.py
+  exact policy-job-block guard requires fetch-depth: 0
+```
+
+The diff-hygiene script continues to refuse unauthenticated history fetches and the transition baseline is unchanged.
+
+This CI defect is independent of the local V12.48 `?? .local/` clean-worktree failure. Both must be handled honestly.
+
+Durable record:
+
+`docs/V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md`
+
+Current-head local and GitHub CI proof remain pending.
+
+---
+
 ## 2026-09-01 — V12.49 V12.48 ADMINISTRATION ACCEPTANCE FAILED ON UNTRACKED LOCAL STATE
 
 ### Status
