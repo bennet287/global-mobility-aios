@@ -72,7 +72,7 @@ The human reviewer no longer needs to see the benchmark answer in order to choos
 
 ### Reviewer packet
 
-`austria-professional-review-handoff.v2`
+`austria-professional-review-handoff.v3`
 
 Required properties include:
 
@@ -89,14 +89,14 @@ It must not contain `source_labels` or `source_rationale`.
 Reviewer-facing validity rule after V12.55:
 
 ```text
-contract_version = austria-professional-review-handoff.v2
+contract_version = austria-professional-review-handoff.v3
 reviewer_facing_packet = true
 blind_review = true
 expected_labels_excluded = true
 source_rationale_excluded = true
 ```
 
-Reject any v1 reviewer packet, or any packet that exposes expected/source labels or benchmark rationale before review. The current v2 packet also carries a per-case `fact_evidence_boundary`: scenario facts are asserted benchmark inputs, not authenticated documents or authority findings.
+Reject any v1/v2 reviewer packet, or any packet that exposes expected/source labels or benchmark rationale before review. The current v3 packet carries a per-case `fact_evidence_boundary` plus an explicit `reviewed_label_contract` defining route-level eligibility, canonical route/evidence/source keys, contradiction null-vs-empty semantics and escalation semantics without exposing per-case expected labels.
 
 ### Blind reviewer return
 
@@ -111,6 +111,31 @@ NEEDS_MORE_FACTS
 ```
 
 For `ASSESSED`, the reviewer supplies their complete independent `reviewed_labels`.
+
+V12.57 requires every reviewed-label field to be populated for `ASSESSED`. In particular, use `[]` rather than `null` when contradictions/missing evidence were assessed and none were found.
+
+The reviewer-facing v3 label contract also requires:
+
+```text
+tested route key
+  at-rwr-skilled-worker-shortage-occupation
+
+bounded evidence keys
+  shortage_occupation_training
+  binding_job_offer
+  applicable_minimum_remuneration
+  points_evidence
+
+rule/source refs
+  use official_sources[].ref identifiers
+
+alternative-route suggestions
+  notes, not pathway_keys/escalation
+
+normal AMS/residence/document review
+  does not by itself mean REVIEW_REQUIRED or escalation_required=true
+```
+
 
 For `DISPUTED` or `NEEDS_MORE_FACTS`, the review remains held outside the professionally promoted denominator, preserving existing semantics.
 
@@ -127,7 +152,7 @@ No new professional truth model is introduced.
 Prepare the blind packet:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --prepare-packet --output .local/professional-review/austria-professional-review-blind-packet-v2.json
+python scripts/prepare_austria_professional_review.py --prepare-packet --output .local/professional-review/austria-professional-review-blind-packet-v3.json
 ```
 
 Prepare the reviewer-facing blind return skeleton:
@@ -150,7 +175,7 @@ python scripts/prepare_austria_professional_review.py --validate-bundle .local/p
 
 The legacy `--prepare-return-template` remains available as an internal canonical-template compatibility path. It is **not** the recommended reviewer-facing handoff.
 
-After any change to the benchmark facts, sources, labels, rationale, claim boundary, or fact-evidence boundary, all earlier packet/return artifacts are stale because the immutable source-case fingerprints change. Regenerate the v2 packet and blind return template from the exact current head before reviewer handoff.
+After any change to the benchmark facts, sources, labels, rationale, claim boundary, or fact-evidence boundary, all earlier packet/return artifacts are stale because the immutable source-case fingerprints change. V12.57 changes the strong-case eligibility/escalation labels, so every v2 packet/return is historical. Regenerate the v3 packet and blind return template from the exact current head before reviewer handoff.
 
 ## 6. Reviewer identity and credential boundary
 
@@ -268,10 +293,11 @@ full backend proof after repair       PASS — 1332 passed / 22 skipped at d969c
 repository gates after repair         PASS at d969c7d...
 stable start/end exact-head proof     PASS at d969c7d...
 R3 interop recoverability             PASS — aad377e... pushed to origin
-non-blind legal-quality feedback     RECEIVED / NOT ACCEPTANCE EVIDENCE
-V12.55 benchmark/source hardening     IMPLEMENTED / CURRENT-HEAD LOCAL PROOF PENDING
-fresh v2 reviewer packet regeneration PENDING
-professional Austria blind review     PENDING
+non-blind legal-quality feedback       RECEIVED / NOT ACCEPTANCE EVIDENCE
+preliminary current-fingerprint return RECEIVED / NOT PROMOTABLE
+V12.57 label-contract correction       IMPLEMENTED / CURRENT-HEAD LOCAL PROOF PENDING
+fresh v3 reviewer packet regeneration  PENDING
+professional Austria blind review       PENDING
 final post-review exact-head proof    PENDING
 L acceptance                          PENDING
 ```
