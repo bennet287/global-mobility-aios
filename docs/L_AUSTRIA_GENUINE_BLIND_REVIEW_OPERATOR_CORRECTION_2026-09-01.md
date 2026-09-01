@@ -33,7 +33,7 @@ reviewer_credential_reference
 
 Those values still need durable, non-fabricated references before the canonical compiler may promote the review evidence.
 
-Likewise, AIOS does not infer or invent reviewer identity or credentials from the phrase "Immigration Counsel". Real external identity/credential evidence must remain independently verifiable.
+The reviewer explicitly requires anonymity. AIOS must not infer, publish, or encode the reviewer’s personal identity in repository artifacts. Real identity, independence and professional standing are verified confidentially outside AIOS; committed references must remain non-identifying aliases.
 
 ## 3. Source-fingerprint truth
 
@@ -71,7 +71,7 @@ The current acceptance path is not to discard the genuine review or demand an un
 - canonical pathway/evidence/source keys are used;
 - every ASSESSED reviewed-label field is complete;
 - `independent_review=true` is recorded correctly;
-- durable professional/reviewer/credential references are supplied.
+- durable privacy-safe professional/reviewer/credential aliases are supplied, with the confidential identity-to-credential mapping kept outside Git.
 
 ## 5. Current acceptance classification
 
@@ -83,7 +83,7 @@ review independence                                TRUE (operator corrected)
 professional correctness input                     REAL / PRESERVED
 V12.57 benchmark correction                        IMPLEMENTED
 v3 current-head re-affirmation                      PENDING
-durable reviewer/professional/credential refs       PENDING IN STRUCTURED RETURN
+privacy-safe reviewer/professional/credential aliases PENDING IN STRUCTURED RETURN
 canonical compilation/validation                    PENDING
 final exact-current-head L proof                    PENDING
 L                                                   IMPLEMENTED / ACCEPTANCE PENDING
