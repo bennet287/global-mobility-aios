@@ -135,6 +135,9 @@ Radar-caused runtime adoption remains **NONE**.
 23. **Operator correction: the V12.55/v2 professional review was genuine and independent.** The earlier `independent_review=false` values were operator transcription mistakes. Preserve the review as real correction evidence against the historical v2 fingerprints; do not infer or fabricate null reviewer/professional/credential references.
 24. **Current acceptance requires reaffirmation, not a brand-new unrelated review.** V12.57 changed fingerprint-bound labels/rationale and reviewer semantics, so the same genuine reviewer should complete/re-affirm the fresh v3 return with current fingerprints, `independent_review=true`, complete v3 labels and durable reviewer/professional/credential references.
 
+25. **V12.59 aligns and enforces the reviewer return contract as v3.** The compiler now rejects legacy/free-form pathway keys, noncanonical evidence keys and prose source citations instead of silently promoting them as CORRECTED.
+26. **The supplied v3-style return is genuine but not current-compilable.** It has `independent_review=true` and non-empty reference strings, but at least Case 2 uses a stale V12.55 fingerprint, all three use legacy/free-form label vocabularies, and `contradictions=null` violates complete ASSESSED semantics. Regenerate the current v3 template and have the same reviewer re-affirm it; do not translate the labels inside AIOS.
+
 
 ---
 
@@ -202,7 +205,7 @@ Priority order:
    - generate `.local/professional-review/austria-professional-review-blind-packet-v3.json`;
    - regenerate the blank blind return template;
    - verify `reviewed_label_contract` and no expected-label/rationale leakage.
-2. **Obtain current-v3 reaffirmation from the same genuine independent Austria reviewer.**
+2. **Obtain current-v3 reaffirmation from the same genuine independent Austria reviewer using the generated v3 return template.**
    - use the fresh current-fingerprint v3 packet/template;
    - record `independent_review=true`;
    - populate durable `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference`;
