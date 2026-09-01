@@ -81,22 +81,22 @@ reviewer return
 
 The compiler now fail-closes on noncanonical pathway, evidence and source-reference keys instead of silently deriving broad `CORRECTED` records from legacy/free-form vocabulary.
 
-## 4. Reviewer reference verification boundary
+## 4. Anonymous reviewer verification boundary
 
-The operator supplied non-empty reviewer/professional/credential reference strings.
+The reviewer explicitly requires anonymity.
 
-AIOS validates that those fields are structurally present but cannot itself certify real-world identity or professional standing.
-
-A public ÖRAK-directory lookup was attempted during reconciliation, but the supplied opaque reviewer/credential identifiers were not independently matched from the available public search result.
-
-Therefore the references are currently:
+Repository-bound reviewer/professional/credential fields must therefore use non-identifying opaque aliases only.
 
 ```text
-STRUCTURALLY PRESENT
-PUBLIC VERIFICATION NOT YET RESOLVED
+REAL REVIEWER IDENTITY            VERIFIED OUTSIDE AIOS
+REPOSITORY IDENTITY MODE          ANONYMOUS
+PUBLIC IDENTITY DISCLOSURE        PROHIBITED
+IDENTITY-TO-CREDENTIAL MAPPING    OUTSIDE GIT
 ```
 
-This is not a finding that the reviewer is invalid. Acceptance still needs independently verifiable supporting evidence such as the official directory/profile link, engagement email, signed letter or invoice/mandate reference.
+Do not commit the reviewer's name, registration/bar number, email address, firm/employer name, address, phone number, public-profile URL, or any alias that directly encodes those values.
+
+The compiler may validate that anonymous reference fields are structurally present, but the confidential evidence establishing the real reviewer, independence and professional standing must remain outside Git and outside committed project artifacts.
 
 ## 5. Current safe path
 
