@@ -5,6 +5,8 @@
 **Classification:** useful legal-quality feedback / NOT professional-review acceptance evidence
 **Milestone impact:** L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`
 
+> **Superseding semantic correction (V12.57):** a later current-fingerprint preliminary blind return exposed that the reviewer packet had not defined ELIGIBLE vs REVIEW_REQUIRED or the canonical label vocabulary precisely enough. The strong-points case is now route-level `ELIGIBLE` / `escalation_required=false` on its asserted 65-point facts, while document/AMS/residence-authority verification remains a separate downstream boundary. See `docs/L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md`.
+
 ## 1. Feedback received
 
 A legal-quality assessment of the three Austria shortage-occupation benchmark cases concluded that the route-level directions were substantively sound:
