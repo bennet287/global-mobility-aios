@@ -75,7 +75,6 @@ No actual autonomy mutation mechanism is accepted or implemented.
 L implementation and live-runtime evidence exist. Acceptance remains open until the remaining gates are observed:
 
 ```text
-0. prove V12.55 benchmark/source hardening locally and regenerate fresh fingerprint-bound blind artifacts
 1. genuine independent professional Austria review using the current blind reviewer handoff
 2. compile/reconcile the returned review evidence
 3. final exact-current-head full technical proof after review evidence/docs are committed
