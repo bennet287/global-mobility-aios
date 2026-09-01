@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.48 — V12.47 administration exact-head proof recorded
+**Current V12 generation:** V12.49 — V12.48 acceptance failure on untracked `.local/` state recorded
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -70,6 +70,7 @@ No Radar candidate has caused runtime adoption.
    → Blind packet + blank return template generation has been exercised successfully.
    → Generated local files are reproducible handoff artifacts, not professional evidence.
    → V12.47 administration/recovery proof passed at exact head `80deef2...`.
+   → V12.48 acceptance at `b079428...` failed the clean-worktree gate because additional untracked `.local/` content was exposed after local exclude cleanup.
    → No fabricated or AI-generated review allowed.
 
 2. R3 authority closure
@@ -129,6 +130,7 @@ OpenViking                       DONOR_ONLY
 | `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md` | L reviewer handoff spec. |
 | `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md` | L blind-review local exact-head proof record. |
 | `docs/V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md` | V12.47 administration/recovery exact-head proof and local `.git/info/exclude` note. |
+| `docs/V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md` | Failed V12.48 acceptance record and required `.local/` inspection procedure. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
