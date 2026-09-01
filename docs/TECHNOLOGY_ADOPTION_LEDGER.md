@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.59 / Austria blind-return v3 compiler enforcement; technology truth unchanged
+**Latest reconciliation:** V12.60 / anonymous reviewer repository privacy boundary; technology truth unchanged
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -190,5 +190,7 @@ Legal-quality administration note: V12.55 adds direct RIS authorities and assert
 Preliminary-return administration note: V12.57 treats the current-fingerprint draft as non-promotable, corrects the strong case to route-level ELIGIBLE while preserving downstream authority/document boundaries, and versions reviewer vocabulary semantics to v3. This is evaluation-contract administration only; no Technology Radar/runtime adoption state changes.
 
 V12.59 aligns the blind-return contract version with handoff v3 and enforces canonical reviewer pathway/evidence/source vocabularies at compile time. This is evaluation-contract administration only; no Technology Radar/runtime adoption state changes.
+
+V12.60 makes reviewer anonymity a repository privacy boundary: committed review artifacts use only opaque non-identifying reviewer/professional/credential aliases, while real identity/credential verification remains confidential outside Git. This is privacy/evaluation administration only; no technology or runtime-adoption state changes.
 
 Administration note: V12.47 PROJECT_STATE/recovery exact-head proof passed at `80deef2...`. The later V12.48 attempt at `b079428...` failed its clean-worktree gate because additional untracked `.local/` state became visible after removing a broad operator-local exclude. No technology/adoption classification changes from either administration event. This did not change any technology adoption state. The operator-local `.git/info/exclude` broad `/.local/` entry is local hygiene only and is not an AIOS adoption/runtime fact.
