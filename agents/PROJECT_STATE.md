@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.56 — V12.55 blind reviewer handoff exact-head local proof recorded
+**Current V12 generation:** V12.57 — preliminary blind return reconciled; reviewer label contract v3 + route-level eligibility correction
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is IMPLEMENTED but NOT SEALED.
 The only release-critical external gate is genuine independent Austria professional review.
-Blind reviewer handoff is hardened and locally proven at V12.55 exact head `e2e27ba...`; fresh v2 reviewer artifacts were regenerated successfully and real reviewer evidence is still pending.
+Blind reviewer handoff v2 was locally proven at `e2e27ba...`, but a preliminary current-fingerprint return exposed label-vocabulary ambiguity. V12.57 supersedes v2 with reviewer contract v3; fresh v3 proof/artifacts are pending before credentialed review.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 No M or N work may start until L is sealed.
 No Radar candidate has caused runtime adoption.
@@ -43,7 +43,7 @@ No Radar candidate has caused runtime adoption.
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
 | **Wave E3 Properties** | `roadmap/...v12` (`scripts/check_*_properties.py`) | Implemented; Hypothesis test-only | Do not promote Hypothesis to runtime. |
 | **Wave E4 Mutation** | `roadmap/...v12` (`scripts/check_ai_domain_mutation_strength.py`) | Implemented; first-party bounded gate; mutmut deferred | Do not claim full mutation coverage. |
-| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Hardened; V12.55 fail-fast local handoff proof PASS at `e2e27ba...`; fresh v2 packet + blank blind return generated | Generated files are handoff artifacts only; do not fabricate reviewer evidence. |
+| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | v3 label contract implemented; current-head proof + fresh v3 packet regeneration pending | Preliminary/current packets are not professional evidence; do not fabricate reviewer identity or credentials. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -84,8 +84,10 @@ No Radar candidate has caused runtime adoption.
    → V12.55 adds direct RIS authorities and explicit asserted-fact/document-verification semantics without reversing the three benchmark outcomes.
    → Source fingerprints changed; previously generated reviewer packet/template artifacts became stale.
    → V12.55 fail-fast local proof PASSED at exact head `e2e27ba...`: 21 focused tests, repository gates, clean worktree, stable start/end/origin SHA, and fresh blind v2 packet/template generation all passed.
-   → Fresh current-head reviewer artifacts now exist under `.local/professional-review/` and are ready to send.
-   → Next release-critical action: send only those fresh files to the genuine independent reviewer and preserve external identity/credential evidence.
+   → A preliminary return matched the fresh V12.55 fingerprints but was non-promotable: credential/professional references were null and Cases 1/3 had `independent_review=false`.
+   → It exposed a v2 label-contract ambiguity: canonical pathway/evidence/source vocabularies and ELIGIBLE vs REVIEW_REQUIRED/escalation semantics were not defined for the reviewer.
+   → V12.57 corrects the strong case to route-level `ELIGIBLE` / `escalation_required=false`, versions the handoff to v3, requires complete ASSESSED labels, and defines canonical reviewer vocabulary.
+   → All v2 reviewer artifacts/returns are now stale; run current-head proof and regenerate fresh v3 artifacts before credentialed review.
    → No fabricated or AI-generated review allowed.
 
 2. R3 authority closure
@@ -152,7 +154,8 @@ OpenViking                       DONOR_ONLY
 | `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md` | Secondary archives/discovery classification and fail-fast PowerShell acceptance correction. |
 | `docs/V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md` | Exact-head fail-fast local acceptance proof at `b2cc754...`. |
 | `docs/L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md` | Non-blind legal feedback, source verification, benchmark hardening and stale-packet boundary. |
-| `docs/L_V12_55_PROFESSIONAL_REVIEW_HANDOFF_LOCAL_PROOF_2026-09-01.md` | Exact-head V12.55 fail-fast handoff proof and fresh blind artifact regeneration. |
+| `docs/L_V12_55_PROFESSIONAL_REVIEW_HANDOFF_LOCAL_PROOF_2026-09-01.md` | Historical exact-head V12.55 v2 handoff proof. |
+| `docs/L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md` | Preliminary return rejection, route-level correction, and v3 label-contract rationale. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
