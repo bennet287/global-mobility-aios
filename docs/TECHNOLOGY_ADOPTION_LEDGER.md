@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.49 / V12.48 administration acceptance failure recorded; technology truth unchanged
+**Latest reconciliation:** V12.50 / CI diff-hygiene full-history repair; technology truth unchanged
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -174,5 +174,7 @@ M                                        NOT STARTED
 ```
 
 ROADMAP remains the implementation scheduler.
+
+CI administration note: GitHub policy jobs that run `check_diff_hygiene.py` now require full authenticated checkout history so transition baseline `8624d7f...` is present. This is CI proof plumbing only and changes no technology adoption/runtime classification.
 
 Administration note: V12.47 PROJECT_STATE/recovery exact-head proof passed at `80deef2...`. The later V12.48 attempt at `b079428...` failed its clean-worktree gate because additional untracked `.local/` state became visible after removing a broad operator-local exclude. No technology/adoption classification changes from either administration event. This did not change any technology adoption state. The operator-local `.git/info/exclude` broad `/.local/` entry is local hygiene only and is not an AIOS adoption/runtime fact.
