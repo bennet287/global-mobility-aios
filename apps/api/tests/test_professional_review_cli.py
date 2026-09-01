@@ -64,10 +64,11 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
 
     assert result.returncode == 0, result.stderr
     packet = json.loads(result.stdout)
-    assert packet["contract_version"] == "austria-professional-review-handoff.v2"
+    assert packet["contract_version"] == "austria-professional-review-handoff.v3"
     assert packet["reviewer_facing_packet"] is True
     assert packet["supersedes_reviewer_handoff_contracts"] == [
-        "austria-professional-review-handoff.v1"
+        "austria-professional-review-handoff.v1",
+        "austria-professional-review-handoff.v2",
     ]
     assert "Reject any reviewer-facing packet" in packet["legacy_packet_rejection"]
     assert packet["blind_review"] is True
@@ -93,6 +94,17 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
     }.issubset(source_refs)
     assert "missing_evidence" in packet["claim_boundary"]
     assert "not authenticated documents" in packet["claim_boundary"]
+    label_contract = packet["reviewed_label_contract"]
+    assert label_contract["pathway_keys"]["tested_route_key"] == "at-rwr-skilled-worker-shortage-occupation"
+    assert "mandatory legal criteria" in label_contract["eligibility"]["semantics"]["ELIGIBLE"]
+    assert "Do not use this label solely" in label_contract["eligibility"]["semantics"]["REVIEW_REQUIRED"]
+    assert label_contract["required_evidence"]["bounded_keys"] == [
+        "shortage_occupation_training",
+        "binding_job_offer",
+        "applicable_minimum_remuneration",
+        "points_evidence",
+    ]
+    assert "Alternative-route recommendations belong in notes" in label_contract["pathway_keys"]["instruction"]
 
 
 def test_professional_review_cli_validates_structural_first_tranche_candidate(tmp_path: Path) -> None:
@@ -164,6 +176,21 @@ def test_blind_assessment_derives_confirmed_only_after_return(tmp_path: Path) ->
     validated = _run("--validate-bundle", str(canonical_path))
     assert validated.returncode == 0, validated.stderr
     assert json.loads(validated.stdout)["professionally_reviewed_case_count"] == 1
+
+
+def test_blind_assessed_review_requires_all_label_fields(tmp_path: Path) -> None:
+    prepared = _run("--prepare-blind-return-template", "--case-id", CASE_ID)
+    assert prepared.returncode == 0, prepared.stderr
+    labels = _source_labels(CASE_ID)
+    labels["contradictions"] = None
+    template = _complete_blind_review(json.loads(prepared.stdout), reviewed_labels=labels)
+    blind_path = tmp_path / "blind-review-incomplete.json"
+    blind_path.write_text(json.dumps(template), encoding="utf-8")
+
+    compiled = _run("--compile-blind-return", str(blind_path))
+
+    assert compiled.returncode == 2
+    assert "must populate all reviewed label fields" in compiled.stderr
 
 
 def test_blind_assessment_derives_corrected_when_independent_labels_differ(tmp_path: Path) -> None:
