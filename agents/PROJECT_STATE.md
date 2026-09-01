@@ -162,6 +162,7 @@ OpenViking                       DONOR_ONLY
 | `docs/L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md` | Historical v2 return/contract analysis; independence rejection superseded by V12.58. |
 | `docs/L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md` | Corrects review independence classification and defines v3 reaffirmation/provenance requirements. |
 | `docs/L_AUSTRIA_V3_RETURN_VALIDATION_ATTEMPT_2026-09-01.md` | Genuine review preserved; supplied v3-style return rejected for stale fingerprint / legacy vocab / incomplete ASSESSED labels. |
+| `docs/L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md` | Binding anonymous-reviewer rule: no identifying reviewer data in Git; opaque aliases only. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
