@@ -86,6 +86,18 @@ Each case contains its exact immutable source-case fingerprint, supplied facts, 
 
 It must not contain `source_labels` or `source_rationale`.
 
+Reviewer-facing validity rule after V12.55:
+
+```text
+contract_version = austria-professional-review-handoff.v2
+reviewer_facing_packet = true
+blind_review = true
+expected_labels_excluded = true
+source_rationale_excluded = true
+```
+
+Reject any v1 reviewer packet, or any packet that exposes expected/source labels or benchmark rationale before review. The current v2 packet also carries a per-case `fact_evidence_boundary`: scenario facts are asserted benchmark inputs, not authenticated documents or authority findings.
+
 ### Blind reviewer return
 
 `austria-professional-review-blind-return.v1`
@@ -115,28 +127,30 @@ No new professional truth model is introduced.
 Prepare the blind packet:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --prepare-packet --output .local/austria-professional-review-packet.json
+python scripts/prepare_austria_professional_review.py --prepare-packet --output .local/professional-review/austria-professional-review-blind-packet-v2.json
 ```
 
 Prepare the reviewer-facing blind return skeleton:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --prepare-blind-return-template --output .local/austria-professional-review-return.json
+python scripts/prepare_austria_professional_review.py --prepare-blind-return-template --output .local/professional-review/austria-professional-review-blind-return-v1.json
 ```
 
 After the genuine reviewer returns the completed blind file:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --compile-blind-return .local/austria-professional-review-return.json --output .local/austria-professional-review-canonical.json
+python scripts/prepare_austria_professional_review.py --compile-blind-return .local/professional-review/austria-professional-review-blind-return-v1.json --output .local/professional-review/austria-professional-review-canonical.json
 ```
 
 Then structurally validate the derived canonical review:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --validate-bundle .local/austria-professional-review-canonical.json
+python scripts/prepare_austria_professional_review.py --validate-bundle .local/professional-review/austria-professional-review-canonical.json
 ```
 
 The legacy `--prepare-return-template` remains available as an internal canonical-template compatibility path. It is **not** the recommended reviewer-facing handoff.
+
+After any change to the benchmark facts, sources, labels, rationale, claim boundary, or fact-evidence boundary, all earlier packet/return artifacts are stale because the immutable source-case fingerprints change. Regenerate the v2 packet and blind return template from the exact current head before reviewer handoff.
 
 ## 6. Reviewer identity and credential boundary
 
@@ -254,7 +268,10 @@ full backend proof after repair       PASS — 1332 passed / 22 skipped at d969c
 repository gates after repair         PASS at d969c7d...
 stable start/end exact-head proof     PASS at d969c7d...
 R3 interop recoverability             PASS — aad377e... pushed to origin
-professional Austria review           PENDING
+non-blind legal-quality feedback     RECEIVED / NOT ACCEPTANCE EVIDENCE
+V12.55 benchmark/source hardening     IMPLEMENTED / CURRENT-HEAD LOCAL PROOF PENDING
+fresh v2 reviewer packet regeneration PENDING
+professional Austria blind review     PENDING
 final post-review exact-head proof    PENDING
 L acceptance                          PENDING
 ```
