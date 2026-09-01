@@ -30,6 +30,7 @@ RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-return-template.
 BLIND_RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-blind-return-template.v1"
 BLIND_RETURN_CONTRACT_VERSION = "austria-professional-review-blind-return.v1"
 BLIND_ASSESSMENT_STATUSES = ("ASSESSED", "DISPUTED", "NEEDS_MORE_FACTS")
+SUPERSEDED_REVIEWER_HANDOFF_CONTRACTS = ("austria-professional-review-handoff.v1",)
 DEFAULT_SOURCE_PATH = ROOT / "apps" / "api" / "evaluations" / "mobility_cases" / "austria_rwr_shortage_2026_v1.json"
 
 
@@ -140,11 +141,14 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
                 "case_id": case_id,
                 "source_case_fingerprint": source_set.fingerprint_for(case_id),
                 "facts": raw_case.get("facts", {}),
+                "fact_evidence_boundary": raw_case.get("fact_evidence_boundary"),
                 "source_references": list(source_set.source_references),
                 "reviewer_assessment_status_required": list(BLIND_ASSESSMENT_STATUSES),
                 "reviewed_label_fields": list(_empty_labels_payload()),
                 "reviewer_instruction": (
                     "Independently assess the supplied facts against the cited official sources. "
+                    "Treat the facts as asserted scenario inputs under the supplied fact_evidence_boundary, not as "
+                    "authenticated documents or authority findings. "
                     "Do not ask for or infer the benchmark's expected labels or rationale. "
                     "Use ASSESSED with your complete independent reviewed_labels when you can reach a professional "
                     "assessment; use DISPUTED when the supplied benchmark framing itself is professionally disputed; "
@@ -157,6 +161,12 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
     return {
         "contract_version": HANDOFF_CONTRACT_VERSION,
         "purpose": "Blind independent professional review handoff for the first real Austria benchmark tranche.",
+        "reviewer_facing_packet": True,
+        "supersedes_reviewer_handoff_contracts": list(SUPERSEDED_REVIEWER_HANDOFF_CONTRACTS),
+        "legacy_packet_rejection": (
+            "Reject any reviewer-facing packet that uses a superseded v1 handoff contract or exposes "
+            "source_labels, expected labels, source_rationale, or benchmark rationale before review."
+        ),
         "blind_review": True,
         "expected_labels_excluded": True,
         "source_rationale_excluded": True,
@@ -184,6 +194,7 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
             "Set independent_review=true only when independence has actually been established outside AIOS.",
             "Do not use test-only, placeholder or fabricated reviewer/credential references for acceptance evidence.",
             "Do not request or reveal source benchmark expected labels or source rationale before the reviewer returns.",
+            "Reject obsolete answer-revealing v1 reviewer packets; only the current blind v2 handoff is reviewer-facing.",
             "Use --prepare-blind-return-template to generate the reviewer-facing fail-closed JSON return skeleton.",
             "Use --compile-blind-return to derive the canonical mobility-professional-review-v1 bundle after return.",
             "Run --validate-bundle on the derived canonical bundle before treating the tranche as structurally promotable.",
