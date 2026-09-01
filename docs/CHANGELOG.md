@@ -8,6 +8,68 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.52 LOCAL ARTIFACT CLASSIFICATION + NARROW IGNORE POLICY
+
+### Status
+
+**LOCAL-WORKTREE HYGIENE CLASSIFIED / CACHE+TEMP NARROWLY IGNORED / RECOVERY MATERIAL PRESERVED FOR EXTERNAL ARCHIVE / NO RUNTIME OR MILESTONE CHANGE**
+
+The full `.local/` inventory exposed by removal of the operator-only blanket ignore was classified into eight buckets:
+
+```text
+gmai-dev-cache/
+gmai-dev-temp/
+gmai-legacy-wrapper-artifacts-20260814/
+patches/
+professional-review/
+runtime/
+sqlite-backups/
+technology-radar-v1/
+```
+
+Repository search found no canonical V12 references to the seven non-review bucket names.
+
+Classification:
+
+```text
+IGNORE IN PLACE
+  .local/gmai-dev-cache/
+  .local/gmai-dev-temp/
+
+ALREADY NARROWLY IGNORED
+  .local/professional-review/
+
+PRESERVE OUTSIDE REPOSITORY
+  .local/gmai-legacy-wrapper-artifacts-20260814/
+  .local/patches/
+  .local/runtime/
+  .local/sqlite-backups/
+  .local/technology-radar-v1/
+```
+
+The two reproducible developer roots contain npm cache/logs, Node compile cache, pytest temp data, GitLens IPC and language-server scratch.
+
+The five preservation roots contain historical wrapper/coverage artifacts, phase patch snapshots, portal-acceptance runtime DB/JSON, pre-migration SQLite backups and a historical Radar application script. They are not canonical dependencies but are not deleted or silently hidden.
+
+Repository `.gitignore` adds only:
+
+```text
+.local/gmai-dev-cache/
+.local/gmai-dev-temp/
+```
+
+The existing `.local/professional-review/` rule remains.
+
+A blanket `/.local/` ignore remains prohibited.
+
+Durable record:
+
+`docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md`
+
+The next local action is to move the five preservation buckets to a dated archive outside `D:\global-mobility-aios`, then require a clean worktree before exact-head proof.
+
+---
+
 ## 2026-09-01 — V12.51 POST-BASELINE DIFF-HYGIENE CLEANUP
 
 ### Status
