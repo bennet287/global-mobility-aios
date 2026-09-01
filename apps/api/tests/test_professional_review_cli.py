@@ -65,6 +65,11 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
     assert result.returncode == 0, result.stderr
     packet = json.loads(result.stdout)
     assert packet["contract_version"] == "austria-professional-review-handoff.v2"
+    assert packet["reviewer_facing_packet"] is True
+    assert packet["supersedes_reviewer_handoff_contracts"] == [
+        "austria-professional-review-handoff.v1"
+    ]
+    assert "Reject any reviewer-facing packet" in packet["legacy_packet_rejection"]
     assert packet["blind_review"] is True
     assert packet["expected_labels_excluded"] is True
     assert packet["source_rationale_excluded"] is True
@@ -74,10 +79,20 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
     assert case["case_id"] == CASE_ID
     assert case["source_case_fingerprint"].startswith("sha256:")
     assert case["facts"]["binding_job_offer_in_austria"] is False
+    assert "asserted scenario inputs" in case["fact_evidence_boundary"]
+    assert "authenticated documents" in case["reviewer_instruction"]
     assert "source_labels" not in case
     assert "source_rationale" not in case
     assert "Do not ask for or infer" in case["reviewer_instruction"]
     assert "does not verify the real-world identity" in packet["reviewer_boundary"]
+    source_refs = {source["ref"] for source in packet["official_sources"]}
+    assert {
+        "ris.bka.gv.at:auslbg-12a",
+        "ris.bka.gv.at:auslbg-annex-b",
+        "ris.bka.gv.at:fachkraefteverordnung-2026-1",
+    }.issubset(source_refs)
+    assert "missing_evidence" in packet["claim_boundary"]
+    assert "not authenticated documents" in packet["claim_boundary"]
 
 
 def test_professional_review_cli_validates_structural_first_tranche_candidate(tmp_path: Path) -> None:
