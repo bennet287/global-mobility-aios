@@ -265,6 +265,8 @@ Never report a historical test count as if it were a current-head run. A previou
 
 For exact-head acceptance, capture `git rev-parse HEAD` before the first proof command and verify the same SHA after the last proof command. Do not run acceptance while another coding session, agent or process is committing/resetting the same worktree. A run whose HEAD changes while tests are executing is **not exact-head proof**, even if individual tests pass.
 
+For canonical PowerShell acceptance instructions, wrap the entire acceptance sequence in one fail-fast script block (for example `& { ... }`) and set `$ErrorActionPreference = "Stop"`. Do not print unconditional PASS lines after gates that may throw. In an interactive PowerShell paste, later statements can continue after an earlier thrown statement; any thrown gate means the acceptance run failed regardless of later console output.
+
 ### Frontend contract/types/build proof
 
 From `apps/web` under Node 24:
