@@ -1,11 +1,11 @@
 # Technology Radar Wave E2 — Evaluation / Adversarial Contract Hardening
 
-**Date:** 2026-08-31  
-**Branch:** `roadmap/global-mobility-aios-v12`  
-**State:** IMPLEMENTED / BOUNDED DEFENSIVE EVALUATION TRANCHE  
-**Production framework adoption:** NONE  
-**Professional-review effect:** NONE  
-**Red Team runtime effect:** NONE  
+**Date:** 2026-08-31
+**Branch:** `roadmap/global-mobility-aios-v12`
+**State:** IMPLEMENTED / BOUNDED DEFENSIVE EVALUATION TRANCHE
+**Production framework adoption:** NONE
+**Professional-review effect:** NONE
+**Red Team runtime effect:** NONE
 **Milestone effect:** L remains IMPLEMENTED / ACCEPTANCE PENDING; M remains NOT STARTED
 
 ## 1. Why this tranche exists
