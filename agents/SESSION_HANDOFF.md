@@ -122,6 +122,7 @@ Radar-caused runtime adoption remains **NONE**.
 11. **Do not broaden or delete `.local/` blindly.** First inspect `git status --short --untracked-files=all -- .local` and `git ls-files --others --exclude-standard -- .local`; reviewer packet/template files are already correctly covered by repository `.gitignore`.
 12. **GitHub policy CI shallow-history defect repaired.** The policy jobs executed but `fetch-depth: 64` omitted transition baseline `8624d7f...`. Both diff-hygiene policy checkouts now use `fetch-depth: 0`, and repository policy guards the exact YAML job blocks. Current-head CI proof is pending.
 13. **Restored full-history CI exposed real post-baseline debt.** It found 22 trailing-space violations across the blind-review handoff, Radar V1.3.6 and Wave E2/E3/E4 docs. Those exact files are cleaned; no baseline or semantic change was made.
+14. **The exposed `.local/` tree is now classified.** Narrowly ignore `gmai-dev-cache/`, `gmai-dev-temp/` and existing `professional-review/`; archive legacy wrapper artifacts, phase patches, historical runtime files, SQLite backups and the historical Radar apply script outside the repository. Do not restore a blanket `/.local/` ignore.
 
 ---
 
@@ -157,8 +158,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 11. `docs/V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
 12. `docs/V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md`
 13. `docs/V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md`
-14. `AGENTS.md`
-15. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+14. `docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md`
+15. `AGENTS.md`
+16. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -179,7 +181,10 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Inspect and classify the newly exposed untracked `.local/` content** before the next exact-head run; do not delete or broadly ignore unknown files.
+1. **Archive the five classified recovery/history `.local/` buckets outside the worktree** and verify the remaining cache/temp/reviewer roots are ignored by repository-owned narrow rules.
+   - archive: `gmai-legacy-wrapper-artifacts-20260814/`, `patches/`, `runtime/`, `sqlite-backups/`, `technology-radar-v1/`
+   - leave in place + ignore: `gmai-dev-cache/`, `gmai-dev-temp/`, `professional-review/`
+   - require a clean worktree before exact-head proof.
 2. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
    - Packet/template generation has been exercised locally.
    - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
@@ -202,6 +207,7 @@ V12.47 admin/recovery exact-head proof      PASS at 80deef2...
 V12.48 administration acceptance           FAIL at b079428... — untracked .local/ state
 GitHub policy shallow-history repair          IMPLEMENTED / CI RERUN PENDING
 post-baseline whitespace cleanup             IMPLEMENTED / CURRENT-HEAD PROOF PENDING
+.local artifact classification                IMPLEMENTED / LOCAL ARCHIVE ACTION PENDING
 ```
 
 Durable proof: `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`.
