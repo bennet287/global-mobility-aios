@@ -87,6 +87,15 @@ def test_professional_review_cli_prepares_blind_fingerprint_bound_handoff_packet
     assert "source_rationale" not in case
     assert "Do not ask for or infer" in case["reviewer_instruction"]
     assert "does not verify the real-world identity" in packet["reviewer_boundary"]
+    assert "identifying evidence must remain outside Git" in packet["reviewer_boundary"]
+    privacy = packet["reviewer_privacy_contract"]
+    assert privacy["repository_identity_mode"] == "ANONYMOUS"
+    assert privacy["repository_identity_disclosure"] is False
+    privacy_requirements = " ".join(privacy["requirements"])
+    assert "personal name" in privacy_requirements
+    assert "bar/registration number" in privacy_requirements
+    assert "outside Git" in privacy_requirements
+    assert "non-identifying opaque aliases" in privacy_requirements
     source_refs = {source["ref"] for source in packet["official_sources"]}
     assert {
         "ris.bka.gv.at:auslbg-12a",
