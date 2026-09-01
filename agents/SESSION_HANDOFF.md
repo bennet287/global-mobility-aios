@@ -132,6 +132,9 @@ Radar-caused runtime adoption remains **NONE**.
 21. **The preliminary return is not promotable.** All reviewer/professional/credential references are null and Cases 1/3 set `independent_review=false`; the document itself says it is preliminary pending credentialed practitioner review.
 22. **V12.57 advances the handoff to v3.** Case 2 is route-level `ELIGIBLE` / no escalation on asserted facts; eligibility remains separate from document/AMS/residence approval. v3 defines canonical pathway/evidence/source vocabularies, escalation semantics, and requires every ASSESSED reviewed-label field to be populated. All v2 artifacts are stale.
 
+23. **Operator correction: the V12.55/v2 professional review was genuine and independent.** The earlier `independent_review=false` values were operator transcription mistakes. Preserve the review as real correction evidence against the historical v2 fingerprints; do not infer or fabricate null reviewer/professional/credential references.
+24. **Current acceptance requires reaffirmation, not a brand-new unrelated review.** V12.57 changed fingerprint-bound labels/rationale and reviewer semantics, so the same genuine reviewer should complete/re-affirm the fresh v3 return with current fingerprints, `independent_review=true`, complete v3 labels and durable reviewer/professional/credential references.
+
 
 ---
 
@@ -193,14 +196,18 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Prove V12.57 reviewer-contract correction and regenerate fresh v3 artifacts.**
+1. **Prove V12.57/V12.58 reviewer-contract state and regenerate fresh v3 artifacts.**
    - run focused professional-review tests plus `test_mobility_outcome_evaluation.py`;
    - run repository gates;
    - generate `.local/professional-review/austria-professional-review-blind-packet-v3.json`;
    - regenerate the blank blind return template;
    - verify `reviewed_label_contract` and no expected-label/rationale leakage.
-2. **Obtain the genuine independent Austria professional review** using only those v3 artifacts and preserve reviewer identity/credential/engagement evidence.
-3. **Compile/reconcile the real reviewer evidence and durable reviewer/credential references.**
+2. **Obtain current-v3 reaffirmation from the same genuine independent Austria reviewer.**
+   - use the fresh current-fingerprint v3 packet/template;
+   - record `independent_review=true`;
+   - populate durable `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference`;
+   - preserve independently verifiable identity/credential/engagement evidence.
+3. **Compile/reconcile the current professional evidence and durable references.**
    - The local `.local/` hygiene/archive blocker is closed at exact head `b2cc754...`.
    - The non-blind legal-quality assessment is feedback only, not review evidence.
    - No genuine reviewer findings/identity/credential evidence exists yet.
