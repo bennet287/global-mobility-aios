@@ -6,7 +6,119 @@ Frozen V11 reference head remains `ac130deaafa7aa44068e9459facbda2b4df327d6`.
 
 The active changelog was rotated after V12.33. Exact older detail remains in Git history and `docs/archive/CHANGELOG_THROUGH_V12_33_2026-08-31.md`.
 
-NaN
+---
+
+## 2026-09-01 — V12.55 NON-BLIND LEGAL-QUALITY FEEDBACK + AUSTRIA BENCHMARK SOURCE/EVIDENCE HARDENING
+
+### Status
+
+**USEFUL LEGAL FEEDBACK RECONCILED / NOT BLIND REVIEW EVIDENCE / DIRECT RIS AUTHORITIES ADDED / ASSERTED-FACT VS DOCUMENT-VERIFICATION BOUNDARY HARDENED / THREE ROUTE OUTCOMES UNCHANGED / CURRENT-HEAD PROOF + FRESH PACKET REGENERATION PENDING**
+
+A legal-quality assessment of the three Austria shortage-occupation cases found no substantive reversal in the benchmark outcomes:
+
+```text
+no job offer     INELIGIBLE
+strong points    REVIEW_REQUIRED
+under points     INELIGIBLE
+```
+
+The assessment explicitly reported that it saw the benchmark's expected labels/rationale in an obsolete v1 packet. It is therefore not blind professional-review evidence and does not promote any case to `PROFESSIONALLY_REVIEWED`.
+
+Useful criticisms applied:
+
+- add direct RIS statutory/regulatory authorities;
+- distinguish asserted scenario facts from authenticated qualification/employment documents;
+- make clear that `missing_evidence=[]` is not a document-completeness certificate;
+- make clear that required-evidence labels are not the full residence-application checklist;
+- state the strong-points arithmetic conditionally (30 training + capped 20 experience + 15 age ≈ 65);
+- retain `REVIEW_REQUIRED` because AMS/residence-authority assessment remains necessary;
+- make the v2 reviewer packet explicitly reject superseded answer-revealing v1 handoffs.
+
+Direct sources added:
+
+```text
+AuslBG § 12a
+AuslBG Anlage B
+Fachkräfteverordnung 2026 § 1
+```
+
+The source/case fingerprint contract now includes the new source list and per-case `fact_evidence_boundary`. Therefore previously generated reviewer packet/return artifacts are stale.
+
+Tests are strengthened to require v2 reviewer-facing/supersedes-v1 markers, no expected-label/rationale exposure, fact-evidence boundary visibility, direct RIS source presence, fingerprint sensitivity to fact-evidence-boundary changes, and explicit strong-case `REVIEW_REQUIRED` semantics.
+
+Durable record:
+
+`docs/L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md`
+
+Next:
+
+```text
+focused current-head professional-review proof
+→ regenerate fresh v2 packet + blank blind return
+→ genuine independent blind Austria review
+→ compile/reconcile real findings
+→ final exact-head L proof
+```
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+
+---
+
+## 2026-09-01 — V12.54 V12.53 FAIL-FAST LOCAL ACCEPTANCE RECORDED
+
+### Status
+
+**EXACT-HEAD LOCAL ADMINISTRATION/HYGIENE PASS RECORDED AT `b2cc754bded7f8fbde8a70d1cb65400c429cea92` / LOCAL `.local/` BLOCKER CLOSED / PROFESSIONAL REVIEW STILL PENDING / L UNCHANGED**
+
+The V12.53 operator run executed inside one fail-fast PowerShell block and reached its final PASS section only after every gate succeeded.
+
+Observed at exact head `b2cc754...`:
+
+```text
+historical/recovery archive preservation   PASS
+narrow .local ignore ownership             PASS
+visible untracked .local state              NONE
+repository policy                           PASS
+release consistency                         PASS
+Python dependency constraints               PASS — 27
+diff hygiene                                PASS
+git diff --check                            PASS
+clean worktree                              PASS
+start HEAD == end HEAD == origin V12        PASS
+frozen V11 / R3 refs / deep-R3 backup       PASS
+```
+
+Secondary items moved to `D:\gmai-local-archive-20260901`:
+
+```text
+.local/archives/
+.local/discovery/
+.local/13.16.6-owner-inbox-discovery.txt
+```
+
+Only the intended narrow ignored roots remain:
+
+```text
+.local/gmai-dev-cache/
+.local/gmai-dev-temp/
+.local/professional-review/
+```
+
+Durable proof:
+
+`docs/V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md`
+
+GitHub Repository Policy Check #452 is green, including multi-commit diff hygiene.
+
+At the proof-record time, V12 Production Proof #922 had policy/frontend green while backend/PostgreSQL were still in progress; the later branch advance cancelled those two long-running jobs, so full Production Proof #922 is not claimed green.
+
+This V12.54 reconciliation is documentation-only and advances the branch beyond `b2cc754...`; the exact-head local PASS remains historical proof for that commit only.
+
+The next release-critical action remains the genuine qualified independent Austria professional review. L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+
+---
+
+## 2026-09-01 — V12.53 SECONDARY LOCAL ARCHIVE/DISCOVERY CLASSIFICATION + FAIL-FAST ACCEPTANCE
 
 ### Status
 
