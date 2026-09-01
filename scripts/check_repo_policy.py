@@ -72,6 +72,11 @@ SUSPICIOUS_ARTIFACT_NAME_PATTERNS = (
     re.compile(r"^[<>].+"),
 )
 
+FULL_HISTORY_POLICY_WORKFLOWS = {
+    Path(".github/workflows/repo-policy-check.yml"): "repo-policy-check:",
+    Path(".github/workflows/v12-production-proof.yml"): "repository-policy:",
+}
+
 
 def is_ignored(path: Path) -> bool:
     return any(part in IGNORE_DIRS for part in path.parts)
@@ -100,6 +105,23 @@ def main() -> int:
 
     root = Path(args.root).resolve()
     violations: list[str] = []
+
+    for relative, job_anchor in FULL_HISTORY_POLICY_WORKFLOWS.items():
+        workflow = root / relative
+        if not workflow.exists():
+            violations.append(f"{relative} is missing")
+            continue
+        workflow_text = workflow.read_text(encoding="utf-8", errors="ignore")
+        anchor_index = workflow_text.find(job_anchor)
+        if anchor_index < 0:
+            violations.append(f"{relative} is missing policy job anchor {job_anchor!r}")
+            continue
+        policy_segment = workflow_text[anchor_index:]
+        if not re.search(r"fetch-depth:\s*0\b", policy_segment):
+            violations.append(
+                f"{relative} policy checkout must use fetch-depth: 0 so "
+                "check_diff_hygiene.py can reach the V12 transition baseline"
+            )
 
     for path in root.rglob("*"):
         if is_ignored(path) or not path.is_file():
