@@ -1,8 +1,8 @@
 # L — Austria Blind Professional Review Handoff Hardening
 
-**Date:** 2026-08-31  
-**Branch:** `roadmap/global-mobility-aios-v12`  
-**Classification:** release-critical L acceptance prerequisite  
+**Date:** 2026-08-31
+**Branch:** `roadmap/global-mobility-aios-v12`
+**Classification:** release-critical L acceptance prerequisite
 **Milestone state:** `L IMPLEMENTED / ACCEPTANCE PENDING`; `M NOT STARTED`
 
 ## 1. Why this change was necessary
