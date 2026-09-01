@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.50 — CI diff-hygiene full-history repair + local `.local/` investigation pending; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
+**Roadmap generation:** V12.51 — post-baseline diff-hygiene cleanup + local `.local/` investigation pending; K.1 COMPLETE / PASS / SEALED; L Live Organization IMPLEMENTED / ACCEPTANCE PENDING
 **Date:** 2026-08-31
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -18,6 +18,7 @@
 **V12.47 administration local proof:** `V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
 **V12.48 failed administration acceptance:** `V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
 **V12.50 CI diff-hygiene repair:** `V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md`
+**V12.51 post-baseline hygiene cleanup:** `V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md`
 **Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
 **Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
 **Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
@@ -86,7 +87,7 @@ The V12.47 administration/recovery layer is locally proven at exact head `80deef
 
 A later V12.48 acceptance attempt at `b079428a0fd607d6fd9491847312869d6802138c` passed the documentation/repository gates and retained a stable SHA, but **failed the clean-worktree gate** after removing the broad operator-local `/.local/` exclude exposed additional untracked `.local/` content. The later unconditional PASS print in that shell transcript is not acceptance evidence. Reviewer packet/template artifacts remain correctly ignored by the narrow repository rule; the additional untracked local content must be inspected before cleanup or another exact-head run.
 
-GitHub Actions also exposed a separate source/configuration defect: both policy jobs executed successfully through repository policy, release consistency and dependency checks, then `check_diff_hygiene.py` failed setup because `fetch-depth: 64` did not contain transition baseline `8624d7f...`. V12.50 changes only those policy checkouts to full history and adds a repository-policy regression guard scoped to the exact YAML job blocks. This is a CI repair, not a weakening of the hygiene baseline. Current-head local/CI proof remains pending.
+GitHub Actions also exposed a separate source/configuration defect: both policy jobs executed successfully through repository policy, release consistency and dependency checks, then `check_diff_hygiene.py` failed setup because `fetch-depth: 64` did not contain transition baseline `8624d7f...`. V12.50 changes only those policy checkouts to full history and adds a repository-policy regression guard scoped to the exact YAML job blocks. This is a CI repair, not a weakening of the hygiene baseline. With full history restored, CI then reached the real transition-baseline diff and exposed 22 trailing-space violations across five post-baseline documentation files. V12.51 removes only those trailing spaces; the baseline, semantics, and grandfathering boundary are unchanged. Current-head local/CI proof remains pending.
 
 The latest fully green historical L checkpoint remains `34597abf24a348a28b25e15dccb1a22fa35b3998` / Woodpecker PR Pipeline #77 4/4 PASS. It is historical proof only and must not be relabeled as proof for a later head.
 
