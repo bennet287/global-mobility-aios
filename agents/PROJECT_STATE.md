@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-08-31
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.54 — V12.53 fail-fast local acceptance recorded; local hygiene closed
+**Current V12 generation:** V12.55 — non-blind legal-quality feedback reconciled; benchmark/source contract hardened
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -80,6 +80,10 @@ No Radar candidate has caused runtime adoption.
    → V12.53 fail-fast local acceptance PASSED at exact head `b2cc754...`: archive preservation, narrow ignore ownership, zero visible untracked `.local/` state, repository gates, clean worktree and stable start/end/origin SHA all passed.
    → canonical PowerShell acceptance now uses one fail-fast block with final PASS only after every gate succeeds.
    → GitHub policy shallow-history defect is repaired; full-history CI then exposed 22 post-baseline trailing-space violations, and those exact files are cleaned.
+   → A legal-quality assessment agreed with all three route directions but explicitly saw an obsolete answer-revealing v1 packet, so it is useful feedback only and NOT blind professional-review evidence.
+   → V12.55 adds direct RIS authorities and explicit asserted-fact/document-verification semantics without reversing the three benchmark outcomes.
+   → Source fingerprints changed; previously generated reviewer packet/template artifacts are stale.
+   → Run current-head focused professional-review proof and regenerate the fresh v2 packet/template before sending anything to a real reviewer.
    → No fabricated or AI-generated review allowed.
 
 2. R3 authority closure
@@ -145,6 +149,7 @@ OpenViking                       DONOR_ONLY
 | `docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md` | Eight-bucket `.local/` classification, narrow ignore policy, and external archive rule. |
 | `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md` | Secondary archives/discovery classification and fail-fast PowerShell acceptance correction. |
 | `docs/V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md` | Exact-head fail-fast local acceptance proof at `b2cc754...`. |
+| `docs/L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md` | Non-blind legal feedback, source verification, benchmark hardening and stale-packet boundary. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |
