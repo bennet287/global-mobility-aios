@@ -111,6 +111,43 @@ def test_source_case_fingerprint_binds_review_to_facts_sources_and_labels(tmp_pa
     assert original.fingerprint_for(case_id) != changed.fingerprint_for(case_id)
 
 
+def test_source_case_fingerprint_binds_fact_evidence_boundary(tmp_path: Path) -> None:
+    original = _source_set()
+    payload = json.loads(SOURCE_PATH.read_text(encoding="utf-8"))
+    payload["cases"][1]["fact_evidence_boundary"] = "changed evidence semantics"
+    changed_path = tmp_path / "changed-evidence-boundary.json"
+    changed_path.write_text(json.dumps(payload), encoding="utf-8")
+    changed = load_official_source_gold_set(changed_path)
+
+    case_id = original.cases[1].case_id
+    assert original.fingerprint_for(case_id) != changed.fingerprint_for(case_id)
+
+
+def test_austria_source_seed_declares_asserted_fact_and_direct_ris_boundaries() -> None:
+    payload = json.loads(SOURCE_PATH.read_text(encoding="utf-8"))
+
+    assert "asserted scenario inputs" in payload["claim_boundary"]
+    assert "not authenticated documents" in payload["claim_boundary"]
+    assert "not an exhaustive residence-application document checklist" in payload["claim_boundary"]
+
+    source_refs = {source["ref"] for source in payload["sources"]}
+    assert {
+        "ris.bka.gv.at:auslbg-12a",
+        "ris.bka.gv.at:auslbg-annex-b",
+        "ris.bka.gv.at:fachkraefteverordnung-2026-1",
+    }.issubset(source_refs)
+
+    strong_case = next(
+        case
+        for case in payload["cases"]
+        if case["case_id"] == "at-rwr-shortage-software-di-strong-points-2026-01"
+    )
+    assert strong_case["expected"]["eligibility"] == "REVIEW_REQUIRED"
+    assert strong_case["expected"]["missing_evidence"] == []
+    assert "does not mean" in strong_case["fact_evidence_boundary"]
+    assert "65 points" in strong_case["rationale"]
+
+
 def test_confirmed_review_promotes_only_reviewed_case_and_preserves_source_truth() -> None:
     source_set = _source_set()
     source = source_set.cases[0]
