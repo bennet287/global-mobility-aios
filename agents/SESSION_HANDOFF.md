@@ -2,9 +2,9 @@
 
 **Purpose:** Recover the current development state without relying on chat history. This file is living recovery documentation; repository truth, `docs/ROADMAP.md`, the active Radar, the adoption ledger, acceptance records and actual git remotes remain authoritative.
 
-**Last updated:** 2026-08-31
+**Last updated:** 2026-09-01
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Verified V12 remote baseline before this handoff edit:** `52642fd8896b2ec3a8e837061509647b317a1be8`
+**Verified V12 remote baseline before this handoff edit:** `24a00c1025f8a69d683213fb4ffd3034d8497725`
 
 The commit that updates this file necessarily advances V12 beyond the baseline above. **Never treat this field as a self-referential current HEAD.** At session start, verify the actual remote with `git fetch` / `git rev-parse origin/roadmap/global-mobility-aios-v12`.
 
@@ -21,7 +21,7 @@ N    NOT STARTED
 
 ### L remaining gates
 
-1. Obtain a genuine qualified independent Austria professional review using the locally proven blind handoff.
+1. Obtain the same genuine qualified independent Austria reviewer’s current-fingerprint v3 reaffirmation using the proven regenerated blind handoff.
 2. Compile/reconcile the real reviewer evidence and findings.
 3. Run final exact-current-head technical proof after review evidence/docs are committed.
 4. Seal L only after the professional-review and final exact-head gates are satisfied.
@@ -120,7 +120,7 @@ Radar-caused runtime adoption remains **NONE**.
 9. **V12.47 administration/recovery documentation remains historically proven.** Exact head `80deef2...` passed documentation whitespace, recovery-order/authority checks, repository gates, stable start/end SHA, frozen V11/R3 refs and clean-worktree verification.
 10. **V12.48 local acceptance failed at `b079428...`.** Removing the broad operator-local `/.local/` exclude exposed additional untracked `.local/` content; the clean-worktree gate threw correctly. The later unconditional PASS print is invalid.
 11. **Do not broaden or delete `.local/` blindly.** First inspect `git status --short --untracked-files=all -- .local` and `git ls-files --others --exclude-standard -- .local`; reviewer packet/template files are already correctly covered by repository `.gitignore`.
-12. **GitHub policy CI shallow-history defect repaired.** The policy jobs executed but `fetch-depth: 64` omitted transition baseline `8624d7f...`. Both diff-hygiene policy checkouts now use `fetch-depth: 0`, and repository policy guards the exact YAML job blocks. Current-head CI proof is pending.
+12. **GitHub policy CI shallow-history defect repaired.** The policy jobs executed but `fetch-depth: 64` omitted transition baseline `8624d7f...`. Both diff-hygiene policy checkouts now use `fetch-depth: 0`, and repository policy guards the exact YAML job blocks. Canonical checkpoint `24a00c1...` later completed Repository Policy and V12 Production Proof successfully.
 13. **Restored full-history CI exposed real post-baseline debt.** It found 22 trailing-space violations across the blind-review handoff, Radar V1.3.6 and Wave E2/E3/E4 docs. Those exact files are cleaned; no baseline or semantic change was made.
 14. **The exposed `.local/` tree is now classified.** Narrowly ignore `gmai-dev-cache/`, `gmai-dev-temp/` and existing `professional-review/`; archive legacy wrapper artifacts, phase patches, historical runtime files, SQLite backups and the historical Radar apply script outside the repository. Do not restore a blanket `/.local/` ignore.
 15. **V12.52 exposed a secondary preservation tranche.** `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt` remained untracked. Canonical V12 has no references to them; move them to the same external archive rather than ignore/delete them.
@@ -139,6 +139,8 @@ Radar-caused runtime adoption remains **NONE**.
 26. **The supplied v3-style return is genuine but not current-compilable.** It has `independent_review=true` and non-empty reference strings, but at least Case 2 uses a stale V12.55 fingerprint, all three use legacy/free-form label vocabularies, and `contradictions=null` violates complete ASSESSED semantics. Regenerate the current v3 template and have the same reviewer re-affirm it; do not translate the labels inside AIOS.
 
 27. **Reviewer anonymity is a binding repository privacy boundary.** Do not commit the reviewer’s personal name, registration/bar number, email, firm/employer name, address, phone number or public-profile URL. Repository-bound professional/reviewer/credential references must be non-identifying opaque aliases; the real identity-to-credential mapping and supporting verification evidence remain confidential outside Git.
+
+28. **V12.61 closes the current-v3 technical handoff gate.** Canonical checkpoint `24a00c1...` passed Repository Policy plus all four V12 Production Proof jobs. A source-tree-equivalent local run passed 28 focused professional-review/privacy tests and repository gates, then regenerated the blind v3 packet and blank v3 return template for all three current fingerprints. This is technical handoff proof only; same-reviewer reaffirmation, compilation/reconciliation and final exact-head L proof remain.
 
 
 ---
@@ -168,6 +170,7 @@ Do not run acceptance while another coding agent/session is writing to the same 
 4. `docs/CHANGELOG.md`
 5. `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 6. `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
+7. `docs/L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md`
 7. `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
 8. `docs/L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
 9. `docs/L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`

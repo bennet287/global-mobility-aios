@@ -2,9 +2,9 @@
 
 **Purpose:** One-page navigation/state summary of the entire project. Read this first, then `agents/SESSION_HANDOFF.md` for recovery commands and branch details. This dashboard summarizes canonical sources; it does not replace ROADMAP, accepted proof records, the Radar/ledger, or actual git remotes.
 
-**Last updated:** 2026-08-31
+**Last updated:** 2026-09-01
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.60 — anonymous reviewer privacy boundary enforced
+**Current V12 generation:** V12.61 — anonymous current-v3 handoff proven and regenerated
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is IMPLEMENTED but NOT SEALED.
 The only release-critical external gate is genuine independent Austria professional review.
-A genuine independent Austria professional review was completed against the V12.55/v2 fingerprints; earlier `independent_review=false` values were operator transcription mistakes. V12.57 incorporated the review's semantic corrections and superseded v2 with reviewer contract v3; current v3 reaffirmation + privacy-safe reviewer/credential aliases remain pending; real identity/credential verification stays confidential outside Git.
+A genuine independent Austria professional review was completed against the V12.55/v2 fingerprints; earlier `independent_review=false` values were operator transcription mistakes. V12.57 incorporated the review's semantic corrections and superseded v2 with reviewer contract v3. The anonymous current-v3 handoff is now technically proven and regenerated; current-fingerprint reaffirmation + privacy-safe reviewer/credential aliases remain pending; real identity/credential verification stays confidential outside Git.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 No M or N work may start until L is sealed.
 No Radar candidate has caused runtime adoption.
@@ -43,7 +43,7 @@ No Radar candidate has caused runtime adoption.
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
 | **Wave E3 Properties** | `roadmap/...v12` (`scripts/check_*_properties.py`) | Implemented; Hypothesis test-only | Do not promote Hypothesis to runtime. |
 | **Wave E4 Mutation** | `roadmap/...v12` (`scripts/check_ai_domain_mutation_strength.py`) | Implemented; first-party bounded gate; mutmut deferred | Do not claim full mutation coverage. |
-| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Genuine independent review preserved; v3 compiler + anonymous reviewer privacy contract enforced; current-fingerprint reaffirmation pending | Do not expose reviewer identity, registration data, contact data, firm identity, or public-profile links in Git. |
+| **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Genuine independent review preserved; v3 compiler + anonymous reviewer privacy contract enforced; current-v3 handoff proven/regenerated; current-fingerprint reaffirmation pending | Do not expose reviewer identity, registration data, contact data, firm identity, or public-profile links in Git. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -90,7 +90,9 @@ No Radar candidate has caused runtime adoption.
    → All v2 reviewer artifacts/returns are historical for acceptance because V12.57 changed fingerprint-bound labels/rationale.
    → A supplied v3-style return correctly records `independent_review=true` and non-empty reference strings, but still carries the historical Case 2 fingerprint plus legacy/free-form pathway/evidence/source labels and null contradictions.
    → V12.59 aligns the reviewer return contract to `austria-professional-review-blind-return.v3` and fail-closes on noncanonical pathway/evidence/source vocabularies.
-   → Regenerate the exact current v3 packet/template and obtain same-reviewer reaffirmation using those enforced fields.
+   → Canonical checkpoint `24a00c1...` completed Repository Policy plus V12 Production Proof 4/4; source-tree-equivalent local proof passed 28 focused tests and repository gates.
+   → Fresh exact-current-source v3 packet/template generation completed with all three current fingerprints and no expected-label/rationale exposure.
+   → Obtain same-reviewer current-fingerprint reaffirmation using the generated template and enforced fields.
    → Reviewer anonymity is mandatory in repository artifacts: use only non-identifying opaque reviewer/professional/credential aliases; keep the real identity-to-credential mapping and supporting evidence confidential outside Git.
    → No fabricated or AI-generated review allowed.
 
@@ -163,6 +165,7 @@ OpenViking                       DONOR_ONLY
 | `docs/L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md` | Corrects review independence classification and defines v3 reaffirmation/provenance requirements. |
 | `docs/L_AUSTRIA_V3_RETURN_VALIDATION_ATTEMPT_2026-09-01.md` | Genuine review preserved; supplied v3-style return rejected for stale fingerprint / legacy vocab / incomplete ASSESSED labels. |
 | `docs/L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md` | Binding anonymous-reviewer rule: no identifying reviewer data in Git; opaque aliases only. |
+| `docs/L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md` | Canonical CI + source-tree-equivalent local proof and fresh anonymous current-v3 handoff generation. |
 | `labs/r3/authority/README.md` | R3 authority closure runbook. |
 | `labs/r3/security/README.md` | R3 security execution instructions. |
 | `labs/r3/interoperability/README.md` | R3 interop checkpoint. |

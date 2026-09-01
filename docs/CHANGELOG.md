@@ -8,6 +8,39 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+## 2026-09-01 — V12.61 CURRENT-V3 PROFESSIONAL-REVIEW HANDOFF PROOF
+
+### Status
+
+**CANONICAL V12 CI GREEN / SOURCE TREE REPRODUCED / 28 FOCUSED TESTS PASS / FRESH BLIND V3 PACKET + RETURN TEMPLATE GENERATED / SAME-REVIEWER REAFFIRMATION NEXT / L STATUS UNCHANGED**
+
+Canonical V12 checkpoint `24a00c1025f8a69d683213fb4ffd3034d8497725` completed:
+
+```text
+Repository Policy Check #513 / run 33561526463   PASS
+V12 Production Proof #1046 / run 33561526445     PASS — 4/4 jobs
+```
+
+The locally materialized source reproduced canonical Git tree `87d0533039aa3f6d35cbbf98e0c250a07df98c3c` exactly. On that byte-equivalent source tree, 28 focused professional-review/privacy tests passed with one existing warning, repository policy/release/dependency gates passed, and `git diff --check` passed.
+
+Fresh ignored operator artifacts were regenerated:
+
+```text
+.local/professional-review/austria-professional-review-blind-packet-v3.json
+.local/professional-review/austria-professional-review-blind-return-v3.json
+```
+
+The packet is reviewer-facing, blind and anonymous-repository-mode, contains all three current fingerprints, and exposes no expected labels, source labels or source rationale. The return template leaves every reviewer-owned field unfilled.
+
+Durable proof record:
+
+`docs/L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md`
+
+The next release-critical action is the same genuine independent reviewer’s current-fingerprint v3 reaffirmation using privacy-safe opaque provenance aliases. This proof is not professional correctness evidence and does not seal L.
+
+L remains `IMPLEMENTED / ACCEPTANCE PENDING`; M/N remain `NOT STARTED`.
+---
+
 ## 2026-09-01 — V12.60 ANONYMOUS REVIEWER PRIVACY BOUNDARY
 
 ### Status
