@@ -25,12 +25,12 @@ from app.evaluations.professional_review import (  # noqa: E402
 )
 
 
-HANDOFF_CONTRACT_VERSION = "austria-professional-review-handoff.v2"
+HANDOFF_CONTRACT_VERSION = "austria-professional-review-handoff.v3"
 RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-return-template.v1"
 BLIND_RETURN_TEMPLATE_CONTRACT_VERSION = "austria-professional-review-blind-return-template.v1"
 BLIND_RETURN_CONTRACT_VERSION = "austria-professional-review-blind-return.v1"
 BLIND_ASSESSMENT_STATUSES = ("ASSESSED", "DISPUTED", "NEEDS_MORE_FACTS")
-SUPERSEDED_REVIEWER_HANDOFF_CONTRACTS = ("austria-professional-review-handoff.v1",)
+SUPERSEDED_REVIEWER_HANDOFF_CONTRACTS = ("austria-professional-review-handoff.v1", "austria-professional-review-handoff.v2")
 DEFAULT_SOURCE_PATH = ROOT / "apps" / "api" / "evaluations" / "mobility_cases" / "austria_rwr_shortage_2026_v1.json"
 
 
@@ -62,6 +62,88 @@ def _empty_labels_payload() -> dict[str, object]:
     }
 
 
+def _reviewed_label_contract() -> dict[str, object]:
+    return {
+        "pathway_keys": {
+            "tested_route_key": "at-rwr-skilled-worker-shortage-occupation",
+            "instruction": (
+                "For this tranche, use exactly the tested AIOS route key above. "
+                "Alternative-route recommendations belong in notes; if the tested route framing itself is wrong, "
+                "use assessment_status=DISPUTED."
+            ),
+        },
+        "eligibility": {
+            "allowed_values": [value.value for value in MobilityEligibilityLabel],
+            "semantics": {
+                "ELIGIBLE": (
+                    "On the asserted facts, the mandatory legal criteria for the tested route are satisfied. "
+                    "This does not authenticate documents, bind AMS or the residence authority, authorize submission, "
+                    "or imply final issuance."
+                ),
+                "INELIGIBLE": (
+                    "On the asserted facts, at least one mandatory legal criterion for the tested route fails."
+                ),
+                "INSUFFICIENT_INFORMATION": (
+                    "The asserted facts do not contain enough information to determine whether the mandatory route "
+                    "criteria are satisfied."
+                ),
+                "REVIEW_REQUIRED": (
+                    "A material legal classification or interpretation remains unresolved even after accepting the "
+                    "asserted facts. Do not use this label solely because normal document verification, AMS review, "
+                    "residence-authority adjudication, or human governance will occur downstream."
+                ),
+            },
+        },
+        "required_evidence": {
+            "bounded_keys": [
+                "shortage_occupation_training",
+                "binding_job_offer",
+                "applicable_minimum_remuneration",
+                "points_evidence",
+            ],
+            "instruction": (
+                "Use only these bounded route-evaluation evidence categories in reviewed_labels. "
+                "Passport, photographs, health insurance, criminal-record extracts, employer forms and other "
+                "application-document details may be recorded in notes but are outside this benchmark label taxonomy."
+            ),
+        },
+        "missing_evidence": {
+            "bounded_keys": [
+                "shortage_occupation_training",
+                "binding_job_offer",
+                "applicable_minimum_remuneration",
+                "points_evidence",
+            ],
+            "instruction": (
+                "Use [] when no bounded route-evidence category is missing from the asserted facts. "
+                "This does not certify documentary completeness."
+            ),
+        },
+        "contradictions": {
+            "instruction": (
+                "Use [] when contradictions were assessed and none were found. "
+                "Do not use null for an ASSESSED review."
+            ),
+        },
+        "rule_or_source_refs": {
+            "instruction": (
+                "Use the canonical official_sources[].ref identifiers supplied in the packet. "
+                "Put additional prose citations or legal commentary in notes."
+            ),
+        },
+        "escalation_required": {
+            "true": (
+                "Use true only when the tested route-level outcome itself requires escalation because a material legal "
+                "ambiguity or unresolved classification remains."
+            ),
+            "false": (
+                "Use false when the tested route-level outcome is clear on the asserted facts. "
+                "Routine authority review and alternative-route suggestions do not by themselves make this true."
+            ),
+        },
+    }
+
+
 def _required_text(value: object, *, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field_name} must be a non-empty string")
@@ -90,6 +172,21 @@ def _optional_string_set(value: object, *, field_name: str) -> frozenset[str] | 
 def _blind_reviewed_labels(value: object, *, field_name: str) -> MobilityReviewedLabels:
     if not isinstance(value, dict):
         raise ValueError(f"{field_name} must be an object for ASSESSED review")
+    required_fields = (
+        "pathway_keys",
+        "eligibility",
+        "required_evidence",
+        "missing_evidence",
+        "contradictions",
+        "rule_or_source_refs",
+        "escalation_required",
+    )
+    missing_fields = [name for name in required_fields if value.get(name) is None]
+    if missing_fields:
+        raise ValueError(
+            f"{field_name} must populate all reviewed label fields for ASSESSED review; "
+            f"missing: {', '.join(missing_fields)}"
+        )
     eligibility_value = value.get("eligibility")
     eligibility = (
         None
@@ -164,7 +261,7 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
         "reviewer_facing_packet": True,
         "supersedes_reviewer_handoff_contracts": list(SUPERSEDED_REVIEWER_HANDOFF_CONTRACTS),
         "legacy_packet_rejection": (
-            "Reject any reviewer-facing packet that uses a superseded v1 handoff contract or exposes "
+            "Reject any reviewer-facing packet that uses a superseded v1/v2 handoff contract or exposes "
             "source_labels, expected labels, source_rationale, or benchmark rationale before review."
         ),
         "blind_review": True,
@@ -180,6 +277,7 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
         "claim_boundary": source_set.claim_boundary,
         "official_sources": raw.get("sources", []),
         "eligibility_label_values": [value.value for value in MobilityEligibilityLabel],
+        "reviewed_label_contract": _reviewed_label_contract(),
         "reviewer_boundary": (
             "AIOS validates source fingerprints, review structure, derived decision semantics and supplied "
             "reviewer/credential references. It does not verify the real-world identity, independence, professional "
@@ -194,7 +292,7 @@ def build_review_packet(source_path: Path, case_ids: tuple[str, ...]) -> dict[st
             "Set independent_review=true only when independence has actually been established outside AIOS.",
             "Do not use test-only, placeholder or fabricated reviewer/credential references for acceptance evidence.",
             "Do not request or reveal source benchmark expected labels or source rationale before the reviewer returns.",
-            "Reject obsolete answer-revealing v1 reviewer packets; only the current blind v2 handoff is reviewer-facing.",
+            "Reject obsolete or semantically superseded v1/v2 reviewer packets; only the current blind v3 handoff is reviewer-facing.",
             "Use --prepare-blind-return-template to generate the reviewer-facing fail-closed JSON return skeleton.",
             "Use --compile-blind-return to derive the canonical mobility-professional-review-v1 bundle after return.",
             "Run --validate-bundle on the derived canonical bundle before treating the tranche as structurally promotable.",
