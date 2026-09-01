@@ -240,6 +240,7 @@ def test_austria_official_source_curated_seed_is_explicitly_non_professional_and
     assert {source["url"].split("/")[2] for source in payload["sources"]} <= {
         "www.migration.gv.at",
         "www.oesterreich.gv.at",
+        "www.ris.bka.gv.at",
     }
     assert len(payload["cases"]) == 3
 
@@ -265,5 +266,6 @@ def test_austria_official_source_curated_seed_is_explicitly_non_professional_and
 
     by_id = {item["case_id"]: item for item in payload["cases"]}
     assert by_id["at-rwr-shortage-software-di-no-job-offer-2026-01"]["expected"]["eligibility"] == "INELIGIBLE"
-    assert by_id["at-rwr-shortage-software-di-strong-points-2026-01"]["expected"]["eligibility"] == "REVIEW_REQUIRED"
+    assert by_id["at-rwr-shortage-software-di-strong-points-2026-01"]["expected"]["eligibility"] == "ELIGIBLE"
+    assert by_id["at-rwr-shortage-software-di-strong-points-2026-01"]["expected"]["escalation_required"] is False
     assert by_id["at-rwr-shortage-software-di-under-points-2026-01"]["expected"]["eligibility"] == "INELIGIBLE"
