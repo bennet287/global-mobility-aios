@@ -177,19 +177,21 @@ The legacy `--prepare-return-template` remains available as an internal canonica
 
 After any change to the benchmark facts, sources, labels, rationale, claim boundary, or fact-evidence boundary, all earlier packet/return artifacts are stale because the immutable source-case fingerprints change. V12.57 changes the strong-case eligibility/escalation labels, so every v2 packet/return is historical. Regenerate the v3 packet and blind return template from the exact current head before reviewer handoff.
 
-## 6. Reviewer identity and credential boundary
+## 6. Anonymous reviewer identity and credential boundary
 
-This hardening does not allow AIOS to certify a real person's identity or professional standing.
+The reviewer may require anonymity, and that privacy requirement is binding on repository artifacts.
 
 For L acceptance:
 
-- reviewer identity must be real;
-- independence must be established outside AIOS;
-- professional standing/credential must be independently verifiable;
-- durable `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference` values must reference genuine external evidence;
-- test-only, placeholder or fabricated values invalidate acceptance evidence.
+- the real reviewer must exist and independence must be established outside AIOS;
+- professional standing/credential must be verified outside AIOS;
+- the reviewer's personal identity does **not** need to be disclosed in Git;
+- committed `professional_review_reference`, `reviewer_reference`, and `reviewer_credential_reference` values must be non-identifying opaque aliases;
+- do not commit personal names, registration/bar numbers, emails, firm/employer names, addresses, phone numbers or public-profile URLs;
+- keep the confidential identity-to-credential mapping and supporting evidence outside Git and outside committed project artifacts;
+- test-only, placeholder or fabricated values still invalidate acceptance evidence.
 
-The compiler validates structure and semantics only.
+The compiler validates structure and semantics only. Anonymous repository references preserve privacy; they do not weaken the real-world independence or professional-standing requirement.
 
 ## 7. Test changes
 
