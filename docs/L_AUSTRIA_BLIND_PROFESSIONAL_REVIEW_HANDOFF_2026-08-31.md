@@ -100,7 +100,7 @@ Reject any v1/v2 reviewer packet, or any packet that exposes expected/source lab
 
 ### Blind reviewer return
 
-`austria-professional-review-blind-return.v1`
+`austria-professional-review-blind-return.v3`
 
 Reviewer-facing `assessment_status` values:
 
@@ -112,7 +112,7 @@ NEEDS_MORE_FACTS
 
 For `ASSESSED`, the reviewer supplies their complete independent `reviewed_labels`.
 
-V12.57 requires every reviewed-label field to be populated for `ASSESSED`. In particular, use `[]` rather than `null` when contradictions/missing evidence were assessed and none were found.
+V12.59 requires every reviewed-label field to be populated for `ASSESSED`, and the compiler now enforces the v3 canonical pathway/evidence/source vocabularies rather than treating legacy/free-form values as generic corrections. In particular, use `[]` rather than `null` when contradictions/missing evidence were assessed and none were found.
 
 The reviewer-facing v3 label contract also requires:
 
@@ -158,13 +158,13 @@ python scripts/prepare_austria_professional_review.py --prepare-packet --output 
 Prepare the reviewer-facing blind return skeleton:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --prepare-blind-return-template --output .local/professional-review/austria-professional-review-blind-return-v1.json
+python scripts/prepare_austria_professional_review.py --prepare-blind-return-template --output .local/professional-review/austria-professional-review-blind-return-v3.json
 ```
 
 After the genuine reviewer returns the completed blind file:
 
 ```powershell
-python scripts/prepare_austria_professional_review.py --compile-blind-return .local/professional-review/austria-professional-review-blind-return-v1.json --output .local/professional-review/austria-professional-review-canonical.json
+python scripts/prepare_austria_professional_review.py --compile-blind-return .local/professional-review/austria-professional-review-blind-return-v3.json --output .local/professional-review/austria-professional-review-canonical.json
 ```
 
 Then structurally validate the derived canonical review:
