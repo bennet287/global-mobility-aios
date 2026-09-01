@@ -126,6 +126,9 @@ Radar-caused runtime adoption remains **NONE**.
 15. **V12.52 exposed a secondary preservation tranche.** `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt` remained untracked. Canonical V12 has no references to them; move them to the same external archive rather than ignore/delete them.
 16. **Interactive PowerShell PASS output is not authoritative.** Future acceptance instructions must run as one fail-fast script block with `$ErrorActionPreference = "Stop"`; if any gate throws, the run fails and no final PASS is printed.
 17. **V12.53 local hygiene is closed.** The fail-fast acceptance reached final PASS at exact head `b2cc754...` after all eight preservation/history items were archived outside the worktree, only narrow ignored roots remained, repository gates passed, the worktree was clean, and start/end/origin SHA matched. Repository Policy Check #452 is also green; V12 Production Proof #922 had policy+frontend green while backend/PostgreSQL were still running at the proof-record time.
+18. **Non-blind legal-quality feedback is not L evidence.** The assessment agreed with the three benchmark directions but explicitly saw an obsolete v1 packet with expected labels/rationale. V12.55 uses it only to harden source/evidence semantics.
+19. **V12.55 changes benchmark fingerprints.** Direct RIS §12a / Annex B / Fachkräfteverordnung sources and per-case fact-evidence boundaries are now source-fingerprint material. Previously generated packet/return artifacts are stale; rerun focused proof and regenerate a fresh reviewer-facing v2 packet before contacting a reviewer.
+
 
 ---
 
@@ -164,8 +167,9 @@ Do not run acceptance while another coding agent/session is writing to the same 
 14. `docs/V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md`
 15. `docs/V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`
 16. `docs/V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md`
-17. `AGENTS.md`
-18. branch-specific `labs/r3/*/README.md` only when working that R3 lane
+17. `docs/L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md`
+18. `AGENTS.md`
+19. branch-specific `labs/r3/*/README.md` only when working that R3 lane
 
 ---
 
@@ -186,17 +190,22 @@ Do not run acceptance while another coding agent/session is writing to the same 
 
 Priority order:
 
-1. **Obtain the genuine independent Austria professional review** using the proven blind reviewer packet/return flow.
+1. **Prove V12.55 professional-review source hardening and regenerate fresh blind artifacts.**
+   - run the focused professional-review suite from repository root;
+   - generate a fresh reviewer-facing `austria-professional-review-handoff.v2` packet;
+   - generate a fresh blank `austria-professional-review-blind-return.v1` template;
+   - reject any v1 or answer-revealing packet.
+2. **Obtain the genuine independent Austria professional review** using only those fresh current-head artifacts.
    - The local `.local/` hygiene/archive blocker is closed at exact head `b2cc754...`.
+   - The non-blind legal-quality assessment is feedback only, not review evidence.
+   - No genuine reviewer findings/identity/credential evidence exists yet.
    - Packet/template generation has been exercised locally.
    - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
-   - Packet/template generation has been exercised locally.
-   - The generated files are reproducible operator artifacts only; no reviewer findings/identity/credential evidence exists yet.
-2. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
-3. Commit the acceptance evidence and run final exact-current-head L technical proof.
-4. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
-5. Begin M only after L is sealed.
-6. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
+3. Compile/reconcile the real reviewer evidence and durable reviewer/credential references.
+4. Commit the acceptance evidence and run final exact-current-head L technical proof.
+5. Obtain the required exact-head CI/Woodpecker proof and seal L only if all gates pass.
+6. Begin M only after L is sealed.
+7. R3 authority/security closure work may proceed only as bounded supporting work and must not expand or displace the L gate.
 
 Completed prerequisites that must not be repeated:
 
