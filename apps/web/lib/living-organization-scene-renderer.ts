@@ -3,6 +3,7 @@ import type {
   LivingSceneDepartment,
   LivingSceneEmployee,
   LivingSceneRoom,
+  LivingSceneSmartObject,
   LivingSceneWorkItem,
 } from "./live-organization";
 import {
@@ -33,6 +34,7 @@ export type LivingSceneRenderModel = {
   missionRoom: LivingSceneRoom | null;
   evidenceLab: LivingSceneRoom | null;
   boardRoom: LivingSceneRoom | null;
+  smartObjects: LivingSceneSmartObject[];
   employeeSlots: LivingSceneEmployeeSlot[];
   departmentZones: LivingSceneDepartmentZone[];
 };
@@ -63,6 +65,7 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
     missionRoom: room("mission_room"),
     evidenceLab: room("evidence_lab"),
     boardRoom: room("board_room"),
+    smartObjects: scene.deterministic.smart_objects,
     employeeSlots,
     departmentZones,
   };
