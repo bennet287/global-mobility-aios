@@ -613,7 +613,7 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
 }
 
 
-test("renders M.6 canonical collaboration board and smart-object state without mutating AIOS", async ({ page }) => {
+test("renders M.7.1 lenses over canonical M.6 state without mutating AIOS", async ({ page }) => {
   const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: livingScene() }),
@@ -623,7 +623,21 @@ test("renders M.6 canonical collaboration board and smart-object state without m
 
   const sceneSurface = page.locator(".living-scene-shell");
   await expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(sceneSurface.getByText("M.6 · Blockers, Smart Objects & live Board Room")).toBeVisible();
+  await expect(sceneSurface.getByText("M.7.1 · Organization Lenses + Owner view commands")).toBeVisible();
+  const lenses = sceneSurface.getByRole("toolbar", { name: "Organization lenses" });
+  await expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled();
+  await expect(lenses.locator('[data-lens-key="cost"]')).toBeDisabled();
+  await expect(lenses.locator('[data-lens-key="incident"]')).toBeDisabled();
+  await expect(lenses.locator('[data-lens-key="autonomy"]')).toBeDisabled();
+  await expect(lenses.locator('[data-lens-key="performance"]')).toBeDisabled();
+  await sceneSurface.getByRole("button", { name: "Show current blockers" }).click();
+  await expect(sceneSurface).toHaveAttribute("data-active-lens", "blockers");
+  await expect(sceneSurface.locator(".blocker-room")).not.toHaveClass(/lens-deemphasized/);
+  await expect(sceneSurface.locator(".mission-room")).toHaveClass(/lens-deemphasized/);
+  await sceneSurface.getByRole("button", { name: "Show Board attention" }).click();
+  await expect(sceneSurface).toHaveAttribute("data-active-lens", "decisions");
+  await expect(sceneSurface.locator(".board-room")).not.toHaveClass(/lens-deemphasized/);
   await expect(sceneSurface.getByText("Mission Room", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
   await expect(sceneSurface.getByText("Board Room", { exact: true }).first()).toBeVisible();

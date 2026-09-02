@@ -5,12 +5,13 @@ import { test } from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("Austria Live Organization Cockpit surface is persisted, bounded, and explicit about proof gaps", async () => {
-  const [page, api, navigation, sceneComponent, sceneRenderer, cockpitLayout] = await Promise.all([
+  const [page, api, navigation, sceneComponent, sceneRenderer, lensModel, cockpitLayout] = await Promise.all([
     read("app/cockpit/live-organization/page.tsx"),
     read("lib/live-organization.ts"),
     read("lib/workspace-navigation.ts"),
     read("components/LivingOrganizationScene.tsx"),
     read("lib/living-organization-scene-renderer.ts"),
+    read("lib/living-organization-lenses.ts"),
     read("app/cockpit/layout.tsx"),
   ]);
 
@@ -82,8 +83,24 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /smart_objects: LivingSceneSmartObject\[\]/);
   assert.match(api, /export type LivingOrganizationScene/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/scene\/austria\/latest/);
-  assert.match(sceneComponent, /M\.6 · Blockers, Smart Objects & live Board Room/);
-  assert.match(sceneComponent, /data-scene-plane="deterministic"/);
+  assert.match(sceneComponent, /M\.7\.1 · Organization Lenses \+ Owner view commands/);
+  assert.match(sceneComponent, /data-active-lens=\{activeLens\}/);
+  assert.match(sceneComponent, /Owner command mode · view-only foundation/);
+  assert.match(sceneComponent, /No POST · no canonical mutation/);
+  assert.match(sceneComponent, /OWNER_LENS_VIEW_COMMANDS/);
+  assert.match(sceneComponent, /aria-pressed=\{activeLens === lens\.key\}/);
+  assert.match(sceneComponent, /lens-deemphasized/);
+  assert.match(lensModel, /LIVING_ORGANIZATION_LENS_KEYS/);
+  assert.match(lensModel, /"organization"/);
+  assert.match(lensModel, /"flow"/);
+  assert.match(lensModel, /Authority levels are not treated as autonomy/);
+  assert.match(lensModel, /activity volume is not productivity/);
+  assert.match(lensModel, /No canonical organization runtime-cost ledger is available to this scene/);
+  assert.match(lensModel, /No canonical Incident model is available to this scene/);
+  assert.match(lensModel, /Throughput\/heat baseline is not implemented yet/);
+  assert.match(lensModel, /activeLens === "organization" \|\| tags\.includes\(activeLens\)/);
+  assert.doesNotMatch(lensModel, /fetch\(|XMLHttpRequest|synthesizeAustriaOwner/);
+    assert.match(sceneComponent, /data-scene-plane="deterministic"/);
   assert.match(sceneComponent, /scene\.deterministic\.departments/);
   assert.match(sceneComponent, /scene\.deterministic\.missions/);
   assert.match(sceneComponent, /scene\.deterministic\.conversations/);

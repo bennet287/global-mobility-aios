@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
+import type { LivingOrganizationLensKey } from "../lib/living-organization-lenses";
 import type {
   LivingSceneRendererBackend,
   LivingSceneRendererController,
@@ -16,7 +17,13 @@ function backendLabel(value: LivingSceneRendererBackend | null): string {
   return "Detecting renderer backend";
 }
 
-export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: LivingSceneRenderModel }) {
+export function LivingOrganizationWebGPUScene({
+  renderModel,
+  activeLens,
+}: {
+  renderModel: LivingSceneRenderModel;
+  activeLens: LivingOrganizationLensKey;
+}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const controllerRef = useRef<LivingSceneRendererController | null>(null);
   const latestModelRef = useRef(renderModel);
@@ -96,13 +103,14 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
       data-renderer-phase={phase}
       data-renderer-backend={backend ?? "pending"}
       data-scene-authoritative="false"
+      data-active-lens={activeLens}
     >
       <header>
         <div>
-          <span>M.6 · Smart Objects + live Board Room</span>
+          <span>M.7.1 · Organization Lenses</span>
           <strong id="living-webgpu-title">Living spatial organization</strong>
         </div>
-        <small>{phase === "ready" ? backendLabel(backend) : phase}</small>
+        <small>{phase === "ready" ? backendLabel(backend) : phase} · {activeLens.replaceAll("_", " ")} lens</small>
       </header>
       <div className="living-webgpu-canvas-wrap">
         <canvas
@@ -126,8 +134,8 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
       ) : null}
       <p className="living-webgpu-accessibility">
         Employee motion remains presentation-only workspace motion derived from canonical semantic state.
-        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. M.6 adds only canonical
-        collaboration, blocker, Smart Object and Board projections; no visual interaction can bypass AIOS governance.
+        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. M.7.1 lenses change local
+        view emphasis only over canonical M.6 projections; no visual interaction or lens command can bypass AIOS governance.
         The Structured Cockpit remains available for every core operation.
       </p>
     </section>

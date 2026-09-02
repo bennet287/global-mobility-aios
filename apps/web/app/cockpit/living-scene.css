@@ -1,5 +1,5 @@
-/* Living Organization M.5 — canonical collaboration scene.
-   This CSS owns layout/geometry only; backend scene semantics remain authoritative. */
+/* Living Organization M.7.1 — read-only lenses over the canonical scene.
+   This CSS owns layout/emphasis only; backend scene semantics remain authoritative. */
 
 .living-scene-shell {
   margin-top: 18px;
@@ -62,6 +62,137 @@
   font-weight: 660;
 }
 
+
+.living-lens-console {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid rgba(143, 229, 169, .17);
+  border-radius: 16px;
+  background: rgba(3, 5, 11, .24);
+}
+
+.living-lens-console > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.living-lens-console > header span,
+.living-owner-lens-commands > span,
+.living-lens-status span {
+  display: block;
+  color: rgba(196,199,242,.62);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.living-lens-console > header strong {
+  display: block;
+  margin-top: 2px;
+  color: #f6f3eb;
+  font-size: 13px;
+}
+
+.living-lens-console > header small {
+  color: rgba(143,229,169,.64);
+  font-size: 9px;
+}
+
+.living-lens-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.living-lens-grid button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "label count" "state state";
+  gap: 2px 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 10px;
+  color: rgba(246,243,235,.72);
+  background: rgba(255,255,255,.025);
+  text-align: left;
+  cursor: pointer;
+}
+
+.living-lens-grid button:hover:not(:disabled) { border-color: rgba(143,229,169,.28); }
+.living-lens-grid button[aria-pressed="true"] {
+  border-color: rgba(143,229,169,.42);
+  background: rgba(76,150,97,.13);
+  box-shadow: inset 0 0 22px rgba(76,150,97,.06);
+}
+
+.living-lens-grid button:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  opacity: .46;
+}
+
+.living-lens-grid span { grid-area: label; font-size: 9px; font-weight: 720; }
+.living-lens-grid strong { grid-area: count; font-size: 10px; color: #f6f3eb; }
+.living-lens-grid small {
+  grid-area: state;
+  color: rgba(196,199,242,.48);
+  font-size: 7.5px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.living-owner-lens-commands {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.055);
+}
+
+.living-owner-lens-commands > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.living-owner-lens-commands button {
+  padding: 6px 9px;
+  border: 1px solid rgba(196,199,242,.13);
+  border-radius: 999px;
+  color: rgba(246,243,235,.7);
+  background: rgba(196,199,242,.045);
+  font-size: 8.5px;
+  cursor: pointer;
+}
+
+.living-owner-lens-commands button:hover { border-color: rgba(196,199,242,.28); }
+
+.living-lens-status {
+  display: grid;
+  gap: 2px;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(143,229,169,.32);
+  background: rgba(255,255,255,.018);
+}
+
+.living-lens-status strong { color: rgba(246,243,235,.82); font-size: 10.5px; font-weight: 620; }
+.living-lens-status small { color: rgba(246,243,235,.43); font-size: 8.5px; }
+
+.living-scene-room,
+.living-scene-smart-strip > article {
+  transition: opacity 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+
+.living-scene-room.lens-deemphasized,
+.living-scene-smart-strip > article.lens-deemphasized {
+  opacity: .24;
+  transform: scale(.988);
+}
 
 .living-scene-coverage {
   display: grid;
@@ -527,6 +658,7 @@
 @media (max-width: 980px) {
   .living-scene-header { flex-direction: column; }
   .living-scene-contract { width: 100%; text-align: left; }
+  .living-lens-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .living-scene-coverage { grid-template-columns: repeat(2, 1fr); }
   .living-scene-planes { grid-template-columns: 1fr; }
   .living-scene-smart-strip { grid-template-columns: 1fr; }
@@ -535,6 +667,7 @@
     grid-template-areas:
       "mission mission"
       "evidence board"
+      "owner risks"
       "blockers blockers";
   }
   .living-scene-truth { grid-template-columns: repeat(2, 1fr); }
@@ -543,8 +676,10 @@
 @media (max-width: 660px) {
   .living-scene-floor {
     grid-template-columns: 1fr;
-    grid-template-areas: "mission" "evidence" "board" "blockers";
+    grid-template-areas: "mission" "evidence" "board" "owner" "risks" "blockers";
   }
+  .living-lens-console > header { flex-direction: column; }
+  .living-lens-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .living-scene-coverage { grid-template-columns: 1fr; }
   .living-scene-employee-grid { grid-template-columns: 1fr; }
   .scene-collaboration-grid { grid-template-columns: 1fr; }

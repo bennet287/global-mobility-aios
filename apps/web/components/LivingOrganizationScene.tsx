@@ -1,11 +1,19 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { LivingOrganizationWebGPUScene } from "./LivingOrganizationWebGPUScene";
 import type { LivingOrganizationScene } from "../lib/live-organization";
 import {
   LIVING_SCENE_RENDERER_TARGET,
   buildLivingSceneRenderModel,
 } from "../lib/living-organization-scene-renderer";
+import {
+  OWNER_LENS_VIEW_COMMANDS,
+  buildLivingOrganizationLenses,
+  isLivingOrganizationLensFocused,
+  isLivingOrganizationLensSelectable,
+  smartObjectLensTags,
+  type LivingOrganizationLensKey,
+} from "../lib/living-organization-lenses";
 import { titleCase } from "../lib/utils";
 
 function initials(value: string): string {
@@ -27,6 +35,15 @@ function timestampLabel(value: string): string {
 
 export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizationScene }) {
   const renderModel = useMemo(() => buildLivingSceneRenderModel(scene), [scene]);
+  const [requestedLens, setRequestedLens] = useState<LivingOrganizationLensKey>("organization");
+  const lenses = useMemo(() => buildLivingOrganizationLenses(scene), [scene]);
+  const requestedLensDescriptor = lenses.find((lens) => lens.key === requestedLens);
+  const activeLens = requestedLensDescriptor && isLivingOrganizationLensSelectable(requestedLensDescriptor)
+    ? requestedLens
+    : "organization";
+  const activeLensDescriptor = lenses.find((lens) => lens.key === activeLens) ?? lenses[0];
+  const focusClass = (tags: readonly LivingOrganizationLensKey[]) =>
+    isLivingOrganizationLensFocused(activeLens, tags) ? "" : " lens-deemphasized";
   const blockersByWork = new Map<string, number>();
   for (const blocker of scene.deterministic.blockers) {
     if (!blocker.work_item_id) continue;
@@ -44,14 +61,15 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
   }
 
   return (
-    <section className="living-scene-shell" aria-labelledby="living-scene-title">
+    <section className="living-scene-shell" aria-labelledby="living-scene-title" data-active-lens={activeLens}>
       <header className="living-scene-header">
         <div>
-          <span className="premium-label">M.6 · Blockers, Smart Objects & live Board Room</span>
+          <span className="premium-label">M.7.1 · Organization Lenses + Owner view commands</span>
           <h3 id="living-scene-title">Living Organization Scene</h3>
           <p>
             A spatial projection of persisted AIOS organization state. Geometry is presentation-only;
             employee, work, blocker, decision, Owner-action, risk, and relationship semantics come from the backend scene contract.
+            Lenses change local view emphasis only; they do not create organizational state or authority.
           </p>
         </div>
         <div className="living-scene-contract">
@@ -60,6 +78,52 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           <small>advanced renderer target · not authority</small>
         </div>
       </header>
+
+      <section className="living-lens-console" aria-labelledby="living-lens-console-title">
+        <header>
+          <div>
+            <span>Owner command mode · view-only foundation</span>
+            <strong id="living-lens-console-title">Organization Lenses</strong>
+          </div>
+          <small>No POST · no canonical mutation</small>
+        </header>
+        <div className="living-lens-grid" role="toolbar" aria-label="Organization lenses">
+          {lenses.map((lens) => {
+            const selectable = isLivingOrganizationLensSelectable(lens);
+            return (
+              <button
+                key={lens.key}
+                type="button"
+                data-lens-key={lens.key}
+                data-lens-availability={lens.availability}
+                aria-pressed={activeLens === lens.key}
+                disabled={!selectable}
+                onClick={() => setRequestedLens(lens.key)}
+                title={lens.canonicalBasis}
+              >
+                <span>{lens.label}</span>
+                <strong>{lens.count ?? "—"}</strong>
+                <small>{titleCase(lens.availability)}</small>
+              </button>
+            );
+          })}
+        </div>
+        <div className="living-owner-lens-commands" aria-label="Owner view commands">
+          <span>Read-only Owner view commands</span>
+          <div>
+            {OWNER_LENS_VIEW_COMMANDS.map((command) => (
+              <button key={command.label} type="button" onClick={() => setRequestedLens(command.lens)}>
+                {command.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="living-lens-status" role="status" data-lens-availability={activeLensDescriptor.availability}>
+          <span>Active lens · {activeLensDescriptor.label}</span>
+          <strong>{activeLensDescriptor.summary}</strong>
+          <small>{activeLensDescriptor.canonicalBasis}</small>
+        </div>
+      </section>
 
       <div className="living-scene-coverage" aria-label="Scene coverage">
         <div><span>Departments</span><strong>{scene.deterministic.departments.length}</strong><small>{titleCase(scene.coverage.departments)}</small></div>
@@ -89,7 +153,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
         </div>
       </div>
 
-      <LivingOrganizationWebGPUScene renderModel={renderModel} />
+      <LivingOrganizationWebGPUScene renderModel={renderModel} activeLens={activeLens} />
 
       <div className="living-structured-reference" id="living-structured-reference">
         <div>
@@ -104,7 +168,12 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
 
       <div className="living-scene-smart-strip" aria-label="Canonical department topology">
         {renderModel.departmentZones.map(({ department, employeeSlots, workItems, zoneIndex }) => (
-          <article key={department.department_key} data-department-zone={department.department_key} data-zone-index={zoneIndex}>
+          <article
+            key={department.department_key}
+            className={focusClass(["mission", "flow"])}
+            data-department-zone={department.department_key}
+            data-zone-index={zoneIndex}
+          >
             <span>Department zone</span>
             <strong>{department.label}</strong>
             <div><b>{employeeSlots.length}</b><small>employees · {workItems.length} WorkItems</small></div>
@@ -118,8 +187,8 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
         ))}
       </div>
 
-      <div className="living-scene-floor" data-scene-plane="deterministic">
-        <article className="living-scene-room mission-room">
+      <div className="living-scene-floor" data-scene-plane="deterministic" data-active-lens={activeLens}>
+        <article className={`living-scene-room mission-room${focusClass(["mission", "flow"])}`}>
           <header>
             <div>
               <span>Mission Room</span>
@@ -238,7 +307,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           </footer>
         </article>
 
-        <article className="living-scene-room evidence-room">
+        <article className={`living-scene-room evidence-room${focusClass(["evidence"])}`}>
           <header>
             <div><span>Evidence Lab</span><strong>{renderModel.evidenceLab?.label ?? "Evidence Lab"}</strong></div>
             <small>{renderModel.evidenceLab ? titleCase(renderModel.evidenceLab.state) : "Unavailable"}</small>
@@ -250,7 +319,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           <p>{renderModel.evidenceLab?.canonical_basis ?? "No Evidence Lab projection is available."}</p>
         </article>
 
-        <article className={`living-scene-room board-room ${renderModel.boardRoom?.state === "attention" ? "attention" : ""}`}>
+        <article className={`living-scene-room board-room ${renderModel.boardRoom?.state === "attention" ? "attention" : ""}${focusClass(["decisions", "risk"])}`}>
           <header>
             <div><span>Board Room</span><strong>{renderModel.boardRoom?.label ?? "Board Room"}</strong></div>
             <small>{renderModel.boardRoom ? titleCase(renderModel.boardRoom.state) : "Unavailable"}</small>
@@ -293,7 +362,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           )}
         </article>
 
-        <article className="living-scene-room owner-room">
+        <article className={`living-scene-room owner-room${focusClass(["decisions", "blockers", "risk"])}`}>
           <header>
             <div><span>Owner inbox</span><strong>Required human actions</strong></div>
             <small>{scene.deterministic.human_actions.length}</small>
@@ -321,7 +390,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           )}
         </article>
 
-        <article className="living-scene-room risk-room">
+        <article className={`living-scene-room risk-room${focusClass(["risk"])}`}>
           <header>
             <div><span>Escalation lane</span><strong>Open risk escalations</strong></div>
             <small>{scene.deterministic.risk_escalations.length}</small>
@@ -345,7 +414,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           )}
         </article>
 
-        <article className="living-scene-room blocker-room">
+        <article className={`living-scene-room blocker-room${focusClass(["blockers", "risk"])}`}>
           <header>
             <div><span>Friction lane</span><strong>Current blockers</strong></div>
             <small>{scene.deterministic.blockers.length}</small>
@@ -370,14 +439,22 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
       </div>
 
       <div className="living-scene-smart-strip" aria-label="Living Organization Smart Objects">
-        {scene.deterministic.smart_objects.map((item) => (
-          <article key={item.object_key} data-smart-object-state={item.state}>
-            <span>{titleCase(item.object_type)}</span>
-            <strong>{item.label}</strong>
-            <div><b>{item.metric_value ?? "—"}</b><small>{item.metric_label}</small></div>
-            <p>{titleCase(item.state)} · {item.canonical_basis}</p>
-          </article>
-        ))}
+        {scene.deterministic.smart_objects.map((item) => {
+          const lensTags = smartObjectLensTags(item.object_type);
+          return (
+            <article
+              key={item.object_key}
+              className={focusClass(lensTags)}
+              data-smart-object-state={item.state}
+              data-lens-tags={lensTags.join(" ")}
+            >
+              <span>{titleCase(item.object_type)}</span>
+              <strong>{item.label}</strong>
+              <div><b>{item.metric_value ?? "—"}</b><small>{item.metric_label}</small></div>
+              <p>{titleCase(item.state)} · {item.canonical_basis}</p>
+            </article>
+          );
+        })}
       </div>
 
       <div className="living-scene-truth">
