@@ -169,6 +169,7 @@ class AustriaLiveOrganizationSnapshotRead(TransparencyRead):
     activities: list[TransparencyRecordRead]
     domain_evidence_refs: list[str]
     verified_rule_refs: list[str]
+    source_snapshot_refs: list[str]
 
 
 class AustriaLiveOrganizationLatestRead(TransparencyRead):
@@ -254,7 +255,7 @@ class LivingSceneSmartObjectRead(TransparencyRead):
     label: str
     state: str
     metric_label: str
-    metric_value: int
+    metric_value: int | None
     projection_only: bool
     canonical_basis: str
 
@@ -264,8 +265,12 @@ class LivingSceneCoverageRead(TransparencyRead):
     missions: str
     conversations: str
     handoffs: str
+    blockers: str
+    human_actions: str
+    risk_escalations: str
     incidents: str
     smart_objects: str
+    runtime_costs: str
     presence: str
 
 
@@ -286,9 +291,14 @@ class LivingSceneWorkItemRead(TransparencyRead):
 class LivingSceneBlockerRead(TransparencyRead):
     blocker_id: UUID
     work_item_id: UUID | None
+    blocker_type: str
     title: str
+    description: str
     severity: str
     status: str
+    accountable_position_key: str | None
+    decision_id: UUID | None
+    risk_escalation_id: UUID | None
     requires_human_action: bool
 
 
@@ -296,14 +306,58 @@ class LivingSceneDecisionRead(TransparencyRead):
     decision_id: UUID
     decision_key: str
     title: str
+    question: str
+    recommendation: str
     status: str
     authority_level: str
     decision_owner_position: str
     work_item_id: UUID | None
+    evidence_items: list[object]
+    record_fingerprint: str | None
+    source_object_type: str | None
+    source_object_id: str | None
+    source_object_version: str | None
     supersedes_decision_id: UUID | None
     superseded_by_decision_id: UUID | None
     is_current: bool
+    required_owner_action: bool
     decided_at: datetime | None
+
+
+class LivingSceneHumanActionRequestRead(TransparencyRead):
+    request_id: UUID
+    request_type: str
+    title: str
+    instructions: str
+    status: str
+    priority: str
+    required_role: str
+    assigned_human_id: str | None
+    authority_level: str | None
+    work_item_id: UUID | None
+    decision_id: UUID | None
+    blocker_id: UUID | None
+    requested_at: datetime
+    due_at: datetime | None
+    canonical_basis: str
+
+
+class LivingSceneRiskEscalationRead(TransparencyRead):
+    risk_id: UUID
+    risk_key: str
+    category: str
+    severity: str
+    title: str
+    description: str
+    status: str
+    accountable_position_key: str
+    escalated_to_position_key: str
+    work_item_id: UUID | None
+    requires_board_attention: bool
+    is_emergency: bool
+    evidence_items: list[object]
+    created_at: datetime
+    canonical_basis: str
 
 
 class LivingSceneRoomRead(TransparencyRead):
@@ -338,6 +392,8 @@ class LivingSceneDeterministicPlaneRead(TransparencyRead):
     handoffs: list[LivingSceneHandoffRead]
     blockers: list[LivingSceneBlockerRead]
     decisions: list[LivingSceneDecisionRead]
+    human_actions: list[LivingSceneHumanActionRequestRead]
+    risk_escalations: list[LivingSceneRiskEscalationRead]
     incidents: list[LivingSceneIncidentRead]
     smart_objects: list[LivingSceneSmartObjectRead]
     rooms: list[LivingSceneRoomRead]
