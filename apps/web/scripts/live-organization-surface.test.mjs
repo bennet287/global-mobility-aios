@@ -5,13 +5,14 @@ import { test } from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("Austria Live Organization Cockpit surface is persisted, bounded, and explicit about proof gaps", async () => {
-  const [page, api, navigation, sceneComponent, sceneRenderer, lensModel, cockpitLayout] = await Promise.all([
+  const [page, api, navigation, sceneComponent, sceneRenderer, lensModel, analytics, cockpitLayout] = await Promise.all([
     read("app/cockpit/live-organization/page.tsx"),
     read("lib/live-organization.ts"),
     read("lib/workspace-navigation.ts"),
     read("components/LivingOrganizationScene.tsx"),
     read("lib/living-organization-scene-renderer.ts"),
     read("lib/living-organization-lenses.ts"),
+    read("lib/living-organization-analytics.ts"),
     read("app/cockpit/layout.tsx"),
   ]);
 
@@ -81,10 +82,19 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /risk_escalations: LivingSceneRiskEscalation\[\]/);
   assert.match(api, /metric_value: number \| null/);
   assert.match(api, /smart_objects: LivingSceneSmartObject\[\]/);
+  assert.match(api, /elapsed_seconds: number \| null/);
+  assert.match(api, /overdue: boolean/);
+  assert.match(api, /open_elapsed_seconds: number/);
   assert.match(api, /export type LivingOrganizationScene/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/scene\/austria\/latest/);
-  assert.match(sceneComponent, /M\.7\.1 · Organization Lenses \+ Owner view commands/);
+  assert.match(sceneComponent, /M\.7\.2 · Structured FLOW \+ Owner analytical queries/);
   assert.match(sceneComponent, /data-active-lens=\{activeLens\}/);
+  assert.match(sceneComponent, /buildStructuredFlowBaseline/);
+  assert.match(sceneComponent, /OWNER_ANALYTICAL_QUERIES/);
+  assert.match(sceneComponent, /data-flow-authoritative="false"/);
+  assert.match(sceneComponent, /Directed work routing & bottleneck signals/);
+  assert.match(sceneComponent, /GPU fluid\/field TRIAL not promoted/);
+  assert.match(sceneComponent, /data-owner-query-result/);
   assert.match(sceneComponent, /Owner command mode · view-only foundation/);
   assert.match(sceneComponent, /No POST · no canonical mutation/);
   assert.match(sceneComponent, /OWNER_LENS_VIEW_COMMANDS/);
@@ -97,7 +107,8 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(lensModel, /activity volume is not productivity/);
   assert.match(lensModel, /No canonical organization runtime-cost ledger is available to this scene/);
   assert.match(lensModel, /No canonical Incident model is available to this scene/);
-  assert.match(lensModel, /Throughput\/heat baseline is not implemented yet/);
+  assert.match(lensModel, /Structured directed WorkItem topology/);
+  assert.match(lensModel, /GPU fluid\/field remains a separate trial/);
   assert.match(lensModel, /activeLens === "organization" \|\| tags\.includes\(activeLens\)/);
   assert.doesNotMatch(lensModel, /fetch\(|XMLHttpRequest|synthesizeAustriaOwner/);
     assert.match(sceneComponent, /data-scene-plane="deterministic"/);
@@ -138,6 +149,15 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(sceneRenderer, /smartObjects: scene\.deterministic\.smart_objects/);
   assert.match(sceneRenderer, /sceneAuthoritative: false/);
   assert.doesNotMatch(sceneRenderer, /Math\.random|setInterval|fetch\(/);
+  assert.match(analytics, /buildStructuredFlowBaseline/);
+  assert.match(analytics, /blocked_over_20_minutes/);
+  assert.match(analytics, /open_elapsed_seconds >= thresholdSeconds/);
+  assert.match(analytics, /\["R4", "R5"\]\.includes/);
+  assert.match(analytics, /Risk attention alone is not treated as Owner authority/);
+  assert.match(analytics, /Aggregate evidence counts are not promoted/);
+  assert.match(analytics, /Specialist runtime estimates remain telemetry/);
+  assert.match(analytics, /topology is not promoted to dependency truth/);
+  assert.doesNotMatch(analytics, /Date\.now|new Date|fetch\(|XMLHttpRequest|synthesizeAustriaOwner/);
   assert.match(cockpitLayout, /living-scene\.css/);
 
 });

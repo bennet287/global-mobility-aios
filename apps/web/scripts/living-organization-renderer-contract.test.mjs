@@ -50,7 +50,8 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(rendererComponent, /Selection changes view focus only; it cannot mutate AIOS/);
   assert.match(rendererComponent, /data-selection-authority="none"/);
   assert.match(rendererComponent, /data-active-lens=\{activeLens\}/);
-  assert.match(rendererComponent, /lens command can bypass AIOS governance/);
+  assert.match(rendererComponent, /lens\/query command can bypass AIOS governance/);
+  assert.match(rendererComponent, /GPU fluid\/field is not implemented or promoted/);
   assert.match(rendererComponent, /controller\.updateModel\(renderModel\)/);
   assert.match(rendererComponent, /useEffect\(\(\) => \{/);
   assert.match(sceneComponent, /LivingOrganizationWebGPUScene/);
@@ -89,7 +90,7 @@ test("M.4.1 employee animation consumes bounded presentation state", async () =>
   assert.match(adapter, /employeeActors = \[\]/);
   assert.doesNotMatch(adapter, /conversation_state|handoff_state|walking_state|room_entry_state/);
 
-  assert.match(rendererComponent, /M\.7\.1 · Organization Lenses/);
+  assert.match(rendererComponent, /M\.7\.2 · Lenses \+ structured FLOW baseline/);
   assert.match(rendererComponent, /M\.4\.1 motion discipline is preserved/);
   assert.match(adapter, /smartObjectCount/);
   assert.match(adapter, /createLivingSceneSelection\("smart_object"/);

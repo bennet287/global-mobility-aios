@@ -179,7 +179,7 @@ function livingScene() {
   return {
     established: true,
     scene: {
-      contract_version: "living-organization-scene.v3",
+      contract_version: "living-organization-scene.v4",
       generated_at: "2026-09-02T01:30:00Z",
       scope: "austria_mobility",
       root_work_item_id: ROOT_ID,
@@ -288,6 +288,12 @@ function livingScene() {
             assigned_position_key: "mobility_operations_lead",
             department: "Global Mobility Operations",
             authority_level: "L2",
+            created_at: "2026-09-02T00:00:00Z",
+            updated_at: "2026-09-02T01:20:00Z",
+            due_at: "2026-09-02T03:00:00Z",
+            completed_at: null,
+            elapsed_seconds: 5400,
+            overdue: false,
           },
           {
             work_item_id: "22222222-2222-4222-8222-222222222221",
@@ -301,6 +307,12 @@ function livingScene() {
             assigned_position_key: "pathway_operations_specialist",
             department: "Global Mobility Operations",
             authority_level: "L1",
+            created_at: "2026-09-02T00:10:00Z",
+            updated_at: "2026-09-02T01:10:00Z",
+            due_at: null,
+            completed_at: "2026-09-02T01:10:00Z",
+            elapsed_seconds: 3600,
+            overdue: false,
           },
           {
             work_item_id: "22222222-2222-4222-8222-222222222222",
@@ -314,6 +326,12 @@ function livingScene() {
             assigned_position_key: "regulatory_intelligence_analyst",
             department: "Global Mobility Operations",
             authority_level: "L1",
+            created_at: "2026-09-02T00:15:00Z",
+            updated_at: "2026-09-02T01:15:00Z",
+            due_at: null,
+            completed_at: "2026-09-02T01:15:00Z",
+            elapsed_seconds: 3600,
+            overdue: false,
           },
         ],
         conversations: [
@@ -534,6 +552,162 @@ function livingScene() {
   };
 }
 
+function analyticalScene() {
+  const base = livingScene();
+  const scene = base.scene;
+  return {
+    ...base,
+    scene: {
+      ...scene,
+      deterministic: {
+        ...scene.deterministic,
+        departments: scene.deterministic.departments.map((department) => ({
+          ...department,
+          active_blocker_count: 1,
+        })),
+        missions: scene.deterministic.missions.map((mission) => ({
+          ...mission,
+          state: "blocked",
+          blocker_count: 1,
+          decision_count: 1,
+        })),
+        employees: scene.deterministic.employees.map((employee) =>
+          employee.work_item_id === ROOT_ID
+            ? {
+                ...employee,
+                semantic_state: "blocked",
+                state_reason: "A canonical active blocker is attached to this WorkItem.",
+              }
+            : employee,
+        ),
+        work_items: scene.deterministic.work_items.map((work) =>
+          work.work_item_id === ROOT_ID
+            ? {
+                ...work,
+                risk_level: "R4",
+                due_at: "2026-09-02T01:00:00Z",
+                overdue: true,
+              }
+            : work,
+        ),
+        blockers: [
+          {
+            blocker_id: "77777777-7777-4777-8777-777777777777",
+            work_item_id: ROOT_ID,
+            blocker_type: "human_input",
+            title: "Missing employer declaration",
+            description: "Canonical employer declaration evidence is required before the next governed step.",
+            severity: "high",
+            status: "open",
+            accountable_position_key: "mobility_operations_lead",
+            decision_id: null,
+            risk_escalation_id: null,
+            requires_human_action: true,
+            opened_at: "2026-09-02T00:45:00Z",
+            due_at: "2026-09-02T01:10:00Z",
+            open_elapsed_seconds: 2700,
+            overdue: true,
+          },
+        ],
+        decisions: [
+          {
+            decision_id: "88888888-8888-4888-8888-888888888888",
+            decision_key: "m7-owner-authority",
+            title: "Board review for evidence blocker",
+            question: "Should the bounded recommendation advance?",
+            recommendation: "Inspect canonical evidence before any external action.",
+            status: "pending_board",
+            authority_level: "L4",
+            decision_owner_position: "board",
+            work_item_id: ROOT_ID,
+            evidence_items: [{ kind: "m7-proof" }],
+            record_fingerprint: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            source_object_type: "organizational_work_item",
+            source_object_id: ROOT_ID,
+            source_object_version: "m7.2",
+            supersedes_decision_id: null,
+            superseded_by_decision_id: null,
+            is_current: true,
+            required_owner_action: true,
+            decided_at: null,
+          },
+        ],
+        human_actions: [
+          {
+            request_id: "99999999-9999-4999-8999-999999999999",
+            request_type: "review",
+            title: "Review employer declaration",
+            instructions: "Inspect the blocker and provide a governed disposition.",
+            status: "required",
+            priority: "high",
+            required_role: "board",
+            assigned_human_id: null,
+            authority_level: "L4",
+            work_item_id: ROOT_ID,
+            decision_id: "88888888-8888-4888-8888-888888888888",
+            blocker_id: "77777777-7777-4777-8777-777777777777",
+            requested_at: "2026-09-02T01:00:00Z",
+            due_at: "2026-09-02T02:00:00Z",
+            canonical_basis: "OrganizationHumanActionRequest canonical record",
+          },
+        ],
+        risk_escalations: [
+          {
+            risk_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            risk_key: "m7-board-risk",
+            category: "evidence",
+            severity: "high",
+            title: "Evidence gap requires Board visibility",
+            description: "The canonical blocker remains unresolved.",
+            status: "open",
+            accountable_position_key: "mobility_operations_lead",
+            escalated_to_position_key: "board",
+            work_item_id: ROOT_ID,
+            requires_board_attention: true,
+            is_emergency: false,
+            evidence_items: [{ kind: "m7-risk-proof" }],
+            created_at: "2026-09-02T01:05:00Z",
+            canonical_basis: "RiskEscalation canonical record",
+          },
+        ],
+        smart_objects: scene.deterministic.smart_objects.map((item) => {
+          if (item.object_type === "blocker_wall") return { ...item, state: "attention", metric_value: 1 };
+          if (item.object_type === "board_desk") return { ...item, state: "attention", metric_value: 1 };
+          if (item.object_type === "owner_inbox") return { ...item, state: "attention", metric_value: 2 };
+          if (item.object_type === "risk_beacon") return { ...item, state: "attention", metric_value: 1 };
+          return item;
+        }),
+        rooms: scene.deterministic.rooms.map((room) =>
+          room.room_type === "board_room"
+            ? { ...room, state: "attention", metric_value: 3 }
+            : room,
+        ),
+        relationships: [
+          ...scene.deterministic.relationships,
+          {
+            relationship_key: "blocker-root",
+            relationship_type: "blocks",
+            source_type: "blocker",
+            source_id: "77777777-7777-4777-8777-777777777777",
+            target_type: "work_item",
+            target_id: ROOT_ID,
+            canonical_basis: "OrganizationBlocker.work_item_id",
+          },
+          {
+            relationship_key: "decision-root",
+            relationship_type: "governs",
+            source_type: "decision",
+            source_id: "88888888-8888-4888-8888-888888888888",
+            target_type: "work_item",
+            target_id: ROOT_ID,
+            canonical_basis: "ExecutiveDecision.work_item_id",
+          },
+        ],
+      },
+    },
+  };
+}
+
 function completedSnapshot() {
   return {
     ...readySnapshot(),
@@ -613,17 +787,17 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
 }
 
 
-test("renders M.7.1 lenses over canonical M.6 state without mutating AIOS", async ({ page }) => {
+test("renders M.7.2 structured FLOW and deterministic Owner queries without mutating AIOS", async ({ page }) => {
   const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
-    scene: () => ({ body: livingScene() }),
+    scene: () => ({ body: analyticalScene() }),
   });
 
   await page.goto("/cockpit/live-organization");
 
   const sceneSurface = page.locator(".living-scene-shell");
   await expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(sceneSurface.getByText("M.7.1 · Organization Lenses + Owner view commands")).toBeVisible();
+  await expect(sceneSurface.getByText("M.7.2 · Structured FLOW + Owner analytical queries")).toBeVisible();
   const lenses = sceneSurface.getByRole("toolbar", { name: "Organization lenses" });
   await expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true");
   await expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled();
@@ -631,6 +805,35 @@ test("renders M.7.1 lenses over canonical M.6 state without mutating AIOS", asyn
   await expect(lenses.locator('[data-lens-key="incident"]')).toBeDisabled();
   await expect(lenses.locator('[data-lens-key="autonomy"]')).toBeDisabled();
   await expect(lenses.locator('[data-lens-key="performance"]')).toBeDisabled();
+  await sceneSurface.getByRole("button", { name: "Show routing flow" }).click();
+  await expect(sceneSurface).toHaveAttribute("data-active-lens", "flow");
+  const flow = sceneSurface.locator('[data-flow-authoritative="false"]');
+  await expect(flow.getByText("Directed work routing & bottleneck signals", { exact: true })).toBeVisible();
+  await expect(flow.getByText("GPU fluid/field TRIAL not promoted", { exact: true })).toBeVisible();
+  await expect(flow.locator("[data-flow-work]")).toHaveCount(3);
+  await expect(flow.getByText("Parent topology · not dependency truth", { exact: true })).toHaveCount(2);
+
+  await sceneSurface.getByRole("button", { name: /Show missions blocked >20m/ }).click();
+  const blockedQuery = sceneSurface.locator('[data-owner-query-result="blocked_over_20_minutes"]');
+  await expect(blockedQuery).toHaveAttribute("data-query-status", "available");
+  await expect(blockedQuery).toContainText("1 mission");
+  await expect(blockedQuery).toContainText("Austria mobility objective");
+
+  await sceneSurface.getByRole("button", { name: /Show work requiring my authority/ }).click();
+  const authorityQuery = sceneSurface.locator('[data-owner-query-result="owner_authority"]');
+  await expect(authorityQuery).toContainText("1 WorkItem");
+  await expect(authorityQuery).toContainText("Risk attention alone is not treated as Owner authority");
+
+  await sceneSurface.getByRole("button", { name: /Show R4\/R5 work/ }).click();
+  await expect(sceneSurface.locator('[data-owner-query-result="r4_r5_work"]')).toContainText("Canonical risk_level R4");
+
+  await sceneSurface.getByRole("button", { name: /Show overdue work/ }).click();
+  await expect(sceneSurface.locator('[data-owner-query-result="overdue_work"]')).toContainText("1 WorkItem");
+
+  await sceneSurface.getByRole("button", { name: /Where is model cost concentrated\?/ }).click();
+  const costQuery = sceneSurface.locator('[data-owner-query-result="model_cost_concentration"]');
+  await expect(costQuery).toHaveAttribute("data-query-status", "unavailable");
+  await expect(costQuery).toContainText("Canonical organization cost concentration is unavailable");
   await sceneSurface.getByRole("button", { name: "Show current blockers" }).click();
   await expect(sceneSurface).toHaveAttribute("data-active-lens", "blockers");
   await expect(sceneSurface.locator(".blocker-room")).not.toHaveClass(/lens-deemphasized/);
