@@ -741,5 +741,3 @@ def latest_austria_organization_replay_state(
             for _, item in sorted(conversation_states.items(), key=lambda pair: pair[0])
         ),
     )
-
-
