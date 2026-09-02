@@ -1357,6 +1357,8 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     expect(memory).toHaveAttribute("data-environmental-predictive", "false"),
     expect(memory).toHaveAttribute("data-environmental-mutates-work", "false"),
     expect(memory).toHaveAttribute("data-environmental-canonical-projection", "true"),
+    expect(memory).toHaveCSS("background-color", "rgb(17, 22, 38)"),
+    expect(page.locator(".living-scene-planes")).toContainText("M.9.1 structured memory rendered below · scene field disabled"),
     expect(memory.locator("[data-environmental-path]")).toHaveCount(1),
     expect(memory).toContainText("mobility operations lead → pathway operations specialist"),
     expect(memory).toContainText("Prediction: none"),

@@ -56,11 +56,24 @@ def registry_path(path: str = DEFAULT_REGISTRY_PATH) -> Path:
     candidate = Path(path)
     if candidate.exists():
         return candidate
-    # The registry lives at the project root; official_sources.py is under
-    # apps/api/app/services/, so the project root is 4 parents up.
-    root_candidate = Path(__file__).resolve().parents[4] / path
-    if root_candidate.exists():
-        return root_candidate
+    if candidate.is_absolute():
+        return candidate
+
+    # Docker Compose mounts repository knowledge at /knowledge while the API code
+    # itself is mounted at /app, so module parent depth is intentionally not stable.
+    if candidate.parts and candidate.parts[0] == "knowledge":
+        mounted_candidate = Path("/knowledge").joinpath(*candidate.parts[1:])
+        if mounted_candidate.exists():
+            return mounted_candidate
+
+    # Developer/source-tree execution may place this module at different depths.
+    # Walk ancestors instead of indexing a fixed parent so shallow container paths
+    # cannot raise IndexError and repository-root execution remains supported.
+    module_path = Path(__file__).resolve()
+    for parent in module_path.parents:
+        root_candidate = parent / candidate
+        if root_candidate.exists():
+            return root_candidate
     return candidate
 
 
