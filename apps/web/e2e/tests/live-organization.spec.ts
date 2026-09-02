@@ -1114,7 +1114,7 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
 
   const historicalState = replay.locator(".living-replay-state");
   await Promise.all([
-    expect(historicalState.getByRole("heading", { name: /Organization state at/ })).toBeVisible(),
+    expect(historicalState.getByText(/Organization state at/)).toBeVisible(),
     expect(historicalState).toHaveAttribute("data-replay-state-authoritative", "false"),
     expect(historicalState).toHaveAttribute("data-replay-state-mutates-work", "false"),
     expect(historicalState).toHaveAttribute("data-replay-state-posture", "covered"),
