@@ -15,6 +15,7 @@ from app.models.domain import (
     RiskEscalation,
     now_utc,
 )
+from app.services.organization_activity import establish_activity_coverage_epoch
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
 from app.services.organization_governance import ensure_foundation_positions
 from app.services.organization_mobility_live_organization import (
@@ -133,6 +134,75 @@ def test_live_organization_latest_is_board_safe_when_not_established(client: Tes
     scene = client.get("/api/v1/organization/transparency/live-organization/scene/austria/latest")
     assert scene.status_code == 200
     assert scene.json() == {"established": False, "scene": None}
+
+
+def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
+    client: TestClient,
+    raw_client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    epoch = establish_activity_coverage_epoch(
+        db_session,
+        _human_context(),
+        reason="Establish semantic history coverage before the bounded M.8 acceptance cycle.",
+    )
+    plan, _ = _establish_completed_cycle(
+        db_session,
+        monkeypatch,
+        objective_key="at-rwr-shortage-2026-m8-replay",
+        seed_m5=True,
+    )
+
+    response = client.get(
+        "/api/v1/organization/transparency/live-organization/replay/austria/latest"
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["established"] is True
+    replay = body["replay"]
+    assert replay["contract_version"] == "organization-replay.v1"
+    assert replay["root_work_item_id"] == str(plan.root_work_item.id)
+    assert replay["objective_key"] == plan.root_work_item.objective_key
+    assert set(replay["work_item_ids"]) == {
+        str(plan.root_work_item.id),
+        str(plan.pathway_work_item.id),
+        str(plan.regulatory_work_item.id),
+    }
+    assert replay["canonical_projection"] is True
+    assert replay["authoritative"] is False
+    assert replay["mutations_allowed"] is False
+    assert replay["coverage"]["activity_history_basis"] == "explicit_activity_coverage_epoch"
+    assert replay["coverage"]["activity_history_established"] is True
+    assert replay["coverage"]["activity_history_coverage_start"] == epoch.occurred_at.isoformat().replace("+00:00", "Z")
+    assert replay["coverage"]["pre_epoch_history"] == "partial_no_backfill"
+    assert replay["coverage"]["risk_escalation_history"] == "unavailable_no_semantic_activity_adapter"
+    assert replay["coverage"]["source_snapshot_history"] == "unavailable_not_linked_to_replay_activity"
+    assert replay["coverage"]["conversation_history"] == "lifecycle_only_transcript_not_persisted"
+    assert replay["total_events"] == replay["returned_events"]
+    assert replay["truncated"] is False
+    assert replay["events"]
+    assert all(event["coverage_state"] == "covered" for event in replay["events"])
+    assert all("payload" not in event for event in replay["events"])
+    assert [event["occurred_at"] for event in replay["events"]] == sorted(
+        event["occurred_at"] for event in replay["events"]
+    )
+    event_types = {event["activity_type"] for event in replay["events"]}
+    assert "organization.work.created.v1" in event_types
+    assert "organization.conversation.opened.v1" in event_types
+    assert "organization.work.assigned.v1" in event_types
+    assert any(event["event_kind"] == "handoff" for event in replay["events"])
+    assert any(event["event_kind"] == "conversation" for event in replay["events"])
+    assert any(event["causation_activity_id"] is not None for event in replay["events"])
+
+    raw_client.headers.update({
+        "X-GMAI-Role": "operator",
+        "X-GMAI-User": "m8-operator",
+    })
+    denied = raw_client.get(
+        "/api/v1/organization/transparency/live-organization/replay/austria/latest"
+    )
+    assert denied.status_code == 403
 
 
 def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
@@ -486,6 +556,8 @@ def test_live_organization_transparency_requires_board_role(
     assert response.status_code == 403
     scene = raw_client.get("/api/v1/organization/transparency/live-organization/scene/austria/latest")
     assert scene.status_code == 403
+    replay = raw_client.get("/api/v1/organization/transparency/live-organization/replay/austria/latest")
+    assert replay.status_code == 403
 
 
 def test_live_organization_exact_snapshot_missing_root_is_non_disclosing_404(

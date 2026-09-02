@@ -177,6 +177,63 @@ class AustriaLiveOrganizationLatestRead(TransparencyRead):
     snapshot: AustriaLiveOrganizationSnapshotRead | None
 
 
+class OrganizationReplayCoverageRead(TransparencyRead):
+    activity_history_basis: str
+    activity_history_established: bool
+    activity_history_coverage_start: datetime | None
+    pre_epoch_history: str
+    evidence_history: str
+    risk_escalation_history: str
+    source_snapshot_history: str
+    conversation_history: str
+
+
+class OrganizationReplayEventRead(TransparencyRead):
+    activity_id: UUID
+    event_kind: str
+    coverage_state: str
+    stream_sequence: int
+    activity_class: str
+    activity_type: str
+    title: str
+    summary: str
+    actor_type: str
+    actor_id: str
+    department: str | None
+    position_key: str | None
+    authority_level: str | None
+    work_item_id: UUID | None
+    source_object_type: str
+    source_object_id: str
+    source_object_version: str | None
+    correlation_key: str | None
+    causation_activity_id: UUID | None
+    supersedes_activity_id: UUID | None
+    occurred_at: datetime
+
+
+class OrganizationReplayRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    work_item_ids: list[UUID]
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    coverage: OrganizationReplayCoverageRead
+    total_events: int
+    returned_events: int
+    truncated: bool
+    events: list[OrganizationReplayEventRead]
+
+
+class OrganizationReplayLatestRead(TransparencyRead):
+    established: bool
+    replay: OrganizationReplayRead | None
+
+
 class LivingSceneEmployeeRead(TransparencyRead):
     position_key: str
     title: str

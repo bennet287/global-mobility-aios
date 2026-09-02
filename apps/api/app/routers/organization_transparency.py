@@ -23,6 +23,8 @@ from app.schemas_organization_transparency import (
     GovernanceDecisionRead,
     LivingOrganizationSceneLatestRead,
     LivingOrganizationSceneRead,
+    OrganizationReplayLatestRead,
+    OrganizationReplayRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
     WorkItemTransparencyRead,
@@ -42,6 +44,7 @@ from app.services.organization_mobility_live_diagnostics import (
 from app.services.organization_living_scene import (
     latest_austria_living_organization_scene,
 )
+from app.services.organization_replay import latest_austria_organization_replay
 from app.services.organization_mobility_live_organization import (
     AustriaLiveOrganizationSnapshot,
     AustriaLiveSpecialistSnapshot,
@@ -252,6 +255,30 @@ def _live_snapshot_read(
     )
 
 
+
+
+@router.get(
+    "/live-organization/replay/austria/latest",
+    response_model=OrganizationReplayLatestRead,
+)
+def read_latest_austria_organization_replay(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationReplayLatestRead:
+    """Return M.8 replay from persisted semantic Activity without synthetic history."""
+
+    _require_board(context)
+    try:
+        replay = latest_austria_organization_replay(session, tenant_key=context.tenant_key)
+        return OrganizationReplayLatestRead(
+            established=replay is not None,
+            replay=OrganizationReplayRead.model_validate(replay) if replay is not None else None,
+        )
+    except OrganizationCommandError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Organization replay projection is inconsistent.",
+        ) from exc
 
 
 @router.get(
