@@ -10,6 +10,11 @@ import {
   deriveLivingEmployeePresentation,
   type LivingEmployeePresentation,
 } from "./living-organization-employee-presentation";
+import { buildStructuredFlowBaseline } from "./living-organization-analytics";
+import {
+  buildFlowFieldTrialModel,
+  type FlowFieldTrialModel,
+} from "./living-organization-flow-trial";
 
 export const LIVING_SCENE_RENDERER_TARGET = "three-webgpu";
 
@@ -37,6 +42,7 @@ export type LivingSceneRenderModel = {
   smartObjects: LivingSceneSmartObject[];
   employeeSlots: LivingSceneEmployeeSlot[];
   departmentZones: LivingSceneDepartmentZone[];
+  flowTrial: FlowFieldTrialModel;
 };
 
 export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): LivingSceneRenderModel {
@@ -58,6 +64,8 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
       workItems: scene.deterministic.work_items.filter((workItem) => workItem.department === department.department_key),
     }));
 
+  const flowBaseline = buildStructuredFlowBaseline(scene);
+
   return {
     contractVersion: scene.contract_version,
     rendererTarget: LIVING_SCENE_RENDERER_TARGET,
@@ -68,5 +76,6 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
     smartObjects: scene.deterministic.smart_objects,
     employeeSlots,
     departmentZones,
+    flowTrial: buildFlowFieldTrialModel(flowBaseline),
   };
 }
