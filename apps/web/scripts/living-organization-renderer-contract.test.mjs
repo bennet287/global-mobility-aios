@@ -58,7 +58,7 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(rendererComponent, /Selection changes view focus only; it cannot mutate AIOS/);
   assert.match(rendererComponent, /data-selection-authority="none"/);
   assert.match(rendererComponent, /data-active-lens=\{activeLens\}/);
-  assert.match(rendererComponent, /lens\/query command can bypass AIOS governance/);
+  assert.match(rendererComponent, /lens\/query\/trial control can bypass AIOS governance/);
   assert.match(rendererComponent, /default-off derived presentation/);
   assert.match(rendererComponent, /not promoted/);
   assert.match(rendererComponent, /does not claim\s*throughput or dependency truth/);

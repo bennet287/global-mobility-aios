@@ -97,7 +97,7 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(sceneComponent, /OWNER_ANALYTICAL_QUERIES/);
   assert.match(sceneComponent, /data-flow-authoritative="false"/);
   assert.match(sceneComponent, /Directed work routing & bottleneck signals/);
-  assert.match(sceneComponent, /GPU fluid\/field TRIAL not promoted/);
+  assert.match(sceneComponent, /Control surface · GPU field TRIAL remains not promoted/);
   assert.match(sceneComponent, /data-owner-query-result/);
   assert.match(sceneComponent, /GPU FLOW field TRIAL/);
   assert.match(sceneComponent, /Control surface · GPU field TRIAL remains not promoted/);
