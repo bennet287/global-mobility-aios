@@ -126,6 +126,125 @@ export type AustriaLiveOrganizationLatest = {
   snapshot: AustriaLiveOrganizationSnapshot | null;
 };
 
+
+
+export type LivingSceneEmployee = {
+  position_key: string;
+  title: string;
+  department: string;
+  reports_to_position_key: string | null;
+  authority_level: string;
+  organization_status: string;
+  work_item_id: string | null;
+  work_status: string | null;
+  semantic_state: string;
+  presence_state: string;
+  state_reason: string;
+};
+
+export type LivingSceneWorkItem = {
+  work_item_id: string;
+  parent_work_item_id: string | null;
+  title: string;
+  objective_key: string | null;
+  phase_key: string | null;
+  status: string;
+  priority: string;
+  risk_level: string;
+  assigned_position_key: string;
+  department: string;
+  authority_level: string;
+};
+
+export type LivingSceneBlocker = {
+  blocker_id: string;
+  work_item_id: string | null;
+  title: string;
+  severity: string;
+  status: string;
+  requires_human_action: boolean;
+};
+
+export type LivingSceneDecision = {
+  decision_id: string;
+  decision_key: string;
+  title: string;
+  status: string;
+  authority_level: string;
+  decision_owner_position: string;
+  work_item_id: string | null;
+  supersedes_decision_id: string | null;
+  superseded_by_decision_id: string | null;
+  is_current: boolean;
+  decided_at: string | null;
+};
+
+export type LivingSceneRoom = {
+  room_key: string;
+  room_type: "mission_room" | "evidence_lab" | "board_room" | string;
+  label: string;
+  state: string;
+  metric_label: string;
+  metric_value: number;
+  projection_only: boolean;
+  canonical_basis: string;
+};
+
+export type LivingSceneRelationship = {
+  relationship_key: string;
+  relationship_type: string;
+  source_type: string;
+  source_id: string;
+  target_type: string;
+  target_id: string;
+  canonical_basis: string;
+};
+
+export type LivingSceneDeterministicPlane = {
+  canonical_projection: boolean;
+  authoritative: boolean;
+  employees: LivingSceneEmployee[];
+  work_items: LivingSceneWorkItem[];
+  blockers: LivingSceneBlocker[];
+  decisions: LivingSceneDecision[];
+  rooms: LivingSceneRoom[];
+  relationships: LivingSceneRelationship[];
+};
+
+export type LivingSceneNonCanonicalPlane = {
+  enabled: boolean;
+  canonical_projection: boolean;
+  authoritative: boolean;
+  status: string;
+  items: Record<string, unknown>[];
+};
+
+export type LivingSceneTruthPosture = {
+  canonical_authority: string;
+  scene_authoritative: boolean;
+  renderer_authoritative: boolean;
+  prediction_authoritative: boolean;
+  environmental_authoritative: boolean;
+  scene_mutations_allowed: boolean;
+};
+
+export type LivingOrganizationScene = {
+  contract_version: string;
+  generated_at: string;
+  scope: string;
+  root_work_item_id: string;
+  objective_key: string;
+  deterministic: LivingSceneDeterministicPlane;
+  predictive: LivingSceneNonCanonicalPlane;
+  environmental: LivingSceneNonCanonicalPlane;
+  truth: LivingSceneTruthPosture;
+};
+
+export type LivingOrganizationSceneLatest = {
+  established: boolean;
+  scene: LivingOrganizationScene | null;
+};
+
 export type AustriaOwnerSynthesisCommand = {
   root_work_item_id: string;
   action_output_id: string;
@@ -164,6 +283,14 @@ async function liveRequest<T>(path: string, init?: RequestInit): Promise<T> {
 export async function getLatestAustriaLiveOrganization(): Promise<AustriaLiveOrganizationLatest> {
   return liveRequest<AustriaLiveOrganizationLatest>(
     "/api/v1/organization/transparency/live-organization/austria/latest",
+  );
+}
+
+
+
+export async function getLatestAustriaLivingScene(): Promise<LivingOrganizationSceneLatest> {
+  return liveRequest<LivingOrganizationSceneLatest>(
+    "/api/v1/organization/transparency/live-organization/scene/austria/latest",
   );
 }
 

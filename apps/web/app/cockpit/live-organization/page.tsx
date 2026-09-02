@@ -2,13 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { LivingOrganizationSceneView } from "../../../components/LivingOrganizationScene";
 import { Topbar } from "../../../components/Topbar";
 import { WorkspaceShell } from "../../../components/WorkspaceShell";
 import { useBackendStatus } from "../../../hooks/useBackendStatus";
 import {
   type AustriaLiveOrganizationLatest,
+  type LivingOrganizationSceneLatest,
   LiveOrganizationRequestError,
   getLatestAustriaLiveOrganization,
+  getLatestAustriaLivingScene,
   synthesizeAustriaOwner,
 } from "../../../lib/live-organization";
 import { titleCase } from "../../../lib/utils";
@@ -70,18 +73,36 @@ function errorLabel(error: LiveOrganizationLoadError): string {
 export default function AustriaLiveOrganizationPage() {
   const { health, error: healthError } = useBackendStatus();
   const [latest, setLatest] = useState<AustriaLiveOrganizationLatest | null>(null);
+  const [sceneLatest, setSceneLatest] = useState<LivingOrganizationSceneLatest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<LiveOrganizationLoadError | null>(null);
+  const [sceneError, setSceneError] = useState<LiveOrganizationLoadError | null>(null);
   const [commandSubmitting, setCommandSubmitting] = useState(false);
   const [commandMessage, setCommandMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setSceneError(null);
     try {
-      setLatest(await getLatestAustriaLiveOrganization());
+      const persisted = await getLatestAustriaLiveOrganization();
+      setLatest(persisted);
+      try {
+        setSceneLatest(await getLatestAustriaLivingScene());
+      } catch (sceneLoadError) {
+        setSceneLatest(null);
+        setSceneError(
+          sceneLoadError instanceof LiveOrganizationRequestError
+            ? { status: sceneLoadError.status, message: sceneLoadError.message }
+            : {
+                status: null,
+                message: sceneLoadError instanceof Error ? sceneLoadError.message : "Living Organization scene is unavailable.",
+              },
+        );
+      }
     } catch (loadError) {
       setLatest(null);
+      setSceneLatest(null);
       setError(
         loadError instanceof LiveOrganizationRequestError
           ? { status: loadError.status, message: loadError.message }
@@ -100,6 +121,12 @@ export default function AustriaLiveOrganizationPage() {
   }, [load]);
 
   const snapshot = latest?.snapshot ?? null;
+  const scene = sceneLatest?.scene ?? null;
+  const sceneMismatch = Boolean(
+    snapshot
+    && scene
+    && scene.root_work_item_id !== snapshot.root_work_item_id,
+  );
   const canSynthesize = Boolean(
     snapshot
     && snapshot.root_status === "running"
@@ -161,7 +188,7 @@ export default function AustriaLiveOrganizationPage() {
     ? "offline"
     : loading
       ? "loading"
-      : error || healthError
+      : error || sceneError || sceneMismatch || healthError
         ? "partial"
         : "ready";
 
@@ -187,7 +214,7 @@ export default function AustriaLiveOrganizationPage() {
     <WorkspaceShell health={health}>
       <Topbar
         title="Live Organization"
-        kicker="Global Mobility AIOS Cockpit · Austria L.1"
+        kicker="Global Mobility AIOS Cockpit · M.3 Living Organization Scene Foundation"
         loadStatus={loadStatus}
         onRefresh={() => void load()}
       />
@@ -263,6 +290,26 @@ export default function AustriaLiveOrganizationPage() {
       {commandMessage ? (
         <div className="cockpit-partial-note" role="status">
           <strong>Owner command.</strong><span>{commandMessage}</span>
+        </div>
+      ) : null}
+
+      {sceneError ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Scene projection unavailable.</strong><span>{sceneError.message}</span>
+        </div>
+      ) : null}
+      {sceneMismatch ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Scene projection changed during refresh.</strong>
+          <span>The scene root does not match the current persisted cycle, so the Cockpit does not render mixed canonical states. Refresh to reconcile.</span>
+        </div>
+      ) : null}
+
+      {snapshot && scene && !sceneMismatch ? <LivingOrganizationSceneView scene={scene} /> : null}
+      {snapshot && !scene && !sceneError && !loading ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Scene foundation not established.</strong>
+          <span>The canonical L cycle is available, but no M.3 scene projection was returned. The Cockpit does not synthesize one locally.</span>
         </div>
       ) : null}
 

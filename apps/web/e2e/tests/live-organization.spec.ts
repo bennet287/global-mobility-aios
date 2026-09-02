@@ -2,6 +2,7 @@ import { expect, test, type Page, type Route } from "@playwright/test";
 
 const API_BASE = "http://127.0.0.1:8000";
 const LATEST_PATH = "/api/v1/organization/transparency/live-organization/austria/latest";
+const SCENE_PATH = "/api/v1/organization/transparency/live-organization/scene/austria/latest";
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
 const OWNER_PATH = `/api/v1/organization/live-organization/austria/${ROOT_ID}/owner-synthesis`;
 
@@ -26,6 +27,7 @@ type RecordedRequest = {
 
 type ApiScenario = {
   latest: (call: number) => JsonResult;
+  scene?: (call: number) => JsonResult;
   post?: (call: number) => JsonResult;
   firstLatestDelayMs?: number;
 };
@@ -41,6 +43,7 @@ async function fulfillJson(route: Route, result: JsonResult) {
 async function installApi(page: Page, scenario: ApiScenario) {
   const recorded: RecordedRequest[] = [];
   let latestCalls = 0;
+  let sceneCalls = 0;
   let postCalls = 0;
 
   await page.route(`${API_BASE}/**`, async (route) => {
@@ -66,6 +69,15 @@ async function installApi(page: Page, scenario: ApiScenario) {
       }
       const result = scenario.latest(latestCalls);
       latestCalls += 1;
+      await fulfillJson(route, result);
+      return;
+    }
+
+    if (method === "GET" && url.pathname === SCENE_PATH) {
+      const result = scenario.scene
+        ? scenario.scene(sceneCalls)
+        : { body: { established: false, scene: null } };
+      sceneCalls += 1;
       await fulfillJson(route, result);
       return;
     }
@@ -161,6 +173,173 @@ function readySnapshot() {
   };
 }
 
+
+function livingScene() {
+  return {
+    established: true,
+    scene: {
+      contract_version: "living-organization-scene.v1",
+      generated_at: "2026-09-02T01:30:00Z",
+      scope: "austria_mobility",
+      root_work_item_id: ROOT_ID,
+      objective_key: "austria_rwr_shortage_occupation",
+      deterministic: {
+        canonical_projection: true,
+        authoritative: false,
+        employees: [
+          {
+            position_key: "mobility_operations_lead",
+            title: "Mobility Operations Lead",
+            department: "Global Mobility Operations",
+            reports_to_position_key: "ceo",
+            authority_level: "L2",
+            organization_status: "active",
+            work_item_id: ROOT_ID,
+            work_status: "running",
+            semantic_state: "awaiting_owner",
+            presence_state: "not_asserted",
+            state_reason: "Canonical specialist readiness requires the bounded owner step.",
+          },
+          {
+            position_key: "pathway_operations_specialist",
+            title: "Pathway Operations Specialist",
+            department: "Global Mobility Operations",
+            reports_to_position_key: "mobility_operations_lead",
+            authority_level: "L1",
+            organization_status: "active",
+            work_item_id: "22222222-2222-4222-8222-222222222221",
+            work_status: "completed",
+            semantic_state: "completed",
+            presence_state: "not_asserted",
+            state_reason: "The canonical WorkItem is completed.",
+          },
+          {
+            position_key: "regulatory_intelligence_analyst",
+            title: "Regulatory Intelligence Analyst",
+            department: "Global Mobility Operations",
+            reports_to_position_key: "mobility_operations_lead",
+            authority_level: "L1",
+            organization_status: "active",
+            work_item_id: "22222222-2222-4222-8222-222222222222",
+            work_status: "completed",
+            semantic_state: "completed",
+            presence_state: "not_asserted",
+            state_reason: "The canonical WorkItem is completed.",
+          },
+        ],
+        work_items: [
+          {
+            work_item_id: ROOT_ID,
+            parent_work_item_id: null,
+            title: "Austria mobility objective",
+            objective_key: "austria_rwr_shortage_occupation",
+            phase_key: "J.1",
+            status: "running",
+            priority: "normal",
+            risk_level: "routine",
+            assigned_position_key: "mobility_operations_lead",
+            department: "Global Mobility Operations",
+            authority_level: "L2",
+          },
+          {
+            work_item_id: "22222222-2222-4222-8222-222222222221",
+            parent_work_item_id: ROOT_ID,
+            title: "Pathway analysis",
+            objective_key: "austria_rwr_shortage_occupation",
+            phase_key: "J.1.pathway",
+            status: "completed",
+            priority: "normal",
+            risk_level: "routine",
+            assigned_position_key: "pathway_operations_specialist",
+            department: "Global Mobility Operations",
+            authority_level: "L1",
+          },
+          {
+            work_item_id: "22222222-2222-4222-8222-222222222222",
+            parent_work_item_id: ROOT_ID,
+            title: "Regulatory analysis",
+            objective_key: "austria_rwr_shortage_occupation",
+            phase_key: "J.1.regulatory",
+            status: "completed",
+            priority: "normal",
+            risk_level: "routine",
+            assigned_position_key: "regulatory_intelligence_analyst",
+            department: "Global Mobility Operations",
+            authority_level: "L1",
+          },
+        ],
+        blockers: [],
+        decisions: [],
+        rooms: [
+          {
+            room_key: `mission:${ROOT_ID}`,
+            room_type: "mission_room",
+            label: "austria_rwr_shortage_occupation",
+            state: "ready_for_owner_synthesis",
+            metric_label: "WorkItems",
+            metric_value: 3,
+            projection_only: true,
+            canonical_basis: "OrganizationalWorkItem objective topology",
+          },
+          {
+            room_key: `evidence:${ROOT_ID}`,
+            room_type: "evidence_lab",
+            label: "Evidence Lab",
+            state: "empty",
+            metric_label: "Evidence + VerifiedRules",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Persisted context Evidence and VerifiedRule references",
+          },
+          {
+            room_key: `board:${ROOT_ID}`,
+            room_type: "board_room",
+            label: "Board Room",
+            state: "quiet",
+            metric_label: "Decisions requiring Board attention",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "ExecutiveDecision records linked to scene WorkItems",
+          },
+        ],
+        relationships: [
+          {
+            relationship_key: "assignment-owner",
+            relationship_type: "assigned_to",
+            source_type: "employee",
+            source_id: "mobility_operations_lead",
+            target_type: "work_item",
+            target_id: ROOT_ID,
+            canonical_basis: "OrganizationalWorkItem.assigned_position_key",
+          },
+        ],
+      },
+      predictive: {
+        enabled: false,
+        canonical_projection: false,
+        authoritative: false,
+        status: "reserved_for_m9_phantom_futures",
+        items: [],
+      },
+      environmental: {
+        enabled: false,
+        canonical_projection: false,
+        authoritative: false,
+        status: "reserved_for_m9_environmental_memory",
+        items: [],
+      },
+      truth: {
+        canonical_authority: "AIOS canonical records and accepted projections",
+        scene_authoritative: false,
+        renderer_authoritative: false,
+        prediction_authoritative: false,
+        environmental_authoritative: false,
+        scene_mutations_allowed: false,
+      },
+    },
+  };
+}
+
 function completedSnapshot() {
   return {
     ...readySnapshot(),
@@ -238,6 +417,29 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
   expect(request?.headers["x-gmai-user"]).toBe("frontend-operator");
   expect(request?.headers["content-type"]).toBe("application/json");
 }
+
+
+test("renders M.3 canonical scene planes without inventing presence or authority", async ({ page }) => {
+  const recorded = await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: livingScene() }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  await expect(page.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
+  await expect(page.getByText("M.3 · Canonical scene foundation")).toBeVisible();
+  await expect(page.getByText("Mission Room", { exact: true })).toBeVisible();
+  await expect(page.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Board Room", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Not Asserted", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Reserved for M.9 · disabled", { exact: true })).toHaveCount(2);
+  await expect(page.getByText("three-webgpu", { exact: true })).toBeVisible();
+  await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
+
+  expect(recorded.some((item) => item.method === "GET" && item.path === SCENE_PATH)).toBe(true);
+  expect(recorded.some((item) => item.method === "POST")).toBe(false);
+});
 
 test("shows loading then truthful empty persisted state", async ({ page }) => {
   const recorded = await installApi(page, {

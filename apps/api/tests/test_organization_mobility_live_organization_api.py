@@ -87,6 +87,10 @@ def test_live_organization_latest_is_board_safe_when_not_established(client: Tes
     assert response.status_code == 200
     assert response.json() == {"established": False, "snapshot": None}
 
+    scene = client.get("/api/v1/organization/transparency/live-organization/scene/austria/latest")
+    assert scene.status_code == 200
+    assert scene.json() == {"established": False, "scene": None}
+
 
 def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     client: TestClient,
@@ -126,6 +130,69 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert exact_body["verified_rule_refs"] == []
     assert exact_body["autonomy_profile_state"] is None
 
+    decision = client.post(
+        "/api/v1/organization/decisions/records",
+        json={
+            "decision_key": "m3-scene-board-decision",
+            "decision_type": "board_reserved",
+            "title": "Board review for scene foundation",
+            "question": "Should the bounded internal recommendation advance to Board review?",
+            "recommendation": "Inspect canonical evidence before any external action.",
+            "work_item_id": str(plan.root_work_item.id),
+            "evidence": [{"kind": "scene-test"}],
+        },
+    )
+    assert decision.status_code == 201, decision.text
+
+    scene = client.get("/api/v1/organization/transparency/live-organization/scene/austria/latest")
+    assert scene.status_code == 200, scene.text
+    scene_body = scene.json()
+    assert scene_body["established"] is True
+    projection = scene_body["scene"]
+    assert projection["contract_version"] == "living-organization-scene.v1"
+    assert projection["root_work_item_id"] == str(plan.root_work_item.id)
+    assert projection["objective_key"] == plan.root_work_item.objective_key
+
+    deterministic = projection["deterministic"]
+    assert deterministic["canonical_projection"] is True
+    assert deterministic["authoritative"] is False
+    assert len(deterministic["employees"]) == 3
+    assert len(deterministic["work_items"]) == 3
+    assert {item["presence_state"] for item in deterministic["employees"]} == {"not_asserted"}
+    assert {item["room_type"] for item in deterministic["rooms"]} == {
+        "mission_room",
+        "evidence_lab",
+        "board_room",
+    }
+    board_room = next(item for item in deterministic["rooms"] if item["room_type"] == "board_room")
+    assert board_room["state"] == "attention"
+    assert board_room["metric_value"] == 1
+    assert any(item["relationship_type"] == "assigned_to" for item in deterministic["relationships"])
+    assert any(item["relationship_type"] == "belongs_to" for item in deterministic["relationships"])
+    assert deterministic["decisions"][0]["decision_id"] == decision.json()["id"]
+    assert deterministic["decisions"][0]["is_current"] is True
+
+    assert projection["predictive"] == {
+        "enabled": False,
+        "canonical_projection": False,
+        "authoritative": False,
+        "status": "reserved_for_m9_phantom_futures",
+        "items": [],
+    }
+    assert projection["environmental"] == {
+        "enabled": False,
+        "canonical_projection": False,
+        "authoritative": False,
+        "status": "reserved_for_m9_environmental_memory",
+        "items": [],
+    }
+    assert projection["truth"]["canonical_authority"] == "AIOS canonical records and accepted projections"
+    assert projection["truth"]["scene_authoritative"] is False
+    assert projection["truth"]["renderer_authoritative"] is False
+    assert projection["truth"]["prediction_authoritative"] is False
+    assert projection["truth"]["environmental_authoritative"] is False
+    assert projection["truth"]["scene_mutations_allowed"] is False
+
 
 def test_live_organization_transparency_requires_board_role(
     raw_client: TestClient,
@@ -136,6 +203,8 @@ def test_live_organization_transparency_requires_board_role(
     })
     response = raw_client.get("/api/v1/organization/transparency/live-organization/austria/latest")
     assert response.status_code == 403
+    scene = raw_client.get("/api/v1/organization/transparency/live-organization/scene/austria/latest")
+    assert scene.status_code == 403
 
 
 def test_live_organization_exact_snapshot_missing_root_is_non_disclosing_404(

@@ -174,3 +174,120 @@ class AustriaLiveOrganizationSnapshotRead(TransparencyRead):
 class AustriaLiveOrganizationLatestRead(TransparencyRead):
     established: bool
     snapshot: AustriaLiveOrganizationSnapshotRead | None
+
+
+class LivingSceneEmployeeRead(TransparencyRead):
+    position_key: str
+    title: str
+    department: str
+    reports_to_position_key: str | None
+    authority_level: str
+    organization_status: str
+    work_item_id: UUID | None
+    work_status: str | None
+    semantic_state: str
+    presence_state: str
+    state_reason: str
+
+
+class LivingSceneWorkItemRead(TransparencyRead):
+    work_item_id: UUID
+    parent_work_item_id: UUID | None
+    title: str
+    objective_key: str | None
+    phase_key: str | None
+    status: str
+    priority: str
+    risk_level: str
+    assigned_position_key: str
+    department: str
+    authority_level: str
+
+
+class LivingSceneBlockerRead(TransparencyRead):
+    blocker_id: UUID
+    work_item_id: UUID | None
+    title: str
+    severity: str
+    status: str
+    requires_human_action: bool
+
+
+class LivingSceneDecisionRead(TransparencyRead):
+    decision_id: UUID
+    decision_key: str
+    title: str
+    status: str
+    authority_level: str
+    decision_owner_position: str
+    work_item_id: UUID | None
+    supersedes_decision_id: UUID | None
+    superseded_by_decision_id: UUID | None
+    is_current: bool
+    decided_at: datetime | None
+
+
+class LivingSceneRoomRead(TransparencyRead):
+    room_key: str
+    room_type: str
+    label: str
+    state: str
+    metric_label: str
+    metric_value: int
+    projection_only: bool
+    canonical_basis: str
+
+
+class LivingSceneRelationshipRead(TransparencyRead):
+    relationship_key: str
+    relationship_type: str
+    source_type: str
+    source_id: str
+    target_type: str
+    target_id: str
+    canonical_basis: str
+
+
+class LivingSceneDeterministicPlaneRead(TransparencyRead):
+    canonical_projection: bool
+    authoritative: bool
+    employees: list[LivingSceneEmployeeRead]
+    work_items: list[LivingSceneWorkItemRead]
+    blockers: list[LivingSceneBlockerRead]
+    decisions: list[LivingSceneDecisionRead]
+    rooms: list[LivingSceneRoomRead]
+    relationships: list[LivingSceneRelationshipRead]
+
+
+class LivingSceneNonCanonicalPlaneRead(TransparencyRead):
+    enabled: bool
+    canonical_projection: bool
+    authoritative: bool
+    status: str
+    items: list[dict[str, object]]
+
+
+class LivingSceneTruthPostureRead(TransparencyRead):
+    canonical_authority: str
+    scene_authoritative: bool
+    renderer_authoritative: bool
+    prediction_authoritative: bool
+    environmental_authoritative: bool
+    scene_mutations_allowed: bool
+
+
+class LivingOrganizationSceneRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    deterministic: LivingSceneDeterministicPlaneRead
+    predictive: LivingSceneNonCanonicalPlaneRead
+    environmental: LivingSceneNonCanonicalPlaneRead
+    truth: LivingSceneTruthPostureRead
+
+
+class LivingOrganizationSceneLatestRead(TransparencyRead):
+    established: bool
+    scene: LivingOrganizationSceneRead | None

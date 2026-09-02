@@ -21,6 +21,8 @@ from app.schemas_organization_transparency import (
     AustriaLiveSpecialistRead,
     AustriaOwnerSynthesisRead,
     GovernanceDecisionRead,
+    LivingOrganizationSceneLatestRead,
+    LivingOrganizationSceneRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
     WorkItemTransparencyRead,
@@ -36,6 +38,9 @@ from app.services.organization_autonomy_profile import (
 from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError
 from app.services.organization_mobility_live_diagnostics import (
     austria_live_specialist_runtime_quality,
+)
+from app.services.organization_living_scene import (
+    latest_austria_living_organization_scene,
 )
 from app.services.organization_mobility_live_organization import (
     AustriaLiveOrganizationSnapshot,
@@ -244,6 +249,32 @@ def _live_snapshot_read(
         domain_evidence_refs=list(snapshot.domain_evidence_refs),
         verified_rule_refs=list(snapshot.verified_rule_refs),
     )
+
+
+
+
+@router.get(
+    "/live-organization/scene/austria/latest",
+    response_model=LivingOrganizationSceneLatestRead,
+)
+def read_latest_austria_living_scene(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> LivingOrganizationSceneLatestRead:
+    """Return the canonical M.3 scene projection without granting renderer authority."""
+
+    _require_board(context)
+    try:
+        scene = latest_austria_living_organization_scene(session, tenant_key=context.tenant_key)
+        return LivingOrganizationSceneLatestRead(
+            established=scene is not None,
+            scene=LivingOrganizationSceneRead.model_validate(scene) if scene is not None else None,
+        )
+    except (OrganizationCommandError, TransparencyDataError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Living Organization scene projection is inconsistent.",
+        ) from exc
 
 
 @router.get("/live-organization/austria/latest", response_model=AustriaLiveOrganizationLatestRead)

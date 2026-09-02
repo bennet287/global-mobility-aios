@@ -1,0 +1,370 @@
+/* Living Organization M.3 — spatial scene foundation.
+   This CSS owns layout/geometry only; backend scene semantics remain authoritative. */
+
+.living-scene-shell {
+  margin-top: 18px;
+  padding: clamp(18px, 2.4vw, 30px);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 72% 2%, rgba(94, 104, 208, .19), transparent 34%),
+    linear-gradient(155deg, #171b2e 0%, #0d101a 74%);
+  box-shadow: 0 24px 70px rgba(6, 8, 15, .22);
+}
+
+.living-scene-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.living-scene-header h3 {
+  margin: 7px 0 8px;
+  color: #f6f3eb;
+  font-family: var(--font-editorial);
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 400;
+  letter-spacing: -.035em;
+}
+
+.living-scene-header p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(246,243,235,.61);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.living-scene-contract {
+  min-width: 210px;
+  display: grid;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  background: rgba(255,255,255,.035);
+  text-align: right;
+}
+
+.living-scene-contract span,
+.living-scene-contract small {
+  color: rgba(196,199,242,.62);
+  font-size: 9.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.living-scene-contract strong {
+  color: #f6f3eb;
+  font-size: 12px;
+  font-weight: 660;
+}
+
+.living-scene-planes {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 8px;
+  margin: 18px 0 12px;
+}
+
+.scene-plane {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+}
+
+.scene-plane span {
+  color: rgba(196,199,242,.58);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.scene-plane strong { color: #f6f3eb; font-size: 12px; }
+.scene-plane small { color: rgba(246,243,235,.48); font-size: 10px; }
+.scene-plane.deterministic { border-color: rgba(143, 229, 169, .26); background: rgba(76, 150, 97, .07); }
+.scene-plane.reserved { border-style: dashed; opacity: .62; }
+
+.living-scene-floor {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(220px, .72fr);
+  grid-template-areas:
+    "mission evidence"
+    "mission board"
+    "mission blockers";
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px;
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    rgba(3,5,11,.28);
+  background-size: 28px 28px;
+}
+
+.living-scene-room {
+  position: relative;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 16px;
+  background: rgba(19,23,39,.88);
+}
+
+.living-scene-room > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.living-scene-room > header span {
+  display: block;
+  color: rgba(196,199,242,.62);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.living-scene-room > header strong {
+  display: block;
+  margin-top: 3px;
+  color: #f6f3eb;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.living-scene-room > header small {
+  color: rgba(246,243,235,.48);
+  font-size: 9.5px;
+  text-align: right;
+}
+
+.mission-room { grid-area: mission; min-height: 440px; }
+.evidence-room { grid-area: evidence; }
+.board-room { grid-area: board; }
+.blocker-room { grid-area: blockers; }
+.board-room.attention { border-color: rgba(244, 192, 92, .36); box-shadow: inset 0 0 28px rgba(244, 192, 92, .06); }
+
+.living-scene-employee-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.living-scene-employee {
+  position: relative;
+  min-height: 166px;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  grid-template-areas:
+    "avatar person"
+    "work work"
+    "truth truth";
+  gap: 8px 10px;
+  padding: 13px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(37,43,68,.92), rgba(17,20,32,.92));
+}
+
+.living-scene-employee.state-working { border-color: rgba(120, 200, 255, .27); }
+.living-scene-employee.state-awaiting_owner { border-color: rgba(244, 192, 92, .31); }
+.living-scene-employee.state-blocked { border-color: rgba(244, 111, 111, .35); }
+.living-scene-employee.state-completed { border-color: rgba(143, 229, 169, .22); }
+
+.scene-avatar {
+  grid-area: avatar;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 14px 14px 10px 10px;
+  color: #f6f3eb;
+  background: linear-gradient(145deg, rgba(123,132,235,.34), rgba(69,75,135,.18));
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.scene-employee-copy { grid-area: person; min-width: 0; }
+.scene-employee-copy span,
+.scene-work-chip span,
+.scene-truth-row span {
+  display: block;
+  color: rgba(196,199,242,.58);
+  font-size: 8.5px;
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.scene-employee-copy strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #f6f3eb;
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.scene-employee-copy small { color: rgba(246,243,235,.5); font-size: 9.5px; }
+
+.scene-work-chip {
+  grid-area: work;
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,.16);
+}
+
+.scene-work-chip strong {
+  display: block;
+  margin: 2px 0;
+  overflow: hidden;
+  color: rgba(246,243,235,.84);
+  font-size: 10.5px;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-work-chip small { color: rgba(246,243,235,.45); font-size: 9px; }
+
+.scene-truth-row {
+  grid-area: truth;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255,255,255,.055);
+}
+.scene-truth-row span { display: inline; }
+.scene-truth-row strong { color: rgba(246,243,235,.56); font-size: 9.5px; font-weight: 620; }
+
+.scene-blocker-badge {
+  position: absolute;
+  right: 9px;
+  top: 9px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #ffd3d3;
+  background: rgba(164,54,54,.42);
+  font-size: 8.5px;
+  font-weight: 750;
+}
+
+.mission-room > footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  color: rgba(246,243,235,.45);
+  font-size: 9.5px;
+}
+
+.scene-room-metric {
+  display: grid;
+  gap: 1px;
+  padding: 4px 0 8px;
+}
+
+.scene-room-metric strong {
+  color: #f6f3eb;
+  font-family: var(--font-editorial);
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.scene-room-metric span { color: rgba(246,243,235,.46); font-size: 9.5px; }
+.living-scene-room > p { margin: 3px 0 0; color: rgba(246,243,235,.49); font-size: 10.5px; line-height: 1.45; }
+
+.scene-decision-list,
+.scene-blocker-list { display: grid; gap: 7px; }
+
+.scene-decision-list > div,
+.scene-blocker-list > div {
+  padding: 8px 9px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.035);
+}
+
+.scene-decision-list span,
+.scene-blocker-list span { display: block; color: rgba(196,199,242,.58); font-size: 8px; text-transform: uppercase; }
+.scene-decision-list strong,
+.scene-blocker-list strong { display: block; margin: 2px 0; color: rgba(246,243,235,.83); font-size: 10px; }
+.scene-decision-list small,
+.scene-blocker-list small { color: rgba(246,243,235,.43); font-size: 8.5px; }
+
+.living-scene-truth {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.living-scene-truth > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.living-scene-truth span {
+  display: block;
+  color: rgba(196,199,242,.56);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.living-scene-truth strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: rgba(246,243,235,.72);
+  font-size: 10px;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .living-scene-header { flex-direction: column; }
+  .living-scene-contract { width: 100%; text-align: left; }
+  .living-scene-planes { grid-template-columns: 1fr; }
+  .living-scene-floor {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "mission mission"
+      "evidence board"
+      "blockers blockers";
+  }
+  .living-scene-truth { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 660px) {
+  .living-scene-floor {
+    grid-template-columns: 1fr;
+    grid-template-areas: "mission" "evidence" "board" "blockers";
+  }
+  .living-scene-employee-grid { grid-template-columns: 1fr; }
+  .living-scene-truth { grid-template-columns: 1fr; }
+}

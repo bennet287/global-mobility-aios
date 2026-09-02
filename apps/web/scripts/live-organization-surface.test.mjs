@@ -5,10 +5,13 @@ import { test } from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("Austria Live Organization Cockpit surface is persisted, bounded, and explicit about proof gaps", async () => {
-  const [page, api, navigation] = await Promise.all([
+  const [page, api, navigation, sceneComponent, sceneRenderer, cockpitLayout] = await Promise.all([
     read("app/cockpit/live-organization/page.tsx"),
     read("lib/live-organization.ts"),
     read("lib/workspace-navigation.ts"),
+    read("components/LivingOrganizationScene.tsx"),
+    read("lib/living-organization-scene-renderer.ts"),
+    read("app/cockpit/layout.tsx"),
   ]);
 
   assert.match(navigation, /label: "Live Organization", href: "\/cockpit\/live-organization"/);
@@ -60,4 +63,23 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /createApiFetch\(CLIENT_API_CONFIG\)/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/austria\/latest/);
   assert.match(api, /\/api\/v1\/organization\/live-organization\/austria\/\$\{encodeURIComponent\(rootWorkItemId\)\}\/owner-synthesis/);
+
+  assert.match(page, /getLatestAustriaLivingScene/);
+  assert.match(page, /LivingOrganizationSceneView/);
+  assert.match(page, /scene\.root_work_item_id !== snapshot\.root_work_item_id/);
+  assert.match(page, /does not render mixed canonical states/);
+  assert.match(page, /does not synthesize one locally/);
+  assert.match(api, /export type LivingOrganizationScene/);
+  assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/scene\/austria\/latest/);
+  assert.match(sceneComponent, /M\.3 · Canonical scene foundation/);
+  assert.match(sceneComponent, /data-scene-plane="deterministic"/);
+  assert.match(sceneComponent, /Presence/);
+  assert.match(sceneComponent, /scene\.predictive\.enabled/);
+  assert.match(sceneComponent, /scene\.environmental\.enabled/);
+  assert.match(sceneComponent, /scene\.truth\.renderer_authoritative/);
+  assert.match(sceneRenderer, /LIVING_SCENE_RENDERER_TARGET = "three-webgpu"/);
+  assert.match(sceneRenderer, /sceneAuthoritative: false/);
+  assert.doesNotMatch(sceneRenderer, /Math\.random|setInterval|fetch\(/);
+  assert.match(cockpitLayout, /living-scene\.css/);
+
 });
