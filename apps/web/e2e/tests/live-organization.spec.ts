@@ -890,5 +890,5 @@ test("M.4.1 animates canonical work state without inventing presence or locomoti
   await expect(canvas).toHaveAttribute("data-presence-claimed", "false");
   await expect(canvas).toHaveAttribute("data-presentation-modes", /focused_work/);
   await expect(canvas).toHaveAttribute("data-animation-proof", "motion-observed", { timeout: 5_000 });
-  await expect(page.getByText(/Presence and locomotion are not asserted in M\.4\.1/)).toBeVisible();
+  await expect(page.getByText(/M\.4\.1 motion discipline is preserved: presence and locomotion are not asserted/)).toBeVisible();
 });
