@@ -26,6 +26,10 @@ test("renderer selection exposes only viewable fields", () => {
   assert.equal(Object.isFrozen(selection), true);
   assert.equal(isLivingSceneSelection(selection), true);
   assert.equal(
+    isLivingSceneSelection(createLivingSceneSelection("smart_object", "owner-inbox:test", "Owner Inbox")),
+    true,
+  );
+  assert.equal(
     isLivingSceneSelection({ ...selection, authority_level: "L5" }),
     false,
   );
