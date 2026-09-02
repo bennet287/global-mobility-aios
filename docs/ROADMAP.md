@@ -1145,6 +1145,69 @@ M.8.2 adds no migration, no historical backfill, no synthetic interpolation, no 
 
 The next M.8 slice is temporal comparison/diff: compare two proven M.8.2 Activity-cursor projections to answer “what changed?” without independently reconstructing another history model.
 
+### M.8.3 — Temporal State Comparison / Diff V1 — COMPLETE / PASS
+
+M.8.3 is accepted on exact integrated implementation head `940fbc173ced8928aef784eb4ab7466c6088d72b`, composed directly on sealed M.8.2 closure head `0643c63dcfd1785b17509b0b787099b1319e848a`.
+
+~~~text
+Repository Policy Check #610 / run 33659495879   PASS
+V12 Production Proof #1236 / run 33659495840     PASS — 5/5 jobs
+Backend regression (SQLite)                       1344 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                12/12 passed
+~~~
+
+M.8.3 adds a separate read-only temporal comparison contract. It does not independently reconstruct history; both sides of the comparison are proven `organization-replay-state.v1` projections produced by M.8.2.
+
+~~~text
+Activity cursor A                         Activity cursor B
+       ↓                                         ↓
+M.8.2 as-of reconstruction A             M.8.2 as-of reconstruction B
+       └──────────────────────┬──────────────────┘
+                              ↓
+             organization-replay-state-diff.v1
+                              ↓
+                   supported semantic deltas
+~~~
+
+The comparison reports only supported projection differences for WorkItems, blockers, decisions, HumanActionRequests and conversation lifecycle. Entity deltas are bounded to `added`, `removed` and `changed`; changed entities expose the supported semantic fields whose reconstructed values differ.
+
+`added` and `removed` describe membership differences between the two reconstructed projections. They do not manufacture creation/deletion semantics where persisted Activity history cannot prove them.
+
+Permanent M.8.3 invariants are:
+
+~~~text
+comparison_basis          = two_organization_replay_state_v1_projections
+canonical_projection      = true
+authoritative             = false
+mutations_allowed         = false
+unchanged_entities_omitted = true
+~~~
+
+Unsupported historical dimensions propagate from M.8.2 and remain explicit rather than being inferred:
+
+~~~text
+RiskEscalation history
+SourceSnapshot history
+conversation transcript content
+historical deadline projection
+historical evidence-content state
+~~~
+
+The Cockpit adds `Set compare start` and `Compare from start` on persisted replay Activities. The resulting view answers “what changed?” while preserving the existing `Inspect state here` path and zero canonical mutation.
+
+A strong identity invariant proves:
+
+~~~text
+diff(cursor A, cursor A)
+→ changed_entity_count = 0
+→ no supported deltas
+~~~
+
+M.8.3 adds no migration, no mutation endpoint, no second timeline, no independent history store, no browser-clock historical truth and no interpolation of unsupported state.
+
+M.8 Replay / temporal organization is now complete through canonical replay, bounded as-of reconstruction and two-cursor temporal comparison.
+
 ---
 
 ## 5.8 M.9 — Environmental memory TRIAL + bounded future-state experiments
@@ -1356,11 +1419,11 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1–M.7.4 SEALED; M.8.1–M.8.2 COMPLETE / PASS; M.8.3 TEMPORAL DIFF IN PROGRESS; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.9–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1–M.7.4 SEALED; M.8 COMPLETE / PASS; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.9–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 
-L is sealed. M.1–M.7.4 and M.8.1–M.8.2 are sealed. The M.7.4 GPU FLOW representation remains TRIAL / NOT PROMOTED / BENCHMARK PENDING. M.8 Replay / temporal organization continues with temporal comparison/diff between proven Activity-cursor reconstructions, followed by M.9 environmental memory / bounded future-state experiments and M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
+L is sealed. M.1–M.8 are sealed. The M.7.4 GPU FLOW representation remains TRIAL / NOT PROMOTED / BENCHMARK PENDING. M.9 environmental memory / bounded future-state experiments are next, followed by M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
 
 ## 8. Historical compatibility anchors
 
