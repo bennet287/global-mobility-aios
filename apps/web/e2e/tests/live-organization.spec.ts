@@ -4,6 +4,7 @@ const API_BASE = "http://127.0.0.1:8000";
 const LATEST_PATH = "/api/v1/organization/transparency/live-organization/austria/latest";
 const SCENE_PATH = "/api/v1/organization/transparency/live-organization/scene/austria/latest";
 const REPLAY_PATH = "/api/v1/organization/transparency/live-organization/replay/austria/latest";
+const ENVIRONMENTAL_MEMORY_PATH = "/api/v1/organization/transparency/live-organization/environmental-memory/austria/latest";
 const REPLAY_STATE_PREFIX = `${REPLAY_PATH}/state/`;
 const REPLAY_DIFF_PREFIX = `${REPLAY_PATH}/diff/`;
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
@@ -36,6 +37,7 @@ type ApiScenario = {
   latest: (call: number) => JsonResult;
   scene?: (call: number) => JsonResult;
   replay?: (call: number) => JsonResult;
+  environmentalMemory?: (call: number) => JsonResult;
   replayState?: (activityId: string, call: number) => JsonResult;
   replayDiff?: (fromActivityId: string, toActivityId: string, call: number) => JsonResult;
   post?: (call: number) => JsonResult;
@@ -55,6 +57,7 @@ async function installApi(page: Page, scenario: ApiScenario) {
   let latestCalls = 0;
   let sceneCalls = 0;
   let replayCalls = 0;
+  let environmentalMemoryCalls = 0;
   let replayStateCalls = 0;
   let replayDiffCalls = 0;
   let postCalls = 0;
@@ -100,6 +103,15 @@ async function installApi(page: Page, scenario: ApiScenario) {
         ? scenario.replay(replayCalls)
         : { body: { established: false, replay: null } };
       replayCalls += 1;
+      await fulfillJson(route, result);
+      return;
+    }
+
+    if (method === "GET" && url.pathname === ENVIRONMENTAL_MEMORY_PATH) {
+      const result = scenario.environmentalMemory
+        ? scenario.environmentalMemory(environmentalMemoryCalls)
+        : { body: { established: false, memory: null } };
+      environmentalMemoryCalls += 1;
       await fulfillJson(route, result);
       return;
     }
@@ -509,6 +521,91 @@ function replayDiffProjection(fromActivityId: string, toActivityId: string) {
         },
       },
     ],
+  };
+}
+
+function environmentalMemoryProjection() {
+  return {
+    established: true,
+    memory: {
+      contract_version: "organization-environmental-memory.v1",
+      generated_at: "2026-09-02T01:33:00Z",
+      scope: "austria_mobility_latest_replay_window_environmental_memory",
+      root_work_item_id: ROOT_ID,
+      objective_key: "austria_rwr_shortage_occupation",
+      source_contract_version: "organization-replay.v1",
+      canonical_projection: true,
+      authoritative: false,
+      predictive: false,
+      mutations_allowed: false,
+      visualization_only: true,
+      window_event_count: 4,
+      window_start: "2026-09-02T00:00:00Z",
+      window_end: "2026-09-02T00:30:00Z",
+      coverage: {
+        activity_history_basis: "explicit_activity_coverage_epoch",
+        activity_history_established: true,
+        activity_history_coverage_start: "2026-09-02T00:05:00Z",
+        pre_epoch_history: "partial_no_backfill",
+        bounded_replay_window: "sealed_organization_replay_v1_returned_window",
+        replay_truncated: false,
+        path_history: "organization.work.assigned.v1_semantic_activity_in_replay_window",
+      },
+      kind_aggregates: [
+        { event_kind: "work", event_count: 2 },
+        { event_kind: "conversation", event_count: 1 },
+        { event_kind: "handoff", event_count: 1 },
+      ],
+      path_frequencies: [
+        {
+          previous_position_key: "mobility_operations_lead",
+          assigned_position_key: "pathway_operations_specialist",
+          handoff_count: 1,
+          work_item_count: 1,
+          first_occurred_at: "2026-09-02T00:30:00Z",
+          last_occurred_at: "2026-09-02T00:30:00Z",
+          coverage_state: "covered",
+        },
+      ],
+      heat_cells: [
+        {
+          department: "Global Mobility Operations",
+          event_kind: "work",
+          event_count: 2,
+          covered_event_count: 1,
+        },
+        {
+          department: "Global Mobility Operations",
+          event_kind: "handoff",
+          event_count: 1,
+          covered_event_count: 1,
+        },
+        {
+          department: "Global Mobility Operations",
+          event_kind: "conversation",
+          event_count: 1,
+          covered_event_count: 1,
+        },
+      ],
+      timeline: [
+        {
+          bucket_start: "2026-09-02T00:00:00Z",
+          event_count: 4,
+          handoff_count: 1,
+          blocker_count: 0,
+          decision_count: 0,
+          conversation_count: 1,
+          coverage_state: "pre_epoch_partial",
+        },
+      ],
+      unsupported_dimensions: [
+        "risk_escalation_history",
+        "source_snapshot_history",
+        "conversation_transcript",
+        "future_state_prediction_v1",
+        "reaction_diffusion_signal_v1",
+      ],
+    },
   };
 }
 
@@ -1194,6 +1291,7 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: livingScene() }),
     replay: () => ({ body: replayProjection() }),
+    environmentalMemory: () => ({ body: environmentalMemoryProjection() }),
     replayState: (activityId) => ({ body: replayStateProjection(activityId) }),
     replayDiff: (fromActivityId, toActivityId) => ({ body: replayDiffProjection(fromActivityId, toActivityId) }),
   });
@@ -1250,9 +1348,26 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     expect(comparison).toContainText("Unchanged entities are omitted"),
   ]);
 
+
+  const memory = page.locator(".living-environmental-memory");
+  await Promise.all([
+    expect(memory.getByRole("heading", { name: "Historical routing & activity memory" })).toBeVisible(),
+    expect(memory.getByText("M.9.1 · Structured Environmental Memory Baseline", { exact: true })).toBeVisible(),
+    expect(memory).toHaveAttribute("data-environmental-authoritative", "false"),
+    expect(memory).toHaveAttribute("data-environmental-predictive", "false"),
+    expect(memory).toHaveAttribute("data-environmental-mutates-work", "false"),
+    expect(memory).toHaveAttribute("data-environmental-canonical-projection", "true"),
+    expect(memory.locator("[data-environmental-path]")).toHaveCount(1),
+    expect(memory).toContainText("mobility operations lead → pathway operations specialist"),
+    expect(memory).toContainText("Prediction: none"),
+    expect(memory).toContainText("future_state_prediction_v1"),
+    expect(memory).toContainText("not a new truth store"),
+  ]);
+
   expect(recorded.some((item) => item.method === "GET" && item.path === REPLAY_PATH)).toBe(true);
   expect(recorded.some((item) => item.method === "GET" && item.path === `${REPLAY_STATE_PREFIX}${HANDOFF_ACTIVITY_ID}`)).toBe(true);
   expect(recorded.some((item) => item.method === "GET" && item.path === `${REPLAY_DIFF_PREFIX}${comparisonStartId}/${HANDOFF_ACTIVITY_ID}`)).toBe(true);
+  expect(recorded.some((item) => item.method === "GET" && item.path === ENVIRONMENTAL_MEMORY_PATH)).toBe(true);
   expect(recorded.some((item) => item.method === "POST")).toBe(false);
 });
 
