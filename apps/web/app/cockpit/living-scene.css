@@ -142,6 +142,8 @@
   grid-template-areas:
     "mission evidence"
     "mission board"
+    "mission owner"
+    "mission risks"
     "mission blockers";
   gap: 10px;
   padding: 12px;
@@ -197,6 +199,8 @@
 .mission-room { grid-area: mission; min-height: 440px; }
 .evidence-room { grid-area: evidence; }
 .board-room { grid-area: board; }
+.owner-room { grid-area: owner; }
+.risk-room { grid-area: risks; }
 .blocker-room { grid-area: blockers; }
 .board-room.attention { border-color: rgba(244, 192, 92, .36); box-shadow: inset 0 0 28px rgba(244, 192, 92, .06); }
 
@@ -482,6 +486,10 @@
 
 .living-scene-smart-strip small { color: rgba(246,243,235,.46); font-size: 8.5px; }
 .living-scene-smart-strip p { margin: 4px 0 0; color: rgba(246,243,235,.38); font-size: 8px; line-height: 1.4; }
+.living-scene-smart-strip > article[data-smart-object-state="unavailable"] {
+  opacity: .58;
+  border-style: dashed;
+}
 
 .living-scene-truth {
   display: grid;
