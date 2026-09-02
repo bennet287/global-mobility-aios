@@ -5,12 +5,13 @@ import { test } from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("Austria Live Organization Cockpit surface is persisted, bounded, and explicit about proof gaps", async () => {
-  const [page, api, navigation, sceneComponent, replayComponent, sceneRenderer, lensModel, analytics, cockpitLayout] = await Promise.all([
+  const [page, api, navigation, sceneComponent, replayComponent, environmentalMemoryComponent, sceneRenderer, lensModel, analytics, cockpitLayout] = await Promise.all([
     read("app/cockpit/live-organization/page.tsx"),
     read("lib/live-organization.ts"),
     read("lib/workspace-navigation.ts"),
     read("components/LivingOrganizationScene.tsx"),
     read("components/LivingOrganizationReplayTimeline.tsx"),
+    read("components/LivingOrganizationEnvironmentalMemory.tsx"),
     read("lib/living-organization-scene-renderer.ts"),
     read("lib/living-organization-lenses.ts"),
     read("lib/living-organization-analytics.ts"),
@@ -103,9 +104,17 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /export type OrganizationReplayStateDiff/);
   assert.match(api, /getLatestAustriaOrganizationReplayStateDiff/);
   assert.match(api, /replay\/austria\/latest\/diff/);
+  assert.match(api, /export type OrganizationEnvironmentalMemory/);
+  assert.match(api, /export type OrganizationEnvironmentalMemoryLatest/);
+  assert.match(api, /getLatestAustriaOrganizationEnvironmentalMemory/);
+  assert.match(api, /environmental-memory\/austria\/latest/);
   assert.match(page, /LivingOrganizationReplayTimeline/);
   assert.match(page, /replay\.root_work_item_id !== snapshot\.root_work_item_id/);
   assert.match(page, /does not reconstruct history locally/);
+  assert.match(page, /LivingOrganizationEnvironmentalMemory/);
+  assert.match(page, /getLatestAustriaOrganizationEnvironmentalMemory/);
+  assert.match(page, /environmentalMemory\.root_work_item_id !== snapshot\.root_work_item_id/);
+  assert.match(page, /does not fabricate routing memory locally/);
   assert.match(replayComponent, /M\.8\.3 · Temporal State Comparison \/ Diff V1/);
   assert.match(replayComponent, /OrganizationActivity is the replay source/);
   assert.match(replayComponent, /Reconstruction uses semantic transition payloads only/);
@@ -125,6 +134,18 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(replayComponent, /unsupported_dimensions\.join/);
   assert.match(replayComponent, /RiskEscalation records and SourceSnapshot references are not/);
   assert.doesNotMatch(replayComponent, /fetch\(|XMLHttpRequest|Math\.random|setInterval/);
+  assert.match(environmentalMemoryComponent, /M\.9\.1 · Structured Environmental Memory Baseline/);
+  assert.match(environmentalMemoryComponent, /Historical routing & activity memory/);
+  assert.match(environmentalMemoryComponent, /data-environmental-authoritative/);
+  assert.match(environmentalMemoryComponent, /data-environmental-predictive/);
+  assert.match(environmentalMemoryComponent, /data-environmental-mutates-work/);
+  assert.match(environmentalMemoryComponent, /data-environmental-canonical-projection/);
+  assert.match(environmentalMemoryComponent, /data-environmental-path/);
+  assert.match(environmentalMemoryComponent, /data-environmental-heat/);
+  assert.match(environmentalMemoryComponent, /data-environmental-bucket/);
+  assert.match(environmentalMemoryComponent, /Prediction: none/);
+  assert.match(environmentalMemoryComponent, /not a new truth store/);
+  assert.doesNotMatch(environmentalMemoryComponent, /fetch\(|XMLHttpRequest|Math\.random|setInterval/);
   assert.match(sceneComponent, /M\.7\.4 · GPU FLOW field TRIAL · Iteration 1/);
   assert.match(sceneComponent, /data-active-lens=\{activeLens\}/);
   assert.match(sceneComponent, /buildStructuredFlowBaseline/);
