@@ -36,6 +36,14 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(adapter, /rendererActiveMounts = "0"/);
   assert.match(adapter, /canvasLease\.release\(\)/);
   assert.match(adapter, /updateModel: \(model: LivingSceneRenderModel\) => void/);
+  assert.match(adapter, /setFlowTrialEnabled: \(enabled: boolean\) => void/);
+  assert.match(adapter, /flowTrialEnabled = false/);
+  assert.match(adapter, /flowTrialGroup\.visible = enabled/);
+  assert.match(adapter, /flowTrialPromotionStatus/);
+  assert.match(adapter, /flowTrialMutatesWork/);
+  assert.match(adapter, /flowTrialThroughputClaimed/);
+  assert.match(adapter, /flowTrialDependencyClaimed/);
+  assert.match(adapter, /addFlowTrialProjection/);
   assert.match(adapter, /const clearProjection = \(\) =>/);
   assert.match(adapter, /rendererModelRevision/);
   assert.match(adapter, /rendererProjectionResources/);
@@ -51,7 +59,9 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(rendererComponent, /data-selection-authority="none"/);
   assert.match(rendererComponent, /data-active-lens=\{activeLens\}/);
   assert.match(rendererComponent, /lens\/query command can bypass AIOS governance/);
-  assert.match(rendererComponent, /GPU fluid\/field is not implemented or promoted/);
+  assert.match(rendererComponent, /default-off derived presentation/);
+  assert.match(rendererComponent, /not promoted/);
+  assert.match(rendererComponent, /does not claim\s*throughput or dependency truth/);
   assert.match(rendererComponent, /controller\.updateModel\(renderModel\)/);
   assert.match(rendererComponent, /useEffect\(\(\) => \{/);
   assert.match(sceneComponent, /LivingOrganizationWebGPUScene/);
@@ -90,7 +100,7 @@ test("M.4.1 employee animation consumes bounded presentation state", async () =>
   assert.match(adapter, /employeeActors = \[\]/);
   assert.doesNotMatch(adapter, /conversation_state|handoff_state|walking_state|room_entry_state/);
 
-  assert.match(rendererComponent, /M\.7\.3 · Lenses \+ evidence\/supersession queries/);
+  assert.match(rendererComponent, /M\.7\.4 · GPU FLOW field TRIAL · Iteration 1/);
   assert.match(rendererComponent, /M\.4\.1 motion discipline is preserved/);
   assert.match(adapter, /smartObjectCount/);
   assert.match(adapter, /createLivingSceneSelection\("smart_object"/);

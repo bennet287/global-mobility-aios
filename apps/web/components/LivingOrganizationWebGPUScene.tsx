@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
 import type { LivingOrganizationLensKey } from "../lib/living-organization-lenses";
+import { FLOW_FIELD_TRIAL_GATES } from "../lib/living-organization-flow-trial";
 import type {
   LivingSceneRendererBackend,
   LivingSceneRendererController,
@@ -33,6 +34,7 @@ export function LivingOrganizationWebGPUScene({
   const [backend, setBackend] = useState<LivingSceneRendererBackend | null>(null);
   const [selection, setSelection] = useState<LivingSceneSelection | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [flowTrialEnabled, setFlowTrialEnabled] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -64,6 +66,7 @@ export function LivingOrganizationWebGPUScene({
         if (latestModelRef.current !== initialModel) {
           mounted.updateModel(latestModelRef.current);
         }
+        mounted.setFlowTrialEnabled(false);
         setBackend(mounted.rendererBackend);
         setPhase("ready");
       } catch (error) {
@@ -96,6 +99,11 @@ export function LivingOrganizationWebGPUScene({
     }
   }, [renderModel]);
 
+  useEffect(() => {
+    const enabled = activeLens === "flow" && flowTrialEnabled;
+    controllerRef.current?.setFlowTrialEnabled(enabled);
+  }, [activeLens, flowTrialEnabled]);
+
   return (
     <section
       className="living-webgpu-stage"
@@ -107,7 +115,7 @@ export function LivingOrganizationWebGPUScene({
     >
       <header>
         <div>
-          <span>M.7.3 · Lenses + evidence/supersession queries</span>
+          <span>M.7.4 · GPU FLOW field TRIAL · Iteration 1</span>
           <strong id="living-webgpu-title">Living spatial organization</strong>
         </div>
         <small>{phase === "ready" ? backendLabel(backend) : phase} · {activeLens.replaceAll("_", " ")} lens</small>
@@ -126,6 +134,56 @@ export function LivingOrganizationWebGPUScene({
           <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS.</small>
         </div>
       </div>
+      {activeLens === "flow" ? (
+        <section
+          className="living-flow-trial-console"
+          aria-labelledby="living-flow-trial-title"
+          data-flow-trial-promotion={renderModel.flowTrial.promotionStatus}
+          data-flow-trial-default-prominence={String(renderModel.flowTrial.defaultProminence)}
+        >
+          <header>
+            <div>
+              <span>TRIAL · Iteration 1 · not promoted</span>
+              <strong id="living-flow-trial-title">GPU-rendered FLOW streamline field</strong>
+            </div>
+            <small>{backendLabel(backend)} · benchmark required</small>
+          </header>
+          <div className="living-flow-trial-controls" role="group" aria-label="FLOW representation comparison">
+            <button
+              type="button"
+              aria-pressed={!flowTrialEnabled}
+              onClick={() => setFlowTrialEnabled(false)}
+            >
+              Structured baseline only
+            </button>
+            <button
+              type="button"
+              aria-pressed={flowTrialEnabled}
+              onClick={() => setFlowTrialEnabled(true)}
+              disabled={phase !== "ready"}
+            >
+              Enable GPU field trial
+            </button>
+          </div>
+          <div className="living-flow-trial-metrics">
+            <div><strong>{renderModel.flowTrial.nodes.length}</strong><span>seeded WorkItems</span></div>
+            <div><strong>{renderModel.flowTrial.paths.length}</strong><span>topology paths</span></div>
+            <div><strong>{renderModel.flowTrial.dominantDerivedPathKey ? "1" : "0"}</strong><span>derived dominant cue</span></div>
+            <div><strong>0</strong><span>authority paths</span></div>
+          </div>
+          <p>
+            {renderModel.flowTrial.formula}. Animation is orientation/presentation only; it does not claim throughput,
+            dependency, employee movement, or work routing authority.
+          </p>
+          <div className="living-flow-trial-gates">
+            <span>Promotion blocked until benchmark evidence clears:</span>
+            <small>≥{FLOW_FIELD_TRIAL_GATES.medianTimeImprovementPct}% faster median correct answer OR ≥{FLOW_FIELD_TRIAL_GATES.errorRateImprovementPct}% fewer errors</small>
+            <small>≥{FLOW_FIELD_TRIAL_GATES.ordinaryFps} FPS ordinary · ≥{FLOW_FIELD_TRIAL_GATES.sustainedFpsFloor} FPS floor · p95 feedback ≤{FLOW_FIELD_TRIAL_GATES.p95FeedbackMs}ms</small>
+            <small>≥{FLOW_FIELD_TRIAL_GATES.mainThreadComputeImprovementPct}% main-thread compute improvement OR capability that the control cannot sustain above the FPS floor</small>
+          </div>
+          <footer>{renderModel.flowTrial.canonicalBasis}</footer>
+        </section>
+      ) : null}
       {phase === "unavailable" ? (
         <div className="living-webgpu-fallback" role="status">
           <strong>Spatial renderer unavailable.</strong>
@@ -134,9 +192,9 @@ export function LivingOrganizationWebGPUScene({
       ) : null}
       <p className="living-webgpu-accessibility">
         Employee motion remains presentation-only workspace motion derived from canonical semantic state.
-        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. M.7.3 lenses change local
-        view emphasis only over canonical projections. The maintained structured FLOW baseline remains outside renderer
-        authority; GPU fluid/field is not implemented or promoted, and no lens/query command can bypass AIOS governance.
+        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. The M.7.4 FLOW field is a
+        default-off derived presentation over the maintained Structured FLOW baseline. It is not promoted, does not claim
+        throughput or dependency truth, cannot mutate work, and no lens/query/trial control can bypass AIOS governance.
         The Structured Cockpit remains available for every core operation.
       </p>
     </section>

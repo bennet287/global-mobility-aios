@@ -958,6 +958,45 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
   expect(recorded.some((item) => item.method === "POST")).toBe(false);
 });
 
+test("M.7 FLOW field trial defaults off, stays derived, and cannot mutate AIOS", async ({ page }) => {
+  const recorded = await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: analyticalScene() }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  const sceneSurface = page.locator(".living-scene-shell");
+  await sceneSurface.getByRole("button", { name: "Show routing flow" }).click();
+
+  const stage = sceneSurface.locator(".living-webgpu-stage");
+  await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+  const trial = stage.locator(".living-flow-trial-console");
+  const canvas = stage.locator('[data-testid="living-webgpu-canvas"]');
+
+  await Promise.all([
+    expect(trial).toHaveAttribute("data-flow-trial-promotion", "benchmark_required"),
+    expect(trial).toHaveAttribute("data-flow-trial-default-prominence", "false"),
+    expect(trial.getByText("TRIAL · Iteration 1 · not promoted", { exact: true })).toBeVisible(),
+    expect(sceneSurface.getByText("FLOW · maintained structured baseline", { exact: true })).toBeVisible(),
+    expect(canvas).toHaveAttribute("data-flow-trial-enabled", "false"),
+    expect(canvas).toHaveAttribute("data-flow-trial-promotion-status", "benchmark_required"),
+    expect(canvas).toHaveAttribute("data-flow-trial-mutates-work", "false"),
+    expect(canvas).toHaveAttribute("data-flow-trial-throughput-claimed", "false"),
+    expect(canvas).toHaveAttribute("data-flow-trial-dependency-claimed", "false"),
+    expect(canvas).toHaveAttribute("data-flow-trial-node-count", "3"),
+    expect(canvas).toHaveAttribute("data-flow-trial-path-count", "2"),
+    expect(canvas).toHaveAttribute("data-flow-trial-particle-count", "8"),
+  ]);
+
+  await trial.getByRole("button", { name: "Enable GPU field trial" }).click();
+  await expect(canvas).toHaveAttribute("data-flow-trial-enabled", "true");
+  await trial.getByRole("button", { name: "Structured baseline only" }).click();
+  await expect(canvas).toHaveAttribute("data-flow-trial-enabled", "false");
+
+  expect(recorded.some((item) => item.method === "POST")).toBe(false);
+});
+
 test("shows loading then truthful empty persisted state", async ({ page }) => {
   const recorded = await installApi(page, {
     firstLatestDelayMs: 400,

@@ -88,14 +88,14 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
     <section className="living-scene-shell" aria-labelledby="living-scene-title" data-active-lens={activeLens}>
       <header className="living-scene-header">
         <div>
-          <span className="premium-label">M.7.3 · Evidence gaps + supersession-time queries</span>
+          <span className="premium-label">M.7.4 · GPU FLOW field TRIAL · Iteration 1</span>
           <h3 id="living-scene-title">Living Organization Scene</h3>
           <p>
             A spatial projection of persisted AIOS organization state. Geometry is presentation-only;
             employee, work, blocker, decision, Owner-action, risk, and relationship semantics come from the backend scene contract.
             Lenses change local view emphasis only; structured FLOW and Owner queries are deterministic read models.
-            M.7.3 adds bounded specialist evidence-validity and decision supersession timing without creating organizational state,
-            authority, browser-time truth, or a second truth store.
+            M.7.1–M.7.3 provide the canonical lens/query baseline. M.7.4 adds only a default-off GPU-rendered FLOW
+            field trial over that baseline; promotion remains blocked pending comprehension and performance evidence.
           </p>
         </div>
         <div className="living-scene-contract">
@@ -257,7 +257,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
             <span>FLOW · maintained structured baseline</span>
             <strong id="living-flow-title">Directed work routing & bottleneck signals</strong>
           </div>
-          <small>GPU fluid/field TRIAL not promoted</small>
+          <small>Control surface · GPU field TRIAL remains not promoted</small>
         </header>
         <div className="living-flow-summary">
           <div><strong>{flowBaseline.workItemCount}</strong><span>WorkItems</span></div>

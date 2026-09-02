@@ -16,6 +16,7 @@ export type LivingSceneRendererController = {
   rendererBackend: LivingSceneRendererBackend;
   render: () => void;
   updateModel: (model: LivingSceneRenderModel) => void;
+  setFlowTrialEnabled: (enabled: boolean) => void;
   dispose: () => void;
 };
 type MountLivingSceneRendererOptions = {
@@ -75,6 +76,17 @@ export async function mountLivingOrganizationWebGPUScene({
     phase: number;
     previousOffset: number;
   }> = [];
+  let flowTrialEnabled = false;
+  let flowTrialGroup: Group | null = null;
+  let flowActors: Array<{
+    root: any;
+    sourceX: number;
+    sourceZ: number;
+    targetX: number;
+    targetZ: number;
+    phase: number;
+    speed: number;
+  }> = [];
   let modelRevision = 0;
   let disposed = false;
 
@@ -89,6 +101,17 @@ export async function mountLivingOrganizationWebGPUScene({
   canvas.dataset.presenceClaimed = "false";
   canvas.dataset.presentationModes = "";
   canvas.dataset.animationProof = "pending";
+  canvas.dataset.flowTrialEnabled = "false";
+  canvas.dataset.flowTrialVersion = model.flowTrial.trialVersion;
+  canvas.dataset.flowTrialPromotionStatus = model.flowTrial.promotionStatus;
+  canvas.dataset.flowTrialPresentationOnly = "true";
+  canvas.dataset.flowTrialMutatesWork = "false";
+  canvas.dataset.flowTrialThroughputClaimed = "false";
+  canvas.dataset.flowTrialDependencyClaimed = "false";
+  canvas.dataset.flowTrialComputeGate = "unmeasured";
+  canvas.dataset.flowTrialNodeCount = "0";
+  canvas.dataset.flowTrialPathCount = "0";
+  canvas.dataset.flowTrialParticleCount = "0";
 
   const render = () => {
     if (disposed) return;
@@ -120,9 +143,14 @@ export async function mountLivingOrganizationWebGPUScene({
     disposableResources = [];
     pickTargets = [];
     employeeActors = [];
+    flowTrialGroup = null;
+    flowActors = [];
     canvas.dataset.rendererProjectionResources = "0";
     canvas.dataset.presentationModes = "";
     canvas.dataset.animationProof = "pending";
+    canvas.dataset.flowTrialNodeCount = "0";
+    canvas.dataset.flowTrialPathCount = "0";
+    canvas.dataset.flowTrialParticleCount = "0";
   };
 
   const addBox = ({
@@ -146,6 +174,89 @@ export async function mountLivingOrganizationWebGPUScene({
     scene.add(mesh);
     pickTargets.push(mesh);
     disposableResources.push(geometry, material);
+  };
+
+  const addFlowTrialProjection = (nextModel: LivingSceneRenderModel) => {
+    const trial = nextModel.flowTrial;
+    const group = new Group();
+    group.visible = flowTrialEnabled;
+    scene.add(group);
+    flowTrialGroup = group;
+    flowActors = [];
+
+    trial.nodes.forEach((node) => {
+      const geometry = new SphereGeometry(0.11 + node.fieldStrength * 0.15, 12, 8);
+      const material = new MeshBasicMaterial({
+        color: node.stalledCue ? 0xffa06e : 0x74c8ff,
+        transparent: true,
+        opacity: 0.24 + node.fieldStrength * 0.48,
+      });
+      const mesh = new Mesh(geometry, material);
+      mesh.position.set(node.x, 0.3 + node.fieldStrength * 0.08, node.z);
+      group.add(mesh);
+      disposableResources.push(geometry, material);
+    });
+
+    let particleCount = 0;
+    trial.paths.forEach((path, pathIndex) => {
+      const dx = path.targetX - path.sourceX;
+      const dz = path.targetZ - path.sourceZ;
+      const length = Math.max(0.15, Math.hypot(dx, dz));
+      const corridorGeometry = new BoxGeometry(
+        length,
+        0.035 + path.fieldStrength * 0.025,
+        0.055 + path.fieldStrength * 0.08,
+      );
+      const corridorMaterial = new MeshBasicMaterial({
+        color: path.stalledCue ? 0xffa06e : 0x74c8ff,
+        transparent: true,
+        opacity: 0.12 + path.fieldStrength * 0.24,
+      });
+      const corridor = new Mesh(corridorGeometry, corridorMaterial);
+      corridor.position.set(
+        (path.sourceX + path.targetX) / 2,
+        0.2,
+        (path.sourceZ + path.targetZ) / 2,
+      );
+      corridor.rotation.y = -Math.atan2(dz, dx);
+      group.add(corridor);
+      disposableResources.push(corridorGeometry, corridorMaterial);
+
+      const particlesForPath = 4;
+      for (let particleIndex = 0; particleIndex < particlesForPath; particleIndex += 1) {
+        const particleGeometry = new SphereGeometry(0.045 + path.fieldStrength * 0.025, 8, 6);
+        const particleMaterial = new MeshBasicMaterial({
+          color: path.stalledCue ? 0xffc089 : 0xa6e2ff,
+          transparent: true,
+          opacity: 0.58 + path.fieldStrength * 0.32,
+        });
+        const particle = new Mesh(particleGeometry, particleMaterial);
+        group.add(particle);
+        disposableResources.push(particleGeometry, particleMaterial);
+        flowActors.push({
+          root: particle,
+          sourceX: path.sourceX,
+          sourceZ: path.sourceZ,
+          targetX: path.targetX,
+          targetZ: path.targetZ,
+          phase: (particleIndex / particlesForPath + pathIndex * 0.173) % 1,
+          speed: 0.08 + path.fieldStrength * 0.16,
+        });
+        particleCount += 1;
+      }
+    });
+
+    canvas.dataset.flowTrialVersion = trial.trialVersion;
+    canvas.dataset.flowTrialPromotionStatus = trial.promotionStatus;
+    canvas.dataset.flowTrialPresentationOnly = String(trial.projectionOnly);
+    canvas.dataset.flowTrialMutatesWork = String(trial.fieldStateCanMutateWork);
+    canvas.dataset.flowTrialThroughputClaimed = String(trial.throughputClaimed);
+    canvas.dataset.flowTrialDependencyClaimed = String(trial.dependencyClaimed);
+    canvas.dataset.flowTrialNodeCount = String(trial.nodes.length);
+    canvas.dataset.flowTrialPathCount = String(trial.paths.length);
+    canvas.dataset.flowTrialParticleCount = String(particleCount);
+    canvas.dataset.flowTrialDominantDerivedPath = trial.dominantDerivedPathKey ?? "none";
+    canvas.dataset.flowTrialEnabled = String(flowTrialEnabled);
   };
 
   const updateModel = (nextModel: LivingSceneRenderModel) => {
@@ -243,6 +354,8 @@ export async function mountLivingOrganizationWebGPUScene({
     });
     canvas.dataset.smartObjectCount = String(nextModel.smartObjects.length);
 
+    addFlowTrialProjection(nextModel);
+
     const span = Math.max(12, zoneCount * zoneSpacing);
     camera.position.set(0, Math.max(9, span * 0.62), Math.max(13, span * 0.9));
     camera.lookAt(0, 0, 0);
@@ -278,6 +391,16 @@ export async function mountLivingOrganizationWebGPUScene({
       actor.root.position.y = actor.baseY + offset;
       if (Math.abs(offset - actor.previousOffset) > 0.0005) motionObserved = true;
       actor.previousOffset = offset;
+    }
+    if (flowTrialEnabled) {
+      for (const actor of flowActors) {
+        const progress = (seconds * actor.speed + actor.phase) % 1;
+        actor.root.position.set(
+          actor.sourceX + (actor.targetX - actor.sourceX) * progress,
+          0.28 + Math.sin((progress + actor.phase) * Math.PI * 2) * 0.035,
+          actor.sourceZ + (actor.targetZ - actor.sourceZ) * progress,
+        );
+      }
     }
     if (motionObserved) canvas.dataset.animationProof = "motion-observed";
     render();
@@ -324,6 +447,13 @@ export async function mountLivingOrganizationWebGPUScene({
     rendererBackend: backend,
     render,
     updateModel,
+    setFlowTrialEnabled: (enabled: boolean) => {
+      if (disposed) return;
+      flowTrialEnabled = enabled;
+      if (flowTrialGroup) flowTrialGroup.visible = enabled;
+      canvas.dataset.flowTrialEnabled = String(enabled);
+      render();
+    },
     dispose: () => {
       if (disposed) return;
       disposed = true;
