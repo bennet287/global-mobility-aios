@@ -119,6 +119,7 @@ export type AustriaLiveOrganizationSnapshot = {
   activities: AustriaLiveActivity[];
   domain_evidence_refs: string[];
   verified_rule_refs: string[];
+  source_snapshot_refs: string[];
 };
 
 export type AustriaLiveOrganizationLatest = {
