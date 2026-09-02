@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.67 — M.2 COMPLETE / PASS; M.3 Living Organization Scene Foundation next
+**Current V12 generation:** V12.69 — M.3 COMPLETE / PASS; M.4 Animated Employees V1 next; advanced rendering classification corrected
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is COMPLETE / PASS / SEALED on accepted evidence head `a95f3f5...`.
 The genuine independent Austria professional-review gate promoted all three current cases, and Repository Policy plus both push/PR V12 Production Proof runs are green for that exact evidence head.
-M — Board Transparency Experience is IN PROGRESS; M.1 is COMPLETE / PASS at `9f00124c...`; M.2 Decision Reconstruction is COMPLETE / PASS at exact implementation head `d9294b2...`; M.3 Living Organization Scene Foundation is next, with the adopted WebGPU/Three.js advanced rendering path scheduled behind the canonical scene contract.
+M — Board Transparency Experience is IN PROGRESS; M.1 and M.2 are COMPLETE / PASS; M.3 Living Organization Scene Foundation is COMPLETE / PASS at exact implementation head `d72ba0b6...`; M.4 Animated Employees V1 is next on the WebGPU/Three.js ADOPT substrate.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 N remains blocked behind M.
 No Radar candidate has caused runtime adoption.
@@ -28,7 +28,7 @@ No Radar candidate has caused runtime adoption.
 |-----------|--------|------------------------|
 | K.1 Bounded Specialist Execution | **SEALED** | None. Canonical proof recorded. |
 | L Live Organization | **COMPLETE / PASS / SEALED** | Accepted evidence head `a95f3f5...`; no open gate. |
-| M Board Transparency Experience | **IN PROGRESS — M.1 + M.2 COMPLETE / PASS; M.3 NEXT** | M.2 exact-head CI green at `d9294b2...`; build canonical scene-projection contract next. |
+| M Board Transparency Experience | **IN PROGRESS — M.1 + M.2 + M.3 COMPLETE / PASS; M.4 NEXT** | M.3 exact-head CI green at `d72ba0b6...`; begin Animated Employees V1 next. |
 | N Learning & Optimization | **NOT STARTED** | Wait for M. |
 
 ---
@@ -37,7 +37,7 @@ No Radar candidate has caused runtime adoption.
 
 | Workstream | Branch / location | Status | Do not... |
 |------------|-------------------|--------|-----------|
-| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed; M.1 + M.2 COMPLETE / PASS; M.3 next; Living Organization V2 scheduled | Do not start N before M. |
+| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed; M.1 + M.2 + M.3 COMPLETE / PASS; M.4 next | Do not start N before M. |
 | **Track B Product Experience** | `roadmap/...v12` (`apps/web/`) | Anti-duplication complete; runtime economics + durable activity lineage implemented | Do not add Munder collaboration/presence/event state. |
 | **Wave E1 Secrets** | `roadmap/...v12` (`docs/...WAVE_E1...`) | Pilot complete / trial-eligible | Do not claim production OpenBao adoption. |
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
@@ -46,7 +46,8 @@ No Radar candidate has caused runtime adoption.
 | **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | **COMPLETE for sealed L** — current-v3 return compiled; 3/3 professionally reviewed promotions; privacy-safe aliases committed; final exact-evidence-head proof accepted | Do not expose reviewer identity, registration data, contact data, firm identity, or public-profile links in Git. |
 | **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | **COMPLETE / PASS** at `9f00124c...`; Policy #517 PASS; Production Proof #1054 4/4 PASS | Do not reopen without regression; no command-surface or decision-domain unification. |
 | **M.2 Decision reconstruction** | `roadmap/...v12` | **COMPLETE / PASS** at `d9294b2...`; Policy #521 PASS; Production Proof #1062 4/4 PASS; backend 1340/22, PostgreSQL 105, frontend 42/42 | Do not reopen without regression; reconstruction remains read-only. |
-| **M.3–M.10 Living Organization V2** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **SCHEDULED; ADVANCED RENDERING ADOPTED** — scene → employees → collaboration/rooms → Smart Objects/Board → lenses → replay → phantoms/environment → Organica; WebGPU + Three.js compute + GPU flow + reaction-diffusion are bounded adopted capabilities | Projection/renderer/prediction state must not become authority; advanced visuals must pass product-value gates. |
+| **M.3 Scene Foundation** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **COMPLETE / PASS** at `d72ba0b6...`; Policy #527 PASS; Production Proof #1074 4/4 PASS | Do not reopen without regression; scene remains projection-only. |
+| **M.4–M.10 Living Organization V2** | `roadmap/...v12` | **M.4 NEXT**; WebGPU/Three.js = ADOPT; GPU fluid FLOW = TRIAL; reaction-diffusion = EXPERIMENT; Organica = OPTIONAL VIEW | Enforce structured baselines, truth gates and two-iteration kill conditions. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -71,24 +72,45 @@ Permanent rule:
 
 > **The organization causes the animation. The animation never silently causes the organization.**
 
-M.3–M.9 add truthful employees, movement, conversations, handoffs, Mission Rooms, blockers, Smart Objects, live Board Room, analytical lenses, Owner command mode, replay, Phantom Futures and environmental memory.
+M.4–M.9 add truthful movement, conversations, handoffs, Mission Rooms, blockers, Smart Objects, live Board Room, analytical lenses, Owner command mode, replay, Phantom Futures and environmental memory on top of the proven M.3 scene contract.
 
-M.10 may add optional Cognitive Ecology / Organica using evidence crystals, work rivers, risk heat, blocker dams and decision gravity. **The underlying advanced rendering stack is adopted:** WebGPU + Three.js WebGPU/compute + GPU flow/fluid simulation + reaction-diffusion fields. The familiar organization remains the default until the advanced surfaces prove measurable product value.
+M.10 may add optional Cognitive Ecology / Organica using evidence crystals, work rivers, risk heat, blocker dams and decision gravity. WebGPU + Three.js WebGPU/compute remain ADOPT infrastructure; GPU flow/fluid is a TRIAL and reaction-diffusion is an EXPERIMENT. The familiar Organization interface remains default.
 
 N owns learned/adaptive behavior such as learned routing, predictive blocker models, adaptive Phantom Futures and bounded Dreamtime. N remains blocked behind M.
 
-### Advanced rendering adoption
-
-**Architecture decision:** ADOPTED / BOUNDED M IMPLEMENTATION SCHEDULED / PRODUCT PROOF PENDING.
+### Three-view product taxonomy
 
 ~~~text
-WebGPU                    adopted advanced renderer/compute substrate
-Three.js WebGPU/compute   adopted scene + interaction + compute layer
-GPU flow/fluid fields     adopted FLOW/congestion visualization primitive
-reaction-diffusion fields adopted environmental-memory/pattern primitive
+ORGANIZATION
+  operating interface
+  recognizable employees / departments / Mission Rooms / Evidence Lab / Board Room
+
+ANALYTICAL
+  pattern/problem lenses
+  FLOW / RISK / COST / EVIDENCE / BLOCKERS / bounded experiments
+
+STRUCTURED
+  canonical records
+  tables / lineage / dependency graph / timelines / matrices
 ~~~
 
-These technologies are expected to ship as product capabilities. They must prove value against simpler baselines before becoming dominant/default representations. Required proof covers faster comprehension, preserved correctness, scene responsiveness/scalability and zero canonical-truth/authority leakage.
+All three views consume the same governed AIOS truth. No one surface is expected to perform every cognitive job.
+
+### Advanced rendering adoption
+
+**Architecture decision:** MIXED CLASSIFICATION.
+
+~~~text
+WebGPU                    ADOPT — renderer/compute substrate
+Three.js WebGPU/compute   ADOPT — scene + interaction + compute layer
+GPU flow/fluid fields     TRIAL — M.7 FLOW representation
+reaction-diffusion fields EXPERIMENT — M.9 research bet
+Cognitive Ecology         OPTIONAL VIEW — M.10
+~~~
+
+TRIAL = strong product hypothesis with a maintained structured analytical baseline and benchmark.
+EXPERIMENT = semantically uncertain hypothesis that must graduate to TRIAL before product promotion.
+Two failed targeted TRIAL iterations stop default-product development for that visualization. WebGPU/Three.js remain adopted because they serve multiple product surfaces.
 
 Canonical contract: docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
 
@@ -159,12 +181,13 @@ Canonical contract: docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
 
 In order:
 
-1. **M.1A documentation/state closure** — record exact M.1 PASS and freeze the detailed M/Living Organization V2 direction.
-2. **M.3 Living Organization Scene Foundation — NEXT** — establish canonical projection → scene-state → renderer boundary under `/cockpit/live-organization`; preserve deterministic/predictive/environmental plane separation.
-3. **M.4 Animated Employees V1** — begins only after M.3 scene-contract proof.
-4. **M.4–M.10** — bounded slices: employees → collaboration/rooms → blockers/Smart Objects/Board → lenses/Owner commands → replay → phantoms/environment → optional Cognitive Ecology.
-5. **Close R3 authority** as bounded supporting work when it does not displace M.
-6. **Execute or explicitly defer** R3 security external-tool shootout.
+1. **M.4 Animated Employees V1 — NEXT** — implement recognizable employees on the proven M.3 scene contract using the WebGPU/Three.js ADOPT substrate.
+2. **M.5–M.6** — conversations/handoffs/Mission Rooms, then blockers/Smart Objects/live Board Room.
+3. **M.7** — maintain a structured FLOW baseline and run the GPU fluid FLOW TRIAL against it.
+4. **M.8** — Replay / temporal organization as a core product surface and historical baseline.
+5. **M.9** — environmental-memory TRIAL with structured baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment.
+6. **M.10** — Cognitive Ecology / Organica OPTIONAL VIEW only if it earns value.
+7. **Close R3 authority / security** as bounded supporting work when it does not displace M.
 
 ---
 

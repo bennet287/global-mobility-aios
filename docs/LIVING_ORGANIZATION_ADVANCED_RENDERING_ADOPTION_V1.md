@@ -2,24 +2,54 @@
 
 **Date:** 2026-09-02
 **Branch:** roadmap/global-mobility-aios-v12
-**Status:** ADOPTED / BOUNDED M IMPLEMENTATION SCHEDULED / PRODUCT-VALUE PROOF REQUIRED
+**Status:** MIXED CLASSIFICATION — INFRASTRUCTURE ADOPTED / FLOW TRIAL / REACTION-DIFFUSION EXPERIMENT / COGNITIVE ECOLOGY OPTIONAL
 **Scheduling authority:** docs/ROADMAP.md
 **Technology truth:** docs/TECHNOLOGY_ADOPTION_LEDGER.md
 
 ## 1. Decision
 
-Global Mobility AIOS adopts the following advanced rendering/computational visualization capabilities for Living Organization V2:
+Global Mobility AIOS uses a deliberately mixed classification for Living Organization V2:
 
-1. **WebGPU** — primary advanced browser rendering/compute substrate.
-2. **Three.js WebGPU/compute layer** — scene graph, camera, picking, spatial composition and GPU-compute integration.
-3. **GPU flow/fluid simulation** — work-flow, congestion, dependency and blocker-field visualization.
-4. **Reaction-diffusion fields** — environmental memory, recurring pattern and organizational hot-spot visualization.
+1. **WebGPU — ADOPT**: primary advanced browser rendering/compute substrate.
+2. **Three.js WebGPU/compute layer — ADOPT**: scene graph, camera, picking, spatial composition and GPU-compute integration.
+3. **GPU flow/fluid simulation — TRIAL**: a strong product hypothesis for work-flow, congestion, dependency and blocker-field visualization; it must beat a strong structured analytical baseline.
+4. **Reaction-diffusion fields — EXPERIMENT**: a weaker semantic hypothesis for environmental memory/pattern visualization with the hardest interpretation gate.
+5. **Cognitive Ecology / Organica — OPTIONAL VIEW**: never the primary operating interface unless future evidence materially changes that conclusion.
 
-These are product capabilities, not decorative experiments.
+Infrastructure adoption and visualization-hypothesis adoption are different decisions.
 
 > **The organization causes the visualization. The visualization never silently causes the organization.**
 
-## 2. Product job for each adopted capability
+## 2. Classification vocabulary and product jobs
+
+### Classification vocabulary
+
+~~~text
+ADOPT
+  infrastructure or product capability with a clear multi-surface role
+  scheduled for implementation
+  individual visualization failures do not automatically threaten the substrate
+
+TRIAL
+  strong product hypothesis
+  scheduled in the roadmap
+  benchmark against a maintained structured analytical baseline
+  pass -> promote to product
+  two failed design/benchmark iterations -> stop default-product development
+
+EXPERIMENT
+  weaker or semantically uncertain product hypothesis
+  exploratory by design
+  may need to establish a valid mapping before a full benchmark is meaningful
+  success -> graduate to TRIAL
+  repeated failure -> retire or remain explicitly lab-only
+
+OPTIONAL VIEW
+  never required for core operation
+  must not displace the recognizable Organization or Structured interfaces without strong evidence
+~~~
+
+### Product jobs
 
 ### WebGPU
 
@@ -34,7 +64,7 @@ These are product capabilities, not decorative experiments.
 - compose employees, rooms, Smart Objects, evidence objects and GPU-driven fields;
 - avoid building a custom graphics engine unnecessarily.
 
-### GPU flow/fluid simulation
+### GPU flow/fluid simulation — TRIAL
 
 - turn WorkItem/dependency/throughput state into a legible FLOW lens;
 - expose congested paths, shared blockers, stalled routes and load concentration;
@@ -42,7 +72,7 @@ These are product capabilities, not decorative experiments.
 
 The field is derived visualization only. It cannot route WorkItems or authorize execution.
 
-### Reaction-diffusion fields
+### Reaction-diffusion fields — EXPERIMENT
 
 - reveal repeated collaboration/evidence patterns;
 - expose persistent hot spots and environmental memory;
@@ -77,7 +107,7 @@ No WebGPU/Three.js/field state may become an independent source of organizationa
 
 ## 4. Product-value benchmark
 
-Advanced rendering must be compared against a simpler reference view using the same canonical underlying data.
+Advanced rendering and analytical hypotheses must be compared against a maintained **structured analytical baseline** using the same canonical underlying data. The baseline may use tables, dependency graphs, matrices, timelines, heat, or animated edges; it is not defined by being visually flat.
 
 Benchmark scenarios:
 
@@ -138,7 +168,7 @@ GPU compute should demonstrate a material benefit on the dense-scene benchmark v
 
 ## 6. Primitive-specific acceptance
 
-### WebGPU + Three.js
+### WebGPU + Three.js — ADOPT substrate acceptance
 
 PASS when:
 - canonical scene data renders through the adopted scene adapter;
@@ -147,31 +177,56 @@ PASS when:
 - fallback behavior is defined;
 - no organizational semantics move into renderer state.
 
-### GPU flow/fluid
+### GPU flow/fluid — TRIAL promotion gate
 
-PASS when:
+TRIAL passes into product use when:
 - FLOW is deterministically seeded from canonical/derived work-graph values;
-- benchmark users identify primary congestion/shared-blocker routing 20% faster or with 25% fewer errors than static baseline;
+- the comparison includes a strong directed-graph/animated-edge/heat baseline rather than a weak table-only strawman;
+- benchmark users identify primary congestion/shared-blocker routing at least 20% faster or with at least 25% fewer errors than that baseline;
 - field instability cannot alter work state.
 
-### Reaction-diffusion
+If the graph/heat representation wins, the FLOW product need remains valid while the fluid representation fails.
 
-PASS when:
+### Reaction-diffusion — EXPERIMENT graduation gate
+
+The experiment graduates to TRIAL only when:
 - environmental fields are reproducible from persisted/derived historical inputs;
-- recurring hot spots/patterns can be identified faster or more accurately than the non-field baseline;
-- decay/retention parameters remain presentation semantics rather than organizational memory.
+- the mapping from historical inputs to field parameters is explainable enough to prevent false semantic inference;
+- decay, diffusion and retention parameters remain presentation semantics rather than organizational memory;
+- an initial user task demonstrates a plausible actionable signal beyond a conventional historical heatmap/path-frequency baseline.
 
-## 7. Default-UX promotion rule
+Only after graduation to TRIAL does the normal comprehension benchmark decide whether reaction-diffusion can enter product use.
 
-Adoption is already decided. **Default prominence is earned.**
+## 7. Promotion and kill conditions
 
-If a capability passes, it may be promoted into the default Living Organization experience where useful.
+**Default prominence is earned. Infrastructure adoption is not the same as visualization promotion.**
 
-If it fails:
-- keep it adopted but bounded;
-- identify whether the failure is mapping, interaction, performance or cognitive overload;
-- redesign and rerun;
-- retain the clearer baseline as default meanwhile.
+~~~text
+ITERATION 1
+  implement bounded hypothesis
+  benchmark
+  identify failure mode
+
+ITERATION 2
+  targeted redesign
+  benchmark again
+
+ITERATION 2 FAIL
+  STOP default-product development
+~~~
+
+After two failed iterations, a visualization must be one of:
+- **RETIRED** when no other product value exists;
+- **LAB-ONLY** with an explicit experimental label; or
+- **DEFERRED** until materially new evidence or a new mapping justifies another attempt.
+
+WebGPU and Three.js remain ADOPT even if an individual visualization fails because they serve multiple product surfaces.
+
+GPU flow/fluid is a TRIAL. Two failed iterations stop its default-product development while the FLOW need may continue through graph/heat/animated-edge representations.
+
+Reaction-diffusion is an EXPERIMENT. If it cannot first graduate to TRIAL, or later fails two targeted TRIAL iterations, it should be retired or kept lab-only rather than protected by sunk cost.
+
+Cognitive Ecology / Organica remains an OPTIONAL VIEW. It cannot become the default operating interface merely because its component technologies are successful.
 
 Do not reinterpret visual impressiveness as product value.
 
@@ -179,17 +234,20 @@ Do not reinterpret visual impressiveness as product value.
 
 ~~~text
 M.3  renderer adapter / scene-contract compatibility
-M.4  WebGPU/Three.js employee/room scene path begins
+M.4  WebGPU/Three.js recognizable employee/room scene begins
 M.6  Smart Objects / Board effects use GPU scene primitives where useful
-M.7  FLOW lens introduces GPU flow/fluid field
-M.8  replay exercises temporal scene performance
-M.9  environmental memory introduces reaction-diffusion / traces
-M.10 full Cognitive Ecology composition and cross-view value benchmark
+M.7  FLOW lens: mandatory structured graph/heat baseline + GPU fluid TRIAL
+M.8  replay / temporal organization becomes a core historical baseline
+M.9  Environmental memory TRIAL:
+       mandatory structured historical baseline
+       reaction-diffusion EXPERIMENT
+       Phantom Futures bounded experiment
+M.10 Cognitive Ecology / Organica OPTIONAL VIEW + cross-view benchmark
 ~~~
 
 ## 9. Fallback and accessibility
 
-A simpler reference/fallback representation remains available for unsupported WebGPU, low-power devices, accessibility needs, debugging, acceptance comparison and benchmark control.
+A **structured analytical reference view** remains permanently maintained alongside the spatial Organization view. A simpler rendering fallback also remains available for unsupported WebGPU, low-power devices, accessibility needs, debugging, acceptance comparison and benchmark control.
 
 Fallback is not a second truth source. Both advanced and fallback paths consume the same AIOS projection.
 
@@ -204,5 +262,23 @@ Completion requires:
 - comprehension/task evidence;
 - exact-head proof;
 - ROADMAP / Radar / Ledger / CHANGELOG reconciliation.
+
+## 11. Three-view product taxonomy
+
+~~~text
+ORGANIZATION
+  recognizable operating interface
+  employees / departments / Mission Rooms / Evidence Lab / Board Room
+
+ANALYTICAL
+  pattern and problem lenses
+  FLOW / RISK / COST / EVIDENCE / BLOCKERS / optional experiments
+
+STRUCTURED
+  canonical record inspection
+  tables / lineage / dependency graph / timeline / matrices
+~~~
+
+No one surface is expected to do every cognitive job. All three consume the same governed AIOS truth.
 
 > **Use advanced graphics to make a governed digital organization substantially easier to understand and operate.**

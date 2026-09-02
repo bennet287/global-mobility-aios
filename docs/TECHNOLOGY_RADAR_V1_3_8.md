@@ -6,8 +6,8 @@
 **Source audit:** `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
 **Scheduling authority:** `docs/ROADMAP.md`
 **Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
-**Current product milestone:** L — Live Organization — IMPLEMENTED / ACCEPTANCE PENDING
-**M milestone:** NOT STARTED
+**Current product milestone:** L — COMPLETE / PASS / SEALED
+**M milestone:** IN PROGRESS — M.3 COMPLETE / PASS; M.4 NEXT
 
 > **Aggressive Radar. Conservative production authority.**
 
@@ -49,6 +49,20 @@ IMPLEMENTED / PILOT COMPLETE / PILOT IN PROGRESS
 
 SELECTED PILOT / QUEUED PILOT
   explicit bounded pilot state; not production adoption
+
+ADOPT
+  selected infrastructure/product substrate with a clear multi-surface role
+
+TRIAL
+  strong product hypothesis scheduled for bounded implementation and benchmark
+  promotion requires evidence against a maintained reference analytical baseline
+
+EXPERIMENT
+  weaker/semantically uncertain hypothesis
+  success graduates it to TRIAL; failure may retire it or keep it lab-only
+
+OPTIONAL VIEW
+  non-core product surface; cannot displace the default operating interface without evidence
 
 HOLD_WITH_TRIGGER
   inactive until the named gap/trigger occurs
@@ -247,14 +261,15 @@ These candidates occupy distinct seams and remain intentionally separate.
 | Candidate | V1.3.8 state | Boundary |
 |---|---|---|
 | CopilotKit / AG-UI | **CHALLENGER / POST-L M PILOT CANDIDATE** | interaction layer only; AIOS APIs/governance authorize commands |
-| **WebGPU** | **ADOPTED / M LIVING ORGANIZATION ADVANCED RENDERING** | rendering/compute only; scene state is projection, never authority |
-| **Three.js WebGPU/compute layer** | **ADOPTED / M SCENE + COMPUTE SUBSTRATE** | camera, picking, scene composition and GPU compute behind AIOS scene contract |
-| **GPU flow/fluid simulation** | **ADOPTED / M FLOW + COGNITIVE-ECOLOGY PRIMITIVE** | visualize routing/congestion/blockers from canonical projection; no workflow authority |
-| **Reaction-diffusion fields** | **ADOPTED / M ENVIRONMENTAL-MEMORY PRIMITIVE** | visualize repeated patterns/hot spots; read-only derived field, not memory/truth |
+| **WebGPU** | **ADOPT / M LIVING ORGANIZATION RENDERING SUBSTRATE** | multi-surface rendering/compute infrastructure; scene state is projection, never authority |
+| **Three.js WebGPU/compute layer** | **ADOPT / M SCENE + INTERACTION SUBSTRATE** | camera, picking, scene composition and GPU compute behind AIOS scene contract |
+| **GPU flow/fluid simulation** | **TRIAL / M.7 FLOW REPRESENTATION** | strong hypothesis; must beat structured graph/heat/animated-edge baseline on congestion/blocker comprehension |
+| **Reaction-diffusion fields** | **EXPERIMENT / M.9 ENVIRONMENTAL-MEMORY RESEARCH** | high interpretation risk; must establish explainable mapping and graduate to TRIAL |
+| **Cognitive Ecology / Organica** | **OPTIONAL VIEW / M.10** | deep analytical experiment only; recognizable Organization remains default operating interface |
 | Storybook | **HOLD_WITH_TRIGGER** | M component/design-system proof demonstrates a workbench need |
 | Penpot | **PREFERRED DESIGN ENVIRONMENT / NOT ACCEPTANCE DEPENDENCY** | design tooling only |
 
-L is sealed and M is in progress. The advanced rendering entries above are adopted specifically for the scheduled Living Organization M slices; product-value proof remains mandatory before default-UX promotion.
+L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure. GPU fluid FLOW is a TRIAL, reaction-diffusion is an EXPERIMENT, and Cognitive Ecology/Organica is OPTIONAL. Product-value proof and kill conditions govern promotion.
 
 ## 14. Cybersecurity skill and Red Team programme
 
@@ -334,10 +349,10 @@ Radar-caused runtime adoption             NONE
 scatter-audit recommendation              APPLIED
 generic duplicate research statuses       REMOVED / TRIGGER-BOUND
 R3 branch merge into V12                  NONE
-professional Austria review               PENDING
-final exact-current-head technical proof  PENDING
-L                                          IMPLEMENTED / ACCEPTANCE PENDING
-M                                          NOT STARTED
+professional Austria review               COMPLETE under sealed L record
+final L exact-evidence-head proof          COMPLETE
+L                                          COMPLETE / PASS / SEALED
+M                                          IN PROGRESS — M.3 COMPLETE / PASS; M.4 NEXT
 N                                          NOT STARTED
 ```
 

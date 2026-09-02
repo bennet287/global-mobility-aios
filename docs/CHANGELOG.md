@@ -9,6 +9,57 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.69 M.3 EXACT-HEAD CLOSURE + ADVANCED RENDERING RECLASSIFICATION
+
+### Status
+
+**M.3 LIVING ORGANIZATION SCENE FOUNDATION COMPLETE / PASS / M.4 NEXT / ADVANCED STACK RECLASSIFIED**
+
+M.3 exact implementation head:
+
+~~~text
+d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
+
+Repository Policy Check #527 / run 33578435691   PASS
+V12 Production Proof #1074 / run 33578435709     PASS — 4/4 jobs
+~~~
+
+M.3 is closed with a backend-owned scene contract, explicit deterministic/predictive/environmental planes, canonical department topology, Mission projection, renderer-neutral department zones, read-only Smart Objects and a non-authoritative three-webgpu renderer target.
+
+The earlier V12.66 shorthand that treated all advanced rendering concepts as broadly ADOPTED is superseded by a more rigorous classification:
+
+~~~text
+WebGPU                     ADOPT
+Three.js WebGPU/compute    ADOPT
+GPU flow/fluid simulation  TRIAL
+reaction-diffusion         EXPERIMENT
+Cognitive Ecology/Organica OPTIONAL VIEW
+~~~
+
+TRIAL means a strong scheduled product hypothesis that must beat a maintained structured analytical baseline. EXPERIMENT means a weaker/semantically uncertain hypothesis that must graduate to TRIAL before product promotion.
+
+Kill condition:
+
+~~~text
+iteration 1 -> benchmark -> identify failure
+iteration 2 -> targeted redesign -> benchmark
+iteration 2 fail -> stop default-product development
+~~~
+
+A failed visualization does not invalidate WebGPU/Three.js infrastructure adoption. A failed fluid representation may yield to graph/heat/animated-edge FLOW. Reaction-diffusion may be retired or remain lab-only if it cannot establish a non-misleading product case. Organica remains optional and cannot replace the recognizable Organization interface without strong evidence.
+
+The permanent product taxonomy is now:
+
+~~~text
+ORGANIZATION = recognizable operating interface
+ANALYTICAL   = pattern/problem lenses
+STRUCTURED   = canonical records and lineage
+~~~
+
+No runtime authority, canonical truth, or sealed-L semantics change in this documentation reconciliation.
+
+---
+
 ## 2026-09-02 — V12.67 M.2 DECISION RECONSTRUCTION COMPLETE / PASS
 
 ### Status
