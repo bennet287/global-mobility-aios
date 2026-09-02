@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.75 — M.7.1 Organization Lenses + read-only Owner view commands COMPLETE / PASS; M.7 continues
+**Roadmap generation:** V12.76 — M.7.2 Structured FLOW + deterministic Owner analytical queries COMPLETE / PASS; M.7 continues
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1 COMPLETE / PASS; M.7 CONTINUES)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1–M.7.2 COMPLETE / PASS; M.7 CONTINUES)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -858,6 +858,40 @@ The lens model keeps negative truth visible. COST remains unavailable because M.
 Owner command mode begins with view-only commands such as mission work, routing flow, open risk, blockers, Board attention and evidence state. These commands change local presentation emphasis only. Browser proof verifies lens switching without POST or canonical mutation. The ORGANIZATION lens restores the complete structured scene, and de-emphasis never removes the exact Structured fallback.
 
 M.7.1 does not add a truth store, migration, authority path, provider authority, scene mutation, presence claim or locomotion claim.
+
+### M.7.2 — Structured FLOW + deterministic Owner analytical queries — COMPLETE / PASS
+
+M.7.2 is accepted on exact implementation head `f78833ddc60ca8bd7b7df845f93c7acfc5016738`.
+
+~~~text
+Repository Policy Check #574 / run 33623768481   PASS
+V12 Production Proof #1167 / run 33623764442     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+The backend scene contract advances to `living-organization-scene.v4` without a migration or a second truth store. One backend projection clock now derives WorkItem lifecycle age/overdue state and canonical blocker open-duration/overdue state. Duration-sensitive Owner queries therefore remain deterministic and replayable rather than depending on browser clock or timezone.
+
+FLOW now has the mandatory maintained structured baseline: WorkItem nodes, explicit parent topology, governed handoff history, blocker/risk/Owner-attention signals, lifecycle age and overdue state. Parent-child topology remains explicitly topology and is not promoted to dependency truth. The structured FLOW surface is authoritative=false / projection-only and remains usable independently of the advanced renderer.
+
+Owner analytical queries now answer only where canonical scene truth is sufficient:
+
+~~~text
+Show missions blocked >20 minutes       AVAILABLE — canonical blocker open duration + Mission membership
+Show work requiring my authority        AVAILABLE — explicit ExecutiveDecision / HumanActionRequest Owner requirement
+Show R4/R5 work                         AVAILABLE — exact WorkItem.risk_level match only
+Show overdue work                       AVAILABLE — backend-derived due-state at scene projection clock
+Show incomplete evidence                UNAVAILABLE — aggregate evidence counts are not per-WorkItem completeness truth
+Show decisions superseded this week     UNAVAILABLE — scene v4 lacks complete temporal supersession-effective history
+Where is model cost concentrated?       UNAVAILABLE — no canonical organization cost ledger
+~~~
+
+Risk escalation attention alone is never promoted to Owner authority. High/critical labels are never silently remapped to R4/R5. Aggregate evidence counts are never promoted to mission-level completeness. Runtime cost estimates remain telemetry rather than organizational cost truth.
+
+The GPU fluid/field representation remains an unpromoted TRIAL. M.7.2 establishes the structured comparison baseline but does not claim fluid FLOW product value. Browser proof verifies the FLOW baseline, analytical query results, explicit unavailable states and zero unauthorized POST/mutation while preserving the M.4.1 no-presence/no-locomotion boundary.
+
+M.7.2 does not add authority, presence, locomotion, scene mutation, browser-time truth, dependency truth or a cost ledger.
 
 ---
 
