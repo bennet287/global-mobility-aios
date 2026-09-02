@@ -170,6 +170,7 @@ function readySnapshot() {
     activities: [],
     domain_evidence_refs: [],
     verified_rule_refs: [],
+    source_snapshot_refs: [],
   };
 }
 
@@ -367,10 +368,20 @@ function livingScene() {
             object_type: "evidence_shelf",
             label: "Evidence Shelf",
             state: "empty",
-            metric_label: "Evidence + VerifiedRules",
+            metric_label: "Evidence + Rules + SourceSnapshots",
             metric_value: 0,
             projection_only: true,
-            canonical_basis: "Persisted context Evidence and VerifiedRule references",
+            canonical_basis: "Persisted context Evidence, VerifiedRule and SourceSnapshot references",
+          },
+          {
+            object_key: `regulatory-monitor:${ROOT_ID}`,
+            object_type: "regulatory_monitor",
+            label: "Regulatory Monitor",
+            state: "no_snapshot_provenance",
+            metric_label: "SourceSnapshot references",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Persisted K.1 context_source_snapshot_refs; does not claim SourceRetrievalRun freshness because K.1 does not persist the retrieval-run reference",
           },
           {
             object_key: `blocker-wall:${ROOT_ID}`,
@@ -397,10 +408,10 @@ function livingScene() {
             object_type: "owner_inbox",
             label: "Owner Inbox",
             state: "clear",
-            metric_label: "Human action requests",
+            metric_label: "Human actions + Board risks",
             metric_value: 0,
             projection_only: true,
-            canonical_basis: "Open OrganizationHumanActionRequest records linked to scene truth",
+            canonical_basis: "Open OrganizationHumanActionRequest records plus Board-attention RiskEscalation records",
           },
           {
             object_key: `risk-beacon:${ROOT_ID}`,
@@ -411,6 +422,26 @@ function livingScene() {
             metric_value: 0,
             projection_only: true,
             canonical_basis: "Open RiskEscalation records linked to scene WorkItems",
+          },
+          {
+            object_key: `immune-center:${ROOT_ID}`,
+            object_type: "immune_center",
+            label: "Immune Center",
+            state: "unavailable",
+            metric_label: "Scene-scoped immune state unavailable",
+            metric_value: null,
+            projection_only: true,
+            canonical_basis: "The canonical eligibility immune circuit is aggregate-scoped and is not linked to this Austria WorkItem scene; unrelated immune state is not projected",
+          },
+          {
+            object_key: `model-terminal:${ROOT_ID}`,
+            object_type: "model_terminal",
+            label: "Model Terminal",
+            state: "activity_recorded",
+            metric_label: "AgentRun-linked specialists",
+            metric_value: 2,
+            projection_only: true,
+            canonical_basis: "Persisted specialist AgentRun lineage only; provider/model identity has no organizational authority and does not authorize external action",
           },
           {
             object_key: `incident-beacon:${ROOT_ID}`,
@@ -449,10 +480,10 @@ function livingScene() {
             room_type: "evidence_lab",
             label: "Evidence Lab",
             state: "empty",
-            metric_label: "Evidence + VerifiedRules",
+            metric_label: "Evidence + Rules + SourceSnapshots",
             metric_value: 0,
             projection_only: true,
-            canonical_basis: "Persisted context Evidence and VerifiedRule references",
+            canonical_basis: "Persisted context Evidence, VerifiedRule and SourceSnapshot references",
           },
           {
             room_key: `board:${ROOT_ID}`,
@@ -602,8 +633,11 @@ test("renders M.6 canonical collaboration board and smart-object state without m
   const smartObjects = sceneSurface.locator('.living-scene-smart-strip[aria-label="Living Organization Smart Objects"]');
   await expect(smartObjects.locator("article").filter({ hasText: "Mission Board" })).toBeVisible();
   await expect(smartObjects.locator("article").filter({ hasText: "Evidence Shelf" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Regulatory Monitor" })).toContainText("No Snapshot Provenance");
   await expect(smartObjects.locator("article").filter({ hasText: "Board Desk" })).toBeVisible();
   await expect(smartObjects.locator("article").filter({ hasText: "Owner Inbox" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Model Terminal" })).toContainText("Activity Recorded");
+  await expect(smartObjects.locator("article").filter({ hasText: "Immune Center" })).toContainText("Unavailable");
   await expect(smartObjects.locator("article").filter({ hasText: "Incident Beacon" })).toContainText("Unavailable");
   await expect(smartObjects.locator("article").filter({ hasText: "Cost Display" })).toContainText("Unavailable");
   await expect(sceneSurface.getByText("CANONICAL CONVERSATIONS", { exact: true })).toBeVisible();
