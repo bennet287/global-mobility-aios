@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.77 — M.7.3 bounded evidence-validity + supersession-time Owner queries COMPLETE / PASS; M.7 fluid FLOW trial next
+**Roadmap generation:** V12.78 — M.7.4 GPU FLOW field TRIAL Iteration 1 IMPLEMENTED / TECHNICAL PASS; product-value benchmark pending
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1–M.7.3 COMPLETE / PASS; M.7 FLUID FLOW TRIAL NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1–M.7.4 SEALED; M.7.4 TRIAL NOT PROMOTED / BENCHMARK PENDING)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -945,6 +945,76 @@ These are selection/testing identities only; they do not add authority or mutati
 M.7.3 does not add authority, scene mutation, browser-time truth, full evidence-completeness truth, cost truth, autonomy truth, presence or locomotion.
 
 The remaining M.7 obligation is the GPU fluid/field FLOW TRIAL against the maintained structured FLOW baseline. Promotion remains evidence-gated: zero truth leakage plus the adoption-contract comprehension/correctness/performance thresholds. Rendering successfully is not itself sufficient for promotion.
+
+### M.7.4 — GPU FLOW field TRIAL · Iteration 1 — IMPLEMENTED / TECHNICAL PASS / BENCHMARK PENDING
+
+M.7.4 Iteration 1 is technically accepted on exact implementation head `e73328f065f31858dea2887f20c9a46bfbf92c9a`.
+
+~~~text
+Repository Policy Check #592 / run 33636057199   PASS
+V12 Production Proof #1203 / run 33636051855     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                11/11 passed
+~~~
+
+The maintained Structured FLOW surface remains the control and permanent product baseline. The GPU field is a default-off presentation-only trial derived from that baseline.
+
+Iteration 1 adds:
+
+~~~text
+Structured FLOW baseline
+        ↓
+deterministic gpu-flow-field-trial.v1 derivation
+        ↓
+WorkItem field nodes + parent-topology stream paths
+        ↓
+Three.js/WebGPU presentation particles/corridors
+        ↓
+explicit Structured baseline / GPU field toggle
+~~~
+
+The derived presentation formula is explicit and bounded:
+
+~~~text
+congestion = blocker*4 + risk*3 + owner_attention*3 + overdue*2 + min(handoff,3)
+~~~
+
+This score is presentation-only. It is not canonical throughput, dependency, performance, productivity or authority truth.
+
+Permanent M.7.4 trial invariants:
+
+~~~text
+authoritative               = false
+projectionOnly              = true
+defaultProminence           = false
+fieldStateCanMutateWork     = false
+throughputClaimed           = false
+dependencyClaimed           = false
+promotionStatus             = benchmark_required
+presenceClaimed             = false
+locomotionClaimed           = false
+~~~
+
+The renderer exposes exact read-only trial state for acceptance and troubleshooting, including trial version, enabled/default state, node/path/particle counts, promotion state and truth-boundary flags. Browser proof verifies the field defaults OFF, can be explicitly enabled and returned to the Structured baseline, keeps the Structured FLOW surface visible, and issues no POST or canonical mutation.
+
+Iteration 1 also defines a fail-closed promotion evaluator. Successful rendering cannot auto-promote the representation. Promotion remains blocked until real benchmark evidence clears the adoption contract:
+
+~~~text
+truth leakage                        0 — hard gate
+trial correctness                    >= structured baseline
+median correct-answer time           >=20% improvement
+OR error rate                        >=25% improvement
+ordinary rendering                   >=55 FPS
+sustained rendering floor            >=30 FPS
+p95 interaction feedback             <=100 ms
+main-thread compute value             >=30% improvement
+OR a required capability the control cannot sustain above the FPS floor
+~~~
+
+No human comprehension/product-value measurements have yet been recorded for this trial. Therefore the M.7.4 implementation slice is sealed, but the representation remains **TRIAL / NOT PROMOTED / BENCHMARK PENDING**. M.10 must eventually classify it PROMOTED, LAB-ONLY/DEFERRED or RETIRED from actual evidence.
+
+M.7.4 does not add a truth store, backend schema, authority path, scene mutation, presence claim, locomotion claim, throughput truth, dependency truth, cost truth or autonomy truth.
 
 ---
 
