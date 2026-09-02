@@ -85,6 +85,10 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(sceneComponent, /scene\.deterministic\.incidents/);
   assert.match(sceneComponent, /scene\.deterministic\.smart_objects/);
   assert.match(sceneComponent, /Living Organization Smart Objects/);
+  assert.match(sceneComponent, /Canonical department topology/);
+  assert.match(sceneComponent, /renderModel\.departmentZones/);
+  assert.match(sceneComponent, /data-department-zone/);
+  assert.match(sceneComponent, /data-department=\{employee\.department\}/);
   assert.match(sceneComponent, /item\.label/);
   assert.match(sceneComponent, /item\.canonical_basis/);
   assert.doesNotMatch(sceneComponent, /<strong>Mission Board<\/strong>/);
@@ -93,6 +97,9 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(sceneComponent, /scene\.environmental\.enabled/);
   assert.match(sceneComponent, /scene\.truth\.renderer_authoritative/);
   assert.match(sceneRenderer, /LIVING_SCENE_RENDERER_TARGET = "three-webgpu"/);
+  assert.match(sceneRenderer, /departmentZones/);
+  assert.match(sceneRenderer, /employee\.department === department\.department_key/);
+  assert.match(sceneRenderer, /workItem\.department === department\.department_key/);
   assert.match(sceneRenderer, /sceneAuthoritative: false/);
   assert.doesNotMatch(sceneRenderer, /Math\.random|setInterval|fetch\(/);
   assert.match(cockpitLayout, /living-scene\.css/);

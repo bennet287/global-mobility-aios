@@ -69,6 +69,22 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
         </div>
       </div>
 
+      <div className="living-scene-smart-strip" aria-label="Canonical department topology">
+        {renderModel.departmentZones.map(({ department, employeeSlots, workItems, zoneIndex }) => (
+          <article key={department.department_key} data-department-zone={department.department_key} data-zone-index={zoneIndex}>
+            <span>Department zone</span>
+            <strong>{department.label}</strong>
+            <div><b>{employeeSlots.length}</b><small>employees · {workItems.length} WorkItems</small></div>
+            <p>
+              {employeeSlots.length
+                ? employeeSlots.map(({ employee }) => employee.position_key.replaceAll("_", " ")).join(" · ")
+                : "No projected employee in this department"}
+            </p>
+            <p>{department.active_blocker_count} active blockers · {department.canonical_basis}</p>
+          </article>
+        ))}
+      </div>
+
       <div className="living-scene-floor" data-scene-plane="deterministic">
         <article className="living-scene-room mission-room">
           <header>
@@ -88,6 +104,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
                   className={`living-scene-employee state-${employee.semantic_state}`}
                   data-scene-slot={slot}
                   data-presence-state={employee.presence_state}
+                  data-department={employee.department}
                 >
                   <div className="scene-avatar" aria-hidden="true">{initials(employee.position_key)}</div>
                   <div className="scene-employee-copy">
@@ -174,7 +191,6 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           )}
         </article>
       </div>
-
 
       <div className="living-scene-smart-strip" aria-label="Living Organization Smart Objects">
         {scene.deterministic.smart_objects.map((item) => (
