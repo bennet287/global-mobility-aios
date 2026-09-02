@@ -33,3 +33,25 @@ export function isLivingSceneSelection(value: unknown): value is LivingSceneSele
     && typeof selection.label === "string"
   );
 }
+
+
+const ACTIVE_RENDERER_CANVASES = new WeakSet<object>();
+
+export type LivingSceneRendererCanvasLease = {
+  release: () => void;
+};
+
+export function acquireLivingSceneRendererCanvasLease(canvas: object): LivingSceneRendererCanvasLease {
+  if (ACTIVE_RENDERER_CANVASES.has(canvas)) {
+    throw new Error("Living Organization renderer refuses a duplicate live mount on the same canvas.");
+  }
+  ACTIVE_RENDERER_CANVASES.add(canvas);
+  let released = false;
+  return {
+    release: () => {
+      if (released) return;
+      released = true;
+      ACTIVE_RENDERER_CANVASES.delete(canvas);
+    },
+  };
+}

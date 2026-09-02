@@ -3,6 +3,7 @@ import {
 } from "three/webgpu";
 import type { LivingSceneRenderModel } from "./living-organization-scene-renderer";
 import {
+  acquireLivingSceneRendererCanvasLease,
   assertLivingSceneRendererModelNonAuthoritative,
   createLivingSceneSelection,
   isLivingSceneSelection,
@@ -38,21 +39,12 @@ function resolveActualBackend(renderer: any): LivingSceneRendererBackend {
   return "unknown";
 }
 
-const ACTIVE_CANVAS_MOUNTS = new WeakSet<HTMLCanvasElement>();
-
 function markRendererMounted(canvas: HTMLCanvasElement) {
-  if (ACTIVE_CANVAS_MOUNTS.has(canvas)) {
-    throw new Error("Living Organization renderer refuses a duplicate live mount on the same canvas.");
-  }
-  ACTIVE_CANVAS_MOUNTS.add(canvas);
+  const lease = acquireLivingSceneRendererCanvasLease(canvas);
   const generation = Number.parseInt(canvas.dataset.rendererMountGeneration ?? "0", 10) || 0;
   canvas.dataset.rendererMountGeneration = String(generation + 1);
   canvas.dataset.rendererActiveMounts = "1";
-}
-
-function markRendererDisposed(canvas: HTMLCanvasElement) {
-  ACTIVE_CANVAS_MOUNTS.delete(canvas);
-  canvas.dataset.rendererActiveMounts = "0";
+  return lease;
 }
 
 export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSelect }: MountLivingSceneRendererOptions): Promise<LivingSceneRendererController> {
@@ -146,7 +138,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
   resizeObserver?.observe(canvas);
   if (!resizeObserver) window.addEventListener("resize", resize);
   resize();
-  markRendererMounted(canvas);
+  const canvasLease = markRendererMounted(canvas);
 
   return {
     rendererBackend: backend,
@@ -159,7 +151,8 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
       for (const resource of disposableResources) resource.dispose?.();
       scene.clear?.();
       renderer.dispose();
-      markRendererDisposed(canvas);
+      canvasLease.release();
+      canvas.dataset.rendererActiveMounts = "0";
     },
   };
 }

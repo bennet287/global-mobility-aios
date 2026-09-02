@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  acquireLivingSceneRendererCanvasLease,
   assertLivingSceneRendererModelNonAuthoritative,
   createLivingSceneSelection,
   isLivingSceneSelection,
@@ -32,4 +33,20 @@ test("renderer selection exposes only viewable fields", () => {
     isLivingSceneSelection({ ...selection, work_item_id: "hidden-work" }),
     false,
   );
+});
+
+
+test("renderer canvas lease permits mount-dispose-remount on the same canvas identity", () => {
+  const canvas = {};
+  const first = acquireLivingSceneRendererCanvasLease(canvas);
+  assert.throws(
+    () => acquireLivingSceneRendererCanvasLease(canvas),
+    /duplicate live mount on the same canvas/,
+  );
+  first.release();
+  assert.doesNotThrow(() => {
+    const second = acquireLivingSceneRendererCanvasLease(canvas);
+    second.release();
+  });
+  first.release();
 });

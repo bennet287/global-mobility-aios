@@ -671,8 +671,8 @@ test("M.4.0 mounts the optional spatial renderer while Structured remains availa
     .toContainText("Selection changes view focus only; it cannot mutate AIOS.");
 });
 
-test("M.4.0 disposes and remounts the renderer on the same canvas without duplicate live mounts", async ({ page }) => {
-  await installApi(page, {
+test("M.4.0 refresh does not leak a renderer when the scene canvas is reused or replaced", async ({ page }) => {
+  const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: livingScene() }),
   });
@@ -685,12 +685,27 @@ test("M.4.0 disposes and remounts the renderer on the same canvas without duplic
   await expect(canvas).toHaveAttribute("data-renderer-active-mounts", "1");
   const initialGeneration = Number(await canvas.getAttribute("data-renderer-mount-generation"));
   expect(initialGeneration).toBeGreaterThanOrEqual(1);
+  const initialCanvas = await canvas.elementHandle();
+  expect(initialCanvas).not.toBeNull();
 
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect.poll(
+    () => recorded.filter((item) => item.method === "GET" && item.path === SCENE_PATH).length,
+  ).toBeGreaterThanOrEqual(2);
   await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
   await expect(canvas).toHaveAttribute("data-renderer-active-mounts", "1");
-  await expect.poll(async () => Number(await canvas.getAttribute("data-renderer-mount-generation")))
-    .toBeGreaterThan(initialGeneration);
+
+  const currentCanvas = await canvas.elementHandle();
+  expect(currentCanvas).not.toBeNull();
+  if (!initialCanvas || !currentCanvas) return;
+  const reusedCanvas = await initialCanvas.evaluate((node, current) => node === current, currentCanvas);
+  if (reusedCanvas) {
+    await expect.poll(async () => Number(await canvas.getAttribute("data-renderer-mount-generation")))
+      .toBeGreaterThan(initialGeneration);
+  } else {
+    expect(await initialCanvas.getAttribute("data-renderer-active-mounts")).toBe("0");
+    expect(Number(await currentCanvas.getAttribute("data-renderer-mount-generation"))).toBeGreaterThanOrEqual(1);
+  }
 
   const box = await canvas.boundingBox();
   expect(box).toBeTruthy();
