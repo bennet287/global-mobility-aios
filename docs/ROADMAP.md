@@ -1089,6 +1089,62 @@ M.8.1 does not add authority, historical interpolation, inferred past state, pre
 
 The next M.8 slice may reconstruct bounded historical organization state only where persisted Activity semantics can prove that state. Unsupported historical dimensions must remain unavailable.
 
+### M.8.2 — As-of Temporal State Reconstruction — COMPLETE / PASS
+
+M.8.2 is accepted on exact implementation head `d57ab48859924271ae20c3b33a18fea15b0629af`.
+
+~~~text
+Repository Policy Check #605 / run 33651983833   PASS
+V12 Production Proof #1230 / run 33651983895     PASS — 5/5 jobs
+Backend regression (SQLite)                       1344 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                12/12 passed
+~~~
+
+M.8.2 adds a separate read-only Activity-cursor reconstruction contract without changing the sealed M.8.1 replay API.
+
+~~~text
+organization-replay.v1
+        ↓
+selected persisted Activity cursor
+        ↓
+semantic Activity transitions only
+        ↓
+organization-replay-state.v1
+        ↓
+bounded Board-safe historical projection
+~~~
+
+The projection reconstructs only state that explicit persisted Activity semantics can establish. Supported V1 dimensions are WorkItem status/assignment, blocker lifecycle, decision lifecycle, HumanActionRequest lifecycle and conversation lifecycle.
+
+The strongest acceptance invariant inspects the root WorkItem at its creation Activity and reconstructs its historical status as `queued`, even when the current WorkItem row has advanced. This proves the projection is not reading today's domain row and attaching an old timestamp.
+
+Historical uncertainty remains fail-closed. Missing creation events become unapplied transitions rather than invented prerequisite state. Coverage posture propagates from the Activity coverage epoch and reconstructed prerequisites.
+
+Unsupported historical dimensions remain explicit:
+
+~~~text
+RiskEscalation history
+SourceSnapshot history
+conversation transcript content
+historical deadline projection
+historical evidence-content state
+~~~
+
+The Cockpit adds `Inspect state here` for exact replay Activity cursors and renders known WorkItems, governed attention, collaboration lifecycle, reconstruction coverage, unapplied transitions and unsupported dimensions.
+
+Permanent M.8.2 invariants remain:
+
+~~~text
+canonical_projection = true
+authoritative         = false
+mutations_allowed     = false
+~~~
+
+M.8.2 adds no migration, no historical backfill, no synthetic interpolation, no second timeline and no mutation path.
+
+The next M.8 slice is temporal comparison/diff: compare two proven M.8.2 Activity-cursor projections to answer “what changed?” without independently reconstructing another history model.
+
 ---
 
 ## 5.8 M.9 — Environmental memory TRIAL + bounded future-state experiments
@@ -1300,11 +1356,11 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1–M.7.4 SEALED; M.8.1 COMPLETE / PASS; M.8 CONTINUES; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.9–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1–M.7.4 SEALED; M.8.1–M.8.2 COMPLETE / PASS; M.8.3 TEMPORAL DIFF IN PROGRESS; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.9–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 
-L is sealed. M.1–M.7.4 and M.8.1 are sealed. The M.7.4 GPU FLOW representation remains TRIAL / NOT PROMOTED / BENCHMARK PENDING. M.8 Replay / temporal organization continues with bounded historical state reconstruction, followed by M.9 environmental memory / bounded future-state experiments and M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
+L is sealed. M.1–M.7.4 and M.8.1–M.8.2 are sealed. The M.7.4 GPU FLOW representation remains TRIAL / NOT PROMOTED / BENCHMARK PENDING. M.8 Replay / temporal organization continues with temporal comparison/diff between proven Activity-cursor reconstructions, followed by M.9 environmental memory / bounded future-state experiments and M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
 
 ## 8. Historical compatibility anchors
 
