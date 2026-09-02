@@ -7,7 +7,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationalActionOutput, now_utc
+from app.models.domain import (
+    OrganizationActorType,
+    OrganizationBlockerType,
+    OrganizationalActionOutput,
+    RiskEscalation,
+    now_utc,
+)
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
 from app.services.organization_governance import ensure_foundation_positions
 from app.services.organization_mobility_live_organization import (
@@ -22,8 +28,8 @@ from app.services.organization_mobility_objective_runtime import (
 )
 from app.services.organization_command import OrganizationCommandContext
 from app.services.organization_conversation import open_conversation
-from app.services.organization_work import assign_work_item
-from app.models.domain import OrganizationActorType
+from app.services.organization_human_action import create_human_action_request
+from app.services.organization_work import assign_work_item, open_blocker
 
 
 def _human_context() -> OrganizationCommandContext:
@@ -176,12 +182,57 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     )
     assert decision.status_code == 201, decision.text
 
+    blocker = open_blocker(
+        db_session,
+        _human_context(),
+        blocker_key="m6-shared-friction",
+        blocker_type=OrganizationBlockerType.human_input,
+        severity="high",
+        title="Missing employer declaration",
+        description="Canonical employer declaration evidence is required before the next governed step.",
+        work_item_id=plan.pathway_work_item.id,
+        department=plan.pathway_work_item.department,
+        accountable_position_key=plan.pathway_work_item.assigned_position_key,
+        authority_level=plan.pathway_work_item.authority_level,
+        requires_human_action=True,
+    )
+    human_request = create_human_action_request(
+        db_session,
+        _human_context(),
+        request_key="m6-owner-inbox-review",
+        request_type="review",
+        title="Review missing employer declaration",
+        instructions="Inspect the blocker evidence and provide the required declaration or governed disposition.",
+        required_role="board",
+        priority="high",
+        authority_level="L4",
+        work_item_id=plan.pathway_work_item.id,
+        blocker_id=blocker.id,
+    )
+    risk = RiskEscalation(
+        risk_key="m6-board-risk",
+        work_item_id=plan.root_work_item.id,
+        category="evidence",
+        severity="high",
+        title="Evidence gap requires Board visibility",
+        description="The canonical blocker remains unresolved and is visible to the Board.",
+        evidence_json='[{"kind":"m6-risk-proof"}]',
+        accountable_position_key=plan.root_work_item.assigned_position_key,
+        escalated_to_position_key="board",
+        status="open",
+        requires_board_attention=True,
+        is_emergency=False,
+    )
+    db_session.add(risk)
+    db_session.commit()
+    db_session.refresh(risk)
+
     scene = client.get("/api/v1/organization/transparency/live-organization/scene/austria/latest")
     assert scene.status_code == 200, scene.text
     scene_body = scene.json()
     assert scene_body["established"] is True
     projection = scene_body["scene"]
-    assert projection["contract_version"] == "living-organization-scene.v2"
+    assert projection["contract_version"] == "living-organization-scene.v3"
     assert projection["root_work_item_id"] == str(plan.root_work_item.id)
     assert projection["objective_key"] == plan.root_work_item.objective_key
     assert projection["coverage"] == {
@@ -189,9 +240,13 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
         "missions": "workitem_objective_topology_projection",
         "conversations": "organization_activity_conversation_lifecycle_v1",
         "handoffs": "organization_work_assigned_activity_v1",
-        "incidents": "not_connected_m5",
-        "smart_objects": "derived_read_only_scene_metrics",
-        "presence": "not_asserted_m5",
+        "blockers": "organization_blocker_canonical_records",
+        "human_actions": "organization_human_action_request_open_records",
+        "risk_escalations": "risk_escalation_open_records",
+        "incidents": "unavailable_no_canonical_incident_model",
+        "smart_objects": "m6_read_only_canonical_projections",
+        "runtime_costs": "unavailable_no_canonical_organization_cost_ledger",
+        "presence": "not_asserted_m6",
     }
 
     deterministic = projection["deterministic"]
@@ -213,7 +268,7 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert set(departments_by_key) == set(expected_department_counts)
     assert sum(item["employee_count"] for item in deterministic["departments"]) == 3
     assert sum(item["work_item_count"] for item in deterministic["departments"]) == 3
-    assert sum(item["active_blocker_count"] for item in deterministic["departments"]) == 0
+    assert sum(item["active_blocker_count"] for item in deterministic["departments"]) == 1
     for department_key, expected_count in expected_department_counts.items():
         department = departments_by_key[department_key]
         assert department["employee_count"] == expected_count
@@ -250,11 +305,31 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     )
     assert deterministic["incidents"] == []
     assert {item["presence_state"] for item in deterministic["employees"]} == {"not_asserted"}
+    assert deterministic["blockers"][0]["blocker_id"] == str(blocker.id)
+    assert deterministic["blockers"][0]["blocker_type"] == "human_input"
+    assert deterministic["blockers"][0]["description"].startswith("Canonical employer declaration")
+    assert deterministic["human_actions"][0]["request_id"] == str(human_request.id)
+    assert deterministic["human_actions"][0]["status"] == "required"
+    assert deterministic["risk_escalations"][0]["risk_id"] == str(risk.id)
+    assert deterministic["risk_escalations"][0]["requires_board_attention"] is True
     assert {item["object_type"] for item in deterministic["smart_objects"]} == {
         "mission_board",
-        "evidence_console",
-        "board_beacon",
+        "evidence_shelf",
+        "blocker_wall",
+        "board_desk",
+        "owner_inbox",
+        "risk_beacon",
+        "incident_beacon",
+        "cost_display",
     }
+    incident = next(
+        item for item in deterministic["smart_objects"] if item["object_type"] == "incident_beacon"
+    )
+    cost = next(
+        item for item in deterministic["smart_objects"] if item["object_type"] == "cost_display"
+    )
+    assert incident["state"] == "unavailable" and incident["metric_value"] is None
+    assert cost["state"] == "unavailable" and cost["metric_value"] is None
     assert {item["room_type"] for item in deterministic["rooms"]} == {
         "mission_room",
         "evidence_lab",
@@ -262,7 +337,7 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     }
     board_room = next(item for item in deterministic["rooms"] if item["room_type"] == "board_room")
     assert board_room["state"] == "attention"
-    assert board_room["metric_value"] == 1
+    assert board_room["metric_value"] == 3
     assert any(item["relationship_type"] == "assigned_to" for item in deterministic["relationships"])
     assert any(item["relationship_type"] == "belongs_to" for item in deterministic["relationships"])
     assert any(
@@ -275,6 +350,16 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     )
     assert deterministic["decisions"][0]["decision_id"] == decision.json()["id"]
     assert deterministic["decisions"][0]["is_current"] is True
+    assert deterministic["decisions"][0]["required_owner_action"] is True
+    assert deterministic["decisions"][0]["evidence_items"] == [{"kind": "scene-test"}]
+    assert any(
+        item["relationship_type"] == "requires_human_action"
+        for item in deterministic["relationships"]
+    )
+    assert any(
+        item["relationship_type"] == "escalates_risk"
+        for item in deterministic["relationships"]
+    )
 
     assert projection["predictive"] == {
         "enabled": False,
