@@ -383,7 +383,7 @@ optional Cognitive Ecology / Organica
 | **M.7** | Organization Lenses + Owner command mode | Scheduled |
 | **M.8** | Replay / temporal organization | Scheduled |
 | **M.9** | Phantom Futures + environmental memory | Scheduled |
-| **M.10** | Cognitive Ecology / Organica experimental view | Final experimental M slice |
+| **M.10** | Cognitive Ecology / Organica advanced view using the adopted WebGPU/Three.js compute + field-simulation stack | Scheduled; product-value proof mandatory |
 | **N** | Real learning, optimization, Dreamtime, adaptive predictions | After M and dependency gates |
 
 ### M.1 — Decision Explorer — COMPLETE / PASS
@@ -534,7 +534,8 @@ M.3 acceptance:
 - tenant/auth boundaries preserved;
 - deterministic scene state testable without animation;
 - initial real API-backed scene renders in Cockpit;
-- no advanced 3D/WebGPU requirement yet.
+- define the renderer adapter so the adopted WebGPU + Three.js compute path can enter progressively without coupling canonical state to rendering;
+- M.3 does not need full field simulation active yet, but the advanced rendering substrate is now an approved implementation direction.
 
 ### Three visual planes
 
@@ -564,7 +565,7 @@ available       → idle semantic state    → desk/lounge/coffee animation
 
 Employees retain recognizable identity, role and location conventions.
 
-Renderer direction: stay inside the existing Next.js/React Cockpit, evaluate efficient 2D/2.5D rendering only when justified, and keep adoption under Technology Radar/adoption-ledger control. Rendering technology never becomes runtime authority.
+Renderer direction: stay inside the existing Next.js/React Cockpit. **WebGPU plus a Three.js WebGPU/compute scene layer is now architecturally adopted for the advanced Living Organization renderer**, with a progressive fallback path for environments that cannot support the advanced path. Rendering technology never becomes runtime authority. The advanced path must earn default-surface prominence through the product-value benchmark defined in docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
 
 ---
 
@@ -693,7 +694,58 @@ blocker dams / knowledge formations / temporal echoes
 | ExecutiveDecision | gravity / decision crystal |
 | repeated history | geology/fossil layers |
 
-Familiarity and operating clarity take precedence over novelty. Do not adopt reaction-diffusion, fluid dynamics, WebGPU or Three.js compute infrastructure until a bounded prototype proves material product value.
+Familiarity and operating clarity take precedence over novelty.
+
+**Adoption decision:** WebGPU, a Three.js WebGPU/compute scene layer, GPU flow/fluid simulation, and reaction-diffusion environmental fields are **ADOPTED for bounded Living Organization implementation**. They are no longer generic candidates.
+
+Adoption does not waive proof. Each primitive has a required product job:
+
+- **WebGPU** — sustain an interactive dense organization scene and compute-heavy lenses without pushing animation work onto the main interaction path unnecessarily.
+- **Three.js WebGPU/compute** — provide scene graph, camera/picking and GPU-compute composition for employees, rooms, particles, fields and optional 2.5D/3D views.
+- **GPU flow/fluid simulation** — make work routing, congestion, shared blockers and throughput visible in the FLOW lens and Cognitive Ecology view.
+- **Reaction-diffusion fields** — make recurring organizational patterns, hot spots, evidence concentration and environmental memory visible without adding a second truth store.
+
+The detailed adoption/value contract is docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
+
+A technology may remain adopted while being withheld from the default view if its value benchmark fails. The response to failure is redesign/fallback, not pretending that visual novelty equals product value.
+
+---
+
+## 5.9.1 Advanced rendering stack — adopted with product-value obligations
+
+The advanced Living Organization stack is now a scheduled product capability, not a speculative Radar item.
+
+~~~text
+AIOS canonical state
+        ↓
+Live Organization projection
+        ↓
+scene contract
+        ↓
+Three.js scene / interaction layer
+        ↓
+WebGPU rendering + compute
+        ├── flow / fluid field
+        ├── reaction-diffusion field
+        ├── particles / environmental memory
+        └── Cognitive Ecology composition
+~~~
+
+### Product-value rule
+
+> **A visual primitive is successful only if it makes the Human Owner faster, more accurate, more informed, or enables materially denser real-time organization state than the simpler baseline.**
+
+Required benchmark tasks include:
+
+1. identify the largest shared blocker;
+2. identify the highest-consequence decision requiring attention;
+3. understand the dominant work-routing / congestion path;
+4. inspect evidence/decision context without losing canonical lineage;
+5. operate a dense scene without interaction becoming sluggish.
+
+Promotion targets are defined in the adoption contract and include comprehension-time improvement, non-regression in correctness, interaction/rendering performance and zero truth/authority leakage.
+
+The advanced stack is therefore **adopted**, while default-UX promotion remains evidence-based.
 
 ---
 

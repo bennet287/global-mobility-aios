@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.65 — M.1 Decision Explorer COMPLETE / PASS; M.2 next; Living Organization V2 scheduled
+**Current V12 generation:** V12.66 — M.1 COMPLETE / PASS; M.2 next; Living Organization V2 advanced rendering stack ADOPTED
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -46,7 +46,7 @@ No Radar candidate has caused runtime adoption.
 | **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | **COMPLETE for sealed L** — current-v3 return compiled; 3/3 professionally reviewed promotions; privacy-safe aliases committed; final exact-evidence-head proof accepted | Do not expose reviewer identity, registration data, contact data, firm identity, or public-profile links in Git. |
 | **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | **COMPLETE / PASS** at `9f00124c...`; Policy #517 PASS; Production Proof #1054 4/4 PASS | Do not reopen without regression; no command-surface or decision-domain unification. |
 | **M.2 Decision navigation** | `roadmap/...v12` | **NEXT** — decision → WorkItem → Mission/Evidence → supersession/provenance | Read-oriented; no new decision authority. |
-| **M.3–M.10 Living Organization V2** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **SCHEDULED** — scene → employees → collaboration/rooms → Smart Objects/Board → lenses → replay → phantoms/environment → optional Organica | Projection/renderer/prediction state must not become authority. |
+| **M.3–M.10 Living Organization V2** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **SCHEDULED; ADVANCED RENDERING ADOPTED** — scene → employees → collaboration/rooms → Smart Objects/Board → lenses → replay → phantoms/environment → Organica; WebGPU + Three.js compute + GPU flow + reaction-diffusion are bounded adopted capabilities | Projection/renderer/prediction state must not become authority; advanced visuals must pass product-value gates. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -73,9 +73,24 @@ Permanent rule:
 
 M.3–M.9 add truthful employees, movement, conversations, handoffs, Mission Rooms, blockers, Smart Objects, live Board Room, analytical lenses, Owner command mode, replay, Phantom Futures and environmental memory.
 
-M.10 may add optional Cognitive Ecology / Organica using evidence crystals, work rivers, risk heat, blocker dams and decision gravity. It remains experimental; the familiar organization is the default.
+M.10 may add optional Cognitive Ecology / Organica using evidence crystals, work rivers, risk heat, blocker dams and decision gravity. **The underlying advanced rendering stack is adopted:** WebGPU + Three.js WebGPU/compute + GPU flow/fluid simulation + reaction-diffusion fields. The familiar organization remains the default until the advanced surfaces prove measurable product value.
 
 N owns learned/adaptive behavior such as learned routing, predictive blocker models, adaptive Phantom Futures and bounded Dreamtime. N remains blocked behind M.
+
+### Advanced rendering adoption
+
+**Architecture decision:** ADOPTED / BOUNDED M IMPLEMENTATION SCHEDULED / PRODUCT PROOF PENDING.
+
+~~~text
+WebGPU                    adopted advanced renderer/compute substrate
+Three.js WebGPU/compute   adopted scene + interaction + compute layer
+GPU flow/fluid fields     adopted FLOW/congestion visualization primitive
+reaction-diffusion fields adopted environmental-memory/pattern primitive
+~~~
+
+These technologies are expected to ship as product capabilities. They must prove value against simpler baselines before becoming dominant/default representations. Required proof covers faster comprehension, preserved correctness, scene responsiveness/scalability and zero canonical-truth/authority leakage.
+
+Canonical contract: docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
 
 ---
 

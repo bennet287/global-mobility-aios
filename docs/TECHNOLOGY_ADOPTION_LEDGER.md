@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.60 / anonymous reviewer repository privacy boundary; technology truth unchanged
+**Latest reconciliation:** V12.66 / Living Organization advanced rendering adoption
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -55,6 +55,29 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | Organization collaboration / coordination visualization | AIOS already exposes hierarchy focus through OrganizationPosition reporting lines, WorkItem dependency edges, cross-department friction, governed human follow-up and durable activity context; do not add a donor collaboration state/graph unless a concrete unmet UX need is proven |
 | Austria blind professional-review handoff | existing professional-review compiler retained; reviewer-facing handoff excludes benchmark labels/rationale and blind reviewer returns compile afterward into canonical CONFIRMED/CORRECTED/DISPUTED/NEEDS_MORE_FACTS semantics; stable exact-head local proof observed at `d969c7d...`: 19 focused tests, blind packet/template assertions, fail-closed untouched return, 1332 passed / 22 skipped backend regression, repository gates and stable start/end SHA; genuine professional review still pending |
 
+## 2.1 Adopted / scheduled M capabilities — implementation and product proof still required
+
+The following capabilities are no longer generic candidates. They are **architecturally adopted for bounded Living Organization implementation**, with implementation/proof status tracked separately.
+
+| Capability | Adoption truth | Required product value |
+|---|---|---|
+| WebGPU | **ADOPTED for M advanced rendering/compute**; dependency/runtime proof not yet claimed | dense scene rendering + compute with responsive interaction and graceful fallback |
+| Three.js WebGPU/compute layer | **ADOPTED for M scene graph, camera/picking and GPU compute composition**; implementation proof pending | reduce custom renderer complexity while enabling performant spatial interaction and field composition |
+| GPU flow/fluid simulation | **ADOPTED for FLOW lens / congestion / Cognitive Ecology** | reveal routing, congestion and shared blockers faster than static dependency/table baseline |
+| reaction-diffusion environmental fields | **ADOPTED for environmental memory / recurring-pattern visualization** | improve recognition of repeated organizational hot spots/patterns without creating a truth store |
+
+Permanent interpretation:
+
+~~~text
+ADOPTED != ALREADY INSTALLED
+ADOPTED != PRODUCT VALUE PROVEN
+ADOPTED != DEFAULT UX PROMOTED
+~~~
+
+The implementation scheduler is ROADMAP M.3–M.10. Product-value acceptance is defined by docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
+
+If a primitive fails its benchmark, keep the capability bounded/optional and redesign its representation; do not falsify value and do not allow it to displace a clearer baseline.
+
 ## 3. V1.3.8 consolidated seam decisions — do not revive held duplicates
 
 | Seam | Incumbent / current baseline | Challenger | Held / watch truth |
@@ -79,6 +102,7 @@ SKILL KNOWLEDGE != EXECUTION AUTHORITY
 | durable workflow | AIOS WorkItem/runtime baseline | Temporal on trigger | LangGraph/Agno DONOR_ONLY |
 | document/privacy/source | existing AIOS boundaries + Docling/ClamAV | Presidio/urlwatch bounded pilots | EU DSS HOLD_WITH_TRIGGER |
 | human-agent interaction | current AIOS Cockpit | CopilotKit / AG-UI post-L M | Storybook HOLD_WITH_TRIGGER |
+| Living Organization rendering/compute | AIOS scene contract + adopted WebGPU/Three.js compute path | simpler DOM/Canvas/WebGL fallback as benchmark/fallback | GPU flow + reaction-diffusion adopted as bounded derived visualization primitives |
 
 The active status source for exact per-candidate triggers is `docs/TECHNOLOGY_RADAR_V1_3_8.md`.
 
@@ -169,8 +193,8 @@ scatter-audit application                 COMPLETE
 runtime adoption caused by V1.3.8        NONE
 Munder runtime adoption                  NONE ON CANONICAL V12
 external mutation engine adoption        NONE
-L                                        IMPLEMENTED / ACCEPTANCE PENDING
-M                                        NOT STARTED
+L                                        COMPLETE / PASS / SEALED
+M                                        IN PROGRESS — advanced Living Organization rendering stack architecturally adopted
 ```
 
 ROADMAP remains the implementation scheduler.

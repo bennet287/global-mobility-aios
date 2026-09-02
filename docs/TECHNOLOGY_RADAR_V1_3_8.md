@@ -247,10 +247,14 @@ These candidates occupy distinct seams and remain intentionally separate.
 | Candidate | V1.3.8 state | Boundary |
 |---|---|---|
 | CopilotKit / AG-UI | **CHALLENGER / POST-L M PILOT CANDIDATE** | interaction layer only; AIOS APIs/governance authorize commands |
+| **WebGPU** | **ADOPTED / M LIVING ORGANIZATION ADVANCED RENDERING** | rendering/compute only; scene state is projection, never authority |
+| **Three.js WebGPU/compute layer** | **ADOPTED / M SCENE + COMPUTE SUBSTRATE** | camera, picking, scene composition and GPU compute behind AIOS scene contract |
+| **GPU flow/fluid simulation** | **ADOPTED / M FLOW + COGNITIVE-ECOLOGY PRIMITIVE** | visualize routing/congestion/blockers from canonical projection; no workflow authority |
+| **Reaction-diffusion fields** | **ADOPTED / M ENVIRONMENTAL-MEMORY PRIMITIVE** | visualize repeated patterns/hot spots; read-only derived field, not memory/truth |
 | Storybook | **HOLD_WITH_TRIGGER** | M component/design-system proof demonstrates a workbench need |
 | Penpot | **PREFERRED DESIGN ENVIRONMENT / NOT ACCEPTANCE DEPENDENCY** | design tooling only |
 
-M remains NOT STARTED until L is sealed.
+L is sealed and M is in progress. The advanced rendering entries above are adopted specifically for the scheduled Living Organization M slices; product-value proof remains mandatory before default-UX promotion.
 
 ## 14. Cybersecurity skill and Red Team programme
 

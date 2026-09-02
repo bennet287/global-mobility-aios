@@ -9,6 +9,29 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.66 LIVING ORGANIZATION ADVANCED RENDERING ADOPTION
+
+### Status
+
+**WEBGPU / THREE.JS WEBGPU-COMPUTE / GPU FLOW-FLUID / REACTION-DIFFUSION ADOPTED FOR BOUNDED M IMPLEMENTATION / PRODUCT-VALUE BENCHMARK MANDATORY**
+
+The previous do-not-adopt-until-later-prototype wording is superseded.
+
+~~~text
+WebGPU                    ADOPTED
+Three.js WebGPU/compute   ADOPTED
+GPU flow/fluid fields     ADOPTED
+reaction-diffusion fields ADOPTED
+~~~
+
+Adoption is not confused with installation or proof. Implementation is scheduled across M.3–M.10 and must satisfy docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
+
+The contract requires zero truth/authority leakage, non-regression in task correctness, measurable comprehension gains for relevant visual primitives, and dense-scene rendering/interaction performance. A primitive that fails remains bounded/optional until redesigned; subjective visual appeal alone is not acceptance evidence.
+
+No canonical execution/authority semantics change.
+
+---
+
 ## 2026-09-02 — V12.65 M.1 EXACT-HEAD CLOSURE + LIVING ORGANIZATION V2 ROADMAP
 
 ### Status
