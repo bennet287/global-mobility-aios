@@ -249,6 +249,39 @@ def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
     assert all("coverage_state" in item for item in final_state["work_items"])
     assert all("payload" not in item for item in final_state["work_items"])
 
+    diff_response = client.get(
+        f"/api/v1/organization/transparency/live-organization/replay/austria/latest/diff/"
+        f"{root_created['activity_id']}/{final_cursor['activity_id']}"
+    )
+    assert diff_response.status_code == 200, diff_response.text
+    replay_diff = diff_response.json()
+    assert replay_diff["contract_version"] == "organization-replay-state-diff.v1"
+    assert replay_diff["comparison_basis"] == "two_organization_replay_state_v1_projections"
+    assert replay_diff["root_work_item_id"] == str(plan.root_work_item.id)
+    assert replay_diff["from_cursor"]["activity_id"] == root_created["activity_id"]
+    assert replay_diff["to_cursor"]["activity_id"] == final_cursor["activity_id"]
+    assert replay_diff["comparison_posture"] == "covered"
+    assert replay_diff["canonical_projection"] is True
+    assert replay_diff["authoritative"] is False
+    assert replay_diff["mutations_allowed"] is False
+    assert replay_diff["unchanged_entities_omitted"] is True
+    assert replay_diff["changed_entity_count"] == sum(
+        len(replay_diff[key])
+        for key in ("work_items", "blockers", "decisions", "human_requests", "conversations")
+    )
+    root_delta = next(
+        item
+        for item in replay_diff["work_items"]
+        if item["entity_id"] == str(plan.root_work_item.id)
+    )
+    assert root_delta["change_kind"] == "changed"
+    assert "status" in root_delta["changed_fields"]
+    assert root_delta["before"]["status"] == "queued"
+    assert root_delta["after"]["status"] != "queued"
+    assert any(item["change_kind"] == "added" for item in replay_diff["work_items"])
+    assert "risk_escalation_history" in replay_diff["unsupported_dimensions"]
+    assert "payload" not in replay_diff
+
     raw_client.headers.update({
         "X-GMAI-Role": "operator",
         "X-GMAI-User": "m8-operator",
@@ -616,6 +649,11 @@ def test_live_organization_transparency_requires_board_role(
         f"/api/v1/organization/transparency/live-organization/replay/austria/latest/state/{uuid4()}"
     )
     assert replay_state.status_code == 403
+    replay_diff = raw_client.get(
+        f"/api/v1/organization/transparency/live-organization/replay/austria/latest/diff/"
+        f"{uuid4()}/{uuid4()}"
+    )
+    assert replay_diff.status_code == 403
 
 
 def test_live_organization_exact_snapshot_missing_root_is_non_disclosing_404(

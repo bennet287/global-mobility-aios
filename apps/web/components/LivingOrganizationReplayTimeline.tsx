@@ -4,8 +4,11 @@ import { useState } from "react";
 
 import {
   getLatestAustriaOrganizationReplayState,
+  getLatestAustriaOrganizationReplayStateDiff,
   type OrganizationReplay,
   type OrganizationReplayState,
+  type OrganizationReplayStateDiff,
+  type OrganizationReplayStateDelta,
 } from "../lib/live-organization";
 import { titleCase } from "../lib/utils";
 
@@ -24,10 +27,42 @@ function coverageLabel(value: string): string {
   return titleCase(value);
 }
 
+type ReplayDiffStatusState = {
+  status: string;
+  coverage_state: string;
+};
+
+function ReplayDiffList({
+  label,
+  items,
+}: {
+  label: string;
+  items: OrganizationReplayStateDelta<ReplayDiffStatusState>[];
+}) {
+  return (
+    <article>
+      <span>{label}</span>
+      {items.length ? items.map((item) => (
+        <div key={item.entity_id} data-replay-delta={item.entity_id} data-replay-change-kind={item.change_kind}>
+          <strong>{shortId(item.entity_id)} · {titleCase(item.change_kind)}</strong>
+          <small>
+            {(item.before?.status ?? "not known")} → {(item.after?.status ?? "not known")}
+            {item.changed_fields.length ? ` · ${item.changed_fields.join(" · ")}` : " · projection membership changed"}
+          </small>
+        </div>
+      )) : <small>No supported changes in this dimension.</small>}
+    </article>
+  );
+}
+
 export function LivingOrganizationReplayTimeline({ replay }: { replay: OrganizationReplay }) {
   const [selectedState, setSelectedState] = useState<OrganizationReplayState | null>(null);
   const [stateLoading, setStateLoading] = useState(false);
   const [stateError, setStateError] = useState<string | null>(null);
+  const [comparisonStartActivityId, setComparisonStartActivityId] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<OrganizationReplayStateDiff | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [comparisonError, setComparisonError] = useState<string | null>(null);
   const incompleteEvents = replay.events.filter((event) => event.coverage_state !== "covered");
   const coverage = replay.coverage;
   const coverageState = coverage.activity_history_established ? "established" : "partial";
@@ -51,6 +86,43 @@ export function LivingOrganizationReplayTimeline({ replay }: { replay: Organizat
     }
   }
 
+  function setComparisonStart(activityId: string) {
+    setComparisonStartActivityId(activityId);
+    setComparison(null);
+    setComparisonError(null);
+  }
+
+  async function compareFromStart(toActivityId: string) {
+    if (!comparisonStartActivityId) return;
+    setComparisonLoading(true);
+    setComparisonError(null);
+    try {
+      const next = await getLatestAustriaOrganizationReplayStateDiff(
+        comparisonStartActivityId,
+        toActivityId,
+      );
+      if (next.root_work_item_id !== replay.root_work_item_id) {
+        setComparison(null);
+        setComparisonError("Temporal comparison root changed during inspection. Refresh before comparing state.");
+        return;
+      }
+      if (
+        next.from_cursor.activity_id !== comparisonStartActivityId
+        || next.to_cursor.activity_id !== toActivityId
+      ) {
+        setComparison(null);
+        setComparisonError("Temporal comparison cursor identity changed during inspection.");
+        return;
+      }
+      setComparison(next);
+    } catch (error) {
+      setComparison(null);
+      setComparisonError(error instanceof Error ? error.message : "Temporal comparison is unavailable.");
+    } finally {
+      setComparisonLoading(false);
+    }
+  }
+
   return (
     <section
       className="living-replay-shell"
@@ -61,12 +133,12 @@ export function LivingOrganizationReplayTimeline({ replay }: { replay: Organizat
     >
       <header className="living-replay-header">
         <div>
-          <span className="premium-label">M.8.2 · As-of Temporal State Reconstruction</span>
+          <span className="premium-label">M.8.3 · Temporal State Comparison / Diff V1</span>
           <h3 id="living-replay-title">Replay / Temporal Organization</h3>
           <p>
-            Ordered persisted semantic Activity for the latest Austria WorkItem tree, plus explicit as-of inspection at
-            an Activity cursor. Reconstruction uses semantic transition payloads only; it does not interpolate, backfill,
-            read current rows as historical truth, reconstruct chat transcripts, or mutate AIOS.
+            Ordered persisted semantic Activity for the latest Austria WorkItem tree, explicit M.8.2 as-of inspection,
+            and bounded comparison between two proven Activity-cursor states. Diffing reuses reconstructed state; it does
+            not create another timeline, infer missing history, read current rows as past truth, or mutate AIOS.
           </p>
         </div>
         <div className="living-replay-contract">
@@ -130,18 +202,100 @@ export function LivingOrganizationReplayTimeline({ replay }: { replay: Organizat
                 {event.causation_activity_id ? <span>Causation {shortId(event.causation_activity_id)}</span> : null}
                 {event.supersedes_activity_id ? <span>Supersedes {shortId(event.supersedes_activity_id)}</span> : null}
               </footer>
-              <button
-                className="living-replay-state-button"
-                type="button"
-                onClick={() => void inspectState(event.activity_id)}
-                disabled={stateLoading}
-              >
-                Inspect state here
-              </button>
+              <div className="living-replay-event-actions">
+                <button
+                  className="living-replay-state-button"
+                  type="button"
+                  onClick={() => void inspectState(event.activity_id)}
+                  disabled={stateLoading}
+                >
+                  Inspect state here
+                </button>
+                <button
+                  className="living-replay-state-button"
+                  type="button"
+                  onClick={() => setComparisonStart(event.activity_id)}
+                  aria-pressed={comparisonStartActivityId === event.activity_id}
+                  disabled={comparisonLoading}
+                >
+                  {comparisonStartActivityId === event.activity_id ? "Comparison start" : "Set compare start"}
+                </button>
+                {comparisonStartActivityId && comparisonStartActivityId !== event.activity_id ? (
+                  <button
+                    className="living-replay-state-button"
+                    type="button"
+                    onClick={() => void compareFromStart(event.activity_id)}
+                    disabled={comparisonLoading}
+                  >
+                    Compare from start
+                  </button>
+                ) : null}
+              </div>
             </article>
           </li>
         ))}
       </ol>
+
+      {comparisonStartActivityId && !comparison && !comparisonError ? (
+        <div className="living-replay-diff-hint" data-replay-comparison-start={comparisonStartActivityId}>
+          <strong>Comparison start set at {shortId(comparisonStartActivityId)}.</strong>
+          <span>Select another persisted Activity and choose “Compare from start”.</span>
+        </div>
+      ) : null}
+
+      {comparisonError ? (
+        <div className="living-replay-state-error" role="status">
+          <strong>Temporal comparison unavailable.</strong>
+          <span>{comparisonError}</span>
+        </div>
+      ) : null}
+
+      {comparison ? (
+        <section
+          className="living-replay-diff"
+          aria-labelledby="living-replay-diff-title"
+          data-replay-diff-authoritative={String(comparison.authoritative)}
+          data-replay-diff-mutates-work={String(comparison.mutations_allowed)}
+          data-replay-diff-posture={comparison.comparison_posture}
+        >
+          <header>
+            <div>
+              <span>M.8.3 · Two-cursor canonical projection diff</span>
+              <strong id="living-replay-diff-title">
+                What changed from {shortId(comparison.from_cursor.activity_id)} → {shortId(comparison.to_cursor.activity_id)}
+              </strong>
+            </div>
+            <small>{titleCase(comparison.comparison_posture)} · {comparison.changed_entity_count} changed entities</small>
+          </header>
+
+          <div className="living-replay-state-summary">
+            <div><strong>{comparison.work_items.length}</strong><span>WorkItem deltas</span></div>
+            <div><strong>{comparison.blockers.length}</strong><span>blocker deltas</span></div>
+            <div><strong>{comparison.decisions.length}</strong><span>decision deltas</span></div>
+            <div><strong>{comparison.human_requests.length}</strong><span>human deltas</span></div>
+            <div><strong>{comparison.conversations.length}</strong><span>conversation deltas</span></div>
+            <div><strong>{comparison.changed_entity_count}</strong><span>changed entities</span></div>
+          </div>
+
+          <div className="living-replay-diff-grid">
+            <ReplayDiffList label="WORKITEMS" items={comparison.work_items} />
+            <ReplayDiffList label="BLOCKERS" items={comparison.blockers} />
+            <ReplayDiffList label="DECISIONS" items={comparison.decisions} />
+            <ReplayDiffList label="HUMAN REQUESTS" items={comparison.human_requests} />
+            <ReplayDiffList label="CONVERSATIONS" items={comparison.conversations} />
+          </div>
+
+          <footer>
+            <strong>Comparison truth boundary</strong>
+            <span>{comparison.unsupported_dimensions.join(" · ")}</span>
+            <small>
+              This compares two M.8.2 projections only. Added/removed means membership differs between those projections;
+              it does not invent creation, deletion, transcript, deadline, evidence-content, risk-escalation, or source history.
+              Unchanged entities are omitted.
+            </small>
+          </footer>
+        </section>
+      ) : null}
 
       {stateError ? (
         <div className="living-replay-state-error" role="status">

@@ -18,6 +18,7 @@ from app.services.organization_mobility_live_organization import (
 
 ORGANIZATION_REPLAY_CONTRACT_VERSION = "organization-replay.v1"
 ORGANIZATION_REPLAY_STATE_CONTRACT_VERSION = "organization-replay-state.v1"
+ORGANIZATION_REPLAY_STATE_DIFF_CONTRACT_VERSION = "organization-replay-state-diff.v1"
 ORGANIZATION_REPLAY_EVENT_LIMIT = 500
 ORGANIZATION_REPLAY_STATE_EVENT_LIMIT = 5000
 
@@ -147,6 +148,49 @@ class OrganizationReplayState:
     decisions: tuple[OrganizationReplayStateDecision, ...]
     human_requests: tuple[OrganizationReplayStateHumanRequest, ...]
     conversations: tuple[OrganizationReplayStateConversation, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class OrganizationReplayStateDiffCursor:
+    activity_id: UUID
+    occurred_at: datetime
+    coverage_state: str
+    reconstruction_posture: str
+    unapplied_transition_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class OrganizationReplayStateDelta:
+    entity_id: str
+    change_kind: str
+    changed_fields: tuple[str, ...]
+    before: object | None
+    after: object | None
+
+
+@dataclass(frozen=True, slots=True)
+class OrganizationReplayStateDiff:
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    comparison_basis: str
+    from_cursor: OrganizationReplayStateDiffCursor
+    to_cursor: OrganizationReplayStateDiffCursor
+    comparison_posture: str
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    supported_dimensions: tuple[str, ...]
+    unsupported_dimensions: tuple[str, ...]
+    unchanged_entities_omitted: bool
+    changed_entity_count: int
+    work_items: tuple[OrganizationReplayStateDelta, ...]
+    blockers: tuple[OrganizationReplayStateDelta, ...]
+    decisions: tuple[OrganizationReplayStateDelta, ...]
+    human_requests: tuple[OrganizationReplayStateDelta, ...]
+    conversations: tuple[OrganizationReplayStateDelta, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -740,4 +784,213 @@ def latest_austria_organization_replay_state(
             OrganizationReplayStateConversation(**item)
             for _, item in sorted(conversation_states.items(), key=lambda pair: pair[0])
         ),
+    )
+
+def _state_diff_collection(
+    before_items: tuple[object, ...],
+    after_items: tuple[object, ...],
+    *,
+    id_attr: str,
+    compared_fields: tuple[str, ...],
+) -> tuple[OrganizationReplayStateDelta, ...]:
+    before_by_id = {str(getattr(item, id_attr)): item for item in before_items}
+    after_by_id = {str(getattr(item, id_attr)): item for item in after_items}
+    deltas: list[OrganizationReplayStateDelta] = []
+
+    for entity_id in sorted(set(before_by_id) | set(after_by_id)):
+        before = before_by_id.get(entity_id)
+        after = after_by_id.get(entity_id)
+        if before is None:
+            deltas.append(
+                OrganizationReplayStateDelta(
+                    entity_id=entity_id,
+                    change_kind="added",
+                    changed_fields=(),
+                    before=None,
+                    after=after,
+                )
+            )
+            continue
+        if after is None:
+            deltas.append(
+                OrganizationReplayStateDelta(
+                    entity_id=entity_id,
+                    change_kind="removed",
+                    changed_fields=(),
+                    before=before,
+                    after=None,
+                )
+            )
+            continue
+
+        changed_fields = tuple(
+            field
+            for field in compared_fields
+            if getattr(before, field) != getattr(after, field)
+        )
+        if changed_fields:
+            deltas.append(
+                OrganizationReplayStateDelta(
+                    entity_id=entity_id,
+                    change_kind="changed",
+                    changed_fields=changed_fields,
+                    before=before,
+                    after=after,
+                )
+            )
+
+    return tuple(deltas)
+
+
+def latest_austria_organization_replay_state_diff(
+    session: Session,
+    *,
+    tenant_key: str,
+    from_cursor_activity_id: UUID,
+    to_cursor_activity_id: UUID,
+) -> OrganizationReplayStateDiff | None:
+    """Compare two proven M.8.2 projections without reconstructing a second history model."""
+
+    from_state = latest_austria_organization_replay_state(
+        session,
+        tenant_key=tenant_key,
+        cursor_activity_id=from_cursor_activity_id,
+    )
+    to_state = latest_austria_organization_replay_state(
+        session,
+        tenant_key=tenant_key,
+        cursor_activity_id=to_cursor_activity_id,
+    )
+    if from_state is None or to_state is None:
+        return None
+    if (
+        from_state.root_work_item_id != to_state.root_work_item_id
+        or from_state.objective_key != to_state.objective_key
+    ):
+        raise DependencyConflict("replay state comparison spans different organization roots")
+    if (
+        not from_state.canonical_projection
+        or not to_state.canonical_projection
+        or from_state.authoritative
+        or to_state.authoritative
+        or from_state.mutations_allowed
+        or to_state.mutations_allowed
+    ):
+        raise DependencyConflict("replay state comparison received an invalid reconstruction posture")
+
+    work_items = _state_diff_collection(
+        tuple(from_state.work_items),
+        tuple(to_state.work_items),
+        id_attr="work_item_id",
+        compared_fields=(
+            "status",
+            "priority",
+            "department",
+            "assigned_position_key",
+            "parent_work_item_id",
+            "coverage_state",
+        ),
+    )
+    blockers = _state_diff_collection(
+        tuple(from_state.blockers),
+        tuple(to_state.blockers),
+        id_attr="blocker_id",
+        compared_fields=(
+            "work_item_id",
+            "status",
+            "blocker_type",
+            "severity",
+            "requires_human_action",
+            "coverage_state",
+        ),
+    )
+    decisions = _state_diff_collection(
+        tuple(from_state.decisions),
+        tuple(to_state.decisions),
+        id_attr="decision_id",
+        compared_fields=(
+            "work_item_id",
+            "status",
+            "decision_type",
+            "authority_level",
+            "coverage_state",
+        ),
+    )
+    human_requests = _state_diff_collection(
+        tuple(from_state.human_requests),
+        tuple(to_state.human_requests),
+        id_attr="request_id",
+        compared_fields=(
+            "work_item_id",
+            "status",
+            "request_type",
+            "required_role",
+            "coverage_state",
+        ),
+    )
+    conversations = _state_diff_collection(
+        tuple(from_state.conversations),
+        tuple(to_state.conversations),
+        id_attr="conversation_id",
+        compared_fields=("work_item_id", "status", "coverage_state"),
+    )
+
+    postures = {
+        from_state.reconstruction_posture,
+        to_state.reconstruction_posture,
+    }
+    if postures == {"covered"}:
+        comparison_posture = "covered"
+    elif "partial_no_epoch" in postures:
+        comparison_posture = "partial_no_epoch"
+    elif "pre_epoch_partial" in postures:
+        comparison_posture = "pre_epoch_partial"
+    else:
+        comparison_posture = "covered_cursors_with_partial_prerequisites"
+
+    supported_dimensions = tuple(
+        dict.fromkeys((*from_state.supported_dimensions, *to_state.supported_dimensions))
+    )
+    unsupported_dimensions = tuple(
+        dict.fromkeys((*from_state.unsupported_dimensions, *to_state.unsupported_dimensions))
+    )
+    changed_entity_count = sum(
+        len(items)
+        for items in (work_items, blockers, decisions, human_requests, conversations)
+    )
+
+    return OrganizationReplayStateDiff(
+        contract_version=ORGANIZATION_REPLAY_STATE_DIFF_CONTRACT_VERSION,
+        generated_at=now_utc(),
+        scope="austria_mobility_latest_work_tree_activity_cursor_diff",
+        root_work_item_id=from_state.root_work_item_id,
+        objective_key=from_state.objective_key,
+        comparison_basis="two_organization_replay_state_v1_projections",
+        from_cursor=OrganizationReplayStateDiffCursor(
+            activity_id=from_state.cursor_activity_id,
+            occurred_at=from_state.cursor_occurred_at,
+            coverage_state=from_state.cursor_coverage_state,
+            reconstruction_posture=from_state.reconstruction_posture,
+            unapplied_transition_count=from_state.unapplied_transition_count,
+        ),
+        to_cursor=OrganizationReplayStateDiffCursor(
+            activity_id=to_state.cursor_activity_id,
+            occurred_at=to_state.cursor_occurred_at,
+            coverage_state=to_state.cursor_coverage_state,
+            reconstruction_posture=to_state.reconstruction_posture,
+            unapplied_transition_count=to_state.unapplied_transition_count,
+        ),
+        comparison_posture=comparison_posture,
+        canonical_projection=True,
+        authoritative=False,
+        mutations_allowed=False,
+        supported_dimensions=supported_dimensions,
+        unsupported_dimensions=unsupported_dimensions,
+        unchanged_entities_omitted=True,
+        changed_entity_count=changed_entity_count,
+        work_items=work_items,
+        blockers=blockers,
+        decisions=decisions,
+        human_requests=human_requests,
+        conversations=conversations,
     )

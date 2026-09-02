@@ -25,6 +25,7 @@ from app.schemas_organization_transparency import (
     LivingOrganizationSceneRead,
     OrganizationReplayLatestRead,
     OrganizationReplayRead,
+    OrganizationReplayStateDiffRead,
     OrganizationReplayStateRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
@@ -48,6 +49,7 @@ from app.services.organization_living_scene import (
 from app.services.organization_replay import (
     latest_austria_organization_replay,
     latest_austria_organization_replay_state,
+    latest_austria_organization_replay_state_diff,
 )
 from app.services.organization_mobility_live_organization import (
     AustriaLiveOrganizationSnapshot,
@@ -315,6 +317,41 @@ def read_latest_austria_organization_replay_state(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Organization replay state projection is inconsistent.",
+        ) from exc
+
+
+@router.get(
+    "/live-organization/replay/austria/latest/diff/{from_activity_id}/{to_activity_id}",
+    response_model=OrganizationReplayStateDiffRead,
+)
+def read_latest_austria_organization_replay_state_diff(
+    from_activity_id: UUID,
+    to_activity_id: UUID,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationReplayStateDiffRead:
+    """Return M.8.3 field deltas between two proven M.8.2 Activity-cursor states."""
+
+    _require_board(context)
+    try:
+        replay_diff = latest_austria_organization_replay_state_diff(
+            session,
+            tenant_key=context.tenant_key,
+            from_cursor_activity_id=from_activity_id,
+            to_cursor_activity_id=to_activity_id,
+        )
+        if replay_diff is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Organization transparency resource not found.",
+            )
+        return OrganizationReplayStateDiffRead.model_validate(replay_diff)
+    except HTTPException:
+        raise
+    except OrganizationCommandError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Organization replay state comparison is inconsistent.",
         ) from exc
 
 

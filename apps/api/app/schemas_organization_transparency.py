@@ -317,6 +317,78 @@ class OrganizationReplayStateRead(TransparencyRead):
     conversations: list[OrganizationReplayStateConversationRead]
 
 
+class OrganizationReplayStateDiffCursorRead(TransparencyRead):
+    activity_id: UUID
+    occurred_at: datetime
+    coverage_state: str
+    reconstruction_posture: str
+    unapplied_transition_count: int
+
+
+class OrganizationReplayStateWorkItemDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateWorkItemRead | None
+    after: OrganizationReplayStateWorkItemRead | None
+
+
+class OrganizationReplayStateBlockerDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateBlockerRead | None
+    after: OrganizationReplayStateBlockerRead | None
+
+
+class OrganizationReplayStateDecisionDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateDecisionRead | None
+    after: OrganizationReplayStateDecisionRead | None
+
+
+class OrganizationReplayStateHumanRequestDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateHumanRequestRead | None
+    after: OrganizationReplayStateHumanRequestRead | None
+
+
+class OrganizationReplayStateConversationDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateConversationRead | None
+    after: OrganizationReplayStateConversationRead | None
+
+
+class OrganizationReplayStateDiffRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    comparison_basis: str
+    from_cursor: OrganizationReplayStateDiffCursorRead
+    to_cursor: OrganizationReplayStateDiffCursorRead
+    comparison_posture: str
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    supported_dimensions: list[str]
+    unsupported_dimensions: list[str]
+    unchanged_entities_omitted: bool
+    changed_entity_count: int
+    work_items: list[OrganizationReplayStateWorkItemDeltaRead]
+    blockers: list[OrganizationReplayStateBlockerDeltaRead]
+    decisions: list[OrganizationReplayStateDecisionDeltaRead]
+    human_requests: list[OrganizationReplayStateHumanRequestDeltaRead]
+    conversations: list[OrganizationReplayStateConversationDeltaRead]
+
+
 class LivingSceneEmployeeRead(TransparencyRead):
     position_key: str
     title: str
