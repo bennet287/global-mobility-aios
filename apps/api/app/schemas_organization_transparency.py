@@ -389,6 +389,76 @@ class OrganizationReplayStateDiffRead(TransparencyRead):
     conversations: list[OrganizationReplayStateConversationDeltaRead]
 
 
+class EnvironmentalMemoryCoverageRead(TransparencyRead):
+    activity_history_basis: str
+    activity_history_established: bool
+    activity_history_coverage_start: datetime | None
+    pre_epoch_history: str
+    bounded_replay_window: str
+    replay_truncated: bool
+    path_history: str
+
+
+class EnvironmentalMemoryKindAggregateRead(TransparencyRead):
+    event_kind: str
+    event_count: int
+
+
+class EnvironmentalMemoryPathFrequencyRead(TransparencyRead):
+    previous_position_key: str
+    assigned_position_key: str
+    handoff_count: int
+    work_item_count: int
+    first_occurred_at: datetime
+    last_occurred_at: datetime
+    coverage_state: str
+
+
+class EnvironmentalMemoryHeatCellRead(TransparencyRead):
+    department: str
+    event_kind: str
+    event_count: int
+    covered_event_count: int
+
+
+class EnvironmentalMemoryTimelineBucketRead(TransparencyRead):
+    bucket_start: datetime
+    event_count: int
+    handoff_count: int
+    blocker_count: int
+    decision_count: int
+    conversation_count: int
+    coverage_state: str
+
+
+class OrganizationEnvironmentalMemoryRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    source_contract_version: str
+    canonical_projection: bool
+    authoritative: bool
+    predictive: bool
+    mutations_allowed: bool
+    visualization_only: bool
+    window_event_count: int
+    window_start: datetime | None
+    window_end: datetime | None
+    coverage: EnvironmentalMemoryCoverageRead
+    kind_aggregates: list[EnvironmentalMemoryKindAggregateRead]
+    path_frequencies: list[EnvironmentalMemoryPathFrequencyRead]
+    heat_cells: list[EnvironmentalMemoryHeatCellRead]
+    timeline: list[EnvironmentalMemoryTimelineBucketRead]
+    unsupported_dimensions: list[str]
+
+
+class OrganizationEnvironmentalMemoryLatestRead(TransparencyRead):
+    established: bool
+    memory: OrganizationEnvironmentalMemoryRead | None
+
+
 class LivingSceneEmployeeRead(TransparencyRead):
     position_key: str
     title: str
