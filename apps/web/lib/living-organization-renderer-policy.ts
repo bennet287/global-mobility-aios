@@ -1,5 +1,5 @@
 export type LivingSceneSelection = Readonly<{
-  entityType: "department" | "employee" | "room";
+  entityType: "department" | "employee" | "room" | "smart_object";
   entityKey: string;
   label: string;
 }>;
@@ -28,7 +28,7 @@ export function isLivingSceneSelection(value: unknown): value is LivingSceneSele
   if (keys.length !== 3 || keys.some((key) => !SELECTION_KEYS.has(key))) return false;
   const selection = value as Partial<LivingSceneSelection>;
   return (
-    (selection.entityType === "department" || selection.entityType === "employee" || selection.entityType === "room")
+    (selection.entityType === "department" || selection.entityType === "employee" || selection.entityType === "room" || selection.entityType === "smart_object")
     && typeof selection.entityKey === "string"
     && typeof selection.label === "string"
   );
