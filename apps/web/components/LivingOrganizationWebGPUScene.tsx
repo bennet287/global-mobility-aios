@@ -99,7 +99,7 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
     >
       <header>
         <div>
-          <span>M.4.1 · Animated Employees V1</span>
+          <span>M.6 · Smart Objects + live Board Room</span>
           <strong id="living-webgpu-title">Living spatial organization</strong>
         </div>
         <small>{phase === "ready" ? backendLabel(backend) : phase}</small>
@@ -125,9 +125,10 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
         </div>
       ) : null}
       <p className="living-webgpu-accessibility">
-        Employee motion is presentation-only workspace motion derived from canonical semantic state.
-        Presence and locomotion are not asserted in M.4.1; walking, talking, room entry and handoffs remain disabled
-        until later canonical collaboration/location semantics exist. The Structured Cockpit remains available for every core operation.
+        Employee motion remains presentation-only workspace motion derived from canonical semantic state.
+        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. M.6 adds only canonical
+        collaboration, blocker, Smart Object and Board projections; no visual interaction can bypass AIOS governance.
+        The Structured Cockpit remains available for every core operation.
       </p>
     </section>
   );
