@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.72 / M.4.1 Animated Employees V1 exact-head PASS
+**Latest reconciliation:** V12.78 / M.7.4 GPU FLOW field TRIAL Iteration 1 technical PASS; benchmark pending; AI runtime / Model Router seam restored
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -63,7 +63,7 @@ The advanced stack deliberately separates infrastructure adoption from visualiza
 |---|---|---|
 | WebGPU | **ADOPT / infrastructure substrate** | dense scene rendering + compute with responsive interaction and graceful fallback |
 | Three.js WebGPU/compute layer | **ADOPT / scene + interaction substrate; M.4 COMPLETE / PASS through 7591e32...** | three@0.185.1; renderer bootstrap plus bounded semantic employee animation proven; presence/locomotion remain unasserted |
-| GPU flow/fluid simulation | **TRIAL / M.7 bounded product experiment** | must materially beat a maintained structured graph/heat/animated-edge baseline for congestion/shared-blocker tasks |
+| GPU flow/fluid simulation | **TRIAL / M.7.4 Iteration 1 IMPLEMENTED / TECHNICAL PASS / BENCHMARK PENDING at `e73328f0...`** | default-off derived field is technically proven; must still materially beat the maintained Structured FLOW baseline before promotion |
 | reaction-diffusion environmental fields | **EXPERIMENT / M.9 research bet** | must first establish an explainable, non-misleading mapping and graduate to TRIAL before product promotion |
 | Cognitive Ecology / Organica | **POST-M OPTIONAL RESEARCH** | not an M deliverable; may return only for a proven unmet cognitive task and does not block N |
 
@@ -105,7 +105,9 @@ If a TRIAL fails two targeted design/benchmark iterations, stop default-product 
 | durable workflow | AIOS WorkItem/runtime baseline | Temporal on trigger | LangGraph/Agno DONOR_ONLY |
 | document/privacy/source | existing AIOS boundaries + Docling/ClamAV | Presidio/urlwatch bounded pilots | EU DSS HOLD_WITH_TRIGGER |
 | human-agent interaction | current AIOS Cockpit | CopilotKit / AG-UI post-L M | Storybook HOLD_WITH_TRIGGER |
-| Living Organization rendering/compute | AIOS scene contract + WebGPU/Three.js ADOPT substrate; M.4.0 browser proof gate | permanent Structured Cockpit + renderer fallback | GPU flow = TRIAL; reaction-diffusion = EXPERIMENT; Organica = POST-M OPTIONAL RESEARCH |
+| model execution | deterministic template baseline + DeepSeek / Gemini / Moonshot adapters | Ollama optional dependency/config present; adapter not implemented | storage-streamed / memory-elastic deep-local inference HOLD_WITH_TRIGGER; `kimi-k3-in-c` REFERENCE |
+| capability-qualified model routing | architecture-defined Model Router; adaptive runtime routing not implemented | none selected until a measured routing gap/benchmark exists | no duplicate Intelligence Router; implementation remains roadmap/N-owned |
+| Living Organization rendering/compute | AIOS scene contract + WebGPU/Three.js ADOPT substrate; M.7.4 Iteration 1 technical proof | permanent Structured Cockpit + renderer fallback | GPU flow = TRIAL / benchmark pending; reaction-diffusion = EXPERIMENT; Organica = POST-M OPTIONAL RESEARCH |
 
 The active status source for exact per-candidate triggers is `docs/TECHNOLOGY_RADAR_V1_3_8.md`.
 
@@ -135,6 +137,32 @@ The active status source for exact per-candidate triggers is `docs/TECHNOLOGY_RA
 | Presidio | queued privacy pilot |
 | urlwatch | queued source-monitoring pilot |
 | EU DSS | HOLD_WITH_TRIGGER for material document-signature/trust requirement |
+| Ollama | optional dependency in `requirements-ai.txt` with local endpoint/model settings present; **no `LLMProviderFactory` adapter and no accepted local-model benchmark baseline** |
+| storage-streamed / memory-elastic large-local inference | **HOLD_WITH_TRIGGER**; no runtime adoption or schedule; must first satisfy cloud-prohibition, accepted-small-local-baseline, latency, economics, licensing/provenance and governed-benchmark triggers |
+| `kimi-k3-in-c` | **REFERENCE only** for the held deep-local capability; no code, dependency, weights, truth-path or runtime adoption |
+
+### 4.1 AI runtime / Model Router reconciliation
+
+Repository truth as of this reconciliation:
+
+```text
+canonical architecture Model Router       DEFINED
+adaptive capability-qualified routing     NOT IMPLEMENTED
+deterministic template baseline           PRESENT
+DeepSeek adapter                          IMPLEMENTED
+Gemini adapter                            IMPLEMENTED
+Moonshot adapter                          IMPLEMENTED
+Ollama optional dependency                PRESENT
+ollama_base_url/default_local_model       PRESENT
+Ollama LLMProviderFactory adapter         NOT IMPLEMENTED
+accepted small-local benchmark baseline   NOT YET CLAIMED
+storage-streamed deep-local runtime        NOT ADOPTED / NOT SCHEDULED
+kimi-k3-in-c                              REFERENCE ONLY
+```
+
+This reconciliation introduces no package, provider, model, weights, router runtime, authority path or truth path. The architecture continues to use the canonical **Model Router** name; "Intelligence Router" is not a second component.
+
+Deep-local inference remains `HOLD_WITH_TRIGGER` until a measured workload cannot use cloud, exceeds an accepted small-local baseline, tolerates offline-scale latency, passes economics/license/provenance review and can be compared through governed AIOS benchmark evidence.
 
 ## 5. R3 research-branch recoverability truth
 
@@ -197,7 +225,7 @@ runtime adoption caused by V1.3.8        NONE
 Munder runtime adoption                  NONE ON CANONICAL V12
 external mutation engine adoption        NONE
 L                                        COMPLETE / PASS / SEALED
-M                                        IN PROGRESS — M.4 COMPLETE / PASS; M.5 NEXT; WebGPU/Three.js ADOPT, fluid FLOW TRIAL, reaction-diffusion EXPERIMENT
+M                                        IN PROGRESS — M.7.4 ITERATION 1 TECHNICAL PASS; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; WebGPU/Three.js ADOPT, reaction-diffusion EXPERIMENT
 ```
 
 ROADMAP remains the implementation scheduler.

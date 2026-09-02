@@ -6,8 +6,9 @@
 **Source audit:** `docs/technology-radar/RADAR_SCATTER_AUDIT_2026-08-31.md`
 **Scheduling authority:** `docs/ROADMAP.md`
 **Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
+**Latest reconciliation:** 2026-09-02 — M.7.4 technical closure + AI runtime / Model Router seam restoration
 **Current product milestone:** L — COMPLETE / PASS / SEALED
-**M milestone:** IN PROGRESS — M.4 Animated Employees V1 COMPLETE / PASS; M.5 Conversations, Handoffs & Mission Rooms next
+**M milestone:** IN PROGRESS — M.7.4 GPU FLOW field TRIAL Iteration 1 IMPLEMENTED / TECHNICAL PASS; product-value benchmark pending
 
 > **Aggressive Radar. Conservative production authority.**
 
@@ -110,6 +111,8 @@ A candidate may not remain generic `RESEARCH` across two Radar revisions. It mus
 | source-change monitoring | existing source-monitor baseline | urlwatch queued pilot | none |
 | document trust/signatures | current document/evidence boundary | EU DSS on trigger | none |
 | human-agent interaction | current AIOS Cockpit | CopilotKit / AG-UI post-L M | Storybook HOLD |
+| model execution | deterministic template baseline + DeepSeek / Gemini / Moonshot provider adapters | Ollama optional dependency/config present; provider adapter not implemented | storage-streamed / memory-elastic large-local inference HOLD_WITH_TRIGGER; `kimi-k3-in-c` REFERENCE only |
+| capability-qualified model routing | architecture-defined Model Router; adaptive runtime routing not implemented | no runtime challenger selected; benchmark before implementation | no second "Intelligence Router"; implementation remains roadmap/N-owned |
 | design tooling | Penpot preferred environment | none | none |
 
 ## 4. AI evaluation, benchmark and adversarial lane
@@ -135,6 +138,39 @@ A candidate may not remain generic `RESEARCH` across two Radar revisions. It mus
 evaluation score != professional correctness
 live-model adversarial proof != operational Red Team authority
 ```
+
+### 4.1 AI runtime / Model Router
+
+The canonical architecture already defines a capability-qualified **Model Router**. This Radar seam restores that architecture to the active technology-evaluation view without claiming that adaptive routing is implemented.
+
+| Capability | Current repository truth | Deferred direction |
+|---|---|---|
+| deterministic execution | current no-provider baseline; governed templates remain available when no LLM provider is configured | preserve as the low-risk/repeatable execution path |
+| hosted/frontier provider adapters | DeepSeek, Gemini and Moonshot are implemented in `LLMProviderFactory` | capability eligibility and adaptive selection remain future work |
+| small-local execution | `ollama>=0.4` is an optional dependency; `ollama_base_url` and `default_local_model` settings exist | **adapter not implemented** in `LLMProviderFactory`; no accepted local-model benchmark baseline yet |
+| capability-qualified Model Router | architecture-defined in `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` | adaptive runtime routing remains roadmap/N-owned and must be benchmark-qualified |
+| storage-streamed / memory-elastic large-local inference | no runtime, package, weights or scheduling adoption | **HOLD_WITH_TRIGGER** |
+| `kimi-k3-in-c` class implementation | no repository runtime role | **REFERENCE only** for the held capability; do not install/adopt |
+
+The held deep-local capability may become a TRIAL only when a real AIOS workload is simultaneously:
+
+- prohibited from cloud execution;
+- beyond an **accepted and benchmarked small-local baseline**;
+- tolerant of offline-scale latency;
+- economically justified after storage, energy, hardware and operational cost;
+- license/provenance compatible;
+- benchmarkable against existing governed providers without bypassing Evidence, Truth, risk, authority or audit controls.
+
+Permanent boundary:
+
+```text
+MODEL ROUTER != AUTHORITY
+LOCAL MODEL != TRUTH SOURCE
+PROVIDER IDENTITY != PERMISSION
+REFERENCE IMPLEMENTATION != RUNTIME ADOPTION
+```
+
+No separate "Intelligence Router" abstraction is introduced; that would duplicate the canonical Model Router seam.
 
 ## 5. Observability, tracing and experiment analysis
 
@@ -263,13 +299,13 @@ These candidates occupy distinct seams and remain intentionally separate.
 | CopilotKit / AG-UI | **CHALLENGER / POST-L M PILOT CANDIDATE** | interaction layer only; AIOS APIs/governance authorize commands |
 | **WebGPU** | **ADOPT / M LIVING ORGANIZATION RENDERING SUBSTRATE** | multi-surface rendering/compute infrastructure; scene state is projection, never authority |
 | **Three.js WebGPU/compute layer** | **ADOPT / M SCENE + INTERACTION SUBSTRATE; M.4.0 COMPLETE / PASS** | `three@0.185.1`; exact-head browser mount, actual backend, picking and Structured fallback proven at `e6640755...` |
-| **GPU flow/fluid simulation** | **TRIAL / M.7 FLOW REPRESENTATION** | strong hypothesis; must beat structured graph/heat/animated-edge baseline on congestion/blocker comprehension |
+| **GPU flow/fluid simulation** | **TRIAL / M.7.4 ITERATION 1 TECHNICAL PASS / BENCHMARK PENDING** | default-off derived field is implemented and technically proven; promotion still requires product-value evidence against the maintained Structured FLOW baseline |
 | **Reaction-diffusion fields** | **EXPERIMENT / M.9 ENVIRONMENTAL-MEMORY RESEARCH** | high interpretation risk; must establish explainable mapping and graduate to TRIAL |
 | **Cognitive Ecology / Organica** | **POST-M OPTIONAL RESEARCH** | not an M deliverable; may return only if implemented views expose a concrete unmet task |
 | Storybook | **HOLD_WITH_TRIGGER** | M component/design-system proof demonstrates a workbench need |
 | Penpot | **PREFERRED DESIGN ENVIRONMENT / NOT ACCEPTANCE DEPENDENCY** | design tooling only |
 
-L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure and M.4 is COMPLETE / PASS through bounded stationary semantic employee animation. M.5 canonical collaboration is next. GPU fluid FLOW remains a TRIAL, reaction-diffusion remains an EXPERIMENT, and Cognitive Ecology/Organica remains Post-M optional research.
+L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure. M.7.1–M.7.4 implementation slices are sealed; the M.7.4 GPU FLOW field remains a TRIAL / NOT PROMOTED / BENCHMARK PENDING. Reaction-diffusion remains an EXPERIMENT and Cognitive Ecology/Organica remains Post-M optional research.
 
 ## 14. Cybersecurity skill and Red Team programme
 
@@ -352,8 +388,8 @@ R3 branch merge into V12                  NONE
 professional Austria review               COMPLETE under sealed L record
 final L exact-evidence-head proof          COMPLETE
 L                                          COMPLETE / PASS / SEALED
-M                                          IN PROGRESS — M.4 COMPLETE / PASS; M.5 NEXT
+M                                          IN PROGRESS — M.7.4 ITERATION 1 TECHNICAL PASS; GPU FLOW TRIAL BENCHMARK PENDING
 N                                          NOT STARTED
 ```
 
-The active execution priority returns to L acceptance. Radar work resumes only for a material new capability, a materially stronger challenger, a required closure benchmark, or a demonstrated AIOS gap.
+ROADMAP remains the implementation scheduler. The active M state is M.7.4 technical closure with GPU FLOW product-value benchmark evidence still pending; Radar work must not displace the roadmap or convert held/reference technologies into implementation work.
