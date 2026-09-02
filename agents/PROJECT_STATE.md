@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.64 — M.1 Decision Explorer in progress
+**Current V12 generation:** V12.65 — M.1 Decision Explorer COMPLETE / PASS; M.2 next; Living Organization V2 scheduled
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is COMPLETE / PASS / SEALED on accepted evidence head `a95f3f5...`.
 The genuine independent Austria professional-review gate promoted all three current cases, and Repository Policy plus both push/PR V12 Production Proof runs are green for that exact evidence head.
-M — Board Transparency Experience is IN PROGRESS; M.1 Decision Explorer adds a read-only list/detail surface over canonical `ExecutiveDecision` records.
+M — Board Transparency Experience is IN PROGRESS; M.1 Decision Explorer is COMPLETE / PASS at exact implementation head `9f00124c...`, M.2 decision→work→evidence navigation is next, and M.3–M.10 now define the scheduled Living Organization V2 path.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 N remains blocked behind M.
 No Radar candidate has caused runtime adoption.
@@ -28,7 +28,7 @@ No Radar candidate has caused runtime adoption.
 |-----------|--------|------------------------|
 | K.1 Bounded Specialist Execution | **SEALED** | None. Canonical proof recorded. |
 | L Live Organization | **COMPLETE / PASS / SEALED** | Accepted evidence head `a95f3f5...`; no open gate. |
-| M Board Transparency Experience | **IN PROGRESS — M.1 Decision Explorer** | Implement read-only executive decision list/detail; endpoint `GET /api/v1/organization/decisions/records`; Cockpit `/cockpit/decisions`; no command surface. |
+| M Board Transparency Experience | **IN PROGRESS — M.1 COMPLETE / PASS; M.2 NEXT** | M.1 exact-head CI green at `9f00124c...`; M.2 navigation next; M.3–M.10 Living Organization V2 scheduled. |
 | N Learning & Optimization | **NOT STARTED** | Wait for M. |
 
 ---
@@ -37,17 +37,45 @@ No Radar candidate has caused runtime adoption.
 
 | Workstream | Branch / location | Status | Do not... |
 |------------|-------------------|--------|-----------|
-| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed, M.1 Decision Explorer in progress | Do not start N before M. |
+| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed, M.1 COMPLETE / PASS; M.2 next; Living Organization V2 scheduled | Do not start N before M. |
 | **Track B Product Experience** | `roadmap/...v12` (`apps/web/`) | Anti-duplication complete; runtime economics + durable activity lineage implemented | Do not add Munder collaboration/presence/event state. |
 | **Wave E1 Secrets** | `roadmap/...v12` (`docs/...WAVE_E1...`) | Pilot complete / trial-eligible | Do not claim production OpenBao adoption. |
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
 | **Wave E3 Properties** | `roadmap/...v12` (`scripts/check_*_properties.py`) | Implemented; Hypothesis test-only | Do not promote Hypothesis to runtime. |
 | **Wave E4 Mutation** | `roadmap/...v12` (`scripts/check_ai_domain_mutation_strength.py`) | Implemented; first-party bounded gate; mutmut deferred | Do not claim full mutation coverage. |
 | **Blind professional review** | `roadmap/...v12` (`scripts/prepare_austria_professional_review.py`) | Current-v3 return compiled; 3/3 professionally reviewed promotions; privacy-safe aliases committed; final evidence-head CI pending | Do not expose reviewer identity, registration data, contact data, firm identity, or public-profile links in Git. |
-| **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | Read-only list/detail over canonical `ExecutiveDecision`; filters authority/status/work-item/owner; supersession lineage exposed | Do not add create/update/delete, approval routing, or `authority_decision.py` unification in M.1. |
+| **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | **COMPLETE / PASS** at `9f00124c...`; Policy #517 PASS; Production Proof #1054 4/4 PASS | Do not reopen without regression; no command-surface or decision-domain unification. |
+| **M.2 Decision navigation** | `roadmap/...v12` | **NEXT** — decision → WorkItem → Mission/Evidence → supersession/provenance | Read-oriented; no new decision authority. |
+| **M.3–M.10 Living Organization V2** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **SCHEDULED** — scene → employees → collaboration/rooms → Smart Objects/Board → lenses → replay → phantoms/environment → optional Organica | Projection/renderer/prediction state must not become authority. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
+
+---
+
+## 3.1 Frozen product direction — Living Organization V2
+
+Default experience: a recognizable animated digital organization, not an abstract ecosystem.
+
+~~~text
+canonical AIOS
+    ↓
+Live Organization projection
+    ↓
+scene state
+    ↓
+animated office / mission-control world
+~~~
+
+Permanent rule:
+
+> **The organization causes the animation. The animation never silently causes the organization.**
+
+M.3–M.9 add truthful employees, movement, conversations, handoffs, Mission Rooms, blockers, Smart Objects, live Board Room, analytical lenses, Owner command mode, replay, Phantom Futures and environmental memory.
+
+M.10 may add optional Cognitive Ecology / Organica using evidence crystals, work rivers, risk heat, blocker dams and decision gravity. It remains experimental; the familiar organization is the default.
+
+N owns learned/adaptive behavior such as learned routing, predictive blocker models, adaptive Phantom Futures and bounded Dreamtime. N remains blocked behind M.
 
 ---
 
@@ -116,10 +144,12 @@ No Radar candidate has caused runtime adoption.
 
 In order:
 
-1. **Complete M.1 Decision Explorer** — backend read endpoint, Cockpit page, tests, production build, exact-head proof, commit and push.
-2. **M.2 Board Transparency navigation** — richer decision → work → evidence → supersession navigation without mutations.
-3. **Close R3 authority** evidence capture (bounded supporting work).
-4. **Execute or explicitly defer** R3 security external-tool shootout.
+1. **M.1A documentation/state closure** — record exact M.1 PASS and freeze the detailed M/Living Organization V2 direction.
+2. **M.2 Decision navigation** — decision → WorkItem → Mission/Evidence → supersession/provenance without new authority.
+3. **M.3 Living Organization Scene Foundation** — establish canonical projection → scene-state → renderer boundary under `/cockpit/live-organization`.
+4. **M.4–M.10** — bounded slices: employees → collaboration/rooms → blockers/Smart Objects/Board → lenses/Owner commands → replay → phantoms/environment → optional Cognitive Ecology.
+5. **Close R3 authority** as bounded supporting work when it does not displace M.
+6. **Execute or explicitly defer** R3 security external-tool shootout.
 
 ---
 

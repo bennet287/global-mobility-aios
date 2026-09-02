@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.63 — L Live Organization COMPLETE / PASS / SEALED; M Board Transparency Experience next
+**Roadmap generation:** V12.65 — M.1 Decision Explorer COMPLETE / PASS; M.2 next; Living Organization V2 scheduled
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — NEXT
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 COMPLETE / PASS; M.2 NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -64,13 +64,162 @@
 
 A Radar candidate may be important without being current. Radar completion does not authorize its backlog.
 
+## 1.1 Project identity, thesis and destination
+
+### What the project is
+
+Global Mobility AIOS is a governed AI operating system for running high-consequence global-mobility work as a transparent digital organization.
+
+It is not a generic chatbot, a loose swarm of agents, a workflow engine with AI labels, a dashboard that merely reports activity, or a virtual office whose animation invents work. The destination is a persistent digital organization in which a Human Owner / Board remains supreme authority while an AI CEO coordinates departments, persistent AI employees, Missions, WorkItems, evidence, decisions, incidents and learning.
+
+The organization may become highly autonomous, but every consequential effect must remain attributable, reconstructable and bounded by authority, risk, evidence and provenance.
+
+### Product north star
+
+> **A governed, evidence-grounded, transparent, cost-intelligent, high-autonomy digital organization that the Human Owner can understand, inspect and steer as naturally as a real company.**
+
+The finished product should answer, from real system state:
+
+~~~text
+What is the organization trying to achieve?
+Who is working on it?
+What evidence is being used?
+What is blocked or uncertain?
+What are employees discussing?
+What was decided, by whom, and under what authority?
+What requires the Owner / Board?
+What did it cost?
+What happened previously?
+What is likely to happen next?
+What did the organization learn?
+~~~
+
+### Organizational operating model
+
+~~~text
+HUMAN OWNER / BOARD
+        │
+        ▼
+PREMIUM AIOS COCKPIT
+        │
+        ▼
+AI CEO
+        │
+        ├── Departments
+        │      └── persistent AI employees / specialist capabilities
+        ├── Missions
+        │      └── WorkItems / dependencies / blockers
+        ├── Evidence / SourceSnapshots / VerifiedRules
+        ├── AgentRuns / conversations / durable activity
+        ├── ExecutiveDecisions / escalations / incidents
+        └── learning / optimization
+        │
+        ▼
+GOVERNED CANONICAL STATE
+~~~
+
+The Cockpit is the Human Owner operating surface. The Board Room is a module inside the Cockpit, not the whole product. Live Organization is the spatial/visual operating surface through which the Human Owner can see the company working.
+
+### Truth hierarchy
+
+External models, providers and donor frameworks provide capability. AIOS owns organizational meaning, truth and authority.
+
+~~~text
+provider/model output
+        ↓
+candidate reasoning / event / activity
+        ↓
+AIOS normalization + governance
+        ↓
+canonical domain objects
+        ↓
+read models / projections
+        ↓
+Cockpit / Living Organization
+~~~
+
+Permanent distinctions:
+
+~~~text
+Memory       != Truth
+Conversation != Authority
+Telemetry    != Canonical Organization Activity
+Capability   != Authority
+Authority    != Autonomy
+Autonomy     != Risk
+External runtime != AIOS organization
+Animation    != canonical state
+Prediction   != canonical state
+Scores route; gates authorize
+~~~
+
+### Core invariants
+
+1. Human Owner / Board remains supreme authority.
+2. Board by exception; transparency by default.
+3. CAN DO is distinct from MAY DO.
+4. Capability, authority, autonomy and risk remain separate.
+5. Memory may inform reasoning but does not silently become truth.
+6. Conversation may express intent but does not silently become authority.
+7. External runtimes/providers remain replaceable behind AIOS-owned boundaries.
+8. Scores may route work; governed gates authorize consequential actions.
+9. Agents may be wrong while reasoning; canonical truth may not become wrong silently.
+10. More relevant truth is preferred over indiscriminate context growth.
+11. Compression may reduce representation, never governance meaning.
+12. Cost optimization cannot override the required quality floor.
+13. Frontier intelligence is an escalation resource, not a universal default.
+14. Material organizational effects cross governed boundaries.
+15. Autonomy is earned capability-by-capability.
+16. Governance effort scales with consequence, uncertainty and novelty.
+17. Consequential decisions should be reconstructable from evidence, lineage and authority.
+18. The visual organization represents real organizational state.
+19. **The organization causes the animation; animation never silently causes the organization.**
+20. Predictive and environmental visual layers remain non-authoritative; Human Owner interventions still pass through normal AIOS authorization/governance.
+
+### Product direction
+
+The product now advances through four connected surfaces:
+
+1. **Canonical operating organization** — Missions, WorkItems, employees, evidence, activity, decisions, incidents and governed actions.
+2. **Premium Cockpit** — executive controls, inspectors, lineage, operational state and Owner interventions.
+3. **Living Organization** — a spatial animated representation of the real company: departments, employees, conversations, handoffs, Mission Rooms, blockers, Board activity and mission flow.
+4. **Learning & Optimization** — post-M measured improvement: learned routing, prediction, cost/quality optimization, repeated-blocker discovery and bounded Dreamtime proposals.
+
+The default visual experience remains a recognizable organization. Cognitive Ecology / Organica is a later optional analytical visualization, not the default interaction model.
+
+### Technology and donor rule
+
+Product necessity pulls technology into the project; technology does not push the product around.
+
+Munder Difflin remains an organizational/runtime donor and visual inspiration, not a source of canonical identity, truth or authority. Useful concepts such as presence, collaboration, live-office legibility, runtime mechanics and agent-to-agent interaction are adapted behind AIOS semantics.
+
+Selected direction:
+
+~~~text
+recognizable digital organization
+        +
+computationally meaningful visual behavior
+        +
+AIOS governance / canonical truth
+        +
+selective Cognitive Ecology concepts
+~~~
+
+No donor framework or renderer becomes organizational authority merely because its UX is attractive.
+
+---
+
 ## 2. Current milestone state
 
 ```text
-K.1  COMPLETE / PASS / SEALED
-L    COMPLETE / PASS / SEALED
-M    NEXT / NOT STARTED
-N    NOT STARTED
+K.1   COMPLETE / PASS / SEALED
+L     COMPLETE / PASS / SEALED
+M     IN PROGRESS
+M.1   COMPLETE / PASS at 9f00124c9041d1480b8007cdd54214df7fb37e3f
+M.1A  DOCUMENTATION / ROADMAP RECONCILIATION — V12.65
+M.2   NEXT FUNCTIONAL SLICE
+M.3+  SCHEDULED — Living Organization V2
+N     NOT STARTED — dependency-gated behind M
 ```
 
 No actual autonomy mutation mechanism is accepted or implemented.
@@ -192,23 +341,432 @@ Missing measurements remain unknown rather than being inferred as zero. No new t
 
 A deeper Track B anti-duplication pass also reclassified generic collaboration visualization. The broader Cockpit and cross-department experience already uses canonical `OrganizationPosition.reports_to_position_key`, `OrganizationWorkItemDependency`, blockers, human requests and durable `OrganizationActivity` to visualize hierarchy, coordination, dependencies, friction and recent signals. A parallel Munder-style collaboration graph/state store is therefore not a current gap. Richer collaboration UX remains refinement-only and must start from a specific unmet user need.
 
-## 5. NEXT — M Board Transparency Experience
+## 5. IN PROGRESS — M Board Transparency + Living Organization V2
 
-L is sealed. M may now become primary after the V12.63 seal-status commit is green.
+### M mission
 
-### M — Board Transparency Experience
+M converts the sealed organizational/runtime foundations into a premium Human Owner operating experience. It is not simply a Board dashboard. M must make organizational truth visible, navigable and operable without weakening governance.
 
-**Current state:** NEXT / NOT STARTED
+~~~text
+canonical decisions
+        ↓
+decision / work / evidence navigation
+        ↓
+scene projection foundation
+        ↓
+animated persistent employees
+        ↓
+real conversations / handoffs / Mission Rooms
+        ↓
+blockers / Smart Objects / live Board Room
+        ↓
+organization lenses / Owner command mode
+        ↓
+temporal replay
+        ↓
+predictive + environmental projections
+        ↓
+optional Cognitive Ecology / Organica
+~~~
 
-Target direction remains a premium Global Mobility AIOS Cockpit with Board Room as a module, not the entire control surface. M should expose organization/objective/employee state, Evidence/provenance, authority/risk/autonomy, incidents/blockers, interventions, performance, quality, latency and cost without turning UI state into command authority.
+### M execution schedule
 
-CopilotKit / AG-UI remains a bounded post-L M candidate only if it measurably improves interaction while AIOS APIs/governance remain authoritative.
+| Slice | What we implement | Status |
+|---|---|---|
+| **M.1** | Decision Explorer | **COMPLETE / PASS** at 9f00124c9041d1480b8007cdd54214df7fb37e3f |
+| **M.1A** | Record exact-head CI closure and freeze detailed M / Living Organization direction | **THIS V12.65 documentation slice** |
+| **M.2** | Decision → WorkItem → Evidence → Supersession navigation | **NEXT functional slice** |
+| **M.3** | Living Organization Scene Foundation | Scheduled after M.2 |
+| **M.4** | Animated Employees V1 | Scheduled |
+| **M.5** | Conversations, handoffs & Mission Rooms | Scheduled |
+| **M.6** | Blockers, Smart Objects & live Board Room | Scheduled |
+| **M.7** | Organization Lenses + Owner command mode | Scheduled |
+| **M.8** | Replay / temporal organization | Scheduled |
+| **M.9** | Phantom Futures + environmental memory | Scheduled |
+| **M.10** | Cognitive Ecology / Organica experimental view | Final experimental M slice |
+| **N** | Real learning, optimization, Dreamtime, adaptive predictions | After M and dependency gates |
 
-### N — Learning & Optimization
+### M.1 — Decision Explorer — COMPLETE / PASS
 
-**Current state:** NOT STARTED
+M.1 established the first canonical Board Transparency surface: read-only ExecutiveDecision list/detail data, authority/status/owner/work-item filters, supersession state, source provenance, Cockpit navigation and regression coverage. It adds no new command surface and does not merge the legacy authority-decision domain into the executive-decision domain.
 
-Measured learning, quality, AI economics and controlled optimization remain post-M/dependency-gated.
+Exact proof:
+
+~~~text
+implementation head   9f00124c9041d1480b8007cdd54214df7fb37e3f
+Repository Policy     #517 / run 33571881076   PASS
+V12 Production Proof  #1054 / run 33571881063 PASS — 4/4 jobs
+~~~
+
+All four Production Proof jobs passed: backend regression, frontend tests/types/build, PostgreSQL governance contracts, and repository policy/constraints.
+
+### M.1A — project-state reconciliation
+
+V12.65 records the exact M.1 closure, makes M.2 the next bounded functional slice, and freezes Living Organization V2 so future work does not regress to a generic static-dashboard interpretation. This is documentation/planning only; it does not reopen L or change M.1 runtime/authority semantics.
+
+### M.2 — Decision → WorkItem → Evidence → Supersession navigation
+
+M.2 builds the navigation spine required by both Board Transparency and Living Organization.
+
+~~~text
+ExecutiveDecision
+      ├── authority / owner / outcome
+      ├── supersedes / superseded-by
+      ↓
+WorkItem
+      ↓
+Mission
+      ├── Evidence
+      ├── SourceSnapshots / VerifiedRules
+      ├── relevant durable activity
+      └── provenance / timestamps
+~~~
+
+Acceptance intent:
+
+- follow canonical decision → WorkItem/Mission linkage where it exists;
+- inspect evidence/provenance without frontend recomputation of canonical fingerprints;
+- traverse supersession history;
+- show missing relationships as unknown/unavailable rather than invented;
+- remain read-oriented and add no new decision authority.
+
+---
+
+## 5.1 Living Organization V2 — north star
+
+Traditional enterprise software makes the Human Owner reconstruct a company from tables, counters and logs. Living Organization makes **the organization itself the interface**.
+
+The Human Owner should see departments, persistent AI employees, Missions, collaboration, waiting, blockers, evidence work, escalations and Board activity as one coherent living company.
+
+Operational value:
+
+- obvious collaboration and handoffs;
+- visible shared blockers;
+- spatial navigation into Missions and evidence;
+- contextual risk, cost, authority and decision inspection;
+- stronger observability/debugging through replay;
+- lower cognitive load than disconnected dashboards;
+- a productive interface that can also be fun.
+
+### Permanent visual truth rule
+
+> **Animation may be expressive. State must be truthful.**
+
+| Real AIOS state | Visual representation |
+|---|---|
+| fresh persisted presence/checkpoint | employee present/active |
+| active WorkItem / AgentRun | working, reading or typing |
+| real collaboration / AgentConversation | employees visibly talk/collaborate |
+| Mission participation | employees gather in a Mission Room |
+| real blocker/dependency | obstacle, friction or warning |
+| real handoff/work transition | visible work package moves |
+| escalation | attention/movement toward oversight or Board |
+| ExecutiveDecision requiring attention | live Board Room activity |
+| no active high-priority work | ambient idle / coffee / lounge behavior |
+
+Coffee, walking, sitting and typing may be ambient animation when they represent a valid semantic state. They do not become fake canonical business events.
+
+### Frozen causality rule
+
+~~~text
+canonical AIOS state
+        ↓
+Live Organization projection
+        ↓
+scene state
+        ↓
+animation
+~~~
+
+Never:
+
+~~~text
+random animation
+        ↓
+silent canonical mutation
+~~~
+
+Human Owner interventions still travel through explicit UI intent, AIOS API authorization/governance, canonical mutation, then back into projection.
+
+---
+
+## 5.2 M.3 — Living Organization Scene Foundation
+
+M.3 creates the hard boundary between canonical organization state and rendering.
+
+~~~text
+CANONICAL AIOS
+  Mission / WorkItem
+  OrganizationPosition / presence
+  AgentRun / AgentConversation / durable activity
+  dependencies / blockers
+  ExecutiveDecision / Incident / Evidence
+        ↓
+LIVE ORGANIZATION PROJECTION
+        ↓
+SCENE STATE
+        ↓
+RENDERER
+        ↓
+/cockpit/live-organization
+~~~
+
+Conceptual scene content:
+
+~~~text
+OrganizationScene
+├── employees
+├── departments
+├── missions
+├── work_items
+├── conversations
+├── blockers
+├── decisions
+├── incidents
+├── smart_objects
+└── relationships
+~~~
+
+M.3 acceptance:
+
+- no renderer-owned organizational truth;
+- unknown backend data stays unknown;
+- tenant/auth boundaries preserved;
+- deterministic scene state testable without animation;
+- initial real API-backed scene renders in Cockpit;
+- no advanced 3D/WebGPU requirement yet.
+
+### Three visual planes
+
+1. **Deterministic** — real current employees, Missions, WorkItems, blockers, decisions and relationships.
+2. **Predictive / ghost** — future/potential projections, visually distinct, zero authority.
+3. **Environmental / stigmergic** — read-only traces such as paths, heat, collaboration routes and workspace evolution.
+
+Planes 2 and 3 may aid Owner perception but never silently mutate canonical AIOS.
+
+---
+
+## 5.3 M.4 — Animated Employees V1
+
+Initial vocabulary:
+
+~~~text
+idle / available / walking / working / reading / typing
+talking / waiting / coffee-lounge / enter-leave room / handoff
+~~~
+
+The goal is trustworthy legibility, not cinematic fidelity.
+
+~~~text
+active WorkItem → working semantic state → desk/read/type animation
+available       → idle semantic state    → desk/lounge/coffee animation
+~~~
+
+Employees retain recognizable identity, role and location conventions.
+
+Renderer direction: stay inside the existing Next.js/React Cockpit, evaluate efficient 2D/2.5D rendering only when justified, and keep adoption under Technology Radar/adoption-ledger control. Rendering technology never becomes runtime authority.
+
+---
+
+## 5.4 M.5 — Conversations, handoffs and Mission Rooms
+
+Visible conversation must correspond to real AIOS collaboration semantics. Selecting it should expose participants, Mission/WorkItem context, timestamps, persisted activity and evidence/work references where canonical linkage exists.
+
+Real handoffs should become obvious as visible work packages moving between employees. The visual packet is a projection of ownership/dependency/handoff state, not a second workflow store.
+
+Mission Rooms are temporary visible zones for real Missions. They may show goal, participants, WorkItem progress, evidence completeness, blockers, risk, authority/autonomy, elapsed time and cost/runtime information where canonically available. A vacant specialist seat may represent a real unmet capability/review requirement.
+
+---
+
+## 5.5 M.6 — Blockers, Smart Objects and live Board Room
+
+Shared friction should be shared visually:
+
+~~~text
+Anna ──┐
+Lukas ─┼── missing employer declaration
+Sofia ─┘
+~~~
+
+Smart Objects map world objects to real AIOS state:
+
+| Object | AIOS meaning |
+|---|---|
+| Evidence Lab / shelf | Evidence, SourceSnapshots, verification |
+| Regulatory monitor | official-source retrieval/monitoring |
+| Incident beacon | canonical Incident |
+| Cost display | available runtime/model cost |
+| Mission board | Mission/WorkItem progress |
+| Immune Center | organizational immune/security state |
+| Board room/desk | ExecutiveDecision / escalation |
+| Owner inbox | canonical Human Actions / escalations |
+| Model terminal | safe model/provider activity projection |
+
+Smart Objects are projections unless an explicit authorized interaction routes through AIOS governance.
+
+The live Board Room is a spatial projection over M.1/M.2 truth: what is being decided, authority, owner, linked work, evidence/provenance, supersession and required Owner action. It never bypasses authority.
+
+---
+
+## 5.6 M.7 — Organization Lenses + Owner command mode
+
+Planned lenses:
+
+~~~text
+ORGANIZATION / MISSION / FLOW / RISK / AUTONOMY / COST
+EVIDENCE / BLOCKERS / DECISIONS / PERFORMANCE / INCIDENT
+~~~
+
+FLOW emphasizes routing/throughput. RISK surfaces high-consequence work. COST exposes available spend hotspots. BLOCKERS emphasizes bottlenecks. DECISIONS highlights authority/Board/supersession. EVIDENCE highlights completeness/contradiction/provenance.
+
+Owner command mode should support queries such as:
+
+~~~text
+Show missions blocked more than 20 minutes.
+Show work requiring my authority.
+Where is model cost concentrated?
+Show R4/R5 work.
+Show incomplete evidence on Austria missions.
+Show decisions superseded this week.
+~~~
+
+Projection/filter/camera may react immediately; material organizational mutation still requires governed APIs.
+
+---
+
+## 5.7 M.8 — Replay / temporal organization
+
+Replay turns persisted history into an inspectable timeline.
+
+~~~text
+-30 min ───────────────●──────── NOW
+~~~
+
+It should reconstruct only supported history and help inspect Mission starts, blockers, handoffs, evidence arrival, decisions and escalations. Persisted history gaps remain gaps.
+
+Replay is both product UX and observability/debugging infrastructure.
+
+---
+
+## 5.8 M.9 — Phantom Futures + environmental memory
+
+Phantom Futures are explicitly noncanonical near-future projections.
+
+~~~text
+solid employee = current canonical projection
+ghost employee = predicted movement / handoff / collaboration
+
+phantom != fact
+prediction != authority
+~~~
+
+Phantoms must be visually distinct and expose reason/confidence/horizon when available. Early M.9 predictions may be deterministic/rule-based. Learned adaptive prediction belongs to N.
+
+Environmental memory may display read-only traces: stronger collaboration paths, repeated evidence routes, temporary Mission heat/scars, faded low-activity capabilities and stronger knowledge structures. These are perception aids, not new truth stores.
+
+---
+
+## 5.9 M.10 — Cognitive Ecology / Organica experimental view
+
+Default experience remains familiar:
+
+~~~text
+people / departments / rooms / Missions / conversations / Board Room
+~~~
+
+Optional analytical mode may use:
+
+~~~text
+evidence crystals / work rivers / risk temperature / decision gravity
+blocker dams / knowledge formations / temporal echoes
+~~~
+
+| Canonical concept | Experimental metaphor |
+|---|---|
+| raw SourceSnapshot | rough evidence mineral |
+| verified Evidence | clear/cut crystal |
+| contradictory Evidence | fractured crystal |
+| missing Evidence | empty cavity |
+| work flow | river/current |
+| blocker | dam/whirlpool/friction |
+| high risk | heat/temperature |
+| ExecutiveDecision | gravity / decision crystal |
+| repeated history | geology/fossil layers |
+
+Familiarity and operating clarity take precedence over novelty. Do not adopt reaction-diffusion, fluid dynamics, WebGPU or Three.js compute infrastructure until a bounded prototype proves material product value.
+
+---
+
+## 5.10 Expressive governance physics
+
+Risk, autonomy, authority and blockers may have expressive physical semantics: high risk can appear heavier/hotter, blocked work can create friction, escalation can pull attention toward Board, strong evidence can appear stable, and contradiction can appear fractured.
+
+These are representations only.
+
+~~~text
+AIOS computes governance
+        ↓
+visual world expresses governance
+~~~
+
+Never the reverse.
+
+---
+
+## 5.11 Argument Arena / disagreement visualization
+
+Real disagreement may be presented in a bounded Argument Arena where competing claims/evidence become easy to compare. The purpose is reduced cognitive cost, not theatrical debate.
+
+The arena must preserve exact evidence identity, provenance, privacy rules, canonical confidence/quality semantics where available, and the distinction between recommendation and authority. Visual balance never authorizes a conclusion.
+
+---
+
+## 5.12 Productivity, fun and gamification boundary
+
+Safe/productive gamification may reward evidence completeness, low rework, blocker resolution, healthy collaboration, SLA performance, efficient model use, successful independent verification, safe autonomous completion and high-quality Mission completion.
+
+Do not gamify visa approvals/external outcomes, avoiding professional review, avoiding Owner escalation at all costs, maximum autonomy for its own sake, or raw activity/token counts.
+
+Celebrations may represent true internal milestones but never imply an external outcome that has not happened.
+
+---
+
+## 5.13 N — Learning & Optimization — AFTER M
+
+N remains dependency-gated behind M and owns measured adaptive behavior:
+
+~~~text
+learned routing
+learned collaboration patterns
+predictive blocker detection
+agent reliability evolution
+adaptive model routing
+historical-case similarity
+cost / quality optimization
+organizational pattern discovery
+adaptive Phantom Futures
+bounded Dreamtime
+~~~
+
+Dreamtime is low-activity/offline analysis of prior work, not uncontrolled self-modification.
+
+~~~text
+real completed work
+       ↓
+replay / evaluation
+       ↓
+alternative-path analysis
+       ↓
+repeated blocker / evidence-gap discovery
+       ↓
+optimization proposals
+       ↓
+governed adoption
+~~~
+
+It may propose routing, prefetch, blocker, evidence-template, model-routing and training improvements. It may not silently change authority, canonical legal truth or high-consequence governance.
+
+N begins only after M provides reliable projections, enough durable replay/history, measurable quality/cost/latency outcomes, explicit proposal/adoption boundaries, no hidden learning route to truth/authority mutation, and acceptance evidence for relevant M surfaces.
 
 ## 6. Exact-head proof rule
 
@@ -247,8 +805,8 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         NEXT / NOT STARTED
-N                                         NOT STARTED
+M                                         IN PROGRESS — M.1 COMPLETE / PASS; M.2 NEXT; M.3–M.10 SCHEDULED
+N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 
 Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not invent a second source of truth or interfere with the final exact-head proof. The current Track B audit found no further justified pre-M slice, so product-experience work pauses here. The first V12.43 local handoff proof attempt found an order-sensitive test-oracle defect and a malformed ad-hoc PowerShell verification snippet. The test oracle was repaired without changing production semantics; the failed attempt remains documented and no PASS is inherited. The next L action is final exact-current-head repository policy and V12 production proof for the committed professional-review evidence.

@@ -8,6 +8,39 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 
 ---
 
+
+## 2026-09-02 — V12.65 M.1 EXACT-HEAD CLOSURE + LIVING ORGANIZATION V2 ROADMAP
+
+### Status
+
+**M.1 DECISION EXPLORER COMPLETE / PASS AT EXACT IMPLEMENTATION HEAD / M.2 NEXT / LIVING ORGANIZATION V2 M.3–M.10 SCHEDULED / N REMAINS DEPENDENCY-GATED**
+
+M.1 is closed on exact implementation head 9f00124c9041d1480b8007cdd54214df7fb37e3f.
+
+Observed CI:
+
+~~~text
+Repository Policy Check #517 / run 33571881076   PASS
+V12 Production Proof #1054 / run 33571881063     PASS — 4/4 jobs
+  Backend regression (SQLite)                    PASS
+  Frontend tests, types and build                PASS
+  PostgreSQL governance contracts                PASS
+  Repository policy and constraints              PASS
+~~~
+
+The roadmap now states the project destination explicitly: a governed, evidence-grounded, transparent, cost-intelligent high-autonomy digital organization operated by a Human Owner / Board through a premium Cockpit.
+
+M.2 is the next bounded functional slice: Decision → WorkItem → Mission/Evidence → supersession/provenance navigation.
+
+Living Organization V2 is scheduled as M.3 scene foundation, M.4 employees, M.5 conversations/handoffs/Mission Rooms, M.6 blockers/Smart Objects/live Board Room, M.7 lenses/Owner command, M.8 replay, M.9 Phantom Futures/environmental memory, and M.10 optional Cognitive Ecology / Organica.
+
+Permanent invariant:
+
+> **The organization causes the animation. The animation never silently causes the organization.**
+
+N remains post-M and owns learned/adaptive optimization, adaptive prediction and bounded Dreamtime. This documentation reconciliation does not reopen L or alter M.1 runtime/authority semantics.
+
+---
 ## 2026-09-02 — V12.63 L LIVE ORGANIZATION COMPLETE / PASS / SEALED
 
 ### Status
