@@ -582,6 +582,76 @@ export type OrganizationReplayStateDiff = {
   conversations: OrganizationReplayStateDelta<OrganizationReplayStateConversation>[];
 };
 
+export type EnvironmentalMemoryCoverage = {
+  activity_history_basis: string;
+  activity_history_established: boolean;
+  activity_history_coverage_start: string | null;
+  pre_epoch_history: string;
+  bounded_replay_window: string;
+  replay_truncated: boolean;
+  path_history: string;
+};
+
+export type EnvironmentalMemoryKindAggregate = {
+  event_kind: string;
+  event_count: number;
+};
+
+export type EnvironmentalMemoryPathFrequency = {
+  previous_position_key: string;
+  assigned_position_key: string;
+  handoff_count: number;
+  work_item_count: number;
+  first_occurred_at: string;
+  last_occurred_at: string;
+  coverage_state: string;
+};
+
+export type EnvironmentalMemoryHeatCell = {
+  department: string;
+  event_kind: string;
+  event_count: number;
+  covered_event_count: number;
+};
+
+export type EnvironmentalMemoryTimelineBucket = {
+  bucket_start: string;
+  event_count: number;
+  handoff_count: number;
+  blocker_count: number;
+  decision_count: number;
+  conversation_count: number;
+  coverage_state: string;
+};
+
+export type OrganizationEnvironmentalMemory = {
+  contract_version: string;
+  generated_at: string;
+  scope: string;
+  root_work_item_id: string;
+  objective_key: string;
+  source_contract_version: string;
+  canonical_projection: boolean;
+  authoritative: boolean;
+  predictive: boolean;
+  mutations_allowed: boolean;
+  visualization_only: boolean;
+  window_event_count: number;
+  window_start: string | null;
+  window_end: string | null;
+  coverage: EnvironmentalMemoryCoverage;
+  kind_aggregates: EnvironmentalMemoryKindAggregate[];
+  path_frequencies: EnvironmentalMemoryPathFrequency[];
+  heat_cells: EnvironmentalMemoryHeatCell[];
+  timeline: EnvironmentalMemoryTimelineBucket[];
+  unsupported_dimensions: string[];
+};
+
+export type OrganizationEnvironmentalMemoryLatest = {
+  established: boolean;
+  memory: OrganizationEnvironmentalMemory | null;
+};
+
 export type AustriaOwnerSynthesisCommand = {
   root_work_item_id: string;
   action_output_id: string;
@@ -651,6 +721,12 @@ export async function getLatestAustriaOrganizationReplayStateDiff(
 ): Promise<OrganizationReplayStateDiff> {
   return liveRequest<OrganizationReplayStateDiff>(
     `/api/v1/organization/transparency/live-organization/replay/austria/latest/diff/${encodeURIComponent(fromActivityId)}/${encodeURIComponent(toActivityId)}`,
+  );
+}
+
+export async function getLatestAustriaOrganizationEnvironmentalMemory(): Promise<OrganizationEnvironmentalMemoryLatest> {
+  return liveRequest<OrganizationEnvironmentalMemoryLatest>(
+    "/api/v1/organization/transparency/live-organization/environmental-memory/austria/latest",
   );
 }
 
