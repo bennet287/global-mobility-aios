@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.73 — M.5 Conversations, Handoffs & Mission Rooms COMPLETE / PASS; M.6 Blockers, Smart Objects & live Board Room next
+**Roadmap generation:** V12.74 — M.6 Blockers, Smart Objects & live Board Room COMPLETE / PASS; M.7 Organization Lenses + Owner command mode next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.5 COMPLETE / PASS; M.6 NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7 NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -755,7 +755,7 @@ The backend-owned `living-organization-scene.v2` contract exposes canonical `con
 
 ---
 
-## 5.5 M.6 — Blockers, Smart Objects and live Board Room
+## 5.5 M.6 — Blockers, Smart Objects and live Board Room — COMPLETE / PASS
 
 Shared friction should be shared visually:
 
@@ -782,6 +782,26 @@ Smart Objects map world objects to real AIOS state:
 Smart Objects are projections unless an explicit authorized interaction routes through AIOS governance.
 
 The live Board Room is a spatial projection over M.1/M.2 truth: what is being decided, authority, owner, linked work, evidence/provenance, supersession and required Owner action. It never bypasses authority.
+
+M.6 is accepted on exact implementation head `01b8386482f5a6ba82ecb2a07b18c25888a5b1ba`.
+
+~~~text
+Repository Policy Check #568 / run 33619912518   PASS
+V12 Production Proof #1155 / run 33619906469     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+The backend-owned scene contract is `living-organization-scene.v3`. It projects canonical `OrganizationBlocker`, `ExecutiveDecision`, open `OrganizationHumanActionRequest` and unresolved `RiskEscalation` truth into the read-only Living Organization without creating a second authority path or mutable scene truth.
+
+The live Board Room exposes decision authority, status, owner, linked WorkItem, evidence/provenance, source-object metadata, record fingerprint, supersession and required Owner action. Owner Inbox and the Risk Room project canonical Human Actions and escalations. Smart Objects cover Mission/WorkItem progress, Evidence/VerifiedRules/SourceSnapshot provenance, blockers, Board attention, Owner actions, risk and safe model activity lineage.
+
+M.6 keeps negative truth explicit. Regulatory Monitor may expose persisted SourceSnapshot provenance but does not claim SourceRetrievalRun freshness where K.1 does not persist retrieval-run identity. Model Terminal may expose persisted AgentRun/model activity lineage but grants no organizational authority. Immune Center remains unavailable for this scene because the existing eligibility immune circuit is aggregate-scoped rather than scene-linked. Incident Beacon remains unavailable because there is no canonical Incident model. Cost Display remains unavailable because there is no canonical organization runtime-cost ledger. Unavailable state is rendered as unavailable, never as fabricated zero-value truth.
+
+The visualization remains projection-only. M.4.1 motion discipline is preserved: presence and locomotion are not asserted, Smart Object selection is view-only, and no Living Organization interaction bypasses governed APIs or mutates canonical organization state.
+
+M.6 is closed unless a regression is discovered.
 
 ---
 
