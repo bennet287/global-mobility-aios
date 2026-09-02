@@ -650,6 +650,7 @@ test("M.4.0 mounts the optional spatial renderer while Structured remains availa
   await expect(stage).toBeVisible();
   await expect(stage).toHaveAttribute("data-scene-authoritative", "false");
   await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+  await expect(stage).toHaveAttribute("data-renderer-backend", /^(webgpu|webgl2-fallback)$/);
 
   const canvas = page.getByTestId("living-webgpu-canvas");
   await expect(canvas).toBeVisible();

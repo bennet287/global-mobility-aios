@@ -1,18 +1,19 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
-import type { LivingSceneRendererBackendPreference, LivingSceneRendererController, LivingSceneSelection } from "../lib/living-organization-webgpu-adapter";
+import type { LivingSceneRendererBackend, LivingSceneRendererController, LivingSceneSelection } from "../lib/living-organization-webgpu-adapter";
 
 type RendererPhase = "initializing" | "ready" | "unavailable";
-function backendLabel(value: LivingSceneRendererBackendPreference | null): string {
-  if (value === "webgpu-preferred") return "WebGPU preferred";
-  if (value === "webgl2-fallback-required") return "WebGL2 fallback required";
-  return "Detecting browser capability";
+function backendLabel(value: LivingSceneRendererBackend | null): string {
+  if (value === "webgpu") return "WebGPU";
+  if (value === "webgl2-fallback") return "WebGL2 fallback";
+  if (value === "unknown") return "Unknown renderer backend";
+  return "Detecting renderer backend";
 }
 export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: LivingSceneRenderModel }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [phase, setPhase] = useState<RendererPhase>("initializing");
-  const [backendPreference, setBackendPreference] = useState<LivingSceneRendererBackendPreference | null>(null);
+  const [backend, setBackend] = useState<LivingSceneRendererBackend | null>(null);
   const [selection, setSelection] = useState<LivingSceneSelection | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -32,7 +33,7 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
         });
         if (cancelled) { mounted.dispose(); return; }
         controller = mounted;
-        setBackendPreference(mounted.backendPreference);
+        setBackend(mounted.backend);
         setPhase("ready");
       } catch (error) {
         if (cancelled) return;
@@ -44,8 +45,14 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
   }, [renderModel]);
 
   return (
-    <section className="living-webgpu-stage" aria-labelledby="living-webgpu-title" data-renderer-phase={phase} data-scene-authoritative="false">
-      <header><div><span>M.4.0 · Renderer bootstrap gate</span><strong id="living-webgpu-title">Spatial renderer</strong></div><small>{phase === "ready" ? backendLabel(backendPreference) : phase}</small></header>
+    <section
+      className="living-webgpu-stage"
+      aria-labelledby="living-webgpu-title"
+      data-renderer-phase={phase}
+      data-renderer-backend={backend ?? "pending"}
+      data-scene-authoritative="false"
+    >
+      <header><div><span>M.4.0 · Renderer bootstrap gate</span><strong id="living-webgpu-title">Spatial renderer</strong></div><small>{phase === "ready" ? backendLabel(backend) : phase}</small></header>
       <div className="living-webgpu-canvas-wrap">
         <canvas ref={canvasRef} className="living-webgpu-canvas" aria-hidden="true" data-testid="living-webgpu-canvas" />
         <div className="living-webgpu-overlay" aria-live="polite">

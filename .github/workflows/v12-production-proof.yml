@@ -196,3 +196,44 @@ jobs:
           apps/api/tests/test_organization_autonomy_evidence_evaluation_postgres.py
           apps/api/tests/test_organization_mobility_objective_execution_postgres.py
           apps/api/tests/test_organization_mobility_live_organization_postgres.py
+
+
+  living-organization-browser:
+    name: Living Organization renderer browser proof
+    needs: frontend
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-operator
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/web/e2e/package-lock.json
+
+      - name: Install and build frontend
+        working-directory: apps/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install browser proof dependencies
+        working-directory: apps/web/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Living Organization browser proof
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/live-organization.spec.ts --project=chromium

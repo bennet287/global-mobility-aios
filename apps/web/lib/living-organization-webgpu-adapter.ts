@@ -8,9 +8,9 @@ export type LivingSceneSelection = {
   entityKey: string;
   label: string;
 };
-export type LivingSceneRendererBackendPreference = "webgpu-preferred" | "webgl2-fallback-required";
+export type LivingSceneRendererBackend = "webgpu" | "webgl2-fallback" | "unknown";
 export type LivingSceneRendererController = {
-  backendPreference: LivingSceneRendererBackendPreference;
+  backend: LivingSceneRendererBackend;
   render: () => void;
   dispose: () => void;
 };
@@ -36,15 +36,22 @@ function isSelection(value: unknown): value is LivingSceneSelection {
   );
 }
 
+function resolveActualBackend(renderer: any): LivingSceneRendererBackend {
+  const backend = renderer?.backend;
+  if (backend?.isWebGPUBackend === true) return "webgpu";
+  if (backend?.isWebGLBackend === true) return "webgl2-fallback";
+  const constructorName = String(backend?.constructor?.name ?? "").toLowerCase();
+  if (constructorName.includes("webgpubackend")) return "webgpu";
+  if (constructorName.includes("webglbackend")) return "webgl2-fallback";
+  return "unknown";
+}
+
 export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSelect }: MountLivingSceneRendererOptions): Promise<LivingSceneRendererController> {
   if (model.sceneAuthoritative !== false) throw new Error("Living Organization renderer refuses an authoritative scene model.");
-  const backendPreference: LivingSceneRendererBackendPreference =
-    typeof navigator !== "undefined" && Boolean((navigator as Navigator & { gpu?: unknown }).gpu)
-      ? "webgpu-preferred"
-      : "webgl2-fallback-required";
 
   const renderer = new WebGPURenderer({ canvas, antialias: true, alpha: true });
   await renderer.init();
+  const backend = resolveActualBackend(renderer);
   const scene = new Scene();
   const camera = new PerspectiveCamera(45, 1, 0.1, 160);
   const raycaster = new Raycaster();
@@ -53,7 +60,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
   const disposableResources: Array<{ dispose?: () => void }> = [];
 
   canvas.dataset.rendererTarget = "three-webgpu";
-  canvas.dataset.rendererBackendPreference = backendPreference;
+  canvas.dataset.rendererBackend = backend;
   canvas.dataset.rendererAuthority = "none";
   canvas.dataset.sceneAuthoritative = "false";
 
@@ -132,7 +139,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
   resize();
 
   return {
-    backendPreference,
+    backend,
     render,
     dispose: () => {
       canvas.removeEventListener("pointerdown", handlePointer);

@@ -19,6 +19,10 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(adapter, /from "three\/webgpu"/);
   assert.match(adapter, /new WebGPURenderer/);
   assert.match(adapter, /await renderer\.init\(\)/);
+  assert.match(adapter, /resolveActualBackend/);
+  assert.match(adapter, /isWebGPUBackend/);
+  assert.match(adapter, /isWebGLBackend/);
+  assert.match(adapter, /rendererBackend = backend/);
   assert.match(adapter, /new Raycaster\(\)/);
   assert.match(adapter, /intersectObjects\(pickTargets, false\)/);
   assert.match(adapter, /rendererAuthority = "none"/);
@@ -27,6 +31,8 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.doesNotMatch(adapter, /fetch\(|XMLHttpRequest|synthesizeAustriaOwner|semantic_state|work_status|authority_level/);
 
   assert.match(rendererComponent, /M\.4\.0 · Renderer bootstrap gate/);
+  assert.match(rendererComponent, /data-renderer-backend/);
+  assert.match(rendererComponent, /Unknown renderer backend/);
   assert.match(rendererComponent, /Structured Cockpit reference below remains available/);
   assert.match(rendererComponent, /aria-hidden="true"/);
   assert.match(rendererComponent, /Selection changes view focus only; it cannot mutate AIOS/);
