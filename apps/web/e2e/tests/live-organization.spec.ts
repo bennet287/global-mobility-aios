@@ -856,7 +856,7 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
 }
 
 
-test("renders M.7.3 evidence and supersession Owner queries without mutating AIOS", async ({ page }) => {
+test("preserves M.7.3 evidence and supersession queries under the M.7.4 FLOW trial surface", async ({ page }) => {
   const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: analyticalScene() }),
@@ -869,7 +869,7 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
 
   await Promise.all([
     expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible(),
-    expect(sceneSurface.getByText("M.7.3 · Evidence gaps + supersession-time queries")).toBeVisible(),
+    expect(sceneSurface.getByText("M.7.4 · GPU FLOW field TRIAL · Iteration 1")).toBeVisible(),
     expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true"),
     expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled(),
     expect(lenses.locator('[data-lens-key="cost"]')).toBeDisabled(),
