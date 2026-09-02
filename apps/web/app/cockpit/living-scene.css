@@ -1,4 +1,4 @@
-/* Living Organization M.3 — spatial scene foundation.
+/* Living Organization M.5 — canonical collaboration scene.
    This CSS owns layout/geometry only; backend scene semantics remain authoritative. */
 
 .living-scene-shell {
@@ -65,7 +65,7 @@
 
 .living-scene-coverage {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   margin-top: 16px;
 }
@@ -314,6 +314,64 @@
   font-weight: 750;
 }
 
+.scene-conversation-badge {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  padding: 3px 6px;
+  border: 1px solid rgba(143, 229, 169, .24);
+  border-radius: 999px;
+  color: #bcecc9;
+  background: rgba(48, 112, 70, .36);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.scene-collaboration-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.scene-collaboration-grid > section {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  background: rgba(0,0,0,.13);
+}
+
+.scene-collaboration-grid > section > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.scene-collaboration-grid header span,
+.scene-collaboration-grid header small {
+  display: block;
+  color: rgba(196,199,242,.56);
+  font-size: 8px;
+}
+
+.scene-collaboration-grid header strong {
+  display: block;
+  margin-top: 2px;
+  color: #f6f3eb;
+  font-size: 10px;
+  letter-spacing: .05em;
+}
+
+.scene-collaboration-grid p {
+  margin: 0;
+  color: rgba(246,243,235,.45);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
 .mission-room > footer {
   display: flex;
   justify-content: space-between;
@@ -345,10 +403,29 @@
 .scene-blocker-list { display: grid; gap: 7px; }
 
 .scene-decision-list > div,
+.scene-decision-list > details,
 .scene-blocker-list > div {
   padding: 8px 9px;
   border-radius: 9px;
   background: rgba(255,255,255,.035);
+}
+
+.scene-decision-list > details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.scene-decision-list > details > summary::-webkit-details-marker { display: none; }
+
+.scene-decision-list > details[open] > summary {
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.scene-decision-list > details > div {
+  display: grid;
+  gap: 2px;
+  padding-top: 7px;
 }
 
 .scene-decision-list span,
@@ -462,6 +539,7 @@
   }
   .living-scene-coverage { grid-template-columns: 1fr; }
   .living-scene-employee-grid { grid-template-columns: 1fr; }
+  .scene-collaboration-grid { grid-template-columns: 1fr; }
   .living-scene-truth { grid-template-columns: 1fr; }
 }
 

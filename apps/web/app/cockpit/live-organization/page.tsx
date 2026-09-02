@@ -214,7 +214,7 @@ export default function AustriaLiveOrganizationPage() {
     <WorkspaceShell health={health}>
       <Topbar
         title="Live Organization"
-        kicker="Global Mobility AIOS Cockpit · M.3 Living Organization Scene Foundation"
+        kicker="Global Mobility AIOS Cockpit · M.5 Conversations, Handoffs & Mission Rooms"
         loadStatus={loadStatus}
         onRefresh={() => void load()}
       />
@@ -308,8 +308,8 @@ export default function AustriaLiveOrganizationPage() {
       {snapshot && scene && !sceneMismatch ? <LivingOrganizationSceneView scene={scene} /> : null}
       {snapshot && !scene && !sceneError && !loading ? (
         <div className="cockpit-partial-note" role="status">
-          <strong>Scene foundation not established.</strong>
-          <span>The canonical L cycle is available, but no M.3 scene projection was returned. The Cockpit does not synthesize one locally.</span>
+          <strong>Living Organization scene not established.</strong>
+          <span>The canonical L cycle is available, but no scene projection was returned. The Cockpit does not synthesize one locally.</span>
         </div>
       ) : null}
 

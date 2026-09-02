@@ -217,9 +217,27 @@ class LivingSceneMissionRead(TransparencyRead):
 class LivingSceneConversationRead(TransparencyRead):
     conversation_id: str
     participant_position_keys: list[str]
-    work_item_id: UUID | None
+    work_item_id: UUID
     status: str
     summary: str
+    opened_activity_id: UUID
+    latest_activity_id: UUID
+    opened_at: datetime
+    lifecycle_at: datetime
+    authority_effect: str
+    transcript_persisted: bool
+    canonical_basis: str
+
+
+class LivingSceneHandoffRead(TransparencyRead):
+    activity_id: UUID
+    work_item_id: UUID
+    previous_position_key: str
+    assigned_position_key: str
+    status: str
+    occurred_at: datetime
+    causation_activity_id: UUID | None
+    canonical_basis: str
 
 
 class LivingSceneIncidentRead(TransparencyRead):
@@ -245,6 +263,7 @@ class LivingSceneCoverageRead(TransparencyRead):
     departments: str
     missions: str
     conversations: str
+    handoffs: str
     incidents: str
     smart_objects: str
     presence: str
@@ -316,6 +335,7 @@ class LivingSceneDeterministicPlaneRead(TransparencyRead):
     employees: list[LivingSceneEmployeeRead]
     work_items: list[LivingSceneWorkItemRead]
     conversations: list[LivingSceneConversationRead]
+    handoffs: list[LivingSceneHandoffRead]
     blockers: list[LivingSceneBlockerRead]
     decisions: list[LivingSceneDecisionRead]
     incidents: list[LivingSceneIncidentRead]

@@ -33,6 +33,8 @@ from app.schemas_organization_records import (
     BlockerCreate,
     BlockerRead,
     BlockerSupersedeCreate,
+    ConversationClose,
+    ConversationOpen,
     ContributionCorrectionCreate,
     ContributionCreate,
     ContributionRead,
@@ -89,6 +91,11 @@ from app.services.organization_contribution import (
     append_contribution_correction,
     create_contribution,
     validate_authoritative_outcome,
+)
+from app.services.organization_conversation import (
+    close_conversation,
+    is_reserved_conversation_activity,
+    open_conversation,
 )
 from app.services.organization_decision import (
     create_executive_decision,
@@ -349,12 +356,60 @@ def create_activity_endpoint(
         payload.activity_key == ACTIVITY_COVERAGE_ACTIVITY_KEY
         or payload.stream_key == ACTIVITY_COVERAGE_STREAM_KEY
         or payload.activity_type == ACTIVITY_COVERAGE_ACTIVITY_TYPE
+        or is_reserved_conversation_activity(
+            activity_key=payload.activity_key,
+            stream_key=payload.stream_key,
+            activity_type=payload.activity_type,
+            source_object_type=payload.source_object_type,
+        )
     ):
         raise HTTPException(
             status_code=422,
-            detail="The Activity coverage epoch can only be established through its governed command.",
+            detail="Reserved organization Activity semantics require their governed command.",
         )
     return _command(lambda: append_activity(session, context, **payload.model_dump()))
+
+
+@router.post("/conversations/open", response_model=ActivityRead, status_code=status.HTTP_201_CREATED)
+def open_conversation_endpoint(
+    payload: ConversationOpen,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationActivity:
+    return _command(
+        lambda: open_conversation(
+            session,
+            context,
+            conversation_id=payload.conversation_id,
+            work_item_id=payload.work_item_id,
+            participant_position_keys=tuple(payload.participant_position_keys),
+            summary=payload.summary,
+            occurred_at=payload.occurred_at,
+            causation_activity_id=payload.causation_activity_id,
+        )
+    )
+
+
+@router.post(
+    "/conversations/{conversation_id}/close",
+    response_model=ActivityRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def close_conversation_endpoint(
+    conversation_id: str,
+    payload: ConversationClose,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationActivity:
+    return _command(
+        lambda: close_conversation(
+            session,
+            context,
+            conversation_id=conversation_id,
+            summary=payload.summary,
+            occurred_at=payload.occurred_at,
+        )
+    )
 
 
 @router.get("/contributions", response_model=OrganizationPage[ContributionRead])

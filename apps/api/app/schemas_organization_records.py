@@ -95,6 +95,20 @@ class ActivityRead(OrganizationRead):
     created_at: datetime
 
 
+class ConversationOpen(OrganizationInput):
+    conversation_id: str = Field(min_length=1, max_length=255)
+    work_item_id: UUID
+    participant_position_keys: list[str] = Field(min_length=2, max_length=32)
+    summary: str = Field(min_length=1, max_length=4000)
+    occurred_at: datetime
+    causation_activity_id: UUID | None = None
+
+
+class ConversationClose(OrganizationInput):
+    summary: str = Field(min_length=1, max_length=4000)
+    occurred_at: datetime
+
+
 class ContributionCreate(OrganizationInput):
     contribution_key: str = Field(min_length=1, max_length=255)
     source_type: str = Field(min_length=1, max_length=255)

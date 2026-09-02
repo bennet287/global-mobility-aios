@@ -178,7 +178,7 @@ function livingScene() {
   return {
     established: true,
     scene: {
-      contract_version: "living-organization-scene.v1",
+      contract_version: "living-organization-scene.v2",
       generated_at: "2026-09-02T01:30:00Z",
       scope: "austria_mobility",
       root_work_item_id: ROOT_ID,
@@ -186,10 +186,11 @@ function livingScene() {
       coverage: {
         departments: "projected_from_canonical_positions_and_work",
         missions: "workitem_objective_topology_projection",
-        conversations: "not_connected_m3",
-        incidents: "not_connected_m3",
+        conversations: "organization_activity_conversation_lifecycle_v1",
+        handoffs: "organization_work_assigned_activity_v1",
+        incidents: "not_connected_m5",
         smart_objects: "derived_read_only_scene_metrics",
-        presence: "not_asserted_m3",
+        presence: "not_asserted_m5",
       },
       deterministic: {
         departments: [
@@ -310,7 +311,37 @@ function livingScene() {
             authority_level: "L1",
           },
         ],
-        conversations: [],
+        conversations: [
+          {
+            conversation_id: "pathway-evidence-coordination",
+            participant_position_keys: [
+              "mobility_operations_lead",
+              "pathway_operations_specialist",
+            ],
+            work_item_id: "22222222-2222-4222-8222-222222222221",
+            status: "open",
+            summary: "Coordinate pathway evidence before owner synthesis.",
+            opened_activity_id: "33333333-3333-4333-8333-333333333331",
+            latest_activity_id: "33333333-3333-4333-8333-333333333331",
+            opened_at: "2026-09-02T01:20:00Z",
+            lifecycle_at: "2026-09-02T01:20:00Z",
+            authority_effect: "none",
+            transcript_persisted: false,
+            canonical_basis: "Immutable OrganizationActivity conversation lifecycle",
+          },
+        ],
+        handoffs: [
+          {
+            activity_id: "44444444-4444-4444-8444-444444444441",
+            work_item_id: "22222222-2222-4222-8222-222222222221",
+            previous_position_key: "mobility_operations_lead",
+            assigned_position_key: "pathway_operations_specialist",
+            status: "running",
+            occurred_at: "2026-09-02T01:25:00Z",
+            causation_activity_id: "55555555-5555-4555-8555-555555555551",
+            canonical_basis: "organization.work.assigned.v1 OrganizationActivity",
+          },
+        ],
         blockers: [],
         decisions: [],
         incidents: [],
@@ -495,7 +526,7 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
 }
 
 
-test("renders M.3 canonical scene planes without inventing presence or authority", async ({ page }) => {
+test("renders M.5 canonical conversation and handoff lineage without mutating AIOS", async ({ page }) => {
   const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: livingScene() }),
@@ -505,7 +536,7 @@ test("renders M.3 canonical scene planes without inventing presence or authority
 
   const sceneSurface = page.locator(".living-scene-shell");
   await expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(sceneSurface.getByText("M.3 · Canonical scene foundation")).toBeVisible();
+  await expect(sceneSurface.getByText("M.5 · Canonical collaboration")).toBeVisible();
   await expect(sceneSurface.getByText("Mission Room", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
   await expect(sceneSurface.getByText("Board Room", { exact: true }).first()).toBeVisible();
@@ -516,7 +547,17 @@ test("renders M.3 canonical scene planes without inventing presence or authority
   await expect(smartObjects.locator("article").filter({ hasText: "Mission Board" })).toBeVisible();
   await expect(smartObjects.locator("article").filter({ hasText: "Evidence Console" })).toBeVisible();
   await expect(smartObjects.locator("article").filter({ hasText: "Board Attention" })).toBeVisible();
-  await expect(page.getByText("Not Connected M3", { exact: true })).toHaveCount(2);
+  await expect(sceneSurface.getByText("CANONICAL CONVERSATIONS", { exact: true })).toBeVisible();
+  await expect(sceneSurface.getByText("CANONICAL HANDOFFS", { exact: true })).toBeVisible();
+  await expect(sceneSurface.getByText("Open · 2 participants", { exact: true })).toBeVisible();
+  await expect(sceneSurface.getByText("Coordinate pathway evidence before owner synthesis.", { exact: true })).toBeVisible();
+  await expect(sceneSurface.getByText("Canonical conversation · 1", { exact: true }).first()).toBeVisible();
+  await sceneSurface.getByText("Open · 2 participants", { exact: true }).click();
+  await expect(sceneSurface.getByText(/Opened Activity 33333333 · Latest Activity 33333333/)).toBeVisible();
+  await expect(sceneSurface.getByText("Mobility Operations Lead ↓ Pathway Operations Specialist", { exact: true })).toBeVisible();
+  await sceneSurface.getByText("Mobility Operations Lead ↓ Pathway Operations Specialist", { exact: true }).click();
+  await expect(sceneSurface.getByText("Governed causation 55555555", { exact: true })).toBeVisible();
+  await expect(page.getByText("Not Connected M5", { exact: true })).toHaveCount(1);
   await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
 
   expect(recorded.some((item) => item.method === "GET" && item.path === SCENE_PATH)).toBe(true);

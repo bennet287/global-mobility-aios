@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.models.domain import OrganizationalActionOutput
+from app.models.domain import OrganizationalActionOutput, now_utc
 from app.services.organization_agent_runtime import AgentRuntimeProfile, RuntimeClass
 from app.services.organization_governance import ensure_foundation_positions
 from app.services.organization_mobility_live_organization import (
@@ -21,6 +21,8 @@ from app.services.organization_mobility_objective_runtime import (
     create_austria_mobility_objective,
 )
 from app.services.organization_command import OrganizationCommandContext
+from app.services.organization_conversation import open_conversation
+from app.services.organization_work import assign_work_item
 from app.models.domain import OrganizationActorType
 
 
@@ -57,6 +59,7 @@ def _establish_completed_cycle(
     monkeypatch: pytest.MonkeyPatch,
     *,
     objective_key: str,
+    seed_m5: bool = False,
 ):
     monkeypatch.setattr("app.services.controlled_agents.is_llm_enabled", lambda: False)
     ensure_foundation_positions(db_session, actor="api-l1", repair_contracts=True)
@@ -65,6 +68,34 @@ def _establish_completed_cycle(
         _human_context(),
         objective_key=objective_key,
     )
+    if seed_m5:
+        open_conversation(
+            db_session,
+            _human_context(),
+            conversation_id=f"conversation:{plan.pathway_work_item.id}",
+            work_item_id=plan.pathway_work_item.id,
+            participant_position_keys=(
+                plan.pathway_work_item.assigned_position_key,
+                plan.root_work_item.assigned_position_key,
+            ),
+            summary="Coordinate pathway evidence before owner synthesis.",
+            occurred_at=now_utc(),
+        )
+        original_position_key = plan.pathway_work_item.assigned_position_key
+        assign_work_item(
+            db_session,
+            _human_context(),
+            work_item_id=plan.pathway_work_item.id,
+            assigned_position_key=plan.root_work_item.assigned_position_key,
+            reason="Exercise a real governed M.5 handoff.",
+        )
+        assign_work_item(
+            db_session,
+            _human_context(),
+            work_item_id=plan.pathway_work_item.id,
+            assigned_position_key=original_position_key,
+            reason="Return governed work to its execution position.",
+        )
     execute_austria_specialists(
         db_session,
         _human_context(),
@@ -101,6 +132,7 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
         db_session,
         monkeypatch,
         objective_key="at-rwr-shortage-2026-l1-api",
+        seed_m5=True,
     )
 
     latest = client.get("/api/v1/organization/transparency/live-organization/austria/latest")
@@ -149,16 +181,17 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     scene_body = scene.json()
     assert scene_body["established"] is True
     projection = scene_body["scene"]
-    assert projection["contract_version"] == "living-organization-scene.v1"
+    assert projection["contract_version"] == "living-organization-scene.v2"
     assert projection["root_work_item_id"] == str(plan.root_work_item.id)
     assert projection["objective_key"] == plan.root_work_item.objective_key
     assert projection["coverage"] == {
         "departments": "projected_from_canonical_positions_and_work",
         "missions": "workitem_objective_topology_projection",
-        "conversations": "not_connected_m3",
-        "incidents": "not_connected_m3",
+        "conversations": "organization_activity_conversation_lifecycle_v1",
+        "handoffs": "organization_work_assigned_activity_v1",
+        "incidents": "not_connected_m5",
         "smart_objects": "derived_read_only_scene_metrics",
-        "presence": "not_asserted_m3",
+        "presence": "not_asserted_m5",
     }
 
     deterministic = projection["deterministic"]
@@ -200,7 +233,21 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
 
     assert len(deterministic["employees"]) == 3
     assert len(deterministic["work_items"]) == 3
-    assert deterministic["conversations"] == []
+    assert len(deterministic["conversations"]) == 1
+    conversation = deterministic["conversations"][0]
+    assert conversation["status"] == "open"
+    assert conversation["participant_position_keys"] == [
+        plan.pathway_work_item.assigned_position_key,
+        plan.root_work_item.assigned_position_key,
+    ]
+    assert conversation["authority_effect"] == "none"
+    assert conversation["transcript_persisted"] is False
+    assert conversation["opened_activity_id"] == conversation["latest_activity_id"]
+    assert len(deterministic["handoffs"]) == 2
+    assert all(
+        item["canonical_basis"] == "organization.work.assigned.v1 OrganizationActivity"
+        for item in deterministic["handoffs"]
+    )
     assert deterministic["incidents"] == []
     assert {item["presence_state"] for item in deterministic["employees"]} == {"not_asserted"}
     assert {item["object_type"] for item in deterministic["smart_objects"]} == {
@@ -218,6 +265,14 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert board_room["metric_value"] == 1
     assert any(item["relationship_type"] == "assigned_to" for item in deterministic["relationships"])
     assert any(item["relationship_type"] == "belongs_to" for item in deterministic["relationships"])
+    assert any(
+        item["relationship_type"] == "participates_in_conversation"
+        for item in deterministic["relationships"]
+    )
+    assert any(
+        item["relationship_type"] == "governed_handoff"
+        for item in deterministic["relationships"]
+    )
     assert deterministic["decisions"][0]["decision_id"] == decision.json()["id"]
     assert deterministic["decisions"][0]["is_current"] is True
 

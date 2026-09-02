@@ -21,6 +21,10 @@ function shortId(value: string | null): string {
   return value ? value.slice(0, 8) : "—";
 }
 
+function timestampLabel(value: string): string {
+  return `${value.slice(0, 16).replace("T", " ")} UTC`;
+}
+
 export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizationScene }) {
   const renderModel = useMemo(() => buildLivingSceneRenderModel(scene), [scene]);
   const blockersByWork = new Map<string, number>();
@@ -28,12 +32,22 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
     if (!blocker.work_item_id) continue;
     blockersByWork.set(blocker.work_item_id, (blockersByWork.get(blocker.work_item_id) ?? 0) + 1);
   }
+  const openConversationsByParticipant = new Map<string, number>();
+  for (const conversation of scene.deterministic.conversations) {
+    if (conversation.status !== "open") continue;
+    for (const positionKey of conversation.participant_position_keys) {
+      openConversationsByParticipant.set(
+        positionKey,
+        (openConversationsByParticipant.get(positionKey) ?? 0) + 1,
+      );
+    }
+  }
 
   return (
     <section className="living-scene-shell" aria-labelledby="living-scene-title">
       <header className="living-scene-header">
         <div>
-          <span className="premium-label">M.3 · Canonical scene foundation</span>
+          <span className="premium-label">M.5 · Canonical collaboration</span>
           <h3 id="living-scene-title">Living Organization Scene</h3>
           <p>
             A spatial projection of persisted AIOS organization state. Geometry is presentation-only;
@@ -51,6 +65,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
         <div><span>Departments</span><strong>{scene.deterministic.departments.length}</strong><small>{titleCase(scene.coverage.departments)}</small></div>
         <div><span>Missions</span><strong>{scene.deterministic.missions.length}</strong><small>{titleCase(scene.coverage.missions)}</small></div>
         <div><span>Conversations</span><strong>{scene.deterministic.conversations.length}</strong><small>{titleCase(scene.coverage.conversations)}</small></div>
+        <div><span>Handoffs</span><strong>{scene.deterministic.handoffs.length}</strong><small>{titleCase(scene.coverage.handoffs)}</small></div>
         <div><span>Incidents</span><strong>{scene.deterministic.incidents.length}</strong><small>{titleCase(scene.coverage.incidents)}</small></div>
       </div>
 
@@ -114,6 +129,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           <div className="living-scene-employee-grid">
             {renderModel.employeeSlots.map(({ employee, workItem, slot }) => {
               const blockerCount = employee.work_item_id ? blockersByWork.get(employee.work_item_id) ?? 0 : 0;
+              const conversationCount = openConversationsByParticipant.get(employee.position_key) ?? 0;
               return (
                 <article
                   key={employee.position_key}
@@ -140,9 +156,78 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
                     <strong>{titleCase(employee.presence_state)}</strong>
                   </div>
                   {blockerCount ? <span className="scene-blocker-badge">{blockerCount} blocker{blockerCount === 1 ? "" : "s"}</span> : null}
+                  {conversationCount ? (
+                    <span className="scene-conversation-badge">
+                      Canonical conversation · {conversationCount}
+                    </span>
+                  ) : null}
                 </article>
               );
             })}
+          </div>
+
+          <div className="scene-collaboration-grid">
+            <section aria-labelledby="canonical-conversations-title">
+              <header>
+                <div>
+                  <span>Mission collaboration</span>
+                  <strong id="canonical-conversations-title">CANONICAL CONVERSATIONS</strong>
+                </div>
+                <small>{scene.deterministic.conversations.length}</small>
+              </header>
+              {scene.deterministic.conversations.length ? (
+                <div className="scene-decision-list">
+                  {scene.deterministic.conversations.map((conversation) => (
+                    <details key={conversation.conversation_id}>
+                      <summary>
+                        <span>{titleCase(conversation.status)} · {conversation.participant_position_keys.length} participants</span>
+                        <strong>{conversation.summary}</strong>
+                        <small>Work {shortId(conversation.work_item_id)} · {timestampLabel(conversation.lifecycle_at)}</small>
+                      </summary>
+                      <div>
+                        <span>Participants</span>
+                        <strong>{conversation.participant_position_keys.map((value) => titleCase(value)).join(" · ")}</strong>
+                        <small>Opened Activity {shortId(conversation.opened_activity_id)} · Latest Activity {shortId(conversation.latest_activity_id)}</small>
+                        <small>{conversation.canonical_basis} · lifecycle {timestampLabel(conversation.lifecycle_at)}</small>
+                        <small>Authority effect {conversation.authority_effect} · transcript {conversation.transcript_persisted ? "persisted" : "not persisted"}</small>
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              ) : (
+                <p>No persisted conversation lifecycle is linked to these scene WorkItems.</p>
+              )}
+            </section>
+
+            <section aria-labelledby="canonical-handoffs-title">
+              <header>
+                <div>
+                  <span>Governed assignment history</span>
+                  <strong id="canonical-handoffs-title">CANONICAL HANDOFFS</strong>
+                </div>
+                <small>{scene.deterministic.handoffs.length}</small>
+              </header>
+              {scene.deterministic.handoffs.length ? (
+                <div className="scene-decision-list">
+                  {scene.deterministic.handoffs.map((handoff) => (
+                    <details key={handoff.activity_id}>
+                      <summary>
+                        <span>{titleCase(handoff.status)} · Work {shortId(handoff.work_item_id)}</span>
+                        <strong>{titleCase(handoff.previous_position_key)} ↓ {titleCase(handoff.assigned_position_key)}</strong>
+                        <small>{timestampLabel(handoff.occurred_at)}</small>
+                      </summary>
+                      <div>
+                        <span>Activity {shortId(handoff.activity_id)}</span>
+                        <strong>{handoff.causation_activity_id ? `Governed causation ${shortId(handoff.causation_activity_id)}` : "No governed causation Activity linked"}</strong>
+                        <small>{timestampLabel(handoff.occurred_at)} · {handoff.canonical_basis}</small>
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              ) : (
+                <p>No governed WorkItem reassignment is linked to this Mission Room.</p>
+              )}
+            </section>
           </div>
 
           <footer>

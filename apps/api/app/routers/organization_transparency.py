@@ -261,7 +261,7 @@ def read_latest_austria_living_scene(
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
 ) -> LivingOrganizationSceneLatestRead:
-    """Return the canonical M.3 scene projection without granting renderer authority."""
+    """Return the canonical M.5 scene projection without granting renderer authority."""
 
     _require_board(context)
     try:

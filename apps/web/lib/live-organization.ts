@@ -169,9 +169,27 @@ export type LivingSceneMission = {
 export type LivingSceneConversation = {
   conversation_id: string;
   participant_position_keys: string[];
-  work_item_id: string | null;
+  work_item_id: string;
   status: string;
   summary: string;
+  opened_activity_id: string;
+  latest_activity_id: string;
+  opened_at: string;
+  lifecycle_at: string;
+  authority_effect: string;
+  transcript_persisted: boolean;
+  canonical_basis: string;
+};
+
+export type LivingSceneHandoff = {
+  activity_id: string;
+  work_item_id: string;
+  previous_position_key: string;
+  assigned_position_key: string;
+  status: string;
+  occurred_at: string;
+  causation_activity_id: string | null;
+  canonical_basis: string;
 };
 
 export type LivingSceneIncident = {
@@ -197,6 +215,7 @@ export type LivingSceneCoverage = {
   departments: string;
   missions: string;
   conversations: string;
+  handoffs: string;
   incidents: string;
   smart_objects: string;
   presence: string;
@@ -268,6 +287,7 @@ export type LivingSceneDeterministicPlane = {
   employees: LivingSceneEmployee[];
   work_items: LivingSceneWorkItem[];
   conversations: LivingSceneConversation[];
+  handoffs: LivingSceneHandoff[];
   blockers: LivingSceneBlocker[];
   decisions: LivingSceneDecision[];
   incidents: LivingSceneIncident[];
