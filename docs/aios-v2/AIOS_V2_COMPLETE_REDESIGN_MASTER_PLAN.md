@@ -997,6 +997,7 @@ Memory/aggregate must never look like live canonical truth.
 
 
 # 30. Intelligence, communication, notifications, visualization
+
 ## Intelligence
 Distinguish observation, source, interpretation, recommendation, VerifiedRule, evidence, and uncertainty. AI synthesis must not visually masquerade as official fact.
 
