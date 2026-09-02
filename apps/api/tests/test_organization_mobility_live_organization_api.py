@@ -282,6 +282,21 @@ def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
     assert "risk_escalation_history" in replay_diff["unsupported_dimensions"]
     assert "payload" not in replay_diff
 
+    identity_diff_response = client.get(
+        f"/api/v1/organization/transparency/live-organization/replay/austria/latest/diff/"
+        f"{root_created['activity_id']}/{root_created['activity_id']}"
+    )
+    assert identity_diff_response.status_code == 200, identity_diff_response.text
+    identity_diff = identity_diff_response.json()
+    assert identity_diff["from_cursor"]["activity_id"] == root_created["activity_id"]
+    assert identity_diff["to_cursor"]["activity_id"] == root_created["activity_id"]
+    assert identity_diff["changed_entity_count"] == 0
+    assert identity_diff["work_items"] == []
+    assert identity_diff["blockers"] == []
+    assert identity_diff["decisions"] == []
+    assert identity_diff["human_requests"] == []
+    assert identity_diff["conversations"] == []
+
     raw_client.headers.update({
         "X-GMAI-Role": "operator",
         "X-GMAI-User": "m8-operator",
