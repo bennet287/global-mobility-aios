@@ -105,7 +105,7 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /does not reconstruct history locally/);
   assert.match(replayComponent, /M\.8\.2 · As-of Temporal State Reconstruction/);
   assert.match(replayComponent, /OrganizationActivity is the replay source/);
-  assert.match(replayComponent, /Missing history remains explicitly missing/);
+  assert.match(replayComponent, /Reconstruction uses semantic transition payloads only/);
   assert.match(replayComponent, /data-replay-coverage-state/);
   assert.match(replayComponent, /pre_epoch_partial/);
   assert.match(replayComponent, /partial_no_epoch/);
