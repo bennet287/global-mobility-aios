@@ -9,6 +9,34 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.67 M.2 DECISION RECONSTRUCTION COMPLETE / PASS
+
+### Status
+
+**M.2 COMPLETE / PASS ON EXACT IMPLEMENTATION HEAD / M.3 LIVING ORGANIZATION SCENE FOUNDATION NEXT**
+
+M.2 is accepted on exact implementation head `d9294b2f29c21aa4866d47a253ada94eeae2c568`.
+
+~~~text
+Repository Policy Check #521 / run 33574775103   PASS
+V12 Production Proof #1062 / run 33574775132     PASS — 4/4 jobs
+
+Backend regression (SQLite)        1340 passed, 22 skipped, 1 warning
+PostgreSQL governance contracts    105 passed, 1 warning
+Frontend request/read tests        7 passed, 0 failed
+TypeScript                         PASS
+Next.js production build           PASS — 42/42 pages
+Repository policy/constraints      PASS
+~~~
+
+M.2 extends Decision Explorer into a read-only canonical reconstruction surface. It follows linked WorkItem context, record-reference evidence/provenance, durable WorkItem activity and decision supersession without creating a new Mission truth model, lineage database or command path.
+
+The frontend no longer relies on a nonexistent Cockpit WorkItem route for this reconstruction. Missing relationships remain unavailable rather than inferred.
+
+No create/update/delete/approve/supersede authority was added. M.3 Living Organization Scene Foundation is now the next functional slice.
+
+---
+
 ## 2026-09-02 — V12.66 LIVING ORGANIZATION ADVANCED RENDERING ADOPTION
 
 ### Status

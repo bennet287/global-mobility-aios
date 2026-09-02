@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.65 — M.1 Decision Explorer COMPLETE / PASS; M.2 next; Living Organization V2 scheduled
+**Roadmap generation:** V12.67 — M.2 Decision Reconstruction COMPLETE / PASS; M.3 Living Organization Scene Foundation next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 COMPLETE / PASS; M.2 NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 + M.2 COMPLETE / PASS; M.3 NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -217,8 +217,9 @@ L     COMPLETE / PASS / SEALED
 M     IN PROGRESS
 M.1   COMPLETE / PASS at 9f00124c9041d1480b8007cdd54214df7fb37e3f
 M.1A  DOCUMENTATION / ROADMAP RECONCILIATION — V12.65
-M.2   NEXT FUNCTIONAL SLICE
-M.3+  SCHEDULED — Living Organization V2
+M.2   COMPLETE / PASS at d9294b2f29c21aa4866d47a253ada94eeae2c568
+M.3   NEXT ACTIVE SLICE — Living Organization Scene Foundation
+M.4+  SCHEDULED — Living Organization V2
 N     NOT STARTED — dependency-gated behind M
 ```
 
@@ -375,8 +376,8 @@ optional Cognitive Ecology / Organica
 |---|---|---|
 | **M.1** | Decision Explorer | **COMPLETE / PASS** at 9f00124c9041d1480b8007cdd54214df7fb37e3f |
 | **M.1A** | Record exact-head CI closure and freeze detailed M / Living Organization direction | **THIS V12.65 documentation slice** |
-| **M.2** | Decision → WorkItem → Evidence → Supersession navigation | **NEXT functional slice** |
-| **M.3** | Living Organization Scene Foundation | Scheduled after M.2 |
+| **M.2** | Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction | **COMPLETE / PASS** at `d9294b2f29c21aa4866d47a253ada94eeae2c568` |
+| **M.3** | Living Organization Scene Foundation | **NEXT ACTIVE SLICE** |
 | **M.4** | Animated Employees V1 | Scheduled |
 | **M.5** | Conversations, handoffs & Mission Rooms | Scheduled |
 | **M.6** | Blockers, Smart Objects & live Board Room | Scheduled |
@@ -404,9 +405,41 @@ All four Production Proof jobs passed: backend regression, frontend tests/types/
 
 V12.65 records the exact M.1 closure, makes M.2 the next bounded functional slice, and freezes Living Organization V2 so future work does not regress to a generic static-dashboard interpretation. This is documentation/planning only; it does not reopen L or change M.1 runtime/authority semantics.
 
-### M.2 — Decision → WorkItem → Evidence → Supersession navigation
+### M.2 — Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction — COMPLETE / PASS
 
 M.2 builds the navigation spine required by both Board Transparency and Living Organization.
+
+Exact implementation head:
+
+~~~text
+d9294b2f29c21aa4866d47a253ada94eeae2c568
+
+Repository Policy Check #521 / run 33574775103   PASS
+V12 Production Proof #1062 / run 33574775132     PASS — 4/4 jobs
+
+Backend regression (SQLite)        1340 passed / 22 skipped / 1 warning
+PostgreSQL governance contracts    105 passed / 1 warning
+Frontend request/read tests        7 passed / 0 failed
+TypeScript                         PASS
+Next.js production build           PASS — 42/42 pages
+Repository policy/constraints      PASS
+~~~
+
+Delivered M.2 behavior:
+
+- canonical record-reference reads can filter by decision owner, WorkItem owner and reference role;
+- the web read client can request WorkItem-scoped durable OrganizationActivity and record-reference provenance;
+- Decision Explorer reconstructs linked WorkItem context, including objective_key, phase_key, parent work, risk, priority, authority, assignment and objective;
+- decision-owned and WorkItem-owned record references are merged/deduplicated for evidence/provenance inspection;
+- recent durable WorkItem activity is shown with actor/source/version context;
+- existing decision supersession traversal remains intact;
+- missing WorkItem/reference/activity relationships remain explicitly unavailable rather than inferred;
+- the earlier nonexistent Cockpit WorkItem route is no longer required for Decision Explorer reconstruction;
+- no separate Mission record or M-specific lineage database was invented.
+
+Permanent M.2 boundary:
+
+> **Reconstruction follows canonical links. Missing links stay missing. Read navigation does not become command authority.**
 
 ~~~text
 ExecutiveDecision
@@ -857,7 +890,7 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1 COMPLETE / PASS; M.2 NEXT; M.3–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1 + M.2 COMPLETE / PASS; M.3 NEXT; M.4–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 
