@@ -542,6 +542,46 @@ export type OrganizationReplayState = {
   conversations: OrganizationReplayStateConversation[];
 };
 
+export type OrganizationReplayStateDiffCursor = {
+  activity_id: string;
+  occurred_at: string;
+  coverage_state: string;
+  reconstruction_posture: string;
+  unapplied_transition_count: number;
+};
+
+export type OrganizationReplayStateDelta<T> = {
+  entity_id: string;
+  change_kind: "added" | "removed" | "changed" | string;
+  changed_fields: string[];
+  before: T | null;
+  after: T | null;
+};
+
+export type OrganizationReplayStateDiff = {
+  contract_version: string;
+  generated_at: string;
+  scope: string;
+  root_work_item_id: string;
+  objective_key: string;
+  comparison_basis: string;
+  from_cursor: OrganizationReplayStateDiffCursor;
+  to_cursor: OrganizationReplayStateDiffCursor;
+  comparison_posture: string;
+  canonical_projection: boolean;
+  authoritative: boolean;
+  mutations_allowed: boolean;
+  supported_dimensions: string[];
+  unsupported_dimensions: string[];
+  unchanged_entities_omitted: boolean;
+  changed_entity_count: number;
+  work_items: OrganizationReplayStateDelta<OrganizationReplayStateWorkItem>[];
+  blockers: OrganizationReplayStateDelta<OrganizationReplayStateBlocker>[];
+  decisions: OrganizationReplayStateDelta<OrganizationReplayStateDecision>[];
+  human_requests: OrganizationReplayStateDelta<OrganizationReplayStateHumanRequest>[];
+  conversations: OrganizationReplayStateDelta<OrganizationReplayStateConversation>[];
+};
+
 export type AustriaOwnerSynthesisCommand = {
   root_work_item_id: string;
   action_output_id: string;
@@ -602,6 +642,15 @@ export async function getLatestAustriaOrganizationReplayState(
 ): Promise<OrganizationReplayState> {
   return liveRequest<OrganizationReplayState>(
     `/api/v1/organization/transparency/live-organization/replay/austria/latest/state/${encodeURIComponent(activityId)}`,
+  );
+}
+
+export async function getLatestAustriaOrganizationReplayStateDiff(
+  fromActivityId: string,
+  toActivityId: string,
+): Promise<OrganizationReplayStateDiff> {
+  return liveRequest<OrganizationReplayStateDiff>(
+    `/api/v1/organization/transparency/live-organization/replay/austria/latest/diff/${encodeURIComponent(fromActivityId)}/${encodeURIComponent(toActivityId)}`,
   );
 }
 

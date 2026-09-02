@@ -5,6 +5,7 @@ const LATEST_PATH = "/api/v1/organization/transparency/live-organization/austria
 const SCENE_PATH = "/api/v1/organization/transparency/live-organization/scene/austria/latest";
 const REPLAY_PATH = "/api/v1/organization/transparency/live-organization/replay/austria/latest";
 const REPLAY_STATE_PREFIX = `${REPLAY_PATH}/state/`;
+const REPLAY_DIFF_PREFIX = `${REPLAY_PATH}/diff/`;
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
 const CONVERSATION_ID = "pathway-evidence-coordination";
 const CONVERSATION_ACTIVITY_ID = "33333333-3333-4333-8333-333333333331";
@@ -36,6 +37,7 @@ type ApiScenario = {
   scene?: (call: number) => JsonResult;
   replay?: (call: number) => JsonResult;
   replayState?: (activityId: string, call: number) => JsonResult;
+  replayDiff?: (fromActivityId: string, toActivityId: string, call: number) => JsonResult;
   post?: (call: number) => JsonResult;
   firstLatestDelayMs?: number;
 };
@@ -54,6 +56,7 @@ async function installApi(page: Page, scenario: ApiScenario) {
   let sceneCalls = 0;
   let replayCalls = 0;
   let replayStateCalls = 0;
+  let replayDiffCalls = 0;
   let postCalls = 0;
 
   await page.route(`${API_BASE}/**`, async (route) => {
@@ -97,6 +100,17 @@ async function installApi(page: Page, scenario: ApiScenario) {
         ? scenario.replay(replayCalls)
         : { body: { established: false, replay: null } };
       replayCalls += 1;
+      await fulfillJson(route, result);
+      return;
+    }
+
+    if (method === "GET" && url.pathname.startsWith(REPLAY_DIFF_PREFIX)) {
+      const pair = url.pathname.slice(REPLAY_DIFF_PREFIX.length).split("/").map(decodeURIComponent);
+      const [fromActivityId, toActivityId] = pair;
+      const result = fromActivityId && toActivityId && pair.length === 2 && scenario.replayDiff
+        ? scenario.replayDiff(fromActivityId, toActivityId, replayDiffCalls)
+        : { status: 404, body: { detail: "Organization transparency resource not found." } };
+      replayDiffCalls += 1;
       await fulfillJson(route, result);
       return;
     }
@@ -400,6 +414,99 @@ function replayStateProjection(activityId: string) {
         known_from_activity_id: CONVERSATION_ACTIVITY_ID,
         last_activity_id: CONVERSATION_ACTIVITY_ID,
         last_occurred_at: "2026-09-02T00:20:00Z",
+      },
+    ],
+  };
+}
+
+function replayDiffProjection(fromActivityId: string, toActivityId: string) {
+  const pathwayId = "22222222-2222-4222-8222-222222222221";
+  const beforePathway = {
+    work_item_id: pathwayId,
+    status: "running",
+    priority: "high",
+    department: "Global Mobility Operations",
+    assigned_position_key: "mobility_operations_lead",
+    parent_work_item_id: ROOT_ID,
+    coverage_state: "covered",
+    known_from_activity_id: "77777777-7777-4777-8777-777777777772",
+    last_activity_id: fromActivityId,
+    last_occurred_at: "2026-09-02T00:10:00Z",
+  };
+  const afterPathway = {
+    ...beforePathway,
+    assigned_position_key: "pathway_operations_specialist",
+    last_activity_id: toActivityId,
+    last_occurred_at: "2026-09-02T00:30:00Z",
+  };
+  return {
+    contract_version: "organization-replay-state-diff.v1",
+    generated_at: "2026-09-02T01:32:00Z",
+    scope: "austria_mobility_latest_work_tree_activity_cursor_diff",
+    root_work_item_id: ROOT_ID,
+    objective_key: "austria_rwr_shortage_occupation",
+    comparison_basis: "two_organization_replay_state_v1_projections",
+    from_cursor: {
+      activity_id: fromActivityId,
+      occurred_at: "2026-09-02T00:10:00Z",
+      coverage_state: "covered",
+      reconstruction_posture: "covered",
+      unapplied_transition_count: 0,
+    },
+    to_cursor: {
+      activity_id: toActivityId,
+      occurred_at: "2026-09-02T00:30:00Z",
+      coverage_state: "covered",
+      reconstruction_posture: "covered",
+      unapplied_transition_count: 0,
+    },
+    comparison_posture: "covered",
+    canonical_projection: true,
+    authoritative: false,
+    mutations_allowed: false,
+    supported_dimensions: [
+      "work_item_status_assignment",
+      "blocker_lifecycle",
+      "decision_lifecycle",
+      "human_request_lifecycle",
+      "conversation_lifecycle",
+    ],
+    unsupported_dimensions: [
+      "risk_escalation_history",
+      "source_snapshot_history",
+      "conversation_transcript",
+      "historical_deadline_projection_v1",
+      "historical_evidence_content_state_v1",
+    ],
+    unchanged_entities_omitted: true,
+    changed_entity_count: 2,
+    work_items: [
+      {
+        entity_id: pathwayId,
+        change_kind: "changed",
+        changed_fields: ["assigned_position_key"],
+        before: beforePathway,
+        after: afterPathway,
+      },
+    ],
+    blockers: [],
+    decisions: [],
+    human_requests: [],
+    conversations: [
+      {
+        entity_id: CONVERSATION_ID,
+        change_kind: "added",
+        changed_fields: [],
+        before: null,
+        after: {
+          conversation_id: CONVERSATION_ID,
+          work_item_id: pathwayId,
+          status: "open",
+          coverage_state: "covered",
+          known_from_activity_id: CONVERSATION_ACTIVITY_ID,
+          last_activity_id: CONVERSATION_ACTIVITY_ID,
+          last_occurred_at: "2026-09-02T00:20:00Z",
+        },
       },
     ],
   };
@@ -1088,6 +1195,7 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     scene: () => ({ body: livingScene() }),
     replay: () => ({ body: replayProjection() }),
     replayState: (activityId) => ({ body: replayStateProjection(activityId) }),
+    replayDiff: (fromActivityId, toActivityId) => ({ body: replayDiffProjection(fromActivityId, toActivityId) }),
   });
 
   await page.goto("/cockpit/live-organization");
@@ -1095,7 +1203,7 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
   const replay = page.locator(".living-replay-shell");
   await Promise.all([
     expect(replay.getByRole("heading", { name: "Replay / Temporal Organization" })).toBeVisible(),
-    expect(replay.getByText("M.8.2 · As-of Temporal State Reconstruction", { exact: true })).toBeVisible(),
+    expect(replay.getByText("M.8.3 · Temporal State Comparison / Diff V1", { exact: true })).toBeVisible(),
     expect(replay).toHaveAttribute("data-replay-authoritative", "false"),
     expect(replay).toHaveAttribute("data-replay-mutates-work", "false"),
     expect(replay).toHaveAttribute("data-replay-coverage", "established"),
@@ -1124,8 +1232,27 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     expect(historicalState).toContainText("Current domain rows are not read as historical state"),
   ]);
 
+  const comparisonStartId = "77777777-7777-4777-8777-777777777772";
+  const comparisonStart = replay.locator(`[data-replay-event="${comparisonStartId}"]`);
+  await comparisonStart.getByRole("button", { name: "Set compare start" }).click();
+  await expect(replay.locator("[data-replay-comparison-start]")).toContainText("Comparison start set");
+  await handoffEvent.getByRole("button", { name: "Compare from start" }).click();
+
+  const comparison = replay.locator(".living-replay-diff");
+  await Promise.all([
+    expect(comparison.getByText(/What changed from/)).toBeVisible(),
+    expect(comparison).toHaveAttribute("data-replay-diff-authoritative", "false"),
+    expect(comparison).toHaveAttribute("data-replay-diff-mutates-work", "false"),
+    expect(comparison).toHaveAttribute("data-replay-diff-posture", "covered"),
+    expect(comparison).toContainText("2 changed entities"),
+    expect(comparison).toContainText("assigned_position_key"),
+    expect(comparison).toContainText("projection membership changed"),
+    expect(comparison).toContainText("Unchanged entities are omitted"),
+  ]);
+
   expect(recorded.some((item) => item.method === "GET" && item.path === REPLAY_PATH)).toBe(true);
   expect(recorded.some((item) => item.method === "GET" && item.path === `${REPLAY_STATE_PREFIX}${HANDOFF_ACTIVITY_ID}`)).toBe(true);
+  expect(recorded.some((item) => item.method === "GET" && item.path === `${REPLAY_DIFF_PREFIX}${comparisonStartId}/${HANDOFF_ACTIVITY_ID}`)).toBe(true);
   expect(recorded.some((item) => item.method === "POST")).toBe(false);
 });
 

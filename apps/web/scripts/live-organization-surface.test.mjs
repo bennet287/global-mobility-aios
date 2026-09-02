@@ -100,10 +100,13 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /export type OrganizationReplayState/);
   assert.match(api, /getLatestAustriaOrganizationReplayState/);
   assert.match(api, /replay\/austria\/latest\/state/);
+  assert.match(api, /export type OrganizationReplayStateDiff/);
+  assert.match(api, /getLatestAustriaOrganizationReplayStateDiff/);
+  assert.match(api, /replay\/austria\/latest\/diff/);
   assert.match(page, /LivingOrganizationReplayTimeline/);
   assert.match(page, /replay\.root_work_item_id !== snapshot\.root_work_item_id/);
   assert.match(page, /does not reconstruct history locally/);
-  assert.match(replayComponent, /M\.8\.2 · As-of Temporal State Reconstruction/);
+  assert.match(replayComponent, /M\.8\.3 · Temporal State Comparison \/ Diff V1/);
   assert.match(replayComponent, /OrganizationActivity is the replay source/);
   assert.match(replayComponent, /Reconstruction uses semantic transition payloads only/);
   assert.match(replayComponent, /data-replay-coverage-state/);
@@ -112,6 +115,11 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(replayComponent, /Transcript content is not persisted and is never reconstructed/);
   assert.match(replayComponent, /Inspect state here/);
   assert.match(replayComponent, /getLatestAustriaOrganizationReplayState/);
+  assert.match(replayComponent, /getLatestAustriaOrganizationReplayStateDiff/);
+  assert.match(replayComponent, /Set compare start/);
+  assert.match(replayComponent, /Compare from start/);
+  assert.match(replayComponent, /data-replay-diff-authoritative/);
+  assert.match(replayComponent, /Unchanged entities are omitted/);
   assert.match(replayComponent, /data-replay-state-authoritative/);
   assert.match(replayComponent, /Current domain rows are not/);
   assert.match(replayComponent, /unsupported_dimensions\.join/);
