@@ -47,11 +47,11 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
     <section className="living-scene-shell" aria-labelledby="living-scene-title">
       <header className="living-scene-header">
         <div>
-          <span className="premium-label">M.5 · Canonical collaboration</span>
+          <span className="premium-label">M.6 · Blockers, Smart Objects & live Board Room</span>
           <h3 id="living-scene-title">Living Organization Scene</h3>
           <p>
             A spatial projection of persisted AIOS organization state. Geometry is presentation-only;
-            employee, work, blocker, decision, and relationship semantics come from the backend scene contract.
+            employee, work, blocker, decision, Owner-action, risk, and relationship semantics come from the backend scene contract.
           </p>
         </div>
         <div className="living-scene-contract">
@@ -64,9 +64,11 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
       <div className="living-scene-coverage" aria-label="Scene coverage">
         <div><span>Departments</span><strong>{scene.deterministic.departments.length}</strong><small>{titleCase(scene.coverage.departments)}</small></div>
         <div><span>Missions</span><strong>{scene.deterministic.missions.length}</strong><small>{titleCase(scene.coverage.missions)}</small></div>
+        <div><span>Blockers</span><strong>{scene.deterministic.blockers.length}</strong><small>{titleCase(scene.coverage.blockers)}</small></div>
+        <div><span>Owner actions</span><strong>{scene.deterministic.human_actions.length}</strong><small>{titleCase(scene.coverage.human_actions)}</small></div>
+        <div><span>Risks</span><strong>{scene.deterministic.risk_escalations.length}</strong><small>{titleCase(scene.coverage.risk_escalations)}</small></div>
         <div><span>Conversations</span><strong>{scene.deterministic.conversations.length}</strong><small>{titleCase(scene.coverage.conversations)}</small></div>
         <div><span>Handoffs</span><strong>{scene.deterministic.handoffs.length}</strong><small>{titleCase(scene.coverage.handoffs)}</small></div>
-        <div><span>Incidents</span><strong>{scene.deterministic.incidents.length}</strong><small>{titleCase(scene.coverage.incidents)}</small></div>
       </div>
 
       <div className="living-scene-planes" aria-label="Living Organization projection planes">
@@ -260,15 +262,86 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           {scene.deterministic.decisions.length ? (
             <div className="scene-decision-list">
               {scene.deterministic.decisions.map((decision) => (
-                <div key={decision.decision_id}>
-                  <span>{decision.authority_level} · {titleCase(decision.status)}</span>
-                  <strong>{decision.title}</strong>
-                  <small>{decision.is_current ? "Current decision" : "Superseded"} · {shortId(decision.work_item_id)}</small>
-                </div>
+                <details key={decision.decision_id}>
+                  <summary>
+                    <span>
+                      {decision.authority_level} · {titleCase(decision.status)} ·
+                      {decision.required_owner_action ? " Owner action required" : " No Owner action"}
+                    </span>
+                    <strong>{decision.title}</strong>
+                    <small>
+                      {decision.is_current ? "Current decision" : "Superseded"} · Work {shortId(decision.work_item_id)} · Evidence {decision.evidence_items.length}
+                    </small>
+                  </summary>
+                  <div>
+                    <span>Question</span>
+                    <strong>{decision.question}</strong>
+                    <span>Recommendation</span>
+                    <strong>{decision.recommendation}</strong>
+                    <small>
+                      Owner {decision.decision_owner_position} · supersedes {shortId(decision.supersedes_decision_id)} · superseded by {shortId(decision.superseded_by_decision_id)}
+                    </small>
+                    <small>
+                      Source {decision.source_object_type ?? "not recorded"} · {decision.source_object_id ?? "—"} · fingerprint {decision.record_fingerprint?.slice(0, 12) ?? "not recorded"}
+                    </small>
+                  </div>
+                </details>
               ))}
             </div>
           ) : (
             <p>No ExecutiveDecision is linked to the current scene WorkItems.</p>
+          )}
+        </article>
+
+        <article className="living-scene-room owner-room">
+          <header>
+            <div><span>Owner inbox</span><strong>Required human actions</strong></div>
+            <small>{scene.deterministic.human_actions.length}</small>
+          </header>
+          {scene.deterministic.human_actions.length ? (
+            <div className="scene-decision-list">
+              {scene.deterministic.human_actions.map((request) => (
+                <details key={request.request_id}>
+                  <summary>
+                    <span>{titleCase(request.priority)} · {titleCase(request.status)} · {titleCase(request.request_type)}</span>
+                    <strong>{request.title}</strong>
+                    <small>{request.required_role} · Work {shortId(request.work_item_id)} · Blocker {shortId(request.blocker_id)}</small>
+                  </summary>
+                  <div>
+                    <span>Instructions</span>
+                    <strong>{request.instructions}</strong>
+                    <small>Assigned human {request.assigned_human_id ?? "unassigned"} · Decision {shortId(request.decision_id)}</small>
+                    <small>{request.canonical_basis}</small>
+                  </div>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <p>No open OrganizationHumanActionRequest is linked to this scene.</p>
+          )}
+        </article>
+
+        <article className="living-scene-room risk-room">
+          <header>
+            <div><span>Escalation lane</span><strong>Open risk escalations</strong></div>
+            <small>{scene.deterministic.risk_escalations.length}</small>
+          </header>
+          {scene.deterministic.risk_escalations.length ? (
+            <div className="scene-blocker-list">
+              {scene.deterministic.risk_escalations.map((risk) => (
+                <div key={risk.risk_id}>
+                  <span>
+                    {titleCase(risk.severity)} · {titleCase(risk.category)} ·
+                    {risk.requires_board_attention ? " Board attention" : " Delegated"}
+                  </span>
+                  <strong>{risk.title}</strong>
+                  <small>{risk.description}</small>
+                  <small>{risk.accountable_position_key} → {risk.escalated_to_position_key} · Evidence {risk.evidence_items.length}</small>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No open RiskEscalation is linked to the current scene WorkItems.</p>
           )}
         </article>
 
@@ -281,9 +354,12 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
             <div className="scene-blocker-list">
               {scene.deterministic.blockers.map((blocker) => (
                 <div key={blocker.blocker_id}>
-                  <span>{titleCase(blocker.severity)} · {titleCase(blocker.status)}</span>
+                  <span>{titleCase(blocker.severity)} · {titleCase(blocker.status)} · {titleCase(blocker.blocker_type)}</span>
                   <strong>{blocker.title}</strong>
-                  <small>{blocker.requires_human_action ? "Human action required" : "No human action flag"} · Work {shortId(blocker.work_item_id)}</small>
+                  <small>{blocker.description}</small>
+                  <small>
+                    {blocker.requires_human_action ? "Human action required" : "No human action flag"} · Work {shortId(blocker.work_item_id)} · Accountable {blocker.accountable_position_key ?? "unassigned"}
+                  </small>
                 </div>
               ))}
             </div>
@@ -295,10 +371,10 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
 
       <div className="living-scene-smart-strip" aria-label="Living Organization Smart Objects">
         {scene.deterministic.smart_objects.map((item) => (
-          <article key={item.object_key}>
+          <article key={item.object_key} data-smart-object-state={item.state}>
             <span>{titleCase(item.object_type)}</span>
             <strong>{item.label}</strong>
-            <div><b>{item.metric_value}</b><small>{item.metric_label}</small></div>
+            <div><b>{item.metric_value ?? "—"}</b><small>{item.metric_label}</small></div>
             <p>{titleCase(item.state)} · {item.canonical_basis}</p>
           </article>
         ))}
