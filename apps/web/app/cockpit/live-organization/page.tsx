@@ -3,15 +3,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { LivingOrganizationSceneView } from "../../../components/LivingOrganizationScene";
+import { LivingOrganizationReplayTimeline } from "../../../components/LivingOrganizationReplayTimeline";
 import { Topbar } from "../../../components/Topbar";
 import { WorkspaceShell } from "../../../components/WorkspaceShell";
 import { useBackendStatus } from "../../../hooks/useBackendStatus";
 import {
   type AustriaLiveOrganizationLatest,
   type LivingOrganizationSceneLatest,
+  type OrganizationReplayLatest,
   LiveOrganizationRequestError,
   getLatestAustriaLiveOrganization,
   getLatestAustriaLivingScene,
+  getLatestAustriaOrganizationReplay,
   synthesizeAustriaOwner,
 } from "../../../lib/live-organization";
 import { titleCase } from "../../../lib/utils";
@@ -74,9 +77,11 @@ export default function AustriaLiveOrganizationPage() {
   const { health, error: healthError } = useBackendStatus();
   const [latest, setLatest] = useState<AustriaLiveOrganizationLatest | null>(null);
   const [sceneLatest, setSceneLatest] = useState<LivingOrganizationSceneLatest | null>(null);
+  const [replayLatest, setReplayLatest] = useState<OrganizationReplayLatest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<LiveOrganizationLoadError | null>(null);
   const [sceneError, setSceneError] = useState<LiveOrganizationLoadError | null>(null);
+  const [replayError, setReplayError] = useState<LiveOrganizationLoadError | null>(null);
   const [commandSubmitting, setCommandSubmitting] = useState(false);
   const [commandMessage, setCommandMessage] = useState<string | null>(null);
 
@@ -84,6 +89,7 @@ export default function AustriaLiveOrganizationPage() {
     setLoading(true);
     setError(null);
     setSceneError(null);
+    setReplayError(null);
     try {
       const persisted = await getLatestAustriaLiveOrganization();
       setLatest(persisted);
@@ -100,9 +106,23 @@ export default function AustriaLiveOrganizationPage() {
               },
         );
       }
+      try {
+        setReplayLatest(await getLatestAustriaOrganizationReplay());
+      } catch (replayLoadError) {
+        setReplayLatest(null);
+        setReplayError(
+          replayLoadError instanceof LiveOrganizationRequestError
+            ? { status: replayLoadError.status, message: replayLoadError.message }
+            : {
+                status: null,
+                message: replayLoadError instanceof Error ? replayLoadError.message : "Organization replay is unavailable.",
+              },
+        );
+      }
     } catch (loadError) {
       setLatest(null);
       setSceneLatest(null);
+      setReplayLatest(null);
       setError(
         loadError instanceof LiveOrganizationRequestError
           ? { status: loadError.status, message: loadError.message }
@@ -126,6 +146,12 @@ export default function AustriaLiveOrganizationPage() {
     snapshot
     && scene
     && scene.root_work_item_id !== snapshot.root_work_item_id,
+  );
+  const replay = replayLatest?.replay ?? null;
+  const replayMismatch = Boolean(
+    snapshot
+    && replay
+    && replay.root_work_item_id !== snapshot.root_work_item_id,
   );
   const canSynthesize = Boolean(
     snapshot
@@ -188,7 +214,7 @@ export default function AustriaLiveOrganizationPage() {
     ? "offline"
     : loading
       ? "loading"
-      : error || sceneError || sceneMismatch || healthError
+      : error || sceneError || replayError || sceneMismatch || replayMismatch || healthError
         ? "partial"
         : "ready";
 
@@ -214,7 +240,7 @@ export default function AustriaLiveOrganizationPage() {
     <WorkspaceShell health={health}>
       <Topbar
         title="Live Organization"
-        kicker="Global Mobility AIOS Cockpit · M.7.4 GPU FLOW field TRIAL · Iteration 1"
+        kicker="Global Mobility AIOS Cockpit · M.8.1 Canonical Replay Timeline V1"
         loadStatus={loadStatus}
         onRefresh={() => void load()}
       />
@@ -305,11 +331,31 @@ export default function AustriaLiveOrganizationPage() {
         </div>
       ) : null}
 
+      {replayError ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Replay projection unavailable.</strong><span>{replayError.message}</span>
+        </div>
+      ) : null}
+      {replayMismatch ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Replay projection changed during refresh.</strong>
+          <span>The replay root does not match the current persisted cycle, so the Cockpit does not render mixed temporal state. Refresh to reconcile.</span>
+        </div>
+      ) : null}
+
       {snapshot && scene && !sceneMismatch ? <LivingOrganizationSceneView scene={scene} /> : null}
+      {snapshot && replay && !replayMismatch ? <LivingOrganizationReplayTimeline replay={replay} /> : null}
       {snapshot && !scene && !sceneError && !loading ? (
         <div className="cockpit-partial-note" role="status">
           <strong>Living Organization scene not established.</strong>
           <span>The canonical L cycle is available, but no scene projection was returned. The Cockpit does not synthesize one locally.</span>
+        </div>
+      ) : null}
+
+      {snapshot && !replay && !replayError && !loading ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Replay timeline not established.</strong>
+          <span>The current organization cycle is available, but no persisted replay projection was returned. The Cockpit does not reconstruct history locally.</span>
         </div>
       ) : null}
 

@@ -402,6 +402,63 @@ export type LivingOrganizationSceneLatest = {
   scene: LivingOrganizationScene | null;
 };
 
+export type OrganizationReplayCoverage = {
+  activity_history_basis: string;
+  activity_history_established: boolean;
+  activity_history_coverage_start: string | null;
+  pre_epoch_history: string;
+  evidence_history: string;
+  risk_escalation_history: string;
+  source_snapshot_history: string;
+  conversation_history: string;
+};
+
+export type OrganizationReplayEvent = {
+  activity_id: string;
+  event_kind: string;
+  coverage_state: "covered" | "pre_epoch_partial" | "partial_no_epoch" | string;
+  stream_sequence: number;
+  activity_class: string;
+  activity_type: string;
+  title: string;
+  summary: string;
+  actor_type: string;
+  actor_id: string;
+  department: string | null;
+  position_key: string | null;
+  authority_level: string | null;
+  work_item_id: string | null;
+  source_object_type: string;
+  source_object_id: string;
+  source_object_version: string | null;
+  correlation_key: string | null;
+  causation_activity_id: string | null;
+  supersedes_activity_id: string | null;
+  occurred_at: string;
+};
+
+export type OrganizationReplay = {
+  contract_version: string;
+  generated_at: string;
+  scope: string;
+  root_work_item_id: string;
+  objective_key: string;
+  work_item_ids: string[];
+  canonical_projection: boolean;
+  authoritative: boolean;
+  mutations_allowed: boolean;
+  coverage: OrganizationReplayCoverage;
+  total_events: number;
+  returned_events: number;
+  truncated: boolean;
+  events: OrganizationReplayEvent[];
+};
+
+export type OrganizationReplayLatest = {
+  established: boolean;
+  replay: OrganizationReplay | null;
+};
+
 export type AustriaOwnerSynthesisCommand = {
   root_work_item_id: string;
   action_output_id: string;
@@ -448,6 +505,12 @@ export async function getLatestAustriaLiveOrganization(): Promise<AustriaLiveOrg
 export async function getLatestAustriaLivingScene(): Promise<LivingOrganizationSceneLatest> {
   return liveRequest<LivingOrganizationSceneLatest>(
     "/api/v1/organization/transparency/live-organization/scene/austria/latest",
+  );
+}
+
+export async function getLatestAustriaOrganizationReplay(): Promise<OrganizationReplayLatest> {
+  return liveRequest<OrganizationReplayLatest>(
+    "/api/v1/organization/transparency/live-organization/replay/austria/latest",
   );
 }
 

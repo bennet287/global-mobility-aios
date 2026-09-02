@@ -5,11 +5,12 @@ import { test } from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("Austria Live Organization Cockpit surface is persisted, bounded, and explicit about proof gaps", async () => {
-  const [page, api, navigation, sceneComponent, sceneRenderer, lensModel, analytics, cockpitLayout] = await Promise.all([
+  const [page, api, navigation, sceneComponent, replayComponent, sceneRenderer, lensModel, analytics, cockpitLayout] = await Promise.all([
     read("app/cockpit/live-organization/page.tsx"),
     read("lib/live-organization.ts"),
     read("lib/workspace-navigation.ts"),
     read("components/LivingOrganizationScene.tsx"),
+    read("components/LivingOrganizationReplayTimeline.tsx"),
     read("lib/living-organization-scene-renderer.ts"),
     read("lib/living-organization-lenses.ts"),
     read("lib/living-organization-analytics.ts"),
@@ -91,6 +92,23 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /superseded_in_projection_week: boolean/);
   assert.match(api, /export type LivingOrganizationScene/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/scene\/austria\/latest/);
+  assert.match(api, /export type OrganizationReplayCoverage/);
+  assert.match(api, /export type OrganizationReplayEvent/);
+  assert.match(api, /export type OrganizationReplay/);
+  assert.match(api, /getLatestAustriaOrganizationReplay/);
+  assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/replay\/austria\/latest/);
+  assert.match(page, /LivingOrganizationReplayTimeline/);
+  assert.match(page, /replay\.root_work_item_id !== snapshot\.root_work_item_id/);
+  assert.match(page, /does not reconstruct history locally/);
+  assert.match(replayComponent, /M\.8\.1 · Canonical Replay Timeline V1/);
+  assert.match(replayComponent, /OrganizationActivity is the replay source/);
+  assert.match(replayComponent, /Missing history remains explicitly missing/);
+  assert.match(replayComponent, /data-replay-coverage-state/);
+  assert.match(replayComponent, /pre_epoch_partial/);
+  assert.match(replayComponent, /partial_no_epoch/);
+  assert.match(replayComponent, /Transcript content is not persisted and is never reconstructed/);
+  assert.match(replayComponent, /RiskEscalation records and SourceSnapshot references are not/);
+  assert.doesNotMatch(replayComponent, /fetch\(|XMLHttpRequest|Math\.random|setInterval/);
   assert.match(sceneComponent, /M\.7\.4 · GPU FLOW field TRIAL · Iteration 1/);
   assert.match(sceneComponent, /data-active-lens=\{activeLens\}/);
   assert.match(sceneComponent, /buildStructuredFlowBaseline/);

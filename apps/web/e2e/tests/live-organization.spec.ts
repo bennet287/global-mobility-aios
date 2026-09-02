@@ -3,6 +3,7 @@ import { expect, test, type Page, type Route } from "@playwright/test";
 const API_BASE = "http://127.0.0.1:8000";
 const LATEST_PATH = "/api/v1/organization/transparency/live-organization/austria/latest";
 const SCENE_PATH = "/api/v1/organization/transparency/live-organization/scene/austria/latest";
+const REPLAY_PATH = "/api/v1/organization/transparency/live-organization/replay/austria/latest";
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
 const CONVERSATION_ID = "pathway-evidence-coordination";
 const CONVERSATION_ACTIVITY_ID = "33333333-3333-4333-8333-333333333331";
@@ -32,6 +33,7 @@ type RecordedRequest = {
 type ApiScenario = {
   latest: (call: number) => JsonResult;
   scene?: (call: number) => JsonResult;
+  replay?: (call: number) => JsonResult;
   post?: (call: number) => JsonResult;
   firstLatestDelayMs?: number;
 };
@@ -48,6 +50,7 @@ async function installApi(page: Page, scenario: ApiScenario) {
   const recorded: RecordedRequest[] = [];
   let latestCalls = 0;
   let sceneCalls = 0;
+  let replayCalls = 0;
   let postCalls = 0;
 
   await page.route(`${API_BASE}/**`, async (route) => {
@@ -82,6 +85,15 @@ async function installApi(page: Page, scenario: ApiScenario) {
         ? scenario.scene(sceneCalls)
         : { body: { established: false, scene: null } };
       sceneCalls += 1;
+      await fulfillJson(route, result);
+      return;
+    }
+
+    if (method === "GET" && url.pathname === REPLAY_PATH) {
+      const result = scenario.replay
+        ? scenario.replay(replayCalls)
+        : { body: { established: false, replay: null } };
+      replayCalls += 1;
       await fulfillJson(route, result);
       return;
     }
@@ -175,6 +187,135 @@ function readySnapshot() {
     domain_evidence_refs: [],
     verified_rule_refs: [],
     source_snapshot_refs: [],
+  };
+}
+
+
+function replayProjection() {
+  return {
+    established: true,
+    replay: {
+      contract_version: "organization-replay.v1",
+      generated_at: "2026-09-02T01:30:00Z",
+      scope: "austria_mobility_latest_work_tree",
+      root_work_item_id: ROOT_ID,
+      objective_key: "austria_rwr_shortage_occupation",
+      work_item_ids: [
+        ROOT_ID,
+        "22222222-2222-4222-8222-222222222221",
+        "22222222-2222-4222-8222-222222222222",
+      ],
+      canonical_projection: true,
+      authoritative: false,
+      mutations_allowed: false,
+      coverage: {
+        activity_history_basis: "explicit_activity_coverage_epoch",
+        activity_history_established: true,
+        activity_history_coverage_start: "2026-09-02T00:05:00Z",
+        pre_epoch_history: "partial_no_backfill",
+        evidence_history: "semantic_work_evidence_amendments_only",
+        risk_escalation_history: "unavailable_no_semantic_activity_adapter",
+        source_snapshot_history: "unavailable_not_linked_to_replay_activity",
+        conversation_history: "lifecycle_only_transcript_not_persisted",
+      },
+      total_events: 4,
+      returned_events: 4,
+      truncated: false,
+      events: [
+        {
+          activity_id: "77777777-7777-4777-8777-777777777771",
+          event_kind: "work",
+          coverage_state: "pre_epoch_partial",
+          stream_sequence: 1,
+          activity_class: "work",
+          activity_type: "organization.work.created.v1",
+          title: "Work item created",
+          summary: "Governed organizational work was created in queued state.",
+          actor_type: "human",
+          actor_id: "frontend-owner",
+          department: "Global Mobility Operations",
+          position_key: "board",
+          authority_level: "L4",
+          work_item_id: ROOT_ID,
+          source_object_type: "organizational_work_item",
+          source_object_id: ROOT_ID,
+          source_object_version: "root-v1",
+          correlation_key: null,
+          causation_activity_id: null,
+          supersedes_activity_id: null,
+          occurred_at: "2026-09-02T00:00:00Z",
+        },
+        {
+          activity_id: "77777777-7777-4777-8777-777777777772",
+          event_kind: "work",
+          coverage_state: "covered",
+          stream_sequence: 1,
+          activity_class: "work",
+          activity_type: "organization.work.created.v1",
+          title: "Pathway work created",
+          summary: "Governed pathway work entered the persisted organization stream.",
+          actor_type: "human",
+          actor_id: "frontend-owner",
+          department: "Global Mobility Operations",
+          position_key: "board",
+          authority_level: "L4",
+          work_item_id: "22222222-2222-4222-8222-222222222221",
+          source_object_type: "organizational_work_item",
+          source_object_id: "22222222-2222-4222-8222-222222222221",
+          source_object_version: "path-v1",
+          correlation_key: null,
+          causation_activity_id: null,
+          supersedes_activity_id: null,
+          occurred_at: "2026-09-02T00:10:00Z",
+        },
+        {
+          activity_id: CONVERSATION_ACTIVITY_ID,
+          event_kind: "conversation",
+          coverage_state: "covered",
+          stream_sequence: 1,
+          activity_class: "work",
+          activity_type: "organization.conversation.opened.v1",
+          title: "Organization conversation opened",
+          summary: "Coordinate pathway evidence before owner synthesis.",
+          actor_type: "human",
+          actor_id: "frontend-owner",
+          department: "Global Mobility Operations",
+          position_key: "board",
+          authority_level: "L4",
+          work_item_id: "22222222-2222-4222-8222-222222222221",
+          source_object_type: "organization_conversation",
+          source_object_id: CONVERSATION_ID,
+          source_object_version: "v1",
+          correlation_key: null,
+          causation_activity_id: null,
+          supersedes_activity_id: null,
+          occurred_at: "2026-09-02T00:20:00Z",
+        },
+        {
+          activity_id: HANDOFF_ACTIVITY_ID,
+          event_kind: "handoff",
+          coverage_state: "covered",
+          stream_sequence: 2,
+          activity_class: "work",
+          activity_type: "organization.work.assigned.v1",
+          title: "Work item assignment changed",
+          summary: "Governed work assignment changed without implying completion or impact.",
+          actor_type: "human",
+          actor_id: "frontend-owner",
+          department: "Global Mobility Operations",
+          position_key: "board",
+          authority_level: "L4",
+          work_item_id: "22222222-2222-4222-8222-222222222221",
+          source_object_type: "organizational_work_item",
+          source_object_id: "22222222-2222-4222-8222-222222222221",
+          source_object_version: "path-v2",
+          correlation_key: null,
+          causation_activity_id: HANDOFF_CAUSATION_ACTIVITY_ID,
+          supersedes_activity_id: null,
+          occurred_at: "2026-09-02T00:30:00Z",
+        },
+      ],
+    },
   };
 }
 
@@ -855,6 +996,36 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
   expect(request?.headers["content-type"]).toBe("application/json");
 }
 
+
+test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async ({ page }) => {
+  const recorded = await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: livingScene() }),
+    replay: () => ({ body: replayProjection() }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  const replay = page.locator(".living-replay-shell");
+  await Promise.all([
+    expect(replay.getByRole("heading", { name: "Replay / Temporal Organization" })).toBeVisible(),
+    expect(replay.getByText("M.8.1 · Canonical Replay Timeline V1", { exact: true })).toBeVisible(),
+    expect(replay).toHaveAttribute("data-replay-authoritative", "false"),
+    expect(replay).toHaveAttribute("data-replay-mutates-work", "false"),
+    expect(replay).toHaveAttribute("data-replay-coverage", "established"),
+    expect(replay.getByText("Explicit epoch established", { exact: true })).toBeVisible(),
+    expect(replay.getByText("Pre-epoch · partial", { exact: true })).toBeVisible(),
+    expect(replay.locator("[data-replay-event]")).toHaveCount(4),
+    expect(replay.locator('[data-replay-kind="conversation"]')).toContainText("Organization conversation opened"),
+    expect(replay.locator('[data-replay-kind="handoff"]')).toContainText("Work item assignment changed"),
+    expect(replay).toContainText("Transcript content is not persisted and is never reconstructed."),
+    expect(replay).toContainText("Risk + source history unavailable"),
+    expect(replay).toContainText("OrganizationActivity is the replay source."),
+  ]);
+
+  expect(recorded.some((item) => item.method === "GET" && item.path === REPLAY_PATH)).toBe(true);
+  expect(recorded.some((item) => item.method === "POST")).toBe(false);
+});
 
 test("preserves M.7.3 evidence and supersession queries under the M.7.4 FLOW trial surface", async ({ page }) => {
   const recorded = await installApi(page, {
