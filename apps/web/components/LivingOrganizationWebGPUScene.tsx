@@ -6,7 +6,7 @@ import type { LivingSceneRendererBackend, LivingSceneRendererController, LivingS
 type RendererPhase = "initializing" | "ready" | "unavailable";
 function backendLabel(value: LivingSceneRendererBackend | null): string {
   if (value === "webgpu") return "WebGPU";
-  if (value === "webgl2-fallback") return "WebGL2 fallback";
+  if (value === "webgl2") return "WebGL2 fallback";
   if (value === "unknown") return "Unknown renderer backend";
   return "Detecting renderer backend";
 }
@@ -33,7 +33,7 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
         });
         if (cancelled) { mounted.dispose(); return; }
         controller = mounted;
-        setBackend(mounted.backend);
+        setBackend(mounted.rendererBackend);
         setPhase("ready");
       } catch (error) {
         if (cancelled) return;
@@ -58,7 +58,8 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
         <div className="living-webgpu-overlay" aria-live="polite">
           <span>Pointer selection · optional</span>
           <strong>{selection?.label ?? "No spatial selection"}</strong>
-          <small>{selection ? selection.entityType + " · " + selection.entityKey : "Selection changes view focus only; it cannot mutate AIOS."}</small>
+          <small>{selection ? selection.entityType + " · " + selection.entityKey : "No view focus selected."}</small>
+          <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS.</small>
         </div>
       </div>
       {phase === "unavailable" ? <div className="living-webgpu-fallback" role="status"><strong>Spatial renderer unavailable.</strong><span>{failure ?? "The renderer could not initialize."}</span></div> : null}

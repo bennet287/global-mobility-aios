@@ -1,3 +1,5 @@
+"use client";
+import { useMemo } from "react";
 import { LivingOrganizationWebGPUScene } from "./LivingOrganizationWebGPUScene";
 import type { LivingOrganizationScene } from "../lib/live-organization";
 import {
@@ -20,7 +22,7 @@ function shortId(value: string | null): string {
 }
 
 export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizationScene }) {
-  const renderModel = buildLivingSceneRenderModel(scene);
+  const renderModel = useMemo(() => buildLivingSceneRenderModel(scene), [scene]);
   const blockersByWork = new Map<string, number>();
   for (const blocker of scene.deterministic.blockers) {
     if (!blocker.work_item_id) continue;

@@ -2,15 +2,17 @@ import {
   BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Raycaster, Scene, Vector2, WebGPURenderer,
 } from "three/webgpu";
 import type { LivingSceneRenderModel } from "./living-organization-scene-renderer";
+import {
+  assertLivingSceneRendererModelNonAuthoritative,
+  createLivingSceneSelection,
+  isLivingSceneSelection,
+  type LivingSceneSelection,
+} from "./living-organization-renderer-policy";
 
-export type LivingSceneSelection = {
-  entityType: "department" | "employee" | "room";
-  entityKey: string;
-  label: string;
-};
-export type LivingSceneRendererBackend = "webgpu" | "webgl2-fallback" | "unknown";
+export type { LivingSceneSelection } from "./living-organization-renderer-policy";
+export type LivingSceneRendererBackend = "webgpu" | "webgl2" | "unknown";
 export type LivingSceneRendererController = {
-  backend: LivingSceneRendererBackend;
+  rendererBackend: LivingSceneRendererBackend;
   render: () => void;
   dispose: () => void;
 };
@@ -26,28 +28,35 @@ function paletteColor(key: string): number {
   for (let index = 0; index < key.length; index += 1) hash = ((hash << 5) - hash + key.charCodeAt(index)) | 0;
   return DEPARTMENT_PALETTE[Math.abs(hash) % DEPARTMENT_PALETTE.length] ?? DEPARTMENT_PALETTE[0];
 }
-function isSelection(value: unknown): value is LivingSceneSelection {
-  if (!value || typeof value !== "object") return false;
-  const selection = value as Partial<LivingSceneSelection>;
-  return (
-    (selection.entityType === "department" || selection.entityType === "employee" || selection.entityType === "room")
-    && typeof selection.entityKey === "string"
-    && typeof selection.label === "string"
-  );
-}
-
 function resolveActualBackend(renderer: any): LivingSceneRendererBackend {
   const backend = renderer?.backend;
   if (backend?.isWebGPUBackend === true) return "webgpu";
-  if (backend?.isWebGLBackend === true) return "webgl2-fallback";
+  if (backend?.isWebGLBackend === true) return "webgl2";
   const constructorName = String(backend?.constructor?.name ?? "").toLowerCase();
   if (constructorName.includes("webgpubackend")) return "webgpu";
-  if (constructorName.includes("webglbackend")) return "webgl2-fallback";
+  if (constructorName.includes("webglbackend")) return "webgl2";
   return "unknown";
 }
 
+const ACTIVE_CANVAS_MOUNTS = new WeakSet<HTMLCanvasElement>();
+
+function markRendererMounted(canvas: HTMLCanvasElement) {
+  if (ACTIVE_CANVAS_MOUNTS.has(canvas)) {
+    throw new Error("Living Organization renderer refuses a duplicate live mount on the same canvas.");
+  }
+  ACTIVE_CANVAS_MOUNTS.add(canvas);
+  const generation = Number.parseInt(canvas.dataset.rendererMountGeneration ?? "0", 10) || 0;
+  canvas.dataset.rendererMountGeneration = String(generation + 1);
+  canvas.dataset.rendererActiveMounts = "1";
+}
+
+function markRendererDisposed(canvas: HTMLCanvasElement) {
+  ACTIVE_CANVAS_MOUNTS.delete(canvas);
+  canvas.dataset.rendererActiveMounts = "0";
+}
+
 export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSelect }: MountLivingSceneRendererOptions): Promise<LivingSceneRendererController> {
-  if (model.sceneAuthoritative !== false) throw new Error("Living Organization renderer refuses an authoritative scene model.");
+  assertLivingSceneRendererModelNonAuthoritative(model);
 
   const renderer = new WebGPURenderer({ canvas, antialias: true, alpha: true });
   await renderer.init();
@@ -84,7 +93,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
     const zoneX = zoneStart + zone.zoneIndex * zoneSpacing;
     addBox({
       size: [4.5, 0.18, 4.0], position: [zoneX, 0, 1.1], color: paletteColor(zone.department.department_key), opacity: 0.42,
-      selection: { entityType: "department", entityKey: zone.department.department_key, label: zone.department.label },
+      selection: createLivingSceneSelection("department", zone.department.department_key, zone.department.label),
     });
     zone.employeeSlots.forEach(({ employee }, employeeIndex) => {
       const column = employeeIndex % 3;
@@ -93,7 +102,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
         size: [0.72, 1.15, 0.72],
         position: [zoneX + (column - 1) * 1.05, 0.68, 0.7 + row * 1.05],
         color: 0xe3e5ff,
-        selection: { entityType: "employee", entityKey: employee.position_key, label: employee.title },
+        selection: createLivingSceneSelection("employee", employee.position_key, employee.title),
       });
     });
   });
@@ -104,7 +113,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
     const roomX = (roomIndex - (roomEntries.length - 1) / 2) * 4.6;
     addBox({
       size: [3.8, 0.22, 2.6], position: [roomX, 0.04, -3.1], color: 0x2f3659, opacity: 0.62,
-      selection: { entityType: "room", entityKey: room.room_key, label: room.label },
+      selection: createLivingSceneSelection("room", room.room_key, room.label),
     });
   });
 
@@ -130,16 +139,17 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
     raycaster.setFromCamera(pointer, camera);
     const [hit] = raycaster.intersectObjects(pickTargets, false);
     const selection = hit?.object?.userData?.selection;
-    onSelect?.(isSelection(selection) ? selection : null);
+    onSelect?.(isLivingSceneSelection(selection) ? selection : null);
   };
   canvas.addEventListener("pointerdown", handlePointer);
   const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
   resizeObserver?.observe(canvas);
   if (!resizeObserver) window.addEventListener("resize", resize);
   resize();
+  markRendererMounted(canvas);
 
   return {
-    backend,
+    rendererBackend: backend,
     render,
     dispose: () => {
       canvas.removeEventListener("pointerdown", handlePointer);
@@ -149,6 +159,7 @@ export async function mountLivingOrganizationWebGPUScene({ canvas, model, onSele
       for (const resource of disposableResources) resource.dispose?.();
       scene.clear?.();
       renderer.dispose();
+      markRendererDisposed(canvas);
     },
   };
 }

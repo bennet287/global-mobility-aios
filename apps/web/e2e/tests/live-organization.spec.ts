@@ -652,10 +652,13 @@ test("M.4.0 mounts the optional spatial renderer while Structured remains availa
   await expect(stage).toBeVisible();
   await expect(stage).toHaveAttribute("data-scene-authoritative", "false");
   await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
-  await expect(stage).toHaveAttribute("data-renderer-backend", /^(webgpu|webgl2-fallback)$/);
+  await expect(stage).toHaveAttribute("data-renderer-backend", /^(webgpu|webgl2)$/);
 
   const canvas = page.getByTestId("living-webgpu-canvas");
   await expect(canvas).toBeVisible();
+  await expect(canvas).toHaveAttribute("data-scene-authoritative", "false");
+  await expect(canvas).toHaveAttribute("data-renderer-authority", "none");
+  await expect(canvas).toHaveAttribute("data-renderer-active-mounts", "1");
   await expect(page.getByText("STRUCTURED · permanent product surface", { exact: true })).toBeVisible();
   await expect(page.getByText("Canonical scene reference", { exact: true })).toBeVisible();
 
@@ -664,4 +667,58 @@ test("M.4.0 mounts the optional spatial renderer while Structured remains availa
   if (!box) return;
   await canvas.click({ position: { x: box.width / 2, y: box.height / 2 } });
   await expect(page.locator(".living-webgpu-overlay strong")).not.toHaveText("No spatial selection");
+  await expect(page.locator('.living-webgpu-overlay [data-selection-authority="none"]'))
+    .toContainText("Selection changes view focus only; it cannot mutate AIOS.");
+});
+
+test("M.4.0 disposes and remounts the renderer on the same canvas without duplicate live mounts", async ({ page }) => {
+  await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: livingScene() }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  const stage = page.locator(".living-webgpu-stage");
+  const canvas = page.getByTestId("living-webgpu-canvas");
+  await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+  await expect(canvas).toHaveAttribute("data-renderer-active-mounts", "1");
+  const initialGeneration = Number(await canvas.getAttribute("data-renderer-mount-generation"));
+  expect(initialGeneration).toBeGreaterThanOrEqual(1);
+
+  await page.getByRole("button", { name: "Refresh" }).click();
+  await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+  await expect(canvas).toHaveAttribute("data-renderer-active-mounts", "1");
+  await expect.poll(async () => Number(await canvas.getAttribute("data-renderer-mount-generation")))
+    .toBeGreaterThan(initialGeneration);
+
+  const box = await canvas.boundingBox();
+  expect(box).toBeTruthy();
+  if (!box) return;
+  await canvas.click({ position: { x: box.width / 2, y: box.height / 2 } });
+  await expect(page.locator(".living-webgpu-overlay strong")).not.toHaveText("No spatial selection");
+});
+
+test("M.4.0 keeps Structured usable with WebGPU disabled and reports actual WebGL2 backend", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "gpu", {
+      configurable: true,
+      value: undefined,
+    });
+  });
+  await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: livingScene() }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  await expect.poll(async () => page.evaluate(() => typeof (navigator as Navigator & { gpu?: unknown }).gpu))
+    .toBe("undefined");
+  const stage = page.locator(".living-webgpu-stage");
+  await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+  await expect(stage).toHaveAttribute("data-renderer-backend", "webgl2");
+  await expect(page.getByText("STRUCTURED · permanent product surface", { exact: true })).toBeVisible();
+  await expect(page.getByText("Canonical scene reference", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Record bounded owner synthesis" })).toBeEnabled();
 });
