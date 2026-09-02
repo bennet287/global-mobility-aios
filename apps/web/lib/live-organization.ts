@@ -142,6 +142,66 @@ export type LivingSceneEmployee = {
   state_reason: string;
 };
 
+export type LivingSceneDepartment = {
+  department_key: string;
+  label: string;
+  employee_count: number;
+  work_item_count: number;
+  active_blocker_count: number;
+  canonical_basis: string;
+};
+
+export type LivingSceneMission = {
+  mission_key: string;
+  objective_key: string;
+  root_work_item_id: string;
+  title: string;
+  state: string;
+  phase_key: string | null;
+  participant_position_keys: string[];
+  work_item_ids: string[];
+  blocker_count: number;
+  decision_count: number;
+  projection_only: boolean;
+  canonical_basis: string;
+};
+
+export type LivingSceneConversation = {
+  conversation_id: string;
+  participant_position_keys: string[];
+  work_item_id: string | null;
+  status: string;
+  summary: string;
+};
+
+export type LivingSceneIncident = {
+  incident_id: string;
+  title: string;
+  severity: string;
+  status: string;
+  work_item_id: string | null;
+};
+
+export type LivingSceneSmartObject = {
+  object_key: string;
+  object_type: string;
+  label: string;
+  state: string;
+  metric_label: string;
+  metric_value: number;
+  projection_only: boolean;
+  canonical_basis: string;
+};
+
+export type LivingSceneCoverage = {
+  departments: string;
+  missions: string;
+  conversations: string;
+  incidents: string;
+  smart_objects: string;
+  presence: string;
+};
+
 export type LivingSceneWorkItem = {
   work_item_id: string;
   parent_work_item_id: string | null;
@@ -203,10 +263,15 @@ export type LivingSceneRelationship = {
 export type LivingSceneDeterministicPlane = {
   canonical_projection: boolean;
   authoritative: boolean;
+  departments: LivingSceneDepartment[];
+  missions: LivingSceneMission[];
   employees: LivingSceneEmployee[];
   work_items: LivingSceneWorkItem[];
+  conversations: LivingSceneConversation[];
   blockers: LivingSceneBlocker[];
   decisions: LivingSceneDecision[];
+  incidents: LivingSceneIncident[];
+  smart_objects: LivingSceneSmartObject[];
   rooms: LivingSceneRoom[];
   relationships: LivingSceneRelationship[];
 };
@@ -234,6 +299,7 @@ export type LivingOrganizationScene = {
   scope: string;
   root_work_item_id: string;
   objective_key: string;
+  coverage: LivingSceneCoverage;
   deterministic: LivingSceneDeterministicPlane;
   predictive: LivingSceneNonCanonicalPlane;
   environmental: LivingSceneNonCanonicalPlane;

@@ -183,7 +183,49 @@ function livingScene() {
       scope: "austria_mobility",
       root_work_item_id: ROOT_ID,
       objective_key: "austria_rwr_shortage_occupation",
+      coverage: {
+        departments: "projected_from_canonical_positions_and_work",
+        missions: "workitem_objective_topology_projection",
+        conversations: "not_connected_m3",
+        incidents: "not_connected_m3",
+        smart_objects: "derived_read_only_scene_metrics",
+        presence: "not_asserted_m3",
+      },
       deterministic: {
+        departments: [
+          {
+            department_key: "Global Mobility Operations",
+            label: "Global Mobility Operations",
+            employee_count: 3,
+            work_item_count: 3,
+            active_blocker_count: 0,
+            canonical_basis: "OrganizationPosition.department + OrganizationalWorkItem.department",
+          },
+        ],
+        missions: [
+          {
+            mission_key: `objective:${ROOT_ID}`,
+            objective_key: "austria_rwr_shortage_occupation",
+            root_work_item_id: ROOT_ID,
+            title: "Austria mobility objective",
+            state: "ready_for_owner_synthesis",
+            phase_key: "J.1",
+            participant_position_keys: [
+              "mobility_operations_lead",
+              "pathway_operations_specialist",
+              "regulatory_intelligence_analyst",
+            ],
+            work_item_ids: [
+              ROOT_ID,
+              "22222222-2222-4222-8222-222222222221",
+              "22222222-2222-4222-8222-222222222222",
+            ],
+            blocker_count: 0,
+            decision_count: 0,
+            projection_only: true,
+            canonical_basis: "OrganizationalWorkItem objective_key/parent topology",
+          },
+        ],
         canonical_projection: true,
         authoritative: false,
         employees: [
@@ -268,8 +310,42 @@ function livingScene() {
             authority_level: "L1",
           },
         ],
+        conversations: [],
         blockers: [],
         decisions: [],
+        incidents: [],
+        smart_objects: [
+          {
+            object_key: `mission-board:${ROOT_ID}`,
+            object_type: "mission_board",
+            label: "Mission Board",
+            state: "ready_for_owner_synthesis",
+            metric_label: "WorkItems",
+            metric_value: 3,
+            projection_only: true,
+            canonical_basis: "OrganizationalWorkItem objective topology",
+          },
+          {
+            object_key: `evidence-console:${ROOT_ID}`,
+            object_type: "evidence_console",
+            label: "Evidence Console",
+            state: "empty",
+            metric_label: "Evidence + VerifiedRules",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Persisted context Evidence and VerifiedRule references",
+          },
+          {
+            object_key: `board-beacon:${ROOT_ID}`,
+            object_type: "board_beacon",
+            label: "Board Attention",
+            state: "quiet",
+            metric_label: "Board decisions",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Current ExecutiveDecision records linked to scene WorkItems",
+          },
+        ],
         rooms: [
           {
             room_key: `mission:${ROOT_ID}`,
@@ -435,6 +511,10 @@ test("renders M.3 canonical scene planes without inventing presence or authority
   await expect(page.getByText("Not Asserted", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Reserved for M.9 · disabled", { exact: true })).toHaveCount(2);
   await expect(page.getByText("three-webgpu", { exact: true })).toBeVisible();
+  await expect(page.getByText("Mission Board", { exact: true })).toBeVisible();
+  await expect(page.getByText("Evidence Console", { exact: true })).toBeVisible();
+  await expect(page.getByText("Board Attention", { exact: true })).toBeVisible();
+  await expect(page.getByText("Not Connected M3", { exact: true })).toHaveCount(2);
   await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
 
   expect(recorded.some((item) => item.method === "GET" && item.path === SCENE_PATH)).toBe(true);

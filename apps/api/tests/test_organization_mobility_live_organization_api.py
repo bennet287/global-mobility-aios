@@ -152,13 +152,42 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert projection["contract_version"] == "living-organization-scene.v1"
     assert projection["root_work_item_id"] == str(plan.root_work_item.id)
     assert projection["objective_key"] == plan.root_work_item.objective_key
+    assert projection["coverage"] == {
+        "departments": "projected_from_canonical_positions_and_work",
+        "missions": "workitem_objective_topology_projection",
+        "conversations": "not_connected_m3",
+        "incidents": "not_connected_m3",
+        "smart_objects": "derived_read_only_scene_metrics",
+        "presence": "not_asserted_m3",
+    }
 
     deterministic = projection["deterministic"]
     assert deterministic["canonical_projection"] is True
     assert deterministic["authoritative"] is False
+    assert len(deterministic["departments"]) == 1
+    department = deterministic["departments"][0]
+    assert department["employee_count"] == 3
+    assert department["work_item_count"] == 3
+    assert department["active_blocker_count"] == 0
+
+    assert len(deterministic["missions"]) == 1
+    mission = deterministic["missions"][0]
+    assert mission["root_work_item_id"] == str(plan.root_work_item.id)
+    assert mission["objective_key"] == plan.root_work_item.objective_key
+    assert len(mission["participant_position_keys"]) == 3
+    assert len(mission["work_item_ids"]) == 3
+    assert mission["projection_only"] is True
+
     assert len(deterministic["employees"]) == 3
     assert len(deterministic["work_items"]) == 3
+    assert deterministic["conversations"] == []
+    assert deterministic["incidents"] == []
     assert {item["presence_state"] for item in deterministic["employees"]} == {"not_asserted"}
+    assert {item["object_type"] for item in deterministic["smart_objects"]} == {
+        "mission_board",
+        "evidence_console",
+        "board_beacon",
+    }
     assert {item["room_type"] for item in deterministic["rooms"]} == {
         "mission_room",
         "evidence_lab",

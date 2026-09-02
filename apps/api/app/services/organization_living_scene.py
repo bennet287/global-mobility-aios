@@ -38,6 +38,72 @@ class LivingSceneEmployee:
 
 
 @dataclass(frozen=True, slots=True)
+class LivingSceneDepartment:
+    department_key: str
+    label: str
+    employee_count: int
+    work_item_count: int
+    active_blocker_count: int
+    canonical_basis: str
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneMission:
+    mission_key: str
+    objective_key: str
+    root_work_item_id: UUID
+    title: str
+    state: str
+    phase_key: str | None
+    participant_position_keys: tuple[str, ...]
+    work_item_ids: tuple[UUID, ...]
+    blocker_count: int
+    decision_count: int
+    projection_only: bool
+    canonical_basis: str
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneConversation:
+    conversation_id: str
+    participant_position_keys: tuple[str, ...]
+    work_item_id: UUID | None
+    status: str
+    summary: str
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneIncident:
+    incident_id: str
+    title: str
+    severity: str
+    status: str
+    work_item_id: UUID | None
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneSmartObject:
+    object_key: str
+    object_type: str
+    label: str
+    state: str
+    metric_label: str
+    metric_value: int
+    projection_only: bool
+    canonical_basis: str
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneCoverage:
+    departments: str
+    missions: str
+    conversations: str
+    incidents: str
+    smart_objects: str
+    presence: str
+
+
+@dataclass(frozen=True, slots=True)
 class LivingSceneWorkItem:
     work_item_id: UUID
     parent_work_item_id: UUID | None
@@ -104,10 +170,15 @@ class LivingSceneRelationship:
 class LivingSceneDeterministicPlane:
     canonical_projection: bool
     authoritative: bool
+    departments: tuple[LivingSceneDepartment, ...]
+    missions: tuple[LivingSceneMission, ...]
     employees: tuple[LivingSceneEmployee, ...]
     work_items: tuple[LivingSceneWorkItem, ...]
+    conversations: tuple[LivingSceneConversation, ...]
     blockers: tuple[LivingSceneBlocker, ...]
     decisions: tuple[LivingSceneDecision, ...]
+    incidents: tuple[LivingSceneIncident, ...]
+    smart_objects: tuple[LivingSceneSmartObject, ...]
     rooms: tuple[LivingSceneRoom, ...]
     relationships: tuple[LivingSceneRelationship, ...]
 
@@ -138,6 +209,7 @@ class LivingOrganizationScene:
     scope: str
     root_work_item_id: UUID
     objective_key: str
+    coverage: LivingSceneCoverage
     deterministic: LivingSceneDeterministicPlane
     predictive: LivingSceneNonCanonicalPlane
     environmental: LivingSceneNonCanonicalPlane
@@ -347,6 +419,75 @@ def austria_living_organization_scene(
     )
     evidence_count = len(snapshot.domain_evidence_refs) + len(snapshot.verified_rule_refs)
 
+
+    department_keys = tuple(sorted({work.department for work in works}))
+    departments = tuple(
+        LivingSceneDepartment(
+            department_key=department,
+            label=department,
+            employee_count=sum(1 for item in employees if item.department == department),
+            work_item_count=sum(1 for item in works if item.department == department),
+            active_blocker_count=sum(
+                1
+                for item in blockers
+                if item.work_item_id is not None
+                and work_by_id[item.work_item_id].department == department
+            ),
+            canonical_basis="OrganizationPosition.department + OrganizationalWorkItem.department",
+        )
+        for department in department_keys
+    )
+
+    missions = (
+        LivingSceneMission(
+            mission_key=f"objective:{snapshot.root_work_item_id}",
+            objective_key=snapshot.objective_key,
+            root_work_item_id=snapshot.root_work_item_id,
+            title=work_by_id[snapshot.root_work_item_id].title,
+            state=snapshot.cycle_status,
+            phase_key=work_by_id[snapshot.root_work_item_id].phase_key,
+            participant_position_keys=tuple(item.position_key for item in employees),
+            work_item_ids=work_ids,
+            blocker_count=len(blockers),
+            decision_count=len(decisions),
+            projection_only=True,
+            canonical_basis="OrganizationalWorkItem objective_key/parent topology",
+        ),
+    )
+
+    smart_objects = (
+        LivingSceneSmartObject(
+            object_key=f"mission-board:{snapshot.root_work_item_id}",
+            object_type="mission_board",
+            label="Mission Board",
+            state=snapshot.cycle_status,
+            metric_label="WorkItems",
+            metric_value=len(work_items),
+            projection_only=True,
+            canonical_basis="OrganizationalWorkItem objective topology",
+        ),
+        LivingSceneSmartObject(
+            object_key=f"evidence-console:{snapshot.root_work_item_id}",
+            object_type="evidence_console",
+            label="Evidence Console",
+            state="grounded" if evidence_count else "empty",
+            metric_label="Evidence + VerifiedRules",
+            metric_value=evidence_count,
+            projection_only=True,
+            canonical_basis="Persisted context Evidence and VerifiedRule references",
+        ),
+        LivingSceneSmartObject(
+            object_key=f"board-beacon:{snapshot.root_work_item_id}",
+            object_type="board_beacon",
+            label="Board Attention",
+            state="attention" if board_attention else "quiet",
+            metric_label="Board decisions",
+            metric_value=board_attention,
+            projection_only=True,
+            canonical_basis="Current ExecutiveDecision records linked to scene WorkItems",
+        ),
+    )
+
     rooms = (
         LivingSceneRoom(
             room_key=f"mission:{snapshot.root_work_item_id}",
@@ -455,13 +596,26 @@ def austria_living_organization_scene(
         scope="austria_mobility",
         root_work_item_id=snapshot.root_work_item_id,
         objective_key=snapshot.objective_key,
+        coverage=LivingSceneCoverage(
+            departments="projected_from_canonical_positions_and_work",
+            missions="workitem_objective_topology_projection",
+            conversations="not_connected_m3",
+            incidents="not_connected_m3",
+            smart_objects="derived_read_only_scene_metrics",
+            presence="not_asserted_m3",
+        ),
         deterministic=LivingSceneDeterministicPlane(
             canonical_projection=True,
             authoritative=False,
+            departments=departments,
+            missions=missions,
             employees=tuple(employees),
             work_items=work_items,
+            conversations=(),
             blockers=blockers,
             decisions=decisions,
+            incidents=(),
+            smart_objects=smart_objects,
             rooms=rooms,
             relationships=tuple(relationships),
         ),

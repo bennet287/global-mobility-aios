@@ -44,6 +44,13 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
         </div>
       </header>
 
+      <div className="living-scene-coverage" aria-label="Scene coverage">
+        <div><span>Departments</span><strong>{scene.deterministic.departments.length}</strong><small>{titleCase(scene.coverage.departments)}</small></div>
+        <div><span>Missions</span><strong>{scene.deterministic.missions.length}</strong><small>{titleCase(scene.coverage.missions)}</small></div>
+        <div><span>Conversations</span><strong>{scene.deterministic.conversations.length}</strong><small>{titleCase(scene.coverage.conversations)}</small></div>
+        <div><span>Incidents</span><strong>{scene.deterministic.incidents.length}</strong><small>{titleCase(scene.coverage.incidents)}</small></div>
+      </div>
+
       <div className="living-scene-planes" aria-label="Living Organization projection planes">
         <div className="scene-plane deterministic">
           <span>Plane 1</span>
@@ -106,7 +113,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           </div>
 
           <footer>
-            <span>{renderModel.missionRoom?.metric_value ?? scene.deterministic.work_items.length} WorkItems</span>
+            <span>{scene.deterministic.missions[0]?.participant_position_keys.length ?? renderModel.employeeSlots.length} participants</span>
             <span>{scene.deterministic.relationships.length} canonical relationships</span>
           </footer>
         </article>
@@ -166,6 +173,18 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
             <p>No active blocker is projected into this scene.</p>
           )}
         </article>
+      </div>
+
+
+      <div className="living-scene-smart-strip" aria-label="Living Organization Smart Objects">
+        {scene.deterministic.smart_objects.map((item) => (
+          <article key={item.object_key}>
+            <span>{titleCase(item.object_type)}</span>
+            <strong>{item.label}</strong>
+            <div><b>{item.metric_value}</b><small>{item.metric_label}</small></div>
+            <p>{titleCase(item.state)} · {item.canonical_basis}</p>
+          </article>
+        ))}
       </div>
 
       <div className="living-scene-truth">

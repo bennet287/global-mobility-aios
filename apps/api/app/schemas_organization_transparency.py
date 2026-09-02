@@ -190,6 +190,66 @@ class LivingSceneEmployeeRead(TransparencyRead):
     state_reason: str
 
 
+class LivingSceneDepartmentRead(TransparencyRead):
+    department_key: str
+    label: str
+    employee_count: int
+    work_item_count: int
+    active_blocker_count: int
+    canonical_basis: str
+
+
+class LivingSceneMissionRead(TransparencyRead):
+    mission_key: str
+    objective_key: str
+    root_work_item_id: UUID
+    title: str
+    state: str
+    phase_key: str | None
+    participant_position_keys: list[str]
+    work_item_ids: list[UUID]
+    blocker_count: int
+    decision_count: int
+    projection_only: bool
+    canonical_basis: str
+
+
+class LivingSceneConversationRead(TransparencyRead):
+    conversation_id: str
+    participant_position_keys: list[str]
+    work_item_id: UUID | None
+    status: str
+    summary: str
+
+
+class LivingSceneIncidentRead(TransparencyRead):
+    incident_id: str
+    title: str
+    severity: str
+    status: str
+    work_item_id: UUID | None
+
+
+class LivingSceneSmartObjectRead(TransparencyRead):
+    object_key: str
+    object_type: str
+    label: str
+    state: str
+    metric_label: str
+    metric_value: int
+    projection_only: bool
+    canonical_basis: str
+
+
+class LivingSceneCoverageRead(TransparencyRead):
+    departments: str
+    missions: str
+    conversations: str
+    incidents: str
+    smart_objects: str
+    presence: str
+
+
 class LivingSceneWorkItemRead(TransparencyRead):
     work_item_id: UUID
     parent_work_item_id: UUID | None
@@ -251,10 +311,15 @@ class LivingSceneRelationshipRead(TransparencyRead):
 class LivingSceneDeterministicPlaneRead(TransparencyRead):
     canonical_projection: bool
     authoritative: bool
+    departments: list[LivingSceneDepartmentRead]
+    missions: list[LivingSceneMissionRead]
     employees: list[LivingSceneEmployeeRead]
     work_items: list[LivingSceneWorkItemRead]
+    conversations: list[LivingSceneConversationRead]
     blockers: list[LivingSceneBlockerRead]
     decisions: list[LivingSceneDecisionRead]
+    incidents: list[LivingSceneIncidentRead]
+    smart_objects: list[LivingSceneSmartObjectRead]
     rooms: list[LivingSceneRoomRead]
     relationships: list[LivingSceneRelationshipRead]
 
@@ -282,6 +347,7 @@ class LivingOrganizationSceneRead(TransparencyRead):
     scope: str
     root_work_item_id: UUID
     objective_key: str
+    coverage: LivingSceneCoverageRead
     deterministic: LivingSceneDeterministicPlaneRead
     predictive: LivingSceneNonCanonicalPlaneRead
     environmental: LivingSceneNonCanonicalPlaneRead
