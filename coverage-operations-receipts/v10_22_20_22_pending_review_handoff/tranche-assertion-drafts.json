@@ -1,0 +1,301 @@
+﻿{
+    "generated_at":  "2026-07-18T21:17:17.6007072Z",
+    "draft_count":  13,
+    "drafts":  [
+                   {
+                       "batch_label":  "Asia and Americas tranche 1B",
+                       "batch_id":  "1c20b390-85d9-4ce0-9e08-f6775b5f66ff",
+                       "batch_item_id":  "e2de8af9-e51b-4348-8902-ab133cd4bc89",
+                       "alpha2_code":  "KR",
+                       "jurisdiction_name":  "Republic of Korea",
+                       "snapshot_id":  "f02f2f56-66ff-42e2-873f-8d7403365e7b",
+                       "snapshot_quality":  82,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "KR",
+                                                   "domain":  "visa",
+                                                   "title":  "Republic of Korea official visa information baseline",
+                                                   "rule_key":  "kr_visa_official_information_baseline",
+                                                   "statement":  "The official Korea Immigration Service official English portal publishes immigration information including \"Korea Immigration Service (ì¶ì\u0085êµ­Â·ì¸êµ­ì¸ì ì±\u0085ë³¸ë¶)\"; \"Ministry of Justice Korea Immigration Service\"; \"Find your VISA\".",
+                                                   "evidence_excerpt":  "Korea Immigration Service (ì¶ì\u0085êµ­Â·ì¸êµ­ì¸ì ì±\u0085ë³¸ë¶)\n\nMinistry of Justice Korea Immigration Service\n\nFind your VISA\n\nVISA by categories",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Asia and Americas tranche 1B",
+                       "batch_id":  "1c20b390-85d9-4ce0-9e08-f6775b5f66ff",
+                       "batch_item_id":  "459714e2-336f-4c57-ae4d-9fc29f020b23",
+                       "alpha2_code":  "MY",
+                       "jurisdiction_name":  "Malaysia",
+                       "snapshot_id":  "4d8ff30b-6d17-4889-a95c-78c16c765dad",
+                       "snapshot_quality":  82,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "MY",
+                                                   "domain":  "visa",
+                                                   "title":  "Malaysia official visa information baseline",
+                                                   "rule_key":  "my_visa_official_information_baseline",
+                                                   "statement":  "The official Immigration Department of Malaysia official portal publishes immigration information including \"Official Portal Immigration Department of Malaysia\"; \"Official Portal Immigration Department\"; \"Malaysia National Integrated Immigration Systemâ\".",
+                                                   "evidence_excerpt":  "Official Portal Immigration Department of Malaysia\n\nOfficial Portal Immigration Department\n\nMalaysia National Integrated Immigration Systemâ\n\nProgram Visa Premium Malaysia",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Asia and Americas tranche 1B",
+                       "batch_id":  "1c20b390-85d9-4ce0-9e08-f6775b5f66ff",
+                       "batch_item_id":  "3ea2161f-d1e2-4631-9255-f3f7c52a2525",
+                       "alpha2_code":  "CL",
+                       "jurisdiction_name":  "Chile",
+                       "snapshot_id":  "27abff59-de43-4aef-8151-7087894bf578",
+                       "snapshot_quality":  46,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "CL",
+                                                   "domain":  "visa",
+                                                   "title":  "Chile official visa information baseline",
+                                                   "rule_key":  "cl_visa_official_information_baseline",
+                                                   "statement":  "The official Chile National Migration Service official portal publishes immigration information including \"El operativo permitiÃ³ detectar 11 infracciones a la Ley NÂ° 21.325 de MigraciÃ³n y ExtranjerÃ­a y denunciar al empleador por contratar a personas extranjeras sin autorizaciÃ³n para trabajar.\".",
+                                                   "evidence_excerpt":  "El operativo permitiÃ³ detectar 11 infracciones a la Ley NÂ° 21.325 de MigraciÃ³n y ExtranjerÃ­a y denunciar al empleador por contratar a personas extranjeras sin autorizaciÃ³n para trabajar.",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2A",
+                       "batch_id":  "c697ab51-e41b-49d2-8e98-528068642184",
+                       "batch_item_id":  "a5dbe680-f52c-4098-ad5f-2e731bb1ae04",
+                       "alpha2_code":  "SZ",
+                       "jurisdiction_name":  "Eswatini",
+                       "snapshot_id":  "bbcaadc5-772d-43e7-b5c1-c702869eb14a",
+                       "snapshot_quality":  95,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "SZ",
+                                                   "domain":  "visa",
+                                                   "title":  "Eswatini official visa information baseline",
+                                                   "rule_key":  "sz_visa_official_information_baseline",
+                                                   "statement":  "The official Government of Eswatini Immigration services page publishes immigration information including \"Immigration\"; \"Application Forms\"; \"Citizenship\".",
+                                                   "evidence_excerpt":  "Immigration\n\nApplication Forms\n\nCitizenship\n\nPermits section",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2A",
+                       "batch_id":  "c697ab51-e41b-49d2-8e98-528068642184",
+                       "batch_item_id":  "e68a323b-5e02-48c1-9d12-6b200097c9d8",
+                       "alpha2_code":  "LS",
+                       "jurisdiction_name":  "Lesotho",
+                       "snapshot_id":  "16294523-4107-4caa-972b-4de3242b0d7d",
+                       "snapshot_quality":  94,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "LS",
+                                                   "domain":  "visa",
+                                                   "title":  "Lesotho official visa information baseline",
+                                                   "rule_key":  "ls_visa_official_information_baseline",
+                                                   "statement":  "The official Lesotho Ministry of Home Affairs Immigration Services page publishes immigration information including \"Immigration Services\"; \"Immigration\"; \"IMMIGRATION SERVICES:\".",
+                                                   "evidence_excerpt":  "Immigration Services\n\nImmigration\n\nIMMIGRATION SERVICES:\n\nVisa Issuance",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2A",
+                       "batch_id":  "c697ab51-e41b-49d2-8e98-528068642184",
+                       "batch_item_id":  "07fcfcbe-160c-4dec-977e-9726c2b8327c",
+                       "alpha2_code":  "LR",
+                       "jurisdiction_name":  "Liberia",
+                       "snapshot_id":  "883b6973-0f0e-438f-8acf-ada7cc5901b1",
+                       "snapshot_quality":  78,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "LR",
+                                                   "domain":  "visa",
+                                                   "title":  "Liberia official visa information baseline",
+                                                   "rule_key":  "lr_visa_official_information_baseline",
+                                                   "statement":  "The official Liberia Immigration Service official portal publishes immigration information including \"Liberia Immigration Service | Liberia\"; \"Immigration Service\"; \"Welcome to Liberia Immigration Service\".",
+                                                   "evidence_excerpt":  "Liberia Immigration Service | Liberia\n\nImmigration Service\n\nWelcome to Liberia Immigration Service\n\nThe Liberia Immigration Service (LIS) is one of the security agencies",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2A",
+                       "batch_id":  "c697ab51-e41b-49d2-8e98-528068642184",
+                       "batch_item_id":  "c8c2e151-2917-4d7b-86f5-3933758ec143",
+                       "alpha2_code":  "ZM",
+                       "jurisdiction_name":  "Zambia",
+                       "snapshot_id":  "e6723797-3930-41d7-9605-822ac28fb570",
+                       "snapshot_quality":  81,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "ZM",
+                                                   "domain":  "visa",
+                                                   "title":  "Zambia official visa information baseline",
+                                                   "rule_key":  "zm_visa_official_information_baseline",
+                                                   "statement":  "The official Zambia Department of Immigration permits and visas guide publishes immigration information including \"Guide on Immigration Permits \u0026 Visas â Zambia Department of Immigration\"; \"pro@zambiaimmigration.gov.zm\"; \"Zambia Department of Immigration\".",
+                                                   "evidence_excerpt":  "Guide on Immigration Permits \u0026 Visas â Zambia Department of Immigration\n\npro@zambiaimmigration.gov.zm\n\nZambia Department of Immigration\n\nNationals Who Do Not Require Visa",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2A",
+                       "batch_id":  "c697ab51-e41b-49d2-8e98-528068642184",
+                       "batch_item_id":  "515c9ae8-dcb8-4c12-8352-74db74bbfde1",
+                       "alpha2_code":  "UG",
+                       "jurisdiction_name":  "Uganda",
+                       "snapshot_id":  "cca84e4c-cd2a-4fb0-a8b9-d2cbcd0ef19d",
+                       "snapshot_quality":  77,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "UG",
+                                                   "domain":  "visa",
+                                                   "title":  "Uganda official visa information baseline",
+                                                   "rule_key":  "ug_visa_official_information_baseline",
+                                                   "statement":  "The official Uganda Directorate of Citizenship and Immigration Control Visas and Passes page publishes immigration information including \"Visas and Passes | NCIC\"; \"Temporary Movement Permit\"; \"Uganda Tourist Visa â single entry\".",
+                                                   "evidence_excerpt":  "Visas and Passes | NCIC\n\nTemporary Movement Permit\n\nUganda Tourist Visa â single entry\n\nDiplomatic and Official Visa",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2B",
+                       "batch_id":  "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+                       "batch_item_id":  "135ec676-cb8d-4fc3-a736-59b8439cefba",
+                       "alpha2_code":  "NA",
+                       "jurisdiction_name":  "Namibia",
+                       "snapshot_id":  "5288491a-cb73-4eac-893b-bc4537494076",
+                       "snapshot_quality":  84,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "NA",
+                                                   "domain":  "visa",
+                                                   "title":  "Namibia official visa information baseline",
+                                                   "rule_key":  "na_visa_official_information_baseline",
+                                                   "statement":  "The official Namibia Immigration Control and Citizenship official page publishes immigration information including \"Department of Immigration Control \u0026amp; Citizenship \u0026amp; Regional Structure - MHAISS - Portal Ariel\"; \"Department of Immigration Control \u0026 Citizenship\"; \"Department of Immigration Control \u0026 Citizenship \u0026 Regional Structure - MHAISS\".",
+                                                   "evidence_excerpt":  "Department of Immigration Control \u0026amp; Citizenship \u0026amp; Regional Structure - MHAISS - Portal Ariel\n\nDepartment of Immigration Control \u0026 Citizenship\n\nDepartment of Immigration Control \u0026 Citizenship \u0026 Regional Structure - MHAISS\n\nDepartment of Immigration Control \u0026 Citizenship \u0026 Regional Structure",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2B",
+                       "batch_id":  "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+                       "batch_item_id":  "7c2c4e32-45b2-4f28-9202-a201adf954ef",
+                       "alpha2_code":  "SL",
+                       "jurisdiction_name":  "Sierra Leone",
+                       "snapshot_id":  "7d58adaa-495c-4670-bbbc-a4299e9a2bf7",
+                       "snapshot_quality":  89,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "SL",
+                                                   "domain":  "visa",
+                                                   "title":  "Sierra Leone official visa information baseline",
+                                                   "rule_key":  "sl_visa_official_information_baseline",
+                                                   "statement":  "The official Sierra Leone Immigration Department official portal publishes immigration information including \"Home Â· Sierra Leone Immigration Department\"; \"Sierra Leone Immigration Department\"; \"Apply for eVisa\".",
+                                                   "evidence_excerpt":  "Home Â· Sierra Leone Immigration Department\n\nSierra Leone Immigration Department\n\nApply for eVisa\n\nVisa \u0026 Permits Portal",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2B",
+                       "batch_id":  "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+                       "batch_item_id":  "0384d644-0885-4fb4-90a0-ec1b82e03b07",
+                       "alpha2_code":  "SO",
+                       "jurisdiction_name":  "Somalia",
+                       "snapshot_id":  "5558f8f2-6089-4ebb-bbb9-5e52386e4fcd",
+                       "snapshot_quality":  84,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "SO",
+                                                   "domain":  "visa",
+                                                   "title":  "Somalia official visa information baseline",
+                                                   "rule_key":  "so_visa_official_information_baseline",
+                                                   "statement":  "The official Somalia Immigration and Citizenship Agency visa information publishes immigration information including \"Visa Information â Immigration and citizenship agency\"; \"Apply Visa\"; \"IMMIGRATION AND CITIZENSHIP AGENCY\".",
+                                                   "evidence_excerpt":  "Visa Information â Immigration and citizenship agency\n\nApply Visa\n\nIMMIGRATION AND CITIZENSHIP AGENCY\n\nAn Immigration Permit is an official document issued by the Immigration and Citizenship Agency office authorizing official entry at the border crossings including airports, ports and border crossings.",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2B",
+                       "batch_id":  "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+                       "batch_item_id":  "f784ec3d-3e07-46b1-a20f-446d99dbf991",
+                       "alpha2_code":  "SN",
+                       "jurisdiction_name":  "Senegal",
+                       "snapshot_id":  "07108bfb-085d-411b-8d47-cc4f8d8f0a12",
+                       "snapshot_quality":  74,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "SN",
+                                                   "domain":  "visa",
+                                                   "title":  "Senegal official visa information baseline",
+                                                   "rule_key":  "sn_visa_official_information_baseline",
+                                                   "statement":  "The official Senegal official visa application guidance publishes immigration information including \"Demande de visa | MinistÃ¨re de l\u0027IntÃ©gration Africaine et des Affaires EtrangÃ¨res\"; \"Demande de visa\"; \"Depuis le 01 mai 2015, les modalitÃ©s du visa dâentrÃ©e au SÃ©nÃ©gal ont changÃ©.\".",
+                                                   "evidence_excerpt":  "Demande de visa | MinistÃ¨re de l\u0027IntÃ©gration Africaine et des Affaires EtrangÃ¨res\n\nDemande de visa\n\nDepuis le 01 mai 2015, les modalitÃ©s du visa dâentrÃ©e au SÃ©nÃ©gal ont changÃ©.\n\nSi vous Ãªtes ressortissant dâun pays citÃ©s plus bas, pour un sÃ©jour de moins de 3 mois, vous nâavez pas besoin de visa, il faut cependant disposer dâun passeport ou dâun laisser passer dÃ©livrÃ© par ce pays (ces documents doivent avoir une validitÃ© de 6 mois minimum).",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 2B",
+                       "batch_id":  "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+                       "batch_item_id":  "3e18efbe-8525-4e66-9aa5-4be9a3f592bb",
+                       "alpha2_code":  "TZ",
+                       "jurisdiction_name":  "United Republic of Tanzania",
+                       "snapshot_id":  "99690692-7ce5-4def-a18f-1532175d6582",
+                       "snapshot_quality":  94,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "TZ",
+                                                   "domain":  "visa",
+                                                   "title":  "United Republic of Tanzania official visa information baseline",
+                                                   "rule_key":  "tz_visa_official_information_baseline",
+                                                   "statement":  "The official Tanzania Immigration Department residence permits page publishes immigration information including \"Residence Permits - Tanzania Immigration Department\"; \"Tanzania Immigration Department\"; \"Immigration Services\".",
+                                                   "evidence_excerpt":  "Residence Permits - Tanzania Immigration Department\n\nTanzania Immigration Department\n\nImmigration Services\n\nVisa Information",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   }
+               ],
+    "safety":  {
+                   "creates_review_decisions":  false,
+                   "creates_assertions":  false,
+                   "publishes_verified_rules":  false,
+                   "mutates_snapshots":  false,
+                   "creates_regulatory_changes":  false,
+                   "creates_coverage_claim":  false,
+                   "baseline_queue_scope":  "Only explicitly listed, independently approved, API-eligible batch items may be queued when apply mode is confirmed."
+               }
+}

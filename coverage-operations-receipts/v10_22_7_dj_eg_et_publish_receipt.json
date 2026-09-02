@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.7",
+  "generated_at": "2026-07-17T22:26:13Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "a0b3e9b0-06fc-43bd-81e1-24bfc5f7b98c",
+  "batch_name": "v10.22.7 Africa evidence tranche 1C - DJ, EG, ET, GA",
+  "registry_summary": {
+    "coverage_ready": 19,
+    "coverage_required": 243,
+    "with_verified_rule": 19,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "DJ",
+      "jurisdiction_name": "Djibouti",
+      "jurisdiction_id": "c9c292e0-fd0a-40ac-a903-a9d3ffab2792",
+      "immigration_assessment_id": "fd8bd494-1917-481e-8f2c-cd251b8f1454",
+      "source_certification_id": "b82b7b02-2833-4792-a4cc-a7cc5090727e",
+      "regulatory_authority_id": "3805fbec-6578-44e7-b35f-931ef6a81722",
+      "official_source_id": "ce7eac32-2ecd-42fe-b617-fe6d75fc9d03",
+      "source_monitor_id": "8785dbc5-e5b3-464c-a5b1-2463b556b565",
+      "source_url": "https://www.evisa.gouv.dj/",
+      "baseline_snapshot_id": "0c52a9fd-f0c3-41da-a2b5-4d571294a56c",
+      "baseline_snapshot_hash": "5067106f7a2b04ebff3ee51984e4f4615448a57f833922c18b0aba4cb7ecbbd7",
+      "initial_rule_assertion_id": "46852864-d416-4b08-959e-5ff273c85953",
+      "rule_key": "dj_visa_official_information_baseline",
+      "verified_rule_id": "fa350732-9c6a-4050-9cfa-c4a553c1977f",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "EG",
+      "jurisdiction_name": "Egypt",
+      "jurisdiction_id": "7fe0e9af-5bc7-416c-a498-f2b2b8d71dd3",
+      "immigration_assessment_id": "4cf1be70-5b96-4143-b005-2edaf3ac8178",
+      "source_certification_id": "0f0fa6a5-dab0-401d-a164-bd9fe90cd754",
+      "regulatory_authority_id": "5867ea20-37e3-4ecf-b355-ba98ee1eeb34",
+      "official_source_id": "bcc65dd4-c73e-49bb-9807-5667ca6fc75f",
+      "source_monitor_id": "fe600aa7-8be4-4b41-b38c-3831716be2bf",
+      "source_url": "https://www.visa2egypt.gov.eg/eVisa/Home",
+      "baseline_snapshot_id": "e800be60-dd5b-42b7-953d-5701b10d7876",
+      "baseline_snapshot_hash": "b359f814a05dc4d1d87bd07ecedfd9a94a43d6fd9794857c938368ad4762979b",
+      "initial_rule_assertion_id": "d14214a3-8067-4348-b556-de0e47c0588f",
+      "rule_key": "eg_visa_official_information_baseline",
+      "verified_rule_id": "0f77e53c-19a6-41df-8263-ddcd8f90bf95",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "ET",
+      "jurisdiction_name": "Ethiopia",
+      "jurisdiction_id": "0375567c-d9df-4477-9c78-e3136ea652eb",
+      "immigration_assessment_id": "da170670-05f0-4d2c-95c2-8bba678bfb13",
+      "source_certification_id": "26f68115-5249-43f0-9a99-40f199f3803b",
+      "regulatory_authority_id": "9e885d73-4f37-41f4-88db-ee4441a512b1",
+      "official_source_id": "c5b3d026-527d-4cf1-8433-e3707adced4d",
+      "source_monitor_id": "ed02bd45-cfdd-458d-9732-71c2a5f4e3d2",
+      "source_url": "https://www.evisa.gov.et/",
+      "baseline_snapshot_id": "87bdc3eb-f415-4fcf-9eda-8d5c3485843d",
+      "baseline_snapshot_hash": "826ad81e950102c6ec2d7539e679ca6ca03c3c5d5db90b4571d675637f156212",
+      "initial_rule_assertion_id": "92d9c46b-dbea-4a28-bd3f-33e636c5a87f",
+      "rule_key": "et_visa_official_information_baseline",
+      "verified_rule_id": "20a60d27-ba1c-4211-9508-ca68f43d0227",
+      "coverage_ready": true
+    }
+  ],
+  "blocked": [
+    {
+      "alpha2_code": "GA",
+      "jurisdiction_name": "Gabon",
+      "jurisdiction_id": "7c97e174-6cd4-4aec-8011-ad577524a13d",
+      "source_url": "https://evisa.dgdi.ga/",
+      "reason": "Baseline retrieval failed due to an upstream TLS certificate that is not trusted by the container CA. Do not bypass TLS. Gabon is deferred until a trusted certificate or an approved official alternative endpoint is available."
+    }
+  ],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records three verified-rule publications. Gabon is blocked by TLS certificate validation. It does not create a global coverage claim."
+  }
+}

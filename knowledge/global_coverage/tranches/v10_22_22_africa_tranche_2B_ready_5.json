@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.22",
+  "title": "Africa coverage evidence tranche 2B - Namibia, Sierra Leone, Somalia, Senegal, Tanzania",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "NA",
+      "authority_evidence_url": "https://mhaiss.gov.na/web/mhaiss/immigration-control",
+      "source_url": "https://mhaiss.gov.na/web/mhaiss/immigration-control",
+      "evidence_summary": "Namibia's Ministry of Home Affairs, Immigration, Safety and Security identifies its Department of Immigration Control and Citizenship and describes responsibility for lawful migration through visas, permits, border controls, and citizenship services."
+    },
+    {
+      "alpha2_code": "SL",
+      "authority_evidence_url": "https://slid.gov.sl/",
+      "source_url": "https://slid.gov.sl/",
+      "evidence_summary": "The Sierra Leone Immigration Department official portal identifies the department as responsible for regulating immigration and provides visa, visa-on-arrival, residence-permit, passport, and travel-document services."
+    },
+    {
+      "alpha2_code": "SO",
+      "authority_evidence_url": "https://immigration.gov.so/en/visa-information/",
+      "source_url": "https://immigration.gov.so/en/visa-information/",
+      "evidence_summary": "Somalia's Immigration and Citizenship Agency official page identifies the agency as the issuer of immigration entry permits and lists work, business, residence, medical, student, transit, tourist, and other visa categories."
+    },
+    {
+      "alpha2_code": "SN",
+      "authority_evidence_url": "https://diplomatie.gouv.sn/index.php/demande-de-visa",
+      "source_url": "https://diplomatie.gouv.sn/index.php/demande-de-visa",
+      "evidence_summary": "Senegal's Ministry of African Integration and Foreign Affairs publishes the official entry-visa requirements, exemption list, application steps, and consular issuance process."
+    },
+    {
+      "alpha2_code": "TZ",
+      "authority_evidence_url": "https://www.immigration.go.tz/index.php/immigration-services/residence-permits",
+      "source_url": "https://www.immigration.go.tz/index.php/immigration-services/residence-permits",
+      "evidence_summary": "The Tanzania Immigration Department official portal identifies the department and explains residence permits for foreign nationals undertaking investment, business, employment, research, retirement, and other lawful activities."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.22 Africa evidence tranche 2B - NA, SL, SO, SN, TZ",
+    "notes": "Official-source evidence for Namibia (NA), Sierra Leone (SL), Somalia (SO), Senegal (SN), and Tanzania (TZ). All five endpoints were probed on 2026-07-18 through the controlled API-container retriever and returned HTTPS 200 with usable generic-parser content. The tranche is limited to the narrow visa, permit, residence, border, and citizenship functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "NA",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://mhaiss.gov.na/web/mhaiss/immigration-control",
+          "evidence_title": "Namibia Department of Immigration Control and Citizenship page",
+          "rationale": "Namibia's Ministry of Home Affairs, Immigration, Safety and Security identifies its Department of Immigration Control and Citizenship and states that it facilitates lawful migration through visas, permits, entry and departure controls, and citizenship services. This supports a proposal that Namibia directly administers the relevant immigration services through the department."
+        },
+        "source_onboarding": {
+          "authority_name": "Namibia Department of Immigration Control and Citizenship",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://mhaiss.gov.na/web/mhaiss/immigration-control",
+          "authority_domains": ["visa"],
+          "source_name": "Namibia Immigration Control and Citizenship official page",
+          "source_url": "https://mhaiss.gov.na/web/mhaiss/immigration-control",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["mhaiss.gov.na"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 2,863 characters of extracted content covering the department's mandate, visas, permits, border controls, and citizenship. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "SL",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://slid.gov.sl/",
+          "evidence_title": "Sierra Leone Immigration Department official portal",
+          "rationale": "The Sierra Leone Immigration Department official portal identifies the department as responsible for regulating immigration and provides visa, visa-on-arrival, residence-permit, passport, and travel-document services. This supports a proposal that Sierra Leone directly administers the relevant immigration services through the Sierra Leone Immigration Department."
+        },
+        "source_onboarding": {
+          "authority_name": "Sierra Leone Immigration Department",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://slid.gov.sl/",
+          "authority_domains": ["visa"],
+          "source_name": "Sierra Leone Immigration Department official portal",
+          "source_url": "https://slid.gov.sl/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["slid.gov.sl"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 5,069 characters of extracted content identifying the department and covering visas, visa on arrival, residence permits, passports, and travel documents. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "SO",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://immigration.gov.so/en/visa-information/",
+          "evidence_title": "Somalia Immigration and Citizenship Agency visa information",
+          "rationale": "Somalia's Immigration and Citizenship Agency official page identifies the agency as the issuer of immigration entry permits and lists work, business, residence, medical, multiple-entry, temporary, student, transit, and tourist permit categories. This supports a proposal that Somalia directly administers the relevant immigration services through the Immigration and Citizenship Agency."
+        },
+        "source_onboarding": {
+          "authority_name": "Somalia Immigration and Citizenship Agency",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://immigration.gov.so/en/visa-information/",
+          "authority_domains": ["visa"],
+          "source_name": "Somalia Immigration and Citizenship Agency visa information",
+          "source_url": "https://immigration.gov.so/en/visa-information/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["immigration.gov.so"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 1,183 characters of extracted content identifying the agency and listing work, business, residence, medical, student, transit, tourist, and other entry permits. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "SN",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://diplomatie.gouv.sn/index.php/demande-de-visa",
+          "evidence_title": "Senegal Ministry of African Integration and Foreign Affairs visa application page",
+          "rationale": "Senegal's Ministry of African Integration and Foreign Affairs publishes official entry-visa requirements, exemption categories, application steps, and the consular issuance process. This supports a proposal that Senegal directly administers the described entry-visa function through its Ministry and consular network."
+        },
+        "source_onboarding": {
+          "authority_name": "Senegal Ministry of African Integration and Foreign Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://diplomatie.gouv.sn/index.php/demande-de-visa",
+          "authority_domains": ["visa"],
+          "source_name": "Senegal official visa application guidance",
+          "source_url": "https://diplomatie.gouv.sn/index.php/demande-de-visa",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["diplomatie.gouv.sn"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 4,592 characters of extracted content covering Senegal's visa exemptions, application documents, consular process, and official Ministry contact details. Keep the initial certification narrowly limited to entry-visa services explicitly described; broader immigration authority scope requires separate evidence."
+        }
+      },
+      {
+        "alpha2_code": "TZ",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.immigration.go.tz/index.php/immigration-services/residence-permits",
+          "evidence_title": "Tanzania Immigration Department residence permits page",
+          "rationale": "The Tanzania Immigration Department official portal explains that foreign nationals undertaking investment, business, employment, research, retirement, or other lawful activity may be issued residence permits and identifies the department's broader immigration service catalogue. This supports a proposal that Tanzania directly administers the relevant immigration services through the Tanzania Immigration Department."
+        },
+        "source_onboarding": {
+          "authority_name": "Tanzania Immigration Department",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.immigration.go.tz/index.php/immigration-services/residence-permits",
+          "authority_domains": ["visa"],
+          "source_name": "Tanzania Immigration Department residence permits page",
+          "source_url": "https://www.immigration.go.tz/index.php/immigration-services/residence-permits",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.immigration.go.tz"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 4,630 characters of extracted content identifying the department and covering residence permits for investment, business, employment, research, retirement, and other lawful activities. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}

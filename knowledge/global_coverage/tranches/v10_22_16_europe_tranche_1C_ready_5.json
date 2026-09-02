@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.16",
+  "title": "Europe coverage evidence tranche 1C - Estonia, Latvia, Poland, Czech Republic, Greece",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "EE",
+      "authority_evidence_url": "https://www.politsei.ee/en/",
+      "source_url": "https://www.politsei.ee/en/",
+      "evidence_summary": "The Estonian Police and Border Guard Board operates politsei.ee/en as the official English-language portal covering migration and citizenship services."
+    },
+    {
+      "alpha2_code": "LV",
+      "authority_evidence_url": "https://www.pmlp.gov.lv/en/",
+      "source_url": "https://www.pmlp.gov.lv/en/",
+      "evidence_summary": "The Latvian Office of Citizenship and Migration Affairs operates pmlp.gov.lv/en as the official English-language portal for citizenship and migration matters."
+    },
+    {
+      "alpha2_code": "PL",
+      "authority_evidence_url": "https://www.gov.pl/web/udsc/",
+      "source_url": "https://www.gov.pl/web/udsc/",
+      "evidence_summary": "The Polish Office for Foreigners operates the gov.pl/udsc portal as the official source for foreigners in Poland."
+    },
+    {
+      "alpha2_code": "CZ",
+      "authority_evidence_url": "https://mv.gov.cz/mvcren/",
+      "source_url": "https://mv.gov.cz/mvcren/",
+      "evidence_summary": "The Ministry of the Interior of the Czech Republic operates mv.gov.cz/mvcren as the official English-language portal covering asylum, migration and Schengen matters."
+    },
+    {
+      "alpha2_code": "GR",
+      "authority_evidence_url": "https://migration.gov.gr/",
+      "source_url": "https://migration.gov.gr/",
+      "evidence_summary": "The Greek Ministry of Migration and Asylum operates migration.gov.gr as the official portal for migration policy and asylum services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.16 Europe evidence tranche 1C - EE, LV, PL, CZ, GR",
+    "notes": "Official-source evidence for Estonia (EE), Latvia (LV), Poland (PL), Czech Republic (CZ) and Greece (GR). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable migration, citizenship or asylum content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "EE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.politsei.ee/en/",
+          "evidence_title": "Estonian Police and Border Guard Board official English portal",
+          "rationale": "The Estonian Police and Border Guard Board operates politsei.ee/en as the official English-language portal covering migration and citizenship services. This supports a proposal that Estonia directly administers the relevant migration services through the Police and Border Guard Board."
+        },
+        "source_onboarding": {
+          "authority_name": "Estonian Police and Border Guard Board",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.politsei.ee/en/",
+          "authority_domains": ["visa"],
+          "source_name": "Estonian Police and Border Guard Board English portal",
+          "source_url": "https://www.politsei.ee/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.politsei.ee"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Estonian Police and Border Guard Board English portal returned HTTPS 200 with content about documents and permits, migration and citizenship, and borders. Keep the initial certification limited to the migration and citizenship services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "LV",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.pmlp.gov.lv/en/",
+          "evidence_title": "Latvian Office of Citizenship and Migration Affairs official English portal",
+          "rationale": "The Latvian Office of Citizenship and Migration Affairs operates pmlp.gov.lv/en as the official English-language portal for citizenship and migration matters. This supports a proposal that Latvia directly administers the relevant migration services through the Office of Citizenship and Migration Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Latvian Office of Citizenship and Migration Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.pmlp.gov.lv/en/",
+          "authority_domains": ["visa"],
+          "source_name": "Latvian OCMA English portal",
+          "source_url": "https://www.pmlp.gov.lv/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.pmlp.gov.lv"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Latvian Office of Citizenship and Migration Affairs English portal returned HTTPS 200 with content about citizenship, migration, and customer services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "PL",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.gov.pl/web/udsc/",
+          "evidence_title": "Polish Office for Foreigners official portal",
+          "rationale": "The Polish Office for Foreigners operates the gov.pl/udsc portal as the official source for foreigners in Poland. This supports a proposal that Poland directly administers the relevant immigration services through the Office for Foreigners."
+        },
+        "source_onboarding": {
+          "authority_name": "Polish Office for Foreigners",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.gov.pl/web/udsc/",
+          "authority_domains": ["visa"],
+          "source_name": "Polish Office for Foreigners gov.pl portal",
+          "source_url": "https://www.gov.pl/web/udsc/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.gov.pl"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Polish Office for Foreigners portal returned HTTPS 200 with content identifying the Office for Foreigners and news/services for foreigners. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "CZ",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://mv.gov.cz/mvcren/",
+          "evidence_title": "Czech Ministry of the Interior official English portal",
+          "rationale": "The Ministry of the Interior of the Czech Republic operates mv.gov.cz/mvcren as the official English-language portal covering asylum, migration and Schengen matters. This supports a proposal that the Czech Republic directly administers the relevant migration services through the Ministry of the Interior."
+        },
+        "source_onboarding": {
+          "authority_name": "Ministry of the Interior of the Czech Republic",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://mv.gov.cz/mvcren/",
+          "authority_domains": ["visa"],
+          "source_name": "Czech Ministry of the Interior English portal",
+          "source_url": "https://mv.gov.cz/mvcren/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["mv.gov.cz"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Czech Ministry of the Interior English portal returned HTTPS 200 with content about asylum, migration, Schengen, forms and advice. Keep the initial certification limited to the migration services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "GR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://migration.gov.gr/",
+          "evidence_title": "Greek Ministry of Migration and Asylum official portal",
+          "rationale": "The Greek Ministry of Migration and Asylum operates migration.gov.gr as the official portal for migration policy and asylum services. This supports a proposal that Greece directly administers the relevant migration services through the Ministry of Migration and Asylum."
+        },
+        "source_onboarding": {
+          "authority_name": "Greek Ministry of Migration and Asylum",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://migration.gov.gr/",
+          "authority_domains": ["visa"],
+          "source_name": "Greek Ministry of Migration and Asylum",
+          "source_url": "https://migration.gov.gr/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["migration.gov.gr"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Greek Ministry of Migration and Asylum portal returned HTTPS 200 with content about migration policy, social integration, and e-services. Keep the initial certification limited to the migration and asylum services explicitly described."
+        }
+      }
+    ]
+  }
+}

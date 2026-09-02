@@ -12,8 +12,10 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.core.db import get_session
+from app.core.pagination import MAX_QUERY_LIMIT
 from app.models.domain import DocumentRecord, FollowUp, Lead
 from app.services.audit_log import record_audit
+from app.services.document_storage import public_document_metadata
 
 
 router = APIRouter(tags=["document-verification-actions"])
@@ -83,6 +85,8 @@ def _json_safe(value: Any) -> Any:
 def _to_dict(obj: Any) -> Dict[str, Any]:
     if obj is None:
         return {}
+    if isinstance(obj, DocumentRecord):
+        return {key: _json_safe(value) for key, value in public_document_metadata(obj).items()}
     fields = _model_fields(obj.__class__)
     if fields:
         return {name: _json_safe(getattr(obj, name, None)) for name in fields if hasattr(obj, name)}
@@ -129,9 +133,12 @@ def _get_document(session: Session, document_id: str) -> DocumentRecord:
 
 
 def _documents_for_lead(session: Session, lead_id: Any) -> List[DocumentRecord]:
-    target = _normal_id(lead_id)
-    docs = session.exec(select(DocumentRecord)).all()
-    return [doc for doc in docs if _normal_id(getattr(doc, "lead_id", None)) == target]
+    docs = session.exec(
+        select(DocumentRecord)
+        .where(DocumentRecord.lead_id == lead_id)
+        .limit(MAX_QUERY_LIMIT)
+    ).all()
+    return list(docs)
 
 
 def _selected_documents(session: Session, lead: Lead, document_ids: Optional[List[str]]) -> List[DocumentRecord]:
@@ -497,7 +504,7 @@ def bulk_verify_documents(
 
 @router.get("/admin/document-verification", response_class=HTMLResponse)
 def document_verification_admin(session: Session = Depends(get_session)):
-    leads = session.exec(select(Lead)).all()
+    leads = session.exec(select(Lead).limit(MAX_QUERY_LIMIT)).all()
     rows = []
     for lead in leads:
         payload = _lead_document_payload(session, lead)
@@ -569,7 +576,7 @@ def lead_document_verification_admin(lead_id: str, session: Session = Depends(ge
               <td>{doc.get('document_type')}</td>
               <td>{doc.get('filename') or '-'}</td>
               <td>{doc.get('status')}</td>
-              <td>{doc.get('storage_key') or '-'}</td>
+              <td>{doc.get('storage_provider') or '-'} / signed access</td>
               <td>
                 <form method="post" action="/admin/document-verification/documents/{doc_id}/receive" style="display:inline">
                   <button type="submit">Received</button>

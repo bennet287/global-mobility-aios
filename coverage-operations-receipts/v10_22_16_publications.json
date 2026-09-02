@@ -1,0 +1,422 @@
+[
+  {
+    "code": "EE",
+    "id": "128b9f47-1612-4cb0-b6c6-772fb3daec67",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "e483b785-bc82-4e20-b422-7e6a3ffc8d91",
+      "retired_by": null,
+      "jurisdiction_id": "38e8c8f9-8f73-4efd-8cb4-ac47a6ccaef5",
+      "retirement_reason": null,
+      "statement": "The Estonian Police and Border Guard Board operates politsei.ee/en as the official English-language portal covering migration and citizenship services.",
+      "active": true,
+      "created_at": "2026-07-18T16:17:08.680954Z",
+      "rule_key": "ee_politsei_official_migration_portal_baseline",
+      "official_source_id": "d8fab7e1-4ad7-4cc2-9e46-3f97db62c190",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:17:08.680966Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "estonia",
+      "source_snapshot_id": "f2e69b63-2340-4392-a238-3b088b0e6969",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "128b9f47-1612-4cb0-b6c6-772fb3daec67",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:17:08.680801"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "94f5a5dc-9878-43d1-ae70-3a202fcff30a",
+        "jurisdiction_id": "38e8c8f9-8f73-4efd-8cb4-ac47a6ccaef5",
+        "alpha2_code": "EE",
+        "name": "Estonia",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 45,
+          "coverage_required": 243,
+          "with_verified_rule": 45
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "94f5a5dc-9878-43d1-ae70-3a202fcff30a",
+        "jurisdiction_id": "38e8c8f9-8f73-4efd-8cb4-ac47a6ccaef5",
+        "alpha2_code": "EE",
+        "name": "Estonia",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 46,
+          "coverage_required": 243,
+          "with_verified_rule": 46
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "e483b785-bc82-4e20-b422-7e6a3ffc8d91",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "LV",
+    "id": "65bb9c70-bf25-4e1a-a2c6-93bd13383589",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "93bb81e5-e954-446d-8412-0c006fe5fbae",
+      "retired_by": null,
+      "jurisdiction_id": "63b99ba8-cac7-4081-929e-b87c6f6d5e36",
+      "retirement_reason": null,
+      "statement": "The Latvian Office of Citizenship and Migration Affairs operates pmlp.gov.lv/en as the official English-language portal for citizenship and migration matters.",
+      "active": true,
+      "created_at": "2026-07-18T16:17:08.779671Z",
+      "rule_key": "lv_pmlp_official_citizenship_migration_portal_baseline",
+      "official_source_id": "ce219d68-d3f2-41b9-8dfd-6f43f0607240",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:17:08.779684Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "latvia",
+      "source_snapshot_id": "2b0af1af-e87b-4829-9568-7ad8cb234ee9",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "65bb9c70-bf25-4e1a-a2c6-93bd13383589",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:17:08.779497"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "114e6de2-797c-407e-ac90-26199dda1fbd",
+        "jurisdiction_id": "63b99ba8-cac7-4081-929e-b87c6f6d5e36",
+        "alpha2_code": "LV",
+        "name": "Latvia",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 46,
+          "coverage_required": 243,
+          "with_verified_rule": 46
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "114e6de2-797c-407e-ac90-26199dda1fbd",
+        "jurisdiction_id": "63b99ba8-cac7-4081-929e-b87c6f6d5e36",
+        "alpha2_code": "LV",
+        "name": "Latvia",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 47,
+          "coverage_required": 243,
+          "with_verified_rule": 47
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "93bb81e5-e954-446d-8412-0c006fe5fbae",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "PL",
+    "id": "e93763e3-8f48-4fa2-abff-89cf3de925a3",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "1e918c5a-53f2-444b-8197-661449387215",
+      "retired_by": null,
+      "jurisdiction_id": "675e33d8-6a04-403f-8925-7d3eda2ad9f3",
+      "retirement_reason": null,
+      "statement": "The Polish Office for Foreigners operates the gov.pl/udsc portal as the official source for foreigners in Poland.",
+      "active": true,
+      "created_at": "2026-07-18T16:17:08.959609Z",
+      "rule_key": "pl_udsc_official_foreigners_portal_baseline",
+      "official_source_id": "b24b09ae-111c-40af-b1c4-3501106d8c50",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:17:08.959621Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "poland",
+      "source_snapshot_id": "8b74c226-5beb-4b86-94d9-d84863cbe934",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "e93763e3-8f48-4fa2-abff-89cf3de925a3",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:17:08.959455"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "9e8fec8d-07df-4621-80c2-5c19d1f4e3df",
+        "jurisdiction_id": "675e33d8-6a04-403f-8925-7d3eda2ad9f3",
+        "alpha2_code": "PL",
+        "name": "Poland",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 47,
+          "coverage_required": 243,
+          "with_verified_rule": 47
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "9e8fec8d-07df-4621-80c2-5c19d1f4e3df",
+        "jurisdiction_id": "675e33d8-6a04-403f-8925-7d3eda2ad9f3",
+        "alpha2_code": "PL",
+        "name": "Poland",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 48,
+          "coverage_required": 243,
+          "with_verified_rule": 48
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "1e918c5a-53f2-444b-8197-661449387215",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "CZ",
+    "id": "3cbb8353-1338-4524-b665-d1a7eaae84ea",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "f4da5b08-98d4-402a-b710-ca3bc2258c17",
+      "retired_by": null,
+      "jurisdiction_id": "5e9c4030-d994-46aa-af50-fa044a6a8302",
+      "retirement_reason": null,
+      "statement": "The Ministry of the Interior of the Czech Republic operates mv.gov.cz/mvcren as the official English-language portal covering asylum, migration and Schengen matters.",
+      "active": true,
+      "created_at": "2026-07-18T16:17:09.054762Z",
+      "rule_key": "cz_mvcr_official_migration_portal_baseline",
+      "official_source_id": "1bf606db-b7c9-4ebf-b7df-d982c3586348",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:17:09.054784Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "czechia",
+      "source_snapshot_id": "5f7a9bdb-906e-410d-b78f-638c8c88212d",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "3cbb8353-1338-4524-b665-d1a7eaae84ea",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:17:09.054590"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "b9e823f3-fe03-42df-820a-00e0cd28d99e",
+        "jurisdiction_id": "5e9c4030-d994-46aa-af50-fa044a6a8302",
+        "alpha2_code": "CZ",
+        "name": "Czechia",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 48,
+          "coverage_required": 243,
+          "with_verified_rule": 48
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "b9e823f3-fe03-42df-820a-00e0cd28d99e",
+        "jurisdiction_id": "5e9c4030-d994-46aa-af50-fa044a6a8302",
+        "alpha2_code": "CZ",
+        "name": "Czechia",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 49,
+          "coverage_required": 243,
+          "with_verified_rule": 49
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "f4da5b08-98d4-402a-b710-ca3bc2258c17",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  },
+  {
+    "code": "GR",
+    "id": "ee7305bd-73e0-4c45-968c-2810e2eb4f77",
+    "verified_rule": {
+      "regulatory_change_id": null,
+      "retired_at": null,
+      "id": "b2f9707b-db58-4aa3-b3cc-2386cbba45e1",
+      "retired_by": null,
+      "jurisdiction_id": "c0d7f23f-719b-4969-95c0-98758f37ef46",
+      "retirement_reason": null,
+      "statement": "The Greek Ministry of Migration and Asylum operates migration.gov.gr as the official portal for migration policy and asylum services.",
+      "active": true,
+      "created_at": "2026-07-18T16:17:09.146654Z",
+      "rule_key": "gr_migration_gov_gr_official_portal_baseline",
+      "official_source_id": "c1dfd42a-19c5-47c6-9b81-9a98f0005e47",
+      "effective_from": null,
+      "updated_at": "2026-07-18T16:17:09.146665Z",
+      "domain": "visa",
+      "supersedes_rule_id": null,
+      "effective_to": null,
+      "country": "greece",
+      "source_snapshot_id": "f05f21d7-bf82-4b42-be7e-6e4e5244d16a",
+      "approved_by": "coverage-rule-publisher",
+      "initial_rule_assertion_id": "ee7305bd-73e0-4c45-968c-2810e2eb4f77",
+      "confidence": 0.95,
+      "published_at": "2026-07-18T16:17:09.146506"
+    },
+    "coverage_receipt": {
+      "idempotent": false,
+      "became_ready": true,
+      "before": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "e0c61edd-6e8e-41fa-8b7d-7b3cf173feff",
+        "jurisdiction_id": "c0d7f23f-719b-4969-95c0-98758f37ef46",
+        "alpha2_code": "GR",
+        "name": "Greece",
+        "coverage_required": true,
+        "coverage_ready": false,
+        "status": "gap",
+        "missing": [
+          "verified_rule"
+        ],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": false
+        },
+        "registry_summary": {
+          "coverage_ready": 49,
+          "coverage_required": 243,
+          "with_verified_rule": 49
+        },
+        "global_coverage_claim_ready": false
+      },
+      "after": {
+        "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+        "registry_entry_id": "e0c61edd-6e8e-41fa-8b7d-7b3cf173feff",
+        "jurisdiction_id": "c0d7f23f-719b-4969-95c0-98758f37ef46",
+        "alpha2_code": "GR",
+        "name": "Greece",
+        "coverage_required": true,
+        "coverage_ready": true,
+        "status": "ready",
+        "missing": [],
+        "gates": {
+          "immigration_rule_assessment": true,
+          "reviewed_primary_authority": true,
+          "reviewed_primary_source": true,
+          "fresh_monitor": true,
+          "verified_rule": true
+        },
+        "registry_summary": {
+          "coverage_ready": 50,
+          "coverage_required": 243,
+          "with_verified_rule": 50
+        },
+        "global_coverage_claim_ready": false
+      },
+      "verified_rule_id": "b2f9707b-db58-4aa3-b3cc-2386cbba45e1",
+      "message": "Verified-rule publication completed the jurisdiction coverage gates."
+    }
+  }
+]

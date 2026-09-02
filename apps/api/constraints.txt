@@ -1,0 +1,47 @@
+# Global Mobility AIOS Python direct-dependency constraint baseline.
+#
+# Install with:
+#   python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+#
+# This file pins every direct dependency declared in requirements.txt to one
+# deterministic compatibility candidate. Most pins begin at the repository's
+# declared minimum; a pin may move above that minimum when real production-proof
+# evidence shows the minimum is not installable on a supported environment.
+# Extras remain declared in requirements.txt; constraints use only normalized
+# distribution names because pip does not permit extras in constraint entries.
+#
+# Candidate versions are not claimed accepted until the production-proof lanes
+# actually install and test them.
+#
+# This is not yet a complete transitive lock. Transitive lock generation may be added
+# after this baseline is proven across the supported Python/PostgreSQL lanes.
+
+fastapi==0.115.0
+uvicorn==0.30.0
+pydantic==2.8.0
+pydantic-settings==2.4.0
+sqlmodel==0.0.22
+alembic==1.13.0
+psycopg==3.2.2
+qdrant-client==1.12.0
+redis==5.0.0
+celery==5.4.0
+minio==7.2.0
+httpx==0.27.0
+python-multipart==0.0.9
+pyyaml==6.0.3
+pypdf==5.0.0
+pillow==11.0.0
+pytesseract==0.3.13
+email-validator==2.2.0
+cryptography==42.0.0
+opentelemetry-api==1.28.0
+opentelemetry-sdk==1.28.0
+opentelemetry-instrumentation-fastapi==0.49b0
+opentelemetry-exporter-otlp==1.28.0
+clamd==1.0.2
+pytest==8.3.0
+pytest-xdist==3.8.0
+# Wave E3 property/invariant test dependency. Local Windows CPython 3.13 proof
+# installed and passed with 6.167.1; this remains test-only, not runtime authority.
+hypothesis==6.167.1

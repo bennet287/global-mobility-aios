@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.18",
+  "title": "Europe coverage evidence tranche 1E - Romania, Bulgaria, Luxembourg, North Macedonia, Serbia",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "RO",
+      "authority_evidence_url": "https://www.mai.gov.ro/",
+      "source_url": "https://www.mai.gov.ro/",
+      "evidence_summary": "The Romanian Ministry of Internal Affairs operates mai.gov.ro as the official portal for internal affairs, border management, immigration and citizenship services."
+    },
+    {
+      "alpha2_code": "BG",
+      "authority_evidence_url": "https://www.mvr.bg/",
+      "source_url": "https://www.mvr.bg/",
+      "evidence_summary": "The Bulgarian Ministry of the Interior operates mvr.bg as the official portal for migration, border control, citizenship and foreigner-related services."
+    },
+    {
+      "alpha2_code": "LU",
+      "authority_evidence_url": "https://www.guichet.lu/",
+      "source_url": "https://www.guichet.lu/",
+      "evidence_summary": "The Luxembourg government operates guichet.lu as the official administrative portal providing access to residence, immigration, visa and citizenship services."
+    },
+    {
+      "alpha2_code": "MK",
+      "authority_evidence_url": "https://www.mvr.gov.mk/",
+      "source_url": "https://www.mvr.gov.mk/",
+      "evidence_summary": "The Ministry of Internal Affairs of North Macedonia operates mvr.gov.mk as the official portal for internal affairs, migration, border control and foreigner-related services."
+    },
+    {
+      "alpha2_code": "RS",
+      "authority_evidence_url": "https://www.mup.gov.rs/",
+      "source_url": "https://www.mup.gov.rs/",
+      "evidence_summary": "The Serbian Ministry of Internal Affairs operates mup.gov.rs as the official portal for internal affairs, border control, migration and foreigner-related services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.18 Europe evidence tranche 1E - RO, BG, LU, MK, RS",
+    "notes": "Official-source evidence for Romania (RO), Bulgaria (BG), Luxembourg (LU), North Macedonia (MK) and Serbia (RS). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, residence, citizenship, border-control or foreigner-related content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "RO",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.mai.gov.ro/",
+          "evidence_title": "Romanian Ministry of Internal Affairs official portal",
+          "rationale": "The Romanian Ministry of Internal Affairs operates mai.gov.ro as the official portal for internal affairs, border management, immigration and citizenship services. This supports a proposal that Romania directly administers the relevant immigration services through the Ministry of Internal Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Romanian Ministry of Internal Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.mai.gov.ro/",
+          "authority_domains": ["visa"],
+          "source_name": "Romanian Ministry of Internal Affairs official portal",
+          "source_url": "https://www.mai.gov.ro/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.mai.gov.ro"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Romanian Ministry of Internal Affairs portal returned HTTPS 200 with content about internal affairs, border management, immigration and citizenship services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "BG",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.mvr.bg/",
+          "evidence_title": "Bulgarian Ministry of the Interior official portal",
+          "rationale": "The Bulgarian Ministry of the Interior operates mvr.bg as the official portal for migration, border control, citizenship and foreigner-related services. This supports a proposal that Bulgaria directly administers the relevant immigration services through the Ministry of the Interior."
+        },
+        "source_onboarding": {
+          "authority_name": "Bulgarian Ministry of the Interior",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.mvr.bg/",
+          "authority_domains": ["visa"],
+          "source_name": "Bulgarian Ministry of the Interior official portal",
+          "source_url": "https://www.mvr.bg/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.mvr.bg"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Bulgarian Ministry of the Interior portal returned HTTPS 200 with content about migration, border control, citizenship and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "LU",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.guichet.lu/",
+          "evidence_title": "Luxembourg government official administrative portal",
+          "rationale": "The Luxembourg government operates guichet.lu as the official administrative portal providing access to residence, immigration, visa and citizenship services. This supports a proposal that Luxembourg directly administers the relevant immigration services through the official government portal."
+        },
+        "source_onboarding": {
+          "authority_name": "Luxembourg Government",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.guichet.lu/",
+          "authority_domains": ["visa"],
+          "source_name": "Luxembourg guichet.lu official portal",
+          "source_url": "https://www.guichet.lu/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.guichet.lu"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Luxembourg guichet.lu portal returned HTTPS 200 with content about administrative services, including residence, immigration, visa and citizenship services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "MK",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.mvr.gov.mk/",
+          "evidence_title": "Ministry of Internal Affairs of North Macedonia official portal",
+          "rationale": "The Ministry of Internal Affairs of North Macedonia operates mvr.gov.mk as the official portal for internal affairs, migration, border control and foreigner-related services. This supports a proposal that North Macedonia directly administers the relevant immigration services through the Ministry of Internal Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Ministry of Internal Affairs of North Macedonia",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.mvr.gov.mk/",
+          "authority_domains": ["visa"],
+          "source_name": "North Macedonian Ministry of Internal Affairs official portal",
+          "source_url": "https://www.mvr.gov.mk/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.mvr.gov.mk"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The North Macedonian Ministry of Internal Affairs portal returned HTTPS 200 with content about internal affairs, migration, border control and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "RS",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.mup.gov.rs/",
+          "evidence_title": "Serbian Ministry of Internal Affairs official portal",
+          "rationale": "The Serbian Ministry of Internal Affairs operates mup.gov.rs as the official portal for internal affairs, border control, migration and foreigner-related services. This supports a proposal that Serbia directly administers the relevant immigration services through the Ministry of Internal Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Serbian Ministry of Internal Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.mup.gov.rs/",
+          "authority_domains": ["visa"],
+          "source_name": "Serbian Ministry of Internal Affairs official portal",
+          "source_url": "https://www.mup.gov.rs/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.mup.gov.rs"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Serbian Ministry of Internal Affairs portal returned HTTPS 200 with content about internal affairs, border control, migration and foreigner-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}

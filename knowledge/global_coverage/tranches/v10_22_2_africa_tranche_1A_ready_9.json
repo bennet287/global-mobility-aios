@@ -1,0 +1,400 @@
+{
+    "pack_version":  "v10.22.2",
+    "title":  "Africa coverage evidence tranche 1A",
+    "verified_at":  "2026-07-16",
+    "review_status":  "pending_independent_review",
+    "coverage_claim_ready":  false,
+    "jurisdiction_count":  9,
+    "safety":  {
+                   "creates_coverage_claim":  false,
+                   "auto_approves_evidence":  false,
+                   "requires_separate_reviewer":  true,
+                   "message":  "This evidence pack creates pending assessment and source-onboarding proposals only. It does not approve evidence, capture baselines, publish rules, or make a coverage claim."
+               },
+    "references":  [
+                       {
+                           "alpha2_code":  "AO",
+                           "authority_evidence_url":  "https://www.sme.gov.ao/ao/perguntas-frequentes/evisa-english-version/",
+                           "source_url":  "https://www.sme.gov.ao/ao/perguntas-frequentes/evisa-english-version/",
+                           "evidence_summary":  "The official SME page identifies SME as the Ministry of Interior body responsible for entry, transit, exit and control of foreign citizens, and publishes visa categories."
+                       },
+                       {
+                           "alpha2_code":  "BJ",
+                           "authority_evidence_url":  "https://dei.gouv.bj/services/",
+                           "source_url":  "https://evisa.bj",
+                           "evidence_summary":  "The official DEI site lists electronic and other visa services and residence-card services, while the Government of Benin e-Visa portal accepts visa applications."
+                       },
+                       {
+                           "alpha2_code":  "BW",
+                           "authority_evidence_url":  "https://www.gov.bw/visa-applications/visa-application-tourism-visa",
+                           "source_url":  "https://evisa.gov.bw/",
+                           "evidence_summary":  "Botswana\u0027s government portal identifies the Department of Immigration and Citizenship and publishes visa application services, including online e-Visa access."
+                       },
+                       {
+                           "alpha2_code":  "IO",
+                           "authority_evidence_url":  "https://www.biot.gov.io/visiting/visa-requirements/",
+                           "source_url":  "https://www.biot.gov.io/visiting/visa-requirements/",
+                           "evidence_summary":  "The official BIOT Administration states that no visa is required but prior approval is mandatory, with permits required for visiting yachts and restricted access to the Territory."
+                       },
+                       {
+                           "alpha2_code":  "BF",
+                           "authority_evidence_url":  "https://www.visaburkina.bf/en/home/",
+                           "source_url":  "https://www.visaburkina.bf/en/home/",
+                           "evidence_summary":  "The official Visa Burkina site is operated by the Ministry of Security and Directorate General of National Police, and publishes entry conditions and online visa procedures."
+                       },
+                       {
+                           "alpha2_code":  "BI",
+                           "authority_evidence_url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                           "source_url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                           "evidence_summary":  "The official Burundi Ministry of Foreign Affairs site publishes visa application forms and visa-service categories."
+                       },
+                       {
+                           "alpha2_code":  "CV",
+                           "authority_evidence_url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                           "source_url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                           "evidence_summary":  "The official consular portal describes visa exemptions, visa types, application channels, residence visas and pre-registration requirements."
+                       },
+                       {
+                           "alpha2_code":  "CM",
+                           "authority_evidence_url":  "https://www.diplocam.cm/e-visa/",
+                           "source_url":  "https://www.evisacam.cm/",
+                           "evidence_summary":  "The official Ministry of External Relations site provides the e-Visa service, and the Republic of Cameroon consular portal accepts visa applications."
+                       },
+                       {
+                           "alpha2_code":  "CF",
+                           "authority_evidence_url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                           "source_url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                           "evidence_summary":  "The official diplomatic mission site publishes online and paper short-stay visa application channels and links to official application materials."
+                       }
+                   ],
+    "batch":  {
+                  "name":  "v10.22.2 Africa evidence tranche 1A",
+                  "notes":  "Nine technically retrievable official-source candidates for AO, BJ, BW, IO, BF, BI, CV, CM and CF. Algeria remains excluded due to TLS certificate-chain validation failure. Every proposal requires independent human review.",
+                  "items":  [
+                                {
+                                    "alpha2_code":  "AO",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://www.sme.gov.ao/ao/perguntas-frequentes/evisa-english-version/",
+                                                                   "evidence_title":  "eVISA — Migration and Foreigners Service",
+                                                                   "rationale":  "The official SME page identifies SME as the Ministry of Interior body responsible for entry, transit, exit and control of foreign citizens, and publishes visa categories."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Serviço de Migração e Estrangeiros (SME)",
+                                                              "authority_type":  "immigration_authority",
+                                                              "authority_website_url":  "https://www.sme.gov.ao/ao/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "SME eVISA",
+                                                              "source_url":  "https://www.sme.gov.ao/ao/perguntas-frequentes/evisa-english-version/",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "www.sme.gov.ao"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official SME page identifies SME as the Ministry of Interior body responsible for entry, transit, exit and control of foreign citizens, and publishes visa categories. Good authority evidence. Keep initial certification limited to visa and border-migration functions explicitly described by SME. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "BJ",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://dei.gouv.bj/services/",
+                                                                   "evidence_title":  "DEI services and official Benin e-Visa",
+                                                                   "rationale":  "The official DEI site lists electronic and other visa services and residence-card services, while the Government of Benin e-Visa portal accepts visa applications."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Direction de l\u0027Émigration et de l\u0027Immigration (DEI)",
+                                                              "authority_type":  "immigration_authority",
+                                                              "authority_website_url":  "https://dei.gouv.bj/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Benin e-Visa",
+                                                              "source_url":  "https://evisa.bj",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "evisa.bj"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed_after_redirect_review. The official DEI site lists electronic and other visa services and residence-card services, while the Government of Benin e-Visa portal accepts visa applications. The originally researched Government of Benin URL https://evisa.gouv.bj/ redirected over HTTPS to https://evisa.bj. The official DEI website explicitly directs applicants to www.evisa.bj. Redirect reviewed and accepted. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "BW",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://www.gov.bw/visa-applications/visa-application-tourism-visa",
+                                                                   "evidence_title":  "Botswana visa applications and e-Visa services",
+                                                                   "rationale":  "Botswana\u0027s government portal identifies the Department of Immigration and Citizenship and publishes visa application services, including online e-Visa access."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Department of Immigration and Citizenship",
+                                                              "authority_type":  "immigration_authority",
+                                                              "authority_website_url":  "https://www.gov.bw/immigration-and-civil-registration",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Botswana e-Visa",
+                                                              "source_url":  "https://evisa.gov.bw/",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "evisa.gov.bw"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. Botswana\u0027s government portal identifies the Department of Immigration and Citizenship and publishes visa application services, including online e-Visa access. Legacy government pages use more than one ministry label. Certify the Department first and require human confirmation of the current parent ministry. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "IO",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "shared_or_coordinated",
+                                                                   "parent_code":  "GB",
+                                                                   "evidence_url":  "https://www.biot.gov.io/visiting/visa-requirements/",
+                                                                   "evidence_title":  "Visa requirements — British Indian Ocean Territory",
+                                                                   "rationale":  "The official BIOT Administration states that no visa is required but prior approval is mandatory, with permits required for visiting yachts and restricted access to the Territory."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "British Indian Ocean Territory Administration",
+                                                              "authority_type":  "territory_administration",
+                                                              "authority_website_url":  "https://www.biot.gov.io/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "BIOT visa and prior-approval requirements",
+                                                              "source_url":  "https://www.biot.gov.io/visiting/visa-requirements/",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "www.biot.gov.io"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official BIOT Administration states that no visa is required but prior approval is mandatory, with permits required for visiting yachts and restricted access to the Territory. Proposed as shared with GB because BIOT entry rules are administered by the Territory under UK overseas-territory governance. Legal and sovereignty status is sensitive and must receive specialist review before submission. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "BF",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://www.visaburkina.bf/en/home/",
+                                                                   "evidence_title":  "Detailed eVisa procedure — Visa Burkina",
+                                                                   "rationale":  "The official Visa Burkina site is operated by the Ministry of Security and Directorate General of National Police, and publishes entry conditions and online visa procedures."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Ministry of Security / Directorate General of National Police — Migration Division",
+                                                              "authority_type":  "immigration_authority",
+                                                              "authority_website_url":  "https://www.visaburkina.bf/en/home/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Visa Burkina eVisa",
+                                                              "source_url":  "https://www.visaburkina.bf/en/home/",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "www.visaburkina.bf"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official Visa Burkina site is operated by the Ministry of Security and Directorate General of National Police, and publishes entry conditions and online visa procedures. The source identifies the Migration Division and provides official eVisa workflow. Keep the first assertion limited to services and visa-entry information visible in the captured snapshot. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "BI",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                                                                   "evidence_title":  "Visa application forms — Ministry of Foreign Affairs",
+                                                                   "rationale":  "The official Burundi Ministry of Foreign Affairs site publishes visa application forms and visa-service categories."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Ministry of Foreign Affairs, Regional Integration and Development Cooperation",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "authority_website_url":  "https://www.mae.gov.bi/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Burundi visa application forms",
+                                                              "source_url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "www.mae.gov.bi"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official Burundi Ministry of Foreign Affairs site publishes visa application forms and visa-service categories. Official source, but the wider site has content-hygiene concerns. Use a narrowly captured visa page, inspect the snapshot carefully and reject unrelated page content. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "CV",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                                                                   "evidence_title":  "Visas — Cabo Verde Consular Portal",
+                                                                   "rationale":  "The official consular portal describes visa exemptions, visa types, application channels, residence visas and pre-registration requirements."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Ministry of Foreign Affairs, Cooperation and Regional Integration — Consular Services",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "authority_website_url":  "https://portalconsular.mnec.gov.cv/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Cabo Verde Consular Portal — Visas",
+                                                              "source_url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "portalconsular.mnec.gov.cv"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official consular portal describes visa exemptions, visa types, application channels, residence visas and pre-registration requirements. Visa rules changed for some nationalities from January 2026. Capture a fresh immutable snapshot and avoid broad statements beyond the exact current page. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "CM",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://www.diplocam.cm/e-visa/",
+                                                                   "evidence_title":  "e-Visa — Ministry of External Relations",
+                                                                   "rationale":  "The official Ministry of External Relations site provides the e-Visa service, and the Republic of Cameroon consular portal accepts visa applications."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Ministry of External Relations (MINREX)",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "authority_website_url":  "https://www.diplocam.cm/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Cameroon Consular Services Portal — e-Visa",
+                                                              "source_url":  "https://www.evisacam.cm/",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "www.evisacam.cm"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official Ministry of External Relations site provides the e-Visa service, and the Republic of Cameroon consular portal accepts visa applications. The transactional portal is dynamic. Use the MINREX e-Visa information page as evidence and probe evisacam.cm separately before monitoring. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                },
+                                {
+                                    "alpha2_code":  "CF",
+                                    "immigration_assessment":  {
+                                                                   "rule_relationship":  "independent",
+                                                                   "parent_code":  null,
+                                                                   "evidence_url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                                                                   "evidence_title":  "Visa court séjour",
+                                                                   "rationale":  "The official diplomatic mission site publishes online and paper short-stay visa application channels and links to official application materials."
+                                                               },
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Ministry of Foreign Affairs / Embassy of the Central African Republic in France",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "authority_website_url":  "https://paris.diplomatie.gouv.cf/",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Central African Republic short-stay visa service",
+                                                              "source_url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "paris.diplomatie.gouv.cf"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official diplomatic mission site publishes online and paper short-stay visa application channels and links to official application materials. This is an official embassy source rather than a central immigration portal. Certify only the consular visa scope and search for a central authority source in a later tranche. Submission creates pending proposals only. Independent reviewer certification remains required."
+                                                          }
+                                }
+                            ]
+              }
+}

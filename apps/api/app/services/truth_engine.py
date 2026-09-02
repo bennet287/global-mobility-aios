@@ -132,9 +132,9 @@ class TruthEngine:
         registry_file = Path(self.source_registry_path)
 
         if not registry_file.exists():
+            # truth_engine.py is under apps/api/app/services/, so the project root is 4 parents up.
             alt_candidates = [
-                Path("/knowledge/official_sources/sources.yaml"),
-                Path(__file__).resolve().parents[5] / self.source_registry_path,
+                Path(__file__).resolve().parents[4] / self.source_registry_path,
             ]
             registry_file = next((candidate for candidate in alt_candidates if candidate.exists()), registry_file)
 

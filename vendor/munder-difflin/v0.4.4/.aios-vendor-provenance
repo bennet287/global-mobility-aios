@@ -1,0 +1,4 @@
+upstream=chaitanyagiri/munder-difflin
+tag=v0.4.4
+commit=4b6f8b71ef904a1df908c03430934d1ecda9a744
+uploaded_zip_sha256=8c7a152873f72a2ddbb2f508a02bfe49903c8feb1ba59d1aaec30befa4b6e82a

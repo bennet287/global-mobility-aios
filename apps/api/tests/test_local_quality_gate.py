@@ -11,7 +11,9 @@ def test_local_quality_gate_command_plan_includes_required_checks() -> None:
 
     assert labels == [
         "compileall",
+        "coverage_evidence_packs",
         "repo_policy",
+        "release_consistency",
         "database_migrations",
         "docker_profile",
         "local_db_schema",
@@ -34,7 +36,9 @@ def test_local_quality_gate_can_list_static_checks_without_pytest() -> None:
 
     assert labels == [
         "compileall",
+        "coverage_evidence_packs",
         "repo_policy",
+        "release_consistency",
         "database_migrations",
         "docker_profile",
         "local_db_schema",

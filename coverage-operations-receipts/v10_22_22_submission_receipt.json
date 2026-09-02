@@ -1,0 +1,82 @@
+{
+  "pack_version": "v10.22.22",
+  "title": "Africa coverage evidence tranche 2B - Namibia, Sierra Leone, Somalia, Senegal, Tanzania",
+  "batch_id": "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+  "batch_key": "01a751b2bd70c8911400617c9178ee98264442c13f1d587757bf6c0eefcebf03",
+  "submitted_at": "2026-07-18T20:52:49.813547+00:00",
+  "submitted_by": "coverage-evidence-proposer-v10-22-22",
+  "status": "pending_review",
+  "stored_status": "submitted_for_review",
+  "coverage_before": 65,
+  "coverage_after": 65,
+  "global_coverage_claim_ready": false,
+  "item_count": 5,
+  "pending_review_count": 10,
+  "approved_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "alpha2_code": "NA",
+      "item_id": "135ec676-cb8d-4fc3-a736-59b8439cefba",
+      "assessment_id": "834cec02-75df-4790-bb9f-859c1b4526a3",
+      "assessment_status": "pending_review",
+      "certification_id": "fb55e50f-bc7c-430f-86fe-6739c2f80438",
+      "certification_status": "pending_review",
+      "authority_id": "40dd1b51-a0a7-40be-b374-bf3bd7add417",
+      "official_source_id": "b54d2591-89a3-4ceb-a798-a33cae240718",
+      "monitor_id": "ae0cca96-c2df-472b-8dda-ad4d2ef5f66e"
+    },
+    {
+      "alpha2_code": "SL",
+      "item_id": "7c2c4e32-45b2-4f28-9202-a201adf954ef",
+      "assessment_id": "1e1bc3a0-1ec0-4fbd-aaf4-6f76d99dbc65",
+      "assessment_status": "pending_review",
+      "certification_id": "0910bb5f-11ac-4039-8146-13c094711a1c",
+      "certification_status": "pending_review",
+      "authority_id": "d9582a7b-1128-4023-af6c-f974f4210438",
+      "official_source_id": "fa8385de-27f0-4d40-9e89-ceaf5a750829",
+      "monitor_id": "a87190f7-40b0-4912-ac4c-84bbd8ba6012"
+    },
+    {
+      "alpha2_code": "SO",
+      "item_id": "0384d644-0885-4fb4-90a0-ec1b82e03b07",
+      "assessment_id": "e6ecddb5-1a23-45d7-91a4-5cdbb5a58e11",
+      "assessment_status": "pending_review",
+      "certification_id": "9193d8e9-535d-4a76-8c7d-3e0c5923000e",
+      "certification_status": "pending_review",
+      "authority_id": "2c1b93b7-acf4-43e5-ab45-5e9c8c10b394",
+      "official_source_id": "83d8a7cb-52b7-4bfb-b6a4-c36b34f05923",
+      "monitor_id": "eb028cfc-cb93-411a-be8d-eafddff8bb89"
+    },
+    {
+      "alpha2_code": "SN",
+      "item_id": "f784ec3d-3e07-46b1-a20f-446d99dbf991",
+      "assessment_id": "c425fe3a-286e-4bf1-8e47-21a86e65ab50",
+      "assessment_status": "pending_review",
+      "certification_id": "f7735a18-b4fb-416a-8089-4312797b0c3d",
+      "certification_status": "pending_review",
+      "authority_id": "eee46c94-408e-449b-b7e4-9e84cf3effd2",
+      "official_source_id": "57bf4211-6180-4edb-bb57-22fb86465f4a",
+      "monitor_id": "3828b789-1cea-4c4e-a882-314cf2be76be"
+    },
+    {
+      "alpha2_code": "TZ",
+      "item_id": "3e18efbe-8525-4e66-9aa5-4be9a3f592bb",
+      "assessment_id": "6debbb40-63fd-4197-affa-65df981aa626",
+      "assessment_status": "pending_review",
+      "certification_id": "a1e8d407-293b-4958-a6c2-ace3c38d3b64",
+      "certification_status": "pending_review",
+      "authority_id": "52f7be0a-83a2-4536-aa4a-b10d932341ca",
+      "official_source_id": "fb5c751d-943a-46e2-938e-7c11fa09bfae",
+      "monitor_id": "da5e5e9e-0e1b-491c-9a65-577f257d374c"
+    }
+  ],
+  "safety": {
+    "auto_approved": false,
+    "baseline_capture_queued": false,
+    "assertion_created": false,
+    "rule_published": false,
+    "coverage_claimed": false,
+    "message": "The batch created pending assessment and primary-source certification proposals only. Independent review is required before baseline capture can become eligible."
+  }
+}

@@ -1,0 +1,701 @@
+{
+    "batch_id": "753ce96b-00b8-48f5-8ce1-dfbb57a4a13e",
+    "batch_name": "v10.22.17 Europe evidence tranche 1D - ES, PT, IT, SI, HR",
+    "actor": "coverage-tranche-operator",
+    "dry_run": true,
+    "selected_count": 5,
+    "selected_codes": [
+        "ES",
+        "PT",
+        "IT",
+        "SI",
+        "HR"
+    ],
+    "would_queue_baselines": [],
+    "queued_baselines": 0,
+    "queue_result": null,
+    "items": [
+        {
+            "batch_item_id": "8ad872bf-bf27-4589-8fcc-4723f676c8e8",
+            "alpha2_code": "ES",
+            "jurisdiction_name": "Spain",
+            "stage": "baseline_ready_needs_assertion",
+            "baseline": {
+                "batch_item_id": "8ad872bf-bf27-4589-8fcc-4723f676c8e8",
+                "alpha2_code": "ES",
+                "jurisdiction_id": "6d52524c-a0fe-48db-b5dc-9973d032300d",
+                "official_source_id": "1e4ffa1f-be9f-4816-826b-9b35cd439839",
+                "source_monitor_id": "9da82d62-8e64-4a50-88ae-ea90a4648b04",
+                "assessment_status": "approved",
+                "certification_status": "approved",
+                "source_active": true,
+                "monitor_status": "active",
+                "state": "baseline_ready",
+                "eligible_to_queue": false,
+                "latest_run": {
+                    "id": "0e867548-5a01-4081-a7f4-bacb85e3ca56",
+                    "status": "baseline",
+                    "attempt": 1,
+                    "started_at": "2026-07-18T16:23:19.070910",
+                    "completed_at": "2026-07-18T16:23:20.442034",
+                    "error_code": null,
+                    "error_message": null
+                },
+                "latest_snapshot": {
+                    "id": "a52664fa-93c6-4885-a12e-2bed36416993",
+                    "status": "baseline",
+                    "content_hash": "9c1e6998442cb549d34a533ee5a397efb77058cd7c31aa3a0eb73a9b40bb9f82",
+                    "captured_at": "2026-07-18T16:23:20.433805+00:00",
+                    "url": "https://www.exteriores.gob.es/"
+                }
+            },
+            "review_packet": {
+                "immigration_assessment": {
+                    "id": "9dd96827-14b1-47fb-a227-46c4d8c685c7",
+                    "status": "approved",
+                    "rule_relationship": "independent",
+                    "parent_code": null,
+                    "evidence_url": "https://www.exteriores.gob.es/",
+                    "evidence_title": "Spanish Ministry of Foreign Affairs official portal",
+                    "rationale": "The Spanish Ministry of Foreign Affairs, European Union and Cooperation operates exteriores.gob.es as the official portal for foreign affairs, consular services and information for foreigners. This supports a proposal that Spain directly administers the relevant foreigner and consular services through the Ministry of Foreign Affairs.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "source_certification": {
+                    "id": "97a703ab-7b81-4ef9-b336-a0eb43c54fc4",
+                    "status": "approved",
+                    "coverage_domains_json": "[\"visa\"]",
+                    "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Spanish Ministry of Foreign Affairs portal returned HTTPS 200 with content about foreign affairs, consular services and information for foreigners. Keep the initial certification limited to the consular and foreigner services explicitly described.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "authority": {
+                    "id": "ae010c2a-c230-439b-8a10-37cef0fcf078",
+                    "name": "Spanish Ministry of Foreign Affairs, European Union and Cooperation",
+                    "authority_type": "immigration_authority",
+                    "website_url": "https://www.exteriores.gob.es/",
+                    "active": true
+                },
+                "official_source": {
+                    "id": "1e4ffa1f-be9f-4816-826b-9b35cd439839",
+                    "name": "Spanish Ministry of Foreign Affairs official portal",
+                    "url": "https://www.exteriores.gob.es/",
+                    "domain": "visa",
+                    "source_type": "government",
+                    "active": true
+                },
+                "monitor": {
+                    "id": "9da82d62-8e64-4a50-88ae-ea90a4648b04",
+                    "status": "active",
+                    "fetch_method": "http",
+                    "last_checked_at": "2026-07-18T16:23:20.436616",
+                    "last_http_status": 200,
+                    "last_error": null
+                },
+                "review_checks": [
+                    "Confirm the authority is responsible for the claimed immigration scope.",
+                    "Confirm the source hostname and page are official and jurisdiction-matched.",
+                    "Confirm the relationship and certification wording do not exceed the evidence.",
+                    "Use a reviewer identity different from the proposer."
+                ]
+            },
+            "snapshot_analysis": {
+                "snapshot_id": "a52664fa-93c6-4885-a12e-2bed36416993",
+                "snapshot_url": "https://www.exteriores.gob.es/",
+                "captured_at": "2026-07-18T16:23:20.433805+00:00",
+                "content_hash": "9c1e6998442cb549d34a533ee5a397efb77058cd7c31aa3a0eb73a9b40bb9f82",
+                "content_characters": 5359,
+                "unique_lines": 153,
+                "navigation_lines": 0,
+                "navigation_ratio": 0.0,
+                "keyword_hits": [],
+                "quality_score": 35,
+                "classification": "insufficient_substantive_text",
+                "candidate_excerpt_lines": [],
+                "preview": "Ministerio de Asuntos Exteriores, Uni\u00c3\u00b3n Europea y Cooperaci\u00c3\u00b3n\nSede electr\u00c3\u00b3nica\nContacto\nCastellano\nCatal\u00c3\u00a0\nEnglish\nEuskera\nFran\u00c3\u00a7ais\nGalego\nFormulario del buscador gen\u00c3\u00a9rico del Ministerio de Asuntos Exteriores, Union Europea y Cooperaci\u00c3\u00b3n\nBuscador\nBuscar\nMen\u00c3\u00ba\nCastellano\nCatal\u00c3\u00a0\nEnglish\nEuskera\nFran\u00c3\u00a7ais\nGalego\nMinistro\nIntervenciones\nAgenda\nFotograf\u00c3\u00adas\nMinisterio\nEstructura y organigrama\nAECID\nInstituto Cervantes\nEscuela Diplom\u00c3\u00a1tica\nMuseo-Bas\u00c3\u00adlica San Francisco el Grande\nOrganismos vinculados\nProtocolo\nFunciones e historia\nSedes\nTransparencia y buen gobierno\nGalard\u00c3\u00b3n Isabel Oyarz\u00c3\u00a1bal\nPol\u00c3\u00adtica Exterior\nEstrategia de Acci\u00c3\u00b3n Exterior 2025-2028\nDiplomacia y acci\u00c3\u00b3n humanitarias\n\u00c3\udc81frica\nA\u00c3\u00b1o Dual Espa\u00c3\u00b1a-India\nAsia y Pac\u00c3\u00adfico\nCooperaci\u00c3\u00b3n para el desarrollo sostenible\nCumbres Iberoamericanas\nDerechos Humanos\nDiplomacia econ\u00c3\u00b3mica\nDiplomacia preventiva\nDiplomacia p\u00c3\u00bablica\nEl espa\u00c3\u00b1ol en el mundo\nAm\u00c3\u00a9rica Latina y el Caribe\nEspa\u00c3\u00b1a y la OTAN\nEspa\u00c3\u00b1a y la Uni\u00c3\u00b3n Europea\nEspa\u00c3\u00b1a y Naciones Unidas\nFlujos migratorios\nG-20 y OCDE\nGibraltar\nLa lucha contra la desinformaci\u00c3\u00b3n\nMagreb y Oriente Pr\u00c3\u00b3ximo\nMediterr\u00c3\u00a1neo\nObservaci\u00c3\u00b3n electoral\nV Conferencia Ministerial de Pol\u00c3\u00adtica Exterior Feminista\nPol\u00c3\u00adtica Exterior Femi"
+            },
+            "candidate_assertion": null,
+            "existing_assertion": null,
+            "coverage_receipt": {
+                "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+                "registry_entry_id": "6286e22a-7a17-445e-8255-a5f17baa7e11",
+                "jurisdiction_id": "6d52524c-a0fe-48db-b5dc-9973d032300d",
+                "alpha2_code": "ES",
+                "name": "Spain",
+                "coverage_required": true,
+                "coverage_ready": false,
+                "status": "gap",
+                "missing": [
+                    "verified_rule"
+                ],
+                "gates": {
+                    "immigration_rule_assessment": true,
+                    "reviewed_primary_authority": true,
+                    "reviewed_primary_source": true,
+                    "fresh_monitor": true,
+                    "verified_rule": false
+                },
+                "registry_summary": {
+                    "coverage_ready": 50,
+                    "coverage_required": 243,
+                    "with_verified_rule": 50
+                },
+                "global_coverage_claim_ready": false
+            },
+            "next_action": "Review and edit the constrained assertion draft; submission remains a separate human action."
+        },
+        {
+            "batch_item_id": "1a9fb99c-3f25-4fa3-86c5-288786539d7c",
+            "alpha2_code": "PT",
+            "jurisdiction_name": "Portugal",
+            "stage": "baseline_ready_needs_assertion",
+            "baseline": {
+                "batch_item_id": "1a9fb99c-3f25-4fa3-86c5-288786539d7c",
+                "alpha2_code": "PT",
+                "jurisdiction_id": "e459a3cf-0c7f-4016-9dbe-fdbf0852b6bd",
+                "official_source_id": "a33a82c9-cf8c-4e50-9d43-9961d4b03dcc",
+                "source_monitor_id": "9367e72e-06a9-48d2-9705-58bbb0765178",
+                "assessment_status": "approved",
+                "certification_status": "approved",
+                "source_active": true,
+                "monitor_status": "active",
+                "state": "baseline_ready",
+                "eligible_to_queue": false,
+                "latest_run": {
+                    "id": "4df91483-da0a-460c-a37b-8531980d20d1",
+                    "status": "not_modified",
+                    "attempt": 4,
+                    "started_at": "2026-07-18T16:24:19.417181",
+                    "completed_at": "2026-07-18T16:24:19.984061",
+                    "error_code": null,
+                    "error_message": null
+                },
+                "latest_snapshot": {
+                    "id": "a26674bb-0141-4690-88c0-fd9a66f69e84",
+                    "status": "unchanged",
+                    "content_hash": "3a6ba5d648dd469b9d449f05ba50d57b476d33f22ef4b35e176c85d1b6f1e72c",
+                    "captured_at": "2026-07-18T16:24:29.955016+00:00",
+                    "url": "https://eportugal.gov.pt/"
+                }
+            },
+            "review_packet": {
+                "immigration_assessment": {
+                    "id": "88aa98f6-4013-4b95-af35-d1b61eebdb05",
+                    "status": "approved",
+                    "rule_relationship": "independent",
+                    "parent_code": null,
+                    "evidence_url": "https://eportugal.gov.pt/",
+                    "evidence_title": "Portuguese ePortugal official government services portal",
+                    "rationale": "The Portuguese ePortugal portal is the official government services portal, providing access to residence, immigration and citizenship services. This supports a proposal that Portugal directly administers the relevant immigration services through the official ePortugal government portal.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "source_certification": {
+                    "id": "ee23a4fd-c117-435d-9949-155f406f822e",
+                    "status": "approved",
+                    "coverage_domains_json": "[\"visa\"]",
+                    "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Portuguese ePortugal portal returned HTTPS 200 with content about government services, including residence and immigration-related services. Keep the initial certification limited to the services explicitly described.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "authority": {
+                    "id": "bfd7f9cb-be40-4c96-8309-2c1d1bc16d78",
+                    "name": "Portuguese ePortugal Government Services Portal",
+                    "authority_type": "immigration_authority",
+                    "website_url": "https://eportugal.gov.pt/",
+                    "active": true
+                },
+                "official_source": {
+                    "id": "a33a82c9-cf8c-4e50-9d43-9961d4b03dcc",
+                    "name": "Portuguese ePortugal portal",
+                    "url": "https://eportugal.gov.pt/",
+                    "domain": "visa",
+                    "source_type": "government",
+                    "active": true
+                },
+                "monitor": {
+                    "id": "9367e72e-06a9-48d2-9705-58bbb0765178",
+                    "status": "active",
+                    "fetch_method": "http",
+                    "last_checked_at": "2026-07-18T16:24:29.957214",
+                    "last_http_status": 200,
+                    "last_error": null
+                },
+                "review_checks": [
+                    "Confirm the authority is responsible for the claimed immigration scope.",
+                    "Confirm the source hostname and page are official and jurisdiction-matched.",
+                    "Confirm the relationship and certification wording do not exceed the evidence.",
+                    "Use a reviewer identity different from the proposer."
+                ]
+            },
+            "snapshot_analysis": {
+                "snapshot_id": "a26674bb-0141-4690-88c0-fd9a66f69e84",
+                "snapshot_url": "https://eportugal.gov.pt/",
+                "captured_at": "2026-07-18T16:24:29.955016+00:00",
+                "content_hash": "3a6ba5d648dd469b9d449f05ba50d57b476d33f22ef4b35e176c85d1b6f1e72c",
+                "content_characters": 3324,
+                "unique_lines": 91,
+                "navigation_lines": 0,
+                "navigation_ratio": 0.0,
+                "keyword_hits": [],
+                "quality_score": 35,
+                "classification": "insufficient_substantive_text",
+                "candidate_excerpt_lines": [],
+                "preview": "gov.pt\nSaltar para o conte\u00c3\u00bado\nO que procura no portal?\nEm destaque no gov.pt\nSitua\u00c3\u00a7\u00c3\u00a3o de calamidade\nAlterar a morada do cart\u00c3\u00a3o de cidad\u00c3\u00a3o\nAtivar a Chave M\u00c3\u00b3vel Digital (CMD)\nEmpresa Online - Registo Comercial\nAtividades econ\u00c3\u00b3micas\nDescobrir mais\nIr para a Loja de Cidad\u00c3\u00a3o Virtual\nCarteira Digital da Empresa na app gov.pt\nPedir o Subs\u00c3\u00addio Social de Mobilidade\nCentro de atendimento em L\u00c3\u00adngua Gestual Portuguesa\nAmbiente e territ\u00c3\u00b3rio\nAmbiente, ordenamento do territ\u00c3\u00b3rio, agricultura, ca\u00c3\u00a7a e pesca\n243\nServi\u00c3\u00a7os\nCasa\nComprar, vender, arrendar e mudar de casa, servi\u00c3\u00a7os de \u00c3\u00a1gua, energia e telecomunica\u00c3\u00a7\u00c3\u00b5es\n104\nServi\u00c3\u00a7os\nCidadania e documentos\nCart\u00c3\u00a3o de Cidad\u00c3\u00a3o, Passaporte, certid\u00c3\u00b5es e outros documentos, elei\u00c3\u00a7\u00c3\u00b5es e nacionalidade\n298\nServi\u00c3\u00a7os\nCultura, turismo e lazer\nCultura, desporto, turismo e lazer\n156\nServi\u00c3\u00a7os\nDinheiro e Impostos\nPoupan\u00c3\u00a7as e investimentos, impostos sobre habita\u00c3\u00a7\u00c3\u00a3o, trabalho, ve\u00c3\u00adculos e neg\u00c3\u00b3cios\n131\nServi\u00c3\u00a7os\nEduca\u00c3\u00a7\u00c3\u00a3o, Ci\u00c3\u00aancia e tecnologia\nEnsino pr\u00c3\u00a9-escolar a superior, ensino especial e profissional, ci\u00c3\u00aancia e investiga\u00c3\u00a7\u00c3\u00a3o\n184\nServi\u00c3\u00a7os\nEmpresas, neg\u00c3\u00b3cios e funda\u00c3\u00a7\u00c3\u00b5es\nCriar e gerir empresas, funda\u00c3\u00a7\u00c3\u00b5es, associa\u00c3\u00a7\u00c3\u00b5es e cooperativas\n1189\nServi\u00c3\u00a7os\nEstrangeiros em Portugal\nCidad\u00c3\u00a3os eur"
+            },
+            "candidate_assertion": null,
+            "existing_assertion": null,
+            "coverage_receipt": {
+                "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+                "registry_entry_id": "61e35dde-daa7-4114-a89f-ab6b5975030e",
+                "jurisdiction_id": "e459a3cf-0c7f-4016-9dbe-fdbf0852b6bd",
+                "alpha2_code": "PT",
+                "name": "Portugal",
+                "coverage_required": true,
+                "coverage_ready": false,
+                "status": "gap",
+                "missing": [
+                    "verified_rule"
+                ],
+                "gates": {
+                    "immigration_rule_assessment": true,
+                    "reviewed_primary_authority": true,
+                    "reviewed_primary_source": true,
+                    "fresh_monitor": true,
+                    "verified_rule": false
+                },
+                "registry_summary": {
+                    "coverage_ready": 50,
+                    "coverage_required": 243,
+                    "with_verified_rule": 50
+                },
+                "global_coverage_claim_ready": false
+            },
+            "next_action": "Review and edit the constrained assertion draft; submission remains a separate human action."
+        },
+        {
+            "batch_item_id": "a31b2361-cc40-4055-be66-e81fee8cf7d3",
+            "alpha2_code": "IT",
+            "jurisdiction_name": "Italy",
+            "stage": "baseline_ready_needs_assertion",
+            "baseline": {
+                "batch_item_id": "a31b2361-cc40-4055-be66-e81fee8cf7d3",
+                "alpha2_code": "IT",
+                "jurisdiction_id": "75174ad9-0008-4af1-a903-84f89763b3ac",
+                "official_source_id": "fa66bd4c-731e-4172-9689-fe37538c8ce5",
+                "source_monitor_id": "4c0362b2-1cce-4f7c-a46b-6c8e64fcafc9",
+                "assessment_status": "approved",
+                "certification_status": "approved",
+                "source_active": true,
+                "monitor_status": "active",
+                "state": "baseline_ready",
+                "eligible_to_queue": false,
+                "latest_run": {
+                    "id": "fb688ba6-572e-488d-be3f-fd133cb646d7",
+                    "status": "baseline",
+                    "attempt": 1,
+                    "started_at": "2026-07-18T16:23:19.429039",
+                    "completed_at": "2026-07-18T16:23:20.050922",
+                    "error_code": null,
+                    "error_message": null
+                },
+                "latest_snapshot": {
+                    "id": "f4b4e694-60d9-4629-8b9c-84ab2973cce1",
+                    "status": "baseline",
+                    "content_hash": "49fc43d27bf193cf8993343cb823899f6caefcbbd76699036b6e4e510c7919a1",
+                    "captured_at": "2026-07-18T16:23:20.044522+00:00",
+                    "url": "https://www.interno.gov.it/"
+                }
+            },
+            "review_packet": {
+                "immigration_assessment": {
+                    "id": "5a4159dd-5846-4e6d-bbd2-2d0510aad5f7",
+                    "status": "approved",
+                    "rule_relationship": "independent",
+                    "parent_code": null,
+                    "evidence_url": "https://www.interno.gov.it/",
+                    "evidence_title": "Italian Ministry of the Interior official portal",
+                    "rationale": "The Italian Ministry of the Interior operates interno.gov.it as the official portal for immigration, security, citizenship and civil liberties. This supports a proposal that Italy directly administers the relevant immigration services through the Ministry of the Interior.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "source_certification": {
+                    "id": "6484d165-13f0-4cc8-b98e-ca525938406b",
+                    "status": "approved",
+                    "coverage_domains_json": "[\"visa\"]",
+                    "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Italian Ministry of the Interior portal returned HTTPS 200 with content about immigration, citizenship, security and civil liberties. Keep the initial certification limited to the immigration and citizenship services explicitly described.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "authority": {
+                    "id": "957c124a-8632-4148-a4a9-5b6fe60bd812",
+                    "name": "Italian Ministry of the Interior",
+                    "authority_type": "immigration_authority",
+                    "website_url": "https://www.interno.gov.it/",
+                    "active": true
+                },
+                "official_source": {
+                    "id": "fa66bd4c-731e-4172-9689-fe37538c8ce5",
+                    "name": "Italian Ministry of the Interior official portal",
+                    "url": "https://www.interno.gov.it/",
+                    "domain": "visa",
+                    "source_type": "government",
+                    "active": true
+                },
+                "monitor": {
+                    "id": "4c0362b2-1cce-4f7c-a46b-6c8e64fcafc9",
+                    "status": "active",
+                    "fetch_method": "http",
+                    "last_checked_at": "2026-07-18T16:23:20.046617",
+                    "last_http_status": 200,
+                    "last_error": null
+                },
+                "review_checks": [
+                    "Confirm the authority is responsible for the claimed immigration scope.",
+                    "Confirm the source hostname and page are official and jurisdiction-matched.",
+                    "Confirm the relationship and certification wording do not exceed the evidence.",
+                    "Use a reviewer identity different from the proposer."
+                ]
+            },
+            "snapshot_analysis": {
+                "snapshot_id": "f4b4e694-60d9-4629-8b9c-84ab2973cce1",
+                "snapshot_url": "https://www.interno.gov.it/",
+                "captured_at": "2026-07-18T16:23:20.044522+00:00",
+                "content_hash": "49fc43d27bf193cf8993343cb823899f6caefcbbd76699036b6e4e510c7919a1",
+                "content_characters": 6634,
+                "unique_lines": 188,
+                "navigation_lines": 2,
+                "navigation_ratio": 0.011,
+                "keyword_hits": [
+                    "apply"
+                ],
+                "quality_score": 39,
+                "classification": "insufficient_substantive_text",
+                "candidate_excerpt_lines": [],
+                "preview": "Ministero dell\u00e2\u20ac\u02dcInterno | Sicurezza, Immigrazione e asilo, Territorio, Cittadinanza e altri diritti civili, Elezioni e referendum, Prevenzione e soccorso\nSalta al contenuto principale\nGoverno italiano\nMenu top\nContatti\nLa redazione\nMenu\nRicerca\nSeguici su:\nTwitter\nFacebook\nYoutube\nNews feed\nSearch\nCerca nel sito\nApply\nMain navigation\nMenu\nHomepage\nMinistero\nHomepage Ministero\nMinistro\nSottosegretari\nUffici di diretta collaborazione\nDipartimenti\nCommissari\nAgenzia nazionale beni sequestrati e confiscati alla criminalit\u00c3\u00a0\nAutorit\u00c3\u00a0 di gestione servizi di cura infanzia e anziani non autosufficienti\nStruttura per la prevenzione antimafia\nUffici sul territorio\nOsservatori, commissioni e centri di coordinamento\nComitati\nIstituti di formazione\nTemi\nHomepage Temi\nSicurezza\nImmigrazione e asilo\nTerritorio\nCittadinanza e altri diritti civili\nElezioni e referendum\nPrevenzione e soccorso\nStampa e comunicazione\nHomepage Stampa e comunicazione\nRassegna stampa\nComunicati stampa\nInterventi e interviste\nNotizie\nPubblicazioni\nDati e statistiche\nSpeciali\nRassegna multimediale\nFoto e video\nSindacato ispettivo parlamentare\nConsultazione dati elettorali e referendari\nMonitoraggio accessi\nServizi\nHomepage S"
+            },
+            "candidate_assertion": null,
+            "existing_assertion": null,
+            "coverage_receipt": {
+                "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+                "registry_entry_id": "118f875b-31f3-410a-8425-8674bf66390e",
+                "jurisdiction_id": "75174ad9-0008-4af1-a903-84f89763b3ac",
+                "alpha2_code": "IT",
+                "name": "Italy",
+                "coverage_required": true,
+                "coverage_ready": false,
+                "status": "gap",
+                "missing": [
+                    "verified_rule"
+                ],
+                "gates": {
+                    "immigration_rule_assessment": true,
+                    "reviewed_primary_authority": true,
+                    "reviewed_primary_source": true,
+                    "fresh_monitor": true,
+                    "verified_rule": false
+                },
+                "registry_summary": {
+                    "coverage_ready": 50,
+                    "coverage_required": 243,
+                    "with_verified_rule": 50
+                },
+                "global_coverage_claim_ready": false
+            },
+            "next_action": "Review and edit the constrained assertion draft; submission remains a separate human action."
+        },
+        {
+            "batch_item_id": "82a43008-15b5-4b6e-8c8e-c27ce0137ba1",
+            "alpha2_code": "SI",
+            "jurisdiction_name": "Slovenia",
+            "stage": "baseline_ready_needs_assertion",
+            "baseline": {
+                "batch_item_id": "82a43008-15b5-4b6e-8c8e-c27ce0137ba1",
+                "alpha2_code": "SI",
+                "jurisdiction_id": "4bb254be-7a37-433c-a63a-50822e7096f2",
+                "official_source_id": "eff7784e-cd09-48fd-8c1d-b6696f8ba64d",
+                "source_monitor_id": "d94fe712-bd07-410b-b241-a502f6b1617e",
+                "assessment_status": "approved",
+                "certification_status": "approved",
+                "source_active": true,
+                "monitor_status": "active",
+                "state": "baseline_ready",
+                "eligible_to_queue": false,
+                "latest_run": {
+                    "id": "74ad4c9a-51fa-4e5c-b0fd-073c84b5cf2b",
+                    "status": "baseline",
+                    "attempt": 1,
+                    "started_at": "2026-07-18T16:23:20.065990",
+                    "completed_at": "2026-07-18T16:23:20.752377",
+                    "error_code": null,
+                    "error_message": null
+                },
+                "latest_snapshot": {
+                    "id": "4f9db32a-9958-467b-99fe-dcb43ee6a7e9",
+                    "status": "baseline",
+                    "content_hash": "022400790ae30632ae0a82832272d9a25548f0637e52e666343b4e5f0e7ec342",
+                    "captured_at": "2026-07-18T16:23:20.745129+00:00",
+                    "url": "https://www.gov.si/en/"
+                }
+            },
+            "review_packet": {
+                "immigration_assessment": {
+                    "id": "5aefe255-cb0d-4e6f-b2c8-c360ed16da72",
+                    "status": "approved",
+                    "rule_relationship": "independent",
+                    "parent_code": null,
+                    "evidence_url": "https://www.gov.si/en/",
+                    "evidence_title": "Slovenian Government official English portal",
+                    "rationale": "The Slovenian Government operates gov.si/en as the official English-language portal providing access to government services including residence, work and immigration. This supports a proposal that Slovenia directly administers the relevant immigration services through the official government portal.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "source_certification": {
+                    "id": "db39abf7-831d-4876-a94e-daaf81302aaa",
+                    "status": "approved",
+                    "coverage_domains_json": "[\"visa\"]",
+                    "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Slovenian Government English portal returned HTTPS 200 with content about government services, life events, residence and work. Keep the initial certification limited to the services explicitly described.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "authority": {
+                    "id": "725a0b3c-ff7a-4b17-b6ef-a48a5a690154",
+                    "name": "Slovenian Government",
+                    "authority_type": "immigration_authority",
+                    "website_url": "https://www.gov.si/en/",
+                    "active": true
+                },
+                "official_source": {
+                    "id": "eff7784e-cd09-48fd-8c1d-b6696f8ba64d",
+                    "name": "Slovenian Government English portal",
+                    "url": "https://www.gov.si/en/",
+                    "domain": "visa",
+                    "source_type": "government",
+                    "active": true
+                },
+                "monitor": {
+                    "id": "d94fe712-bd07-410b-b241-a502f6b1617e",
+                    "status": "active",
+                    "fetch_method": "http",
+                    "last_checked_at": "2026-07-18T16:23:20.747901",
+                    "last_http_status": 200,
+                    "last_error": null
+                },
+                "review_checks": [
+                    "Confirm the authority is responsible for the claimed immigration scope.",
+                    "Confirm the source hostname and page are official and jurisdiction-matched.",
+                    "Confirm the relationship and certification wording do not exceed the evidence.",
+                    "Use a reviewer identity different from the proposer."
+                ]
+            },
+            "snapshot_analysis": {
+                "snapshot_id": "4f9db32a-9958-467b-99fe-dcb43ee6a7e9",
+                "snapshot_url": "https://www.gov.si/en/",
+                "captured_at": "2026-07-18T16:23:20.745129+00:00",
+                "content_hash": "022400790ae30632ae0a82832272d9a25548f0637e52e666343b4e5f0e7ec342",
+                "content_characters": 5357,
+                "unique_lines": 92,
+                "navigation_lines": 4,
+                "navigation_ratio": 0.043,
+                "keyword_hits": [
+                    "citizenship",
+                    "family reunification",
+                    "immigration",
+                    "permit",
+                    "residence",
+                    "visa",
+                    "work"
+                ],
+                "quality_score": 94,
+                "classification": "suitable_for_narrow_draft",
+                "candidate_excerpt_lines": [
+                    "Work of government",
+                    "Entry, visa and residence",
+                    "Labour relations, labour market, workers' rights, free movement of labour, professional standards, unemployment insurance, adult education",
+                    "Citizenship, documents, registers, elections and referendums, local self-government and regional development, public sector, civil society, human rights and equal opportunities, information society, immigration to Slovenia",
+                    "Information on conditions for livign and working in Slovenia, available jobs, rights and obligations of unemployed persons, information on active employment policy programs.",
+                    "Conditions of entry of EU citizens, Permanent residence permit, Family reunification, Third-country nationals, Visa regimes and visas, Procedure for obtaining a visa."
+                ],
+                "preview": "GOV.SI Portal\nSkip to main content\nGOV.SI\nSearch\nOpen navigation menu\nClose navigation menu\nPolicies\nState Authorities\nRegistries\nEvents\nNews\nAbout the website\nSearch\nEnglish\nChoose language\nSloven\u00c5\u00a1\u00c4\udc8dina\nEnglish\nDeutsch\nEspa\u00c3\u00b1ol\nFran\u00c3\u00a7ais\nMagyar\nItaliano\n\u00e6\u2014\u00a5\u00e6\u0153\u00ac\u00e8\u00aa\u017e\nPolski\nPortugu\u00c3\u00aas\nSloven\u00c4\udc8dina\nShqip\nSrpski\n\u00d0\u00a3\u00d0\u00ba\u00d1\u20ac\u00d0\u00b0\u00d1\u2014\u00d0\u00bd\u00d1\udc81\u00d1\u0152\u00d0\u00ba\u00d0\u00b0\nGOV.SI Portal\nThe central website for easy access to comprehensive information on the organisation and functioning of the state administration\nWork of government\nEmployment\nNational holidays\nEntry, visa and residence\nSlovenia\u00e2\u20ac\u2122s representations abroad\nList of topics\nFamily, children and marriage\nBirth, parenthood, foster care, guardianship, adoption, family rights and benefits, prevention of domestic violence, marriage and partnership\nEmployment, labour and pensions\nLabour relations, labour market, workers' rights, free movement of labour, professional standards, unemployment insurance, adult education\nAgriculture, forestry and food\nAgriculture and rural development, farming, hunting, forestry, fisheries, food production and processing, food quality\nSocial security\nRights from public funds, social welfare programs, protection of the elderly, of persons with disabilities, of person"
+            },
+            "candidate_assertion": {
+                "alpha2_code": "SI",
+                "domain": "visa",
+                "title": "Slovenia official visa information baseline",
+                "rule_key": "si_visa_official_information_baseline",
+                "statement": "The official Slovenian Government English portal publishes immigration information including \"Work of government\"; \"Entry, visa and residence\"; \"Labour relations, labour market, workers' rights, free movement of labour, professional standards, unemployment insurance, adult education\".",
+                "evidence_excerpt": "Work of government\n\nEntry, visa and residence\n\nLabour relations, labour market, workers' rights, free movement of labour, professional standards, unemployment insurance, adult education\n\nCitizenship, documents, registers, elections and referendums, local self-government and regional development, public sector, civil society, human rights and equal opportunities, information society, immigration to Slovenia",
+                "rationale": "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                "confidence": 0.9,
+                "requires_human_edit": true,
+                "creates_pending_assertion": false
+            },
+            "existing_assertion": null,
+            "coverage_receipt": {
+                "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+                "registry_entry_id": "ee56297a-0bcc-4827-8d45-75c6dec561ea",
+                "jurisdiction_id": "4bb254be-7a37-433c-a63a-50822e7096f2",
+                "alpha2_code": "SI",
+                "name": "Slovenia",
+                "coverage_required": true,
+                "coverage_ready": false,
+                "status": "gap",
+                "missing": [
+                    "verified_rule"
+                ],
+                "gates": {
+                    "immigration_rule_assessment": true,
+                    "reviewed_primary_authority": true,
+                    "reviewed_primary_source": true,
+                    "fresh_monitor": true,
+                    "verified_rule": false
+                },
+                "registry_summary": {
+                    "coverage_ready": 50,
+                    "coverage_required": 243,
+                    "with_verified_rule": 50
+                },
+                "global_coverage_claim_ready": false
+            },
+            "next_action": "Review and edit the constrained assertion draft; submission remains a separate human action."
+        },
+        {
+            "batch_item_id": "a2b6a038-c552-4a8d-85bc-5303c79fba0e",
+            "alpha2_code": "HR",
+            "jurisdiction_name": "Croatia",
+            "stage": "baseline_ready_needs_assertion",
+            "baseline": {
+                "batch_item_id": "a2b6a038-c552-4a8d-85bc-5303c79fba0e",
+                "alpha2_code": "HR",
+                "jurisdiction_id": "82c1467a-5064-47ba-b305-94c2675af042",
+                "official_source_id": "77bf55e1-4714-40d5-8e84-bc6c863f90be",
+                "source_monitor_id": "a89d8545-aafc-47e0-8f55-bec91eac5018",
+                "assessment_status": "approved",
+                "certification_status": "approved",
+                "source_active": true,
+                "monitor_status": "active",
+                "state": "baseline_ready",
+                "eligible_to_queue": false,
+                "latest_run": {
+                    "id": "5d42894f-76fd-4bd5-96fa-aaefb3e40127",
+                    "status": "baseline",
+                    "attempt": 1,
+                    "started_at": "2026-07-18T16:23:20.457425",
+                    "completed_at": "2026-07-18T16:23:20.650642",
+                    "error_code": null,
+                    "error_message": null
+                },
+                "latest_snapshot": {
+                    "id": "449cfb29-9846-46a3-a9cf-f8df8bf4e9b5",
+                    "status": "baseline",
+                    "content_hash": "0995cb76bd215e839fc2c48fef4276a3a10f6367877462730435298e6dd519fd",
+                    "captured_at": "2026-07-18T16:23:20.643434+00:00",
+                    "url": "https://mup.gov.hr/"
+                }
+            },
+            "review_packet": {
+                "immigration_assessment": {
+                    "id": "9e12a4d2-3e06-4a5c-a7da-a697091edf0b",
+                    "status": "approved",
+                    "rule_relationship": "independent",
+                    "parent_code": null,
+                    "evidence_url": "https://mup.gov.hr/",
+                    "evidence_title": "Croatian Ministry of the Interior official portal",
+                    "rationale": "The Croatian Ministry of the Interior operates mup.gov.hr as the official portal for border control, migration, asylum and foreigner-related services. This supports a proposal that Croatia directly administers the relevant immigration services through the Ministry of the Interior.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "source_certification": {
+                    "id": "88199ea3-21e8-4d47-8283-c307ec8b0491",
+                    "status": "approved",
+                    "coverage_domains_json": "[\"visa\"]",
+                    "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Croatian Ministry of the Interior portal returned HTTPS 200 with content about border control, migration, asylum and foreigner-related services. Keep the initial certification limited to the migration and asylum services explicitly described.",
+                    "proposed_by": "coverage-evidence-proposer",
+                    "reviewed_by": "coverage-evidence-reviewer"
+                },
+                "authority": {
+                    "id": "92b926c0-de51-4c85-880b-d53b11edc9df",
+                    "name": "Croatian Ministry of the Interior",
+                    "authority_type": "immigration_authority",
+                    "website_url": "https://mup.gov.hr/",
+                    "active": true
+                },
+                "official_source": {
+                    "id": "77bf55e1-4714-40d5-8e84-bc6c863f90be",
+                    "name": "Croatian Ministry of the Interior official portal",
+                    "url": "https://mup.gov.hr/",
+                    "domain": "visa",
+                    "source_type": "government",
+                    "active": true
+                },
+                "monitor": {
+                    "id": "a89d8545-aafc-47e0-8f55-bec91eac5018",
+                    "status": "active",
+                    "fetch_method": "http",
+                    "last_checked_at": "2026-07-18T16:23:20.645693",
+                    "last_http_status": 200,
+                    "last_error": null
+                },
+                "review_checks": [
+                    "Confirm the authority is responsible for the claimed immigration scope.",
+                    "Confirm the source hostname and page are official and jurisdiction-matched.",
+                    "Confirm the relationship and certification wording do not exceed the evidence.",
+                    "Use a reviewer identity different from the proposer."
+                ]
+            },
+            "snapshot_analysis": {
+                "snapshot_id": "449cfb29-9846-46a3-a9cf-f8df8bf4e9b5",
+                "snapshot_url": "https://mup.gov.hr/",
+                "captured_at": "2026-07-18T16:23:20.643434+00:00",
+                "content_hash": "0995cb76bd215e839fc2c48fef4276a3a10f6367877462730435298e6dd519fd",
+                "content_characters": 2947,
+                "unique_lines": 97,
+                "navigation_lines": 0,
+                "navigation_ratio": 0.0,
+                "keyword_hits": [],
+                "quality_score": 35,
+                "classification": "insufficient_substantive_text",
+                "candidate_excerpt_lines": [],
+                "preview": "Ministarstvo unutarnjih poslova Republike Hrvatske - Naslovna\nPresko\u00c4\udc8di na glavni sadr\u00c5\u00beaj\nOdaberite jezik\nHrvatski\nEnglish\nEnglish\nA\nA\nPrilagodba pristupa\u00c4\udc8dnosti\nVijesti\nO nama\nGra\u00c4\u2018ani\nIstaknute teme\nPristup informacijama\nKutak za voza\u00c4\udc8de\nKontakti\nRadne dozvole\nSchengen FAQ\nPotpredsjednik Vlade Bo\u00c5\u00beinovi\u00c4\u2021 iz Dublina: Kriminalne mre\u00c5\u00bee ne poznaju granice, zato ni razmjena sigurnosnih informacija ne smije imati granice\nNaglasio je da je za uspje\u00c5\u00a1nu borbu protiv najopasnijih kriminalnih mre\u00c5\u00bea potrebno koristiti sve raspolo\u00c5\u00beive instrumente - od policijske i pravosudne suradnje do financijskih istraga i oduzimanja imovinske koristi ste\u00c4\udc8dene kaznenim djelima\n16.07.2026.\nPotpredsjednik Vlade Bo\u00c5\u00beinovi\u00c4\u2021: Hrvatska nema problema s primjenom europskog sustava izlaz/ulaz\nIstaknuo je da na hrvatskim granicama nema ve\u00c4\u2021ih pote\u00c5\u00a1ko\u00c4\u2021a u primjeni sustava zahvaljuju\u00c4\u2021i dobroj pripremi i anga\u00c5\u00bemanu policijskih slu\u00c5\u00bebenika\n13.07.2026.\nMinistar Bo\u00c5\u00beinovi\u00c4\u2021 posjetio ranjenu policajku\nOve godine pet poku\u00c5\u00a1aja ubojstava policajaca\n10.07.2026.\nOstale vijesti\nMinistar Bo\u00c5\u00beinovi\u00c4\u2021 o optu\u00c5\u00bebama da je policija upala u prostor stranke Mo\u00c5\u00beemo: Unato\u00c4\udc8d tome \u00c5\u00a1to je policija bila politi\u00c4\udc8dki napadnuta, ona je nastavila raditi svoj posa"
+            },
+            "candidate_assertion": null,
+            "existing_assertion": null,
+            "coverage_receipt": {
+                "registry_release_version": "un-m49-2026-07-14-6f7490c3",
+                "registry_entry_id": "c1bbaf69-e940-45c6-a079-1ba6f8df2de5",
+                "jurisdiction_id": "82c1467a-5064-47ba-b305-94c2675af042",
+                "alpha2_code": "HR",
+                "name": "Croatia",
+                "coverage_required": true,
+                "coverage_ready": false,
+                "status": "gap",
+                "missing": [
+                    "verified_rule"
+                ],
+                "gates": {
+                    "immigration_rule_assessment": true,
+                    "reviewed_primary_authority": true,
+                    "reviewed_primary_source": true,
+                    "fresh_monitor": true,
+                    "verified_rule": false
+                },
+                "registry_summary": {
+                    "coverage_ready": 50,
+                    "coverage_required": 243,
+                    "with_verified_rule": 50
+                },
+                "global_coverage_claim_ready": false
+            },
+            "next_action": "Review and edit the constrained assertion draft; submission remains a separate human action."
+        }
+    ],
+    "safety": {
+        "creates_review_records": false,
+        "approves_evidence": false,
+        "creates_assertions": false,
+        "publishes_verified_rules": false,
+        "creates_coverage_claim": false,
+        "mutates_immutable_snapshots": false,
+        "message": "The tranche assistant prepares review packets and constrained draft suggestions. It may queue explicitly selected approved baseline captures only when dry_run=false."
+    }
+}

@@ -1,22 +1,73 @@
-import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AgentChatWidget } from "../components/AgentChatWidget";
 
-const displayFont = Space_Grotesk({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  variable: "--font-display",
+  display: "swap",
 });
 
-const monoFont = IBM_Plex_Mono({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Global Mobility AIOS Dashboard",
-  description: "CRM dashboard and truth review queue",
+  title: "Global Mobility AIOS | Operations Workspace",
+  description:
+    "A calm operator workspace for global mobility leads, truth checks, document review, and human-controlled AI workflows.",
 };
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#f7f5ef",
+};
+
+const extensionCleanupScript = `
+  (function() {
+    function strip() {
+      document.querySelectorAll('[bis_skin_checked]').forEach(function(el) {
+        el.removeAttribute('bis_skin_checked');
+      });
+    }
+    strip();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', strip);
+    }
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function(mutations) {
+        var run = false;
+        mutations.forEach(function(m) {
+          if (m.type === 'attributes' && m.attributeName === 'bis_skin_checked') {
+            m.target.removeAttribute('bis_skin_checked');
+          } else if (m.type === 'childList') {
+            run = true;
+          }
+        });
+        if (run) strip();
+      }).observe(document.documentElement, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['bis_skin_checked'],
+        childList: true
+      });
+    }
+  })();
+`;
+
+const themeInitScript = `
+  (function() {
+    try {
+      var stored = localStorage.getItem("gmai-theme");
+      var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    } catch (e) {}
+  })();
+`;
 
 export default function RootLayout({
   children,
@@ -24,8 +75,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${displayFont.variable} ${monoFont.variable}`}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: extensionCleanupScript }} />
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+        {children}
+        <AgentChatWidget />
+      </body>
     </html>
   );
 }

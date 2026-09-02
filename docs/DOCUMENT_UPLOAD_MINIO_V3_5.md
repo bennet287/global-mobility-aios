@@ -1,3 +1,5 @@
+> **Superseded access note:** upload storage remains valid, but direct object-key use and planned durable downloads are replaced by the signed, expiring grant flow in [`SIGNED_DOCUMENT_ACCESS_OBJECT_STORAGE_V9_5.md`](SIGNED_DOCUMENT_ACCESS_OBJECT_STORAGE_V9_5.md).
+
 # Document Upload and MinIO v3.5
 
 This milestone adds the production document upload foundation.
@@ -21,7 +23,7 @@ Not included yet:
 
 - OCR.
 - AI document analysis.
-- Signed file download URLs.
+- Signed, expiring document-access grants (delivered in v9.5).
 - Client portal upload.
 - Virus scanning.
 

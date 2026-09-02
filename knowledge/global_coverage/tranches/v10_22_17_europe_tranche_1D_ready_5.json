@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.17",
+  "title": "Europe coverage evidence tranche 1D - Spain, Portugal, Italy, Slovenia, Croatia",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "ES",
+      "authority_evidence_url": "https://www.exteriores.gob.es/",
+      "source_url": "https://www.exteriores.gob.es/",
+      "evidence_summary": "The Spanish Ministry of Foreign Affairs, European Union and Cooperation operates exteriores.gob.es as the official portal for foreign affairs, consular services and information for foreigners."
+    },
+    {
+      "alpha2_code": "PT",
+      "authority_evidence_url": "https://eportugal.gov.pt/",
+      "source_url": "https://eportugal.gov.pt/",
+      "evidence_summary": "The Portuguese ePortugal portal is the official government services portal, providing access to residence, immigration and citizenship services."
+    },
+    {
+      "alpha2_code": "IT",
+      "authority_evidence_url": "https://www.interno.gov.it/",
+      "source_url": "https://www.interno.gov.it/",
+      "evidence_summary": "The Italian Ministry of the Interior operates interno.gov.it as the official portal for immigration, security, citizenship and civil liberties."
+    },
+    {
+      "alpha2_code": "SI",
+      "authority_evidence_url": "https://www.gov.si/en/",
+      "source_url": "https://www.gov.si/en/",
+      "evidence_summary": "The Slovenian Government operates gov.si/en as the official English-language portal providing access to government services including residence, work and immigration."
+    },
+    {
+      "alpha2_code": "HR",
+      "authority_evidence_url": "https://mup.gov.hr/",
+      "source_url": "https://mup.gov.hr/",
+      "evidence_summary": "The Croatian Ministry of the Interior operates mup.gov.hr as the official portal for border control, migration, asylum and foreigner-related services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.17 Europe evidence tranche 1D - ES, PT, IT, SI, HR",
+    "notes": "Official-source evidence for Spain (ES), Portugal (PT), Italy (IT), Slovenia (SI) and Croatia (HR). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable foreigner, immigration, residence, work or migration content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "ES",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.exteriores.gob.es/",
+          "evidence_title": "Spanish Ministry of Foreign Affairs official portal",
+          "rationale": "The Spanish Ministry of Foreign Affairs, European Union and Cooperation operates exteriores.gob.es as the official portal for foreign affairs, consular services and information for foreigners. This supports a proposal that Spain directly administers the relevant foreigner and consular services through the Ministry of Foreign Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Spanish Ministry of Foreign Affairs, European Union and Cooperation",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.exteriores.gob.es/",
+          "authority_domains": ["visa"],
+          "source_name": "Spanish Ministry of Foreign Affairs official portal",
+          "source_url": "https://www.exteriores.gob.es/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.exteriores.gob.es"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Spanish Ministry of Foreign Affairs portal returned HTTPS 200 with content about foreign affairs, consular services and information for foreigners. Keep the initial certification limited to the consular and foreigner services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "PT",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://eportugal.gov.pt/",
+          "evidence_title": "Portuguese ePortugal official government services portal",
+          "rationale": "The Portuguese ePortugal portal is the official government services portal, providing access to residence, immigration and citizenship services. This supports a proposal that Portugal directly administers the relevant immigration services through the official ePortugal government portal."
+        },
+        "source_onboarding": {
+          "authority_name": "Portuguese ePortugal Government Services Portal",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://eportugal.gov.pt/",
+          "authority_domains": ["visa"],
+          "source_name": "Portuguese ePortugal portal",
+          "source_url": "https://eportugal.gov.pt/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["eportugal.gov.pt"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Portuguese ePortugal portal returned HTTPS 200 with content about government services, including residence and immigration-related services. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "IT",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.interno.gov.it/",
+          "evidence_title": "Italian Ministry of the Interior official portal",
+          "rationale": "The Italian Ministry of the Interior operates interno.gov.it as the official portal for immigration, security, citizenship and civil liberties. This supports a proposal that Italy directly administers the relevant immigration services through the Ministry of the Interior."
+        },
+        "source_onboarding": {
+          "authority_name": "Italian Ministry of the Interior",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.interno.gov.it/",
+          "authority_domains": ["visa"],
+          "source_name": "Italian Ministry of the Interior official portal",
+          "source_url": "https://www.interno.gov.it/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.interno.gov.it"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Italian Ministry of the Interior portal returned HTTPS 200 with content about immigration, citizenship, security and civil liberties. Keep the initial certification limited to the immigration and citizenship services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "SI",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.gov.si/en/",
+          "evidence_title": "Slovenian Government official English portal",
+          "rationale": "The Slovenian Government operates gov.si/en as the official English-language portal providing access to government services including residence, work and immigration. This supports a proposal that Slovenia directly administers the relevant immigration services through the official government portal."
+        },
+        "source_onboarding": {
+          "authority_name": "Slovenian Government",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.gov.si/en/",
+          "authority_domains": ["visa"],
+          "source_name": "Slovenian Government English portal",
+          "source_url": "https://www.gov.si/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.gov.si"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Slovenian Government English portal returned HTTPS 200 with content about government services, life events, residence and work. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "HR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://mup.gov.hr/",
+          "evidence_title": "Croatian Ministry of the Interior official portal",
+          "rationale": "The Croatian Ministry of the Interior operates mup.gov.hr as the official portal for border control, migration, asylum and foreigner-related services. This supports a proposal that Croatia directly administers the relevant immigration services through the Ministry of the Interior."
+        },
+        "source_onboarding": {
+          "authority_name": "Croatian Ministry of the Interior",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://mup.gov.hr/",
+          "authority_domains": ["visa"],
+          "source_name": "Croatian Ministry of the Interior official portal",
+          "source_url": "https://mup.gov.hr/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["mup.gov.hr"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Croatian Ministry of the Interior portal returned HTTPS 200 with content about border control, migration, asylum and foreigner-related services. Keep the initial certification limited to the migration and asylum services explicitly described."
+        }
+      }
+    ]
+  }
+}

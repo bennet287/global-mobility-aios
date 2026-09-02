@@ -1,0 +1,732 @@
+from __future__ import annotations
+
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
+
+
+class TransparencyRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TransparencyRecordRead(TransparencyRead):
+    activity_id: UUID
+    role: str
+    physical_activity_class: str
+    constitutional_activity_class: str | None
+    board_inspectable: bool
+    requires_durable_record: bool | None
+    requires_full_lineage: bool | None
+    may_compact_after_policy_window: bool | None
+    activity_type: str
+    title: str
+    summary: str
+    actor_type: str
+    actor_id: str
+    department: str | None
+    position_key: str | None
+    authority_level: str | None
+    source_object_type: str
+    source_object_id: str
+    source_object_version: str | None
+    work_item_id: UUID | None
+    trace_id: str | None
+    causation_activity_id: UUID | None
+    occurred_at: datetime
+
+
+class GovernanceDecisionRead(TransparencyRead):
+    activity_id: UUID
+    trace_id: str
+    action_type: str
+    capability: str
+    outcome: str
+    reason: str
+    effective_risk_tier: str
+    consequence_class: str
+    human_review_reason: str | None
+    post_review_required: bool
+    constitutional_activity_class: str
+    actor_type: str
+    actor_id: str
+    department: str | None
+    position_key: str | None
+    authority_level: str | None
+    work_item_id: UUID | None
+    source_object_type: str
+    source_object_id: str
+    source_object_version: str | None
+    action_fingerprint: str
+    idempotency_key: str
+    occurred_at: datetime
+
+
+class GovernedTransparencyTraceRead(TransparencyRead):
+    trace_id: str
+    board_inspectable: bool
+    governance: GovernanceDecisionRead
+    records: list[TransparencyRecordRead]
+
+
+class WorkItemTransparencyRead(TransparencyRead):
+    work_item_id: UUID
+    records: list[TransparencyRecordRead]
+
+
+class AustriaLiveRuntimeQualityRead(TransparencyRead):
+    contract_version: str
+    execution_mode: str
+    provider_outcome: str
+    configured_provider: str | None
+    configured_model: str | None
+    response_provider: str | None
+    response_model: str | None
+    configured_runtime_matches_binding: bool | None
+    provider_egress_occurred: bool | None
+    fallback_to_template: bool
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    estimated_cost_usd: float | None
+    grounding_state: str
+    evidence_ref_count: int
+    verified_rule_ref_count: int
+    source_snapshot_ref_count: int
+    fresh_retrieval_provenance_present: bool
+    provider_model_authority: bool
+    warnings: list[str]
+
+
+class AustriaLiveSpecialistRead(TransparencyRead):
+    position_key: str
+    work_item_id: UUID
+    status: str
+    evidence_valid: bool
+    evidence_reason: str | None
+    action_output_id: UUID | None
+    execution_attempt_id: UUID | None
+    agent_run_id: UUID | None
+    context_hash: str | None
+    runtime_binding_hash: str | None
+    latency_ms: int | None
+    retry_count: int | None
+    confidence: float | None
+    provider_model_authority: bool
+    external_action_authorized: bool
+    runtime_quality: AustriaLiveRuntimeQualityRead | None = None
+
+
+class AustriaLiveBlockerRead(TransparencyRead):
+    blocker_id: UUID
+    work_item_id: UUID | None
+    blocker_type: str
+    severity: str
+    status: str
+    title: str
+    description: str
+    accountable_position_key: str | None
+    requires_human_action: bool
+    created_at: datetime
+
+
+class AustriaOwnerSynthesisRead(TransparencyRead):
+    action_output_id: UUID
+    activity_id: UUID
+    disposition: str
+    recommendation: str
+    confidence: float
+    total_latency_ms: int
+    max_latency_ms: int
+    total_retry_count: int
+    external_action_authorized: bool
+    human_review_required: bool
+    completed_at: datetime | None
+
+
+class AustriaLiveOrganizationSnapshotRead(TransparencyRead):
+    generated_at: datetime
+    root_work_item_id: UUID
+    objective_key: str
+    owner_position_key: str
+    root_status: str
+    cycle_status: str
+    owner_synthesis_state: str
+    ready_for_owner_synthesis: bool
+    readiness_reasons: list[str]
+    authority_level: str
+    authority_posture: str
+    autonomy_profile_state: str | None
+    provider_model_authority: bool
+    external_action_authorized: bool
+    specialist_outputs: list[AustriaLiveSpecialistRead]
+    owner_synthesis: AustriaOwnerSynthesisRead | None
+    blockers: list[AustriaLiveBlockerRead]
+    total_latency_ms: int
+    max_latency_ms: int
+    total_retry_count: int
+    activity_count: int
+    activities: list[TransparencyRecordRead]
+    domain_evidence_refs: list[str]
+    verified_rule_refs: list[str]
+    source_snapshot_refs: list[str]
+
+
+class AustriaLiveOrganizationLatestRead(TransparencyRead):
+    established: bool
+    snapshot: AustriaLiveOrganizationSnapshotRead | None
+
+
+class OrganizationReplayCoverageRead(TransparencyRead):
+    activity_history_basis: str
+    activity_history_established: bool
+    activity_history_coverage_start: datetime | None
+    pre_epoch_history: str
+    evidence_history: str
+    risk_escalation_history: str
+    source_snapshot_history: str
+    conversation_history: str
+
+
+class OrganizationReplayEventRead(TransparencyRead):
+    activity_id: UUID
+    event_kind: str
+    coverage_state: str
+    stream_sequence: int
+    activity_class: str
+    activity_type: str
+    title: str
+    summary: str
+    actor_type: str
+    actor_id: str
+    department: str | None
+    position_key: str | None
+    authority_level: str | None
+    work_item_id: UUID | None
+    source_object_type: str
+    source_object_id: str
+    source_object_version: str | None
+    correlation_key: str | None
+    causation_activity_id: UUID | None
+    supersedes_activity_id: UUID | None
+    occurred_at: datetime
+
+
+class OrganizationReplayRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    work_item_ids: list[UUID]
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    coverage: OrganizationReplayCoverageRead
+    total_events: int
+    returned_events: int
+    truncated: bool
+    events: list[OrganizationReplayEventRead]
+
+
+class OrganizationReplayLatestRead(TransparencyRead):
+    established: bool
+    replay: OrganizationReplayRead | None
+
+
+class OrganizationReplayStateWorkItemRead(TransparencyRead):
+    work_item_id: UUID
+    status: str
+    priority: str
+    department: str
+    assigned_position_key: str
+    parent_work_item_id: UUID | None
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateBlockerRead(TransparencyRead):
+    blocker_id: UUID
+    work_item_id: UUID | None
+    status: str
+    blocker_type: str
+    severity: str
+    requires_human_action: bool
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateDecisionRead(TransparencyRead):
+    decision_id: UUID
+    work_item_id: UUID | None
+    status: str
+    decision_type: str
+    authority_level: str
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateHumanRequestRead(TransparencyRead):
+    request_id: UUID
+    work_item_id: UUID | None
+    status: str
+    request_type: str
+    required_role: str
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateConversationRead(TransparencyRead):
+    conversation_id: str
+    work_item_id: UUID | None
+    status: str
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    cursor_activity_id: UUID
+    cursor_occurred_at: datetime
+    cursor_coverage_state: str
+    reconstruction_posture: str
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    supported_dimensions: list[str]
+    unsupported_dimensions: list[str]
+    unapplied_transition_count: int
+    work_items: list[OrganizationReplayStateWorkItemRead]
+    blockers: list[OrganizationReplayStateBlockerRead]
+    decisions: list[OrganizationReplayStateDecisionRead]
+    human_requests: list[OrganizationReplayStateHumanRequestRead]
+    conversations: list[OrganizationReplayStateConversationRead]
+
+
+class OrganizationReplayStateDiffCursorRead(TransparencyRead):
+    activity_id: UUID
+    occurred_at: datetime
+    coverage_state: str
+    reconstruction_posture: str
+    unapplied_transition_count: int
+
+
+class OrganizationReplayStateWorkItemDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateWorkItemRead | None
+    after: OrganizationReplayStateWorkItemRead | None
+
+
+class OrganizationReplayStateBlockerDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateBlockerRead | None
+    after: OrganizationReplayStateBlockerRead | None
+
+
+class OrganizationReplayStateDecisionDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateDecisionRead | None
+    after: OrganizationReplayStateDecisionRead | None
+
+
+class OrganizationReplayStateHumanRequestDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateHumanRequestRead | None
+    after: OrganizationReplayStateHumanRequestRead | None
+
+
+class OrganizationReplayStateConversationDeltaRead(TransparencyRead):
+    entity_id: str
+    change_kind: str
+    changed_fields: list[str]
+    before: OrganizationReplayStateConversationRead | None
+    after: OrganizationReplayStateConversationRead | None
+
+
+class OrganizationReplayStateDiffRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    comparison_basis: str
+    from_cursor: OrganizationReplayStateDiffCursorRead
+    to_cursor: OrganizationReplayStateDiffCursorRead
+    comparison_posture: str
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    supported_dimensions: list[str]
+    unsupported_dimensions: list[str]
+    unchanged_entities_omitted: bool
+    changed_entity_count: int
+    work_items: list[OrganizationReplayStateWorkItemDeltaRead]
+    blockers: list[OrganizationReplayStateBlockerDeltaRead]
+    decisions: list[OrganizationReplayStateDecisionDeltaRead]
+    human_requests: list[OrganizationReplayStateHumanRequestDeltaRead]
+    conversations: list[OrganizationReplayStateConversationDeltaRead]
+
+
+class EnvironmentalMemoryCoverageRead(TransparencyRead):
+    activity_history_basis: str
+    activity_history_established: bool
+    activity_history_coverage_start: datetime | None
+    pre_epoch_history: str
+    bounded_replay_window: str
+    replay_truncated: bool
+    path_history: str
+
+
+class EnvironmentalMemoryKindAggregateRead(TransparencyRead):
+    event_kind: str
+    event_count: int
+
+
+class EnvironmentalMemoryPathFrequencyRead(TransparencyRead):
+    previous_position_key: str
+    assigned_position_key: str
+    handoff_count: int
+    work_item_count: int
+    first_occurred_at: datetime
+    last_occurred_at: datetime
+    coverage_state: str
+
+
+class EnvironmentalMemoryHeatCellRead(TransparencyRead):
+    department: str
+    event_kind: str
+    event_count: int
+    covered_event_count: int
+
+
+class EnvironmentalMemoryTimelineBucketRead(TransparencyRead):
+    bucket_start: datetime
+    event_count: int
+    handoff_count: int
+    blocker_count: int
+    decision_count: int
+    conversation_count: int
+    coverage_state: str
+
+
+class OrganizationEnvironmentalMemoryRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    source_contract_version: str
+    canonical_projection: bool
+    authoritative: bool
+    predictive: bool
+    mutations_allowed: bool
+    visualization_only: bool
+    window_event_count: int
+    window_start: datetime | None
+    window_end: datetime | None
+    coverage: EnvironmentalMemoryCoverageRead
+    kind_aggregates: list[EnvironmentalMemoryKindAggregateRead]
+    path_frequencies: list[EnvironmentalMemoryPathFrequencyRead]
+    heat_cells: list[EnvironmentalMemoryHeatCellRead]
+    timeline: list[EnvironmentalMemoryTimelineBucketRead]
+    unsupported_dimensions: list[str]
+
+
+class OrganizationEnvironmentalMemoryLatestRead(TransparencyRead):
+    established: bool
+    memory: OrganizationEnvironmentalMemoryRead | None
+
+
+class LivingSceneEmployeeRead(TransparencyRead):
+    position_key: str
+    title: str
+    department: str
+    reports_to_position_key: str | None
+    authority_level: str
+    organization_status: str
+    work_item_id: UUID | None
+    work_status: str | None
+    semantic_state: str
+    presence_state: str
+    state_reason: str
+
+
+class LivingSceneDepartmentRead(TransparencyRead):
+    department_key: str
+    label: str
+    employee_count: int
+    work_item_count: int
+    active_blocker_count: int
+    canonical_basis: str
+
+
+class LivingSceneMissionRead(TransparencyRead):
+    mission_key: str
+    objective_key: str
+    root_work_item_id: UUID
+    title: str
+    state: str
+    phase_key: str | None
+    participant_position_keys: list[str]
+    work_item_ids: list[UUID]
+    blocker_count: int
+    decision_count: int
+    projection_only: bool
+    canonical_basis: str
+
+
+class LivingSceneConversationRead(TransparencyRead):
+    conversation_id: str
+    participant_position_keys: list[str]
+    work_item_id: UUID
+    status: str
+    summary: str
+    opened_activity_id: UUID
+    latest_activity_id: UUID
+    opened_at: datetime
+    lifecycle_at: datetime
+    authority_effect: str
+    transcript_persisted: bool
+    canonical_basis: str
+
+
+class LivingSceneHandoffRead(TransparencyRead):
+    activity_id: UUID
+    work_item_id: UUID
+    previous_position_key: str
+    assigned_position_key: str
+    status: str
+    occurred_at: datetime
+    causation_activity_id: UUID | None
+    canonical_basis: str
+
+
+class LivingSceneIncidentRead(TransparencyRead):
+    incident_id: str
+    title: str
+    severity: str
+    status: str
+    work_item_id: UUID | None
+
+
+class LivingSceneSmartObjectRead(TransparencyRead):
+    object_key: str
+    object_type: str
+    label: str
+    state: str
+    metric_label: str
+    metric_value: int | None
+    projection_only: bool
+    canonical_basis: str
+
+
+class LivingSceneCoverageRead(TransparencyRead):
+    departments: str
+    missions: str
+    conversations: str
+    handoffs: str
+    blockers: str
+    human_actions: str
+    risk_escalations: str
+    incidents: str
+    smart_objects: str
+    runtime_costs: str
+    presence: str
+
+
+class LivingSceneWorkItemRead(TransparencyRead):
+    work_item_id: UUID
+    parent_work_item_id: UUID | None
+    title: str
+    objective_key: str | None
+    phase_key: str | None
+    status: str
+    priority: str
+    risk_level: str
+    assigned_position_key: str
+    department: str
+    authority_level: str
+    created_at: datetime
+    updated_at: datetime
+    due_at: datetime | None
+    completed_at: datetime | None
+    elapsed_seconds: int | None
+    overdue: bool
+    specialist_evidence_valid: bool | None
+    specialist_evidence_reason: str | None
+
+
+class LivingSceneBlockerRead(TransparencyRead):
+    blocker_id: UUID
+    work_item_id: UUID | None
+    blocker_type: str
+    title: str
+    description: str
+    severity: str
+    status: str
+    accountable_position_key: str | None
+    decision_id: UUID | None
+    risk_escalation_id: UUID | None
+    requires_human_action: bool
+    opened_at: datetime
+    due_at: datetime | None
+    open_elapsed_seconds: int
+    overdue: bool
+
+
+class LivingSceneDecisionRead(TransparencyRead):
+    decision_id: UUID
+    decision_key: str
+    title: str
+    question: str
+    recommendation: str
+    status: str
+    authority_level: str
+    decision_owner_position: str
+    work_item_id: UUID | None
+    evidence_items: list[object]
+    record_fingerprint: str | None
+    source_object_type: str | None
+    source_object_id: str | None
+    source_object_version: str | None
+    supersedes_decision_id: UUID | None
+    superseded_by_decision_id: UUID | None
+    is_current: bool
+    required_owner_action: bool
+    decided_at: datetime | None
+    created_at: datetime
+    superseded_by_created_at: datetime | None
+    superseded_in_projection_week: bool
+
+
+class LivingSceneHumanActionRequestRead(TransparencyRead):
+    request_id: UUID
+    request_type: str
+    title: str
+    instructions: str
+    status: str
+    priority: str
+    required_role: str
+    assigned_human_id: str | None
+    authority_level: str | None
+    work_item_id: UUID | None
+    decision_id: UUID | None
+    blocker_id: UUID | None
+    requested_at: datetime
+    due_at: datetime | None
+    canonical_basis: str
+
+
+class LivingSceneRiskEscalationRead(TransparencyRead):
+    risk_id: UUID
+    risk_key: str
+    category: str
+    severity: str
+    title: str
+    description: str
+    status: str
+    accountable_position_key: str
+    escalated_to_position_key: str
+    work_item_id: UUID | None
+    requires_board_attention: bool
+    is_emergency: bool
+    evidence_items: list[object]
+    created_at: datetime
+    canonical_basis: str
+
+
+class LivingSceneRoomRead(TransparencyRead):
+    room_key: str
+    room_type: str
+    label: str
+    state: str
+    metric_label: str
+    metric_value: int
+    projection_only: bool
+    canonical_basis: str
+
+
+class LivingSceneRelationshipRead(TransparencyRead):
+    relationship_key: str
+    relationship_type: str
+    source_type: str
+    source_id: str
+    target_type: str
+    target_id: str
+    canonical_basis: str
+
+
+class LivingSceneDeterministicPlaneRead(TransparencyRead):
+    canonical_projection: bool
+    authoritative: bool
+    departments: list[LivingSceneDepartmentRead]
+    missions: list[LivingSceneMissionRead]
+    employees: list[LivingSceneEmployeeRead]
+    work_items: list[LivingSceneWorkItemRead]
+    conversations: list[LivingSceneConversationRead]
+    handoffs: list[LivingSceneHandoffRead]
+    blockers: list[LivingSceneBlockerRead]
+    decisions: list[LivingSceneDecisionRead]
+    human_actions: list[LivingSceneHumanActionRequestRead]
+    risk_escalations: list[LivingSceneRiskEscalationRead]
+    incidents: list[LivingSceneIncidentRead]
+    smart_objects: list[LivingSceneSmartObjectRead]
+    rooms: list[LivingSceneRoomRead]
+    relationships: list[LivingSceneRelationshipRead]
+
+
+class LivingSceneNonCanonicalPlaneRead(TransparencyRead):
+    enabled: bool
+    canonical_projection: bool
+    authoritative: bool
+    status: str
+    items: list[dict[str, object]]
+
+
+class LivingSceneTruthPostureRead(TransparencyRead):
+    canonical_authority: str
+    scene_authoritative: bool
+    renderer_authoritative: bool
+    prediction_authoritative: bool
+    environmental_authoritative: bool
+    scene_mutations_allowed: bool
+
+
+class LivingOrganizationSceneRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    coverage: LivingSceneCoverageRead
+    deterministic: LivingSceneDeterministicPlaneRead
+    predictive: LivingSceneNonCanonicalPlaneRead
+    environmental: LivingSceneNonCanonicalPlaneRead
+    truth: LivingSceneTruthPostureRead
+
+
+class LivingOrganizationSceneLatestRead(TransparencyRead):
+    established: bool
+    scene: LivingOrganizationSceneRead | None

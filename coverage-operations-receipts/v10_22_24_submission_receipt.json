@@ -1,0 +1,82 @@
+{
+  "pack_version": "v10.22.24",
+  "title": "Europe coverage evidence tranche 1F - Hungary, Malta, Liechtenstein, Bosnia and Herzegovina, Albania",
+  "batch_id": "e9ae0899-c89c-41ba-97c0-0cd8e115d8e9",
+  "batch_key": "86eff547e7307162cfefb2234c8621da6250c52143d4507e68f3b4a54d591e72",
+  "submitted_at": "2026-07-18T21:31:22.924811+00:00",
+  "submitted_by": "coverage-evidence-proposer-v10-22-24",
+  "status": "pending_review",
+  "stored_status": "submitted_for_review",
+  "coverage_before": 65,
+  "coverage_after": 65,
+  "global_coverage_claim_ready": false,
+  "item_count": 5,
+  "pending_review_count": 10,
+  "approved_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "alpha2_code": "HU",
+      "item_id": "a3e0681c-544e-47b3-ba2f-1d4e0868067e",
+      "assessment_id": "a48aa1d7-0db9-465a-9a26-f82c38ce2d04",
+      "assessment_status": "pending_review",
+      "certification_id": "72bf3d61-9752-48e5-b63d-6c46bee757b4",
+      "certification_status": "pending_review",
+      "authority_id": "a8787c04-e9dd-48cd-a1a0-a3942abe0233",
+      "official_source_id": "342dace8-77f5-4192-acd9-833a078c44c0",
+      "monitor_id": "6583fbdd-c52d-4107-8d7c-b9c5839dec6f"
+    },
+    {
+      "alpha2_code": "MT",
+      "item_id": "9bc75d7d-6b6f-45c9-8558-4491c72a0f15",
+      "assessment_id": "fa2ecabe-28c9-4628-9bc8-745d7970827c",
+      "assessment_status": "pending_review",
+      "certification_id": "e3bd1fc3-f4ef-40f1-b1b8-091f3fe7dc97",
+      "certification_status": "pending_review",
+      "authority_id": "785c0845-8e07-44ec-bc0a-eb2fe4162849",
+      "official_source_id": "cd83358f-82f9-4ce9-8d72-c79ee9811c73",
+      "monitor_id": "ae01ee7e-98df-48d1-91e4-adb13d5d912c"
+    },
+    {
+      "alpha2_code": "LI",
+      "item_id": "eaf7d6ee-57d4-4805-a63c-c4ff52323ce4",
+      "assessment_id": "898f7a6a-e3c3-4b66-808f-af0eae20e4d2",
+      "assessment_status": "pending_review",
+      "certification_id": "7f04b19c-9ee7-4355-9714-7564293ac277",
+      "certification_status": "pending_review",
+      "authority_id": "d319ee64-403e-41bf-82a5-fb47ac6f2fc8",
+      "official_source_id": "16d0bca1-c415-4bf5-afc6-2739bb325c19",
+      "monitor_id": "9c7305ab-59cf-42a9-bda6-06deccdc8c8a"
+    },
+    {
+      "alpha2_code": "BA",
+      "item_id": "b77f9c0b-a55d-42ff-a26b-8639c9421aea",
+      "assessment_id": "342b1cf1-604f-4af4-8ef3-e6c896309eed",
+      "assessment_status": "pending_review",
+      "certification_id": "f3a4fc5d-fc06-416e-8074-09999ac3b0f5",
+      "certification_status": "pending_review",
+      "authority_id": "fcb418f6-ca63-4920-a62e-68b23bf55341",
+      "official_source_id": "09809dcb-1ab8-45ac-9869-4c7613092473",
+      "monitor_id": "40d6f524-884b-4bb9-b356-2468daeaf81c"
+    },
+    {
+      "alpha2_code": "AL",
+      "item_id": "88c10ccb-b90a-4023-9756-3dbe39d0412a",
+      "assessment_id": "16e4fb58-b35c-4d25-b64e-0bd71c5d0945",
+      "assessment_status": "pending_review",
+      "certification_id": "f110a621-b931-49b5-92e2-d1e280399bdd",
+      "certification_status": "pending_review",
+      "authority_id": "54822aa0-a753-4f99-8958-29dc1b387490",
+      "official_source_id": "f6ddc48a-653c-4770-a14e-70b439531708",
+      "monitor_id": "676a0151-a70e-4001-8141-9167e9c2f2eb"
+    }
+  ],
+  "safety": {
+    "auto_approved": false,
+    "baseline_capture_queued": false,
+    "assertion_created": false,
+    "rule_published": false,
+    "coverage_claimed": false,
+    "message": "The batch created pending assessment and primary-source certification proposals only. Independent review is required before baseline capture can become eligible."
+  }
+}

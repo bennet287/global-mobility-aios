@@ -37,6 +37,7 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
                 "scripts/check_demo_readiness.py",
                 "scripts/seed_demo_data.py",
                 "scripts/check_database_migrations.py",
+                "scripts/check_release_consistency.py",
                 "scripts/check_docker_profile.py",
                 "scripts/check_local_quality.py",
                 "scripts/check_demo_release.py",
@@ -44,11 +45,21 @@ def build_quality_commands(*, skip_pytest: bool = False) -> list[QualityCommand]
                 "scripts/export_mvp_release_bundle.py",
                 "scripts/export_mvp_release_archive.py",
                 "scripts/check_github_release_ready.py",
+                "scripts/seed_global_jurisdiction_registry.py",
+                "scripts/validate_global_coverage_evidence_pack.py",
             ),
+        ),
+        QualityCommand(
+            label="coverage_evidence_packs",
+            argv=(sys.executable, "scripts/validate_global_coverage_evidence_pack.py", "--all"),
         ),
         QualityCommand(
             label="repo_policy",
             argv=(sys.executable, "scripts/check_repo_policy.py", "--root", "."),
+        ),
+        QualityCommand(
+            label="release_consistency",
+            argv=(sys.executable, "scripts/check_release_consistency.py"),
         ),
         QualityCommand(
             label="database_migrations",

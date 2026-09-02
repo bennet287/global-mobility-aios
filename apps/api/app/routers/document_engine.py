@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from app.core.db import get_session
 from app.models.domain import DocumentRecord, Lead, LeadIntent
+from app.services.document_storage import public_document_metadata
 
 router = APIRouter()
 
@@ -237,7 +238,7 @@ def list_lead_documents(
     return jsonable_encoder(
         {
             "lead": lead,
-            "documents": documents,
+            "documents": [public_document_metadata(document) for document in documents],
             "summary": {
                 "total": len(documents),
                 "missing": len(missing),
@@ -281,7 +282,7 @@ def create_document_record(
     return jsonable_encoder(
         {
             "status": "created",
-            "document": record,
+            "document": public_document_metadata(record),
         }
     )
 
@@ -327,7 +328,7 @@ def update_document_status(
     return jsonable_encoder(
         {
             "status": "updated",
-            "document": document,
+            "document": public_document_metadata(document),
         }
     )
 
@@ -346,7 +347,7 @@ def document_verification_queue(
     return jsonable_encoder(
         {
             "count": len(documents),
-            "documents": documents,
+            "documents": [public_document_metadata(document) for document in documents],
         }
     )
 

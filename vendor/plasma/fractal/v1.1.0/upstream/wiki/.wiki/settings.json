@@ -1,0 +1,15 @@
+{
+  "naming": {
+    "validate": [
+      "ascii",
+      "identifier"
+    ],
+    "allow": "",
+    "deny": "",
+    "pattern": null,
+    "min_length": null,
+    "max_length": null,
+    "leading_digits": true,
+    "reserved": []
+  }
+}

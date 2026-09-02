@@ -1,0 +1,102 @@
+{
+  "pack_version": "v10.22.8",
+  "title": "Africa coverage evidence tranche 1D - Ghana, Guinea",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 2,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "GH",
+      "authority_evidence_url": "https://evisa.immigration.gov.gh/",
+      "source_url": "https://evisa.immigration.gov.gh/",
+      "evidence_summary": "The Ghana Immigration Service operates the official Ghana Electronic Visa Portal at evisa.immigration.gov.gh for online visa applications."
+    },
+    {
+      "alpha2_code": "GN",
+      "authority_evidence_url": "https://www.paf.gov.gn/visa",
+      "source_url": "https://www.paf.gov.gn/visa",
+      "evidence_summary": "The Police aux Frontieres (PAF) of the Republic of Guinea operates the official e-visa page at paf.gov.gn/visa for electronic visa applications and entry requirements."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.8 Africa evidence tranche 1D - GH, GN",
+    "notes": "Official-source evidence for Ghana (GH) and Guinea (GN). Ghana's official e-visa portal is operated by the Ghana Immigration Service. Guinea's official e-visa page is operated by the Police aux Frontieres (PAF). Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/visa content. Gabon (GA) remains blocked by TLS certificate validation from the previous tranche. Gambia (GM) and Guinea-Bissau (GW) were deferred because a confirmed reachable official source was not yet identified. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "GH",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.immigration.gov.gh/",
+          "evidence_title": "Ghana e-Visa - official Ghana Immigration Service portal",
+          "rationale": "The Ghana Immigration Service operates the official Ghana Electronic Visa Portal at evisa.immigration.gov.gh, which enables online visa applications and publishes visa service information. This supports a proposal that Ghana directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Ghana Immigration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisa.immigration.gov.gh/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Ghana e-Visa Portal",
+          "source_url": "https://evisa.immigration.gov.gh/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisa.immigration.gov.gh"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Ghana Immigration Service operates the official Ghana Electronic Visa Portal at evisa.immigration.gov.gh. The page includes structured GovernmentService JSON-LD identifying the Ghana Immigration Service as the provider. Keep the initial certification limited to the visa and entry functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "GN",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.paf.gov.gn/visa",
+          "evidence_title": "Guinea e-Visa - official Police aux Frontieres visa page",
+          "rationale": "The Police aux Frontieres (PAF) of the Republic of Guinea operates the official e-visa page at paf.gov.gn/visa, which enables electronic visa applications and describes entry requirements. This supports a proposal that Guinea directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Police aux Frontieres of the Republic of Guinea",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.paf.gov.gn/visa",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Guinea e-Visa - Police aux Frontieres",
+          "source_url": "https://www.paf.gov.gn/visa",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.paf.gov.gn"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Police aux Frontieres (PAF) of the Republic of Guinea operates the official e-visa page at paf.gov.gn/visa. The page contains electronic visa application and Guinea entry requirement information. Keep the initial certification limited to the visa and entry functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

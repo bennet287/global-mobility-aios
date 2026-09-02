@@ -1,0 +1,79 @@
+# Business and Wealth Mobility Advisory v11.4
+
+## Purpose
+
+The Business & Wealth Advisor turns an operator's detailed description of a founder, business, investor, HNWI, family-office, tax-residency, or asset-and-family objective into a structured decision-support assessment. It is designed to be commercially useful: it presents distinct routes, explains why each route may fit, identifies what would prevent execution, and provides the next evidence and specialist actions.
+
+It does not manufacture certainty. A visa, residence, citizenship, tax, banking, investment, or authority outcome cannot be expressed as a reliable probability from the available inputs. The displayed meter is therefore a **feasibility-readiness score**, not a success guarantee or approval prediction.
+
+## Assessment contract
+
+Each assessment records:
+
+- the client or unlinked scenario, primary intention, target countries, narrative, timing, family scope, and commercial facts;
+- declared capital, net worth, revenue, staffing, business age, and founder experience where supplied;
+- source-of-funds confirmation, disclosed risks, and controlled document references;
+- information, evidence, commercial-fit, and published-pathway-grounding sub-scores;
+- three ranked strategic options with rationales, blockers, next actions, linked published pathway versions, and verification state;
+- an overall feasibility-readiness score and band, risk flags, escalation state, score semantics, generator, and timestamps.
+
+The assessment is stored as a pending-review record. Review is append-only and must be performed by an authenticated actor other than the generator.
+
+## Scoring semantics
+
+The meter ranges from 0 to 100 and combines four visible components:
+
+1. **Information completeness** — whether the facts needed to analyze the intention were supplied.
+2. **Evidence strength** — whether the scenario is backed by controlled documents and a supportable source of funds.
+3. **Commercial fit** — whether capital, operating history, revenue, staffing, experience, and timing support the proposed archetype.
+4. **Pathway grounding** — whether the option is linked to a currently published, versioned pathway in the requested country and domain.
+
+An assessment with no published route is capped below a strong-readiness result. A prohibited-conduct signal is capped at a low score and escalated. These caps prevent confident-looking results from outrunning verified evidence.
+
+## Commercial strength and risk handling
+
+The advisor must not stop at a generic warning when a route is weak. It should find the strongest supportable alternative: a different sequencing of founder and company moves, an operating-company route rather than passive investment, a narrower country strategy, staged evidence development, or referral to licensed immigration, tax, corporate, banking, sanctions, or investment specialists.
+
+Material complications such as refusals, criminal history, litigation, bankruptcy, tax debt, politically exposed person or sanctions exposure, and complex source of funds are surfaced as explicit risk flags and specialist-review requirements. They are not silently ignored.
+
+The system does not provide instructions to conceal ownership or funds, use nominees deceptively, fabricate or backdate documents, create sham operations, evade tax or sanctions, misrepresent facts, or unlawfully circumvent controls. When such an intention appears, the assessment records a blocker and proposes lawful remediation or a different route. This boundary protects clients from brittle strategies that can fail during immigration, tax, banking, due-diligence, or authority review.
+
+## Source and review controls
+
+- Only published pathway versions can contribute pathway-grounding points.
+- Linked controlled documents must belong to the selected lead.
+- The assessment retains the exact pathway-version identifiers used at generation time.
+- Every create and review mutation is authenticated, actor-attributed, and audited.
+- Read-only roles cannot create or review assessments.
+- Human approval does not convert the assessment into legal, tax, investment, or authority advice; it confirms that a qualified operator reviewed the recorded decision support.
+
+## Situation-aware advisory endpoint
+
+`POST /api/v1/business-mobility-advisory/advise` returns an immediate, structured
+recommendation for a described situation without persisting a formal assessment.
+It is intentionally more commercially oriented than the stored assessment flow:
+
+- The success meter is computed from the actual disclosed facts (capital, net
+  worth, revenue, founder experience, business age, timeline, family relocation,
+  source-of-funds confirmation), the available published pathways and investment
+  programs, and the declared risk disclosures.
+- Recommendations are ranked by a per-strategy fit score so the best option is
+  surfaced even when the first archetype in the intent map is not the strongest.
+- Returned actions and critical factors are intent-specific (startup, expansion,
+  passive investment, family-office relocation, tax-residency planning, etc.)
+  rather than a generic checklist.
+- Disclosed complications (prior refusals, source-of-funds questions, sanctions/PEP
+  exposure) produce a risk flag and mandatory human-review requirement, but the
+  endpoint still returns the strongest lawful alternative and the remediation or
+  specialist path. It does not stop at a generic refusal.
+- Prohibited-conduct signals (concealment, forgery, tax/sanctions evasion,
+  nominee deception, etc.) remain capped at a low score and escalated. The
+  response describes lawful remediation or an alternative route instead of a
+  step-by-step plan for the illegal act.
+
+## API and interface
+
+The API is exposed under `/api/v1/business-mobility-advisory/assessments` for create, list, read, and independent review operations. The `/business-advisory` workspace provides the narrative brief, commercial facts, feasibility meter, sub-scores, ranked strategies, blockers, execution sequence, escalation state, and assessment ledger.
+
+`POST /api/v1/business-mobility-advisory/advise` provides the situation-aware,
+on-demand recommendation described above.

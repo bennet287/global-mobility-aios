@@ -1,0 +1,108 @@
+Screen { background: $background; color: $foreground; layers: base overlay; }
+#header { height: 1; padding: 0 1; color: $chrome; }
+#footer { height: 1; padding: 0 1; color: $chrome; }
+#body { height: 1fr; }
+#leftcol { width: 1fr; height: 100%; }
+#top { height: 1fr; }
+#top > .pane { height: 100%; }
+.pane { border: round $border-dim; padding: 0 1; background: $background; border-title-color: $title; }
+/* the focus border tells navigation state apart: body-text grey = the ring
+   cursor is on the pane, accent = entered (the keys are inside) */
+.pane.ringsel { border: round $foreground; border-title-color: $foreground; }
+.pane.entered { border: round $primary; border-title-color: $primary; }
+#fractal, #radio, #node, #message { border-title-align: center; }
+/* max-width pins the tree inside its column: the geometry path and the edge
+   drag both set absolute widths, which otherwise paint under the neighbors
+   whenever the node pane leaves less room than the tree's natural width */
+#fractal { width: auto; max-width: 100%; padding: 0 $pane-pad; }
+#radio { width: 1fr; padding: 0 $pane-pad; }
+#node { width: auto; height: 100%; padding: 0 $pane-pad; }
+#message { height: 21; }
+#m_fields { height: 1; }
+.cell { width: auto; height: 1; margin: 0 $gap 0 0; }
+.cell Label { color: $chrome; padding: 0 1 0 0; }
+#m_convo { height: 1fr; }
+.msg { width: 1fr; height: auto; }
+.you { background: $panel; }
+#m_subjectrow { height: 1; }
+#m_subjectrow Label { color: $chrome; padding: 0 1 0 0; }
+#m_composer { height: auto; margin-top: 1; background: $panel; }
+#m_composer.bodylit { background: $lit; }
+#m_composer Label { color: $primary; padding: 0 1 0 0; background: $panel; }
+Input { height: 1; border: none; padding: 0 1; background: $surface; color: $foreground; }
+Input:focus { background: $sel; }
+/* !important: the field-cursor light must beat Input:focus, which outranks a bare class */
+.fsel { background: $lit !important; }
+#m_combodrop { layer: overlay; background: $overlay; border: round $primary; padding: 0 1; }
+#rdrop { layer: overlay; background: $overlay; border: round $primary; padding: 0 1; }
+#rreact { layer: overlay; background: $overlay; border: round $primary; padding: 0 1; }
+.zonefocus { background: $zone; }
+.litdiv { color: $primary; }
+/* minimal scrollbars: a one-column vertical handle (no horizontal bar) on a
+   near-black trough picked darker than every UI tone -- the panes keep the
+   terminal's own ansi-default background, and a handle floating on it with no
+   rail reads as a stray fragment, so the quietest possible rail anchors it */
+VerticalScroll, OptionList, TextArea { scrollbar-size: 0 1; scrollbar-background: $scroll-bg; scrollbar-background-hover: $scroll-bg; scrollbar-background-active: $scroll-bg; scrollbar-color: $scroll; scrollbar-color-hover: $scroll-hover; scrollbar-color-active: $scroll-active; }
+OptionList > .option-list--option-highlighted, OptionList:focus > .option-list--option-highlighted { background: $lit; color: $ink-bright; }
+#m_kind { width: auto; height: 1; margin: 0 $gap 0 0; }
+#m_session { width: $m-session-w; }
+#m_thread { width: $m-thread-w; }
+#m_priority { width: $m-priority-w; }
+#m_subject { width: 1fr; }
+#m_body { width: 1fr; height: auto; max-height: 5; background: $panel; border: none; padding: 0; }
+#message.radiokind #m_body { max-height: 14; }
+#m_hint { dock: bottom; width: 1fr; height: 1; color: $chrome; text-align: right; padding: 0 1 0 0; }
+#radiolist { height: 1fr; }
+#rdetail { height: 1fr; display: none; }
+#rd_text { height: auto; padding: 1 0; }
+#radiosrc { height: 1; }
+#radiofilters { height: 1; }
+#radiocols { height: 1; padding: 0 1 0 0; }
+#radiorows { height: 1fr; scrollbar-gutter: stable; }
+#radiofoot { height: 1; }
+.rrow { width: 1fr; height: auto; }
+.rsel { background: $sel; }
+#nodehead { height: 1; }
+#noderun { height: 1; }
+#nodeident { height: auto; margin-top: 1; }
+#nodemeasures { height: auto; margin-top: 1; }
+#nodeconfig { height: auto; margin-top: 1; text-wrap: nowrap; text-overflow: ellipsis; }
+#nodecard { height: auto; }
+#nodeexcols { height: 1; padding: 0 1 0 0; }
+#nodebody { height: 1fr; }
+/* runs collapsed (default): at most half the body; any run expanded (.expanded):
+   may grow to fully hide the activity region below before the runs view itself scrolls.
+   The body holds only #nodeexplore + #nodeactivity(1fr) so a 100% runs view squeezes
+   the activity region to 0 without overflowing a fixed sibling. */
+#nodeexplore { height: auto; max-height: 50%; }
+#nodeexplore.expanded { max-height: 100%; }
+#nodeactivity { height: 1fr; }
+#nodeevdiv { margin: 0; }
+/* toggle, a blank line, then the column header row over the log */
+#nodelogscope { height: 1; text-align: center; margin-bottom: 1; }
+#nodeevcols { height: 1; padding: 0 1 0 0; }
+#nodeevents { height: 1fr; scrollbar-gutter: stable; }
+.evrow { width: 1fr; height: 1; }
+.evdate { width: 1fr; height: 1; }
+.evrow.expanded { height: auto; }
+#nodefoot { height: 1; }
+.footwrap { dock: bottom; height: 2; }
+#treebody { height: 1fr; }
+.trow { width: 1fr; height: auto; }
+.tprefix { width: auto; height: 1; }
+/* a column of air keeps a truncated label's ellipsis off the scrollbar */
+.tlabel { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; padding: 0 1 0 0; }
+/* the hovered row's label unfolds, hanging under its own start column --
+   and the keyboard-selected one's, since hover needs any-motion mouse
+   reporting some terminals (Apple Terminal) lack */
+.trow.expanded .tlabel, .trow.tsel .tlabel { height: auto; text-wrap: wrap; text-overflow: fold; }
+/* the unfolded row's head fills the wrapped height with its hang lines, so
+   the tree's vertical glyphs stay continuous (cropped to one line at rest) */
+.trow.expanded .tprefix, .trow.tsel .tprefix { height: 100%; }
+.tsel { background: $sel; }
+#treefoot { height: 1; width: 1fr; text-align: center; }
+.exrow { width: 1fr; height: auto; }
+Rule { height: 1; margin: 0; color: $rule; }
+/* the config tooltip shows a whole pretty-printed JSON file: size to fit
+   (the stock Tooltip caps max-width at 40 and wraps) */
+Tooltip { max-width: 100vw; }

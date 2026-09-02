@@ -76,6 +76,7 @@ async def login(request: Request):
         settings.auth_session_cookie,
         create_session_token(username=username, role=role),
         httponly=True,
+        secure=settings.is_production(),
         samesite="lax",
     )
     return response

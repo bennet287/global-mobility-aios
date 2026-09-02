@@ -1,0 +1,184 @@
+{
+  "schema_version": "mobility-gold-v1",
+  "benchmark_key": "austria-rwr-shortage-2026-v1",
+  "jurisdiction": "Austria",
+  "evaluation_as_of": "2026-08-22T08:00:00+00:00",
+  "provenance": "OFFICIAL_SOURCE_CURATED",
+  "professional_review_status": "NOT_REVIEWED",
+  "claim_boundary": "Official-source-curated benchmark seed. Case facts are asserted scenario inputs for route-evaluation testing, not authenticated documents or authority findings. A true asserted fact does not prove documentary sufficiency, qualification equivalence, qualifying work-experience evidence, or authority confirmation. expected.missing_evidence is relative to the simplified asserted fact set and does not certify that an application file is document-complete. expected.required_evidence is a bounded route-evaluation evidence taxonomy, not an exhaustive residence-application document checklist. This is not professional legal review and does not replace AMS or residence-authority assessment.",
+  "sources": [
+    {
+      "ref": "migration.gv.at:rwr-skilled-shortage",
+      "url": "https://www.migration.gv.at/index.php?id=1050",
+      "supports": [
+        "completed training in a shortage occupation",
+        "binding Austrian job offer and applicable minimum remuneration",
+        "minimum 55 points",
+        "24-month Red-White-Red Card category"
+      ]
+    },
+    {
+      "ref": "migration.gv.at:shortage-occupations-2026",
+      "url": "https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/austria-wide-shortage-occupations/",
+      "supports": [
+        "2026 Austria-wide shortage occupation list",
+        "Software Engineer (Ing) and Software Engineer (DI) entries"
+      ]
+    },
+    {
+      "ref": "oesterreich.gv.at:rwr-shortage-application",
+      "url": "https://www.oesterreich.gv.at/de/themen/menschen_aus_anderen_staaten/aufenthalt/3/2/2/Seite.120231",
+      "supports": [
+        "special requirements for skilled workers in shortage occupations",
+        "minimum 55 points",
+        "fixed job and applicable minimum remuneration",
+        "authority/application context"
+      ]
+    },
+    {
+      "ref": "ris.bka.gv.at:auslbg-12a",
+      "url": "https://www.ris.bka.gv.at/eli/bgbl/1975/218/P12a/NOR40257948",
+      "supports": [
+        "statutory route requirements for skilled workers in shortage occupations",
+        "proof of relevant completed vocational training",
+        "minimum points requirement by reference to AuslBG Annex B",
+        "minimum remuneration requirement for the intended employment"
+      ]
+    },
+    {
+      "ref": "ris.bka.gv.at:auslbg-annex-b",
+      "url": "https://www.ris.bka.gv.at/eli/bgbl/1975/218/ANL2/NOR40252045",
+      "supports": [
+        "points criteria for skilled workers in shortage occupations",
+        "30 points for completed vocational education/training in the shortage occupation",
+        "work experience matching qualification capped at 20 points",
+        "age criteria",
+        "minimum 55 points"
+      ]
+    },
+    {
+      "ref": "ris.bka.gv.at:fachkraefteverordnung-2026-1",
+      "url": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/316/P1/NOR40274302",
+      "supports": [
+        "Fachkräfteverordnung 2026 legal basis",
+        "2026 nationwide shortage-occupation categories including graduate engineers for data processing"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "at-rwr-shortage-software-di-no-job-offer-2026-01",
+      "facts": {
+        "third_country_citizen": true,
+        "occupation": "Software Engineer (DI)",
+        "completed_training_in_shortage_occupation": true,
+        "relevant_work_experience_years": 10,
+        "age_years": 29,
+        "binding_job_offer_in_austria": false
+      },
+      "expected": {
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
+        "eligibility": "INELIGIBLE",
+        "required_evidence": [
+          "shortage_occupation_training",
+          "binding_job_offer",
+          "applicable_minimum_remuneration",
+          "points_evidence"
+        ],
+        "missing_evidence": [
+          "binding_job_offer",
+          "applicable_minimum_remuneration"
+        ],
+        "contradictions": [],
+        "rule_or_source_refs": [
+          "migration.gv.at:rwr-skilled-shortage",
+          "migration.gv.at:shortage-occupations-2026",
+          "oesterreich.gv.at:rwr-shortage-application",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
+        ],
+        "escalation_required": false
+      },
+      "rationale": "Even if the asserted training, ten years of relevant experience and age would produce a strong points score, the route separately requires intended qualifying employment with the applicable remuneration. The stated absence of a binding Austrian job offer is therefore a current route failure on the benchmark facts. Positive training/experience assertions remain unverified scenario inputs.",
+      "fact_evidence_boundary": "Facts are asserted scenario inputs, not authenticated documents. The explicit absence of a binding Austrian job offer is treated as a known route failure for this benchmark; positive training/experience assertions do not establish documentary sufficiency or AMS confirmation."
+    },
+    {
+      "case_id": "at-rwr-shortage-software-di-strong-points-2026-01",
+      "facts": {
+        "third_country_citizen": true,
+        "occupation": "Software Engineer (DI)",
+        "completed_training_in_shortage_occupation": true,
+        "relevant_work_experience_years": 10,
+        "age_years": 29,
+        "binding_job_offer_in_austria": true,
+        "applicable_minimum_remuneration_confirmed": true
+      },
+      "expected": {
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
+        "eligibility": "ELIGIBLE",
+        "required_evidence": [
+          "shortage_occupation_training",
+          "binding_job_offer",
+          "applicable_minimum_remuneration",
+          "points_evidence"
+        ],
+        "missing_evidence": [],
+        "contradictions": [],
+        "rule_or_source_refs": [
+          "migration.gv.at:rwr-skilled-shortage",
+          "migration.gv.at:shortage-occupations-2026",
+          "oesterreich.gv.at:rwr-shortage-application",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
+        ],
+        "escalation_required": false
+      },
+      "rationale": "On the asserted benchmark facts, completed shortage-occupation training contributes 30 points, ten years of qualification-matching experience reaches the 20-point cap, and age 29 contributes 15, for 65 points. A binding Austrian job offer and applicable minimum remuneration are also asserted. The mandatory route criteria are therefore satisfied on the stated facts and the route-level label is ELIGIBLE. This does not authenticate documents, bind AMS or the residence authority, authorize submission, or imply final issuance; those downstream verification and governance steps remain separate from the route-level eligibility label.",
+      "fact_evidence_boundary": "All positive facts are asserted for route-evaluation testing only. ELIGIBLE means the mandatory shortage-occupation route criteria are satisfied if these facts are accepted as true; it does not mean qualification, work-experience, job-offer, remuneration, identity, or other application documents have been authenticated or accepted by AMS or the residence authority. missing_evidence=[] means no bounded route-evidence category is absent from the asserted fact set, not that the real application file is complete."
+    },
+    {
+      "case_id": "at-rwr-shortage-software-di-under-points-2026-01",
+      "facts": {
+        "third_country_citizen": true,
+        "occupation": "Software Engineer (DI)",
+        "completed_training_in_shortage_occupation": true,
+        "relevant_work_experience_years": 0,
+        "age_years": 51,
+        "language_points": 0,
+        "binding_job_offer_in_austria": true,
+        "applicable_minimum_remuneration_confirmed": true
+      },
+      "expected": {
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
+        "eligibility": "INELIGIBLE",
+        "required_evidence": [
+          "shortage_occupation_training",
+          "binding_job_offer",
+          "applicable_minimum_remuneration",
+          "points_evidence"
+        ],
+        "missing_evidence": [],
+        "contradictions": [],
+        "rule_or_source_refs": [
+          "migration.gv.at:rwr-skilled-shortage",
+          "migration.gv.at:shortage-occupations-2026",
+          "oesterreich.gv.at:rwr-shortage-application",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
+        ],
+        "escalation_required": false
+      },
+      "rationale": "On the asserted benchmark facts, training contributes 30 points while age 51, zero qualifying experience and zero language points add nothing, leaving the case below the statutory 55-point minimum. This route-level arithmetic does not itself authenticate the training documentation.",
+      "fact_evidence_boundary": "Facts are asserted scenario inputs, not authenticated documents. The points result is conditional on accepting the asserted training fact for benchmark arithmetic; real qualification documentation and authority assessment remain required."
+    }
+  ]
+}

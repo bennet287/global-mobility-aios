@@ -19,6 +19,7 @@ from app.models.domain import (
     TruthClaim,
 )
 from app.services.audit_log import record_audit
+from app.services.external_action_gates import assert_application_submission_authorized
 
 router = APIRouter(tags=["application-engine"])
 
@@ -391,6 +392,30 @@ def get_application_queue(session: Session = Depends(get_session)):
     return _json_response({"total_leads": len(leads), "stage_counts": stage_counts, "items": items})
 
 
+@router.get("/api/v1/applications")
+def list_applications(
+    lead_id: str | None = None,
+    domain: str | None = None,
+    status: str | None = None,
+    limit: int = 100,
+    session: Session = Depends(get_session),
+):
+    """Return a lightweight list of application records.
+
+    Used by operator UIs (e.g. authority appointment scheduling) that need to
+    pick an application without loading the full lifecycle queue payload.
+    """
+    query = select(ApplicationRecord).order_by(ApplicationRecord.created_at.desc())
+    if lead_id:
+        query = query.where(ApplicationRecord.lead_id == _uuid_or_404(lead_id, "lead_id"))
+    if domain:
+        query = query.where(ApplicationRecord.domain == domain)
+    if status:
+        query = query.where(ApplicationRecord.status == status)
+    apps = session.exec(query.limit(limit)).all()
+    return _json_response([_application_record_to_dict(app) for app in apps])
+
+
 @router.post("/api/v1/applications/leads/{lead_id}/draft")
 def create_application_draft(lead_id: str, request: ApplicationDraftRequest, session: Session = Depends(get_session)):
 
@@ -522,15 +547,17 @@ def submit_application(application_id: str, request: ApplicationActionRequest = 
         raise HTTPException(status_code=404, detail="Lead for application not found")
     readiness = _calculate_readiness(session, lead)
     app_status = _safe_status(getattr(app, "status", None))
-    if app_status != "approved":
+    try:
+        assert_application_submission_authorized(app)
+    except ValueError as exc:
         raise HTTPException(
             status_code=409,
             detail={
-                "message": "Application submission requires explicit human approval first.",
+                "message": str(exc),
                 "application_status": app_status,
                 "readiness": jsonable_encoder(readiness),
             },
-        )
+        ) from exc
     if not readiness["can_approve"]:
         raise HTTPException(
             status_code=409,
@@ -644,6 +671,7 @@ def debug_application_engine():
         "status": "ok",
         "version": "v1.6",
         "routes": [
+            "GET /api/v1/applications",
             "GET /api/v1/applications/queue",
             "GET /api/v1/applications/leads/{lead_id}/readiness",
             "POST /api/v1/applications/leads/{lead_id}/draft",

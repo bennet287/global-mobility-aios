@@ -1,0 +1,68 @@
+# NOTE: the marker-file lines below mirror the loop marker constants in
+#   fractal/constants.py -- retire or add markers in both places in the
+#   same change (the exclude<->markers lockstep)
+
+# Git worktrees
+/.worktrees/
+
+# Virtual environment
+.venv
+
+# Local databases
+.db
+.db-*
+
+# Status file
+.status
+
+# Tree pause latch
+.paused
+
+# Process group handles
+.pgid
+.step_pgid
+
+# Tmux socket handle
+.socket
+
+# Obsidian config
+.obsidian/
+
+# Agent config
+.agents/
+.claude/
+.codex/
+.grok/
+.opencode/
+.omp/
+
+# System skills
+**/skills/.system/
+
+# Agent stderr
+claude.err
+codex.err
+grok.err
+opencode.err
+omp.err
+
+# Setup log
+setup.log
+
+# Config write lock
+config.json.lock
+
+# Agent session IDs
+.session
+
+# Pause abort marker
+.pause_abort
+
+# Scratch directory
+tmp/
+
+# Write-atomic temp files
+.*-*.tmp
+
+# Bytecode
+__pycache__/

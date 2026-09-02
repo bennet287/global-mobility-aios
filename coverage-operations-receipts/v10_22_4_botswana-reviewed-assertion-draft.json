@@ -1,0 +1,10 @@
+{
+    "alpha2_code":  "BW",
+    "domain":  "visa",
+    "title":  "Botswana tourism visa service information baseline",
+    "rule_key":  "bw_tourism_visa_service_information_baseline",
+    "statement":  "The official Government of Botswana tourism visa service page states that the service concerns recreational visits, identifies non-citizens from visa-required countries as eligible for the service, and describes application submission and outcome-check procedures.",
+    "evidence_excerpt":  "This is issued to people who intend to visit Botswana for recreational purposes.\n\nAll non-citizens from countries that require visa to enter Botswana as tourists are eligible for this service.\n\nAny immigration office, Botswana embassy or consulate may receive an in-person visa application with the required documents.\n\nApplicants are instructed to check the outcome from the submitting office after seven to fourteen working days.",
+    "rationale":  "This assertion narrowly records service information present in immutable snapshot bc99cd44-b48d-4f3b-9492-ec9160d3f6e1. It does not assert nationality-specific visa requirements, legal entitlement, approval, guaranteed processing time, or complete Botswana immigration-law coverage.",
+    "confidence":  0.9
+}

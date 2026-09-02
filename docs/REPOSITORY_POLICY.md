@@ -33,6 +33,27 @@ This document defines the controlled GitHub repository set allowed for Global Mo
    - Local model runtime for phase-1 local-first operation.
 11. langfuse/langfuse
    - LLM tracing, evaluation, observability, and auditability.
+12. promptfoo/promptfoo
+   - AI prompt regression, adversarial evaluation, and safety testing for controlled agents.
+13. open-telemetry/opentelemetry-python and open-telemetry/opentelemetry-python-contrib
+   - Vendor-neutral application/AI telemetry foundation (SDK, FastAPI instrumentation, OTLP exporters).
+   - License: Apache 2.0.
+   - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 1 pilot.
+   - AIOS Semantic Sovereignty: OpenTelemetry remains engineering trace only and never substitutes
+     for OrganizationActivity, AuditLog, evidence provenance, or business authority.
+14. Cisco-Talos/clamav
+   - Open-source antivirus engine and malware scanner for untrusted document upload handling.
+   - License: GNU GPL v2 (with linking exception for the official client libraries).
+   - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 1 pilot.
+   - AIOS Semantic Sovereignty: a clean scan is an engineering safety signal, not evidence of
+     authenticity, legal sufficiency, or evidence validity. An infected result may reject an upload.
+15. DS4SD/docling
+   - Open-source document normalization and structured document understanding library.
+   - License: MIT.
+   - Used as an optional, disabled-by-default Technology Radar V1.1 Wave 2 pilot.
+   - AIOS Semantic Sovereignty: Docling output is a machine-readable normalization signal, not
+     evidence of authenticity, legal sufficiency, or evidence validity; extracted values still
+     require human review and authority verification.
 
 ## Adapted Repositories (Constrained Use)
 
@@ -55,6 +76,14 @@ This document defines the controlled GitHub repository set allowed for Global Mo
 - Awesome-AI-Security
 - awesome-security-GRC
 - kubescape (defer to later Kubernetes phases)
+- chaitanyagiri/munder-difflin, snapshot `v0.4.4`
+  - Existing MIT-licensed vendored reference snapshot under `vendor/munder-difflin/v0.4.4`.
+  - It is not an approved runtime/build dependency and must remain isolated from production imports,
+    package manifests, execution paths, and authority semantics unless a later architecture/legal
+    review explicitly promotes a bounded component.
+  - Upstream comments/changelogs may mention providers or repositories excluded by AIOS policy;
+    repository-policy substring scanning therefore does not rewrite or classify those vendored
+    upstream bytes as Global Mobility AIOS product source.
 
 ## Explicitly Excluded Categories
 

@@ -4,4 +4,10 @@ crewai>=0.80
 ollama>=0.4
 sentence-transformers>=3.0
 unstructured>=0.16
-pypdf>=5.0
+
+# Docling — optional document normalization / structured understanding pilot
+# (Technology Radar V1.1 Wave 2). Heavy dependency tree; kept out of core
+# requirements.txt so the API remains fast to install without the optional
+# document-intelligence stack. The adapter degrades gracefully when docling is
+# not installed.
+docling>=2.15.0

@@ -1,0 +1,102 @@
+{
+  "pack_version": "v10.22.12",
+  "title": "Africa coverage evidence tranche 1H - South Africa, Seychelles",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 2,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "ZA",
+      "authority_evidence_url": "https://www.dha.gov.za/",
+      "source_url": "https://www.dha.gov.za/",
+      "evidence_summary": "The South African Department of Home Affairs operates dha.gov.za as the official government portal for immigration, visas, passports, and citizenship services."
+    },
+    {
+      "alpha2_code": "SC",
+      "authority_evidence_url": "https://seychelles.govtas.com/en",
+      "source_url": "https://seychelles.govtas.com/en",
+      "evidence_summary": "The Seychelles government operates the seychelles.govtas.com travel authorisation system as the official government service for entry to Seychelles."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.12 Africa evidence tranche 1H - ZA, SC",
+    "notes": "Official-source evidence for South Africa (ZA) and Seychelles (SC). South Africa's official source is the Department of Home Affairs portal at dha.gov.za. Seychelles's official source is the government travel authorisation system at seychelles.govtas.com/en, which is marked with structured GovernmentOrganization JSON-LD identifying it as an official government service. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/entry content. Gabon (GA), Gambia (GM), Guinea-Bissau (GW), Democratic Republic of the Congo (CD), Nigeria (NG), South Sudan (SS), Tanzania (TZ), Togo (TG), Uganda (UG), and Zambia (ZM) remain blocked or deferred from earlier or current probes. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "ZA",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.dha.gov.za/",
+          "evidence_title": "South Africa Department of Home Affairs official portal",
+          "rationale": "The South African Department of Home Affairs operates dha.gov.za as the official government portal for immigration, visas, passports, and citizenship services. This supports a proposal that South Africa directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "South African Department of Home Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.dha.gov.za/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "South Africa Department of Home Affairs",
+          "source_url": "https://www.dha.gov.za/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.dha.gov.za"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The South African Department of Home Affairs operates dha.gov.za as the official government portal for immigration, visas, passports, and citizenship services. Keep the initial certification limited to the visa and immigration functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "SC",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://seychelles.govtas.com/en",
+          "evidence_title": "Seychelles official government travel authorisation system",
+          "rationale": "The Seychelles government operates the seychelles.govtas.com travel authorisation system as the official government service for entry to Seychelles. This supports a proposal that Seychelles directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Seychelles Government Travel Authorisation System",
+          "authority_type": "government",
+          "authority_website_url": "https://seychelles.govtas.com/en",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Seychelles Travel Authorisation System",
+          "source_url": "https://seychelles.govtas.com/en",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "seychelles.govtas.com"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Seychelles government travel authorisation system at seychelles.govtas.com/en is marked with structured GovernmentOrganization JSON-LD identifying it as an official government service for Seychelles. Keep the initial certification limited to the entry authorisation functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

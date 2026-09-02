@@ -1,0 +1,82 @@
+{
+  "pack_version": "v10.22.20",
+  "title": "Asia/Americas coverage evidence tranche 1B - Republic of Korea, Malaysia, Chile, Peru, Qatar",
+  "batch_id": "1c20b390-85d9-4ce0-9e08-f6775b5f66ff",
+  "batch_key": "9946363f78eb28706dda12494f13cd9891a11eab384a837ca85c3f980425cb59",
+  "submitted_at": "2026-07-18T20:16:08.616390+00:00",
+  "submitted_by": "coverage-evidence-proposer-v10-22-20",
+  "status": "pending_review",
+  "stored_status": "submitted_for_review",
+  "coverage_before": 65,
+  "coverage_after": 65,
+  "global_coverage_claim_ready": false,
+  "item_count": 5,
+  "pending_review_count": 10,
+  "approved_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "alpha2_code": "KR",
+      "item_id": "e2de8af9-e51b-4348-8902-ab133cd4bc89",
+      "assessment_id": "f1b4b2dc-2168-429c-ae44-f5f54aabe41f",
+      "assessment_status": "pending_review",
+      "certification_id": "d68e0b44-e6c9-4777-b286-f2bddf662b74",
+      "certification_status": "pending_review",
+      "authority_id": "528a877b-02ba-4856-952c-89e05ac9246d",
+      "official_source_id": "68fc4bed-a985-4b49-ad7c-eb744e107815",
+      "monitor_id": "4010a3c3-b077-4b83-bdb3-cb2326bd4d7e"
+    },
+    {
+      "alpha2_code": "MY",
+      "item_id": "459714e2-336f-4c57-ae4d-9fc29f020b23",
+      "assessment_id": "17781219-6823-4aa3-a3db-67cb5d6d74e0",
+      "assessment_status": "pending_review",
+      "certification_id": "51a953d0-3885-40b5-9660-a2640e2e82cc",
+      "certification_status": "pending_review",
+      "authority_id": "39ca949c-51f6-4678-84d9-73dd2066a1f9",
+      "official_source_id": "92d01f5b-58a9-4f9e-9910-3fd5492bd6ed",
+      "monitor_id": "6ce50623-36ff-49c6-8ddf-297bb87b27db"
+    },
+    {
+      "alpha2_code": "CL",
+      "item_id": "3ea2161f-d1e2-4631-9255-f3f7c52a2525",
+      "assessment_id": "adad9fa3-d757-42a7-a1b7-f48aa86e73d5",
+      "assessment_status": "pending_review",
+      "certification_id": "88b73fb6-317a-4b72-b50b-063484af4787",
+      "certification_status": "pending_review",
+      "authority_id": "a9a812a6-05ff-451d-bc7a-90555379a0a4",
+      "official_source_id": "1358056a-ab7b-46f2-883d-a943a5a25fee",
+      "monitor_id": "495a878d-10fb-4e36-b949-e1bf9aefb028"
+    },
+    {
+      "alpha2_code": "PE",
+      "item_id": "2810c8a7-9a55-407f-9397-c043a559aa8d",
+      "assessment_id": "cb1b636e-f780-4665-b98e-0659c5e02845",
+      "assessment_status": "pending_review",
+      "certification_id": "9b4b7bb1-daed-4b0d-a661-db83cddcda25",
+      "certification_status": "pending_review",
+      "authority_id": "1719564e-326b-4288-8d02-2d4ace81d60b",
+      "official_source_id": "18d6e2cf-68d9-4e5b-8cad-a4d3f0224d77",
+      "monitor_id": "1eeff51d-8c4c-4cc4-82a7-f7223e591daf"
+    },
+    {
+      "alpha2_code": "QA",
+      "item_id": "eb978a38-170e-4108-a347-f2fa84401ca9",
+      "assessment_id": "3e43f4e0-cb41-4cf8-8271-f9741e7fdd1c",
+      "assessment_status": "pending_review",
+      "certification_id": "4eae06f0-c25c-4d27-af74-88af13e7c191",
+      "certification_status": "pending_review",
+      "authority_id": "29b681c0-1119-41f8-9a19-946ad6458048",
+      "official_source_id": "f5d67308-6b8f-459f-825a-ab48dd53d52d",
+      "monitor_id": "1bc20346-28a7-47f9-ba5e-1a006f04f388"
+    }
+  ],
+  "safety": {
+    "auto_approved": false,
+    "baseline_capture_queued": false,
+    "assertion_created": false,
+    "rule_published": false,
+    "coverage_claimed": false,
+    "message": "The batch created pending assessment and primary-source certification proposals only. Independent review is required before baseline capture can become eligible."
+  }
+}

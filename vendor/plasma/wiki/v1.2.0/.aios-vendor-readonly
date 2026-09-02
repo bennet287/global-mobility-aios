@@ -1,0 +1,4 @@
+READ_ONLY_UPSTREAM_DONOR
+upstream=plasma-ai/wiki
+version=1.2.0
+commit=b27235fa11f1d3aa4deff50e45e52ea8ddc8af44

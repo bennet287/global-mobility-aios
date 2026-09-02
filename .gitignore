@@ -1,9 +1,12 @@
 .env
+.env.docker
+celerybeat-schedule*
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .pytest_cache/
+.test-tmp/
 .venv/
 venv/
 node_modules/
@@ -23,6 +26,36 @@ demo-snapshot-*.md
 demo-snapshot-*.json
 .env.production
 release_exports/
+backups/
 mvp-release-bundle-*.md
 mvp-release-bundle-*.json
 mvp-release-archive-*.zip
+
+# Local Woodpecker/proof artifacts; never source-control credentials or throwaway proof state.
+.env.woodpecker
+.env.woodpecker.backup.*
+.venv312-proof/
+backend-sqlite-regression.log
+docker-compose.woodpecker.yml.backup.*
+
+# Next.js frontend generated output
+.next/
+apps/web/.next/
+apps/web/.next-docker/
+apps/web/out/
+.turbo/
+*.tsbuildinfo
+
+# Browser E2E generated output
+apps/web/e2e/test-results/
+apps/web/e2e/playwright-report/
+
+# Local patch-application backups; never source-controlled.
+.gmai-patch-backups/
+
+# Local blind professional-review handoff artifacts; reproducible and not canonical evidence.
+.local/professional-review/
+
+# Local developer cache/temp roots; reproducible and never canonical evidence.
+.local/gmai-dev-cache/
+.local/gmai-dev-temp/

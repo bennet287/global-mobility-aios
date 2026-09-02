@@ -1,0 +1,58 @@
+{
+    "pack_version":  "v10.22.3",
+    "title":  "Botswana supplemental official visa source",
+    "verified_at":  "2026-07-17",
+    "review_status":  "pending_independent_review",
+    "coverage_claim_ready":  false,
+    "jurisdiction_count":  1,
+    "safety":  {
+                   "creates_coverage_claim":  false,
+                   "auto_approves_evidence":  false,
+                   "requires_separate_reviewer":  true,
+                   "creates_immigration_assessment":  false,
+                   "message":  "This supplemental pack proposes one replacement Botswana source only. It does not create a new immigration assessment, approve evidence, publish a rule, or make a coverage claim."
+               },
+    "references":  [
+                       {
+                           "alpha2_code":  "BW",
+                           "authority_evidence_url":  "https://www.gov.bw/immigration-and-civil-registration",
+                           "source_url":  "https://www.gov.bw/visa-applications/visa-application-tourism-visa",
+                           "evidence_summary":  "The official Botswana government portal identifies immigration and citizenship services and publishes a substantive tourism-visa application service page."
+                       }
+                   ],
+    "batch":  {
+                  "name":  "v10.22.3 Botswana supplemental visa source",
+                  "notes":  "Source-only remediation for Botswana. The original evisa.gov.bw certification was independently rejected because the portal displayed maintenance content and produced a navigation-heavy 21/100 snapshot. This batch proposes a stable official gov.bw visa-service page. The previously approved Botswana immigration assessment remains unchanged.",
+                  "items":  [
+                                {
+                                    "alpha2_code":  "BW",
+                                    "source_onboarding":  {
+                                                              "authority_name":  "Department of Immigration and Citizenship",
+                                                              "authority_type":  "immigration_authority",
+                                                              "authority_website_url":  "https://www.gov.bw/immigration-and-civil-registration",
+                                                              "authority_domains":  [
+                                                                                        "visa"
+                                                                                    ],
+                                                              "source_name":  "Botswana Government tourism visa application service",
+                                                              "source_url":  "https://www.gov.bw/visa-applications/visa-application-tourism-visa",
+                                                              "source_domain":  "visa",
+                                                              "source_type":  "government",
+                                                              "schedule_minutes":  1440,
+                                                              "fetch_method":  "http",
+                                                              "allowed_domains":  [
+                                                                                      "www.gov.bw"
+                                                                                  ],
+                                                              "max_redirects":  3,
+                                                              "parser_profile":  "generic",
+                                                              "parser_config":  {
+
+                                                                                },
+                                                              "certification_domains":  [
+                                                                                            "visa"
+                                                                                        ],
+                                                              "evidence_notes":  "Both the authority page and tourism-visa service page returned HTTP 200 over HTTPS during local Docker probing on 2026-07-17. This source replaces the rejected evisa.gov.bw proposal. Certification must remain limited to the reviewed Botswana tourism-visa service content."
+                                                          }
+                                }
+                            ]
+              }
+}

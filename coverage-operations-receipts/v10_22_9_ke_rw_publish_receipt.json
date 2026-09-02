@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.9",
+  "generated_at": "2026-07-17T22:39:00.000000Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "e799e8c4-1324-48e9-aefe-9ad500853abb",
+  "batch_name": "v10.22.9 Africa evidence tranche 1E - KE, RW",
+  "registry_summary": {
+    "coverage_ready": 23,
+    "coverage_required": 243,
+    "with_verified_rule": 23,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "KE",
+      "jurisdiction_name": "Kenya",
+      "jurisdiction_id": "b4e1b1de-1e1d-4a92-8240-7e9320dea7d9",
+      "immigration_assessment_id": "1b3a474a-7807-4b7c-985c-77f7e7dcc83a",
+      "source_certification_id": "3b915d4c-b293-4880-b788-cb77ed14ff92",
+      "regulatory_authority_id": "17a25e0d-c0a0-4639-b6b1-22d1e2ed0a36",
+      "official_source_id": "7cf0fb5b-4c30-4866-9752-c4d3f5c5ff50",
+      "source_monitor_id": "8f5d0c5b-d56e-41a3-a8ad-48c84f6de2e9",
+      "source_url": "https://evisa.go.ke/",
+      "baseline_snapshot_id": "ba0ade7c-4cd2-496e-b3a2-18aa526cab51",
+      "baseline_snapshot_hash": "96b39aa2f4fe53b38c0b74f8803581a821315269f09c9e7f2a57ed3227b7f003",
+      "initial_rule_assertion_id": "e1fcb203-ac04-479b-92dd-6d7f08f23b33",
+      "rule_key": "ke_eta_official_information_baseline",
+      "verified_rule_id": "7d8f3d81-450e-4bd2-bdf6-090af5730003",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "RW",
+      "jurisdiction_name": "Rwanda",
+      "jurisdiction_id": "f0341c3d-4e21-4f35-898e-8f6f6df2a15c",
+      "immigration_assessment_id": "5073110f-28ac-4abe-9e5c-67f7983252df",
+      "source_certification_id": "72fe6fc7-dcc1-41a8-8e57-124277f05743",
+      "regulatory_authority_id": "3fa08ff6-8294-4b3f-a20f-cd21b78bf17a",
+      "official_source_id": "7f2f2a2d-e8ef-4658-9a2c-fdb5971c25c9",
+      "source_monitor_id": "ba1a68d2-9bb3-4d10-8f5c-5d7d71ca677e",
+      "source_url": "https://www.migration.gov.rw/",
+      "baseline_snapshot_id": "dd2e4c14-f41c-4e1f-8990-b3d037e23dd8",
+      "baseline_snapshot_hash": "7f630105820b7a3bb37876ea5ab4e45cb5f140f9de91065755744c65890cc27b",
+      "initial_rule_assertion_id": "7d060fa9-81ec-4e23-a57b-bb25389fe2f9",
+      "rule_key": "rw_immigration_services_official_information_baseline",
+      "verified_rule_id": "b17ad0df-e093-4c8f-9c28-67f15dd0718e",
+      "coverage_ready": true
+    }
+  ],
+  "blocked": [],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records two verified-rule publications for Kenya and Rwanda. No jurisdiction was blocked in this tranche. It does not create a global coverage claim."
+  }
+}

@@ -3,30 +3,96 @@ services:
     build:
       context: ./apps/api
     container_name: gmai-api
-    env_file: .env
+    env_file: .env.docker
     ports:
       - "8000:8000"
     volumes:
       - ./apps/api:/app
       - ./knowledge:/knowledge:ro
     depends_on:
-      - postgres
-      - redis
-      - qdrant
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      minio:
+        condition: service_started
+      api-migrate:
+        condition: service_completed_successfully
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  api-migrate:
+    build:
+      context: ./apps/api
+    container_name: gmai-api-migrate
+    env_file: .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: alembic -c alembic.ini upgrade head
+    healthcheck:
+      disable: true
+    restart: "no"
+
+  worker:
+    build:
+      context: ./apps/api
+    container_name: gmai-worker
+    env_file: .env.docker
+    volumes:
+      - ./apps/api:/app
+      - ./knowledge:/knowledge:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api-migrate:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    healthcheck:
+      disable: true
+
+  beat:
+    build:
+      context: ./apps/api
+    container_name: gmai-beat
+    env_file: .env.docker
+    volumes:
+      - ./apps/api:/app
+      - ./knowledge:/knowledge:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api-migrate:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    command: celery -A app.core.celery_app beat --loglevel=info
+    healthcheck:
+      disable: true
 
   web:
     build:
       context: ./apps/web
     container_name: gmai-web
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-operator
+      NEXT_DIST_DIR: .next-docker
     ports:
       - "3000:3000"
     volumes:
       - ./apps/web:/app
       - /app/node_modules
+      - /app/.next-docker
     depends_on:
       - api
     command: npm run dev -- --hostname 0.0.0.0 --port 3000
@@ -42,6 +108,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gmai -d gmai"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   redis:
     image: redis:7-alpine
@@ -50,6 +121,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -76,7 +152,7 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: gmai-n8n
-    env_file: .env
+    env_file: .env.docker
     ports:
       - "5678:5678"
     volumes:

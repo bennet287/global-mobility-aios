@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Generator
@@ -13,35 +14,72 @@ API_ROOT = Path(__file__).resolve().parents[1]
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
+PROJECT_ROOT = API_ROOT.parents[1] if len(API_ROOT.parents) > 1 else API_ROOT.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from app.core import db as db_module  # noqa: E402
+from app.core.config import settings  # noqa: E402
 from app.core.db import get_session  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.domain import ApplicationRecord, DocumentRecord, Lead, LeadIntent, TruthClaim  # noqa: E402
 from app.models.domain import VerificationStatus  # noqa: E402
 
 
+def _test_engine():
+    """Return the default SQLite engine or an explicitly requested isolated DB engine.
+
+    Normal developer and broad regression runs remain fast and hermetic on SQLite.
+    The production-proof CI lane sets ``GMAI_TEST_DATABASE_URL`` to an isolated
+    PostgreSQL database so the same domain tests exercise real transaction/constraint
+    semantics without maintaining a second test framework.
+    """
+
+    database_url = os.getenv("GMAI_TEST_DATABASE_URL", "").strip()
+    if database_url:
+        return create_engine(database_url, pool_pre_ping=True), True
+    return (
+        create_engine(
+            "sqlite://",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        ),
+        False,
+    )
+
+
 @pytest.fixture()
 def db_session(monkeypatch: pytest.MonkeyPatch) -> Generator[Session, None, None]:
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    engine, external_database = _test_engine()
     monkeypatch.setattr(db_module, "engine", engine)
     db_module.register_models()
+
+    # The external database is explicitly test-only. Reset the SQLModel schema around
+    # every focused test so no state leaks between concurrency/idempotency scenarios.
+    # Migration correctness is verified independently before this fixture is used.
+    if external_database:
+        SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
 
-    with Session(engine) as session:
-        yield session
-
-    SQLModel.metadata.drop_all(engine)
+    try:
+        with Session(engine) as session:
+            yield session
+    finally:
+        SQLModel.metadata.drop_all(engine)
+        engine.dispose()
 
 
 @pytest.fixture()
-def raw_client(db_session: Session) -> Generator[TestClient, None, None]:
+def raw_client(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[TestClient, None, None]:
     def override_get_session() -> Generator[Session, None, None]:
         yield db_session
 
+    # Header-role auth is an explicit test/local shortcut; production defaults
+    # fail closed and never trust these headers.
+    monkeypatch.setattr(settings, "auth_allow_header_role", True)
     app.dependency_overrides[get_session] = override_get_session
     with TestClient(app) as test_client:
         yield test_client

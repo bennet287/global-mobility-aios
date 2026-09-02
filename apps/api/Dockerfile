@@ -8,10 +8,12 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r /app/requirements.txt
+COPY requirements.txt constraints.txt /app/
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r /app/requirements.txt -c /app/constraints.txt
 
 COPY . /app
 

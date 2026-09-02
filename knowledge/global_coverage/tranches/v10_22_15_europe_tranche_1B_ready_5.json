@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.15",
+  "title": "Europe coverage evidence tranche 1B - Denmark, Netherlands, Belgium, France, Ireland",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "DK",
+      "authority_evidence_url": "https://www.nyidanmark.dk/en-GB/",
+      "source_url": "https://www.nyidanmark.dk/en-GB/",
+      "evidence_summary": "The Danish Immigration Service operates nyidanmark.dk/en-GB as the official English-language portal for foreign nationals who wish to visit, live or work in Denmark or Greenland."
+    },
+    {
+      "alpha2_code": "NL",
+      "authority_evidence_url": "https://ind.nl/en/",
+      "source_url": "https://ind.nl/en/",
+      "evidence_summary": "The Immigration and Naturalisation Service (IND) operates ind.nl/en as the official English-language portal for residency in the Netherlands."
+    },
+    {
+      "alpha2_code": "BE",
+      "authority_evidence_url": "https://diplomatie.belgium.be/en/",
+      "source_url": "https://diplomatie.belgium.be/en/",
+      "evidence_summary": "The Belgian Federal Public Service Foreign Affairs operates diplomatie.belgium.be/en as the official English-language portal for Belgian foreign affairs, consular services and travel information."
+    },
+    {
+      "alpha2_code": "FR",
+      "authority_evidence_url": "https://www.diplomatie.gouv.fr/en/",
+      "source_url": "https://www.diplomatie.gouv.fr/en/",
+      "evidence_summary": "The French Ministry for Europe and Foreign Affairs operates diplomatie.gouv.fr/en as the official English-language portal for French foreign affairs, including visiting France and visa services."
+    },
+    {
+      "alpha2_code": "IE",
+      "authority_evidence_url": "https://www.irishimmigration.ie/",
+      "source_url": "https://www.irishimmigration.ie/",
+      "evidence_summary": "The Irish Immigration Service Delivery (ISD) operates irishimmigration.ie as the official portal for immigration to Ireland."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.15 Europe evidence tranche 1B - DK, NL, BE, FR, IE",
+    "notes": "Official-source evidence for Denmark (DK), Netherlands (NL), Belgium (BE), France (FR) and Ireland (IE). All five endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration, visa, residence or travel content. The tranche is intentionally limited to the narrow service functions described and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "DK",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.nyidanmark.dk/en-GB/",
+          "evidence_title": "Danish Immigration Service official English portal",
+          "rationale": "The Danish Immigration Service operates nyidanmark.dk/en-GB as the official English-language portal for foreign nationals who wish to visit, live or work in Denmark or Greenland. This supports a proposal that Denmark directly administers the relevant immigration services through the Danish Immigration Service."
+        },
+        "source_onboarding": {
+          "authority_name": "Danish Immigration Service",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.nyidanmark.dk/en-GB/",
+          "authority_domains": ["visa"],
+          "source_name": "New to Denmark - Danish Immigration Service",
+          "source_url": "https://www.nyidanmark.dk/en-GB/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.nyidanmark.dk"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Danish Immigration Service portal returned HTTPS 200 with content describing applications to visit, live or work in Denmark or Greenland. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "NL",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://ind.nl/en/",
+          "evidence_title": "Immigration and Naturalisation Service (IND) official English portal",
+          "rationale": "The Immigration and Naturalisation Service (IND) operates ind.nl/en as the official English-language portal for residency in the Netherlands. This supports a proposal that the Netherlands directly administers the relevant immigration services through the IND."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration and Naturalisation Service (IND)",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://ind.nl/en/",
+          "authority_domains": ["visa"],
+          "source_name": "IND Netherlands English portal",
+          "source_url": "https://ind.nl/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["ind.nl"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The IND English portal returned HTTPS 200 with content about residency in the Netherlands, Dutch citizenship, and service areas. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "BE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://diplomatie.belgium.be/en/",
+          "evidence_title": "Belgian FPS Foreign Affairs official English portal",
+          "rationale": "The Belgian Federal Public Service Foreign Affairs operates diplomatie.belgium.be/en as the official English-language portal for Belgian foreign affairs, consular services and travel information. This supports a proposal that Belgium administers the relevant visa and consular services through the FPS Foreign Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Belgian Federal Public Service Foreign Affairs",
+          "authority_type": "government",
+          "authority_website_url": "https://diplomatie.belgium.be/en/",
+          "authority_domains": ["visa"],
+          "source_name": "Belgian FPS Foreign Affairs English portal",
+          "source_url": "https://diplomatie.belgium.be/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["diplomatie.belgium.be"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Belgian FPS Foreign Affairs English portal returned HTTPS 200 with content identifying the Kingdom of Belgium and the Federal Public Service for Foreign Affairs, Foreign Trade and Development Cooperation. Keep the initial certification limited to the consular and travel services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "FR",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.diplomatie.gouv.fr/en/",
+          "evidence_title": "French Ministry for Europe and Foreign Affairs official English portal",
+          "rationale": "The French Ministry for Europe and Foreign Affairs operates diplomatie.gouv.fr/en as the official English-language portal for French foreign affairs, including visiting France and visa services. This supports a proposal that France administers the relevant visa and consular services through the Ministry for Europe and Foreign Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "French Ministry for Europe and Foreign Affairs",
+          "authority_type": "government",
+          "authority_website_url": "https://www.diplomatie.gouv.fr/en/",
+          "authority_domains": ["visa"],
+          "source_name": "France Diplomatie English portal",
+          "source_url": "https://www.diplomatie.gouv.fr/en/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.diplomatie.gouv.fr"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The France Diplomatie English portal returned HTTPS 200 with content identifying the Ministry for Europe and Foreign Affairs and services for visiting France, studying in France and investing in France. Keep the initial certification limited to the visa and consular services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "IE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.irishimmigration.ie/",
+          "evidence_title": "Immigration Service Delivery official portal",
+          "rationale": "The Irish Immigration Service Delivery (ISD) operates irishimmigration.ie as the official portal for immigration to Ireland. This supports a proposal that Ireland directly administers the relevant immigration services through ISD."
+        },
+        "source_onboarding": {
+          "authority_name": "Immigration Service Delivery Ireland",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.irishimmigration.ie/",
+          "authority_domains": ["visa"],
+          "source_name": "Irish Immigration Service Delivery",
+          "source_url": "https://www.irishimmigration.ie/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.irishimmigration.ie"],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Locally probed on 2026-07-18 with status local_probe_passed. The Irish Immigration Service Delivery portal returned HTTPS 200 with content describing immigration to Ireland, including visit, work, study, live and join family routes. Keep the initial certification limited to the services explicitly described."
+        }
+      }
+    ]
+  }
+}

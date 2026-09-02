@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "name": "Phase 10B v10.22.20-v10.22.22 independent review handoff",
+  "description": "Consolidated read-only preparation for the 15 pending jurisdictions. This manifest creates no review decision, baseline capture, assertion, publication, or coverage claim.",
+  "groups": [
+    {
+      "label": "Asia and Americas tranche 1B",
+      "batch_id": "1c20b390-85d9-4ce0-9e08-f6775b5f66ff",
+      "alpha2_codes": ["KR", "MY", "CL", "PE", "QA"]
+    },
+    {
+      "label": "Africa tranche 2A",
+      "batch_id": "c697ab51-e41b-49d2-8e98-528068642184",
+      "alpha2_codes": ["SZ", "LS", "LR", "ZM", "UG"]
+    },
+    {
+      "label": "Africa tranche 2B",
+      "batch_id": "db3d7b69-cff4-467c-89c1-0bd837daa9ec",
+      "alpha2_codes": ["NA", "SL", "SO", "SN", "TZ"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+﻿
+Method Route                                                                              OperationId                                                                                                                Summary                               
+------ -----                                                                              -----------                                                                                                                -------                               
+GET    /api/v1/global-intelligence/registry/coverage-batches/{batch_id}/baseline-status   api_get_coverage_batch_baseline_status_api_v1_global_intelligence_registry_coverage_batches__batch_id__baseline_status_get Api Get Coverage Batch Baseline Status
+POST   /api/v1/global-intelligence/registry/coverage-batches/{batch_id}/capture-baselines api_queue_coverage_batch_baselines_api_v1_global_intelligence_registry_coverage_batches__batch_id__capture_baselines_post  Api Queue Coverage Batch Baselines    
+
+
+

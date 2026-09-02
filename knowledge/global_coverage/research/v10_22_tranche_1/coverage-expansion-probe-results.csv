@@ -1,0 +1,14 @@
+﻿"alpha2_code","name","roles","requested_url","status","http_status","elapsed_seconds","final_url","content_type","bytes","error_type","error"
+"DZ","Algeria","official_source_url;evidence_url","https://www.mfa.gov.dz/services-for-foreigners/entry-visa-to-algeria","failed",,"0.47",,,"0","ConnectError","[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)"
+"AO","Angola","official_source_url;evidence_url","https://www.sme.gov.ao/ao/perguntas-frequentes/evisa-english-version/","passed","200","1.32","https://www.sme.gov.ao/ao/perguntas-frequentes/evisa-english-version/","text/html; charset=utf-8","59241",,
+"BJ","Benin","official_source_url","https://evisa.gouv.bj/","review_redirect_host","200","1.23","https://evisa.bj","text/html; charset=UTF-8","30160",,
+"BJ","Benin","evidence_url","https://dei.gouv.bj/services/","passed","200","1.46","https://dei.gouv.bj/services/","text/html; charset=utf-8","62614",,
+"BW","Botswana","official_source_url","https://evisa.gov.bw/","passed","200","1.46","https://evisa.gov.bw/","text/html","1410",,
+"BW","Botswana","evidence_url","https://www.gov.bw/visa-applications/visa-application-tourism-visa","passed","200","1.98","https://www.gov.bw/visa-applications/visa-application-tourism-visa","text/html; charset=UTF-8","68485",,
+"IO","British Indian Ocean Territory","official_source_url;evidence_url","https://www.biot.gov.io/visiting/visa-requirements/","passed","200","0.64","https://www.biot.gov.io/visiting/visa-requirements/","text/html; charset=UTF-8","33999",,
+"BF","Burkina Faso","official_source_url;evidence_url","https://www.visaburkina.bf/en/home/","passed","200","1.42","https://www.visaburkina.bf/en/home/","text/html; charset=UTF-8","63388",,
+"BI","Burundi","official_source_url;evidence_url","https://www.mae.gov.bi/en/visa-application-forms/","passed","200","0.97","https://www.mae.gov.bi/en/visa-application-forms/","text/html; charset=UTF-8","74597",,
+"CV","Cabo Verde","official_source_url;evidence_url","https://portalconsular.mnec.gov.cv/en/vistos","passed","200","0.45","https://portalconsular.mnec.gov.cv/en/vistos","text/html;charset=UTF-8","79852",,
+"CM","Cameroon","official_source_url","https://www.evisacam.cm/","passed","200","2.37","https://www.evisacam.cm/ords/dl_portal/r/public_portal/home","text/html;charset=utf-8","18289",,
+"CM","Cameroon","evidence_url","https://www.diplocam.cm/e-visa/","passed","200","1.87","https://www.diplocam.cm/e-visa/","text/html; charset=UTF-8","73702",,
+"CF","Central African Republic","official_source_url;evidence_url","https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour","passed","200","0.44","https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour","text/html; charset=UTF-8","62529",,

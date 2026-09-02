@@ -1,47 +1,1495 @@
-# Roadmap
+# Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-## Sprint 1: Local Foundation
+**Roadmap generation:** V12.79 — M.8.1 Canonical Replay Timeline V1 COMPLETE / PASS; M.8 temporal reconstruction continues
+**Date:** 2026-09-02
+**Active development branch:** `roadmap/global-mobility-aios-v12`
+**Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
+**V12 fork origin:** `dd2f2cd6e9e47179b1fd744ba3f56daf7c787449`
+**Frozen V11 reference branch:** `roadmap/global-mobility-aios-v11`
+**Final V11 documentation-cleanup head:** `ac130deaafa7aa44068e9459facbda2b4df327d6`
+**Accepted product baseline:** Phase 13.16.10 — COMPLETE / PASS at `b8393d0b6bdaf02c958bb151b4909b5b82fd0d09`
+**Active human-acceptance stream:** Phase 13.17 — owner-led genuine human acceptance — IN PROGRESS / PAUSED BY EVALUATOR
+**Active organization architecture:** `GLOBAL_MOBILITY_AIOS_COMBINED_ARCHITECTURE_V1_1.md` + `HUMAN_LIKE_AGENT_ORGANIZATION_ARCHITECTURE_V1_3.md`
+**Frontend / UX programme:** `AIOS_FRONTEND_DESIGN_UX_PROGRAMME_V1.md`
+**Track B anti-duplication audit:** `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md`
+**Track B durable activity-lineage tranche:** `TRACK_B_DURABLE_ACTIVITY_LINEAGE_2026-08-31.md`
+**L blind professional-review handoff hardening:** `L_AUSTRIA_BLIND_PROFESSIONAL_REVIEW_HANDOFF_2026-08-31.md`
+**L blind professional-review local proof:** `L_BLIND_PROFESSIONAL_REVIEW_LOCAL_PROOF_2026-08-31.md`
+**V12.47 administration local proof:** `V12_47_PROJECT_STATE_ADMIN_LOCAL_PROOF_2026-08-31.md`
+**V12.48 failed administration acceptance:** `V12_48_ADMIN_ACCEPTANCE_FAILED_UNTRACKED_LOCAL_2026-09-01.md`
+**V12.50 CI diff-hygiene repair:** `V12_50_CI_DIFF_HYGIENE_FULL_HISTORY_FIX_2026-09-01.md`
+**V12.51 post-baseline hygiene cleanup:** `V12_51_POST_BASELINE_DIFF_HYGIENE_CLEANUP_2026-09-01.md`
+**V12.52 local artifact classification:** `V12_52_LOCAL_ARTIFACT_CLASSIFICATION_2026-09-01.md`
+**V12.53 secondary local artifact correction:** `V12_53_SECONDARY_LOCAL_ARTIFACT_ARCHIVE_2026-09-01.md`
+**V12.53 local acceptance proof:** `V12_53_LOCAL_ACCEPTANCE_PROOF_2026-09-01.md`
+**L non-blind legal-quality feedback reconciliation:** `L_AUSTRIA_NON_BLIND_LEGAL_QUALITY_FEEDBACK_2026-09-01.md`
+**L V12.55 handoff local proof:** `L_V12_55_PROFESSIONAL_REVIEW_HANDOFF_LOCAL_PROOF_2026-09-01.md`
+**L preliminary blind return reconciliation / v3 correction:** `L_AUSTRIA_PRELIMINARY_BLIND_RETURN_RECONCILIATION_2026-09-01.md`
+**L genuine blind review operator correction:** `L_AUSTRIA_GENUINE_BLIND_REVIEW_OPERATOR_CORRECTION_2026-09-01.md`
+**L v3 return validation attempt:** `L_AUSTRIA_V3_RETURN_VALIDATION_ATTEMPT_2026-09-01.md`
+**L anonymous reviewer privacy boundary:** `L_AUSTRIA_ANONYMOUS_REVIEWER_PRIVACY_BOUNDARY_2026-09-01.md`
+**L V12.61 current-v3 handoff proof:** `L_V12_61_CURRENT_V3_HANDOFF_PROOF_2026-09-01.md`
+**L V12.62 anonymous professional-review reconciliation:** `L_V12_62_ANONYMOUS_PROFESSIONAL_REVIEW_RECONCILIATION_2026-09-02.md`
+**L V12.63 Live Organization seal:** `V1_3_L_LIVE_ORGANIZATION_SEAL_2026-09-02.md`
+**Enterprise integration architecture:** `ENTERPRISE_INTEGRATION_ARCHITECTURE_V1.md`
+**Active Technology Radar:** `TECHNOLOGY_RADAR_V1_3_8.md`
+**Technology Radar horizon status:** broad inventory COMPLETE / scatter consolidation APPLIED / continuous trigger-based scouting remains active
+**Integration & Capability Radar:** `AIOS_INTEGRATION_CAPABILITY_RADAR_V1.md`
+**Munder donor programme:** `MUNDER_DIFFLIN_AIOS_ADOPTION_V1.md`
+**Last sealed organization/runtime checkpoint:** K.1 — COMPLETE / PASS / SEALED on technical candidate `9a7df63511e45f6a0945ae933929522314a04ec3`
+**K.1 canonical proof:** GitHub Actions Production Proof `32582805820` — 4/4 PASS; Repository Policy `32582805835`; Woodpecker push #17 and PR #18 — 4/4 PASS
+**Latest fully green L technical checkpoint:** `24a00c1025f8a69d683213fb4ffd3034d8497725` — GitHub Actions V12 Production Proof #1046 / run `33561526445` 4/4 PASS; Repository Policy #513 / run `33561526463` PASS; historical exact-checkpoint proof only
+**Accepted L live-runtime evidence:** `V1_3_L_LIVE_RUNTIME_ACCEPTANCE_EVIDENCE_2026-08-30.md` — real Gemini success, guarded fresh retrieval, real failure, owner materialization and exact replay; the later independent professional-review gate and final exact-evidence-head proof are COMPLETE under the sealed L record
+**Supporting Wave E1 secrets pilot:** `TECHNOLOGY_RADAR_WAVE_E1_SECRETS_PILOT_2026-08-31.md` — SecretsPort + optional non-production OpenBao adapter; production adoption not claimed
+**Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
+**Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
+**Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.7.4 SEALED; M.8.1 COMPLETE / PASS; M.7.4 GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.8 CONTINUES)
+**Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
+**Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
-- Run Docker Compose
-- Confirm FastAPI docs
-- Create leads
-- Run Truth Engine
-- Store document metadata
+<!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
 
-## Sprint 2: Real Source Registry
+> **Product necessity pulls technology into the project. Technology does not push the product around.**
 
-- Add Germany, Austria, UK, Canada, Australia official sources
-- Build official-source scraper templates
-- Store retrieved source metadata
-- Add source hash and retrieval timestamp
+> **Aggressive Radar. Conservative production authority.**
 
-## Sprint 3: CRM Dashboard
+> **Technology Radar V1.3.8 applies the scatter audit: one incumbent + one challenger per real seam where practical; duplicate candidates are trigger-bound HOLD/WATCH/donor/reference states rather than permanent research.**
 
-- Lead list
-- Lead profile page
-- Truth review queue
-- Document checklist
+---
 
-## Sprint 4: AI Workflows
+## 1. Roadmap authority
 
-- LangGraph lead intake
-- LangGraph visa truth review
-- Human approval interrupt
-- Agent role execution wrapper
+`ROADMAP.md` remains the master WHAT/WHEN/WHY scheduler. Architecture documents define boundaries, Technology Radar evaluates candidates, the adoption ledger records implementation truth, acceptance records prove completion, and CHANGELOG records delivered change.
 
-## Sprint 5: Automation
+A Radar candidate may be important without being current. Radar completion does not authorize its backlog.
 
-- n8n lead webhook
-- Email follow-up
-- WhatsApp integration
-- Calendar booking
-- Reminder workflows
+## 1.1 Project identity, thesis and destination
 
-## Sprint 6: Production Hardening
+### What the project is
 
-- Auth
-- Audit logging
-- Rate limits
-- Backups
-- Observability
-- Deployment pipeline
+Global Mobility AIOS is a governed AI operating system for running high-consequence global-mobility work as a transparent digital organization.
+
+It is not a generic chatbot, a loose swarm of agents, a workflow engine with AI labels, a dashboard that merely reports activity, or a virtual office whose animation invents work. The destination is a persistent digital organization in which a Human Owner / Board remains supreme authority while an AI CEO coordinates departments, persistent AI employees, Missions, WorkItems, evidence, decisions, incidents and learning.
+
+The organization may become highly autonomous, but every consequential effect must remain attributable, reconstructable and bounded by authority, risk, evidence and provenance.
+
+### Product north star
+
+> **A governed, evidence-grounded, transparent, cost-intelligent, high-autonomy digital organization that the Human Owner can understand, inspect and steer as naturally as a real company.**
+
+The finished product should answer, from real system state:
+
+~~~text
+What is the organization trying to achieve?
+Who is working on it?
+What evidence is being used?
+What is blocked or uncertain?
+What are employees discussing?
+What was decided, by whom, and under what authority?
+What requires the Owner / Board?
+What did it cost?
+What happened previously?
+What is likely to happen next?
+What did the organization learn?
+~~~
+
+### Organizational operating model
+
+~~~text
+HUMAN OWNER / BOARD
+        │
+        ▼
+PREMIUM AIOS COCKPIT
+        │
+        ▼
+AI CEO
+        │
+        ├── Departments
+        │      └── persistent AI employees / specialist capabilities
+        ├── Missions
+        │      └── WorkItems / dependencies / blockers
+        ├── Evidence / SourceSnapshots / VerifiedRules
+        ├── AgentRuns / conversations / durable activity
+        ├── ExecutiveDecisions / escalations / incidents
+        └── learning / optimization
+        │
+        ▼
+GOVERNED CANONICAL STATE
+~~~
+
+The Cockpit is the Human Owner operating surface. The Board Room is a module inside the Cockpit, not the whole product. Live Organization is the spatial/visual operating surface through which the Human Owner can see the company working.
+
+### Truth hierarchy
+
+External models, providers and donor frameworks provide capability. AIOS owns organizational meaning, truth and authority.
+
+~~~text
+provider/model output
+        ↓
+candidate reasoning / event / activity
+        ↓
+AIOS normalization + governance
+        ↓
+canonical domain objects
+        ↓
+read models / projections
+        ↓
+Cockpit / Living Organization
+~~~
+
+Permanent distinctions:
+
+~~~text
+Memory       != Truth
+Conversation != Authority
+Telemetry    != Canonical Organization Activity
+Capability   != Authority
+Authority    != Autonomy
+Autonomy     != Risk
+External runtime != AIOS organization
+Animation    != canonical state
+Prediction   != canonical state
+Scores route; gates authorize
+~~~
+
+### Core invariants
+
+1. Human Owner / Board remains supreme authority.
+2. Board by exception; transparency by default.
+3. CAN DO is distinct from MAY DO.
+4. Capability, authority, autonomy and risk remain separate.
+5. Memory may inform reasoning but does not silently become truth.
+6. Conversation may express intent but does not silently become authority.
+7. External runtimes/providers remain replaceable behind AIOS-owned boundaries.
+8. Scores may route work; governed gates authorize consequential actions.
+9. Agents may be wrong while reasoning; canonical truth may not become wrong silently.
+10. More relevant truth is preferred over indiscriminate context growth.
+11. Compression may reduce representation, never governance meaning.
+12. Cost optimization cannot override the required quality floor.
+13. Frontier intelligence is an escalation resource, not a universal default.
+14. Material organizational effects cross governed boundaries.
+15. Autonomy is earned capability-by-capability.
+16. Governance effort scales with consequence, uncertainty and novelty.
+17. Consequential decisions should be reconstructable from evidence, lineage and authority.
+18. The visual organization represents real organizational state.
+19. **The organization causes the animation; animation never silently causes the organization.**
+20. Predictive and environmental visual layers remain non-authoritative; Human Owner interventions still pass through normal AIOS authorization/governance.
+
+### Product direction
+
+The product now advances through four connected surfaces:
+
+1. **Canonical operating organization** — Missions, WorkItems, employees, evidence, activity, decisions, incidents and governed actions.
+2. **Premium Cockpit** — executive controls, inspectors, lineage, operational state and Owner interventions.
+3. **Living Organization** — a spatial animated representation of the real company: departments, employees, conversations, handoffs, Mission Rooms, blockers, Board activity and mission flow.
+4. **Learning & Optimization** — post-M measured improvement: learned routing, prediction, cost/quality optimization, repeated-blocker discovery and bounded Dreamtime proposals.
+
+The default visual experience remains a recognizable organization. Cognitive Ecology / Organica is a later optional analytical visualization, not the default interaction model.
+
+### Technology and donor rule
+
+Product necessity pulls technology into the project; technology does not push the product around.
+
+Munder Difflin remains an organizational/runtime donor and visual inspiration, not a source of canonical identity, truth or authority. Useful concepts such as presence, collaboration, live-office legibility, runtime mechanics and agent-to-agent interaction are adapted behind AIOS semantics.
+
+Selected direction:
+
+~~~text
+recognizable digital organization
+        +
+computationally meaningful visual behavior
+        +
+AIOS governance / canonical truth
+        +
+selective Cognitive Ecology concepts
+~~~
+
+No donor framework or renderer becomes organizational authority merely because its UX is attractive.
+
+---
+
+## 2. Current milestone state
+
+```text
+K.1   COMPLETE / PASS / SEALED
+L     COMPLETE / PASS / SEALED
+M     IN PROGRESS
+M.1   COMPLETE / PASS at 9f00124c9041d1480b8007cdd54214df7fb37e3f
+M.1A  DOCUMENTATION / ROADMAP RECONCILIATION — V12.65
+M.2   COMPLETE / PASS at d9294b2f29c21aa4866d47a253ada94eeae2c568
+M.3   COMPLETE / PASS at d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
+M.4.0 COMPLETE / PASS at e664075567997f64bd0b973aa8e8d089207ec77e
+M.4.1 COMPLETE / PASS at 7591e32be1c9fa8601ffca0b17efea62b7066545
+M.5   COMPLETE / PASS at 884d339ce761fba2410abe851d0c5d1cb172eb93
+M.6   NEXT — Blockers, Smart Objects & live Board Room
+M.7+  SCHEDULED — Living Organization V2
+N     NOT STARTED — dependency-gated behind M
+```
+
+No actual autonomy mutation mechanism is accepted or implemented.
+
+## 3. SEALED — L Live Organization
+
+**Classification:** COMPLETE / PASS / SEALED
+
+L implementation, live-runtime evidence, the anonymous current-fingerprint professional review and final exact-evidence-head proof are accepted:
+
+```text
+accepted evidence head  a95f3f5bc4aa3c30c075253eafccc7542dae3b0a
+repository policy       PASS — run 33567100227
+production proof        PASS — push run 33567096479, 4/4 jobs
+production proof        PASS — PR run 33567100248, 4/4 jobs
+```
+
+Already accepted/implemented L evidence includes real configured-provider success, guarded fresh official-source retrieval, real provider failure, durable specialist output, owner materialization, exact replay, Evidence/VerifiedRule/source-snapshot lineage, browser/product behavior and operational correlation.
+
+Before recruiting the reviewer, V12.43 hardens the existing professional-review path against answer anchoring. The reviewer-facing packet now excludes benchmark `source_labels` and `source_rationale`; the reviewer returns independent labels (or DISPUTED / NEEDS_MORE_FACTS), and AIOS derives canonical CONFIRMED versus CORRECTED only after return through the existing `mobility-professional-review-v1` compiler. No review has been fabricated or completed by this change.
+
+The repaired handoff is now locally proven at stable exact head `d969c7dad28bd3e944d1ef6aea7170fcd67a34e0`: 19 focused professional-review tests passed, reviewer-packet blindness and fail-closed untouched-return behavior passed, the full backend suite reported 1332 passed / 22 skipped, repository gates passed, start/end HEAD remained identical, and the worktree remained clean. This is technical handoff proof only; it is not professional Austria correctness evidence.
+
+The blind reviewer packet and blank return template were generated successfully in the local operator worktree. Those artifacts were reproducible handoff files only; the completed review has now been compiled separately into the privacy-safe canonical evidence bundle.
+
+A subsequent legal-quality assessment agreed with the three benchmark directions but explicitly reported that it had been given an obsolete answer-revealing v1 packet. It is therefore **non-blind feedback only**, not professional-review acceptance evidence. V12.55 applies the useful criticisms without promoting the assessment: direct RIS authorities are added, asserted facts are separated explicitly from document/authority verification, the strong-points case remains `REVIEW_REQUIRED`, and the current v2 packet rejects superseded answer-revealing handoffs. Because these source-contract changes alter immutable fingerprints, all previously generated packet/return artifacts became stale. That reset is now closed: at exact head `e2e27ba8661a6347c308271d2cc970d1f9b2d97a`, the fail-fast V12.55 handoff proof passed 21 focused tests and repository gates, retained a clean stable worktree, regenerated a fresh reviewer-facing v2 packet plus blank blind-return template, and verified that expected labels/rationale remain excluded. That v2 handoff proof is now historical. A subsequent current-fingerprint preliminary return exposed a semantic contract gap: the reviewer had no canonical definitions for pathway/evidence/source keys, ELIGIBLE vs REVIEW_REQUIRED, null-vs-empty contradictions, or escalation semantics. The return itself is non-promotable because credential/professional references are null and Cases 1/3 are not independent. V12.57 corrects Case 2 to route-level `ELIGIBLE` / no escalation on its asserted 65-point facts, versions the reviewer handoff to v3 with explicit label semantics, and marks every v2 artifact stale. The reviewer was later confirmed by the operator to have been genuine and independent; the earlier false independence flags were transcription mistakes. A subsequent v3-style return supplied non-empty reference strings but still carried the historical Case 2 fingerprint, legacy/free-form label vocabularies and null contradictions. V12.59 therefore aligns the reviewer return contract to v3 and enforces the canonical vocabularies at compile time. The reviewer explicitly requires anonymity. V12.60 makes that a repository privacy invariant: no personal name, registration/bar number, contact data, firm/employer identity, address or public-profile URL may appear in committed reviewer artifacts. V12.61 records that canonical checkpoint `24a00c1...` completed Repository Policy and all four V12 Production Proof jobs, while a source-tree-equivalent local proof passed 28 focused professional-review/privacy tests plus repository gates and regenerated the fresh blind v3 packet/template. V12.62 records the same genuine independent reviewer's completed current-fingerprint v3 return. The canonical compiler promotes all three cases as `CORRECTED`, with no held/unreviewed cases, because the reviewer preserved the route-level eligibility directions while narrowing source and missing-evidence labels. The privacy-safe bundle and regression coverage are committed without reviewer identity disclosure. The confidential real identity-to-credential mapping remains outside Git. The only remaining L gate is final exact-current-head technical proof for the evidence commit.
+
+The V12.47 administration/recovery layer is locally proven at exact head `80deef2618038799caa39674ebfc3d92126cfe0f`: dashboard/hand-off whitespace checks, recovery-order authority checks, repository policy/consistency/dependency/diff-hygiene gates, stable start/end SHA, frozen V11, R3 branch preservation and deep-R3 backup all passed. The operator worktree's broad `/.local/` entry in `.git/info/exclude` is documented as local-only hygiene debt; repository `.gitignore` remains intentionally narrow at `.local/professional-review/`.
+
+A later V12.48 acceptance attempt at `b079428a0fd607d6fd9491847312869d6802138c` passed the documentation/repository gates and retained a stable SHA, but **failed the clean-worktree gate** after removing the broad operator-local `/.local/` exclude exposed additional untracked `.local/` content. The later unconditional PASS print in that shell transcript is not acceptance evidence. The follow-up inventory is now complete: only `gmai-dev-cache/` and `gmai-dev-temp/` are classified as reproducible scratch to ignore in place, while the reviewer handoff remains narrowly ignored and the initially identified five recovery/history buckets were archived outside the repository. The follow-up V12.52 run then exposed three more preservation/history items — `.local/archives/`, `.local/discovery/`, and `.local/13.16.6-owner-inbox-discovery.txt` — with no canonical V12 references. These were moved to the same external archive and a fail-fast rerun reached final PASS at exact head `b2cc754bded7f8fbde8a70d1cb65400c429cea92`. At that head, narrow ignore ownership, zero visible untracked `.local/` state, repository gates, clean worktree, frozen V11/R3/deep-R3 preservation, and start/end/origin SHA equality all passed. Repository Policy Check #452 also passed. V12 Production Proof #922 had repository-policy and frontend jobs green while backend/PostgreSQL remained in progress at record time. The local `.local/` administration blocker is therefore closed for `b2cc754...`; later documentation heads do not inherit that exact-head PASS. Reviewer packet/template artifacts remain correctly ignored by the narrow repository rule; the additional untracked local content must be inspected before cleanup or another exact-head run.
+
+GitHub Actions also exposed a separate source/configuration defect: both policy jobs executed successfully through repository policy, release consistency and dependency checks, then `check_diff_hygiene.py` failed setup because `fetch-depth: 64` did not contain transition baseline `8624d7f...`. V12.50 changes only those policy checkouts to full history and adds a repository-policy regression guard scoped to the exact YAML job blocks. This is a CI repair, not a weakening of the hygiene baseline. With full history restored, CI then reached the real transition-baseline diff and exposed 22 trailing-space violations across five post-baseline documentation files. V12.51 removes only those trailing spaces; the baseline, semantics, and grandfathering boundary are unchanged. At that historical checkpoint, current-head local/CI proof remained pending; the later accepted L evidence head closed the release gate.
+
+Earlier checkpoints remain historical only. The final accepted L evidence head is `a95f3f5...`; later M commits do not retroactively change or weaken that sealed evidence record.
+
+### L evaluation hardening
+
+Wave E2 adds deterministic adversarial input mutation for authority escalation, route substitution, forged/missing/duplicate cases and sources, invented classifications, uncited/empty conclusions, fake consensus, provider/model mismatch, structural failures, source-label mismatch and indirect prompt-injection boundary behavior.
+
+Wave E3 adds generated property/invariant testing around the same validator/corroboration seam. The focused E2+E3 suite and repository gates were locally observed passing at exact historical head `285a7f08eb5289b9f037c28293a65ad94eede91b`; that proof remains checkpoint-specific and does not transfer automatically to later heads.
+
+Wave E4 mutates selected implementation logic itself and requires focused safety probes to kill each mutant. The first-party gate covers weakened authority enforcement, route scope, mixed-source validation, rationale presence, distinct-provider thresholds, unanimity, source-label consensus and provider-identity qualification. No external mutation engine is adopted. Current mutmut 3.7.0 was rechecked but deferred because its fork-based execution requires WSL on Windows; it remains a future Linux/CI challenger.
+
+```text
+deterministic adversarial input proof
+!= property proof
+!= mutation-strength proof
+!= fuzz proof
+!= live-model security proof
+!= professional Austria review
+!= operational Red Team proof
+```
+
+Technology Radar V1.3.8 is the active consolidated Radar. It retains the evaluation ladder but removes generic duplicate RESEARCH statuses; Radar state remains distinct from runtime adoption.
+
+### L production/supporting foundations
+
+- OpenTelemetry — existing vendor-neutral telemetry foundation / trial-eligible.
+- backup + isolated restore — **already implemented bounded proof; do not duplicate**.
+- SecretsPort — implemented AIOS-owned secret-reference boundary.
+- OpenBao — bounded non-production adapter; production adoption not claimed.
+- ClamAV — pilot complete / trial-eligible.
+- Docling — pilot in progress.
+
+## 4. Technology Radar V1.3.8 consolidation boundary
+
+V1.3.7 completed the broad current-horizon inventory. V1.3.8 applies the scatter audit across:
+
+```text
+AI evaluation and adversarial engineering
+AI observability / tracing / experiment analysis
+application and API security
+software supply chain / dependency / secret security
+infrastructure and IaC assurance
+sandbox / isolated execution
+policy and relationship authorization engines
+context / retrieval / memory / workflow challengers
+document / privacy / source intelligence
+frontend / human-agent interaction
+cybersecurity skills and isolated Red Team
+```
+
+The Radar remains continuously scoutable, but future additions must clear a higher bar: a material new capability, a materially stronger challenger, a major ecosystem change, or a newly demonstrated AIOS gap.
+
+V1.3.8 also records the current R3 research boundaries: `radar/r3-authority`, `radar/r3-security`, and now `radar/r3-interop` are preserved on origin as separate research branches and are not merged into V12. The interop checkpoint was pushed at exact SHA `aad377e401b10a95b11440442831290c5c60a9f2` after the consolidation check. R3 work must converge on defined evidence/closure gates and must not displace the independent professional Austria review.
+
+## 4.1 SUPPORTING PARALLEL — Track B Product Experience
+
+Before the L seal, Track B could refine the product experience without starting M. That pre-M boundary is now historical; the anti-duplication audit in `TRACK_B_PRODUCT_EXPERIENCE_ANTI_DUPLICATION_AUDIT_2026-08-31.md` remains the implementation map M must reuse.
+
+Audit truth:
+
+```text
+UX0 / information architecture          EXISTING / EXTEND
+workspace navigation                    EXISTING / EXTEND
+UX1 design-system foundation            EXISTING / REFINE
+UX2 Live Organization surface           EXISTING / REFINE
+Munder donor architecture               EXISTING / DO NOT REDESIGN
+Munder/CopilotKit/AG-UI runtime adoption NONE ON CANONICAL V12
+canonical live runtime projection        EXISTING
+runtime-quality token/cost backend data  EXISTING
+Cockpit runtime-economics presentation   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / BROWSER E2E NOT OBSERVED THERE
+durable OrganizationActivity projection  EXISTING / CANONICAL
+Cockpit durable activity-lineage view    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
+presence / heartbeat                     FUTURE GAP / DEMAND-GATED
+collaboration / coordination UX          EXISTING MULTI-SURFACE FOUNDATION / REFINE ONLY AGAINST PROVEN GAP
+provider transcript/tool visualization   DEFERRED; MUST NOT BYPASS OrganizationActivity
+```
+
+The first selected Track B gap deliberately reused the existing Board-safe `AustriaLiveRuntimeQualityRead` projection. The user locally observed its frontend/source/type/build/repository gates green at exact head `693c997...`; that run did not include Playwright and does not prove later heads. The next verified gap reused the already-canonical `OrganizationActivity` records exposed through the Austria Live Organization transparency projection and presented their persisted trace/causation lineage in the Cockpit. At exact head `958b796...`, the user observed 30/30 design-foundation tests, 4/4 request-auth tests, TypeScript/build/compiled-auth, 5/5 Chromium Playwright E2E, npm audits and repository gates all pass. No donor event, transcript or collaboration state becomes organization truth.
+
+Permanent boundary:
+
+```text
+TELEMETRY != CANONICAL ORGANIZATION ACTIVITY
+```
+
+Missing measurements remain unknown rather than being inferred as zero. No new telemetry backend, presence store, event authority, donor state store or external interaction framework is adopted by this tranche.
+
+A deeper Track B anti-duplication pass also reclassified generic collaboration visualization. The broader Cockpit and cross-department experience already uses canonical `OrganizationPosition.reports_to_position_key`, `OrganizationWorkItemDependency`, blockers, human requests and durable `OrganizationActivity` to visualize hierarchy, coordination, dependencies, friction and recent signals. A parallel Munder-style collaboration graph/state store is therefore not a current gap. Richer collaboration UX remains refinement-only and must start from a specific unmet user need.
+
+## 5. IN PROGRESS — M Board Transparency + Living Organization V2
+
+### M mission
+
+M converts the sealed organizational/runtime foundations into a premium Human Owner operating experience. It is not simply a Board dashboard. M must make organizational truth visible, navigable and operable without weakening governance.
+
+~~~text
+canonical decisions
+        ↓
+decision / work / evidence navigation
+        ↓
+scene projection foundation
+        ↓
+animated persistent employees
+        ↓
+real conversations / handoffs / Mission Rooms
+        ↓
+blockers / Smart Objects / live Board Room
+        ↓
+organization lenses / Owner command mode
+        ↓
+temporal replay
+        ↓
+predictive + environmental projections
+        ↓
+optional Cognitive Ecology / Organica
+~~~
+
+### M execution schedule
+
+| Slice | What we implement | Status |
+|---|---|---|
+| **M.1** | Decision Explorer | **COMPLETE / PASS** at 9f00124c9041d1480b8007cdd54214df7fb37e3f |
+| **M.1A** | Record exact-head CI closure and freeze detailed M / Living Organization direction | **THIS V12.65 documentation slice** |
+| **M.2** | Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction | **COMPLETE / PASS** at `d9294b2f29c21aa4866d47a253ada94eeae2c568` |
+| **M.3** | Living Organization Scene Foundation | **COMPLETE / PASS** at `d72ba0b6aaeb14385a340a7a4c0ddace1cd63882` |
+| **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **COMPLETE / PASS** at 7591e32... |
+| **M.5** | Conversations, handoffs & Mission Rooms | **COMPLETE / PASS** at `884d339ce761fba2410abe851d0c5d1cb172eb93` |
+| **M.6** | Blockers, Smart Objects & live Board Room | **NEXT functional slice** |
+| **M.7** | Organization Lenses + Owner command mode; mandatory structured FLOW baseline + GPU fluid FLOW TRIAL | Scheduled |
+| **M.8** | Replay / temporal organization | Scheduled |
+| **M.9** | Environmental memory TRIAL with mandatory structured historical baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment | Scheduled; hardest interpretation gate |
+| **M.10** | Cross-view product-value benchmark, accessibility/fallback proof, analytical-hypothesis disposition, and M closure | Scheduled |
+| **Post-M** | Cognitive Ecology / Organica optional research | Unscheduled; only if evidence justifies; does not block N |
+| **N** | Real learning, optimization, Dreamtime, adaptive predictions | After M and dependency gates |
+
+### M.1 — Decision Explorer — COMPLETE / PASS
+
+M.1 established the first canonical Board Transparency surface: read-only ExecutiveDecision list/detail data, authority/status/owner/work-item filters, supersession state, source provenance, Cockpit navigation and regression coverage. It adds no new command surface and does not merge the legacy authority-decision domain into the executive-decision domain.
+
+Exact proof:
+
+~~~text
+implementation head   9f00124c9041d1480b8007cdd54214df7fb37e3f
+Repository Policy     #517 / run 33571881076   PASS
+V12 Production Proof  #1054 / run 33571881063 PASS — 4/4 jobs
+~~~
+
+All four Production Proof jobs passed: backend regression, frontend tests/types/build, PostgreSQL governance contracts, and repository policy/constraints.
+
+### M.1A — project-state reconciliation
+
+V12.65 records the exact M.1 closure, makes M.2 the next bounded functional slice, and freezes Living Organization V2 so future work does not regress to a generic static-dashboard interpretation. This is documentation/planning only; it does not reopen L or change M.1 runtime/authority semantics.
+
+### M.2 — Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction — COMPLETE / PASS
+
+M.2 builds the navigation spine required by both Board Transparency and Living Organization.
+
+Exact implementation head:
+
+~~~text
+d9294b2f29c21aa4866d47a253ada94eeae2c568
+
+Repository Policy Check #521 / run 33574775103   PASS
+V12 Production Proof #1062 / run 33574775132     PASS — 4/4 jobs
+
+Backend regression (SQLite)        1340 passed / 22 skipped / 1 warning
+PostgreSQL governance contracts    105 passed / 1 warning
+Frontend request/read tests        7 passed / 0 failed
+TypeScript                         PASS
+Next.js production build           PASS — 42/42 pages
+Repository policy/constraints      PASS
+~~~
+
+Delivered M.2 behavior:
+
+- canonical record-reference reads can filter by decision owner, WorkItem owner and reference role;
+- the web read client can request WorkItem-scoped durable OrganizationActivity and record-reference provenance;
+- Decision Explorer reconstructs linked WorkItem context, including objective_key, phase_key, parent work, risk, priority, authority, assignment and objective;
+- decision-owned and WorkItem-owned record references are merged/deduplicated for evidence/provenance inspection;
+- recent durable WorkItem activity is shown with actor/source/version context;
+- existing decision supersession traversal remains intact;
+- missing WorkItem/reference/activity relationships remain explicitly unavailable rather than inferred;
+- the earlier nonexistent Cockpit WorkItem route is no longer required for Decision Explorer reconstruction;
+- no separate Mission record or M-specific lineage database was invented.
+
+Permanent M.2 boundary:
+
+> **Reconstruction follows canonical links. Missing links stay missing. Read navigation does not become command authority.**
+
+~~~text
+ExecutiveDecision
+      ├── authority / owner / outcome
+      ├── supersedes / superseded-by
+      ↓
+WorkItem
+      ↓
+Mission
+      ├── Evidence
+      ├── SourceSnapshots / VerifiedRules
+      ├── relevant durable activity
+      └── provenance / timestamps
+~~~
+
+Acceptance intent:
+
+- follow canonical decision → WorkItem/Mission linkage where it exists;
+- inspect evidence/provenance without frontend recomputation of canonical fingerprints;
+- traverse supersession history;
+- show missing relationships as unknown/unavailable rather than invented;
+- remain read-oriented and add no new decision authority.
+
+---
+
+## 5.1 Living Organization V2 — north star
+
+Traditional enterprise software makes the Human Owner reconstruct a company from tables, counters and logs. Living Organization makes **the organization itself the interface**.
+
+The Human Owner should see departments, persistent AI employees, Missions, collaboration, waiting, blockers, evidence work, escalations and Board activity as one coherent living company.
+
+Operational value:
+
+- obvious collaboration and handoffs;
+- visible shared blockers;
+- spatial navigation into Missions and evidence;
+- contextual risk, cost, authority and decision inspection;
+- stronger observability/debugging through replay;
+- lower cognitive load than disconnected dashboards;
+- a productive interface that can also be fun.
+
+### Permanent visual truth rule
+
+> **Animation may be expressive. State must be truthful.**
+
+| Real AIOS state | Visual representation |
+|---|---|
+| fresh persisted presence/checkpoint | employee present/active |
+| active WorkItem / AgentRun | working, reading or typing |
+| real collaboration / AgentConversation | employees visibly talk/collaborate |
+| Mission participation | employees gather in a Mission Room |
+| real blocker/dependency | obstacle, friction or warning |
+| real handoff/work transition | visible work package moves |
+| escalation | attention/movement toward oversight or Board |
+| ExecutiveDecision requiring attention | live Board Room activity |
+| no active high-priority work | ambient idle / coffee / lounge behavior |
+
+Coffee, walking, sitting and typing may be ambient animation when they represent a valid semantic state. They do not become fake canonical business events.
+
+### Frozen causality rule
+
+~~~text
+canonical AIOS state
+        ↓
+Live Organization projection
+        ↓
+scene state
+        ↓
+animation
+~~~
+
+Never:
+
+~~~text
+random animation
+        ↓
+silent canonical mutation
+~~~
+
+Human Owner interventions still travel through explicit UI intent, AIOS API authorization/governance, canonical mutation, then back into projection.
+
+---
+
+## 5.2 M.3 — Living Organization Scene Foundation
+
+M.3 creates the hard boundary between canonical organization state and rendering.
+
+~~~text
+CANONICAL AIOS
+  Mission / WorkItem
+  OrganizationPosition / presence
+  AgentRun / AgentConversation / durable activity
+  dependencies / blockers
+  ExecutiveDecision / Incident / Evidence
+        ↓
+LIVE ORGANIZATION PROJECTION
+        ↓
+SCENE STATE
+        ↓
+RENDERER
+        ↓
+/cockpit/live-organization
+~~~
+
+Conceptual scene content:
+
+~~~text
+OrganizationScene
+├── employees
+├── departments
+├── missions
+├── work_items
+├── conversations
+├── blockers
+├── decisions
+├── incidents
+├── smart_objects
+└── relationships
+~~~
+
+M.3 acceptance:
+
+- no renderer-owned organizational truth;
+- unknown backend data stays unknown;
+- tenant/auth boundaries preserved;
+- deterministic scene state testable without animation;
+- initial real API-backed scene renders in Cockpit;
+- define the renderer adapter so the adopted WebGPU + Three.js compute path can enter progressively without coupling canonical state to rendering;
+- M.3 does not need full field simulation active yet, but the advanced rendering substrate is now an approved implementation direction.
+
+### M.3 exact-head acceptance
+
+M.3 is **COMPLETE / PASS** at exact implementation head:
+
+~~~text
+d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
+
+Repository Policy Check #527 / run 33578435691   PASS
+V12 Production Proof #1074 / run 33578435709     PASS — 4/4 jobs
+
+Backend regression (SQLite)                     PASS
+Frontend tests, types and build                 PASS
+PostgreSQL governance contracts                 PASS
+Repository policy and constraints               PASS
+~~~
+
+Accepted M.3 foundations include:
+
+- backend-owned living-organization-scene.v1 projection;
+- deterministic department, Mission, employee, WorkItem, blocker, decision, room, relationship and Smart Object semantics;
+- explicit conversation/incident seams without invented records;
+- coverage metadata that says when presence/conversation/incident truth is not connected;
+- disabled predictive/environmental planes reserved for later milestones;
+- non-authoritative scene and renderer truth posture;
+- renderer-neutral spatial model with deterministic canonical department zones;
+- cross-department Mission Room separated from employee home-department topology;
+- declared three-webgpu renderer target without pretending the renderer is already installed or authoritative.
+
+M.3 is closed unless a regression is discovered. M.4 may now add actual animated employees on top of this proven scene contract.
+
+### Three visual planes
+
+1. **Deterministic** — real current employees, Missions, WorkItems, blockers, decisions and relationships.
+2. **Predictive / ghost** — future/potential projections, visually distinct, zero authority.
+3. **Environmental / stigmergic** — read-only traces such as paths, heat, collaboration routes and workspace evolution.
+
+Planes 2 and 3 may aid Owner perception but never silently mutate canonical AIOS.
+
+---
+
+## 5.3 M.4 — Animated Employees V1
+
+M.4 is split so animation cannot start on an unproven renderer seam.
+
+### M.4.0 — Renderer bootstrap gate
+
+Implementation candidate scope:
+
+~~~text
+living-organization-scene.v1
+        ↓
+renderer-neutral LivingSceneRenderModel
+        ↓
+AIOS-owned Three.js adapter
+        ↓
+Three.js WebGPURenderer
+        ↓
+WebGPU preferred / WebGL2 renderer fallback
+        ↓
+view-only picking
+~~~
+
+Acceptance required before M.4.1:
+
+1. browser renderer initializes on the canonical scene fixture;
+2. canonical department/employee/room geometry is rendered;
+3. pointer picking resolves a projected entity;
+4. picking changes view selection only and invokes no command API;
+5. renderer refuses authoritative scene models;
+6. renderer failure leaves the permanent Structured Cockpit usable;
+7. no core operation requires the spatial renderer;
+8. dependency/build/static contract gates pass at the same exact head.
+
+The Structured Cockpit is a named permanent product surface, not a temporary benchmark. It is the accessibility, low-power and exact-record path.
+
+M.4.0 is **COMPLETE / PASS** at exact implementation/proof head:
+
+~~~text
+e664075567997f64bd0b973aa8e8d089207ec77e
+
+Repository Policy Check #533 / run 33582099294   PASS
+V12 Production Proof #1085 / run 33582096438     PASS — 5/5 jobs
+
+Frontend tests, types and build                   PASS
+Repository policy and constraints                PASS
+PostgreSQL governance contracts                  PASS
+Backend regression (SQLite)                      PASS
+Living Organization renderer browser proof       PASS — 7/7 Playwright tests
+~~~
+
+Browser acceptance observed on the exact head includes:
+- initialized Three.js renderer reports an actual backend of WebGPU or WebGL2 fallback, never an inferred preference;
+- canonical scene fixture renders department/employee/room geometry;
+- view-only pointer picking selects a projected entity;
+- Structured Cockpit remains visible and usable;
+- renderer/scene authority remains false;
+- no renderer path gains command or canonical mutation authority.
+
+M.4.0 is closed unless a regression is found. M.4.1 may now implement semantic employee animation.
+
+### M.4.1 — Animated Employees V1
+
+M.4.1 is **COMPLETE / PASS** at exact implementation/proof head:
+
+~~~text
+7591e32be1c9fa8601ffca0b17efea62b7066545
+
+Repository Policy Check #541 / run 33586042228   PASS
+V12 Production Proof #1102 / run 33586042255     PASS — 5/5 jobs
+
+Frontend tests, types and build                   PASS
+Repository policy and constraints                PASS
+PostgreSQL governance contracts                  PASS
+Backend regression (SQLite)                      PASS
+Living Organization renderer browser proof       PASS — 10/10 Playwright tests
+~~~
+
+Accepted M.4.1 scope is intentionally narrower than the earlier aspirational motion vocabulary.
+
+Canonical employee semantic state is converted by a pure presentation mapping:
+
+~~~text
+working         → focused_work       → stationary work pulse
+blocked         → blocked_wait       → stationary attention pulse
+awaiting_owner  → awaiting_attention → restrained waiting motion
+queued          → queued_wait        → restrained waiting motion
+completed       → settled_idle       → calm settled motion
+unknown         → neutral_static     → no motion
+~~~
+
+Every presentation result explicitly remains:
+
+~~~text
+presentationOnly  = true
+presenceClaimed   = false
+locomotionAllowed = false
+~~~
+
+The renderer uses simple recognizable employee figures and a long-lived Three.js/WebGPU animation loop while preserving the M.4.0 lifecycle contract:
+
+~~~text
+renderer / canvas / backend stay alive
+        ↓
+scene refresh
+        ↓
+projection resources rebuilt
+        ↓
+employee actor presentation rebuilt
+        ↓
+animation continues
+~~~
+
+Browser proof verifies that canonical working state produces observable presentation motion while presence and locomotion remain false.
+
+M.4.1 did **not** implement walking, talking, room entry, handoffs or spatial collaboration inferred from proximity. M.5 now adds inspectable canonical conversation and handoff context; it still does not claim proximity-based talking, room entry, presence or locomotion.
+
+Two earlier exact-head candidate runs failed only stale M.4.0 text assertions in the design contract; no PASS was inherited from them. The final accepted head is 7591e32....
+
+M.4 is closed unless a regression is discovered.
+
+## 5.4 M.5 — Conversations, handoffs and Mission Rooms — COMPLETE / PASS
+
+M.5 is accepted on exact implementation head `884d339ce761fba2410abe851d0c5d1cb172eb93`.
+
+~~~text
+Repository Policy Check #543 / run 33589910601   PASS
+V12 Production Proof #1106 / run 33589910606     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+Conversation lifecycle is durable organizational collaboration context in immutable `OrganizationActivity` events: `organization.conversation.opened.v1` and `organization.conversation.closed.v1`. It does not introduce a second conversation table, persist transcripts or carry authority. The governed service requires at least two unique active positions, includes the linked WorkItem's currently assigned position, authorizes before lookup, treats exact retries idempotently and rejects conflicting identity reuse.
+
+Handoffs remain projections of existing `organization.work.assigned.v1` truth, including previous/assigned position, WorkItem, status, timestamp and governed causation where available. No new handoff table exists.
+
+The backend-owned `living-organization-scene.v2` contract exposes canonical `conversations[]` and `handoffs[]` plus provenance-backed employee/conversation/WorkItem and previous/new employee relationships. Mission Room inspection shows participant and Activity lineage; conversation badges appear only for positions in an open persisted conversation. The visualization remains read-only and made zero POST requests in browser proof. Proximity never implies conversation, handoff, presence, room entry or locomotion.
+
+---
+
+## 5.5 M.6 — Blockers, Smart Objects and live Board Room — COMPLETE / PASS
+
+Shared friction should be shared visually:
+
+~~~text
+Anna ──┐
+Lukas ─┼── missing employer declaration
+Sofia ─┘
+~~~
+
+Smart Objects map world objects to real AIOS state:
+
+| Object | AIOS meaning |
+|---|---|
+| Evidence Lab / shelf | Evidence, SourceSnapshots, verification |
+| Regulatory monitor | official-source retrieval/monitoring |
+| Incident beacon | canonical Incident |
+| Cost display | available runtime/model cost |
+| Mission board | Mission/WorkItem progress |
+| Immune Center | organizational immune/security state |
+| Board room/desk | ExecutiveDecision / escalation |
+| Owner inbox | canonical Human Actions / escalations |
+| Model terminal | safe model/provider activity projection |
+
+Smart Objects are projections unless an explicit authorized interaction routes through AIOS governance.
+
+The live Board Room is a spatial projection over M.1/M.2 truth: what is being decided, authority, owner, linked work, evidence/provenance, supersession and required Owner action. It never bypasses authority.
+
+M.6 is accepted on exact implementation head `01b8386482f5a6ba82ecb2a07b18c25888a5b1ba`.
+
+~~~text
+Repository Policy Check #568 / run 33619912518   PASS
+V12 Production Proof #1155 / run 33619906469     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+The backend-owned scene contract is `living-organization-scene.v3`. It projects canonical `OrganizationBlocker`, `ExecutiveDecision`, open `OrganizationHumanActionRequest` and unresolved `RiskEscalation` truth into the read-only Living Organization without creating a second authority path or mutable scene truth.
+
+The live Board Room exposes decision authority, status, owner, linked WorkItem, evidence/provenance, source-object metadata, record fingerprint, supersession and required Owner action. Owner Inbox and the Risk Room project canonical Human Actions and escalations. Smart Objects cover Mission/WorkItem progress, Evidence/VerifiedRules/SourceSnapshot provenance, blockers, Board attention, Owner actions, risk and safe model activity lineage.
+
+M.6 keeps negative truth explicit. Regulatory Monitor may expose persisted SourceSnapshot provenance but does not claim SourceRetrievalRun freshness where K.1 does not persist retrieval-run identity. Model Terminal may expose persisted AgentRun/model activity lineage but grants no organizational authority. Immune Center remains unavailable for this scene because the existing eligibility immune circuit is aggregate-scoped rather than scene-linked. Incident Beacon remains unavailable because there is no canonical Incident model. Cost Display remains unavailable because there is no canonical organization runtime-cost ledger. Unavailable state is rendered as unavailable, never as fabricated zero-value truth.
+
+The visualization remains projection-only. M.4.1 motion discipline is preserved: presence and locomotion are not asserted, Smart Object selection is view-only, and no Living Organization interaction bypasses governed APIs or mutates canonical organization state.
+
+M.6 is closed unless a regression is discovered.
+
+---
+
+## 5.6 M.7 — Organization Lenses + Owner command mode
+
+Planned lenses:
+
+~~~text
+ORGANIZATION / MISSION / FLOW / RISK / AUTONOMY / COST
+EVIDENCE / BLOCKERS / DECISIONS / PERFORMANCE / INCIDENT
+~~~
+
+FLOW emphasizes routing/throughput. RISK surfaces high-consequence work. COST exposes available spend hotspots. BLOCKERS emphasizes bottlenecks. DECISIONS highlights authority/Board/supersession. EVIDENCE highlights completeness/contradiction/provenance.
+
+FLOW has a permanent comparison structure:
+
+~~~text
+same canonical work graph
+      ├── structured directed graph / animated-edge / heat baseline
+      └── GPU fluid/field representation — TRIAL
+~~~
+
+The fluid representation is promoted only if it materially beats the maintained analytical baseline. Two failed targeted iterations stop default-product development for that representation without invalidating the FLOW product need.
+
+Owner command mode should support queries such as:
+
+~~~text
+Show missions blocked more than 20 minutes.
+Show work requiring my authority.
+Where is model cost concentrated?
+Show R4/R5 work.
+Show incomplete evidence on Austria missions.
+Show decisions superseded this week.
+~~~
+
+Projection/filter/camera may react immediately; material organizational mutation still requires governed APIs.
+
+### M.7.1 — Organization Lenses + read-only Owner view commands — COMPLETE / PASS
+
+M.7.1 is accepted on exact implementation head `7937d326ae8625c81a19236539f89cb1dee352e6`.
+
+~~~text
+Repository Policy Check #570 / run 33621902151   PASS
+V12 Production Proof #1159 / run 33621897577     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+M.7.1 adds a read-only lens foundation over the existing `living-organization-scene.v3` deterministic plane. ORGANIZATION / MISSION / FLOW / RISK / AUTONOMY / COST / EVIDENCE / BLOCKERS / DECISIONS / PERFORMANCE / INCIDENT are represented explicitly, but only scene-safe canonical lenses are selectable.
+
+The lens model keeps negative truth visible. COST remains unavailable because M.6 established that no canonical organization runtime-cost ledger exists. INCIDENT remains unavailable because there is no canonical Incident model. AUTONOMY remains planned rather than inferred from authority levels. PERFORMANCE remains planned because raw activity volume is not treated as productivity. FLOW is intentionally partial: it exposes current WorkItem relationships and governed handoffs but does not yet claim throughput, congestion heat or the planned structured-vs-fluid comparison.
+
+Owner command mode begins with view-only commands such as mission work, routing flow, open risk, blockers, Board attention and evidence state. These commands change local presentation emphasis only. Browser proof verifies lens switching without POST or canonical mutation. The ORGANIZATION lens restores the complete structured scene, and de-emphasis never removes the exact Structured fallback.
+
+M.7.1 does not add a truth store, migration, authority path, provider authority, scene mutation, presence claim or locomotion claim.
+
+### M.7.2 — Structured FLOW + deterministic Owner analytical queries — COMPLETE / PASS
+
+M.7.2 is accepted on exact implementation head `f78833ddc60ca8bd7b7df845f93c7acfc5016738`.
+
+~~~text
+Repository Policy Check #574 / run 33623768481   PASS
+V12 Production Proof #1167 / run 33623764442     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+The backend scene contract advances to `living-organization-scene.v4` without a migration or a second truth store. One backend projection clock now derives WorkItem lifecycle age/overdue state and canonical blocker open-duration/overdue state. Duration-sensitive Owner queries therefore remain deterministic and replayable rather than depending on browser clock or timezone.
+
+FLOW now has the mandatory maintained structured baseline: WorkItem nodes, explicit parent topology, governed handoff history, blocker/risk/Owner-attention signals, lifecycle age and overdue state. Parent-child topology remains explicitly topology and is not promoted to dependency truth. The structured FLOW surface is authoritative=false / projection-only and remains usable independently of the advanced renderer.
+
+Owner analytical queries now answer only where canonical scene truth is sufficient:
+
+~~~text
+Show missions blocked >20 minutes       AVAILABLE — canonical blocker open duration + Mission membership
+Show work requiring my authority        AVAILABLE — explicit ExecutiveDecision / HumanActionRequest Owner requirement
+Show R4/R5 work                         AVAILABLE — exact WorkItem.risk_level match only
+Show overdue work                       AVAILABLE — backend-derived due-state at scene projection clock
+Show incomplete evidence                UNAVAILABLE — aggregate evidence counts are not per-WorkItem completeness truth
+Show decisions superseded this week     UNAVAILABLE — scene v4 lacks complete temporal supersession-effective history
+Where is model cost concentrated?       UNAVAILABLE — no canonical organization cost ledger
+~~~
+
+Risk escalation attention alone is never promoted to Owner authority. High/critical labels are never silently remapped to R4/R5. Aggregate evidence counts are never promoted to mission-level completeness. Runtime cost estimates remain telemetry rather than organizational cost truth.
+
+The GPU fluid/field representation remains an unpromoted TRIAL. M.7.2 establishes the structured comparison baseline but does not claim fluid FLOW product value. Browser proof verifies the FLOW baseline, analytical query results, explicit unavailable states and zero unauthorized POST/mutation while preserving the M.4.1 no-presence/no-locomotion boundary.
+
+M.7.2 does not add authority, presence, locomotion, scene mutation, browser-time truth, dependency truth or a cost ledger.
+
+### M.7.3 — Bounded evidence-validity + supersession-time Owner queries — COMPLETE / PASS
+
+M.7.3 is accepted on exact implementation head `c746e40b000db7e17d8dec9f1114a6e7b72c9d14`.
+
+~~~text
+Repository Policy Check #584 / run 33629654791   PASS
+V12 Production Proof #1187 / run 33629647811     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+The backend scene contract advances to `living-organization-scene.v5` without a migration or second truth store.
+
+M.7.3 adds two bounded truth improvements:
+
+~~~text
+specialist evidence validity
+  AustriaLiveSpecialistSnapshot.evidence_valid / evidence_reason
+        ↓
+  exact specialist WorkItem projection
+        ↓
+  Owner query: incomplete evidence — PARTIAL
+
+decision supersession timing
+  canonical successor ExecutiveDecision.created_at
+        ↓
+  backend comparison against LivingOrganizationScene.generated_at UTC week
+        ↓
+  Owner query: superseded this week — AVAILABLE
+~~~
+
+The evidence query is deliberately partial rather than promoted to whole-mission completeness. It covers K.1 specialist execution evidence only. Aggregate Evidence, VerifiedRule and SourceSnapshot counts are still not treated as per-mission completeness truth.
+
+The supersession query is deterministic at the scene projection clock and fail-closed when successor lineage is ambiguous. Successor record creation time is the bounded supersession timing signal; complete historical replay remains M.8.
+
+COST remains unavailable because there is still no canonical organization cost ledger. AUTONOMY remains unavailable for this Austria scene because the live snapshot does not project a scene-safe canonical autonomy profile. Neither is inferred from runtime estimates, authority level or activity volume.
+
+The final Chromium acceptance scenario was deliberately bounded to M.7 semantics after exact-head proof exposed nondeterministic 30-second overruns in an oversized scenario. Direct analytics/static tests retain R4/R5, overdue and renderer contracts; the browser case proves FLOW, blocker-age, explicit Owner authority, specialist evidence gap, supersession-week, cost-unavailable truth, canonical conversation/handoff record identity and zero POST. The timeout was not increased.
+
+Canonical collaboration disclosures now expose stable read-only record identities:
+
+~~~text
+data-conversation-id
+data-handoff-activity-id
+~~~
+
+These are selection/testing identities only; they do not add authority or mutation.
+
+M.7.3 does not add authority, scene mutation, browser-time truth, full evidence-completeness truth, cost truth, autonomy truth, presence or locomotion.
+
+The remaining M.7 obligation is the GPU fluid/field FLOW TRIAL against the maintained structured FLOW baseline. Promotion remains evidence-gated: zero truth leakage plus the adoption-contract comprehension/correctness/performance thresholds. Rendering successfully is not itself sufficient for promotion.
+
+### M.7.4 — GPU FLOW field TRIAL · Iteration 1 — IMPLEMENTED / TECHNICAL PASS / BENCHMARK PENDING
+
+M.7.4 Iteration 1 is technically accepted on exact implementation head `e73328f065f31858dea2887f20c9a46bfbf92c9a`.
+
+~~~text
+Repository Policy Check #592 / run 33636057199   PASS
+V12 Production Proof #1203 / run 33636051855     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                11/11 passed
+~~~
+
+The maintained Structured FLOW surface remains the control and permanent product baseline. The GPU field is a default-off presentation-only trial derived from that baseline.
+
+Iteration 1 adds:
+
+~~~text
+Structured FLOW baseline
+        ↓
+deterministic gpu-flow-field-trial.v1 derivation
+        ↓
+WorkItem field nodes + parent-topology stream paths
+        ↓
+Three.js/WebGPU presentation particles/corridors
+        ↓
+explicit Structured baseline / GPU field toggle
+~~~
+
+The derived presentation formula is explicit and bounded:
+
+~~~text
+congestion = blocker*4 + risk*3 + owner_attention*3 + overdue*2 + min(handoff,3)
+~~~
+
+This score is presentation-only. It is not canonical throughput, dependency, performance, productivity or authority truth.
+
+Permanent M.7.4 trial invariants:
+
+~~~text
+authoritative               = false
+projectionOnly              = true
+defaultProminence           = false
+fieldStateCanMutateWork     = false
+throughputClaimed           = false
+dependencyClaimed           = false
+promotionStatus             = benchmark_required
+presenceClaimed             = false
+locomotionClaimed           = false
+~~~
+
+The renderer exposes exact read-only trial state for acceptance and troubleshooting, including trial version, enabled/default state, node/path/particle counts, promotion state and truth-boundary flags. Browser proof verifies the field defaults OFF, can be explicitly enabled and returned to the Structured baseline, keeps the Structured FLOW surface visible, and issues no POST or canonical mutation.
+
+Iteration 1 also defines a fail-closed promotion evaluator. Successful rendering cannot auto-promote the representation. Promotion remains blocked until real benchmark evidence clears the adoption contract:
+
+~~~text
+truth leakage                        0 — hard gate
+trial correctness                    >= structured baseline
+median correct-answer time           >=20% improvement
+OR error rate                        >=25% improvement
+ordinary rendering                   >=55 FPS
+sustained rendering floor            >=30 FPS
+p95 interaction feedback             <=100 ms
+main-thread compute value             >=30% improvement
+OR a required capability the control cannot sustain above the FPS floor
+~~~
+
+No human comprehension/product-value measurements have yet been recorded for this trial. Therefore the M.7.4 implementation slice is sealed, but the representation remains **TRIAL / NOT PROMOTED / BENCHMARK PENDING**. M.10 must eventually classify it PROMOTED, LAB-ONLY/DEFERRED or RETIRED from actual evidence.
+
+M.7.4 does not add a truth store, backend schema, authority path, scene mutation, presence claim, locomotion claim, throughput truth, dependency truth, cost truth or autonomy truth.
+
+---
+
+
+
+## 5.7 M.8 — Replay / temporal organization
+
+Replay turns persisted history into an inspectable timeline.
+
+~~~text
+-30 min ───────────────●──────── NOW
+~~~
+
+It should reconstruct only supported history and help inspect Mission starts, blockers, handoffs, evidence arrival, decisions and escalations. Persisted history gaps remain gaps.
+
+Replay is both product UX and observability/debugging infrastructure.
+
+### M.8.1 — Canonical Replay Timeline V1 — COMPLETE / PASS
+
+M.8.1 is accepted on exact implementation head `f1a4cbdbbb1e97f4082e66dc9d8302ad77b9918b`.
+
+~~~text
+Repository Policy Check #598 / run 33644475775   PASS
+V12 Production Proof #1215 / run 33644470649     PASS — 5/5 jobs
+Backend regression (SQLite)                       1344 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                12/12 passed
+~~~
+
+M.8.1 adds no migration, no event backfill and no second history store. Its replay source is the existing immutable tenant-scoped `OrganizationActivity` stream, bounded to the latest Austria root WorkItem and descendants.
+
+~~~text
+OrganizationActivity
+        ↓
+existing semantic Activity coverage epoch
+        ↓
+latest Austria WorkItem tree
+        ↓
+organization-replay.v1
+        ↓
+Board-safe read-only Replay timeline
+~~~
+
+The replay projection exposes ordered persisted event identity, semantic class/type, actor/source identity, WorkItem linkage, stream sequence, timestamp, causation and supersession when those fields actually exist. Raw arbitrary Activity payload JSON is not promoted into the browser contract.
+
+Historical completeness is fail-closed:
+
+~~~text
+covered
+pre_epoch_partial
+partial_no_epoch
+~~~
+
+The existing Activity coverage epoch remains the authoritative boundary for curated semantic-history completeness. Pre-epoch history is explicitly partial and is never synthetically backfilled. If no coverage epoch exists, Replay reports partial coverage rather than implying a complete history.
+
+Known bounded replay coverage in M.8.1 includes persisted semantic Activity for supported work transitions, assignments/handoffs, dependencies, blockers, decisions, HumanActionRequests/actions, Contributions, evidence amendments and conversation lifecycle where those semantic adapters produced Activity.
+
+Known gaps remain explicit:
+
+~~~text
+conversation transcript history   lifecycle only; transcript not persisted
+RiskEscalation history            unavailable — no semantic Activity adapter
+SourceSnapshot temporal history   unavailable — not linked to Replay Activity
+unsupported pre-epoch history     partial — no synthetic reconstruction
+~~~
+
+Direct authenticated-human transitions may legitimately have no causation Activity. Replay preserves `null` causation rather than manufacturing lineage.
+
+The Cockpit adds a separate replay GET and a Structured temporal timeline with root-mismatch protection. Browser proof verifies coverage/gap presentation and zero POST/canonical mutation.
+
+M.8.1 does not add authority, historical interpolation, inferred past state, prediction, browser-clock truth, replay mutation or a second canonical timeline.
+
+The next M.8 slice may reconstruct bounded historical organization state only where persisted Activity semantics can prove that state. Unsupported historical dimensions must remain unavailable.
+
+### M.8.2 — As-of Temporal State Reconstruction — COMPLETE / PASS
+
+M.8.2 is accepted on exact implementation head `d57ab48859924271ae20c3b33a18fea15b0629af`.
+
+~~~text
+Repository Policy Check #605 / run 33651983833   PASS
+V12 Production Proof #1230 / run 33651983895     PASS — 5/5 jobs
+Backend regression (SQLite)                       1344 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                12/12 passed
+~~~
+
+M.8.2 adds a separate read-only Activity-cursor reconstruction contract without changing the sealed M.8.1 replay API.
+
+~~~text
+organization-replay.v1
+        ↓
+selected persisted Activity cursor
+        ↓
+semantic Activity transitions only
+        ↓
+organization-replay-state.v1
+        ↓
+bounded Board-safe historical projection
+~~~
+
+The projection reconstructs only state that explicit persisted Activity semantics can establish. Supported V1 dimensions are WorkItem status/assignment, blocker lifecycle, decision lifecycle, HumanActionRequest lifecycle and conversation lifecycle.
+
+The strongest acceptance invariant inspects the root WorkItem at its creation Activity and reconstructs its historical status as `queued`, even when the current WorkItem row has advanced. This proves the projection is not reading today's domain row and attaching an old timestamp.
+
+Historical uncertainty remains fail-closed. Missing creation events become unapplied transitions rather than invented prerequisite state. Coverage posture propagates from the Activity coverage epoch and reconstructed prerequisites.
+
+Unsupported historical dimensions remain explicit:
+
+~~~text
+RiskEscalation history
+SourceSnapshot history
+conversation transcript content
+historical deadline projection
+historical evidence-content state
+~~~
+
+The Cockpit adds `Inspect state here` for exact replay Activity cursors and renders known WorkItems, governed attention, collaboration lifecycle, reconstruction coverage, unapplied transitions and unsupported dimensions.
+
+Permanent M.8.2 invariants remain:
+
+~~~text
+canonical_projection = true
+authoritative         = false
+mutations_allowed     = false
+~~~
+
+M.8.2 adds no migration, no historical backfill, no synthetic interpolation, no second timeline and no mutation path.
+
+The next M.8 slice is temporal comparison/diff: compare two proven M.8.2 Activity-cursor projections to answer “what changed?” without independently reconstructing another history model.
+
+### M.8.3 — Temporal State Comparison / Diff V1 — COMPLETE / PASS
+
+M.8.3 is accepted on exact integrated implementation head `940fbc173ced8928aef784eb4ab7466c6088d72b`, composed directly on sealed M.8.2 closure head `0643c63dcfd1785b17509b0b787099b1319e848a`.
+
+~~~text
+Repository Policy Check #610 / run 33659495879   PASS
+V12 Production Proof #1236 / run 33659495840     PASS — 5/5 jobs
+Backend regression (SQLite)                       1344 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                12/12 passed
+~~~
+
+M.8.3 adds a separate read-only temporal comparison contract. It does not independently reconstruct history; both sides of the comparison are proven `organization-replay-state.v1` projections produced by M.8.2.
+
+~~~text
+Activity cursor A                         Activity cursor B
+       ↓                                         ↓
+M.8.2 as-of reconstruction A             M.8.2 as-of reconstruction B
+       └──────────────────────┬──────────────────┘
+                              ↓
+             organization-replay-state-diff.v1
+                              ↓
+                   supported semantic deltas
+~~~
+
+The comparison reports only supported projection differences for WorkItems, blockers, decisions, HumanActionRequests and conversation lifecycle. Entity deltas are bounded to `added`, `removed` and `changed`; changed entities expose the supported semantic fields whose reconstructed values differ.
+
+`added` and `removed` describe membership differences between the two reconstructed projections. They do not manufacture creation/deletion semantics where persisted Activity history cannot prove them.
+
+Permanent M.8.3 invariants are:
+
+~~~text
+comparison_basis          = two_organization_replay_state_v1_projections
+canonical_projection      = true
+authoritative             = false
+mutations_allowed         = false
+unchanged_entities_omitted = true
+~~~
+
+Unsupported historical dimensions propagate from M.8.2 and remain explicit rather than being inferred:
+
+~~~text
+RiskEscalation history
+SourceSnapshot history
+conversation transcript content
+historical deadline projection
+historical evidence-content state
+~~~
+
+The Cockpit adds `Set compare start` and `Compare from start` on persisted replay Activities. The resulting view answers “what changed?” while preserving the existing `Inspect state here` path and zero canonical mutation.
+
+A strong identity invariant proves:
+
+~~~text
+diff(cursor A, cursor A)
+→ changed_entity_count = 0
+→ no supported deltas
+~~~
+
+M.8.3 adds no migration, no mutation endpoint, no second timeline, no independent history store, no browser-clock historical truth and no interpolation of unsupported state.
+
+M.8 Replay / temporal organization is now complete through canonical replay, bounded as-of reconstruction and two-cursor temporal comparison.
+
+---
+
+## 5.8 M.9 — Environmental memory TRIAL + bounded future-state experiments
+
+Phantom Futures are explicitly noncanonical near-future projections.
+
+~~~text
+solid employee = current canonical projection
+ghost employee = predicted movement / handoff / collaboration
+
+phantom != fact
+prediction != authority
+~~~
+
+Phantoms must be visually distinct and expose reason/confidence/horizon when available. Early M.9 predictions may be deterministic/rule-based. Learned adaptive prediction belongs to N.
+
+Environmental memory has a mandatory structured historical baseline: replay-derived path frequency, heatmaps, timelines and explicit historical aggregates remain available even if advanced fields fail.
+
+
+### M.9.1 — Structured Environmental Memory Baseline — COMPLETE / PASS; SEAL PENDING CLOSURE PROOF
+
+M.9.1 implementation is complete on exact head `92b846ebd9f03c418b3435390c9a4bd5c4a7c138` and was merged by PR #32 into the active roadmap branch at merge commit `3ebba28bdb2c7f3fd546968a02bcda59e9f742f6`.
+
+Exact implementation proof:
+
+~~~text
+Woodpecker Pipeline #81 — manual exact-head proof     PASS — 4/4 workflows
+  repository-policy                                  PASS
+  backend-sqlite                                     PASS
+  frontend                                           PASS
+  postgres-governance                                PASS
+
+Local exact-head backend regression                  1346 passed / 22 skipped
+Living Organization Chromium suite                   12/12 passed
+TypeScript                                            PASS
+Next.js production build                             PASS
+Docker official-source registry resolution           PASS
+~~~
+
+GitHub hosted Actions were not executed for this exact head because hosted Actions credits were exhausted. This is not classified as a product failure: the roadmap's forward CI authority is self-hosted Woodpecker, while historical GitHub Actions proofs remain historical evidence.
+
+M.9.1 adds the mandatory structured historical baseline before predictive or reaction-diffusion experiments:
+
+~~~text
+sealed organization-replay.v1 returned window
+        ↓
+persisted semantic Activity only
+        ↓
+deterministic historical aggregates
+        ├── routing path frequency
+        ├── department × event-kind heat
+        ├── UTC hourly density
+        └── explicit event-kind totals
+~~~
+
+Permanent M.9.1 posture:
+
+~~~text
+canonical_projection = true
+authoritative         = false
+predictive            = false
+mutations_allowed     = false
+visualization_only    = true
+~~~
+
+The routing aggregate reads only `organization.work.assigned.v1` Activity already inside the sealed replay returned window. It does not silently widen history behind the UI.
+
+Unsupported dimensions remain explicit:
+
+~~~text
+RiskEscalation history
+SourceSnapshot history
+conversation transcript content
+future_state_prediction_v1
+reaction_diffusion_signal_v1
+~~~
+
+M.9.1 adds no migration, no new history store, no prediction and no mutation endpoint.
+
+This ROADMAP update is the post-merge closure candidate. M.9.1 must not be classified as SEALED until this exact closure head passes the required Woodpecker closure proof.
+
+Reaction-diffusion is an **EXPERIMENT**, not a promised product feature. It must first demonstrate an explainable mapping from persisted history to visual parameters and a plausible actionable signal beyond the structured baseline. Only then may it graduate to TRIAL.
+
+Phantom Futures remain a bounded experiment in M.9. They are visually distinct, zero-authority projections; learned adaptive prediction remains N.
+
+Environmental traces and predictions are perception aids, not new truth stores.
+
+---
+
+## 5.9 M.10 — Cross-view product-value benchmark + M closure
+
+M.10 does not require a new abstract visualization. It closes M by proving that the implemented product surfaces work together.
+
+Permanent product surfaces:
+
+~~~text
+ORGANIZATION
+  recognizable spatial operating interface
+
+ANALYTICAL
+  FLOW / RISK / COST / EVIDENCE / BLOCKERS / DECISIONS and surviving trials
+
+STRUCTURED
+  canonical records / lineage / dependency graphs / timelines / matrices
+  guaranteed accessibility and low-power path
+~~~
+
+M.10 acceptance should prove:
+
+- the same canonical truth remains consistent across Organization, Analytical and Structured surfaces;
+- no core operation requires WebGPU or an advanced visualization;
+- Structured remains usable under renderer failure/unsupported hardware;
+- spatial navigation improves orientation without hiding exact records;
+- M.7 fluid FLOW is explicitly PROMOTED, LAB-ONLY/DEFERRED or RETIRED by its gates;
+- M.9 reaction-diffusion is explicitly graduated/retired/lab-only according to evidence;
+- Phantom Futures remain visibly noncanonical and zero-authority if retained;
+- the Owner can move from an overview/pattern to the exact canonical record and lineage;
+- performance, comprehension and truth gates are recorded before M closes.
+
+### Post-M optional research — Cognitive Ecology / Organica
+
+Cognitive Ecology / Organica is **not an M deliverable**.
+
+It may be reintroduced after M only when the implemented product exposes a concrete unmet cognitive task and there is a falsifiable reason to believe an abstract ecosystem representation could solve it better.
+
+It does not block M closure, does not block N, and remains non-default unless a future evidence-backed roadmap decision promotes it.
+
+
+## 5.9.1 Advanced rendering stack — mixed ADOPT / TRIAL / EXPERIMENT obligations
+
+The advanced Living Organization stack is intentionally mixed: WebGPU/Three.js are scheduled infrastructure, while fluid FLOW and reaction-diffusion remain falsifiable visualization hypotheses.
+
+~~~text
+AIOS canonical state
+        ↓
+Live Organization projection
+        ↓
+scene contract
+        ↓
+Three.js scene / interaction layer
+        ↓
+WebGPU rendering + compute
+        ├── flow / fluid field
+        ├── reaction-diffusion field
+        ├── particles / environmental memory
+        └── optional Post-M analytical composition
+~~~
+
+### Product-value rule
+
+> **A visual primitive is successful only if it makes the Human Owner faster, more accurate, more informed, or enables materially denser real-time organization state than the simpler baseline.**
+
+Required benchmark tasks include:
+
+1. identify the largest shared blocker;
+2. identify the highest-consequence decision requiring attention;
+3. understand the dominant work-routing / congestion path;
+4. inspect evidence/decision context without losing canonical lineage;
+5. operate a dense scene without interaction becoming sluggish.
+
+Promotion targets are defined in the adoption contract and include comprehension-time improvement, non-regression in correctness, interaction/rendering performance and zero truth/authority leakage.
+
+Only the WebGPU/Three.js substrate is **ADOPT**. GPU fluid FLOW is **TRIAL**, reaction-diffusion is **EXPERIMENT**, and Cognitive Ecology/Organica is **POST-M OPTIONAL RESEARCH**. M.10 closes the implemented product; Organica does not block M or N.
+
+---
+
+## 5.10 Expressive governance physics
+
+Risk, autonomy, authority and blockers may have expressive physical semantics: high risk can appear heavier/hotter, blocked work can create friction, escalation can pull attention toward Board, strong evidence can appear stable, and contradiction can appear fractured.
+
+These are representations only.
+
+~~~text
+AIOS computes governance
+        ↓
+visual world expresses governance
+~~~
+
+Never the reverse.
+
+---
+
+## 5.11 Argument Arena / disagreement visualization
+
+Real disagreement may be presented in a bounded Argument Arena where competing claims/evidence become easy to compare. The purpose is reduced cognitive cost, not theatrical debate.
+
+The arena must preserve exact evidence identity, provenance, privacy rules, canonical confidence/quality semantics where available, and the distinction between recommendation and authority. Visual balance never authorizes a conclusion.
+
+---
+
+## 5.12 Productivity, fun and gamification boundary
+
+Safe/productive gamification may reward evidence completeness, low rework, blocker resolution, healthy collaboration, SLA performance, efficient model use, successful independent verification, safe autonomous completion and high-quality Mission completion.
+
+Do not gamify visa approvals/external outcomes, avoiding professional review, avoiding Owner escalation at all costs, maximum autonomy for its own sake, or raw activity/token counts.
+
+Celebrations may represent true internal milestones but never imply an external outcome that has not happened.
+
+---
+
+## 5.13 N — Learning & Optimization — AFTER M
+
+N remains dependency-gated behind M and owns measured adaptive behavior:
+
+~~~text
+learned routing
+learned collaboration patterns
+predictive blocker detection
+agent reliability evolution
+adaptive model routing
+historical-case similarity
+cost / quality optimization
+organizational pattern discovery
+adaptive Phantom Futures
+bounded Dreamtime
+~~~
+
+Dreamtime is low-activity/offline analysis of prior work, not uncontrolled self-modification.
+
+~~~text
+real completed work
+       ↓
+replay / evaluation
+       ↓
+alternative-path analysis
+       ↓
+repeated blocker / evidence-gap discovery
+       ↓
+optimization proposals
+       ↓
+governed adoption
+~~~
+
+It may propose routing, prefetch, blocker, evidence-template, model-routing and training improvements. It may not silently change authority, canonical legal truth or high-consequence governance.
+
+N begins only after M provides reliable projections, enough durable replay/history, measurable quality/cost/latency outcomes, explicit proposal/adoption boundaries, no hidden learning route to truth/authority mutation, and acceptance evidence for relevant M surfaces.
+
+## 6. Exact-head proof rule
+
+```text
+green proof for commit A
++ later commit B
+!= green proof for commit B
+
+acceptance start HEAD
+must equal
+acceptance end HEAD
+```
+
+The acceptance worktree must remain stable for the full proof run. Another session/process committing, resetting or switching the same worktree invalidates exact-head attribution even if individual tests pass.
+
+Canonical PowerShell acceptance must also be fail-fast: execute the full sequence inside one enclosing script block with `$ErrorActionPreference = "Stop"`, and print final PASS only after every gate succeeds. An earlier thrown gate cannot be overridden by later independently pasted console output.
+
+The final L acceptance proof must correspond to the final acceptance head after professional-review evidence and reconciliation are committed.
+
+## 7. Current scheduling truth
+
+```text
+Technology Radar V1.3.8                  ACTIVE CANONICAL / CONSOLIDATED
+Radar-caused runtime adoption             NONE
+Radar scatter-audit application            COMPLETE / DUPLICATE RESEARCH STATES TRIGGER-BOUND
+L runtime acceptance evidence             COMPLETE / ACCEPTED
+Wave E2 deterministic adversarial gate    IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E3 property/invariant testing         IMPLEMENTED / LOCAL PROOF OBSERVED AT 285a7f08...
+Wave E4 mutation-strength gate             IMPLEMENTED / LOCAL PROOF OBSERVED AT 5d8e940e...
+Track B anti-duplication audit             COMPLETE / CURRENT STOPPING DECISION RECORDED
+Track B runtime-economics Cockpit slice   IMPLEMENTED / LOCAL SOURCE+BUILD PROOF OBSERVED AT 693c997... / E2E NOT OBSERVED
+Track B durable activity-lineage slice    IMPLEMENTED / LOCAL + BROWSER EXACT-HEAD PROOF OBSERVED AT 958b796...
+Munder runtime adoption                    NONE
+external mutation engine adoption         NONE
+blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF PASS AT d969c7d...
+independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
+final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
+L overall                                 COMPLETE / PASS / SEALED
+M                                         IN PROGRESS — M.1–M.7.4 SEALED; M.8 COMPLETE / PASS; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.9–M.10 SCHEDULED
+N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
+```
+
+L is sealed. M.1–M.8 are sealed. The M.7.4 GPU FLOW representation remains TRIAL / NOT PROMOTED / BENCHMARK PENDING. M.9 environmental memory / bounded future-state experiments are next, followed by M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
+
+## 8. Historical compatibility anchors
+
+Earlier accepted roadmap generations remain part of repository history even when the active scheduler is concise. In particular, **v10.22** delivered the governed **multi-batch tranche operations** workflow documented in `docs/COVERAGE_TRANCHE_OPERATIONS_V10_22.md`. That historical tranche preserved human-review and non-automatic legal-control boundaries and depended on migration `0032_initial_rule_assertions` as part of its accepted implementation lineage.
+
+These anchors are historical compatibility references only; they do not reopen v10.22 work or alter the current L scheduling priority.

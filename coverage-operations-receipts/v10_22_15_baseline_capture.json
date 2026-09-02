@@ -1,0 +1,167 @@
+{
+  "batch_id": "a315c694-e3ae-437a-96d7-216264183334",
+  "batch_name": "v10.22.15 Europe evidence tranche 1B - DK, NL, BE, FR, IE",
+  "submitted_by": "coverage-evidence-proposer",
+  "item_count": 5,
+  "counts": {
+    "baseline_ready": 5
+  },
+  "eligible_to_queue": 0,
+  "baseline_ready": 5,
+  "in_progress": 0,
+  "failed": 0,
+  "pending_review": 0,
+  "items": [
+    {
+      "batch_item_id": "69a775d3-8b13-4882-816f-9e86d69b0352",
+      "alpha2_code": "DK",
+      "jurisdiction_id": "a998c469-7fcb-46bb-a574-b279060e5161",
+      "official_source_id": "301e7444-c5f8-4084-97b2-3445bfb7468e",
+      "source_monitor_id": "ad37fafa-841a-4b08-85d8-34ef70d7f715",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "e29872c9-db65-437f-8475-d0f4db4c7329",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:13:02.606145",
+        "completed_at": "2026-07-18T16:13:03.080847",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "35051899-a634-47ad-b864-7dd73e6e6b73",
+        "status": "baseline",
+        "content_hash": "544969fc83ca040736b310ad72ba7cc6848fae518fc6d9f7934297b3bb08327b",
+        "captured_at": "2026-07-18T16:13:03.074644+00:00",
+        "url": "https://www.nyidanmark.dk/en-GB/"
+      }
+    },
+    {
+      "batch_item_id": "47d75ca2-0598-4f4a-92d6-fd659cba29e7",
+      "alpha2_code": "NL",
+      "jurisdiction_id": "81fea222-e0d6-49d2-aaf0-1da1acfb83fd",
+      "official_source_id": "3cf8dabd-2c98-4fdf-a1fe-ffab232808ac",
+      "source_monitor_id": "b8240be5-2077-459c-ac81-0a651aff0f44",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "020769ae-a667-4aab-8da2-2197dfedf242",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:13:02.606145",
+        "completed_at": "2026-07-18T16:13:03.010568",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "0f40b0b7-33a7-4803-8bcc-7a0f19d0a7ba",
+        "status": "baseline",
+        "content_hash": "df16dd89cd6fd74eedfcecbbbfdd2460f29890e0a147b676a1673bd283565965",
+        "captured_at": "2026-07-18T16:13:03.004144+00:00",
+        "url": "https://ind.nl/en/"
+      }
+    },
+    {
+      "batch_item_id": "3c1726d1-0ef5-4757-b480-d9389fac8713",
+      "alpha2_code": "BE",
+      "jurisdiction_id": "9121062f-4be3-4d0d-9ff8-d032780e90c4",
+      "official_source_id": "800afc0f-e52e-4188-bf3e-98d3a777958e",
+      "source_monitor_id": "8a6ad66f-147c-4089-826f-09c62ca90ebf",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "2aab3fb0-e514-445a-8025-bbdff614813f",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:13:02.606145",
+        "completed_at": "2026-07-18T16:13:03.471151",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "cb0df92d-27d6-46bf-8a6c-ada68935b2d7",
+        "status": "baseline",
+        "content_hash": "53b96f39ab0d9bc5f9fcf7d317f4f8d5cd1e845e4fed1141bf1183061b20d4ff",
+        "captured_at": "2026-07-18T16:13:03.464013+00:00",
+        "url": "https://diplomatie.belgium.be/en/"
+      }
+    },
+    {
+      "batch_item_id": "264d164b-36bd-417b-93ff-504d6ee07da6",
+      "alpha2_code": "FR",
+      "jurisdiction_id": "d8e5e146-2ae9-45a1-b2c6-5396c75da1fc",
+      "official_source_id": "3d6d1ecf-5ed8-4c4a-a2a5-77a1c8fa081a",
+      "source_monitor_id": "14f1f58a-37d6-48de-93cd-22f0ec1d9325",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "45be4d4f-05bf-45d8-9311-69ed89dcf2c3",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:13:02.606145",
+        "completed_at": "2026-07-18T16:13:03.520034",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "060d64d4-3c12-4311-ac5f-6d59a0607ce6",
+        "status": "baseline",
+        "content_hash": "1909dd8c9f9bdd6a61c36fa4a95257d71a94bbe945dba6c537617d31f5bc4b46",
+        "captured_at": "2026-07-18T16:13:03.512900+00:00",
+        "url": "https://www.diplomatie.gouv.fr/en/"
+      }
+    },
+    {
+      "batch_item_id": "fbaaeeb1-5b64-4b8b-baf3-a6eea0927153",
+      "alpha2_code": "IE",
+      "jurisdiction_id": "df0a74c2-137c-4d35-ae29-757d932bc292",
+      "official_source_id": "6a75a2ec-341b-4039-9c71-27eda0ffe0fb",
+      "source_monitor_id": "1e466ed5-7ab7-4ece-aaea-63f265488119",
+      "assessment_status": "approved",
+      "certification_status": "approved",
+      "source_active": true,
+      "monitor_status": "active",
+      "state": "baseline_ready",
+      "eligible_to_queue": false,
+      "latest_run": {
+        "id": "1e082e62-7c04-4b87-b75d-e02217f19004",
+        "status": "baseline",
+        "attempt": 1,
+        "started_at": "2026-07-18T16:13:02.606145",
+        "completed_at": "2026-07-18T16:13:03.863608",
+        "error_code": null,
+        "error_message": null
+      },
+      "latest_snapshot": {
+        "id": "66b63e7d-79bc-4b2e-9cee-f82f2948a511",
+        "status": "baseline",
+        "content_hash": "bffc82e3f3945d67926a44d9d7b417b08e2410ec9e858c05c6b6803ddb4c05bb",
+        "captured_at": "2026-07-18T16:13:03.854334+00:00",
+        "url": "https://www.irishimmigration.ie/"
+      }
+    }
+  ],
+  "safety": {
+    "publishes_verified_rule": false,
+    "creates_coverage_claim": false,
+    "requires_approved_assessment_and_certification": true,
+    "message": "Baseline capture stores official-source evidence only. It does not approve a rule or make a coverage claim."
+  }
+}

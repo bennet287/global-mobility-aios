@@ -1,0 +1,107 @@
+{
+  "created_at": "2026-09-02T00:15:00+02:00",
+  "review_batch_id": "at-rwr-v3-2026-0902-001",
+  "reviews": [
+    {
+      "decision": "CORRECTED",
+      "independent_review": true,
+      "notes": "AuslBG §12a(1) requires a binding job offer as a standalone precondition. The asserted facts explicitly deny this. The tested route fails before the points assessment is reached. Alternative pathways (e.g., very-highly-qualified jobseeker) may be examined if the candidate's broader profile supports them, but that does not affect the clear outcome of the tested route.",
+      "professional_review_reference": "prof-ref-at-rwr-2026-v3-001",
+      "review_id": "rev-2026-0902-at-001",
+      "reviewed_at": "2026-09-02T00:16:00+02:00",
+      "reviewed_labels": {
+        "contradictions": [],
+        "eligibility": "INELIGIBLE",
+        "escalation_required": false,
+        "missing_evidence": [
+          "binding_job_offer"
+        ],
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
+        "required_evidence": [
+          "applicable_minimum_remuneration",
+          "binding_job_offer",
+          "points_evidence",
+          "shortage_occupation_training"
+        ],
+        "rule_or_source_refs": [
+          "migration.gv.at:rwr-skilled-shortage",
+          "ris.bka.gv.at:auslbg-12a"
+        ]
+      },
+      "reviewer_credential_reference": "cred-alias-at-2026-001",
+      "reviewer_reference": "rev-alias-at-2026-001",
+      "source_case_fingerprint": "sha256:45dca80bc3c4dc69056b0188b485b8451db392f0a0000d659bfeba0b50f7fd14",
+      "source_case_id": "at-rwr-shortage-software-di-no-job-offer-2026-01"
+    },
+    {
+      "decision": "CORRECTED",
+      "independent_review": true,
+      "notes": "All three §12a(1) preconditions are satisfied on the asserted facts. Points: 30 (completed training in shortage occupation) + 20 (work experience, capped at 10 years) + 15 (age under 30) = 65 of 90, exceeding the 55-point minimum with zero language points. Language evidence is not required to clear the threshold, but should be submitted if available as a cushion. Document authentication by AMS and the residence authority remains required downstream.",
+      "professional_review_reference": "prof-ref-at-rwr-2026-v3-001",
+      "review_id": "rev-2026-0902-at-002",
+      "reviewed_at": "2026-09-02T00:16:00+02:00",
+      "reviewed_labels": {
+        "contradictions": [],
+        "eligibility": "ELIGIBLE",
+        "escalation_required": false,
+        "missing_evidence": [],
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
+        "required_evidence": [
+          "applicable_minimum_remuneration",
+          "binding_job_offer",
+          "points_evidence",
+          "shortage_occupation_training"
+        ],
+        "rule_or_source_refs": [
+          "migration.gv.at:rwr-skilled-shortage",
+          "migration.gv.at:shortage-occupations-2026",
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b",
+          "ris.bka.gv.at:fachkraefteverordnung-2026-1"
+        ]
+      },
+      "reviewer_credential_reference": "cred-alias-at-2026-001",
+      "reviewer_reference": "rev-alias-at-2026-001",
+      "source_case_fingerprint": "sha256:a77cd73ff22a782ebe974c0a7e6e570546638cc26940a80e654dfa79d8a7f2f2",
+      "source_case_id": "at-rwr-shortage-software-di-strong-points-2026-01"
+    },
+    {
+      "decision": "CORRECTED",
+      "independent_review": true,
+      "notes": "Preconditions (a) and (b) are met, but the points total is 30 (qualification 30 + experience 0 + language 0 + age 0) against a required 55. The 25-point shortfall is structural and not remediable within this route on the asserted facts. A binding shortage-occupation offer to a candidate with zero relevant experience is an atypical pattern; in live practice we would verify that the asserted training genuinely matches the offered position and that the employer declaration is sustainable under AMS scrutiny.",
+      "professional_review_reference": "prof-ref-at-rwr-2026-v3-001",
+      "review_id": "rev-2026-0902-at-003",
+      "reviewed_at": "2026-09-02T00:16:00+02:00",
+      "reviewed_labels": {
+        "contradictions": [],
+        "eligibility": "INELIGIBLE",
+        "escalation_required": false,
+        "missing_evidence": [],
+        "pathway_keys": [
+          "at-rwr-skilled-worker-shortage-occupation"
+        ],
+        "required_evidence": [
+          "applicable_minimum_remuneration",
+          "binding_job_offer",
+          "points_evidence",
+          "shortage_occupation_training"
+        ],
+        "rule_or_source_refs": [
+          "ris.bka.gv.at:auslbg-12a",
+          "ris.bka.gv.at:auslbg-annex-b"
+        ]
+      },
+      "reviewer_credential_reference": "cred-alias-at-2026-001",
+      "reviewer_reference": "rev-alias-at-2026-001",
+      "source_case_fingerprint": "sha256:d216fc8b2188e43dcc9ae09c49cd968f42a4f000c23090d53ae3392d71b7422f",
+      "source_case_id": "at-rwr-shortage-software-di-under-points-2026-01"
+    }
+  ],
+  "schema_version": "mobility-professional-review-v1",
+  "source_benchmark_key": "austria-rwr-shortage-2026-v1",
+  "source_schema_version": "mobility-gold-v1"
+}

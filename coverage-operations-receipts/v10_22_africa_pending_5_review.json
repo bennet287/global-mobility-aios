@@ -1,0 +1,805 @@
+﻿{
+    "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+    "batch_name":  "v10.22.2 Africa evidence tranche 1A",
+    "actor":  "coverage-tranche-operator",
+    "dry_run":  true,
+    "selected_count":  5,
+    "selected_codes":  [
+                           "BF",
+                           "BI",
+                           "CV",
+                           "CM",
+                           "CF"
+                       ],
+    "would_queue_baselines":  [
+
+                              ],
+    "queued_baselines":  0,
+    "queue_result":  null,
+    "items":  [
+                  {
+                      "batch_item_id":  "2fde33e4-33f9-4f03-98fd-bb3208a15730",
+                      "alpha2_code":  "BF",
+                      "jurisdiction_name":  "Burkina Faso",
+                      "stage":  "pending_independent_review",
+                      "baseline":  {
+                                       "batch_item_id":  "2fde33e4-33f9-4f03-98fd-bb3208a15730",
+                                       "alpha2_code":  "BF",
+                                       "jurisdiction_id":  "766fa72f-704c-44be-823b-1d55f4f7dab5",
+                                       "official_source_id":  "dbf19e4c-dffa-4c51-a1fd-10d2f28b1364",
+                                       "source_monitor_id":  "2d8d6f5b-da96-4b5c-a94e-65f68d3509f6",
+                                       "assessment_status":  "pending_review",
+                                       "certification_status":  "pending_review",
+                                       "source_active":  true,
+                                       "monitor_status":  "active",
+                                       "state":  "pending_independent_review",
+                                       "eligible_to_queue":  false,
+                                       "latest_run":  {
+                                                          "id":  "7510e782-a912-4df5-b44a-d50985a3dc5e",
+                                                          "status":  "unchanged",
+                                                          "attempt":  2,
+                                                          "started_at":  "2026-07-17T04:15:36.432367",
+                                                          "completed_at":  "2026-07-17T04:15:36.684692",
+                                                          "error_code":  null,
+                                                          "error_message":  null
+                                                      },
+                                       "latest_snapshot":  {
+                                                               "id":  "810d0d01-9c84-403d-bbca-e839d17c40f6",
+                                                               "status":  "unchanged",
+                                                               "content_hash":  "4812bcd53e7de1d2d3863ac049b3890a3d0653923411caa4c1d03cbdf646811a",
+                                                               "captured_at":  "2026-07-17T04:15:36.677226+00:00",
+                                                               "url":  "https://www.visaburkina.bf/en/home/"
+                                                           }
+                                   },
+                      "review_packet":  {
+                                            "immigration_assessment":  {
+                                                                           "id":  "5bb0f566-e93d-41e1-afb6-4053c679d33a",
+                                                                           "status":  "pending_review",
+                                                                           "rule_relationship":  "independent",
+                                                                           "parent_code":  null,
+                                                                           "evidence_url":  "https://www.visaburkina.bf/en/home/",
+                                                                           "evidence_title":  "Detailed eVisa procedure â Visa Burkina",
+                                                                           "rationale":  "The official Visa Burkina site is operated by the Ministry of Security and Directorate General of National Police, and publishes entry conditions and online visa procedures.",
+                                                                           "proposed_by":  "coverage-evidence-proposer",
+                                                                           "reviewed_by":  null
+                                                                       },
+                                            "source_certification":  {
+                                                                         "id":  "b755cbc9-87e8-4e29-8501-149af421ae87",
+                                                                         "status":  "pending_review",
+                                                                         "coverage_domains_json":  "[\"visa\"]",
+                                                                         "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official Visa Burkina site is operated by the Ministry of Security and Directorate General of National Police, and publishes entry conditions and online visa procedures. The source identifies the Migration Division and provides official eVisa workflow. Keep the first assertion limited to services and visa-entry information visible in the captured snapshot. Submission creates pending proposals only. Independent reviewer certification remains required.",
+                                                                         "proposed_by":  "coverage-evidence-proposer",
+                                                                         "reviewed_by":  null
+                                                                     },
+                                            "authority":  {
+                                                              "id":  "75269f75-a604-4b14-bf5a-238bc0ff38dc",
+                                                              "name":  "Ministry of Security / Directorate General of National Police â Migration Division",
+                                                              "authority_type":  "immigration_authority",
+                                                              "website_url":  "https://www.visaburkina.bf/en/home/",
+                                                              "active":  true
+                                                          },
+                                            "official_source":  {
+                                                                    "id":  "dbf19e4c-dffa-4c51-a1fd-10d2f28b1364",
+                                                                    "name":  "Visa Burkina eVisa",
+                                                                    "url":  "https://www.visaburkina.bf/en/home/",
+                                                                    "domain":  "visa",
+                                                                    "source_type":  "government",
+                                                                    "active":  true
+                                                                },
+                                            "monitor":  {
+                                                            "id":  "2d8d6f5b-da96-4b5c-a94e-65f68d3509f6",
+                                                            "status":  "active",
+                                                            "fetch_method":  "http",
+                                                            "last_checked_at":  "2026-07-17T04:15:36.679643",
+                                                            "last_http_status":  200,
+                                                            "last_error":  null
+                                                        },
+                                            "review_checks":  [
+                                                                  "Confirm the authority is responsible for the claimed immigration scope.",
+                                                                  "Confirm the source hostname and page are official and jurisdiction-matched.",
+                                                                  "Confirm the relationship and certification wording do not exceed the evidence.",
+                                                                  "Use a reviewer identity different from the proposer."
+                                                              ]
+                                        },
+                      "snapshot_analysis":  {
+                                                "snapshot_id":  "810d0d01-9c84-403d-bbca-e839d17c40f6",
+                                                "snapshot_url":  "https://www.visaburkina.bf/en/home/",
+                                                "captured_at":  "2026-07-17T04:15:36.677226+00:00",
+                                                "content_hash":  "4812bcd53e7de1d2d3863ac049b3890a3d0653923411caa4c1d03cbdf646811a",
+                                                "content_characters":  1278,
+                                                "unique_lines":  48,
+                                                "navigation_lines":  1,
+                                                "navigation_ratio":  0.021,
+                                                "keyword_hits":  [
+                                                                     "application",
+                                                                     "immigration",
+                                                                     "visa"
+                                                                 ],
+                                                "quality_score":  71,
+                                                "classification":  "suitable_for_narrow_draft",
+                                                "candidate_excerpt_lines":  [
+                                                                                "Visa Burkina (evisa Burkina Faso)",
+                                                                                "Types of Visas",
+                                                                                "The transit visa",
+                                                                                "The short term visa",
+                                                                                "The long term visa",
+                                                                                "Where to get your visa",
+                                                                                "At the border with immigration services",
+                                                                                "Fill out application form"
+                                                                            ],
+                                                "preview":  "Visa Burkina (evisa Burkina Faso)\nHome\nTypes of Visas\nThe transit visa\nThe short term visa\nThe long term visa\nConditions\nBurkina Faso entry conditions\nStay conditions while in Burkina Faso\nConditions to exit Burkina Faso\nWhere to get your visa\nOnline\nAt the embassy\nAt the border with immigration services\nFAQ\nContact\nSelect Page\nTravel to Burkina Faso\nLeran more\nFill out application form\nPay visa fees\nGet the decision\nTravel to Burkina Faso\nDetailed eVisa procedure\nComplete your application in 3 simple steps\nThe eVisa is a protocol that certifies that the holder is authorized to enter and stay in Burkina for a maximum of 90 days. Applicants may complete their application online, including the fees payment and obtain their visa.\nFILL A VISA APPLICATION FORM\nUseful links\nOffice of the president\nOffice of the prime minister\nMinistry of security\nMinistry of foreign affairs\nMinistry of finance\nMinistry of culture\nEvents\nSIAO\nFESPACO\nSAMAO\nDivision de la migration\nOuagadougou, Burkina Faso\nSis Ã  l\u0027avenue de l\u0027indÃ©pendance\nTel : (+226) 76 40 06 46 / (+226) 78 52 95 95\nEmail : contact@visaburkina.bf\nFax : (+226) 25 ... ... ...\nFacebook\nX\nInstagram\nRSS\nCopyright Â© 2021 - 2026 ~ MinistÃ¨re de "
+                                            },
+                      "candidate_assertion":  {
+                                                  "alpha2_code":  "BF",
+                                                  "domain":  "visa",
+                                                  "title":  "Burkina Faso official visa information baseline",
+                                                  "rule_key":  "bf_visa_official_information_baseline",
+                                                  "statement":  "The official Visa Burkina eVisa publishes immigration information including \"Visa Burkina (evisa Burkina Faso)\"; \"Types of Visas\"; \"The transit visa\".",
+                                                  "evidence_excerpt":  "Visa Burkina (evisa Burkina Faso)\n\nTypes of Visas\n\nThe transit visa\n\nThe short term visa",
+                                                  "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                  "confidence":  0.9,
+                                                  "requires_human_edit":  true,
+                                                  "creates_pending_assertion":  false
+                                              },
+                      "existing_assertion":  null,
+                      "coverage_receipt":  {
+                                               "registry_release_version":  "un-m49-2026-07-14-6f7490c3",
+                                               "registry_entry_id":  "ab93f2f3-798b-444e-a538-7977dd7aa8b4",
+                                               "jurisdiction_id":  "766fa72f-704c-44be-823b-1d55f4f7dab5",
+                                               "alpha2_code":  "BF",
+                                               "name":  "Burkina Faso",
+                                               "coverage_required":  true,
+                                               "coverage_ready":  false,
+                                               "status":  "gap",
+                                               "missing":  [
+                                                               "reviewed_primary_authority",
+                                                               "reviewed_primary_source",
+                                                               "fresh_monitor",
+                                                               "verified_rule",
+                                                               "immigration_rule_assessment"
+                                                           ],
+                                               "gates":  {
+                                                             "immigration_rule_assessment":  false,
+                                                             "reviewed_primary_authority":  false,
+                                                             "reviewed_primary_source":  false,
+                                                             "fresh_monitor":  false,
+                                                             "verified_rule":  false
+                                                         },
+                                               "registry_summary":  {
+                                                                        "coverage_ready":  9,
+                                                                        "coverage_required":  243,
+                                                                        "with_verified_rule":  9
+                                                                    },
+                                               "global_coverage_claim_ready":  false
+                                           },
+                      "next_action":  "Complete independent assessment and certification review."
+                  },
+                  {
+                      "batch_item_id":  "dbd78beb-bfec-44b5-a317-28d70dfea021",
+                      "alpha2_code":  "BI",
+                      "jurisdiction_name":  "Burundi",
+                      "stage":  "pending_independent_review",
+                      "baseline":  {
+                                       "batch_item_id":  "dbd78beb-bfec-44b5-a317-28d70dfea021",
+                                       "alpha2_code":  "BI",
+                                       "jurisdiction_id":  "d47c8511-501a-46bb-b8eb-1261689b457c",
+                                       "official_source_id":  "62823508-6420-4b3b-9558-3a40da003ec5",
+                                       "source_monitor_id":  "ca97f575-2e7e-414a-9f25-217da72b757e",
+                                       "assessment_status":  "pending_review",
+                                       "certification_status":  "pending_review",
+                                       "source_active":  true,
+                                       "monitor_status":  "active",
+                                       "state":  "pending_independent_review",
+                                       "eligible_to_queue":  false,
+                                       "latest_run":  {
+                                                          "id":  "65345b8d-7b60-40c3-baaf-b033e3c23bbd",
+                                                          "status":  "changed",
+                                                          "attempt":  2,
+                                                          "started_at":  "2026-07-17T04:15:36.701765",
+                                                          "completed_at":  "2026-07-17T04:15:37.513433",
+                                                          "error_code":  null,
+                                                          "error_message":  null
+                                                      },
+                                       "latest_snapshot":  {
+                                                               "id":  "3477c427-285e-486c-9596-48359a3f30ca",
+                                                               "status":  "changed",
+                                                               "content_hash":  "9f0fc691459e5bd8838c710a6dd94657cbc4e70a66a75c22da1013d7a34c40f6",
+                                                               "captured_at":  "2026-07-17T04:15:37.427184+00:00",
+                                                               "url":  "https://www.mae.gov.bi/en/visa-application-forms/"
+                                                           }
+                                   },
+                      "review_packet":  {
+                                            "immigration_assessment":  {
+                                                                           "id":  "75000b3e-62a4-47c4-bd8b-811b4013c3b3",
+                                                                           "status":  "pending_review",
+                                                                           "rule_relationship":  "independent",
+                                                                           "parent_code":  null,
+                                                                           "evidence_url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                                                                           "evidence_title":  "Visa application forms â Ministry of Foreign Affairs",
+                                                                           "rationale":  "The official Burundi Ministry of Foreign Affairs site publishes visa application forms and visa-service categories.",
+                                                                           "proposed_by":  "coverage-evidence-proposer",
+                                                                           "reviewed_by":  null
+                                                                       },
+                                            "source_certification":  {
+                                                                         "id":  "64d7313c-f161-446a-9813-b40ef6b9ced2",
+                                                                         "status":  "pending_review",
+                                                                         "coverage_domains_json":  "[\"visa\"]",
+                                                                         "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official Burundi Ministry of Foreign Affairs site publishes visa application forms and visa-service categories. Official source, but the wider site has content-hygiene concerns. Use a narrowly captured visa page, inspect the snapshot carefully and reject unrelated page content. Submission creates pending proposals only. Independent reviewer certification remains required.",
+                                                                         "proposed_by":  "coverage-evidence-proposer",
+                                                                         "reviewed_by":  null
+                                                                     },
+                                            "authority":  {
+                                                              "id":  "c8f25ba0-28a5-4199-b722-2eb81148bf5b",
+                                                              "name":  "Ministry of Foreign Affairs, Regional Integration and Development Cooperation",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "website_url":  "https://www.mae.gov.bi/",
+                                                              "active":  true
+                                                          },
+                                            "official_source":  {
+                                                                    "id":  "62823508-6420-4b3b-9558-3a40da003ec5",
+                                                                    "name":  "Burundi visa application forms",
+                                                                    "url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                                                                    "domain":  "visa",
+                                                                    "source_type":  "government",
+                                                                    "active":  true
+                                                                },
+                                            "monitor":  {
+                                                            "id":  "ca97f575-2e7e-414a-9f25-217da72b757e",
+                                                            "status":  "active",
+                                                            "fetch_method":  "http",
+                                                            "last_checked_at":  "2026-07-17T04:15:37.430431",
+                                                            "last_http_status":  200,
+                                                            "last_error":  null
+                                                        },
+                                            "review_checks":  [
+                                                                  "Confirm the authority is responsible for the claimed immigration scope.",
+                                                                  "Confirm the source hostname and page are official and jurisdiction-matched.",
+                                                                  "Confirm the relationship and certification wording do not exceed the evidence.",
+                                                                  "Use a reviewer identity different from the proposer."
+                                                              ]
+                                        },
+                      "snapshot_analysis":  {
+                                                "snapshot_id":  "3477c427-285e-486c-9596-48359a3f30ca",
+                                                "snapshot_url":  "https://www.mae.gov.bi/en/visa-application-forms/",
+                                                "captured_at":  "2026-07-17T04:15:37.427184+00:00",
+                                                "content_hash":  "9f0fc691459e5bd8838c710a6dd94657cbc4e70a66a75c22da1013d7a34c40f6",
+                                                "content_characters":  2730,
+                                                "unique_lines":  81,
+                                                "navigation_lines":  0,
+                                                "navigation_ratio":  0.0,
+                                                "keyword_hits":  [
+                                                                     "application",
+                                                                     "residence",
+                                                                     "visa"
+                                                                 ],
+                                                "quality_score":  82,
+                                                "classification":  "suitable_for_narrow_draft",
+                                                "candidate_excerpt_lines":  [
+                                                                                "Visa application forms â Ministry of Foreign Affairs, Republic of Burundi",
+                                                                                "Foreign Missions in Burundi with Residence in Bujumbura",
+                                                                                "Foreign Missions in Burundi with Residence Abroad",
+                                                                                "Visa application forms",
+                                                                                "Visa Select a type of visa then complete the form"
+                                                                            ],
+                                                "preview":  "Visa application forms â Ministry of Foreign Affairs, Republic of Burundi\nFriday , July 17 2026\nWelcome to the Ministry Website\nMinistry of Foreign Affairs, Republic of Burundi\nHome\nBurundi\nInformations\nGeopgraphy\nNational Symbols\nOffice of the President\nOffice of the Vice President\nOffice of the Prime Minister\nMembers of the Government\nOfficial Holidays\nMinistry\nMinister Welcome Remarks\nVision,Missions,Objectives\nMinistry Chart\nDirectorates General\nSuggestion Box\nDiplomatic Missions\nBurundi Embassies Abroad\nForeign Missions in Burundi with Residence in Bujumbura\nHonorary Consuls\nForeign Missions in Burundi with Residence Abroad\nDiaspora\nMedia\nPress Releases\nCommuniquÃ©s\nMagazine\nTreaties\nAgreement and Memorandum\nDeclarations\nTenders\nJob Vacancies\nLocal Tenders\nInternational Tenders\nFranÃ§ais\nBreaking News\nBugarama: Reflections on Burundiâs progress and its many opportunities\nThe various diplomatic visits demonstrate the interest that the Government of Burundi has in the private sectors operating in Burundi\nMeeting between the Minister for Foreign Affairs and the German Ambassador\nMeeting between the Burundian Minister of Foreign Affairs and the IMF representative\nList of Authorized "
+                                            },
+                      "candidate_assertion":  {
+                                                  "alpha2_code":  "BI",
+                                                  "domain":  "visa",
+                                                  "title":  "Burundi official visa information baseline",
+                                                  "rule_key":  "bi_visa_official_information_baseline",
+                                                  "statement":  "The official Burundi visa application forms publishes immigration information including \"Visa application forms â Ministry of Foreign Affairs, Republic of Burundi\"; \"Foreign Missions in Burundi with Residence in Bujumbura\"; \"Foreign Missions in Burundi with Residence Abroad\".",
+                                                  "evidence_excerpt":  "Visa application forms â Ministry of Foreign Affairs, Republic of Burundi\n\nForeign Missions in Burundi with Residence in Bujumbura\n\nForeign Missions in Burundi with Residence Abroad\n\nVisa application forms",
+                                                  "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                  "confidence":  0.9,
+                                                  "requires_human_edit":  true,
+                                                  "creates_pending_assertion":  false
+                                              },
+                      "existing_assertion":  null,
+                      "coverage_receipt":  {
+                                               "registry_release_version":  "un-m49-2026-07-14-6f7490c3",
+                                               "registry_entry_id":  "52ef9f8d-e4f2-4abd-ae21-a08dc840e140",
+                                               "jurisdiction_id":  "d47c8511-501a-46bb-b8eb-1261689b457c",
+                                               "alpha2_code":  "BI",
+                                               "name":  "Burundi",
+                                               "coverage_required":  true,
+                                               "coverage_ready":  false,
+                                               "status":  "gap",
+                                               "missing":  [
+                                                               "reviewed_primary_authority",
+                                                               "reviewed_primary_source",
+                                                               "fresh_monitor",
+                                                               "verified_rule",
+                                                               "immigration_rule_assessment"
+                                                           ],
+                                               "gates":  {
+                                                             "immigration_rule_assessment":  false,
+                                                             "reviewed_primary_authority":  false,
+                                                             "reviewed_primary_source":  false,
+                                                             "fresh_monitor":  false,
+                                                             "verified_rule":  false
+                                                         },
+                                               "registry_summary":  {
+                                                                        "coverage_ready":  9,
+                                                                        "coverage_required":  243,
+                                                                        "with_verified_rule":  9
+                                                                    },
+                                               "global_coverage_claim_ready":  false
+                                           },
+                      "next_action":  "Complete independent assessment and certification review."
+                  },
+                  {
+                      "batch_item_id":  "671edd49-ddb3-4842-bce9-3cd6e8c43364",
+                      "alpha2_code":  "CV",
+                      "jurisdiction_name":  "Cabo Verde",
+                      "stage":  "pending_independent_review",
+                      "baseline":  {
+                                       "batch_item_id":  "671edd49-ddb3-4842-bce9-3cd6e8c43364",
+                                       "alpha2_code":  "CV",
+                                       "jurisdiction_id":  "51e8cb21-6ec5-445f-a762-53ebf30b6779",
+                                       "official_source_id":  "88dcba88-01a0-4c5c-9372-d0d5821ef33d",
+                                       "source_monitor_id":  "4cb465d7-51bf-43ff-ae44-a864d1644c51",
+                                       "assessment_status":  "pending_review",
+                                       "certification_status":  "pending_review",
+                                       "source_active":  true,
+                                       "monitor_status":  "active",
+                                       "state":  "pending_independent_review",
+                                       "eligible_to_queue":  false,
+                                       "latest_run":  {
+                                                          "id":  "12e34e56-eb77-43af-a832-ed13bff089de",
+                                                          "status":  "unchanged",
+                                                          "attempt":  2,
+                                                          "started_at":  "2026-07-17T04:15:36.670042",
+                                                          "completed_at":  "2026-07-17T04:15:37.068428",
+                                                          "error_code":  null,
+                                                          "error_message":  null
+                                                      },
+                                       "latest_snapshot":  {
+                                                               "id":  "552db649-07bf-410e-9403-d343f67d5984",
+                                                               "status":  "unchanged",
+                                                               "content_hash":  "784c30b45c054e4209feed93d17904665ac33d6f07fcea45960a65414af3806f",
+                                                               "captured_at":  "2026-07-17T04:15:37.059601+00:00",
+                                                               "url":  "https://portalconsular.mnec.gov.cv/en/vistos"
+                                                           }
+                                   },
+                      "review_packet":  {
+                                            "immigration_assessment":  {
+                                                                           "id":  "81d64588-072b-461d-b87a-63648ca7172e",
+                                                                           "status":  "pending_review",
+                                                                           "rule_relationship":  "independent",
+                                                                           "parent_code":  null,
+                                                                           "evidence_url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                                                                           "evidence_title":  "Visas â Cabo Verde Consular Portal",
+                                                                           "rationale":  "The official consular portal describes visa exemptions, visa types, application channels, residence visas and pre-registration requirements.",
+                                                                           "proposed_by":  "coverage-evidence-proposer",
+                                                                           "reviewed_by":  null
+                                                                       },
+                                            "source_certification":  {
+                                                                         "id":  "9f0b5faf-888c-481e-ac0d-96403cc115f4",
+                                                                         "status":  "pending_review",
+                                                                         "coverage_domains_json":  "[\"visa\"]",
+                                                                         "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official consular portal describes visa exemptions, visa types, application channels, residence visas and pre-registration requirements. Visa rules changed for some nationalities from January 2026. Capture a fresh immutable snapshot and avoid broad statements beyond the exact current page. Submission creates pending proposals only. Independent reviewer certification remains required.",
+                                                                         "proposed_by":  "coverage-evidence-proposer",
+                                                                         "reviewed_by":  null
+                                                                     },
+                                            "authority":  {
+                                                              "id":  "bf99a722-7c13-4017-b770-61cdd916465f",
+                                                              "name":  "Ministry of Foreign Affairs, Cooperation and Regional Integration â Consular Services",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "website_url":  "https://portalconsular.mnec.gov.cv/",
+                                                              "active":  true
+                                                          },
+                                            "official_source":  {
+                                                                    "id":  "88dcba88-01a0-4c5c-9372-d0d5821ef33d",
+                                                                    "name":  "Cabo Verde Consular Portal â Visas",
+                                                                    "url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                                                                    "domain":  "visa",
+                                                                    "source_type":  "government",
+                                                                    "active":  true
+                                                                },
+                                            "monitor":  {
+                                                            "id":  "4cb465d7-51bf-43ff-ae44-a864d1644c51",
+                                                            "status":  "active",
+                                                            "fetch_method":  "http",
+                                                            "last_checked_at":  "2026-07-17T04:15:37.062554",
+                                                            "last_http_status":  200,
+                                                            "last_error":  null
+                                                        },
+                                            "review_checks":  [
+                                                                  "Confirm the authority is responsible for the claimed immigration scope.",
+                                                                  "Confirm the source hostname and page are official and jurisdiction-matched.",
+                                                                  "Confirm the relationship and certification wording do not exceed the evidence.",
+                                                                  "Use a reviewer identity different from the proposer."
+                                                              ]
+                                        },
+                      "snapshot_analysis":  {
+                                                "snapshot_id":  "552db649-07bf-410e-9403-d343f67d5984",
+                                                "snapshot_url":  "https://portalconsular.mnec.gov.cv/en/vistos",
+                                                "captured_at":  "2026-07-17T04:15:37.059601+00:00",
+                                                "content_hash":  "784c30b45c054e4209feed93d17904665ac33d6f07fcea45960a65414af3806f",
+                                                "content_characters":  5787,
+                                                "unique_lines":  82,
+                                                "navigation_lines":  0,
+                                                "navigation_ratio":  0.0,
+                                                "keyword_hits":  [
+                                                                     "apply",
+                                                                     "permit",
+                                                                     "residence",
+                                                                     "visa"
+                                                                 ],
+                                                "quality_score":  86,
+                                                "classification":  "suitable_for_narrow_draft",
+                                                "candidate_excerpt_lines":  [
+                                                                                "Visas - Portal Consular",
+                                                                                "Generally, foreign citizens need visas to enter and stay in Cape Verde, however they can enter Cape Verde without a visa:",
+                                                                                "Qualified foreigners with a valid residence permit;",
+                                                                                "Foreigners who benefit from visa exemptions or exemptions provided for by law or international agreements on the suppression of visas or free movement and establishment to which Cape Verde is a party.",
+                                                                                "You can consult here the list of countries in which their citizens are exempt from visas for entry into Cape Verdean territory or that may require visas upon entry.",
+                                                                                "Citizens residing in countries where Cape Verde does not have diplomatic representation can apply for visas upon entry at the borders.",
+                                                                                "Types of Visas",
+                                                                                "By residence:"
+                                                                            ],
+                                                "preview":  "Visas - Portal Consular\nLogin\nVisas\n/\nVisas\nVisas\nVisas\nGenerally, foreign citizens need visas to enter and stay in Cape Verde, however they can enter Cape Verde without a visa:\nQualified foreigners with a valid residence permit;\nForeigners who benefit from visa exemptions or exemptions provided for by law or international agreements on the suppression of visas or free movement and establishment to which Cape Verde is a party.\nTo foreigners holding a âlaissez-passerâ issued by states or international organizations recognized by Cape Verde or identification of an employee or agent of a foreign mission or international organization, issued by the government department responsible for the area of ââforeign relations.\nCape Verdeans who have acquired foreign nationality and their respective spouses and descendants, upon presentation of a passport, birth certificate, marriage certificate or other document stating the circumstance of having been born, married or the child of a father or mother born in Cape Verde.\nYou can consult here the list of countries in which their citizens are exempt from visas for entry into Cape Verdean territory or that may require visas upon entry.\nCitizens resi"
+                                            },
+                      "candidate_assertion":  {
+                                                  "alpha2_code":  "CV",
+                                                  "domain":  "visa",
+                                                  "title":  "Cabo Verde official visa information baseline",
+                                                  "rule_key":  "cv_visa_official_information_baseline",
+                                                  "statement":  "The official Cabo Verde Consular Portal â Visas publishes immigration information including \"Visas - Portal Consular\"; \"Generally, foreign citizens need visas to enter and stay in Cape Verde, however they can enter Cape Verde without a visa:\"; \"Qualified foreigners with a valid residence permit;\".",
+                                                  "evidence_excerpt":  "Visas - Portal Consular\n\nGenerally, foreign citizens need visas to enter and stay in Cape Verde, however they can enter Cape Verde without a visa:\n\nQualified foreigners with a valid residence permit;\n\nForeigners who benefit from visa exemptions or exemptions provided for by law or international agreements on the suppression of visas or free movement and establishment to which Cape Verde is a party.",
+                                                  "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                  "confidence":  0.9,
+                                                  "requires_human_edit":  true,
+                                                  "creates_pending_assertion":  false
+                                              },
+                      "existing_assertion":  null,
+                      "coverage_receipt":  {
+                                               "registry_release_version":  "un-m49-2026-07-14-6f7490c3",
+                                               "registry_entry_id":  "4fe84a9a-5f4e-4bb7-bbf9-648e829107cd",
+                                               "jurisdiction_id":  "51e8cb21-6ec5-445f-a762-53ebf30b6779",
+                                               "alpha2_code":  "CV",
+                                               "name":  "Cabo Verde",
+                                               "coverage_required":  true,
+                                               "coverage_ready":  false,
+                                               "status":  "gap",
+                                               "missing":  [
+                                                               "reviewed_primary_authority",
+                                                               "reviewed_primary_source",
+                                                               "fresh_monitor",
+                                                               "verified_rule",
+                                                               "immigration_rule_assessment"
+                                                           ],
+                                               "gates":  {
+                                                             "immigration_rule_assessment":  false,
+                                                             "reviewed_primary_authority":  false,
+                                                             "reviewed_primary_source":  false,
+                                                             "fresh_monitor":  false,
+                                                             "verified_rule":  false
+                                                         },
+                                               "registry_summary":  {
+                                                                        "coverage_ready":  9,
+                                                                        "coverage_required":  243,
+                                                                        "with_verified_rule":  9
+                                                                    },
+                                               "global_coverage_claim_ready":  false
+                                           },
+                      "next_action":  "Complete independent assessment and certification review."
+                  },
+                  {
+                      "batch_item_id":  "03045640-3875-4151-b149-e55036d09f22",
+                      "alpha2_code":  "CM",
+                      "jurisdiction_name":  "Cameroon",
+                      "stage":  "pending_independent_review",
+                      "baseline":  {
+                                       "batch_item_id":  "03045640-3875-4151-b149-e55036d09f22",
+                                       "alpha2_code":  "CM",
+                                       "jurisdiction_id":  "b6b6bf8f-244a-4639-9fa5-d8682999a2a1",
+                                       "official_source_id":  "e6a2f747-ba20-48fc-aaa8-8766cac0a39d",
+                                       "source_monitor_id":  "51d63eb1-0a5c-4f26-982f-eced9521b084",
+                                       "assessment_status":  "pending_review",
+                                       "certification_status":  "pending_review",
+                                       "source_active":  true,
+                                       "monitor_status":  "active",
+                                       "state":  "pending_independent_review",
+                                       "eligible_to_queue":  false,
+                                       "latest_run":  {
+                                                          "id":  "fe9c62bb-c048-4c8b-a654-16f49663a505",
+                                                          "status":  "unchanged",
+                                                          "attempt":  2,
+                                                          "started_at":  "2026-07-17T04:15:37.531075",
+                                                          "completed_at":  "2026-07-17T04:15:41.299213",
+                                                          "error_code":  null,
+                                                          "error_message":  null
+                                                      },
+                                       "latest_snapshot":  {
+                                                               "id":  "093f92fc-122b-424d-b5cf-2ede28afe838",
+                                                               "status":  "unchanged",
+                                                               "content_hash":  "d7fdd6aec5e194d31e5f688972be1c500ffca780e0ee3ea6612bcfb531b1505d",
+                                                               "captured_at":  "2026-07-17T04:15:41.290436+00:00",
+                                                               "url":  "https://www.evisacam.cm/"
+                                                           }
+                                   },
+                      "review_packet":  {
+                                            "immigration_assessment":  {
+                                                                           "id":  "d9d91932-0342-4c88-9c31-fe46f981879b",
+                                                                           "status":  "pending_review",
+                                                                           "rule_relationship":  "independent",
+                                                                           "parent_code":  null,
+                                                                           "evidence_url":  "https://www.diplocam.cm/e-visa/",
+                                                                           "evidence_title":  "e-Visa â Ministry of External Relations",
+                                                                           "rationale":  "The official Ministry of External Relations site provides the e-Visa service, and the Republic of Cameroon consular portal accepts visa applications.",
+                                                                           "proposed_by":  "coverage-evidence-proposer",
+                                                                           "reviewed_by":  null
+                                                                       },
+                                            "source_certification":  {
+                                                                         "id":  "12242437-558f-457f-aead-6884d82c54f4",
+                                                                         "status":  "pending_review",
+                                                                         "coverage_domains_json":  "[\"visa\"]",
+                                                                         "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official Ministry of External Relations site provides the e-Visa service, and the Republic of Cameroon consular portal accepts visa applications. The transactional portal is dynamic. Use the MINREX e-Visa information page as evidence and probe evisacam.cm separately before monitoring. Submission creates pending proposals only. Independent reviewer certification remains required.",
+                                                                         "proposed_by":  "coverage-evidence-proposer",
+                                                                         "reviewed_by":  null
+                                                                     },
+                                            "authority":  {
+                                                              "id":  "265a79e1-3a2e-40f4-949c-fe095366b49b",
+                                                              "name":  "Ministry of External Relations (MINREX)",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "website_url":  "https://www.diplocam.cm/",
+                                                              "active":  true
+                                                          },
+                                            "official_source":  {
+                                                                    "id":  "e6a2f747-ba20-48fc-aaa8-8766cac0a39d",
+                                                                    "name":  "Cameroon Consular Services Portal â e-Visa",
+                                                                    "url":  "https://www.evisacam.cm/",
+                                                                    "domain":  "visa",
+                                                                    "source_type":  "government",
+                                                                    "active":  true
+                                                                },
+                                            "monitor":  {
+                                                            "id":  "51d63eb1-0a5c-4f26-982f-eced9521b084",
+                                                            "status":  "active",
+                                                            "fetch_method":  "http",
+                                                            "last_checked_at":  "2026-07-17T04:15:41.292962",
+                                                            "last_http_status":  200,
+                                                            "last_error":  null
+                                                        },
+                                            "review_checks":  [
+                                                                  "Confirm the authority is responsible for the claimed immigration scope.",
+                                                                  "Confirm the source hostname and page are official and jurisdiction-matched.",
+                                                                  "Confirm the relationship and certification wording do not exceed the evidence.",
+                                                                  "Use a reviewer identity different from the proposer."
+                                                              ]
+                                        },
+                      "snapshot_analysis":  {
+                                                "snapshot_id":  "093f92fc-122b-424d-b5cf-2ede28afe838",
+                                                "snapshot_url":  "https://www.evisacam.cm/",
+                                                "captured_at":  "2026-07-17T04:15:41.290436+00:00",
+                                                "content_hash":  "d7fdd6aec5e194d31e5f688972be1c500ffca780e0ee3ea6612bcfb531b1505d",
+                                                "content_characters":  452,
+                                                "unique_lines":  22,
+                                                "navigation_lines":  1,
+                                                "navigation_ratio":  0.045,
+                                                "keyword_hits":  [
+                                                                     "application",
+                                                                     "visa"
+                                                                 ],
+                                                "quality_score":  57,
+                                                "classification":  "suitable_for_narrow_draft",
+                                                "candidate_excerpt_lines":  [
+                                                                                "evisa Cameroun - The official portal for visa applications to Cameroon",
+                                                                                "Visa Applications",
+                                                                                "Consular Card Applications",
+                                                                                "Laissez-passer Applications (Ordinary / Mortuary)",
+                                                                                "Exit Visa Applications"
+                                                                            ],
+                                                "preview":  "evisa Cameroun - The official portal for visa applications to Cameroon\nConsular Services Portal\nHelp\nClaim\nFAQ\nContact\nServices\nVisa Applications\nConsular Card Applications\nLaissez-passer Applications (Ordinary / Mortuary)\nExit Visa Applications\nRegister\nLogin\nEnglish (EN)\nFranÃ§ais (FR)\nEnglish (EN)\nConsular Services Portal\nREGISTER NOW\nLOG IN\nVersion: 47.0.0\nÂ©2023 - Republic of Cameroun - All rights reserved  |\nTerms of Service\nCreated by:\nVersion"
+                                            },
+                      "candidate_assertion":  {
+                                                  "alpha2_code":  "CM",
+                                                  "domain":  "visa",
+                                                  "title":  "Cameroon official visa information baseline",
+                                                  "rule_key":  "cm_visa_official_information_baseline",
+                                                  "statement":  "The official Cameroon Consular Services Portal â e-Visa publishes immigration information including \"evisa Cameroun - The official portal for visa applications to Cameroon\"; \"Visa Applications\"; \"Consular Card Applications\".",
+                                                  "evidence_excerpt":  "evisa Cameroun - The official portal for visa applications to Cameroon\n\nVisa Applications\n\nConsular Card Applications\n\nLaissez-passer Applications (Ordinary / Mortuary)",
+                                                  "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                  "confidence":  0.9,
+                                                  "requires_human_edit":  true,
+                                                  "creates_pending_assertion":  false
+                                              },
+                      "existing_assertion":  null,
+                      "coverage_receipt":  {
+                                               "registry_release_version":  "un-m49-2026-07-14-6f7490c3",
+                                               "registry_entry_id":  "fccb1e19-669a-4745-8c2d-aaa534ebedad",
+                                               "jurisdiction_id":  "b6b6bf8f-244a-4639-9fa5-d8682999a2a1",
+                                               "alpha2_code":  "CM",
+                                               "name":  "Cameroon",
+                                               "coverage_required":  true,
+                                               "coverage_ready":  false,
+                                               "status":  "gap",
+                                               "missing":  [
+                                                               "reviewed_primary_authority",
+                                                               "reviewed_primary_source",
+                                                               "fresh_monitor",
+                                                               "verified_rule",
+                                                               "immigration_rule_assessment"
+                                                           ],
+                                               "gates":  {
+                                                             "immigration_rule_assessment":  false,
+                                                             "reviewed_primary_authority":  false,
+                                                             "reviewed_primary_source":  false,
+                                                             "fresh_monitor":  false,
+                                                             "verified_rule":  false
+                                                         },
+                                               "registry_summary":  {
+                                                                        "coverage_ready":  9,
+                                                                        "coverage_required":  243,
+                                                                        "with_verified_rule":  9
+                                                                    },
+                                               "global_coverage_claim_ready":  false
+                                           },
+                      "next_action":  "Complete independent assessment and certification review."
+                  },
+                  {
+                      "batch_item_id":  "8ce9cd43-38db-4d9a-ae4d-6fd5529e6d2b",
+                      "alpha2_code":  "CF",
+                      "jurisdiction_name":  "Central African Republic",
+                      "stage":  "pending_independent_review",
+                      "baseline":  {
+                                       "batch_item_id":  "8ce9cd43-38db-4d9a-ae4d-6fd5529e6d2b",
+                                       "alpha2_code":  "CF",
+                                       "jurisdiction_id":  "dd80c64e-0e03-4e78-8379-b0d50f3631f3",
+                                       "official_source_id":  "3734d237-5f63-4834-8df4-1b78ca60335d",
+                                       "source_monitor_id":  "41d6be9c-7ae9-4790-bedb-d616c3d5bf9b",
+                                       "assessment_status":  "pending_review",
+                                       "certification_status":  "pending_review",
+                                       "source_active":  true,
+                                       "monitor_status":  "active",
+                                       "state":  "pending_independent_review",
+                                       "eligible_to_queue":  false,
+                                       "latest_run":  {
+                                                          "id":  "18b8229d-571c-41af-a264-b01e9a44d7d2",
+                                                          "status":  "unchanged",
+                                                          "attempt":  2,
+                                                          "started_at":  "2026-07-17T04:15:37.085528",
+                                                          "completed_at":  "2026-07-17T04:15:37.583429",
+                                                          "error_code":  null,
+                                                          "error_message":  null
+                                                      },
+                                       "latest_snapshot":  {
+                                                               "id":  "f12b0fbd-6b8b-4d49-b417-80b20b8860fc",
+                                                               "status":  "unchanged",
+                                                               "content_hash":  "6915c781ed63c96bad0bf6ee26458046597cfe42ad2fe92abd1e0672f710124e",
+                                                               "captured_at":  "2026-07-17T04:15:37.575980+00:00",
+                                                               "url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour"
+                                                           }
+                                   },
+                      "review_packet":  {
+                                            "immigration_assessment":  {
+                                                                           "id":  "18cb51f8-cddd-41a8-8a37-e11af6be62fc",
+                                                                           "status":  "pending_review",
+                                                                           "rule_relationship":  "independent",
+                                                                           "parent_code":  null,
+                                                                           "evidence_url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                                                                           "evidence_title":  "Visa court sÃ©jour",
+                                                                           "rationale":  "The official diplomatic mission site publishes online and paper short-stay visa application channels and links to official application materials.",
+                                                                           "proposed_by":  "coverage-evidence-proposer",
+                                                                           "reviewed_by":  null
+                                                                       },
+                                            "source_certification":  {
+                                                                         "id":  "8b051870-2f8f-43c4-b145-89d0be62af35",
+                                                                         "status":  "pending_review",
+                                                                         "coverage_domains_json":  "[\"visa\"]",
+                                                                         "evidence_notes":  "Locally probed on 2026-07-16 with status local_probe_passed. The official diplomatic mission site publishes online and paper short-stay visa application channels and links to official application materials. This is an official embassy source rather than a central immigration portal. Certify only the consular visa scope and search for a central authority source in a later tranche. Submission creates pending proposals only. Independent reviewer certification remains required.",
+                                                                         "proposed_by":  "coverage-evidence-proposer",
+                                                                         "reviewed_by":  null
+                                                                     },
+                                            "authority":  {
+                                                              "id":  "69251828-cc12-4d3b-8b31-fb35459c4682",
+                                                              "name":  "Ministry of Foreign Affairs / Embassy of the Central African Republic in France",
+                                                              "authority_type":  "foreign_affairs_visa_authority",
+                                                              "website_url":  "https://paris.diplomatie.gouv.cf/",
+                                                              "active":  true
+                                                          },
+                                            "official_source":  {
+                                                                    "id":  "3734d237-5f63-4834-8df4-1b78ca60335d",
+                                                                    "name":  "Central African Republic short-stay visa service",
+                                                                    "url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                                                                    "domain":  "visa",
+                                                                    "source_type":  "government",
+                                                                    "active":  true
+                                                                },
+                                            "monitor":  {
+                                                            "id":  "41d6be9c-7ae9-4790-bedb-d616c3d5bf9b",
+                                                            "status":  "active",
+                                                            "fetch_method":  "http",
+                                                            "last_checked_at":  "2026-07-17T04:15:37.578396",
+                                                            "last_http_status":  200,
+                                                            "last_error":  null
+                                                        },
+                                            "review_checks":  [
+                                                                  "Confirm the authority is responsible for the claimed immigration scope.",
+                                                                  "Confirm the source hostname and page are official and jurisdiction-matched.",
+                                                                  "Confirm the relationship and certification wording do not exceed the evidence.",
+                                                                  "Use a reviewer identity different from the proposer."
+                                                              ]
+                                        },
+                      "snapshot_analysis":  {
+                                                "snapshot_id":  "f12b0fbd-6b8b-4d49-b417-80b20b8860fc",
+                                                "snapshot_url":  "https://paris.diplomatie.gouv.cf/services/24/visa-court-sejour",
+                                                "captured_at":  "2026-07-17T04:15:37.575980+00:00",
+                                                "content_hash":  "6915c781ed63c96bad0bf6ee26458046597cfe42ad2fe92abd1e0672f710124e",
+                                                "content_characters":  2691,
+                                                "unique_lines":  96,
+                                                "navigation_lines":  2,
+                                                "navigation_ratio":  0.021,
+                                                "keyword_hits":  [
+                                                                     "visa"
+                                                                 ],
+                                                "quality_score":  73,
+                                                "classification":  "suitable_for_narrow_draft",
+                                                "candidate_excerpt_lines":  [
+                                                                                "Visa court sÃ©jour | Ambassade de la RÃ©publique Centrafricaine en France",
+                                                                                "Visa court sÃ©jour",
+                                                                                "Visa long sÃ©jour",
+                                                                                "cliquez sur l\u0027image ci-haut pour crÃ©er votre compte, puis accÃ©dez au formulaire de demande de visa en ligne.",
+                                                                                "Ã  ce dernier et envoyez le tout Ã  l\u0027adresse de l\u0027ambassade pour le traitement. Si vous voulez que l\u0027ambassade vous renvoie votre visa par courrier, il faut",
+                                                                                "01-AMB-CFFR-- Demande de visa court sÃ©jour.pdf"
+                                                                            ],
+                                                "preview":  "Visa court sÃ©jour | Ambassade de la RÃ©publique Centrafricaine en France\nAller au contenu principal\nUnitÃ© - DignitÃ© - Travail\nParis\nToggle navigation\nNavigation\nNavigation\nAccueil\nServices\nAux Centrafricains\nAux Ã©trangers\nVisa court sÃ©jour\nVisa long sÃ©jour\nTous les services\nDocuments retrouvÃ©s\nAmbassade\nAmbassadeur\nNotre mission\nNotre Ã©quipe\nLa chancellerie\nHoraires et AccÃ¨s\nCoopÃ©ration\nCentrafrique\nPrÃ©sentation\nSes symboles\nLes opportunitÃ©s\nInvestir en RCA\nPresse\nActualitÃ©s\nCommuniquÃ©s\nLes discours\nTextes officiels\nNous contacter\nMon compte\nRecherche\nRecherche\nVisa court sÃ©jour\nPour une\ndemandeÂ en ligne,\ncliquezÂ sur l\u0027image ci-haut pour crÃ©er votre compte, puis accÃ©dezÂ au formulaire de demande de visa en ligne.\nPour une\ndemande papier,\ncliquezÂ sur le lien en bas pour tÃ©lÃ©charger le formulaire Ã  remplir\nDans les cas, vous devez\nIMPERATIVEMENT\nimprimerÂ aprÃ¨s avoir validÃ© vos saisies ou remplir le formulaire papier. Joignez ensuite votre\npasseport,\n2 photos dâidentitÃ© et toutes les piÃ¨ces demandÃ©es\nÃ  ce dernier et envoyez le tout Ã  l\u0027adresse de l\u0027ambassade pour le traitement.Â Si vous voulez que l\u0027ambassade vous renvoie votre visa par courrier, il faut\nABSOLUMENT\njoindreÂ :\nUne envelopp"
+                                            },
+                      "candidate_assertion":  {
+                                                  "alpha2_code":  "CF",
+                                                  "domain":  "visa",
+                                                  "title":  "Central African Republic official visa information baseline",
+                                                  "rule_key":  "cf_visa_official_information_baseline",
+                                                  "statement":  "The official Central African Republic short-stay visa service publishes immigration information including \"Visa court sÃ©jour | Ambassade de la RÃ©publique Centrafricaine en France\"; \"Visa court sÃ©jour\"; \"Visa long sÃ©jour\".",
+                                                  "evidence_excerpt":  "Visa court sÃ©jour | Ambassade de la RÃ©publique Centrafricaine en France\n\nVisa court sÃ©jour\n\nVisa long sÃ©jour\n\ncliquez sur l\u0027image ci-haut pour crÃ©er votre compte, puis accÃ©dez au formulaire de demande de visa en ligne.",
+                                                  "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                  "confidence":  0.9,
+                                                  "requires_human_edit":  true,
+                                                  "creates_pending_assertion":  false
+                                              },
+                      "existing_assertion":  null,
+                      "coverage_receipt":  {
+                                               "registry_release_version":  "un-m49-2026-07-14-6f7490c3",
+                                               "registry_entry_id":  "008e3722-7f3c-4e27-80c7-42466bdf0dec",
+                                               "jurisdiction_id":  "dd80c64e-0e03-4e78-8379-b0d50f3631f3",
+                                               "alpha2_code":  "CF",
+                                               "name":  "Central African Republic",
+                                               "coverage_required":  true,
+                                               "coverage_ready":  false,
+                                               "status":  "gap",
+                                               "missing":  [
+                                                               "reviewed_primary_authority",
+                                                               "reviewed_primary_source",
+                                                               "fresh_monitor",
+                                                               "verified_rule",
+                                                               "immigration_rule_assessment"
+                                                           ],
+                                               "gates":  {
+                                                             "immigration_rule_assessment":  false,
+                                                             "reviewed_primary_authority":  false,
+                                                             "reviewed_primary_source":  false,
+                                                             "fresh_monitor":  false,
+                                                             "verified_rule":  false
+                                                         },
+                                               "registry_summary":  {
+                                                                        "coverage_ready":  9,
+                                                                        "coverage_required":  243,
+                                                                        "with_verified_rule":  9
+                                                                    },
+                                               "global_coverage_claim_ready":  false
+                                           },
+                      "next_action":  "Complete independent assessment and certification review."
+                  }
+              ],
+    "safety":  {
+                   "creates_review_records":  false,
+                   "approves_evidence":  false,
+                   "creates_assertions":  false,
+                   "publishes_verified_rules":  false,
+                   "creates_coverage_claim":  false,
+                   "mutates_immutable_snapshots":  false,
+                   "message":  "The tranche assistant prepares review packets and constrained draft suggestions. It may queue explicitly selected approved baseline captures only when dry_run=false."
+               }
+}

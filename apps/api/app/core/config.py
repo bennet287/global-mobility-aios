@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     app_env: str = "local"
     log_level: str = "INFO"
+    cors_allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     database_url: str = "sqlite:///./gmai.db"
     database_auto_create_tables: Optional[bool] = None
     database_echo: bool = False
@@ -22,15 +23,102 @@ class Settings(BaseSettings):
     document_storage_backend: str = "local"
     document_local_storage_dir: str = "storage/documents"
     document_upload_max_mb: int = 25
+    document_access_token_secret: str = ""
+    document_access_default_ttl_seconds: int = 300
+    document_access_max_ttl_seconds: int = 900
+    document_access_default_max_uses: int = 1
+    document_access_max_uses: int = 5
+    document_storage_production_strict: bool = False
+    document_storage_allow_local_in_production: bool = False
+    minio_auto_create_bucket: bool = True
+    minio_server_side_encryption: bool = True
+    document_storage_retention_days: int = 0
+    document_storage_backup_strategy: str = ""
+    document_storage_recovery_tested_at: str = ""
     ollama_base_url: str = "http://localhost:11434"
     default_local_model: str = "qwen2.5:7b"
+
+    # Remote LLM providers (switchable based on active subscription/free-tier access)
+    llm_provider: str = ""  # "deepseek", "moonshot", or "gemini"; empty = deterministic template only
+    deepseek_api_key: str = ""
+    deepseek_api_key_ref: str = ""
+    deepseek_model: str = "deepseek-chat"
+    deepseek_base_url: str = "https://api.deepseek.com"
+    moonshot_api_key: str = ""
+    moonshot_api_key_ref: str = ""
+    moonshot_model: str = "kimi-k1-5"
+    moonshot_base_url: str = "https://api.moonshot.cn/v1"
+    gemini_api_key: str = ""
+    gemini_api_key_ref: str = ""
+    gemini_model: str = "gemini-3.7-flash"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    llm_temperature: float = 0.2
+    llm_timeout_seconds: int = 60
+    llm_fallback_to_template: bool = True
+
+    # SecretsPort — bounded Technology Radar V1.3.5 Wave E1 pilot.
+    # Direct values remain backward-compatible. A *_REF value opts a credential into
+    # runtime secret resolution. OpenBao references are deliberately non-production-only
+    # until a later roadmap tranche explicitly promotes the backend.
+    secrets_openbao_address: str = "http://127.0.0.1:8200"
+    secrets_openbao_token: str = ""
+    secrets_openbao_mount: str = "secret"
+    secrets_openbao_namespace: str = ""
+    secrets_openbao_allowed_prefix: str = "aios/nonprod/"
+    secrets_openbao_timeout_seconds: int = 5
+
+    # OpenTelemetry — optional, off-by-default telemetry pilot (Technology Radar V1.1 Wave 1).
+    # When enabled, the app attempts to install FastAPI instrumentation and export traces to the
+    # configured OTLP endpoint. Missing packages are treated as a graceful no-op so the API remains
+    # startable without the optional OpenTelemetry dependencies.
+    otel_enabled: bool = False
+    otel_exporter_otlp_endpoint: str = ""
+    otel_service_name: str = "global-mobility-aios-api"
+    otel_service_version: str = "0.1.0"
+
+    # ClamAV — optional upload malware-scanning pilot (Technology Radar V1.1 Wave 1).
+    # Disabled by default. Requires a running clamd daemon reachable via CLAMAV_HOST/CLAMAV_PORT.
+    # When enabled, uploads are scanned before storage. Infected uploads are rejected; unavailable
+    # scanners are logged and either allowed through (default) or blocked based on policy.
+    clamav_enabled: bool = False
+    clamav_host: str = "localhost"
+    clamav_port: int = 3310
+    clamav_timeout_seconds: int = 30
+    clamav_block_on_scanner_error: bool = False
+
+    # Docling — optional document normalization / structured understanding pilot
+    # (Technology Radar V1.1 Wave 2). Disabled by default. When enabled, the adapter
+    # attempts to convert supported documents to markdown before legacy extraction.
+    # Missing or failing Docling is logged and the pipeline falls back to pypdf,
+    # pytesseract, or plain-text extractors.
+    docling_enabled: bool = False
+
     jwt_secret: str = "change-this-in-production"
     auth_enabled: bool = True
     auth_admin_username: str = "admin"
     auth_admin_password: str = "admin"
     auth_session_cookie: str = "gmai_session"
-    auth_allow_header_role: bool = True
+    auth_allow_header_role: bool = False
+    automation_encryption_key: str = ""
+    automation_webhook_secret: str = ""
     truth_engine_strict_mode: bool = True
+    source_monitor_timeout_seconds: int = 30
+    source_monitor_max_bytes: int = 5_000_000
+    source_monitor_allow_http: bool = False
+    regulatory_model_classification_enabled: bool = False
+    coverage_tranche_assistant_enabled: bool = False
+    coverage_tranche_assistant_max_items: int = 25
+    allow_internal_draft_pathway_simulation: bool = False
+
+    def is_production(self) -> bool:
+        return self.app_env.strip().lower() in {"production", "prod"}
+
+    def parsed_cors_origins(self) -> list[str]:
+        return [
+            origin.strip().rstrip("/")
+            for origin in self.cors_allowed_origins.split(",")
+            if origin.strip()
+        ]
 
 
 settings = Settings()

@@ -1,0 +1,52 @@
+# Auto-detect text files and normalize line endings on checkout.
+* text=auto
+
+# Python files: keep LF for cross-platform consistency.
+*.py text eol=lf
+*.pyi text eol=lf
+
+# Shell and config files: keep LF.
+*.sh text eol=lf
+*.bash text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+
+# PowerShell files: keep CRLF for native Windows execution.
+*.ps1 text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+
+# Markdown and documentation: keep LF.
+*.md text eol=lf
+*.txt text eol=lf
+
+# Web assets: keep LF.
+*.tsx text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+
+# Docker files: keep LF.
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+
+# Binary files: do not modify line endings.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

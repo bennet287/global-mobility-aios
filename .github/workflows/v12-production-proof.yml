@@ -1,0 +1,239 @@
+name: V12 Production Proof
+
+on:
+  push:
+    branches:
+      - main
+      - "roadmap/**"
+  pull_request:
+
+concurrency:
+  group: v12-production-proof-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  repository-policy:
+    name: Repository policy and constraints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository policy
+        run: python scripts/check_repo_policy.py --root .
+
+      - name: Release consistency
+        run: python scripts/check_release_consistency.py --root .
+
+      - name: Python dependency constraints
+        run: python scripts/check_python_dependency_constraints.py
+
+      - name: Diff hygiene
+        run: python scripts/check_diff_hygiene.py
+
+  backend-sqlite:
+    name: Backend regression (SQLite)
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: sqlite:///./ci-production-proof.db
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            apps/api/requirements.txt
+            apps/api/constraints.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+          python -m pip check
+
+      - name: Compile Python sources
+        run: python -m compileall -q apps/api/app scripts
+
+      - name: Upgrade isolated SQLite schema through Alembic
+        run: python -m alembic -c alembic.ini upgrade head
+
+      - name: Backend pytest regression
+        run: python -m pytest apps/api/tests -q
+
+      - name: Migration consistency and physical schema
+        run: python scripts/check_database_migrations.py
+
+      - name: Local schema contract
+        run: python scripts/check_local_db_schema.py
+
+  frontend:
+    name: Frontend tests, types and build
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-operator
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Frontend high-severity dependency audit
+        run: npm audit --audit-level=high
+
+      - name: Design foundation tests
+        run: npm run test:design-foundation
+
+      - name: Request/auth tests
+        run: npm run test:request-auth
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+      - name: Compiled auth tests
+        run: npm run test:compiled-auth
+
+  postgres-governance:
+    name: PostgreSQL governance contracts
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: global_mobility_aios_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d global_mobility_aios_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/global_mobility_aios_test
+      GMAI_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:5432/global_mobility_aios_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            apps/api/requirements.txt
+            apps/api/constraints.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+          python -m pip check
+
+      - name: Upgrade isolated PostgreSQL schema through Alembic
+        run: python -m alembic -c alembic.ini upgrade head
+
+      - name: Verify PostgreSQL migration and physical schema contract
+        run: python scripts/check_database_migrations.py
+
+      - name: Run governed PostgreSQL contracts
+        run: >-
+          python -m pytest -q
+          apps/api/tests/test_organization_eligibility_effect.py
+          apps/api/tests/test_organization_eligibility_orchestration.py
+          apps/api/tests/test_organization_eligibility_lineage_contract.py
+          apps/api/tests/test_organization_eligibility_immune_system.py
+          apps/api/tests/test_organization_eligibility_immune_recurrence.py
+          apps/api/tests/test_organization_eligibility_immune_orchestration.py
+          apps/api/tests/test_organization_eligibility_revision_conflict.py
+          apps/api/tests/test_organization_eligibility_revision_conflict_adversarial.py
+          apps/api/tests/test_organization_eligibility_revision_runtime_race.py
+          apps/api/tests/test_organization_eligibility_revision_runtime_race_adversarial.py
+          apps/api/tests/test_organization_eligibility_runtime_health.py
+          apps/api/tests/test_organization_eligibility_runtime_health_adversarial.py
+          apps/api/tests/test_organization_eligibility_immune_lineage.py
+          apps/api/tests/test_organization_eligibility_postgres_contract.py
+          apps/api/tests/test_organization_autonomy_promotion_policy_postgres.py
+          apps/api/tests/test_organization_autonomy_evidence_evaluation_postgres.py
+          apps/api/tests/test_organization_mobility_objective_execution_postgres.py
+          apps/api/tests/test_organization_mobility_live_organization_postgres.py
+
+
+  living-organization-browser:
+    name: Living Organization renderer browser proof
+    needs: frontend
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-operator
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/web/e2e/package-lock.json
+
+      - name: Install and build frontend
+        working-directory: apps/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install browser proof dependencies
+        working-directory: apps/web/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Living Organization browser proof
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/live-organization.spec.ts --project=chromium

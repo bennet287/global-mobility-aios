@@ -61,3 +61,14 @@ united_kingdom:
   - title: GOV.UK - Student Visa
     url: https://www.gov.uk/student-visa
     source_type: official
+new_zealand:
+  visa:
+  - name: Immigration New Zealand
+    url: https://www.immigration.govt.nz/home/
+    type: official_agency
+  - title: Immigration New Zealand - Visas
+    url: https://www.immigration.govt.nz/visas/
+    source_type: official
+  - title: Immigration New Zealand - How we work
+    url: https://www.immigration.govt.nz/about-us/how-we-work/
+    source_type: official

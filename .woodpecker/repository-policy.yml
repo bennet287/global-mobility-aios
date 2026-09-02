@@ -1,0 +1,24 @@
+clone:
+  - name: git
+    image: woodpeckerci/plugin-git
+    settings:
+      partial: false
+      depth: 64
+      lfs: false
+      fetch-target-branch: true
+
+when:
+  - event: pull_request
+  - event: push
+    branch: main
+  - event: manual
+
+steps:
+  - name: repository-policy-and-constraints
+    image: python:3.12-bookworm
+    commands:
+      - apt-get update >/dev/null && apt-get install -y --no-install-recommends git >/dev/null
+      - python scripts/check_repo_policy.py --root .
+      - python scripts/check_release_consistency.py --root .
+      - python scripts/check_python_dependency_constraints.py
+      - python scripts/check_diff_hygiene.py

@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "release": "v10.22.11",
+  "generated_at": "2026-07-17T22:49:00.000000Z",
+  "actor": "coverage-rule-publisher",
+  "batch_id": "f2e7d0b7-72af-4776-ba9d-b9d092ac6013",
+  "batch_name": "v10.22.11 Africa evidence tranche 1G - MU, ZW",
+  "registry_summary": {
+    "coverage_ready": 28,
+    "coverage_required": 243,
+    "with_verified_rule": 28,
+    "global_coverage_claim_ready": false
+  },
+  "items": [
+    {
+      "alpha2_code": "MU",
+      "jurisdiction_name": "Mauritius",
+      "jurisdiction_id": "b8d2d6e0-4b7c-4a3f-9c3e-7b8e1f2a3b4c",
+      "immigration_assessment_id": "6d151432-4111-4f6d-afd4-92c8fce00fb1",
+      "source_certification_id": "ce2e9510-f1ef-4d4d-af9c-853eb2075cb0",
+      "regulatory_authority_id": "3ff185f4-12b9-4023-a6c0-c00881f4c1c3",
+      "official_source_id": "44c2fda3-e658-4a77-86d0-efb72ca30067",
+      "source_monitor_id": "30fb2888-64a6-4d62-ab0b-99b8cb44611d",
+      "source_url": "https://passport.govmu.org/passport",
+      "baseline_snapshot_id": "f6ece0a2-2c8b-48a5-b6cc-2ec77be4fb7d",
+      "baseline_snapshot_hash": "42460e08e043ce3207a3e05ad8a3e4dbf237f9fe5c34f05e986f0d5b47c38d3f",
+      "initial_rule_assertion_id": "8d15a97f-4e74-415e-8e66-2b5a8e40ce9a",
+      "rule_key": "mu_passport_immigration_official_information_baseline",
+      "verified_rule_id": "cfacf6e3-8019-4a2e-908f-678ceecc0eb6",
+      "coverage_ready": true
+    },
+    {
+      "alpha2_code": "ZW",
+      "jurisdiction_name": "Zimbabwe",
+      "jurisdiction_id": "0b8d1f5a-3e7a-4b6c-9d2e-1f3a4b5c6d7e",
+      "immigration_assessment_id": "b169a7fd-94cd-4348-8308-3f738084f1a6",
+      "source_certification_id": "190683f0-0bc1-4d28-b6e7-584a884a8cfb",
+      "regulatory_authority_id": "fbc48698-4ffa-481f-a6f7-47c7d460994e",
+      "official_source_id": "9125e99e-3156-4106-b520-cf131179d964",
+      "source_monitor_id": "6fa5a948-a54e-4502-bb24-5e6bff2c726c",
+      "source_url": "https://evisa.gov.zw/",
+      "baseline_snapshot_id": "01f09b63-598f-4321-b437-3b8b8fb9c043",
+      "baseline_snapshot_hash": "7532c17978552f230734db8d3efcd1e22f0a36a5c14951ec3d35a2b554bcf639",
+      "initial_rule_assertion_id": "b8567ed5-89b1-41d9-a535-b872d2d426b8",
+      "rule_key": "zw_evisa_official_information_baseline",
+      "verified_rule_id": "a1bf788e-3c81-4085-bf96-13684e3406be",
+      "coverage_ready": true
+    }
+  ],
+  "blocked": [],
+  "safety": {
+    "creates_coverage_claim": false,
+    "publishes_verified_rules": true,
+    "baseline_snapshots_immutable": true,
+    "message": "This receipt records two verified-rule publications for Mauritius and Zimbabwe. No jurisdiction was blocked in this tranche. It does not create a global coverage claim."
+  }
+}

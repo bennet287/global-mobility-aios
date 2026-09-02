@@ -1,0 +1,102 @@
+{
+  "pack_version": "v10.22.11",
+  "title": "Africa coverage evidence tranche 1G - Mauritius, Zimbabwe",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 2,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "MU",
+      "authority_evidence_url": "https://passport.govmu.org/passport",
+      "source_url": "https://passport.govmu.org/passport",
+      "evidence_summary": "The Passport and Immigration Office of Mauritius operates passport.govmu.org as the official portal for passport and immigration services in Mauritius."
+    },
+    {
+      "alpha2_code": "ZW",
+      "authority_evidence_url": "https://evisa.gov.zw/",
+      "source_url": "https://evisa.gov.zw/",
+      "evidence_summary": "The Zimbabwe Immigration Department operates the official Zimbabwe eVisa portal at evisa.gov.zw for online visa applications."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.11 Africa evidence tranche 1G - MU, ZW",
+    "notes": "Official-source evidence for Mauritius (MU) and Zimbabwe (ZW). Mauritius's official source is the Passport and Immigration Office portal at passport.govmu.org/passport. Zimbabwe's official source is the Zimbabwe eVisa portal at evisa.gov.zw. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/passport content. Gabon (GA), Gambia (GM), Guinea-Bissau (GW), Democratic Republic of the Congo (CD), and Zambia (ZM) remain blocked or deferred from earlier tranches. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "MU",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://passport.govmu.org/passport",
+          "evidence_title": "Mauritius Passport and Immigration Office official portal",
+          "rationale": "The Passport and Immigration Office of Mauritius operates passport.govmu.org as the official portal for passport and immigration services in Mauritius. This supports a proposal that Mauritius directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Passport and Immigration Office of Mauritius",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://passport.govmu.org/passport",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Mauritius Passport and Immigration Office Portal",
+          "source_url": "https://passport.govmu.org/passport",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "passport.govmu.org"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Passport and Immigration Office of Mauritius operates passport.govmu.org as the official portal for passport and immigration services. The page title is 'Passport and Immigration Office' and the content references Mauritius visa and passport application services. Keep the initial certification limited to the visa and immigration functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "ZW",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.gov.zw/",
+          "evidence_title": "Zimbabwe eVisa - official Immigration Department portal",
+          "rationale": "The Zimbabwe Immigration Department operates the official Zimbabwe eVisa portal at evisa.gov.zw for online visa applications. This supports a proposal that Zimbabwe directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Zimbabwe Immigration Department",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://evisa.gov.zw/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Zimbabwe eVisa Portal",
+          "source_url": "https://evisa.gov.zw/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisa.gov.zw"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Zimbabwe Immigration Department operates the official Zimbabwe eVisa portal at evisa.gov.zw. The page identifies itself as Zimbabwe eVisa and describes immigration and visa application services. Keep the initial certification limited to the visa functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

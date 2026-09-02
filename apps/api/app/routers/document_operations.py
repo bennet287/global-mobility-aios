@@ -9,7 +9,9 @@ from fastapi.responses import HTMLResponse
 from sqlmodel import Session, select
 
 from app.core.db import get_session
+from app.core.pagination import DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, clamp_query_limit
 from app.models.domain import DocumentRecord, FollowUp, Lead
+from app.services.document_storage import public_document_metadata
 
 router = APIRouter()
 
@@ -46,16 +48,14 @@ def _doc_label(document_type: str) -> str:
 
 
 def _document_to_dict(doc: DocumentRecord) -> dict[str, Any]:
-    return {
+    payload = public_document_metadata(doc)
+    payload.update({
         "id": str(_safe_value(doc, "id")),
         "lead_id": str(_safe_value(doc, "lead_id")) if _safe_value(doc, "lead_id") else None,
-        "document_type": _safe_value(doc, "document_type"),
         "label": _doc_label(str(_safe_value(doc, "document_type", ""))),
-        "filename": _safe_value(doc, "filename"),
-        "status": _status(doc),
-        "storage_key": _safe_value(doc, "storage_key"),
         "created_at": str(_safe_value(doc, "created_at")) if _safe_value(doc, "created_at") else None,
-    }
+    })
+    return payload
 
 
 def _lead_or_404(session: Session, lead_id: UUID) -> Lead:
@@ -66,7 +66,13 @@ def _lead_or_404(session: Session, lead_id: UUID) -> Lead:
 
 
 def _lead_documents(session: Session, lead_id: UUID) -> list[DocumentRecord]:
-    return list(session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all())
+    return list(
+        session.exec(
+            select(DocumentRecord)
+            .where(DocumentRecord.lead_id == lead_id)
+            .limit(MAX_QUERY_LIMIT)
+        ).all()
+    )
 
 
 def _build_summary(lead: Lead, documents: list[DocumentRecord]) -> dict[str, Any]:
@@ -187,9 +193,18 @@ def get_lead_document_summary(lead_id: UUID, session: Session = Depends(get_sess
 
 
 @router.get("/api/v1/documents/missing")
-def get_missing_documents(session: Session = Depends(get_session)) -> dict[str, Any]:
-    documents = list(session.exec(select(DocumentRecord)).all())
-    missing = [doc for doc in documents if _status(doc) in MISSING_STATUSES]
+def get_missing_documents(
+    limit: int = DEFAULT_QUERY_LIMIT,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    query_limit = clamp_query_limit(limit)
+    missing = list(
+        session.exec(
+            select(DocumentRecord)
+            .where(DocumentRecord.status.in_(MISSING_STATUSES))
+            .limit(query_limit)
+        ).all()
+    )
     lead_cache: dict[str, Lead | None] = {}
     rows: list[dict[str, Any]] = []
 
@@ -209,8 +224,12 @@ def get_missing_documents(session: Session = Depends(get_session)) -> dict[str, 
 
 
 @router.get("/api/v1/documents/summary")
-def get_global_document_summary(session: Session = Depends(get_session)) -> dict[str, Any]:
-    leads = list(session.exec(select(Lead)).all())
+def get_global_document_summary(
+    limit: int = DEFAULT_QUERY_LIMIT,
+    session: Session = Depends(get_session),
+) -> dict[str, Any]:
+    query_limit = clamp_query_limit(limit)
+    leads = list(session.exec(select(Lead).limit(query_limit)).all())
     summaries = []
     total_missing = 0
     total_documents = 0

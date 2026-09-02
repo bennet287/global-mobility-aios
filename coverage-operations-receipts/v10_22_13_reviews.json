@@ -1,0 +1,46 @@
+{
+  "assessments": [
+    {
+      "code": "BH",
+      "id": "0dc9358d-df77-4f7a-ac2f-48072bccc929",
+      "status": "approved"
+    },
+    {
+      "code": "GE",
+      "id": "01dbbb58-8895-4435-a923-3732e95e27ad",
+      "status": "approved"
+    },
+    {
+      "code": "SG",
+      "id": "1d483bdb-da11-4618-b6ad-d20439d12ae0",
+      "status": "approved"
+    },
+    {
+      "code": "AE",
+      "id": "27afebbb-da1a-4471-86c8-8d25660bd970",
+      "status": "approved"
+    }
+  ],
+  "source_certifications": [
+    {
+      "code": "BH",
+      "id": "3f4e9547-8c01-4b92-ab54-10e3defe7d27",
+      "status": "approved"
+    },
+    {
+      "code": "GE",
+      "id": "f92c5930-33af-4a1e-b749-38dd50de2aec",
+      "status": "approved"
+    },
+    {
+      "code": "SG",
+      "id": "12cd72ad-a5c0-4ee9-8e38-43f7aedc5b9c",
+      "status": "approved"
+    },
+    {
+      "code": "AE",
+      "id": "42d83e7a-254e-4f6e-8aaf-1c29337a0529",
+      "status": "approved"
+    }
+  ]
+}

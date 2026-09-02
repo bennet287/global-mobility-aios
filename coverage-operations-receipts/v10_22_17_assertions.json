@@ -1,0 +1,27 @@
+[
+  {
+    "code": "ES",
+    "id": "4a645fcf-df10-49cd-b1fb-60ea21ae0ee2",
+    "status": "pending_review"
+  },
+  {
+    "code": "PT",
+    "id": "4443f188-6cdb-4a03-94eb-0e2223858473",
+    "status": "pending_review"
+  },
+  {
+    "code": "IT",
+    "id": "8cb6d1bd-b6e6-4bcb-970b-6cda53c0777f",
+    "status": "pending_review"
+  },
+  {
+    "code": "SI",
+    "id": "646cf9f3-b66b-4b2e-b29f-fb250496751f",
+    "status": "pending_review"
+  },
+  {
+    "code": "HR",
+    "id": "9c1288c0-9ab7-433f-b6fa-d578982f7c9d",
+    "status": "pending_review"
+  }
+]

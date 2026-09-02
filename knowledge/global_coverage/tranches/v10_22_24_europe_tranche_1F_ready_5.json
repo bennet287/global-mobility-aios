@@ -1,0 +1,197 @@
+{
+  "pack_version": "v10.22.24",
+  "title": "Europe coverage evidence tranche 1F - Hungary, Malta, Liechtenstein, Bosnia and Herzegovina, Albania",
+  "verified_at": "2026-07-18",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 5,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "HU",
+      "authority_evidence_url": "https://oif.gov.hu/factsheets/use-of-enter-hungary-system-for-natural-person-and-their-authorized-legal-representatives",
+      "source_url": "https://oif.gov.hu/factsheets/use-of-enter-hungary-system-for-natural-person-and-their-authorized-legal-representatives",
+      "evidence_summary": "Hungary's National Directorate-General for Aliens Policing publishes official guidance for electronically submitting residence-permit and related aliens-policing applications through Enter Hungary."
+    },
+    {
+      "alpha2_code": "MT",
+      "authority_evidence_url": "https://identita.gov.mt/working-residing-in-malta/",
+      "source_url": "https://identita.gov.mt/working-residing-in-malta/",
+      "evidence_summary": "Malta's Identita agency identifies its Expatriates Unit as the administrator of legal migration and explains residence documents, employment residence permits, family reunification, and visa requirements."
+    },
+    {
+      "alpha2_code": "LI",
+      "authority_evidence_url": "https://www.llv.li/en/national-administration/migration-and-passport-office/residing-in-liechtenstein",
+      "source_url": "https://www.llv.li/en/national-administration/migration-and-passport-office/residing-in-liechtenstein",
+      "evidence_summary": "Liechtenstein's National Administration identifies the Migration and Passport Office and explains residence permits for EEA, Swiss, and third-country citizens, including work and non-work residence applications."
+    },
+    {
+      "alpha2_code": "BA",
+      "authority_evidence_url": "https://sps.gov.ba/en/information-for-foreigners/",
+      "source_url": "https://sps.gov.ba/en/information-for-foreigners/",
+      "evidence_summary": "Bosnia and Herzegovina's Service for Foreigners' Affairs official portal provides verified information on foreigner entry, stay, residence registration, temporary and permanent residence, forms, fees, and governing law."
+    },
+    {
+      "alpha2_code": "AL",
+      "authority_evidence_url": "https://mb.gov.al/wp-content/uploads/2024/10/Ligj-per-te-Huajt-%E2%80%93-nr.-79.2021_English.pdf",
+      "source_url": "https://mb.gov.al/wp-content/uploads/2024/10/Ligj-per-te-Huajt-%E2%80%93-nr.-79.2021_English.pdf",
+      "evidence_summary": "Albania's Ministry of Interior publishes the official English text of Law No. 79/2021 On Aliens, covering entry, stay, employment, residence permits, responsible authorities, and foreigner rights and obligations."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.24 Europe evidence tranche 1F - HU, MT, LI, BA, AL",
+    "notes": "Official-source evidence for Hungary (HU), Malta (MT), Liechtenstein (LI), Bosnia and Herzegovina (BA), and Albania (AL). All five endpoints were probed on 2026-07-18 through the controlled API-container retriever, returned HTTPS 200, and scored as suitable for narrow drafting. Lithuania (LT) was excluded after the controlled probe returned HTTP 403; retrieval controls were not weakened. The tranche is limited to the described immigration, residence, permit, and foreigner-law functions and does not claim complete immigration-law coverage. Submission creates pending proposals only; independent reviewer certification remains required.",
+    "items": [
+      {
+        "alpha2_code": "HU",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://oif.gov.hu/factsheets/use-of-enter-hungary-system-for-natural-person-and-their-authorized-legal-representatives",
+          "evidence_title": "National Directorate-General for Aliens Policing Enter Hungary guidance",
+          "rationale": "Hungary's National Directorate-General for Aliens Policing publishes official guidance for residence-permit and related aliens-policing applications through Enter Hungary. This supports a proposal that Hungary directly administers the relevant immigration and residence services through the National Directorate-General for Aliens Policing."
+        },
+        "source_onboarding": {
+          "authority_name": "Hungary National Directorate-General for Aliens Policing",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://oif.gov.hu/factsheets/use-of-enter-hungary-system-for-natural-person-and-their-authorized-legal-representatives",
+          "authority_domains": ["visa"],
+          "source_name": "Hungary Enter Hungary residence application guidance",
+          "source_url": "https://oif.gov.hu/factsheets/use-of-enter-hungary-system-for-natural-person-and-their-authorized-legal-representatives",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["oif.gov.hu"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 12,962 characters of extracted content and a quality score of 82, covering residence applications, Enter Hungary submission, employment, family, and related aliens-policing procedures. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "MT",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://identita.gov.mt/working-residing-in-malta/",
+          "evidence_title": "Identita Working and Residing in Malta guidance",
+          "rationale": "Malta's Identita agency states that its Expatriates Unit administers the legal migration process and processes and issues residence documents, including employment residence permits and family-reunification cases. This supports a proposal that Malta directly administers the relevant immigration services through Identita."
+        },
+        "source_onboarding": {
+          "authority_name": "Malta Identita Expatriates Unit",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://identita.gov.mt/working-residing-in-malta/",
+          "authority_domains": ["visa"],
+          "source_name": "Identita Working and Residing in Malta guidance",
+          "source_url": "https://identita.gov.mt/working-residing-in-malta/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["identita.gov.mt"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 11,645 characters of extracted content and a quality score of 94, covering legal migration, residence documents, single permits, employment, family reunification, and visa requirements. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "LI",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.llv.li/en/national-administration/migration-and-passport-office/residing-in-liechtenstein",
+          "evidence_title": "Liechtenstein Migration and Passport Office residence guidance",
+          "rationale": "Liechtenstein's National Administration identifies the Migration and Passport Office and explains residence permits and application routes for EEA, Swiss, and third-country citizens, including residence for work and residence without work. This supports a proposal that Liechtenstein directly administers the relevant immigration services through the Migration and Passport Office."
+        },
+        "source_onboarding": {
+          "authority_name": "Liechtenstein Migration and Passport Office",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.llv.li/en/national-administration/migration-and-passport-office/residing-in-liechtenstein",
+          "authority_domains": ["visa"],
+          "source_name": "Liechtenstein official residence guidance",
+          "source_url": "https://www.llv.li/en/national-administration/migration-and-passport-office/residing-in-liechtenstein",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["www.llv.li"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 129,457 characters of extracted content and a quality score of 90, identifying the Migration and Passport Office and covering residence permits for EEA, Swiss, and third-country citizens. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "BA",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://sps.gov.ba/en/information-for-foreigners/",
+          "evidence_title": "Bosnia and Herzegovina Service for Foreigners' Affairs information portal",
+          "rationale": "Bosnia and Herzegovina's Service for Foreigners' Affairs official portal provides verified information on foreigner entry, stay, residence registration, temporary and permanent residence, forms, fees, and governing law. This supports a proposal that Bosnia and Herzegovina directly administers the relevant immigration services through the Service for Foreigners' Affairs."
+        },
+        "source_onboarding": {
+          "authority_name": "Bosnia and Herzegovina Service for Foreigners' Affairs",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://sps.gov.ba/en/information-for-foreigners/",
+          "authority_domains": ["visa"],
+          "source_name": "Bosnia and Herzegovina official information for foreigners",
+          "source_url": "https://sps.gov.ba/en/information-for-foreigners/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["sps.gov.ba"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 9,918 characters of extracted content and a quality score of 85, covering foreigner entry, stay, residence registration, temporary and permanent residence, forms, fees, and governing law. Keep the initial certification limited to the services explicitly described."
+        }
+      },
+      {
+        "alpha2_code": "AL",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://mb.gov.al/wp-content/uploads/2024/10/Ligj-per-te-Huajt-%E2%80%93-nr.-79.2021_English.pdf",
+          "evidence_title": "Albania Ministry of Interior Law No. 79/2021 On Aliens",
+          "rationale": "Albania's Ministry of Interior publishes the official English text of Law No. 79/2021 On Aliens, which governs foreigner entry, stay, employment, residence permits, responsible authorities, and rights and obligations. This supports a proposal that Albania directly administers its immigration system under its national authorities and law."
+        },
+        "source_onboarding": {
+          "authority_name": "Albania Ministry of Interior",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://mb.gov.al/wp-content/uploads/2024/10/Ligj-per-te-Huajt-%E2%80%93-nr.-79.2021_English.pdf",
+          "authority_domains": ["visa"],
+          "source_name": "Albania Law No. 79/2021 On Aliens official English text",
+          "source_url": "https://mb.gov.al/wp-content/uploads/2024/10/Ligj-per-te-Huajt-%E2%80%93-nr.-79.2021_English.pdf",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": ["mb.gov.al"],
+          "max_redirects": 4,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_scope": "primary_immigration",
+          "certification_domains": ["visa"],
+          "evidence_notes": "Controlled API-container probe on 2026-07-18 returned HTTPS 200 with 229,437 characters of extracted PDF content and a quality score of 86, covering entry, stay, work, residence permits, responsible authorities, and foreigner rights and obligations. Keep the initial certification limited to the official law text and services it explicitly supports."
+        }
+      }
+    ]
+  }
+}

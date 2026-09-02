@@ -1,0 +1,2160 @@
+from __future__ import annotations
+
+import json
+import re
+from datetime import datetime, timezone
+from typing import Any
+from uuid import UUID
+
+from sqlalchemy import func
+from sqlmodel import Session, select
+
+from app.models.domain import (
+    DocumentRecord,
+    Jurisdiction,
+    JurisdictionSourceCertification,
+    Lead,
+    MobilityPathway,
+    MobilityPathwayVersion,
+    MobilityPathwayVersionEvidence,
+    OfficialSource,
+    PathwayComparisonAssessment,
+    Profile,
+    RegulatoryAuthority,
+    SourceSnapshot,
+    VerifiedRule,
+    now_utc,
+)
+from app.schemas import (
+    CaseNextActionRead,
+    OccupationResolutionRead,
+    PathwayComparisonItem,
+    PathwayComparisonRead,
+    PathwayCostExplanation,
+    PathwayCreate,
+    PathwayEvidenceTraceRead,
+    PathwayEvidenceGapRead,
+    PathwayRead,
+    PathwayRiskExplanation,
+    PathwayPublicationReadinessRead,
+    PathwayStructuredOccupationIntegrationRead,
+    PathwayStructuredOccupationIntegrationRequest,
+    PathwayVersionEvidenceInput,
+    PathwayVersionEvidenceRead,
+    PathwayVersionInput,
+    PathwayVersionRead,
+)
+from app.services.audit_log import record_audit
+from app.services.mobility_profiles import (
+    case_facts,
+    current_mobility_profile,
+    ensure_case_mobility_profile,
+)
+from app.services.pathway_evidence import (
+    CORE_EVIDENCE_ROLE,
+    pathway_version_evidence_pairs,
+    pathway_version_evidence_rows,
+)
+from app.services.shortage_occupations import (
+    resolve_austria_occupation,
+    shortage_occupation_projection_summary,
+)
+from app.services.source_certification_review import source_certification_review_pack
+
+
+STRUCTURED_OCCUPATION_EVIDENCE_ROLES = {
+    "national_occupation_list": "national",
+    "regional_occupation_list": "regional",
+}
+STRUCTURED_OCCUPATION_PROJECTION_TYPE = "structured_shortage_occupation"
+STRUCTURED_OCCUPATION_INTEGRATION_VERSION = "v13_10_2_13"
+PATHWAY_REQUIRED_EVIDENCE_ROLES = {
+    "at-rwr-skilled-worker-shortage-occupation": {
+        "national_occupation_list",
+        "regional_occupation_list",
+    },
+}
+
+
+def _dump(value: Any) -> str:
+    return json.dumps(value, default=str, sort_keys=True)
+
+
+def _load(value: str | None, default: Any) -> Any:
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _normal(value: str | None) -> str:
+    return (value or "").strip().lower()
+
+
+def pathway_version_read(
+    session: Session,
+    version: MobilityPathwayVersion,
+) -> PathwayVersionRead:
+    evidence_links = [
+        PathwayVersionEvidenceRead(
+            id=row.id,
+            pathway_version_id=row.pathway_version_id,
+            evidence_role=row.evidence_role,
+            official_source_id=row.official_source_id,
+            source_snapshot_id=row.source_snapshot_id,
+            required_for_publication=row.required_for_publication,
+            metadata=_load(row.metadata_json, {}),
+            created_at=row.created_at,
+        )
+        for row in pathway_version_evidence_rows(session, version)
+    ]
+    return PathwayVersionRead(
+        id=version.id,
+        pathway_id=version.pathway_id,
+        version_number=version.version_number,
+        lifecycle_status=version.lifecycle_status,
+        supersedes_version_id=version.supersedes_version_id,
+        official_source_id=version.official_source_id,
+        source_snapshot_id=version.source_snapshot_id,
+        evidence_links=evidence_links,
+        verified_rule_ids=[UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])],
+        eligibility_criteria=_load(version.eligibility_criteria_json, {}),
+        required_documents=_load(version.required_documents_json, []),
+        costs=_load(version.costs_json, {}),
+        processing_time=_load(version.processing_time_json, {}),
+        benefits=_load(version.benefits_json, []),
+        risks=_load(version.risks_json, []),
+        metadata=_load(version.metadata_json, {}),
+        effective_from=version.effective_from,
+        effective_to=version.effective_to,
+        human_review_required=version.human_review_required,
+        approved_by=version.approved_by,
+        review_notes=version.review_notes,
+        published_at=version.published_at,
+        created_by=version.created_by,
+        created_at=version.created_at,
+        updated_at=version.updated_at,
+    )
+
+def latest_pathway_version(
+    session: Session,
+    pathway_id: UUID,
+) -> MobilityPathwayVersion | None:
+    """Return the latest lifecycle version for catalogue management reads."""
+    return session.exec(
+        select(MobilityPathwayVersion)
+        .where(MobilityPathwayVersion.pathway_id == pathway_id)
+        .order_by(MobilityPathwayVersion.version_number.desc())
+    ).first()
+
+
+def published_pathway_version(
+    session: Session,
+    pathway_id: UUID,
+) -> MobilityPathwayVersion | None:
+    """Return the latest production-safe published version."""
+    return session.exec(
+        select(MobilityPathwayVersion)
+        .where(
+            MobilityPathwayVersion.pathway_id == pathway_id,
+            MobilityPathwayVersion.lifecycle_status == "published",
+        )
+        .order_by(MobilityPathwayVersion.version_number.desc())
+    ).first()
+
+
+def simulation_pathway_version(
+    session: Session,
+    pathway_id: UUID,
+) -> MobilityPathwayVersion | None:
+    """Return the latest draft or published version for gated simulation only."""
+    return session.exec(
+        select(MobilityPathwayVersion)
+        .where(
+            MobilityPathwayVersion.pathway_id == pathway_id,
+            MobilityPathwayVersion.lifecycle_status.in_(["published", "draft"]),
+        )
+        .order_by(MobilityPathwayVersion.version_number.desc())
+    ).first()
+
+
+def pathway_read(
+    session: Session,
+    pathway: MobilityPathway,
+    *,
+    published_only: bool = False,
+) -> PathwayRead:
+    version = (
+        published_pathway_version(session, pathway.id)
+        if published_only
+        else latest_pathway_version(session, pathway.id)
+    )
+    return PathwayRead(
+        id=pathway.id,
+        pathway_key=pathway.pathway_key,
+        name=pathway.name,
+        country=pathway.country,
+        domain=pathway.domain,
+        jurisdiction_id=pathway.jurisdiction_id,
+        description=pathway.description,
+        catalogue_status=pathway.catalogue_status,
+        created_by=pathway.created_by,
+        created_at=pathway.created_at,
+        updated_at=pathway.updated_at,
+        current_version=pathway_version_read(session, version) if version else None,
+    )
+
+
+def pathway_read_with_version(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> PathwayRead:
+    return PathwayRead(
+        id=pathway.id,
+        pathway_key=pathway.pathway_key,
+        name=pathway.name,
+        country=pathway.country,
+        domain=pathway.domain,
+        jurisdiction_id=pathway.jurisdiction_id,
+        description=pathway.description,
+        catalogue_status=pathway.catalogue_status,
+        created_by=pathway.created_by,
+        created_at=pathway.created_at,
+        updated_at=pathway.updated_at,
+        current_version=pathway_version_read(session, version),
+    )
+
+
+def _resolved_evidence_inputs(
+    payload: PathwayVersionInput,
+) -> tuple[UUID | None, UUID | None, list[PathwayVersionEvidenceInput]]:
+    if bool(payload.official_source_id) != bool(payload.source_snapshot_id):
+        raise ValueError("Official source and source snapshot must be provided together")
+
+    links = list(payload.evidence_links)
+    core_links = [link for link in links if link.evidence_role == CORE_EVIDENCE_ROLE]
+    if len(core_links) > 1:
+        raise ValueError("A pathway version may declare only one core_route evidence link")
+
+    legacy_source_id = payload.official_source_id
+    legacy_snapshot_id = payload.source_snapshot_id
+    if core_links:
+        core = core_links[0]
+        if not core.required_for_publication:
+            raise ValueError("core_route evidence must be required for publication")
+        if legacy_source_id and (
+            core.official_source_id != legacy_source_id
+            or core.source_snapshot_id != legacy_snapshot_id
+        ):
+            raise ValueError("core_route evidence must match the legacy official source/snapshot pair")
+        legacy_source_id = legacy_source_id or core.official_source_id
+        legacy_snapshot_id = legacy_snapshot_id or core.source_snapshot_id
+    elif legacy_source_id and legacy_snapshot_id:
+        links.insert(
+            0,
+            PathwayVersionEvidenceInput(
+                evidence_role=CORE_EVIDENCE_ROLE,
+                official_source_id=legacy_source_id,
+                source_snapshot_id=legacy_snapshot_id,
+                required_for_publication=True,
+                metadata={},
+            ),
+        )
+
+    seen: set[tuple[str, UUID, UUID]] = set()
+    for link in links:
+        identity = (
+            link.evidence_role,
+            link.official_source_id,
+            link.source_snapshot_id,
+        )
+        if identity in seen:
+            raise ValueError("Duplicate pathway evidence link")
+        seen.add(identity)
+
+    return legacy_source_id, legacy_snapshot_id, links
+
+
+def _structured_occupation_evidence_summary(
+    session: Session,
+    link: PathwayVersionEvidenceInput,
+) -> dict[str, Any] | None:
+    scope = STRUCTURED_OCCUPATION_EVIDENCE_ROLES.get(link.evidence_role)
+    if scope is None:
+        return None
+    if not link.required_for_publication:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} must be required for publication"
+        )
+    metadata = link.metadata or {}
+    if metadata.get("projection_type") != STRUCTURED_OCCUPATION_PROJECTION_TYPE:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} must declare projection_type "
+            f"{STRUCTURED_OCCUPATION_PROJECTION_TYPE}"
+        )
+    year = metadata.get("year")
+    if not isinstance(year, int):
+        raise ValueError(f"Evidence role {link.evidence_role} must declare an integer year")
+    if metadata.get("scope") != scope:
+        raise ValueError(f"Evidence role {link.evidence_role} must declare scope {scope}")
+
+    summary = shortage_occupation_projection_summary(
+        session,
+        source_snapshot_id=link.source_snapshot_id,
+        year=year,
+        scope=scope,
+    )
+    expected_values = {
+        "entry_count": summary["entry_count"],
+        "entry_set_sha256": summary["entry_set_sha256"],
+        "extraction_version": summary["extraction_version"],
+        "source_snapshot_content_hash": summary["source_snapshot_content_hash"],
+    }
+    for key, expected in expected_values.items():
+        if metadata.get(key) != expected:
+            raise ValueError(
+                f"Evidence role {link.evidence_role} metadata {key} does not match "
+                "the materialized immutable shortage-occupation projection"
+            )
+    if summary["official_source_id"] != link.official_source_id:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} structured projection does not belong to its official source"
+        )
+    return summary
+
+
+def _validate_evidence_reference(
+    session: Session,
+    pathway: MobilityPathway,
+    link: PathwayVersionEvidenceInput,
+) -> None:
+    source = session.get(OfficialSource, link.official_source_id)
+    if source is None or not source.active:
+        raise ValueError(f"Evidence role {link.evidence_role} requires an active official source")
+    if _normal(source.country) != _normal(pathway.country):
+        raise ValueError(f"Evidence role {link.evidence_role} source country does not match the pathway")
+    if pathway.jurisdiction_id:
+        if link.evidence_role != CORE_EVIDENCE_ROLE and source.jurisdiction_id != pathway.jurisdiction_id:
+            raise ValueError(
+                f"Evidence role {link.evidence_role} source jurisdiction does not match the pathway"
+            )
+        if (
+            link.evidence_role == CORE_EVIDENCE_ROLE
+            and source.jurisdiction_id
+            and source.jurisdiction_id != pathway.jurisdiction_id
+        ):
+            raise ValueError(
+                f"Evidence role {link.evidence_role} source jurisdiction does not match the pathway"
+            )
+    snapshot = session.get(SourceSnapshot, link.source_snapshot_id)
+    if snapshot is None:
+        raise ValueError(f"Evidence role {link.evidence_role} source snapshot not found")
+    if snapshot.official_source_id != source.id:
+        raise ValueError(f"Evidence role {link.evidence_role} snapshot does not belong to its official source")
+    summary = _structured_occupation_evidence_summary(session, link)
+    if summary is not None and pathway.jurisdiction_id and summary["jurisdiction_id"] != pathway.jurisdiction_id:
+        raise ValueError(
+            f"Evidence role {link.evidence_role} structured projection jurisdiction does not match the pathway"
+        )
+
+
+def _validate_draft_evidence(
+    session: Session,
+    pathway: MobilityPathway,
+    payload: PathwayVersionInput,
+) -> tuple[UUID | None, UUID | None, list[PathwayVersionEvidenceInput]]:
+    if pathway.jurisdiction_id and session.get(Jurisdiction, pathway.jurisdiction_id) is None:
+        raise ValueError("Jurisdiction not found")
+
+    legacy_source_id, legacy_snapshot_id, links = _resolved_evidence_inputs(payload)
+    for link in links:
+        _validate_evidence_reference(session, pathway, link)
+
+    for rule_id in payload.verified_rule_ids:
+        if session.get(VerifiedRule, rule_id) is None:
+            raise ValueError(f"Verified rule {rule_id} not found")
+
+    return legacy_source_id, legacy_snapshot_id, links
+
+
+def _persist_version_evidence(
+    session: Session,
+    version: MobilityPathwayVersion,
+    links: list[PathwayVersionEvidenceInput],
+) -> None:
+    for link in links:
+        session.add(
+            MobilityPathwayVersionEvidence(
+                pathway_version_id=version.id,
+                evidence_role=link.evidence_role,
+                official_source_id=link.official_source_id,
+                source_snapshot_id=link.source_snapshot_id,
+                required_for_publication=link.required_for_publication,
+                metadata_json=_dump(link.metadata),
+                created_at=version.created_at,
+            )
+        )
+    session.flush()
+
+
+def _source_certifications(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> list[JurisdictionSourceCertification]:
+    statement = select(JurisdictionSourceCertification).where(
+        JurisdictionSourceCertification.official_source_id == source_id
+    )
+    if jurisdiction_id:
+        statement = statement.where(
+            JurisdictionSourceCertification.jurisdiction_id == jurisdiction_id
+        )
+    return list(session.exec(statement).all())
+
+
+def _source_has_approved_certification(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> bool:
+    return any(
+        row.status == "approved"
+        for row in _source_certifications(
+            session,
+            source_id=source_id,
+            jurisdiction_id=jurisdiction_id,
+        )
+    )
+
+
+def _version_evidence_audit_state(
+    session: Session,
+    version: MobilityPathwayVersion,
+) -> list[dict[str, Any]]:
+    return [
+        row.model_dump(mode="json")
+        for row in pathway_version_evidence_rows(session, version)
+    ]
+
+
+def _publication_evidence_blockers(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> list[str]:
+    blockers: list[str] = []
+
+    def add(message: str) -> None:
+        if message not in blockers:
+            blockers.append(message)
+
+    evidence_rows = pathway_version_evidence_rows(session, version)
+    if not evidence_rows:
+        add("At least one official source evidence link is required before publication")
+        return blockers
+
+    core_rows = [row for row in evidence_rows if row.evidence_role == CORE_EVIDENCE_ROLE]
+    if len(core_rows) != 1:
+        add("Exactly one core_route evidence link is required before publication")
+    elif not core_rows[0].required_for_publication:
+        add("core_route evidence must be required for publication")
+
+    required_roles = PATHWAY_REQUIRED_EVIDENCE_ROLES.get(pathway.pathway_key, set())
+    present_roles = {row.evidence_role for row in evidence_rows}
+    missing_roles = sorted(required_roles - present_roles)
+    if missing_roles:
+        add(
+            f"Pathway {pathway.pathway_key} requires structured evidence roles before publication: "
+            + ", ".join(missing_roles)
+        )
+
+    for row in evidence_rows:
+        link = PathwayVersionEvidenceInput(
+            evidence_role=row.evidence_role,
+            official_source_id=row.official_source_id,
+            source_snapshot_id=row.source_snapshot_id,
+            required_for_publication=row.required_for_publication,
+            metadata=_load(row.metadata_json, {}),
+        )
+        try:
+            _validate_evidence_reference(session, pathway, link)
+        except ValueError as exc:
+            add(str(exc))
+
+        certifications = _source_certifications(
+            session,
+            source_id=row.official_source_id,
+            jurisdiction_id=pathway.jurisdiction_id,
+        )
+        approved_certification = any(item.status == "approved" for item in certifications)
+        if row.evidence_role == CORE_EVIDENCE_ROLE:
+            # Legacy pathways predate source certification. Preserve those rows,
+            # but once a source enters the certification workflow it must not be
+            # publishable while only pending/rejected/superseded certification exists.
+            if certifications and not approved_certification:
+                add(
+                    "core_route source has certification history but no approved source certification"
+                )
+        elif row.required_for_publication and not approved_certification:
+            add(
+                f"Required evidence role {row.evidence_role} needs an approved source certification before publication"
+            )
+
+    evidence_pairs = pathway_version_evidence_pairs(session, version)
+    rule_ids = [UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])]
+    if not rule_ids:
+        add("At least one active verified rule is required before publication")
+        return blockers
+
+    allowed_domains = _relevant_rule_domains(pathway.domain)
+    for rule_id in rule_ids:
+        rule = session.get(VerifiedRule, rule_id)
+        if (
+            rule is None
+            or not rule.active
+            or not rule.approved_by
+            or not rule.published_at
+            or not rule.official_source_id
+            or not rule.source_snapshot_id
+        ):
+            add(
+                f"Verified rule {rule_id} must be active, human-published, and pinned to source provenance"
+            )
+            continue
+        if _normal(rule.country) != pathway.country or _normal(rule.domain) not in allowed_domains:
+            add(f"Verified rule {rule_id} does not match the pathway jurisdiction or domain")
+            continue
+        rule_pair = (rule.official_source_id, rule.source_snapshot_id)
+        if rule_pair not in evidence_pairs:
+            add(
+                f"Verified rule {rule_id} source/snapshot provenance is not declared by the pathway version"
+            )
+            continue
+        matching_rows = [
+            row
+            for row in evidence_rows
+            if (row.official_source_id, row.source_snapshot_id) == rule_pair
+        ]
+        if not any(row.evidence_role == CORE_EVIDENCE_ROLE for row in matching_rows):
+            if not any(row.required_for_publication for row in matching_rows):
+                add(
+                    f"Verified rule {rule_id} non-core provenance must be required for publication"
+                )
+            elif not _source_has_approved_certification(
+                session,
+                source_id=rule.official_source_id,
+                jurisdiction_id=pathway.jurisdiction_id,
+            ):
+                add(
+                    f"Verified rule {rule_id} non-core provenance needs an approved source certification"
+                )
+
+    return blockers
+
+
+def _validate_publication_evidence(
+    session: Session,
+    pathway: MobilityPathway,
+    version: MobilityPathwayVersion,
+) -> None:
+    blockers = _publication_evidence_blockers(session, pathway, version)
+    if blockers:
+        raise ValueError(blockers[0])
+
+def _create_version_row(
+    session: Session,
+    pathway: MobilityPathway,
+    payload: PathwayVersionInput,
+    *,
+    actor: str,
+) -> MobilityPathwayVersion:
+    legacy_source_id, legacy_snapshot_id, evidence_links = _validate_draft_evidence(
+        session, pathway, payload
+    )
+    existing = list(session.exec(
+        select(MobilityPathwayVersion)
+        .where(MobilityPathwayVersion.pathway_id == pathway.id)
+        .order_by(MobilityPathwayVersion.version_number.desc())
+    ).all())
+    previous = existing[0] if existing else None
+    now = now_utc()
+    dumped = payload.model_dump(mode="json")
+    version = MobilityPathwayVersion(
+        pathway_id=pathway.id,
+        version_number=max((item.version_number for item in existing), default=0) + 1,
+        lifecycle_status="draft",
+        supersedes_version_id=previous.id if previous else None,
+        official_source_id=legacy_source_id,
+        source_snapshot_id=legacy_snapshot_id,
+        verified_rule_ids_json=_dump(dumped["verified_rule_ids"]),
+        eligibility_criteria_json=_dump(payload.eligibility_criteria),
+        required_documents_json=_dump(payload.required_documents),
+        costs_json=_dump(payload.costs),
+        processing_time_json=_dump(payload.processing_time),
+        benefits_json=_dump(payload.benefits),
+        risks_json=_dump(payload.risks),
+        metadata_json=_dump(payload.metadata),
+        effective_from=payload.effective_from,
+        effective_to=payload.effective_to,
+        human_review_required=True,
+        created_by=actor,
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(version)
+    session.flush()
+    _persist_version_evidence(session, version, evidence_links)
+    return version
+
+
+def create_pathway(
+    session: Session,
+    payload: PathwayCreate,
+    *,
+    actor: str,
+) -> tuple[MobilityPathway, MobilityPathwayVersion]:
+    key = _normal(payload.pathway_key).replace(" ", "-")
+    if session.exec(select(MobilityPathway).where(MobilityPathway.pathway_key == key)).first():
+        raise ValueError("Pathway key already exists")
+    if payload.jurisdiction_id and session.get(Jurisdiction, payload.jurisdiction_id) is None:
+        raise ValueError("Jurisdiction not found")
+    now = now_utc()
+    pathway = MobilityPathway(
+        pathway_key=key,
+        name=payload.name.strip(),
+        country=_normal(payload.country),
+        domain=_normal(payload.domain),
+        jurisdiction_id=payload.jurisdiction_id,
+        description=payload.description,
+        catalogue_status="draft",
+        created_by=actor,
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(pathway)
+    session.flush()
+    version = _create_version_row(session, pathway, payload, actor=actor)
+    record_audit(
+        session,
+        action="mobility_pathway_created",
+        entity_type="mobility_pathway",
+        entity_id=pathway.id,
+        after_state={
+            "pathway": pathway.model_dump(mode="json"),
+            "version": version.model_dump(mode="json"),
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
+        reason="Created governed pathway with draft version 1",
+        actor=actor,
+        source="pathway_catalogue_v8_1",
+    )
+    session.commit()
+    session.refresh(pathway)
+    session.refresh(version)
+    return pathway, version
+
+
+def create_pathway_version(
+    session: Session,
+    pathway_id: UUID,
+    payload: PathwayVersionInput,
+    *,
+    actor: str,
+) -> MobilityPathwayVersion:
+    pathway = session.get(MobilityPathway, pathway_id)
+    if pathway is None:
+        raise ValueError("Pathway not found")
+    if pathway.catalogue_status == "retired":
+        raise ValueError("Retired pathways cannot receive new versions")
+    version = _create_version_row(session, pathway, payload, actor=actor)
+    pathway.updated_at = now_utc()
+    session.add(pathway)
+    record_audit(
+        session,
+        action="mobility_pathway_version_created",
+        entity_type="mobility_pathway_version",
+        entity_id=version.id,
+        after_state={
+            "version": version.model_dump(mode="json"),
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
+        reason=f"Created immutable draft version {version.version_number}",
+        actor=actor,
+        source="pathway_catalogue_v8_1",
+    )
+    session.commit()
+    session.refresh(version)
+    return version
+
+
+def _source_certification_status_label(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> str:
+    rows = _source_certifications(
+        session,
+        source_id=source_id,
+        jurisdiction_id=jurisdiction_id,
+    )
+    if any(row.status == "approved" for row in rows):
+        return "approved"
+    if not rows:
+        return "not_certified"
+    return max(rows, key=lambda row: row.certification_version).status
+
+
+def pathway_publication_readiness(
+    session: Session,
+    version_id: UUID,
+) -> PathwayPublicationReadinessRead:
+    version = session.get(MobilityPathwayVersion, version_id)
+    if version is None:
+        raise ValueError("Pathway version not found")
+    pathway = session.get(MobilityPathway, version.pathway_id)
+    if pathway is None:
+        raise ValueError("Pathway not found")
+
+    blockers: list[str] = []
+    if version.lifecycle_status != "draft":
+        blockers.append("Only draft pathway versions can be published")
+    if pathway.catalogue_status == "retired":
+        blockers.append("Pathway is not publishable")
+
+    evidence_statuses: dict[str, str] = {}
+    structured: dict[str, Any] = {}
+    for row in pathway_version_evidence_rows(session, version):
+        evidence_statuses[row.evidence_role] = _source_certification_status_label(
+            session,
+            source_id=row.official_source_id,
+            jurisdiction_id=pathway.jurisdiction_id,
+        )
+        scope = STRUCTURED_OCCUPATION_EVIDENCE_ROLES.get(row.evidence_role)
+        if scope:
+            metadata = _load(row.metadata_json, {})
+            structured[row.evidence_role] = {
+                "official_source_id": str(row.official_source_id),
+                "source_snapshot_id": str(row.source_snapshot_id),
+                "year": metadata.get("year"),
+                "scope": metadata.get("scope"),
+                "entry_count": metadata.get("entry_count"),
+                "entry_set_sha256": metadata.get("entry_set_sha256"),
+                "extraction_version": metadata.get("extraction_version"),
+                "source_snapshot_content_hash": metadata.get("source_snapshot_content_hash"),
+            }
+
+    for message in _publication_evidence_blockers(session, pathway, version):
+        if message not in blockers:
+            blockers.append(message)
+
+    return PathwayPublicationReadinessRead(
+        pathway_id=pathway.id,
+        pathway_version_id=version.id,
+        lifecycle_status=version.lifecycle_status,
+        ready=not blockers,
+        blockers=blockers,
+        requires_independent_reviewer=True,
+        evidence_certification_statuses=evidence_statuses,
+        structured_occupation_evidence=structured,
+    )
+
+
+def _canonical_structured_occupation_link(
+    summary: dict[str, Any],
+    *,
+    evidence_role: str,
+) -> PathwayVersionEvidenceInput:
+    return PathwayVersionEvidenceInput(
+        evidence_role=evidence_role,
+        official_source_id=summary["official_source_id"],
+        source_snapshot_id=summary["source_snapshot_id"],
+        required_for_publication=True,
+        metadata={
+            "projection_type": STRUCTURED_OCCUPATION_PROJECTION_TYPE,
+            "year": summary["year"],
+            "scope": summary["scope"],
+            "entry_count": summary["entry_count"],
+            "entry_set_sha256": summary["entry_set_sha256"],
+            "extraction_version": summary["extraction_version"],
+            "source_snapshot_content_hash": summary["source_snapshot_content_hash"],
+        },
+    )
+
+
+def _integration_signature(
+    payload: PathwayStructuredOccupationIntegrationRequest,
+) -> dict[str, Any]:
+    return {
+        "integration_version": STRUCTURED_OCCUPATION_INTEGRATION_VERSION,
+        "source_version_id": str(payload.source_version_id),
+        "year": payload.year,
+        "national_source_snapshot_id": str(payload.national_source_snapshot_id),
+        "regional_source_snapshot_id": str(payload.regional_source_snapshot_id),
+        "national_entry_count": payload.expected_national_entry_count,
+        "regional_entry_count": payload.expected_regional_entry_count,
+        "national_entry_set_sha256": payload.expected_national_entry_set_sha256,
+        "regional_entry_set_sha256": payload.expected_regional_entry_set_sha256,
+        "national_snapshot_content_hash": payload.expected_national_snapshot_content_hash,
+        "regional_snapshot_content_hash": payload.expected_regional_snapshot_content_hash,
+    }
+
+
+def integrate_structured_occupation_evidence(
+    session: Session,
+    pathway_id: UUID,
+    payload: PathwayStructuredOccupationIntegrationRequest,
+    *,
+    actor: str,
+) -> PathwayStructuredOccupationIntegrationRead:
+    pathway = session.get(MobilityPathway, pathway_id)
+    if pathway is None:
+        raise ValueError("Pathway not found")
+    if pathway.catalogue_status == "retired":
+        raise ValueError("Retired pathways cannot receive new versions")
+    source_version = session.get(MobilityPathwayVersion, payload.source_version_id)
+    if source_version is None or source_version.pathway_id != pathway.id:
+        raise ValueError("Source pathway version not found")
+    if source_version.lifecycle_status == "retired":
+        raise ValueError("Retired pathway versions cannot be used as integration sources")
+
+    national = shortage_occupation_projection_summary(
+        session,
+        source_snapshot_id=payload.national_source_snapshot_id,
+        year=payload.year,
+        scope="national",
+    )
+    regional = shortage_occupation_projection_summary(
+        session,
+        source_snapshot_id=payload.regional_source_snapshot_id,
+        year=payload.year,
+        scope="regional",
+    )
+    if pathway.jurisdiction_id and (
+        national["jurisdiction_id"] != pathway.jurisdiction_id
+        or regional["jurisdiction_id"] != pathway.jurisdiction_id
+    ):
+        raise ValueError("Structured shortage-occupation evidence jurisdiction does not match the pathway")
+
+    expected = {
+        "national entry count": (payload.expected_national_entry_count, national["entry_count"]),
+        "regional entry count": (payload.expected_regional_entry_count, regional["entry_count"]),
+        "national entry-set hash": (
+            payload.expected_national_entry_set_sha256,
+            national["entry_set_sha256"],
+        ),
+        "regional entry-set hash": (
+            payload.expected_regional_entry_set_sha256,
+            regional["entry_set_sha256"],
+        ),
+        "national snapshot content hash": (
+            payload.expected_national_snapshot_content_hash,
+            national["source_snapshot_content_hash"],
+        ),
+        "regional snapshot content hash": (
+            payload.expected_regional_snapshot_content_hash,
+            regional["source_snapshot_content_hash"],
+        ),
+    }
+    for label, (pinned, actual) in expected.items():
+        if pinned != actual:
+            raise ValueError(f"Operator-pinned {label} does not match the materialized immutable projection")
+
+    signature = _integration_signature(payload)
+    versions = list(
+        session.exec(
+            select(MobilityPathwayVersion)
+            .where(MobilityPathwayVersion.pathway_id == pathway.id)
+            .order_by(MobilityPathwayVersion.version_number.desc())
+        ).all()
+    )
+    for existing in versions:
+        metadata = _load(existing.metadata_json, {})
+        if metadata.get("structured_occupation_integration") == signature:
+            return PathwayStructuredOccupationIntegrationRead(
+                created=False,
+                pathway_version=pathway_version_read(session, existing),
+                publication_readiness=pathway_publication_readiness(session, existing.id),
+            )
+
+    latest = versions[0] if versions else None
+    if latest is None or latest.id != source_version.id:
+        raise ValueError(
+            "Source pathway version is not the current latest version; refresh before creating a new immutable draft"
+        )
+
+    source_evidence = pathway_version_evidence_rows(session, source_version)
+    preserved_links = [
+        PathwayVersionEvidenceInput(
+            evidence_role=row.evidence_role,
+            official_source_id=row.official_source_id,
+            source_snapshot_id=row.source_snapshot_id,
+            required_for_publication=row.required_for_publication,
+            metadata=_load(row.metadata_json, {}),
+        )
+        for row in source_evidence
+        if row.evidence_role not in STRUCTURED_OCCUPATION_EVIDENCE_ROLES
+    ]
+    preserved_links.extend(
+        [
+            _canonical_structured_occupation_link(
+                national,
+                evidence_role="national_occupation_list",
+            ),
+            _canonical_structured_occupation_link(
+                regional,
+                evidence_role="regional_occupation_list",
+            ),
+        ]
+    )
+
+    metadata = _load(source_version.metadata_json, {})
+    metadata["structured_occupation_integration"] = signature
+    metadata["candidate_integrity_version"] = "v13_10_2_13"
+    metadata["occupation_evidence_status"] = (
+        "2026 occupation evidence is linked to this pathway version but remains pending independent certification."
+    )
+    metadata["processing_evidence_status"] = "not_established"
+    metadata["cost_semantics"] = {
+        "government_application_fee_scope": "application_fee_only",
+        "estimated_total_cost": "not_established",
+    }
+    source_risks = [
+        value
+        for value in _load(source_version.risks_json, [])
+        if not (
+            "occupation" in str(value).casefold()
+            and re.search(
+                r"not(?:\s+yet)?\s+(?:represented|linked)",
+                str(value).casefold(),
+            ) is not None
+        )
+    ]
+    source_risks.append(
+        "The 2026 national/regional occupation evidence is linked to this pathway version "
+        "but remains pending independent certification."
+    )
+    version_payload = PathwayVersionInput(
+        official_source_id=source_version.official_source_id,
+        source_snapshot_id=source_version.source_snapshot_id,
+        evidence_links=preserved_links,
+        verified_rule_ids=[
+            UUID(str(value))
+            for value in _load(source_version.verified_rule_ids_json, [])
+        ],
+        eligibility_criteria=_load(source_version.eligibility_criteria_json, {}),
+        required_documents=_load(source_version.required_documents_json, []),
+        costs=_load(source_version.costs_json, {}),
+        processing_time=_load(source_version.processing_time_json, {}),
+        benefits=_load(source_version.benefits_json, []),
+        risks=list(dict.fromkeys(source_risks)),
+        metadata=metadata,
+        effective_from=source_version.effective_from,
+        effective_to=source_version.effective_to,
+    )
+    version = create_pathway_version(
+        session,
+        pathway.id,
+        version_payload,
+        actor=actor,
+    )
+    record_audit(
+        session,
+        action="pathway_structured_occupation_evidence_integrated",
+        entity_type="mobility_pathway_version",
+        entity_id=version.id,
+        before_state={"source_version_id": str(source_version.id)},
+        after_state={
+            "integration_signature": signature,
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
+        reason="Created a new immutable draft that binds materialized national and regional occupation-list provenance.",
+        actor=actor,
+        source="austria_candidate_integrity_v13_10_2_13",
+    )
+    session.commit()
+    session.refresh(version)
+    return PathwayStructuredOccupationIntegrationRead(
+        created=True,
+        pathway_version=pathway_version_read(session, version),
+        publication_readiness=pathway_publication_readiness(session, version.id),
+    )
+
+
+def _relevant_rule_domains(pathway_domain: str) -> set[str]:
+    return {
+        "study": {"study", "visa"},
+        "work": {"work", "visa"},
+        "visa": {"visa"},
+        "scholarship": {"scholarship", "study"},
+        "settlement": {"settlement", "visa"},
+        "family": {"family", "visa"},
+        "digital_nomad": {"digital_nomad", "work", "visa"},
+    }.get(pathway_domain, {pathway_domain})
+
+
+def publish_pathway_version(
+    session: Session,
+    version_id: UUID,
+    *,
+    actor: str,
+    review_notes: str,
+    publisher_role: str | None = None,
+) -> tuple[MobilityPathway, MobilityPathwayVersion]:
+    version = session.get(MobilityPathwayVersion, version_id)
+    if version is None:
+        raise ValueError("Pathway version not found")
+    if version.lifecycle_status != "draft":
+        raise ValueError("Only draft pathway versions can be published")
+    pathway = session.get(MobilityPathway, version.pathway_id)
+    if pathway is None or pathway.catalogue_status == "retired":
+        raise ValueError("Pathway is not publishable")
+    _validate_publication_evidence(session, pathway, version)
+    if version.created_by.strip().lower() == actor.strip().lower():
+        raise ValueError("Pathway publication requires an independent reviewer")
+
+    now = now_utc()
+    published = list(session.exec(
+        select(MobilityPathwayVersion).where(
+            MobilityPathwayVersion.pathway_id == pathway.id,
+            MobilityPathwayVersion.lifecycle_status == "published",
+        )
+    ).all())
+    for previous in published:
+        previous.lifecycle_status = "superseded"
+        previous.updated_at = now
+        session.add(previous)
+    version.lifecycle_status = "published"
+    version.approved_by = actor
+    version.review_notes = review_notes
+    version.published_at = now
+    version.updated_at = now
+    pathway.catalogue_status = "active"
+    pathway.updated_at = now
+    session.add(version)
+    session.add(pathway)
+    record_audit(
+        session,
+        action="mobility_pathway_version_published",
+        entity_type="mobility_pathway_version",
+        entity_id=version.id,
+        before_state={"lifecycle_status": "draft"},
+        after_state={
+            "version": version.model_dump(mode="json"),
+            "evidence_links": _version_evidence_audit_state(session, version),
+        },
+        reason=review_notes,
+        actor=actor,
+        source="pathway_catalogue_v13_16_1d3c",
+    )
+    try:
+        if publisher_role is not None:
+            from app.services.organization_pathway_publication import (
+                pathway_publication_organization_context,
+                stage_pathway_version_publication_contribution,
+            )
+
+            organization_context = pathway_publication_organization_context(
+                actor=actor,
+                role=publisher_role,
+            )
+            stage_pathway_version_publication_contribution(
+                session,
+                organization_context,
+                pathway=pathway,
+                version=version,
+            )
+        session.commit()
+        session.refresh(pathway)
+        session.refresh(version)
+        return pathway, version
+    except Exception:
+        session.rollback()
+        raise
+
+
+def retire_pathway(
+    session: Session,
+    pathway_id: UUID,
+    *,
+    actor: str,
+    reason: str,
+) -> MobilityPathway:
+    pathway = session.get(MobilityPathway, pathway_id)
+    if pathway is None:
+        raise ValueError("Pathway not found")
+    before = {"catalogue_status": pathway.catalogue_status}
+    now = now_utc()
+    pathway.catalogue_status = "retired"
+    pathway.updated_at = now
+    versions = session.exec(
+        select(MobilityPathwayVersion).where(
+            MobilityPathwayVersion.pathway_id == pathway_id,
+            MobilityPathwayVersion.lifecycle_status.in_(["draft", "published"]),
+        )
+    ).all()
+    for version in versions:
+        version.lifecycle_status = "retired"
+        version.updated_at = now
+        session.add(version)
+    session.add(pathway)
+    record_audit(
+        session,
+        action="mobility_pathway_retired",
+        entity_type="mobility_pathway",
+        entity_id=pathway.id,
+        before_state=before,
+        after_state={"catalogue_status": "retired"},
+        reason=reason,
+        actor=actor,
+        source="pathway_catalogue_v8_1",
+    )
+    session.commit()
+    session.refresh(pathway)
+    return pathway
+
+
+def _intent_domain(lead: Lead, facts: dict[str, Any]) -> str:
+    goals = facts.get("goals", [])
+    if goals:
+        return _normal(goals[0].get("domain"))
+    value = _normal(getattr(lead.intent, "value", lead.intent))
+    return {"study_abroad": "study", "overseas_job": "work"}.get(value, value)
+
+
+def _is_self_employment_pathway(pathway: MobilityPathway) -> bool:
+    identity = f"{pathway.pathway_key} {pathway.name} {pathway.domain}".casefold()
+    return "self-employed" in identity or "self_employed" in identity or pathway.domain == "investment"
+
+
+def _is_austria_shortage_worker(pathway: MobilityPathway) -> bool:
+    return pathway.pathway_key == "at-rwr-skilled-worker-shortage-occupation"
+
+
+def _austria_case_gaps(
+    facts: dict[str, Any],
+    document_types: set[str],
+    occupation: OccupationResolutionRead | None,
+    publication_blockers: list[str],
+) -> list[PathwayEvidenceGapRead]:
+    gaps: list[PathwayEvidenceGapRead] = []
+
+    def add(category: str, code: str, label: str, status: str, detail: str) -> None:
+        gaps.append(PathwayEvidenceGapRead(
+            category=category, code=code, label=label, status=status, detail=detail,
+        ))
+
+    if facts.get("has_job_offer") is not True:
+        add(
+            "FACT", "binding_job_offer", "Binding Austrian job offer", "BLOCKING",
+            "A binding Austrian job offer is a material prerequisite for this simulated employment route.",
+        )
+        add(
+            "DOCUMENT", "employer_declaration", "Employer declaration", "NOT_PROVIDED",
+            "Employer evidence is not available until an Austrian employer and role are known.",
+        )
+        add(
+            "EVIDENCE", "remuneration", "Salary/remuneration evidence", "NOT_PROVIDED",
+            "Remuneration cannot be assessed without prospective employment details.",
+        )
+    if not facts.get("employment_province"):
+        add(
+            "FACT", "employment_province", "Employment province", "UNKNOWN",
+            "Province is required when regional occupation evidence is considered.",
+        )
+    if not occupation or occupation.match_quality in {"AMBIGUOUS", "INFERRED", "NO_MATCH", "INSUFFICIENT_INFORMATION"}:
+        add(
+            "REGULATORY", "occupation_applicability", "Occupation-list applicability", "UNRESOLVED",
+            "The governed national/regional occupation evidence does not establish applicability for the supplied title.",
+        )
+        add(
+            "FACT", "occupation_qualification_mapping", "Occupation qualification mapping", "UNRESOLVED",
+            "The supplied occupation is not mapped to one unambiguous governed qualification entry.",
+        )
+    recognition = _normal(facts.get("qualification_recognition"))
+    if recognition in {"", "unknown", "unresolved", "not_started", "none"}:
+        add(
+            "FACT", "qualification_recognition", "Qualification recognition/equivalence", "UNKNOWN",
+            "Recognition or equivalence has not been established.",
+        )
+
+    document_gaps = (
+        ("qualification_evidence", "Qualification evidence", {"degree", "qualification", "professional certificate"}),
+        ("work_experience_evidence", "Work-experience evidence", {"employment letter", "work experience", "work_experience", "cv", "resume"}),
+        ("language_certificate", "Language certificate", {"language certificate", "language_certificate", "language test"}),
+        ("travel_document", "Travel document", {"passport", "travel document", "travel_document"}),
+        ("health_insurance", "Health insurance evidence", {"health insurance", "health_insurance", "insurance"}),
+    )
+    for code, label, aliases in document_gaps:
+        if not (aliases & document_types):
+            detail = (
+                f"{facts.get('german_level')} is a claimed language level, not documentary evidence."
+                if code == "language_certificate" and facts.get("german_level")
+                else "No matching uploaded evidence is recorded for this case."
+            )
+            add("DOCUMENT", code, label, "NOT_PROVIDED", detail)
+    for blocker in publication_blockers:
+        if "certif" in blocker.casefold():
+            evidence_role = next(
+                (role for role in STRUCTURED_OCCUPATION_EVIDENCE_ROLES if role in blocker),
+                "occupation_source",
+            )
+            scope_label = STRUCTURED_OCCUPATION_EVIDENCE_ROLES.get(evidence_role, "occupation").title()
+            add(
+                "CERTIFICATION", f"{evidence_role}_certification",
+                f"{scope_label} occupation-source certification", "PENDING_REVIEW", blocker,
+            )
+    return gaps
+
+
+def _austria_next_actions(gaps: list[PathwayEvidenceGapRead]) -> list[CaseNextActionRead]:
+    actions: list[CaseNextActionRead] = []
+    codes = {gap.code for gap in gaps}
+    if "binding_job_offer" in codes:
+        actions.append(CaseNextActionRead(
+            category="required_now",
+            code="resolve_employment_prerequisite",
+            title="Resolve employment prerequisite",
+            detail=(
+                "Obtain or add prospective Austrian employment details. After an employer and location are known, "
+                "regional occupation applicability and remuneration can be assessed."
+            ),
+        ))
+    if "occupation_qualification_mapping" in codes:
+        actions.append(CaseNextActionRead(
+            category="required_now",
+            code="resolve_occupation_mapping",
+            title="Resolve occupation and qualification mapping",
+            detail="Select the governed occupation entry and confirm the qualification marker that applies.",
+        ))
+    if "employment_province" in codes:
+        actions.append(CaseNextActionRead(
+            category="conditional",
+            code="confirm_employment_province",
+            title="Confirm Austrian employment province",
+            detail="Required before regional shortage-occupation applicability can be assessed.",
+        ))
+    if any(gap.category == "CERTIFICATION" for gap in gaps):
+        actions.append(CaseNextActionRead(
+            category="not_yet_applicable",
+            code="await_independent_certification",
+            title="Await independent source certification",
+            detail="Certification is an internal governance action and is not an applicant task.",
+        ))
+    return actions
+
+
+def match_pathways_for_lead(
+    session: Session,
+    lead_id: UUID,
+    *,
+    limit: int = 10,
+    profile_override: Profile | None = None,
+    pathway_version_ids: list[UUID] | None = None,
+    country_scope: str = "target",
+    include_draft_pathways: bool = False,
+) -> dict[str, Any]:
+    lead = session.get(Lead, lead_id)
+    if lead is None:
+        raise ValueError("Lead not found")
+    profile = profile_override or current_mobility_profile(session, lead_id)
+    facts = case_facts(session, lead, profile)
+    consent = profile.consent_status if profile else "not_recorded"
+    if consent == "withdrawn":
+        return {
+            "lead_id": lead_id,
+            "profile_id": profile.id,
+            "profile_version": profile.profile_version,
+            "consent_status": consent,
+            "matches": [],
+            "summary": "Pathway matching is restricted because profile consent was withdrawn.",
+        }
+
+    country = _normal(facts.get("target_country") or lead.target_country)
+    if country_scope not in {"target", "global"}:
+        raise ValueError("Country scope must be target or global")
+    domain = _intent_domain(lead, facts)
+    documents = list(session.exec(select(DocumentRecord).where(DocumentRecord.lead_id == lead_id)).all())
+    document_types = {_normal(document.document_type) for document in documents}
+    candidate_pairs: list[tuple[MobilityPathway, MobilityPathwayVersion]] = []
+    if pathway_version_ids is not None:
+        seen: set[UUID] = set()
+        for version_id in pathway_version_ids:
+            if version_id in seen:
+                continue
+            seen.add(version_id)
+            version = session.get(MobilityPathwayVersion, version_id)
+            pathway = session.get(MobilityPathway, version.pathway_id) if version else None
+            if version is None or pathway is None:
+                raise ValueError("Accepted pathway version provenance is incomplete")
+            if version.lifecycle_status not in {"published", "superseded", "retired"}:
+                raise ValueError("Accepted pathway versions must have completed human-reviewed publication")
+            candidate_pairs.append((pathway, version))
+    elif country_scope == "global":
+        catalogue_statuses = ["active", "draft"] if include_draft_pathways else ["active"]
+        candidates = list(session.exec(
+            select(MobilityPathway).where(MobilityPathway.catalogue_status.in_(catalogue_statuses))
+        ).all())
+        for pathway in candidates:
+            version = (
+                simulation_pathway_version(session, pathway.id)
+                if include_draft_pathways
+                else published_pathway_version(session, pathway.id)
+            )
+            if version is not None:
+                candidate_pairs.append((pathway, version))
+    elif country:
+        catalogue_statuses = ["active", "draft"] if include_draft_pathways else ["active"]
+        candidates = list(session.exec(
+            select(MobilityPathway).where(
+                MobilityPathway.catalogue_status.in_(catalogue_statuses),
+                func.lower(MobilityPathway.country) == country,
+            )
+        ).all())
+        for pathway in candidates:
+            version = (
+                simulation_pathway_version(session, pathway.id)
+                if include_draft_pathways
+                else published_pathway_version(session, pathway.id)
+            )
+            if version is not None:
+                candidate_pairs.append((pathway, version))
+    now = now_utc()
+    matches: list[dict[str, Any]] = []
+    for pathway, version in candidate_pairs:
+        if country_scope == "target" and country and _normal(pathway.country) != country:
+            continue
+        if version.effective_from and version.effective_from > now:
+            continue
+        if version.effective_to and version.effective_to < now:
+            continue
+        criteria = _load(version.eligibility_criteria_json, {})
+        reasons = [
+            f"Target country matches {pathway.country.title()}"
+            if country_scope == "target"
+            else f"Human-published pathway is available in {pathway.country.title()}"
+        ]
+        missing: list[str] = []
+        score = 0.35
+        exclusion_reasons: list[str] = []
+        if facts.get("goal") == "skilled_employment" and _is_self_employment_pathway(pathway):
+            exclusion_reasons.append(
+                "Applicant goal is skilled employment; this pathway is a self-employment route."
+            )
+        if domain == pathway.domain or pathway.domain == "visa":
+            score += 0.25
+            reasons.append(f"Pathway domain aligns with {domain or 'general'} goal")
+
+        years = float(facts.get("years_experience") or 0)
+        minimum_years = float(criteria.get("minimum_years_experience") or 0)
+        if minimum_years:
+            if years >= minimum_years:
+                score += 0.1
+                reasons.append(f"Meets {minimum_years:g}-year experience threshold")
+            else:
+                missing.append(f"Requires at least {minimum_years:g} years of experience")
+
+        required_skills = {_normal(value) for value in criteria.get("required_skills", []) if value}
+        profile_skills = {_normal(value) for value in facts.get("skills", []) if value}
+        if required_skills:
+            overlap = required_skills & profile_skills
+            score += 0.1 * (len(overlap) / len(required_skills))
+            if overlap:
+                reasons.append(f"Matched skills: {', '.join(sorted(overlap))}")
+            for skill in sorted(required_skills - profile_skills):
+                missing.append(f"Skill evidence missing: {skill}")
+
+        qualification = _normal(facts.get("highest_qualification"))
+        qualification_keywords = {_normal(value) for value in criteria.get("qualification_keywords", []) if value}
+        if qualification_keywords:
+            if any(keyword in qualification for keyword in qualification_keywords):
+                score += 0.1
+                reasons.append("Qualification aligns with pathway criteria")
+            else:
+                missing.append("Required qualification evidence is missing or does not match")
+
+        required_languages = {_normal(value) for value in criteria.get("required_languages", []) if value}
+        profile_languages = {
+            _normal(item.get("language"))
+            for item in facts.get("languages", [])
+            if isinstance(item, dict) and item.get("language")
+        }
+        if required_languages:
+            matched_languages = required_languages & profile_languages
+            if matched_languages:
+                score += 0.05 * (len(matched_languages) / len(required_languages))
+                reasons.append(f"Matched languages: {', '.join(sorted(matched_languages))}")
+            for language in sorted(required_languages - profile_languages):
+                missing.append(f"Language evidence missing: {language}")
+
+        available_funds = float(facts.get("budget_eur") or 0)
+        minimum_funds = float(criteria.get("minimum_funds_eur") or 0)
+        if minimum_funds:
+            if available_funds >= minimum_funds:
+                score += 0.05
+                reasons.append("Recorded funds meet the pathway threshold")
+            else:
+                missing.append(f"Financial evidence below EUR {minimum_funds:,.0f}")
+
+        required_evidence = {_normal(value) for value in criteria.get("required_evidence", []) if value}
+        for evidence in sorted(required_evidence - document_types):
+            missing.append(f"Document missing: {evidence}")
+        if required_evidence and required_evidence <= document_types:
+            score += 0.05
+            reasons.append("Required profile evidence is uploaded")
+
+        score = round(min(score, 1.0), 2)
+        publication = pathway_publication_readiness(session, version.id)
+        candidate_status = "internal_draft" if version.lifecycle_status == "draft" else "published"
+        occupation_assessment: OccupationResolutionRead | None = None
+        evidence_gaps: list[PathwayEvidenceGapRead] = []
+        next_actions: list[CaseNextActionRead] = []
+        if _is_austria_shortage_worker(pathway) and pathway.jurisdiction_id:
+            occupation_assessment = resolve_austria_occupation(
+                session,
+                jurisdiction_id=pathway.jurisdiction_id,
+                occupation=facts.get("occupation_title") or facts.get("desired_role"),
+                year=2026,
+                province_code=facts.get("employment_province"),
+                has_job_offer=facts.get("has_job_offer"),
+            )
+            evidence_gaps = _austria_case_gaps(
+                facts, document_types, occupation_assessment, publication.blockers,
+            )
+            next_actions = _austria_next_actions(evidence_gaps)
+            for gap in evidence_gaps:
+                rendered = f"{gap.category} GAP — {gap.label}: {gap.status}"
+                if rendered not in missing:
+                    missing.append(rendered)
+
+        if exclusion_reasons:
+            compatibility_status = "EXCLUDED"
+            recommendation_status = "excluded"
+            score = 0.0
+        elif version.lifecycle_status == "draft":
+            compatibility_status = "INTERNAL_SIMULATION_ONLY"
+            recommendation_status = "simulation_candidate"
+        elif evidence_gaps and any(gap.status in {"BLOCKING", "UNRESOLVED", "UNKNOWN"} for gap in evidence_gaps):
+            compatibility_status = "INSUFFICIENT_INFORMATION"
+            recommendation_status = "insufficient_information"
+        elif publication.ready:
+            compatibility_status = "MATCH"
+            recommendation_status = "production_candidate"
+        else:
+            compatibility_status = "POTENTIAL_MATCH"
+            recommendation_status = "potential"
+        match_item: dict[str, Any] = {
+            "pathway": pathway_read_with_version(session, pathway, version),
+            "match_score": score,
+            "confidence": round(min(0.55 + score * 0.4, 0.95), 2),
+            "reasons": reasons,
+            "missing_evidence": missing,
+            "verified_rule_ids": [UUID(str(value)) for value in _load(version.verified_rule_ids_json, [])],
+            "candidate_status": candidate_status,
+            "lifecycle_status": version.lifecycle_status,
+            "production_recommendation": version.lifecycle_status == "published" and publication.ready,
+            "simulation_only": version.lifecycle_status == "draft",
+            "publication_ready": publication.ready,
+            "requires_independent_reviewer": publication.requires_independent_reviewer,
+            "certification_statuses": publication.evidence_certification_statuses,
+            "publication_blockers": publication.blockers,
+            "recommendation_status": recommendation_status,
+            "compatibility_status": compatibility_status,
+            "exclusion_reasons": exclusion_reasons,
+            "occupation_assessment": occupation_assessment,
+            "evidence_gaps": evidence_gaps,
+            "next_actions": next_actions,
+        }
+        matches.append(match_item)
+    rank = {
+        "production_candidate": 5,
+        "simulation_candidate": 4,
+        "potential": 3,
+        "insufficient_information": 2,
+        "excluded": 1,
+    }
+    matches.sort(
+        key=lambda item: (rank.get(item["recommendation_status"], 0), item["match_score"]),
+        reverse=True,
+    )
+    maximum = 1000 if country_scope == "global" else 50
+    selected = matches[: max(1, min(limit, maximum))]
+    draft_count = sum(1 for item in selected if item["lifecycle_status"] == "draft")
+    published_count = len(selected) - draft_count
+    if include_draft_pathways:
+        if country_scope == "global":
+            summary = (
+                f"Matched {len(selected)} pathways across the catalogue "
+                f"({published_count} published, {draft_count} internal draft simulation)."
+            )
+        else:
+            summary = (
+                f"Matched {len(selected)} pathways for {country.title() if country else 'the selected profile'} "
+                f"({published_count} published, {draft_count} internal draft simulation)."
+            )
+    else:
+        summary = (
+            f"Matched {len(selected)} published, evidence-backed pathways across the reviewed catalogue."
+            if country_scope == "global"
+            else f"Matched {len(selected)} published, evidence-backed pathways for {country.title() if country else 'the selected profile'}."
+        )
+    return {
+        "lead_id": lead_id,
+        "profile_id": profile.id if profile else None,
+        "profile_version": profile.profile_version if profile else None,
+        "consent_status": consent,
+        "matches": selected,
+        "summary": summary,
+    }
+
+
+def _latest_source_certification(
+    session: Session,
+    *,
+    source_id: UUID,
+    jurisdiction_id: UUID | None,
+) -> JurisdictionSourceCertification | None:
+    rows = _source_certifications(
+        session,
+        source_id=source_id,
+        jurisdiction_id=jurisdiction_id,
+    )
+    return max(rows, key=lambda row: row.certification_version) if rows else None
+
+
+def _source_authority_name(
+    session: Session,
+    source: OfficialSource,
+    certification: JurisdictionSourceCertification | None = None,
+) -> str | None:
+    authority_id = source.regulatory_authority_id or (
+        certification.regulatory_authority_id if certification else None
+    )
+    authority = session.get(RegulatoryAuthority, authority_id) if authority_id else None
+    return authority.name if authority else source.authority
+
+
+def _pathway_evidence_trace(
+    session: Session,
+    pathway: PathwayRead,
+    version: PathwayVersionRead,
+    occupation: OccupationResolutionRead | None,
+) -> list[PathwayEvidenceTraceRead]:
+    traces: list[PathwayEvidenceTraceRead] = []
+    approved_rule_pairs: set[tuple[UUID, UUID]] = set()
+    for rule_id in version.verified_rule_ids:
+        rule = session.get(VerifiedRule, rule_id)
+        if not rule or not rule.official_source_id or not rule.source_snapshot_id:
+            continue
+        source = session.get(OfficialSource, rule.official_source_id)
+        snapshot = session.get(SourceSnapshot, rule.source_snapshot_id)
+        if not source or not snapshot:
+            continue
+        approved = bool(rule.active and rule.approved_by and rule.published_at)
+        if approved:
+            approved_rule_pairs.add((source.id, snapshot.id))
+        traces.append(PathwayEvidenceTraceRead(
+            trace_type="verified_rule",
+            requirement=rule.rule_key.replace("_", " ").strip().title(),
+            pathway_version_id=version.id,
+            verified_rule_id=rule.id,
+            verified_rule_title=rule.rule_key,
+            verified_rule_statement=rule.statement,
+            official_source_id=source.id,
+            official_source_title=source.name,
+            official_source_url=source.url,
+            authority=_source_authority_name(session, source),
+            source_snapshot_id=snapshot.id,
+            source_snapshot_captured_at=snapshot.captured_at,
+            source_snapshot_content_hash=snapshot.content_hash,
+            certification_status="approved" if approved else "pending_review",
+        ))
+
+    scope_assessments = {
+        "national": occupation.national if occupation else None,
+        "regional": occupation.regional if occupation else None,
+    }
+    for link in version.evidence_links:
+        source = session.get(OfficialSource, link.official_source_id)
+        snapshot = session.get(SourceSnapshot, link.source_snapshot_id)
+        if not source or not snapshot:
+            continue
+        certification = _latest_source_certification(
+            session,
+            source_id=source.id,
+            jurisdiction_id=pathway.jurisdiction_id,
+        )
+        status = certification.status if certification else "not_certified"
+        if status == "not_certified" and (source.id, snapshot.id) in approved_rule_pairs:
+            status = "approved"
+        metadata = dict(link.metadata)
+        scope = STRUCTURED_OCCUPATION_EVIDENCE_ROLES.get(link.evidence_role)
+        assessment = scope_assessments.get(scope) if scope else None
+        evidence_year = metadata.get("year") or (occupation.year if occupation and scope else None)
+        pack_sha256: str | None = None
+        if certification and scope:
+            try:
+                pack_sha256 = source_certification_review_pack(
+                    session,
+                    certification.id,
+                    source_snapshot_id=snapshot.id,
+                ).evidence_pack_sha256
+            except ValueError:
+                # The visible chain still exposes why a pack is unavailable;
+                # this read must never mutate or approve certification state.
+                pack_sha256 = None
+        traces.append(PathwayEvidenceTraceRead(
+            trace_type="pathway_evidence",
+            requirement={
+                CORE_EVIDENCE_ROLE: "Core route requirements",
+                "national_occupation_list": f"National {evidence_year or ''} occupation assessment".replace("  ", " ").strip(),
+                "regional_occupation_list": f"Regional {evidence_year or ''} occupation assessment".replace("  ", " ").strip(),
+            }.get(link.evidence_role, link.evidence_role.replace("_", " ").title()),
+            pathway_version_id=version.id,
+            evidence_role=link.evidence_role,
+            occupation_entry_ids=[candidate.id for candidate in assessment.candidates] if assessment else [],
+            occupation_entry_titles=[candidate.occupation_group for candidate in assessment.candidates] if assessment else [],
+            official_source_id=source.id,
+            official_source_title=source.name,
+            official_source_url=source.url,
+            authority=_source_authority_name(session, source, certification),
+            source_snapshot_id=snapshot.id,
+            source_snapshot_captured_at=snapshot.captured_at,
+            source_snapshot_content_hash=snapshot.content_hash,
+            evidence_year=evidence_year,
+            structured_projection=metadata if scope else {},
+            certification_id=certification.id if certification else None,
+            certification_status=status,
+            structured_pack_sha256=pack_sha256,
+            review_workspace_path=(
+                f"/source-certification-review?certification_id={certification.id}"
+                f"&source_snapshot_id={snapshot.id}"
+                if certification else None
+            ),
+        ))
+    return traces
+
+
+def _number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    return None
+
+
+def _money_component(key: str, raw: Any) -> float | None:
+    """Normalize an explicitly typed monetary component exactly once.
+
+    Plain numeric catalogue fields are major currency units. Minor-unit values
+    must opt in through a ``*_minor``/``*_cents`` key or an object declaring its
+    unit; magnitude alone never triggers conversion.
+    """
+    amount = _number(raw)
+    unit = ""
+    if isinstance(raw, dict):
+        amount = _number(raw.get("amount"))
+        unit = str(raw.get("unit") or raw.get("amount_unit") or "").casefold()
+    if amount is None:
+        return None
+    normalized_key = key.casefold()
+    is_minor = (
+        normalized_key.endswith("_minor")
+        or normalized_key.endswith("_cents")
+        or unit in {"minor", "minor_units", "cents"}
+    )
+    return amount / 100 if is_minor else amount
+
+
+def _currency_amount_from_text(text: str, currency: str) -> float | None:
+    tokens = {
+        "EUR": ("EUR", "€"),
+        "USD": ("USD", "$"),
+        "GBP": ("GBP", "£"),
+    }.get(currency.upper(), (currency.upper(),))
+    token_pattern = "|".join(re.escape(token.casefold()) for token in tokens)
+    match = re.search(
+        rf"(?:{token_pattern})\s*([0-9][0-9\s.,]*)|([0-9][0-9\s.,]*)\s*(?:{token_pattern})",
+        text.casefold(),
+    )
+    if match is None:
+        return None
+    raw = (match.group(1) or match.group(2)).replace(" ", "").strip(".,")
+    if not raw:
+        return None
+    separator = None
+    if "." in raw or "," in raw:
+        last_dot = raw.rfind(".")
+        last_comma = raw.rfind(",")
+        candidate = "." if last_dot > last_comma else ","
+        if raw.count(candidate) == 1 and len(raw.rsplit(candidate, 1)[1]) == 2:
+            separator = candidate
+    if separator:
+        whole, fraction = raw.rsplit(separator, 1)
+        normalized = f"{whole.replace('.', '').replace(',', '')}.{fraction}"
+    else:
+        normalized = raw.replace(".", "").replace(",", "")
+    try:
+        return float(normalized)
+    except ValueError:
+        return None
+
+
+def _verified_application_fee(
+    session: Session,
+    version: PathwayVersionRead,
+    currency: str,
+) -> tuple[float | None, UUID | None]:
+    for rule_id in version.verified_rule_ids:
+        rule = session.get(VerifiedRule, rule_id)
+        if rule is None or not rule.active:
+            continue
+        text = f"{rule.rule_key} {rule.statement}".casefold()
+        if "fee" not in text or not any(term in text for term in ("application", "government")):
+            continue
+        amount = _currency_amount_from_text(text, currency)
+        if amount is not None:
+            return amount, rule.id
+    return None, None
+
+
+def _cost_explanation(session: Session, version: PathwayVersionRead) -> PathwayCostExplanation:
+    costs = version.costs
+    currency = str(costs.get("currency") or "EUR").upper()
+    application_fee, application_fee_rule_id = _verified_application_fee(session, version, currency)
+    components: dict[str, float] = {}
+    one_time = 0.0
+    monthly = 0.0
+    annual = 0.0
+    minimum_funds = _number(costs.get("minimum_funds_eur"))
+    criteria_funds = _number(version.eligibility_criteria.get("minimum_funds_eur"))
+    if minimum_funds is None:
+        minimum_funds = criteria_funds
+    for key, raw in costs.items():
+        value = _money_component(key, raw)
+        if value is None or key in {"minimum_funds_eur", "currency"}:
+            continue
+        normalized = key.casefold()
+        is_government_application_fee = (
+            "fee" in normalized
+            and ("government" in normalized or "application" in normalized)
+        )
+        if application_fee is not None and is_government_application_fee:
+            # A human-published, source-pinned rule is canonical when a stale
+            # catalogue component disagrees. Add it once below, never once per
+            # legacy alias.
+            continue
+        components[key] = value
+        if "monthly" in normalized:
+            monthly += value
+        elif "annual" in normalized or "yearly" in normalized:
+            annual += value
+        else:
+            one_time += value
+    if application_fee is not None:
+        components["government_application_fee"] = application_fee
+        one_time += application_fee
+    notes: list[str] = []
+    if not components:
+        notes.append("No payable fee components are recorded in the published pathway version.")
+    if minimum_funds is not None:
+        notes.append("Minimum funds are an eligibility threshold, not a payable fee.")
+    notes.append("Amounts are catalogue estimates and require operator verification before client use.")
+    if application_fee is not None:
+        notes.append(
+            f"{currency} {application_fee:,.2f} is the governed government application fee only; "
+            "it is not an estimated total cost."
+        )
+    notes.append("Estimated total cost is not established from governed evidence.")
+    return PathwayCostExplanation(
+        currency=currency,
+        one_time_total=round(one_time, 2) if any("monthly" not in key.lower() and "annual" not in key.lower() and "yearly" not in key.lower() for key in components) else None,
+        monthly_total=round(monthly, 2) if monthly else None,
+        annual_total=round(annual, 2) if annual else None,
+        minimum_funds=minimum_funds,
+        components=components,
+        notes=notes,
+        estimated_total_status="not_established",
+        government_application_fee=application_fee,
+        government_application_fee_scope="application_fee_only" if application_fee is not None else None,
+        government_application_fee_source_rule_id=application_fee_rule_id,
+    )
+
+
+def _utc(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def _declared_risks_for_current_evidence(
+    session: Session,
+    version: PathwayVersionRead,
+) -> list[str]:
+    """Reconcile legacy narrative with the evidence roles actually linked now."""
+    occupation_links = {
+        link.evidence_role: link
+        for link in version.evidence_links
+        if link.evidence_role in STRUCTURED_OCCUPATION_EVIDENCE_ROLES
+    }
+    if not {"national_occupation_list", "regional_occupation_list"}.issubset(occupation_links):
+        return list(version.risks)
+
+    normalized: list[str] = []
+    for value in version.risks:
+        text = str(value)
+        folded = text.casefold()
+        false_absence = (
+            "occupation" in folded
+            and (
+                re.search(r"not(?:\s+yet)?\s+(?:represented|linked)", folded) is not None
+                or "missing from" in folded
+            )
+        )
+        linked_pending = (
+            "occupation" in folded
+            and "linked" in folded
+            and "pending" in folded
+            and "certification" in folded
+        )
+        if not false_absence and not linked_pending:
+            normalized.append(text)
+
+    statuses: list[str] = []
+    for link in occupation_links.values():
+        source = session.get(OfficialSource, link.official_source_id)
+        statuses.append(_source_certification_status_label(
+            session,
+            source_id=link.official_source_id,
+            jurisdiction_id=source.jurisdiction_id if source else None,
+        ))
+    if "pending_review" in statuses:
+        normalized.append(
+            "The 2026 national/regional occupation evidence is linked to this pathway version "
+            "but remains pending independent certification."
+        )
+    return list(dict.fromkeys(normalized))
+
+
+def _risk_explanation(
+    session: Session,
+    version: PathwayVersionRead,
+    missing_evidence: list[str],
+) -> PathwayRiskExplanation:
+    declared = _declared_risks_for_current_evidence(session, version)
+    evidence = list(missing_evidence)
+    regulatory: list[str] = []
+    for rule_id in version.verified_rule_ids:
+        rule = session.get(VerifiedRule, rule_id)
+        if rule is None or not rule.active:
+            regulatory.append(f"Verified rule {rule_id} is no longer active; re-review is required.")
+        elif rule.confidence < 0.9:
+            regulatory.append(f"Verified rule {rule.rule_key} has confidence below 0.90.")
+    if not version.evidence_links:
+        regulatory.append("The published pathway has no retrievable source evidence.")
+    for evidence_link in version.evidence_links:
+        snapshot = session.get(SourceSnapshot, evidence_link.source_snapshot_id)
+        source = session.get(OfficialSource, evidence_link.official_source_id)
+        role = evidence_link.evidence_role
+        if snapshot is None or snapshot.official_source_id != evidence_link.official_source_id:
+            regulatory.append(f"Evidence role {role} has no valid retrievable source snapshot.")
+        else:
+            age_days = max(0, (now_utc() - _utc(snapshot.captured_at)).days)
+            if age_days > 180:
+                regulatory.append(
+                    f"Evidence role {role} snapshot is {age_days} days old and should be refreshed."
+                )
+        if source is None or not source.active:
+            regulatory.append(f"Evidence role {role} official source is inactive or unavailable.")
+        elif (
+            evidence_link.required_for_publication
+            and role != CORE_EVIDENCE_ROLE
+            and not _source_has_approved_certification(
+                session,
+                source_id=evidence_link.official_source_id,
+                jurisdiction_id=source.jurisdiction_id,
+            )
+        ):
+            status = _source_certification_status_label(
+                session,
+                source_id=evidence_link.official_source_id,
+                jurisdiction_id=source.jurisdiction_id,
+            )
+            if status == "pending_review":
+                regulatory.append(
+                    f"Evidence role {role} is linked but remains pending independent certification."
+                )
+            else:
+                regulatory.append(
+                    f"Evidence role {role} does not have an approved source certification "
+                    f"(current status: {status})."
+                )
+    score = min(1.0, len(declared) * 0.12 + len(evidence) * 0.1 + len(regulatory) * 0.25)
+    level = "high" if score >= 0.65 else "medium" if score >= 0.3 else "low"
+    return PathwayRiskExplanation(
+        level=level,
+        score=round(score, 2),
+        declared_risks=declared,
+        evidence_risks=evidence,
+        regulatory_risks=regulatory,
+    )
+
+
+def _comparison_item(session: Session, match: dict[str, Any]) -> PathwayComparisonItem:
+    pathway: PathwayRead = match["pathway"]
+    version = pathway.current_version
+    if version is None:
+        raise ValueError("Published pathway version is missing")
+    cost = _cost_explanation(session, version)
+    missing = list(dict.fromkeys(match.get("missing_evidence", [])))
+    evidence_gaps = list(match.get("evidence_gaps", []))
+    canonical_gap_count = len(evidence_gaps) if evidence_gaps else len(missing)
+    if match.get("recommendation_status") == "excluded":
+        # An excluded candidate is context, not a financial recommendation. Do
+        # not surface raw catalogue totals from an unrelated route family.
+        cost = cost.model_copy(update={
+            "one_time_total": None,
+            "monthly_total": None,
+            "annual_total": None,
+            "components": {},
+        })
+    risk = _risk_explanation(session, version, missing)
+    tradeoffs: list[str] = []
+    if cost.one_time_total is None:
+        tradeoffs.append("Upfront payable costs are not yet complete in the catalogue.")
+    else:
+        tradeoffs.append(f"Recorded upfront fees total {cost.currency} {cost.one_time_total:,.2f}.")
+    timing = version.processing_time
+    if timing.get("minimum_weeks") is not None or timing.get("maximum_weeks") is not None:
+        tradeoffs.append(
+            f"Recorded processing range is {timing.get('minimum_weeks', '?')}–{timing.get('maximum_weeks', '?')} weeks."
+        )
+    else:
+        tradeoffs.append("No reviewed processing-time range is recorded.")
+    tradeoffs.append(f"{canonical_gap_count} case evidence gap(s) remain.")
+    explanation = (
+        f"{pathway.name} scored {round(match['match_score'] * 100)}% against the current profile. "
+        f"Its current risk level is {risk.level}, with {canonical_gap_count} case evidence gap(s)."
+    )
+    return PathwayComparisonItem(
+        pathway=pathway,
+        match_score=match["match_score"],
+        confidence=match["confidence"],
+        reasons=match.get("reasons", []),
+        cost=cost,
+        risk=risk,
+        missing_evidence=missing,
+        benefits=version.benefits,
+        tradeoffs=tradeoffs,
+        explanation=explanation,
+        verified_rule_ids=match.get("verified_rule_ids", []),
+        candidate_status=match.get("candidate_status", "published"),
+        lifecycle_status=match.get("lifecycle_status", "published"),
+        production_recommendation=match.get("production_recommendation", False),
+        simulation_only=match.get("simulation_only", False),
+        publication_ready=match.get("publication_ready", False),
+        requires_independent_reviewer=match.get("requires_independent_reviewer", True),
+        certification_statuses=match.get("certification_statuses", {}),
+        publication_blockers=match.get("publication_blockers", []),
+        recommendation_status=match.get("recommendation_status", "insufficient_information"),
+        compatibility_status=match.get("compatibility_status", "INSUFFICIENT_INFORMATION"),
+        exclusion_reasons=match.get("exclusion_reasons", []),
+        occupation_assessment=match.get("occupation_assessment"),
+        evidence_gaps=evidence_gaps,
+        next_actions=match.get("next_actions", []),
+        evidence_trace=_pathway_evidence_trace(
+            session,
+            pathway,
+            version,
+            match.get("occupation_assessment"),
+        ),
+        processing_evidence_status=(
+            "established"
+            if timing.get("minimum_weeks") is not None or timing.get("maximum_weeks") is not None
+            else "not_established"
+        ),
+    )
+
+
+def generate_pathway_comparison(
+    session: Session,
+    lead_id: UUID,
+    *,
+    actor: str,
+    limit: int = 5,
+    profile_override: Profile | None = None,
+    pathway_version_ids: list[UUID] | None = None,
+    reassessment_acceptance_id: UUID | None = None,
+    include_draft_pathways: bool = False,
+    simulation_role: str | None = None,
+    simulation_context: str | None = None,
+) -> PathwayComparisonRead:
+    lead = session.get(Lead, lead_id)
+    if lead is None:
+        raise ValueError("Lead not found")
+    profile = profile_override or current_mobility_profile(session, lead_id)
+    if profile is None:
+        profile = ensure_case_mobility_profile(session, lead, actor=actor)
+    consent = profile.consent_status if profile else "not_recorded"
+    generated_at = now_utc()
+    if consent == "withdrawn":
+        record_audit(
+            session,
+            action="pathway_comparison_restricted",
+            entity_type="lead",
+            entity_id=lead_id,
+            reason="Current profile consent is withdrawn",
+            actor=actor,
+            source="pathway_comparison_v8_2",
+        )
+        session.commit()
+        return PathwayComparisonRead(
+            lead_id=lead_id,
+            profile_id=profile.id,
+            profile_version=profile.profile_version,
+            status="restricted",
+            consent_status=consent,
+            summary="Pathway comparison is restricted because profile consent was withdrawn.",
+            generated_by=actor,
+            generated_at=generated_at,
+        )
+
+    match_result = match_pathways_for_lead(
+        session,
+        lead_id,
+        limit=limit,
+        profile_override=profile,
+        pathway_version_ids=pathway_version_ids,
+        include_draft_pathways=include_draft_pathways,
+    )
+    items = [_comparison_item(session, match) for match in match_result.get("matches", [])]
+    selectable = [item for item in items if item.recommendation_status != "excluded"]
+    excluded = [item for item in items if item.recommendation_status == "excluded"]
+    primary = selectable[0] if selectable else None
+    alternatives = selectable[1:] + excluded
+    missing = list(dict.fromkeys(
+        evidence
+        for item in items
+        for evidence in item.missing_evidence
+    ))
+    if primary:
+        status = "ready_for_review" if profile and profile.completeness_score >= 70 else "needs_profile_review"
+        summary = (
+            f"{primary.pathway.name} is the leading potential pathway for review, with "
+            f"{len(alternatives)} other assessed route(s). "
+            "This is not an eligibility decision; a human operator must verify facts, evidence, costs, and regulatory freshness."
+        )
+    else:
+        status = "insufficient_pathways"
+        summary = "No published evidence-backed pathways match the current target country and profile."
+
+    comparison_payload = {
+        "consent_status": consent,
+        "primary": primary.model_dump(mode="json") if primary else None,
+        "alternatives": [item.model_dump(mode="json") for item in alternatives],
+        "reassessment_acceptance_id": str(reassessment_acceptance_id) if reassessment_acceptance_id else None,
+        "simulation": include_draft_pathways,
+        "simulation_role": simulation_role,
+        "simulation_context": simulation_context,
+    }
+    assessment = PathwayComparisonAssessment(
+        lead_id=lead_id,
+        profile_id=profile.id if profile else None,
+        profile_version=profile.profile_version if profile else None,
+        primary_pathway_id=primary.pathway.id if primary else None,
+        primary_pathway_version_id=primary.pathway.current_version.id if primary and primary.pathway.current_version else None,
+        status=status,
+        comparison_json=_dump(comparison_payload),
+        cost_summary_json=_dump(primary.cost.model_dump(mode="json") if primary else {}),
+        risk_summary_json=_dump(primary.risk.model_dump(mode="json") if primary else {}),
+        alternative_pathways_json=_dump([str(item.pathway.id) for item in alternatives]),
+        missing_evidence_json=_dump(missing),
+        summary=summary,
+        human_review_required=True,
+        generated_by=actor,
+        created_at=generated_at,
+    )
+    session.add(assessment)
+    session.flush()
+    record_audit(
+        session,
+        action=(
+            "internal_draft_pathway_simulation_generated"
+            if include_draft_pathways
+            else "pathway_comparison_generated"
+        ),
+        entity_type="pathway_comparison_assessment",
+        entity_id=assessment.id,
+        after_state={
+            "lead_id": str(lead_id),
+            "profile_id": str(profile.id) if profile else None,
+            "profile_version": profile.profile_version if profile else None,
+            "status": status,
+            "primary_pathway_id": str(primary.pathway.id) if primary else None,
+            "alternative_count": len(alternatives),
+            "missing_evidence_count": len(missing),
+            "reassessment_acceptance_id": str(reassessment_acceptance_id) if reassessment_acceptance_id else None,
+            "simulation": include_draft_pathways,
+            "simulation_role": simulation_role,
+            "simulation_context": simulation_context,
+            "draft_pathway_version_ids": [
+                str(item.pathway.current_version.id)
+                for item in items
+                if item.lifecycle_status == "draft" and item.pathway.current_version
+            ],
+        },
+        reason=(
+            "Generated explicitly accepted reassessment from pinned profile and regulatory versions"
+            if reassessment_acceptance_id
+            else f"Authorized internal draft simulation: {simulation_context}"
+            if include_draft_pathways
+            else "Generated deterministic pathway cost, risk, alternatives, and evidence comparison"
+        ),
+        actor=actor,
+        source=(
+            "reassessment_acceptance_v10_12"
+            if reassessment_acceptance_id
+            else "eligibility_preview_consistency_v13_10_2_15"
+            if include_draft_pathways
+            else "pathway_comparison_v8_2"
+        ),
+    )
+    session.commit()
+    session.refresh(assessment)
+    return PathwayComparisonRead(
+        assessment_id=assessment.id,
+        lead_id=lead_id,
+        profile_id=assessment.profile_id,
+        profile_version=assessment.profile_version,
+        status=status,
+        consent_status=consent,
+        primary=primary,
+        alternatives=alternatives,
+        missing_evidence=missing,
+        summary=summary,
+        human_review_required=True,
+        generated_by=actor,
+        generated_at=assessment.created_at,
+    )
+
+
+def pathway_comparison_read(assessment: PathwayComparisonAssessment) -> PathwayComparisonRead:
+    comparison = _load(assessment.comparison_json, {})
+    return PathwayComparisonRead(
+        assessment_id=assessment.id,
+        lead_id=assessment.lead_id,
+        profile_id=assessment.profile_id,
+        profile_version=assessment.profile_version,
+        status=assessment.status,
+        consent_status=comparison.get("consent_status", "not_recorded"),
+        primary=comparison.get("primary"),
+        alternatives=comparison.get("alternatives", []),
+        missing_evidence=_load(assessment.missing_evidence_json, []),
+        summary=assessment.summary or "",
+        human_review_required=assessment.human_review_required,
+        generated_by=assessment.generated_by,
+        generated_at=assessment.created_at,
+    )

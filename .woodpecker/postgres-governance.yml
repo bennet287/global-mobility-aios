@@ -1,0 +1,59 @@
+when:
+  - event: pull_request
+  - event: push
+    branch: main
+  - event: manual
+
+steps:
+  - name: postgres-governance-contracts
+    image: python:3.12-bookworm
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/global_mobility_aios_test
+      GMAI_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/global_mobility_aios_test
+    commands:
+      - python -m pip --version
+      - python -m pip install -r apps/api/requirements.txt -c apps/api/constraints.txt
+      - python -m pip check
+      - |
+        python - <<'PY'
+        import socket, time
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            try:
+                with socket.create_connection(("postgres", 5432), timeout=2):
+                    break
+            except OSError:
+                time.sleep(1)
+        else:
+            raise SystemExit("PostgreSQL service did not become reachable within 60s")
+        PY
+      - python -m alembic -c alembic.ini upgrade head
+      - python scripts/check_database_migrations.py
+      - >-
+        python -m pytest -q
+        apps/api/tests/test_organization_eligibility_effect.py
+        apps/api/tests/test_organization_eligibility_orchestration.py
+        apps/api/tests/test_organization_eligibility_lineage_contract.py
+        apps/api/tests/test_organization_eligibility_immune_system.py
+        apps/api/tests/test_organization_eligibility_immune_recurrence.py
+        apps/api/tests/test_organization_eligibility_immune_orchestration.py
+        apps/api/tests/test_organization_eligibility_revision_conflict.py
+        apps/api/tests/test_organization_eligibility_revision_conflict_adversarial.py
+        apps/api/tests/test_organization_eligibility_revision_runtime_race.py
+        apps/api/tests/test_organization_eligibility_revision_runtime_race_adversarial.py
+        apps/api/tests/test_organization_eligibility_runtime_health.py
+        apps/api/tests/test_organization_eligibility_runtime_health_adversarial.py
+        apps/api/tests/test_organization_eligibility_immune_lineage.py
+        apps/api/tests/test_organization_eligibility_postgres_contract.py
+        apps/api/tests/test_organization_autonomy_promotion_policy_postgres.py
+        apps/api/tests/test_organization_autonomy_evidence_evaluation_postgres.py
+        apps/api/tests/test_organization_mobility_objective_execution_postgres.py
+        apps/api/tests/test_organization_mobility_live_organization_postgres.py
+
+services:
+  - name: postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: global_mobility_aios_test

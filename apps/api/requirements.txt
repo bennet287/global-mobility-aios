@@ -4,12 +4,36 @@ pydantic>=2.8
 pydantic-settings>=2.4
 sqlmodel>=0.0.22
 alembic>=1.13
-psycopg[binary]>=3.2
+# Psycopg 3.2.0's binary extra resolves to an unavailable 3.2.0.dev1 binary
+# distribution on CPython 3.13. 3.2.2 is the first compatible binary-wheel
+# baseline proven available for the supported Windows CPython 3.13 lane.
+psycopg[binary]>=3.2.2
 qdrant-client>=1.12
 redis>=5.0
+celery>=5.4
 minio>=7.2
 httpx>=0.27
 python-multipart>=0.0.9
 pyyaml>=6.0
+pypdf>=5.0
+pillow>=11.0
+pytesseract>=0.3.13
 email-validator>=2.2
+cryptography>=42.0
+
+# OpenTelemetry — optional vendor-neutral telemetry foundation (Technology Radar V1.1 Wave 1).
+# The SDK is installed by default but telemetry remains disabled unless OTEL_ENABLED=true.
+opentelemetry-api>=1.28
+opentelemetry-sdk>=1.28
+opentelemetry-instrumentation-fastapi>=0.49b0
+opentelemetry-exporter-otlp>=1.28
+
+# ClamAV — optional upload malware-scanning adapter (Technology Radar V1.1 Wave 1).
+# Requires a running clamd daemon when CLAMAV_ENABLED=true; 1.0.2 is the minimum
+# client release with standalone setuptools packaging and a universal wheel.
+clamd>=1.0.2
+
 pytest>=8.3
+pytest-xdist>=3.8
+# Technology Radar Wave E3 — property/invariant testing only; not a production runtime dependency.
+hypothesis>=6.112

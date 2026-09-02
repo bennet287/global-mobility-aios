@@ -1,0 +1,191 @@
+﻿{
+    "generated_at":  "2026-07-17T01:38:40.4274775Z",
+    "draft_count":  8,
+    "drafts":  [
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "ba8378b1-ea14-4b92-9901-b6c0eea395aa",
+                       "alpha2_code":  "AO",
+                       "jurisdiction_name":  "Angola",
+                       "snapshot_id":  "da9c499e-1fc4-4682-a5c8-4bb2afebe2c0",
+                       "snapshot_quality":  86,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "AO",
+                                                   "domain":  "visa",
+                                                   "title":  "Angola official visa information baseline",
+                                                   "rule_key":  "ao_visa_official_information_baseline",
+                                                   "statement":  "The official SME eVISA publishes immigration information including \"SME - eVISA (english version)\"; \"eVISA (english version)\"; \"VISA Categories\".",
+                                                   "evidence_excerpt":  "SME - eVISA (english version)\n\neVISA (english version)\n\nVISA Categories\n\nTo make easy your choice of visa (which most suits your needs), we present the definition of each type of visa mentioned before and from which you can choose:",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "39fbeff4-c99e-43f8-a266-00308c3ec521",
+                       "alpha2_code":  "BJ",
+                       "jurisdiction_name":  "Benin",
+                       "snapshot_id":  "fc93531a-fd8f-4da0-bee0-51caabc9fdf8",
+                       "snapshot_quality":  73,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "BJ",
+                                                   "domain":  "visa",
+                                                   "title":  "Benin official visa information baseline",
+                                                   "rule_key":  "bj_visa_official_information_baseline",
+                                                   "statement":  "The official Benin e-Visa publishes immigration information including \"e-Visa - Plateforme officielle de demande de visa pour le BÃ©nin\"; \"Demander un e-Visa\"; \"Les coÃ»ts des visas d\u0027entrÃ©e au BÃ©nin\".",
+                                                   "evidence_excerpt":  "e-Visa - Plateforme officielle de demande de visa pour le BÃ©nin\n\nDemander un e-Visa\n\nLes coÃ»ts des visas d\u0027entrÃ©e au BÃ©nin\n\nDÃ©couvrez ici les coÃ»ts des visas d\u0027entrÃ©e en RÃ©publique du BÃ©nin",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "3e8823b6-32cf-4217-b2d8-abcd99fdc7d0",
+                       "alpha2_code":  "IO",
+                       "jurisdiction_name":  "British Indian Ocean Territory",
+                       "snapshot_id":  "fc524ffb-da2e-445c-b590-84f476fefb87",
+                       "snapshot_quality":  85,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "IO",
+                                                   "domain":  "visa",
+                                                   "title":  "British Indian Ocean Territory official visa information baseline",
+                                                   "rule_key":  "io_visa_official_information_baseline",
+                                                   "statement":  "The official BIOT visa and prior-approval requirements publishes immigration information including \"Visa requirements | British Indian Ocean Territory\"; \"\u003e Visa requirements\"; \"Visa requirements\".",
+                                                   "evidence_excerpt":  "Visa requirements | British Indian Ocean Territory\n\n\u003e Visa requirements\n\nVisa requirements\n\nHow to apply for a mooring permit",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "2fde33e4-33f9-4f03-98fd-bb3208a15730",
+                       "alpha2_code":  "BF",
+                       "jurisdiction_name":  "Burkina Faso",
+                       "snapshot_id":  "935d3a84-52fb-4d29-9b17-9a885c8a0420",
+                       "snapshot_quality":  71,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "BF",
+                                                   "domain":  "visa",
+                                                   "title":  "Burkina Faso official visa information baseline",
+                                                   "rule_key":  "bf_visa_official_information_baseline",
+                                                   "statement":  "The official Visa Burkina eVisa publishes immigration information including \"Visa Burkina (evisa Burkina Faso)\"; \"Types of Visas\"; \"The transit visa\".",
+                                                   "evidence_excerpt":  "Visa Burkina (evisa Burkina Faso)\n\nTypes of Visas\n\nThe transit visa\n\nThe short term visa",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "dbd78beb-bfec-44b5-a317-28d70dfea021",
+                       "alpha2_code":  "BI",
+                       "jurisdiction_name":  "Burundi",
+                       "snapshot_id":  "5841879e-6c3f-4bdc-8713-81680cb0b298",
+                       "snapshot_quality":  82,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "BI",
+                                                   "domain":  "visa",
+                                                   "title":  "Burundi official visa information baseline",
+                                                   "rule_key":  "bi_visa_official_information_baseline",
+                                                   "statement":  "The official Burundi visa application forms publishes immigration information including \"Visa application forms â Ministry of Foreign Affairs, Republic of Burundi\"; \"Foreign Missions in Burundi with Residence in Bujumbura\"; \"Foreign Missions in Burundi with Residence Abroad\".",
+                                                   "evidence_excerpt":  "Visa application forms â Ministry of Foreign Affairs, Republic of Burundi\n\nForeign Missions in Burundi with Residence in Bujumbura\n\nForeign Missions in Burundi with Residence Abroad\n\nVisa application forms",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "671edd49-ddb3-4842-bce9-3cd6e8c43364",
+                       "alpha2_code":  "CV",
+                       "jurisdiction_name":  "Cabo Verde",
+                       "snapshot_id":  "6459a47b-dac1-40f2-88fb-3aaf24355ecf",
+                       "snapshot_quality":  86,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "CV",
+                                                   "domain":  "visa",
+                                                   "title":  "Cabo Verde official visa information baseline",
+                                                   "rule_key":  "cv_visa_official_information_baseline",
+                                                   "statement":  "The official Cabo Verde Consular Portal â Visas publishes immigration information including \"Visas - Portal Consular\"; \"Generally, foreign citizens need visas to enter and stay in Cape Verde, however they can enter Cape Verde without a visa:\"; \"Qualified foreigners with a valid residence permit;\".",
+                                                   "evidence_excerpt":  "Visas - Portal Consular\n\nGenerally, foreign citizens need visas to enter and stay in Cape Verde, however they can enter Cape Verde without a visa:\n\nQualified foreigners with a valid residence permit;\n\nForeigners who benefit from visa exemptions or exemptions provided for by law or international agreements on the suppression of visas or free movement and establishment to which Cape Verde is a party.",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "03045640-3875-4151-b149-e55036d09f22",
+                       "alpha2_code":  "CM",
+                       "jurisdiction_name":  "Cameroon",
+                       "snapshot_id":  "10a44663-a7b8-4347-81da-1af689ef2a82",
+                       "snapshot_quality":  57,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "CM",
+                                                   "domain":  "visa",
+                                                   "title":  "Cameroon official visa information baseline",
+                                                   "rule_key":  "cm_visa_official_information_baseline",
+                                                   "statement":  "The official Cameroon Consular Services Portal â e-Visa publishes immigration information including \"evisa Cameroun - The official portal for visa applications to Cameroon\"; \"Visa Applications\"; \"Consular Card Applications\".",
+                                                   "evidence_excerpt":  "evisa Cameroun - The official portal for visa applications to Cameroon\n\nVisa Applications\n\nConsular Card Applications\n\nLaissez-passer Applications (Ordinary / Mortuary)",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   },
+                   {
+                       "batch_label":  "Africa tranche 1A evidence batch",
+                       "batch_id":  "4809d487-aec5-4884-834b-62a729618f1b",
+                       "batch_item_id":  "8ce9cd43-38db-4d9a-ae4d-6fd5529e6d2b",
+                       "alpha2_code":  "CF",
+                       "jurisdiction_name":  "Central African Republic",
+                       "snapshot_id":  "946256b8-81b3-4553-92a0-fce380417c6b",
+                       "snapshot_quality":  73,
+                       "snapshot_classification":  "suitable_for_narrow_draft",
+                       "candidate_assertion":  {
+                                                   "alpha2_code":  "CF",
+                                                   "domain":  "visa",
+                                                   "title":  "Central African Republic official visa information baseline",
+                                                   "rule_key":  "cf_visa_official_information_baseline",
+                                                   "statement":  "The official Central African Republic short-stay visa service publishes immigration information including \"Visa court sÃ©jour | Ambassade de la RÃ©publique Centrafricaine en France\"; \"Visa court sÃ©jour\"; \"Visa long sÃ©jour\".",
+                                                   "evidence_excerpt":  "Visa court sÃ©jour | Ambassade de la RÃ©publique Centrafricaine en France\n\nVisa court sÃ©jour\n\nVisa long sÃ©jour\n\ncliquez sur l\u0027image ci-haut pour crÃ©er votre compte, puis accÃ©dez au formulaire de demande de visa en ligne.",
+                                                   "rationale":  "This constrained draft describes only the exact headings or service statements present in the immutable baseline snapshot. A human reviewer must confirm scope, remove navigation artefacts, and reject any wording that implies eligibility, entitlement, approval, timing, or legal effect not stated in the source.",
+                                                   "confidence":  0.9,
+                                                   "requires_human_edit":  true,
+                                                   "creates_pending_assertion":  false
+                                               }
+                   }
+               ],
+    "safety":  {
+                   "creates_review_decisions":  false,
+                   "creates_assertions":  false,
+                   "publishes_verified_rules":  false,
+                   "mutates_snapshots":  false,
+                   "creates_regulatory_changes":  false,
+                   "creates_coverage_claim":  false,
+                   "baseline_queue_scope":  "Only explicitly listed, independently approved, API-eligible batch items may be queued when apply mode is confirmed."
+               }
+}

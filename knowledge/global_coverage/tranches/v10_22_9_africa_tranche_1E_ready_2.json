@@ -1,0 +1,102 @@
+{
+  "pack_version": "v10.22.9",
+  "title": "Africa coverage evidence tranche 1E - Kenya, Rwanda",
+  "verified_at": "2026-07-17",
+  "review_status": "pending_independent_review",
+  "coverage_claim_ready": false,
+  "jurisdiction_count": 2,
+  "safety": {
+    "creates_coverage_claim": false,
+    "auto_approves_evidence": false,
+    "requires_separate_reviewer": true,
+    "message": "This pack onboards current official sources and creates pending proposals only. Independent review, fresh monitoring, and human-published verified rules remain required."
+  },
+  "references": [
+    {
+      "alpha2_code": "KE",
+      "authority_evidence_url": "https://evisa.go.ke/",
+      "source_url": "https://evisa.go.ke/",
+      "evidence_summary": "The Kenyan government's official Electronic Travel Authorization (eTA) portal at evisa.go.ke enables travellers to submit information and apply for entry authorisation to Kenya."
+    },
+    {
+      "alpha2_code": "RW",
+      "authority_evidence_url": "https://www.migration.gov.rw/",
+      "source_url": "https://www.migration.gov.rw/",
+      "evidence_summary": "The Rwanda Directorate General of Immigration and Emigration operates migration.gov.rw as the official portal for passports, visas, permits, and immigration services."
+    }
+  ],
+  "batch": {
+    "name": "v10.22.9 Africa evidence tranche 1E - KE, RW",
+    "notes": "Official-source evidence for Kenya (KE) and Rwanda (RW). Kenya's official Electronic Travel Authorization (eTA) portal is operated by the Kenyan government. Rwanda's official Immigration and Emigration portal is operated by the Directorate General of Immigration and Emigration. Both endpoints were locally probed from the API container and returned HTTPS 200 responses with usable immigration/visa content. Democratic Republic of the Congo (CD) was deferred because the official evisa.gouv.cd page is a dynamic Inertia.js application with minimal text extraction for the generic parser. Gabon (GA), Gambia (GM), and Guinea-Bissau (GW) remain blocked or deferred from earlier tranches. Every proposal requires independent human review.",
+    "items": [
+      {
+        "alpha2_code": "KE",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://evisa.go.ke/",
+          "evidence_title": "Kenya Electronic Travel Authorization (eTA) official government portal",
+          "rationale": "The Kenyan government operates the official Electronic Travel Authorization (eTA) portal at evisa.go.ke, which enables travellers to submit information and apply for entry authorisation to Kenya. This supports a proposal that Kenya directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Government of Kenya",
+          "authority_type": "government",
+          "authority_website_url": "https://evisa.go.ke/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Kenya Electronic Travel Authorization (eTA)",
+          "source_url": "https://evisa.go.ke/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "evisa.go.ke"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Kenyan government operates the official Electronic Travel Authorization (eTA) portal at evisa.go.ke. The page title and meta description identify the site as the official government website for Kenya eTA. Keep the initial certification limited to the entry-authorisation and visa functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      },
+      {
+        "alpha2_code": "RW",
+        "immigration_assessment": {
+          "rule_relationship": "independent",
+          "parent_code": null,
+          "evidence_url": "https://www.migration.gov.rw/",
+          "evidence_title": "Rwanda Immigration and Emigration official portal",
+          "rationale": "The Rwanda Directorate General of Immigration and Emigration operates migration.gov.rw as the official portal for passports, visas, permits, and immigration services. This supports a proposal that Rwanda directly administers the relevant immigration rules."
+        },
+        "source_onboarding": {
+          "authority_name": "Rwanda Directorate General of Immigration and Emigration",
+          "authority_type": "immigration_authority",
+          "authority_website_url": "https://www.migration.gov.rw/",
+          "authority_domains": [
+            "visa"
+          ],
+          "source_name": "Rwanda Immigration and Emigration Portal",
+          "source_url": "https://www.migration.gov.rw/",
+          "source_domain": "visa",
+          "source_type": "government",
+          "schedule_minutes": 1440,
+          "fetch_method": "http",
+          "allowed_domains": [
+            "www.migration.gov.rw"
+          ],
+          "max_redirects": 3,
+          "parser_profile": "generic",
+          "parser_config": {},
+          "certification_domains": [
+            "visa"
+          ],
+          "evidence_notes": "Locally probed on 2026-07-17 with status local_probe_passed. The Rwanda Directorate General of Immigration and Emigration operates migration.gov.rw as the official portal for passports, visas, permits, and immigration services. Keep the initial certification limited to the visa and immigration functions explicitly described. Submission creates pending proposals only; independent reviewer certification remains required."
+        }
+      }
+    ]
+  }
+}

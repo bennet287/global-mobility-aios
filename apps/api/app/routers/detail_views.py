@@ -6,8 +6,11 @@ from fastapi.responses import HTMLResponse
 from sqlmodel import Session, select
 
 from app.core.db import get_session
+from app.services.document_storage import public_document_metadata
 from app.models.domain import (
     AgentRun,
+    ApplicationRecord,
+    DocumentRecord,
     FollowUp,
     HumanReview,
     Lead,
@@ -75,6 +78,18 @@ def lead_detail_api(
         .order_by(AgentRun.created_at.desc())
     ).all()
 
+    documents = session.exec(
+        select(DocumentRecord)
+        .where(DocumentRecord.lead_id == lead_id)
+        .order_by(DocumentRecord.created_at.desc())
+    ).all()
+
+    applications = session.exec(
+        select(ApplicationRecord)
+        .where(ApplicationRecord.lead_id == lead_id)
+        .order_by(ApplicationRecord.created_at.desc())
+    ).all()
+
     return jsonable_encoder(
         {
             "lead": lead,
@@ -85,6 +100,8 @@ def lead_detail_api(
             "follow_ups": follow_ups,
             "workflow_runs": workflow_runs,
             "agent_runs": agent_runs,
+            "documents": [public_document_metadata(document) for document in documents],
+            "applications": applications,
         }
     )
 

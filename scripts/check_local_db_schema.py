@@ -22,6 +22,9 @@ from app.core.db import register_models  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
 
 
+INFRASTRUCTURE_TABLES = {"alembic_version"}
+
+
 def _engine_for_url(database_url: str) -> Engine:
     normalized = normalize_database_url(database_url)
     connect_args = {"check_same_thread": False} if is_sqlite_url(normalized) else {}
@@ -32,7 +35,9 @@ def check_local_db_schema(engine: Engine) -> dict[str, Any]:
     register_models()
     inspector = inspect(engine)
     expected_tables = SQLModel.metadata.tables
-    actual_tables = set(inspector.get_table_names())
+    physical_tables = set(inspector.get_table_names())
+    infrastructure_tables = sorted(physical_tables & INFRASTRUCTURE_TABLES)
+    actual_tables = physical_tables - INFRASTRUCTURE_TABLES
 
     missing_tables: dict[str, list[str]] = {}
     missing_columns: dict[str, list[str]] = {}
@@ -49,16 +54,19 @@ def check_local_db_schema(engine: Engine) -> dict[str, Any]:
         if missing:
             missing_columns[table_name] = missing
 
-    ok = not missing_tables and not missing_columns
+    ok = not missing_tables and not missing_columns and not extra_tables
     return {
         "status": "ok" if ok else "schema_drift",
         "registered_tables": len(expected_tables),
         "actual_tables": len(actual_tables),
+        "physical_tables": len(physical_tables),
+        "infrastructure_tables": infrastructure_tables,
         "missing_tables": missing_tables,
         "missing_columns": missing_columns,
         "extra_tables": extra_tables,
         "suggested_local_demo_fix": (
-            "Back up and remove the stale local SQLite database, then run "
+            "Do not reset a preserved database merely to clear drift. Apply the current "
+            "Alembic head first; only disposable demo databases should be recreated with "
             "`python scripts/seed_demo_data.py --reset-all --yes`."
             if not ok
             else None
@@ -83,6 +91,9 @@ def main() -> int:
         print(f"database_url={result['database_url']}")
         print(f"registered_tables={result['registered_tables']}")
         print(f"actual_tables={result['actual_tables']}")
+        print(f"physical_tables={result['physical_tables']}")
+        if result["infrastructure_tables"]:
+            print("infrastructure_tables=" + json.dumps(result["infrastructure_tables"]))
         if result["missing_tables"]:
             print("missing_tables=" + json.dumps(result["missing_tables"], sort_keys=True))
         if result["missing_columns"]:

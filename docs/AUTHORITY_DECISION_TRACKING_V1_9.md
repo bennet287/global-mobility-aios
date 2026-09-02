@@ -1,5 +1,16 @@
 # Authority Decision Tracking v1.9
 
+## Transactional integrity patch v1.9.1
+
+Authority-decision transitions now persist the application status, mapped lead
+status and audit note, optional follow-up, and `authority_decision_recorded`
+audit event in one database transaction. If any part fails, every pending
+change is rolled back. This prevents a final authority outcome from becoming
+visible without its required audit record or with only part of its operational
+side effects.
+
+The API routes and database schema are unchanged.
+
 ## Purpose
 
 Authority Decision Tracking v1.9 adds the post-submission stage of the Global Mobility AIOS application workflow.

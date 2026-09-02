@@ -9,6 +9,8 @@ PROD_COMPOSE = ROOT / "docker-compose.prod.yml"
 PROD_ENV_EXAMPLE = ROOT / ".env.production.example"
 API_DOCKERFILE = ROOT / "apps" / "api" / "Dockerfile"
 API_DOCKERIGNORE = ROOT / "apps" / "api" / ".dockerignore"
+BACKUP_RESTORE_SCRIPT = ROOT / "scripts" / "postgres_backup_restore.py"
+BACKUP_RESTORE_DOC = ROOT / "docs" / "POSTGRES_BACKUP_RESTORE_V1.md"
 
 
 def _require_file(path: Path) -> str:
@@ -28,13 +30,15 @@ def main() -> int:
         env_example = _require_file(PROD_ENV_EXAMPLE)
         dockerfile = _require_file(API_DOCKERFILE)
         dockerignore = _require_file(API_DOCKERIGNORE)
+        backup_restore_script = _require_file(BACKUP_RESTORE_SCRIPT)
+        backup_restore_doc = _require_file(BACKUP_RESTORE_DOC)
 
         for service in ("postgres:", "api-migrate:", "api:"):
             _require(compose, service, PROD_COMPOSE)
         _require(compose, "condition: service_healthy", PROD_COMPOSE)
         _require(compose, "condition: service_completed_successfully", PROD_COMPOSE)
         _require(compose, "alembic -c alembic.ini upgrade head", PROD_COMPOSE)
-        _require(compose, "DATABASE_AUTO_CREATE_TABLES: \"false\"", PROD_COMPOSE)
+        _require(compose, 'DATABASE_AUTO_CREATE_TABLES: "false"', PROD_COMPOSE)
         _require(compose, "change-this-postgres-password", PROD_COMPOSE)
         _require(compose, ".env.production", PROD_COMPOSE)
         _require(compose, "postgres_prod_data:", PROD_COMPOSE)
@@ -47,6 +51,23 @@ def main() -> int:
         _require(dockerfile, "HEALTHCHECK", API_DOCKERFILE)
         _require(dockerignore, "gmai.db", API_DOCKERIGNORE)
         _require(dockerignore, "tests/", API_DOCKERIGNORE)
+
+        for needle in (
+            "pg_dump",
+            "pg_restore",
+            "--exit-on-error",
+            "Backup manifest not found",
+            "source_public_table_count",
+            "source_alembic_version",
+            '"network_mode": "none"',
+            "restore_image_id",
+            "verification_id",
+            "gmai-restore-verify-",
+        ):
+            _require(backup_restore_script, needle, BACKUP_RESTORE_SCRIPT)
+        _require(backup_restore_doc, "network-isolated", BACKUP_RESTORE_DOC)
+        _require(backup_restore_doc, "source/restored schema-metadata parity", BACKUP_RESTORE_DOC)
+        _require(backup_restore_doc, "backups/postgres", BACKUP_RESTORE_DOC)
     except AssertionError as exc:
         print(f"Docker profile check failed: {exc}", file=sys.stderr)
         return 1
