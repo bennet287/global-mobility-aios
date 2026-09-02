@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import socket
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -173,6 +174,7 @@ def test_historical_verified_rule_snapshot_is_not_refetched_as_current_authority
         retrieval_method="http",
         parser_version="pytest-v1",
         status="baseline",
+        captured_at=current_snapshot.captured_at - timedelta(days=1),
     )
     db_session.add(historical_snapshot)
     db_session.commit()
