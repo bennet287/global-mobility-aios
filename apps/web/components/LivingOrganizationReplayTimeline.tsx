@@ -1,6 +1,12 @@
 "use client";
 
-import type { OrganizationReplay } from "../lib/live-organization";
+import { useState } from "react";
+
+import {
+  getLatestAustriaOrganizationReplayState,
+  type OrganizationReplay,
+  type OrganizationReplayState,
+} from "../lib/live-organization";
 import { titleCase } from "../lib/utils";
 
 function replayTime(value: string): string {
@@ -19,9 +25,31 @@ function coverageLabel(value: string): string {
 }
 
 export function LivingOrganizationReplayTimeline({ replay }: { replay: OrganizationReplay }) {
+  const [selectedState, setSelectedState] = useState<OrganizationReplayState | null>(null);
+  const [stateLoading, setStateLoading] = useState(false);
+  const [stateError, setStateError] = useState<string | null>(null);
   const incompleteEvents = replay.events.filter((event) => event.coverage_state !== "covered");
   const coverage = replay.coverage;
   const coverageState = coverage.activity_history_established ? "established" : "partial";
+
+  async function inspectState(activityId: string) {
+    setStateLoading(true);
+    setStateError(null);
+    try {
+      const state = await getLatestAustriaOrganizationReplayState(activityId);
+      if (state.root_work_item_id !== replay.root_work_item_id) {
+        setSelectedState(null);
+        setStateError("Historical state root changed during inspection. Refresh before comparing temporal state.");
+        return;
+      }
+      setSelectedState(state);
+    } catch (error) {
+      setSelectedState(null);
+      setStateError(error instanceof Error ? error.message : "Historical state is unavailable.");
+    } finally {
+      setStateLoading(false);
+    }
+  }
 
   return (
     <section
@@ -33,11 +61,12 @@ export function LivingOrganizationReplayTimeline({ replay }: { replay: Organizat
     >
       <header className="living-replay-header">
         <div>
-          <span className="premium-label">M.8.1 · Canonical Replay Timeline V1</span>
+          <span className="premium-label">M.8.2 · As-of Temporal State Reconstruction</span>
           <h3 id="living-replay-title">Replay / Temporal Organization</h3>
           <p>
-            Ordered persisted semantic Activity for the latest Austria WorkItem tree. Replay does not interpolate,
-            backfill, reconstruct chat transcripts, or mutate AIOS. Missing history remains explicitly missing.
+            Ordered persisted semantic Activity for the latest Austria WorkItem tree, plus explicit as-of inspection at
+            an Activity cursor. Reconstruction uses semantic transition payloads only; it does not interpolate, backfill,
+            read current rows as historical truth, reconstruct chat transcripts, or mutate AIOS.
           </p>
         </div>
         <div className="living-replay-contract">
@@ -101,10 +130,108 @@ export function LivingOrganizationReplayTimeline({ replay }: { replay: Organizat
                 {event.causation_activity_id ? <span>Causation {shortId(event.causation_activity_id)}</span> : null}
                 {event.supersedes_activity_id ? <span>Supersedes {shortId(event.supersedes_activity_id)}</span> : null}
               </footer>
+              <button
+                className="living-replay-state-button"
+                type="button"
+                onClick={() => void inspectState(event.activity_id)}
+                disabled={stateLoading}
+              >
+                Inspect state here
+              </button>
             </article>
           </li>
         ))}
       </ol>
+
+      {stateError ? (
+        <div className="living-replay-state-error" role="status">
+          <strong>Historical state unavailable.</strong>
+          <span>{stateError}</span>
+        </div>
+      ) : null}
+
+      {selectedState ? (
+        <section
+          className="living-replay-state"
+          aria-labelledby="living-replay-state-title"
+          data-replay-state-authoritative={String(selectedState.authoritative)}
+          data-replay-state-mutates-work={String(selectedState.mutations_allowed)}
+          data-replay-state-posture={selectedState.reconstruction_posture}
+        >
+          <header>
+            <div>
+              <span>M.8.2 · Activity-cursor reconstruction</span>
+              <strong id="living-replay-state-title">Organization state at {shortId(selectedState.cursor_activity_id)}</strong>
+            </div>
+            <small>{replayTime(selectedState.cursor_occurred_at)} · {titleCase(selectedState.reconstruction_posture)}</small>
+          </header>
+
+          <div className="living-replay-state-summary">
+            <div><strong>{selectedState.work_items.length}</strong><span>known WorkItems</span></div>
+            <div><strong>{selectedState.blockers.length}</strong><span>known blockers</span></div>
+            <div><strong>{selectedState.decisions.length}</strong><span>known decisions</span></div>
+            <div><strong>{selectedState.human_requests.length}</strong><span>human requests</span></div>
+            <div><strong>{selectedState.conversations.length}</strong><span>conversations</span></div>
+            <div><strong>{selectedState.unapplied_transition_count}</strong><span>unapplied transitions</span></div>
+          </div>
+
+          <div className="living-replay-state-grid">
+            <article>
+              <span>WORKITEM STATE</span>
+              {selectedState.work_items.length ? selectedState.work_items.map((item) => (
+                <div key={item.work_item_id} data-historical-work-item={item.work_item_id}>
+                  <strong>{shortId(item.work_item_id)} · {titleCase(item.status)}</strong>
+                  <small>{item.assigned_position_key} · {item.department} · {coverageLabel(item.coverage_state)}</small>
+                </div>
+              )) : <small>No WorkItem creation Activity is known at this cursor.</small>}
+            </article>
+
+            <article>
+              <span>GOVERNED ATTENTION</span>
+              {selectedState.blockers.map((item) => (
+                <div key={item.blocker_id}>
+                  <strong>Blocker {shortId(item.blocker_id)} · {titleCase(item.status)}</strong>
+                  <small>{item.blocker_type} · {item.severity} · {coverageLabel(item.coverage_state)}</small>
+                </div>
+              ))}
+              {selectedState.decisions.map((item) => (
+                <div key={item.decision_id}>
+                  <strong>Decision {shortId(item.decision_id)} · {titleCase(item.status)}</strong>
+                  <small>{item.decision_type} · {item.authority_level} · {coverageLabel(item.coverage_state)}</small>
+                </div>
+              ))}
+              {selectedState.human_requests.map((item) => (
+                <div key={item.request_id}>
+                  <strong>Human request {shortId(item.request_id)} · {titleCase(item.status)}</strong>
+                  <small>{item.request_type} · role {item.required_role} · {coverageLabel(item.coverage_state)}</small>
+                </div>
+              ))}
+              {!selectedState.blockers.length && !selectedState.decisions.length && !selectedState.human_requests.length
+                ? <small>No supported governed-attention creation Activity is known at this cursor.</small>
+                : null}
+            </article>
+
+            <article>
+              <span>COLLABORATION LIFECYCLE</span>
+              {selectedState.conversations.length ? selectedState.conversations.map((item) => (
+                <div key={item.conversation_id}>
+                  <strong>{item.conversation_id} · {titleCase(item.status)}</strong>
+                  <small>Lifecycle only · transcript not reconstructed · {coverageLabel(item.coverage_state)}</small>
+                </div>
+              )) : <small>No conversation lifecycle Activity is known at this cursor.</small>}
+            </article>
+          </div>
+
+          <footer>
+            <strong>Unsupported at this reconstruction version</strong>
+            <span>{selectedState.unsupported_dimensions.join(" · ")}</span>
+            <small>
+              State is derived from persisted semantic Activity up to the selected cursor. Current domain rows are not
+              read as historical state, and missing creation/transition history remains partial or unapplied.
+            </small>
+          </footer>
+        </section>
+      ) : null}
 
       {!replay.events.length ? (
         <div className="living-replay-empty">

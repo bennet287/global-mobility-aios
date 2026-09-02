@@ -459,6 +459,89 @@ export type OrganizationReplayLatest = {
   replay: OrganizationReplay | null;
 };
 
+export type OrganizationReplayStateWorkItem = {
+  work_item_id: string;
+  status: string;
+  priority: string;
+  department: string;
+  assigned_position_key: string;
+  parent_work_item_id: string | null;
+  coverage_state: string;
+  known_from_activity_id: string;
+  last_activity_id: string;
+  last_occurred_at: string;
+};
+
+export type OrganizationReplayStateBlocker = {
+  blocker_id: string;
+  work_item_id: string | null;
+  status: string;
+  blocker_type: string;
+  severity: string;
+  requires_human_action: boolean;
+  coverage_state: string;
+  known_from_activity_id: string;
+  last_activity_id: string;
+  last_occurred_at: string;
+};
+
+export type OrganizationReplayStateDecision = {
+  decision_id: string;
+  work_item_id: string | null;
+  status: string;
+  decision_type: string;
+  authority_level: string;
+  coverage_state: string;
+  known_from_activity_id: string;
+  last_activity_id: string;
+  last_occurred_at: string;
+};
+
+export type OrganizationReplayStateHumanRequest = {
+  request_id: string;
+  work_item_id: string | null;
+  status: string;
+  request_type: string;
+  required_role: string;
+  coverage_state: string;
+  known_from_activity_id: string;
+  last_activity_id: string;
+  last_occurred_at: string;
+};
+
+export type OrganizationReplayStateConversation = {
+  conversation_id: string;
+  work_item_id: string | null;
+  status: string;
+  coverage_state: string;
+  known_from_activity_id: string;
+  last_activity_id: string;
+  last_occurred_at: string;
+};
+
+export type OrganizationReplayState = {
+  contract_version: string;
+  generated_at: string;
+  scope: string;
+  root_work_item_id: string;
+  objective_key: string;
+  cursor_activity_id: string;
+  cursor_occurred_at: string;
+  cursor_coverage_state: string;
+  reconstruction_posture: string;
+  canonical_projection: boolean;
+  authoritative: boolean;
+  mutations_allowed: boolean;
+  supported_dimensions: string[];
+  unsupported_dimensions: string[];
+  unapplied_transition_count: number;
+  work_items: OrganizationReplayStateWorkItem[];
+  blockers: OrganizationReplayStateBlocker[];
+  decisions: OrganizationReplayStateDecision[];
+  human_requests: OrganizationReplayStateHumanRequest[];
+  conversations: OrganizationReplayStateConversation[];
+};
+
 export type AustriaOwnerSynthesisCommand = {
   root_work_item_id: string;
   action_output_id: string;
@@ -511,6 +594,14 @@ export async function getLatestAustriaLivingScene(): Promise<LivingOrganizationS
 export async function getLatestAustriaOrganizationReplay(): Promise<OrganizationReplayLatest> {
   return liveRequest<OrganizationReplayLatest>(
     "/api/v1/organization/transparency/live-organization/replay/austria/latest",
+  );
+}
+
+export async function getLatestAustriaOrganizationReplayState(
+  activityId: string,
+): Promise<OrganizationReplayState> {
+  return liveRequest<OrganizationReplayState>(
+    `/api/v1/organization/transparency/live-organization/replay/austria/latest/state/${encodeURIComponent(activityId)}`,
   );
 }
 

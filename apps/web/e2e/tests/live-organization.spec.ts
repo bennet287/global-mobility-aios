@@ -4,6 +4,7 @@ const API_BASE = "http://127.0.0.1:8000";
 const LATEST_PATH = "/api/v1/organization/transparency/live-organization/austria/latest";
 const SCENE_PATH = "/api/v1/organization/transparency/live-organization/scene/austria/latest";
 const REPLAY_PATH = "/api/v1/organization/transparency/live-organization/replay/austria/latest";
+const REPLAY_STATE_PREFIX = `${REPLAY_PATH}/state/`;
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
 const CONVERSATION_ID = "pathway-evidence-coordination";
 const CONVERSATION_ACTIVITY_ID = "33333333-3333-4333-8333-333333333331";
@@ -34,6 +35,7 @@ type ApiScenario = {
   latest: (call: number) => JsonResult;
   scene?: (call: number) => JsonResult;
   replay?: (call: number) => JsonResult;
+  replayState?: (activityId: string, call: number) => JsonResult;
   post?: (call: number) => JsonResult;
   firstLatestDelayMs?: number;
 };
@@ -51,6 +53,7 @@ async function installApi(page: Page, scenario: ApiScenario) {
   let latestCalls = 0;
   let sceneCalls = 0;
   let replayCalls = 0;
+  let replayStateCalls = 0;
   let postCalls = 0;
 
   await page.route(`${API_BASE}/**`, async (route) => {
@@ -94,6 +97,16 @@ async function installApi(page: Page, scenario: ApiScenario) {
         ? scenario.replay(replayCalls)
         : { body: { established: false, replay: null } };
       replayCalls += 1;
+      await fulfillJson(route, result);
+      return;
+    }
+
+    if (method === "GET" && url.pathname.startsWith(REPLAY_STATE_PREFIX)) {
+      const activityId = decodeURIComponent(url.pathname.slice(REPLAY_STATE_PREFIX.length));
+      const result = scenario.replayState
+        ? scenario.replayState(activityId, replayStateCalls)
+        : { status: 404, body: { detail: "Organization transparency resource not found." } };
+      replayStateCalls += 1;
       await fulfillJson(route, result);
       return;
     }
@@ -319,6 +332,78 @@ function replayProjection() {
   };
 }
 
+
+function replayStateProjection(activityId: string) {
+  return {
+    contract_version: "organization-replay-state.v1",
+    generated_at: "2026-09-02T01:31:00Z",
+    scope: "austria_mobility_latest_work_tree_as_of_activity",
+    root_work_item_id: ROOT_ID,
+    objective_key: "austria_rwr_shortage_occupation",
+    cursor_activity_id: activityId,
+    cursor_occurred_at: "2026-09-02T00:30:00Z",
+    cursor_coverage_state: "covered",
+    reconstruction_posture: "covered",
+    canonical_projection: true,
+    authoritative: false,
+    mutations_allowed: false,
+    supported_dimensions: [
+      "work_item_status_assignment",
+      "blocker_lifecycle",
+      "decision_lifecycle",
+      "human_request_lifecycle",
+      "conversation_lifecycle",
+    ],
+    unsupported_dimensions: [
+      "risk_escalation_history",
+      "source_snapshot_history",
+      "conversation_transcript",
+      "historical_deadline_projection_v1",
+      "historical_evidence_content_state_v1",
+    ],
+    unapplied_transition_count: 0,
+    work_items: [
+      {
+        work_item_id: ROOT_ID,
+        status: "running",
+        priority: "high",
+        department: "Global Mobility Operations",
+        assigned_position_key: "mobility_operations_lead",
+        parent_work_item_id: null,
+        coverage_state: "covered",
+        known_from_activity_id: "77777777-7777-4777-8777-777777777771",
+        last_activity_id: "77777777-7777-4777-8777-777777777771",
+        last_occurred_at: "2026-09-02T00:05:00Z",
+      },
+      {
+        work_item_id: "22222222-2222-4222-8222-222222222221",
+        status: "running",
+        priority: "high",
+        department: "Global Mobility Operations",
+        assigned_position_key: "pathway_operations_specialist",
+        parent_work_item_id: ROOT_ID,
+        coverage_state: "covered",
+        known_from_activity_id: "77777777-7777-4777-8777-777777777772",
+        last_activity_id: activityId,
+        last_occurred_at: "2026-09-02T00:30:00Z",
+      },
+    ],
+    blockers: [],
+    decisions: [],
+    human_requests: [],
+    conversations: [
+      {
+        conversation_id: CONVERSATION_ID,
+        work_item_id: "22222222-2222-4222-8222-222222222221",
+        status: "open",
+        coverage_state: "covered",
+        known_from_activity_id: CONVERSATION_ACTIVITY_ID,
+        last_activity_id: CONVERSATION_ACTIVITY_ID,
+        last_occurred_at: "2026-09-02T00:20:00Z",
+      },
+    ],
+  };
+}
 
 function livingScene() {
   return {
@@ -1002,6 +1087,7 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: livingScene() }),
     replay: () => ({ body: replayProjection() }),
+    replayState: (activityId) => ({ body: replayStateProjection(activityId) }),
   });
 
   await page.goto("/cockpit/live-organization");
@@ -1023,7 +1109,23 @@ test("M.8 replay timeline preserves coverage gaps and cannot mutate AIOS", async
     expect(replay).toContainText("OrganizationActivity is the replay source."),
   ]);
 
+  const handoffEvent = replay.locator(`[data-replay-event="${HANDOFF_ACTIVITY_ID}"]`);
+  await handoffEvent.getByRole("button", { name: "Inspect state here" }).click();
+
+  const historicalState = replay.locator(".living-replay-state");
+  await Promise.all([
+    expect(historicalState.getByRole("heading", { name: /Organization state at/ })).toBeVisible(),
+    expect(historicalState).toHaveAttribute("data-replay-state-authoritative", "false"),
+    expect(historicalState).toHaveAttribute("data-replay-state-mutates-work", "false"),
+    expect(historicalState).toHaveAttribute("data-replay-state-posture", "covered"),
+    expect(historicalState.locator("[data-historical-work-item]")).toHaveCount(2),
+    expect(historicalState).toContainText("Lifecycle only · transcript not reconstructed"),
+    expect(historicalState).toContainText("risk_escalation_history"),
+    expect(historicalState).toContainText("Current domain rows are not read as historical state"),
+  ]);
+
   expect(recorded.some((item) => item.method === "GET" && item.path === REPLAY_PATH)).toBe(true);
+  expect(recorded.some((item) => item.method === "GET" && item.path === `${REPLAY_STATE_PREFIX}${HANDOFF_ACTIVITY_ID}`)).toBe(true);
   expect(recorded.some((item) => item.method === "POST")).toBe(false);
 });
 
