@@ -686,7 +686,7 @@ test("M.4.0 disposes and remounts the renderer on the same canvas without duplic
   const initialGeneration = Number(await canvas.getAttribute("data-renderer-mount-generation"));
   expect(initialGeneration).toBeGreaterThanOrEqual(1);
 
-  await page.getByRole("button", { name: "Refresh" }).click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
   await expect(canvas).toHaveAttribute("data-renderer-active-mounts", "1");
   await expect.poll(async () => Number(await canvas.getAttribute("data-renderer-mount-generation")))
