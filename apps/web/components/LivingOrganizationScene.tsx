@@ -230,7 +230,7 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
         <div className="scene-plane reserved">
           <span>Plane 3</span>
           <strong>Environmental memory</strong>
-          <small>{scene.environmental.enabled ? titleCase(scene.environmental.status) : "Reserved for M.9 · disabled"}</small>
+          <small>{scene.environmental.enabled ? titleCase(scene.environmental.status) : "M.9.1 structured memory rendered below · scene field disabled"}</small>
         </div>
       </div>
 

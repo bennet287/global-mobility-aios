@@ -1,9 +1,26 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.models.domain import CountryPolicy, OfficialSource, SourceCheckRun, SourceSnapshot, TruthClaim
+from app.services import official_sources as official_sources_service
+
+
+def test_registry_path_resolves_compose_knowledge_mount_without_fixed_parent_depth(
+    monkeypatch,
+) -> None:
+    mounted_registry = Path("/knowledge/official_sources/sources.yaml")
+    monkeypatch.setattr(
+        official_sources_service,
+        "__file__",
+        "/app/app/services/official_sources.py",
+    )
+    monkeypatch.setattr(Path, "exists", lambda candidate: candidate == mounted_registry)
+
+    assert official_sources_service.registry_path() == mounted_registry
 
 
 def test_official_source_seed_is_idempotent(client: TestClient, db_session: Session) -> None:

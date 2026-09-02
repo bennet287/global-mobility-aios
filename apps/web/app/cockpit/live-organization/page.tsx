@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { LivingOrganizationEnvironmentalMemory } from "../../../components/LivingOrganizationEnvironmentalMemory";
 import { LivingOrganizationSceneView } from "../../../components/LivingOrganizationScene";
 import { LivingOrganizationReplayTimeline } from "../../../components/LivingOrganizationReplayTimeline";
 import { Topbar } from "../../../components/Topbar";
@@ -10,10 +11,12 @@ import { useBackendStatus } from "../../../hooks/useBackendStatus";
 import {
   type AustriaLiveOrganizationLatest,
   type LivingOrganizationSceneLatest,
+  type OrganizationEnvironmentalMemoryLatest,
   type OrganizationReplayLatest,
   LiveOrganizationRequestError,
   getLatestAustriaLiveOrganization,
   getLatestAustriaLivingScene,
+  getLatestAustriaOrganizationEnvironmentalMemory,
   getLatestAustriaOrganizationReplay,
   synthesizeAustriaOwner,
 } from "../../../lib/live-organization";
@@ -78,10 +81,12 @@ export default function AustriaLiveOrganizationPage() {
   const [latest, setLatest] = useState<AustriaLiveOrganizationLatest | null>(null);
   const [sceneLatest, setSceneLatest] = useState<LivingOrganizationSceneLatest | null>(null);
   const [replayLatest, setReplayLatest] = useState<OrganizationReplayLatest | null>(null);
+  const [environmentalMemoryLatest, setEnvironmentalMemoryLatest] = useState<OrganizationEnvironmentalMemoryLatest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<LiveOrganizationLoadError | null>(null);
   const [sceneError, setSceneError] = useState<LiveOrganizationLoadError | null>(null);
   const [replayError, setReplayError] = useState<LiveOrganizationLoadError | null>(null);
+  const [environmentalMemoryError, setEnvironmentalMemoryError] = useState<LiveOrganizationLoadError | null>(null);
   const [commandSubmitting, setCommandSubmitting] = useState(false);
   const [commandMessage, setCommandMessage] = useState<string | null>(null);
 
@@ -90,6 +95,7 @@ export default function AustriaLiveOrganizationPage() {
     setError(null);
     setSceneError(null);
     setReplayError(null);
+    setEnvironmentalMemoryError(null);
     try {
       const persisted = await getLatestAustriaLiveOrganization();
       setLatest(persisted);
@@ -119,10 +125,24 @@ export default function AustriaLiveOrganizationPage() {
               },
         );
       }
+      try {
+        setEnvironmentalMemoryLatest(await getLatestAustriaOrganizationEnvironmentalMemory());
+      } catch (memoryLoadError) {
+        setEnvironmentalMemoryLatest(null);
+        setEnvironmentalMemoryError(
+          memoryLoadError instanceof LiveOrganizationRequestError
+            ? { status: memoryLoadError.status, message: memoryLoadError.message }
+            : {
+                status: null,
+                message: memoryLoadError instanceof Error ? memoryLoadError.message : "Environmental memory is unavailable.",
+              },
+        );
+      }
     } catch (loadError) {
       setLatest(null);
       setSceneLatest(null);
       setReplayLatest(null);
+      setEnvironmentalMemoryLatest(null);
       setError(
         loadError instanceof LiveOrganizationRequestError
           ? { status: loadError.status, message: loadError.message }
@@ -152,6 +172,12 @@ export default function AustriaLiveOrganizationPage() {
     snapshot
     && replay
     && replay.root_work_item_id !== snapshot.root_work_item_id,
+  );
+  const environmentalMemory = environmentalMemoryLatest?.memory ?? null;
+  const environmentalMemoryMismatch = Boolean(
+    snapshot
+    && environmentalMemory
+    && environmentalMemory.root_work_item_id !== snapshot.root_work_item_id,
   );
   const canSynthesize = Boolean(
     snapshot
@@ -214,7 +240,7 @@ export default function AustriaLiveOrganizationPage() {
     ? "offline"
     : loading
       ? "loading"
-      : error || sceneError || replayError || sceneMismatch || replayMismatch || healthError
+      : error || sceneError || replayError || environmentalMemoryError || sceneMismatch || replayMismatch || environmentalMemoryMismatch || healthError
         ? "partial"
         : "ready";
 
@@ -240,7 +266,7 @@ export default function AustriaLiveOrganizationPage() {
     <WorkspaceShell health={health}>
       <Topbar
         title="Live Organization"
-        kicker="Global Mobility AIOS Cockpit · M.8.1 Canonical Replay Timeline V1"
+        kicker="Global Mobility AIOS Cockpit · M.9.1 Structured Environmental Memory Baseline"
         loadStatus={loadStatus}
         onRefresh={() => void load()}
       />
@@ -342,9 +368,23 @@ export default function AustriaLiveOrganizationPage() {
           <span>The replay root does not match the current persisted cycle, so the Cockpit does not render mixed temporal state. Refresh to reconcile.</span>
         </div>
       ) : null}
+      {environmentalMemoryError ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Environmental memory unavailable.</strong><span>{environmentalMemoryError.message}</span>
+        </div>
+      ) : null}
+      {environmentalMemoryMismatch ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Environmental memory changed during refresh.</strong>
+          <span>The historical aggregate root does not match the current persisted cycle, so the Cockpit does not render mixed environmental memory. Refresh to reconcile.</span>
+        </div>
+      ) : null}
 
       {snapshot && scene && !sceneMismatch ? <LivingOrganizationSceneView scene={scene} /> : null}
       {snapshot && replay && !replayMismatch ? <LivingOrganizationReplayTimeline replay={replay} /> : null}
+      {snapshot && environmentalMemory && !environmentalMemoryMismatch ? (
+        <LivingOrganizationEnvironmentalMemory memory={environmentalMemory} />
+      ) : null}
       {snapshot && !scene && !sceneError && !loading ? (
         <div className="cockpit-partial-note" role="status">
           <strong>Living Organization scene not established.</strong>
@@ -356,6 +396,13 @@ export default function AustriaLiveOrganizationPage() {
         <div className="cockpit-partial-note" role="status">
           <strong>Replay timeline not established.</strong>
           <span>The current organization cycle is available, but no persisted replay projection was returned. The Cockpit does not reconstruct history locally.</span>
+        </div>
+      ) : null}
+
+      {snapshot && !environmentalMemory && !environmentalMemoryError && !loading ? (
+        <div className="cockpit-partial-note" role="status">
+          <strong>Environmental memory not established.</strong>
+          <span>The current organization cycle is available, but no replay-derived historical aggregate was returned. The Cockpit does not fabricate routing memory locally.</span>
         </div>
       ) : null}
 

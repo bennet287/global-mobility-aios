@@ -23,6 +23,8 @@ from app.schemas_organization_transparency import (
     GovernanceDecisionRead,
     LivingOrganizationSceneLatestRead,
     LivingOrganizationSceneRead,
+    OrganizationEnvironmentalMemoryLatestRead,
+    OrganizationEnvironmentalMemoryRead,
     OrganizationReplayLatestRead,
     OrganizationReplayRead,
     OrganizationReplayStateDiffRead,
@@ -42,6 +44,9 @@ from app.services.organization_autonomy_profile import (
 from app.services.organization_command import OrganizationCommandContext, OrganizationCommandError
 from app.services.organization_mobility_live_diagnostics import (
     austria_live_specialist_runtime_quality,
+)
+from app.services.organization_environmental_memory import (
+    latest_austria_organization_environmental_memory,
 )
 from app.services.organization_living_scene import (
     latest_austria_living_organization_scene,
@@ -352,6 +357,37 @@ def read_latest_austria_organization_replay_state_diff(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Organization replay state comparison is inconsistent.",
+        ) from exc
+
+
+@router.get(
+    "/live-organization/environmental-memory/austria/latest",
+    response_model=OrganizationEnvironmentalMemoryLatestRead,
+)
+def read_latest_austria_organization_environmental_memory(
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationEnvironmentalMemoryLatestRead:
+    """Return the M.9.1 structured historical baseline derived from sealed Replay."""
+
+    _require_board(context)
+    try:
+        memory = latest_austria_organization_environmental_memory(
+            session,
+            tenant_key=context.tenant_key,
+        )
+        return OrganizationEnvironmentalMemoryLatestRead(
+            established=memory is not None,
+            memory=(
+                OrganizationEnvironmentalMemoryRead.model_validate(memory)
+                if memory is not None
+                else None
+            ),
+        )
+    except OrganizationCommandError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Organization environmental memory projection is inconsistent.",
         ) from exc
 
 

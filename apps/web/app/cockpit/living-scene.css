@@ -1341,3 +1341,161 @@
   .living-replay-diff > header { flex-direction: column; }
   .living-replay-diff-grid { grid-template-columns: 1fr; }
 }
+
+
+/* M.9.1 structured environmental memory baseline. */
+.living-environmental-memory {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(143,229,169,.2);
+  border-radius: 14px;
+  background: #111626;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+.living-environmental-memory-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+.living-environmental-memory-header h3 {
+  margin: 4px 0 0;
+  color: #f6f3eb;
+  font-size: 15px;
+}
+.living-environmental-memory-header p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: rgba(246,243,235,.5);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.living-environmental-memory-contract {
+  min-width: 220px;
+  text-align: right;
+}
+.living-environmental-memory-contract span,
+.living-environmental-memory-panel > header > span,
+.living-environmental-memory-boundary > strong {
+  display: block;
+  color: rgba(143,229,169,.72);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.living-environmental-memory-contract strong {
+  display: block;
+  margin-top: 3px;
+  color: #f6f3eb;
+  font-size: 11px;
+}
+.living-environmental-memory-contract small,
+.living-environmental-memory-panel > header > small {
+  color: rgba(246,243,235,.4);
+  font-size: 7.5px;
+}
+.living-environmental-memory-summary {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+.living-environmental-memory-summary article {
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.022);
+}
+.living-environmental-memory-summary strong {
+  display: block;
+  color: #f6f3eb;
+  font-size: 14px;
+}
+.living-environmental-memory-summary span {
+  color: rgba(196,199,242,.44);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+.living-environmental-memory-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 9px;
+  margin-top: 10px;
+}
+.living-environmental-memory-panel {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 11px;
+  background: rgba(255,255,255,.017);
+}
+.living-environmental-path-list,
+.living-environmental-heat-list,
+.living-environmental-timeline-list {
+  margin-top: 8px;
+}
+.living-environmental-path-list > div,
+.living-environmental-heat-list > div,
+.living-environmental-timeline-list > div {
+  padding: 7px 0;
+  border-top: 1px solid rgba(255,255,255,.045);
+}
+.living-environmental-path-list > div:first-child,
+.living-environmental-heat-list > div:first-child,
+.living-environmental-timeline-list > div:first-child {
+  border-top: 0;
+}
+.living-environmental-path-list strong,
+.living-environmental-heat-list strong,
+.living-environmental-timeline-list strong {
+  display: block;
+  color: rgba(246,243,235,.76);
+  font-size: 8.5px;
+}
+.living-environmental-path-list span,
+.living-environmental-heat-list span,
+.living-environmental-timeline-list span {
+  color: rgba(196,199,242,.46);
+  font-size: 7.5px;
+}
+.living-environmental-path-list small,
+.living-environmental-heat-list small,
+.living-environmental-timeline-list small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(246,243,235,.34);
+  font-size: 7px;
+  line-height: 1.35;
+}
+.living-environmental-path-list p {
+  margin: 8px 0 0;
+  color: rgba(246,243,235,.4);
+  font-size: 8px;
+}
+.living-environmental-heat-list progress,
+.living-environmental-timeline-list progress {
+  width: 100%;
+  height: 5px;
+  margin: 5px 0 2px;
+}
+.living-environmental-memory-boundary {
+  margin-top: 11px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.055);
+}
+.living-environmental-memory-boundary span,
+.living-environmental-memory-boundary small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(246,243,235,.42);
+  font-size: 8px;
+  line-height: 1.4;
+}
+@media (max-width: 980px) {
+  .living-environmental-memory-header { flex-direction: column; }
+  .living-environmental-memory-contract { min-width: 0; text-align: left; }
+  .living-environmental-memory-summary { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .living-environmental-memory-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 660px) {
+  .living-environmental-memory-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
