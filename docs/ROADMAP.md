@@ -1226,6 +1226,69 @@ Phantoms must be visually distinct and expose reason/confidence/horizon when ava
 
 Environmental memory has a mandatory structured historical baseline: replay-derived path frequency, heatmaps, timelines and explicit historical aggregates remain available even if advanced fields fail.
 
+
+### M.9.1 — Structured Environmental Memory Baseline — COMPLETE / PASS; SEAL PENDING CLOSURE PROOF
+
+M.9.1 implementation is complete on exact head `92b846ebd9f03c418b3435390c9a4bd5c4a7c138` and was merged by PR #32 into the active roadmap branch at merge commit `3ebba28bdb2c7f3fd546968a02bcda59e9f742f6`.
+
+Exact implementation proof:
+
+~~~text
+Woodpecker Pipeline #81 — manual exact-head proof     PASS — 4/4 workflows
+  repository-policy                                  PASS
+  backend-sqlite                                     PASS
+  frontend                                           PASS
+  postgres-governance                                PASS
+
+Local exact-head backend regression                  1346 passed / 22 skipped
+Living Organization Chromium suite                   12/12 passed
+TypeScript                                            PASS
+Next.js production build                             PASS
+Docker official-source registry resolution           PASS
+~~~
+
+GitHub hosted Actions were not executed for this exact head because hosted Actions credits were exhausted. This is not classified as a product failure: the roadmap's forward CI authority is self-hosted Woodpecker, while historical GitHub Actions proofs remain historical evidence.
+
+M.9.1 adds the mandatory structured historical baseline before predictive or reaction-diffusion experiments:
+
+~~~text
+sealed organization-replay.v1 returned window
+        ↓
+persisted semantic Activity only
+        ↓
+deterministic historical aggregates
+        ├── routing path frequency
+        ├── department × event-kind heat
+        ├── UTC hourly density
+        └── explicit event-kind totals
+~~~
+
+Permanent M.9.1 posture:
+
+~~~text
+canonical_projection = true
+authoritative         = false
+predictive            = false
+mutations_allowed     = false
+visualization_only    = true
+~~~
+
+The routing aggregate reads only `organization.work.assigned.v1` Activity already inside the sealed replay returned window. It does not silently widen history behind the UI.
+
+Unsupported dimensions remain explicit:
+
+~~~text
+RiskEscalation history
+SourceSnapshot history
+conversation transcript content
+future_state_prediction_v1
+reaction_diffusion_signal_v1
+~~~
+
+M.9.1 adds no migration, no new history store, no prediction and no mutation endpoint.
+
+This ROADMAP update is the post-merge closure candidate. M.9.1 must not be classified as SEALED until this exact closure head passes the required Woodpecker closure proof.
+
 Reaction-diffusion is an **EXPERIMENT**, not a promised product feature. It must first demonstrate an explainable mapping from persisted history to visual parameters and a plausible actionable signal beyond the structured baseline. Only then may it graduate to TRIAL.
 
 Phantom Futures remain a bounded experiment in M.9. They are visually distinct, zero-authority projections; learned adaptive prediction remains N.
