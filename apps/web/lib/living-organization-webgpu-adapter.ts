@@ -230,6 +230,19 @@ export async function mountLivingOrganizationWebGPUScene({
       });
     });
 
+    nextModel.smartObjects.forEach((object, objectIndex) => {
+      const column = objectIndex % 4;
+      const row = Math.floor(objectIndex / 4);
+      addBox({
+        size: [1.45, 0.34, 0.84],
+        position: [(column - 1.5) * 2.0, 0.24, -5.1 - row * 1.15],
+        color: paletteColor(object.object_type),
+        opacity: object.state === "unavailable" ? 0.24 : 0.68,
+        selection: createLivingSceneSelection("smart_object", object.object_key, object.label),
+      });
+    });
+    canvas.dataset.smartObjectCount = String(nextModel.smartObjects.length);
+
     const span = Math.max(12, zoneCount * zoneSpacing);
     camera.position.set(0, Math.max(9, span * 0.62), Math.max(13, span * 0.9));
     camera.lookAt(0, 0, 0);
