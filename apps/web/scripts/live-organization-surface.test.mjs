@@ -24,6 +24,7 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(page, /snapshot\.provider_model_authority/);
   assert.match(page, /snapshot\.domain_evidence_refs/);
   assert.match(page, /snapshot\.verified_rule_refs/);
+  assert.match(page, /snapshot\.source_snapshot_refs/);
   assert.match(page, /specialist\.runtime_quality/);
   assert.match(page, /snapshot\.activities\.map/);
   assert.match(page, /Durable activity lineage/);
