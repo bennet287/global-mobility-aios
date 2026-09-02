@@ -12,7 +12,10 @@ from sqlmodel import Session, select
 
 from app.models.domain import (
     AgentRun,
+    MobilityPathwayVersion,
+    MobilityPathwayVersionEvidence,
     OrganizationalActionOutput,
+    OrganizationalWorkItem,
     SourceMonitor,
     SourceRetrievalRun,
     SourceSnapshot,
@@ -39,6 +42,13 @@ FRESH_RETRIEVAL_EVIDENCE_CONTRACT_VERSION = "austria-fresh-retrieval-evidence.v1
 FRESH_RETRIEVAL_MAX_AGE_SECONDS = 900
 _ACCEPTED_FRESH_RUN_STATUSES = frozenset({"baseline", "unchanged", "not_modified"})
 _SNAPSHOT_PRODUCING_STATUSES = frozenset({"baseline", "unchanged", "changed"})
+_AUSTRIA_FRESHNESS_EVIDENCE_ROLES = frozenset(
+    {
+        "core_route",
+        "national_occupation_list",
+        "regional_occupation_list",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,10 +125,93 @@ def _specialist_work(plan: AustriaMobilityObjectivePlan, position_key: str):
     raise DependencyConflict(f"unsupported Austria specialist position: {position_key}")
 
 
+def _context_snapshot_reference_map(
+    source_snapshot_refs: tuple[ContextReference, ...],
+) -> dict[UUID, ContextReference]:
+    references: dict[UUID, ContextReference] = {}
+    for reference in source_snapshot_refs:
+        if reference.kind != "source_snapshot" or reference.version is None:
+            raise DependencyConflict("Austria authority snapshot provenance is incomplete")
+        try:
+            snapshot_id = UUID(reference.identifier)
+        except ValueError as exc:
+            raise DependencyConflict("Austria authority snapshot identifier is invalid") from exc
+        existing = references.get(snapshot_id)
+        if existing is not None and existing.version != reference.version:
+            raise DependencyConflict("Austria context contains conflicting snapshot versions")
+        references[snapshot_id] = reference
+    return references
+
+
+def _freshness_anchor_snapshot_ids(
+    session: Session,
+    work: OrganizationalWorkItem,
+) -> set[UUID]:
+    """Resolve snapshots that represent current pathway authority, not historical provenance."""
+
+    if work.source_object_type != "mobility_pathway_version" or not work.source_object_id:
+        raise DependencyConflict(
+            "Austria live evaluation requires a governed mobility pathway version source"
+        )
+    try:
+        version_id = UUID(work.source_object_id)
+    except ValueError as exc:
+        raise DependencyConflict("Austria pathway version source identifier is invalid") from exc
+    version = session.get(MobilityPathwayVersion, version_id)
+    if version is None:
+        raise DependencyConflict("Austria pathway version source is unavailable")
+    if work.source_object_version != str(version.version_number):
+        raise DependencyConflict("Austria pathway version source binding diverged")
+
+    anchor_ids: set[UUID] = set()
+    if version.source_snapshot_id is not None:
+        anchor_ids.add(version.source_snapshot_id)
+
+    evidence_rows = list(
+        session.exec(
+            select(MobilityPathwayVersionEvidence).where(
+                MobilityPathwayVersionEvidence.pathway_version_id == version.id,
+                MobilityPathwayVersionEvidence.evidence_role.in_(
+                    tuple(_AUSTRIA_FRESHNESS_EVIDENCE_ROLES)
+                ),
+            )
+        ).all()
+    )
+    anchor_ids.update(row.source_snapshot_id for row in evidence_rows)
+    if not anchor_ids:
+        raise DependencyConflict(
+            "Austria live evaluation requires at least one current authority freshness anchor"
+        )
+    return anchor_ids
+
+
+def _freshness_anchor_references_for_work(
+    session: Session,
+    work: OrganizationalWorkItem,
+    *,
+    context_source_snapshot_refs: tuple[ContextReference, ...],
+) -> tuple[ContextReference, ...]:
+    context_references = _context_snapshot_reference_map(context_source_snapshot_refs)
+    anchor_ids = _freshness_anchor_snapshot_ids(session, work)
+    missing = sorted(anchor_ids - set(context_references), key=str)
+    if missing:
+        raise DependencyConflict(
+            "Austria current authority freshness anchors are missing from governed context"
+        )
+    return tuple(context_references[snapshot_id] for snapshot_id in sorted(anchor_ids, key=str))
+
+
 def _governed_snapshot_references(
     session: Session,
     plan: AustriaMobilityObjectivePlan,
 ) -> dict[UUID, ContextReference]:
+    """Resolve current authority freshness anchors shared by both Austria specialists.
+
+    Context bundles deliberately retain historical VerifiedRule/source provenance.
+    Those immutable historical snapshots remain authority provenance but are not
+    re-fetched as if they represented today's official-source bytes.
+    """
+
     references: dict[UUID, ContextReference] = {}
     for position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
         work = _specialist_work(plan, position_key)
@@ -129,19 +222,23 @@ def _governed_snapshot_references(
             work_item_id=work.id,
             purpose=ContextPurpose.COLLABORATION,
         )
-        for reference in context.source_snapshot_refs:
-            if reference.kind != "source_snapshot" or reference.version is None:
-                raise DependencyConflict("Austria authority snapshot provenance is incomplete")
-            try:
-                snapshot_id = UUID(reference.identifier)
-            except ValueError as exc:
-                raise DependencyConflict("Austria authority snapshot identifier is invalid") from exc
+        anchors = _freshness_anchor_references_for_work(
+            session,
+            work,
+            context_source_snapshot_refs=context.source_snapshot_refs,
+        )
+        for reference in anchors:
+            snapshot_id = UUID(reference.identifier)
             existing = references.get(snapshot_id)
             if existing is not None and existing.version != reference.version:
-                raise DependencyConflict("Austria specialists resolved conflicting snapshot versions")
+                raise DependencyConflict(
+                    "Austria specialists resolved conflicting freshness-anchor versions"
+                )
             references[snapshot_id] = reference
     if not references:
-        raise DependencyConflict("Austria live evaluation requires governed source snapshots")
+        raise DependencyConflict(
+            "Austria live evaluation requires current authority freshness anchors"
+        )
     return references
 
 
@@ -260,12 +357,13 @@ def refresh_austria_authority_snapshots(
     transport: httpx.BaseTransport | None = None,
     resolver: Resolver = socket.getaddrinfo,
 ) -> dict[UUID, AustriaFreshRetrievalAttestation]:
-    """Fresh-check every governed Austria snapshot immediately before K.1.
+    """Fresh-check current governed Austria authority anchors immediately before K.1.
 
-    Retrieval is allowed to create monitoring snapshots/change records, but K.1 never
-    switches authority to them. The L cycle receives an attestation only when the fresh
-    official-source check is content-equivalent to the already governed snapshot. A
-    detected change fails closed and remains in the regulatory-review workflow.
+    Current pathway/evidence anchors must remain byte-equivalent to a just-retrieved
+    official source. Historical immutable snapshots retained only as VerifiedRule or
+    historical evidence provenance stay in the ContextBundle but are not re-fetched as
+    current truth. Retrieval may create monitoring snapshots/change records, but K.1
+    never switches authority to them. A detected change still fails closed.
     """
 
     references = _governed_snapshot_references(session, plan)
@@ -438,7 +536,7 @@ def validate_fresh_retrieval_attestations(
             raise DependencyConflict("context source snapshot identifier is invalid") from exc
         attestation = attestations.get(snapshot_id)
         if attestation is None:
-            raise DependencyConflict("fresh retrieval attestations do not cover every governed snapshot")
+            raise DependencyConflict("fresh retrieval attestations do not cover every current authority anchor")
         payloads.append(
             _validate_attestation(
                 session,
@@ -448,7 +546,7 @@ def validate_fresh_retrieval_attestations(
         )
         seen.add(snapshot_id)
     if set(attestations) != seen:
-        raise DependencyConflict("fresh retrieval attestations include snapshots outside this context")
+        raise DependencyConflict("fresh retrieval attestations include snapshots outside current authority anchors")
     return tuple(payloads)
 
 
@@ -519,7 +617,15 @@ def attach_fresh_retrieval_evidence(
         or payload.get("position_key") != position_key
     ):
         raise DependencyConflict("fresh retrieval target execution identifiers diverged")
-    references = _source_snapshot_refs_from_output(payload)
+    context_references = _source_snapshot_refs_from_output(payload)
+    work = session.get(OrganizationalWorkItem, work_item_id)
+    if work is None:
+        raise DependencyConflict("fresh retrieval target WorkItem is unavailable")
+    references = _freshness_anchor_references_for_work(
+        session,
+        work,
+        context_source_snapshot_refs=context_references,
+    )
     validated = validate_fresh_retrieval_attestations(
         session,
         source_snapshot_refs=references,
@@ -625,7 +731,15 @@ def validate_action_output_fresh_retrieval_evidence(
         if attestation.governed_source_snapshot_id in by_snapshot:
             raise DependencyConflict("persisted fresh retrieval evidence contains duplicate snapshots")
         by_snapshot[attestation.governed_source_snapshot_id] = attestation
-    references = _source_snapshot_refs_from_output(payload)
+    context_references = _source_snapshot_refs_from_output(payload)
+    work = session.get(OrganizationalWorkItem, output.work_item_id)
+    if work is None:
+        raise DependencyConflict("persisted fresh retrieval WorkItem is unavailable")
+    references = _freshness_anchor_references_for_work(
+        session,
+        work,
+        context_source_snapshot_refs=context_references,
+    )
     validated = validate_fresh_retrieval_attestations(
         session,
         source_snapshot_refs=references,
