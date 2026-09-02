@@ -15,6 +15,7 @@ from app.models.domain import (
     OrganizationalWorkItem,
     RegulatoryChange,
     SourceMonitor,
+    SourceSnapshot,
     now_utc,
 )
 from app.services.organization_command import DependencyConflict
@@ -142,6 +143,94 @@ def test_fresh_retrieval_unchanged_binds_to_exact_k1_outputs(
         output = db_session.get(OrganizationalActionOutput, result.action_output_id)
         agent_run = db_session.get(AgentRun, result.agent_run_id)
         assert output is not None and agent_run is not None
+        assert validate_action_output_fresh_retrieval_evidence(
+            db_session,
+            output=output,
+            agent_run=agent_run,
+        ) == 1
+
+
+def test_historical_verified_rule_snapshot_is_not_refetched_as_current_authority(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _force_deterministic(monkeypatch)
+    graph, plan, _ = _plan_with_monitor(
+        db_session,
+        objective_key="at-rwr-shortage-2026-historical-rule-provenance",
+    )
+    current_snapshot = graph["snapshot"]
+    source = graph["source"]
+    rule = graph["rule"]
+
+    historical_content = "Historical Austrian mobility guidance."
+    historical_snapshot = SourceSnapshot(
+        official_source_id=source.id,
+        url=source.url,
+        content_hash=hashlib.sha256(historical_content.encode("utf-8")).hexdigest(),
+        content_text=historical_content,
+        http_status=200,
+        retrieval_method="http",
+        parser_version="pytest-v1",
+        status="baseline",
+    )
+    db_session.add(historical_snapshot)
+    db_session.commit()
+    db_session.refresh(historical_snapshot)
+
+    rule.source_snapshot_id = historical_snapshot.id
+    db_session.add(rule)
+    db_session.commit()
+    db_session.refresh(rule)
+
+    attestations = refresh_austria_authority_snapshots(
+        db_session,
+        plan,
+        transport=_matching_transport(current_snapshot.content_text or ""),
+        resolver=_public_resolver,
+    )
+    assert set(attestations) == {current_snapshot.id}
+    assert historical_snapshot.id not in attestations
+
+    results = execute_austria_specialists(
+        db_session,
+        _human_context(),
+        plan,
+        runtime_profiles=_profiles(),
+    )
+    for result in results:
+        attached = attach_fresh_retrieval_evidence(
+            db_session,
+            action_output_id=result.action_output_id,
+            agent_run_id=result.agent_run_id,
+            execution_attempt_id=result.execution_attempt_id,
+            work_item_id=result.work_item_id,
+            position_key=result.position_key,
+            attestations=attestations,
+            actor="pytest-fresh-retrieval",
+        )
+        assert attached == 1
+
+        output = db_session.get(OrganizationalActionOutput, result.action_output_id)
+        agent_run = db_session.get(AgentRun, result.agent_run_id)
+        assert output is not None and agent_run is not None
+
+        payload = json.loads(output.output_json)
+        context_snapshot_ids = {
+            item["identifier"]
+            for item in payload["context_source_snapshot_refs"]
+        }
+        assert context_snapshot_ids == {
+            str(current_snapshot.id),
+            str(historical_snapshot.id),
+        }
+
+        fresh_evidence = payload["fresh_retrieval_evidence"]
+        assert fresh_evidence["attestation_count"] == 1
+        assert {
+            item["governed_source_snapshot_id"]
+            for item in fresh_evidence["attestations"]
+        } == {str(current_snapshot.id)}
         assert validate_action_output_fresh_retrieval_evidence(
             db_session,
             output=output,
