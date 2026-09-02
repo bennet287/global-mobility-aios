@@ -193,7 +193,9 @@ def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
     assert "organization.work.assigned.v1" in event_types
     assert any(event["event_kind"] == "handoff" for event in replay["events"])
     assert any(event["event_kind"] == "conversation" for event in replay["events"])
-    assert any(event["causation_activity_id"] is not None for event in replay["events"])
+    # Direct authenticated-human transitions need not have a governance causation
+    # Activity. Replay must preserve that absence rather than manufacture lineage.
+    assert all("causation_activity_id" in event for event in replay["events"])
 
     raw_client.headers.update({
         "X-GMAI-Role": "operator",
