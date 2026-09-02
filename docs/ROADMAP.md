@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.76 — M.7.2 Structured FLOW + deterministic Owner analytical queries COMPLETE / PASS; M.7 continues
+**Roadmap generation:** V12.77 — M.7.3 bounded evidence-validity + supersession-time Owner queries COMPLETE / PASS; M.7 fluid FLOW trial next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1–M.7.2 COMPLETE / PASS; M.7 CONTINUES)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1–M.7.3 COMPLETE / PASS; M.7 FLUID FLOW TRIAL NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -892,6 +892,59 @@ Risk escalation attention alone is never promoted to Owner authority. High/criti
 The GPU fluid/field representation remains an unpromoted TRIAL. M.7.2 establishes the structured comparison baseline but does not claim fluid FLOW product value. Browser proof verifies the FLOW baseline, analytical query results, explicit unavailable states and zero unauthorized POST/mutation while preserving the M.4.1 no-presence/no-locomotion boundary.
 
 M.7.2 does not add authority, presence, locomotion, scene mutation, browser-time truth, dependency truth or a cost ledger.
+
+### M.7.3 — Bounded evidence-validity + supersession-time Owner queries — COMPLETE / PASS
+
+M.7.3 is accepted on exact implementation head `c746e40b000db7e17d8dec9f1114a6e7b72c9d14`.
+
+~~~text
+Repository Policy Check #584 / run 33629654791   PASS
+V12 Production Proof #1187 / run 33629647811     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+The backend scene contract advances to `living-organization-scene.v5` without a migration or second truth store.
+
+M.7.3 adds two bounded truth improvements:
+
+~~~text
+specialist evidence validity
+  AustriaLiveSpecialistSnapshot.evidence_valid / evidence_reason
+        ↓
+  exact specialist WorkItem projection
+        ↓
+  Owner query: incomplete evidence — PARTIAL
+
+decision supersession timing
+  canonical successor ExecutiveDecision.created_at
+        ↓
+  backend comparison against LivingOrganizationScene.generated_at UTC week
+        ↓
+  Owner query: superseded this week — AVAILABLE
+~~~
+
+The evidence query is deliberately partial rather than promoted to whole-mission completeness. It covers K.1 specialist execution evidence only. Aggregate Evidence, VerifiedRule and SourceSnapshot counts are still not treated as per-mission completeness truth.
+
+The supersession query is deterministic at the scene projection clock and fail-closed when successor lineage is ambiguous. Successor record creation time is the bounded supersession timing signal; complete historical replay remains M.8.
+
+COST remains unavailable because there is still no canonical organization cost ledger. AUTONOMY remains unavailable for this Austria scene because the live snapshot does not project a scene-safe canonical autonomy profile. Neither is inferred from runtime estimates, authority level or activity volume.
+
+The final Chromium acceptance scenario was deliberately bounded to M.7 semantics after exact-head proof exposed nondeterministic 30-second overruns in an oversized scenario. Direct analytics/static tests retain R4/R5, overdue and renderer contracts; the browser case proves FLOW, blocker-age, explicit Owner authority, specialist evidence gap, supersession-week, cost-unavailable truth, canonical conversation/handoff record identity and zero POST. The timeout was not increased.
+
+Canonical collaboration disclosures now expose stable read-only record identities:
+
+~~~text
+data-conversation-id
+data-handoff-activity-id
+~~~
+
+These are selection/testing identities only; they do not add authority or mutation.
+
+M.7.3 does not add authority, scene mutation, browser-time truth, full evidence-completeness truth, cost truth, autonomy truth, presence or locomotion.
+
+The remaining M.7 obligation is the GPU fluid/field FLOW TRIAL against the maintained structured FLOW baseline. Promotion remains evidence-gated: zero truth leakage plus the adoption-contract comprehension/correctness/performance thresholds. Rendering successfully is not itself sufficient for promotion.
 
 ---
 
