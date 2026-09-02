@@ -107,7 +107,7 @@ export function LivingOrganizationWebGPUScene({
     >
       <header>
         <div>
-          <span>M.7.2 · Lenses + structured FLOW baseline</span>
+          <span>M.7.3 · Lenses + evidence/supersession queries</span>
           <strong id="living-webgpu-title">Living spatial organization</strong>
         </div>
         <small>{phase === "ready" ? backendLabel(backend) : phase} · {activeLens.replaceAll("_", " ")} lens</small>
@@ -134,7 +134,7 @@ export function LivingOrganizationWebGPUScene({
       ) : null}
       <p className="living-webgpu-accessibility">
         Employee motion remains presentation-only workspace motion derived from canonical semantic state.
-        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. M.7.2 lenses change local
+        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. M.7.3 lenses change local
         view emphasis only over canonical projections. The maintained structured FLOW baseline remains outside renderer
         authority; GPU fluid/field is not implemented or promoted, and no lens/query command can bypass AIOS governance.
         The Structured Cockpit remains available for every core operation.

@@ -214,7 +214,7 @@ export default function AustriaLiveOrganizationPage() {
     <WorkspaceShell health={health}>
       <Topbar
         title="Live Organization"
-        kicker="Global Mobility AIOS Cockpit · M.7.2 Structured FLOW + Owner analytical queries"
+        kicker="Global Mobility AIOS Cockpit · M.7.3 Evidence gaps + supersession-time queries"
         loadStatus={loadStatus}
         onRefresh={() => void load()}
       />

@@ -17,6 +17,8 @@ export type StructuredFlowNode = {
   riskEscalationCount: number;
   ownerAttentionCount: number;
   attentionSignalCount: number;
+  specialistEvidenceValid: boolean | null;
+  specialistEvidenceReason: string | null;
   canonicalBasis: string;
 };
 
@@ -166,7 +168,9 @@ export function buildStructuredFlowBaseline(
       riskEscalationCount: risks,
       ownerAttentionCount: ownerAttention,
       attentionSignalCount: blockers + risks + ownerAttention,
-      canonicalBasis: "OrganizationalWorkItem + linked canonical blocker/risk/decision/human-action/handoff projections",
+      specialistEvidenceValid: work.specialist_evidence_valid,
+      specialistEvidenceReason: work.specialist_evidence_reason,
+      canonicalBasis: "OrganizationalWorkItem + linked canonical blocker/risk/decision/human-action/handoff projections + bounded K.1 specialist evidence validity",
     };
   });
 
@@ -202,7 +206,7 @@ export function buildStructuredFlowBaseline(
     nodes,
     edges,
     handoffs,
-    canonicalBasis: "Derived read-only structured FLOW baseline over living-organization-scene.v4 canonical projections",
+    canonicalBasis: "Derived read-only structured FLOW baseline over living-organization-scene.v5 canonical projections",
   };
 }
 
@@ -329,26 +333,46 @@ export function evaluateOwnerAnalyticalQuery(
   }
 
   if (key === "incomplete_evidence") {
+    const gaps = scene.deterministic.work_items.filter(
+      (work) => work.specialist_evidence_valid === false,
+    );
     return {
       ...descriptor,
-      status: "unavailable",
-      count: null,
-      summary: "Per-WorkItem evidence completeness is not available in scene v4.",
-      items: [],
-      canonicalBasis: "Evidence Shelf provides aggregate Evidence/VerifiedRule/SourceSnapshot provenance only",
-      limitation: "Aggregate evidence counts are not promoted to per-mission completeness truth.",
+      status: "partial",
+      count: gaps.length,
+      summary: gaps.length
+        ? `${gaps.length} specialist WorkItem${gaps.length === 1 ? "" : "s"} have a persisted K.1 evidence-validity gap.`
+        : "No K.1 specialist evidence-validity gap is projected; full mission evidence completeness is not asserted.",
+      items: gaps.map((work) => ({
+        kind: "work_item",
+        id: work.work_item_id,
+        label: work.title,
+        detail: work.specialist_evidence_reason ?? "Specialist evidence validity is false without a recorded reason.",
+      })),
+      canonicalBasis: "AustriaLiveSpecialistSnapshot.evidence_valid/evidence_reason projected onto its exact specialist WorkItem",
+      limitation: "This covers K.1 specialist execution evidence only; aggregate Evidence/VerifiedRule/SourceSnapshot counts are not promoted to full mission completeness.",
     };
   }
 
   if (key === "superseded_this_week") {
+    const decisions = scene.deterministic.decisions.filter(
+      (decision) => decision.superseded_in_projection_week,
+    );
     return {
       ...descriptor,
-      status: "unavailable",
-      count: null,
-      summary: "The scene does not expose a canonical supersession-effective timestamp sufficient for a this-week query.",
-      items: [],
-      canonicalBasis: "ExecutiveDecision supersession identity is projected, but temporal supersession history remains incomplete",
-      limitation: "M.8 replay/temporal history is the correct source for complete time-window supersession queries.",
+      status: "available",
+      count: decisions.length,
+      summary: decisions.length
+        ? `${decisions.length} decision${decisions.length === 1 ? "" : "s"} were superseded in the UTC week containing the scene projection clock.`
+        : "No projected decision was superseded in the UTC week containing the scene projection clock.",
+      items: decisions.map((decision) => ({
+        kind: "decision",
+        id: decision.decision_id,
+        label: decision.title,
+        detail: `Successor ${decision.superseded_by_decision_id ?? "unknown"} created ${decision.superseded_by_created_at ?? "timestamp unavailable"}`,
+      })),
+      canonicalBasis: "Backend-derived ExecutiveDecision.superseded_in_projection_week using successor record created_at against LivingOrganizationScene.generated_at",
+      limitation: "The bounded timestamp is successor decision creation; complete historical replay across scene gaps remains M.8.",
     };
   }
 

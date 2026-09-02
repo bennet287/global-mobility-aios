@@ -244,6 +244,8 @@ export type LivingSceneWorkItem = {
   completed_at: string | null;
   elapsed_seconds: number | null;
   overdue: boolean;
+  specialist_evidence_valid: boolean | null;
+  specialist_evidence_reason: string | null;
 };
 
 export type LivingSceneBlocker = {
@@ -284,6 +286,9 @@ export type LivingSceneDecision = {
   is_current: boolean;
   required_owner_action: boolean;
   decided_at: string | null;
+  created_at: string;
+  superseded_by_created_at: string | null;
+  superseded_in_projection_week: boolean;
 };
 
 export type LivingSceneHumanActionRequest = {

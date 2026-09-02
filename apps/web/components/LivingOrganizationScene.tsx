@@ -88,13 +88,14 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
     <section className="living-scene-shell" aria-labelledby="living-scene-title" data-active-lens={activeLens}>
       <header className="living-scene-header">
         <div>
-          <span className="premium-label">M.7.2 · Structured FLOW + Owner analytical queries</span>
+          <span className="premium-label">M.7.3 · Evidence gaps + supersession-time queries</span>
           <h3 id="living-scene-title">Living Organization Scene</h3>
           <p>
             A spatial projection of persisted AIOS organization state. Geometry is presentation-only;
             employee, work, blocker, decision, Owner-action, risk, and relationship semantics come from the backend scene contract.
             Lenses change local view emphasis only; structured FLOW and Owner queries are deterministic read models.
-            They do not create organizational state, authority, or a second truth store.
+            M.7.3 adds bounded specialist evidence-validity and decision supersession timing without creating organizational state,
+            authority, browser-time truth, or a second truth store.
           </p>
         </div>
         <div className="living-scene-contract">
@@ -279,6 +280,15 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
                     {node.blockerCount} blockers
                     {node.oldestBlockerSeconds !== null ? ` · oldest ${durationLabel(node.oldestBlockerSeconds)}` : ""}
                     {" · "}{node.handoffCount} handoffs · {node.ownerAttentionCount} Owner signals
+                  </small>
+                  <small>
+                    Specialist evidence {
+                      node.specialistEvidenceValid === null
+                        ? "not scoped"
+                        : node.specialistEvidenceValid
+                          ? "valid"
+                          : `gap · ${node.specialistEvidenceReason ?? "reason unavailable"}`
+                    }
                   </small>
                 </article>
               ))}
@@ -495,6 +505,12 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
                     <strong>{decision.recommendation}</strong>
                     <small>
                       Owner {decision.decision_owner_position} · supersedes {shortId(decision.supersedes_decision_id)} · superseded by {shortId(decision.superseded_by_decision_id)}
+                    </small>
+                    <small>
+                      Created {timestampLabel(decision.created_at)}
+                      {decision.superseded_by_created_at
+                        ? ` · successor created ${timestampLabel(decision.superseded_by_created_at)} · projection week ${decision.superseded_in_projection_week ? "yes" : "no"}`
+                        : " · no successor timestamp"}
                     </small>
                     <small>
                       Source {decision.source_object_type ?? "not recorded"} · {decision.source_object_id ?? "—"} · fingerprint {decision.record_fingerprint?.slice(0, 12) ?? "not recorded"}
