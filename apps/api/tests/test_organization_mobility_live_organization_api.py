@@ -197,6 +197,58 @@ def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
     # Activity. Replay must preserve that absence rather than manufacture lineage.
     assert all("causation_activity_id" in event for event in replay["events"])
 
+    root_created = next(
+        event
+        for event in replay["events"]
+        if event["activity_type"] == "organization.work.created.v1"
+        and event["work_item_id"] == str(plan.root_work_item.id)
+    )
+    creation_state_response = client.get(
+        f"/api/v1/organization/transparency/live-organization/replay/austria/latest/state/{root_created['activity_id']}"
+    )
+    assert creation_state_response.status_code == 200, creation_state_response.text
+    creation_state = creation_state_response.json()
+    assert creation_state["contract_version"] == "organization-replay-state.v1"
+    assert creation_state["root_work_item_id"] == str(plan.root_work_item.id)
+    assert creation_state["cursor_activity_id"] == root_created["activity_id"]
+    assert creation_state["cursor_coverage_state"] == "covered"
+    assert creation_state["reconstruction_posture"] == "covered"
+    assert creation_state["canonical_projection"] is True
+    assert creation_state["authoritative"] is False
+    assert creation_state["mutations_allowed"] is False
+    assert creation_state["unapplied_transition_count"] == 0
+    assert creation_state["unsupported_dimensions"] == [
+        "risk_escalation_history",
+        "source_snapshot_history",
+        "conversation_transcript",
+        "historical_deadline_projection_v1",
+        "historical_evidence_content_state_v1",
+    ]
+    assert len(creation_state["work_items"]) == 1
+    root_creation = creation_state["work_items"][0]
+    assert root_creation["work_item_id"] == str(plan.root_work_item.id)
+    assert root_creation["status"] == "queued"
+    assert root_creation["assigned_position_key"] == plan.root_work_item.assigned_position_key
+    assert root_creation["known_from_activity_id"] == root_created["activity_id"]
+    assert root_creation["last_activity_id"] == root_created["activity_id"]
+    assert creation_state["blockers"] == []
+    assert creation_state["decisions"] == []
+    assert creation_state["human_requests"] == []
+    assert creation_state["conversations"] == []
+    assert "payload" not in creation_state
+
+    final_cursor = replay["events"][-1]
+    final_state_response = client.get(
+        f"/api/v1/organization/transparency/live-organization/replay/austria/latest/state/{final_cursor['activity_id']}"
+    )
+    assert final_state_response.status_code == 200, final_state_response.text
+    final_state = final_state_response.json()
+    assert final_state["cursor_activity_id"] == final_cursor["activity_id"]
+    assert len(final_state["work_items"]) == 3
+    assert any(item["status"] == "open" for item in final_state["conversations"])
+    assert all("coverage_state" in item for item in final_state["work_items"])
+    assert all("payload" not in item for item in final_state["work_items"])
+
     raw_client.headers.update({
         "X-GMAI-Role": "operator",
         "X-GMAI-User": "m8-operator",
@@ -560,6 +612,10 @@ def test_live_organization_transparency_requires_board_role(
     assert scene.status_code == 403
     replay = raw_client.get("/api/v1/organization/transparency/live-organization/replay/austria/latest")
     assert replay.status_code == 403
+    replay_state = raw_client.get(
+        f"/api/v1/organization/transparency/live-organization/replay/austria/latest/state/{uuid4()}"
+    )
+    assert replay_state.status_code == 403
 
 
 def test_live_organization_exact_snapshot_missing_root_is_non_disclosing_404(

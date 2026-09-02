@@ -234,6 +234,89 @@ class OrganizationReplayLatestRead(TransparencyRead):
     replay: OrganizationReplayRead | None
 
 
+class OrganizationReplayStateWorkItemRead(TransparencyRead):
+    work_item_id: UUID
+    status: str
+    priority: str
+    department: str
+    assigned_position_key: str
+    parent_work_item_id: UUID | None
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateBlockerRead(TransparencyRead):
+    blocker_id: UUID
+    work_item_id: UUID | None
+    status: str
+    blocker_type: str
+    severity: str
+    requires_human_action: bool
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateDecisionRead(TransparencyRead):
+    decision_id: UUID
+    work_item_id: UUID | None
+    status: str
+    decision_type: str
+    authority_level: str
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateHumanRequestRead(TransparencyRead):
+    request_id: UUID
+    work_item_id: UUID | None
+    status: str
+    request_type: str
+    required_role: str
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateConversationRead(TransparencyRead):
+    conversation_id: str
+    work_item_id: UUID | None
+    status: str
+    coverage_state: str
+    known_from_activity_id: UUID
+    last_activity_id: UUID
+    last_occurred_at: datetime
+
+
+class OrganizationReplayStateRead(TransparencyRead):
+    contract_version: str
+    generated_at: datetime
+    scope: str
+    root_work_item_id: UUID
+    objective_key: str
+    cursor_activity_id: UUID
+    cursor_occurred_at: datetime
+    cursor_coverage_state: str
+    reconstruction_posture: str
+    canonical_projection: bool
+    authoritative: bool
+    mutations_allowed: bool
+    supported_dimensions: list[str]
+    unsupported_dimensions: list[str]
+    unapplied_transition_count: int
+    work_items: list[OrganizationReplayStateWorkItemRead]
+    blockers: list[OrganizationReplayStateBlockerRead]
+    decisions: list[OrganizationReplayStateDecisionRead]
+    human_requests: list[OrganizationReplayStateHumanRequestRead]
+    conversations: list[OrganizationReplayStateConversationRead]
+
+
 class LivingSceneEmployeeRead(TransparencyRead):
     position_key: str
     title: str

@@ -25,6 +25,7 @@ from app.schemas_organization_transparency import (
     LivingOrganizationSceneRead,
     OrganizationReplayLatestRead,
     OrganizationReplayRead,
+    OrganizationReplayStateRead,
     GovernedTransparencyTraceRead,
     TransparencyRecordRead,
     WorkItemTransparencyRead,
@@ -44,7 +45,10 @@ from app.services.organization_mobility_live_diagnostics import (
 from app.services.organization_living_scene import (
     latest_austria_living_organization_scene,
 )
-from app.services.organization_replay import latest_austria_organization_replay
+from app.services.organization_replay import (
+    latest_austria_organization_replay,
+    latest_austria_organization_replay_state,
+)
 from app.services.organization_mobility_live_organization import (
     AustriaLiveOrganizationSnapshot,
     AustriaLiveSpecialistSnapshot,
@@ -278,6 +282,39 @@ def read_latest_austria_organization_replay(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Organization replay projection is inconsistent.",
+        ) from exc
+
+
+@router.get(
+    "/live-organization/replay/austria/latest/state/{activity_id}",
+    response_model=OrganizationReplayStateRead,
+)
+def read_latest_austria_organization_replay_state(
+    activity_id: UUID,
+    context: OrganizationCommandContext = Depends(organization_command_context),
+    session: Session = Depends(get_session),
+) -> OrganizationReplayStateRead:
+    """Return bounded M.8.2 as-of state reconstructed only from semantic Activity."""
+
+    _require_board(context)
+    try:
+        replay_state = latest_austria_organization_replay_state(
+            session,
+            tenant_key=context.tenant_key,
+            cursor_activity_id=activity_id,
+        )
+        if replay_state is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Organization transparency resource not found.",
+            )
+        return OrganizationReplayStateRead.model_validate(replay_state)
+    except HTTPException:
+        raise
+    except OrganizationCommandError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Organization replay state projection is inconsistent.",
         ) from exc
 
 
