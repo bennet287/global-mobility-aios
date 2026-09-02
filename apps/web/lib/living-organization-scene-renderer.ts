@@ -5,12 +5,17 @@ import type {
   LivingSceneRoom,
   LivingSceneWorkItem,
 } from "./live-organization";
+import {
+  deriveLivingEmployeePresentation,
+  type LivingEmployeePresentation,
+} from "./living-organization-employee-presentation";
 
 export const LIVING_SCENE_RENDERER_TARGET = "three-webgpu";
 
 export type LivingSceneEmployeeSlot = {
   employee: LivingSceneEmployee;
   workItem: LivingSceneWorkItem | null;
+  presentation: LivingEmployeePresentation;
   slot: number;
 };
 
@@ -38,6 +43,7 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
   const employeeSlots = scene.deterministic.employees.map((employee, index) => ({
     employee,
     workItem: employee.work_item_id ? workById.get(employee.work_item_id) ?? null : null,
+    presentation: deriveLivingEmployeePresentation(employee),
     slot: index,
   }));
 

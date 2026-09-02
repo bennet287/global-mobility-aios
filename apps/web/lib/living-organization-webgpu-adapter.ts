@@ -1,5 +1,5 @@
 import {
-  BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Raycaster, Scene, Vector2, WebGPURenderer,
+  BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Raycaster, Scene, SphereGeometry, Vector2, WebGPURenderer,
 } from "three/webgpu";
 import type { LivingSceneRenderModel } from "./living-organization-scene-renderer";
 import {
@@ -68,6 +68,13 @@ export async function mountLivingOrganizationWebGPUScene({
   const pointer = new Vector2();
   let pickTargets: any[] = [];
   let disposableResources: Array<{ dispose?: () => void }> = [];
+  let employeeActors: Array<{
+    root: any;
+    baseY: number;
+    motion: string;
+    phase: number;
+    previousOffset: number;
+  }> = [];
   let modelRevision = 0;
   let disposed = false;
 
@@ -77,6 +84,11 @@ export async function mountLivingOrganizationWebGPUScene({
   canvas.dataset.sceneAuthoritative = "false";
   canvas.dataset.rendererModelRevision = "0";
   canvas.dataset.rendererProjectionResources = "0";
+  canvas.dataset.animationScope = "workspace-representation";
+  canvas.dataset.locomotionEnabled = "false";
+  canvas.dataset.presenceClaimed = "false";
+  canvas.dataset.presentationModes = "";
+  canvas.dataset.animationProof = "pending";
 
   const render = () => {
     if (disposed) return;
@@ -107,7 +119,10 @@ export async function mountLivingOrganizationWebGPUScene({
     }
     disposableResources = [];
     pickTargets = [];
+    employeeActors = [];
     canvas.dataset.rendererProjectionResources = "0";
+    canvas.dataset.presentationModes = "";
+    canvas.dataset.animationProof = "pending";
   };
 
   const addBox = ({
@@ -156,14 +171,48 @@ export async function mountLivingOrganizationWebGPUScene({
         ),
       });
 
-      zone.employeeSlots.forEach(({ employee }, employeeIndex) => {
+      zone.employeeSlots.forEach(({ employee, presentation }, employeeIndex) => {
         const column = employeeIndex % 3;
         const row = Math.floor(employeeIndex / 3);
-        addBox({
-          size: [0.72, 1.15, 0.72],
-          position: [zoneX + (column - 1) * 1.05, 0.68, 0.7 + row * 1.05],
-          color: 0xe3e5ff,
-          selection: createLivingSceneSelection("employee", employee.position_key, employee.title),
+        const root = new Group();
+        const baseY = 0.62;
+        root.position.set(zoneX + (column - 1) * 1.05, baseY, 0.7 + row * 1.05);
+
+        const employeeColor: Record<string, number> = {
+          focused_work: 0xaac8ff,
+          blocked_wait: 0xffa4a4,
+          awaiting_attention: 0xf1cf77,
+          queued_wait: 0xc8b8ff,
+          settled_idle: 0xa9dfba,
+          neutral_static: 0xc6cad6,
+        };
+        const selection = createLivingSceneSelection("employee", employee.position_key, employee.title);
+
+        const torsoGeometry = new BoxGeometry(0.48, 0.68, 0.34);
+        const torsoMaterial = new MeshBasicMaterial({
+          color: employeeColor[presentation.state] ?? employeeColor.neutral_static,
+        });
+        const torso = new Mesh(torsoGeometry, torsoMaterial);
+        torso.position.set(0, 0.18, 0);
+        torso.userData.selection = selection;
+
+        const headGeometry = new SphereGeometry(0.22, 12, 8);
+        const headMaterial = new MeshBasicMaterial({ color: 0xf0dfcf });
+        const head = new Mesh(headGeometry, headMaterial);
+        head.position.set(0, 0.72, 0);
+        head.userData.selection = selection;
+
+        root.add(torso);
+        root.add(head);
+        scene.add(root);
+        pickTargets.push(torso, head);
+        disposableResources.push(torsoGeometry, torsoMaterial, headGeometry, headMaterial);
+        employeeActors.push({
+          root,
+          baseY,
+          motion: presentation.motion,
+          phase: employeeIndex * 0.73 + zone.zoneIndex * 0.41,
+          previousOffset: 0,
         });
       });
     });
@@ -185,10 +234,40 @@ export async function mountLivingOrganizationWebGPUScene({
     camera.position.set(0, Math.max(9, span * 0.62), Math.max(13, span * 0.9));
     camera.lookAt(0, 0, 0);
 
+    const presentationModes = [...new Set(
+      nextModel.employeeSlots.map(({ presentation }) => presentation.state),
+    )].sort();
+    canvas.dataset.presentationModes = presentationModes.join(",");
+    canvas.dataset.animationProof = employeeActors.some(({ motion }) => motion !== "none")
+      ? "pending"
+      : "static-only";
+
     modelRevision += 1;
     canvas.dataset.rendererModelRevision = String(modelRevision);
     canvas.dataset.rendererProjectionResources = String(disposableResources.length);
     resize();
+  };
+
+  const motionOffset = (motion: string, seconds: number, phase: number): number => {
+    if (motion === "work_pulse") return Math.sin(seconds * 4.8 + phase) * 0.035;
+    if (motion === "blocked_pulse") return Math.abs(Math.sin(seconds * 4.2 + phase)) * 0.07;
+    if (motion === "waiting_breathe") return Math.sin(seconds * 2.1 + phase) * 0.022;
+    if (motion === "settled_breathe") return Math.sin(seconds * 1.45 + phase) * 0.012;
+    return 0;
+  };
+
+  const animate = (time: number) => {
+    if (disposed) return;
+    const seconds = time * 0.001;
+    let motionObserved = false;
+    for (const actor of employeeActors) {
+      const offset = motionOffset(actor.motion, seconds, actor.phase);
+      actor.root.position.y = actor.baseY + offset;
+      if (Math.abs(offset - actor.previousOffset) > 0.0005) motionObserved = true;
+      actor.previousOffset = offset;
+    }
+    if (motionObserved) canvas.dataset.animationProof = "motion-observed";
+    render();
   };
 
   const handlePointer = (event: PointerEvent) => {
@@ -208,12 +287,14 @@ export async function mountLivingOrganizationWebGPUScene({
   if (!resizeObserver) window.addEventListener("resize", resize);
 
   const canvasLease = markRendererMounted(canvas);
+  renderer.setAnimationLoop(animate);
   try {
     updateModel(model);
   } catch (error) {
     canvas.removeEventListener("pointerdown", handlePointer);
     resizeObserver?.disconnect();
     if (!resizeObserver) window.removeEventListener("resize", resize);
+    renderer.setAnimationLoop(null);
     clearProjection();
     try {
       renderer.dispose();
@@ -236,6 +317,7 @@ export async function mountLivingOrganizationWebGPUScene({
       canvas.removeEventListener("pointerdown", handlePointer);
       resizeObserver?.disconnect();
       if (!resizeObserver) window.removeEventListener("resize", resize);
+      renderer.setAnimationLoop(null);
       clearProjection();
       try {
         renderer.dispose();

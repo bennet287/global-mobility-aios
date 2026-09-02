@@ -733,3 +733,29 @@ test("M.4.0 keeps Structured usable with WebGPU disabled and reports actual WebG
   await expect(page.getByText("Canonical scene reference", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Record bounded owner synthesis" })).toBeEnabled();
 });
+
+
+test("M.4.1 animates canonical work state without inventing presence or locomotion", async ({ page }) => {
+  const animatedScene = livingScene();
+  if (!animatedScene.scene) throw new Error("expected Living Organization scene fixture");
+
+  animatedScene.scene.deterministic.employees[0].semantic_state = "working";
+  animatedScene.scene.deterministic.employees[0].presence_state = "not_asserted";
+
+  await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: animatedScene }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  const stage = page.locator(".living-webgpu-stage");
+  const canvas = page.getByTestId("living-webgpu-canvas");
+  await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+  await expect(canvas).toHaveAttribute("data-animation-scope", "workspace-representation");
+  await expect(canvas).toHaveAttribute("data-locomotion-enabled", "false");
+  await expect(canvas).toHaveAttribute("data-presence-claimed", "false");
+  await expect(canvas).toHaveAttribute("data-presentation-modes", /focused_work/);
+  await expect(canvas).toHaveAttribute("data-animation-proof", "motion-observed", { timeout: 5_000 });
+  await expect(page.getByText(/Presence and locomotion are not asserted in M\.4\.1/)).toBeVisible();
+});

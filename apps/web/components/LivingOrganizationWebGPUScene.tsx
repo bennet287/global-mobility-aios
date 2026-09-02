@@ -99,8 +99,8 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
     >
       <header>
         <div>
-          <span>M.4.0 · Renderer bootstrap gate</span>
-          <strong id="living-webgpu-title">Spatial renderer</strong>
+          <span>M.4.1 · Animated Employees V1</span>
+          <strong id="living-webgpu-title">Living spatial organization</strong>
         </div>
         <small>{phase === "ready" ? backendLabel(backend) : phase}</small>
       </header>
@@ -125,8 +125,9 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
         </div>
       ) : null}
       <p className="living-webgpu-accessibility">
-        This renderer is an enhancement. The Structured Cockpit reference below remains available for accessibility,
-        low-power devices, unsupported graphics environments, and every core operation.
+        Employee motion is presentation-only workspace motion derived from canonical semantic state.
+        Presence and locomotion are not asserted in M.4.1; walking, talking, room entry and handoffs remain disabled
+        until later canonical collaboration/location semantics exist. The Structured Cockpit remains available for every core operation.
       </p>
     </section>
   );

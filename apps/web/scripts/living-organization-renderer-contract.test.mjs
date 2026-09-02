@@ -55,3 +55,38 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(sceneComponent, /STRUCTURED · permanent product surface/);
   assert.match(sceneComponent, /accessible, low-power, exact-record fallback for every core operation/);
 });
+
+
+test("M.4.1 employee animation consumes bounded presentation state", async () => {
+  const [presentation, renderModel, adapter, rendererComponent] = await Promise.all([
+    read("lib/living-organization-employee-presentation.ts"),
+    read("lib/living-organization-scene-renderer.ts"),
+    read("lib/living-organization-webgpu-adapter.ts"),
+    read("components/LivingOrganizationWebGPUScene.tsx"),
+  ]);
+
+  assert.match(presentation, /focused_work/);
+  assert.match(presentation, /blocked_wait/);
+  assert.match(presentation, /awaiting_attention/);
+  assert.match(presentation, /queued_wait/);
+  assert.match(presentation, /settled_idle/);
+  assert.match(presentation, /neutral_static/);
+  assert.match(presentation, /locomotionAllowed: false/);
+  assert.match(presentation, /presenceClaimed: false/);
+
+  assert.match(renderModel, /deriveLivingEmployeePresentation/);
+  assert.match(renderModel, /presentation: LivingEmployeePresentation/);
+
+  assert.match(adapter, /SphereGeometry/);
+  assert.match(adapter, /new Group\(\)/);
+  assert.match(adapter, /setAnimationLoop\(animate\)/);
+  assert.match(adapter, /animationScope = "workspace-representation"/);
+  assert.match(adapter, /locomotionEnabled = "false"/);
+  assert.match(adapter, /presenceClaimed = "false"/);
+  assert.match(adapter, /animationProof = "motion-observed"/);
+  assert.match(adapter, /employeeActors = \[\]/);
+  assert.doesNotMatch(adapter, /conversation_state|handoff_state|walking_state|room_entry_state/);
+
+  assert.match(rendererComponent, /M\.4\.1 · Animated Employees V1/);
+  assert.match(rendererComponent, /Presence and locomotion are not asserted in M\.4\.1/);
+});

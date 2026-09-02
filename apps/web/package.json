@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:design-foundation": "node --test scripts/design-foundation.test.mjs scripts/live-organization-surface.test.mjs scripts/living-organization-renderer-contract.test.mjs scripts/cockpit-refinements.test.mjs && node --experimental-strip-types --test scripts/living-organization-renderer-policy.test.mjs",
-    "test:renderer-contract": "node --test scripts/living-organization-renderer-contract.test.mjs && node --experimental-strip-types --test scripts/living-organization-renderer-policy.test.mjs",
+    "test:design-foundation": "node --test scripts/design-foundation.test.mjs scripts/live-organization-surface.test.mjs scripts/living-organization-renderer-contract.test.mjs scripts/cockpit-refinements.test.mjs && node --experimental-strip-types --test scripts/living-organization-renderer-policy.test.mjs scripts/living-organization-presentation.test.mjs",
+    "test:renderer-contract": "node --test scripts/living-organization-renderer-contract.test.mjs && node --experimental-strip-types --test scripts/living-organization-renderer-policy.test.mjs scripts/living-organization-presentation.test.mjs",
     "test:request-auth": "node --experimental-strip-types --test lib/request-client.test.mjs lib/organization-read-client.test.mjs",
     "test:compiled-auth": "node scripts/verify-compiled-client-auth.mjs"
   },

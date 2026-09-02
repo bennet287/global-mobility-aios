@@ -5,6 +5,8 @@ declare module "three/webgpu" {
   export const Scene: any;
   export const PerspectiveCamera: any;
   export const BoxGeometry: any;
+  export const SphereGeometry: any;
+  export const Group: any;
   export const MeshBasicMaterial: any;
   export const Mesh: any;
   export const Raycaster: any;
