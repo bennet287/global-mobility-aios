@@ -7,7 +7,7 @@
 **Scheduling authority:** `docs/ROADMAP.md`
 **Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
 **Current product milestone:** L — COMPLETE / PASS / SEALED
-**M milestone:** IN PROGRESS — M.4.0 renderer bootstrap COMPLETE / PASS; M.4.1 Animated Employees V1 next
+**M milestone:** IN PROGRESS — M.4 Animated Employees V1 COMPLETE / PASS; M.5 Conversations, Handoffs & Mission Rooms next
 
 > **Aggressive Radar. Conservative production authority.**
 
@@ -269,7 +269,7 @@ These candidates occupy distinct seams and remain intentionally separate.
 | Storybook | **HOLD_WITH_TRIGGER** | M component/design-system proof demonstrates a workbench need |
 | Penpot | **PREFERRED DESIGN ENVIRONMENT / NOT ACCEPTANCE DEPENDENCY** | design tooling only |
 
-L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure and M.4.0 browser renderer proof is COMPLETE / PASS; M.4.1 semantic employee animation is next. GPU fluid FLOW remains a TRIAL, reaction-diffusion remains an EXPERIMENT, and Cognitive Ecology/Organica remains Post-M optional research.
+L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure and M.4 is COMPLETE / PASS through bounded stationary semantic employee animation. M.5 canonical collaboration is next. GPU fluid FLOW remains a TRIAL, reaction-diffusion remains an EXPERIMENT, and Cognitive Ecology/Organica remains Post-M optional research.
 
 ## 14. Cybersecurity skill and Red Team programme
 
@@ -352,7 +352,7 @@ R3 branch merge into V12                  NONE
 professional Austria review               COMPLETE under sealed L record
 final L exact-evidence-head proof          COMPLETE
 L                                          COMPLETE / PASS / SEALED
-M                                          IN PROGRESS — M.4.0 COMPLETE / PASS; M.4.1 NEXT
+M                                          IN PROGRESS — M.4 COMPLETE / PASS; M.5 NEXT
 N                                          NOT STARTED
 ```
 

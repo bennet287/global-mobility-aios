@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.71 — M.4.0 renderer bootstrap COMPLETE / PASS; M.4.1 Animated Employees V1 next
+**Current V12 generation:** V12.72 — M.4.1 Animated Employees V1 COMPLETE / PASS; M.5 Conversations, Handoffs & Mission Rooms next
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is COMPLETE / PASS / SEALED on accepted evidence head `a95f3f5...`.
 The genuine independent Austria professional-review gate promoted all three current cases, and Repository Policy plus both push/PR V12 Production Proof runs are green for that exact evidence head.
-M — Board Transparency Experience is IN PROGRESS; M.1–M.3 and M.4.0 are COMPLETE / PASS. M.4.0 is accepted at exact head `e6640755...` with five-job Production Proof and seven-test Chromium renderer proof; M.4.1 Animated Employees V1 is next.
+M — Board Transparency Experience is IN PROGRESS; M.1–M.4 are COMPLETE / PASS. M.4.1 is accepted at exact head 7591e32... with five-job Production Proof and ten-test Chromium Living Organization proof; M.5 is next.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 N remains blocked behind M.
 No Radar candidate has caused runtime adoption.
@@ -28,7 +28,7 @@ No Radar candidate has caused runtime adoption.
 |-----------|--------|------------------------|
 | K.1 Bounded Specialist Execution | **SEALED** | None. Canonical proof recorded. |
 | L Live Organization | **COMPLETE / PASS / SEALED** | Accepted evidence head `a95f3f5...`; no open gate. |
-| M Board Transparency Experience | **IN PROGRESS — M.1–M.3 + M.4.0 COMPLETE / PASS; M.4.1 NEXT** | M.4.0 exact-head Production Proof #1085 PASS 5/5; browser suite PASS 7/7. |
+| M Board Transparency Experience | **IN PROGRESS — M.1–M.4 COMPLETE / PASS; M.5 NEXT** | M.4.1 exact-head Production Proof #1102 PASS 5/5; Chromium Living Organization suite PASS 10/10. |
 | N Learning & Optimization | **NOT STARTED** | Wait for M. |
 
 ---
@@ -37,7 +37,7 @@ No Radar candidate has caused runtime adoption.
 
 | Workstream | Branch / location | Status | Do not... |
 |------------|-------------------|--------|-----------|
-| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed; M.1–M.3 + M.4.0 COMPLETE / PASS; M.4.1 next | Preserve renderer non-authority and Structured fallback while adding animation. |
+| **V12 main** | roadmap/global-mobility-aios-v12 | Active; L sealed; M.1–M.4 COMPLETE / PASS; M.5 next | Add collaboration only from canonical conversation/handoff/Mission semantics. |
 | **Track B Product Experience** | `roadmap/...v12` (`apps/web/`) | Anti-duplication complete; runtime economics + durable activity lineage implemented | Do not add Munder collaboration/presence/event state. |
 | **Wave E1 Secrets** | `roadmap/...v12` (`docs/...WAVE_E1...`) | Pilot complete / trial-eligible | Do not claim production OpenBao adoption. |
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
@@ -47,7 +47,8 @@ No Radar candidate has caused runtime adoption.
 | **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | **COMPLETE / PASS** at `9f00124c...`; Policy #517 PASS; Production Proof #1054 4/4 PASS | Do not reopen without regression; no command-surface or decision-domain unification. |
 | **M.2 Decision reconstruction** | `roadmap/...v12` | **COMPLETE / PASS** at `d9294b2...`; Policy #521 PASS; Production Proof #1062 4/4 PASS; backend 1340/22, PostgreSQL 105, frontend 42/42 | Do not reopen without regression; reconstruction remains read-only. |
 | **M.3 Scene Foundation** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **COMPLETE / PASS** at `d72ba0b6...`; Policy #527 PASS; Production Proof #1074 4/4 PASS | Do not reopen without regression; scene remains projection-only. |
-| **M.4–M.10 Living Organization V2** | `roadmap/...v12` | **M.4.0 COMPLETE / PASS; M.4.1 NEXT**; WebGPU/Three.js = ADOPT; fluid FLOW = TRIAL; reaction-diffusion = EXPERIMENT; M.10 = cross-view closure | Structured surface remains permanent; animation must consume explicit presentation state only. |
+| **M.4 Living Organization animation** | roadmap/...v12 | **COMPLETE / PASS** at 7591e32...; stationary semantic employee motion proven | Presence/locomotion remain unasserted; no walking/talking/handoffs in M.4. |
+| **M.5–M.10 Living Organization V2** | roadmap/...v12 | **M.5 NEXT**; WebGPU/Three.js = ADOPT; fluid FLOW = TRIAL; reaction-diffusion = EXPERIMENT; M.10 = cross-view closure | Collaboration and movement must follow canonical links, never proximity. |
 | **Post-M Cognitive Ecology / Organica** | unscheduled research | **OPTIONAL / NOT AN M DELIVERABLE** | May return only for a proven unmet task; does not block N. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
@@ -184,15 +185,14 @@ Canonical contract: docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
 
 In order:
 
-1. **M.4.1 Animated Employees V1 — NEXT** — add bounded semantic animation on the accepted renderer; unknown/not-asserted states remain neutral and non-presence-implying.
-2. **M.5–M.6** — conversations/handoffs/Mission Rooms, then blockers/Smart Objects/live Board Room.
-3. **M.5–M.6** — conversations/handoffs/Mission Rooms, then blockers/Smart Objects/live Board Room.
-4. **M.7** — maintain a structured FLOW baseline and run the GPU fluid FLOW TRIAL against it.
-5. **M.8** — Replay / temporal organization as a core product surface and historical baseline.
-6. **M.9** — environmental-memory TRIAL with structured baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment.
-7. **M.10** — cross-view product-value benchmark + M closure.
-8. **Post-M** — Cognitive Ecology / Organica only if a proven unmet task justifies new research.
-9. **Close R3 authority / security** as bounded supporting work when it does not displace M.
+1. **M.5 Conversations, Handoffs & Mission Rooms — NEXT** — connect visible collaboration only to canonical AgentConversation/equivalent semantics, ownership/dependency transitions and real Mission participation.
+2. **M.6** — blockers, Smart Objects and live Board Room.
+3. **M.7** — maintain a structured FLOW baseline and run the GPU fluid FLOW TRIAL against it.
+4. **M.8** — Replay / temporal organization as a core product surface and historical baseline.
+5. **M.9** — environmental-memory TRIAL with structured baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment.
+6. **M.10** — cross-view product-value benchmark + M closure.
+7. **Post-M** — Cognitive Ecology / Organica only if a proven unmet task justifies new research.
+8. **Close R3 authority / security** as bounded supporting work when it does not displace M.
 
 ---
 

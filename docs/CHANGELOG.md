@@ -9,6 +9,50 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.72 M.4.1 ANIMATED EMPLOYEES V1 EXACT-HEAD CLOSURE
+
+### Status
+
+**M.4.1 ANIMATED EMPLOYEES V1 COMPLETE / PASS / M.5 NEXT**
+
+Exact accepted implementation/proof head:
+
+~~~text
+7591e32be1c9fa8601ffca0b17efea62b7066545
+
+Repository Policy Check #541 / run 33586042228   PASS
+V12 Production Proof #1102 / run 33586042255     PASS — 5/5 jobs
+Living Organization Chromium suite               PASS — 10/10 tests
+~~~
+
+M.4.1 adds a pure canonical-semantic-state → presentation-state contract and simple recognizable employee figures.
+
+~~~text
+working        → focused_work / work pulse
+blocked        → blocked_wait / attention pulse
+awaiting_owner → awaiting_attention / waiting motion
+queued         → queued_wait / waiting motion
+completed      → settled_idle / calm motion
+unknown        → neutral_static / no motion
+~~~
+
+All employee presentation states remain presentation-only, do not claim presence and do not allow locomotion.
+
+The accepted renderer keeps its GPU/WebGL2 backend and canvas alive across scene refresh while rebuilding bounded projection resources and employee actors. Browser proof observes real animation for canonical working state with:
+
+~~~text
+animation scope      workspace-representation
+presence claimed     false
+locomotion enabled   false
+animation proof      motion-observed
+~~~
+
+Walking, talking, room entry and handoff animation are intentionally not implemented in M.4.1. They move to M.5 where canonical conversation/handoff/Mission Room semantics can drive them.
+
+Candidate heads bdec4c10... and 0a506568... failed stale M.4.0 wording assertions in the design test oracle. Those failed runs remain failed; no PASS was inherited. The final accepted head is 7591e32....
+
+---
+
 ## 2026-09-02 — V12.71 M.4.0 EXACT-HEAD CLOSURE
 
 ### Status

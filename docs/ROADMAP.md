@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.71 — M.4.0 renderer bootstrap COMPLETE / PASS; M.4.1 Animated Employees V1 next
+**Roadmap generation:** V12.72 — M.4.1 Animated Employees V1 COMPLETE / PASS; M.5 Conversations, Handoffs & Mission Rooms next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 + M.2 + M.3 + M.4.0 COMPLETE / PASS; M.4.1 NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.4 COMPLETE / PASS; M.5 NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -220,8 +220,9 @@ M.1A  DOCUMENTATION / ROADMAP RECONCILIATION — V12.65
 M.2   COMPLETE / PASS at d9294b2f29c21aa4866d47a253ada94eeae2c568
 M.3   COMPLETE / PASS at d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
 M.4.0 COMPLETE / PASS at e664075567997f64bd0b973aa8e8d089207ec77e
-M.4.1 NEXT — Animated Employees V1
-M.5+  SCHEDULED — Living Organization V2
+M.4.1 COMPLETE / PASS at 7591e32be1c9fa8601ffca0b17efea62b7066545
+M.5   NEXT — Conversations, Handoffs & Mission Rooms
+M.6+  SCHEDULED — Living Organization V2
 N     NOT STARTED — dependency-gated behind M
 ```
 
@@ -380,8 +381,8 @@ optional Cognitive Ecology / Organica
 | **M.1A** | Record exact-head CI closure and freeze detailed M / Living Organization direction | **THIS V12.65 documentation slice** |
 | **M.2** | Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction | **COMPLETE / PASS** at `d9294b2f29c21aa4866d47a253ada94eeae2c568` |
 | **M.3** | Living Organization Scene Foundation | **COMPLETE / PASS** at `d72ba0b6aaeb14385a340a7a4c0ddace1cd63882` |
-| **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **IN PROGRESS — M.4.0 COMPLETE / PASS; M.4.1 NEXT** |
-| **M.5** | Conversations, handoffs & Mission Rooms | Scheduled |
+| **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **COMPLETE / PASS** at 7591e32... |
+| **M.5** | Conversations, handoffs & Mission Rooms | **NEXT functional slice** |
 | **M.6** | Blockers, Smart Objects & live Board Room | Scheduled |
 | **M.7** | Organization Lenses + Owner command mode; mandatory structured FLOW baseline + GPU fluid FLOW TRIAL | Scheduled |
 | **M.8** | Replay / temporal organization | Scheduled |
@@ -675,24 +676,63 @@ M.4.0 is closed unless a regression is found. M.4.1 may now implement semantic e
 
 ### M.4.1 — Animated Employees V1
 
-Only after M.4.0 PASS do we add the initial animation vocabulary:
+M.4.1 is **COMPLETE / PASS** at exact implementation/proof head:
 
 ~~~text
-idle / available / walking / working / reading / typing
-talking / waiting / coffee-lounge / enter-leave room / handoff
+7591e32be1c9fa8601ffca0b17efea62b7066545
+
+Repository Policy Check #541 / run 33586042228   PASS
+V12 Production Proof #1102 / run 33586042255     PASS — 5/5 jobs
+
+Frontend tests, types and build                   PASS
+Repository policy and constraints                PASS
+PostgreSQL governance contracts                  PASS
+Backend regression (SQLite)                      PASS
+Living Organization renderer browser proof       PASS — 10/10 Playwright tests
 ~~~
 
-The goal is trustworthy legibility, not cinematic fidelity.
+Accepted M.4.1 scope is intentionally narrower than the earlier aspirational motion vocabulary.
+
+Canonical employee semantic state is converted by a pure presentation mapping:
 
 ~~~text
-active WorkItem → working semantic state → desk/read/type animation
-available       → idle semantic state    → desk/lounge/coffee animation
+working         → focused_work       → stationary work pulse
+blocked         → blocked_wait       → stationary attention pulse
+awaiting_owner  → awaiting_attention → restrained waiting motion
+queued          → queued_wait        → restrained waiting motion
+completed       → settled_idle       → calm settled motion
+unknown         → neutral_static     → no motion
 ~~~
 
-Employees retain recognizable identity, role, home department and location conventions. Animation consumes explicit semantic state; it does not derive new organizational truth.
+Every presentation result explicitly remains:
 
-Renderer direction: stay inside the existing Next.js/React Cockpit. WebGPU plus the Three.js WebGPU scene layer is ADOPT infrastructure. Rendering technology never becomes runtime authority.
+~~~text
+presentationOnly  = true
+presenceClaimed   = false
+locomotionAllowed = false
+~~~
 
+The renderer uses simple recognizable employee figures and a long-lived Three.js/WebGPU animation loop while preserving the M.4.0 lifecycle contract:
+
+~~~text
+renderer / canvas / backend stay alive
+        ↓
+scene refresh
+        ↓
+projection resources rebuilt
+        ↓
+employee actor presentation rebuilt
+        ↓
+animation continues
+~~~
+
+Browser proof verifies that canonical working state produces observable presentation motion while presence and locomotion remain false.
+
+M.4.1 does **not** implement walking, talking, room entry, handoffs or spatial collaboration inferred from proximity. Those require canonical M.5 conversation/handoff/Mission Room semantics.
+
+Two earlier exact-head candidate runs failed only stale M.4.0 text assertions in the design contract; no PASS was inherited from them. The final accepted head is 7591e32....
+
+M.4 is closed unless a regression is discovered.
 
 ## 5.4 M.5 — Conversations, handoffs and Mission Rooms
 
@@ -993,7 +1033,7 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1 + M.2 + M.3 + M.4.0 COMPLETE / PASS; M.4.1 NEXT; M.5–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1–M.4 COMPLETE / PASS; M.5 NEXT; M.6–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 

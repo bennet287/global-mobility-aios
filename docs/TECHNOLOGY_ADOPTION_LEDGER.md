@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.71 / M.4.0 renderer bootstrap exact-head PASS
+**Latest reconciliation:** V12.72 / M.4.1 Animated Employees V1 exact-head PASS
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -62,7 +62,7 @@ The advanced stack deliberately separates infrastructure adoption from visualiza
 | Capability | Adoption truth | Required product value |
 |---|---|---|
 | WebGPU | **ADOPT / infrastructure substrate** | dense scene rendering + compute with responsive interaction and graceful fallback |
-| Three.js WebGPU/compute layer | **ADOPT / scene + interaction substrate; M.4.0 COMPLETE / PASS at `e6640755...`** | `three@0.185.1`; actual browser backend + picking + Structured fallback proven under Production Proof #1085 |
+| Three.js WebGPU/compute layer | **ADOPT / scene + interaction substrate; M.4 COMPLETE / PASS through 7591e32...** | three@0.185.1; renderer bootstrap plus bounded semantic employee animation proven; presence/locomotion remain unasserted |
 | GPU flow/fluid simulation | **TRIAL / M.7 bounded product experiment** | must materially beat a maintained structured graph/heat/animated-edge baseline for congestion/shared-blocker tasks |
 | reaction-diffusion environmental fields | **EXPERIMENT / M.9 research bet** | must first establish an explainable, non-misleading mapping and graduate to TRIAL before product promotion |
 | Cognitive Ecology / Organica | **POST-M OPTIONAL RESEARCH** | not an M deliverable; may return only for a proven unmet cognitive task and does not block N |
@@ -197,7 +197,7 @@ runtime adoption caused by V1.3.8        NONE
 Munder runtime adoption                  NONE ON CANONICAL V12
 external mutation engine adoption        NONE
 L                                        COMPLETE / PASS / SEALED
-M                                        IN PROGRESS — M.4.0 COMPLETE / PASS; M.4.1 NEXT; WebGPU/Three.js ADOPT, fluid FLOW TRIAL, reaction-diffusion EXPERIMENT
+M                                        IN PROGRESS — M.4 COMPLETE / PASS; M.5 NEXT; WebGPU/Three.js ADOPT, fluid FLOW TRIAL, reaction-diffusion EXPERIMENT
 ```
 
 ROADMAP remains the implementation scheduler.
@@ -235,3 +235,15 @@ exact accepted head                       e664075567997f64bd0b973aa8e8d089207ec7
 ~~~
 
 M.4.0 browser-renderer acceptance is complete. Future animation work must preserve the same authority and fallback boundary.
+
+### M.4.1 animation truth
+
+~~~text
+exact accepted head        7591e32be1c9fa8601ffca0b17efea62b7066545
+Production Proof #1102     PASS — 5/5
+Chromium Living Org suite  PASS — 10/10
+employee animation         stationary semantic presentation only
+presence claim             NONE
+locomotion claim           NONE
+conversation/handoff       deferred to M.5 canonical semantics
+~~~
