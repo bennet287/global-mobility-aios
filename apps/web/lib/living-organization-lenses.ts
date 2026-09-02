@@ -115,10 +115,10 @@ export function buildLivingOrganizationLenses(
     {
       key: "flow",
       label: "Flow",
-      availability: "partial",
-      count: scene.deterministic.relationships.length + scene.deterministic.handoffs.length,
-      summary: "Current routing topology and governed handoffs. Throughput/heat baseline is not implemented yet.",
-      canonicalBasis: "WorkItem relationships + organization.work.assigned.v1 projection",
+      availability: "available",
+      count: scene.deterministic.work_items.length + scene.deterministic.handoffs.length,
+      summary: "Structured directed WorkItem topology, lifecycle signals and governed handoffs. GPU fluid/field remains a separate trial.",
+      canonicalBasis: "living-organization-scene.v4 WorkItems + organization.work.assigned.v1 projection",
     },
     {
       key: "risk",
@@ -134,7 +134,7 @@ export function buildLivingOrganizationLenses(
       availability: "planned",
       count: null,
       summary: "Not projected by scene v3. Authority levels are not treated as autonomy.",
-      canonicalBasis: "No scene-safe canonical autonomy-profile lens in M.7.1",
+      canonicalBasis: "No scene-safe canonical autonomy-profile lens in M.7.2",
     },
     {
       key: "cost",
@@ -176,7 +176,7 @@ export function buildLivingOrganizationLenses(
       availability: "planned",
       count: null,
       summary: "No canonical performance aggregate is projected by scene v3; activity volume is not productivity.",
-      canonicalBasis: "No M.7.1 canonical performance lens contract",
+      canonicalBasis: "No M.7.2 canonical performance lens contract",
     },
     {
       key: "incident",

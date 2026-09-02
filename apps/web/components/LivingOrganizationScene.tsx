@@ -14,6 +14,12 @@ import {
   smartObjectLensTags,
   type LivingOrganizationLensKey,
 } from "../lib/living-organization-lenses";
+import {
+  OWNER_ANALYTICAL_QUERIES,
+  buildStructuredFlowBaseline,
+  evaluateOwnerAnalyticalQuery,
+  type OwnerAnalyticalQueryKey,
+} from "../lib/living-organization-analytics";
 import { titleCase } from "../lib/utils";
 
 function initials(value: string): string {
@@ -33,10 +39,28 @@ function timestampLabel(value: string): string {
   return `${value.slice(0, 16).replace("T", " ")} UTC`;
 }
 
+function durationLabel(value: number | null): string {
+  if (value === null) return "Not recorded";
+  const minutes = Math.floor(value / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}h ${remainder}m` : `${hours}h`;
+}
+
 export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizationScene }) {
   const renderModel = useMemo(() => buildLivingSceneRenderModel(scene), [scene]);
   const [requestedLens, setRequestedLens] = useState<LivingOrganizationLensKey>("organization");
+  const [activeQueryKey, setActiveQueryKey] = useState<OwnerAnalyticalQueryKey | null>(null);
   const lenses = useMemo(() => buildLivingOrganizationLenses(scene), [scene]);
+  const flowBaseline = useMemo(() => buildStructuredFlowBaseline(scene), [scene]);
+  const ownerQueryResults = useMemo(
+    () => OWNER_ANALYTICAL_QUERIES.map((query) => evaluateOwnerAnalyticalQuery(scene, query.key)),
+    [scene],
+  );
+  const activeQueryResult = activeQueryKey
+    ? ownerQueryResults.find((result) => result.key === activeQueryKey) ?? null
+    : null;
   const requestedLensDescriptor = lenses.find((lens) => lens.key === requestedLens);
   const activeLens = requestedLensDescriptor && isLivingOrganizationLensSelectable(requestedLensDescriptor)
     ? requestedLens
@@ -64,12 +88,13 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
     <section className="living-scene-shell" aria-labelledby="living-scene-title" data-active-lens={activeLens}>
       <header className="living-scene-header">
         <div>
-          <span className="premium-label">M.7.1 · Organization Lenses + Owner view commands</span>
+          <span className="premium-label">M.7.2 · Structured FLOW + Owner analytical queries</span>
           <h3 id="living-scene-title">Living Organization Scene</h3>
           <p>
             A spatial projection of persisted AIOS organization state. Geometry is presentation-only;
             employee, work, blocker, decision, Owner-action, risk, and relationship semantics come from the backend scene contract.
-            Lenses change local view emphasis only; they do not create organizational state or authority.
+            Lenses change local view emphasis only; structured FLOW and Owner queries are deterministic read models.
+            They do not create organizational state, authority, or a second truth store.
           </p>
         </div>
         <div className="living-scene-contract">
@@ -98,7 +123,10 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
                 data-lens-availability={lens.availability}
                 aria-pressed={activeLens === lens.key}
                 disabled={!selectable}
-                onClick={() => setRequestedLens(lens.key)}
+                onClick={() => {
+                  setRequestedLens(lens.key);
+                  setActiveQueryKey(null);
+                }}
                 title={lens.canonicalBasis}
               >
                 <span>{lens.label}</span>
@@ -112,17 +140,69 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           <span>Read-only Owner view commands</span>
           <div>
             {OWNER_LENS_VIEW_COMMANDS.map((command) => (
-              <button key={command.label} type="button" onClick={() => setRequestedLens(command.lens)}>
+              <button
+                key={command.label}
+                type="button"
+                onClick={() => {
+                  setRequestedLens(command.lens);
+                  setActiveQueryKey(null);
+                }}
+              >
                 {command.label}
               </button>
             ))}
           </div>
         </div>
-        <div className="living-lens-status" role="status" data-lens-availability={activeLensDescriptor.availability}>
+        <div className="living-owner-analytical-commands" aria-label="Owner analytical queries">
+          <span>Deterministic Owner queries</span>
+          <div>
+            {ownerQueryResults.map((result) => (
+              <button
+                key={result.key}
+                type="button"
+                data-owner-query={result.key}
+                data-query-status={result.status}
+                aria-pressed={activeQueryKey === result.key}
+                onClick={() => {
+                  setActiveQueryKey(result.key);
+                  const lens = lenses.find((item) => item.key === result.lens);
+                  if (lens && isLivingOrganizationLensSelectable(lens)) setRequestedLens(result.lens);
+                }}
+              >
+                <span>{result.label}</span>
+                <small>{titleCase(result.status)}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+                <div className="living-lens-status" role="status" data-lens-availability={activeLensDescriptor.availability}>
           <span>Active lens · {activeLensDescriptor.label}</span>
           <strong>{activeLensDescriptor.summary}</strong>
           <small>{activeLensDescriptor.canonicalBasis}</small>
         </div>
+        {activeQueryResult ? (
+          <div
+            className="living-owner-query-result"
+            role="status"
+            data-owner-query-result={activeQueryResult.key}
+            data-query-status={activeQueryResult.status}
+          >
+            <span>{activeQueryResult.label} · {titleCase(activeQueryResult.status)}</span>
+            <strong>{activeQueryResult.summary}</strong>
+            {activeQueryResult.items.length ? (
+              <ul>
+                {activeQueryResult.items.map((item) => (
+                  <li key={`${item.kind}:${item.id}`}>
+                    <b>{item.label}</b>
+                    <small>{item.detail} · {shortId(item.id)}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <small>{activeQueryResult.canonicalBasis}</small>
+            {activeQueryResult.limitation ? <small>Limit: {activeQueryResult.limitation}</small> : null}
+          </div>
+        ) : null}
       </section>
 
       <div className="living-scene-coverage" aria-label="Scene coverage">
@@ -165,6 +245,72 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           The spatial renderer may improve orientation and selection, but it never replaces canonical inspection.
         </p>
       </div>
+
+      <section
+        className={`living-flow-baseline${focusClass(["flow"])}`}
+        aria-labelledby="living-flow-title"
+        data-flow-authoritative="false"
+      >
+        <header>
+          <div>
+            <span>FLOW · maintained structured baseline</span>
+            <strong id="living-flow-title">Directed work routing & bottleneck signals</strong>
+          </div>
+          <small>GPU fluid/field TRIAL not promoted</small>
+        </header>
+        <div className="living-flow-summary">
+          <div><strong>{flowBaseline.workItemCount}</strong><span>WorkItems</span></div>
+          <div><strong>{flowBaseline.activeWorkItemCount}</strong><span>Active</span></div>
+          <div><strong>{flowBaseline.blockedWorkItemCount}</strong><span>Blocked</span></div>
+          <div><strong>{flowBaseline.ownerAttentionWorkItemCount}</strong><span>Owner attention</span></div>
+          <div><strong>{flowBaseline.overdueWorkItemCount}</strong><span>Overdue</span></div>
+          <div><strong>{flowBaseline.handoffCount}</strong><span>Handoffs</span></div>
+        </div>
+        <div className="living-flow-columns">
+          <section aria-labelledby="living-flow-work-title">
+            <header><strong id="living-flow-work-title">Work nodes</strong><small>{flowBaseline.nodes.length}</small></header>
+            <div className="living-flow-node-list">
+              {flowBaseline.nodes.map((node) => (
+                <article key={node.workItemId} data-flow-work={node.workItemId} data-overdue={String(node.overdue)}>
+                  <span>{titleCase(node.status)} · {node.riskLevel} · {node.priority}</span>
+                  <strong>{node.title}</strong>
+                  <small>{node.assignedPositionKey.replaceAll("_", " ")} · age {durationLabel(node.elapsedSeconds)}</small>
+                  <small>
+                    {node.blockerCount} blockers
+                    {node.oldestBlockerSeconds !== null ? ` · oldest ${durationLabel(node.oldestBlockerSeconds)}` : ""}
+                    {" · "}{node.handoffCount} handoffs · {node.ownerAttentionCount} Owner signals
+                  </small>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section aria-labelledby="living-flow-edge-title">
+            <header><strong id="living-flow-edge-title">Directed topology</strong><small>{flowBaseline.parentEdgeCount}</small></header>
+            <div className="living-flow-edge-list">
+              {flowBaseline.edges.length ? flowBaseline.edges.map((edge) => (
+                <div key={edge.edgeKey}>
+                  <span>{shortId(edge.sourceWorkItemId)}</span>
+                  <b>→</b>
+                  <span>{shortId(edge.targetWorkItemId)}</span>
+                  <small>Parent topology · not dependency truth</small>
+                </div>
+              )) : <p>No parent topology edge is projected.</p>}
+            </div>
+            <header className="living-flow-handoff-header"><strong>Governed handoff history</strong><small>{flowBaseline.handoffs.length}</small></header>
+            <div className="living-flow-edge-list">
+              {flowBaseline.handoffs.length ? flowBaseline.handoffs.map((handoff) => (
+                <div key={handoff.activityId}>
+                  <span>{titleCase(handoff.previousPositionKey)}</span>
+                  <b>→</b>
+                  <span>{titleCase(handoff.assignedPositionKey)}</span>
+                  <small>Work {shortId(handoff.workItemId)} · {timestampLabel(handoff.occurredAt)}</small>
+                </div>
+              )) : <p>No governed handoff is projected.</p>}
+            </div>
+          </section>
+        </div>
+        <footer>{flowBaseline.canonicalBasis}</footer>
+      </section>
 
       <div className="living-scene-smart-strip" aria-label="Canonical department topology">
         {renderModel.departmentZones.map(({ department, employeeSlots, workItems, zoneIndex }) => (

@@ -238,6 +238,12 @@ export type LivingSceneWorkItem = {
   assigned_position_key: string;
   department: string;
   authority_level: string;
+  created_at: string;
+  updated_at: string;
+  due_at: string | null;
+  completed_at: string | null;
+  elapsed_seconds: number | null;
+  overdue: boolean;
 };
 
 export type LivingSceneBlocker = {
@@ -252,6 +258,10 @@ export type LivingSceneBlocker = {
   decision_id: string | null;
   risk_escalation_id: string | null;
   requires_human_action: boolean;
+  opened_at: string;
+  due_at: string | null;
+  open_elapsed_seconds: number;
+  overdue: boolean;
 };
 
 export type LivingSceneDecision = {
