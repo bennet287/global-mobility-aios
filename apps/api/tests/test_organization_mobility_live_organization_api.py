@@ -29,6 +29,11 @@ from app.services.organization_mobility_objective_runtime import (
 )
 from app.services.organization_command import OrganizationCommandContext
 from app.services.organization_conversation import open_conversation
+from app.services.organization_decision import (
+    create_executive_decision,
+    record_executive_decision_outcome,
+    supersede_executive_decision,
+)
 from app.services.organization_human_action import create_human_action_request
 from app.services.organization_work import assign_work_item, open_blocker
 
@@ -184,38 +189,38 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     )
     assert decision.status_code == 201, decision.text
 
-    historical_decision = client.post(
-        "/api/v1/organization/decisions/records",
-        json={
-            "decision_key": "m7-historical-decision",
-            "decision_type": "operational",
-            "title": "Historical Austria routing decision",
-            "question": "Should the earlier bounded routing recommendation be retained?",
-            "recommendation": "Retain until a governed successor is recorded.",
-            "work_item_id": str(plan.root_work_item.id),
-        },
+    historical_decision = create_executive_decision(
+        db_session,
+        _human_context(),
+        decision_key="m7-historical-decision",
+        decision_type="operational",
+        authority_level="L2",
+        requested_by_position="mobility_operations_lead",
+        decision_owner_position="ceo",
+        title="Historical Austria routing decision",
+        question="Should the earlier bounded routing recommendation be retained?",
+        recommendation="Retain until a governed successor is recorded.",
+        work_item_id=plan.root_work_item.id,
     )
-    assert historical_decision.status_code == 201, historical_decision.text
-    historical_id = historical_decision.json()["id"]
-    historical_outcome = client.post(
-        f"/api/v1/organization/decisions/records/{historical_id}/outcome",
-        json={
-            "outcome": "approved",
-            "reason": "Settle the historical decision so supersession can be proven.",
-        },
+    record_executive_decision_outcome(
+        db_session,
+        _human_context(),
+        decision_id=historical_decision.id,
+        outcome="approved",
+        reason="Settle the historical decision so supersession can be proven.",
     )
-    assert historical_outcome.status_code == 200, historical_outcome.text
-    successor_decision = client.post(
-        f"/api/v1/organization/decisions/records/{historical_id}/supersede",
-        json={
-            "new_decision_key": "m7-historical-decision-v2",
-            "title": "Updated Austria routing decision",
-            "question": "Should the updated bounded routing recommendation replace the settled version?",
-            "recommendation": "Use the governed successor while preserving historical lineage.",
-            "reason": "M.7.3 acceptance proves bounded supersession timing.",
-        },
+    successor_decision = supersede_executive_decision(
+        db_session,
+        _human_context(),
+        original_decision_id=historical_decision.id,
+        new_decision_key="m7-historical-decision-v2",
+        title="Updated Austria routing decision",
+        question="Should the updated bounded routing recommendation replace the settled version?",
+        recommendation="Use the governed successor while preserving historical lineage.",
+        reason="M.7.3 acceptance proves bounded supersession timing.",
     )
-    assert successor_decision.status_code == 201, successor_decision.text
+    assert successor_decision.authority_level == "L2"
+    assert successor_decision.decision_owner_position == "ceo"
 
     blocker = open_blocker(
         db_session,

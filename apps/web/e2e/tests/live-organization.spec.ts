@@ -941,7 +941,13 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
   await expect(sceneSurface.getByText("Open · 2 participants", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Coordinate pathway evidence before owner synthesis.", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Canonical conversation · 1", { exact: true }).first()).toBeVisible();
-  await sceneSurface.getByText("Open · 2 participants", { exact: true }).click();
+  const conversationDisclosure = sceneSurface
+    .locator("details")
+    .filter({ hasText: "Coordinate pathway evidence before owner synthesis." })
+    .locator("summary");
+  await expect(conversationDisclosure).toBeVisible();
+  await conversationDisclosure.focus();
+  await conversationDisclosure.press("Enter");
   await expect(sceneSurface.getByText(/Opened Activity 33333333 · Latest Activity 33333333/)).toBeVisible();
   const handoffDisclosure = sceneSurface
     .locator("details")
