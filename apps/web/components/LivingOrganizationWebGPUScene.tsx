@@ -1,17 +1,27 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
-import type { LivingSceneRendererBackend, LivingSceneRendererController, LivingSceneSelection } from "../lib/living-organization-webgpu-adapter";
+import type {
+  LivingSceneRendererBackend,
+  LivingSceneRendererController,
+  LivingSceneSelection,
+} from "../lib/living-organization-webgpu-adapter";
 
 type RendererPhase = "initializing" | "ready" | "unavailable";
+
 function backendLabel(value: LivingSceneRendererBackend | null): string {
   if (value === "webgpu") return "WebGPU";
   if (value === "webgl2") return "WebGL2 fallback";
   if (value === "unknown") return "Unknown renderer backend";
   return "Detecting renderer backend";
 }
+
 export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: LivingSceneRenderModel }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const controllerRef = useRef<LivingSceneRendererController | null>(null);
+  const latestModelRef = useRef(renderModel);
+  latestModelRef.current = renderModel;
+
   const [phase, setPhase] = useState<RendererPhase>("initializing");
   const [backend, setBackend] = useState<LivingSceneRendererBackend | null>(null);
   const [selection, setSelection] = useState<LivingSceneSelection | null>(null);
@@ -21,18 +31,32 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
     const canvas = canvasRef.current;
     if (!canvas) return;
     let cancelled = false;
-    let controller: LivingSceneRendererController | null = null;
+    const initialModel = latestModelRef.current;
+
     setPhase("initializing");
+    setBackend(null);
     setFailure(null);
     setSelection(null);
+
     void (async () => {
       try {
         const { mountLivingOrganizationWebGPUScene } = await import("../lib/living-organization-webgpu-adapter");
         const mounted = await mountLivingOrganizationWebGPUScene({
-          canvas, model: renderModel, onSelect: (nextSelection) => { if (!cancelled) setSelection(nextSelection); },
+          canvas,
+          model: initialModel,
+          onSelect: (nextSelection) => {
+            if (!cancelled) setSelection(nextSelection);
+          },
         });
-        if (cancelled) { mounted.dispose(); return; }
-        controller = mounted;
+        if (cancelled) {
+          mounted.dispose();
+          return;
+        }
+
+        controllerRef.current = mounted;
+        if (latestModelRef.current !== initialModel) {
+          mounted.updateModel(latestModelRef.current);
+        }
         setBackend(mounted.rendererBackend);
         setPhase("ready");
       } catch (error) {
@@ -41,7 +65,28 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
         setFailure(error instanceof Error ? error.message : "The optional spatial renderer could not initialize.");
       }
     })();
-    return () => { cancelled = true; controller?.dispose(); };
+
+    return () => {
+      cancelled = true;
+      const controller = controllerRef.current;
+      controllerRef.current = null;
+      controller?.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    latestModelRef.current = renderModel;
+    const controller = controllerRef.current;
+    if (!controller) return;
+
+    try {
+      controller.updateModel(renderModel);
+      setFailure(null);
+      setPhase("ready");
+    } catch (error) {
+      setPhase("unavailable");
+      setFailure(error instanceof Error ? error.message : "The optional spatial renderer could not update.");
+    }
   }, [renderModel]);
 
   return (
@@ -52,9 +97,20 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
       data-renderer-backend={backend ?? "pending"}
       data-scene-authoritative="false"
     >
-      <header><div><span>M.4.0 · Renderer bootstrap gate</span><strong id="living-webgpu-title">Spatial renderer</strong></div><small>{phase === "ready" ? backendLabel(backend) : phase}</small></header>
+      <header>
+        <div>
+          <span>M.4.0 · Renderer bootstrap gate</span>
+          <strong id="living-webgpu-title">Spatial renderer</strong>
+        </div>
+        <small>{phase === "ready" ? backendLabel(backend) : phase}</small>
+      </header>
       <div className="living-webgpu-canvas-wrap">
-        <canvas ref={canvasRef} className="living-webgpu-canvas" aria-hidden="true" data-testid="living-webgpu-canvas" />
+        <canvas
+          ref={canvasRef}
+          className="living-webgpu-canvas"
+          aria-hidden="true"
+          data-testid="living-webgpu-canvas"
+        />
         <div className="living-webgpu-overlay" aria-live="polite">
           <span>Pointer selection · optional</span>
           <strong>{selection?.label ?? "No spatial selection"}</strong>
@@ -62,8 +118,16 @@ export function LivingOrganizationWebGPUScene({ renderModel }: { renderModel: Li
           <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS.</small>
         </div>
       </div>
-      {phase === "unavailable" ? <div className="living-webgpu-fallback" role="status"><strong>Spatial renderer unavailable.</strong><span>{failure ?? "The renderer could not initialize."}</span></div> : null}
-      <p className="living-webgpu-accessibility">This renderer is an enhancement. The Structured Cockpit reference below remains available for accessibility, low-power devices, unsupported graphics environments, and every core operation.</p>
+      {phase === "unavailable" ? (
+        <div className="living-webgpu-fallback" role="status">
+          <strong>Spatial renderer unavailable.</strong>
+          <span>{failure ?? "The renderer could not initialize."}</span>
+        </div>
+      ) : null}
+      <p className="living-webgpu-accessibility">
+        This renderer is an enhancement. The Structured Cockpit reference below remains available for accessibility,
+        low-power devices, unsupported graphics environments, and every core operation.
+      </p>
     </section>
   );
 }

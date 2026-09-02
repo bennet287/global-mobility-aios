@@ -35,6 +35,11 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(adapter, /rendererActiveMounts = "1"/);
   assert.match(adapter, /rendererActiveMounts = "0"/);
   assert.match(adapter, /canvasLease\.release\(\)/);
+  assert.match(adapter, /updateModel: \(model: LivingSceneRenderModel\) => void/);
+  assert.match(adapter, /const clearProjection = \(\) =>/);
+  assert.match(adapter, /rendererModelRevision/);
+  assert.match(adapter, /rendererProjectionResources/);
+  assert.match(adapter, /updateModel\(model\)/);
   assert.doesNotMatch(adapter, /fetch\(|XMLHttpRequest|synthesizeAustriaOwner|semantic_state|work_status|authority_level/);
 
   assert.match(rendererComponent, /M\.4\.0 · Renderer bootstrap gate/);
@@ -44,6 +49,8 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(rendererComponent, /aria-hidden="true"/);
   assert.match(rendererComponent, /Selection changes view focus only; it cannot mutate AIOS/);
   assert.match(rendererComponent, /data-selection-authority="none"/);
+  assert.match(rendererComponent, /controller\.updateModel\(renderModel\)/);
+  assert.match(rendererComponent, /useEffect\(\(\) => \{/);
   assert.match(sceneComponent, /LivingOrganizationWebGPUScene/);
   assert.match(sceneComponent, /STRUCTURED · permanent product surface/);
   assert.match(sceneComponent, /accessible, low-power, exact-record fallback for every core operation/);
