@@ -137,8 +137,9 @@ export function LivingOrganizationReplayTimeline({ replay }: { replay: Organizat
           <h3 id="living-replay-title">Replay / Temporal Organization</h3>
           <p>
             Ordered persisted semantic Activity for the latest Austria WorkItem tree, explicit M.8.2 as-of inspection,
-            and bounded comparison between two proven Activity-cursor states. Diffing reuses reconstructed state; it does
-            not create another timeline, infer missing history, read current rows as past truth, or mutate AIOS.
+            and bounded comparison between two proven Activity-cursor states. Reconstruction uses semantic transition payloads only;
+            diffing reuses reconstructed state. Neither creates another timeline, infers missing history, reads current rows as past
+            truth, or mutates AIOS.
           </p>
         </div>
         <div className="living-replay-contract">
