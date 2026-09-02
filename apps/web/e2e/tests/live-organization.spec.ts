@@ -179,7 +179,7 @@ function livingScene() {
   return {
     established: true,
     scene: {
-      contract_version: "living-organization-scene.v4",
+      contract_version: "living-organization-scene.v5",
       generated_at: "2026-09-02T01:30:00Z",
       scope: "austria_mobility",
       root_work_item_id: ROOT_ID,
@@ -294,6 +294,8 @@ function livingScene() {
             completed_at: null,
             elapsed_seconds: 5400,
             overdue: false,
+            specialist_evidence_valid: null,
+            specialist_evidence_reason: null,
           },
           {
             work_item_id: "22222222-2222-4222-8222-222222222221",
@@ -313,6 +315,8 @@ function livingScene() {
             completed_at: "2026-09-02T01:10:00Z",
             elapsed_seconds: 3600,
             overdue: false,
+            specialist_evidence_valid: true,
+            specialist_evidence_reason: null,
           },
           {
             work_item_id: "22222222-2222-4222-8222-222222222222",
@@ -332,6 +336,8 @@ function livingScene() {
             completed_at: "2026-09-02T01:15:00Z",
             elapsed_seconds: 3600,
             overdue: false,
+            specialist_evidence_valid: true,
+            specialist_evidence_reason: null,
           },
         ],
         conversations: [
@@ -569,7 +575,7 @@ function analyticalScene() {
           ...mission,
           state: "blocked",
           blocker_count: 1,
-          decision_count: 1,
+          decision_count: 3,
         })),
         employees: scene.deterministic.employees.map((employee) =>
           employee.work_item_id === ROOT_ID
@@ -580,16 +586,24 @@ function analyticalScene() {
               }
             : employee,
         ),
-        work_items: scene.deterministic.work_items.map((work) =>
-          work.work_item_id === ROOT_ID
-            ? {
-                ...work,
-                risk_level: "R4",
-                due_at: "2026-09-02T01:00:00Z",
-                overdue: true,
-              }
-            : work,
-        ),
+        work_items: scene.deterministic.work_items.map((work) => {
+          if (work.work_item_id === ROOT_ID) {
+            return {
+              ...work,
+              risk_level: "R4",
+              due_at: "2026-09-02T01:00:00Z",
+              overdue: true,
+            };
+          }
+          if (work.work_item_id === "22222222-2222-4222-8222-222222222221") {
+            return {
+              ...work,
+              specialist_evidence_valid: false,
+              specialist_evidence_reason: "Professional evidence review required.",
+            };
+          }
+          return work;
+        }),
         blockers: [
           {
             blocker_id: "77777777-7777-4777-8777-777777777777",
@@ -624,12 +638,63 @@ function analyticalScene() {
             record_fingerprint: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             source_object_type: "organizational_work_item",
             source_object_id: ROOT_ID,
-            source_object_version: "m7.2",
+            source_object_version: "m7.3",
             supersedes_decision_id: null,
             superseded_by_decision_id: null,
             is_current: true,
             required_owner_action: true,
             decided_at: null,
+            created_at: "2026-09-02T01:00:00Z",
+            superseded_by_created_at: null,
+            superseded_in_projection_week: false,
+          },
+          {
+            decision_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1",
+            decision_key: "m7-historical-routing",
+            title: "Historical Austria routing decision",
+            question: "Should the prior bounded route remain?",
+            recommendation: "Retain until a successor is recorded.",
+            status: "approved",
+            authority_level: "L4",
+            decision_owner_position: "ceo",
+            work_item_id: ROOT_ID,
+            evidence_items: [],
+            record_fingerprint: null,
+            source_object_type: "organizational_work_item",
+            source_object_id: ROOT_ID,
+            source_object_version: "m7.2",
+            supersedes_decision_id: null,
+            superseded_by_decision_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+            is_current: false,
+            required_owner_action: false,
+            decided_at: "2026-08-30T12:00:00Z",
+            created_at: "2026-08-30T11:00:00Z",
+            superseded_by_created_at: "2026-09-01T09:00:00Z",
+            superseded_in_projection_week: true,
+          },
+          {
+            decision_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+            decision_key: "m7-historical-routing-v2",
+            title: "Updated Austria routing decision",
+            question: "Should the successor route replace the prior version?",
+            recommendation: "Use the governed successor.",
+            status: "pending_board",
+            authority_level: "L4",
+            decision_owner_position: "ceo",
+            work_item_id: ROOT_ID,
+            evidence_items: [],
+            record_fingerprint: null,
+            source_object_type: "organizational_work_item",
+            source_object_id: ROOT_ID,
+            source_object_version: "m7.3",
+            supersedes_decision_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1",
+            superseded_by_decision_id: null,
+            is_current: true,
+            required_owner_action: false,
+            decided_at: null,
+            created_at: "2026-09-01T09:00:00Z",
+            superseded_by_created_at: null,
+            superseded_in_projection_week: false,
           },
         ],
         human_actions: [
@@ -787,7 +852,7 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
 }
 
 
-test("renders M.7.2 structured FLOW and deterministic Owner queries without mutating AIOS", async ({ page }) => {
+test("renders M.7.3 evidence and supersession Owner queries without mutating AIOS", async ({ page }) => {
   const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: analyticalScene() }),
@@ -797,7 +862,7 @@ test("renders M.7.2 structured FLOW and deterministic Owner queries without muta
 
   const sceneSurface = page.locator(".living-scene-shell");
   await expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(sceneSurface.getByText("M.7.2 · Structured FLOW + Owner analytical queries")).toBeVisible();
+  await expect(sceneSurface.getByText("M.7.3 · Evidence gaps + supersession-time queries")).toBeVisible();
   const lenses = sceneSurface.getByRole("toolbar", { name: "Organization lenses" });
   await expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true");
   await expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled();
@@ -829,6 +894,20 @@ test("renders M.7.2 structured FLOW and deterministic Owner queries without muta
 
   await sceneSurface.getByRole("button", { name: /Show overdue work/ }).click();
   await expect(sceneSurface.locator('[data-owner-query-result="overdue_work"]')).toContainText("1 WorkItem");
+
+  await sceneSurface.getByRole("button", { name: /Show incomplete evidence on Austria missions/ }).click();
+  const evidenceQuery = sceneSurface.locator('[data-owner-query-result="incomplete_evidence"]');
+  await expect(evidenceQuery).toHaveAttribute("data-query-status", "partial");
+  await expect(evidenceQuery).toContainText("1 specialist WorkItem");
+  await expect(evidenceQuery).toContainText("Pathway analysis");
+  await expect(evidenceQuery).toContainText("Professional evidence review required");
+
+  await sceneSurface.getByRole("button", { name: /Show decisions superseded this week/ }).click();
+  const supersededQuery = sceneSurface.locator('[data-owner-query-result="superseded_this_week"]');
+  await expect(supersededQuery).toHaveAttribute("data-query-status", "available");
+  await expect(supersededQuery).toContainText("1 decision");
+  await expect(supersededQuery).toContainText("Historical Austria routing decision");
+  await expect(supersededQuery).toContainText("2026-09-01T09:00:00Z");
 
   await sceneSurface.getByRole("button", { name: /Where is model cost concentrated\?/ }).click();
   const costQuery = sceneSurface.locator('[data-owner-query-result="model_cost_concentration"]');

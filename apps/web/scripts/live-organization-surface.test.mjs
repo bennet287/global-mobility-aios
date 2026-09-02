@@ -85,9 +85,13 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(api, /elapsed_seconds: number \| null/);
   assert.match(api, /overdue: boolean/);
   assert.match(api, /open_elapsed_seconds: number/);
+  assert.match(api, /specialist_evidence_valid: boolean \| null/);
+  assert.match(api, /specialist_evidence_reason: string \| null/);
+  assert.match(api, /superseded_by_created_at: string \| null/);
+  assert.match(api, /superseded_in_projection_week: boolean/);
   assert.match(api, /export type LivingOrganizationScene/);
   assert.match(api, /\/api\/v1\/organization\/transparency\/live-organization\/scene\/austria\/latest/);
-  assert.match(sceneComponent, /M\.7\.2 · Structured FLOW \+ Owner analytical queries/);
+  assert.match(sceneComponent, /M\.7\.3 · Evidence gaps \+ supersession-time queries/);
   assert.match(sceneComponent, /data-active-lens=\{activeLens\}/);
   assert.match(sceneComponent, /buildStructuredFlowBaseline/);
   assert.match(sceneComponent, /OWNER_ANALYTICAL_QUERIES/);
@@ -154,10 +158,12 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(analytics, /open_elapsed_seconds >= thresholdSeconds/);
   assert.match(analytics, /\["R4", "R5"\]\.includes/);
   assert.match(analytics, /Risk attention alone is not treated as Owner authority/);
-  assert.match(analytics, /Aggregate evidence counts are not promoted/);
+  assert.match(analytics, /K\.1 specialist execution evidence only/);
+  assert.match(analytics, /superseded_in_projection_week/);
+  assert.match(analytics, /successor decision creation/);
   assert.match(analytics, /Specialist runtime estimates remain telemetry/);
   assert.match(analytics, /topology is not promoted to dependency truth/);
-  assert.doesNotMatch(analytics, /Date\.now|new Date|fetch\(|XMLHttpRequest|synthesizeAustriaOwner/);
+  assert.doesNotMatch(analytics, /Date\.now|new Date|Date\.parse|fetch\(|XMLHttpRequest|synthesizeAustriaOwner/);
   assert.match(cockpitLayout, /living-scene\.css/);
 
 });

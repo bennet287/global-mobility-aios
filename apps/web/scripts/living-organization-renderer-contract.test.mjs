@@ -90,7 +90,7 @@ test("M.4.1 employee animation consumes bounded presentation state", async () =>
   assert.match(adapter, /employeeActors = \[\]/);
   assert.doesNotMatch(adapter, /conversation_state|handoff_state|walking_state|room_entry_state/);
 
-  assert.match(rendererComponent, /M\.7\.2 · Lenses \+ structured FLOW baseline/);
+  assert.match(rendererComponent, /M\.7\.3 · Lenses \+ evidence\/supersession queries/);
   assert.match(rendererComponent, /M\.4\.1 motion discipline is preserved/);
   assert.match(adapter, /smartObjectCount/);
   assert.match(adapter, /createLivingSceneSelection\("smart_object"/);
