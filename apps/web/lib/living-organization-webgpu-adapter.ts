@@ -77,7 +77,7 @@ export async function mountLivingOrganizationWebGPUScene({
     previousOffset: number;
   }> = [];
   let flowTrialEnabled = false;
-  let flowTrialGroup: Group | null = null;
+  let flowTrialGroup: any | null = null;
   let flowActors: Array<{
     root: any;
     sourceX: number;
