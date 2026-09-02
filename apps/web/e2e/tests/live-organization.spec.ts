@@ -512,9 +512,10 @@ test("renders M.3 canonical scene planes without inventing presence or authority
   await expect(page.getByText("Not Asserted", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Reserved for M.9 · disabled", { exact: true })).toHaveCount(2);
   await expect(page.getByText("three-webgpu", { exact: true })).toBeVisible();
-  await expect(page.getByText("Mission Board", { exact: true })).toBeVisible();
-  await expect(page.getByText("Evidence Console", { exact: true })).toBeVisible();
-  await expect(page.getByText("Board Attention", { exact: true })).toBeVisible();
+  const smartObjects = sceneSurface.locator('.living-scene-smart-strip[aria-label="Living Organization Smart Objects"]');
+  await expect(smartObjects.locator("article").filter({ hasText: "Mission Board" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Evidence Console" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Board Attention" })).toBeVisible();
   await expect(page.getByText("Not Connected M3", { exact: true })).toHaveCount(2);
   await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
 
