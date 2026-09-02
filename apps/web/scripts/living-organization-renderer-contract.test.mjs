@@ -42,7 +42,7 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(adapter, /updateModel\(model\)/);
   assert.doesNotMatch(adapter, /fetch\(|XMLHttpRequest|synthesizeAustriaOwner|semantic_state|work_status|authority_level/);
 
-  assert.match(rendererComponent, /M\.4\.0 · Renderer bootstrap gate/);
+  assert.match(rendererComponent, /Living spatial organization/);
   assert.match(rendererComponent, /data-renderer-backend/);
   assert.match(rendererComponent, /Unknown renderer backend/);
   assert.match(rendererComponent, /Structured Cockpit reference below remains available/);
