@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.72 — M.4.1 Animated Employees V1 COMPLETE / PASS; M.5 Conversations, Handoffs & Mission Rooms next
+**Roadmap generation:** V12.73 — M.5 Conversations, Handoffs & Mission Rooms COMPLETE / PASS; M.6 Blockers, Smart Objects & live Board Room next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.4 COMPLETE / PASS; M.5 NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.5 COMPLETE / PASS; M.6 NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -221,8 +221,9 @@ M.2   COMPLETE / PASS at d9294b2f29c21aa4866d47a253ada94eeae2c568
 M.3   COMPLETE / PASS at d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
 M.4.0 COMPLETE / PASS at e664075567997f64bd0b973aa8e8d089207ec77e
 M.4.1 COMPLETE / PASS at 7591e32be1c9fa8601ffca0b17efea62b7066545
-M.5   NEXT — Conversations, Handoffs & Mission Rooms
-M.6+  SCHEDULED — Living Organization V2
+M.5   COMPLETE / PASS at 884d339ce761fba2410abe851d0c5d1cb172eb93
+M.6   NEXT — Blockers, Smart Objects & live Board Room
+M.7+  SCHEDULED — Living Organization V2
 N     NOT STARTED — dependency-gated behind M
 ```
 
@@ -382,8 +383,8 @@ optional Cognitive Ecology / Organica
 | **M.2** | Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction | **COMPLETE / PASS** at `d9294b2f29c21aa4866d47a253ada94eeae2c568` |
 | **M.3** | Living Organization Scene Foundation | **COMPLETE / PASS** at `d72ba0b6aaeb14385a340a7a4c0ddace1cd63882` |
 | **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **COMPLETE / PASS** at 7591e32... |
-| **M.5** | Conversations, handoffs & Mission Rooms | **NEXT functional slice** |
-| **M.6** | Blockers, Smart Objects & live Board Room | Scheduled |
+| **M.5** | Conversations, handoffs & Mission Rooms | **COMPLETE / PASS** at `884d339ce761fba2410abe851d0c5d1cb172eb93` |
+| **M.6** | Blockers, Smart Objects & live Board Room | **NEXT functional slice** |
 | **M.7** | Organization Lenses + Owner command mode; mandatory structured FLOW baseline + GPU fluid FLOW TRIAL | Scheduled |
 | **M.8** | Replay / temporal organization | Scheduled |
 | **M.9** | Environmental memory TRIAL with mandatory structured historical baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment | Scheduled; hardest interpretation gate |
@@ -728,19 +729,29 @@ animation continues
 
 Browser proof verifies that canonical working state produces observable presentation motion while presence and locomotion remain false.
 
-M.4.1 does **not** implement walking, talking, room entry, handoffs or spatial collaboration inferred from proximity. Those require canonical M.5 conversation/handoff/Mission Room semantics.
+M.4.1 did **not** implement walking, talking, room entry, handoffs or spatial collaboration inferred from proximity. M.5 now adds inspectable canonical conversation and handoff context; it still does not claim proximity-based talking, room entry, presence or locomotion.
 
 Two earlier exact-head candidate runs failed only stale M.4.0 text assertions in the design contract; no PASS was inherited from them. The final accepted head is 7591e32....
 
 M.4 is closed unless a regression is discovered.
 
-## 5.4 M.5 — Conversations, handoffs and Mission Rooms
+## 5.4 M.5 — Conversations, handoffs and Mission Rooms — COMPLETE / PASS
 
-Visible conversation must correspond to real AIOS collaboration semantics. Selecting it should expose participants, Mission/WorkItem context, timestamps, persisted activity and evidence/work references where canonical linkage exists.
+M.5 is accepted on exact implementation head `884d339ce761fba2410abe851d0c5d1cb172eb93`.
 
-Real handoffs should become obvious as visible work packages moving between employees. The visual packet is a projection of ownership/dependency/handoff state, not a second workflow store.
+~~~text
+Repository Policy Check #543 / run 33589910601   PASS
+V12 Production Proof #1106 / run 33589910606     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
 
-Mission Rooms are temporary visible zones for real Missions. They may show goal, participants, WorkItem progress, evidence completeness, blockers, risk, authority/autonomy, elapsed time and cost/runtime information where canonically available. A vacant specialist seat may represent a real unmet capability/review requirement.
+Conversation lifecycle is durable organizational collaboration context in immutable `OrganizationActivity` events: `organization.conversation.opened.v1` and `organization.conversation.closed.v1`. It does not introduce a second conversation table, persist transcripts or carry authority. The governed service requires at least two unique active positions, includes the linked WorkItem's currently assigned position, authorizes before lookup, treats exact retries idempotently and rejects conflicting identity reuse.
+
+Handoffs remain projections of existing `organization.work.assigned.v1` truth, including previous/assigned position, WorkItem, status, timestamp and governed causation where available. No new handoff table exists.
+
+The backend-owned `living-organization-scene.v2` contract exposes canonical `conversations[]` and `handoffs[]` plus provenance-backed employee/conversation/WorkItem and previous/new employee relationships. Mission Room inspection shows participant and Activity lineage; conversation badges appear only for positions in an open persisted conversation. The visualization remains read-only and made zero POST requests in browser proof. Proximity never implies conversation, handoff, presence, room entry or locomotion.
 
 ---
 
@@ -1033,7 +1044,7 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1–M.4 COMPLETE / PASS; M.5 NEXT; M.6–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1–M.5 COMPLETE / PASS; M.6 NEXT; M.7–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 

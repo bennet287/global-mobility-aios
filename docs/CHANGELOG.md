@@ -9,6 +9,36 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.73 M.5 CONVERSATIONS, HANDOFFS & MISSION ROOMS EXACT-HEAD CLOSURE
+
+### Status
+
+**M.5 CONVERSATIONS, HANDOFFS & MISSION ROOMS COMPLETE / PASS / M.6 NEXT**
+
+Exact accepted implementation/proof head:
+
+~~~text
+884d339ce761fba2410abe851d0c5d1cb172eb93
+
+Repository Policy Check #543 / run 33589910601   PASS
+V12 Production Proof #1106 / run 33589910606     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed, 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                PASS — 10/10 tests
+~~~
+
+M.5 introduces no competing chat, transcript, handoff or authority store. Canonical collaboration lifecycle is recorded through immutable `organization.conversation.opened.v1` and `organization.conversation.closed.v1` `OrganizationActivity` events with explicit `authority_effect = none` and `transcript_persisted = false`.
+
+Opening requires at least two unique active positions and the position currently assigned to the linked WorkItem. Authorization precedes lookup, exact retries are idempotent and conflicting conversation-identity reuse fails closed.
+
+Governed handoffs continue to use existing `organization.work.assigned.v1` Activities. The scene projects previous/assigned positions, WorkItem status, timestamps and causation where available; no handoff table or proximity inference was added.
+
+`living-organization-scene.v2` adds explicit `conversations[]` and `handoffs[]`, provenance-backed relationships and inspectable Mission Room lineage. Conversation badges appear only for employees whose canonical positions participate in an open persisted conversation. Browser proof confirms the visualization makes zero POST requests.
+
+Walking, proximity-based talking, inferred room entry, transcript persistence, presence and locomotion claims remain deliberately absent. M.6 Blockers, Smart Objects & live Board Room is next.
+
+---
+
 ## 2026-09-02 — V12.72 M.4.1 ANIMATED EMPLOYEES V1 EXACT-HEAD CLOSURE
 
 ### Status
