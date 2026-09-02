@@ -206,7 +206,7 @@ export type LivingSceneSmartObject = {
   label: string;
   state: string;
   metric_label: string;
-  metric_value: number;
+  metric_value: number | null;
   projection_only: boolean;
   canonical_basis: string;
 };
@@ -216,8 +216,12 @@ export type LivingSceneCoverage = {
   missions: string;
   conversations: string;
   handoffs: string;
+  blockers: string;
+  human_actions: string;
+  risk_escalations: string;
   incidents: string;
   smart_objects: string;
+  runtime_costs: string;
   presence: string;
 };
 
@@ -238,9 +242,14 @@ export type LivingSceneWorkItem = {
 export type LivingSceneBlocker = {
   blocker_id: string;
   work_item_id: string | null;
+  blocker_type: string;
   title: string;
+  description: string;
   severity: string;
   status: string;
+  accountable_position_key: string | null;
+  decision_id: string | null;
+  risk_escalation_id: string | null;
   requires_human_action: boolean;
 };
 
@@ -248,14 +257,58 @@ export type LivingSceneDecision = {
   decision_id: string;
   decision_key: string;
   title: string;
+  question: string;
+  recommendation: string;
   status: string;
   authority_level: string;
   decision_owner_position: string;
   work_item_id: string | null;
+  evidence_items: unknown[];
+  record_fingerprint: string | null;
+  source_object_type: string | null;
+  source_object_id: string | null;
+  source_object_version: string | null;
   supersedes_decision_id: string | null;
   superseded_by_decision_id: string | null;
   is_current: boolean;
+  required_owner_action: boolean;
   decided_at: string | null;
+};
+
+export type LivingSceneHumanActionRequest = {
+  request_id: string;
+  request_type: string;
+  title: string;
+  instructions: string;
+  status: string;
+  priority: string;
+  required_role: string;
+  assigned_human_id: string | null;
+  authority_level: string | null;
+  work_item_id: string | null;
+  decision_id: string | null;
+  blocker_id: string | null;
+  requested_at: string;
+  due_at: string | null;
+  canonical_basis: string;
+};
+
+export type LivingSceneRiskEscalation = {
+  risk_id: string;
+  risk_key: string;
+  category: string;
+  severity: string;
+  title: string;
+  description: string;
+  status: string;
+  accountable_position_key: string;
+  escalated_to_position_key: string;
+  work_item_id: string | null;
+  requires_board_attention: boolean;
+  is_emergency: boolean;
+  evidence_items: unknown[];
+  created_at: string;
+  canonical_basis: string;
 };
 
 export type LivingSceneRoom = {
@@ -290,6 +343,8 @@ export type LivingSceneDeterministicPlane = {
   handoffs: LivingSceneHandoff[];
   blockers: LivingSceneBlocker[];
   decisions: LivingSceneDecision[];
+  human_actions: LivingSceneHumanActionRequest[];
+  risk_escalations: LivingSceneRiskEscalation[];
   incidents: LivingSceneIncident[];
   smart_objects: LivingSceneSmartObject[];
   rooms: LivingSceneRoom[];
