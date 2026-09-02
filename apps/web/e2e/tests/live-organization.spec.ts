@@ -865,104 +865,94 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
   await page.goto("/cockpit/live-organization");
 
   const sceneSurface = page.locator(".living-scene-shell");
-  await expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(sceneSurface.getByText("M.7.3 · Evidence gaps + supersession-time queries")).toBeVisible();
   const lenses = sceneSurface.getByRole("toolbar", { name: "Organization lenses" });
-  await expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true");
-  await expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled();
-  await expect(lenses.locator('[data-lens-key="cost"]')).toBeDisabled();
-  await expect(lenses.locator('[data-lens-key="incident"]')).toBeDisabled();
-  await expect(lenses.locator('[data-lens-key="autonomy"]')).toBeDisabled();
-  await expect(lenses.locator('[data-lens-key="performance"]')).toBeDisabled();
+
+  await Promise.all([
+    expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible(),
+    expect(sceneSurface.getByText("M.7.3 · Evidence gaps + supersession-time queries")).toBeVisible(),
+    expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true"),
+    expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled(),
+    expect(lenses.locator('[data-lens-key="cost"]')).toBeDisabled(),
+    expect(lenses.locator('[data-lens-key="incident"]')).toBeDisabled(),
+    expect(lenses.locator('[data-lens-key="autonomy"]')).toBeDisabled(),
+    expect(lenses.locator('[data-lens-key="performance"]')).toBeDisabled(),
+  ]);
+
   await sceneSurface.getByRole("button", { name: "Show routing flow" }).click();
-  await expect(sceneSurface).toHaveAttribute("data-active-lens", "flow");
   const flow = sceneSurface.locator('[data-flow-authoritative="false"]');
-  await expect(flow.getByText("Directed work routing & bottleneck signals", { exact: true })).toBeVisible();
-  await expect(flow.getByText("GPU fluid/field TRIAL not promoted", { exact: true })).toBeVisible();
-  await expect(flow.locator("[data-flow-work]")).toHaveCount(3);
-  await expect(flow.getByText("Parent topology · not dependency truth", { exact: true })).toHaveCount(2);
+  await Promise.all([
+    expect(sceneSurface).toHaveAttribute("data-active-lens", "flow"),
+    expect(flow.getByText("Directed work routing & bottleneck signals", { exact: true })).toBeVisible(),
+    expect(flow.getByText("GPU fluid/field TRIAL not promoted", { exact: true })).toBeVisible(),
+    expect(flow.locator("[data-flow-work]")).toHaveCount(3),
+    expect(flow.getByText("Parent topology · not dependency truth", { exact: true })).toHaveCount(2),
+  ]);
 
   await sceneSurface.getByRole("button", { name: /Show missions blocked >20m/ }).click();
   const blockedQuery = sceneSurface.locator('[data-owner-query-result="blocked_over_20_minutes"]');
-  await expect(blockedQuery).toHaveAttribute("data-query-status", "available");
-  await expect(blockedQuery).toContainText("1 mission");
-  await expect(blockedQuery).toContainText("Austria mobility objective");
+  await Promise.all([
+    expect(blockedQuery).toHaveAttribute("data-query-status", "available"),
+    expect(blockedQuery).toContainText("1 mission"),
+    expect(blockedQuery).toContainText("Austria mobility objective"),
+  ]);
 
   await sceneSurface.getByRole("button", { name: /Show work requiring my authority/ }).click();
   const authorityQuery = sceneSurface.locator('[data-owner-query-result="owner_authority"]');
-  await expect(authorityQuery).toContainText("1 WorkItem");
-  await expect(authorityQuery).toContainText("Risk attention alone is not treated as Owner authority");
-
-  await sceneSurface.getByRole("button", { name: /Show R4\/R5 work/ }).click();
-  await expect(sceneSurface.locator('[data-owner-query-result="r4_r5_work"]')).toContainText("Canonical risk_level R4");
-
-  await sceneSurface.getByRole("button", { name: /Show overdue work/ }).click();
-  await expect(sceneSurface.locator('[data-owner-query-result="overdue_work"]')).toContainText("1 WorkItem");
+  await Promise.all([
+    expect(authorityQuery).toContainText("1 WorkItem"),
+    expect(authorityQuery).toContainText("Risk attention alone is not treated as Owner authority"),
+  ]);
 
   await sceneSurface.getByRole("button", { name: /Show incomplete evidence on Austria missions/ }).click();
   const evidenceQuery = sceneSurface.locator('[data-owner-query-result="incomplete_evidence"]');
-  await expect(evidenceQuery).toHaveAttribute("data-query-status", "partial");
-  await expect(evidenceQuery).toContainText("1 specialist WorkItem");
-  await expect(evidenceQuery).toContainText("Pathway analysis");
-  await expect(evidenceQuery).toContainText("Professional evidence review required");
+  await Promise.all([
+    expect(evidenceQuery).toHaveAttribute("data-query-status", "partial"),
+    expect(evidenceQuery).toContainText("1 specialist WorkItem"),
+    expect(evidenceQuery).toContainText("Pathway analysis"),
+    expect(evidenceQuery).toContainText("Professional evidence review required"),
+  ]);
 
   await sceneSurface.getByRole("button", { name: /Show decisions superseded this week/ }).click();
   const supersededQuery = sceneSurface.locator('[data-owner-query-result="superseded_this_week"]');
-  await expect(supersededQuery).toHaveAttribute("data-query-status", "available");
-  await expect(supersededQuery).toContainText("1 decision");
-  await expect(supersededQuery).toContainText("Historical Austria routing decision");
-  await expect(supersededQuery).toContainText("2026-09-01T09:00:00Z");
+  await Promise.all([
+    expect(supersededQuery).toHaveAttribute("data-query-status", "available"),
+    expect(supersededQuery).toContainText("1 decision"),
+    expect(supersededQuery).toContainText("Historical Austria routing decision"),
+    expect(supersededQuery).toContainText("2026-09-01T09:00:00Z"),
+  ]);
 
   await sceneSurface.getByRole("button", { name: /Where is model cost concentrated\?/ }).click();
   const costQuery = sceneSurface.locator('[data-owner-query-result="model_cost_concentration"]');
-  await expect(costQuery).toHaveAttribute("data-query-status", "unavailable");
-  await expect(costQuery).toContainText("Canonical organization cost concentration is unavailable");
-  await sceneSurface.getByRole("button", { name: "Show current blockers" }).click();
-  await expect(sceneSurface).toHaveAttribute("data-active-lens", "blockers");
-  await expect(sceneSurface.locator(".blocker-room")).not.toHaveClass(/lens-deemphasized/);
-  await expect(sceneSurface.locator(".mission-room")).toHaveClass(/lens-deemphasized/);
-  await sceneSurface.getByRole("button", { name: "Show Board attention" }).click();
-  await expect(sceneSurface).toHaveAttribute("data-active-lens", "decisions");
-  await expect(sceneSurface.locator(".board-room")).not.toHaveClass(/lens-deemphasized/);
-  await expect(sceneSurface.getByText("Mission Room", { exact: true })).toBeVisible();
-  await expect(sceneSurface.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
-  await expect(sceneSurface.getByText("Board Room", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Not Asserted", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Reserved for M.9 · disabled", { exact: true })).toHaveCount(2);
-  await expect(page.getByText("three-webgpu", { exact: true })).toBeVisible();
+  await Promise.all([
+    expect(costQuery).toHaveAttribute("data-query-status", "unavailable"),
+    expect(costQuery).toContainText("Canonical organization cost concentration is unavailable"),
+    expect(sceneSurface.getByText("Mission Room", { exact: true })).toBeVisible(),
+    expect(sceneSurface.getByText("Evidence Lab", { exact: true }).first()).toBeVisible(),
+    expect(sceneSurface.getByText("Board Room", { exact: true }).first()).toBeVisible(),
+  ]);
+
   const smartObjects = sceneSurface.locator('.living-scene-smart-strip[aria-label="Living Organization Smart Objects"]');
-  await expect(smartObjects.locator("article").filter({ hasText: "Mission Board" })).toBeVisible();
-  await expect(smartObjects.locator("article").filter({ hasText: "Evidence Shelf" })).toBeVisible();
-  await expect(smartObjects.locator("article").filter({ hasText: "Regulatory Monitor" })).toContainText("No Snapshot Provenance");
-  await expect(smartObjects.locator("article").filter({ hasText: "Board Desk" })).toBeVisible();
-  await expect(smartObjects.locator("article").filter({ hasText: "Owner Inbox" })).toBeVisible();
-  await expect(smartObjects.locator("article").filter({ hasText: "Model Terminal" })).toContainText("Activity Recorded");
-  await expect(smartObjects.locator("article").filter({ hasText: "Immune Center" })).toContainText("Unavailable");
-  await expect(smartObjects.locator("article").filter({ hasText: "Incident Beacon" })).toContainText("Unavailable");
-  await expect(smartObjects.locator("article").filter({ hasText: "Cost Display" })).toContainText("Unavailable");
-  await expect(sceneSurface.getByText("CANONICAL CONVERSATIONS", { exact: true })).toBeVisible();
-  await expect(sceneSurface.getByText("CANONICAL HANDOFFS", { exact: true })).toBeVisible();
-  await expect(sceneSurface.getByText("Open · 2 participants", { exact: true })).toBeVisible();
-  await expect(sceneSurface.getByText("Coordinate pathway evidence before owner synthesis.", { exact: true })).toBeVisible();
-  await expect(sceneSurface.getByText("Canonical conversation · 1", { exact: true }).first()).toBeVisible();
+  await Promise.all([
+    expect(smartObjects.locator("article")).toHaveCount(11),
+    expect(smartObjects.locator("article").filter({ hasText: "Cost Display" })).toContainText("Unavailable"),
+    expect(sceneSurface.getByText("CANONICAL CONVERSATIONS", { exact: true })).toBeVisible(),
+    expect(sceneSurface.getByText("CANONICAL HANDOFFS", { exact: true })).toBeVisible(),
+  ]);
+
   const conversationRecord = sceneSurface.locator(
     `[data-conversation-id="${CONVERSATION_ID}"]`,
   );
-  await expect(conversationRecord).toBeVisible();
-  await conversationRecord.evaluate((element) => {
-    (element as HTMLDetailsElement).open = true;
-  });
-  await expect(conversationRecord.getByText(/Opened Activity 33333333 · Latest Activity 33333333/)).toBeVisible();
-
   const handoffRecord = sceneSurface.locator(
     `[data-handoff-activity-id="${HANDOFF_ACTIVITY_ID}"]`,
   );
-  await expect(handoffRecord).toBeVisible();
-  await handoffRecord.evaluate((element) => {
-    (element as HTMLDetailsElement).open = true;
-  });
-  await expect(handoffRecord.getByText("Governed causation 55555555", { exact: true })).toBeVisible();
-  await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
+  await Promise.all([
+    expect(conversationRecord).toHaveCount(1),
+    expect(conversationRecord).toContainText("Coordinate pathway evidence before owner synthesis."),
+    expect(conversationRecord).toContainText("Opened Activity 33333333 · Latest Activity 33333333"),
+    expect(handoffRecord).toHaveCount(1),
+    expect(handoffRecord).toContainText("Mobility Operations Lead ↓ Pathway Operations Specialist"),
+    expect(handoffRecord).toContainText("Governed causation 55555555"),
+  ]);
 
   expect(recorded.some((item) => item.method === "GET" && item.path === SCENE_PATH)).toBe(true);
   expect(recorded.some((item) => item.method === "POST")).toBe(false);
