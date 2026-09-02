@@ -948,7 +948,8 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
     .filter({ hasText: "Mobility Operations Lead ↓ Pathway Operations Specialist" })
     .locator("summary");
   await expect(handoffDisclosure).toBeVisible();
-  await handoffDisclosure.click();
+  await handoffDisclosure.focus();
+  await handoffDisclosure.press("Enter");
   await expect(sceneSurface.getByText("Governed causation 55555555", { exact: true })).toBeVisible();
   await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
 
