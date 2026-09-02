@@ -292,6 +292,8 @@ class LivingSceneWorkItemRead(TransparencyRead):
     completed_at: datetime | None
     elapsed_seconds: int | None
     overdue: bool
+    specialist_evidence_valid: bool | None
+    specialist_evidence_reason: str | None
 
 
 class LivingSceneBlockerRead(TransparencyRead):
@@ -332,6 +334,9 @@ class LivingSceneDecisionRead(TransparencyRead):
     is_current: bool
     required_owner_action: bool
     decided_at: datetime | None
+    created_at: datetime
+    superseded_by_created_at: datetime | None
+    superseded_in_projection_week: bool
 
 
 class LivingSceneHumanActionRequestRead(TransparencyRead):

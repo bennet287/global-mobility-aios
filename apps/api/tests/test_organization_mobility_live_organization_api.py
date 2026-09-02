@@ -184,6 +184,39 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     )
     assert decision.status_code == 201, decision.text
 
+    historical_decision = client.post(
+        "/api/v1/organization/decisions/records",
+        json={
+            "decision_key": "m7-historical-decision",
+            "decision_type": "operational",
+            "title": "Historical Austria routing decision",
+            "question": "Should the earlier bounded routing recommendation be retained?",
+            "recommendation": "Retain until a governed successor is recorded.",
+            "work_item_id": str(plan.root_work_item.id),
+        },
+    )
+    assert historical_decision.status_code == 201, historical_decision.text
+    historical_id = historical_decision.json()["id"]
+    historical_outcome = client.post(
+        f"/api/v1/organization/decisions/records/{historical_id}/outcome",
+        json={
+            "outcome": "approved",
+            "reason": "Settle the historical decision so supersession can be proven.",
+        },
+    )
+    assert historical_outcome.status_code == 200, historical_outcome.text
+    successor_decision = client.post(
+        f"/api/v1/organization/decisions/records/{historical_id}/supersede",
+        json={
+            "new_decision_key": "m7-historical-decision-v2",
+            "title": "Updated Austria routing decision",
+            "question": "Should the updated bounded routing recommendation replace the settled version?",
+            "recommendation": "Use the governed successor while preserving historical lineage.",
+            "reason": "M.7.3 acceptance proves bounded supersession timing.",
+        },
+    )
+    assert successor_decision.status_code == 201, successor_decision.text
+
     blocker = open_blocker(
         db_session,
         _human_context(),
@@ -239,7 +272,7 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     scene_body = scene.json()
     assert scene_body["established"] is True
     projection = scene_body["scene"]
-    assert projection["contract_version"] == "living-organization-scene.v4"
+    assert projection["contract_version"] == "living-organization-scene.v5"
     assert projection["root_work_item_id"] == str(plan.root_work_item.id)
     assert projection["objective_key"] == plan.root_work_item.objective_key
     assert projection["coverage"] == {
@@ -301,6 +334,15 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert root_work["updated_at"] is not None
     assert root_work["elapsed_seconds"] is None or root_work["elapsed_seconds"] >= 0
     assert isinstance(root_work["overdue"], bool)
+    assert root_work["specialist_evidence_valid"] is None
+    assert root_work["specialist_evidence_reason"] is None
+    specialist_work = [
+        item for item in deterministic["work_items"]
+        if item["work_item_id"] != str(plan.root_work_item.id)
+    ]
+    assert specialist_work
+    assert all(item["specialist_evidence_valid"] is True for item in specialist_work)
+    assert all(item["specialist_evidence_reason"] is None for item in specialist_work)
     assert len(deterministic["conversations"]) == 1
     conversation = deterministic["conversations"][0]
     assert conversation["status"] == "open"
@@ -381,10 +423,22 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
         item["relationship_type"] == "governed_handoff"
         for item in deterministic["relationships"]
     )
-    assert deterministic["decisions"][0]["decision_id"] == decision.json()["id"]
-    assert deterministic["decisions"][0]["is_current"] is True
-    assert deterministic["decisions"][0]["required_owner_action"] is True
-    assert deterministic["decisions"][0]["evidence_items"] == [{"kind": "scene-test"}]
+    decisions_by_key = {
+        item["decision_key"]: item for item in deterministic["decisions"]
+    }
+    scene_decision = decisions_by_key["m3-scene-board-decision"]
+    assert scene_decision["decision_id"] == decision.json()["id"]
+    assert scene_decision["is_current"] is True
+    assert scene_decision["required_owner_action"] is True
+    assert scene_decision["evidence_items"] == [{"kind": "scene-test"}]
+    historical_projection = decisions_by_key["m7-historical-decision"]
+    successor_projection = decisions_by_key["m7-historical-decision-v2"]
+    assert historical_projection["is_current"] is False
+    assert historical_projection["superseded_by_decision_id"] == successor_projection["decision_id"]
+    assert historical_projection["created_at"] is not None
+    assert historical_projection["superseded_by_created_at"] == successor_projection["created_at"]
+    assert historical_projection["superseded_in_projection_week"] is True
+    assert successor_projection["supersedes_decision_id"] == historical_projection["decision_id"]
     assert any(
         item["relationship_type"] == "requires_human_action"
         for item in deterministic["relationships"]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from sqlmodel import Session, select
@@ -30,7 +30,7 @@ from app.services.organization_mobility_live_organization import (
 )
 
 
-LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION = "living-organization-scene.v4"
+LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION = "living-organization-scene.v5"
 
 
 @dataclass(frozen=True, slots=True)
@@ -157,6 +157,8 @@ class LivingSceneWorkItem:
     completed_at: datetime | None
     elapsed_seconds: int | None
     overdue: bool
+    specialist_evidence_valid: bool | None
+    specialist_evidence_reason: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,6 +201,9 @@ class LivingSceneDecision:
     is_current: bool
     required_owner_action: bool
     decided_at: datetime | None
+    created_at: datetime
+    superseded_by_created_at: datetime | None
+    superseded_in_projection_week: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -409,6 +414,17 @@ def _is_overdue(due_at: datetime | None, generated_at: datetime) -> bool:
     return due_at is not None and _utc_datetime(due_at) < _utc_datetime(generated_at)
 
 
+def _same_utc_week(value: datetime | None, reference: datetime) -> bool:
+    if value is None:
+        return False
+    reference_utc = _utc_datetime(reference)
+    week_start = reference_utc.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(
+        days=reference_utc.weekday()
+    )
+    value_utc = _utc_datetime(value)
+    return week_start <= value_utc < week_start + timedelta(days=7)
+
+
 def _scene_blockers(
     session: Session,
     *,
@@ -460,6 +476,7 @@ def _scene_decisions(
     *,
     tenant_key: str,
     work_item_ids: tuple[UUID, ...],
+    generated_at: datetime,
 ) -> tuple[LivingSceneDecision, ...]:
     rows = list(session.exec(
         select(ExecutiveDecision).where(
@@ -471,16 +488,32 @@ def _scene_decisions(
         return ()
     decision_ids = {row.id for row in rows}
     supersession_rows = list(session.exec(
-        select(ExecutiveDecision.id, ExecutiveDecision.supersedes_decision_id).where(
+        select(
+            ExecutiveDecision.id,
+            ExecutiveDecision.supersedes_decision_id,
+            ExecutiveDecision.created_at,
+        ).where(
             ExecutiveDecision.tenant_key == tenant_key,
             ExecutiveDecision.supersedes_decision_id.in_(decision_ids),
         )
     ).all())
-    superseded_by = {supersedes_id: decision_id for decision_id, supersedes_id in supersession_rows if supersedes_id is not None}
+    superseded_by: dict[UUID, tuple[UUID, datetime]] = {}
+    for decision_id, supersedes_id, created_at in supersession_rows:
+        if supersedes_id is None:
+            continue
+        if supersedes_id in superseded_by:
+            raise DependencyConflict(
+                f"Living Organization decision {supersedes_id} has multiple successor decisions"
+            )
+        superseded_by[supersedes_id] = (decision_id, created_at)
+
     projected: list[LivingSceneDecision] = []
     for row in rows:
-        current = row.id not in superseded_by and row.status != "superseded"
+        successor = superseded_by.get(row.id)
+        current = successor is None and row.status != "superseded"
         required_owner_action = current and row.decision_owner_position == "board" and row.status in {"pending", "pending_board", "pending_ceo"}
+        successor_id = successor[0] if successor is not None else None
+        successor_created_at = successor[1] if successor is not None else None
         projected.append(LivingSceneDecision(
             decision_id=row.id,
             decision_key=row.decision_key,
@@ -497,10 +530,13 @@ def _scene_decisions(
             source_object_id=row.source_object_id,
             source_object_version=row.source_object_version,
             supersedes_decision_id=row.supersedes_decision_id,
-            superseded_by_decision_id=superseded_by.get(row.id),
+            superseded_by_decision_id=successor_id,
             is_current=current,
             required_owner_action=required_owner_action,
             decided_at=row.decided_at,
+            created_at=row.created_at,
+            superseded_by_created_at=successor_created_at,
+            superseded_in_projection_week=_same_utc_week(successor_created_at, generated_at),
         ))
     return tuple(projected)
 
@@ -860,6 +896,10 @@ def austria_living_organization_scene(
             )
         )
 
+    specialist_by_work_id = {
+        item.work_item_id: item for item in snapshot.specialist_outputs
+    }
+
     work_items = tuple(
         LivingSceneWorkItem(
             work_item_id=work.id,
@@ -890,11 +930,26 @@ def austria_living_organization_scene(
                 work.status not in {"completed", "cancelled"}
                 and _is_overdue(work.due_at, generated_at)
             ),
+            specialist_evidence_valid=(
+                specialist_by_work_id[work.id].evidence_valid
+                if work.id in specialist_by_work_id
+                else None
+            ),
+            specialist_evidence_reason=(
+                specialist_by_work_id[work.id].evidence_reason
+                if work.id in specialist_by_work_id
+                else None
+            ),
         )
         for work in works
     )
 
-    decisions = _scene_decisions(session, tenant_key=tenant_key, work_item_ids=work_ids)
+    decisions = _scene_decisions(
+        session,
+        tenant_key=tenant_key,
+        work_item_ids=work_ids,
+        generated_at=generated_at,
+    )
     decision_ids = {item.decision_id for item in decisions}
     blocker_ids = {item.blocker_id for item in blockers}
     human_actions = _scene_human_actions(
