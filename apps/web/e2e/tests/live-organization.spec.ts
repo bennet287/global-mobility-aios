@@ -883,7 +883,7 @@ test("preserves M.7.3 evidence and supersession queries under the M.7.4 FLOW tri
   await Promise.all([
     expect(sceneSurface).toHaveAttribute("data-active-lens", "flow"),
     expect(flow.getByText("Directed work routing & bottleneck signals", { exact: true })).toBeVisible(),
-    expect(flow.getByText("GPU fluid/field TRIAL not promoted", { exact: true })).toBeVisible(),
+    expect(flow.getByText("Control surface · GPU field TRIAL remains not promoted", { exact: true })).toBeVisible(),
     expect(flow.locator("[data-flow-work]")).toHaveCount(3),
     expect(flow.getByText("Parent topology · not dependency truth", { exact: true })).toHaveCount(2),
   ]);
