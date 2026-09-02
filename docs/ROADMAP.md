@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.70 — M.4.0 renderer bootstrap implementation candidate; M.4.1 animation gated; Organica moved Post-M
+**Roadmap generation:** V12.71 — M.4.0 renderer bootstrap COMPLETE / PASS; M.4.1 Animated Employees V1 next
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 + M.2 + M.3 COMPLETE / PASS; M.4.0 CANDIDATE / browser proof pending)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 + M.2 + M.3 + M.4.0 COMPLETE / PASS; M.4.1 NEXT)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -219,8 +219,8 @@ M.1   COMPLETE / PASS at 9f00124c9041d1480b8007cdd54214df7fb37e3f
 M.1A  DOCUMENTATION / ROADMAP RECONCILIATION — V12.65
 M.2   COMPLETE / PASS at d9294b2f29c21aa4866d47a253ada94eeae2c568
 M.3   COMPLETE / PASS at d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
-M.4.0 IMPLEMENTATION CANDIDATE — WebGPU/Three.js renderer bootstrap; browser proof pending
-M.4.1 GATED — Animated Employees V1
+M.4.0 COMPLETE / PASS at e664075567997f64bd0b973aa8e8d089207ec77e
+M.4.1 NEXT — Animated Employees V1
 M.5+  SCHEDULED — Living Organization V2
 N     NOT STARTED — dependency-gated behind M
 ```
@@ -380,7 +380,7 @@ optional Cognitive Ecology / Organica
 | **M.1A** | Record exact-head CI closure and freeze detailed M / Living Organization direction | **THIS V12.65 documentation slice** |
 | **M.2** | Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction | **COMPLETE / PASS** at `d9294b2f29c21aa4866d47a253ada94eeae2c568` |
 | **M.3** | Living Organization Scene Foundation | **COMPLETE / PASS** at `d72ba0b6aaeb14385a340a7a4c0ddace1cd63882` |
-| **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **IN PROGRESS — M.4.0 implementation candidate / browser proof pending** |
+| **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **IN PROGRESS — M.4.0 COMPLETE / PASS; M.4.1 NEXT** |
 | **M.5** | Conversations, handoffs & Mission Rooms | Scheduled |
 | **M.6** | Blockers, Smart Objects & live Board Room | Scheduled |
 | **M.7** | Organization Lenses + Owner command mode; mandatory structured FLOW baseline + GPU fluid FLOW TRIAL | Scheduled |
@@ -648,7 +648,30 @@ Acceptance required before M.4.1:
 
 The Structured Cockpit is a named permanent product surface, not a temporary benchmark. It is the accessibility, low-power and exact-record path.
 
-M.4.0 implementation may be committed before browser proof, but it remains **CANDIDATE** until the browser gate is observed.
+M.4.0 is **COMPLETE / PASS** at exact implementation/proof head:
+
+~~~text
+e664075567997f64bd0b973aa8e8d089207ec77e
+
+Repository Policy Check #533 / run 33582099294   PASS
+V12 Production Proof #1085 / run 33582096438     PASS — 5/5 jobs
+
+Frontend tests, types and build                   PASS
+Repository policy and constraints                PASS
+PostgreSQL governance contracts                  PASS
+Backend regression (SQLite)                      PASS
+Living Organization renderer browser proof       PASS — 7/7 Playwright tests
+~~~
+
+Browser acceptance observed on the exact head includes:
+- initialized Three.js renderer reports an actual backend of WebGPU or WebGL2 fallback, never an inferred preference;
+- canonical scene fixture renders department/employee/room geometry;
+- view-only pointer picking selects a projected entity;
+- Structured Cockpit remains visible and usable;
+- renderer/scene authority remains false;
+- no renderer path gains command or canonical mutation authority.
+
+M.4.0 is closed unless a regression is found. M.4.1 may now implement semantic employee animation.
 
 ### M.4.1 — Animated Employees V1
 
@@ -970,7 +993,7 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1 + M.2 + M.3 COMPLETE / PASS; M.4.0 CANDIDATE; M.4.1 GATED; M.5–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1 + M.2 + M.3 + M.4.0 COMPLETE / PASS; M.4.1 NEXT; M.5–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 

@@ -9,6 +9,44 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.71 M.4.0 EXACT-HEAD CLOSURE
+
+### Status
+
+**M.4.0 RENDERER BOOTSTRAP COMPLETE / PASS / M.4.1 ANIMATED EMPLOYEES V1 NEXT**
+
+Exact accepted implementation/proof head:
+
+~~~text
+e664075567997f64bd0b973aa8e8d089207ec77e
+
+Repository Policy Check #533 / run 33582099294   PASS
+V12 Production Proof #1085 / run 33582096438     PASS — 5/5 jobs
+  Frontend tests, types and build                 PASS
+  Repository policy and constraints              PASS
+  PostgreSQL governance contracts                PASS
+  Backend regression (SQLite)                    PASS
+  Living Organization renderer browser proof     PASS — 7/7 Playwright tests
+~~~
+
+Accepted renderer proof:
+
+- three@0.185.1 is integrated behind an AIOS-owned adapter;
+- the built browser application initializes the Three.js renderer;
+- actual initialized backend is reported as WebGPU or WebGL2 fallback rather than inferred browser preference;
+- canonical department, employee and room geometry renders from the scene model;
+- Raycaster pointer picking selects a projected entity;
+- picking remains view-only;
+- renderer and scene authority remain false;
+- Structured Cockpit remains visible and available for accessibility, low-power devices, unsupported graphics environments and all core operations;
+- no renderer code performs canonical fetch/mutation/command semantics.
+
+The browser gate initially exposed brittle pre-existing M.3 Playwright selectors. Those selectors were repaired structurally without weakening M.4.0, and the final exact-head seven-test suite is green.
+
+M.4.1 Animated Employees V1 is now the next functional slice.
+
+---
+
 ## 2026-09-02 — V12.70 M.4.0 RENDERER BOOTSTRAP CANDIDATE
 
 ### Status
