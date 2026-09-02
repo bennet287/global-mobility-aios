@@ -87,6 +87,8 @@ test("M.4.1 employee animation consumes bounded presentation state", async () =>
   assert.match(adapter, /employeeActors = \[\]/);
   assert.doesNotMatch(adapter, /conversation_state|handoff_state|walking_state|room_entry_state/);
 
-  assert.match(rendererComponent, /M\.4\.1 · Animated Employees V1/);
-  assert.match(rendererComponent, /Presence and locomotion are not asserted in M\.4\.1/);
+  assert.match(rendererComponent, /M\.6 · Smart Objects \+ live Board Room/);
+  assert.match(rendererComponent, /M\.4\.1 motion discipline is preserved/);
+  assert.match(adapter, /smartObjectCount/);
+  assert.match(adapter, /createLivingSceneSelection\("smart_object"/);
 });
