@@ -405,7 +405,11 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
               {scene.deterministic.conversations.length ? (
                 <div className="scene-decision-list">
                   {scene.deterministic.conversations.map((conversation) => (
-                    <details key={conversation.conversation_id}>
+                    <details
+                      key={conversation.conversation_id}
+                      data-conversation-id={conversation.conversation_id}
+                      data-work-item-id={conversation.work_item_id}
+                    >
                       <summary>
                         <span>{titleCase(conversation.status)} · {conversation.participant_position_keys.length} participants</span>
                         <strong>{conversation.summary}</strong>
@@ -437,7 +441,11 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
               {scene.deterministic.handoffs.length ? (
                 <div className="scene-decision-list">
                   {scene.deterministic.handoffs.map((handoff) => (
-                    <details key={handoff.activity_id}>
+                    <details
+                      key={handoff.activity_id}
+                      data-handoff-activity-id={handoff.activity_id}
+                      data-work-item-id={handoff.work_item_id}
+                    >
                       <summary>
                         <span>{titleCase(handoff.status)} · Work {shortId(handoff.work_item_id)}</span>
                         <strong>{titleCase(handoff.previous_position_key)} ↓ {titleCase(handoff.assigned_position_key)}</strong>

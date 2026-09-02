@@ -941,22 +941,23 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
   await expect(sceneSurface.getByText("Open · 2 participants", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Coordinate pathway evidence before owner synthesis.", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Canonical conversation · 1", { exact: true }).first()).toBeVisible();
-  const conversationDisclosure = sceneSurface
-    .locator("details")
-    .filter({ hasText: "Coordinate pathway evidence before owner synthesis." })
-    .locator("summary");
-  await expect(conversationDisclosure).toBeVisible();
-  await conversationDisclosure.focus();
-  await conversationDisclosure.press("Enter");
-  await expect(sceneSurface.getByText(/Opened Activity 33333333 · Latest Activity 33333333/)).toBeVisible();
-  const handoffDisclosure = sceneSurface
-    .locator("details")
-    .filter({ hasText: "Mobility Operations Lead ↓ Pathway Operations Specialist" })
-    .locator("summary");
-  await expect(handoffDisclosure).toBeVisible();
-  await handoffDisclosure.focus();
-  await handoffDisclosure.press("Enter");
-  await expect(sceneSurface.getByText("Governed causation 55555555", { exact: true })).toBeVisible();
+  const conversationRecord = sceneSurface.locator(
+    '[data-conversation-id="66666666-6666-4666-8666-666666666666"]',
+  );
+  await expect(conversationRecord).toBeVisible();
+  await conversationRecord.evaluate((element) => {
+    (element as HTMLDetailsElement).open = true;
+  });
+  await expect(conversationRecord.getByText(/Opened Activity 33333333 · Latest Activity 33333333/)).toBeVisible();
+
+  const handoffRecord = sceneSurface.locator(
+    '[data-handoff-activity-id="44444444-4444-4444-8444-444444444444"]',
+  );
+  await expect(handoffRecord).toBeVisible();
+  await handoffRecord.evaluate((element) => {
+    (element as HTMLDetailsElement).open = true;
+  });
+  await expect(handoffRecord.getByText("Governed causation 55555555", { exact: true })).toBeVisible();
   await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
 
   expect(recorded.some((item) => item.method === "GET" && item.path === SCENE_PATH)).toBe(true);

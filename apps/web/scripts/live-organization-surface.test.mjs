@@ -99,6 +99,8 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(sceneComponent, /Directed work routing & bottleneck signals/);
   assert.match(sceneComponent, /GPU fluid\/field TRIAL not promoted/);
   assert.match(sceneComponent, /data-owner-query-result/);
+  assert.match(sceneComponent, /data-conversation-id=\{conversation\.conversation_id\}/);
+  assert.match(sceneComponent, /data-handoff-activity-id=\{handoff\.activity_id\}/);
   assert.match(sceneComponent, /Owner command mode · view-only foundation/);
   assert.match(sceneComponent, /No POST · no canonical mutation/);
   assert.match(sceneComponent, /OWNER_LENS_VIEW_COMMANDS/);
