@@ -248,6 +248,7 @@ def _live_snapshot_read(
         activities=[_record_read(record) for record in snapshot.activities],
         domain_evidence_refs=list(snapshot.domain_evidence_refs),
         verified_rule_refs=list(snapshot.verified_rule_refs),
+        source_snapshot_refs=list(snapshot.source_snapshot_refs),
     )
 
 
@@ -261,7 +262,7 @@ def read_latest_austria_living_scene(
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
 ) -> LivingOrganizationSceneLatestRead:
-    """Return the canonical M.5 scene projection without granting renderer authority."""
+    """Return the canonical M.6 scene projection without granting renderer authority."""
 
     _require_board(context)
     try:
