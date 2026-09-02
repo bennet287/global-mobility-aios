@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.74 — M.6 Blockers, Smart Objects & live Board Room COMPLETE / PASS; M.7 Organization Lenses + Owner command mode next
+**Roadmap generation:** V12.75 — M.7.1 Organization Lenses + read-only Owner view commands COMPLETE / PASS; M.7 continues
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7 NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1 COMPLETE / PASS; M.7 CONTINUES)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -839,7 +839,29 @@ Show decisions superseded this week.
 
 Projection/filter/camera may react immediately; material organizational mutation still requires governed APIs.
 
+### M.7.1 — Organization Lenses + read-only Owner view commands — COMPLETE / PASS
+
+M.7.1 is accepted on exact implementation head `7937d326ae8625c81a19236539f89cb1dee352e6`.
+
+~~~text
+Repository Policy Check #570 / run 33621902151   PASS
+V12 Production Proof #1159 / run 33621897577     PASS — 5/5 jobs
+Backend regression (SQLite)                       1343 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                10/10 passed
+~~~
+
+M.7.1 adds a read-only lens foundation over the existing `living-organization-scene.v3` deterministic plane. ORGANIZATION / MISSION / FLOW / RISK / AUTONOMY / COST / EVIDENCE / BLOCKERS / DECISIONS / PERFORMANCE / INCIDENT are represented explicitly, but only scene-safe canonical lenses are selectable.
+
+The lens model keeps negative truth visible. COST remains unavailable because M.6 established that no canonical organization runtime-cost ledger exists. INCIDENT remains unavailable because there is no canonical Incident model. AUTONOMY remains planned rather than inferred from authority levels. PERFORMANCE remains planned because raw activity volume is not treated as productivity. FLOW is intentionally partial: it exposes current WorkItem relationships and governed handoffs but does not yet claim throughput, congestion heat or the planned structured-vs-fluid comparison.
+
+Owner command mode begins with view-only commands such as mission work, routing flow, open risk, blockers, Board attention and evidence state. These commands change local presentation emphasis only. Browser proof verifies lens switching without POST or canonical mutation. The ORGANIZATION lens restores the complete structured scene, and de-emphasis never removes the exact Structured fallback.
+
+M.7.1 does not add a truth store, migration, authority path, provider authority, scene mutation, presence claim or locomotion claim.
+
 ---
+
+
 
 ## 5.7 M.8 — Replay / temporal organization
 
