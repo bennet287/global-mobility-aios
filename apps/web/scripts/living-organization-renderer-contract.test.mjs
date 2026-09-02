@@ -45,7 +45,7 @@ test("M.4.0 WebGPU renderer remains a non-authoritative optional projection", as
   assert.match(rendererComponent, /Living spatial organization/);
   assert.match(rendererComponent, /data-renderer-backend/);
   assert.match(rendererComponent, /Unknown renderer backend/);
-  assert.match(rendererComponent, /Structured Cockpit reference below remains available/);
+  assert.match(rendererComponent, /Structured Cockpit remains available for every core operation/);
   assert.match(rendererComponent, /aria-hidden="true"/);
   assert.match(rendererComponent, /Selection changes view focus only; it cannot mutate AIOS/);
   assert.match(rendererComponent, /data-selection-authority="none"/);
