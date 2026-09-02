@@ -37,3 +37,26 @@ test("Cockpit uses one global state vocabulary and adaptive evidence-first refin
   assert.match(sidebar, /onMouseEnter=\{\(event\) => showRailTooltip/);
   assert.match(sidebar, /onFocus=\{\(event\) => showRailTooltip/);
 });
+
+
+test("Decision Explorer M.2 follows canonical work, reference, activity and supersession reads only", async () => {
+  const decisionExplorer = await read("app/cockpit/decisions/page.tsx");
+  const api = await read("lib/api.ts");
+
+  assert.match(decisionExplorer, /M\.2 Decision → Work → Evidence/);
+  assert.match(decisionExplorer, /getOrganizationWorkItem/);
+  assert.match(decisionExplorer, /listOrganizationRecordReferences/);
+  assert.match(decisionExplorer, /listOrganizationActivities/);
+  assert.match(decisionExplorer, /objective_key/);
+  assert.match(decisionExplorer, /phase_key/);
+  assert.match(decisionExplorer, /superseded_by_decision_id/);
+  assert.match(decisionExplorer, /Missing relationships remain unknown rather than being inferred/);
+  assert.match(decisionExplorer, /does not create work, evidence, activities, decisions, or supersession/);
+  assert.doesNotMatch(decisionExplorer, /createOrganizationWork/);
+  assert.doesNotMatch(decisionExplorer, /decideBoardItem/);
+
+  assert.match(api, /work_item_id\?: string/);
+  assert.match(api, /decision_id\?: string/);
+  assert.match(api, /reference_role\?: string/);
+  assert.match(api, /\/api\/v1\/organization\/record-references/);
+});

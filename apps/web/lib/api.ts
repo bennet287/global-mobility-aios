@@ -5122,6 +5122,27 @@ export type ExecutiveDecision = {
   updated_at: string;
 };
 
+export type OrganizationRecordReference = {
+  id: string;
+  reference_key: string;
+  activity_id: string | null;
+  contribution_id: string | null;
+  work_item_id: string | null;
+  decision_id: string | null;
+  blocker_id: string | null;
+  human_action_request_id: string | null;
+  human_action_id: string | null;
+  reference_role: "authoritative_outcome" | "affected_subject" | "evidence" | "caused_by" | "supports" | "contradicts" | string;
+  target_type: string;
+  target_id: string;
+  target_version: string | null;
+  target_state: string | null;
+  label: string | null;
+  source_url: string | null;
+  supersedes_reference_id: string | null;
+  created_at: string;
+};
+
 export type RiskEscalation = {
   id: string; category: string; severity: string; title: string;
   description: string; escalated_to_position_key: string;
@@ -5313,11 +5334,48 @@ export async function createOrganizationHumanActionRequest(
   });
 }
 
-export async function listOrganizationActivities(params: { page?: number; page_size?: number } = {}): Promise<OrganizationActivityPage> {
+export async function listOrganizationActivities(
+  params: {
+    work_item_id?: string;
+    activity_class?: string;
+    activity_type?: string;
+    correlation_key?: string;
+    actor_id?: string;
+    page?: number;
+    page_size?: number;
+  } = {},
+): Promise<OrganizationActivityPage> {
   const search = new URLSearchParams();
   search.set("page", String(params.page || 1));
   search.set("page_size", String(params.page_size || 20));
+  if (params.work_item_id) search.set("work_item_id", params.work_item_id);
+  if (params.activity_class) search.set("activity_class", params.activity_class);
+  if (params.activity_type) search.set("activity_type", params.activity_type);
+  if (params.correlation_key) search.set("correlation_key", params.correlation_key);
+  if (params.actor_id) search.set("actor_id", params.actor_id);
   return request(`/api/v1/organization/activities?${search.toString()}`);
+}
+
+export async function listOrganizationRecordReferences(
+  params: {
+    target_type?: string;
+    target_id?: string;
+    reference_role?: string;
+    work_item_id?: string;
+    decision_id?: string;
+    page?: number;
+    page_size?: number;
+  } = {},
+): Promise<OrganizationRecordPage<OrganizationRecordReference>> {
+  const search = new URLSearchParams();
+  search.set("page", String(params.page || 1));
+  search.set("page_size", String(params.page_size || 50));
+  if (params.target_type) search.set("target_type", params.target_type);
+  if (params.target_id) search.set("target_id", params.target_id);
+  if (params.reference_role) search.set("reference_role", params.reference_role);
+  if (params.work_item_id) search.set("work_item_id", params.work_item_id);
+  if (params.decision_id) search.set("decision_id", params.decision_id);
+  return request(`/api/v1/organization/record-references?${search.toString()}`);
 }
 
 export async function listOrganizationBlockers(

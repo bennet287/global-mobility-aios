@@ -44,6 +44,12 @@ test("Organization read list functions reach the expected endpoints and params",
     await api.listOrganizationBlockers({ status: "open", page_size: 50 });
     await api.listOrganizationWorkItemDependencies({ status: "active", page_size: 50 });
     await api.listOrganizationWorkItems({ status_filter: "running", page_size: 100 });
+    await api.listOrganizationActivities({ work_item_id: "work-uuid-1234", page_size: 25 });
+    await api.listOrganizationRecordReferences({
+      work_item_id: "work-uuid-1234",
+      reference_role: "evidence",
+      page_size: 50,
+    });
   } finally {
     globalThis.fetch = originalFetch;
     delete process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -58,6 +64,8 @@ test("Organization read list functions reach the expected endpoints and params",
     "http://127.0.0.1:8003/api/v1/organization/blockers?page=1&page_size=50&status=open",
     "http://127.0.0.1:8003/api/v1/organization/work-item-dependencies?page=1&page_size=50&status=active",
     "http://127.0.0.1:8003/api/v1/organization/work-items/records?page=1&page_size=100&status=running",
+    "http://127.0.0.1:8003/api/v1/organization/activities?page=1&page_size=25&work_item_id=work-uuid-1234",
+    "http://127.0.0.1:8003/api/v1/organization/record-references?page=1&page_size=50&reference_role=evidence&work_item_id=work-uuid-1234",
   ]);
 
   for (const call of recorder.calls) {

@@ -678,6 +678,42 @@ def test_record_reference_validation_and_tenant_safe_owner(
     assert client.get(f"{BASE}/record-references/{accepted.json()['id']}").status_code == 200
     assert client.get(f"{BASE}/record-references").json()["total"] == 1
 
+    work_filtered = client.get(
+        f"{BASE}/record-references",
+        params={"work_item_id": work["id"], "reference_role": "evidence"},
+    )
+    assert work_filtered.status_code == 200, work_filtered.text
+    assert [row["id"] for row in work_filtered.json()["data"]] == [accepted.json()["id"]]
+
+    decision = _approved_decision(client, "reference-decision")
+    decision_reference = client.post(
+        f"{BASE}/record-references",
+        json={
+            "reference_key": "reference-decision-evidence",
+            "reference_role": "supports",
+            "target_type": "lead",
+            "target_id": str(lead.id),
+            "decision_id": decision["id"],
+            "label": "Decision support provenance",
+        },
+    )
+    assert decision_reference.status_code == 201, decision_reference.text
+
+    decision_filtered = client.get(
+        f"{BASE}/record-references",
+        params={"decision_id": decision["id"]},
+    )
+    assert decision_filtered.status_code == 200, decision_filtered.text
+    assert [row["id"] for row in decision_filtered.json()["data"]] == [
+        decision_reference.json()["id"]
+    ]
+
+    invalid_role = client.get(
+        f"{BASE}/record-references",
+        params={"reference_role": "invented-role"},
+    )
+    assert invalid_role.status_code == 422
+
     invalid_type = client.post(
         f"{BASE}/record-references", json={**payload, "reference_key": "bad-type", "target_type": "work_item"}
     )

@@ -23,6 +23,7 @@ from app.models.domain import (
     OrganizationHumanActionRequest,
     OrganizationHumanActionRequestStatus,
     OrganizationRecordReference,
+    OrganizationReferenceRole,
     OrganizationWorkItemDependency,
     OrganizationalWorkItem,
 )
@@ -864,16 +865,32 @@ def list_record_references(
     page_size: int = Query(default=DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),
     target_type: str | None = None,
     target_id: str | None = None,
+    reference_role: OrganizationReferenceRole | None = None,
+    work_item_id: UUID | None = None,
+    decision_id: UUID | None = None,
     context: OrganizationCommandContext = Depends(organization_command_context),
     session: Session = Depends(get_session),
 ) -> dict[str, Any]:
     conditions: list[Any] = [OrganizationRecordReference.tenant_key == context.tenant_key]
-    if target_type is not None:
-        conditions.append(OrganizationRecordReference.target_type == target_type)
-    if target_id is not None:
-        conditions.append(OrganizationRecordReference.target_id == target_id)
+    for value, column in (
+        (target_type, OrganizationRecordReference.target_type),
+        (target_id, OrganizationRecordReference.target_id),
+        (reference_role, OrganizationRecordReference.reference_role),
+        (work_item_id, OrganizationRecordReference.work_item_id),
+        (decision_id, OrganizationRecordReference.decision_id),
+    ):
+        if value is not None:
+            conditions.append(column == value)
     total = session.exec(select(func.count()).select_from(OrganizationRecordReference).where(*conditions)).one()
-    rows = list(session.exec(select(OrganizationRecordReference).where(*conditions).order_by(OrganizationRecordReference.created_at.desc(), OrganizationRecordReference.id.desc()).offset((page - 1) * page_size).limit(page_size)).all())
+    rows = list(
+        session.exec(
+            select(OrganizationRecordReference)
+            .where(*conditions)
+            .order_by(OrganizationRecordReference.created_at.desc(), OrganizationRecordReference.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        ).all()
+    )
     return _page_result(rows, page=page, page_size=page_size, total=total)
 
 
