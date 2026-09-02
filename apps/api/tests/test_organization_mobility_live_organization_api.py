@@ -135,6 +135,12 @@ def test_live_organization_latest_is_board_safe_when_not_established(client: Tes
     assert scene.status_code == 200
     assert scene.json() == {"established": False, "scene": None}
 
+    memory = client.get(
+        "/api/v1/organization/transparency/live-organization/environmental-memory/austria/latest"
+    )
+    assert memory.status_code == 200
+    assert memory.json() == {"established": False, "memory": None}
+
 
 def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
     client: TestClient,
@@ -297,6 +303,61 @@ def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
     assert identity_diff["human_requests"] == []
     assert identity_diff["conversations"] == []
 
+    memory_response = client.get(
+        "/api/v1/organization/transparency/live-organization/environmental-memory/austria/latest"
+    )
+    assert memory_response.status_code == 200, memory_response.text
+    memory_body = memory_response.json()
+    assert memory_body["established"] is True
+    memory = memory_body["memory"]
+    assert memory["contract_version"] == "organization-environmental-memory.v1"
+    assert memory["source_contract_version"] == "organization-replay.v1"
+    assert memory["root_work_item_id"] == str(plan.root_work_item.id)
+    assert memory["objective_key"] == plan.root_work_item.objective_key
+    assert memory["canonical_projection"] is True
+    assert memory["authoritative"] is False
+    assert memory["predictive"] is False
+    assert memory["mutations_allowed"] is False
+    assert memory["visualization_only"] is True
+    assert memory["window_event_count"] == replay["returned_events"]
+    assert memory["coverage"]["activity_history_basis"] == "explicit_activity_coverage_epoch"
+    assert memory["coverage"]["activity_history_established"] is True
+    assert memory["coverage"]["replay_truncated"] is False
+    assert (
+        memory["coverage"]["bounded_replay_window"]
+        == "sealed_organization_replay_v1_returned_window"
+    )
+    assert (
+        memory["coverage"]["path_history"]
+        == "organization.work.assigned.v1_semantic_activity_in_replay_window"
+    )
+    assert sum(item["event_count"] for item in memory["kind_aggregates"]) == replay["returned_events"]
+    assert sum(item["event_count"] for item in memory["heat_cells"]) == replay["returned_events"]
+    assert sum(item["covered_event_count"] for item in memory["heat_cells"]) == replay["returned_events"]
+    assert sum(item["event_count"] for item in memory["timeline"]) == replay["returned_events"]
+    assert len(memory["path_frequencies"]) == 2
+    assert sum(item["handoff_count"] for item in memory["path_frequencies"]) == 2
+    assert all(item["work_item_count"] == 1 for item in memory["path_frequencies"])
+    routes = {
+        (item["previous_position_key"], item["assigned_position_key"])
+        for item in memory["path_frequencies"]
+    }
+    assert routes == {
+        (
+            plan.pathway_work_item.assigned_position_key,
+            plan.root_work_item.assigned_position_key,
+        ),
+        (
+            plan.root_work_item.assigned_position_key,
+            plan.pathway_work_item.assigned_position_key,
+        ),
+    }
+    assert all(item["coverage_state"] == "covered" for item in memory["path_frequencies"])
+    assert "future_state_prediction_v1" in memory["unsupported_dimensions"]
+    assert "reaction_diffusion_signal_v1" in memory["unsupported_dimensions"]
+    assert "payload" not in memory
+    assert "prediction" not in memory
+
     raw_client.headers.update({
         "X-GMAI-Role": "operator",
         "X-GMAI-User": "m8-operator",
@@ -305,6 +366,10 @@ def test_m8_replay_is_board_safe_coverage_bounded_and_never_backfilled(
         "/api/v1/organization/transparency/live-organization/replay/austria/latest"
     )
     assert denied.status_code == 403
+    denied_memory = raw_client.get(
+        "/api/v1/organization/transparency/live-organization/environmental-memory/austria/latest"
+    )
+    assert denied_memory.status_code == 403
 
 
 def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
