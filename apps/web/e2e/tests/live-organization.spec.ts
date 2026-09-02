@@ -4,6 +4,10 @@ const API_BASE = "http://127.0.0.1:8000";
 const LATEST_PATH = "/api/v1/organization/transparency/live-organization/austria/latest";
 const SCENE_PATH = "/api/v1/organization/transparency/live-organization/scene/austria/latest";
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
+const CONVERSATION_ID = "pathway-evidence-coordination";
+const CONVERSATION_ACTIVITY_ID = "33333333-3333-4333-8333-333333333331";
+const HANDOFF_ACTIVITY_ID = "44444444-4444-4444-8444-444444444441";
+const HANDOFF_CAUSATION_ACTIVITY_ID = "55555555-5555-4555-8555-555555555551";
 const OWNER_PATH = `/api/v1/organization/live-organization/austria/${ROOT_ID}/owner-synthesis`;
 
 const CORS_HEADERS = {
@@ -342,7 +346,7 @@ function livingScene() {
         ],
         conversations: [
           {
-            conversation_id: "pathway-evidence-coordination",
+            conversation_id: CONVERSATION_ID,
             participant_position_keys: [
               "mobility_operations_lead",
               "pathway_operations_specialist",
@@ -350,8 +354,8 @@ function livingScene() {
             work_item_id: "22222222-2222-4222-8222-222222222221",
             status: "open",
             summary: "Coordinate pathway evidence before owner synthesis.",
-            opened_activity_id: "33333333-3333-4333-8333-333333333331",
-            latest_activity_id: "33333333-3333-4333-8333-333333333331",
+            opened_activity_id: CONVERSATION_ACTIVITY_ID,
+            latest_activity_id: CONVERSATION_ACTIVITY_ID,
             opened_at: "2026-09-02T01:20:00Z",
             lifecycle_at: "2026-09-02T01:20:00Z",
             authority_effect: "none",
@@ -361,13 +365,13 @@ function livingScene() {
         ],
         handoffs: [
           {
-            activity_id: "44444444-4444-4444-8444-444444444441",
+            activity_id: HANDOFF_ACTIVITY_ID,
             work_item_id: "22222222-2222-4222-8222-222222222221",
             previous_position_key: "mobility_operations_lead",
             assigned_position_key: "pathway_operations_specialist",
             status: "running",
             occurred_at: "2026-09-02T01:25:00Z",
-            causation_activity_id: "55555555-5555-4555-8555-555555555551",
+            causation_activity_id: HANDOFF_CAUSATION_ACTIVITY_ID,
             canonical_basis: "organization.work.assigned.v1 OrganizationActivity",
           },
         ],
@@ -942,7 +946,7 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
   await expect(sceneSurface.getByText("Coordinate pathway evidence before owner synthesis.", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Canonical conversation · 1", { exact: true }).first()).toBeVisible();
   const conversationRecord = sceneSurface.locator(
-    '[data-conversation-id="66666666-6666-4666-8666-666666666666"]',
+    `[data-conversation-id="${CONVERSATION_ID}"]`,
   );
   await expect(conversationRecord).toBeVisible();
   await conversationRecord.evaluate((element) => {
@@ -951,7 +955,7 @@ test("renders M.7.3 evidence and supersession Owner queries without mutating AIO
   await expect(conversationRecord.getByText(/Opened Activity 33333333 · Latest Activity 33333333/)).toBeVisible();
 
   const handoffRecord = sceneSurface.locator(
-    '[data-handoff-activity-id="44444444-4444-4444-8444-444444444444"]',
+    `[data-handoff-activity-id="${HANDOFF_ACTIVITY_ID}"]`,
   );
   await expect(handoffRecord).toBeVisible();
   await handoffRecord.evaluate((element) => {
