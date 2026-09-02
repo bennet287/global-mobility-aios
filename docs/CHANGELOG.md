@@ -9,6 +9,46 @@ The active changelog was rotated after V12.33. Exact older detail remains in Git
 ---
 
 
+## 2026-09-02 — V12.70 M.4.0 RENDERER BOOTSTRAP CANDIDATE
+
+### Status
+
+**M.4.0 IMPLEMENTATION CANDIDATE / BROWSER PROOF PENDING / M.4.1 ANIMATION GATED**
+
+The accepted M.3 scene contract remains closed. M.4 begins with a separate renderer gate rather than retroactively redefining M.3.
+
+Candidate implementation:
+
+~~~text
+three@0.185.1
+AIOS-owned Three.js WebGPURenderer adapter
+canonical scene render model
+department / employee / room geometry
+view-only Raycaster picking
+WebGPU preferred; renderer-level WebGL2 fallback
+permanent Structured Cockpit reference
+~~~
+
+Truth and accessibility boundaries:
+
+- renderer rejects an authoritative scene model;
+- renderer performs no API fetch, command or canonical mutation;
+- picking changes view selection only;
+- Three.js objects never become organization/domain truth;
+- Structured Cockpit remains available for accessibility, low-power devices, unsupported graphics and every core operation;
+- package/build/static contract success is not sufficient for M.4.0 PASS;
+- actual browser mount and picking proof remain required before M.4.1 employee animation.
+
+Product-plan refinements:
+
+- reaction-diffusion graduation now requires a user to identify the pattern and explain its real persisted historical path;
+- M.10 is cross-view product-value benchmark + M closure;
+- Cognitive Ecology / Organica moves to Post-M optional research and does not block N.
+
+No authority, sealed-L, decision or canonical organization semantics change.
+
+---
+
 ## 2026-09-02 — V12.69 M.3 EXACT-HEAD CLOSURE + ADVANCED RENDERING RECLASSIFICATION
 
 ### Status

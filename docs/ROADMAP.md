@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.69 — M.3 Living Organization Scene Foundation COMPLETE / PASS; M.4 Animated Employees V1 next; advanced rendering classification corrected
+**Roadmap generation:** V12.70 — M.4.0 renderer bootstrap implementation candidate; M.4.1 animation gated; Organica moved Post-M
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 + M.2 + M.3 COMPLETE / PASS; M.4 NEXT)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1 + M.2 + M.3 COMPLETE / PASS; M.4.0 CANDIDATE / browser proof pending)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -219,7 +219,8 @@ M.1   COMPLETE / PASS at 9f00124c9041d1480b8007cdd54214df7fb37e3f
 M.1A  DOCUMENTATION / ROADMAP RECONCILIATION — V12.65
 M.2   COMPLETE / PASS at d9294b2f29c21aa4866d47a253ada94eeae2c568
 M.3   COMPLETE / PASS at d72ba0b6aaeb14385a340a7a4c0ddace1cd63882
-M.4   NEXT — Animated Employees V1
+M.4.0 IMPLEMENTATION CANDIDATE — WebGPU/Three.js renderer bootstrap; browser proof pending
+M.4.1 GATED — Animated Employees V1
 M.5+  SCHEDULED — Living Organization V2
 N     NOT STARTED — dependency-gated behind M
 ```
@@ -379,13 +380,14 @@ optional Cognitive Ecology / Organica
 | **M.1A** | Record exact-head CI closure and freeze detailed M / Living Organization direction | **THIS V12.65 documentation slice** |
 | **M.2** | Decision → WorkItem → Evidence/Provenance → durable activity → Supersession reconstruction | **COMPLETE / PASS** at `d9294b2f29c21aa4866d47a253ada94eeae2c568` |
 | **M.3** | Living Organization Scene Foundation | **COMPLETE / PASS** at `d72ba0b6aaeb14385a340a7a4c0ddace1cd63882` |
-| **M.4** | Animated Employees V1 | **NEXT functional slice** |
+| **M.4** | Animated Employees V1: M.4.0 renderer bootstrap gate → M.4.1 semantic animation | **IN PROGRESS — M.4.0 implementation candidate / browser proof pending** |
 | **M.5** | Conversations, handoffs & Mission Rooms | Scheduled |
 | **M.6** | Blockers, Smart Objects & live Board Room | Scheduled |
 | **M.7** | Organization Lenses + Owner command mode; mandatory structured FLOW baseline + GPU fluid FLOW TRIAL | Scheduled |
 | **M.8** | Replay / temporal organization | Scheduled |
 | **M.9** | Environmental memory TRIAL with mandatory structured historical baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment | Scheduled; hardest interpretation gate |
-| **M.10** | Cognitive Ecology / Organica OPTIONAL VIEW using the WebGPU/Three.js ADOPT substrate plus only analytical primitives that survive their gates | Optional; never default without evidence |
+| **M.10** | Cross-view product-value benchmark, accessibility/fallback proof, analytical-hypothesis disposition, and M closure | Scheduled |
+| **Post-M** | Cognitive Ecology / Organica optional research | Unscheduled; only if evidence justifies; does not block N |
 | **N** | Real learning, optimization, Dreamtime, adaptive predictions | After M and dependency gates |
 
 ### M.1 — Decision Explorer — COMPLETE / PASS
@@ -613,7 +615,44 @@ Planes 2 and 3 may aid Owner perception but never silently mutate canonical AIOS
 
 ## 5.3 M.4 — Animated Employees V1
 
-Initial vocabulary:
+M.4 is split so animation cannot start on an unproven renderer seam.
+
+### M.4.0 — Renderer bootstrap gate
+
+Implementation candidate scope:
+
+~~~text
+living-organization-scene.v1
+        ↓
+renderer-neutral LivingSceneRenderModel
+        ↓
+AIOS-owned Three.js adapter
+        ↓
+Three.js WebGPURenderer
+        ↓
+WebGPU preferred / WebGL2 renderer fallback
+        ↓
+view-only picking
+~~~
+
+Acceptance required before M.4.1:
+
+1. browser renderer initializes on the canonical scene fixture;
+2. canonical department/employee/room geometry is rendered;
+3. pointer picking resolves a projected entity;
+4. picking changes view selection only and invokes no command API;
+5. renderer refuses authoritative scene models;
+6. renderer failure leaves the permanent Structured Cockpit usable;
+7. no core operation requires the spatial renderer;
+8. dependency/build/static contract gates pass at the same exact head.
+
+The Structured Cockpit is a named permanent product surface, not a temporary benchmark. It is the accessibility, low-power and exact-record path.
+
+M.4.0 implementation may be committed before browser proof, but it remains **CANDIDATE** until the browser gate is observed.
+
+### M.4.1 — Animated Employees V1
+
+Only after M.4.0 PASS do we add the initial animation vocabulary:
 
 ~~~text
 idle / available / walking / working / reading / typing
@@ -627,11 +666,10 @@ active WorkItem → working semantic state → desk/read/type animation
 available       → idle semantic state    → desk/lounge/coffee animation
 ~~~
 
-Employees retain recognizable identity, role and location conventions.
+Employees retain recognizable identity, role, home department and location conventions. Animation consumes explicit semantic state; it does not derive new organizational truth.
 
-Renderer direction: stay inside the existing Next.js/React Cockpit. **WebGPU plus a Three.js WebGPU/compute scene layer is now architecturally adopted for the advanced Living Organization renderer**, with a progressive fallback path for environments that cannot support the advanced path. Rendering technology never becomes runtime authority. The advanced path must earn default-surface prominence through the product-value benchmark defined in docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
+Renderer direction: stay inside the existing Next.js/React Cockpit. WebGPU plus the Three.js WebGPU scene layer is ADOPT infrastructure. Rendering technology never becomes runtime authority.
 
----
 
 ## 5.4 M.5 — Conversations, handoffs and Mission Rooms
 
@@ -747,46 +785,44 @@ Environmental traces and predictions are perception aids, not new truth stores.
 
 ---
 
-## 5.9 M.10 — Cognitive Ecology / Organica experimental view
+## 5.9 M.10 — Cross-view product-value benchmark + M closure
 
-Default experience remains familiar:
+M.10 does not require a new abstract visualization. It closes M by proving that the implemented product surfaces work together.
 
-~~~text
-people / departments / rooms / Missions / conversations / Board Room
-~~~
-
-Optional analytical mode may use:
+Permanent product surfaces:
 
 ~~~text
-evidence crystals / work rivers / risk temperature / decision gravity
-blocker dams / knowledge formations / temporal echoes
+ORGANIZATION
+  recognizable spatial operating interface
+
+ANALYTICAL
+  FLOW / RISK / COST / EVIDENCE / BLOCKERS / DECISIONS and surviving trials
+
+STRUCTURED
+  canonical records / lineage / dependency graphs / timelines / matrices
+  guaranteed accessibility and low-power path
 ~~~
 
-| Canonical concept | Experimental metaphor |
-|---|---|
-| raw SourceSnapshot | rough evidence mineral |
-| verified Evidence | clear/cut crystal |
-| contradictory Evidence | fractured crystal |
-| missing Evidence | empty cavity |
-| work flow | river/current |
-| blocker | dam/whirlpool/friction |
-| high risk | heat/temperature |
-| ExecutiveDecision | gravity / decision crystal |
-| repeated history | geology/fossil layers |
+M.10 acceptance should prove:
 
-Familiarity and operating clarity take precedence over novelty.
+- the same canonical truth remains consistent across Organization, Analytical and Structured surfaces;
+- no core operation requires WebGPU or an advanced visualization;
+- Structured remains usable under renderer failure/unsupported hardware;
+- spatial navigation improves orientation without hiding exact records;
+- M.7 fluid FLOW is explicitly PROMOTED, LAB-ONLY/DEFERRED or RETIRED by its gates;
+- M.9 reaction-diffusion is explicitly graduated/retired/lab-only according to evidence;
+- Phantom Futures remain visibly noncanonical and zero-authority if retained;
+- the Owner can move from an overview/pattern to the exact canonical record and lineage;
+- performance, comprehension and truth gates are recorded before M closes.
 
-**Classification decision:**
+### Post-M optional research — Cognitive Ecology / Organica
 
-- **WebGPU — ADOPT** as the multi-surface rendering/compute substrate.
-- **Three.js WebGPU/compute — ADOPT** as the scene, interaction and compute-composition layer.
-- **GPU flow/fluid simulation — TRIAL** in M.7 against a strong structured analytical FLOW baseline.
-- **Reaction-diffusion — EXPERIMENT** in M.9 with the hardest semantic/interpretation gate.
-- **Cognitive Ecology / Organica — OPTIONAL VIEW** in M.10; it does not replace the recognizable Organization interface.
+Cognitive Ecology / Organica is **not an M deliverable**.
 
-Infrastructure adoption does not protect a visualization hypothesis from failure. TRIAL and EXPERIMENT kill conditions are defined in docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
+It may be reintroduced after M only when the implemented product exposes a concrete unmet cognitive task and there is a falsifiable reason to believe an abstract ecosystem representation could solve it better.
 
----
+It does not block M closure, does not block N, and remains non-default unless a future evidence-backed roadmap decision promotes it.
+
 
 ## 5.9.1 Advanced rendering stack — mixed ADOPT / TRIAL / EXPERIMENT obligations
 
@@ -805,7 +841,7 @@ WebGPU rendering + compute
         ├── flow / fluid field
         ├── reaction-diffusion field
         ├── particles / environmental memory
-        └── Cognitive Ecology composition
+        └── optional Post-M analytical composition
 ~~~
 
 ### Product-value rule
@@ -822,7 +858,7 @@ Required benchmark tasks include:
 
 Promotion targets are defined in the adoption contract and include comprehension-time improvement, non-regression in correctness, interaction/rendering performance and zero truth/authority leakage.
 
-Only the WebGPU/Three.js substrate is **ADOPT**. GPU fluid FLOW is **TRIAL**, reaction-diffusion is **EXPERIMENT**, and Cognitive Ecology/Organica is **OPTIONAL**. Promotion remains evidence-based and subject to explicit kill conditions.
+Only the WebGPU/Three.js substrate is **ADOPT**. GPU fluid FLOW is **TRIAL**, reaction-diffusion is **EXPERIMENT**, and Cognitive Ecology/Organica is **POST-M OPTIONAL RESEARCH**. M.10 closes the implemented product; Organica does not block M or N.
 
 ---
 
@@ -934,7 +970,7 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1 + M.2 + M.3 COMPLETE / PASS; M.4 NEXT; M.5–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1 + M.2 + M.3 COMPLETE / PASS; M.4.0 CANDIDATE; M.4.1 GATED; M.5–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 

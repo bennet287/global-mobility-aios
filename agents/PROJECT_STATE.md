@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-09-02
 **Main branch:** `roadmap/global-mobility-aios-v12`
-**Current V12 generation:** V12.69 — M.3 COMPLETE / PASS; M.4 Animated Employees V1 next; advanced rendering classification corrected
+**Current V12 generation:** V12.70 — M.4.0 renderer bootstrap implementation candidate; browser proof pending
 **Current HEAD:** verify with `git rev-parse origin/roadmap/global-mobility-aios-v12`
 
 ---
@@ -14,7 +14,7 @@
 ```text
 Milestone L — Live Organization is COMPLETE / PASS / SEALED on accepted evidence head `a95f3f5...`.
 The genuine independent Austria professional-review gate promoted all three current cases, and Repository Policy plus both push/PR V12 Production Proof runs are green for that exact evidence head.
-M — Board Transparency Experience is IN PROGRESS; M.1 and M.2 are COMPLETE / PASS; M.3 Living Organization Scene Foundation is COMPLETE / PASS at exact implementation head `d72ba0b6...`; M.4 Animated Employees V1 is next on the WebGPU/Three.js ADOPT substrate.
+M — Board Transparency Experience is IN PROGRESS; M.1–M.3 are COMPLETE / PASS. M.4.0 now has a WebGPU/Three.js renderer-bootstrap implementation candidate; M.4.1 employee animation remains gated behind browser mount/picking proof.
 All evaluation hardening (E2/E3/E4), Track B refinements, and R3 research are supporting work.
 N remains blocked behind M.
 No Radar candidate has caused runtime adoption.
@@ -28,7 +28,7 @@ No Radar candidate has caused runtime adoption.
 |-----------|--------|------------------------|
 | K.1 Bounded Specialist Execution | **SEALED** | None. Canonical proof recorded. |
 | L Live Organization | **COMPLETE / PASS / SEALED** | Accepted evidence head `a95f3f5...`; no open gate. |
-| M Board Transparency Experience | **IN PROGRESS — M.1 + M.2 + M.3 COMPLETE / PASS; M.4 NEXT** | M.3 exact-head CI green at `d72ba0b6...`; begin Animated Employees V1 next. |
+| M Board Transparency Experience | **IN PROGRESS — M.1–M.3 COMPLETE / PASS; M.4.0 CANDIDATE** | Prove browser renderer mount + picking + Structured fallback before M.4.1 animation. |
 | N Learning & Optimization | **NOT STARTED** | Wait for M. |
 
 ---
@@ -37,7 +37,7 @@ No Radar candidate has caused runtime adoption.
 
 | Workstream | Branch / location | Status | Do not... |
 |------------|-------------------|--------|-----------|
-| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed; M.1 + M.2 + M.3 COMPLETE / PASS; M.4 next | Do not start N before M. |
+| **V12 main** | `roadmap/global-mobility-aios-v12` | Active; L sealed; M.1–M.3 COMPLETE / PASS; M.4.0 renderer candidate active | Do not call M.4 PASS before browser proof. |
 | **Track B Product Experience** | `roadmap/...v12` (`apps/web/`) | Anti-duplication complete; runtime economics + durable activity lineage implemented | Do not add Munder collaboration/presence/event state. |
 | **Wave E1 Secrets** | `roadmap/...v12` (`docs/...WAVE_E1...`) | Pilot complete / trial-eligible | Do not claim production OpenBao adoption. |
 | **Wave E2 Adversarial** | `roadmap/...v12` (`scripts/check_ai_domain_*.py`) | Implemented; historical exact-head proof observed | Do not treat as professional review. |
@@ -47,7 +47,8 @@ No Radar candidate has caused runtime adoption.
 | **M.1 Decision Explorer** | `roadmap/...v12` (`apps/web/app/cockpit/decisions/page.tsx`, `apps/api/app/routers/organization_records.py`) | **COMPLETE / PASS** at `9f00124c...`; Policy #517 PASS; Production Proof #1054 4/4 PASS | Do not reopen without regression; no command-surface or decision-domain unification. |
 | **M.2 Decision reconstruction** | `roadmap/...v12` | **COMPLETE / PASS** at `d9294b2...`; Policy #521 PASS; Production Proof #1062 4/4 PASS; backend 1340/22, PostgreSQL 105, frontend 42/42 | Do not reopen without regression; reconstruction remains read-only. |
 | **M.3 Scene Foundation** | `roadmap/...v12` (`apps/web/app/cockpit/live-organization/`) | **COMPLETE / PASS** at `d72ba0b6...`; Policy #527 PASS; Production Proof #1074 4/4 PASS | Do not reopen without regression; scene remains projection-only. |
-| **M.4–M.10 Living Organization V2** | `roadmap/...v12` | **M.4 NEXT**; WebGPU/Three.js = ADOPT; GPU fluid FLOW = TRIAL; reaction-diffusion = EXPERIMENT; Organica = OPTIONAL VIEW | Enforce structured baselines, truth gates and two-iteration kill conditions. |
+| **M.4–M.10 Living Organization V2** | `roadmap/...v12` | **M.4.0 CANDIDATE / M.4.1 GATED**; WebGPU/Three.js = ADOPT; fluid FLOW = TRIAL; reaction-diffusion = EXPERIMENT; M.10 = cross-view closure | Structured surface is permanent; renderer proof before animation. |
+| **Post-M Cognitive Ecology / Organica** | unscheduled research | **OPTIONAL / NOT AN M DELIVERABLE** | May return only for a proven unmet task; does not block N. |
 | **R3 Authority** | `radar/r3-authority` | Deep validation implemented; execution pending | Do not expand beyond closure runbook. |
 | **R3 Security** | `radar/r3-security` | Deep state-diff corpus + external-tool shootout defined; execution pending | Do not add more scanners. |
 | **R3 Interoperability** | `radar/r3-interop` | Checkpointed at `aad377e`; pushed to origin | Do not merge to V12 until scheduled. |
@@ -74,7 +75,7 @@ Permanent rule:
 
 M.4–M.9 add truthful movement, conversations, handoffs, Mission Rooms, blockers, Smart Objects, live Board Room, analytical lenses, Owner command mode, replay, Phantom Futures and environmental memory on top of the proven M.3 scene contract.
 
-M.10 may add optional Cognitive Ecology / Organica using evidence crystals, work rivers, risk heat, blocker dams and decision gravity. WebGPU + Three.js WebGPU/compute remain ADOPT infrastructure; GPU flow/fluid is a TRIAL and reaction-diffusion is an EXPERIMENT. The familiar Organization interface remains default.
+M.10 is now the cross-view product-value/closure gate for Organization, Analytical and Structured surfaces. Cognitive Ecology / Organica is Post-M optional research and does not block N.
 
 N owns learned/adaptive behavior such as learned routing, predictive blocker models, adaptive Phantom Futures and bounded Dreamtime. N remains blocked behind M.
 
@@ -90,8 +91,10 @@ ANALYTICAL
   FLOW / RISK / COST / EVIDENCE / BLOCKERS / bounded experiments
 
 STRUCTURED
-  canonical records
+  named permanent Cockpit reference surface
+  canonical records + core operations
   tables / lineage / dependency graph / timelines / matrices
+  accessibility + low-power guarantee
 ~~~
 
 All three views consume the same governed AIOS truth. No one surface is expected to perform every cognitive job.
@@ -105,7 +108,7 @@ WebGPU                    ADOPT — renderer/compute substrate
 Three.js WebGPU/compute   ADOPT — scene + interaction + compute layer
 GPU flow/fluid fields     TRIAL — M.7 FLOW representation
 reaction-diffusion fields EXPERIMENT — M.9 research bet
-Cognitive Ecology         OPTIONAL VIEW — M.10
+Cognitive Ecology         POST-M OPTIONAL RESEARCH
 ~~~
 
 TRIAL = strong product hypothesis with a maintained structured analytical baseline and benchmark.
@@ -181,13 +184,15 @@ Canonical contract: docs/LIVING_ORGANIZATION_ADVANCED_RENDERING_ADOPTION_V1.md.
 
 In order:
 
-1. **M.4 Animated Employees V1 — NEXT** — implement recognizable employees on the proven M.3 scene contract using the WebGPU/Three.js ADOPT substrate.
-2. **M.5–M.6** — conversations/handoffs/Mission Rooms, then blockers/Smart Objects/live Board Room.
-3. **M.7** — maintain a structured FLOW baseline and run the GPU fluid FLOW TRIAL against it.
-4. **M.8** — Replay / temporal organization as a core product surface and historical baseline.
-5. **M.9** — environmental-memory TRIAL with structured baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment.
-6. **M.10** — Cognitive Ecology / Organica OPTIONAL VIEW only if it earns value.
-7. **Close R3 authority / security** as bounded supporting work when it does not displace M.
+1. **M.4.0 renderer bootstrap — ACTIVE CANDIDATE** — prove actual browser mount, picking, non-authority and permanent Structured fallback.
+2. **M.4.1 Animated Employees V1 — GATED** — add semantic animation only after M.4.0 exact-head/browser PASS.
+3. **M.5–M.6** — conversations/handoffs/Mission Rooms, then blockers/Smart Objects/live Board Room.
+4. **M.7** — maintain a structured FLOW baseline and run the GPU fluid FLOW TRIAL against it.
+5. **M.8** — Replay / temporal organization as a core product surface and historical baseline.
+6. **M.9** — environmental-memory TRIAL with structured baseline; reaction-diffusion EXPERIMENT; Phantom Futures bounded experiment.
+7. **M.10** — cross-view product-value benchmark + M closure.
+8. **Post-M** — Cognitive Ecology / Organica only if a proven unmet task justifies new research.
+9. **Close R3 authority / security** as bounded supporting work when it does not displace M.
 
 ---
 

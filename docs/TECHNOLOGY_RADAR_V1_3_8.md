@@ -7,7 +7,7 @@
 **Scheduling authority:** `docs/ROADMAP.md`
 **Adoption truth index:** `docs/TECHNOLOGY_ADOPTION_LEDGER.md`
 **Current product milestone:** L — COMPLETE / PASS / SEALED
-**M milestone:** IN PROGRESS — M.3 COMPLETE / PASS; M.4 NEXT
+**M milestone:** IN PROGRESS — M.3 COMPLETE / PASS; M.4.0 renderer bootstrap candidate; browser proof pending
 
 > **Aggressive Radar. Conservative production authority.**
 
@@ -262,14 +262,14 @@ These candidates occupy distinct seams and remain intentionally separate.
 |---|---|---|
 | CopilotKit / AG-UI | **CHALLENGER / POST-L M PILOT CANDIDATE** | interaction layer only; AIOS APIs/governance authorize commands |
 | **WebGPU** | **ADOPT / M LIVING ORGANIZATION RENDERING SUBSTRATE** | multi-surface rendering/compute infrastructure; scene state is projection, never authority |
-| **Three.js WebGPU/compute layer** | **ADOPT / M SCENE + INTERACTION SUBSTRATE** | camera, picking, scene composition and GPU compute behind AIOS scene contract |
+| **Three.js WebGPU/compute layer** | **ADOPT / M SCENE + INTERACTION SUBSTRATE; M.4.0 IMPLEMENTATION CANDIDATE** | `three@0.185.1` adapter; browser mount/picking proof required before employee animation acceptance |
 | **GPU flow/fluid simulation** | **TRIAL / M.7 FLOW REPRESENTATION** | strong hypothesis; must beat structured graph/heat/animated-edge baseline on congestion/blocker comprehension |
 | **Reaction-diffusion fields** | **EXPERIMENT / M.9 ENVIRONMENTAL-MEMORY RESEARCH** | high interpretation risk; must establish explainable mapping and graduate to TRIAL |
-| **Cognitive Ecology / Organica** | **OPTIONAL VIEW / M.10** | deep analytical experiment only; recognizable Organization remains default operating interface |
+| **Cognitive Ecology / Organica** | **POST-M OPTIONAL RESEARCH** | not an M deliverable; may return only if implemented views expose a concrete unmet task |
 | Storybook | **HOLD_WITH_TRIGGER** | M component/design-system proof demonstrates a workbench need |
 | Penpot | **PREFERRED DESIGN ENVIRONMENT / NOT ACCEPTANCE DEPENDENCY** | design tooling only |
 
-L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure. GPU fluid FLOW is a TRIAL, reaction-diffusion is an EXPERIMENT, and Cognitive Ecology/Organica is OPTIONAL. Product-value proof and kill conditions govern promotion.
+L is sealed and M is in progress. WebGPU/Three.js are adopted infrastructure; M.4.0 now requires browser renderer proof before M.4.1 animation acceptance. GPU fluid FLOW is a TRIAL, reaction-diffusion is an EXPERIMENT, and Cognitive Ecology/Organica is Post-M optional research.
 
 ## 14. Cybersecurity skill and Red Team programme
 
@@ -352,7 +352,7 @@ R3 branch merge into V12                  NONE
 professional Austria review               COMPLETE under sealed L record
 final L exact-evidence-head proof          COMPLETE
 L                                          COMPLETE / PASS / SEALED
-M                                          IN PROGRESS — M.3 COMPLETE / PASS; M.4 NEXT
+M                                          IN PROGRESS — M.3 COMPLETE / PASS; M.4.0 implementation candidate; browser proof pending
 N                                          NOT STARTED
 ```
 

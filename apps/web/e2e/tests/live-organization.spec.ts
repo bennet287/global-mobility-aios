@@ -636,3 +636,29 @@ test("shows backend projection failure as a visible partial state", async ({ pag
   await expect(page.getByText("Transparency projection unavailable")).toBeVisible();
   await expect(page.getByRole("status").first()).toHaveText("PARTIAL");
 });
+
+
+test("M.4.0 mounts the optional spatial renderer while Structured remains available", async ({ page }) => {
+  await installApi(page, {
+    latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
+    scene: () => ({ body: livingScene() }),
+  });
+
+  await page.goto("/cockpit/live-organization");
+
+  const stage = page.locator(".living-webgpu-stage");
+  await expect(stage).toBeVisible();
+  await expect(stage).toHaveAttribute("data-scene-authoritative", "false");
+  await expect(stage).toHaveAttribute("data-renderer-phase", "ready", { timeout: 15_000 });
+
+  const canvas = page.getByTestId("living-webgpu-canvas");
+  await expect(canvas).toBeVisible();
+  await expect(page.getByText("STRUCTURED · permanent product surface", { exact: true })).toBeVisible();
+  await expect(page.getByText("Canonical scene reference", { exact: true })).toBeVisible();
+
+  const box = await canvas.boundingBox();
+  expect(box).toBeTruthy();
+  if (!box) return;
+  await canvas.click({ position: { x: box.width / 2, y: box.height / 2 } });
+  await expect(page.locator(".living-webgpu-overlay strong")).not.toHaveText("No spatial selection");
+});

@@ -4,7 +4,7 @@
 **Status:** ACTIVE REPOSITORY-TRUTH INDEX
 **Branch:** `roadmap/global-mobility-aios-v12`
 **Original ledger baseline head:** `74082e7296e17333027cebd7ca602d408f558f95`
-**Latest reconciliation:** V12.69 / advanced rendering classification correction + M.3 exact-head closure
+**Latest reconciliation:** V12.70 / M.4.0 renderer bootstrap candidate + Post-M Organica correction
 **Scheduling authority:** `docs/ROADMAP.md`
 **Technology evaluation authority:** `docs/TECHNOLOGY_RADAR_V1_3_8.md`
 **Delivery history:** `docs/CHANGELOG.md`
@@ -62,10 +62,10 @@ The advanced stack deliberately separates infrastructure adoption from visualiza
 | Capability | Adoption truth | Required product value |
 |---|---|---|
 | WebGPU | **ADOPT / infrastructure substrate** | dense scene rendering + compute with responsive interaction and graceful fallback |
-| Three.js WebGPU/compute layer | **ADOPT / scene + interaction substrate** | reduce custom renderer complexity while enabling performant spatial interaction and field composition |
+| Three.js WebGPU/compute layer | **ADOPT / scene + interaction substrate; M.4.0 dependency+adapter candidate implemented with `three@0.185.1`; browser proof pending** | reduce custom renderer complexity while enabling performant spatial interaction and field composition |
 | GPU flow/fluid simulation | **TRIAL / M.7 bounded product experiment** | must materially beat a maintained structured graph/heat/animated-edge baseline for congestion/shared-blocker tasks |
 | reaction-diffusion environmental fields | **EXPERIMENT / M.9 research bet** | must first establish an explainable, non-misleading mapping and graduate to TRIAL before product promotion |
-| Cognitive Ecology / Organica | **OPTIONAL VIEW / M.10** | may provide deep analytical value but cannot displace the recognizable Organization interface without evidence |
+| Cognitive Ecology / Organica | **POST-M OPTIONAL RESEARCH** | not an M deliverable; may return only for a proven unmet cognitive task and does not block N |
 
 Permanent interpretation:
 
@@ -105,7 +105,7 @@ If a TRIAL fails two targeted design/benchmark iterations, stop default-product 
 | durable workflow | AIOS WorkItem/runtime baseline | Temporal on trigger | LangGraph/Agno DONOR_ONLY |
 | document/privacy/source | existing AIOS boundaries + Docling/ClamAV | Presidio/urlwatch bounded pilots | EU DSS HOLD_WITH_TRIGGER |
 | human-agent interaction | current AIOS Cockpit | CopilotKit / AG-UI post-L M | Storybook HOLD_WITH_TRIGGER |
-| Living Organization rendering/compute | AIOS scene contract + WebGPU/Three.js ADOPT substrate | structured analytical baseline + simpler renderer fallback | GPU flow = TRIAL; reaction-diffusion = EXPERIMENT; Organica = OPTIONAL VIEW |
+| Living Organization rendering/compute | AIOS scene contract + WebGPU/Three.js ADOPT substrate; M.4.0 browser proof gate | permanent Structured Cockpit + renderer fallback | GPU flow = TRIAL; reaction-diffusion = EXPERIMENT; Organica = POST-M OPTIONAL RESEARCH |
 
 The active status source for exact per-candidate triggers is `docs/TECHNOLOGY_RADAR_V1_3_8.md`.
 
@@ -221,3 +221,15 @@ V12.59 aligns the blind-return contract version with handoff v3 and enforces can
 V12.60 makes reviewer anonymity a repository privacy boundary: committed review artifacts use only opaque non-identifying reviewer/professional/credential aliases, while real identity/credential verification remains confidential outside Git. This is privacy/evaluation administration only; no technology or runtime-adoption state changes.
 
 Administration note: V12.47 PROJECT_STATE/recovery exact-head proof passed at `80deef2...`. The later V12.48 attempt at `b079428...` failed its clean-worktree gate because additional untracked `.local/` state became visible after removing a broad operator-local exclude. No technology/adoption classification changes from either administration event. This did not change any technology adoption state. The operator-local `.git/info/exclude` broad `/.local/` entry is local hygiene only and is not an AIOS adoption/runtime fact.
+
+### M.4.0 renderer-bootstrap truth
+
+~~~text
+three@0.185.1 dependency                 IMPLEMENTATION CANDIDATE
+Three.js WebGPURenderer adapter          IMPLEMENTATION CANDIDATE
+browser mount + picking proof            PENDING
+Structured core-operation fallback       REQUIRED / PERMANENT
+renderer command authority               NONE
+~~~
+
+Package presence and CI build success are not browser-renderer acceptance.

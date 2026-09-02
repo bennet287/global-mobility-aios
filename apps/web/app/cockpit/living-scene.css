@@ -464,3 +464,68 @@
   .living-scene-employee-grid { grid-template-columns: 1fr; }
   .living-scene-truth { grid-template-columns: 1fr; }
 }
+
+
+/* M.4.0 renderer bootstrap — optional spatial renderer above the permanent Structured surface. */
+.living-webgpu-stage {
+  margin: 18px 0 12px;
+  padding: 14px;
+  border: 1px solid rgba(143, 229, 169, .18);
+  border-radius: 18px;
+  background: rgba(3, 5, 11, .34);
+}
+.living-webgpu-stage > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.living-webgpu-stage > header span,
+.living-structured-reference span { display: block; color: rgba(196,199,242,.62); font-size: 8.5px; font-weight: 780; letter-spacing: .1em; text-transform: uppercase; }
+.living-webgpu-stage > header strong,
+.living-structured-reference strong { display: block; margin-top: 3px; color: #f6f3eb; font-size: 13px; font-weight: 660; }
+.living-webgpu-stage > header small { color: rgba(246,243,235,.5); font-size: 9.5px; text-transform: capitalize; }
+.living-webgpu-canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 15px;
+  background: radial-gradient(circle at 50% 5%, rgba(89, 102, 199, .18), transparent 45%), #090c15;
+}
+.living-webgpu-canvas { width: 100%; height: clamp(320px, 42vw, 440px); display: block; cursor: crosshair; touch-action: manipulation; }
+.living-webgpu-overlay {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  max-width: min(420px, calc(100% - 24px));
+  padding: 9px 11px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: rgba(7, 9, 16, .84);
+  backdrop-filter: blur(10px);
+}
+.living-webgpu-overlay span,
+.living-webgpu-overlay small { display: block; color: rgba(196,199,242,.58); font-size: 8.5px; }
+.living-webgpu-overlay strong { display: block; margin: 2px 0; color: #f6f3eb; font-size: 11px; }
+.living-webgpu-fallback {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(244, 192, 92, .28);
+  border-radius: 10px;
+  color: rgba(246,243,235,.65);
+  font-size: 10.5px;
+}
+.living-webgpu-accessibility { margin: 9px 2px 0; color: rgba(246,243,235,.48); font-size: 9.5px; line-height: 1.45; }
+.living-structured-reference {
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) 2fr;
+  gap: 18px;
+  align-items: start;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid rgba(196,199,242,.3);
+  background: rgba(255,255,255,.018);
+}
+.living-structured-reference p { margin: 0; color: rgba(246,243,235,.52); font-size: 10.5px; line-height: 1.5; }
+@media (max-width: 660px) {
+  .living-webgpu-stage > header { flex-direction: column; }
+  .living-webgpu-canvas { height: 300px; }
+  .living-structured-reference { grid-template-columns: 1fr; gap: 7px; }
+}

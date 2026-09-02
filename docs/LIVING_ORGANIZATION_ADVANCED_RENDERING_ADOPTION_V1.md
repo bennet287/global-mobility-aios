@@ -177,6 +177,32 @@ PASS when:
 - fallback behavior is defined;
 - no organizational semantics move into renderer state.
 
+### M.4.0 renderer bootstrap gate — required before Animated Employees V1 acceptance
+
+M.3 remains closed as a scene-contract milestone. M.4 begins with a separate renderer proof:
+
+~~~text
+canonical scene data
+      ↓
+Three.js WebGPURenderer adapter
+      ↓
+browser mount
+      ↓
+pointer picking / view-only selection
+      ↓
+Structured Cockpit remains available
+      ↓
+renderer proven non-authoritative
+~~~
+
+M.4.1 employee animation may not be accepted until M.4.0 has browser evidence that:
+
+- the renderer initializes against a real canonical scene fixture;
+- a projected department/employee/room can be selected through picking;
+- renderer selection performs no command or canonical mutation;
+- renderer failure leaves the Structured Cockpit fully usable;
+- no core operation requires the advanced renderer.
+
 ### GPU flow/fluid — TRIAL promotion gate
 
 TRIAL passes into product use when:
@@ -196,6 +222,10 @@ The experiment graduates to TRIAL only when:
 - an initial user task demonstrates a plausible actionable signal beyond a conventional historical heatmap/path-frequency baseline.
 
 Only after graduation to TRIAL does the normal comprehension benchmark decide whether reaction-diffusion can enter product use.
+
+Concrete graduation example:
+
+> A user, without coaching, correctly identifies a repeated collaboration/evidence pattern from the field **and explains which real persisted historical work/evidence path produced that pattern**. A visually plausible pattern without that traceable explanation does not graduate.
 
 ## 7. Promotion and kill conditions
 
@@ -242,14 +272,17 @@ M.9  Environmental memory TRIAL:
        mandatory structured historical baseline
        reaction-diffusion EXPERIMENT
        Phantom Futures bounded experiment
-M.10 Cognitive Ecology / Organica OPTIONAL VIEW + cross-view benchmark
+M.10 cross-view product-value benchmark + M closure
+Post-M Cognitive Ecology / Organica OPTIONAL RESEARCH only if evidence justifies it
 ~~~
 
 ## 9. Fallback and accessibility
 
-A **structured analytical reference view** remains permanently maintained alongside the spatial Organization view. A simpler rendering fallback also remains available for unsupported WebGPU, low-power devices, accessibility needs, debugging, acceptance comparison and benchmark control.
+A **Structured Cockpit reference surface** remains permanently maintained alongside the spatial Organization view. It is the guaranteed accessibility and low-power path for canonical records, lineage, dependency graphs, timelines and core operations.
 
-Fallback is not a second truth source. Both advanced and fallback paths consume the same AIOS projection.
+No advanced visualization, WebGPU capability, spatial picking interaction or animation may be required to complete a core AIOS operation.
+
+A simpler rendering fallback also remains available for unsupported WebGPU, constrained devices, debugging, acceptance comparison and benchmark control. Fallback is not a second truth source. Advanced, fallback and Structured surfaces consume the same AIOS projection/canonical records.
 
 ## 10. Completion claim
 
@@ -274,11 +307,22 @@ ANALYTICAL
   pattern and problem lenses
   FLOW / RISK / COST / EVIDENCE / BLOCKERS / optional experiments
 
-STRUCTURED
-  canonical record inspection
+STRUCTURED / COCKPIT REFERENCE
+  named permanent product surface
+  canonical record inspection and core operations
   tables / lineage / dependency graph / timeline / matrices
+  accessibility and low-power guarantee
 ~~~
 
 No one surface is expected to do every cognitive job. All three consume the same governed AIOS truth.
 
 > **Use advanced graphics to make a governed digital organization substantially easier to understand and operate.**
+
+
+## 12. Post-M Cognitive Ecology / Organica rule
+
+Cognitive Ecology / Organica is no longer an M milestone deliverable.
+
+It may return as **Post-M OPTIONAL RESEARCH** only when evidence from the implemented Organization, Structured and Analytical surfaces identifies a concrete unmet cognitive task that the abstract view could plausibly improve.
+
+It does not block M closure, does not block N, and cannot become the default operating interface without a new evidence-backed roadmap decision.

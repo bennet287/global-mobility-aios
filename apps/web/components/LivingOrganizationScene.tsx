@@ -1,3 +1,4 @@
+import { LivingOrganizationWebGPUScene } from "./LivingOrganizationWebGPUScene";
 import type { LivingOrganizationScene } from "../lib/live-organization";
 import {
   LIVING_SCENE_RENDERER_TARGET,
@@ -67,6 +68,19 @@ export function LivingOrganizationSceneView({ scene }: { scene: LivingOrganizati
           <strong>Environmental memory</strong>
           <small>{scene.environmental.enabled ? titleCase(scene.environmental.status) : "Reserved for M.9 · disabled"}</small>
         </div>
+      </div>
+
+      <LivingOrganizationWebGPUScene renderModel={renderModel} />
+
+      <div className="living-structured-reference" id="living-structured-reference">
+        <div>
+          <span>STRUCTURED · permanent product surface</span>
+          <strong>Canonical scene reference</strong>
+        </div>
+        <p>
+          The Structured Cockpit remains the accessible, low-power, exact-record fallback for every core operation.
+          The spatial renderer may improve orientation and selection, but it never replaces canonical inspection.
+        </p>
       </div>
 
       <div className="living-scene-smart-strip" aria-label="Canonical department topology">

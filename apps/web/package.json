@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:design-foundation": "node --test scripts/design-foundation.test.mjs scripts/live-organization-surface.test.mjs scripts/cockpit-refinements.test.mjs",
+    "test:design-foundation": "node --test scripts/design-foundation.test.mjs scripts/live-organization-surface.test.mjs scripts/living-organization-renderer-contract.test.mjs scripts/cockpit-refinements.test.mjs",
+    "test:renderer-contract": "node --test scripts/living-organization-renderer-contract.test.mjs",
     "test:request-auth": "node --experimental-strip-types --test lib/request-client.test.mjs lib/organization-read-client.test.mjs",
     "test:compiled-auth": "node scripts/verify-compiled-client-auth.mjs"
   },
@@ -14,7 +15,8 @@
     "next": "16.3.1",
     "react": "19.0.8",
     "react-dom": "19.0.8",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "three": "0.185.1"
   },
   "devDependencies": {
     "@types/node": "22.15.29",
