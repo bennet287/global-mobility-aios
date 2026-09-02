@@ -286,6 +286,12 @@ class LivingSceneWorkItemRead(TransparencyRead):
     assigned_position_key: str
     department: str
     authority_level: str
+    created_at: datetime
+    updated_at: datetime
+    due_at: datetime | None
+    completed_at: datetime | None
+    elapsed_seconds: int | None
+    overdue: bool
 
 
 class LivingSceneBlockerRead(TransparencyRead):
@@ -300,6 +306,10 @@ class LivingSceneBlockerRead(TransparencyRead):
     decision_id: UUID | None
     risk_escalation_id: UUID | None
     requires_human_action: bool
+    opened_at: datetime
+    due_at: datetime | None
+    open_elapsed_seconds: int
+    overdue: bool
 
 
 class LivingSceneDecisionRead(TransparencyRead):

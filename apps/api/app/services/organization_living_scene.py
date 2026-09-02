@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlmodel import Session, select
@@ -30,7 +30,7 @@ from app.services.organization_mobility_live_organization import (
 )
 
 
-LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION = "living-organization-scene.v3"
+LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION = "living-organization-scene.v4"
 
 
 @dataclass(frozen=True, slots=True)
@@ -151,6 +151,12 @@ class LivingSceneWorkItem:
     assigned_position_key: str
     department: str
     authority_level: str
+    created_at: datetime
+    updated_at: datetime
+    due_at: datetime | None
+    completed_at: datetime | None
+    elapsed_seconds: int | None
+    overdue: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,6 +172,10 @@ class LivingSceneBlocker:
     decision_id: UUID | None
     risk_escalation_id: UUID | None
     requires_human_action: bool
+    opened_at: datetime
+    due_at: datetime | None
+    open_elapsed_seconds: int
+    overdue: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -385,11 +395,26 @@ def _json_list(value: str, *, label: str) -> tuple[object, ...]:
     return tuple(payload)
 
 
+def _utc_datetime(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _elapsed_seconds(start: datetime, end: datetime) -> int:
+    return max(0, int((_utc_datetime(end) - _utc_datetime(start)).total_seconds()))
+
+
+def _is_overdue(due_at: datetime | None, generated_at: datetime) -> bool:
+    return due_at is not None and _utc_datetime(due_at) < _utc_datetime(generated_at)
+
+
 def _scene_blockers(
     session: Session,
     *,
     tenant_key: str,
     snapshot: AustriaLiveOrganizationSnapshot,
+    generated_at: datetime,
 ) -> tuple[LivingSceneBlocker, ...]:
     blocker_ids = tuple(item.blocker_id for item in snapshot.blockers)
     if not blocker_ids:
@@ -402,22 +427,32 @@ def _scene_blockers(
     missing = [str(blocker_id) for blocker_id in blocker_ids if blocker_id not in by_id]
     if missing:
         raise DependencyConflict("Living Organization blocker identity is unavailable: " + ", ".join(missing))
-    return tuple(
-        LivingSceneBlocker(
-            blocker_id=row.id,
-            work_item_id=row.work_item_id,
-            blocker_type=row.blocker_type.value,
-            title=row.title,
-            description=row.description,
-            severity=row.severity,
-            status=row.status.value,
-            accountable_position_key=row.accountable_position_key,
-            decision_id=row.decision_id,
-            risk_escalation_id=row.risk_escalation_id,
-            requires_human_action=row.requires_human_action,
+
+    projected: list[LivingSceneBlocker] = []
+    for blocker_id in blocker_ids:
+        row = by_id[blocker_id]
+        status = row.status.value
+        open_end = row.resolved_at or row.waived_at or generated_at
+        projected.append(
+            LivingSceneBlocker(
+                blocker_id=row.id,
+                work_item_id=row.work_item_id,
+                blocker_type=row.blocker_type.value,
+                title=row.title,
+                description=row.description,
+                severity=row.severity,
+                status=status,
+                accountable_position_key=row.accountable_position_key,
+                decision_id=row.decision_id,
+                risk_escalation_id=row.risk_escalation_id,
+                requires_human_action=row.requires_human_action,
+                opened_at=row.opened_at,
+                due_at=row.due_at,
+                open_elapsed_seconds=_elapsed_seconds(row.opened_at, open_end),
+                overdue=status in {"open", "mitigated"} and _is_overdue(row.due_at, generated_at),
+            )
         )
-        for row in (by_id[blocker_id] for blocker_id in blocker_ids)
-    )
+    return tuple(projected)
 
 
 def _scene_decisions(
@@ -730,6 +765,7 @@ def austria_living_organization_scene(
     tenant_key: str,
     snapshot: AustriaLiveOrganizationSnapshot,
 ) -> LivingOrganizationScene:
+    generated_at = now_utc()
     works = _scene_work_items(session, tenant_key=tenant_key, snapshot=snapshot)
     work_by_id = {item.id: item for item in works}
     work_ids = tuple(item.id for item in works)
@@ -762,7 +798,12 @@ def austria_living_organization_scene(
         )
     )
     positions = _latest_position_rows(session, position_keys=position_keys)
-    blockers = _scene_blockers(session, tenant_key=tenant_key, snapshot=snapshot)
+    blockers = _scene_blockers(
+        session,
+        tenant_key=tenant_key,
+        snapshot=snapshot,
+        generated_at=generated_at,
+    )
     blocked_work_ids = {
         blocker.work_item_id
         for blocker in blockers
@@ -832,6 +873,23 @@ def austria_living_organization_scene(
             assigned_position_key=work.assigned_position_key,
             department=work.department,
             authority_level=work.authority_level,
+            created_at=work.created_at,
+            updated_at=work.updated_at,
+            due_at=work.due_at,
+            completed_at=work.completed_at,
+            elapsed_seconds=(
+                _elapsed_seconds(work.created_at, work.completed_at)
+                if work.completed_at is not None
+                else (
+                    None
+                    if work.status == "completed"
+                    else _elapsed_seconds(work.created_at, generated_at)
+                )
+            ),
+            overdue=(
+                work.status not in {"completed", "cancelled"}
+                and _is_overdue(work.due_at, generated_at)
+            ),
         )
         for work in works
     )
@@ -1053,7 +1111,7 @@ def austria_living_organization_scene(
 
     return LivingOrganizationScene(
         contract_version=LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION,
-        generated_at=now_utc(),
+        generated_at=generated_at,
         scope="austria_mobility",
         root_work_item_id=snapshot.root_work_item_id,
         objective_key=snapshot.objective_key,

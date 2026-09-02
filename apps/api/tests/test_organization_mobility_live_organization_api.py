@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta
 from uuid import uuid4
 
 import pytest
@@ -197,6 +198,11 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
         authority_level=plan.pathway_work_item.authority_level,
         requires_human_action=True,
     )
+    blocker.opened_at = blocker.opened_at - timedelta(minutes=25)
+    db_session.add(blocker)
+    db_session.commit()
+    db_session.refresh(blocker)
+
     human_request = create_human_action_request(
         db_session,
         _human_context(),
@@ -233,7 +239,7 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     scene_body = scene.json()
     assert scene_body["established"] is True
     projection = scene_body["scene"]
-    assert projection["contract_version"] == "living-organization-scene.v3"
+    assert projection["contract_version"] == "living-organization-scene.v4"
     assert projection["root_work_item_id"] == str(plan.root_work_item.id)
     assert projection["objective_key"] == plan.root_work_item.objective_key
     assert projection["coverage"] == {
@@ -289,6 +295,12 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
 
     assert len(deterministic["employees"]) == 3
     assert len(deterministic["work_items"]) == 3
+    work_by_id = {item["work_item_id"]: item for item in deterministic["work_items"]}
+    root_work = work_by_id[str(plan.root_work_item.id)]
+    assert root_work["created_at"] is not None
+    assert root_work["updated_at"] is not None
+    assert root_work["elapsed_seconds"] is None or root_work["elapsed_seconds"] >= 0
+    assert isinstance(root_work["overdue"], bool)
     assert len(deterministic["conversations"]) == 1
     conversation = deterministic["conversations"][0]
     assert conversation["status"] == "open"
@@ -309,6 +321,9 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert deterministic["blockers"][0]["blocker_id"] == str(blocker.id)
     assert deterministic["blockers"][0]["blocker_type"] == "human_input"
     assert deterministic["blockers"][0]["description"].startswith("Canonical employer declaration")
+    assert deterministic["blockers"][0]["opened_at"] is not None
+    assert deterministic["blockers"][0]["open_elapsed_seconds"] >= 20 * 60
+    assert isinstance(deterministic["blockers"][0]["overdue"], bool)
     assert deterministic["human_actions"][0]["request_id"] == str(human_request.id)
     assert deterministic["human_actions"][0]["status"] == "required"
     assert deterministic["risk_escalations"][0]["risk_id"] == str(risk.id)
