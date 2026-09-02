@@ -1243,11 +1243,11 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1–M.5 COMPLETE / PASS; M.6 NEXT; M.7–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1–M.7.4 SEALED; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.8 NEXT; M.9–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 
-Supporting evaluation hardening and Track B product-experience refinement may continue only when they do not invent a second source of truth or interfere with the final exact-head proof. The current Track B audit found no further justified pre-M slice, so product-experience work pauses here. The first V12.43 local handoff proof attempt found an order-sensitive test-oracle defect and a malformed ad-hoc PowerShell verification snippet. The test oracle was repaired without changing production semantics; the failed attempt remains documented and no PASS is inherited. The next L action is final exact-current-head repository policy and V12 production proof for the committed professional-review evidence.
+L is sealed. M.1–M.7.4 implementation slices are sealed, with the M.7.4 GPU FLOW representation remaining TRIAL / NOT PROMOTED / BENCHMARK PENDING. The next implementation priority is M.8 Replay / temporal organization, followed by M.9 environmental memory / bounded future-state experiments and M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
 
 ## 8. Historical compatibility anchors
 
