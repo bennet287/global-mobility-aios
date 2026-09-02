@@ -1,6 +1,6 @@
 # Global Mobility AIOS — Master Necessity-Driven Roadmap
 
-**Roadmap generation:** V12.78 — M.7.4 GPU FLOW field TRIAL Iteration 1 IMPLEMENTED / TECHNICAL PASS; product-value benchmark pending
+**Roadmap generation:** V12.79 — M.8.1 Canonical Replay Timeline V1 COMPLETE / PASS; M.8 temporal reconstruction continues
 **Date:** 2026-09-02
 **Active development branch:** `roadmap/global-mobility-aios-v12`
 **Project navigation/state summary:** `../agents/PROJECT_STATE.md` — read-first dashboard only; ROADMAP remains scheduling authority
@@ -44,7 +44,7 @@
 **Supporting Wave E2 evaluation hardening:** `TECHNOLOGY_RADAR_WAVE_E2_EVALUATION_HARDENING_2026-08-31.md` — deterministic adversarial Austria review-contract gate
 **Supporting Wave E3 property hardening:** `TECHNOLOGY_RADAR_WAVE_E3_PROPERTY_INVARIANT_TESTING_2026-08-31.md` — Hypothesis property/invariant suite; local focused proof observed at historical exact head `285a7f08...`
 **Supporting Wave E4 mutation hardening:** `TECHNOLOGY_RADAR_WAVE_E4_MUTATION_TESTING_2026-08-31.md` — first-party bounded semantic source-mutation strength gate; local exact-head proof observed at `5d8e940e3e979b097e20bba1b6c002ba6a0d8d72`
-**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.6 COMPLETE / PASS; M.7.1–M.7.4 SEALED; M.7.4 TRIAL NOT PROMOTED / BENCHMARK PENDING)
+**Current product milestone:** L — SEALED; M — IN PROGRESS (M.1–M.7.4 SEALED; M.8.1 COMPLETE / PASS; M.7.4 GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.8 CONTINUES)
 **Forward CI direction:** self-hosted Woodpecker; historical GitHub Actions proofs remain historical evidence
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
@@ -1032,6 +1032,63 @@ It should reconstruct only supported history and help inspect Mission starts, bl
 
 Replay is both product UX and observability/debugging infrastructure.
 
+### M.8.1 — Canonical Replay Timeline V1 — COMPLETE / PASS
+
+M.8.1 is accepted on exact implementation head `f1a4cbdbbb1e97f4082e66dc9d8302ad77b9918b`.
+
+~~~text
+Repository Policy Check #598 / run 33644475775   PASS
+V12 Production Proof #1215 / run 33644470649     PASS — 5/5 jobs
+Backend regression (SQLite)                       1344 passed / 22 skipped
+PostgreSQL governance contracts                   105 passed
+Living Organization Chromium suite                12/12 passed
+~~~
+
+M.8.1 adds no migration, no event backfill and no second history store. Its replay source is the existing immutable tenant-scoped `OrganizationActivity` stream, bounded to the latest Austria root WorkItem and descendants.
+
+~~~text
+OrganizationActivity
+        ↓
+existing semantic Activity coverage epoch
+        ↓
+latest Austria WorkItem tree
+        ↓
+organization-replay.v1
+        ↓
+Board-safe read-only Replay timeline
+~~~
+
+The replay projection exposes ordered persisted event identity, semantic class/type, actor/source identity, WorkItem linkage, stream sequence, timestamp, causation and supersession when those fields actually exist. Raw arbitrary Activity payload JSON is not promoted into the browser contract.
+
+Historical completeness is fail-closed:
+
+~~~text
+covered
+pre_epoch_partial
+partial_no_epoch
+~~~
+
+The existing Activity coverage epoch remains the authoritative boundary for curated semantic-history completeness. Pre-epoch history is explicitly partial and is never synthetically backfilled. If no coverage epoch exists, Replay reports partial coverage rather than implying a complete history.
+
+Known bounded replay coverage in M.8.1 includes persisted semantic Activity for supported work transitions, assignments/handoffs, dependencies, blockers, decisions, HumanActionRequests/actions, Contributions, evidence amendments and conversation lifecycle where those semantic adapters produced Activity.
+
+Known gaps remain explicit:
+
+~~~text
+conversation transcript history   lifecycle only; transcript not persisted
+RiskEscalation history            unavailable — no semantic Activity adapter
+SourceSnapshot temporal history   unavailable — not linked to Replay Activity
+unsupported pre-epoch history     partial — no synthetic reconstruction
+~~~
+
+Direct authenticated-human transitions may legitimately have no causation Activity. Replay preserves `null` causation rather than manufacturing lineage.
+
+The Cockpit adds a separate replay GET and a Structured temporal timeline with root-mismatch protection. Browser proof verifies coverage/gap presentation and zero POST/canonical mutation.
+
+M.8.1 does not add authority, historical interpolation, inferred past state, prediction, browser-clock truth, replay mutation or a second canonical timeline.
+
+The next M.8 slice may reconstruct bounded historical organization state only where persisted Activity semantics can prove that state. Unsupported historical dimensions must remain unavailable.
+
 ---
 
 ## 5.8 M.9 — Environmental memory TRIAL + bounded future-state experiments
@@ -1243,11 +1300,11 @@ blind professional-review handoff        IMPLEMENTED / LOCAL STABLE-HEAD PROOF P
 independent professional Austria review   COMPLETE / 3 OF 3 CURRENT CASES PROMOTED
 final exact-evidence-head proof           COMPLETE / PASS AT a95f3f5...
 L overall                                 COMPLETE / PASS / SEALED
-M                                         IN PROGRESS — M.1–M.7.4 SEALED; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.8 NEXT; M.9–M.10 SCHEDULED
+M                                         IN PROGRESS — M.1–M.7.4 SEALED; M.8.1 COMPLETE / PASS; M.8 CONTINUES; GPU FLOW TRIAL NOT PROMOTED / BENCHMARK PENDING; M.9–M.10 SCHEDULED
 N                                         NOT STARTED — dependency-gated behind M; learning/optimization/Dreamtime
 ```
 
-L is sealed. M.1–M.7.4 implementation slices are sealed, with the M.7.4 GPU FLOW representation remaining TRIAL / NOT PROMOTED / BENCHMARK PENDING. The next implementation priority is M.8 Replay / temporal organization, followed by M.9 environmental memory / bounded future-state experiments and M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
+L is sealed. M.1–M.7.4 and M.8.1 are sealed. The M.7.4 GPU FLOW representation remains TRIAL / NOT PROMOTED / BENCHMARK PENDING. M.8 Replay / temporal organization continues with bounded historical state reconstruction, followed by M.9 environmental memory / bounded future-state experiments and M.10 cross-view product-value benchmark + M closure. N remains dependency-gated behind M.
 
 ## 8. Historical compatibility anchors
 
