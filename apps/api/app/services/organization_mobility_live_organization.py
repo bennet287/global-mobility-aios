@@ -135,6 +135,7 @@ class AustriaLiveOrganizationSnapshot:
     activities: tuple[TransparencyActivityRecord, ...]
     domain_evidence_refs: tuple[str, ...]
     verified_rule_refs: tuple[str, ...]
+    source_snapshot_refs: tuple[str, ...]
 
 
 def austria_owner_synthesis_output_key(root_work_item_id: UUID) -> str:
@@ -792,6 +793,7 @@ def austria_live_organization_snapshot(
     )
     domain_evidence_refs: set[str] = set()
     verified_rule_refs: set[str] = set()
+    source_snapshot_refs: set[str] = set()
     for position_key in AUSTRIA_MOBILITY_SPECIALIST_POSITIONS:
         child = children[position_key]
         if child.status != "completed":
@@ -817,6 +819,7 @@ def austria_live_organization_snapshot(
         )
         domain_evidence_refs.update(context_refs["context_evidence_refs"])
         verified_rule_refs.update(context_refs["context_verified_rule_refs"])
+        source_snapshot_refs.update(context_refs["context_source_snapshot_refs"])
 
     ids = [root.id, *(child.id for child in children.values())]
     blockers = _active_blockers(session, tenant_key=tenant_key, work_item_ids=ids)
@@ -882,6 +885,7 @@ def austria_live_organization_snapshot(
         activities=tuple(activities),
         domain_evidence_refs=tuple(sorted(domain_evidence_refs)),
         verified_rule_refs=tuple(sorted(verified_rule_refs)),
+        source_snapshot_refs=tuple(sorted(source_snapshot_refs)),
     )
 
 
