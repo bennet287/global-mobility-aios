@@ -84,7 +84,10 @@ test("Austria Live Organization Cockpit surface is persisted, bounded, and expli
   assert.match(sceneComponent, /scene\.deterministic\.conversations/);
   assert.match(sceneComponent, /scene\.deterministic\.incidents/);
   assert.match(sceneComponent, /scene\.deterministic\.smart_objects/);
-  assert.match(sceneComponent, /Mission Board/);
+  assert.match(sceneComponent, /Living Organization Smart Objects/);
+  assert.match(sceneComponent, /item\.label/);
+  assert.match(sceneComponent, /item\.canonical_basis/);
+  assert.doesNotMatch(sceneComponent, /<strong>Mission Board<\/strong>/);
   assert.match(sceneComponent, /Presence/);
   assert.match(sceneComponent, /scene\.predictive\.enabled/);
   assert.match(sceneComponent, /scene\.environmental\.enabled/);
