@@ -869,7 +869,7 @@ test("preserves M.7.3 evidence and supersession queries under the M.7.4 FLOW tri
 
   await Promise.all([
     expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible(),
-    expect(sceneSurface.getByText("M.7.4 · GPU FLOW field TRIAL · Iteration 1")).toBeVisible(),
+    expect(sceneSurface.locator(".living-scene-header .premium-label")).toHaveText("M.7.4 · GPU FLOW field TRIAL · Iteration 1"),
     expect(lenses.locator('[data-lens-key="organization"]')).toHaveAttribute("aria-pressed", "true"),
     expect(lenses.locator('[data-lens-key="flow"]')).toBeEnabled(),
     expect(lenses.locator('[data-lens-key="cost"]')).toBeDisabled(),
