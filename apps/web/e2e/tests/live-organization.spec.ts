@@ -178,7 +178,7 @@ function livingScene() {
   return {
     established: true,
     scene: {
-      contract_version: "living-organization-scene.v2",
+      contract_version: "living-organization-scene.v3",
       generated_at: "2026-09-02T01:30:00Z",
       scope: "austria_mobility",
       root_work_item_id: ROOT_ID,
@@ -188,9 +188,13 @@ function livingScene() {
         missions: "workitem_objective_topology_projection",
         conversations: "organization_activity_conversation_lifecycle_v1",
         handoffs: "organization_work_assigned_activity_v1",
-        incidents: "not_connected_m5",
-        smart_objects: "derived_read_only_scene_metrics",
-        presence: "not_asserted_m5",
+        blockers: "organization_blocker_canonical_records",
+        human_actions: "organization_human_action_request_open_records",
+        risk_escalations: "risk_escalation_open_records",
+        incidents: "unavailable_no_canonical_incident_model",
+        smart_objects: "m6_read_only_canonical_projections",
+        runtime_costs: "unavailable_no_canonical_organization_cost_ledger",
+        presence: "not_asserted_m6",
       },
       deterministic: {
         departments: [
@@ -344,6 +348,8 @@ function livingScene() {
         ],
         blockers: [],
         decisions: [],
+        human_actions: [],
+        risk_escalations: [],
         incidents: [],
         smart_objects: [
           {
@@ -357,9 +363,9 @@ function livingScene() {
             canonical_basis: "OrganizationalWorkItem objective topology",
           },
           {
-            object_key: `evidence-console:${ROOT_ID}`,
-            object_type: "evidence_console",
-            label: "Evidence Console",
+            object_key: `evidence-shelf:${ROOT_ID}`,
+            object_type: "evidence_shelf",
+            label: "Evidence Shelf",
             state: "empty",
             metric_label: "Evidence + VerifiedRules",
             metric_value: 0,
@@ -367,14 +373,64 @@ function livingScene() {
             canonical_basis: "Persisted context Evidence and VerifiedRule references",
           },
           {
-            object_key: `board-beacon:${ROOT_ID}`,
-            object_type: "board_beacon",
-            label: "Board Attention",
-            state: "quiet",
-            metric_label: "Board decisions",
+            object_key: `blocker-wall:${ROOT_ID}`,
+            object_type: "blocker_wall",
+            label: "Blocker Wall",
+            state: "clear",
+            metric_label: "Canonical blockers",
             metric_value: 0,
             projection_only: true,
-            canonical_basis: "Current ExecutiveDecision records linked to scene WorkItems",
+            canonical_basis: "OrganizationBlocker canonical records linked to scene WorkItems",
+          },
+          {
+            object_key: `board-desk:${ROOT_ID}`,
+            object_type: "board_desk",
+            label: "Board Desk",
+            state: "quiet",
+            metric_label: "Owner decisions",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Current ExecutiveDecision records requiring Board action",
+          },
+          {
+            object_key: `owner-inbox:${ROOT_ID}`,
+            object_type: "owner_inbox",
+            label: "Owner Inbox",
+            state: "clear",
+            metric_label: "Human action requests",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Open OrganizationHumanActionRequest records linked to scene truth",
+          },
+          {
+            object_key: `risk-beacon:${ROOT_ID}`,
+            object_type: "risk_beacon",
+            label: "Risk Beacon",
+            state: "clear",
+            metric_label: "Open risk escalations",
+            metric_value: 0,
+            projection_only: true,
+            canonical_basis: "Open RiskEscalation records linked to scene WorkItems",
+          },
+          {
+            object_key: `incident-beacon:${ROOT_ID}`,
+            object_type: "incident_beacon",
+            label: "Incident Beacon",
+            state: "unavailable",
+            metric_label: "Canonical Incident model unavailable",
+            metric_value: null,
+            projection_only: true,
+            canonical_basis: "No canonical Incident model is connected in M.6; beacon activity is not fabricated",
+          },
+          {
+            object_key: `cost-display:${ROOT_ID}`,
+            object_type: "cost_display",
+            label: "Cost Display",
+            state: "unavailable",
+            metric_label: "Canonical organization cost unavailable",
+            metric_value: null,
+            projection_only: true,
+            canonical_basis: "Runtime telemetry may contain estimates, but no canonical organization cost ledger exists in M.6",
           },
         ],
         rooms: [
@@ -403,10 +459,10 @@ function livingScene() {
             room_type: "board_room",
             label: "Board Room",
             state: "quiet",
-            metric_label: "Decisions requiring Board attention",
+            metric_label: "Board attention items",
             metric_value: 0,
             projection_only: true,
-            canonical_basis: "ExecutiveDecision records linked to scene WorkItems",
+            canonical_basis: "ExecutiveDecision + OrganizationHumanActionRequest + RiskEscalation projections",
           },
         ],
         relationships: [
@@ -526,7 +582,7 @@ function expectHeaderAuth(request: RecordedRequest | undefined) {
 }
 
 
-test("renders M.5 canonical conversation and handoff lineage without mutating AIOS", async ({ page }) => {
+test("renders M.6 canonical collaboration board and smart-object state without mutating AIOS", async ({ page }) => {
   const recorded = await installApi(page, {
     latest: () => ({ body: { established: true, snapshot: readySnapshot() } }),
     scene: () => ({ body: livingScene() }),
@@ -536,7 +592,7 @@ test("renders M.5 canonical conversation and handoff lineage without mutating AI
 
   const sceneSurface = page.locator(".living-scene-shell");
   await expect(sceneSurface.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(sceneSurface.getByText("M.5 · Canonical collaboration")).toBeVisible();
+  await expect(sceneSurface.getByText("M.6 · Blockers, Smart Objects & live Board Room")).toBeVisible();
   await expect(sceneSurface.getByText("Mission Room", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
   await expect(sceneSurface.getByText("Board Room", { exact: true }).first()).toBeVisible();
@@ -545,8 +601,11 @@ test("renders M.5 canonical conversation and handoff lineage without mutating AI
   await expect(page.getByText("three-webgpu", { exact: true })).toBeVisible();
   const smartObjects = sceneSurface.locator('.living-scene-smart-strip[aria-label="Living Organization Smart Objects"]');
   await expect(smartObjects.locator("article").filter({ hasText: "Mission Board" })).toBeVisible();
-  await expect(smartObjects.locator("article").filter({ hasText: "Evidence Console" })).toBeVisible();
-  await expect(smartObjects.locator("article").filter({ hasText: "Board Attention" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Evidence Shelf" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Board Desk" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Owner Inbox" })).toBeVisible();
+  await expect(smartObjects.locator("article").filter({ hasText: "Incident Beacon" })).toContainText("Unavailable");
+  await expect(smartObjects.locator("article").filter({ hasText: "Cost Display" })).toContainText("Unavailable");
   await expect(sceneSurface.getByText("CANONICAL CONVERSATIONS", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("CANONICAL HANDOFFS", { exact: true })).toBeVisible();
   await expect(sceneSurface.getByText("Open · 2 participants", { exact: true })).toBeVisible();
@@ -557,7 +616,6 @@ test("renders M.5 canonical conversation and handoff lineage without mutating AI
   await expect(sceneSurface.getByText("Mobility Operations Lead ↓ Pathway Operations Specialist", { exact: true })).toBeVisible();
   await sceneSurface.getByText("Mobility Operations Lead ↓ Pathway Operations Specialist", { exact: true }).click();
   await expect(sceneSurface.getByText("Governed causation 55555555", { exact: true })).toBeVisible();
-  await expect(page.getByText("Not Connected M5", { exact: true })).toHaveCount(1);
   await expect(page.getByText("Disabled", { exact: true })).toBeVisible();
 
   expect(recorded.some((item) => item.method === "GET" && item.path === SCENE_PATH)).toBe(true);
