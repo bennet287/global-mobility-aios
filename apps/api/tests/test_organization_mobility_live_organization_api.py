@@ -164,11 +164,31 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     deterministic = projection["deterministic"]
     assert deterministic["canonical_projection"] is True
     assert deterministic["authoritative"] is False
-    assert len(deterministic["departments"]) == 1
-    department = deterministic["departments"][0]
-    assert department["employee_count"] == 3
-    assert department["work_item_count"] == 3
-    assert department["active_blocker_count"] == 0
+    expected_department_counts: dict[str, int] = {}
+    for work_item in (
+        plan.root_work_item,
+        plan.pathway_work_item,
+        plan.regulatory_work_item,
+    ):
+        expected_department_counts[work_item.department] = (
+            expected_department_counts.get(work_item.department, 0) + 1
+        )
+
+    departments_by_key = {
+        item["department_key"]: item for item in deterministic["departments"]
+    }
+    assert set(departments_by_key) == set(expected_department_counts)
+    assert sum(item["employee_count"] for item in deterministic["departments"]) == 3
+    assert sum(item["work_item_count"] for item in deterministic["departments"]) == 3
+    assert sum(item["active_blocker_count"] for item in deterministic["departments"]) == 0
+    for department_key, expected_count in expected_department_counts.items():
+        department = departments_by_key[department_key]
+        assert department["employee_count"] == expected_count
+        assert department["work_item_count"] == expected_count
+        assert (
+            department["canonical_basis"]
+            == "OrganizationPosition.department + OrganizationalWorkItem.department"
+        )
 
     assert len(deterministic["missions"]) == 1
     mission = deterministic["missions"][0]
