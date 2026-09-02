@@ -166,6 +166,7 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert exact_body["owner_synthesis"]["action_output_id"] == str(result.action_output_id)
     assert exact_body["domain_evidence_refs"] == []
     assert exact_body["verified_rule_refs"] == []
+    assert exact_body["source_snapshot_refs"] == []
     assert exact_body["autonomy_profile_state"] is None
 
     decision = client.post(
@@ -315,19 +316,36 @@ def test_board_reads_completed_live_organization_latest_and_exact_snapshot(
     assert {item["object_type"] for item in deterministic["smart_objects"]} == {
         "mission_board",
         "evidence_shelf",
+        "regulatory_monitor",
         "blocker_wall",
         "board_desk",
         "owner_inbox",
         "risk_beacon",
+        "immune_center",
+        "model_terminal",
         "incident_beacon",
         "cost_display",
     }
+    regulatory = next(
+        item for item in deterministic["smart_objects"] if item["object_type"] == "regulatory_monitor"
+    )
+    immune = next(
+        item for item in deterministic["smart_objects"] if item["object_type"] == "immune_center"
+    )
+    model_terminal = next(
+        item for item in deterministic["smart_objects"] if item["object_type"] == "model_terminal"
+    )
     incident = next(
         item for item in deterministic["smart_objects"] if item["object_type"] == "incident_beacon"
     )
     cost = next(
         item for item in deterministic["smart_objects"] if item["object_type"] == "cost_display"
     )
+    assert regulatory["state"] == "no_snapshot_provenance"
+    assert regulatory["metric_value"] == 0
+    assert immune["state"] == "unavailable" and immune["metric_value"] is None
+    assert model_terminal["metric_value"] >= 0
+    assert "no organizational authority" in model_terminal["canonical_basis"]
     assert incident["state"] == "unavailable" and incident["metric_value"] is None
     assert cost["state"] == "unavailable" and cost["metric_value"] is None
     assert {item["room_type"] for item in deterministic["rooms"]} == {
