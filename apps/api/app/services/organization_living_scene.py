@@ -11,8 +11,11 @@ from app.models.domain import (
     ExecutiveDecision,
     OrganizationActivity,
     OrganizationActivityClass,
+    OrganizationBlocker,
+    OrganizationHumanActionRequest,
     OrganizationPosition,
     OrganizationalWorkItem,
+    RiskEscalation,
     now_utc,
 )
 from app.services.organization_conversation import (
@@ -27,7 +30,7 @@ from app.services.organization_mobility_live_organization import (
 )
 
 
-LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION = "living-organization-scene.v2"
+LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION = "living-organization-scene.v3"
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,7 +118,7 @@ class LivingSceneSmartObject:
     label: str
     state: str
     metric_label: str
-    metric_value: int
+    metric_value: int | None
     projection_only: bool
     canonical_basis: str
 
@@ -126,8 +129,12 @@ class LivingSceneCoverage:
     missions: str
     conversations: str
     handoffs: str
+    blockers: str
+    human_actions: str
+    risk_escalations: str
     incidents: str
     smart_objects: str
+    runtime_costs: str
     presence: str
 
 
@@ -150,9 +157,14 @@ class LivingSceneWorkItem:
 class LivingSceneBlocker:
     blocker_id: UUID
     work_item_id: UUID | None
+    blocker_type: str
     title: str
+    description: str
     severity: str
     status: str
+    accountable_position_key: str | None
+    decision_id: UUID | None
+    risk_escalation_id: UUID | None
     requires_human_action: bool
 
 
@@ -161,14 +173,60 @@ class LivingSceneDecision:
     decision_id: UUID
     decision_key: str
     title: str
+    question: str
+    recommendation: str
     status: str
     authority_level: str
     decision_owner_position: str
     work_item_id: UUID | None
+    evidence_items: tuple[object, ...]
+    record_fingerprint: str | None
+    source_object_type: str | None
+    source_object_id: str | None
+    source_object_version: str | None
     supersedes_decision_id: UUID | None
     superseded_by_decision_id: UUID | None
     is_current: bool
+    required_owner_action: bool
     decided_at: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneHumanActionRequest:
+    request_id: UUID
+    request_type: str
+    title: str
+    instructions: str
+    status: str
+    priority: str
+    required_role: str
+    assigned_human_id: str | None
+    authority_level: str | None
+    work_item_id: UUID | None
+    decision_id: UUID | None
+    blocker_id: UUID | None
+    requested_at: datetime
+    due_at: datetime | None
+    canonical_basis: str
+
+
+@dataclass(frozen=True, slots=True)
+class LivingSceneRiskEscalation:
+    risk_id: UUID
+    risk_key: str
+    category: str
+    severity: str
+    title: str
+    description: str
+    status: str
+    accountable_position_key: str
+    escalated_to_position_key: str
+    work_item_id: UUID | None
+    requires_board_attention: bool
+    is_emergency: bool
+    evidence_items: tuple[object, ...]
+    created_at: datetime
+    canonical_basis: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -206,6 +264,8 @@ class LivingSceneDeterministicPlane:
     handoffs: tuple[LivingSceneHandoff, ...]
     blockers: tuple[LivingSceneBlocker, ...]
     decisions: tuple[LivingSceneDecision, ...]
+    human_actions: tuple[LivingSceneHumanActionRequest, ...]
+    risk_escalations: tuple[LivingSceneRiskEscalation, ...]
     incidents: tuple[LivingSceneIncident, ...]
     smart_objects: tuple[LivingSceneSmartObject, ...]
     rooms: tuple[LivingSceneRoom, ...]
@@ -315,54 +375,166 @@ def _employee_state(
     return "work_state", f"The canonical WorkItem state is {work.status}."
 
 
+def _json_list(value: str, *, label: str) -> tuple[object, ...]:
+    try:
+        payload = json.loads(value)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise DependencyConflict(f"Living Organization {label} JSON is invalid") from exc
+    if not isinstance(payload, list):
+        raise DependencyConflict(f"Living Organization {label} JSON must be a list")
+    return tuple(payload)
+
+
+def _scene_blockers(
+    session: Session,
+    *,
+    tenant_key: str,
+    snapshot: AustriaLiveOrganizationSnapshot,
+) -> tuple[LivingSceneBlocker, ...]:
+    blocker_ids = tuple(item.blocker_id for item in snapshot.blockers)
+    if not blocker_ids:
+        return ()
+    rows = list(session.exec(select(OrganizationBlocker).where(
+        OrganizationBlocker.tenant_key == tenant_key,
+        OrganizationBlocker.id.in_(blocker_ids),
+    )).all())
+    by_id = {row.id: row for row in rows}
+    missing = [str(blocker_id) for blocker_id in blocker_ids if blocker_id not in by_id]
+    if missing:
+        raise DependencyConflict("Living Organization blocker identity is unavailable: " + ", ".join(missing))
+    return tuple(
+        LivingSceneBlocker(
+            blocker_id=row.id,
+            work_item_id=row.work_item_id,
+            blocker_type=row.blocker_type.value,
+            title=row.title,
+            description=row.description,
+            severity=row.severity,
+            status=row.status.value,
+            accountable_position_key=row.accountable_position_key,
+            decision_id=row.decision_id,
+            risk_escalation_id=row.risk_escalation_id,
+            requires_human_action=row.requires_human_action,
+        )
+        for row in (by_id[blocker_id] for blocker_id in blocker_ids)
+    )
+
+
 def _scene_decisions(
     session: Session,
     *,
     tenant_key: str,
     work_item_ids: tuple[UUID, ...],
 ) -> tuple[LivingSceneDecision, ...]:
-    rows = list(
-        session.exec(
-            select(ExecutiveDecision)
-            .where(
-                ExecutiveDecision.tenant_key == tenant_key,
-                ExecutiveDecision.work_item_id.in_(work_item_ids),
-            )
-            .order_by(ExecutiveDecision.created_at, ExecutiveDecision.id)
-        ).all()
-    )
+    rows = list(session.exec(
+        select(ExecutiveDecision).where(
+            ExecutiveDecision.tenant_key == tenant_key,
+            ExecutiveDecision.work_item_id.in_(work_item_ids),
+        ).order_by(ExecutiveDecision.created_at, ExecutiveDecision.id)
+    ).all())
     if not rows:
         return ()
-
     decision_ids = {row.id for row in rows}
-    supersession_rows = list(
-        session.exec(
-            select(ExecutiveDecision.id, ExecutiveDecision.supersedes_decision_id).where(
-                ExecutiveDecision.tenant_key == tenant_key,
-                ExecutiveDecision.supersedes_decision_id.in_(decision_ids),
-            )
-        ).all()
-    )
-    superseded_by = {
-        supersedes_id: decision_id
-        for decision_id, supersedes_id in supersession_rows
-        if supersedes_id is not None
-    }
-    return tuple(
-        LivingSceneDecision(
+    supersession_rows = list(session.exec(
+        select(ExecutiveDecision.id, ExecutiveDecision.supersedes_decision_id).where(
+            ExecutiveDecision.tenant_key == tenant_key,
+            ExecutiveDecision.supersedes_decision_id.in_(decision_ids),
+        )
+    ).all())
+    superseded_by = {supersedes_id: decision_id for decision_id, supersedes_id in supersession_rows if supersedes_id is not None}
+    projected: list[LivingSceneDecision] = []
+    for row in rows:
+        current = row.id not in superseded_by and row.status != "superseded"
+        required_owner_action = current and row.decision_owner_position == "board" and row.status in {"pending", "pending_board", "pending_ceo"}
+        projected.append(LivingSceneDecision(
             decision_id=row.id,
             decision_key=row.decision_key,
             title=row.title,
+            question=row.question,
+            recommendation=row.recommendation,
             status=row.status,
             authority_level=row.authority_level,
             decision_owner_position=row.decision_owner_position,
             work_item_id=row.work_item_id,
+            evidence_items=_json_list(row.evidence_json, label=f"decision {row.id} evidence"),
+            record_fingerprint=row.record_fingerprint,
+            source_object_type=row.source_object_type,
+            source_object_id=row.source_object_id,
+            source_object_version=row.source_object_version,
             supersedes_decision_id=row.supersedes_decision_id,
             superseded_by_decision_id=superseded_by.get(row.id),
-            is_current=row.id not in superseded_by and row.status != "superseded",
+            is_current=current,
+            required_owner_action=required_owner_action,
             decided_at=row.decided_at,
+        ))
+    return tuple(projected)
+
+
+def _scene_human_actions(
+    session: Session,
+    *,
+    tenant_key: str,
+    work_item_ids: tuple[UUID, ...],
+    decision_ids: set[UUID],
+    blocker_ids: set[UUID],
+) -> tuple[LivingSceneHumanActionRequest, ...]:
+    rows = list(session.exec(
+        select(OrganizationHumanActionRequest)
+        .where(OrganizationHumanActionRequest.tenant_key == tenant_key)
+        .order_by(OrganizationHumanActionRequest.requested_at, OrganizationHumanActionRequest.id)
+    ).all())
+    active_statuses = {"required", "acknowledged", "in_progress"}
+    work_ids = set(work_item_ids)
+    projected: list[LivingSceneHumanActionRequest] = []
+    for row in rows:
+        status = row.status.value
+        if status not in active_statuses:
+            continue
+        if not (row.work_item_id in work_ids or row.decision_id in decision_ids or row.blocker_id in blocker_ids):
+            continue
+        projected.append(LivingSceneHumanActionRequest(
+            request_id=row.id,
+            request_type=row.request_type.value,
+            title=row.title,
+            instructions=row.instructions,
+            status=status,
+            priority=row.priority.value,
+            required_role=row.required_role,
+            assigned_human_id=row.assigned_human_id,
+            authority_level=row.authority_level,
+            work_item_id=row.work_item_id,
+            decision_id=row.decision_id,
+            blocker_id=row.blocker_id,
+            requested_at=row.requested_at,
+            due_at=row.due_at,
+            canonical_basis="OrganizationHumanActionRequest canonical record",
+        ))
+    return tuple(projected)
+
+
+def _scene_risk_escalations(session: Session, *, work_item_ids: tuple[UUID, ...]) -> tuple[LivingSceneRiskEscalation, ...]:
+    rows = list(session.exec(
+        select(RiskEscalation).where(RiskEscalation.work_item_id.in_(work_item_ids)).order_by(RiskEscalation.created_at, RiskEscalation.id)
+    ).all())
+    return tuple(
+        LivingSceneRiskEscalation(
+            risk_id=row.id,
+            risk_key=row.risk_key,
+            category=row.category,
+            severity=row.severity,
+            title=row.title,
+            description=row.description,
+            status=row.status,
+            accountable_position_key=row.accountable_position_key,
+            escalated_to_position_key=row.escalated_to_position_key,
+            work_item_id=row.work_item_id,
+            requires_board_attention=row.requires_board_attention,
+            is_emergency=row.is_emergency,
+            evidence_items=_json_list(row.evidence_json, label=f"risk {row.id} evidence"),
+            created_at=row.created_at,
+            canonical_basis="RiskEscalation canonical record linked to scene WorkItem",
         )
-        for row in rows
+        for row in rows if row.status != "resolved"
     )
 
 
@@ -590,9 +762,10 @@ def austria_living_organization_scene(
         )
     )
     positions = _latest_position_rows(session, position_keys=position_keys)
+    blockers = _scene_blockers(session, tenant_key=tenant_key, snapshot=snapshot)
     blocked_work_ids = {
         blocker.work_item_id
-        for blocker in snapshot.blockers
+        for blocker in blockers
         if blocker.work_item_id is not None
     }
 
@@ -663,26 +836,20 @@ def austria_living_organization_scene(
         for work in works
     )
 
-    blockers = tuple(
-        LivingSceneBlocker(
-            blocker_id=item.blocker_id,
-            work_item_id=item.work_item_id,
-            title=item.title,
-            severity=item.severity,
-            status=item.status,
-            requires_human_action=item.requires_human_action,
-        )
-        for item in snapshot.blockers
-    )
-
     decisions = _scene_decisions(session, tenant_key=tenant_key, work_item_ids=work_ids)
-    board_attention = sum(
-        1
-        for decision in decisions
-        if decision.is_current
-        and decision.decision_owner_position == "board"
-        and decision.status in {"pending", "pending_board", "pending_ceo"}
+    decision_ids = {item.decision_id for item in decisions}
+    blocker_ids = {item.blocker_id for item in blockers}
+    human_actions = _scene_human_actions(
+        session,
+        tenant_key=tenant_key,
+        work_item_ids=work_ids,
+        decision_ids=decision_ids,
+        blocker_ids=blocker_ids,
     )
+    risk_escalations = _scene_risk_escalations(session, work_item_ids=work_ids)
+    decision_attention = sum(1 for decision in decisions if decision.required_owner_action)
+    board_risk_attention = sum(1 for risk in risk_escalations if risk.requires_board_attention)
+    board_attention = decision_attention + len(human_actions) + board_risk_attention
     evidence_count = len(snapshot.domain_evidence_refs) + len(snapshot.verified_rule_refs)
 
 
@@ -724,71 +891,21 @@ def austria_living_organization_scene(
     )
 
     smart_objects = (
-        LivingSceneSmartObject(
-            object_key=f"mission-board:{snapshot.root_work_item_id}",
-            object_type="mission_board",
-            label="Mission Board",
-            state=snapshot.cycle_status,
-            metric_label="WorkItems",
-            metric_value=len(work_items),
-            projection_only=True,
-            canonical_basis="OrganizationalWorkItem objective topology",
-        ),
-        LivingSceneSmartObject(
-            object_key=f"evidence-console:{snapshot.root_work_item_id}",
-            object_type="evidence_console",
-            label="Evidence Console",
-            state="grounded" if evidence_count else "empty",
-            metric_label="Evidence + VerifiedRules",
-            metric_value=evidence_count,
-            projection_only=True,
-            canonical_basis="Persisted context Evidence and VerifiedRule references",
-        ),
-        LivingSceneSmartObject(
-            object_key=f"board-beacon:{snapshot.root_work_item_id}",
-            object_type="board_beacon",
-            label="Board Attention",
-            state="attention" if board_attention else "quiet",
-            metric_label="Board decisions",
-            metric_value=board_attention,
-            projection_only=True,
-            canonical_basis="Current ExecutiveDecision records linked to scene WorkItems",
-        ),
+        LivingSceneSmartObject(object_key=f"mission-board:{snapshot.root_work_item_id}", object_type="mission_board", label="Mission Board", state=snapshot.cycle_status, metric_label="WorkItems", metric_value=len(work_items), projection_only=True, canonical_basis="OrganizationalWorkItem objective topology"),
+        LivingSceneSmartObject(object_key=f"evidence-shelf:{snapshot.root_work_item_id}", object_type="evidence_shelf", label="Evidence Shelf", state="grounded" if evidence_count else "empty", metric_label="Evidence + VerifiedRules", metric_value=evidence_count, projection_only=True, canonical_basis="Persisted context Evidence and VerifiedRule references"),
+        LivingSceneSmartObject(object_key=f"blocker-wall:{snapshot.root_work_item_id}", object_type="blocker_wall", label="Blocker Wall", state="attention" if blockers else "clear", metric_label="Canonical blockers", metric_value=len(blockers), projection_only=True, canonical_basis="OrganizationBlocker canonical records linked to scene WorkItems"),
+        LivingSceneSmartObject(object_key=f"board-desk:{snapshot.root_work_item_id}", object_type="board_desk", label="Board Desk", state="attention" if decision_attention else "quiet", metric_label="Owner decisions", metric_value=decision_attention, projection_only=True, canonical_basis="Current ExecutiveDecision records requiring Board action"),
+        LivingSceneSmartObject(object_key=f"owner-inbox:{snapshot.root_work_item_id}", object_type="owner_inbox", label="Owner Inbox", state="attention" if human_actions else "clear", metric_label="Human action requests", metric_value=len(human_actions), projection_only=True, canonical_basis="Open OrganizationHumanActionRequest records linked to scene truth"),
+        LivingSceneSmartObject(object_key=f"risk-beacon:{snapshot.root_work_item_id}", object_type="risk_beacon", label="Risk Beacon", state="attention" if risk_escalations else "clear", metric_label="Open risk escalations", metric_value=len(risk_escalations), projection_only=True, canonical_basis="Open RiskEscalation records linked to scene WorkItems"),
+        LivingSceneSmartObject(object_key=f"incident-beacon:{snapshot.root_work_item_id}", object_type="incident_beacon", label="Incident Beacon", state="unavailable", metric_label="Canonical Incident model unavailable", metric_value=None, projection_only=True, canonical_basis="No canonical Incident model is connected in M.6; beacon activity is not fabricated"),
+        LivingSceneSmartObject(object_key=f"cost-display:{snapshot.root_work_item_id}", object_type="cost_display", label="Cost Display", state="unavailable", metric_label="Canonical organization cost unavailable", metric_value=None, projection_only=True, canonical_basis="Runtime telemetry may contain estimates, but no canonical organization cost ledger exists in M.6"),
     )
 
     rooms = (
-        LivingSceneRoom(
-            room_key=f"mission:{snapshot.root_work_item_id}",
-            room_type="mission_room",
-            label=snapshot.objective_key,
-            state=snapshot.cycle_status,
-            metric_label="WorkItems",
-            metric_value=len(work_items),
-            projection_only=True,
-            canonical_basis="OrganizationalWorkItem objective topology",
-        ),
-        LivingSceneRoom(
-            room_key=f"evidence:{snapshot.root_work_item_id}",
-            room_type="evidence_lab",
-            label="Evidence Lab",
-            state="grounded" if evidence_count else "empty",
-            metric_label="Evidence + VerifiedRules",
-            metric_value=evidence_count,
-            projection_only=True,
-            canonical_basis="Persisted context Evidence and VerifiedRule references",
-        ),
-        LivingSceneRoom(
-            room_key=f"board:{snapshot.root_work_item_id}",
-            room_type="board_room",
-            label="Board Room",
-            state="attention" if board_attention else "quiet",
-            metric_label="Decisions requiring Board attention",
-            metric_value=board_attention,
-            projection_only=True,
-            canonical_basis="ExecutiveDecision records linked to scene WorkItems",
-        ),
+        LivingSceneRoom(room_key=f"mission:{snapshot.root_work_item_id}", room_type="mission_room", label=snapshot.objective_key, state=snapshot.cycle_status, metric_label="WorkItems", metric_value=len(work_items), projection_only=True, canonical_basis="OrganizationalWorkItem objective topology"),
+        LivingSceneRoom(room_key=f"evidence:{snapshot.root_work_item_id}", room_type="evidence_lab", label="Evidence Lab", state="grounded" if evidence_count else "empty", metric_label="Evidence + VerifiedRules", metric_value=evidence_count, projection_only=True, canonical_basis="Persisted context Evidence and VerifiedRule references"),
+        LivingSceneRoom(room_key=f"board:{snapshot.root_work_item_id}", room_type="board_room", label="Board Room", state="attention" if board_attention else "quiet", metric_label="Board attention items", metric_value=board_attention, projection_only=True, canonical_basis="ExecutiveDecision + OrganizationHumanActionRequest + RiskEscalation projections"),
     )
-
     relationships: list[LivingSceneRelationship] = []
     for work in works:
         relationships.append(
@@ -898,6 +1015,31 @@ def austria_living_organization_scene(
             )
         )
 
+    for request in human_actions:
+        for target_type, target_id in (("work_item", request.work_item_id), ("decision", request.decision_id), ("blocker", request.blocker_id)):
+            if target_id is not None:
+                relationships.append(LivingSceneRelationship(
+                    relationship_key=f"human-action:{request.request_id}:{target_type}:{target_id}",
+                    relationship_type="requires_human_action",
+                    source_type="human_action_request",
+                    source_id=str(request.request_id),
+                    target_type=target_type,
+                    target_id=str(target_id),
+                    canonical_basis=request.canonical_basis,
+                ))
+
+    for risk in risk_escalations:
+        if risk.work_item_id is not None:
+            relationships.append(LivingSceneRelationship(
+                relationship_key=f"risk-work:{risk.risk_id}:{risk.work_item_id}",
+                relationship_type="escalates_risk",
+                source_type="risk_escalation",
+                source_id=str(risk.risk_id),
+                target_type="work_item",
+                target_id=str(risk.work_item_id),
+                canonical_basis=risk.canonical_basis,
+            ))
+
     return LivingOrganizationScene(
         contract_version=LIVING_ORGANIZATION_SCENE_CONTRACT_VERSION,
         generated_at=now_utc(),
@@ -909,9 +1051,13 @@ def austria_living_organization_scene(
             missions="workitem_objective_topology_projection",
             conversations="organization_activity_conversation_lifecycle_v1",
             handoffs="organization_work_assigned_activity_v1",
-            incidents="not_connected_m5",
-            smart_objects="derived_read_only_scene_metrics",
-            presence="not_asserted_m5",
+            blockers="organization_blocker_canonical_records",
+            human_actions="organization_human_action_request_open_records",
+            risk_escalations="risk_escalation_open_records",
+            incidents="unavailable_no_canonical_incident_model",
+            smart_objects="m6_read_only_canonical_projections",
+            runtime_costs="unavailable_no_canonical_organization_cost_ledger",
+            presence="not_asserted_m6",
         ),
         deterministic=LivingSceneDeterministicPlane(
             canonical_projection=True,
@@ -924,6 +1070,8 @@ def austria_living_organization_scene(
             handoffs=handoffs,
             blockers=blockers,
             decisions=decisions,
+            human_actions=human_actions,
+            risk_escalations=risk_escalations,
             incidents=(),
             smart_objects=smart_objects,
             rooms=rooms,
