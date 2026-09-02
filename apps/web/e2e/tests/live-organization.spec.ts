@@ -503,11 +503,12 @@ test("renders M.3 canonical scene planes without inventing presence or authority
 
   await page.goto("/cockpit/live-organization");
 
-  await expect(page.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
-  await expect(page.getByText("M.3 · Canonical scene foundation")).toBeVisible();
-  await expect(page.getByText("Mission Room", { exact: true })).toBeVisible();
-  await expect(page.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Board Room", { exact: true }).first()).toBeVisible();
+  const livingScene = page.locator(".living-scene-shell");
+  await expect(livingScene.getByRole("heading", { name: "Living Organization Scene" })).toBeVisible();
+  await expect(livingScene.getByText("M.3 · Canonical scene foundation")).toBeVisible();
+  await expect(livingScene.getByText("Mission Room", { exact: true })).toBeVisible();
+  await expect(livingScene.getByText("Evidence Lab", { exact: true }).first()).toBeVisible();
+  await expect(livingScene.getByText("Board Room", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Not Asserted", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Reserved for M.9 · disabled", { exact: true })).toHaveCount(2);
   await expect(page.getByText("three-webgpu", { exact: true })).toBeVisible();
