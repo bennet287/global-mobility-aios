@@ -850,7 +850,15 @@ def austria_living_organization_scene(
     decision_attention = sum(1 for decision in decisions if decision.required_owner_action)
     board_risk_attention = sum(1 for risk in risk_escalations if risk.requires_board_attention)
     board_attention = decision_attention + len(human_actions) + board_risk_attention
-    evidence_count = len(snapshot.domain_evidence_refs) + len(snapshot.verified_rule_refs)
+    source_snapshot_count = len(snapshot.source_snapshot_refs)
+    evidence_count = (
+        len(snapshot.domain_evidence_refs)
+        + len(snapshot.verified_rule_refs)
+        + source_snapshot_count
+    )
+    model_activity_count = sum(
+        1 for specialist in snapshot.specialist_outputs if specialist.agent_run_id is not None
+    )
 
 
     department_keys = tuple(
@@ -892,18 +900,21 @@ def austria_living_organization_scene(
 
     smart_objects = (
         LivingSceneSmartObject(object_key=f"mission-board:{snapshot.root_work_item_id}", object_type="mission_board", label="Mission Board", state=snapshot.cycle_status, metric_label="WorkItems", metric_value=len(work_items), projection_only=True, canonical_basis="OrganizationalWorkItem objective topology"),
-        LivingSceneSmartObject(object_key=f"evidence-shelf:{snapshot.root_work_item_id}", object_type="evidence_shelf", label="Evidence Shelf", state="grounded" if evidence_count else "empty", metric_label="Evidence + VerifiedRules", metric_value=evidence_count, projection_only=True, canonical_basis="Persisted context Evidence and VerifiedRule references"),
+        LivingSceneSmartObject(object_key=f"evidence-shelf:{snapshot.root_work_item_id}", object_type="evidence_shelf", label="Evidence Shelf", state="grounded" if evidence_count else "empty", metric_label="Evidence + Rules + SourceSnapshots", metric_value=evidence_count, projection_only=True, canonical_basis="Persisted context Evidence, VerifiedRule and SourceSnapshot references"),
+        LivingSceneSmartObject(object_key=f"regulatory-monitor:{snapshot.root_work_item_id}", object_type="regulatory_monitor", label="Regulatory Monitor", state="source_provenance_recorded" if source_snapshot_count else "no_snapshot_provenance", metric_label="SourceSnapshot references", metric_value=source_snapshot_count, projection_only=True, canonical_basis="Persisted K.1 context_source_snapshot_refs; does not claim SourceRetrievalRun freshness because K.1 does not persist the retrieval-run reference"),
         LivingSceneSmartObject(object_key=f"blocker-wall:{snapshot.root_work_item_id}", object_type="blocker_wall", label="Blocker Wall", state="attention" if blockers else "clear", metric_label="Canonical blockers", metric_value=len(blockers), projection_only=True, canonical_basis="OrganizationBlocker canonical records linked to scene WorkItems"),
         LivingSceneSmartObject(object_key=f"board-desk:{snapshot.root_work_item_id}", object_type="board_desk", label="Board Desk", state="attention" if decision_attention else "quiet", metric_label="Owner decisions", metric_value=decision_attention, projection_only=True, canonical_basis="Current ExecutiveDecision records requiring Board action"),
-        LivingSceneSmartObject(object_key=f"owner-inbox:{snapshot.root_work_item_id}", object_type="owner_inbox", label="Owner Inbox", state="attention" if human_actions else "clear", metric_label="Human action requests", metric_value=len(human_actions), projection_only=True, canonical_basis="Open OrganizationHumanActionRequest records linked to scene truth"),
+        LivingSceneSmartObject(object_key=f"owner-inbox:{snapshot.root_work_item_id}", object_type="owner_inbox", label="Owner Inbox", state="attention" if human_actions or board_risk_attention else "clear", metric_label="Human actions + Board risks", metric_value=len(human_actions) + board_risk_attention, projection_only=True, canonical_basis="Open OrganizationHumanActionRequest records plus Board-attention RiskEscalation records"),
         LivingSceneSmartObject(object_key=f"risk-beacon:{snapshot.root_work_item_id}", object_type="risk_beacon", label="Risk Beacon", state="attention" if risk_escalations else "clear", metric_label="Open risk escalations", metric_value=len(risk_escalations), projection_only=True, canonical_basis="Open RiskEscalation records linked to scene WorkItems"),
+        LivingSceneSmartObject(object_key=f"immune-center:{snapshot.root_work_item_id}", object_type="immune_center", label="Immune Center", state="unavailable", metric_label="Scene-scoped immune state unavailable", metric_value=None, projection_only=True, canonical_basis="The canonical eligibility immune circuit is aggregate-scoped and is not linked to this Austria WorkItem scene; unrelated immune state is not projected"),
+        LivingSceneSmartObject(object_key=f"model-terminal:{snapshot.root_work_item_id}", object_type="model_terminal", label="Model Terminal", state="activity_recorded" if model_activity_count else "idle", metric_label="AgentRun-linked specialists", metric_value=model_activity_count, projection_only=True, canonical_basis="Persisted specialist AgentRun lineage only; provider/model identity has no organizational authority and does not authorize external action"),
         LivingSceneSmartObject(object_key=f"incident-beacon:{snapshot.root_work_item_id}", object_type="incident_beacon", label="Incident Beacon", state="unavailable", metric_label="Canonical Incident model unavailable", metric_value=None, projection_only=True, canonical_basis="No canonical Incident model is connected in M.6; beacon activity is not fabricated"),
         LivingSceneSmartObject(object_key=f"cost-display:{snapshot.root_work_item_id}", object_type="cost_display", label="Cost Display", state="unavailable", metric_label="Canonical organization cost unavailable", metric_value=None, projection_only=True, canonical_basis="Runtime telemetry may contain estimates, but no canonical organization cost ledger exists in M.6"),
     )
 
     rooms = (
         LivingSceneRoom(room_key=f"mission:{snapshot.root_work_item_id}", room_type="mission_room", label=snapshot.objective_key, state=snapshot.cycle_status, metric_label="WorkItems", metric_value=len(work_items), projection_only=True, canonical_basis="OrganizationalWorkItem objective topology"),
-        LivingSceneRoom(room_key=f"evidence:{snapshot.root_work_item_id}", room_type="evidence_lab", label="Evidence Lab", state="grounded" if evidence_count else "empty", metric_label="Evidence + VerifiedRules", metric_value=evidence_count, projection_only=True, canonical_basis="Persisted context Evidence and VerifiedRule references"),
+        LivingSceneRoom(room_key=f"evidence:{snapshot.root_work_item_id}", room_type="evidence_lab", label="Evidence Lab", state="grounded" if evidence_count else "empty", metric_label="Evidence + Rules + SourceSnapshots", metric_value=evidence_count, projection_only=True, canonical_basis="Persisted context Evidence, VerifiedRule and SourceSnapshot references"),
         LivingSceneRoom(room_key=f"board:{snapshot.root_work_item_id}", room_type="board_room", label="Board Room", state="attention" if board_attention else "quiet", metric_label="Board attention items", metric_value=board_attention, projection_only=True, canonical_basis="ExecutiveDecision + OrganizationHumanActionRequest + RiskEscalation projections"),
     )
     relationships: list[LivingSceneRelationship] = []
