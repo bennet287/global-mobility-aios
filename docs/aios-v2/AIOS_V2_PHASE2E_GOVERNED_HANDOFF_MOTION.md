@@ -172,7 +172,7 @@ writes, no React, no CSS, and no global mutable registries. All imports are
 a deeply identical result. The returned descriptor and every nested
 truth/reduced-motion structure are deep-frozen; no mutation API is exported.
 
-## 9. Test evidence (observed, not expected)
+## 9. ChatHub draft test evidence (observed, not expected)
 
 Commands (executed):
 
@@ -193,6 +193,8 @@ node --test scripts/aios-v2-character-mission-integration.test.mjs
 /tmp/aios-ts-kit/node_modules/typescript/bin/tsc -p /tmp/tscheck/tsconfig.json --pretty false
 # -> exit 0, no errors (strict; repo-matching compilerOptions; external harness)
 ~~~
+
+The evidence in this section is the ChatHub draft evidence captured before independent repository hardening. The hardened upstream branch adds endpoint-identity and empty-status acceptance cases and requires fresh repository CI proof.
 
 The test file prefers executable imports: it loads the real TypeScript modules
 (native type stripping on Node ≥ 22.18, otherwise a temporary **external**
