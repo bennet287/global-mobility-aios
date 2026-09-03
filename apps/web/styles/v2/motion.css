@@ -1,0 +1,26 @@
+.aios-v2-root {
+  --aios-v2-motion-micro: 140ms;
+  --aios-v2-motion-standard: 220ms;
+  --aios-v2-motion-panel: 320ms;
+  --aios-v2-motion-spatial: 520ms;
+  --aios-v2-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --aios-v2-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aios-v2-root {
+    --aios-v2-motion-micro: 1ms;
+    --aios-v2-motion-standard: 1ms;
+    --aios-v2-motion-panel: 1ms;
+    --aios-v2-motion-spatial: 1ms;
+  }
+
+  .aios-v2-root *,
+  .aios-v2-root *::before,
+  .aios-v2-root *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
