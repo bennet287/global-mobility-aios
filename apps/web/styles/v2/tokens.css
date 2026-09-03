@@ -1,0 +1,60 @@
+/* AIOS V2 prototype tokens.
+ * Values are intentionally provisional until the vertical-slice review.
+ * Tokens are scoped to .aios-v2-root so the legacy product remains untouched.
+ */
+
+.aios-v2-root {
+  --aios-v2-color-canvas: #0d1014;
+  --aios-v2-color-canvas-soft: #12161c;
+  --aios-v2-color-surface: #161b22;
+  --aios-v2-color-surface-raised: #1b222b;
+  --aios-v2-color-surface-inset: #101419;
+  --aios-v2-color-overlay: rgba(19, 24, 31, 0.88);
+
+  --aios-v2-color-text: #f1eee7;
+  --aios-v2-color-text-muted: #a7a39a;
+  --aios-v2-color-text-soft: #757a82;
+
+  --aios-v2-color-border: rgba(242, 238, 229, 0.10);
+  --aios-v2-color-border-strong: rgba(242, 238, 229, 0.18);
+
+  --aios-v2-color-accent: #d2b889;
+  --aios-v2-color-accent-soft: rgba(210, 184, 137, 0.14);
+  --aios-v2-color-technology: #79a7d8;
+  --aios-v2-color-regulatory: #c89a60;
+  --aios-v2-color-operations: #68a89d;
+  --aios-v2-color-security: #8188bc;
+
+  --aios-v2-color-success: #77b99e;
+  --aios-v2-color-warning: #d3a35f;
+  --aios-v2-color-critical: #d27870;
+  --aios-v2-color-info: #7fa7cb;
+
+  --aios-v2-space-1: 4px;
+  --aios-v2-space-2: 8px;
+  --aios-v2-space-3: 12px;
+  --aios-v2-space-4: 16px;
+  --aios-v2-space-5: 24px;
+  --aios-v2-space-6: 32px;
+  --aios-v2-space-7: 48px;
+  --aios-v2-space-8: 64px;
+
+  --aios-v2-radius-control: 10px;
+  --aios-v2-radius-object: 16px;
+  --aios-v2-radius-surface: 22px;
+  --aios-v2-radius-overlay: 26px;
+
+  --aios-v2-shadow-raised: 0 18px 50px rgba(0, 0, 0, 0.24);
+  --aios-v2-shadow-overlay: 0 28px 80px rgba(0, 0, 0, 0.34);
+
+  --aios-v2-type-xs: 0.72rem;
+  --aios-v2-type-sm: 0.82rem;
+  --aios-v2-type-body: 0.94rem;
+  --aios-v2-type-md: 1.05rem;
+  --aios-v2-type-lg: 1.3rem;
+  --aios-v2-type-xl: clamp(2rem, 3.2vw, 3.8rem);
+
+  --aios-v2-layout-rail: 220px;
+  --aios-v2-layout-max: 1680px;
+  --aios-v2-layout-gutter: clamp(18px, 2vw, 36px);
+}
