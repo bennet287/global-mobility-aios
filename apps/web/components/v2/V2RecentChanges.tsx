@@ -1,15 +1,9 @@
 import type { V2RecentChange } from "../../lib/v2/owner-organization";
 
-function relativeTime(value: string): string {
-  const timestamp = new Date(value).getTime();
-  if (!Number.isFinite(timestamp)) return "time unavailable";
-  const diffMinutes = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
-  if (diffMinutes < 1) return "just now";
-  if (diffMinutes < 60) return String(diffMinutes) + "m ago";
-  const hours = Math.round(diffMinutes / 60);
-  if (hours < 24) return String(hours) + "h ago";
-  const days = Math.round(hours / 24);
-  return String(days) + "d ago";
+function activityTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "time unavailable";
+  return date.toISOString().slice(0, 16).replace("T", " ") + " UTC";
 }
 
 export function V2RecentChanges({
@@ -41,7 +35,7 @@ export function V2RecentChanges({
                 <small>
                   {change.activityClass.replaceAll("_", " ")}
                   {change.department ? " · " + change.department : ""}
-                  {" · " + relativeTime(change.occurredAt)}
+                  {" · " + activityTime(change.occurredAt)}
                 </small>
               </div>
             </li>
