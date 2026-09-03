@@ -1,6 +1,7 @@
 import type {
   V2MissionRoomModel,
 } from "../../lib/v2/mission-room-inspector";
+import { V2CharacterMiniature } from "./V2CharacterMiniature";
 
 function timestamp(value: string): string {
   const date = new Date(value);
@@ -82,10 +83,17 @@ export function V2MissionRoomPanel({
                       onClick={() => onSelectEmployee(participant.positionKey)}
                       type="button"
                     >
-                      <span>{participant.department}</span>
-                      <strong>{participant.title}</strong>
-                      <small>{participant.authorityLevel} · {participant.semanticState.replaceAll("_", " ")}</small>
-                      <em>Rostered participant · presence not claimed</em>
+                      <V2CharacterMiniature
+                        department={participant.department}
+                        positionKey={participant.positionKey}
+                        title={participant.title}
+                      />
+                      <span className="aios-v2-room-participant-copy">
+                        <span>{participant.department}</span>
+                        <strong>{participant.title}</strong>
+                        <small>{participant.authorityLevel} · {participant.semanticState.replaceAll("_", " ")}</small>
+                        <em>Rostered participant · character is presentation only · presence not claimed</em>
+                      </span>
                     </button>
                   ))}
                 </div>

@@ -1,4 +1,5 @@
 import type { V2EmployeeInspectorModel } from "../../lib/v2/mission-room-inspector";
+import { V2CharacterMiniature } from "./V2CharacterMiniature";
 
 export function V2EmployeeInspector({
   model,
@@ -49,6 +50,13 @@ export function V2EmployeeInspector({
         </div>
         <button type="button" onClick={onClose}>Close</button>
       </header>
+
+      <V2CharacterMiniature
+        department={employee.department}
+        positionKey={employee.position_key}
+        title={employee.title}
+        variant="inspector"
+      />
 
       <div className="aios-v2-inspector-identity">
         <div>
