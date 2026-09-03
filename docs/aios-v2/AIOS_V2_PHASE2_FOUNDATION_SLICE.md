@@ -1,7 +1,7 @@
 # AIOS V2 — Phase 2 Foundation Slice
 
-**Status:** IMPLEMENTED / PROOF PENDING  
-**Branch:** `design/aios-v2-foundation`  
+**Status:** IMPLEMENTED / PROOF PENDING
+**Branch:** `design/aios-v2-foundation`
 **Parent:** AIOS V2 governing baseline `57bca2615a59c03186420ee1d8ad2892aac00205`
 
 ## Scope
