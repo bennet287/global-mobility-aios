@@ -1,7 +1,12 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import { useBackendStatus } from "../../hooks/useBackendStatus";
+import { useV2MissionRoomInspector } from "../../hooks/useV2MissionRoomInspector";
 import { useV2OwnerOrganization } from "../../hooks/useV2OwnerOrganization";
+import { V2EmployeeInspector } from "./V2EmployeeInspector";
+import { V2MissionRoomPanel } from "./V2MissionRoomPanel";
 import { V2MissionStrip } from "./V2MissionStrip";
 import { V2OrganizationBlockout } from "./V2OrganizationBlockout";
 import { V2Shell } from "./V2Shell";
@@ -9,6 +14,35 @@ import { V2Shell } from "./V2Shell";
 export function V2OrganizationWorkspace() {
   const { health } = useBackendStatus();
   const { data, loading, error, refresh } = useV2OwnerOrganization();
+  const {
+    loading: roomLoading,
+    error: roomError,
+    refresh: refreshRoom,
+    missionRoomFor,
+    employeeInspectorFor,
+  } = useV2MissionRoomInspector();
+
+  const [selectedMissionKey, setSelectedMissionKey] = useState<string | null>(null);
+  const [selectedPositionKey, setSelectedPositionKey] = useState<string | null>(null);
+
+  const missionRoom = useMemo(
+    () => missionRoomFor(selectedMissionKey),
+    [missionRoomFor, selectedMissionKey],
+  );
+
+  const employeeInspector = useMemo(
+    () => employeeInspectorFor(selectedPositionKey),
+    [employeeInspectorFor, selectedPositionKey],
+  );
+
+  const selectMission = (missionKey: string) => {
+    setSelectedMissionKey(missionKey);
+    setSelectedPositionKey(null);
+  };
+
+  const retryAll = async () => {
+    await Promise.all([refresh(), refreshRoom()]);
+  };
 
   return (
     <V2Shell activeItem="Organization" backendOnline={health?.status === "ok"}>
@@ -21,13 +55,13 @@ export function V2OrganizationWorkspace() {
           </p>
         </section>
 
-        {error ? (
+        {error || roomError ? (
           <div className="aios-v2-source-warning" role="alert">
             <div>
-              <strong>Organization data could not be loaded.</strong>
-              <span>{error}</span>
+              <strong>Some Organization data could not be loaded.</strong>
+              <span>{[error, roomError].filter(Boolean).join(" · ")}</span>
             </div>
-            <button onClick={() => void refresh()} type="button">Retry</button>
+            <button onClick={() => void retryAll()} type="button">Retry</button>
           </div>
         ) : null}
 
@@ -41,7 +75,26 @@ export function V2OrganizationWorkspace() {
         ) : null}
 
         <V2OrganizationBlockout organization={data?.organization || null} loading={loading} />
-        <V2MissionStrip missions={data?.missions || []} loading={loading} />
+
+        <V2MissionStrip
+          loading={loading}
+          missions={data?.missions || []}
+          onSelectMission={selectMission}
+          selectedMissionKey={selectedMissionKey}
+        />
+
+        <div className="aios-v2-mission-inspection-layout">
+          <V2MissionRoomPanel
+            loading={roomLoading}
+            model={missionRoom}
+            onSelectEmployee={setSelectedPositionKey}
+            selectedPositionKey={selectedPositionKey}
+          />
+          <V2EmployeeInspector
+            model={employeeInspector}
+            onClose={() => setSelectedPositionKey(null)}
+          />
+        </div>
 
         <section className="aios-v2-structured-fallback" aria-labelledby="aios-v2-structured-title">
           <header className="aios-v2-section-heading">
