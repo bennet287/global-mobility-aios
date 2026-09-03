@@ -18,7 +18,7 @@ test("AIOS V2 tokens are namespaced and do not replace the legacy root theme", (
 
 test("AIOS V2 Owner navigation exposes the selected seven-domain mental model", () => {
   for (const label of ["Home", "Organization", "Missions", "Intelligence", "Evidence", "Decisions", "History"]) {
-    assert.match(shell, new RegExp(`label: "${label}"`));
+    assert.match(shell, new RegExp('label: "' + label + '"'));
   }
 
   for (const legacyPrimary of ["External Validation", "Agent Review Queue", "Automation Hub", "Cross-department friction"]) {
@@ -26,14 +26,18 @@ test("AIOS V2 Owner navigation exposes the selected seven-domain mental model", 
   }
 });
 
-test("unimplemented V2 destinations remain visibly disabled instead of linking to fake routes", () => {
+test("implemented V2 domains link explicitly while future destinations stay disabled", () => {
+  assert.match(shell, /href: "\/cockpit\/v2"/);
+  assert.match(shell, /href: "\/cockpit\/v2\/organization"/);
   assert.match(shell, /aria-disabled="true"/);
   assert.match(shell, /href: null, enabled: false/);
 });
 
-test("V2 foundation preview explicitly refuses placeholder canonical organization claims", () => {
-  assert.match(ownerHome, /does not invent employees, Missions, presence, handoffs, evidence, or authority state/);
-  assert.match(ownerHome, /No V2 canonical attention feed is connected/);
+test("V2 Owner Home uses governed sources and keeps truth caveats visible", () => {
+  assert.match(ownerHome, /useV2OwnerOrganization/);
+  assert.match(ownerHome, /V2AttentionList/);
+  assert.match(ownerHome, /V2OrganizationBlockout/);
+  assert.match(ownerHome, /Employee counts are roster counts, not presence claims/);
   assert.doesNotMatch(ownerHome, /canonical_projection\s*=|authoritative\s*=|mutations_allowed\s*=/);
 });
 
