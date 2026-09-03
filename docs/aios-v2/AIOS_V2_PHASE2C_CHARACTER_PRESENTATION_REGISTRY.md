@@ -1,8 +1,8 @@
 # AIOS V2 — Phase 2C Character Presentation Registry
 
-**Status:** IMPLEMENTED / PROOF PENDING  
-**Branch:** `design/aios-v2-character-registry-fable`  
-**Original Phase 2B parent:** `1c2cd5de378ba293b4d643ec1185349440fc8790`  
+**Status:** IMPLEMENTED / PROOF PENDING
+**Branch:** `design/aios-v2-character-registry-fable`
+**Original Phase 2B parent:** `1c2cd5de378ba293b4d643ec1185349440fc8790`
 **Phase 2B merge:** `1f8a5e1a6f798931c152b45a4f145ba592022801`
 
 ## Purpose
