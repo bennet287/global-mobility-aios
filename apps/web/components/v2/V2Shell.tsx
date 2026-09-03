@@ -1,25 +1,43 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-const ownerNavigation = [
+type OwnerNavLabel =
+  | "Home"
+  | "Organization"
+  | "Missions"
+  | "Intelligence"
+  | "Evidence"
+  | "Decisions"
+  | "History";
+
+const ownerNavigation: Array<{
+  label: OwnerNavLabel;
+  glyph: string;
+  href: string | null;
+  enabled: boolean;
+}> = [
   { label: "Home", glyph: "H", href: "/cockpit/v2", enabled: true },
-  { label: "Organization", glyph: "O", href: null, enabled: false },
+  { label: "Organization", glyph: "O", href: "/cockpit/v2/organization", enabled: true },
   { label: "Missions", glyph: "M", href: null, enabled: false },
   { label: "Intelligence", glyph: "I", href: null, enabled: false },
   { label: "Evidence", glyph: "E", href: null, enabled: false },
   { label: "Decisions", glyph: "D", href: null, enabled: false },
   { label: "History", glyph: "T", href: null, enabled: false },
-] as const;
+];
 
 export function V2Shell({
   children,
   backendOnline,
+  activeItem = "Home",
 }: {
   children: ReactNode;
   backendOnline: boolean;
+  activeItem?: OwnerNavLabel;
 }) {
   return (
     <div className="aios-v2-root">
+      <a className="aios-v2-skip-link" href="#aios-v2-main">Skip to main content</a>
+
       <div className="aios-v2-shell">
         <aside className="aios-v2-rail" aria-label="AIOS V2 Owner navigation">
           <div className="aios-v2-brand">
@@ -31,19 +49,29 @@ export function V2Shell({
           </div>
 
           <nav className="aios-v2-nav" aria-label="Owner">
-            {ownerNavigation.map((item) => (
-              item.enabled && item.href ? (
-                <Link className="aios-v2-nav-item active" href={item.href} key={item.label} aria-current="page">
-                  <span className="aios-v2-nav-glyph" aria-hidden="true">{item.glyph}</span>
-                  <span>{item.label}</span>
-                </Link>
-              ) : (
+            {ownerNavigation.map((item) => {
+              const active = item.label === activeItem;
+              if (item.enabled && item.href) {
+                return (
+                  <Link
+                    className={"aios-v2-nav-item" + (active ? " active" : "")}
+                    href={item.href}
+                    key={item.label}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <span className="aios-v2-nav-glyph" aria-hidden="true">{item.glyph}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              }
+
+              return (
                 <span className="aios-v2-nav-item" aria-disabled="true" key={item.label}>
                   <span className="aios-v2-nav-glyph" aria-hidden="true">{item.glyph}</span>
                   <span>{item.label}</span>
                 </span>
-              )
-            ))}
+              );
+            })}
           </nav>
 
           <div className="aios-v2-rail-footer">
@@ -58,9 +86,9 @@ export function V2Shell({
           <div className="aios-v2-topline">
             <div className="aios-v2-topline-context">
               <strong>Owner</strong>
-              <span>V2 foundation preview</span>
+              <span>AIOS V2</span>
             </div>
-            <button className="aios-v2-command" type="button" disabled aria-label="Command palette is not connected in the foundation slice">
+            <button className="aios-v2-command" type="button" disabled aria-label="Command palette is not connected in this V2 slice">
               Search / Command
             </button>
           </div>
