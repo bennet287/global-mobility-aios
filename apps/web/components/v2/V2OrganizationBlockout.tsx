@@ -95,18 +95,25 @@ export function V2OrganizationBlockout({
               const active = selected?.wingKey === wingKey;
               const wingPlacements = getV2HqPlacementsForWing(characterLayout, wingKey);
               return (
-                <button
-                  aria-pressed={active}
-                  className={"aios-v2-hq-zone zone-" + wingKey}
+                <div
+                  className={`aios-v2-hq-zone zone-${wingKey} ${styles.zoneFrame}`}
                   data-active={String(active)}
                   data-physical-location-claimed="false"
                   key={wingKey}
-                  onClick={() => setSelectedWing(wingKey)}
-                  type="button"
                 >
-                  <span>{zone.label}</span>
-                  <strong>{zone.departments.length || "—"}</strong>
-                  <small>{zone.departments.length ? "mapped departments" : "presentation zone"}</small>
+                  <button
+                    aria-pressed={active}
+                    className={styles.zoneButton}
+                    onClick={() => setSelectedWing(wingKey)}
+                    type="button"
+                  >
+                    <span>{zone.label}</span>
+                    <strong>{zone.departments.length || "—"}</strong>
+                    <small>{zone.departments.length ? "mapped departments" : "presentation zone"}</small>
+                    {zone.activeBlockerCount > 0 ? (
+                      <em>{zone.activeBlockerCount} blocker{zone.activeBlockerCount === 1 ? "" : "s"}</em>
+                    ) : null}
+                  </button>
 
                   {wingPlacements.length ? (
                     <div
@@ -127,11 +134,7 @@ export function V2OrganizationBlockout({
                       ) : null}
                     </div>
                   ) : null}
-
-                  {zone.activeBlockerCount > 0 ? (
-                    <em>{zone.activeBlockerCount} blocker{zone.activeBlockerCount === 1 ? "" : "s"}</em>
-                  ) : null}
-                </button>
+                </div>
               );
             })}
 
