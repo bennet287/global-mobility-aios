@@ -12,6 +12,7 @@ import type {
   V2OrganizationOverview,
 } from "../../lib/v2/owner-organization";
 import { V2CharacterMiniature } from "./V2CharacterMiniature";
+import styles from "./V2OrganizationBlockout.module.css";
 
 const WING_ORDER: V2ArchitectureWingKey[] = [
   "executive",
@@ -110,7 +111,7 @@ export function V2OrganizationBlockout({
                   {wingPlacements.length ? (
                     <div
                       aria-hidden="true"
-                      className="aios-v2-hq-zone-characters"
+                      className={styles.zoneCharacters}
                       data-presentation-placement="department-zone-map"
                     >
                       {wingPlacements.slice(0, 4).map((placement) => (
@@ -162,12 +163,12 @@ export function V2OrganizationBlockout({
             ) : null}
 
             {selectedPlacements.length ? (
-              <div className="aios-v2-hq-roster" aria-label={(selected?.label || "Selected wing") + " roster presentations"}>
-                <header>
+              <div className={styles.roster} aria-label={(selected?.label || "Selected wing") + " roster presentations"}>
+                <header className={styles.rosterHeader}>
                   <span>Roster presentation</span>
                   <small>Department mapped · physical location not claimed</small>
                 </header>
-                <div className="aios-v2-hq-roster-list">
+                <div className={styles.rosterList}>
                   {selectedPlacements.map((placement) => {
                     const active = selectedPositionKey === placement.positionKey;
                     const body = (
@@ -177,7 +178,7 @@ export function V2OrganizationBlockout({
                           positionKey={placement.positionKey}
                           title={placement.title}
                         />
-                        <span className="aios-v2-hq-roster-copy">
+                        <span className={styles.rosterCopy}>
                           <strong>{placement.title}</strong>
                           <small>{placement.department} · {placement.semanticState.replaceAll("_", " ")}</small>
                           <em>Rostered presentation · presence not claimed</em>
@@ -188,7 +189,7 @@ export function V2OrganizationBlockout({
                     return onSelectEmployee ? (
                       <button
                         aria-pressed={active}
-                        className="aios-v2-hq-roster-person"
+                        className={styles.rosterPerson}
                         data-selected={String(active)}
                         key={placement.positionKey}
                         onClick={() => onSelectEmployee(placement.positionKey)}
@@ -197,7 +198,7 @@ export function V2OrganizationBlockout({
                         {body}
                       </button>
                     ) : (
-                      <div className="aios-v2-hq-roster-person" key={placement.positionKey}>
+                      <div className={styles.rosterPerson} key={placement.positionKey}>
                         {body}
                       </div>
                     );
@@ -205,14 +206,14 @@ export function V2OrganizationBlockout({
                 </div>
               </div>
             ) : selected ? (
-              <div className="aios-v2-hq-roster-empty">
+              <div className={styles.rosterEmpty}>
                 No rostered employee has a unique canonical department mapping to this presentation wing.
               </div>
             ) : null}
           </div>
 
           {characterLayout.unplaced.length ? (
-            <div className="aios-v2-hq-unplaced" role="status">
+            <div className={styles.unplaced} role="status">
               <strong>{characterLayout.unplaced.length}</strong>
               <span>
                 rostered employee{characterLayout.unplaced.length === 1 ? "" : "s"} remain spatially unplaced because no unique canonical department-to-zone mapping was available.
