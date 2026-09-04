@@ -15,7 +15,27 @@ steps:
     commands:
       - cd apps/web
       - npm ci
-      - npm audit --audit-level=high
+      - |
+          audit_attempt=1
+          while :; do
+            audit_output="$(npm audit --audit-level=high 2>&1)"
+            audit_status=$?
+            printf '%s\n' "$audit_output"
+            if [ "$audit_status" -eq 0 ]; then
+              break
+            fi
+            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+              if [ "$audit_attempt" -ge 3 ]; then
+                echo "npm audit failed after 3 transient-registry attempts"
+                exit "$audit_status"
+              fi
+              echo "Transient npm audit registry failure; retrying attempt $((audit_attempt + 1))/3"
+              sleep $((audit_attempt * 5))
+              audit_attempt=$((audit_attempt + 1))
+              continue
+            fi
+            exit "$audit_status"
+          done
       - npm run test:design-foundation
       - npm run test:request-auth
       - npx tsc --noEmit
@@ -33,5 +53,25 @@ steps:
     commands:
       - cd apps/web/e2e
       - npm ci
-      - npm audit --audit-level=high
+      - |
+          audit_attempt=1
+          while :; do
+            audit_output="$(npm audit --audit-level=high 2>&1)"
+            audit_status=$?
+            printf '%s\n' "$audit_output"
+            if [ "$audit_status" -eq 0 ]; then
+              break
+            fi
+            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+              if [ "$audit_attempt" -ge 3 ]; then
+                echo "npm audit failed after 3 transient-registry attempts"
+                exit "$audit_status"
+              fi
+              echo "Transient npm audit registry failure; retrying attempt $((audit_attempt + 1))/3"
+              sleep $((audit_attempt * 5))
+              audit_attempt=$((audit_attempt + 1))
+              continue
+            fi
+            exit "$audit_status"
+          done
       - npm test
