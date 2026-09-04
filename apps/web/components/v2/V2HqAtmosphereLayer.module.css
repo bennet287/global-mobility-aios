@@ -1,0 +1,337 @@
+/*
+ * AIOS V2 — Phase 2L — Living HQ atmosphere layer (presentation-only overlay)
+ *
+ * Component-local atmosphere only. No keyframes, no continuous animation,
+ * no canonical semantics, no global custom properties.
+ */
+
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+
+  --atmo-theme-haze: 0.5;
+  --atmo-theme-ambient: 0.4;
+  --atmo-theme-glass: 0.35;
+  --atmo-theme-floor: 0.4;
+  --atmo-theme-vignette: 0.55;
+  --atmo-theme-zone-scale: 1;
+  --atmo-depth-scale: 1;
+  --atmo-illumination-scale: 1;
+  --atmo-glass-scale: 1;
+  --atmo-floor-scale: 1;
+  --atmo-contrast-vignette: 1;
+  --atmo-contrast-zone: 1;
+  --atmo-response: 1;
+  --atmo-transition-quick: 200ms;
+  --atmo-transition-selection: 350ms;
+  --atmo-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --atmo-zone-glow-color: rgba(203, 213, 225, 0.12);
+  --atmo-zone-base-opacity: 0.8;
+  --atmo-zone-intensity: 1;
+}
+
+.themeNeutral {
+  --atmo-theme-haze: 0.5;
+  --atmo-theme-ambient: 0.4;
+  --atmo-theme-glass: 0.35;
+  --atmo-theme-floor: 0.4;
+  --atmo-theme-vignette: 0.55;
+  --atmo-theme-zone-scale: 1;
+}
+
+.themeFocused {
+  --atmo-theme-haze: 0.6;
+  --atmo-theme-ambient: 0.5;
+  --atmo-theme-glass: 0.45;
+  --atmo-theme-floor: 0.5;
+  --atmo-theme-vignette: 0.62;
+  --atmo-theme-zone-scale: 1.05;
+}
+
+.themeLowStimulation {
+  --atmo-theme-haze: 0.22;
+  --atmo-theme-ambient: 0.18;
+  --atmo-theme-glass: 0.12;
+  --atmo-theme-floor: 0.2;
+  --atmo-theme-vignette: 0.3;
+  --atmo-theme-zone-scale: 0.7;
+}
+
+.themePresentation {
+  --atmo-theme-haze: 0.66;
+  --atmo-theme-ambient: 0.55;
+  --atmo-theme-glass: 0.5;
+  --atmo-theme-floor: 0.55;
+  --atmo-theme-vignette: 0.6;
+  --atmo-theme-zone-scale: 1.08;
+}
+
+.depthArchitecturalBalanced { --atmo-depth-scale: 1; }
+.depthArchitecturalDefined { --atmo-depth-scale: 1.15; }
+.depthArchitecturalFlat { --atmo-depth-scale: 0.45; }
+.depthArchitecturalLayered { --atmo-depth-scale: 1.1; }
+
+.illuminationAmbientSoft { --atmo-illumination-scale: 1; }
+.illuminationDirectionalSoft { --atmo-illumination-scale: 1.15; }
+.illuminationDimEven { --atmo-illumination-scale: 0.55; }
+.illuminationPresentationSoft { --atmo-illumination-scale: 1.2; }
+
+.contrastBalanced { --atmo-contrast-vignette: 1; --atmo-contrast-zone: 1; }
+.contrastElevated { --atmo-contrast-vignette: 1.12; --atmo-contrast-zone: 1.08; }
+.contrastReduced { --atmo-contrast-vignette: 0.6; --atmo-contrast-zone: 0.85; }
+.contrastRefinedElevated { --atmo-contrast-vignette: 1.08; --atmo-contrast-zone: 1.05; }
+
+.glassSubtle { --atmo-glass-scale: 1; }
+.glassDefined { --atmo-glass-scale: 1.2; }
+.glassMinimal { --atmo-glass-scale: 0.45; }
+.glassPolished { --atmo-glass-scale: 1.3; }
+
+.floorGlowEven { --atmo-floor-scale: 1; }
+.floorGlowFocused { --atmo-floor-scale: 1.2; }
+.floorGlowMuted { --atmo-floor-scale: 0.5; }
+.floorGlowPresentationEven { --atmo-floor-scale: 1.15; }
+
+.depthHaze,
+.ambientField,
+.atriumCore,
+.glassReflection,
+.floorEdge,
+.vignette,
+.zoneGlow,
+.decorativeField {
+  position: absolute;
+}
+
+.depthHaze {
+  inset: 0;
+  opacity: calc(var(--atmo-theme-haze) * var(--atmo-depth-scale) * var(--atmo-response));
+  background:
+    radial-gradient(140% 80% at 50% -10%, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0) 60%),
+    linear-gradient(180deg, rgba(226, 232, 240, 0.05) 0%, rgba(15, 23, 42, 0) 42%);
+}
+
+.ambientField {
+  inset: 0;
+  opacity: calc(var(--atmo-theme-ambient) * var(--atmo-illumination-scale) * var(--atmo-response));
+  background:
+    radial-gradient(60% 45% at 50% 58%, rgba(191, 219, 254, 0.08), rgba(191, 219, 254, 0) 70%),
+    radial-gradient(42% 34% at 14% 30%, rgba(226, 232, 240, 0.05), rgba(226, 232, 240, 0) 70%);
+}
+
+.atriumCore {
+  left: 50%;
+  top: 56%;
+  width: 26%;
+  height: 30%;
+  border-radius: 50%;
+  opacity: calc(var(--atmo-theme-ambient) * var(--atmo-illumination-scale) * var(--atmo-response) * 0.9);
+  background: radial-gradient(closest-side, rgba(226, 232, 240, 0.13), rgba(226, 232, 240, 0) 72%);
+  transform: translate(-50%, -50%);
+}
+
+.glassReflection {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 38%;
+  opacity: calc(var(--atmo-theme-glass) * var(--atmo-glass-scale) * var(--atmo-response));
+  background: linear-gradient(
+    115deg,
+    rgba(241, 245, 249, 0.06) 0%,
+    rgba(241, 245, 249, 0) 30%,
+    rgba(241, 245, 249, 0.035) 48%,
+    rgba(241, 245, 249, 0) 62%
+  );
+}
+
+.glassReflection::before {
+  position: absolute;
+  left: -8%;
+  top: -24%;
+  width: 22%;
+  height: 150%;
+  background: linear-gradient(90deg, rgba(248, 250, 252, 0.07), rgba(248, 250, 252, 0));
+  content: "";
+  transform: rotate(14deg);
+}
+
+@supports (backdrop-filter: blur(2px)) {
+  .glassReflection {
+    backdrop-filter: blur(2px) saturate(1.04);
+  }
+}
+
+.floorEdge {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26%;
+  opacity: calc(var(--atmo-theme-floor) * var(--atmo-floor-scale) * var(--atmo-response));
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0) 0%,
+    rgba(148, 163, 184, 0.1) 78%,
+    rgba(203, 213, 225, 0.16) 100%
+  );
+}
+
+.floorEdge::after {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 4%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0) 0%,
+    rgba(226, 232, 240, 0.22) 18%,
+    rgba(226, 232, 240, 0.22) 82%,
+    rgba(226, 232, 240, 0) 100%
+  );
+  content: "";
+}
+
+.vignette {
+  inset: 0;
+  opacity: calc(var(--atmo-theme-vignette) * var(--atmo-contrast-vignette) * var(--atmo-response));
+  background: radial-gradient(
+    120% 120% at 50% 45%,
+    rgba(2, 6, 23, 0) 55%,
+    rgba(2, 6, 23, 0.26) 100%
+  );
+}
+
+.zoneGlow,
+.decorativeField {
+  width: 34%;
+  height: 42%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--atmo-zone-glow-color) 0%, rgba(0, 0, 0, 0) 72%);
+  mix-blend-mode: screen;
+  opacity: calc(
+    var(--atmo-zone-base-opacity) * var(--atmo-zone-intensity) *
+      var(--atmo-theme-zone-scale) * var(--atmo-contrast-zone) * var(--atmo-response)
+  );
+  transform: translate(-50%, -50%);
+}
+
+.motionTransitionOnly .zoneGlow,
+.motionTransitionOnly .decorativeField {
+  transition:
+    opacity var(--atmo-transition-selection) var(--atmo-ease-out),
+    box-shadow var(--atmo-transition-selection) var(--atmo-ease-out),
+    filter var(--atmo-transition-quick) var(--atmo-ease-out);
+}
+
+.motionOpacityOnly .zoneGlow,
+.motionOpacityOnly .decorativeField {
+  transition: opacity 150ms ease-out;
+}
+
+.motionStatic .zoneGlow,
+.motionStatic .decorativeField {
+  transition: none;
+}
+
+.zoneGlowSelected {
+  opacity: min(1, calc(
+    var(--atmo-zone-base-opacity) * var(--atmo-zone-intensity) *
+      var(--atmo-theme-zone-scale) * var(--atmo-contrast-zone) * var(--atmo-response) * 1.16
+  ));
+  filter: saturate(1.05) brightness(1.06);
+  box-shadow: 0 0 34px -18px var(--atmo-zone-glow-color);
+}
+
+.decorativeField {
+  width: 28%;
+  height: 30%;
+  opacity: calc(
+    var(--atmo-zone-base-opacity) * var(--atmo-zone-intensity) *
+      var(--atmo-theme-zone-scale) * var(--atmo-response) * 0.7
+  );
+}
+
+.zoneExecutive { left: 18%; top: 34%; }
+.zoneRegulatory { left: 21%; top: 70%; }
+.zoneAtrium { left: 50%; top: 56%; }
+.zoneTechnology { left: 79%; top: 36%; }
+.zoneOperations { left: 78%; top: 68%; }
+.fieldDecisionChamber { left: 50%; top: 20%; }
+.fieldCollaborationDeck { left: 52%; top: 84%; }
+
+.accentWarmNeutral { --atmo-zone-glow-color: rgba(214, 197, 171, 0.16); --atmo-zone-base-opacity: 0.9; }
+.accentCoolTeal { --atmo-zone-glow-color: rgba(148, 210, 214, 0.14); --atmo-zone-base-opacity: 0.8; }
+.accentCoolMetallic { --atmo-zone-glow-color: rgba(125, 211, 252, 0.13); --atmo-zone-base-opacity: 0.8; }
+.accentWarmPractical { --atmo-zone-glow-color: rgba(226, 205, 176, 0.14); --atmo-zone-base-opacity: 0.85; }
+.accentBalancedCentral { --atmo-zone-glow-color: rgba(203, 213, 225, 0.15); --atmo-zone-base-opacity: 1; }
+.accentFormalContrast { --atmo-zone-glow-color: rgba(203, 213, 225, 0.12); --atmo-zone-base-opacity: 0.75; }
+.accentSoftShared { --atmo-zone-glow-color: rgba(199, 210, 222, 0.12); --atmo-zone-base-opacity: 0.8; }
+
+.intensityLow { --atmo-zone-intensity: 0.72; }
+.intensityMedium { --atmo-zone-intensity: 0.9; }
+.intensityHigh { --atmo-zone-intensity: 1.08; }
+
+.reducedMotionActive .zoneGlow,
+.reducedMotionActive .decorativeField,
+.reducedMotionActive .glassReflection,
+.reducedMotionActive .atriumCore {
+  transition: opacity 120ms ease-out;
+}
+
+@media (max-width: 1024px) {
+  .root {
+    --atmo-response: 0.86;
+  }
+
+  .glassReflection {
+    opacity: calc(var(--atmo-theme-glass) * var(--atmo-glass-scale) * 0.75);
+  }
+
+  .zoneGlow,
+  .decorativeField {
+    width: 32%;
+    height: 38%;
+  }
+}
+
+@media (max-width: 768px) {
+  .root {
+    --atmo-response: 0.62;
+    --atmo-transition-selection: 180ms;
+  }
+
+  .depthHaze,
+  .glassReflection,
+  .decorativeField {
+    display: none;
+  }
+
+  .zoneGlow {
+    width: 42%;
+    height: 34%;
+    mix-blend-mode: normal;
+  }
+
+  .vignette {
+    opacity: calc(var(--atmo-theme-vignette) * 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root *,
+  .root *::before,
+  .root *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .zoneGlowSelected {
+    filter: none;
+  }
+}
