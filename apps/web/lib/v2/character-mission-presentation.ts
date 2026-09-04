@@ -2,7 +2,7 @@ import {
   type CharacterPresentationRecord,
   type CharacterRoleFamily,
   getPreferredCharacterPresentation,
-} from "./character-presentation";
+} from "./character-presentation.ts";
 
 export type V2CharacterPresentationIdentity = {
   positionKey: string;

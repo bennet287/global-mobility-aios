@@ -1,0 +1,183 @@
+/*
+ * AIOS V2 — Phase 2M — Ambient Character Surface
+ * Presentation-only CSS renderer for already-approved Phase 2K actions.
+ *
+ * Motion envelope:
+ * - translate <= 1.2px
+ * - rotation <= 0.45deg
+ * - no scale
+ * - no locomotion/path movement
+ * - all continuous loops disabled for reduced-motion and static modes
+ */
+
+.root {
+  --amb-phase-delay: 0ms;
+  --amb-blink-cycle: 2400ms;
+  --amb-breath-cycle: 4200ms;
+  --amb-posture-cycle: 9000ms;
+  --amb-drift-cycle: 7000ms;
+  --amb-device-cycle: 11000ms;
+
+  position: relative;
+  display: inline-flex;
+  transform-origin: 50% 88%;
+}
+
+.modeAmbient {}
+.modeReducedMotion {}
+.modeStatic {}
+
+.phaseSlot0 { --amb-phase-delay: 0ms; }
+.phaseSlot1 { --amb-phase-delay: -140ms; }
+.phaseSlot2 { --amb-phase-delay: -280ms; }
+.phaseSlot3 { --amb-phase-delay: -420ms; }
+
+.breathLayer,
+.postureLayer,
+.driftLayer {
+  display: inline-flex;
+}
+
+/* Whole-wrapper blink cue is deliberately almost imperceptible until eye-level
+ * art integration exists; it must not look like a character fading out. */
+.ambientBlink {
+  animation: ambBlink var(--amb-blink-cycle) linear infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambBlink {
+  0%, 91%, 100% { opacity: 1; }
+  93.5% { opacity: 0.985; }
+  96% { opacity: 1; }
+}
+
+.ambientBreathing {
+  animation: ambBreathing var(--amb-breath-cycle) ease-in-out infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambBreathing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.2px); }
+}
+
+.ambientMicroPosture {
+  animation: ambMicroPosture var(--amb-posture-cycle) ease-in-out infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambMicroPosture {
+  0%, 44%, 56%, 100% { transform: rotate(0deg); }
+  48% { transform: rotate(0.45deg); }
+  52% { transform: rotate(-0.3deg); }
+}
+
+.ambientGazeShift {
+  animation: ambGazeShift var(--amb-drift-cycle) ease-in-out infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambGazeShift {
+  0%, 43%, 57%, 100% { transform: translateX(0); }
+  48% { transform: translateX(0.6px); }
+  53% { transform: translateX(-0.4px); }
+}
+
+.ambientPropIdle {
+  animation: ambPropIdle var(--amb-drift-cycle) ease-in-out infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambPropIdle {
+  0%, 42%, 58%, 100% { transform: translateX(0); }
+  48% { transform: translateX(0.5px); }
+  53% { transform: translateX(-0.5px); }
+}
+
+.ambientFocusGlow::after {
+  position: absolute;
+  inset: -4px;
+  border-radius: 8px;
+  pointer-events: none;
+  content: "";
+  opacity: 0.3;
+  box-shadow:
+    0 0 14px rgba(191, 219, 254, 0.24),
+    inset 0 0 0 1px rgba(226, 232, 240, 0.18);
+}
+
+.ambientDeviceIdle::before {
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  width: 6px;
+  height: 4px;
+  border-radius: 2px;
+  pointer-events: none;
+  content: "";
+  background: rgba(191, 219, 254, 0.52);
+  animation: ambDeviceGlint var(--amb-device-cycle) ease-in-out infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambDeviceGlint {
+  0%, 86%, 100% { opacity: 0.12; }
+  90% { opacity: 0.36; }
+  94% { opacity: 0.12; }
+}
+
+.ambientSelectionEmphasis {
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1.5px rgba(226, 232, 240, 0.42),
+    0 0 10px rgba(191, 219, 254, 0.2);
+}
+
+/* Descriptor-driven reduced motion. Root-action classes share the root, while
+ * transform classes live on descendants, so both selector shapes are needed. */
+.modeReducedMotion.ambientBlink,
+.modeReducedMotion.ambientDeviceIdle::before,
+.modeReducedMotion .ambientBreathing,
+.modeReducedMotion .ambientMicroPosture,
+.modeReducedMotion .ambientGazeShift,
+.modeReducedMotion .ambientPropIdle {
+  animation: none;
+}
+
+.modeReducedMotion.ambientDeviceIdle::before {
+  opacity: 0.22;
+}
+
+.modeReducedMotion.ambientFocusGlow::after {
+  opacity: 0.18;
+}
+
+/* Static defensive gate. */
+.modeStatic.ambientBlink,
+.modeStatic.ambientDeviceIdle::before,
+.modeStatic .ambientBreathing,
+.modeStatic .ambientMicroPosture,
+.modeStatic .ambientGazeShift,
+.modeStatic .ambientPropIdle {
+  animation: none;
+}
+
+/* OS-level final guard. */
+@media (prefers-reduced-motion: reduce) {
+  .root.ambientBlink,
+  .root.ambientDeviceIdle::before,
+  .root .ambientBreathing,
+  .root .ambientMicroPosture,
+  .root .ambientGazeShift,
+  .root .ambientPropIdle {
+    animation: none;
+  }
+
+  .root.ambientDeviceIdle::before {
+    opacity: 0.22;
+  }
+
+  .root.ambientFocusGlow::after {
+    opacity: 0.18;
+  }
+}
