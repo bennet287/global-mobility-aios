@@ -77,7 +77,7 @@ export function V2OrganizationBlockout({
           <span>Living Organization</span>
           <strong id={headingId}>Architectural organization blockout</strong>
         </div>
-        <small>Department-mapped presentation anchors · location and presence not claimed</small>
+        <small>View focus only · no AIOS mutation · department-mapped presentation anchors · location and presence not claimed</small>
       </header>
 
       {loading ? (
