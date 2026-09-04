@@ -1,0 +1,162 @@
+/* =========================================================
+   AIOS V2 — Character Art Prototype (Phase 2J)
+   Premium miniature executive character styles.
+   ========================================================= */
+
+.root {
+  --cap-stage-bg: radial-gradient(
+    circle at 50% 80%,
+    rgba(255, 255, 255, 0.025),
+    transparent 70%
+  );
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.compact {
+  width: 56px;
+  height: 80px;
+}
+
+.compact .figureStage {
+  width: 100%;
+  height: 100%;
+}
+
+.inspector {
+  width: 140px;
+  padding: 8px 6px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(0, 0, 0, 0.15));
+}
+
+.inspector .figureStage {
+  width: 120px;
+  height: 170px;
+}
+
+.figureStage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cap-stage-bg);
+  transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.characterSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: cap-breathe 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.archetype-ceo .figureStage::after,
+.archetype-cto .figureStage::after,
+.archetype-regulatory-compliance .figureStage::after,
+.archetype-operations .figureStage::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.archetype-ceo .figureStage::after { box-shadow: 0 0 8px -2px #c9a36a; }
+.archetype-cto .figureStage::after { box-shadow: 0 0 8px -2px #5b9bd5; }
+.archetype-regulatory-compliance .figureStage::after { box-shadow: 0 0 8px -2px #4ea8a0; }
+.archetype-operations .figureStage::after { box-shadow: 0 0 8px -2px #d29766; }
+
+.accent-brass { --cap-accent: #c9a36a; }
+.accent-steel-cyan { --cap-accent: #5b9bd5; }
+.accent-teal { --cap-accent: #4ea8a0; }
+.accent-amber { --cap-accent: #d29766; }
+.accent-silver { --cap-accent: #8896ab; }
+
+@keyframes cap-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+@keyframes cap-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+}
+
+.eyeGroup {
+  animation: cap-blink 4.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes cap-prop-idle {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(0.8deg); }
+}
+
+.propIdle {
+  animation: cap-prop-idle 4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.caption > strong {
+  color: #e7eaf1;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+}
+
+.caption > span {
+  color: #9aa3b6;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+}
+
+.caption > em {
+  margin-top: 2px;
+  color: #6b7389;
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.root:hover .figureStage {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .characterSvg,
+  .eyeGroup,
+  .propIdle {
+    animation: none !important;
+  }
+
+  .figureStage,
+  .root:hover .figureStage {
+    transform: none !important;
+    transition: none !important;
+  }
+}
