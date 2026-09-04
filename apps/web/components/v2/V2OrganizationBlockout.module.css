@@ -1,8 +1,71 @@
+.zoneFrame {
+  padding: 0;
+  overflow: hidden;
+  cursor: default;
+}
+
+.zoneFrame:focus-within {
+  border-color: rgba(210, 184, 137, 0.35);
+  background: rgba(210, 184, 137, 0.055);
+}
+
+.zoneButton {
+  display: block;
+  width: 100%;
+  padding: 12px 12px 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.zoneButton:focus-visible {
+  outline: 2px solid rgba(210, 184, 137, 0.55);
+  outline-offset: -3px;
+  border-radius: 12px;
+}
+
+.zoneButton > span,
+.zoneButton > strong,
+.zoneButton > small,
+.zoneButton > em {
+  display: block;
+}
+
+.zoneButton > span {
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.zoneButton > strong {
+  margin-top: 10px;
+  color: var(--aios-v2-color-text);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.zoneButton > small {
+  margin-top: 2px;
+  color: var(--aios-v2-color-text-soft);
+  font-size: 0.63rem;
+}
+
+.zoneButton > em {
+  margin-top: 9px;
+  color: var(--aios-v2-color-warning);
+  font-size: 0.65rem;
+  font-style: normal;
+}
+
 .zoneCharacters {
   display: flex;
   align-items: flex-end;
   min-height: 54px;
-  margin-top: 10px;
+  padding: 0 10px 7px;
+  margin-top: 3px;
   overflow: hidden;
   pointer-events: none;
 }
@@ -13,7 +76,7 @@
   margin-right: -15px;
 }
 
-.zoneCharacters :global(.aios-v2-character-miniature.compact + .aios-v2-character-miniature.compact) {
+.zoneCharacters :global(.aios-v2-character-miniature.compact) + :global(.aios-v2-character-miniature.compact) {
   margin-left: -8px;
 }
 
@@ -149,6 +212,15 @@ button.rosterPerson[data-selected="true"] {
 .unplaced strong {
   color: var(--aios-v2-color-warning);
   font-weight: 600;
+}
+
+:global(.aios-v2-hq-blockout.compact) .zoneCharacters {
+  min-height: 42px;
+}
+
+:global(.aios-v2-hq-blockout.compact) .zoneCharacters :global(.aios-v2-character-miniature.compact) {
+  transform: scale(0.58);
+  margin-right: -22px;
 }
 
 @media (max-width: 760px) {
