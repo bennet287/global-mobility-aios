@@ -18,8 +18,13 @@ steps:
       - |
           audit_attempt=1
           while :; do
-            audit_output="$(npm audit --audit-level=high 2>&1)"
-            audit_status=$?
+            audit_output=""
+            audit_status=0
+            if audit_output="$(npm audit --audit-level=high 2>&1)"; then
+              audit_status=0
+            else
+              audit_status=$?
+            fi
             printf '%s\n' "$audit_output"
             if [ "$audit_status" -eq 0 ]; then
               break
@@ -56,8 +61,13 @@ steps:
       - |
           audit_attempt=1
           while :; do
-            audit_output="$(npm audit --audit-level=high 2>&1)"
-            audit_status=$?
+            audit_output=""
+            audit_status=0
+            if audit_output="$(npm audit --audit-level=high 2>&1)"; then
+              audit_status=0
+            else
+              audit_status=$?
+            fi
             printf '%s\n' "$audit_output"
             if [ "$audit_status" -eq 0 ]; then
               break
