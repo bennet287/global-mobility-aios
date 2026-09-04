@@ -17,6 +17,7 @@ export function V2OrganizationWorkspace() {
   const {
     loading: roomLoading,
     error: roomError,
+    employees: sceneEmployees,
     refresh: refreshRoom,
     missionRoomFor,
     employeeInspectorFor,
@@ -74,7 +75,13 @@ export function V2OrganizationWorkspace() {
           </div>
         ) : null}
 
-        <V2OrganizationBlockout organization={data?.organization || null} loading={loading} />
+        <V2OrganizationBlockout
+          employees={sceneEmployees}
+          loading={loading}
+          onSelectEmployee={setSelectedPositionKey}
+          organization={data?.organization || null}
+          selectedPositionKey={selectedPositionKey}
+        />
 
         <V2MissionStrip
           loading={loading}
