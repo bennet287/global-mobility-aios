@@ -1,3 +1,4 @@
+import { resolveCharacterAssetBinding } from "../../lib/v2/character-asset-manifest";
 import { resolveV2CharacterPresentation } from "../../lib/v2/character-mission-presentation";
 
 export function V2CharacterMiniature({
@@ -17,6 +18,7 @@ export function V2CharacterMiniature({
     department,
   });
   const presentation = model.presentation;
+  const assetBinding = resolveCharacterAssetBinding(presentation);
   const inspector = variant === "inspector";
 
   return (
@@ -25,6 +27,9 @@ export function V2CharacterMiniature({
       aria-label={inspector ? presentation.accessibilityDescription : undefined}
       className={"aios-v2-character-miniature " + (inspector ? "inspector" : "compact")}
       data-animation-set={presentation.animationSetKey}
+      data-asset-compatible={String(assetBinding.compatible)}
+      data-asset-model-available={String(assetBinding.modelAvailable)}
+      data-asset-renderer-mode={assetBinding.rendererMode}
       data-canonical-state-writable="false"
       data-lod-class={presentation.lodClass}
       data-presentation-key={model.presentationKey}
@@ -57,8 +62,11 @@ export function V2CharacterMiniature({
           </small>
           <em>
             {model.resolutionKind.replaceAll("-", " ")}
+            {" · "}
+            {assetBinding.rendererMode.replaceAll("-", " ")}
             {" · presentation only · semantic motion inactive"}
           </em>
+          <small className="aios-v2-character-asset-note">{assetBinding.limitation}</small>
         </div>
       ) : null}
     </div>
