@@ -36,6 +36,8 @@ export function useV2MissionRoomInspector() {
     void refresh();
   }, [refresh]);
 
+  const employees = useMemo(() => scene?.deterministic.employees || [], [scene]);
+
   const selectors = useMemo(() => {
     return {
       missionRoomFor(missionKey: string | null): V2MissionRoomModel | null {
@@ -51,6 +53,7 @@ export function useV2MissionRoomInspector() {
 
   return {
     sceneEstablished: scene !== null,
+    employees,
     loading,
     error,
     refresh,

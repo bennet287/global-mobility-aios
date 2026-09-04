@@ -1,0 +1,242 @@
+.zoneFrame {
+  padding: 0;
+  overflow: hidden;
+  cursor: default;
+}
+
+.zoneFrame:focus-within {
+  border-color: rgba(210, 184, 137, 0.35);
+  background: rgba(210, 184, 137, 0.055);
+}
+
+.zoneButton {
+  display: block;
+  width: 100%;
+  padding: 12px 12px 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.zoneButton:focus-visible {
+  outline: 2px solid rgba(210, 184, 137, 0.55);
+  outline-offset: -3px;
+  border-radius: 12px;
+}
+
+.zoneButton > span,
+.zoneButton > strong,
+.zoneButton > small,
+.zoneButton > em {
+  display: block;
+}
+
+.zoneButton > span {
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.zoneButton > strong {
+  margin-top: 10px;
+  color: var(--aios-v2-color-text);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.zoneButton > small {
+  margin-top: 2px;
+  color: var(--aios-v2-color-text-soft);
+  font-size: 0.63rem;
+}
+
+.zoneButton > em {
+  margin-top: 9px;
+  color: var(--aios-v2-color-warning);
+  font-size: 0.65rem;
+  font-style: normal;
+}
+
+.zoneCharacters {
+  display: flex;
+  align-items: flex-end;
+  min-height: 54px;
+  padding: 0 10px 7px;
+  margin-top: 3px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.zoneCharacters :global(.aios-v2-character-miniature.compact) {
+  transform: scale(0.72);
+  transform-origin: left bottom;
+  margin-right: -15px;
+}
+
+.zoneCharacters :global(.aios-v2-character-miniature.compact) + :global(.aios-v2-character-miniature.compact) {
+  margin-left: -8px;
+}
+
+.zoneCharacters > b {
+  align-self: center;
+  margin-left: 3px;
+  padding: 3px 6px;
+  border: 1px solid var(--aios-v2-color-border);
+  border-radius: 999px;
+  color: var(--aios-v2-color-text-soft);
+  background: rgba(0, 0, 0, 0.14);
+  font-size: 0.6rem;
+  font-weight: 500;
+}
+
+.roster {
+  grid-column: 1 / -1;
+  padding-top: 14px;
+  border-top: 1px solid var(--aios-v2-color-border);
+}
+
+.rosterHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rosterHeader > span {
+  color: var(--aios-v2-color-text-muted);
+  font-size: var(--aios-v2-type-xs);
+  font-weight: 550;
+}
+
+.rosterHeader > small {
+  color: var(--aios-v2-color-text-soft);
+  font-size: 0.62rem;
+}
+
+.rosterList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rosterPerson {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--aios-v2-color-border);
+  border-radius: 14px;
+  color: var(--aios-v2-color-text-muted);
+  background: rgba(255, 255, 255, 0.014);
+  text-align: left;
+  font: inherit;
+}
+
+button.rosterPerson {
+  cursor: pointer;
+  transition:
+    border-color var(--aios-v2-motion-micro) var(--aios-v2-ease-standard),
+    background var(--aios-v2-motion-micro) var(--aios-v2-ease-standard),
+    transform var(--aios-v2-motion-micro) var(--aios-v2-ease-standard);
+}
+
+button.rosterPerson:hover,
+button.rosterPerson:focus-visible,
+button.rosterPerson[data-selected="true"] {
+  transform: translateY(-1px);
+  border-color: rgba(121, 167, 216, 0.34);
+  background: rgba(121, 167, 216, 0.05);
+}
+
+.rosterPerson :global(.aios-v2-character-miniature.compact) {
+  flex: 0 0 52px;
+}
+
+.rosterCopy {
+  min-width: 0;
+}
+
+.rosterCopy > strong,
+.rosterCopy > small,
+.rosterCopy > em {
+  display: block;
+}
+
+.rosterCopy > strong {
+  overflow: hidden;
+  color: var(--aios-v2-color-text);
+  font-size: var(--aios-v2-type-xs);
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rosterCopy > small {
+  margin-top: 3px;
+  color: var(--aios-v2-color-text-muted);
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+.rosterCopy > em {
+  margin-top: 5px;
+  color: var(--aios-v2-color-text-soft);
+  font-size: 0.6rem;
+  font-style: normal;
+}
+
+.rosterEmpty {
+  grid-column: 1 / -1;
+  padding-top: 12px;
+  border-top: 1px solid var(--aios-v2-color-border);
+  color: var(--aios-v2-color-text-soft);
+  font-size: var(--aios-v2-type-xs);
+}
+
+.unplaced {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-top: 1px solid var(--aios-v2-color-border);
+  color: var(--aios-v2-color-text-soft);
+  background: rgba(255, 255, 255, 0.01);
+  font-size: 0.63rem;
+}
+
+.unplaced strong {
+  color: var(--aios-v2-color-warning);
+  font-weight: 600;
+}
+
+:global(.aios-v2-hq-blockout.compact) .zoneCharacters {
+  min-height: 42px;
+}
+
+:global(.aios-v2-hq-blockout.compact) .zoneCharacters :global(.aios-v2-character-miniature.compact) {
+  transform: scale(0.58);
+  margin-right: -22px;
+}
+
+@media (max-width: 760px) {
+  .rosterHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .rosterList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.rosterPerson {
+    transition: none;
+  }
+}
