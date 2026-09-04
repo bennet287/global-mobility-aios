@@ -1,8 +1,8 @@
 # AIOS V2 — Phase 2J: Character Art Direction Prototype V1
 
-**Status:** independently reviewed implementation candidate · repository CI pending  
-**Base branch:** `design/aios-v2-complete-redesign`  
-**Repository:** `bennet287/global-mobility-aios`  
+**Status:** independently reviewed implementation candidate · repository CI pending
+**Base branch:** `design/aios-v2-complete-redesign`
+**Repository:** `bennet287/global-mobility-aios`
 **Verified base SHA:** `6850fd5fbdac0a12f8b7008138c3f6fbb7eaafb4`
 
 ## Purpose
