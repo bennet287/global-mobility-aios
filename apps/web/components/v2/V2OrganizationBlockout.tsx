@@ -2,10 +2,16 @@
 
 import { useMemo, useState } from "react";
 
+import type { LivingSceneEmployee } from "../../lib/live-organization";
+import {
+  buildV2HqCharacterLayout,
+  getV2HqPlacementsForWing,
+} from "../../lib/v2/hq-character-layout";
 import type {
   V2ArchitectureWingKey,
   V2OrganizationOverview,
 } from "../../lib/v2/owner-organization";
+import { V2CharacterMiniature } from "./V2CharacterMiniature";
 
 const WING_ORDER: V2ArchitectureWingKey[] = [
   "executive",
@@ -15,14 +21,22 @@ const WING_ORDER: V2ArchitectureWingKey[] = [
   "operations",
 ];
 
+const EMPTY_EMPLOYEES: readonly LivingSceneEmployee[] = Object.freeze([]);
+
 export function V2OrganizationBlockout({
   organization,
   loading,
   compact = false,
+  employees = EMPTY_EMPLOYEES,
+  selectedPositionKey = null,
+  onSelectEmployee,
 }: {
   organization: V2OrganizationOverview | null;
   loading: boolean;
   compact?: boolean;
+  employees?: readonly LivingSceneEmployee[];
+  selectedPositionKey?: string | null;
+  onSelectEmployee?: (positionKey: string) => void;
 }) {
   const [selectedWing, setSelectedWing] = useState<V2ArchitectureWingKey>("atrium");
 
@@ -30,6 +44,19 @@ export function V2OrganizationBlockout({
   const selected = useMemo(
     () => zones.find((zone) => zone.wingKey === selectedWing) || zones[0] || null,
     [selectedWing, zones],
+  );
+
+  const characterLayout = useMemo(
+    () => buildV2HqCharacterLayout(employees, zones),
+    [employees, zones],
+  );
+
+  const selectedPlacements = useMemo(
+    () =>
+      selected
+        ? getV2HqPlacementsForWing(characterLayout, selected.wingKey)
+        : [],
+    [characterLayout, selected],
   );
 
   const headingId = compact ? "aios-v2-hq-preview-title" : "aios-v2-hq-title";
@@ -41,13 +68,15 @@ export function V2OrganizationBlockout({
       data-scene-authoritative={String(organization?.sceneAuthoritative ?? false)}
       data-renderer-authoritative={String(organization?.rendererAuthoritative ?? false)}
       data-mutations-allowed={String(organization?.mutationsAllowed ?? false)}
+      data-physical-location-claimed="false"
+      data-presence-claimed="false"
     >
       <header className="aios-v2-hq-header">
         <div>
           <span>Living Organization</span>
           <strong id={headingId}>Architectural organization blockout</strong>
         </div>
-        <small>View focus only · no AIOS mutation</small>
+        <small>Department-mapped presentation anchors · location and presence not claimed</small>
       </header>
 
       {loading ? (
@@ -63,11 +92,13 @@ export function V2OrganizationBlockout({
               const zone = zones.find((candidate) => candidate.wingKey === wingKey);
               if (!zone) return null;
               const active = selected?.wingKey === wingKey;
+              const wingPlacements = getV2HqPlacementsForWing(characterLayout, wingKey);
               return (
                 <button
                   aria-pressed={active}
                   className={"aios-v2-hq-zone zone-" + wingKey}
                   data-active={String(active)}
+                  data-physical-location-claimed="false"
                   key={wingKey}
                   onClick={() => setSelectedWing(wingKey)}
                   type="button"
@@ -75,6 +106,27 @@ export function V2OrganizationBlockout({
                   <span>{zone.label}</span>
                   <strong>{zone.departments.length || "—"}</strong>
                   <small>{zone.departments.length ? "mapped departments" : "presentation zone"}</small>
+
+                  {wingPlacements.length ? (
+                    <div
+                      aria-hidden="true"
+                      className="aios-v2-hq-zone-characters"
+                      data-presentation-placement="department-zone-map"
+                    >
+                      {wingPlacements.slice(0, 4).map((placement) => (
+                        <V2CharacterMiniature
+                          department={placement.department}
+                          key={placement.positionKey}
+                          positionKey={placement.positionKey}
+                          title={placement.title}
+                        />
+                      ))}
+                      {wingPlacements.length > 4 ? (
+                        <b>+{wingPlacements.length - 4}</b>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   {zone.activeBlockerCount > 0 ? (
                     <em>{zone.activeBlockerCount} blocker{zone.activeBlockerCount === 1 ? "" : "s"}</em>
                   ) : null}
@@ -108,7 +160,65 @@ export function V2OrganizationBlockout({
                 </div>
               </>
             ) : null}
+
+            {selectedPlacements.length ? (
+              <div className="aios-v2-hq-roster" aria-label={(selected?.label || "Selected wing") + " roster presentations"}>
+                <header>
+                  <span>Roster presentation</span>
+                  <small>Department mapped · physical location not claimed</small>
+                </header>
+                <div className="aios-v2-hq-roster-list">
+                  {selectedPlacements.map((placement) => {
+                    const active = selectedPositionKey === placement.positionKey;
+                    const body = (
+                      <>
+                        <V2CharacterMiniature
+                          department={placement.department}
+                          positionKey={placement.positionKey}
+                          title={placement.title}
+                        />
+                        <span className="aios-v2-hq-roster-copy">
+                          <strong>{placement.title}</strong>
+                          <small>{placement.department} · {placement.semanticState.replaceAll("_", " ")}</small>
+                          <em>Rostered presentation · presence not claimed</em>
+                        </span>
+                      </>
+                    );
+
+                    return onSelectEmployee ? (
+                      <button
+                        aria-pressed={active}
+                        className="aios-v2-hq-roster-person"
+                        data-selected={String(active)}
+                        key={placement.positionKey}
+                        onClick={() => onSelectEmployee(placement.positionKey)}
+                        type="button"
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div className="aios-v2-hq-roster-person" key={placement.positionKey}>
+                        {body}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : selected ? (
+              <div className="aios-v2-hq-roster-empty">
+                No rostered employee has a unique canonical department mapping to this presentation wing.
+              </div>
+            ) : null}
           </div>
+
+          {characterLayout.unplaced.length ? (
+            <div className="aios-v2-hq-unplaced" role="status">
+              <strong>{characterLayout.unplaced.length}</strong>
+              <span>
+                rostered employee{characterLayout.unplaced.length === 1 ? "" : "s"} remain spatially unplaced because no unique canonical department-to-zone mapping was available.
+              </span>
+            </div>
+          ) : null}
         </>
       )}
 
@@ -116,6 +226,8 @@ export function V2OrganizationBlockout({
         <span>Scene authority: {organization?.sceneAuthoritative ? "authoritative" : "non-authoritative"}</span>
         <span>Renderer authority: {organization?.rendererAuthoritative ? "authoritative" : "none"}</span>
         <span>Mutation: {organization?.mutationsAllowed ? "allowed" : "disabled"}</span>
+        <span>Physical location: not claimed</span>
+        <span>Presence: not claimed</span>
       </footer>
     </section>
   );
