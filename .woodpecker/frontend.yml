@@ -29,7 +29,7 @@ steps:
             if [ "$audit_status" -eq 0 ]; then
               break
             fi
-            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN|network timeout|audit endpoint returned an error'; then
               if [ "$audit_attempt" -ge 3 ]; then
                 echo "npm audit failed after 3 transient-registry attempts"
                 exit "$audit_status"
@@ -72,7 +72,7 @@ steps:
             if [ "$audit_status" -eq 0 ]; then
               break
             fi
-            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN|network timeout|audit endpoint returned an error'; then
               if [ "$audit_attempt" -ge 3 ]; then
                 echo "npm audit failed after 3 transient-registry attempts"
                 exit "$audit_status"
