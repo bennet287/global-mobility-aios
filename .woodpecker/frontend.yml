@@ -18,13 +18,18 @@ steps:
       - |
           audit_attempt=1
           while :; do
-            audit_output="$(npm audit --audit-level=high 2>&1)"
-            audit_status=$?
+            audit_output=""
+            audit_status=0
+            if audit_output="$(npm audit --audit-level=high 2>&1)"; then
+              audit_status=0
+            else
+              audit_status=$?
+            fi
             printf '%s\n' "$audit_output"
             if [ "$audit_status" -eq 0 ]; then
               break
             fi
-            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN|network timeout|audit endpoint returned an error'; then
               if [ "$audit_attempt" -ge 3 ]; then
                 echo "npm audit failed after 3 transient-registry attempts"
                 exit "$audit_status"
@@ -56,13 +61,18 @@ steps:
       - |
           audit_attempt=1
           while :; do
-            audit_output="$(npm audit --audit-level=high 2>&1)"
-            audit_status=$?
+            audit_output=""
+            audit_status=0
+            if audit_output="$(npm audit --audit-level=high 2>&1)"; then
+              audit_status=0
+            else
+              audit_status=$?
+            fi
             printf '%s\n' "$audit_output"
             if [ "$audit_status" -eq 0 ]; then
               break
             fi
-            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN'; then
+            if printf '%s\n' "$audit_output" | grep -Eqi '503 Service Unavailable|502 Bad Gateway|504 Gateway Timeout|ECONNRESET|ETIMEDOUT|EAI_AGAIN|network timeout|audit endpoint returned an error'; then
               if [ "$audit_attempt" -ge 3 ]; then
                 echo "npm audit failed after 3 transient-registry attempts"
                 exit "$audit_status"
