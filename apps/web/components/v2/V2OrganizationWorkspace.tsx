@@ -1,17 +1,25 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useV2MissionRoomInspector } from "../../hooks/useV2MissionRoomInspector";
 import { useV2OwnerOrganization } from "../../hooks/useV2OwnerOrganization";
+import { buildV2HqCharacterLayout } from "../../lib/v2/hq-character-layout";
+import type {
+  HqWingCharacterInput,
+  HqWingKey,
+  HqWingMetricInput,
+} from "../../lib/v2/hq-visual-presentation";
 import { V2EmployeeInspector } from "./V2EmployeeInspector";
+import { V2LivingHqVisualStage } from "./V2LivingHqVisualStage";
 import { V2MissionRoomPanel } from "./V2MissionRoomPanel";
 import { V2MissionStrip } from "./V2MissionStrip";
-import { V2OrganizationBlockout } from "./V2OrganizationBlockout";
 import { V2Shell } from "./V2Shell";
 
 export function V2OrganizationWorkspace() {
+  const router = useRouter();
   const { health } = useBackendStatus();
   const { data, loading, error, refresh } = useV2OwnerOrganization();
   const {
@@ -25,6 +33,46 @@ export function V2OrganizationWorkspace() {
 
   const [selectedMissionKey, setSelectedMissionKey] = useState<string | null>(null);
   const [selectedPositionKey, setSelectedPositionKey] = useState<string | null>(null);
+  const [selectedWing, setSelectedWing] = useState<HqWingKey | null>("atrium");
+
+  const hqCharacterLayout = useMemo(
+    () =>
+      buildV2HqCharacterLayout(
+        sceneEmployees,
+        data?.organization.zones ?? [],
+      ),
+    [sceneEmployees, data?.organization.zones],
+  );
+
+  const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
+    () => [
+      ...hqCharacterLayout.placements.map((placement) => ({
+        positionKey: placement.positionKey,
+        title: placement.title,
+        department: placement.department,
+        presentationWing: placement.wingKey,
+      })),
+      ...hqCharacterLayout.unplaced.map((employee) => ({
+        positionKey: employee.positionKey,
+        title: employee.title,
+        department: employee.department,
+        presentationWing: null,
+      })),
+    ],
+    [hqCharacterLayout],
+  );
+
+  const hqWingMetrics = useMemo<readonly HqWingMetricInput[]>(
+    () =>
+      (data?.organization.zones ?? []).map((zone) => ({
+        wingKey: zone.wingKey,
+        departmentCount: zone.departments.length,
+        employeeCount: zone.employeeRosterCount,
+        workItemCount: zone.workItemCount,
+        activeBlockerCount: zone.activeBlockerCount,
+      })),
+    [data?.organization.zones],
+  );
 
   const missionRoom = useMemo(
     () => missionRoomFor(selectedMissionKey),
@@ -41,6 +89,19 @@ export function V2OrganizationWorkspace() {
     setSelectedPositionKey(null);
   };
 
+  const selectEmployee = (positionKey: string) => {
+    setSelectedPositionKey(positionKey);
+    const placement = hqCharacterLayout.placements.find(
+      (candidate) => candidate.positionKey === positionKey,
+    );
+    if (placement) setSelectedWing(placement.wingKey);
+  };
+
+  const openWing = (wingKey: HqWingKey) => {
+    setSelectedWing(wingKey);
+    router.push(`/cockpit/v2/organization/wing/${wingKey}`);
+  };
+
   const retryAll = async () => {
     await Promise.all([refresh(), refreshRoom()]);
   };
@@ -52,7 +113,7 @@ export function V2OrganizationWorkspace() {
           <span className="aios-v2-kicker">Organization · governed spatial view</span>
           <h1 id="aios-v2-organization-title">One organization. Two representations.</h1>
           <p>
-            The architectural world and the structured organization below are read-only presentations of the connected Living Organization scene. Selection changes view focus only.
+            The architectural world and the structured organization below are read-only presentations of the connected Living Organization scene. Open a wing to inspect its governed detail route; employee selection changes view focus only.
           </p>
         </section>
 
@@ -75,12 +136,20 @@ export function V2OrganizationWorkspace() {
           </div>
         ) : null}
 
-        <V2OrganizationBlockout
-          employees={sceneEmployees}
-          loading={loading}
-          onSelectEmployee={setSelectedPositionKey}
-          organization={data?.organization || null}
+        <V2LivingHqVisualStage
+          characters={hqCharacters}
+          loading={loading || roomLoading}
+          missionCount={data?.organization.missionCount ?? 0}
+          onSelectCharacter={(positionKey, wingKey) => {
+            setSelectedWing(wingKey);
+            selectEmployee(positionKey);
+          }}
+          onSelectWing={openWing}
+          organizationLabel="Living Organization"
+          sceneEstablished={data?.organization.established ?? false}
           selectedPositionKey={selectedPositionKey}
+          selectedWing={selectedWing}
+          wingMetrics={hqWingMetrics}
         />
 
         <V2MissionStrip
@@ -94,7 +163,7 @@ export function V2OrganizationWorkspace() {
           <V2MissionRoomPanel
             loading={roomLoading}
             model={missionRoom}
-            onSelectEmployee={setSelectedPositionKey}
+            onSelectEmployee={selectEmployee}
             selectedPositionKey={selectedPositionKey}
           />
           <V2EmployeeInspector
