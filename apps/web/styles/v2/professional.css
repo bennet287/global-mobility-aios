@@ -1,0 +1,30 @@
+.aios-v2-professional-content {
+  --bg: var(--aios-v2-color-canvas);
+  --surface: var(--aios-v2-color-surface);
+  --surface-strong: var(--aios-v2-color-surface-raised);
+  --surface-muted: var(--aios-v2-color-canvas-soft);
+  --surface-elevated: var(--aios-v2-color-surface-raised);
+  --ink: var(--aios-v2-color-text);
+  --ink-muted: var(--aios-v2-color-text-muted);
+  --ink-soft: var(--aios-v2-color-text-soft);
+  --line: var(--aios-v2-color-border);
+  --line-strong: var(--aios-v2-color-border-strong);
+  --line-subtle: var(--aios-v2-color-border);
+  --green: var(--aios-v2-color-success);
+  --green-soft: var(--aios-v2-color-accent-soft);
+  --amber: var(--aios-v2-color-warning);
+  --red: var(--aios-v2-color-critical);
+  --blue: var(--aios-v2-color-info);
+  min-width: 0;
+  padding-top: 24px;
+  color: var(--ink);
+}
+.aios-v2-professional-content :is(input:not([type="checkbox"]):not([type="radio"]), select, button, .button) { min-height: 44px; }
+.aios-v2-professional-content :is(input, select, textarea) { max-width: 100%; }
+.aios-v2-professional-content :is(.topbar, .page-header) { position: static; }
+.aios-v2-professional-content :is(.panel, .card, .data-panel) { border-color: var(--line); }
+.aios-v2-professional-content .table-wrap { max-width: 100%; overflow-x: auto; }
+.aios-v2-professional-content :is(h1, h2, h3, p, td) { overflow-wrap: anywhere; }
+.portal-section-navigation { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.portal-section-navigation a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; color: var(--ink); border-radius: 8px; border: 1px solid var(--line); text-decoration: none; }
+.portal-section-navigation a:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }

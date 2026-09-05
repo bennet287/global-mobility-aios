@@ -1,0 +1,15 @@
+.aios-v2-guide-control > button { min-height: 44px; padding: 0 12px; color: inherit; border: 1px solid var(--aios-v2-color-border); background: transparent; border-radius: 8px; cursor: pointer; }
+.aios-v2-guide-control > section { position: absolute; top: 72px; right: 16px; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow: auto; z-index: 20; padding: 24px; background: var(--aios-v2-color-surface-raised); color: var(--aios-v2-color-text); border: 1px solid var(--aios-v2-color-border); border-radius: 12px; box-shadow: 0 16px 48px #0004; }
+.aios-v2-guide-control h2 { font-size: 20px; }
+.aios-v2-guide-control ol { padding-left: 20px; }
+.aios-v2-guide-control li { margin: 16px 0; }
+.aios-v2-guide-control p { line-height: 1.6; }
+.aios-v2-guide-control section button { min-height: 44px; margin: 4px; }
+.driver-popover.aios-v2-guide { max-width: min(380px, calc(100vw - 24px)); border: 1px solid #78859a; border-radius: 12px; padding: 24px; font-family: inherit; }
+.driver-popover.aios-v2-guide-dark { background: #202631; color: #eef1f6; }
+.driver-popover.aios-v2-guide-light { background: #fff; color: #202631; }
+.driver-popover.aios-v2-guide .driver-popover-description { line-height: 1.6; }
+.driver-popover.aios-v2-guide button { min-height: 44px; min-width: 44px; color: #172130; background: #f1f4f8; text-shadow: none; border: 1px solid #78859a; }
+.driver-popover.aios-v2-guide button:focus-visible { outline: 3px solid #477ac7; outline-offset: 3px; }
+.driver-popover.aios-v2-guide .driver-popover-progress-text { color: inherit; }
+@media (prefers-reduced-motion: reduce) { .driver-overlay, .driver-popover { animation: none !important; transition: none !important; } }

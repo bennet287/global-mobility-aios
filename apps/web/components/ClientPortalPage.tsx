@@ -274,7 +274,8 @@ export function ClientPortalPage() {
       <div className="portal-canvas">
         <PwaInstallPrompt />
 
-        <section className="portal-hero">
+        <nav className="portal-section-navigation" aria-label="My case navigation"><a href="#overview">Overview</a><a href="#my-case">My Case</a><a href="#documents">Documents</a><a href="#timeline">Timeline</a><a href="#messages">Messages</a></nav>
+        <section id="overview" className="portal-hero">
           <div>
             <span className="portal-eyebrow">Your mobility workspace</span>
             <h1 id="portal-workspace-title">Welcome back,<br />{dashboard.client_name}.</h1>
@@ -290,7 +291,7 @@ export function ClientPortalPage() {
           </div>
         </section>
 
-        <section className="portal-plan-section" aria-labelledby="portal-plan-title">
+        <section id="my-case" className="portal-plan-section" aria-labelledby="portal-plan-title">
           <div className="portal-section-heading portal-plan-heading">
             <div>
               <span className="portal-eyebrow">Reviewed mobility plan</span>
@@ -485,7 +486,7 @@ export function ClientPortalPage() {
           )}
         </section>
 
-        <section className="portal-progress">
+        <section id="timeline" className="portal-progress">
           <div className="portal-section-heading">
             <div>
               <span className="portal-eyebrow">Case workflow</span>
@@ -526,7 +527,8 @@ export function ClientPortalPage() {
           </article>
         </section>
 
-        <section className="portal-documents">
+        <section id="messages" className="portal-documents" aria-labelledby="portal-messages-title"><h2 id="portal-messages-title">Messages</h2><p>A message history is not supplied by this secure case connection. Contact your mobility team through your established contact channel.</p></section>
+        <section id="documents" className="portal-documents">
           <div className="portal-section-heading">
             <div>
               <span className="portal-eyebrow">Document room</span>

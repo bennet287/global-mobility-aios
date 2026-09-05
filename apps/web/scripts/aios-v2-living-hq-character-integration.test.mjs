@@ -203,7 +203,7 @@ test("employee selection remains synchronized through selectedPositionKey", () =
       "const selectEmployee = (positionKey: string)",
       "setSelectedPositionKey(positionKey)",
       "onSelectEmployee={selectEmployee}",
-      "employeeInspectorFor(selectedPositionKey)",
+      "buildV2EmployeeInspectorModel(scene, selectedPositionKey)",
       "selectedPositionKey={selectedPositionKey}",
     ],
     "Organization workspace",
@@ -218,11 +218,14 @@ test("structured accessible Organization representation remains independently pr
   );
 });
 
-test("integration adds no direct mutation, clock, timer, rAF, or autonomous motion machinery", () => {
+test("integration adds no direct mutation, clock, timer, or autonomous motion machinery", () => {
   const combined = `${stage}\n${focusPanel}\n${workspace}\n${wingWorkspace}\n${wingRoute}\n${reducedMotionHook}`;
   assert.doesNotMatch(combined, /from\s+["'][^"']*\/api["']/);
   assert.doesNotMatch(combined, /\bfetch\s*\(/);
-  assert.doesNotMatch(combined, /Math\.random|Date\.now|setInterval|requestAnimationFrame/);
+  assert.doesNotMatch(combined, /Math\.random|Date\.now|setInterval/);
+  // One frame is requested only inside the explicit camera-focus action.
+  assert.equal((workspace.match(/requestAnimationFrame/g) || []).length, 1);
+  assert.match(workspace, /function focusWing/);
 });
 
 test("stage keeps explicit presentation-only truth attributes", () => {

@@ -1,0 +1,18 @@
+.situation { display: flex; align-items: baseline; justify-content: space-between; gap: var(--aios-v2-space-4); border-block: 1px solid var(--aios-v2-color-border); padding-block: var(--aios-v2-space-4); margin-bottom: var(--aios-v2-space-6); }
+.situation p { margin: 0; font-size: var(--aios-v2-type-md); }
+.situation span { color: var(--aios-v2-color-text-muted); font-size: var(--aios-v2-type-xs); }
+.composition { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr); gap: var(--aios-v2-space-6); grid-template-areas: "attention attention" "organization missions" "changes changes"; }
+.attention { grid-area: attention; border-left: 3px solid var(--aios-v2-color-accent); padding: var(--aios-v2-space-5); background: var(--aios-v2-color-surface); border-radius: var(--aios-v2-radius-object); }
+.attention header { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--aios-v2-space-4); }
+.attention h2, .organization h2 { margin: 0; font-size: var(--aios-v2-type-lg); font-weight: 500; }
+.attention small { margin-left: auto; color: var(--aios-v2-color-text-muted); }
+.attention :global(.aios-v2-attention-list) { padding: 0; }
+.attention :global(.aios-v2-attention-empty) { padding: var(--aios-v2-space-4) 0; }
+.missions { grid-area: missions; min-width: 0; }
+.missions :global(.aios-v2-missions) { margin-top: 0; }
+.organization { grid-area: organization; min-width: 0; }
+.organization header { padding-bottom: var(--aios-v2-space-4); }
+.changes { grid-area: changes; min-width: 0; }
+.mobileSnapshot { display: none; }
+@media (max-width: 980px) { .composition { grid-template-columns: 1fr; grid-template-areas: "attention" "missions" "organization" "changes"; } .situation { flex-direction: column; } }
+@media (max-width: 760px) { .desktopPreview { display: none; } .mobileSnapshot { display: block; } .mobileSnapshot ul { list-style: none; margin: 0; padding: 0; } .mobileSnapshot li { display: grid; gap: var(--aios-v2-space-2); padding-block: var(--aios-v2-space-4); border-bottom: 1px solid var(--aios-v2-color-border); } .mobileSnapshot span { color: var(--aios-v2-color-text-muted); font-size: var(--aios-v2-type-sm); } }

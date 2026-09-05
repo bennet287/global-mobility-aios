@@ -1,0 +1,12 @@
+.transfer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(80px, .7fr) minmax(0, 1fr); align-items: center; gap: var(--aios-v2-space-4); padding: var(--aios-v2-space-5) 0; }
+.transfer button, .participants button { min-height: 44px; color: var(--aios-v2-color-text); background: var(--aios-v2-color-surface-inset); border: 1px solid var(--aios-v2-color-border-strong); border-radius: var(--aios-v2-radius-object); padding: var(--aios-v2-space-3); font: inherit; cursor: pointer; }
+.transfer button { display: grid; justify-items: center; gap: var(--aios-v2-space-2); }
+.path { position: relative; border-bottom: 2px solid var(--aios-v2-color-accent); text-align: center; padding-bottom: var(--aios-v2-space-3); color: var(--aios-v2-color-accent); font-size: var(--aios-v2-type-xs); }
+.path i { position: absolute; bottom: -5px; left: 0; width: 8px; height: 8px; background: currentColor; border-radius: 50%; animation: transfer-emphasis 1.2s ease-in-out 1 forwards; }
+.participants { display: flex; flex-wrap: wrap; gap: var(--aios-v2-space-3); margin-block: var(--aios-v2-space-3); }
+.participants[data-conversation-state="open"] { border-left: 2px solid var(--aios-v2-color-info); padding-left: var(--aios-v2-space-3); }
+.authority { padding: var(--aios-v2-space-4); border-left: 3px solid var(--aios-v2-color-accent); }
+@keyframes transfer-emphasis { from { left: 0; } to { left: calc(100% - 8px); } }
+.transfer[data-reduced-motion="true"] .path i { animation: none; left: calc(100% - 8px); }
+@media (prefers-reduced-motion: reduce) { .path i { animation: none; left: calc(100% - 8px); } }
+@media (max-width: 560px) { .transfer { gap: var(--aios-v2-space-2); grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr); } .transfer button { padding: var(--aios-v2-space-2); font-size: var(--aios-v2-type-xs); } }

@@ -1,0 +1,2 @@
+.hqViewport { max-width: 100%; overflow: auto; border-radius: var(--aios-v2-radius-surface); }
+.hqViewport[hidden] { display: none; }
