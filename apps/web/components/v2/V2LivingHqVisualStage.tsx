@@ -2,6 +2,14 @@
 
 import { useMemo, type CSSProperties, type ReactNode } from "react";
 
+import { useReducedMotion } from "../../hooks/useReducedMotion";
+import {
+  buildV2AmbientCharacterRenderer,
+  type V2AmbientRendererPhaseSlot,
+} from "../../lib/v2/ambient-character-renderer";
+import { buildV2AmbientCharacterBehavior } from "../../lib/v2/character-ambient-behavior";
+import { resolveV2CharacterPresentation } from "../../lib/v2/character-mission-presentation";
+import { buildV2HqAtmospherePresentation } from "../../lib/v2/hq-atmosphere-presentation";
 import {
   isKnownWingKey,
   resolveHqVisualStageLayout,
@@ -10,7 +18,10 @@ import {
   type HqWingMetricInput,
   type HqWingVisualLayout,
 } from "../../lib/v2/hq-visual-presentation";
-import { V2CharacterMiniature } from "./V2CharacterMiniature";
+import { V2AmbientCharacterSurface } from "./V2AmbientCharacterSurface";
+import { V2CharacterArtPrototype } from "./V2CharacterArtPrototype";
+import { V2HqAtmosphereLayer } from "./V2HqAtmosphereLayer";
+import { V2WingFocusPanel } from "./V2WingFocusPanel";
 import styles from "./V2LivingHqVisualStage.module.css";
 
 export type HqStageCharacter = HqWingCharacterInput;
@@ -91,6 +102,7 @@ function SelectableSurface({
       aria-pressed={active}
       className={className}
       onClick={onSelect}
+      title="Focus this presentation wing"
       type="button"
     >
       {children}
@@ -105,6 +117,7 @@ function WingPlatform({
   onSelectWing,
   onSelectCharacter,
   selectedPositionKey,
+  reducedMotion,
 }: {
   readonly zone: HqWingVisualLayout;
   readonly active: boolean;
@@ -115,6 +128,7 @@ function WingPlatform({
     wingKey: HqWingKey,
   ) => void;
   readonly selectedPositionKey: string | null;
+  readonly reducedMotion: boolean;
 }) {
   const classes = [
     styles.wing,
@@ -125,8 +139,8 @@ function WingPlatform({
     .filter(Boolean)
     .join(" ");
 
-  const zoneLabel = `${zone.label}. ${describeZone(zone)}${
-    active ? " · currently selected" : ""
+  const zoneLabel = `Focus ${zone.label} presentation wing. ${describeZone(zone)}${
+    active ? " · currently focused" : ""
   }`;
 
   const zoneSummary = (
@@ -198,15 +212,30 @@ function WingPlatform({
           aria-label={`${zone.label} character presentations`}
           className={styles.characterAnchorList}
         >
-          {zone.characters.map((character) => {
+          {zone.characters.map((character, characterIndex) => {
             const selected = selectedPositionKey === character.positionKey;
+            const presentation = resolveV2CharacterPresentation({
+              positionKey: character.positionKey,
+              title: character.title,
+              department: character.department,
+            });
+            const ambientBehavior = buildV2AmbientCharacterBehavior({
+              presentation,
+              reducedMotion,
+              density: "normal",
+            });
+            const phaseSlot = (characterIndex % 4) as V2AmbientRendererPhaseSlot;
+            const ambientRenderer = buildV2AmbientCharacterRenderer({
+              ambientBehavior,
+              phaseSlot,
+            });
             const miniature = (
-              <V2CharacterMiniature
-                department={character.department}
-                positionKey={character.positionKey}
-                title={character.title}
-                variant="compact"
-              />
+              <V2AmbientCharacterSurface presentation={ambientRenderer}>
+                <V2CharacterArtPrototype
+                  presentationKey={presentation.presentationKey}
+                  variant="compact"
+                />
+              </V2AmbientCharacterSurface>
             );
 
             return (
@@ -254,6 +283,7 @@ export function V2LivingHqVisualStage({
   onSelectWing,
   onSelectCharacter,
 }: V2LivingHqVisualStageProps) {
+  const reducedMotion = useReducedMotion();
   const layout = useMemo(
     () =>
       resolveHqVisualStageLayout({
@@ -265,6 +295,20 @@ export function V2LivingHqVisualStage({
 
   const activeWing =
     selectedWing !== null && isKnownWingKey(selectedWing) ? selectedWing : null;
+  const focusedZone =
+    activeWing === null
+      ? null
+      : layout.zones.find((zone) => zone.wingKey === activeWing) ?? null;
+  const atmosphere = useMemo(
+    () =>
+      buildV2HqAtmospherePresentation({
+        theme: "presentation",
+        emphasis: "balanced",
+        selectedZone: activeWing,
+        reducedMotion,
+      }),
+    [activeWing, reducedMotion],
+  );
   const visibleMissionCount = Number.isFinite(missionCount)
     ? Math.max(0, Math.floor(missionCount))
     : 0;
@@ -350,8 +394,13 @@ export function V2LivingHqVisualStage({
         </div>
       </header>
 
+      {focusedZone ? (
+        <V2WingFocusPanel zone={focusedZone} missionCount={visibleMissionCount} />
+      ) : null}
+
       <div className={styles.stageViewport}>
         <div className={styles.stageFloor} aria-hidden="true">
+          <V2HqAtmosphereLayer presentation={atmosphere} />
           <span className={styles.floorGrid} />
           <span className={styles.floorGlow} />
           <span className={styles.decisionChamber}>Decision Chamber</span>
@@ -370,6 +419,7 @@ export function V2LivingHqVisualStage({
               missionCount={visibleMissionCount}
               onSelectCharacter={onSelectCharacter}
               onSelectWing={onSelectWing}
+              reducedMotion={reducedMotion}
               selectedPositionKey={selectedPositionKey}
               zone={zone}
             />

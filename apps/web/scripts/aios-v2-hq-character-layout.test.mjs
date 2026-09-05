@@ -216,10 +216,13 @@ test("HQ blockout renders character presentations with explicit no-location/no-p
 });
 
 test("HQ roster selection synchronizes with the existing Employee Inspector selection key", () => {
-  assert.match(workspaceSource, /employees: sceneEmployees/);
-  assert.match(workspaceSource, /employees=\{sceneEmployees\}/);
-  assert.match(workspaceSource, /onSelectEmployee=\{setSelectedPositionKey\}/);
+  assert.match(workspaceSource, /buildV2HqCharacterLayout\([\s\S]*?sceneEmployees[\s\S]*?data\?\.organization\.zones/);
+  assert.match(workspaceSource, /const selectEmployee = \(positionKey: string\) =>/);
+  assert.match(workspaceSource, /setSelectedPositionKey\(positionKey\)/);
+  assert.match(workspaceSource, /onSelectEmployee=\{selectEmployee\}/);
   assert.match(workspaceSource, /selectedPositionKey=\{selectedPositionKey\}/);
+  assert.match(workspaceSource, /<V2EmployeeInspector[\s\S]*?model=\{employeeInspector\}/);
+  assert.doesNotMatch(workspaceSource, /employees=\{sceneEmployees\}/);
 });
 
 test("Phase 2G styles are scoped and preserve reduced motion", () => {

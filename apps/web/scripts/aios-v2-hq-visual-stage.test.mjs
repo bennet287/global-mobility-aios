@@ -198,8 +198,12 @@ test("adapter contains no randomness, clock, network, DOM or write machinery", (
   assert.doesNotMatch(executableLibSource, /\bPOST\b|\bPUT\b|\bPATCH\b|\bDELETE\b|canonicalStateWritable:\s*true/);
 });
 
-test("component reuses V2CharacterMiniature and does not fetch organization truth", () => {
-  assert.match(componentSource, /V2CharacterMiniature/);
+test("component reuses accepted character art and ambient renderer stack without fetching organization truth", () => {
+  assert.match(componentSource, /V2CharacterArtPrototype/);
+  assert.match(componentSource, /V2AmbientCharacterSurface/);
+  assert.match(componentSource, /resolveV2CharacterPresentation/);
+  assert.match(componentSource, /buildV2AmbientCharacterBehavior/);
+  assert.match(componentSource, /buildV2AmbientCharacterRenderer/);
   assert.doesNotMatch(executableComponentSource, /fetch\s*\(|useV2OwnerOrganization|useBackendStatus|getLatestAustriaLivingScene/);
 });
 
