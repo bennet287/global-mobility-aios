@@ -8,6 +8,7 @@ const foundation = await readFile(new URL("../styles/v2/foundation.css", import.
 const shell = await readFile(new URL("../components/v2/V2Shell.tsx", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../lib/v2/navigation.ts", import.meta.url), "utf8");
 const ownerHome = await readFile(new URL("../components/v2/V2OwnerHomePrototype.tsx", import.meta.url), "utf8");
+const situationRoom = await readFile(new URL("../components/v2/V2OwnerSituationRoom.tsx", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/cockpit/v2/page.tsx", import.meta.url), "utf8");
 
 test("AIOS V2 tokens are namespaced and do not replace the legacy root theme", () => {
@@ -38,10 +39,12 @@ test("implemented V2 domains link explicitly while future destinations stay disa
 
 test("V2 Owner Home uses governed sources and keeps truth caveats visible", () => {
   assert.match(ownerHome, /useV2OwnerOrganization/);
-  assert.match(ownerHome, /V2AttentionList/);
-  assert.match(ownerHome, /V2OrganizationBlockout/);
-  assert.match(ownerHome, /Employee counts are roster counts, not presence claims/);
-  assert.doesNotMatch(ownerHome, /canonical_projection\s*=|authoritative\s*=|mutations_allowed\s*=/);
+  assert.match(ownerHome, /V2OwnerSituationRoom/);
+  assert.match(ownerHome, /useV2SearchItems/);
+  assert.match(situationRoom, /V2AttentionList/);
+  assert.match(situationRoom, /V2OrganizationBlockout/);
+  assert.match(situationRoom, /roster counts rather than presence claims/);
+  assert.doesNotMatch(`${ownerHome}\n${situationRoom}`, /canonical_projection\s*=|authoritative\s*=|mutations_allowed\s*=/);
 });
 
 test("V2 motion foundation includes a reduced-motion mode", () => {
