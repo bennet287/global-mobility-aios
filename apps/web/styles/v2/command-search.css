@@ -1,0 +1,39 @@
+/* AIOS V2 Q2 — command/search responsive and reduced-motion hardening. */
+
+@media (max-width: 560px) {
+  .aios-v2-command {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding-inline: 12px;
+  }
+
+  .aios-v2-command > span,
+  .aios-v2-command > kbd {
+    display: none;
+  }
+
+  .aios-v2-palette {
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    margin: 12px auto auto;
+  }
+
+  .aios-v2-palette-frame {
+    padding: var(--aios-v2-space-3);
+  }
+
+  .aios-v2-palette-item-meta {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aios-v2-command,
+  .aios-v2-palette,
+  .aios-v2-palette-item,
+  .aios-v2-palette-close {
+    animation: none;
+    transition: none;
+  }
+}
