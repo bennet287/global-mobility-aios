@@ -6,6 +6,7 @@ const tokens = await readFile(new URL("../styles/v2/tokens.css", import.meta.url
 const motion = await readFile(new URL("../styles/v2/motion.css", import.meta.url), "utf8");
 const foundation = await readFile(new URL("../styles/v2/foundation.css", import.meta.url), "utf8");
 const shell = await readFile(new URL("../components/v2/V2Shell.tsx", import.meta.url), "utf8");
+const navigation = await readFile(new URL("../lib/v2/navigation.ts", import.meta.url), "utf8");
 const ownerHome = await readFile(new URL("../components/v2/V2OwnerHomePrototype.tsx", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/cockpit/v2/page.tsx", import.meta.url), "utf8");
 
@@ -18,19 +19,21 @@ test("AIOS V2 tokens are namespaced and do not replace the legacy root theme", (
 
 test("AIOS V2 Owner navigation exposes the selected seven-domain mental model", () => {
   for (const label of ["Home", "Organization", "Missions", "Intelligence", "Evidence", "Decisions", "History"]) {
-    assert.match(shell, new RegExp('label: "' + label + '"'));
+    assert.match(navigation, new RegExp('label: "' + label + '"'));
   }
 
   for (const legacyPrimary of ["External Validation", "Agent Review Queue", "Automation Hub", "Cross-department friction"]) {
-    assert.doesNotMatch(shell, new RegExp(legacyPrimary));
+    assert.doesNotMatch(navigation, new RegExp(legacyPrimary));
   }
+
+  assert.match(shell, /ownerNavigation\.map/);
 });
 
 test("implemented V2 domains link explicitly while future destinations stay disabled", () => {
-  assert.match(shell, /href: "\/cockpit\/v2"/);
-  assert.match(shell, /href: "\/cockpit\/v2\/organization"/);
+  assert.match(navigation, /href: "\/cockpit\/v2", enabled: true/);
+  assert.match(navigation, /href: "\/cockpit\/v2\/organization", enabled: true/);
+  assert.match(navigation, /href: null, enabled: false/);
   assert.match(shell, /aria-disabled="true"/);
-  assert.match(shell, /href: null, enabled: false/);
 });
 
 test("V2 Owner Home uses governed sources and keeps truth caveats visible", () => {
