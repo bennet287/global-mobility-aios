@@ -113,6 +113,7 @@ Before implementation, read the relevant files in:
 For Living Organization work, the minimum required set is:
 
 - `characters/CHARACTER_BIBLE.md`
+- `characters/presentation-registry-contract.md`
 - `architecture/OFFICE_BIBLE.md`
 - `spatial/spatial-interaction.md`
 - `motion/motion-language.md`
