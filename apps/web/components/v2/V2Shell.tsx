@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ownerNavigation, type OwnerNavLabel } from "../../lib/v2/navigation";
+import { V2CommandPalette } from "./V2CommandPalette";
 import { V2Icon } from "./V2Icon";
 
 export function V2Shell({
@@ -13,6 +16,25 @@ export function V2Shell({
   backendOnline: boolean;
   activeItem?: OwnerNavLabel;
 }) {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const commandTriggerRef = useRef<HTMLButtonElement>(null);
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+    requestAnimationFrame(() => commandTriggerRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        if (paletteOpen) closePalette();
+        else setPaletteOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [closePalette, paletteOpen]);
+
   return (
     <div className="aios-v2-root">
       <a className="aios-v2-skip-link" href="#aios-v2-main">Skip to main content</a>
@@ -37,6 +59,7 @@ export function V2Shell({
                     href={item.href}
                     key={item.label}
                     aria-current={active ? "page" : undefined}
+                    aria-label={item.label}
                     title={item.description}
                   >
                     <span className="aios-v2-nav-glyph" aria-hidden="true">
@@ -51,6 +74,7 @@ export function V2Shell({
                 <span
                   className="aios-v2-nav-item"
                   aria-disabled="true"
+                  aria-label={`${item.label} (not yet available)`}
                   key={item.label}
                   title={item.description}
                 >
@@ -78,19 +102,24 @@ export function V2Shell({
               <span>AIOS V2</span>
             </div>
             <button
+              aria-keyshortcuts="Control+K Meta+K"
+              ref={commandTriggerRef}
+              aria-label="Navigate AIOS"
               className="aios-v2-command"
+              onClick={() => setPaletteOpen(true)}
               type="button"
-              disabled
-              aria-label="Command palette is not connected in this V2 slice"
             >
               <V2Icon name="search" width={16} height={16} />
               <span>Search / Command</span>
+              <kbd aria-hidden="true">Ctrl K</kbd>
             </button>
           </div>
 
           {children}
         </main>
       </div>
+
+      <V2CommandPalette open={paletteOpen} onClose={closePalette} />
     </div>
   );
 }
