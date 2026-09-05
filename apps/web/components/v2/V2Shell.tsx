@@ -1,29 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-type OwnerNavLabel =
-  | "Home"
-  | "Organization"
-  | "Missions"
-  | "Intelligence"
-  | "Evidence"
-  | "Decisions"
-  | "History";
-
-const ownerNavigation: Array<{
-  label: OwnerNavLabel;
-  glyph: string;
-  href: string | null;
-  enabled: boolean;
-}> = [
-  { label: "Home", glyph: "H", href: "/cockpit/v2", enabled: true },
-  { label: "Organization", glyph: "O", href: "/cockpit/v2/organization", enabled: true },
-  { label: "Missions", glyph: "M", href: null, enabled: false },
-  { label: "Intelligence", glyph: "I", href: null, enabled: false },
-  { label: "Evidence", glyph: "E", href: null, enabled: false },
-  { label: "Decisions", glyph: "D", href: null, enabled: false },
-  { label: "History", glyph: "T", href: null, enabled: false },
-];
+import { ownerNavigation, type OwnerNavLabel } from "../../lib/v2/navigation";
+import { V2Icon } from "./V2Icon";
 
 export function V2Shell({
   children,
@@ -58,16 +37,26 @@ export function V2Shell({
                     href={item.href}
                     key={item.label}
                     aria-current={active ? "page" : undefined}
+                    title={item.description}
                   >
-                    <span className="aios-v2-nav-glyph" aria-hidden="true">{item.glyph}</span>
+                    <span className="aios-v2-nav-glyph" aria-hidden="true">
+                      <V2Icon name={item.icon} width={18} height={18} />
+                    </span>
                     <span>{item.label}</span>
                   </Link>
                 );
               }
 
               return (
-                <span className="aios-v2-nav-item" aria-disabled="true" key={item.label}>
-                  <span className="aios-v2-nav-glyph" aria-hidden="true">{item.glyph}</span>
+                <span
+                  className="aios-v2-nav-item"
+                  aria-disabled="true"
+                  key={item.label}
+                  title={item.description}
+                >
+                  <span className="aios-v2-nav-glyph" aria-hidden="true">
+                    <V2Icon name={item.icon} width={18} height={18} />
+                  </span>
                   <span>{item.label}</span>
                 </span>
               );
@@ -88,8 +77,14 @@ export function V2Shell({
               <strong>Owner</strong>
               <span>AIOS V2</span>
             </div>
-            <button className="aios-v2-command" type="button" disabled aria-label="Command palette is not connected in this V2 slice">
-              Search / Command
+            <button
+              className="aios-v2-command"
+              type="button"
+              disabled
+              aria-label="Command palette is not connected in this V2 slice"
+            >
+              <V2Icon name="search" width={16} height={16} />
+              <span>Search / Command</span>
             </button>
           </div>
 
