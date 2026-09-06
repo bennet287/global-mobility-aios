@@ -4,11 +4,12 @@
   --hq-bg-2: #151a25;
   --hq-surface: #171c27;
   --hq-surface-2: #1d2331;
-  --hq-edge: var(--aios-v2-color-border, rgba(255, 255, 255, 0.06));
+  /* The architectural stage stays dark independently of the surrounding theme. */
+  --hq-edge: rgba(255, 255, 255, 0.10);
   --hq-edge-strong: rgba(255, 255, 255, 0.14);
-  --hq-text: var(--aios-v2-color-text, #e7eaf1);
-  --hq-text-dim: var(--aios-v2-color-text-muted, #9aa3b6);
-  --hq-text-muted: var(--aios-v2-color-text-soft, #6b7389);
+  --hq-text: #e7eaf1;
+  --hq-text-dim: #9aa3b6;
+  --hq-text-muted: #8f99ad;
   --hq-accent-executive: #c9a36a;
   --hq-accent-regulatory: #4ea8a0;
   --hq-accent-atrium: #e8d7a7;

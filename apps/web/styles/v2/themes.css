@@ -1,0 +1,114 @@
+/* AIOS V2 Q10 — presentation themes.
+ * Theme choice changes presentation only. It never changes canonical state,
+ * authority, severity, evidence posture, or any domain semantics.
+ */
+
+.aios-v2-root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+.aios-v2-root[data-theme="system"] {
+  color-scheme: light dark;
+}
+
+.aios-v2-root[data-theme="light"] {
+  color-scheme: light;
+  --aios-v2-color-canvas: #f3f0e9;
+  --aios-v2-color-canvas-soft: #f7f4ee;
+  --aios-v2-color-surface: #fbfaf6;
+  --aios-v2-color-surface-raised: #ffffff;
+  --aios-v2-color-surface-inset: #ece8df;
+  --aios-v2-color-overlay: rgba(250, 248, 242, 0.92);
+  --aios-v2-color-text: #1b1d1e;
+  --aios-v2-color-text-muted: #66665f;
+  --aios-v2-color-text-soft: #8a887f;
+  --aios-v2-color-border: rgba(27, 29, 30, 0.11);
+  --aios-v2-color-border-strong: rgba(27, 29, 30, 0.19);
+  --aios-v2-color-accent: #7d6033;
+  --aios-v2-color-accent-soft: rgba(125, 96, 51, 0.11);
+  --aios-v2-color-technology: #4777a7;
+  --aios-v2-color-regulatory: #91672f;
+  --aios-v2-color-operations: #3f7f73;
+  --aios-v2-color-security: #60669a;
+  --aios-v2-color-success: #3f7b62;
+  --aios-v2-color-warning: #9e6928;
+  --aios-v2-color-critical: #a94f49;
+  --aios-v2-color-info: #4d789f;
+  --aios-v2-shadow-raised: 0 18px 50px rgba(41, 35, 26, 0.10);
+  --aios-v2-shadow-overlay: 0 28px 80px rgba(41, 35, 26, 0.16);
+  background:
+    radial-gradient(circle at 78% -10%, rgba(71, 119, 167, 0.08), transparent 34%),
+    radial-gradient(circle at 4% 2%, rgba(125, 96, 51, 0.07), transparent 28%),
+    var(--aios-v2-color-canvas);
+}
+
+.aios-v2-root[data-theme="light"] .aios-v2-rail { background: rgba(243, 240, 233, 0.90); }
+.aios-v2-root[data-theme="light"] .aios-v2-nav-item.active { background: rgba(27, 29, 30, 0.04); }
+.aios-v2-root[data-theme="light"] .aios-v2-command { background: rgba(27, 29, 30, 0.025); }
+.aios-v2-root[data-theme="light"] .aios-v2-brand-mark {
+  border-color: rgba(125, 96, 51, 0.34);
+  background: linear-gradient(145deg, rgba(125, 96, 51, 0.10), rgba(255, 255, 255, 0.48));
+}
+.aios-v2-root[data-theme="light"] .aios-v2-organization-preview {
+  background: linear-gradient(180deg, rgba(27, 29, 30, 0.025), rgba(27, 29, 30, 0.008)), var(--aios-v2-color-surface-inset);
+}
+.aios-v2-root[data-theme="light"] .aios-v2-hq-placeholder {
+  border-color: rgba(125, 96, 51, 0.22);
+  background:
+    linear-gradient(rgba(27, 29, 30, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 29, 30, 0.026) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@media (prefers-color-scheme: light) {
+  .aios-v2-root[data-theme="system"] {
+    --aios-v2-color-canvas: #f3f0e9;
+    --aios-v2-color-canvas-soft: #f7f4ee;
+    --aios-v2-color-surface: #fbfaf6;
+    --aios-v2-color-surface-raised: #ffffff;
+    --aios-v2-color-surface-inset: #ece8df;
+    --aios-v2-color-overlay: rgba(250, 248, 242, 0.92);
+    --aios-v2-color-text: #1b1d1e;
+    --aios-v2-color-text-muted: #66665f;
+    --aios-v2-color-text-soft: #8a887f;
+    --aios-v2-color-border: rgba(27, 29, 30, 0.11);
+    --aios-v2-color-border-strong: rgba(27, 29, 30, 0.19);
+    --aios-v2-color-accent: #7d6033;
+    --aios-v2-color-accent-soft: rgba(125, 96, 51, 0.11);
+    --aios-v2-color-technology: #4777a7;
+    --aios-v2-color-regulatory: #91672f;
+    --aios-v2-color-operations: #3f7f73;
+    --aios-v2-color-security: #60669a;
+    --aios-v2-color-success: #3f7b62;
+    --aios-v2-color-warning: #9e6928;
+    --aios-v2-color-critical: #a94f49;
+    --aios-v2-color-info: #4d789f;
+    --aios-v2-shadow-raised: 0 18px 50px rgba(41, 35, 26, 0.10);
+    --aios-v2-shadow-overlay: 0 28px 80px rgba(41, 35, 26, 0.16);
+    background:
+      radial-gradient(circle at 78% -10%, rgba(71, 119, 167, 0.08), transparent 34%),
+      radial-gradient(circle at 4% 2%, rgba(125, 96, 51, 0.07), transparent 28%),
+      var(--aios-v2-color-canvas);
+  }
+  .aios-v2-root[data-theme="system"] .aios-v2-rail { background: rgba(243, 240, 233, 0.90); }
+  .aios-v2-root[data-theme="system"] .aios-v2-nav-item.active { background: rgba(27, 29, 30, 0.04); }
+  .aios-v2-root[data-theme="system"] .aios-v2-command { background: rgba(27, 29, 30, 0.025); }
+  .aios-v2-root[data-theme="system"] .aios-v2-brand-mark {
+    border-color: rgba(125, 96, 51, 0.34);
+    background: linear-gradient(145deg, rgba(125, 96, 51, 0.10), rgba(255, 255, 255, 0.48));
+  }
+  .aios-v2-root[data-theme="system"] .aios-v2-organization-preview {
+    background: linear-gradient(180deg, rgba(27, 29, 30, 0.025), rgba(27, 29, 30, 0.008)), var(--aios-v2-color-surface-inset);
+  }
+  .aios-v2-root[data-theme="system"] .aios-v2-hq-placeholder {
+    border-color: rgba(125, 96, 51, 0.22);
+    background:
+      linear-gradient(rgba(27, 29, 30, 0.026) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(27, 29, 30, 0.026) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+}
+
+@media (forced-colors: active) {
+  .aios-v2-root[data-theme] { forced-color-adjust: auto; }
+}

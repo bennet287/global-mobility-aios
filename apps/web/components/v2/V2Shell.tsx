@@ -8,6 +8,12 @@ import { V2CommandPalette } from "./V2CommandPalette";
 import { V2GuidedExperience } from "./V2GuidedExperience";
 import guideStyles from "./V2GuidedExperience.module.css";
 import { V2Icon } from "./V2Icon";
+import {
+  V2_THEME_STORAGE_KEY,
+  V2ThemeControl,
+  isV2ThemePreference,
+  type V2ThemePreference,
+} from "./V2ThemeControl";
 
 export function V2Shell({
   children,
@@ -20,6 +26,7 @@ export function V2Shell({
 }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [themePreference, setThemePreference] = useState<V2ThemePreference>("system");
   const commandTriggerRef = useRef<HTMLButtonElement>(null);
   const guideTriggerRef = useRef<HTMLButtonElement>(null);
   const closePalette = useCallback(() => {
@@ -29,6 +36,23 @@ export function V2Shell({
   const closeGuide = useCallback(() => {
     setGuideOpen(false);
     requestAnimationFrame(() => guideTriggerRef.current?.focus());
+  }, []);
+  const changeTheme = useCallback((next: V2ThemePreference) => {
+    setThemePreference(next);
+    try {
+      window.localStorage.setItem(V2_THEME_STORAGE_KEY, next);
+    } catch {
+      // Presentation preference persistence is best-effort only.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(V2_THEME_STORAGE_KEY);
+      if (isV2ThemePreference(stored)) setThemePreference(stored);
+    } catch {
+      // Storage can be unavailable in hardened/private browser contexts.
+    }
   }, []);
 
   useEffect(() => {
@@ -45,7 +69,7 @@ export function V2Shell({
   }, [closePalette, guideOpen, paletteOpen]);
 
   return (
-    <div className="aios-v2-root">
+    <div className="aios-v2-root" data-theme={themePreference}>
       <a className="aios-v2-skip-link" href="#aios-v2-main">Skip to main content</a>
 
       <div className="aios-v2-shell">
@@ -124,6 +148,7 @@ export function V2Shell({
                 <V2Icon name="organization" width={16} height={16} />
                 <span>Guide</span>
               </button>
+              <V2ThemeControl value={themePreference} onChange={changeTheme} />
               <button
                 aria-keyshortcuts="Control+K Meta+K"
                 ref={commandTriggerRef}
