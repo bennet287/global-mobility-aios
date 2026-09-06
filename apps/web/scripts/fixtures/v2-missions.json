@@ -1,0 +1,217 @@
+{
+  "established": true,
+  "scene": {
+    "contract_version": "living-organization-scene.v5",
+    "generated_at": "2026-09-06T00:00:00Z",
+    "scope": "test_fixture_only",
+    "root_work_item_id": "work:alpha",
+    "objective_key": "objective:alpha",
+    "coverage": {
+      "departments": "supported_fixture",
+      "missions": "supported_fixture",
+      "conversations": "supported_fixture",
+      "handoffs": "supported_fixture",
+      "blockers": "supported_fixture",
+      "human_actions": "supported_fixture",
+      "risk_escalations": "supported_fixture",
+      "incidents": "supported_fixture",
+      "smart_objects": "supported_fixture",
+      "runtime_costs": "supported_fixture",
+      "presence": "supported_fixture"
+    },
+    "deterministic": {
+      "canonical_projection": true,
+      "authoritative": false,
+      "departments": [],
+      "missions": [
+        {
+          "mission_key": "mission:alpha",
+          "objective_key": "objective:alpha",
+          "root_work_item_id": "work:alpha",
+          "title": "Alpha evidence review",
+          "state": "awaiting_owner",
+          "phase_key": "review",
+          "participant_position_keys": [
+            "employee:alpha"
+          ],
+          "work_item_ids": [
+            "work:alpha"
+          ],
+          "blocker_count": 1,
+          "decision_count": 0,
+          "projection_only": true,
+          "canonical_basis": "Synthetic test work topology"
+        },
+        {
+          "mission_key": "mission:beta",
+          "objective_key": "objective:beta",
+          "root_work_item_id": "work:beta",
+          "title": "Beta pathway review",
+          "state": "queued",
+          "phase_key": "review",
+          "participant_position_keys": [
+            "employee:beta"
+          ],
+          "work_item_ids": [
+            "work:beta"
+          ],
+          "blocker_count": 0,
+          "decision_count": 0,
+          "projection_only": true,
+          "canonical_basis": "Synthetic test work topology"
+        }
+      ],
+      "employees": [
+        {
+          "position_key": "employee:alpha",
+          "title": "Alpha specialist",
+          "department": "Operations",
+          "reports_to_position_key": null,
+          "authority_level": "L1",
+          "organization_status": "active",
+          "work_item_id": "work:alpha",
+          "work_status": "queued",
+          "semantic_state": "queued",
+          "presence_state": "not_asserted",
+          "state_reason": "Synthetic state for UI tests"
+        },
+        {
+          "position_key": "employee:beta",
+          "title": "Beta specialist",
+          "department": "Operations",
+          "reports_to_position_key": null,
+          "authority_level": "L1",
+          "organization_status": "active",
+          "work_item_id": "work:beta",
+          "work_status": "queued",
+          "semantic_state": "queued",
+          "presence_state": "not_asserted",
+          "state_reason": "Synthetic state for UI tests"
+        }
+      ],
+      "work_items": [
+        {
+          "work_item_id": "work:alpha",
+          "parent_work_item_id": null,
+          "title": "Alpha work",
+          "objective_key": "objective:alpha",
+          "phase_key": "review",
+          "status": "queued",
+          "priority": "normal",
+          "risk_level": "routine",
+          "assigned_position_key": "employee:alpha",
+          "department": "Operations",
+          "authority_level": "L1",
+          "created_at": "2026-09-06T00:00:00Z",
+          "updated_at": "2026-09-06T00:00:00Z",
+          "due_at": null,
+          "completed_at": null,
+          "elapsed_seconds": null,
+          "overdue": false,
+          "specialist_evidence_valid": null,
+          "specialist_evidence_reason": null
+        },
+        {
+          "work_item_id": "work:beta",
+          "parent_work_item_id": null,
+          "title": "Beta work",
+          "objective_key": "objective:beta",
+          "phase_key": "review",
+          "status": "queued",
+          "priority": "normal",
+          "risk_level": "routine",
+          "assigned_position_key": "employee:beta",
+          "department": "Operations",
+          "authority_level": "L1",
+          "created_at": "2026-09-06T00:00:00Z",
+          "updated_at": "2026-09-06T00:00:00Z",
+          "due_at": null,
+          "completed_at": null,
+          "elapsed_seconds": null,
+          "overdue": false,
+          "specialist_evidence_valid": null,
+          "specialist_evidence_reason": null
+        }
+      ],
+      "blockers": [
+        {
+          "blocker_id": "blocker:alpha",
+          "work_item_id": "work:alpha",
+          "blocker_type": "evidence",
+          "title": "Alpha missing snapshot",
+          "description": "A linked snapshot is needed.",
+          "severity": "high",
+          "status": "open",
+          "accountable_position_key": "employee:alpha",
+          "decision_id": null,
+          "risk_escalation_id": null,
+          "requires_human_action": true,
+          "opened_at": "2026-09-06T00:00:00Z",
+          "due_at": null,
+          "open_elapsed_seconds": 0,
+          "overdue": false
+        }
+      ],
+      "decisions": [],
+      "handoffs": [
+        {
+          "activity_id": "handoff:alpha",
+          "work_item_id": "work:alpha",
+          "previous_position_key": "employee:beta",
+          "assigned_position_key": "employee:alpha",
+          "status": "assigned",
+          "occurred_at": "2026-09-06T00:00:00Z",
+          "causation_activity_id": null,
+          "canonical_basis": "Synthetic assignment event"
+        }
+      ],
+      "conversations": [],
+      "human_actions": [
+        {
+          "request_id": "request:alpha",
+          "request_type": "review",
+          "title": "Review Alpha evidence",
+          "instructions": "Provide the missing fixture snapshot.",
+          "status": "required",
+          "priority": "normal",
+          "required_role": "owner",
+          "assigned_human_id": null,
+          "authority_level": "board",
+          "work_item_id": "work:alpha",
+          "decision_id": null,
+          "blocker_id": "blocker:alpha",
+          "requested_at": "2026-09-06T00:00:00Z",
+          "due_at": null,
+          "canonical_basis": "Synthetic human request"
+        }
+      ],
+      "relationships": [],
+      "rooms": [],
+      "smart_objects": [],
+      "incidents": [],
+      "risk_escalations": []
+    },
+    "truth": {
+      "canonical_authority": "Synthetic fixture records",
+      "scene_authoritative": false,
+      "renderer_authoritative": false,
+      "scene_mutations_allowed": false,
+      "prediction_authoritative": false,
+      "environmental_authoritative": false
+    },
+    "predictive": {
+      "enabled": false,
+      "canonical_projection": false,
+      "authoritative": false,
+      "status": "unsupported",
+      "items": []
+    },
+    "environmental": {
+      "enabled": false,
+      "canonical_projection": false,
+      "authoritative": false,
+      "status": "unsupported",
+      "items": []
+    }
+  }
+}
