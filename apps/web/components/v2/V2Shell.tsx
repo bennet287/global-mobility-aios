@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 
 import { ownerNavigation, type OwnerNavLabel } from "../../lib/v2/navigation";
 import { V2CommandPalette } from "./V2CommandPalette";
+import { V2GuidedExperience } from "./V2GuidedExperience";
+import guideStyles from "./V2GuidedExperience.module.css";
 import { V2Icon } from "./V2Icon";
 
 export function V2Shell({
@@ -17,14 +19,21 @@ export function V2Shell({
   activeItem?: OwnerNavLabel;
 }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const commandTriggerRef = useRef<HTMLButtonElement>(null);
+  const guideTriggerRef = useRef<HTMLButtonElement>(null);
   const closePalette = useCallback(() => {
     setPaletteOpen(false);
     requestAnimationFrame(() => commandTriggerRef.current?.focus());
   }, []);
+  const closeGuide = useCallback(() => {
+    setGuideOpen(false);
+    requestAnimationFrame(() => guideTriggerRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (guideOpen) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         if (paletteOpen) closePalette();
@@ -33,7 +42,7 @@ export function V2Shell({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closePalette, paletteOpen]);
+  }, [closePalette, guideOpen, paletteOpen]);
 
   return (
     <div className="aios-v2-root">
@@ -101,18 +110,33 @@ export function V2Shell({
               <strong>Owner</strong>
               <span>AIOS V2</span>
             </div>
-            <button
-              aria-keyshortcuts="Control+K Meta+K"
-              ref={commandTriggerRef}
-              aria-label="Navigate AIOS"
-              className="aios-v2-command"
-              onClick={() => setPaletteOpen(true)}
-              type="button"
-            >
-              <V2Icon name="search" width={16} height={16} />
-              <span>Search / Command</span>
-              <kbd aria-hidden="true">Ctrl K</kbd>
-            </button>
+            <div className={guideStyles.topActions}>
+              <button
+                aria-label="Open guided experience"
+                className={`aios-v2-command ${guideStyles.guideTrigger}`}
+                onClick={() => {
+                  setPaletteOpen(false);
+                  setGuideOpen(true);
+                }}
+                ref={guideTriggerRef}
+                type="button"
+              >
+                <V2Icon name="organization" width={16} height={16} />
+                <span>Guide</span>
+              </button>
+              <button
+                aria-keyshortcuts="Control+K Meta+K"
+                ref={commandTriggerRef}
+                aria-label="Navigate AIOS"
+                className="aios-v2-command"
+                onClick={() => setPaletteOpen(true)}
+                type="button"
+              >
+                <V2Icon name="search" width={16} height={16} />
+                <span>Search / Command</span>
+                <kbd aria-hidden="true">Ctrl K</kbd>
+              </button>
+            </div>
           </div>
 
           {children}
@@ -120,6 +144,7 @@ export function V2Shell({
       </div>
 
       <V2CommandPalette open={paletteOpen} onClose={closePalette} />
+      <V2GuidedExperience activeItem={activeItem} open={guideOpen} onClose={closeGuide} />
     </div>
   );
 }
