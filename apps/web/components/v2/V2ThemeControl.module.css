@@ -1,0 +1,75 @@
+.control {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px 0 11px;
+  border: 1px solid var(--aios-v2-color-border);
+  border-radius: var(--aios-v2-radius-control);
+  color: var(--aios-v2-color-text-muted);
+  background: var(--aios-v2-color-surface-inset);
+  font-size: var(--aios-v2-type-sm);
+}
+
+.control > svg {
+  flex: 0 0 auto;
+  color: var(--aios-v2-color-accent);
+}
+
+.label {
+  color: var(--aios-v2-color-text-soft);
+  font-size: var(--aios-v2-type-xs);
+}
+
+.control select {
+  min-width: 68px;
+  border: 0;
+  outline: 0;
+  padding: 0 2px;
+  color: var(--aios-v2-color-text);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.control select option {
+  color: var(--aios-v2-color-text);
+  background: var(--aios-v2-color-surface-raised);
+}
+
+.control:focus-within {
+  border-color: var(--aios-v2-color-border-strong);
+}
+
+.control select:focus-visible {
+  outline: 2px solid var(--aios-v2-color-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+@media (max-width: 760px) {
+  .label { display: none; }
+}
+
+@media (max-width: 560px) {
+  .control {
+    min-height: 44px;
+    padding-inline: 9px;
+    gap: 5px;
+  }
+  .control select {
+    min-width: 58px;
+    width: 58px;
+    font-size: var(--aios-v2-type-xs);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .control,
+  .control select { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .control,
+  .control select:focus-visible { border-color: ButtonText; }
+}

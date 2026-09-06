@@ -1,4 +1,5 @@
 import "../../../styles/v2/tokens.css";
+import "../../../styles/v2/themes.css";
 import "../../../styles/v2/motion.css";
 import "../../../styles/v2/foundation.css";
 import "../../../styles/v2/command-search.css";
