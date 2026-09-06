@@ -47,6 +47,12 @@ export function V2ProvenanceDisclosure({ children, title = "Evidence & provenanc
   return <details className={styles.disclosure} data-technical={technical}><summary>{title}</summary><div>{children}</div></details>;
 }
 
+/** Compact readout for caller-supplied values. The primitive never computes, ranks or infers metrics. */
+export type V2MetricItem = { label: string; value: ReactNode; hint?: string };
+export function V2MetricGroup({ items, label, className = "" }: { items: readonly V2MetricItem[]; label?: string; className?: string }) {
+  return <dl className={`${styles.metricGroup} ${className}`} aria-label={label}>{items.map((item) => <div className={styles.metric} key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd>{item.hint ? <dd className={styles.metricHint}>{item.hint}</dd> : null}</div>)}</dl>;
+}
+
 export type V2ReadState =
   | { kind: "loading"; label: string }
   | { kind: "empty"; label: string; detail: string }

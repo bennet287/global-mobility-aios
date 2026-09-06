@@ -27,7 +27,7 @@ export type OwnerNavigationItem = {
 export const ownerNavigation: readonly OwnerNavigationItem[] = Object.freeze([
   { label: "Home", icon: "home", href: "/cockpit/v2", enabled: true, description: "Owner situation and attention" },
   { label: "Organization", icon: "organization", href: "/cockpit/v2/organization", enabled: true, description: "Living HQ, employees and Mission Rooms" },
-  { label: "Missions", icon: "missions", href: null, enabled: false, description: "Mission workspace — planned successor slice" },
+  { label: "Missions", icon: "missions", href: "/cockpit/v2/missions", enabled: true, description: "Mission portfolio and canonical inspection" },
   { label: "Intelligence", icon: "intelligence", href: null, enabled: false, description: "Intelligence workspace — planned successor slice" },
   { label: "Evidence", icon: "evidence", href: null, enabled: false, description: "Evidence workspace — planned successor slice" },
   { label: "Decisions", icon: "decisions", href: null, enabled: false, description: "Decisions workspace — planned successor slice" },
@@ -37,6 +37,7 @@ export const ownerNavigation: readonly OwnerNavigationItem[] = Object.freeze([
 export const navigationCommands = Object.freeze([
   { label: "Home", icon: "home" as const, href: "/cockpit/v2", description: "Open AIOS V2 Owner Home" },
   { label: "Organization", icon: "organization" as const, href: "/cockpit/v2/organization", description: "Open the Living Organization workspace" },
+  { label: "Missions", icon: "missions" as const, href: "/cockpit/v2/missions", description: "Open the read-only Mission portfolio" },
   { label: "Structured Cockpit", icon: "organization" as const, href: "/cockpit", description: "Open the existing operational workspace" },
   { label: "Decision Explorer", icon: "decisions" as const, href: "/cockpit/decisions", description: "Inspect decisions in the structured workspace" },
   { label: "Live Organization & Replay", icon: "history" as const, href: "/cockpit/live-organization", description: "Open the existing live and temporal workspace" },
