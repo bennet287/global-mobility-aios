@@ -129,10 +129,8 @@ test("Q2 icon-only mobile navigation has explicit accessible names", () => {
 });
 
 test("Q2 unfinished top-level destinations remain fail-closed", () => {
-  for (const label of ["Decisions", "History"]) {
-    const expression = new RegExp(`label: "${label}"[^\\n]+href: null, enabled: false`);
-    assert.match(navigation, expression);
-  }
+  const expression = new RegExp(`label: "History"[^\\n]+href: null, enabled: false`);
+  assert.match(navigation, expression);
 });
 
 test("Q2 command palette only exposes navigation links, not workflow buttons", () => {

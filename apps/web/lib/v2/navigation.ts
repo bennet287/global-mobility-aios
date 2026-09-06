@@ -30,7 +30,7 @@ export const ownerNavigation: readonly OwnerNavigationItem[] = Object.freeze([
   { label: "Missions", icon: "missions", href: "/cockpit/v2/missions", enabled: true, description: "Mission portfolio and canonical inspection" },
   { label: "Intelligence", icon: "intelligence", href: "/cockpit/v2/intelligence", enabled: true, description: "Current governed signals and aggregate organization memory" },
   { label: "Evidence", icon: "evidence", href: "/cockpit/v2/evidence", enabled: true, description: "Recorded Evidence references and grounding posture" },
-  { label: "Decisions", icon: "decisions", href: null, enabled: false, description: "Decisions workspace — planned successor slice" },
+  { label: "Decisions", icon: "decisions", href: "/cockpit/v2/decisions", enabled: true, description: "Executive Decision state, authority and supersession" },
   { label: "History", icon: "history", href: null, enabled: false, description: "History workspace — planned successor slice" },
 ]);
 
@@ -40,6 +40,7 @@ export const navigationCommands = Object.freeze([
   { label: "Missions", icon: "missions" as const, href: "/cockpit/v2/missions", description: "Open the read-only Mission portfolio" },
   { label: "Intelligence", icon: "intelligence" as const, href: "/cockpit/v2/intelligence", description: "Inspect current signals and aggregate organization memory" },
   { label: "Evidence", icon: "evidence" as const, href: "/cockpit/v2/evidence", description: "Inspect recorded Evidence references and grounding posture" },
+  { label: "Decisions", icon: "decisions" as const, href: "/cockpit/v2/decisions", description: "Inspect Executive Decision authority and supersession" },
   { label: "Structured Cockpit", icon: "organization" as const, href: "/cockpit", description: "Open the existing operational workspace" },
   { label: "Decision Explorer", icon: "decisions" as const, href: "/cockpit/decisions", description: "Inspect decisions in the structured workspace" },
   { label: "Live Organization & Replay", icon: "history" as const, href: "/cockpit/live-organization", description: "Open the existing live and temporal workspace" },
