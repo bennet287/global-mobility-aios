@@ -85,12 +85,12 @@ test("Q5 filters supplied states and opaque identities without inventing ranking
   assert.equal(new URL(missionDestination(opaque), "http://test").searchParams.get("mission"), opaque);
 });
 
-test("Q5 enables Missions while later Owner domains remain fail-closed", () => {
+test("Q5 keeps Missions enabled as later Owner domains are introduced incrementally", () => {
   const missions = ownerNavigation.find((item) => item.label === "Missions");
   assert.equal(missions?.enabled, true);
   assert.equal(missions?.href, "/cockpit/v2/missions");
   assert.equal(navigationCommands.filter((item) => item.href === "/cockpit/v2/missions").length, 1);
-  for (const label of ["Intelligence", "Evidence", "Decisions", "History"]) {
+  for (const label of ["Decisions", "History"]) {
     const item = ownerNavigation.find((candidate) => candidate.label === label);
     assert.equal(item?.enabled, false);
     assert.equal(item?.href, null);
