@@ -101,7 +101,7 @@ test("Q6 Activity selection is exact and search destinations do not create a fet
   assert.equal(new URL(activityDestination("activity:/?#1"), "http://test").searchParams.get("activity"), "activity:/?#1");
 });
 
-test("Q6 keeps Intelligence and Evidence enabled as Decisions is introduced while History remains fail-closed", () => {
+test("Q6 keeps Intelligence and Evidence enabled as later Owner domains are introduced", () => {
   for (const [label, href] of [["Intelligence", "/cockpit/v2/intelligence"], ["Evidence", "/cockpit/v2/evidence"]]) {
     const item = ownerNavigation.find((candidate) => candidate.label === label);
     assert.equal(item?.enabled, true);
@@ -109,8 +109,8 @@ test("Q6 keeps Intelligence and Evidence enabled as Decisions is introduced whil
     assert.equal(navigationCommands.filter((command) => command.href === href).length, 1);
   }
   const history = ownerNavigation.find((candidate) => candidate.label === "History");
-  assert.equal(history?.enabled, false);
-  assert.equal(history?.href, null);
+  assert.equal(history?.enabled, true);
+  assert.equal(history?.href, "/cockpit/v2/history");
 });
 
 test("Q6 uses existing read-only endpoints and keeps search registration loaded-record only", () => {

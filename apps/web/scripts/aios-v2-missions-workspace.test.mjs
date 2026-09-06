@@ -91,8 +91,8 @@ test("Q5 keeps Missions enabled as later Owner domains are introduced incrementa
   assert.equal(missions?.href, "/cockpit/v2/missions");
   assert.equal(navigationCommands.filter((item) => item.href === "/cockpit/v2/missions").length, 1);
   const history = ownerNavigation.find((candidate) => candidate.label === "History");
-  assert.equal(history?.enabled, false);
-  assert.equal(history?.href, null);
+  assert.equal(history?.enabled, true);
+  assert.equal(history?.href, "/cockpit/v2/history");
 });
 
 test("Q5 selection remains inspection-only and loaded-record search performs no fetch", () => {
