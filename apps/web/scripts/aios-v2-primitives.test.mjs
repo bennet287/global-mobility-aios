@@ -7,8 +7,6 @@ import ts from "typescript";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Render the real TSX with the repository's compiler and React. Only CSS module
-// loading is stubbed; interactions, element types and accessible text are real.
 const filename = fileURLToPath(new URL("../components/v2/ui/V2Primitives.tsx", import.meta.url));
 const require = createRequire(import.meta.url);
 const compiled = ts.transpileModule(readFileSync(filename, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
@@ -57,6 +55,11 @@ test("truth and authority labels do not imply permission from their appearance",
 test("provenance stays collapsed by default and escapes record text", () => {
   const html = render(ui.V2ProvenanceDisclosure, { children: '<script>alert("test")</script>' });
   assert.match(html, /<details/); assert.match(html, /<summary/); assert.doesNotMatch(html, /open="|<script>/); assert.match(html, /&lt;script&gt;/);
+});
+
+test("metric groups render caller-supplied readouts without adding controls or inferred labels", () => {
+  const html = render(ui.V2MetricGroup, { label: "Mission readout", items: [{ label: "Returned Missions", value: 3 }, { label: "Rostered participants", value: 8, hint: "Roster relation" }] });
+  assert.match(html, /<dl/); assert.match(html, /aria-label="Mission readout"/); assert.match(html, /Returned Missions/); assert.match(html, />3</); assert.match(html, /Roster relation/); assert.doesNotMatch(html, /button|progress|healthy|urgent/i);
 });
 
 test("timestamps never substitute the current time for absent or invalid provenance", () => {

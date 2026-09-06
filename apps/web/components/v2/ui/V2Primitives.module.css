@@ -36,6 +36,11 @@ button.row, a.row { cursor: pointer; }
 .disclosure > div { padding: 16px; background: var(--aios-v2-color-surface-inset); overflow-wrap: anywhere; }
 .disclosure[data-technical="true"] > div { font-family: var(--font-geist-mono), monospace; font-size: var(--aios-v2-type-sm); }
 .disclosure pre { max-width: 100%; overflow: auto; }
+.metricGroup { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; padding: 1px; margin: 0; overflow: hidden; border-radius: var(--aios-v2-radius-object); background: var(--aios-v2-color-border); }
+.metric { min-width: 0; padding: 16px; background: var(--aios-v2-color-surface-inset); }
+.metric dt { color: var(--aios-v2-color-text-soft); font-size: var(--aios-v2-type-xs); letter-spacing: .06em; text-transform: uppercase; }
+.metric dd { margin: 7px 0 0; color: var(--aios-v2-color-text); font-size: var(--aios-v2-type-lg); font-weight: 500; overflow-wrap: anywhere; }
+.metric .metricHint { color: var(--aios-v2-color-text-muted); font-size: var(--aios-v2-type-xs); font-weight: 400; line-height: 1.45; }
 .dataState { padding: var(--aios-v2-space-4); border-inline-start: 3px solid var(--aios-v2-color-border-strong); background: var(--aios-v2-color-surface-inset); line-height: 1.65; }
 .dataState p { margin: 8px 0; color: var(--aios-v2-color-text-muted); overflow-wrap: anywhere; }
 .dataState[data-state="error"], .dataState[data-state="unavailable"] { border-color: var(--aios-v2-color-critical); }
@@ -47,5 +52,5 @@ button.row, a.row { cursor: pointer; }
 a.evidenceChip { min-height: 44px; }
 .evidenceChip span { color: var(--aios-v2-color-text-muted); }
 :is(.row,.control,.evidenceChip,.disclosure summary):focus-visible, .actions :is(button,a):focus-visible { outline: 2px solid var(--aios-v2-color-accent); outline-offset: 3px; }
-@media (max-width: 600px) { .row { flex-wrap: wrap; } .trailing { max-width: 100%; } .leading { flex-basis: 100%; } .surface,.inspector { padding: 16px; } .pageHeader { padding-block: 24px; } }
+@media (max-width: 600px) { .row { flex-wrap: wrap; } .trailing { max-width: 100%; } .leading { flex-basis: 100%; } .surface,.inspector { padding: 16px; } .pageHeader { padding-block: 24px; } .metricGroup { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (forced-colors: active) { .row[aria-pressed="true"] { outline: 2px solid Highlight; } .badge,.truth,.authority { border-color: CanvasText; } }
