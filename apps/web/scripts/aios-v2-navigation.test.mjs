@@ -49,7 +49,7 @@ test("navigation commands contain only implemented destinations and never imply 
 test("workspace search matches normalized words across label and description", () => {
   assert.deepEqual(filterNavigationCommands("   "), navigationCommands);
   assert.deepEqual(filterNavigationCommands("  ORGANIZATION   living ").map((item) => item.label), ["Organization"]);
-  assert.deepEqual(filterNavigationCommands("decisions").map((item) => item.label), ["Decision Explorer"]);
+  assert.deepEqual(filterNavigationCommands("decisions").map((item) => item.label), ["Decisions", "Decision Explorer"]);
   assert.deepEqual(filterNavigationCommands("no-such-workspace"), []);
   assert.deepEqual(filterNavigationCommands("approve"), []);
 });
