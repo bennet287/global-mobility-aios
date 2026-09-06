@@ -79,14 +79,14 @@ test("Q7 filtering and selection preserve exact statuses and opaque Decision IDs
   assert.equal(new URL(decisionDestination(opaque), "http://test").searchParams.get("decision"), opaque);
 });
 
-test("Q7 enables Decisions while History remains fail-closed", () => {
+test("Q7 Decisions remains enabled as Q8 adds the final History domain", () => {
   const decisions = ownerNavigation.find((item) => item.label === "Decisions");
   assert.equal(decisions?.enabled, true);
   assert.equal(decisions?.href, "/cockpit/v2/decisions");
   assert.equal(navigationCommands.filter((item) => item.href === "/cockpit/v2/decisions").length, 1);
   const history = ownerNavigation.find((item) => item.label === "History");
-  assert.equal(history?.enabled, false);
-  assert.equal(history?.href, null);
+  assert.equal(history?.enabled, true);
+  assert.equal(history?.href, "/cockpit/v2/history");
 });
 
 test("Q7 reads the existing Living Organization transparency scene and adds no mutation path", () => {

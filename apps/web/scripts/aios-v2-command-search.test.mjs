@@ -128,9 +128,9 @@ test("Q2 icon-only mobile navigation has explicit accessible names", () => {
   assert.match(shell, /aria-label=\{`\$\{item\.label\} \(not yet available\)`\}/);
 });
 
-test("Q2 unfinished top-level destinations remain fail-closed", () => {
-  const expression = new RegExp(`label: "History"[^\\n]+href: null, enabled: false`);
-  assert.match(navigation, expression);
+test("Q2 fail-closed navigation contract permits Q8 to enable the final implemented History domain", () => {
+  assert.match(navigation, /label: "History"[^\n]+href: "\/cockpit\/v2\/history", enabled: true/);
+  assert.doesNotMatch(navigation, /label: "History"[^\n]+href: null, enabled: false/);
 });
 
 test("Q2 command palette only exposes navigation links, not workflow buttons", () => {

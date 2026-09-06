@@ -46,7 +46,7 @@ for (const width of [1280, 390]) test(`Q7 Decisions remains read-only and respon
   await page.goto("/cockpit/v2/decisions");
   await expect(page.getByRole("heading", { name: "Decisions", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Decisions" })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByLabel("History (not yet available)")).toHaveAttribute("aria-disabled", "true");
+  await expect(page.getByRole("link", { name: "History" })).toHaveAttribute("href", "/cockpit/v2/history");
   await expect(page.getByLabel("Decision portfolio readout")).toContainText("Owner action recorded");
   await expect(page.getByText("Austria filing authority")).toBeVisible();
   await expect(page.getByText("Earlier filing authority")).toBeVisible();

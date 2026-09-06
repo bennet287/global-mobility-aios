@@ -30,10 +30,19 @@ test("AIOS V2 Owner navigation exposes the selected seven-domain mental model", 
   assert.match(shell, /ownerNavigation\.map/);
 });
 
-test("implemented V2 domains link explicitly while future destinations stay disabled", () => {
-  assert.match(navigation, /href: "\/cockpit\/v2", enabled: true/);
-  assert.match(navigation, /href: "\/cockpit\/v2\/organization", enabled: true/);
-  assert.match(navigation, /href: null, enabled: false/);
+test("implemented V2 domains link explicitly while the shell retains fail-closed rendering support", () => {
+  for (const href of [
+    "/cockpit/v2",
+    "/cockpit/v2/organization",
+    "/cockpit/v2/missions",
+    "/cockpit/v2/intelligence",
+    "/cockpit/v2/evidence",
+    "/cockpit/v2/decisions",
+    "/cockpit/v2/history",
+  ]) {
+    assert.match(navigation, new RegExp(`href: "${href.replaceAll("/", "\\/")}", enabled: true`));
+  }
+  assert.doesNotMatch(navigation, /href: null, enabled: false/);
   assert.match(shell, /aria-disabled="true"/);
 });
 
