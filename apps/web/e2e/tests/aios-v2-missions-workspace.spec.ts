@@ -47,7 +47,7 @@ for (const width of [1280, 390]) test(`Q5 Missions stays read-only and responsiv
   await page.goto("/cockpit/v2/missions");
   await expect(page.getByRole("heading", { name: "Missions", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Missions" })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByLabel("Evidence (not yet available)")).toHaveAttribute("aria-disabled", "true");
+  await expect(page.getByLabel("Decisions (not yet available)")).toHaveAttribute("aria-disabled", "true");
   await expect(page.getByText("Alpha evidence review")).toBeVisible();
   await expect(page.getByText("Beta filing")).toBeVisible();
   await expect(page.getByLabel("Mission portfolio readout")).toContainText("Rostered participants");

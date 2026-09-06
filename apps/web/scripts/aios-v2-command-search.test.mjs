@@ -129,7 +129,7 @@ test("Q2 icon-only mobile navigation has explicit accessible names", () => {
 });
 
 test("Q2 unfinished top-level destinations remain fail-closed", () => {
-  for (const label of ["Intelligence", "Evidence", "Decisions", "History"]) {
+  for (const label of ["Decisions", "History"]) {
     const expression = new RegExp(`label: "${label}"[^\\n]+href: null, enabled: false`);
     assert.match(navigation, expression);
   }
