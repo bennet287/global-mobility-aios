@@ -1,4 +1,5 @@
 import type { V2EmployeeInspectorModel } from "../../lib/v2/mission-room-inspector";
+import { V2AuthorityBadge, V2SectionHeader, V2StateBadge, V2ProvenanceDisclosure } from "./ui/V2Primitives";
 import { V2CharacterMiniature } from "./V2CharacterMiniature";
 
 export function V2EmployeeInspector({
@@ -43,13 +44,7 @@ export function V2EmployeeInspector({
       data-locomotion-claimed="false"
       data-mutations-allowed={String(model.mutationsAllowed)}
     >
-      <header className="aios-v2-inspector-header">
-        <div>
-          <span>Employee Inspector</span>
-          <strong id="aios-v2-employee-inspector-title">{employee.title}</strong>
-        </div>
-        <button type="button" onClick={onClose}>Close</button>
-      </header>
+      <V2SectionHeader eyebrow="Employee Inspector" id="aios-v2-employee-inspector-title" title={employee.title} actions={<button type="button" onClick={onClose}>Close</button>} />
 
       <V2CharacterMiniature
         department={employee.department}
@@ -69,7 +64,7 @@ export function V2EmployeeInspector({
         </div>
         <div>
           <span>Authority</span>
-          <strong>{employee.authority_level}</strong>
+          <V2AuthorityBadge level={employee.authority_level} />
         </div>
         <div>
           <span>Organization state</span>
@@ -79,7 +74,7 @@ export function V2EmployeeInspector({
 
       <section className="aios-v2-inspector-state" aria-label="Canonical presentation state">
         <span>Canonical presentation state</span>
-        <strong>{employee.semantic_state.replaceAll("_", " ")}</strong>
+        <V2StateBadge label={employee.semantic_state.replaceAll("_", " ")} />
         <p>{employee.state_reason}</p>
         <small>
           {employee.work_status
@@ -116,12 +111,13 @@ export function V2EmployeeInspector({
         </div>
       ) : null}
 
-      <footer className="aios-v2-inspector-truth">
+      <p>Roster identity is not physical presence.</p>
+      <V2ProvenanceDisclosure title="Presentation truth"><footer className="aios-v2-inspector-truth">
         <strong>Roster identity is not physical presence.</strong>
         <span>Presence claimed: no</span>
         <span>Locomotion claimed: no</span>
         <span>Mutation: {model.mutationsAllowed ? "allowed by source posture" : "disabled"}</span>
-      </footer>
+      </footer></V2ProvenanceDisclosure>
     </aside>
   );
 }

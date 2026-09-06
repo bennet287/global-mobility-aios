@@ -1,6 +1,7 @@
 import type {
   V2MissionRoomModel,
 } from "../../lib/v2/mission-room-inspector";
+import { V2DataState, V2SectionHeader, V2StateBadge } from "./ui/V2Primitives";
 import { V2CharacterMiniature } from "./V2CharacterMiniature";
 
 function timestamp(value: string): string {
@@ -22,18 +23,10 @@ export function V2MissionRoomPanel({
 }) {
   return (
     <section className="aios-v2-mission-room" aria-labelledby="aios-v2-mission-room-title">
-      <header className="aios-v2-section-heading">
-        <div>
-          <span>Mission Room</span>
-          <strong id="aios-v2-mission-room-title">
-            {model?.mission?.title || "Select a Mission"}
-          </strong>
-        </div>
-        <small>Read-only canonical projection · no inferred conversation or presence</small>
-      </header>
+      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · no inferred conversation or presence" />
 
       {loading ? (
-        <div className="aios-v2-empty-line" role="status">Loading Mission Room projection…</div>
+        <V2DataState state={{ kind: "loading", label: "Loading Mission Room projection…" }} />
       ) : !model ? (
         <div className="aios-v2-empty-line" role="status">
           Select a canonical Mission above to inspect its supported participants, blockers, decisions and handoffs.
@@ -45,7 +38,7 @@ export function V2MissionRoomPanel({
           <div className="aios-v2-mission-room-summary">
             <div>
               <span>State</span>
-              <strong>{model.mission.state.replaceAll("_", " ")}</strong>
+              <V2StateBadge label={model.mission.state.replaceAll("_", " ")} />
             </div>
             <div>
               <span>Participants</span>
