@@ -241,4 +241,5 @@ jobs:
           tests/aios-v2-responsive.spec.ts
           tests/aios-v2-accessibility.spec.ts
           tests/aios-v2-structured-fallback.spec.ts
+          tests/aios-v2-zoom-contrast.spec.ts
           --project=chromium
