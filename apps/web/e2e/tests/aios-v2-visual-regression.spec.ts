@@ -13,7 +13,7 @@ const scene = {
   root_work_item_id: ROOT_ID,
   objective_key: "q15_visual_regression",
   truth: { scene_authoritative: false, renderer_authoritative: false, scene_mutations_allowed: false, canonical_authority: "Q15 frozen visual fixture", prediction_authoritative: false, environmental_authoritative: false },
-  coverage: { departments: "canonical_fixture_projection", missions: "canonical_fixture_projection", conversations: "unavailable", handoffs: "unavailable", blockers: "canonical_fixture_projection", human_actions: "unavailable", risk_escalations: "unavailable", incidents: "unavailable", smart_objects: "unavailable", runtime_costs: "unavailable", presence: "not_asserted" },
+  coverage: { departments: "canonical_fixture_projection", missions: "canonical_fixture_projection", conversations: "organization_activity_conversation_lifecycle_v1", handoffs: "unavailable", blockers: "canonical_fixture_projection", human_actions: "unavailable", risk_escalations: "unavailable", incidents: "unavailable", smart_objects: "unavailable", runtime_costs: "unavailable", presence: "not_asserted" },
   deterministic: {
     canonical_projection: true,
     authoritative: false,

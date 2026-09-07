@@ -140,7 +140,7 @@ function scene(blockerCoverage = "organization_blocker_canonical_records") {
     coverage: {
       departments: "projected_from_canonical_positions_and_work",
       missions: "workitem_objective_topology_projection",
-      conversations: "unavailable",
+      conversations: "organization_activity_conversation_lifecycle_v1",
       handoffs: "unavailable",
       blockers: blockerCoverage,
       human_actions: "unavailable",

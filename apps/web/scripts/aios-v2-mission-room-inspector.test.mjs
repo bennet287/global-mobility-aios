@@ -27,20 +27,28 @@ test("Mission Room derives only supported participants and linked entities", () 
   assert.match(model, /must not fabricate a Mission Room/);
 });
 
-test("Employee Inspector does not convert roster identity into presence truth", () => {
-  assert.match(model, /Roster identity and semantic state do not assert physical presence or locomotion/);
+test("Employee Inspector does not convert roster or governed conversation identity into presence truth", () => {
+  assert.match(
+    model,
+    /Roster identity, semantic state and governed conversation participation do not assert physical presence, locomotion or live speech/,
+  );
   assert.match(model, /must not fabricate an employee/);
   assert.match(inspector, /data-presence-claimed="false"/);
   assert.match(inspector, /data-locomotion-claimed="false"/);
+  assert.match(inspector, /data-live-speech-claimed="false"/);
+  assert.match(inspector, /data-transcript-claimed="false"/);
   assert.match(inspector, /Roster identity is not physical presence/);
 });
 
-test("Mission Room UI exposes supported signals without inventing conversation", () => {
+test("Mission Room UI exposes governed conversation lifecycle without inventing dialogue or presence", () => {
   assert.match(missionRoom, /Rostered Mission participants/);
   assert.match(missionRoom, /Canonical links/);
+  assert.match(missionRoom, /Governed conversations/);
+  assert.match(missionRoom, /conversation lifecycle is not live dialogue or physical presence/);
+  assert.match(missionRoom, /data-live-speech-claimed="false"/);
+  assert.match(missionRoom, /data-transcript-claimed="false"/);
+  assert.match(missionRoom, /Authority effect: none · transcript not persisted/);
   assert.match(missionRoom, /No linked handoff events/);
-  assert.match(missionRoom, /no inferred conversation or presence/);
-  assert.doesNotMatch(missionRoom, /transcript|spoken words/i);
 });
 
 test("Mission selection is view-only and drives the inspector workspace", () => {
