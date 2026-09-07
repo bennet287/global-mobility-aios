@@ -27,24 +27,28 @@ test("Mission Room derives only supported participants and linked entities", () 
   assert.match(model, /must not fabricate a Mission Room/);
 });
 
-test("Employee Inspector does not convert roster or governed conversation identity into presence truth", () => {
+test("Employee Inspector does not convert roster, Mission membership or governed coordination into presence truth", () => {
   assert.match(
     model,
-    /Roster identity, semantic state and governed conversation participation do not assert physical presence, locomotion or live speech/,
+    /Mission membership is topology scope only; governed coordination evidence requires exact canonical conversation participation and does not assert active collaboration, physical presence, locomotion or live speech/,
   );
   assert.match(model, /must not fabricate an employee/);
   assert.match(inspector, /data-presence-claimed="false"/);
   assert.match(inspector, /data-locomotion-claimed="false"/);
   assert.match(inspector, /data-live-speech-claimed="false"/);
   assert.match(inspector, /data-transcript-claimed="false"/);
+  assert.match(inspector, /data-active-collaboration-claimed="false"/);
   assert.match(inspector, /Roster identity is not physical presence/);
 });
 
-test("Mission Room UI exposes governed conversation lifecycle without inventing dialogue or presence", () => {
-  assert.match(missionRoom, /Rostered Mission participants/);
+test("Mission Room UI exposes topology and governed coordination without inventing dialogue, teamwork or presence", () => {
+  assert.match(missionRoom, /Mission topology participants/);
+  assert.match(missionRoom, /Topology membership only/);
   assert.match(missionRoom, /Canonical links/);
+  assert.match(missionRoom, /Governed Mission coordination/);
   assert.match(missionRoom, /Governed conversations/);
-  assert.match(missionRoom, /conversation lifecycle is not live dialogue or physical presence/);
+  assert.match(missionRoom, /governed coordination evidence is not live teamwork or physical presence/);
+  assert.match(missionRoom, /data-active-collaboration-claimed="false"/);
   assert.match(missionRoom, /data-live-speech-claimed="false"/);
   assert.match(missionRoom, /data-transcript-claimed="false"/);
   assert.match(missionRoom, /Authority effect: none · transcript not persisted/);
@@ -60,8 +64,10 @@ test("Mission selection is view-only and drives the inspector workspace", () => 
   assert.match(workspace, /V2EmployeeInspector/);
 });
 
-test("Mission Room data hook reads the governed Living Organization scene", () => {
+test("Mission Room data hook reads Mission topology and the governed Living Organization scene", () => {
   assert.match(hook, /getLatestAustriaLivingScene/);
+  assert.match(hook, /deterministic\.missions/);
+  assert.match(hook, /coverage\.missions/);
   assert.match(hook, /buildV2MissionRoomModel/);
   assert.match(hook, /buildV2EmployeeInspectorModel/);
   assert.doesNotMatch(hook, /POST|PUT|PATCH|DELETE/);

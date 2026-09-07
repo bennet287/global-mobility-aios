@@ -61,10 +61,12 @@ export function V2EmployeeInspector({
     <aside
       className="aios-v2-employee-inspector"
       aria-labelledby="aios-v2-employee-inspector-title"
+      data-active-collaboration-claimed="false"
       data-blocker-details-claimed={model.blockerCoverageSupported ? "true" : "false"}
       data-blocker-resolution-claimed="false"
       data-causal-block-claimed="false"
       data-conversation-lifecycle-claimed={model.conversationCoverageSupported ? "true" : "false"}
+      data-governed-mission-coordination-claimed={model.collaborationCoverageSupported ? "true" : "false"}
       data-live-speech-claimed="false"
       data-locomotion-claimed="false"
       data-mutations-allowed={String(model.mutationsAllowed)}
@@ -105,11 +107,44 @@ export function V2EmployeeInspector({
 
       <section className="aios-v2-inspector-links" aria-label="Linked canonical records">
         <div><span>Missions</span><strong>{model.activeMissionKeys.length}</strong></div>
+        <div><span>Coordination</span><strong>{model.collaborationCoverageSupported ? model.collaborations.length : "Unavailable"}</strong></div>
         <div><span>Blockers</span><strong>{model.blockerCoverageSupported ? model.blockerIds.length : "Unavailable"}</strong></div>
         <div><span>Conversations</span><strong>{model.conversationCoverageSupported ? model.conversations.length : "Unavailable"}</strong></div>
         <div><span>Decisions</span><strong>{model.decisionIds.length}</strong></div>
         <div><span>Handoffs</span><strong>{model.handoffActivityIds.length}</strong></div>
       </section>
+
+      {model.collaborationCoverageSupported ? (
+        model.collaborations.length ? (
+          <section
+            aria-label="Governed Mission coordination evidence"
+            className="aios-v2-inspector-missions"
+            data-active-collaboration-claimed="false"
+            data-canonical-mission-coordination="true"
+            data-physical-presence-claimed="false"
+          >
+            <span>Governed Mission coordination</span>
+            <ul>
+              {model.collaborations.map((item) => (
+                <li data-conversation-id={item.conversationId} data-mission-key={item.missionKey} key={`${item.missionKey}:${item.conversationId}`}>
+                  <strong>{item.missionTitle}</strong>
+                  <small>{item.summary}</small>
+                  <small>{item.conversationStatus} · WorkItem {item.workItemId}</small>
+                  <small>Exact coordination participants: {item.participants.map((participant) => participant.title).join(" · ")}</small>
+                  <small>Mission topology scopes the work · canonical conversation WorkItem link supplies coordination evidence{utcLabel(item.lifecycleAt) ? ` · lifecycle ${utcLabel(item.lifecycleAt)}` : ""}</small>
+                </li>
+              ))}
+            </ul>
+            <small>Governed coordination evidence does not establish active teamwork, live speech, co-location, physical presence, completion, or an authority outcome.</small>
+          </section>
+        ) : (
+          <div className="aios-v2-empty-line" role="status">No governed Mission coordination evidence is linked to this employee under established Mission and conversation coverage.</div>
+        )
+      ) : (
+        <div className="aios-v2-source-warning" data-mission-coverage={model.missionCoverageState} role="status">
+          <div><strong>Mission coordination evidence unavailable.</strong><span>Mission coverage: {model.missionCoverageState} · conversation coverage: {model.conversationCoverageState}. AIOS will not infer collaboration from Mission membership, shared WorkItems or room placement.</span></div>
+        </div>
+      )}
 
       {model.blockerCoverageSupported ? (
         model.blockers.length ? (
@@ -160,7 +195,7 @@ export function V2EmployeeInspector({
                 </li>
               ))}
             </ul>
-            <small>Conversation lifecycle is canonical collaboration evidence only. It does not establish live speech, co-location, a persisted transcript, or an authority outcome.</small>
+            <small>Conversation lifecycle is canonical communication evidence only. It does not establish live speech, co-location, a persisted transcript, or an authority outcome.</small>
           </section>
         ) : (
           <div className="aios-v2-empty-line" role="status">No governed conversation lifecycle is linked to this employee under established conversation coverage.</div>
@@ -173,8 +208,9 @@ export function V2EmployeeInspector({
 
       {model.activeMissionKeys.length ? (
         <div className="aios-v2-inspector-missions">
-          <span>Mission membership</span>
+          <span>Mission topology membership</span>
           <ul>{model.activeMissionKeys.map((missionKey) => <li key={missionKey}>{missionKey}</li>)}</ul>
+          <small>Mission membership scopes the projection only; it is not itself collaboration evidence.</small>
         </div>
       ) : null}
 
@@ -182,6 +218,9 @@ export function V2EmployeeInspector({
       <V2ProvenanceDisclosure title="Presentation truth">
         <footer className="aios-v2-inspector-truth">
           <strong>Roster identity is not physical presence.</strong>
+          <span>Mission membership alone claims collaboration: no</span>
+          <span>Governed coordination evidence claimed: {model.collaborationCoverageSupported ? "supported records only" : "unavailable"}</span>
+          <span>Active collaboration claimed: no</span>
           <span>Presence claimed: no</span>
           <span>Locomotion claimed: no</span>
           <span>Live speech claimed: no</span>

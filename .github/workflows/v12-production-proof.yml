@@ -249,6 +249,7 @@ jobs:
           tests/aios-v2-work-state-character.spec.ts
           tests/aios-v2-blocker-detail.spec.ts
           tests/aios-v2-governed-conversation.spec.ts
+          tests/aios-v2-mission-collaboration.spec.ts
           --project=chromium
 
       - name: Upload browser failure diagnostics
@@ -289,6 +290,14 @@ jobs:
         with:
           name: phase7d-governed-conversation-review
           path: apps/web/e2e/phase7d-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Phase 7E Mission collaboration review
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7e-mission-collaboration-review
+          path: apps/web/e2e/phase7e-artifacts
           if-no-files-found: error
           retention-days: 7
 
