@@ -10,6 +10,11 @@ import {
   V2_CANONICAL_BLOCKER_COVERAGE,
   selectV2CanonicalBlockersForPosition,
 } from "./visible-blocker";
+import {
+  buildV2VisibleConversations,
+  visibleConversationsForPosition,
+  type V2VisibleConversationItem,
+} from "./visible-conversation";
 
 export type V2MissionRoomParticipant = {
   positionKey: string;
@@ -30,6 +35,9 @@ export type V2MissionRoomModel = {
   blockers: LivingSceneBlocker[];
   blockerCoverageSupported: boolean;
   blockerCoverageState: string;
+  conversations: readonly V2VisibleConversationItem[];
+  conversationCoverageSupported: boolean;
+  conversationCoverageState: string;
   decisions: LivingSceneDecision[];
   handoffs: LivingSceneHandoff[];
   canonicalProjection: boolean;
@@ -48,6 +56,9 @@ export type V2EmployeeInspectorModel = {
   blockerIds: string[];
   blockerCoverageSupported: boolean;
   blockerCoverageState: string;
+  conversations: readonly V2VisibleConversationItem[];
+  conversationCoverageSupported: boolean;
+  conversationCoverageState: string;
   decisionIds: string[];
   handoffActivityIds: string[];
   presenceClaimed: false;
@@ -85,11 +96,21 @@ function blockerCoverage(scene: LivingOrganizationScene) {
   } as const;
 }
 
+function conversationProjection(scene: LivingOrganizationScene) {
+  return buildV2VisibleConversations({
+    conversations: scene.deterministic.conversations,
+    employees: scene.deterministic.employees,
+    workItems: scene.deterministic.work_items,
+    coverageState: scene.coverage.conversations,
+  });
+}
+
 export function buildV2MissionRoomModel(
   scene: LivingOrganizationScene,
   missionKey: string,
 ): V2MissionRoomModel {
   const blockerTruth = blockerCoverage(scene);
+  const conversationTruth = conversationProjection(scene);
   const mission = scene.deterministic.missions.find((item) => item.mission_key === missionKey) || null;
 
   if (!mission) {
@@ -100,6 +121,9 @@ export function buildV2MissionRoomModel(
       blockers: [],
       blockerCoverageSupported: blockerTruth.supported,
       blockerCoverageState: blockerTruth.state,
+      conversations: [],
+      conversationCoverageSupported: conversationTruth.supported,
+      conversationCoverageState: conversationTruth.coverageState,
       decisions: [],
       handoffs: [],
       canonicalProjection: scene.deterministic.canonical_projection,
@@ -113,6 +137,9 @@ export function buildV2MissionRoomModel(
 
   const workIds = new Set(mission.work_item_ids);
   const participantKeys = new Set(mission.participant_position_keys);
+  const conversations = conversationTruth.supported
+    ? conversationTruth.items.filter((conversation) => workIds.has(conversation.workItemId))
+    : [];
 
   return {
     established: true,
@@ -127,6 +154,9 @@ export function buildV2MissionRoomModel(
       : [],
     blockerCoverageSupported: blockerTruth.supported,
     blockerCoverageState: blockerTruth.state,
+    conversations,
+    conversationCoverageSupported: conversationTruth.supported,
+    conversationCoverageState: conversationTruth.coverageState,
     decisions: scene.deterministic.decisions.filter(
       (decision) => decision.work_item_id !== null && workIds.has(decision.work_item_id),
     ),
@@ -137,7 +167,7 @@ export function buildV2MissionRoomModel(
     mutationsAllowed: scene.truth.scene_mutations_allowed,
     canonicalAuthority: scene.truth.canonical_authority,
     limitation:
-      "Mission Room content is a read-only projection of canonical Living Organization entities. Participant inclusion is not a physical-presence claim.",
+      "Mission Room content is a read-only projection of canonical Living Organization entities. Conversation participation and Mission participation are not physical-presence or live-speech claims.",
   };
 }
 
@@ -146,6 +176,7 @@ export function buildV2EmployeeInspectorModel(
   positionKey: string,
 ): V2EmployeeInspectorModel {
   const blockerTruth = blockerCoverage(scene);
+  const conversationTruth = conversationProjection(scene);
   const employee = scene.deterministic.employees.find((item) => item.position_key === positionKey) || null;
 
   if (!employee) {
@@ -157,6 +188,9 @@ export function buildV2EmployeeInspectorModel(
       blockerIds: [],
       blockerCoverageSupported: blockerTruth.supported,
       blockerCoverageState: blockerTruth.state,
+      conversations: [],
+      conversationCoverageSupported: conversationTruth.supported,
+      conversationCoverageState: conversationTruth.coverageState,
       decisionIds: [],
       handoffActivityIds: [],
       presenceClaimed: false,
@@ -171,9 +205,6 @@ export function buildV2EmployeeInspectorModel(
     .filter((mission) => mission.participant_position_keys.includes(positionKey))
     .map((mission) => mission.mission_key);
 
-  // Consume the exact same fail-closed relation selector as the HQ blocker
-  // marker. WorkItem-only records remain unassigned when ownership is
-  // ambiguous across the roster.
   const blockerSelection = selectV2CanonicalBlockersForPosition({
     blockers: scene.deterministic.blockers,
     employees: scene.deterministic.employees,
@@ -182,6 +213,7 @@ export function buildV2EmployeeInspectorModel(
   });
   const blockers = [...blockerSelection.blockers];
   const blockerIds = [...blockerSelection.blockerIds];
+  const conversations = visibleConversationsForPosition(conversationTruth, positionKey);
 
   const decisionIds = scene.deterministic.decisions
     .filter(
@@ -207,6 +239,9 @@ export function buildV2EmployeeInspectorModel(
     blockerIds,
     blockerCoverageSupported: blockerSelection.supported,
     blockerCoverageState: blockerSelection.coverageState,
+    conversations,
+    conversationCoverageSupported: conversationTruth.supported,
+    conversationCoverageState: conversationTruth.coverageState,
     decisionIds,
     handoffActivityIds,
     presenceClaimed: false,
@@ -214,6 +249,6 @@ export function buildV2EmployeeInspectorModel(
     canonicalProjection: scene.deterministic.canonical_projection,
     mutationsAllowed: scene.truth.scene_mutations_allowed,
     limitation:
-      "Employee Inspector is read-only. Roster identity and semantic state do not assert physical presence or locomotion.",
+      "Employee Inspector is read-only. Roster identity, semantic state and governed conversation participation do not assert physical presence, locomotion or live speech.",
   };
 }

@@ -23,13 +23,13 @@ export function V2MissionRoomPanel({
 }) {
   return (
     <section className="aios-v2-mission-room" aria-labelledby="aios-v2-mission-room-title">
-      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · no inferred conversation or presence" />
+      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · conversation lifecycle is not live dialogue or physical presence" />
 
       {loading ? (
         <V2DataState state={{ kind: "loading", label: "Loading Mission Room projection…" }} />
       ) : !model ? (
         <div className="aios-v2-empty-line" role="status">
-          Select a canonical Mission above to inspect its supported participants, blockers, decisions and handoffs.
+          Select a canonical Mission above to inspect its supported participants, blockers, governed conversations, decisions and handoffs.
         </div>
       ) : !model.established || !model.mission ? (
         <div className="aios-v2-empty-line" role="status">{model.limitation}</div>
@@ -47,6 +47,10 @@ export function V2MissionRoomPanel({
             <div>
               <span>Blockers</span>
               <strong>{model.blockerCoverageSupported ? model.blockers.length : "Unavailable"}</strong>
+            </div>
+            <div>
+              <span>Conversations</span>
+              <strong>{model.conversationCoverageSupported ? model.conversations.length : "Unavailable"}</strong>
             </div>
             <div>
               <span>Decisions</span>
@@ -101,52 +105,64 @@ export function V2MissionRoomPanel({
                 <strong id="aios-v2-room-signals-title">Canonical links</strong>
               </header>
 
-              <div
-                className="aios-v2-room-signal-group"
-                data-blocker-coverage={model.blockerCoverageState}
-              >
+              <div className="aios-v2-room-signal-group" data-blocker-coverage={model.blockerCoverageState}>
                 <span>Blockers</span>
                 {!model.blockerCoverageSupported ? (
-                  <p>
-                    Blocker coverage unavailable · {model.blockerCoverageState}. AIOS will not present an empty blocker list as canonical zero.
-                  </p>
+                  <p>Blocker coverage unavailable · {model.blockerCoverageState}. AIOS will not present an empty blocker list as canonical zero.</p>
                 ) : model.blockers.length ? (
+                  <ul>{model.blockers.map((blocker) => (
+                    <li key={blocker.blocker_id}>
+                      <strong>{blocker.title}</strong>
+                      <small>{blocker.severity} · {blocker.blocker_type} · {blocker.status}</small>
+                    </li>
+                  ))}</ul>
+                ) : <p>No linked blockers under established canonical blocker coverage.</p>}
+              </div>
+
+              <div
+                className="aios-v2-room-signal-group"
+                data-conversation-coverage={model.conversationCoverageState}
+                data-live-speech-claimed="false"
+                data-transcript-claimed="false"
+              >
+                <span>Governed conversations</span>
+                {!model.conversationCoverageSupported ? (
+                  <p>Conversation lifecycle unavailable · {model.conversationCoverageState}. AIOS will not infer dialogue or participation from unrelated activity.</p>
+                ) : model.conversations.length ? (
                   <ul>
-                    {model.blockers.map((blocker) => (
-                      <li key={blocker.blocker_id}>
-                        <strong>{blocker.title}</strong>
-                        <small>{blocker.severity} · {blocker.blocker_type} · {blocker.status}</small>
+                    {model.conversations.map((conversation) => (
+                      <li data-conversation-id={conversation.conversationId} key={conversation.conversationId}>
+                        <strong>{conversation.summary}</strong>
+                        <small>{conversation.status} · WorkItem {conversation.workItemId}</small>
+                        <small>Participants: {conversation.participants.map((participant) => participant.title).join(" · ")}</small>
+                        <small>Authority effect: none · transcript not persisted · lifecycle {timestamp(conversation.lifecycleAt)}</small>
                       </li>
                     ))}
                   </ul>
-                ) : <p>No linked blockers under established canonical blocker coverage.</p>}
+                ) : <p>No governed conversation lifecycle is linked to this Mission.</p>}
               </div>
 
               <div className="aios-v2-room-signal-group">
                 <span>Decisions</span>
                 {model.decisions.length ? (
-                  <ul>
-                    {model.decisions.map((decision) => (
-                      <li key={decision.decision_id}>
-                        <strong>{decision.title}</strong>
-                        <small>{decision.authority_level} · {decision.status}</small>
-                      </li>
-                    ))}
-                  </ul>
+                  <ul>{model.decisions.map((decision) => (
+                    <li key={decision.decision_id}>
+                      <strong>{decision.title}</strong>
+                      <small>{decision.authority_level} · {decision.status}</small>
+                    </li>
+                  ))}</ul>
                 ) : <p>No linked decisions.</p>}
               </div>
 
               <div className="aios-v2-room-signal-group">
                 <span>Handoffs</span>
                 {model.handoffs.length ? (
-                  <ul>
-                    {model.handoffs.slice(0, 6).map((handoff) => (
-                      <li key={handoff.activity_id}>
-                        <strong>{handoff.previous_position_key} → {handoff.assigned_position_key}</strong>
-                        <small>{handoff.status} · {timestamp(handoff.occurred_at)}</small>
-                      </li>
-                    ))}
-                  </ul>
+                  <ul>{model.handoffs.slice(0, 6).map((handoff) => (
+                    <li key={handoff.activity_id}>
+                      <strong>{handoff.previous_position_key} → {handoff.assigned_position_key}</strong>
+                      <small>{handoff.status} · {timestamp(handoff.occurred_at)}</small>
+                    </li>
+                  ))}</ul>
                 ) : <p>No linked handoff events.</p>}
               </div>
             </section>
@@ -157,6 +173,9 @@ export function V2MissionRoomPanel({
             <span>Scene authority: {model.sceneAuthoritative ? "authoritative" : "non-authoritative"}</span>
             <span>Renderer authority: {model.rendererAuthoritative ? "authoritative" : "none"}</span>
             <span>Blocker coverage: {model.blockerCoverageState}</span>
+            <span>Conversation coverage: {model.conversationCoverageState}</span>
+            <span>Live speech claimed: no</span>
+            <span>Transcript claimed: no</span>
             <span>Mutation: {model.mutationsAllowed ? "allowed" : "disabled"}</span>
           </footer>
         </>
