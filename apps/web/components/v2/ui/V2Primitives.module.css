@@ -53,4 +53,75 @@ a.evidenceChip { min-height: 44px; }
 .evidenceChip span { color: var(--aios-v2-color-text-muted); }
 :is(.row,.control,.evidenceChip,.disclosure summary):focus-visible, .actions :is(button,a):focus-visible { outline: 2px solid var(--aios-v2-color-accent); outline-offset: 3px; }
 @media (max-width: 600px) { .row { flex-wrap: wrap; } .trailing { max-width: 100%; } .leading { flex-basis: 100%; } .surface,.inspector { padding: 16px; } .pageHeader { padding-block: 24px; } .metricGroup { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Q11 — shared primitives reprioritize rather than miniaturize. */
+@media (max-width: 760px) {
+  .pageHeader {
+    padding-block: 28px;
+  }
+
+  .pageHeader h1 {
+    font-size: clamp(2rem, 8vw, var(--aios-v2-type-xl));
+  }
+
+  .pageHeader,
+  .sectionHeader {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 520px) {
+  .surface,
+  .inspector {
+    padding: 14px;
+  }
+
+  .pageHeader,
+  .sectionHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pageHeader {
+    padding-block: 22px;
+  }
+
+  .pageHeader > .actions,
+  .sectionHeader > .actions {
+    width: 100%;
+  }
+
+  .actions :is(button,a) {
+    flex: 1 1 140px;
+  }
+
+  .metricGroup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metric,
+  .row,
+  .dataState {
+    padding: 14px;
+  }
+
+  .trailing {
+    width: 100%;
+  }
+
+  .disclosure > div {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .surface,
+  .inspector,
+  .metric,
+  .row,
+  .dataState {
+    padding-inline: 12px;
+  }
+}
+
 @media (forced-colors: active) { .row[aria-pressed="true"] { outline: 2px solid Highlight; } .badge,.truth,.authority { border-color: CanvasText; } }

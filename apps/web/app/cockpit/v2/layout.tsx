@@ -3,6 +3,7 @@ import "../../../styles/v2/themes.css";
 import "../../../styles/v2/motion.css";
 import "../../../styles/v2/foundation.css";
 import "../../../styles/v2/command-search.css";
+import "../../../styles/v2/responsive.css";
 
 import { V2NavigationContext } from "../../../components/v2/V2NavigationContext";
 
