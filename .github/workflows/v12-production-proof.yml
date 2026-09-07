@@ -233,7 +233,7 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
 
-      - name: Run Living Organization and V2 hardening browser proof
+      - name: Run Living Organization, V2 hardening and Q15 visual proof
         working-directory: apps/web/e2e
         run: >-
           npx playwright test
@@ -242,4 +242,5 @@ jobs:
           tests/aios-v2-accessibility.spec.ts
           tests/aios-v2-structured-fallback.spec.ts
           tests/aios-v2-zoom-contrast.spec.ts
+          tests/aios-v2-visual-regression.spec.ts
           --project=chromium
