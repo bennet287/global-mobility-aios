@@ -43,16 +43,20 @@ test("Situation summary derives only from existing Owner organization data", () 
   assert.match(situationModel, /data\.organization\.employeeRosterCount/);
   assert.match(situationModel, /zone\.activeBlockerCount/);
   assert.match(situationModel, /data\.recentChanges/);
+  assert.match(situationModel, /deriveV2OwnerSourceCoverage/);
+  assert.match(situationModel, /buildV2CountTruth/);
   assert.doesNotMatch(situationModel, /Math\.random|Date\.now|fetch\(|localStorage|sessionStorage/);
 });
 
-test("Situation Room keeps source coverage and zero-state language explicit", () => {
+test("Situation Room distinguishes available zero from incomplete or unavailable coverage", () => {
   assert.match(situationRoom, /Partial source coverage/);
   assert.match(situationRoom, /will not infer missing records/);
-  assert.match(situationRoom, /governed signals returned/);
-  assert.match(situationRoom, /Mission records with linked blockers/);
-  assert.match(situationRoom, /No Mission projection is established/);
-  assert.match(situationRoom, /No Activity records were returned/);
+  assert.match(situationRoom, /Unknown values are not rendered as numeric zero/);
+  assert.match(situationRoom, /No zero-Mission conclusion is made/);
+  assert.match(situationRoom, /No zero-Activity conclusion is made/);
+  assert.match(situationRoom, /established Living Organization projection returned zero Missions/);
+  assert.match(situationRoom, /available bounded Activity read returned zero recent records/);
+  assert.doesNotMatch(situationRoom, /summary\?\.[A-Za-z]+\s*\?\?\s*0/);
 });
 
 test("Situation Room preserves presentation-only truth boundaries", () => {
@@ -72,7 +76,8 @@ test("Q3 layout remains bounded and responsive", () => {
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
-test("Q3 and Q2 tests both remain wired into the design-foundation gate", () => {
+test("Q3, Q2 and Q16 truth-state tests remain wired into the design-foundation gate", () => {
   assert.match(packageJson, /scripts\/aios-v2-owner-situation-room\.test\.mjs/);
   assert.match(packageJson, /scripts\/aios-v2-command-search\.test\.mjs/);
+  assert.match(packageJson, /scripts\/aios-v2-truth-state-hardening\.test\.mjs/);
 });

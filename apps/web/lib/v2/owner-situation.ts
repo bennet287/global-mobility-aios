@@ -1,21 +1,26 @@
 import type { V2OwnerOrganizationData } from "./owner-organization";
+import {
+  buildV2CountTruth,
+  deriveV2OwnerSourceCoverage,
+  type V2CountTruth,
+} from "./truth-state.ts";
 
 export type V2OwnerSituationSummary = {
-  readonly attentionTotal: number;
-  readonly authorityAttentionCount: number;
-  readonly criticalAttentionCount: number;
-  readonly decisionAttentionCount: number;
-  readonly humanActionAttentionCount: number;
-  readonly blockerAttentionCount: number;
-  readonly riskAttentionCount: number;
-  readonly missionCount: number;
-  readonly blockedMissionCount: number;
-  readonly missionWithoutLinkedBlockerCount: number;
-  readonly decisionLinkedMissionCount: number;
-  readonly departmentCount: number;
-  readonly rosteredEmployeeCount: number;
-  readonly organizationActiveBlockerCount: number;
-  readonly recentChangeCount: number;
+  readonly attentionTotal: V2CountTruth;
+  readonly authorityAttentionCount: V2CountTruth;
+  readonly criticalAttentionCount: V2CountTruth;
+  readonly decisionAttentionCount: V2CountTruth;
+  readonly humanActionAttentionCount: V2CountTruth;
+  readonly blockerAttentionCount: V2CountTruth;
+  readonly riskAttentionCount: V2CountTruth;
+  readonly missionCount: V2CountTruth;
+  readonly blockedMissionCount: V2CountTruth;
+  readonly missionWithoutLinkedBlockerCount: V2CountTruth;
+  readonly decisionLinkedMissionCount: V2CountTruth;
+  readonly departmentCount: V2CountTruth;
+  readonly rosteredEmployeeCount: V2CountTruth;
+  readonly organizationActiveBlockerCount: V2CountTruth;
+  readonly recentChangeCount: V2CountTruth;
   readonly latestChangeAt: string | null;
   readonly partial: boolean;
   readonly unavailableSourceCount: number;
@@ -33,26 +38,62 @@ export function buildV2OwnerSituationSummary(
     if (!latest || change.occurredAt > latest) return change.occurredAt;
     return latest;
   }, null);
+  const coverage = deriveV2OwnerSourceCoverage(data);
+  const attentionSources = ["board", "humanActions", "blockers"] as const;
+  const organizationSources = ["livingOrganization"] as const;
 
   return Object.freeze({
-    attentionTotal: attention.length,
-    authorityAttentionCount: attention.filter((item) => item.urgency === "authority").length,
-    criticalAttentionCount: attention.filter((item) => item.urgency === "critical").length,
-    decisionAttentionCount: attention.filter((item) => item.kind === "decision").length,
-    humanActionAttentionCount: attention.filter((item) => item.kind === "human_action").length,
-    blockerAttentionCount: attention.filter((item) => item.kind === "blocker").length,
-    riskAttentionCount: attention.filter((item) => item.kind === "risk").length,
-    missionCount: missions.length,
-    blockedMissionCount,
-    missionWithoutLinkedBlockerCount: missions.length - blockedMissionCount,
-    decisionLinkedMissionCount: missions.filter((mission) => mission.decisionCount > 0).length,
-    departmentCount: data.organization.departmentCount,
-    rosteredEmployeeCount: data.organization.employeeRosterCount,
-    organizationActiveBlockerCount: data.organization.zones.reduce(
-      (total, zone) => total + zone.activeBlockerCount,
-      0,
+    attentionTotal: buildV2CountTruth(attention.length, coverage, attentionSources),
+    authorityAttentionCount: buildV2CountTruth(
+      attention.filter((item) => item.urgency === "authority").length,
+      coverage,
+      ["board"],
     ),
-    recentChangeCount: data.recentChanges.length,
+    criticalAttentionCount: buildV2CountTruth(
+      attention.filter((item) => item.urgency === "critical").length,
+      coverage,
+      attentionSources,
+    ),
+    decisionAttentionCount: buildV2CountTruth(
+      attention.filter((item) => item.kind === "decision").length,
+      coverage,
+      ["board"],
+    ),
+    humanActionAttentionCount: buildV2CountTruth(
+      attention.filter((item) => item.kind === "human_action").length,
+      coverage,
+      ["humanActions"],
+    ),
+    blockerAttentionCount: buildV2CountTruth(
+      attention.filter((item) => item.kind === "blocker").length,
+      coverage,
+      ["blockers"],
+    ),
+    riskAttentionCount: buildV2CountTruth(
+      attention.filter((item) => item.kind === "risk").length,
+      coverage,
+      ["board"],
+    ),
+    missionCount: buildV2CountTruth(missions.length, coverage, organizationSources),
+    blockedMissionCount: buildV2CountTruth(blockedMissionCount, coverage, organizationSources),
+    missionWithoutLinkedBlockerCount: buildV2CountTruth(
+      missions.length - blockedMissionCount,
+      coverage,
+      organizationSources,
+    ),
+    decisionLinkedMissionCount: buildV2CountTruth(
+      missions.filter((mission) => mission.decisionCount > 0).length,
+      coverage,
+      organizationSources,
+    ),
+    departmentCount: buildV2CountTruth(data.organization.departmentCount, coverage, organizationSources),
+    rosteredEmployeeCount: buildV2CountTruth(data.organization.employeeRosterCount, coverage, organizationSources),
+    organizationActiveBlockerCount: buildV2CountTruth(
+      data.organization.zones.reduce((total, zone) => total + zone.activeBlockerCount, 0),
+      coverage,
+      organizationSources,
+    ),
+    recentChangeCount: buildV2CountTruth(data.recentChanges.length, coverage, ["activity"]),
     latestChangeAt,
     partial: data.partial,
     unavailableSourceCount: data.unavailableSources.length,

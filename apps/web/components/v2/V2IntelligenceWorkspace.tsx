@@ -11,6 +11,10 @@ import {
   buildV2IntelligenceModel,
   selectRecentChange,
 } from "../../lib/v2/evidence-intelligence";
+import {
+  describeV2CountTruth,
+  formatV2CountTruth,
+} from "../../lib/v2/truth-state";
 import { useV2SearchItems } from "./V2NavigationContext";
 import { V2Shell } from "./V2Shell";
 import {
@@ -63,8 +67,8 @@ export function V2IntelligenceWorkspace() {
     requestAnimationFrame(() => selectionOrigin.current?.focus());
   }
 
-  const activityUnavailable = owner.data?.unavailableSources.includes("Activity") === true;
   const memory = model.memory;
+  const current = model.current;
 
   return (
     <V2Shell activeItem="Intelligence" backendOnline={health?.status === "ok"}>
@@ -81,15 +85,31 @@ export function V2IntelligenceWorkspace() {
         {owner.data && owner.error ? <V2DataState state={{ kind: "stale", label: "Current signal refresh failed", detail: owner.error, lastLoadedAt: owner.data.loadedAt, onRetry: () => void owner.refresh() }} /> : null}
         {owner.data?.partial ? <V2DataState state={{ kind: "partial", label: "Partial current-source coverage", unavailableSources: owner.data.unavailableSources }} /> : null}
 
-        {model.current ? (
+        {current ? (
           <>
             <V2MetricGroup
               label="Current intelligence readout"
               items={[
-                { label: "Attention records", value: model.current.attentionCount, hint: "Governed records returned" },
-                { label: "Projected Missions", value: model.current.missionCount },
-                { label: "Department blocker entries", value: model.current.departmentBlockerCount },
-                { label: "Recent Activity records", value: model.current.recentActivityCount },
+                {
+                  label: "Attention records",
+                  value: formatV2CountTruth(current.attentionCount),
+                  hint: describeV2CountTruth(current.attentionCount, "governed attention records"),
+                },
+                {
+                  label: "Projected Missions",
+                  value: formatV2CountTruth(current.missionCount),
+                  hint: describeV2CountTruth(current.missionCount, "projected Missions"),
+                },
+                {
+                  label: "Department blocker entries",
+                  value: formatV2CountTruth(current.departmentBlockerCount),
+                  hint: describeV2CountTruth(current.departmentBlockerCount, "department blocker entries"),
+                },
+                {
+                  label: "Recent Activity records",
+                  value: formatV2CountTruth(current.recentActivityCount),
+                  hint: describeV2CountTruth(current.recentActivityCount, "recent Activity records"),
+                },
               ]}
             />
 
@@ -108,16 +128,24 @@ export function V2IntelligenceWorkspace() {
                     description={item.detail}
                     trailing={<V2StateBadge label={item.kind} />}
                   />
-                )) : <V2DataState state={{ kind: "empty", label: "No Owner-attention records returned", detail: "This bounded read returned no attention records; it is not a global claim that no work needs attention." }} />}
+                )) : current.attentionCount.state === "known" ? (
+                  <V2DataState state={{ kind: "empty", label: "No Owner-attention records returned", detail: "All required attention sources were available and the bounded read returned zero matching records; this is not a global claim that no work needs attention." }} />
+                ) : current.attentionCount.state === "partial" ? (
+                  <V2DataState state={{ kind: "partial", label: "Owner-attention coverage incomplete", unavailableSources: current.attentionCount.affectedSources }} />
+                ) : (
+                  <V2DataState state={{ kind: "unavailable", label: "Owner-attention count unavailable", detail: describeV2CountTruth(current.attentionCount, "Owner-attention records") }} />
+                )}
 
                 <V2SectionHeader
                   eyebrow="Recent canonical Activity"
                   title="Significant change"
                   description="Activity rows are selectable for inspection; selection does not act on the underlying record."
                 />
-                {activityUnavailable ? <V2DataState state={{ kind: "unavailable", label: "Activity source unavailable", detail: "The governed Owner read could not retrieve Activity. No empty Activity conclusion is made." }} /> : model.current.recentChanges.length ? (
+                {current.recentActivityCount.state !== "known" ? (
+                  <V2DataState state={{ kind: "unavailable", label: "Activity source unavailable", detail: "The governed Owner read could not retrieve Activity. No empty Activity conclusion is made." }} />
+                ) : current.recentChanges.length ? (
                   <div className={styles.list}>
-                    {model.current.recentChanges.map((change) => (
+                    {current.recentChanges.map((change) => (
                       <V2TimelineRow
                         key={change.id}
                         title={change.title}
@@ -129,7 +157,7 @@ export function V2IntelligenceWorkspace() {
                       />
                     ))}
                   </div>
-                ) : <V2DataState state={{ kind: "empty", label: "No recent Activity records returned", detail: "The available Activity read returned no recent records within its bounded page." }} />}
+                ) : <V2DataState state={{ kind: "empty", label: "No recent Activity records returned", detail: "The available Activity read returned zero recent records within its bounded page." }} />}
               </V2Surface>
 
               <div className={styles.inspectorSlot} ref={inspectorTarget} tabIndex={-1}>

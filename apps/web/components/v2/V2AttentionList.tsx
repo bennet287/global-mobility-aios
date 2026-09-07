@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { V2AttentionItem } from "../../lib/v2/owner-organization";
+import type { V2CountTruth } from "../../lib/v2/truth-state";
 
 function attentionLabel(kind: V2AttentionItem["kind"]): string {
   if (kind === "decision") return "Decision";
@@ -12,9 +13,11 @@ function attentionLabel(kind: V2AttentionItem["kind"]): string {
 export function V2AttentionList({
   items,
   loading,
+  countTruth,
 }: {
   items: V2AttentionItem[];
   loading: boolean;
+  countTruth: V2CountTruth | null;
 }) {
   if (loading) {
     return (
@@ -25,11 +28,24 @@ export function V2AttentionList({
     );
   }
 
+  if (!items.length && countTruth?.state !== "known") {
+    return (
+      <div className="aios-v2-attention-empty" role="status">
+        <strong>Attention coverage is incomplete.</strong>
+        <p>
+          {countTruth?.state === "not_established"
+            ? "Required attention sources are not established."
+            : `No complete zero-attention conclusion is available${countTruth?.affectedSources.length ? ` because ${countTruth.affectedSources.join(", ")} could not fully contribute` : ""}.`}
+        </p>
+      </div>
+    );
+  }
+
   if (!items.length) {
     return (
       <div className="aios-v2-attention-empty" role="status">
         <strong>No current attention item was returned.</strong>
-        <p>This is a canonical zero state from the connected sources, not a placeholder success claim.</p>
+        <p>This is a canonical zero state from the available governed sources, not a placeholder success claim.</p>
       </div>
     );
   }

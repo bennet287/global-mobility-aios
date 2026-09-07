@@ -6,6 +6,11 @@ import type {
   V2OwnerOrganizationData,
   V2RecentChange,
 } from "./owner-organization";
+import {
+  buildV2CountTruth,
+  deriveV2OwnerSourceCoverage,
+  type V2CountTruth,
+} from "./truth-state.ts";
 
 export type V2EvidenceReferenceKind = "domain_evidence" | "verified_rule" | "source_snapshot";
 
@@ -114,10 +119,10 @@ export type V2IntelligenceModel = {
     loadedAt: string;
     partial: boolean;
     unavailableSources: string[];
-    attentionCount: number;
-    missionCount: number;
-    departmentBlockerCount: number;
-    recentActivityCount: number;
+    attentionCount: V2CountTruth;
+    missionCount: V2CountTruth;
+    departmentBlockerCount: V2CountTruth;
+    recentActivityCount: V2CountTruth;
     recentChanges: V2RecentChange[];
   };
   memory: null | {
@@ -142,16 +147,23 @@ export function buildV2IntelligenceModel(
   owner: V2OwnerOrganizationData | null | undefined,
   memory: OrganizationEnvironmentalMemory | null | undefined,
 ): V2IntelligenceModel {
-  const current = owner ? {
-    loadedAt: owner.loadedAt,
-    partial: owner.partial,
-    unavailableSources: [...owner.unavailableSources],
-    attentionCount: owner.attention.length,
-    missionCount: owner.organization.missionCount,
-    departmentBlockerCount: owner.organization.zones.reduce((total, zone) => total + zone.activeBlockerCount, 0),
-    recentActivityCount: owner.recentChanges.length,
-    recentChanges: [...owner.recentChanges],
-  } : null;
+  const current = owner ? (() => {
+    const coverage = deriveV2OwnerSourceCoverage(owner);
+    return {
+      loadedAt: owner.loadedAt,
+      partial: owner.partial,
+      unavailableSources: [...owner.unavailableSources],
+      attentionCount: buildV2CountTruth(owner.attention.length, coverage, ["board", "humanActions", "blockers"]),
+      missionCount: buildV2CountTruth(owner.organization.missionCount, coverage, ["livingOrganization"]),
+      departmentBlockerCount: buildV2CountTruth(
+        owner.organization.zones.reduce((total, zone) => total + zone.activeBlockerCount, 0),
+        coverage,
+        ["livingOrganization"],
+      ),
+      recentActivityCount: buildV2CountTruth(owner.recentChanges.length, coverage, ["activity"]),
+      recentChanges: [...owner.recentChanges],
+    };
+  })() : null;
 
   const aggregateMemory = memory ? {
     generatedAt: memory.generated_at,
