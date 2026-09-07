@@ -37,6 +37,8 @@ export function useV2MissionRoomInspector() {
   }, [refresh]);
 
   const employees = useMemo(() => scene?.deterministic.employees || [], [scene]);
+  const handoffs = useMemo(() => scene?.deterministic.handoffs || [], [scene]);
+  const handoffCoverage = scene?.coverage.handoffs ?? "unavailable";
 
   const selectors = useMemo(() => {
     return {
@@ -54,6 +56,8 @@ export function useV2MissionRoomInspector() {
   return {
     sceneEstablished: scene !== null,
     employees,
+    handoffs,
+    handoffCoverage,
     loading,
     error,
     refresh,

@@ -18,7 +18,9 @@ import {
   type HqWingMetricInput,
   type HqWingVisualLayout,
 } from "../../lib/v2/hq-visual-presentation";
+import type { V2VisibleHandoffModel } from "../../lib/v2/visible-handoff";
 import { V2AmbientCharacterSurface } from "./V2AmbientCharacterSurface";
+import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
 import { V2CharacterArtPrototype } from "./V2CharacterArtPrototype";
 import { V2HqAtmosphereLayer } from "./V2HqAtmosphereLayer";
 import { V2WingFocusPanel } from "./V2WingFocusPanel";
@@ -34,6 +36,7 @@ export type V2LivingHqVisualStageProps = {
   readonly selectedPositionKey?: string | null;
   readonly characters?: readonly HqStageCharacter[];
   readonly wingMetrics?: readonly HqStageWingMetric[];
+  readonly handoff?: V2VisibleHandoffModel | null;
   readonly loading?: boolean;
   readonly sceneEstablished?: boolean;
   readonly onSelectWing?: (wingKey: HqWingKey) => void;
@@ -278,6 +281,7 @@ export function V2LivingHqVisualStage({
   selectedPositionKey = null,
   characters,
   wingMetrics,
+  handoff = null,
   loading = false,
   sceneEstablished = false,
   onSelectWing,
@@ -393,6 +397,12 @@ export function V2LivingHqVisualStage({
           </span>
         </div>
       </header>
+
+      <V2CanonicalHandoffSignal
+        model={handoff}
+        reducedMotion={reducedMotion}
+        variant="spatial"
+      />
 
       {focusedZone ? (
         <V2WingFocusPanel zone={focusedZone} missionCount={visibleMissionCount} />

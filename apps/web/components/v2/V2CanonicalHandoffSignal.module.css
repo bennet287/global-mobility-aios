@@ -1,0 +1,377 @@
+.signal {
+  display: grid;
+  gap: var(--aios-v2-space-3);
+  padding: var(--aios-v2-space-4);
+  border: 1px solid var(--aios-v2-color-border-strong);
+  border-radius: var(--aios-v2-radius-object);
+  color: var(--aios-v2-color-text);
+  background: var(--aios-v2-color-surface-inset);
+}
+
+.spatial {
+  border-color: color-mix(in srgb, var(--aios-v2-color-accent) 34%, transparent);
+  background:
+    radial-gradient(80% 180% at 50% -80%, var(--aios-v2-color-accent-soft), transparent 72%),
+    var(--aios-v2-color-surface-inset);
+}
+
+.structured {
+  margin: 0 0 var(--aios-v2-space-4);
+}
+
+.header,
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aios-v2-space-3);
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  color: var(--aios-v2-color-accent);
+  font-size: var(--aios-v2-type-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header strong {
+  font-size: var(--aios-v2-type-sm);
+  font-weight: 650;
+}
+
+.flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.8fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--aios-v2-space-3);
+}
+
+.endpoint {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--aios-v2-space-3);
+  padding: var(--aios-v2-space-3);
+  overflow: hidden;
+  border: 1px solid var(--aios-v2-color-border);
+  border-radius: var(--aios-v2-radius-control);
+  background: var(--aios-v2-color-surface);
+}
+
+.endpoint[data-handoff-role="sender"] {
+  box-shadow: inset 3px 0 0 var(--aios-v2-color-accent);
+}
+
+.endpoint[data-handoff-role="receiver"] {
+  box-shadow: inset -3px 0 0 var(--aios-v2-color-info);
+}
+
+.endpointMarker {
+  position: absolute;
+  top: var(--aios-v2-space-2);
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.endpoint[data-handoff-role="sender"] .endpointMarker {
+  left: var(--aios-v2-space-2);
+  color: var(--aios-v2-color-accent);
+}
+
+.endpoint[data-handoff-role="receiver"] .endpointMarker {
+  right: var(--aios-v2-space-2);
+  color: var(--aios-v2-color-info);
+}
+
+.avatar {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--aios-v2-radius-control);
+  background: var(--aios-v2-color-surface-raised);
+}
+
+.endpointText {
+  display: grid;
+  min-width: 0;
+  gap: var(--aios-v2-space-1);
+}
+
+.endpointText strong,
+.endpointText small,
+.workObject span,
+.meta,
+.provenance dd {
+  overflow-wrap: anywhere;
+}
+
+.endpointText strong {
+  font-size: var(--aios-v2-type-sm);
+}
+
+.endpointText small,
+.meta,
+.truth,
+.limitation,
+.workObject,
+.provenance {
+  color: var(--aios-v2-color-text-muted);
+  font-size: var(--aios-v2-type-xs);
+}
+
+.relation {
+  display: grid;
+  min-width: 0;
+  gap: var(--aios-v2-space-2);
+  text-align: center;
+}
+
+.track {
+  position: relative;
+  display: block;
+  height: 12px;
+}
+
+.trackLine {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--aios-v2-color-border-strong);
+  transform: translateY(-50%);
+}
+
+.trackLine::after {
+  position: absolute;
+  top: 50%;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid var(--aios-v2-color-accent);
+  border-right: 2px solid var(--aios-v2-color-accent);
+  content: "";
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.traveler {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--aios-v2-color-accent);
+  box-shadow: 0 0 0 4px var(--aios-v2-color-accent-soft);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.workObject {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: var(--aios-v2-space-2) var(--aios-v2-space-3);
+  border: 1px solid var(--aios-v2-color-border);
+  border-radius: var(--aios-v2-radius-control);
+  background: var(--aios-v2-color-surface);
+}
+
+.workObject small {
+  color: var(--aios-v2-color-text-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workObject strong {
+  color: var(--aios-v2-color-text);
+  font-size: var(--aios-v2-type-sm);
+}
+
+/*
+ * One canonical handoff event gets one bounded presentation sequence:
+ * sender emphasis → work-object activation → bounded relation → receiver
+ * emphasis → settle. There is deliberately no infinite semantic loop.
+ */
+.flow[data-visualization-mode="bounded-transfer-sequence"]
+  .endpoint[data-handoff-role="sender"] .endpointMarker {
+  animation: aios-v2-handoff-sender-emphasis
+    var(--aios-v2-motion-duration-semantic-handoff)
+    var(--aios-v2-motion-ease-emphasis) 1 both;
+}
+
+.flow[data-visualization-mode="bounded-transfer-sequence"] .workObject {
+  animation: aios-v2-handoff-work-activate
+    var(--aios-v2-motion-duration-semantic-handoff)
+    var(--aios-v2-motion-ease-emphasis) 1 both;
+}
+
+.flow[data-visualization-mode="bounded-transfer-sequence"] .traveler {
+  animation: aios-v2-handoff-bounded-relation
+    var(--aios-v2-motion-duration-semantic-handoff)
+    var(--aios-v2-motion-ease-emphasis) 1 both;
+}
+
+.flow[data-visualization-mode="bounded-transfer-sequence"]
+  .endpoint[data-handoff-role="receiver"] .endpointMarker {
+  animation: aios-v2-handoff-receiver-emphasis
+    var(--aios-v2-motion-duration-semantic-handoff)
+    var(--aios-v2-motion-ease-emphasis) 1 both;
+}
+
+.meta {
+  font-variant-numeric: tabular-nums;
+}
+
+.provenance {
+  padding: var(--aios-v2-space-2) 0;
+  border-top: 1px solid var(--aios-v2-color-border);
+  border-bottom: 1px solid var(--aios-v2-color-border);
+}
+
+.provenance summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--aios-v2-color-text-muted);
+  line-height: 44px;
+}
+
+.provenance dl {
+  display: grid;
+  gap: var(--aios-v2-space-2);
+  margin: var(--aios-v2-space-2) 0 0;
+}
+
+.provenance dl > div {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.25fr) minmax(0, 1fr);
+  gap: var(--aios-v2-space-3);
+}
+
+.provenance dt {
+  color: var(--aios-v2-color-text-soft);
+}
+
+.provenance dd {
+  margin: 0;
+}
+
+.truth,
+.limitation {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.truth {
+  padding-top: var(--aios-v2-space-1);
+}
+
+.limitation {
+  color: var(--aios-v2-color-warning);
+}
+
+@keyframes aios-v2-handoff-sender-emphasis {
+  0%, 4% {
+    opacity: 0.24;
+    transform: scale(1);
+  }
+  13%, 24% {
+    opacity: 1;
+    transform: scale(1.6);
+  }
+  34%, 100% {
+    opacity: 0.34;
+    transform: scale(1);
+  }
+}
+
+@keyframes aios-v2-handoff-work-activate {
+  0%, 18% {
+    border-color: var(--aios-v2-color-border);
+    box-shadow: none;
+  }
+  30%, 52% {
+    border-color: color-mix(in srgb, var(--aios-v2-color-accent) 58%, transparent);
+    box-shadow: 0 0 0 3px var(--aios-v2-color-accent-soft);
+  }
+  66%, 100% {
+    border-color: var(--aios-v2-color-border);
+    box-shadow: none;
+  }
+}
+
+@keyframes aios-v2-handoff-bounded-relation {
+  0%, 31% {
+    left: 0;
+    opacity: 0;
+  }
+  36% {
+    left: 0;
+    opacity: 1;
+  }
+  68% {
+    left: 100%;
+    opacity: 1;
+  }
+  75%, 100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes aios-v2-handoff-receiver-emphasis {
+  0%, 63% {
+    opacity: 0.24;
+    transform: scale(1);
+  }
+  74%, 86% {
+    opacity: 1;
+    transform: scale(1.6);
+  }
+  96%, 100% {
+    opacity: 0.34;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow .endpointMarker,
+  .flow .workObject,
+  .flow .traveler {
+    animation: none !important;
+  }
+
+  .traveler {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .flow {
+    grid-template-columns: 1fr;
+  }
+
+  .relation {
+    padding: 0 var(--aios-v2-space-3);
+  }
+
+  .track {
+    width: 100%;
+  }
+
+  .provenance dl > div {
+    grid-template-columns: 1fr;
+    gap: var(--aios-v2-space-1);
+  }
+}

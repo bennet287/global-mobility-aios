@@ -12,6 +12,8 @@ import type {
   HqWingKey,
   HqWingMetricInput,
 } from "../../lib/v2/hq-visual-presentation";
+import { buildLatestV2VisibleHandoff } from "../../lib/v2/visible-handoff";
+import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
 import { V2EmployeeInspector } from "./V2EmployeeInspector";
 import { V2LivingHqVisualStage } from "./V2LivingHqVisualStage";
 import { V2MissionRoomPanel } from "./V2MissionRoomPanel";
@@ -29,6 +31,8 @@ export function V2OrganizationWorkspace() {
     loading: roomLoading,
     error: roomError,
     employees: sceneEmployees,
+    handoffs: sceneHandoffs,
+    handoffCoverage,
     refresh: refreshRoom,
     missionRoomFor,
     employeeInspectorFor,
@@ -47,6 +51,16 @@ export function V2OrganizationWorkspace() {
         data?.organization.zones ?? [],
       ),
     [sceneEmployees, data?.organization.zones],
+  );
+
+  const visibleHandoff = useMemo(
+    () =>
+      buildLatestV2VisibleHandoff({
+        handoffs: sceneHandoffs,
+        employees: sceneEmployees,
+        coverageState: handoffCoverage,
+      }),
+    [handoffCoverage, sceneEmployees, sceneHandoffs],
   );
 
   const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
@@ -130,6 +144,12 @@ export function V2OrganizationWorkspace() {
         <div className="aios-v2-empty-line" role="status">Loading structured organization…</div>
       ) : data?.organization.established ? (
         <>
+          <V2CanonicalHandoffSignal
+            model={visibleHandoff}
+            reducedMotion
+            variant="structured"
+          />
+
           <div className="aios-v2-structured-grid">
             {data.organization.zones.map((zone) => {
               const placements = hqCharacterLayout.placements.filter(
@@ -299,6 +319,7 @@ export function V2OrganizationWorkspace() {
         {representation === "spatial" ? (
           <V2LivingHqVisualStage
             characters={hqCharacters}
+            handoff={visibleHandoff}
             loading={loading || roomLoading}
             missionCount={data?.organization.missionCount ?? 0}
             onSelectCharacter={(positionKey, wingKey) => {
