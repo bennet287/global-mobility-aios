@@ -88,7 +88,7 @@ for (const width of [1280, 768, 390]) {
       expect(geometry!.mainRight).toBeLessThanOrEqual(geometry!.viewport + 1);
 
       const guide = page.getByRole("button", { name: "Open guided experience" });
-      const command = page.getByRole("button", { name: "Navigate AIOS" });
+      const command = page.getByRole("button", { name: "Search / Command", exact: true });
       await expect(guide).toBeVisible();
       await expect(command).toBeVisible();
       await expect(page.getByLabel("AIOS V2 theme")).toBeVisible();

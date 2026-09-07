@@ -172,9 +172,9 @@
   margin-bottom: 18px;
 }
 
-.panelHeader strong {
+.panelHeader h2 {
   display: block;
-  margin-top: 5px;
+  margin: 5px 0 0;
   font-size: var(--aios-v2-type-lg);
   font-weight: 500;
   letter-spacing: -0.025em;

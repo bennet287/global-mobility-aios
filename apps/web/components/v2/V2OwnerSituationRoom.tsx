@@ -109,7 +109,7 @@ export function V2OwnerSituationRoom({
           <header className={styles.panelHeader}>
             <div>
               <span>1 · Needs attention</span>
-              <strong id="aios-v2-attention-title">Authority & human review</strong>
+              <h2 id="aios-v2-attention-title">Authority & human review</h2>
             </div>
             <small>{summary?.attentionTotal ?? 0} returned</small>
           </header>
@@ -131,7 +131,7 @@ export function V2OwnerSituationRoom({
           <header className={styles.panelHeader}>
             <div>
               <span>2 · Mission condition</span>
-              <strong id="aios-v2-situation-missions-title">What is moving or blocked</strong>
+              <h2 id="aios-v2-situation-missions-title">What is moving or blocked</h2>
             </div>
             <small>{summary?.missionCount ?? 0} returned</small>
           </header>
@@ -164,11 +164,11 @@ export function V2OwnerSituationRoom({
       </section>
 
       <section className={styles.contextGrid} aria-label="Owner context">
-        <article className={styles.organizationPanel}>
+        <article className={styles.organizationPanel} aria-labelledby="aios-v2-situation-organization-title">
           <header className={styles.panelHeader}>
             <div>
               <span>3 · Organization condition</span>
-              <strong>Living Organization</strong>
+              <h2 id="aios-v2-situation-organization-title">Living Organization</h2>
             </div>
             <Link href="/cockpit/v2/organization">Open Organization</Link>
           </header>
@@ -191,7 +191,7 @@ export function V2OwnerSituationRoom({
           <header className={styles.panelHeader}>
             <div>
               <span>4 · Significant change</span>
-              <strong id="aios-v2-situation-activity-title">Recent Activity</strong>
+              <h2 id="aios-v2-situation-activity-title">Recent Activity</h2>
             </div>
             <small>{summary?.recentChangeCount ?? 0} returned</small>
           </header>

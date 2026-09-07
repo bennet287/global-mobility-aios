@@ -171,7 +171,7 @@ export function V2Shell({
               <button
                 aria-keyshortcuts="Control+K Meta+K"
                 ref={commandTriggerRef}
-                aria-label="Navigate AIOS"
+                aria-label="Search / Command"
                 className="aios-v2-command"
                 onClick={() => setPaletteOpen(true)}
                 type="button"

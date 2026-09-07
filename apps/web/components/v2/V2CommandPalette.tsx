@@ -200,10 +200,9 @@ export function V2CommandPalette({
         </p>
 
         {entries.length ? (
-          <div className="aios-v2-palette-list" role="listbox" aria-label="Navigation results">
+          <nav className="aios-v2-palette-list" aria-label="Navigation results">
             {entries.map((entry, index) => (
               <Link
-                aria-selected={index === selectedIndex}
                 className="aios-v2-palette-item"
                 data-palette-index={index}
                 data-selected={index === selectedIndex ? "true" : "false"}
@@ -214,7 +213,6 @@ export function V2CommandPalette({
                   onClose();
                 }}
                 onFocus={() => setSelectedIndex(index)}
-                role="option"
               >
                 <span className="aios-v2-palette-glyph" aria-hidden="true">
                   <V2Icon name={entry.icon} width={16} height={16} />
@@ -226,7 +224,7 @@ export function V2CommandPalette({
                 <span className="aios-v2-palette-item-meta">{entry.kind || entry.group}</span>
               </Link>
             ))}
-          </div>
+          </nav>
         ) : (
           <p className="aios-v2-palette-empty" role="status">
             No matching destinations. Only accepted workspaces and already-loaded records are offered here.
