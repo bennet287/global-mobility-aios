@@ -94,6 +94,9 @@ Characters and architecture are not decorations. They are interaction systems of
 ### Product law
 > The Owner sees what matters before seeing how it is stored.
 
+### Design-system law
+> Do not create an isolated attractive component. Create the smallest reusable piece of the AIOS design language that makes the current surface better and makes every future surface easier to build consistently.
+
 ---
 
 ## Required references
@@ -110,6 +113,8 @@ Before implementation, read the relevant files in:
 - `governance/`
 - `quality/`
 
+For **all visible UI/UX redesign work**, `ui/design-system-methodology.md` is mandatory. It defines the system hierarchy, token/component method, implementation discipline, and visible-redesign acceptance gate.
+
 For Living Organization work, the minimum required set is:
 
 - `characters/CHARACTER_BIBLE.md`
@@ -118,6 +123,23 @@ For Living Organization work, the minimum required set is:
 - `motion/motion-language.md`
 - `governance/semantic-animation-contract.md`
 - `constitution/truth-preserving-design.md`
+
+For a Living Organization **visible UI redesign**, also read `ui/design-system-methodology.md` so the 2D product, character world, and spatial architecture evolve as one design language rather than independent styling systems.
+
+---
+
+## UI design-system hierarchy
+
+Visible AIOS work follows this hierarchy:
+
+1. **Foundations** — color, typography, spacing, sizing, radius, borders, elevation, materials, grid, iconography, motion, focus, semantic/truth states.
+2. **UI primitives** — buttons, controls, fields, status objects, navigation, dialogs, inspectors, disclosures, loading/empty/error states.
+3. **AIOS product components** — Mission Surface, Work Object, Employee Identity, Evidence Object, Decision Object, Authority Gate, Handoff Signal, Temporal Lens, Provenance Drawer, Owner Attention Object, and related domain-native objects.
+4. **Product patterns** — situation room, Mission workspace, evidence inspection, decision review, replay/history, operator dense work, mobility guided-case flow.
+5. **Living Organization language** — character grammar, role/department identity, Mission-room behavior, state/motion/collaboration grammar.
+6. **Spatial architecture language** — materials, rooms, wings, lighting, atmosphere, wayfinding, smart objects, HQ composition.
+
+Product work may extend the system, but it must not bypass it with unexplained one-off visual values.
 
 ---
 
@@ -308,6 +330,16 @@ If the screenshot says “dashboard” before it says “AIOS,” redesign it.
 
 ---
 
+## Visible-redesign acceptance order
+
+For phases whose purpose is visible UI/UX transformation, acceptance is:
+
+> **implementation → production browser → screenshots → visual inspection → UX walkthrough → accessibility/responsive review → automated tests → exact-head CI → merge**
+
+A design phase is not complete merely because build/TypeScript/Playwright are green. If a claimed redesign looks materially the same before and after, the visible redesign has not passed.
+
+---
+
 ## Acceptance
 
 A surface is not complete until it passes:
@@ -323,3 +355,5 @@ A surface is not complete until it passes:
 - visual consistency
 - distinctiveness
 - automated/visual regression where applicable
+
+For visible redesign phases, it must additionally pass the method in `ui/design-system-methodology.md`, including real browser screenshots and a before/after task-and-visual review.
