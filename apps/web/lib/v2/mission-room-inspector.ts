@@ -15,6 +15,12 @@ import {
   visibleConversationsForPosition,
   type V2VisibleConversationItem,
 } from "./visible-conversation";
+import {
+  buildV2VisibleMissionCollaborations,
+  visibleMissionCollaborationsForMission,
+  visibleMissionCollaborationsForPosition,
+  type V2VisibleMissionCollaborationItem,
+} from "./visible-mission-collaboration";
 
 export type V2MissionRoomParticipant = {
   positionKey: string;
@@ -38,6 +44,9 @@ export type V2MissionRoomModel = {
   conversations: readonly V2VisibleConversationItem[];
   conversationCoverageSupported: boolean;
   conversationCoverageState: string;
+  collaborations: readonly V2VisibleMissionCollaborationItem[];
+  collaborationCoverageSupported: boolean;
+  missionCoverageState: string;
   decisions: LivingSceneDecision[];
   handoffs: LivingSceneHandoff[];
   canonicalProjection: boolean;
@@ -59,6 +68,9 @@ export type V2EmployeeInspectorModel = {
   conversations: readonly V2VisibleConversationItem[];
   conversationCoverageSupported: boolean;
   conversationCoverageState: string;
+  collaborations: readonly V2VisibleMissionCollaborationItem[];
+  collaborationCoverageSupported: boolean;
+  missionCoverageState: string;
   decisionIds: string[];
   handoffActivityIds: string[];
   presenceClaimed: false;
@@ -105,12 +117,26 @@ function conversationProjection(scene: LivingOrganizationScene) {
   });
 }
 
+function collaborationProjection(scene: LivingOrganizationScene) {
+  const conversations = conversationProjection(scene);
+  return buildV2VisibleMissionCollaborations({
+    missions: scene.deterministic.missions,
+    conversations,
+    missionCoverageState: scene.coverage.missions,
+  });
+}
+
 export function buildV2MissionRoomModel(
   scene: LivingOrganizationScene,
   missionKey: string,
 ): V2MissionRoomModel {
   const blockerTruth = blockerCoverage(scene);
   const conversationTruth = conversationProjection(scene);
+  const collaborationTruth = buildV2VisibleMissionCollaborations({
+    missions: scene.deterministic.missions,
+    conversations: conversationTruth,
+    missionCoverageState: scene.coverage.missions,
+  });
   const mission = scene.deterministic.missions.find((item) => item.mission_key === missionKey) || null;
 
   if (!mission) {
@@ -124,6 +150,9 @@ export function buildV2MissionRoomModel(
       conversations: [],
       conversationCoverageSupported: conversationTruth.supported,
       conversationCoverageState: conversationTruth.coverageState,
+      collaborations: [],
+      collaborationCoverageSupported: collaborationTruth.supported,
+      missionCoverageState: collaborationTruth.missionCoverageState,
       decisions: [],
       handoffs: [],
       canonicalProjection: scene.deterministic.canonical_projection,
@@ -140,6 +169,10 @@ export function buildV2MissionRoomModel(
   const conversations = conversationTruth.supported
     ? conversationTruth.items.filter((conversation) => workIds.has(conversation.workItemId))
     : [];
+  const collaborations = visibleMissionCollaborationsForMission(
+    collaborationTruth,
+    mission.mission_key,
+  );
 
   return {
     established: true,
@@ -157,6 +190,9 @@ export function buildV2MissionRoomModel(
     conversations,
     conversationCoverageSupported: conversationTruth.supported,
     conversationCoverageState: conversationTruth.coverageState,
+    collaborations,
+    collaborationCoverageSupported: collaborationTruth.supported,
+    missionCoverageState: collaborationTruth.missionCoverageState,
     decisions: scene.deterministic.decisions.filter(
       (decision) => decision.work_item_id !== null && workIds.has(decision.work_item_id),
     ),
@@ -167,7 +203,7 @@ export function buildV2MissionRoomModel(
     mutationsAllowed: scene.truth.scene_mutations_allowed,
     canonicalAuthority: scene.truth.canonical_authority,
     limitation:
-      "Mission Room content is a read-only projection of canonical Living Organization entities. Conversation participation and Mission participation are not physical-presence or live-speech claims.",
+      "Mission Room content is a read-only projection of canonical Living Organization entities. Mission topology scopes work; governed coordination evidence uses exact conversation participants and does not establish live teamwork, physical presence or live speech.",
   };
 }
 
@@ -177,6 +213,7 @@ export function buildV2EmployeeInspectorModel(
 ): V2EmployeeInspectorModel {
   const blockerTruth = blockerCoverage(scene);
   const conversationTruth = conversationProjection(scene);
+  const collaborationTruth = collaborationProjection(scene);
   const employee = scene.deterministic.employees.find((item) => item.position_key === positionKey) || null;
 
   if (!employee) {
@@ -191,6 +228,9 @@ export function buildV2EmployeeInspectorModel(
       conversations: [],
       conversationCoverageSupported: conversationTruth.supported,
       conversationCoverageState: conversationTruth.coverageState,
+      collaborations: [],
+      collaborationCoverageSupported: collaborationTruth.supported,
+      missionCoverageState: collaborationTruth.missionCoverageState,
       decisionIds: [],
       handoffActivityIds: [],
       presenceClaimed: false,
@@ -214,6 +254,7 @@ export function buildV2EmployeeInspectorModel(
   const blockers = [...blockerSelection.blockers];
   const blockerIds = [...blockerSelection.blockerIds];
   const conversations = visibleConversationsForPosition(conversationTruth, positionKey);
+  const collaborations = visibleMissionCollaborationsForPosition(collaborationTruth, positionKey);
 
   const decisionIds = scene.deterministic.decisions
     .filter(
@@ -242,6 +283,9 @@ export function buildV2EmployeeInspectorModel(
     conversations,
     conversationCoverageSupported: conversationTruth.supported,
     conversationCoverageState: conversationTruth.coverageState,
+    collaborations,
+    collaborationCoverageSupported: collaborationTruth.supported,
+    missionCoverageState: collaborationTruth.missionCoverageState,
     decisionIds,
     handoffActivityIds,
     presenceClaimed: false,
@@ -249,6 +293,6 @@ export function buildV2EmployeeInspectorModel(
     canonicalProjection: scene.deterministic.canonical_projection,
     mutationsAllowed: scene.truth.scene_mutations_allowed,
     limitation:
-      "Employee Inspector is read-only. Roster identity, semantic state and governed conversation participation do not assert physical presence, locomotion or live speech.",
+      "Employee Inspector is read-only. Mission membership is topology scope only; governed coordination evidence requires exact canonical conversation participation and does not assert active collaboration, physical presence, locomotion or live speech.",
   };
 }

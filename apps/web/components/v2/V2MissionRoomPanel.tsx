@@ -23,13 +23,13 @@ export function V2MissionRoomPanel({
 }) {
   return (
     <section className="aios-v2-mission-room" aria-labelledby="aios-v2-mission-room-title">
-      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · conversation lifecycle is not live dialogue or physical presence" />
+      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · Mission topology scopes work; governed coordination evidence is not live teamwork or physical presence" />
 
       {loading ? (
         <V2DataState state={{ kind: "loading", label: "Loading Mission Room projection…" }} />
       ) : !model ? (
         <div className="aios-v2-empty-line" role="status">
-          Select a canonical Mission above to inspect its supported participants, blockers, governed conversations, decisions and handoffs.
+          Select a canonical Mission above to inspect its supported participants, blockers, governed coordination evidence, conversations, decisions and handoffs.
         </div>
       ) : !model.established || !model.mission ? (
         <div className="aios-v2-empty-line" role="status">{model.limitation}</div>
@@ -43,6 +43,10 @@ export function V2MissionRoomPanel({
             <div>
               <span>Participants</span>
               <strong>{model.participants.length}</strong>
+            </div>
+            <div>
+              <span>Coordination</span>
+              <strong>{model.collaborationCoverageSupported ? model.collaborations.length : "Unavailable"}</strong>
             </div>
             <div>
               <span>Blockers</span>
@@ -65,7 +69,7 @@ export function V2MissionRoomPanel({
           <div className="aios-v2-mission-room-grid">
             <section className="aios-v2-room-participants" aria-labelledby="aios-v2-room-participants-title">
               <header>
-                <span>Rostered Mission participants</span>
+                <span>Mission topology participants</span>
                 <strong id="aios-v2-room-participants-title">People</strong>
               </header>
 
@@ -89,7 +93,7 @@ export function V2MissionRoomPanel({
                         <span>{participant.department}</span>
                         <strong>{participant.title}</strong>
                         <small>{participant.authorityLevel} · {participant.semanticState.replaceAll("_", " ")}</small>
-                        <em>Rostered participant · character is presentation only · presence not claimed</em>
+                        <em>Topology membership only · character is presentation only · collaboration and presence not claimed</em>
                       </span>
                     </button>
                   ))}
@@ -104,6 +108,30 @@ export function V2MissionRoomPanel({
                 <span>Supported Mission signals</span>
                 <strong id="aios-v2-room-signals-title">Canonical links</strong>
               </header>
+
+              <div
+                className="aios-v2-room-signal-group"
+                data-active-collaboration-claimed="false"
+                data-mission-collaboration-coverage={model.collaborationCoverageSupported ? "supported" : "unavailable"}
+                data-mission-coverage={model.missionCoverageState}
+                data-physical-presence-claimed="false"
+              >
+                <span>Governed Mission coordination</span>
+                {!model.collaborationCoverageSupported ? (
+                  <p>Coordination evidence unavailable · Mission coverage {model.missionCoverageState} · conversation coverage {model.conversationCoverageState}. AIOS will not infer collaboration from Mission membership or shared topology.</p>
+                ) : model.collaborations.length ? (
+                  <ul>
+                    {model.collaborations.map((item) => (
+                      <li data-conversation-id={item.conversationId} data-mission-key={item.missionKey} key={`${item.missionKey}:${item.conversationId}`}>
+                        <strong>{item.summary}</strong>
+                        <small>{item.conversationStatus} · WorkItem {item.workItemId}</small>
+                        <small>Exact coordination participants: {item.participants.map((participant) => participant.title).join(" · ")}</small>
+                        <small>Mission basis: {item.canonicalBasis.mission} · coordination basis: canonical conversation WorkItem link · lifecycle {timestamp(item.lifecycleAt)}</small>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p>No governed coordination evidence is linked to this Mission under established Mission and conversation coverage.</p>}
+              </div>
 
               <div className="aios-v2-room-signal-group" data-blocker-coverage={model.blockerCoverageState}>
                 <span>Blockers</span>
@@ -172,8 +200,11 @@ export function V2MissionRoomPanel({
             <span>Canonical projection: {model.canonicalProjection ? "yes" : "no"}</span>
             <span>Scene authority: {model.sceneAuthoritative ? "authoritative" : "non-authoritative"}</span>
             <span>Renderer authority: {model.rendererAuthoritative ? "authoritative" : "none"}</span>
+            <span>Mission coverage: {model.missionCoverageState}</span>
             <span>Blocker coverage: {model.blockerCoverageState}</span>
             <span>Conversation coverage: {model.conversationCoverageState}</span>
+            <span>Active collaboration claimed: no</span>
+            <span>Physical presence claimed: no</span>
             <span>Live speech claimed: no</span>
             <span>Transcript claimed: no</span>
             <span>Mutation: {model.mutationsAllowed ? "allowed" : "disabled"}</span>

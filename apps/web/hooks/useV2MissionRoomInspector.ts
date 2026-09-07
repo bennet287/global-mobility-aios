@@ -36,11 +36,13 @@ export function useV2MissionRoomInspector() {
     void refresh();
   }, [refresh]);
 
+  const missions = useMemo(() => scene?.deterministic.missions || [], [scene]);
   const employees = useMemo(() => scene?.deterministic.employees || [], [scene]);
   const workItems = useMemo(() => scene?.deterministic.work_items || [], [scene]);
   const conversations = useMemo(() => scene?.deterministic.conversations || [], [scene]);
   const handoffs = useMemo(() => scene?.deterministic.handoffs || [], [scene]);
   const blockers = useMemo(() => scene?.deterministic.blockers || [], [scene]);
+  const missionCoverage = scene?.coverage.missions ?? "unavailable";
   const conversationCoverage = scene?.coverage.conversations ?? "unavailable";
   const handoffCoverage = scene?.coverage.handoffs ?? "unavailable";
   const blockerCoverage = scene?.coverage.blockers ?? "unavailable";
@@ -60,11 +62,13 @@ export function useV2MissionRoomInspector() {
 
   return {
     sceneEstablished: scene !== null,
+    missions,
     employees,
     workItems,
     conversations,
     handoffs,
     blockers,
+    missionCoverage,
     conversationCoverage,
     handoffCoverage,
     blockerCoverage,

@@ -15,12 +15,14 @@ import type {
 import { buildV2VisibleBlockers } from "../../lib/v2/visible-blocker";
 import { buildV2VisibleConversations } from "../../lib/v2/visible-conversation";
 import { buildLatestV2VisibleHandoff } from "../../lib/v2/visible-handoff";
+import { buildV2VisibleMissionCollaborations } from "../../lib/v2/visible-mission-collaboration";
 import {
   buildV2VisibleWorkStates,
   findV2VisibleWorkState,
 } from "../../lib/v2/visible-work-state";
 import { V2CanonicalConversationSignal } from "./V2CanonicalConversationSignal";
 import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
+import { V2CanonicalMissionCollaborationSignal } from "./V2CanonicalMissionCollaborationSignal";
 import { V2EmployeeInspector } from "./V2EmployeeInspector";
 import { V2LivingHqVisualStage } from "./V2LivingHqVisualStage";
 import { V2MissionRoomPanel } from "./V2MissionRoomPanel";
@@ -37,11 +39,13 @@ export function V2OrganizationWorkspace() {
   const {
     loading: roomLoading,
     error: roomError,
+    missions: sceneMissions,
     employees: sceneEmployees,
     workItems: sceneWorkItems,
     conversations: sceneConversations,
     handoffs: sceneHandoffs,
     blockers: sceneBlockers,
+    missionCoverage,
     conversationCoverage,
     handoffCoverage,
     blockerCoverage,
@@ -92,6 +96,15 @@ export function V2OrganizationWorkspace() {
       coverageState: conversationCoverage,
     }),
     [conversationCoverage, sceneConversations, sceneEmployees, sceneWorkItems],
+  );
+
+  const visibleMissionCollaborations = useMemo(
+    () => buildV2VisibleMissionCollaborations({
+      missions: sceneMissions,
+      conversations: visibleConversations,
+      missionCoverageState: missionCoverage,
+    }),
+    [missionCoverage, sceneMissions, visibleConversations],
   );
 
   const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
@@ -184,6 +197,7 @@ export function V2OrganizationWorkspace() {
         <>
           <V2CanonicalHandoffSignal model={visibleHandoff} reducedMotion variant="structured" />
           <V2CanonicalConversationSignal conversations={visibleConversations} variant="structured" />
+          <V2CanonicalMissionCollaborationSignal collaborations={visibleMissionCollaborations} variant="structured" />
 
           <div className="aios-v2-structured-grid">
             {data.organization.zones.map((zone) => {
@@ -279,7 +293,7 @@ export function V2OrganizationWorkspace() {
       )}
 
       <div className={styles.truthNote} role="note">
-        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, and governed conversation lifecycle does not establish live speech or co-location.
+        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, governed conversation lifecycle does not establish live speech or co-location, and governed Mission coordination does not establish active teamwork.
       </div>
     </section>
   );
@@ -324,6 +338,7 @@ export function V2OrganizationWorkspace() {
         {representation === "spatial" ? (
           <>
             <V2CanonicalConversationSignal conversations={visibleConversations} variant="spatial" />
+            <V2CanonicalMissionCollaborationSignal collaborations={visibleMissionCollaborations} variant="spatial" />
             <V2LivingHqVisualStage
               blockers={visibleBlockers}
               characters={hqCharacters}
