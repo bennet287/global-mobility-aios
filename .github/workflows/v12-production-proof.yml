@@ -245,3 +245,16 @@ jobs:
           tests/aios-v2-visual-regression.spec.ts
           tests/aios-v2-truth-state.spec.ts
           --project=chromium
+
+      - name: Measure Q17 V2 performance baseline
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/aios-v2-performance-baseline.spec.ts --project=chromium
+
+      - name: Upload Q17 V2 performance profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: q17-v2-performance-profile
+          path: apps/web/e2e/performance-results/aios-v2-performance-baseline.json
+          if-no-files-found: error
+          retention-days: 7
