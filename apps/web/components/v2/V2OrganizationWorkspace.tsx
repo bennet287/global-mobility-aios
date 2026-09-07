@@ -16,6 +16,7 @@ import { buildV2VisibleBlockers } from "../../lib/v2/visible-blocker";
 import { buildV2VisibleConversations } from "../../lib/v2/visible-conversation";
 import { buildLatestV2VisibleHandoff } from "../../lib/v2/visible-handoff";
 import { buildV2VisibleMissionCollaborations } from "../../lib/v2/visible-mission-collaboration";
+import { buildV2VisibleOwnerBoardEscalations } from "../../lib/v2/visible-owner-board-escalation";
 import {
   buildV2VisibleWorkStates,
   findV2VisibleWorkState,
@@ -23,6 +24,7 @@ import {
 import { V2CanonicalConversationSignal } from "./V2CanonicalConversationSignal";
 import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
 import { V2CanonicalMissionCollaborationSignal } from "./V2CanonicalMissionCollaborationSignal";
+import { V2CanonicalOwnerBoardEscalationSignal } from "./V2CanonicalOwnerBoardEscalationSignal";
 import { V2EmployeeInspector } from "./V2EmployeeInspector";
 import { V2LivingHqVisualStage } from "./V2LivingHqVisualStage";
 import { V2MissionRoomPanel } from "./V2MissionRoomPanel";
@@ -45,10 +47,15 @@ export function V2OrganizationWorkspace() {
     conversations: sceneConversations,
     handoffs: sceneHandoffs,
     blockers: sceneBlockers,
+    decisions: sceneDecisions,
+    humanActions: sceneHumanActions,
+    riskEscalations: sceneRiskEscalations,
     missionCoverage,
     conversationCoverage,
     handoffCoverage,
     blockerCoverage,
+    humanActionCoverage,
+    riskEscalationCoverage,
     refresh: refreshRoom,
     missionRoomFor,
     employeeInspectorFor,
@@ -105,6 +112,25 @@ export function V2OrganizationWorkspace() {
       missionCoverageState: missionCoverage,
     }),
     [missionCoverage, sceneMissions, visibleConversations],
+  );
+
+  const visibleOwnerBoardEscalations = useMemo(
+    () => buildV2VisibleOwnerBoardEscalations({
+      decisions: sceneDecisions,
+      humanActions: sceneHumanActions,
+      riskEscalations: sceneRiskEscalations,
+      employees: sceneEmployees,
+      humanActionCoverageState: humanActionCoverage,
+      riskEscalationCoverageState: riskEscalationCoverage,
+    }),
+    [
+      humanActionCoverage,
+      riskEscalationCoverage,
+      sceneDecisions,
+      sceneEmployees,
+      sceneHumanActions,
+      sceneRiskEscalations,
+    ],
   );
 
   const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
@@ -198,6 +224,7 @@ export function V2OrganizationWorkspace() {
           <V2CanonicalHandoffSignal model={visibleHandoff} reducedMotion variant="structured" />
           <V2CanonicalConversationSignal conversations={visibleConversations} variant="structured" />
           <V2CanonicalMissionCollaborationSignal collaborations={visibleMissionCollaborations} variant="structured" />
+          <V2CanonicalOwnerBoardEscalationSignal escalation={visibleOwnerBoardEscalations} variant="structured" />
 
           <div className="aios-v2-structured-grid">
             {data.organization.zones.map((zone) => {
@@ -293,7 +320,7 @@ export function V2OrganizationWorkspace() {
       )}
 
       <div className={styles.truthNote} role="note">
-        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, governed conversation lifecycle does not establish live speech or co-location, and governed Mission coordination does not establish active teamwork.
+        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, governed conversation lifecycle does not establish live speech or co-location, governed Mission coordination does not establish active teamwork, and Owner / Board attention evidence does not establish a meeting, approval, physical attendance or movement.
       </div>
     </section>
   );
@@ -339,6 +366,7 @@ export function V2OrganizationWorkspace() {
           <>
             <V2CanonicalConversationSignal conversations={visibleConversations} variant="spatial" />
             <V2CanonicalMissionCollaborationSignal collaborations={visibleMissionCollaborations} variant="spatial" />
+            <V2CanonicalOwnerBoardEscalationSignal escalation={visibleOwnerBoardEscalations} variant="spatial" />
             <V2LivingHqVisualStage
               blockers={visibleBlockers}
               characters={hqCharacters}

@@ -250,6 +250,7 @@ jobs:
           tests/aios-v2-blocker-detail.spec.ts
           tests/aios-v2-governed-conversation.spec.ts
           tests/aios-v2-mission-collaboration.spec.ts
+          tests/aios-v2-owner-board-escalation.spec.ts
           --project=chromium
 
       - name: Upload browser failure diagnostics
@@ -298,6 +299,14 @@ jobs:
         with:
           name: phase7e-mission-collaboration-review
           path: apps/web/e2e/phase7e-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Phase 7F Owner Board escalation review
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7f-owner-board-escalation-review
+          path: apps/web/e2e/phase7f-artifacts
           if-no-files-found: error
           retention-days: 7
 
