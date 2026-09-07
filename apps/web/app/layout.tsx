@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AgentChatWidget } from "../components/AgentChatWidget";
+import { AgentChatWidgetLoader } from "../components/AgentChatWidgetLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -82,7 +82,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         {children}
-        <AgentChatWidget />
+        <AgentChatWidgetLoader />
       </body>
     </html>
   );
