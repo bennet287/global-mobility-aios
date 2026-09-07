@@ -303,7 +303,7 @@ test("Phase 7C binds exact canonical blocker detail to blocked HQ characters wit
   const inspector = page.getByRole("complementary", { name: "Chief Technology Officer" });
   await expect(inspector).toBeVisible();
   await expect(inspector).toHaveAttribute("data-blocker-details-claimed", "true");
-  await expect(inspector).toHaveAttribute("data-blocker-resolution-claimed", "false");
+  await expect(inspector).toHaveAttribute("data-explicit-completion-resolution-claimed", "none");
   await expect(inspector.getByText("Regulatory API evidence missing", { exact: true })).toBeVisible();
   await expect(inspector.getByText(/high · dependency · open/i)).toBeVisible();
   await expect(inspector.getByText(/governed regulatory evidence response/i)).toBeVisible();
@@ -341,7 +341,7 @@ test("Phase 7C reduced-motion Structured view preserves blocker detail without t
   const presentationTruth = inspector.locator("summary").filter({ hasText: "Presentation truth" });
   await expect(presentationTruth).toBeVisible();
   await presentationTruth.click();
-  await expect(inspector.getByText(/Blocker resolution claimed: no/i)).toBeVisible();
+  await expect(inspector.getByText(/Completion\/resolution claimed: none/i)).toBeVisible();
 
   const reviewSurface = page.locator("main");
   await expect(reviewSurface).toBeVisible();

@@ -23,7 +23,7 @@ export function V2MissionRoomPanel({
 }) {
   return (
     <section className="aios-v2-mission-room" aria-labelledby="aios-v2-mission-room-title">
-      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · Mission topology scopes work; governed coordination and Owner / Board attention remain evidence, not physical activity" />
+      <V2SectionHeader eyebrow="Mission Room" id="aios-v2-mission-room-title" title={model?.mission?.title || "Select a Mission"} description="Read-only canonical projection · Mission topology scopes work; governed coordination, Owner / Board attention and explicit completion/resolution remain evidence, not physical activity" />
 
       {loading ? (
         <V2DataState state={{ kind: "loading", label: "Loading Mission Room projection…" }} />
@@ -42,6 +42,7 @@ export function V2MissionRoomPanel({
             <div><span>Blockers</span><strong>{model.blockerCoverageSupported ? model.blockers.length : "Unavailable"}</strong></div>
             <div><span>Conversations</span><strong>{model.conversationCoverageSupported ? model.conversations.length : "Unavailable"}</strong></div>
             <div><span>Decisions</span><strong>{model.decisions.length}</strong></div>
+            <div data-mission-completion-resolution-count={String(model.completions.length)}><span>Completed / resolved</span><strong>{model.completions.length}</strong></div>
             <div data-mission-board-attention={model.boardAttentionCount === null ? "unavailable" : String(model.boardAttentionCount)}><span>Board attention</span><strong>{model.boardAttentionCount === null ? "Unavailable" : model.boardAttentionCount}</strong></div>
             <div><span>Handoffs</span><strong>{model.handoffs.length}</strong></div>
           </div>
@@ -96,6 +97,19 @@ export function V2MissionRoomPanel({
                 ) : <p>No governed conversation lifecycle is linked to this Mission.</p>}
               </div>
 
+              <div className="aios-v2-room-signal-group" data-canonical-completion-resolution="true" data-completion-inferred-from-animation="false" data-physical-celebration-claimed="false" data-physical-presence-claimed="false">
+                <span>Completed / resolved evidence</span>
+                {model.completions.length ? (
+                  <ul>{model.completions.map((event) => {
+                    const when = event.kind === "work_completed" ? event.completedAt : event.kind === "decision_outcome" ? event.decidedAt : event.occurredAt;
+                    const label = event.kind === "work_completed" ? "WorkItem completed" : event.kind === "blocker_resolved" ? "Blocker resolved" : event.kind === "blocker_waived" ? "Blocker waived" : event.kind === "decision_outcome" ? `Decision ${event.status}` : "Canonical transition";
+                    const key = event.kind === "work_completed" ? `work:${event.workItemId}` : event.kind === "decision_outcome" ? `decision:${event.decisionId}` : `blocker:${event.blockerId}:${event.kind}`;
+                    return <li data-transition-kind={event.kind} key={key}><strong>{event.title}</strong><small>{label} · {timestamp(when)}</small>{event.kind === "blocker_resolved" || event.kind === "blocker_waived" ? <small>{event.outcomeSummary} · {event.resolverLabel}</small> : null}</li>;
+                  })}</ul>
+                ) : <p>No explicit canonical completion or resolution transition is linked to this Mission.</p>}
+                <small>Exact canonical transition fields only · no completion inferred from settled character state, animation, elapsed time or missing markers · no physical celebration or movement.</small>
+              </div>
+
               <div className="aios-v2-room-signal-group">
                 <span>Decisions</span>
                 {model.decisions.length ? <ul>{model.decisions.map((decision) => <li key={decision.decision_id}><strong>{decision.title}</strong><small>{decision.authority_level} · {decision.status}{decision.required_owner_action ? " · owner action required" : ""}</small></li>)}</ul> : <p>No linked decisions.</p>}
@@ -124,7 +138,7 @@ export function V2MissionRoomPanel({
             <span>Renderer authority: {model.rendererAuthoritative ? "authoritative" : "none"}</span>
             <span>Mission coverage: {model.missionCoverageState}</span><span>Blocker coverage: {model.blockerCoverageState}</span><span>Conversation coverage: {model.conversationCoverageState}</span>
             <span>Human-action coverage: {model.humanActionCoverageState}</span><span>Risk-escalation coverage: {model.riskEscalationCoverageState}</span>
-            <span>Board meeting claimed: no</span><span>Approval inferred: no</span><span>Active collaboration claimed: no</span><span>Physical presence claimed: no</span><span>Live speech claimed: no</span><span>Transcript claimed: no</span>
+            <span>Completion/resolution basis: exact canonical transition fields only</span><span>Completion inferred from animation: no</span><span>Physical celebration claimed: no</span><span>Board meeting claimed: no</span><span>Approval inferred: no</span><span>Active collaboration claimed: no</span><span>Physical presence claimed: no</span><span>Live speech claimed: no</span><span>Transcript claimed: no</span>
             <span>Mutation: {model.mutationsAllowed ? "allowed" : "disabled"}</span>
           </footer>
         </>
