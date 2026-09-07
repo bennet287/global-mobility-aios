@@ -258,3 +258,16 @@ jobs:
           path: apps/web/e2e/performance-results/aios-v2-performance-baseline.json
           if-no-files-found: error
           retention-days: 7
+
+      - name: Measure Q18 intent-lazy consultant assets
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/aios-v2-consultant-asset-optimization.spec.ts --project=chromium
+
+      - name: Upload Q18 consultant asset profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: q18-consultant-asset-profile
+          path: apps/web/e2e/asset-results/aios-v2-consultant-assets.json
+          if-no-files-found: error
+          retention-days: 7

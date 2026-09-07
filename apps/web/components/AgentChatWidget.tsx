@@ -15,9 +15,14 @@ type Message =
   | { role: "user"; content: string }
   | { role: "assistant"; content: string; decision?: ConsultantDecision };
 
-export function AgentChatWidget({ leadHint }: { leadHint?: string }) {
+export type AgentChatWidgetProps = {
+  leadHint?: string;
+  initiallyOpen?: boolean;
+};
+
+export function AgentChatWidget({ leadHint, initiallyOpen = false }: AgentChatWidgetProps) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -167,8 +172,13 @@ export function AgentChatWidget({ leadHint }: { leadHint?: string }) {
           </div>
         </div>
       )}
-      <button className="agent-chat-fab" onClick={() => setOpen((o) => !o)} aria-label="Open consultant chat">
-        <span>{open ? "✕" : "💬"}</span>
+      <button
+        className="agent-chat-fab"
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label={open ? "Close consultant chat" : "Open consultant chat"}
+      >
+        <span aria-hidden="true">{open ? "✕" : "💬"}</span>
       </button>
     </div>
   );
