@@ -83,10 +83,14 @@ test("Q6 Evidence selection and destinations preserve opaque identities", () => 
 
 test("Q6 Intelligence keeps current governed reads separate from non-authoritative aggregate memory", () => {
   const model = buildV2IntelligenceModel(ownerData(), memory());
-  assert.equal(model.current?.attentionCount, 1);
-  assert.equal(model.current?.missionCount, 3);
-  assert.equal(model.current?.departmentBlockerCount, 2);
-  assert.equal(model.current?.recentActivityCount, 1);
+  assert.equal(model.current?.attentionCount.value, 1);
+  assert.equal(model.current?.attentionCount.state, "partial");
+  assert.equal(model.current?.missionCount.value, 3);
+  assert.equal(model.current?.missionCount.state, "known");
+  assert.equal(model.current?.departmentBlockerCount.value, 2);
+  assert.equal(model.current?.departmentBlockerCount.state, "known");
+  assert.equal(model.current?.recentActivityCount.value, 1);
+  assert.equal(model.current?.recentActivityCount.state, "known");
   assert.equal(model.memory?.windowEventCount, 9);
   assert.equal(model.memory?.predictive, false);
   assert.equal(model.memory?.authoritative, false);
