@@ -31,7 +31,8 @@ test("Employee Inspector does not convert roster, Mission membership, governed c
   assert.match(model, /Mission membership is topology scope only/);
   assert.match(model, /governed coordination requires exact conversation participation/);
   assert.match(model, /risk escalation is shown only for an exact accountable or escalated-to position key/);
-  assert.match(model, /No active collaboration, Board meeting, approval, physical presence, locomotion or live speech is asserted/);
+  assert.match(model, /No celebration, active collaboration, Board meeting, approval, physical presence, locomotion or live speech is asserted/);
+  assert.match(model, /Completion\/resolution evidence is scoped only by exact assigned WorkItem or exact linked WorkItem identity/);
   assert.match(model, /visibleOwnerBoardEscalationsForPosition/);
   assert.match(model, /must not fabricate an employee/);
   assert.match(inspector, /data-presence-claimed="false"/);
@@ -40,6 +41,9 @@ test("Employee Inspector does not convert roster, Mission membership, governed c
   assert.match(inspector, /data-transcript-claimed="false"/);
   assert.match(inspector, /data-active-collaboration-claimed="false"/);
   assert.match(inspector, /data-board-meeting-claimed="false"/);
+  assert.match(inspector, /data-explicit-completion-resolution-claimed/);
+  assert.match(inspector, /data-completion-inferred-from-animation="false"/);
+  assert.match(inspector, /data-physical-celebration-claimed="false"/);
   assert.match(inspector, /Risk escalation routing claimed/);
   assert.match(inspector, /Roster identity is not physical presence/);
 });
@@ -50,9 +54,12 @@ test("Mission Room UI exposes topology, governed coordination and attention evid
   assert.match(missionRoom, /Canonical links/);
   assert.match(missionRoom, /Governed Mission coordination/);
   assert.match(missionRoom, /Governed conversations/);
-  assert.match(missionRoom, /governed coordination and Owner \/ Board attention remain evidence, not physical activity/);
+  assert.match(missionRoom, /governed coordination, Owner \/ Board attention and explicit completion\/resolution remain evidence, not physical activity/);
   assert.match(missionRoom, /AIOS will not infer collaboration from Mission membership or shared topology/);
   assert.match(missionRoom, /Owner \/ Board attention/);
+  assert.match(missionRoom, /Completed \/ resolved evidence/);
+  assert.match(missionRoom, /data-canonical-completion-resolution="true"/);
+  assert.match(missionRoom, /no completion inferred from settled character state, animation, elapsed time or missing markers/);
   assert.match(missionRoom, /AIOS will not infer Board attention from severity, Mission membership or room placement/);
   assert.match(missionRoom, /no Board meeting · no approval inferred · no physical attendance or movement/);
   assert.match(missionRoom, /data-active-collaboration-claimed="false"/);
@@ -70,6 +77,8 @@ test("Mission selection is view-only and drives the inspector workspace", () => 
   assert.match(workspace, /selectedPositionKey/);
   assert.match(workspace, /V2MissionRoomPanel/);
   assert.match(workspace, /V2EmployeeInspector/);
+  assert.match(workspace, /V2CanonicalCompletionResolutionSignal/);
+  assert.match(workspace, /buildV2VisibleCompletionResolution/);
 });
 
 test("Mission Room data hook reads Mission topology and the governed Living Organization scene", () => {

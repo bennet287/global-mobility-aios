@@ -176,6 +176,13 @@ class LivingSceneBlocker:
     requires_human_action: bool
     opened_at: datetime
     due_at: datetime | None
+    resolved_at: datetime | None
+    resolution_summary: str | None
+    resolving_actor_type: str | None
+    resolving_actor_id: str | None
+    waived_at: datetime | None
+    waived_by_human_id: str | None
+    waiver_reason: str | None
     open_elapsed_seconds: int
     overdue: bool
 
@@ -464,6 +471,15 @@ def _scene_blockers(
                 requires_human_action=row.requires_human_action,
                 opened_at=row.opened_at,
                 due_at=row.due_at,
+                resolved_at=row.resolved_at,
+                resolution_summary=row.resolution_summary,
+                resolving_actor_type=(
+                    row.resolving_actor_type.value if row.resolving_actor_type is not None else None
+                ),
+                resolving_actor_id=row.resolving_actor_id,
+                waived_at=row.waived_at,
+                waived_by_human_id=row.waived_by_human_id,
+                waiver_reason=row.waiver_reason,
                 open_elapsed_seconds=_elapsed_seconds(row.opened_at, open_end),
                 overdue=status in {"open", "mitigated"} and _is_overdue(row.due_at, generated_at),
             )

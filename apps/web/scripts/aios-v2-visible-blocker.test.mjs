@@ -187,7 +187,9 @@ test("Phase 7C marker is non-animated and truth attributes remain explicit", () 
   assert.match(stage, /workState\.kind === "blocked"/);
   assert.match(stage, /V2CanonicalBlockerMarker/);
   assert.match(inspector, /Blocker details unavailable/);
-  assert.match(inspector, /Blocker resolution claimed: no/);
+  assert.match(inspector, /data-explicit-completion-resolution-claimed/);
+  assert.match(inspector, /data-completion-inferred-from-animation="false"/);
+  assert.match(inspector, /Resolution or waiver is claimed only when the explicit transition evidence section has the full canonical timestamp and outcome\/resolver tuple/);
   assert.match(missionRoom, /will not present an empty blocker list as canonical zero/);
   assert.match(inspectorModel, /selectV2CanonicalBlockersForPosition/);
   assert.doesNotMatch(

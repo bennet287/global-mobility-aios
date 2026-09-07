@@ -13,6 +13,7 @@ import type {
   HqWingMetricInput,
 } from "../../lib/v2/hq-visual-presentation";
 import { buildV2VisibleBlockers } from "../../lib/v2/visible-blocker";
+import { buildV2VisibleCompletionResolution } from "../../lib/v2/visible-completion-resolution";
 import { buildV2VisibleConversations } from "../../lib/v2/visible-conversation";
 import { buildLatestV2VisibleHandoff } from "../../lib/v2/visible-handoff";
 import { buildV2VisibleMissionCollaborations } from "../../lib/v2/visible-mission-collaboration";
@@ -21,6 +22,7 @@ import {
   buildV2VisibleWorkStates,
   findV2VisibleWorkState,
 } from "../../lib/v2/visible-work-state";
+import { V2CanonicalCompletionResolutionSignal } from "./V2CanonicalCompletionResolutionSignal";
 import { V2CanonicalConversationSignal } from "./V2CanonicalConversationSignal";
 import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
 import { V2CanonicalMissionCollaborationSignal } from "./V2CanonicalMissionCollaborationSignal";
@@ -133,6 +135,15 @@ export function V2OrganizationWorkspace() {
     ],
   );
 
+  const visibleCompletionResolution = useMemo(
+    () => buildV2VisibleCompletionResolution({
+      workItems: sceneWorkItems,
+      blockers: sceneBlockers,
+      decisions: sceneDecisions,
+    }),
+    [sceneBlockers, sceneDecisions, sceneWorkItems],
+  );
+
   const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
     () => [
       ...hqCharacterLayout.placements.map((placement) => ({
@@ -225,6 +236,7 @@ export function V2OrganizationWorkspace() {
           <V2CanonicalConversationSignal conversations={visibleConversations} variant="structured" />
           <V2CanonicalMissionCollaborationSignal collaborations={visibleMissionCollaborations} variant="structured" />
           <V2CanonicalOwnerBoardEscalationSignal escalation={visibleOwnerBoardEscalations} variant="structured" />
+          <V2CanonicalCompletionResolutionSignal events={visibleCompletionResolution} variant="structured" />
 
           <div className="aios-v2-structured-grid">
             {data.organization.zones.map((zone) => {
@@ -320,7 +332,7 @@ export function V2OrganizationWorkspace() {
       )}
 
       <div className={styles.truthNote} role="note">
-        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, governed conversation lifecycle does not establish live speech or co-location, governed Mission coordination does not establish active teamwork, and Owner / Board attention evidence does not establish a meeting, approval, physical attendance or movement.
+        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, governed conversation lifecycle does not establish live speech or co-location, governed Mission coordination does not establish active teamwork, Owner / Board attention evidence does not establish a meeting or approval, and explicit completion/resolution evidence comes only from canonical transition fields and does not establish celebration, physical attendance or movement.
       </div>
     </section>
   );
@@ -367,6 +379,7 @@ export function V2OrganizationWorkspace() {
             <V2CanonicalConversationSignal conversations={visibleConversations} variant="spatial" />
             <V2CanonicalMissionCollaborationSignal collaborations={visibleMissionCollaborations} variant="spatial" />
             <V2CanonicalOwnerBoardEscalationSignal escalation={visibleOwnerBoardEscalations} variant="spatial" />
+            <V2CanonicalCompletionResolutionSignal events={visibleCompletionResolution} variant="spatial" />
             <V2LivingHqVisualStage
               blockers={visibleBlockers}
               characters={hqCharacters}

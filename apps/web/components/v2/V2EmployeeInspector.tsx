@@ -60,7 +60,9 @@ export function V2EmployeeInspector({
       aria-labelledby="aios-v2-employee-inspector-title"
       data-active-collaboration-claimed="false"
       data-blocker-details-claimed={model.blockerCoverageSupported ? "true" : "false"}
-      data-blocker-resolution-claimed="false"
+      data-explicit-completion-resolution-claimed={model.completions.length ? "canonical-records-only" : "none"}
+      data-completion-inferred-from-animation="false"
+      data-physical-celebration-claimed="false"
       data-board-meeting-claimed="false"
       data-causal-block-claimed="false"
       data-conversation-lifecycle-claimed={model.conversationCoverageSupported ? "true" : "false"}
@@ -100,11 +102,25 @@ export function V2EmployeeInspector({
         <div><span>Missions</span><strong>{model.activeMissionKeys.length}</strong></div>
         <div><span>Coordination</span><strong>{model.collaborationCoverageSupported ? model.collaborations.length : "Unavailable"}</strong></div>
         <div><span>Risk routes</span><strong>{model.riskEscalationCoverageSupported ? model.escalationRisks.length : "Unavailable"}</strong></div>
+        <div><span>Completed / resolved</span><strong>{model.completions.length}</strong></div>
         <div><span>Blockers</span><strong>{model.blockerCoverageSupported ? model.blockerIds.length : "Unavailable"}</strong></div>
         <div><span>Conversations</span><strong>{model.conversationCoverageSupported ? model.conversations.length : "Unavailable"}</strong></div>
         <div><span>Decisions</span><strong>{model.decisionIds.length}</strong></div>
         <div><span>Handoffs</span><strong>{model.handoffActivityIds.length}</strong></div>
       </section>
+
+      {model.completions.length ? (
+        <section aria-label="Canonical completion and resolution evidence" className="aios-v2-inspector-missions" data-canonical-completion-resolution="true" data-completion-inferred-from-animation="false" data-physical-celebration-claimed="false">
+          <span>Completed / resolved evidence</span>
+          <ul>{model.completions.map((event) => {
+            const when = event.kind === "work_completed" ? event.completedAt : event.kind === "decision_outcome" ? event.decidedAt : event.occurredAt;
+            const label = event.kind === "work_completed" ? "WorkItem completed" : event.kind === "blocker_resolved" ? "Blocker resolved" : event.kind === "blocker_waived" ? "Blocker waived" : event.kind === "decision_outcome" ? `Decision ${event.status}` : "Canonical transition";
+            const key = event.kind === "work_completed" ? `work:${event.workItemId}` : event.kind === "decision_outcome" ? `decision:${event.decisionId}` : `blocker:${event.blockerId}:${event.kind}`;
+            return <li data-transition-kind={event.kind} key={key}><strong>{event.title}</strong><small>{label}{utcLabel(when) ? ` · ${utcLabel(when)}` : ""}</small>{event.kind === "blocker_resolved" || event.kind === "blocker_waived" ? <><small>{event.outcomeSummary}</small><small>Resolver: {event.resolverLabel}</small></> : null}</li>;
+          })}</ul>
+          <small>Exact assigned/linked WorkItem transition evidence only. Employee state, animation, elapsed time and Mission membership do not establish completion or resolution; no physical celebration, presence or locomotion is asserted.</small>
+        </section>
+      ) : null}
 
       {model.riskEscalationCoverageSupported ? (
         model.escalationRisks.length ? (
@@ -150,7 +166,7 @@ export function V2EmployeeInspector({
 
       {model.blockerCoverageSupported ? (
         model.blockers.length ? (
-          <section aria-label="Canonical blocker details" className="aios-v2-inspector-missions" data-canonical-blocker-details="true"><span>Canonical blockers</span><ul>{model.blockers.map((blocker) => { const due = utcLabel(blocker.due_at); return <li data-blocker-id={blocker.blocker_id} data-blocker-severity={blocker.severity} data-blocker-status={blocker.status} key={blocker.blocker_id}><strong>{blocker.title}</strong><small>{blocker.severity} · {blocker.blocker_type} · {blocker.status}</small>{blocker.description ? <p>{blocker.description}</p> : null}<small>Relationship: {blockerRelation(model, blocker.accountable_position_key)}</small><small>Human action: {blocker.requires_human_action ? "required" : "not required"}{blocker.overdue ? " · overdue" : ""}{due ? ` · due ${due}` : ""}</small></li>; })}</ul><small>Canonical blocker records describe governed work constraints. They do not establish physical activity, causal body movement, or blocker resolution.</small></section>
+          <section aria-label="Canonical blocker details" className="aios-v2-inspector-missions" data-canonical-blocker-details="true"><span>Canonical blockers</span><ul>{model.blockers.map((blocker) => { const due = utcLabel(blocker.due_at); return <li data-blocker-id={blocker.blocker_id} data-blocker-severity={blocker.severity} data-blocker-status={blocker.status} key={blocker.blocker_id}><strong>{blocker.title}</strong><small>{blocker.severity} · {blocker.blocker_type} · {blocker.status}</small>{blocker.description ? <p>{blocker.description}</p> : null}<small>Relationship: {blockerRelation(model, blocker.accountable_position_key)}</small><small>Human action: {blocker.requires_human_action ? "required" : "not required"}{blocker.overdue ? " · overdue" : ""}{due ? ` · due ${due}` : ""}</small></li>; })}</ul><small>Canonical blocker records describe governed work constraints. Resolution or waiver is claimed only when the explicit transition evidence section has the full canonical timestamp and outcome/resolver tuple; blocker styling itself establishes no physical activity or causal body movement.</small></section>
         ) : <div className="aios-v2-empty-line" role="status">No canonical blocker is linked to this employee under the current blocker coverage.</div>
       ) : <div className="aios-v2-source-warning" data-blocker-coverage={model.blockerCoverageState} role="status"><div><strong>Blocker details unavailable.</strong><span>Coverage: {model.blockerCoverageState}. AIOS will not infer blocker title, type, severity or accountability from the employee work-state badge.</span></div></div>}
 
@@ -169,7 +185,7 @@ export function V2EmployeeInspector({
           <span>Mission membership alone claims collaboration: no</span>
           <span>Governed coordination evidence claimed: {model.collaborationCoverageSupported ? "supported records only" : "unavailable"}</span>
           <span>Risk escalation routing claimed: {model.riskEscalationCoverageSupported ? "exact accountable/escalated-to records only" : "unavailable"}</span>
-          <span>Board meeting claimed: no</span><span>Approval inferred: no</span><span>Active collaboration claimed: no</span><span>Presence claimed: no</span><span>Locomotion claimed: no</span><span>Live speech claimed: no</span><span>Transcript claimed: no</span><span>Conversation authority effect claimed: no</span><span>Blocker resolution claimed: no</span>
+          <span>Completion/resolution claimed: {model.completions.length ? "exact canonical transition records only" : "none"}</span><span>Completion inferred from animation: no</span><span>Physical celebration claimed: no</span><span>Board meeting claimed: no</span><span>Approval inferred: no</span><span>Active collaboration claimed: no</span><span>Presence claimed: no</span><span>Locomotion claimed: no</span><span>Live speech claimed: no</span><span>Transcript claimed: no</span><span>Conversation authority effect claimed: no</span>
           <span>Mutation: {model.mutationsAllowed ? "allowed by source posture" : "disabled"}</span>
         </footer>
       </V2ProvenanceDisclosure>
