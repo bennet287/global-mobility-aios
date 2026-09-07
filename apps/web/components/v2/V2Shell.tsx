@@ -29,6 +29,7 @@ export function V2Shell({
   const [themePreference, setThemePreference] = useState<V2ThemePreference>("system");
   const commandTriggerRef = useRef<HTMLButtonElement>(null);
   const guideTriggerRef = useRef<HTMLButtonElement>(null);
+  const ownerNavRef = useRef<HTMLElement>(null);
   const closePalette = useCallback(() => {
     setPaletteOpen(false);
     requestAnimationFrame(() => commandTriggerRef.current?.focus());
@@ -54,6 +55,24 @@ export function V2Shell({
       // Storage can be unavailable in hardened/private browser contexts.
     }
   }, []);
+
+  useEffect(() => {
+    const nav = ownerNavRef.current;
+    if (!nav || !window.matchMedia("(max-width: 600px)").matches) return;
+    const current = nav.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!current) return;
+
+    const frame = requestAnimationFrame(() => {
+      const navRect = nav.getBoundingClientRect();
+      const currentRect = current.getBoundingClientRect();
+      const clipped = currentRect.left < navRect.left || currentRect.right > navRect.right;
+      if (!clipped) return;
+      const left = current.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+      nav.scrollTo({ left: Math.max(0, left), behavior: "auto" });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [activeItem]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -82,7 +101,7 @@ export function V2Shell({
             </div>
           </div>
 
-          <nav className="aios-v2-nav" aria-label="Owner">
+          <nav className="aios-v2-nav" aria-label="Owner" ref={ownerNavRef}>
             {ownerNavigation.map((item) => {
               const active = item.label === activeItem;
               if (item.enabled && item.href) {

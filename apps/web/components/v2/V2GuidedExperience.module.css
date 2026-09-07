@@ -332,8 +332,99 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+/* Q11 — on phones, step order becomes a horizontal task rail instead of a
+ * miniature two-column desktop index. The active step remains fully visible.
+ */
+@media (max-width: 520px) {
+  .dialog {
+    width: calc(100vw - 8px);
+    max-height: calc(100dvh - 8px);
+    border-radius: 14px;
+  }
+
   .frame {
+    max-height: calc(100dvh - 8px);
+  }
+
+  .header {
+    padding: 16px 14px 14px;
+  }
+
+  .header h2 {
+    font-size: clamp(1.65rem, 8vw, var(--aios-v2-type-xl));
+  }
+
+  .progress {
+    padding: 11px 14px;
+  }
+
+  .stepList {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 12px 12px;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-inline: contain;
+  }
+
+  .stepList > li {
+    flex: 0 0 154px;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  .stepButton {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .stepLabel strong {
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .content {
+    gap: 16px;
+    padding: 18px 14px;
+  }
+
+  .contentHeading {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .control,
+  .primary {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .primary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 360px) {
+  .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .primary {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .stepList {
     scroll-behavior: auto;
   }
 }
