@@ -27,28 +27,36 @@ test("Mission Room derives only supported participants and linked entities", () 
   assert.match(model, /must not fabricate a Mission Room/);
 });
 
-test("Employee Inspector does not convert roster, Mission membership or governed coordination into presence truth", () => {
-  assert.match(
-    model,
-    /Mission membership is topology scope only; governed coordination evidence requires exact canonical conversation participation and does not assert active collaboration, physical presence, locomotion or live speech/,
-  );
+test("Employee Inspector does not convert roster, Mission membership, governed coordination or risk routing into physical truth", () => {
+  assert.match(model, /Mission membership is topology scope only/);
+  assert.match(model, /governed coordination requires exact conversation participation/);
+  assert.match(model, /risk escalation is shown only for an exact accountable or escalated-to position key/);
+  assert.match(model, /No active collaboration, Board meeting, approval, physical presence, locomotion or live speech is asserted/);
+  assert.match(model, /visibleOwnerBoardEscalationsForPosition/);
   assert.match(model, /must not fabricate an employee/);
   assert.match(inspector, /data-presence-claimed="false"/);
   assert.match(inspector, /data-locomotion-claimed="false"/);
   assert.match(inspector, /data-live-speech-claimed="false"/);
   assert.match(inspector, /data-transcript-claimed="false"/);
   assert.match(inspector, /data-active-collaboration-claimed="false"/);
+  assert.match(inspector, /data-board-meeting-claimed="false"/);
+  assert.match(inspector, /Risk escalation routing claimed/);
   assert.match(inspector, /Roster identity is not physical presence/);
 });
 
-test("Mission Room UI exposes topology and governed coordination without inventing dialogue, teamwork or presence", () => {
+test("Mission Room UI exposes topology, governed coordination and attention evidence without inventing physical activity", () => {
   assert.match(missionRoom, /Mission topology participants/);
   assert.match(missionRoom, /Topology membership only/);
   assert.match(missionRoom, /Canonical links/);
   assert.match(missionRoom, /Governed Mission coordination/);
   assert.match(missionRoom, /Governed conversations/);
-  assert.match(missionRoom, /governed coordination evidence is not live teamwork or physical presence/);
+  assert.match(missionRoom, /governed coordination and Owner \/ Board attention remain evidence, not physical activity/);
+  assert.match(missionRoom, /AIOS will not infer collaboration from Mission membership or shared topology/);
+  assert.match(missionRoom, /Owner \/ Board attention/);
+  assert.match(missionRoom, /AIOS will not infer Board attention from severity, Mission membership or room placement/);
+  assert.match(missionRoom, /no Board meeting · no approval inferred · no physical attendance or movement/);
   assert.match(missionRoom, /data-active-collaboration-claimed="false"/);
+  assert.match(missionRoom, /data-board-meeting-claimed="false"/);
   assert.match(missionRoom, /data-live-speech-claimed="false"/);
   assert.match(missionRoom, /data-transcript-claimed="false"/);
   assert.match(missionRoom, /Authority effect: none · transcript not persisted/);
@@ -68,6 +76,10 @@ test("Mission Room data hook reads Mission topology and the governed Living Orga
   assert.match(hook, /getLatestAustriaLivingScene/);
   assert.match(hook, /deterministic\.missions/);
   assert.match(hook, /coverage\.missions/);
+  assert.match(hook, /deterministic\.human_actions/);
+  assert.match(hook, /deterministic\.risk_escalations/);
+  assert.match(hook, /coverage\.human_actions/);
+  assert.match(hook, /coverage\.risk_escalations/);
   assert.match(hook, /buildV2MissionRoomModel/);
   assert.match(hook, /buildV2EmployeeInspectorModel/);
   assert.doesNotMatch(hook, /POST|PUT|PATCH|DELETE/);

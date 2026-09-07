@@ -21,6 +21,12 @@ import {
   visibleMissionCollaborationsForPosition,
   type V2VisibleMissionCollaborationItem,
 } from "./visible-mission-collaboration";
+import {
+  buildV2VisibleOwnerBoardEscalations,
+  visibleOwnerBoardEscalationsForPosition,
+  type V2VisibleHumanActionAttention,
+  type V2VisibleRiskEscalation,
+} from "./visible-owner-board-escalation";
 
 export type V2MissionRoomParticipant = {
   positionKey: string;
@@ -48,6 +54,13 @@ export type V2MissionRoomModel = {
   collaborationCoverageSupported: boolean;
   missionCoverageState: string;
   decisions: LivingSceneDecision[];
+  humanActions: readonly V2VisibleHumanActionAttention[];
+  riskEscalations: readonly V2VisibleRiskEscalation[];
+  humanActionCoverageSupported: boolean;
+  humanActionCoverageState: string;
+  riskEscalationCoverageSupported: boolean;
+  riskEscalationCoverageState: string;
+  boardAttentionCount: number | null;
   handoffs: LivingSceneHandoff[];
   canonicalProjection: boolean;
   sceneAuthoritative: boolean;
@@ -71,6 +84,9 @@ export type V2EmployeeInspectorModel = {
   collaborations: readonly V2VisibleMissionCollaborationItem[];
   collaborationCoverageSupported: boolean;
   missionCoverageState: string;
+  escalationRisks: readonly V2VisibleRiskEscalation[];
+  riskEscalationCoverageSupported: boolean;
+  riskEscalationCoverageState: string;
   decisionIds: string[];
   handoffActivityIds: string[];
   presenceClaimed: false;
@@ -126,6 +142,17 @@ function collaborationProjection(scene: LivingOrganizationScene) {
   });
 }
 
+function escalationProjection(scene: LivingOrganizationScene) {
+  return buildV2VisibleOwnerBoardEscalations({
+    decisions: scene.deterministic.decisions,
+    humanActions: scene.deterministic.human_actions,
+    riskEscalations: scene.deterministic.risk_escalations,
+    employees: scene.deterministic.employees,
+    humanActionCoverageState: scene.coverage.human_actions,
+    riskEscalationCoverageState: scene.coverage.risk_escalations,
+  });
+}
+
 export function buildV2MissionRoomModel(
   scene: LivingOrganizationScene,
   missionKey: string,
@@ -137,6 +164,7 @@ export function buildV2MissionRoomModel(
     conversations: conversationTruth,
     missionCoverageState: scene.coverage.missions,
   });
+  const escalationTruth = escalationProjection(scene);
   const mission = scene.deterministic.missions.find((item) => item.mission_key === missionKey) || null;
 
   if (!mission) {
@@ -154,6 +182,13 @@ export function buildV2MissionRoomModel(
       collaborationCoverageSupported: collaborationTruth.supported,
       missionCoverageState: collaborationTruth.missionCoverageState,
       decisions: [],
+      humanActions: [],
+      riskEscalations: [],
+      humanActionCoverageSupported: escalationTruth.humanActionCoverageSupported,
+      humanActionCoverageState: escalationTruth.humanActionCoverageState,
+      riskEscalationCoverageSupported: escalationTruth.riskEscalationCoverageSupported,
+      riskEscalationCoverageState: escalationTruth.riskEscalationCoverageState,
+      boardAttentionCount: null,
       handoffs: [],
       canonicalProjection: scene.deterministic.canonical_projection,
       sceneAuthoritative: scene.truth.scene_authoritative,
@@ -173,6 +208,24 @@ export function buildV2MissionRoomModel(
     collaborationTruth,
     mission.mission_key,
   );
+  const decisions = scene.deterministic.decisions.filter(
+    (decision) => decision.work_item_id !== null && workIds.has(decision.work_item_id),
+  );
+  const humanActions = escalationTruth.humanActions.filter(
+    (request) => request.workItemId !== null && workIds.has(request.workItemId),
+  );
+  const riskEscalations = escalationTruth.riskEscalations.filter(
+    (risk) => risk.workItemId !== null && workIds.has(risk.workItemId),
+  );
+  const missionDecisionAttention = escalationTruth.decisionAttention.filter(
+    (decision) => decision.workItemId !== null && workIds.has(decision.workItemId),
+  );
+  const boardAttentionCount =
+    escalationTruth.boardAttentionCount === null
+      ? null
+      : missionDecisionAttention.length +
+        humanActions.length +
+        riskEscalations.filter((risk) => risk.requiresBoardAttention).length;
 
   return {
     established: true,
@@ -193,9 +246,14 @@ export function buildV2MissionRoomModel(
     collaborations,
     collaborationCoverageSupported: collaborationTruth.supported,
     missionCoverageState: collaborationTruth.missionCoverageState,
-    decisions: scene.deterministic.decisions.filter(
-      (decision) => decision.work_item_id !== null && workIds.has(decision.work_item_id),
-    ),
+    decisions,
+    humanActions,
+    riskEscalations,
+    humanActionCoverageSupported: escalationTruth.humanActionCoverageSupported,
+    humanActionCoverageState: escalationTruth.humanActionCoverageState,
+    riskEscalationCoverageSupported: escalationTruth.riskEscalationCoverageSupported,
+    riskEscalationCoverageState: escalationTruth.riskEscalationCoverageState,
+    boardAttentionCount,
     handoffs: scene.deterministic.handoffs.filter((handoff) => workIds.has(handoff.work_item_id)),
     canonicalProjection: scene.deterministic.canonical_projection,
     sceneAuthoritative: scene.truth.scene_authoritative,
@@ -203,7 +261,7 @@ export function buildV2MissionRoomModel(
     mutationsAllowed: scene.truth.scene_mutations_allowed,
     canonicalAuthority: scene.truth.canonical_authority,
     limitation:
-      "Mission Room content is a read-only projection of canonical Living Organization entities. Mission topology scopes work; governed coordination evidence uses exact conversation participants and does not establish live teamwork, physical presence or live speech.",
+      "Mission Room content is a read-only projection of canonical Living Organization entities. Mission topology scopes work; governed coordination evidence uses exact conversation participants, while Owner / Board attention preserves exact decision, human-action and risk-routing evidence without claiming a meeting, approval, physical presence or live speech.",
   };
 }
 
@@ -214,6 +272,7 @@ export function buildV2EmployeeInspectorModel(
   const blockerTruth = blockerCoverage(scene);
   const conversationTruth = conversationProjection(scene);
   const collaborationTruth = collaborationProjection(scene);
+  const escalationTruth = escalationProjection(scene);
   const employee = scene.deterministic.employees.find((item) => item.position_key === positionKey) || null;
 
   if (!employee) {
@@ -231,6 +290,9 @@ export function buildV2EmployeeInspectorModel(
       collaborations: [],
       collaborationCoverageSupported: collaborationTruth.supported,
       missionCoverageState: collaborationTruth.missionCoverageState,
+      escalationRisks: [],
+      riskEscalationCoverageSupported: escalationTruth.riskEscalationCoverageSupported,
+      riskEscalationCoverageState: escalationTruth.riskEscalationCoverageState,
       decisionIds: [],
       handoffActivityIds: [],
       presenceClaimed: false,
@@ -255,6 +317,7 @@ export function buildV2EmployeeInspectorModel(
   const blockerIds = [...blockerSelection.blockerIds];
   const conversations = visibleConversationsForPosition(conversationTruth, positionKey);
   const collaborations = visibleMissionCollaborationsForPosition(collaborationTruth, positionKey);
+  const escalationRisks = visibleOwnerBoardEscalationsForPosition(escalationTruth, positionKey);
 
   const decisionIds = scene.deterministic.decisions
     .filter(
@@ -286,6 +349,9 @@ export function buildV2EmployeeInspectorModel(
     collaborations,
     collaborationCoverageSupported: collaborationTruth.supported,
     missionCoverageState: collaborationTruth.missionCoverageState,
+    escalationRisks,
+    riskEscalationCoverageSupported: escalationTruth.riskEscalationCoverageSupported,
+    riskEscalationCoverageState: escalationTruth.riskEscalationCoverageState,
     decisionIds,
     handoffActivityIds,
     presenceClaimed: false,
@@ -293,6 +359,6 @@ export function buildV2EmployeeInspectorModel(
     canonicalProjection: scene.deterministic.canonical_projection,
     mutationsAllowed: scene.truth.scene_mutations_allowed,
     limitation:
-      "Employee Inspector is read-only. Mission membership is topology scope only; governed coordination evidence requires exact canonical conversation participation and does not assert active collaboration, physical presence, locomotion or live speech.",
+      "Employee Inspector is read-only. Mission membership is topology scope only; governed coordination requires exact conversation participation, and risk escalation is shown only for an exact accountable or escalated-to position key. No active collaboration, Board meeting, approval, physical presence, locomotion or live speech is asserted.",
   };
 }

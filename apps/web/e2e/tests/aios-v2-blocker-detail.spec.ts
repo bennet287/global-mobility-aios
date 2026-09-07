@@ -368,7 +368,8 @@ test("Phase 7C fails closed when canonical blocker coverage is unavailable", asy
   await cto.click();
   const inspector = page.getByRole("complementary", { name: "Chief Technology Officer" });
   await expect(inspector.getByText("Blocker details unavailable.", { exact: true })).toBeVisible();
-  await expect(inspector.getByText(/Coverage: unavailable/)).toBeVisible();
+  const blockerWarning = inspector.locator('[data-blocker-coverage="unavailable"]');
+  await expect(blockerWarning.getByText(/Coverage: unavailable/)).toBeVisible();
   await expect(inspector.getByText("Regulatory API evidence missing", { exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: /Canonical blocker visibility/ }).click();

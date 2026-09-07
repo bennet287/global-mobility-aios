@@ -42,10 +42,15 @@ export function useV2MissionRoomInspector() {
   const conversations = useMemo(() => scene?.deterministic.conversations || [], [scene]);
   const handoffs = useMemo(() => scene?.deterministic.handoffs || [], [scene]);
   const blockers = useMemo(() => scene?.deterministic.blockers || [], [scene]);
+  const decisions = useMemo(() => scene?.deterministic.decisions || [], [scene]);
+  const humanActions = useMemo(() => scene?.deterministic.human_actions || [], [scene]);
+  const riskEscalations = useMemo(() => scene?.deterministic.risk_escalations || [], [scene]);
   const missionCoverage = scene?.coverage.missions ?? "unavailable";
   const conversationCoverage = scene?.coverage.conversations ?? "unavailable";
   const handoffCoverage = scene?.coverage.handoffs ?? "unavailable";
   const blockerCoverage = scene?.coverage.blockers ?? "unavailable";
+  const humanActionCoverage = scene?.coverage.human_actions ?? "unavailable";
+  const riskEscalationCoverage = scene?.coverage.risk_escalations ?? "unavailable";
 
   const selectors = useMemo(() => {
     return {
@@ -68,10 +73,15 @@ export function useV2MissionRoomInspector() {
     conversations,
     handoffs,
     blockers,
+    decisions,
+    humanActions,
+    riskEscalations,
     missionCoverage,
     conversationCoverage,
     handoffCoverage,
     blockerCoverage,
+    humanActionCoverage,
+    riskEscalationCoverage,
     loading,
     error,
     refresh,
