@@ -54,6 +54,15 @@
   --aios-v2-type-lg: 1.3rem;
   --aios-v2-type-xl: clamp(2rem, 3.2vw, 3.8rem);
 
+  /* Shared V2 motion grammar. Canonical timestamps never become durations. */
+  --aios-v2-motion-duration-micro: 140ms;
+  --aios-v2-motion-duration-standard: 240ms;
+  --aios-v2-motion-duration-spatial-focus: 560ms;
+  --aios-v2-motion-duration-semantic-handoff: 1280ms;
+  --aios-v2-motion-ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --aios-v2-motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --aios-v2-motion-ease-emphasis: cubic-bezier(0.22, 0.61, 0.36, 1);
+
   --aios-v2-layout-rail: 220px;
   --aios-v2-layout-max: 1680px;
   --aios-v2-layout-gutter: clamp(18px, 2vw, 36px);

@@ -245,7 +245,16 @@ jobs:
           tests/aios-v2-visual-regression.spec.ts
           tests/aios-v2-truth-state.spec.ts
           tests/aios-v2-assistive-touch.spec.ts
+          tests/aios-v2-visible-handoff.spec.ts
           --project=chromium
+
+      - name: Upload Phase 7A visible handoff review
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7a-visible-handoff-review
+          path: apps/web/e2e/phase7a-artifacts
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Measure Q17 V2 performance baseline
         working-directory: apps/web/e2e
