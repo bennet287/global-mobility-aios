@@ -12,6 +12,7 @@ import type {
   HqWingKey,
   HqWingMetricInput,
 } from "../../lib/v2/hq-visual-presentation";
+import { buildV2VisibleBlockers } from "../../lib/v2/visible-blocker";
 import { buildLatestV2VisibleHandoff } from "../../lib/v2/visible-handoff";
 import {
   buildV2VisibleWorkStates,
@@ -36,7 +37,9 @@ export function V2OrganizationWorkspace() {
     error: roomError,
     employees: sceneEmployees,
     handoffs: sceneHandoffs,
+    blockers: sceneBlockers,
     handoffCoverage,
+    blockerCoverage,
     refresh: refreshRoom,
     missionRoomFor,
     employeeInspectorFor,
@@ -70,6 +73,16 @@ export function V2OrganizationWorkspace() {
   const visibleWorkStates = useMemo(
     () => buildV2VisibleWorkStates(sceneEmployees),
     [sceneEmployees],
+  );
+
+  const visibleBlockers = useMemo(
+    () =>
+      buildV2VisibleBlockers({
+        blockers: sceneBlockers,
+        employees: sceneEmployees,
+        coverageState: blockerCoverage,
+      }),
+    [blockerCoverage, sceneBlockers, sceneEmployees],
   );
 
   const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
@@ -353,6 +366,7 @@ export function V2OrganizationWorkspace() {
 
         {representation === "spatial" ? (
           <V2LivingHqVisualStage
+            blockers={visibleBlockers}
             characters={hqCharacters}
             handoff={visibleHandoff}
             loading={loading || roomLoading}

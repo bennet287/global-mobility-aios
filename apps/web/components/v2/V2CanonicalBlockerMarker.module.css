@@ -1,0 +1,50 @@
+.root {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.marker {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  z-index: 5;
+  display: inline-flex;
+  min-height: 19px;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 2px 3px;
+  border: 1px solid color-mix(in srgb, var(--aios-v2-color-warning) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aios-v2-color-surface-raised) 86%, var(--aios-v2-color-warning));
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.28);
+  color: var(--aios-v2-color-text);
+  pointer-events: none;
+}
+
+.glyph {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--aios-v2-color-warning);
+  color: var(--aios-v2-color-canvas);
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.label {
+  font-size: 0.46rem;
+  font-weight: 760;
+  letter-spacing: 0.075em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .marker {
+    left: -4px;
+  }
+}

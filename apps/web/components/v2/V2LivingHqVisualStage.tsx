@@ -18,12 +18,17 @@ import {
   type HqWingMetricInput,
   type HqWingVisualLayout,
 } from "../../lib/v2/hq-visual-presentation";
+import {
+  summarizeV2VisibleBlockers,
+  type V2VisibleBlockerCollection,
+} from "../../lib/v2/visible-blocker";
 import type { V2VisibleHandoffModel } from "../../lib/v2/visible-handoff";
 import {
   findV2VisibleWorkState,
   type V2VisibleWorkStateModel,
 } from "../../lib/v2/visible-work-state";
 import { V2AmbientCharacterSurface } from "./V2AmbientCharacterSurface";
+import { V2CanonicalBlockerMarker } from "./V2CanonicalBlockerMarker";
 import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
 import { V2CanonicalWorkStateSurface } from "./V2CanonicalWorkStateSurface";
 import { V2CharacterArtPrototype } from "./V2CharacterArtPrototype";
@@ -41,6 +46,7 @@ export type V2LivingHqVisualStageProps = {
   readonly selectedPositionKey?: string | null;
   readonly characters?: readonly HqStageCharacter[];
   readonly workStates?: readonly V2VisibleWorkStateModel[];
+  readonly blockers?: V2VisibleBlockerCollection | null;
   readonly wingMetrics?: readonly HqStageWingMetric[];
   readonly handoff?: V2VisibleHandoffModel | null;
   readonly loading?: boolean;
@@ -128,6 +134,7 @@ function WingPlatform({
   selectedPositionKey,
   reducedMotion,
   workStates,
+  blockers,
 }: {
   readonly zone: HqWingVisualLayout;
   readonly active: boolean;
@@ -140,6 +147,7 @@ function WingPlatform({
   readonly selectedPositionKey: string | null;
   readonly reducedMotion: boolean;
   readonly workStates: readonly V2VisibleWorkStateModel[];
+  readonly blockers: V2VisibleBlockerCollection | null;
 }) {
   const classes = [
     styles.wing,
@@ -226,6 +234,10 @@ function WingPlatform({
           {zone.characters.map((character, characterIndex) => {
             const selected = selectedPositionKey === character.positionKey;
             const workState = findV2VisibleWorkState(workStates, character.positionKey);
+            const blockerSummary =
+              blockers && workState?.supported && workState.kind === "blocked"
+                ? summarizeV2VisibleBlockers(blockers, character.positionKey)
+                : null;
             const presentation = resolveV2CharacterPresentation({
               positionKey: character.positionKey,
               title: character.title,
@@ -247,7 +259,7 @@ function WingPlatform({
                 variant="compact"
               />
             );
-            const miniature = workState?.supported ? (
+            const workStateMiniature = workState?.supported ? (
               <V2CanonicalWorkStateSurface
                 model={workState}
                 reducedMotion={reducedMotion}
@@ -259,7 +271,13 @@ function WingPlatform({
                 {characterArt}
               </V2AmbientCharacterSurface>
             );
+            const miniature = blockerSummary ? (
+              <V2CanonicalBlockerMarker summary={blockerSummary}>
+                {workStateMiniature}
+              </V2CanonicalBlockerMarker>
+            ) : workStateMiniature;
             const semanticLabel = workState?.supported ? ` · ${workState.label}` : "";
+            const blockerLabel = blockerSummary ? ` · ${blockerSummary.label}` : "";
 
             return (
               <li
@@ -272,7 +290,7 @@ function WingPlatform({
                   <button
                     aria-label={`${character.title || character.positionKey} · ${
                       character.department
-                    }${semanticLabel}${selected ? " · selected" : ""}`}
+                    }${semanticLabel}${blockerLabel}${selected ? " · selected" : ""}`}
                     aria-pressed={selected}
                     className={styles.characterButton}
                     onClick={() =>
@@ -301,6 +319,7 @@ export function V2LivingHqVisualStage({
   selectedPositionKey = null,
   characters,
   workStates = [],
+  blockers = null,
   wingMetrics,
   handoff = null,
   loading = false,
@@ -446,6 +465,7 @@ export function V2LivingHqVisualStage({
           {layout.zones.map((zone) => (
             <WingPlatform
               active={activeWing === zone.wingKey}
+              blockers={blockers}
               key={zone.wingKey}
               missionCount={visibleMissionCount}
               onSelectCharacter={onSelectCharacter}

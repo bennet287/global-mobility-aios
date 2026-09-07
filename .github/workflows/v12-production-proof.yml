@@ -247,6 +247,7 @@ jobs:
           tests/aios-v2-assistive-touch.spec.ts
           tests/aios-v2-visible-handoff.spec.ts
           tests/aios-v2-work-state-character.spec.ts
+          tests/aios-v2-blocker-detail.spec.ts
           --project=chromium
 
       - name: Upload Phase 7A visible handoff review
@@ -262,6 +263,14 @@ jobs:
         with:
           name: phase7b-work-state-character-review
           path: apps/web/e2e/phase7b-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Phase 7C blocker detail review
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7c-blocker-detail-review
+          path: apps/web/e2e/phase7c-artifacts
           if-no-files-found: error
           retention-days: 7
 

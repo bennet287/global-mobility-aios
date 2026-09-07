@@ -46,7 +46,7 @@ export function V2MissionRoomPanel({
             </div>
             <div>
               <span>Blockers</span>
-              <strong>{model.blockers.length}</strong>
+              <strong>{model.blockerCoverageSupported ? model.blockers.length : "Unavailable"}</strong>
             </div>
             <div>
               <span>Decisions</span>
@@ -101,18 +101,25 @@ export function V2MissionRoomPanel({
                 <strong id="aios-v2-room-signals-title">Canonical links</strong>
               </header>
 
-              <div className="aios-v2-room-signal-group">
+              <div
+                className="aios-v2-room-signal-group"
+                data-blocker-coverage={model.blockerCoverageState}
+              >
                 <span>Blockers</span>
-                {model.blockers.length ? (
+                {!model.blockerCoverageSupported ? (
+                  <p>
+                    Blocker coverage unavailable · {model.blockerCoverageState}. AIOS will not present an empty blocker list as canonical zero.
+                  </p>
+                ) : model.blockers.length ? (
                   <ul>
                     {model.blockers.map((blocker) => (
                       <li key={blocker.blocker_id}>
                         <strong>{blocker.title}</strong>
-                        <small>{blocker.severity} · {blocker.status}</small>
+                        <small>{blocker.severity} · {blocker.blocker_type} · {blocker.status}</small>
                       </li>
                     ))}
                   </ul>
-                ) : <p>No linked blockers.</p>}
+                ) : <p>No linked blockers under established canonical blocker coverage.</p>}
               </div>
 
               <div className="aios-v2-room-signal-group">
@@ -149,6 +156,7 @@ export function V2MissionRoomPanel({
             <span>Canonical projection: {model.canonicalProjection ? "yes" : "no"}</span>
             <span>Scene authority: {model.sceneAuthoritative ? "authoritative" : "non-authoritative"}</span>
             <span>Renderer authority: {model.rendererAuthoritative ? "authoritative" : "none"}</span>
+            <span>Blocker coverage: {model.blockerCoverageState}</span>
             <span>Mutation: {model.mutationsAllowed ? "allowed" : "disabled"}</span>
           </footer>
         </>
