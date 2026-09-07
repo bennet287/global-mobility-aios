@@ -19,8 +19,13 @@ import {
   type HqWingVisualLayout,
 } from "../../lib/v2/hq-visual-presentation";
 import type { V2VisibleHandoffModel } from "../../lib/v2/visible-handoff";
+import {
+  findV2VisibleWorkState,
+  type V2VisibleWorkStateModel,
+} from "../../lib/v2/visible-work-state";
 import { V2AmbientCharacterSurface } from "./V2AmbientCharacterSurface";
 import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
+import { V2CanonicalWorkStateSurface } from "./V2CanonicalWorkStateSurface";
 import { V2CharacterArtPrototype } from "./V2CharacterArtPrototype";
 import { V2HqAtmosphereLayer } from "./V2HqAtmosphereLayer";
 import { V2WingFocusPanel } from "./V2WingFocusPanel";
@@ -35,6 +40,7 @@ export type V2LivingHqVisualStageProps = {
   readonly selectedWing?: HqWingKey | null;
   readonly selectedPositionKey?: string | null;
   readonly characters?: readonly HqStageCharacter[];
+  readonly workStates?: readonly V2VisibleWorkStateModel[];
   readonly wingMetrics?: readonly HqStageWingMetric[];
   readonly handoff?: V2VisibleHandoffModel | null;
   readonly loading?: boolean;
@@ -121,6 +127,7 @@ function WingPlatform({
   onSelectCharacter,
   selectedPositionKey,
   reducedMotion,
+  workStates,
 }: {
   readonly zone: HqWingVisualLayout;
   readonly active: boolean;
@@ -132,6 +139,7 @@ function WingPlatform({
   ) => void;
   readonly selectedPositionKey: string | null;
   readonly reducedMotion: boolean;
+  readonly workStates: readonly V2VisibleWorkStateModel[];
 }) {
   const classes = [
     styles.wing,
@@ -217,6 +225,7 @@ function WingPlatform({
         >
           {zone.characters.map((character, characterIndex) => {
             const selected = selectedPositionKey === character.positionKey;
+            const workState = findV2VisibleWorkState(workStates, character.positionKey);
             const presentation = resolveV2CharacterPresentation({
               positionKey: character.positionKey,
               title: character.title,
@@ -232,14 +241,25 @@ function WingPlatform({
               ambientBehavior,
               phaseSlot,
             });
-            const miniature = (
+            const characterArt = (
+              <V2CharacterArtPrototype
+                presentationKey={presentation.presentationKey}
+                variant="compact"
+              />
+            );
+            const miniature = workState?.supported ? (
+              <V2CanonicalWorkStateSurface
+                model={workState}
+                reducedMotion={reducedMotion}
+              >
+                {characterArt}
+              </V2CanonicalWorkStateSurface>
+            ) : (
               <V2AmbientCharacterSurface presentation={ambientRenderer}>
-                <V2CharacterArtPrototype
-                  presentationKey={presentation.presentationKey}
-                  variant="compact"
-                />
+                {characterArt}
               </V2AmbientCharacterSurface>
             );
+            const semanticLabel = workState?.supported ? ` · ${workState.label}` : "";
 
             return (
               <li
@@ -252,7 +272,7 @@ function WingPlatform({
                   <button
                     aria-label={`${character.title || character.positionKey} · ${
                       character.department
-                    }${selected ? " · selected" : ""}`}
+                    }${semanticLabel}${selected ? " · selected" : ""}`}
                     aria-pressed={selected}
                     className={styles.characterButton}
                     onClick={() =>
@@ -280,6 +300,7 @@ export function V2LivingHqVisualStage({
   selectedWing = null,
   selectedPositionKey = null,
   characters,
+  workStates = [],
   wingMetrics,
   handoff = null,
   loading = false,
@@ -431,6 +452,7 @@ export function V2LivingHqVisualStage({
               onSelectWing={onSelectWing}
               reducedMotion={reducedMotion}
               selectedPositionKey={selectedPositionKey}
+              workStates={workStates}
               zone={zone}
             />
           ))}
