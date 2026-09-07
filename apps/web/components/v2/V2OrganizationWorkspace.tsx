@@ -13,6 +13,10 @@ import type {
   HqWingMetricInput,
 } from "../../lib/v2/hq-visual-presentation";
 import { buildLatestV2VisibleHandoff } from "../../lib/v2/visible-handoff";
+import {
+  buildV2VisibleWorkStates,
+  findV2VisibleWorkState,
+} from "../../lib/v2/visible-work-state";
 import { V2CanonicalHandoffSignal } from "./V2CanonicalHandoffSignal";
 import { V2EmployeeInspector } from "./V2EmployeeInspector";
 import { V2LivingHqVisualStage } from "./V2LivingHqVisualStage";
@@ -61,6 +65,11 @@ export function V2OrganizationWorkspace() {
         coverageState: handoffCoverage,
       }),
     [handoffCoverage, sceneEmployees, sceneHandoffs],
+  );
+
+  const visibleWorkStates = useMemo(
+    () => buildV2VisibleWorkStates(sceneEmployees),
+    [sceneEmployees],
   );
 
   const hqCharacters = useMemo<readonly HqWingCharacterInput[]>(
@@ -123,6 +132,14 @@ export function V2OrganizationWorkspace() {
 
   const retryAll = async () => {
     await Promise.all([refresh(), refreshRoom()]);
+  };
+
+  const structuredStateLabel = (positionKey: string) => {
+    const state = findV2VisibleWorkState(visibleWorkStates, positionKey);
+    if (!state) return "Canonical state unavailable";
+    return state.supported
+      ? `${state.label} · canonical employee state`
+      : `Canonical state · ${state.canonicalSemanticState}`;
   };
 
   const structuredOrganization = (
@@ -191,20 +208,29 @@ export function V2OrganizationWorkspace() {
                     <strong>Mapped roster</strong>
                     {placements.length ? (
                       <ul className={styles.employeeList}>
-                        {placements.map((placement) => (
-                          <li key={placement.positionKey}>
-                            <button
-                              aria-pressed={selectedPositionKey === placement.positionKey}
-                              className={styles.employeeButton}
-                              data-selected={selectedPositionKey === placement.positionKey ? "true" : "false"}
-                              onClick={() => selectEmployee(placement.positionKey)}
-                              type="button"
-                            >
-                              <span>{placement.title || placement.positionKey}</span>
-                              <small>{placement.department} · presentation mapping only</small>
-                            </button>
-                          </li>
-                        ))}
+                        {placements.map((placement) => {
+                          const workState = findV2VisibleWorkState(
+                            visibleWorkStates,
+                            placement.positionKey,
+                          );
+                          return (
+                            <li key={placement.positionKey}>
+                              <button
+                                aria-pressed={selectedPositionKey === placement.positionKey}
+                                className={styles.employeeButton}
+                                data-canonical-semantic-state={workState?.canonicalSemanticState ?? "unavailable"}
+                                data-selected={selectedPositionKey === placement.positionKey ? "true" : "false"}
+                                onClick={() => selectEmployee(placement.positionKey)}
+                                type="button"
+                              >
+                                <span>{placement.title || placement.positionKey}</span>
+                                <small>
+                                  {placement.department} · {structuredStateLabel(placement.positionKey)} · presentation mapping only
+                                </small>
+                              </button>
+                            </li>
+                          );
+                        })}
                       </ul>
                     ) : (
                       <p>No rostered employee is mapped to this presentation wing.</p>
@@ -225,20 +251,29 @@ export function V2OrganizationWorkspace() {
                 </p>
               </div>
               <ul className={styles.employeeList}>
-                {hqCharacterLayout.unplaced.map((employee) => (
-                  <li key={employee.positionKey}>
-                    <button
-                      aria-pressed={selectedPositionKey === employee.positionKey}
-                      className={styles.employeeButton}
-                      data-selected={selectedPositionKey === employee.positionKey ? "true" : "false"}
-                      onClick={() => selectEmployee(employee.positionKey)}
-                      type="button"
-                    >
-                      <span>{employee.title || employee.positionKey}</span>
-                      <small>{employee.department} · {employee.reason.replaceAll("-", " ")}</small>
-                    </button>
-                  </li>
-                ))}
+                {hqCharacterLayout.unplaced.map((employee) => {
+                  const workState = findV2VisibleWorkState(
+                    visibleWorkStates,
+                    employee.positionKey,
+                  );
+                  return (
+                    <li key={employee.positionKey}>
+                      <button
+                        aria-pressed={selectedPositionKey === employee.positionKey}
+                        className={styles.employeeButton}
+                        data-canonical-semantic-state={workState?.canonicalSemanticState ?? "unavailable"}
+                        data-selected={selectedPositionKey === employee.positionKey ? "true" : "false"}
+                        onClick={() => selectEmployee(employee.positionKey)}
+                        type="button"
+                      >
+                        <span>{employee.title || employee.positionKey}</span>
+                        <small>
+                          {employee.department} · {structuredStateLabel(employee.positionKey)} · {employee.reason.replaceAll("-", " ")}
+                        </small>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ) : null}
@@ -248,7 +283,7 @@ export function V2OrganizationWorkspace() {
       )}
 
       <div className={styles.truthNote} role="note">
-        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, and selecting a row changes inspection context only.
+        Structured view is presentation-only. Wing mapping is not physical location, roster identity is not presence, canonical employee state does not establish physical activity or room presence, and selecting a row changes inspection context only.
       </div>
     </section>
   );
@@ -332,6 +367,7 @@ export function V2OrganizationWorkspace() {
             selectedPositionKey={selectedPositionKey}
             selectedWing={selectedWing}
             wingMetrics={hqWingMetrics}
+            workStates={visibleWorkStates}
           />
         ) : structuredOrganization}
 

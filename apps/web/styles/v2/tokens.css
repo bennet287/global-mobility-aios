@@ -59,6 +59,10 @@
   --aios-v2-motion-duration-standard: 240ms;
   --aios-v2-motion-duration-spatial-focus: 560ms;
   --aios-v2-motion-duration-semantic-handoff: 1280ms;
+  --aios-v2-motion-duration-semantic-blocked: 1400ms;
+  --aios-v2-motion-duration-semantic-work: 1800ms;
+  --aios-v2-motion-duration-semantic-wait: 2400ms;
+  --aios-v2-motion-duration-semantic-settle: 2600ms;
   --aios-v2-motion-ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
   --aios-v2-motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --aios-v2-motion-ease-emphasis: cubic-bezier(0.22, 0.61, 0.36, 1);
