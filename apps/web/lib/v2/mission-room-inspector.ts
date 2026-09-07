@@ -6,6 +6,10 @@ import type {
   LivingSceneHandoff,
   LivingSceneMission,
 } from "../live-organization";
+import {
+  V2_CANONICAL_BLOCKER_COVERAGE,
+  selectV2CanonicalBlockersForPosition,
+} from "./visible-blocker";
 
 export type V2MissionRoomParticipant = {
   positionKey: string;
@@ -24,6 +28,8 @@ export type V2MissionRoomModel = {
   mission: LivingSceneMission | null;
   participants: V2MissionRoomParticipant[];
   blockers: LivingSceneBlocker[];
+  blockerCoverageSupported: boolean;
+  blockerCoverageState: string;
   decisions: LivingSceneDecision[];
   handoffs: LivingSceneHandoff[];
   canonicalProjection: boolean;
@@ -38,7 +44,10 @@ export type V2EmployeeInspectorModel = {
   established: boolean;
   employee: LivingSceneEmployee | null;
   activeMissionKeys: string[];
+  blockers: LivingSceneBlocker[];
   blockerIds: string[];
+  blockerCoverageSupported: boolean;
+  blockerCoverageState: string;
   decisionIds: string[];
   handoffActivityIds: string[];
   presenceClaimed: false;
@@ -68,10 +77,19 @@ function participantFromEmployee(employee: LivingSceneEmployee): V2MissionRoomPa
   };
 }
 
+function blockerCoverage(scene: LivingOrganizationScene) {
+  const state = scene.coverage.blockers || "unavailable";
+  return {
+    state,
+    supported: state === V2_CANONICAL_BLOCKER_COVERAGE,
+  } as const;
+}
+
 export function buildV2MissionRoomModel(
   scene: LivingOrganizationScene,
   missionKey: string,
 ): V2MissionRoomModel {
+  const blockerTruth = blockerCoverage(scene);
   const mission = scene.deterministic.missions.find((item) => item.mission_key === missionKey) || null;
 
   if (!mission) {
@@ -80,6 +98,8 @@ export function buildV2MissionRoomModel(
       mission: null,
       participants: [],
       blockers: [],
+      blockerCoverageSupported: blockerTruth.supported,
+      blockerCoverageState: blockerTruth.state,
       decisions: [],
       handoffs: [],
       canonicalProjection: scene.deterministic.canonical_projection,
@@ -100,9 +120,13 @@ export function buildV2MissionRoomModel(
     participants: scene.deterministic.employees
       .filter((employee) => participantKeys.has(employee.position_key))
       .map(participantFromEmployee),
-    blockers: scene.deterministic.blockers.filter(
-      (blocker) => blocker.work_item_id !== null && workIds.has(blocker.work_item_id),
-    ),
+    blockers: blockerTruth.supported
+      ? scene.deterministic.blockers.filter(
+          (blocker) => blocker.work_item_id !== null && workIds.has(blocker.work_item_id),
+        )
+      : [],
+    blockerCoverageSupported: blockerTruth.supported,
+    blockerCoverageState: blockerTruth.state,
     decisions: scene.deterministic.decisions.filter(
       (decision) => decision.work_item_id !== null && workIds.has(decision.work_item_id),
     ),
@@ -121,6 +145,7 @@ export function buildV2EmployeeInspectorModel(
   scene: LivingOrganizationScene,
   positionKey: string,
 ): V2EmployeeInspectorModel {
+  const blockerTruth = blockerCoverage(scene);
   const employee = scene.deterministic.employees.find((item) => item.position_key === positionKey) || null;
 
   if (!employee) {
@@ -128,7 +153,10 @@ export function buildV2EmployeeInspectorModel(
       established: false,
       employee: null,
       activeMissionKeys: [],
+      blockers: [],
       blockerIds: [],
+      blockerCoverageSupported: blockerTruth.supported,
+      blockerCoverageState: blockerTruth.state,
       decisionIds: [],
       handoffActivityIds: [],
       presenceClaimed: false,
@@ -143,13 +171,17 @@ export function buildV2EmployeeInspectorModel(
     .filter((mission) => mission.participant_position_keys.includes(positionKey))
     .map((mission) => mission.mission_key);
 
-  const blockerIds = scene.deterministic.blockers
-    .filter(
-      (blocker) =>
-        blocker.accountable_position_key === positionKey ||
-        (employee.work_item_id !== null && blocker.work_item_id === employee.work_item_id),
-    )
-    .map((blocker) => blocker.blocker_id);
+  // Consume the exact same fail-closed relation selector as the HQ blocker
+  // marker. WorkItem-only records remain unassigned when ownership is
+  // ambiguous across the roster.
+  const blockerSelection = selectV2CanonicalBlockersForPosition({
+    blockers: scene.deterministic.blockers,
+    employees: scene.deterministic.employees,
+    coverageState: scene.coverage.blockers,
+    positionKey,
+  });
+  const blockers = [...blockerSelection.blockers];
+  const blockerIds = [...blockerSelection.blockerIds];
 
   const decisionIds = scene.deterministic.decisions
     .filter(
@@ -171,7 +203,10 @@ export function buildV2EmployeeInspectorModel(
     established: true,
     employee,
     activeMissionKeys: missionKeys,
+    blockers,
     blockerIds,
+    blockerCoverageSupported: blockerSelection.supported,
+    blockerCoverageState: blockerSelection.coverageState,
     decisionIds,
     handoffActivityIds,
     presenceClaimed: false,
