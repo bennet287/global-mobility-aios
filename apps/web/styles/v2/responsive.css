@@ -7,6 +7,13 @@
   max-width: 100%;
 }
 
+/* Q12 — every native keyboard target keeps a visible focus indicator. Component-
+ * specific treatments may refine this, but they may not erase it. */
+.aios-v2-root :where(a[href], button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--aios-v2-color-accent);
+  outline-offset: 3px;
+}
+
 .aios-v2-root :where(p, dd, li, strong, small) {
   overflow-wrap: anywhere;
 }
@@ -126,7 +133,8 @@
     gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 2px 0 5px;
+    padding: 4px 3px 7px;
+    scroll-padding-inline: 8px;
     scroll-snap-type: x proximity;
     scrollbar-width: thin;
     overscroll-behavior-inline: contain;
@@ -233,5 +241,9 @@
   .aios-v2-nav-item.active {
     outline: 2px solid Highlight;
     outline-offset: -2px;
+  }
+
+  .aios-v2-root :where(a[href], button, input, select, textarea, summary):focus-visible {
+    outline-color: Highlight;
   }
 }
