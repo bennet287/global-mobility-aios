@@ -23,7 +23,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { Topbar } from "../components/Topbar";
 import { TruthClaimCard } from "../components/TruthClaimCard";
 import { QueueStages } from "../components/QueueStages";
-import { WorkspaceShell } from "../components/WorkspaceShell";
+import { V2OperatorShell } from "../components/v2/V2OperatorShell";
 import { useBackendStatus } from "../hooks/useBackendStatus";
 import { useLeadForm } from "../hooks/useLeadForm";
 import { useWorkspaceData } from "../hooks/useWorkspaceData";
@@ -167,7 +167,7 @@ export default function HomePage() {
   }[loadStatus];
 
   return (
-    <WorkspaceShell health={health}>
+    <V2OperatorShell activeItem="Work">
       <Topbar
         title="Operations Workspace"
         kicker="Professional / Operator · Evidence-aware · Human-controlled"
@@ -463,6 +463,6 @@ export default function HomePage() {
           </div>
         </article>
       </section>}
-    </WorkspaceShell>
+    </V2OperatorShell>
   );
 }
