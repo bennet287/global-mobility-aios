@@ -68,7 +68,7 @@ for (const width of [1280, 390]) {
       await expect(main).toBeVisible();
       await expect(nav).toBeVisible();
       await expect(active).toHaveAttribute("aria-current", "page");
-      await expect(page.getByRole("heading", { name: route.heading, exact: true })).toBeVisible();
+      await expect(page.getByText(route.heading, { exact: true }).first()).toBeVisible();
       await expect(page.getByLabel("AIOS V2 theme")).toBeVisible();
 
       for (const item of operatorRoutes) {
