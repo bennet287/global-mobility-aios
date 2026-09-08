@@ -1,0 +1,109 @@
+/* AIOS V2 — Current Attention interaction polish.
+ * Presentation-only. Motion and depth reflect pointer/focus affordance only;
+ * canonical attention kind, urgency, destination and source truth remain authoritative.
+ */
+
+.list {
+  isolation: isolate;
+}
+
+.attentionCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.attentionCard::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  pointer-events: none;
+  content: "";
+  opacity: 0.34;
+  background: color-mix(in srgb, var(--aios-v2-color-accent) 56%, transparent);
+}
+
+.attentionCard::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(
+    112deg,
+    color-mix(in srgb, var(--aios-v2-color-accent) 6%, transparent),
+    transparent 38%,
+    transparent 76%,
+    rgba(255, 255, 255, 0.018)
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .attentionCard {
+    translate: 0 0;
+    transition:
+      translate 170ms cubic-bezier(.2, .8, .2, 1),
+      border-color 170ms ease,
+      box-shadow 190ms cubic-bezier(.2, .8, .2, 1),
+      background-color 170ms ease,
+      filter 170ms ease;
+  }
+
+  .attentionCard::before,
+  .attentionCard::after {
+    transition:
+      opacity 170ms ease,
+      width 180ms cubic-bezier(.2, .8, .2, 1);
+  }
+
+  .attentionCard:hover,
+  .attentionCard:focus-visible {
+    translate: 2px 0;
+    filter: brightness(1.02);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  .attentionCard:hover::before,
+  .attentionCard:focus-visible::before {
+    width: 3px;
+    opacity: 0.72;
+  }
+
+  .attentionCard:hover::after,
+  .attentionCard:focus-visible::after {
+    opacity: 1;
+  }
+
+  .attentionCard:active {
+    translate: 0 0;
+    filter: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attentionCard,
+  .attentionCard::before,
+  .attentionCard::after {
+    transition: none;
+  }
+
+  .attentionCard:hover,
+  .attentionCard:focus-visible,
+  .attentionCard:active {
+    translate: none;
+    filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .attentionCard:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .attentionCard::before,
+  .attentionCard::after {
+    display: none;
+  }
+}
