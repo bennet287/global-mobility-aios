@@ -13,6 +13,8 @@ import {
 } from "../lib/v2/operator-navigation.ts";
 
 const shellUrl = new URL("../components/v2/V2Shell.tsx", import.meta.url);
+const operatorShellUrl = new URL("../components/v2/V2OperatorShell.tsx", import.meta.url);
+const operatorPageUrl = new URL("../app/operator/v2/page.tsx", import.meta.url);
 const iconUrl = new URL("../components/v2/V2Icon.tsx", import.meta.url);
 
 async function assertRouteExists(href) {
@@ -71,6 +73,21 @@ test("Operator specialist routes stay contextual and map to one primary conceptu
     assert.ok(homes.has(item.conceptualHome), `${item.label} must map to a valid Operator conceptual home`);
     await assertRouteExists(item.href);
   }
+});
+
+test("visible Operator V2 shell is isolated, six-domain, and navigation-only", async () => {
+  await assertRouteExists("/operator/v2");
+  const shell = await readFile(operatorShellUrl, "utf8");
+  const page = await readFile(operatorPageUrl, "utf8");
+
+  assert.match(shell, /operatorNavigation\.map/);
+  assert.match(shell, /Professional \/ Operator navigation/);
+  assert.match(shell, /V2ThemeControl/);
+  assert.match(page, /<V2OperatorShell activeItem="Work">/);
+  assert.match(page, /Work, Profiles, Pathways, Evidence, Communication and Tools/);
+  assert.match(page, /Migration pending/);
+  assert.match(page, /authority boundaries, review gates and mutation semantics remain unchanged/);
+  assert.doesNotMatch(`${shell}\n${page}`, /fetch\(|axios|method:\s*["'](?:POST|PUT|PATCH|DELETE)|onSubmit=/i);
 });
 
 test("navigation commands contain only implemented destinations and never imply workflow authority", async () => {
