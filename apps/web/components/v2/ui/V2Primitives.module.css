@@ -54,6 +54,71 @@ a.evidenceChip { min-height: 44px; }
 :is(.row,.control,.evidenceChip,.disclosure summary):focus-visible, .actions :is(button,a):focus-visible { outline: 2px solid var(--aios-v2-color-accent); outline-offset: 3px; }
 @media (max-width: 600px) { .row { flex-wrap: wrap; } .trailing { max-width: 100%; } .leading { flex-basis: 100%; } .surface,.inspector { padding: 16px; } .pageHeader { padding-block: 24px; } .metricGroup { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+/* Cross-product motion foundation — presentation only; never encodes canonical state. */
+.surface,
+.inspector,
+.row,
+.control,
+.evidenceChip,
+.actions :is(button,a),
+.disclosure summary,
+.metric {
+  transition:
+    transform 160ms cubic-bezier(.2,.8,.2,1),
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 180ms ease,
+    opacity 160ms ease;
+}
+
+:is(button.row,a.row,.control,.evidenceChip,.actions button,.actions a):hover {
+  transform: translateY(-1px);
+}
+
+:is(button.row,a.row,.control,.evidenceChip,.actions button,.actions a):active {
+  transform: translateY(0) scale(.99);
+}
+
+.surface[data-surface="raised"]:hover,
+.surface[data-surface="floating"]:hover,
+.inspector:focus-within {
+  border-color: color-mix(in srgb, var(--aios-v2-color-accent) 20%, var(--aios-v2-color-border-strong));
+}
+
+.disclosure summary:hover {
+  color: var(--aios-v2-color-text);
+}
+
+.disclosure[open] summary {
+  color: var(--aios-v2-color-text);
+}
+
+.row[aria-pressed="true"] {
+  transform: translateX(1px);
+}
+
+.metric:hover {
+  background: color-mix(in srgb, var(--aios-v2-color-surface-inset) 92%, var(--aios-v2-color-accent));
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-105%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  animation: aios-v2-skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes aios-v2-skeleton-sweep {
+  100% { transform: translateX(105%); }
+}
+
 /* Q11 — shared primitives reprioritize rather than miniaturize. */
 @media (max-width: 760px) {
   .pageHeader {
@@ -121,6 +186,30 @@ a.evidenceChip { min-height: 44px; }
   .row,
   .dataState {
     padding-inline: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface,
+  .inspector,
+  .row,
+  .control,
+  .evidenceChip,
+  .actions :is(button,a),
+  .disclosure summary,
+  .metric {
+    transition: none;
+  }
+
+  :is(button.row,a.row,.control,.evidenceChip,.actions button,.actions a):hover,
+  :is(button.row,a.row,.control,.evidenceChip,.actions button,.actions a):active,
+  .row[aria-pressed="true"] {
+    transform: none;
+  }
+
+  .skeleton::after {
+    animation: none;
+    display: none;
   }
 }
 
