@@ -1,15 +1,309 @@
-.page { display: grid; gap: var(--aios-v2-space-5); min-width: 0; }
-.workspace { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr); gap: var(--aios-v2-space-5); align-items: start; min-width: 0; }
-.ledger, .specialists { display: grid; gap: var(--aios-v2-space-4); }
-.list { display: grid; gap: 9px; }
-.inspectorSlot { position: sticky; top: 18px; min-width: 0; }
-.placeholder { min-height: 220px; display: grid; align-content: center; }
-.placeholder p { color: var(--aios-v2-color-text-muted); line-height: 1.6; }
-.definitionList { display: grid; grid-template-columns: minmax(130px, .4fr) minmax(0, 1fr); gap: 8px 14px; margin: 0 0 16px; }
-.definitionList + .definitionList { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--aios-v2-color-border); }
-.definitionList dt { color: var(--aios-v2-color-text-muted); }
-.definitionList dd { margin: 0; overflow-wrap: anywhere; }
-.inspectorSlot:focus-visible { outline: 2px solid var(--aios-v2-color-accent); outline-offset: 3px; }
-@media (max-width: 900px) { .workspace { grid-template-columns: minmax(0, 1fr); } .inspectorSlot { position: static; } }
-@media (max-width: 600px) { .page { gap: 16px; } .definitionList { grid-template-columns: minmax(0, 1fr); } }
-@media (prefers-reduced-motion: reduce) { .page, .workspace, .list { scroll-behavior: auto; } }
+.page {
+  position: relative;
+  display: grid;
+  gap: clamp(18px, 2.2vw, 30px);
+  min-width: 0;
+  overflow-x: clip;
+  isolation: isolate;
+}
+
+.page::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -28px -18px auto;
+  height: 320px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(210, 184, 137, 0.10), transparent 34%),
+    radial-gradient(circle at 80% 16%, rgba(121, 167, 216, 0.10), transparent 36%);
+  filter: blur(4px);
+}
+
+.page > header {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(22px, 3vw, 38px);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.012)),
+    radial-gradient(circle at 84% 12%, rgba(210, 184, 137, 0.07), transparent 34%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 28px 80px rgba(0, 0, 0, 0.18);
+}
+
+.page > header::after {
+  content: "";
+  position: absolute;
+  right: 30px;
+  bottom: 22px;
+  width: 128px;
+  height: 1px;
+  opacity: .72;
+  background: linear-gradient(90deg, transparent, rgba(210, 184, 137, 0.72));
+}
+
+.page > header h1 {
+  letter-spacing: -0.045em;
+}
+
+.page > header button {
+  min-height: 40px;
+  padding-inline: 16px;
+  border-color: rgba(210, 184, 137, 0.22);
+  background: rgba(210, 184, 137, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.page details {
+  backdrop-filter: blur(12px);
+}
+
+.page dl[aria-label="Evidence ledger readout"] {
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.008)),
+    rgba(8, 11, 15, 0.34);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(320px, .72fr);
+  gap: clamp(14px, 1.6vw, 22px);
+  align-items: start;
+  min-width: 0;
+}
+
+.ledger,
+.specialists {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.010)),
+    rgba(10, 14, 20, 0.72) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 64px rgba(0, 0, 0, 0.18);
+}
+
+.ledger::before,
+.specialists::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(121, 167, 216, 0.38), rgba(210, 184, 137, 0.54), transparent);
+  pointer-events: none;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.list > button {
+  position: relative;
+  min-height: 86px;
+  padding: 14px 16px 14px 20px;
+  border-color: rgba(255, 255, 255, 0.055);
+  border-radius: 15px;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0.024), rgba(255, 255, 255, 0.008));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  transition:
+    transform var(--aios-v2-motion-micro) var(--aios-v2-ease-standard),
+    border-color var(--aios-v2-motion-micro) var(--aios-v2-ease-standard),
+    background var(--aios-v2-motion-micro) var(--aios-v2-ease-standard),
+    box-shadow var(--aios-v2-motion-micro) var(--aios-v2-ease-standard);
+}
+
+.list > button::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 15px;
+  bottom: 15px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(121, 167, 216, 0.72), rgba(210, 184, 137, 0.38));
+  opacity: .42;
+}
+
+.list > button:hover,
+.list > button:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(121, 167, 216, 0.24);
+  background: linear-gradient(105deg, rgba(121, 167, 216, 0.055), rgba(255, 255, 255, 0.010));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+}
+
+.list > button[aria-pressed="true"] {
+  border-color: rgba(210, 184, 137, 0.30);
+  background:
+    radial-gradient(circle at 90% 50%, rgba(210, 184, 137, 0.075), transparent 34%),
+    linear-gradient(105deg, rgba(121, 167, 216, 0.055), rgba(255, 255, 255, 0.014));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 38px rgba(0, 0, 0, 0.17);
+}
+
+.list > button[aria-pressed="true"]::before {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(210, 184, 137, 0.95), rgba(121, 167, 216, 0.70));
+}
+
+.inspectorSlot {
+  position: sticky;
+  top: 18px;
+  min-width: 0;
+}
+
+.inspectorSlot > aside {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(210, 184, 137, 0.12);
+  background:
+    radial-gradient(circle at 92% 4%, rgba(210, 184, 137, 0.075), transparent 28%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.030), rgba(255, 255, 255, 0.008)),
+    rgba(8, 11, 16, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 30px 72px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+}
+
+.inspectorSlot > aside::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 22px;
+  right: 22px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(210, 184, 137, 0.58), transparent);
+}
+
+.placeholder {
+  min-height: 250px;
+  display: grid;
+  align-content: center;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(121, 167, 216, 0.055), transparent 40%),
+    rgba(255, 255, 255, 0.012) !important;
+}
+
+.placeholder p {
+  color: var(--aios-v2-color-text-muted);
+  line-height: 1.6;
+}
+
+.definitionList {
+  display: grid;
+  grid-template-columns: minmax(130px, .4fr) minmax(0, 1fr);
+  gap: 8px 14px;
+  margin: 0 0 16px;
+}
+
+.definitionList + .definitionList {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--aios-v2-color-border);
+}
+
+.definitionList dt {
+  color: var(--aios-v2-color-text-muted);
+}
+
+.definitionList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.specialists > button {
+  border-radius: 14px;
+  border-color: rgba(255, 255, 255, 0.055);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.inspectorSlot:focus-visible {
+  outline: 2px solid var(--aios-v2-color-accent);
+  outline-offset: 3px;
+}
+
+:global(.aios-v2-root[data-theme="light"]) .page::before {
+  opacity: .46;
+}
+
+:global(.aios-v2-root[data-theme="light"]) .page > header,
+:global(.aios-v2-root[data-theme="light"]) .ledger,
+:global(.aios-v2-root[data-theme="light"]) .specialists,
+:global(.aios-v2-root[data-theme="light"]) .inspectorSlot > aside {
+  border-color: rgba(70, 59, 43, 0.09) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(247, 244, 237, 0.78)),
+    rgba(248, 246, 240, 0.82) !important;
+  box-shadow: 0 22px 58px rgba(45, 36, 24, 0.09);
+}
+
+:global(.aios-v2-root[data-theme="light"]) .list > button,
+:global(.aios-v2-root[data-theme="light"]) .specialists > button {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(70, 59, 43, 0.09);
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inspectorSlot {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    gap: 16px;
+  }
+
+  .page::before {
+    inset-inline: -10px;
+    height: 220px;
+  }
+
+  .page > header {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .page > header::after {
+    display: none;
+  }
+
+  .definitionList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .workspace,
+  .list {
+    scroll-behavior: auto;
+  }
+
+  .list > button {
+    transition: none;
+  }
+
+  .list > button:hover,
+  .list > button:focus-visible {
+    transform: none;
+  }
+}
