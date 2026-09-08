@@ -26,6 +26,7 @@
   box-shadow: 0 0 18px -7px var(--work-state-color);
   opacity: 0.72;
   pointer-events: none;
+  transform-origin: 50% 70%;
 }
 
 .stateBadge {
@@ -74,27 +75,51 @@
   --work-state-color: var(--aios-v2-color-text-soft);
 }
 
-.focusedWork .stateHalo {
-  animation: aios-v2-work-focus var(--aios-v2-motion-duration-semantic-work) var(--aios-v2-motion-ease-emphasis) infinite;
-}
+/*
+ * Canonical state changes may visually interpolate, but interpolation is
+ * presentation-only. It does not create work, presence, urgency or authority.
+ * Static appearance remains unchanged; reduced-motion users get no transition.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .stateHalo {
+    transition:
+      border-color 220ms var(--aios-v2-motion-ease-emphasis),
+      background 220ms var(--aios-v2-motion-ease-emphasis),
+      box-shadow 240ms var(--aios-v2-motion-ease-emphasis),
+      opacity 220ms var(--aios-v2-motion-ease-emphasis);
+  }
 
-.blockedWait .stateHalo {
-  animation: aios-v2-blocked-attention var(--aios-v2-motion-duration-semantic-blocked) var(--aios-v2-motion-ease-emphasis) infinite;
-}
+  .stateBadge {
+    transition:
+      border-color 200ms var(--aios-v2-motion-ease-emphasis),
+      background 220ms var(--aios-v2-motion-ease-emphasis),
+      box-shadow 220ms var(--aios-v2-motion-ease-emphasis),
+      opacity 180ms ease-out;
+  }
 
-.awaitingAttention .stateBadge,
-.queuedWait .stateBadge {
-  animation: aios-v2-waiting-emphasis var(--aios-v2-motion-duration-semantic-wait) var(--aios-v2-motion-ease-emphasis) infinite;
-}
+  .focusedWork .stateHalo {
+    animation: aios-v2-work-focus var(--aios-v2-motion-duration-semantic-work) var(--aios-v2-motion-ease-emphasis) infinite;
+  }
 
-.settledIdle .stateHalo {
-  animation: aios-v2-settled-state var(--aios-v2-motion-duration-semantic-settle) var(--aios-v2-motion-ease-emphasis) infinite;
+  .blockedWait .stateHalo {
+    animation: aios-v2-blocked-attention var(--aios-v2-motion-duration-semantic-blocked) var(--aios-v2-motion-ease-emphasis) infinite;
+  }
+
+  .awaitingAttention .stateBadge,
+  .queuedWait .stateBadge {
+    animation: aios-v2-waiting-emphasis var(--aios-v2-motion-duration-semantic-wait) var(--aios-v2-motion-ease-emphasis) infinite;
+  }
+
+  .settledIdle .stateHalo {
+    animation: aios-v2-settled-state var(--aios-v2-motion-duration-semantic-settle) var(--aios-v2-motion-ease-emphasis) infinite;
+  }
 }
 
 .reducedMotion .stateHalo,
 .reducedMotion .stateBadge,
 .reducedMotion .character {
   animation: none !important;
+  transition: none !important;
   transform: none !important;
 }
 
@@ -135,6 +160,7 @@
   .root .stateBadge,
   .root .character {
     animation: none !important;
+    transition: none !important;
     transform: none !important;
   }
 }
