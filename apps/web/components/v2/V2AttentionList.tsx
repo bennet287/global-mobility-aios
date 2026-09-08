@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { V2AttentionItem } from "../../lib/v2/owner-organization";
 import type { V2CountTruth } from "../../lib/v2/truth-state";
+import styles from "./V2AttentionList.module.css";
 
 function attentionLabel(kind: V2AttentionItem["kind"]): string {
   if (kind === "decision") return "Decision";
@@ -51,10 +52,10 @@ export function V2AttentionList({
   }
 
   return (
-    <div className="aios-v2-attention-list" aria-label="Current organization attention">
+    <div className={`aios-v2-attention-list ${styles.list}`} aria-label="Current organization attention">
       {items.slice(0, 5).map((item) => (
         <Link
-          className="aios-v2-attention-object"
+          className={`aios-v2-attention-object ${styles.attentionCard}`}
           data-kind={item.kind}
           data-urgency={item.urgency}
           href={item.href}
