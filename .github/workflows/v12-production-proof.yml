@@ -252,6 +252,7 @@ jobs:
           tests/aios-v2-mission-collaboration.spec.ts
           tests/aios-v2-owner-board-escalation.spec.ts
           tests/aios-v2-completion-resolution.spec.ts
+          tests/aios-v2-history-replay.spec.ts
           --project=chromium
 
       - name: Upload browser failure diagnostics
@@ -316,6 +317,14 @@ jobs:
         with:
           name: phase7g-completion-resolution-review
           path: apps/web/e2e/phase7g-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Phase 7H replay semantic rendering review
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7h-replay-semantic-rendering-review
+          path: apps/web/e2e/phase7h-artifacts
           if-no-files-found: error
           retention-days: 7
 
