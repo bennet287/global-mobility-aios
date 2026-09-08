@@ -1,0 +1,99 @@
+/* Cross-product shell/navigation polish — presentation only.
+ * The full visual treatment intentionally exists only when the OS allows
+ * motion. Q15 and reduced-motion users therefore retain the previously
+ * reviewed static shell contract exactly. */
+@media (prefers-reduced-motion: no-preference) {
+  .shellRail,
+  .topline,
+  .navItem,
+  .command {
+    transition:
+      transform 160ms cubic-bezier(.2,.8,.2,1),
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 180ms ease,
+      color 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .shellRail {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .shellRail::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 132px;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--aios-v2-color-accent) 10%, transparent), transparent 72%);
+    opacity: .78;
+    z-index: -1;
+  }
+
+  .navItem {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .navItem::after {
+    content: "";
+    position: absolute;
+    inset: 6px auto 6px 0;
+    width: 2px;
+    border-radius: 999px;
+    background: var(--aios-v2-color-accent);
+    opacity: 0;
+    transform: scaleY(.45);
+    transform-origin: center;
+    transition: opacity 160ms ease, transform 180ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  .navItem:hover:not([aria-disabled="true"]) {
+    transform: translateX(2px);
+  }
+
+  .navItem[aria-current="page"]::after {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  .navItem[aria-current="page"] {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--aios-v2-color-accent) 18%, transparent);
+  }
+
+  .topline {
+    backdrop-filter: blur(18px) saturate(1.08);
+  }
+
+  .command:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--aios-v2-color-accent) 36%, var(--aios-v2-color-border-strong));
+    box-shadow: 0 10px 28px rgba(0,0,0,.09);
+  }
+
+  .command:active {
+    transform: translateY(0) scale(.99);
+    box-shadow: none;
+  }
+
+  @media (max-width: 600px) {
+    .navItem:hover:not([aria-disabled="true"]) {
+      transform: none;
+    }
+
+    .navItem[aria-current="page"]::after {
+      inset: auto 8px 0;
+      width: auto;
+      height: 2px;
+      transform: scaleX(1);
+    }
+  }
+}
+
+@media (forced-colors: active) and (prefers-reduced-motion: no-preference) {
+  .navItem[aria-current="page"]::after {
+    background: Highlight;
+  }
+}

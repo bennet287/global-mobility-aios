@@ -8,6 +8,7 @@ import { V2CommandPalette } from "./V2CommandPalette";
 import { V2GuidedExperience } from "./V2GuidedExperience";
 import guideStyles from "./V2GuidedExperience.module.css";
 import { V2Icon } from "./V2Icon";
+import shellStyles from "./V2Shell.module.css";
 import {
   V2_THEME_STORAGE_KEY,
   V2ThemeControl,
@@ -92,7 +93,7 @@ export function V2Shell({
       <a className="aios-v2-skip-link" href="#aios-v2-main">Skip to main content</a>
 
       <div className="aios-v2-shell">
-        <aside className="aios-v2-rail" aria-label="AIOS V2 Owner navigation">
+        <aside className={`aios-v2-rail ${shellStyles.shellRail}`} aria-label="AIOS V2 Owner navigation">
           <div className="aios-v2-brand">
             <div className="aios-v2-brand-mark" aria-hidden="true">AI</div>
             <div className="aios-v2-brand-copy">
@@ -107,7 +108,7 @@ export function V2Shell({
               if (item.enabled && item.href) {
                 return (
                   <Link
-                    className={"aios-v2-nav-item" + (active ? " active" : "")}
+                    className={`aios-v2-nav-item ${shellStyles.navItem}${active ? " active" : ""}`}
                     href={item.href}
                     key={item.label}
                     aria-current={active ? "page" : undefined}
@@ -124,7 +125,7 @@ export function V2Shell({
 
               return (
                 <span
-                  className="aios-v2-nav-item"
+                  className={`aios-v2-nav-item ${shellStyles.navItem}`}
                   aria-disabled="true"
                   aria-label={`${item.label} (not yet available)`}
                   key={item.label}
@@ -148,7 +149,7 @@ export function V2Shell({
         </aside>
 
         <main className="aios-v2-main" id="aios-v2-main">
-          <div className="aios-v2-topline">
+          <div className={`aios-v2-topline ${shellStyles.topline}`}>
             <div className="aios-v2-topline-context">
               <strong>Owner</strong>
               <span>AIOS V2</span>
@@ -156,7 +157,7 @@ export function V2Shell({
             <div className={guideStyles.topActions}>
               <button
                 aria-label="Open guided experience"
-                className={`aios-v2-command ${guideStyles.guideTrigger}`}
+                className={`aios-v2-command ${guideStyles.guideTrigger} ${shellStyles.command}`}
                 onClick={() => {
                   setPaletteOpen(false);
                   setGuideOpen(true);
@@ -172,7 +173,7 @@ export function V2Shell({
                 aria-keyshortcuts="Control+K Meta+K"
                 ref={commandTriggerRef}
                 aria-label="Search / Command"
-                className="aios-v2-command"
+                className={`aios-v2-command ${shellStyles.command}`}
                 onClick={() => setPaletteOpen(true)}
                 type="button"
               >
