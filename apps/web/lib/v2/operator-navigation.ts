@@ -35,7 +35,7 @@ export const operatorNavigation: readonly OperatorNavigationItem[] = Object.free
   { label: "Pathways", icon: "pathways", href: "/pathways", enabled: true, description: "Governed pathway catalogue and professional comparison" },
   { label: "Evidence", icon: "evidence", href: "/document-intelligence", enabled: true, description: "Documents, evidence review, validation and provenance" },
   { label: "Communication", icon: "communication", href: "/communications", enabled: true, description: "Governed professional and client communication workflows" },
-  { label: "Tools", icon: "tools", href: null, enabled: false, description: "Contextual professional tools and specialist domains" },
+  { label: "Tools", icon: "tools", href: "/operator/v2/tools", enabled: true, description: "Contextual professional tools and specialist domains" },
 ]);
 
 export const operatorContextualDestinations: readonly OperatorContextualDestination[] = Object.freeze([
