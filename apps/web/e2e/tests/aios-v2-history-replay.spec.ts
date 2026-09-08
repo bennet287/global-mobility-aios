@@ -1,8 +1,13 @@
+import { mkdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 const firstActivity = "00000000-0000-0000-0000-000000000001";
 const secondActivity = "00000000-0000-0000-0000-000000000002";
 const rootWorkItem = "10000000-0000-0000-0000-000000000001";
+const blockerId = "30000000-0000-0000-0000-000000000001";
+const decisionId = "20000000-0000-0000-0000-000000000001";
+const requestId = "40000000-0000-0000-0000-000000000001";
+const conversationId = "conversation:fixture:1";
 
 const replay = {
   contract_version: "organization-replay.v1",
@@ -22,7 +27,7 @@ const replay = {
     evidence_history: "partial",
     risk_escalation_history: "unsupported",
     source_snapshot_history: "partial",
-    conversation_history: "unsupported",
+    conversation_history: "lifecycle_only_transcript_not_persisted",
   },
   total_events: 5,
   returned_events: 2,
@@ -59,7 +64,7 @@ const replay = {
       activity_class: "decision",
       activity_type: "decision.recorded",
       title: "Owner review recorded",
-      summary: "Recorded Decision state transition",
+      summary: "Recorded terminal semantic state at this cursor",
       actor_type: "human",
       actor_id: "owner",
       department: "Executive",
@@ -67,7 +72,7 @@ const replay = {
       authority_level: "L3",
       work_item_id: rootWorkItem,
       source_object_type: "ExecutiveDecision",
-      source_object_id: "20000000-0000-0000-0000-000000000001",
+      source_object_id: decisionId,
       source_object_version: "2",
       correlation_key: "corr:fixture",
       causation_activity_id: firstActivity,
@@ -77,49 +82,83 @@ const replay = {
   ],
 };
 
-const stateFor = (activityId: string) => ({
-  contract_version: "organization-replay-state.v1",
-  generated_at: "2026-09-06T03:01:00Z",
-  scope: "fixture",
-  root_work_item_id: rootWorkItem,
-  objective_key: "fixture",
-  cursor_activity_id: activityId,
-  cursor_occurred_at: activityId === firstActivity ? "2026-09-05T08:00:00Z" : "2026-09-05T09:00:00Z",
-  cursor_coverage_state: activityId === firstActivity ? "pre_epoch_partial" : "covered",
-  reconstruction_posture: activityId === firstActivity ? "partial_pre_epoch" : "bounded_semantic_activity",
-  canonical_projection: true,
-  authoritative: false,
-  mutations_allowed: false,
-  supported_dimensions: ["work_items", "decisions"],
-  unsupported_dimensions: ["presence", "evidence_history"],
-  unapplied_transition_count: activityId === firstActivity ? 1 : 0,
-  work_items: [{
-    work_item_id: rootWorkItem,
-    status: activityId === firstActivity ? "queued" : "running",
-    priority: "normal",
-    department: "Executive",
-    assigned_position_key: "ceo",
-    parent_work_item_id: null,
-    coverage_state: activityId === firstActivity ? "pre_epoch_partial" : "covered",
-    known_from_activity_id: firstActivity,
-    last_activity_id: activityId,
-    last_occurred_at: activityId === firstActivity ? "2026-09-05T08:00:00Z" : "2026-09-05T09:00:00Z",
-  }],
-  blockers: [],
-  decisions: activityId === secondActivity ? [{
-    decision_id: "20000000-0000-0000-0000-000000000001",
-    work_item_id: rootWorkItem,
-    status: "awaiting_owner",
-    decision_type: "filing_authority",
-    authority_level: "L3",
-    coverage_state: "covered",
-    known_from_activity_id: secondActivity,
-    last_activity_id: secondActivity,
-    last_occurred_at: "2026-09-05T09:00:00Z",
-  }] : [],
-  human_requests: [],
-  conversations: [],
-});
+const stateFor = (activityId: string) => {
+  const historical = activityId === secondActivity;
+  const occurredAt = historical ? "2026-09-05T09:00:00Z" : "2026-09-05T08:00:00Z";
+  const coverage = historical ? "covered" : "pre_epoch_partial";
+  return {
+    contract_version: "organization-replay-state.v1",
+    generated_at: "2026-09-06T03:01:00Z",
+    scope: "fixture",
+    root_work_item_id: rootWorkItem,
+    objective_key: "fixture",
+    cursor_activity_id: activityId,
+    cursor_occurred_at: occurredAt,
+    cursor_coverage_state: coverage,
+    reconstruction_posture: historical ? "covered" : "partial_pre_epoch",
+    canonical_projection: true,
+    authoritative: false,
+    mutations_allowed: false,
+    supported_dimensions: ["work_item_status_assignment", "blocker_lifecycle", "decision_lifecycle", "human_request_lifecycle", "conversation_lifecycle"],
+    unsupported_dimensions: ["risk_escalation_history", "conversation_transcript"],
+    unapplied_transition_count: historical ? 0 : 1,
+    work_items: [{
+      work_item_id: rootWorkItem,
+      status: historical ? "completed" : "queued",
+      priority: "normal",
+      department: "Executive",
+      assigned_position_key: "ceo",
+      parent_work_item_id: null,
+      coverage_state: coverage,
+      known_from_activity_id: firstActivity,
+      last_activity_id: activityId,
+      last_occurred_at: occurredAt,
+    }],
+    blockers: historical ? [{
+      blocker_id: blockerId,
+      work_item_id: rootWorkItem,
+      status: "resolved",
+      blocker_type: "external",
+      severity: "medium",
+      requires_human_action: false,
+      coverage_state: "covered",
+      known_from_activity_id: firstActivity,
+      last_activity_id: secondActivity,
+      last_occurred_at: occurredAt,
+    }] : [],
+    decisions: historical ? [{
+      decision_id: decisionId,
+      work_item_id: rootWorkItem,
+      status: "approved",
+      decision_type: "operational",
+      authority_level: "L3",
+      coverage_state: "covered",
+      known_from_activity_id: secondActivity,
+      last_activity_id: secondActivity,
+      last_occurred_at: occurredAt,
+    }] : [],
+    human_requests: historical ? [{
+      request_id: requestId,
+      work_item_id: rootWorkItem,
+      status: "completed",
+      request_type: "review",
+      required_role: "owner",
+      coverage_state: "covered",
+      known_from_activity_id: secondActivity,
+      last_activity_id: secondActivity,
+      last_occurred_at: occurredAt,
+    }] : [],
+    conversations: historical ? [{
+      conversation_id: conversationId,
+      work_item_id: rootWorkItem,
+      status: "closed",
+      coverage_state: "covered",
+      known_from_activity_id: secondActivity,
+      last_activity_id: secondActivity,
+      last_occurred_at: occurredAt,
+    }] : [],
+  };
+};
 
 const diff = {
   contract_version: "organization-replay-state-diff.v1",
@@ -129,23 +168,23 @@ const diff = {
   objective_key: "fixture",
   comparison_basis: "semantic Activity cursor state",
   from_cursor: { activity_id: firstActivity, occurred_at: "2026-09-05T08:00:00Z", coverage_state: "pre_epoch_partial", reconstruction_posture: "partial_pre_epoch", unapplied_transition_count: 1 },
-  to_cursor: { activity_id: secondActivity, occurred_at: "2026-09-05T09:00:00Z", coverage_state: "covered", reconstruction_posture: "bounded_semantic_activity", unapplied_transition_count: 0 },
+  to_cursor: { activity_id: secondActivity, occurred_at: "2026-09-05T09:00:00Z", coverage_state: "covered", reconstruction_posture: "covered", unapplied_transition_count: 0 },
   comparison_posture: "bounded_field_delta",
   canonical_projection: true,
   authoritative: false,
   mutations_allowed: false,
-  supported_dimensions: ["work_items", "decisions"],
-  unsupported_dimensions: ["presence"],
+  supported_dimensions: ["work_item_status_assignment", "blocker_lifecycle", "decision_lifecycle", "human_request_lifecycle", "conversation_lifecycle"],
+  unsupported_dimensions: ["risk_escalation_history", "conversation_transcript"],
   unchanged_entities_omitted: true,
-  changed_entity_count: 2,
+  changed_entity_count: 5,
   work_items: [{ entity_id: rootWorkItem, change_kind: "changed", changed_fields: ["status"], before: null, after: stateFor(secondActivity).work_items[0] }],
-  blockers: [],
-  decisions: [{ entity_id: "20000000-0000-0000-0000-000000000001", change_kind: "added", changed_fields: ["status", "authority_level"], before: null, after: stateFor(secondActivity).decisions[0] }],
-  human_requests: [],
-  conversations: [],
+  blockers: [{ entity_id: blockerId, change_kind: "added", changed_fields: [], before: null, after: stateFor(secondActivity).blockers[0] }],
+  decisions: [{ entity_id: decisionId, change_kind: "added", changed_fields: [], before: null, after: stateFor(secondActivity).decisions[0] }],
+  human_requests: [{ entity_id: requestId, change_kind: "added", changed_fields: [], before: null, after: stateFor(secondActivity).human_requests[0] }],
+  conversations: [{ entity_id: conversationId, change_kind: "added", changed_fields: [], before: null, after: stateFor(secondActivity).conversations[0] }],
 };
 
-for (const width of [1280, 390]) test(`Q8 History stays read-only and responsive at ${width}px`, async ({ page }) => {
+for (const width of [1280, 390]) test(`Q8/Phase 7H History stays historical, read-only and responsive at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const writes: string[] = [];
@@ -171,23 +210,30 @@ for (const width of [1280, 390]) test(`Q8 History stays read-only and responsive
   await expect(page.getByRole("link", { name: "History" })).toHaveAttribute("aria-current", "page");
   await expect(page.getByLabel("History replay readout")).toContainText("Returned events");
   await expect(page.getByText("Bounded replay window", { exact: true })).toBeVisible();
-  await expect(page.getByText("pre_epoch_partial", { exact: true })).toBeVisible();
 
   const current = page.getByRole("button", { name: /Owner review recorded/ });
   await current.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "Owner review recorded" })).toBeVisible();
+  const inspector = page.getByRole("complementary", { name: "Owner review recorded" });
+  await expect(inspector).toBeVisible();
   await expect(page.getByText("Historical reconstruction", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("As-of state readout")).toContainText("Work items");
-  await page.getByText("Reconstruction posture", { exact: true }).click();
-  await expect(page.getByText("bounded_semantic_activity", { exact: false })).toBeVisible();
+  await expect(page.locator('[data-replay-semantic-rendering="historical-cursor"]')).toBeVisible();
+  await expect(inspector.getByText(/completed at this cursor/i).first()).toBeVisible();
+  await expect(inspector.getByText(/resolved at this cursor/i)).toBeVisible();
+  await expect(inspector.getByText(/approved at this cursor/i)).toBeVisible();
+  await expect(inspector.getByText(/closed at this cursor/i)).toBeVisible();
+  await expect(inspector.getByText(/do not claim the same state is true now/i)).toBeVisible();
+  await expect(inspector.getByText(/physical presence, movement, quality, causality or authority/i)).toBeVisible();
 
   await page.getByLabel("Compare from Activity").selectOption(firstActivity);
   await expect(page.getByRole("heading", { name: "Cursor comparison" })).toBeVisible();
   await expect(page.getByLabel("Replay comparison readout")).toContainText("Changed entities");
-  await page.getByText("Comparison posture", { exact: true }).click();
-  await expect(page.getByText("bounded_field_delta", { exact: true })).toBeVisible();
   await expect(page.getByText("Q8 reports only the backend-proven field deltas.", { exact: false })).toBeVisible();
+
+  if (width === 1280) {
+    mkdirSync("phase7h-artifacts", { recursive: true });
+    await inspector.screenshot({ path: "phase7h-artifacts/phase7h-replay-semantic-rendering-dark-1280.png", animations: "disabled" });
+  }
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth && document.body.scrollWidth <= window.innerWidth)).toBe(true);
   expect(writes).toEqual([]);

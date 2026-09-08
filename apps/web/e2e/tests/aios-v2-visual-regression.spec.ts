@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
 const ROOT_ID = "11111111-1111-4111-8111-111111111111";
@@ -75,7 +78,7 @@ async function baseline(page: Page, name: string, fullPage = true) {
   await expect(page).toHaveScreenshot(name, { ...screenshotOptions, fullPage });
 }
 
-test("Q15 desktop dark visual baselines are deterministic", async ({ page }) => {
+test("Q15 desktop dark visual baselines are deterministic", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   const writes: string[] = [];
   await freezePresentation(page); await installFixture(page, writes);
@@ -103,10 +106,28 @@ test("Q15 desktop dark visual baselines are deterministic", async ({ page }) => 
   await expect(evidenceInspector).toHaveScreenshot("evidence-inspector-dark-1280.png", screenshotOptions);
 
   await page.goto("/cockpit/v2/history");
+  const stateResponse = page.waitForResponse((response) => response.url().endsWith(`/replay/austria/latest/state/${SECOND_ACTIVITY}`) && response.status() === 200);
   await page.getByRole("button", { name: /Owner review recorded/ }).click();
+  await stateResponse;
   const historyInspector = page.getByRole("complementary", { name: "Owner review recorded" });
   await expect(historyInspector.getByText("Reconstruction posture", { exact: true })).toBeVisible();
-  await expect(historyInspector).toHaveScreenshot("history-replay-dark-1280.png", screenshotOptions);
+  await expect(historyInspector.locator('[data-replay-semantic-rendering="historical-cursor"]')).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await page.setViewportSize({ width: 1280, height: 1600 });
+  const historyBounds = await historyInspector.boundingBox();
+  expect(historyBounds).not.toBeNull();
+  const historyClip = {
+    x: Math.floor(historyBounds!.x),
+    y: Math.floor(historyBounds!.y),
+    width: Math.ceil(historyBounds!.x + historyBounds!.width) - Math.floor(historyBounds!.x),
+    height: Math.ceil(historyBounds!.y + historyBounds!.height) - Math.floor(historyBounds!.y),
+  };
+  const historyActualPath = testInfo.outputPath("history-replay-dark-1280-actual.png");
+  const historyScreenshot = await page.screenshot({ animations: "disabled", caret: "hide", clip: historyClip, path: historyActualPath });
+  const historyDigestPath = resolve(process.cwd(), "tests", "aios-v2-visual-regression.spec.ts-snapshots", "history-replay-dark-1280-chromium-linux.sha256");
+  const expectedHistoryDigest = readFileSync(historyDigestPath, "utf8").trim();
+  const actualHistoryDigest = createHash("sha256").update(historyScreenshot).digest("hex");
+  expect(actualHistoryDigest, "History screenshot SHA-256 must match committed Linux visual baseline digest").toBe(expectedHistoryDigest);
 
   expect(writes).toEqual([]);
 });

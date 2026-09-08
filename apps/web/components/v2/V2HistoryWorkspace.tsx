@@ -187,7 +187,7 @@ export function V2HistoryWorkspace() {
                       {cursorRead.stateLoading ? <V2DataState state={{ kind: "loading", label: "Reconstructing as-of state…" }} /> : null}
                       {cursorRead.stateError ? <V2DataState state={{ kind: "unavailable", label: "As-of state unavailable", detail: cursorRead.stateError }} /> : null}
                       {cursorRead.state && stateSummary ? (
-                        <div className={styles.stateSection}>
+                        <div className={styles.stateSection} data-replay-semantic-rendering="historical-cursor">
                           <V2MetricGroup
                             label="As-of state readout"
                             items={[
@@ -209,10 +209,11 @@ export function V2HistoryWorkspace() {
                             {replayStateGroups(cursorRead.state).map((group) => group.rows.length ? (
                               <div key={group.label} className={styles.entityGroup}>
                                 <strong>{group.label}</strong>
-                                {group.rows.map((row) => <V2ObjectRow key={`${group.label}:${row.id}`} title={row.id} description={`${row.status} · ${row.coverageState} · ${formatV2Timestamp(row.lastOccurredAt)}`} />)}
+                                {group.rows.map((row) => <V2ObjectRow key={`${group.label}:${row.id}`} title={row.id} description={`${row.semantic.label} · ${row.coverageState} · ${formatV2Timestamp(row.lastOccurredAt)}`} />)}
                               </div>
                             ) : null)}
                           </div>
+                          <p className={styles.truthNote}>Phase 7H semantics are historical cursor truth only. “Completed”, “resolved”, “approved”, “rejected”, request lifecycle and conversation lifecycle labels describe reconstructed state at this cursor; they do not claim the same state is true now, and they do not imply physical presence, movement, quality, causality or authority beyond the canonical record.</p>
                         </div>
                       ) : null}
 
