@@ -1,21 +1,93 @@
 .page {
+  position: relative;
   display: grid;
-  gap: var(--aios-v2-space-5);
+  gap: clamp(18px, 2.2vw, 30px);
   min-width: 0;
+  overflow-x: clip;
+  isolation: isolate;
 }
+
+.page::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -34px -24px auto;
+  height: 360px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 10%, rgba(96, 144, 208, .105), transparent 36%),
+    radial-gradient(circle at 82% 12%, rgba(202, 166, 111, .09), transparent 34%);
+  filter: blur(4px);
+}
+
+.page > header {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(22px, 3vw, 38px);
+  border: 1px solid rgba(255, 255, 255, .065);
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .012)),
+    radial-gradient(circle at 84% 18%, rgba(96, 144, 208, .085), transparent 36%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .055),
+    0 28px 80px rgba(0, 0, 0, .19);
+}
+
+.page > header::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: 22px;
+  width: 142px;
+  height: 1px;
+  opacity: .72;
+  background: linear-gradient(90deg, transparent, rgba(96, 144, 208, .72), rgba(202, 166, 111, .50));
+}
+
+.page > header h1 { letter-spacing: -.045em; }
+
+.page > header button {
+  min-height: 40px;
+  padding-inline: 16px;
+  border-color: rgba(96, 144, 208, .20);
+  background: rgba(96, 144, 208, .055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+}
+
+.page details { backdrop-filter: blur(12px); }
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(340px, .82fr);
-  gap: var(--aios-v2-space-5);
+  grid-template-columns: minmax(0, 1.24fr) minmax(360px, .76fr);
+  gap: clamp(14px, 1.6vw, 22px);
   align-items: start;
   min-width: 0;
 }
 
 .timeline {
+  position: relative;
   display: grid;
-  gap: var(--aios-v2-space-4);
+  gap: 18px;
   min-width: 0;
+  overflow: hidden;
+  padding: clamp(18px, 2.2vw, 28px) !important;
+  border-color: rgba(255, 255, 255, .07) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .032), rgba(255, 255, 255, .01)),
+    rgba(10, 14, 20, .72) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 24px 64px rgba(0, 0, 0, .18);
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(96, 144, 208, .58), rgba(202, 166, 111, .30), transparent);
 }
 
 .eventList,
@@ -30,10 +102,59 @@
   min-width: 0;
 }
 
+.eventList {
+  position: relative;
+  gap: 12px;
+  padding-left: 14px;
+}
+
+.eventList::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 4px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(96, 144, 208, .55), rgba(202, 166, 111, .22), transparent);
+}
+
+.eventList > * {
+  position: relative;
+  border-radius: 16px;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.eventList > *::before {
+  content: "";
+  position: absolute;
+  left: -15px;
+  top: 22px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(96, 144, 208, .42);
+  border-radius: 999px;
+  background: var(--aios-v2-color-surface);
+  box-shadow: 0 0 0 4px rgba(96, 144, 208, .055);
+}
+
+.eventList > *:hover {
+  transform: translateY(-1px);
+  border-color: rgba(96, 144, 208, .18);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .13);
+}
+
+.eventList > *:focus-within {
+  border-color: rgba(96, 144, 208, .30);
+  box-shadow: 0 0 0 3px rgba(96, 144, 208, .055);
+}
+
 .inspectorSlot {
   position: sticky;
   top: 18px;
   min-width: 0;
+  padding: 1px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(96, 144, 208, .22), rgba(202, 166, 111, .12), transparent 62%);
 }
 
 .badgeLine {
@@ -61,17 +182,31 @@
 }
 
 .compareControl {
+  position: relative;
   display: grid;
-  gap: 8px;
+  gap: 9px;
   margin: var(--aios-v2-space-4) 0;
-  padding: var(--aios-v2-space-4);
-  border: 1px solid var(--aios-v2-color-border);
-  border-radius: var(--aios-v2-radius-control);
-  background: var(--aios-v2-color-surface-inset);
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(96, 144, 208, .13);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(96, 144, 208, .055), rgba(255, 255, 255, .012)),
+    var(--aios-v2-color-surface-inset);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+}
+
+.compareControl::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(96, 144, 208, .65), rgba(202, 166, 111, .34));
 }
 
 .compareControl label {
   font-weight: 700;
+  letter-spacing: -.01em;
 }
 
 .compareControl select {
@@ -79,11 +214,19 @@
   min-width: 0;
   min-height: 44px;
   padding: 9px 12px;
-  border: 1px solid var(--aios-v2-color-border-strong);
-  border-radius: var(--aios-v2-radius-control);
-  background: var(--aios-v2-color-surface);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 12px;
+  background: rgba(5, 9, 14, .50);
   color: var(--aios-v2-color-text);
   font: inherit;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.compareControl select:focus-visible {
+  outline: 2px solid var(--aios-v2-color-accent);
+  outline-offset: 2px;
+  border-color: rgba(96, 144, 208, .32);
+  box-shadow: 0 0 0 4px rgba(96, 144, 208, .06);
 }
 
 .compareControl span,
@@ -94,10 +237,31 @@
   line-height: 1.6;
 }
 
+.stateSection,
+.diffSection {
+  padding-top: 8px;
+}
+
 .entityGroup,
 .diffGroup {
-  padding-top: 12px;
-  border-top: 1px solid var(--aios-v2-color-border);
+  position: relative;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+}
+
+.entityGroup > strong,
+.diffGroup > strong {
+  color: var(--aios-v2-color-text-soft);
+  font-size: .72rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.truthNote {
+  padding: 13px 14px;
+  border: 1px solid rgba(202, 166, 111, .10);
+  border-radius: 14px;
+  background: rgba(202, 166, 111, .032);
 }
 
 .placeholder {
@@ -105,12 +269,41 @@
   display: grid;
   align-content: center;
   gap: var(--aios-v2-space-3);
+  border-style: dashed !important;
+  border-color: rgba(96, 144, 208, .14) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(96, 144, 208, .055), transparent 42%),
+    var(--aios-v2-color-surface-inset) !important;
 }
 
-.inspectorSlot:focus-visible,
-.compareControl select:focus-visible {
+.inspectorSlot:focus-visible {
   outline: 2px solid var(--aios-v2-color-accent);
   outline-offset: 3px;
+}
+
+:global(html[data-aios-v2-theme="light"]) .page::before {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(67, 111, 171, .10), transparent 36%),
+    radial-gradient(circle at 82% 12%, rgba(173, 127, 64, .08), transparent 34%);
+}
+
+:global(html[data-aios-v2-theme="light"]) .page > header,
+:global(html[data-aios-v2-theme="light"]) .timeline {
+  border-color: rgba(14, 31, 48, .08) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .86), rgba(245, 248, 252, .72)),
+    rgba(247, 249, 252, .92) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 22px 58px rgba(20, 36, 54, .08);
+}
+
+:global(html[data-aios-v2-theme="light"]) .compareControl {
+  border-color: rgba(67, 111, 171, .14);
+  background: linear-gradient(145deg, rgba(67, 111, 171, .04), rgba(255, 255, 255, .70));
+}
+
+:global(html[data-aios-v2-theme="light"]) .compareControl select {
+  border-color: rgba(14, 31, 48, .12);
+  background: rgba(255, 255, 255, .88);
 }
 
 @media (max-width: 980px) {
@@ -126,6 +319,19 @@
 @media (max-width: 650px) {
   .page {
     gap: 16px;
+  }
+
+  .page > header {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .timeline {
+    padding: 16px !important;
+  }
+
+  .eventList {
+    padding-left: 12px;
   }
 
   .definitionList {
@@ -144,5 +350,14 @@
   .stateSection,
   .diffSection {
     scroll-behavior: auto;
+  }
+
+  .eventList > *,
+  .compareControl select {
+    transition: none;
+  }
+
+  .eventList > *:hover {
+    transform: none;
   }
 }
