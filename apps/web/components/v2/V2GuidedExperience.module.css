@@ -269,6 +269,71 @@
   outline-offset: 3px;
 }
 
+/* Presentation-only interaction polish. These transitions communicate pointer/focus
+ * response only; they never encode canonical progress, authority, urgency or state.
+ */
+.dialog[open] .frame {
+  animation: guide-enter 220ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.dialog[open]::backdrop {
+  animation: guide-backdrop-enter 180ms ease-out both;
+}
+
+.close,
+.stepButton,
+.control,
+.primary,
+.factGrid > div,
+.stepNumber {
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
+}
+
+:is(.close,.control,.primary):hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--aios-v2-color-accent) 48%, var(--aios-v2-color-border-strong));
+  background: var(--aios-v2-color-surface-raised);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .10);
+}
+
+:is(.close,.control,.primary):active:not(:disabled) {
+  transform: translateY(0) scale(.985);
+  box-shadow: none;
+}
+
+.stepButton:hover:not([data-current="true"]) {
+  transform: translateX(2px);
+  border-color: color-mix(in srgb, var(--aios-v2-color-accent) 32%, var(--aios-v2-color-border-strong));
+  background: color-mix(in srgb, var(--aios-v2-color-surface-raised) 78%, transparent);
+}
+
+.stepButton[data-current="true"] .stepNumber {
+  border-color: color-mix(in srgb, var(--aios-v2-color-accent) 68%, var(--aios-v2-color-border));
+  color: var(--aios-v2-color-accent);
+  background: color-mix(in srgb, var(--aios-v2-color-accent) 8%, var(--aios-v2-color-surface));
+}
+
+.factGrid > div:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--aios-v2-color-accent) 24%, var(--aios-v2-color-border));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .07);
+}
+
+@keyframes guide-enter {
+  from { opacity: 0; transform: translateY(8px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes guide-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (max-width: 720px) {
   .topActions {
     gap: 6px;
@@ -379,6 +444,10 @@
     min-height: 52px;
   }
 
+  .stepButton:hover:not([data-current="true"]) {
+    transform: none;
+  }
+
   .stepLabel strong {
     overflow-wrap: normal;
     word-break: normal;
@@ -426,6 +495,25 @@
   .frame,
   .stepList {
     scroll-behavior: auto;
+  }
+
+  .dialog[open] .frame,
+  .dialog[open]::backdrop {
+    animation: none;
+  }
+
+  .close,
+  .stepButton,
+  .control,
+  .primary,
+  .factGrid > div,
+  .stepNumber {
+    transition: none;
+  }
+
+  :is(.close,.stepButton,.control,.primary,.factGrid > div):hover,
+  :is(.close,.stepButton,.control,.primary):active {
+    transform: none;
   }
 }
 
