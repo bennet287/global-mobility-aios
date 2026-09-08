@@ -228,10 +228,20 @@ export function replayStateGroups(state: OrganizationReplayState | null): readon
   ];
 }
 
+export type V2ReplayDiffSemanticKind = "appeared" | "not_represented" | "changed" | "neutral";
+
+export type V2ReplayDiffSemantic = {
+  kind: V2ReplayDiffSemanticKind;
+  label: string;
+  truthScope: "cursor_interval";
+};
+
 export type V2ReplayDiffItem = {
   entityId: string;
+  rawChangeKind: string;
   changeKind: string;
   changedFields: readonly string[];
+  semantic: V2ReplayDiffSemantic;
 };
 
 export type V2ReplayDiffGroup = {
@@ -239,8 +249,63 @@ export type V2ReplayDiffGroup = {
   items: readonly V2ReplayDiffItem[];
 };
 
-function normalizeDeltas(items: readonly { entity_id: string; change_kind: string; changed_fields: string[] }[]): V2ReplayDiffItem[] {
-  return items.map((item) => ({ entityId: item.entity_id, changeKind: item.change_kind, changedFields: item.changed_fields }));
+type ReplayDeltaLike = {
+  entity_id: string;
+  change_kind: string;
+  changed_fields: string[];
+  before?: unknown;
+  after?: unknown;
+};
+
+function statusValue(value: unknown): string | null {
+  if (!value || typeof value !== "object" || !("status" in value)) return null;
+  const status = (value as { status?: unknown }).status;
+  return typeof status === "string" ? status : null;
+}
+
+export function replayDiffSemantic(delta: ReplayDeltaLike): V2ReplayDiffSemantic {
+  // Phase 7I interprets only the backend's exact diff operation. "Appeared" and
+  // "not represented" deliberately avoid claiming creation/deletion because a
+  // bounded replay interval cannot prove lifecycle outside its coverage.
+  if (delta.change_kind === "added") {
+    return { kind: "appeared", label: "Appeared between these cursors", truthScope: "cursor_interval" };
+  }
+  if (delta.change_kind === "removed") {
+    return { kind: "not_represented", label: "Not represented at the later cursor", truthScope: "cursor_interval" };
+  }
+  if (delta.change_kind === "changed") {
+    const beforeStatus = delta.changed_fields.includes("status") ? statusValue(delta.before) : null;
+    const afterStatus = delta.changed_fields.includes("status") ? statusValue(delta.after) : null;
+    if (beforeStatus !== null && afterStatus !== null) {
+      return {
+        kind: "changed",
+        label: `Status ${beforeStatus} → ${afterStatus} between these cursors`,
+        truthScope: "cursor_interval",
+      };
+    }
+    return { kind: "changed", label: "Changed between these cursors", truthScope: "cursor_interval" };
+  }
+  return {
+    kind: "neutral",
+    label: `${delta.change_kind} between these cursors`,
+    truthScope: "cursor_interval",
+  };
+}
+
+function normalizeDeltas(items: readonly ReplayDeltaLike[]): V2ReplayDiffItem[] {
+  return items.map((item) => {
+    const semantic = replayDiffSemantic(item);
+    return {
+      entityId: item.entity_id,
+      rawChangeKind: item.change_kind,
+      // Existing Q8 rendering consumes changeKind directly. Phase 7I makes that
+      // field the truth-scoped presentation label while retaining the exact raw
+      // backend operation separately for provenance and tests.
+      changeKind: semantic.label,
+      changedFields: item.changed_fields,
+      semantic,
+    };
+  });
 }
 
 export function replayDiffGroups(diff: OrganizationReplayStateDiff | null): readonly V2ReplayDiffGroup[] {
