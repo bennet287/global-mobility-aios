@@ -1,5 +1,7 @@
+import { resolveCharacterArtPrototype } from "../../lib/v2/character-art-prototype";
 import { resolveCharacterAssetBinding } from "../../lib/v2/character-asset-manifest";
 import { resolveV2CharacterPresentation } from "../../lib/v2/character-mission-presentation";
+import { V2CharacterArtPrototype } from "./V2CharacterArtPrototype";
 
 export function V2CharacterMiniature({
   positionKey,
@@ -18,6 +20,7 @@ export function V2CharacterMiniature({
     department,
   });
   const presentation = model.presentation;
+  const art = resolveCharacterArtPrototype({ presentationKey: model.presentationKey });
   const assetBinding = resolveCharacterAssetBinding(presentation);
   const inspector = variant === "inspector";
 
@@ -27,6 +30,10 @@ export function V2CharacterMiniature({
       aria-label={inspector ? presentation.accessibilityDescription : undefined}
       className={"aios-v2-character-miniature " + (inspector ? "inspector" : "compact")}
       data-animation-set={presentation.animationSetKey}
+      data-art-accent={art.accent}
+      data-art-archetype={art.archetype}
+      data-art-prop={art.prop}
+      data-art-wardrobe={art.wardrobe}
       data-asset-compatible={String(assetBinding.compatible)}
       data-asset-model-available={String(assetBinding.modelAvailable)}
       data-asset-renderer-mode={assetBinding.rendererMode}
@@ -42,19 +49,24 @@ export function V2CharacterMiniature({
       data-silhouette={presentation.silhouette}
       role={inspector ? "img" : undefined}
     >
-      <div className="aios-v2-character-stage" aria-hidden="true">
-        <span className="aios-v2-character-plinth" />
-        <span className="aios-v2-character-form">
-          <span className="aios-v2-character-head" />
-          <span className="aios-v2-character-torso" />
-          <span className="aios-v2-character-prop" />
-        </span>
+      <div className="aios-v2-character-stage aios-v2-character-stage-art" aria-hidden="true">
+        <V2CharacterArtPrototype
+          presentationKey={model.presentationKey}
+          variant={inspector ? "inspector" : "compact"}
+        />
       </div>
 
       {inspector ? (
         <div className="aios-v2-character-meta" aria-hidden="true">
           <span>Character presentation</span>
           <strong>{model.presentationKey.replaceAll("-", " ")}</strong>
+          <small>
+            {art.archetype.replaceAll("-", " ")}
+            {" · "}
+            {art.wardrobe.replaceAll("-", " ")}
+            {" · "}
+            {art.prop.replaceAll("-", " ")}
+          </small>
           <small>
             {presentation.silhouette.replaceAll("-", " ")}
             {" · "}

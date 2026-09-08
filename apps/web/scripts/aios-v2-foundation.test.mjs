@@ -8,7 +8,9 @@ const foundation = await readFile(new URL("../styles/v2/foundation.css", import.
 const premiumShell = await readFile(new URL("../styles/v2/premium-shell.css", import.meta.url), "utf8");
 const premiumOwnerHome = await readFile(new URL("../styles/v2/premium-owner-home.css", import.meta.url), "utf8");
 const premiumHq = await readFile(new URL("../styles/v2/premium-hq.css", import.meta.url), "utf8");
+const premiumCharacters = await readFile(new URL("../styles/v2/premium-characters.css", import.meta.url), "utf8");
 const shell = await readFile(new URL("../components/v2/V2Shell.tsx", import.meta.url), "utf8");
+const characterMiniature = await readFile(new URL("../components/v2/V2CharacterMiniature.tsx", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../lib/v2/navigation.ts", import.meta.url), "utf8");
 const ownerHome = await readFile(new URL("../components/v2/V2OwnerHomePrototype.tsx", import.meta.url), "utf8");
 const situationRoom = await readFile(new URL("../components/v2/V2OwnerSituationRoom.tsx", import.meta.url), "utf8");
@@ -105,6 +107,27 @@ test("major redesign Living HQ remains presentation-only, responsive and reduced
   assert.match(premiumHq, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(premiumHq, /(^|\n):root\s*\{/);
   assert.doesNotMatch(premiumHq, /presenceClaimed|locomotionAllowed|canonical_projection|mutations_allowed|physicalLocationClaimed/);
+});
+
+test("premium character presentation uses governed presentation keys and preserves truth boundaries", () => {
+  assert.match(layout, /premium-characters\.css/);
+  assert.match(characterMiniature, /resolveV2CharacterPresentation/);
+  assert.match(characterMiniature, /resolveCharacterArtPrototype\(\{ presentationKey: model\.presentationKey \}\)/);
+  assert.match(characterMiniature, /V2CharacterArtPrototype/);
+  assert.match(characterMiniature, /presentationKey=\{model\.presentationKey\}/);
+  assert.match(characterMiniature, /data-presentation-only="true"/);
+  assert.match(characterMiniature, /data-presence-claimed="false"/);
+  assert.match(characterMiniature, /data-canonical-state-writable="false"/);
+  assert.match(characterMiniature, /data-semantic-animation-active="false"/);
+  assert.doesNotMatch(characterMiniature, /resolveCharacterArtPrototype\(\{[^}]*title|resolveCharacterArtPrototype\(\{[^}]*department/);
+  assert.match(premiumCharacters, /\.aios-v2-root \.aios-v2-character-stage-art/);
+  assert.match(premiumCharacters, /data-art-archetype="ceo"/);
+  assert.match(premiumCharacters, /data-art-archetype="cto"/);
+  assert.match(premiumCharacters, /data-art-archetype="regulatory-compliance"/);
+  assert.match(premiumCharacters, /data-art-archetype="operations"/);
+  assert.match(premiumCharacters, /data-art-archetype="neutral-professional"/);
+  assert.match(premiumCharacters, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(premiumCharacters, /(^|\n):root\s*\{|canonical_projection|mutations_allowed|physicalPresenceClaimed|physicalLocationClaimed/);
 });
 
 test("the isolated V2 owner-home route mounts the V2 prototype instead of replacing the existing cockpit", () => {
