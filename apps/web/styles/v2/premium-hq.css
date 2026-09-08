@@ -1,0 +1,355 @@
+/* Major redesign — Living HQ architectural stage.
+ * Presentation only. Canonical organization truth, presence, physical location,
+ * authority, mutations and semantic-motion contracts remain unchanged.
+ */
+
+.aios-v2-root .aios-v2-hq-blockout {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 28px;
+  background:
+    radial-gradient(60rem 34rem at 50% 8%, rgba(121, 167, 216, 0.10), transparent 58%),
+    radial-gradient(46rem 28rem at 14% 92%, rgba(210, 184, 137, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008)),
+    rgba(9, 12, 17, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 30px 90px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(24px) saturate(118%);
+}
+
+.aios-v2-root .aios-v2-hq-blockout::before,
+.aios-v2-root .aios-v2-hq-blockout::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.aios-v2-root .aios-v2-hq-blockout::before {
+  inset: 0;
+  opacity: 0.72;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 82%);
+}
+
+.aios-v2-root .aios-v2-hq-blockout::after {
+  left: 12%;
+  right: 12%;
+  bottom: -70px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(121, 167, 216, 0.075);
+  filter: blur(56px);
+}
+
+.aios-v2-root .aios-v2-hq-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 26px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent);
+}
+
+.aios-v2-root .aios-v2-hq-header > div > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--aios-v2-color-accent);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.aios-v2-root .aios-v2-hq-header > div > strong {
+  display: block;
+  font-size: clamp(1.12rem, 1.6vw, 1.45rem);
+  font-weight: 520;
+  letter-spacing: -0.03em;
+}
+
+.aios-v2-root .aios-v2-hq-header > small {
+  max-width: 520px;
+  text-align: right;
+}
+
+.aios-v2-root .aios-v2-hq-canvas {
+  position: relative;
+  min-height: 520px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(44px, 1fr));
+  gap: 14px;
+  padding: 28px;
+  perspective: 1200px;
+  background:
+    radial-gradient(32rem 16rem at 50% 50%, rgba(210, 184, 137, 0.05), transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.015));
+}
+
+.aios-v2-root .aios-v2-hq-zone {
+  position: relative;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.042), rgba(255,255,255,0.012)),
+    rgba(15, 20, 27, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.045),
+    0 18px 44px rgba(0,0,0,0.16);
+  transform: translateZ(0);
+  transition:
+    transform var(--aios-v2-motion-duration-standard) var(--aios-v2-motion-ease-enter),
+    border-color var(--aios-v2-motion-duration-standard) var(--aios-v2-motion-ease-enter),
+    box-shadow var(--aios-v2-motion-duration-standard) var(--aios-v2-motion-ease-enter);
+}
+
+.aios-v2-root .aios-v2-hq-zone::after {
+  content: "";
+  position: absolute;
+  inset: auto 10% 8px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  pointer-events: none;
+}
+
+.aios-v2-root .aios-v2-hq-zone[data-active="true"] {
+  transform: translateY(-4px) scale(1.012);
+  border-color: rgba(210, 184, 137, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.065),
+    0 24px 56px rgba(0,0,0,0.22),
+    0 0 0 1px rgba(210,184,137,0.04);
+}
+
+.aios-v2-root .aios-v2-hq-zone.zone-executive {
+  grid-column: 1 / span 4;
+  grid-row: 1 / span 3;
+}
+
+.aios-v2-root .aios-v2-hq-zone.zone-regulatory {
+  grid-column: 9 / span 4;
+  grid-row: 1 / span 3;
+}
+
+.aios-v2-root .aios-v2-hq-zone.zone-atrium {
+  grid-column: 5 / span 4;
+  grid-row: 2 / span 5;
+  border-color: rgba(210, 184, 137, 0.14);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(210,184,137,0.10), transparent 46%),
+    linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.014)),
+    rgba(15, 20, 27, 0.82);
+}
+
+.aios-v2-root .aios-v2-hq-zone.zone-technology {
+  grid-column: 1 / span 4;
+  grid-row: 5 / span 4;
+}
+
+.aios-v2-root .aios-v2-hq-zone.zone-operations {
+  grid-column: 9 / span 4;
+  grid-row: 5 / span 4;
+}
+
+.aios-v2-root .aios-v2-hq-mission-hub {
+  grid-column: 5 / span 4;
+  grid-row: 7 / span 2;
+  align-self: end;
+  z-index: 3;
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 3px 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(121, 167, 216, 0.20);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(121,167,216,0.10), rgba(210,184,137,0.055)),
+    rgba(11,15,21,0.9);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+}
+
+.aios-v2-root .aios-v2-hq-mission-hub > span,
+.aios-v2-root .aios-v2-hq-mission-hub > small {
+  color: var(--aios-v2-color-text-soft);
+}
+
+.aios-v2-root .aios-v2-hq-mission-hub > strong {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+
+.aios-v2-root .aios-v2-hq-inspector {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(180px, 0.52fr) minmax(0, 1.48fr);
+  gap: 18px 28px;
+  padding: 22px 26px;
+  border-top: 1px solid rgba(255,255,255,0.055);
+  background: rgba(8, 11, 15, 0.52);
+  backdrop-filter: blur(16px);
+}
+
+.aios-v2-root .aios-v2-hq-inspector > div:first-child > span {
+  display: block;
+  color: var(--aios-v2-color-text-soft);
+  font-size: 0.66rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+
+.aios-v2-root .aios-v2-hq-inspector > div:first-child > strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.12rem;
+  font-weight: 520;
+}
+
+.aios-v2-root .aios-v2-hq-inspector > p {
+  margin: 0;
+  color: var(--aios-v2-color-text-muted);
+  line-height: 1.55;
+}
+
+.aios-v2-root .aios-v2-hq-inspector-metrics {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.aios-v2-root .aios-v2-hq-inspector-metrics > span {
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,0.065);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.02);
+  color: var(--aios-v2-color-text-muted);
+  font-size: 0.68rem;
+}
+
+.aios-v2-root .aios-v2-hq-truth {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid rgba(255,255,255,0.045);
+}
+
+.aios-v2-root .aios-v2-hq-truth > span {
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 999px;
+  color: var(--aios-v2-color-text-soft);
+  background: rgba(255,255,255,0.012);
+  font-size: 0.61rem;
+}
+
+.aios-v2-root .aios-v2-hq-blockout.compact .aios-v2-hq-header,
+.aios-v2-root .aios-v2-hq-blockout.compact .aios-v2-hq-inspector,
+.aios-v2-root .aios-v2-hq-blockout.compact .aios-v2-hq-truth {
+  display: none;
+}
+
+.aios-v2-root .aios-v2-hq-blockout.compact .aios-v2-hq-canvas {
+  min-height: 100%;
+  height: 100%;
+  padding: 16px;
+  gap: 9px;
+  grid-template-rows: repeat(8, minmax(28px, 1fr));
+}
+
+.aios-v2-root[data-theme="light"] .aios-v2-hq-blockout,
+.aios-v2-root[data-theme="light"] .aios-v2-hq-zone,
+.aios-v2-root[data-theme="light"] .aios-v2-hq-mission-hub,
+.aios-v2-root[data-theme="light"] .aios-v2-hq-inspector {
+  box-shadow: 0 20px 58px rgba(38, 31, 22, 0.10);
+}
+
+.aios-v2-root[data-theme="light"] .aios-v2-hq-blockout {
+  background:
+    radial-gradient(60rem 34rem at 50% 8%, rgba(64,108,152,0.08), transparent 58%),
+    radial-gradient(46rem 28rem at 14% 92%, rgba(125,96,51,0.07), transparent 60%),
+    rgba(251,250,246,0.82);
+}
+
+.aios-v2-root[data-theme="light"] .aios-v2-hq-zone {
+  background: linear-gradient(145deg, rgba(255,255,255,0.85), rgba(244,241,234,0.82));
+}
+
+.aios-v2-root[data-theme="light"] .aios-v2-hq-inspector {
+  background: rgba(249,247,241,0.78);
+}
+
+@media (max-width: 980px) {
+  .aios-v2-root .aios-v2-hq-canvas {
+    min-height: 560px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .aios-v2-root .aios-v2-hq-header {
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .aios-v2-root .aios-v2-hq-header > small {
+    text-align: left;
+  }
+
+  .aios-v2-root .aios-v2-hq-canvas,
+  .aios-v2-root .aios-v2-hq-blockout.compact .aios-v2-hq-canvas {
+    min-height: 0;
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    padding: 14px;
+  }
+
+  .aios-v2-root .aios-v2-hq-zone.zone-executive,
+  .aios-v2-root .aios-v2-hq-zone.zone-regulatory,
+  .aios-v2-root .aios-v2-hq-zone.zone-atrium,
+  .aios-v2-root .aios-v2-hq-zone.zone-technology,
+  .aios-v2-root .aios-v2-hq-zone.zone-operations,
+  .aios-v2-root .aios-v2-hq-mission-hub {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .aios-v2-root .aios-v2-hq-zone[data-active="true"] {
+    transform: none;
+  }
+
+  .aios-v2-root .aios-v2-hq-inspector {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aios-v2-root .aios-v2-hq-zone {
+    transition: none;
+  }
+
+  .aios-v2-root .aios-v2-hq-zone[data-active="true"] {
+    transform: none;
+  }
+}

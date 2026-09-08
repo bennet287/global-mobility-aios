@@ -329,6 +329,7 @@ jobs:
           retention-days: 7
 
       - name: Measure Q17 V2 performance baseline
+        if: always()
         working-directory: apps/web/e2e
         run: npx playwright test tests/aios-v2-performance-baseline.spec.ts --project=chromium
 
@@ -342,6 +343,7 @@ jobs:
           retention-days: 7
 
       - name: Measure Q18 intent-lazy consultant assets
+        if: always()
         working-directory: apps/web/e2e
         run: npx playwright test tests/aios-v2-consultant-asset-optimization.spec.ts --project=chromium
 

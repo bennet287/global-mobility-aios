@@ -1,0 +1,154 @@
+/* Major redesign — premium Owner Home composition.
+ * Presentation-only. Scoped to the Owner Home through :has(#aios-v2-owner-home-title).
+ * Does not alter canonical data, authority, semantic truth, replay, or mutation behavior.
+ */
+
+.aios-v2-content:has(#aios-v2-owner-home-title) {
+  position: relative;
+  isolation: isolate;
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title)::before {
+  content: "";
+  position: absolute;
+  inset: 10px -20px auto;
+  height: 320px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(46rem 18rem at 18% 22%, rgba(210, 184, 137, 0.10), transparent 68%),
+    radial-gradient(42rem 20rem at 82% 6%, rgba(121, 167, 216, 0.10), transparent 70%);
+  filter: blur(8px);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) > section:first-child {
+  position: relative;
+  padding: clamp(24px, 3vw, 42px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.014) 54%),
+    radial-gradient(circle at 84% 18%, rgba(121, 167, 216, 0.10), transparent 36%),
+    radial-gradient(circle at 4% 100%, rgba(210, 184, 137, 0.08), transparent 40%),
+    rgba(14, 18, 24, 0.66);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 30px 90px rgba(0, 0, 0, 0.20);
+  backdrop-filter: blur(24px) saturate(120%);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) > section:first-child::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.42;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to right, transparent, black 56%, transparent);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) #aios-v2-owner-home-title {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  text-wrap: balance;
+  text-shadow: 0 18px 46px rgba(0, 0, 0, 0.18);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) #aios-v2-owner-home-title + p {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) > section:nth-of-type(2) {
+  margin-top: 18px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.018);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) > section:nth-of-type(2) > * {
+  border-color: rgba(255, 255, 255, 0.055);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) > section:nth-of-type(n + 3) > * {
+  transition:
+    transform var(--aios-v2-motion-duration-standard) var(--aios-v2-motion-ease-enter),
+    border-color var(--aios-v2-motion-duration-standard) var(--aios-v2-motion-ease-enter),
+    box-shadow var(--aios-v2-motion-duration-standard) var(--aios-v2-motion-ease-enter);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .aios-v2-content:has(#aios-v2-owner-home-title) > section:nth-of-type(n + 3) > *:hover {
+    transform: translateY(-2px);
+    border-color: rgba(210, 184, 137, 0.16);
+    box-shadow: 0 22px 56px rgba(0, 0, 0, 0.16);
+  }
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) .aios-v2-source-warning {
+  border-radius: 16px;
+  border-color: rgba(211, 163, 95, 0.22);
+  background:
+    linear-gradient(90deg, rgba(211, 163, 95, 0.08), rgba(211, 163, 95, 0.025)),
+    rgba(18, 21, 26, 0.54);
+}
+
+.aios-v2-content:has(#aios-v2-owner-home-title) .aios-v2-foundation-note {
+  margin-top: 24px;
+  border: 1px solid rgba(210, 184, 137, 0.12);
+  border-left-width: 2px;
+  border-radius: 14px;
+  background: rgba(210, 184, 137, 0.035);
+}
+
+.aios-v2-root[data-theme="light"] .aios-v2-content:has(#aios-v2-owner-home-title) > section:first-child {
+  border-color: rgba(27, 29, 30, 0.10);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.46) 54%),
+    radial-gradient(circle at 84% 18%, rgba(64, 108, 152, 0.08), transparent 36%),
+    radial-gradient(circle at 4% 100%, rgba(125, 96, 51, 0.08), transparent 40%),
+    rgba(247, 244, 238, 0.78);
+  box-shadow: 0 26px 70px rgba(41, 35, 26, 0.08);
+}
+
+@media (prefers-color-scheme: light) {
+  .aios-v2-root[data-theme="system"] .aios-v2-content:has(#aios-v2-owner-home-title) > section:first-child {
+    border-color: rgba(27, 29, 30, 0.10);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.46) 54%),
+      radial-gradient(circle at 84% 18%, rgba(64, 108, 152, 0.08), transparent 36%),
+      radial-gradient(circle at 4% 100%, rgba(125, 96, 51, 0.08), transparent 40%),
+      rgba(247, 244, 238, 0.78);
+    box-shadow: 0 26px 70px rgba(41, 35, 26, 0.08);
+  }
+}
+
+@media (max-width: 760px) {
+  .aios-v2-content:has(#aios-v2-owner-home-title) > section:first-child {
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .aios-v2-content:has(#aios-v2-owner-home-title)::before {
+    inset-inline: -8px;
+    height: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aios-v2-content:has(#aios-v2-owner-home-title) > section:nth-of-type(n + 3) > * {
+    transition: none;
+  }
+
+  .aios-v2-content:has(#aios-v2-owner-home-title) > section:nth-of-type(n + 3) > *:hover {
+    transform: none;
+  }
+}

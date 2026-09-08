@@ -1,0 +1,280 @@
+/* Major redesign — premium AIOS shell.
+ * Presentation-only layer. It does not change canonical state, authority,
+ * replay semantics, semantic-motion truth, or data-fetch behavior.
+ */
+
+.aios-v2-root {
+  --aios-v2-premium-rail: 252px;
+  --aios-v2-premium-glow: rgba(126, 166, 214, 0.12);
+  --aios-v2-premium-warm: rgba(210, 184, 137, 0.10);
+  --aios-v2-premium-hairline: rgba(242, 238, 229, 0.08);
+  --aios-v2-layout-rail: var(--aios-v2-premium-rail);
+  background:
+    radial-gradient(90rem 58rem at 82% -18%, var(--aios-v2-premium-glow), transparent 58%),
+    radial-gradient(72rem 52rem at -8% 10%, var(--aios-v2-premium-warm), transparent 54%),
+    linear-gradient(180deg, #0c1015 0%, #0b0e13 54%, #0a0d11 100%);
+}
+
+.aios-v2-root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 72%);
+}
+
+.aios-v2-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.aios-v2-rail {
+  padding: 22px 16px 18px;
+  border-right: 1px solid var(--aios-v2-premium-hairline);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.008)),
+    rgba(10, 13, 18, 0.86);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.018), 22px 0 60px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(28px) saturate(125%);
+}
+
+.aios-v2-brand {
+  min-height: 58px;
+  margin-bottom: 28px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.012));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+}
+
+.aios-v2-brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border-color: rgba(210, 184, 137, 0.36);
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.20), transparent 34%),
+    linear-gradient(145deg, rgba(210, 184, 137, 0.20), rgba(121, 167, 216, 0.10));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 10px 24px rgba(0, 0, 0, 0.20);
+}
+
+.aios-v2-brand-copy strong {
+  font-size: 0.94rem;
+  letter-spacing: -0.025em;
+}
+
+.aios-v2-brand-copy span {
+  color: rgba(241, 238, 231, 0.52);
+  letter-spacing: 0.01em;
+}
+
+.aios-v2-nav {
+  gap: 7px;
+}
+
+.aios-v2-nav-item {
+  min-height: 46px;
+  gap: 12px;
+  padding: 0 11px;
+  border-radius: 14px;
+  color: rgba(241, 238, 231, 0.62);
+  transition:
+    transform var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter),
+    color var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter),
+    background var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter),
+    border-color var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter);
+}
+
+.aios-v2-nav-item:not([aria-disabled="true"]):hover {
+  transform: translateX(2px);
+  color: var(--aios-v2-color-text);
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.aios-v2-nav-item.active {
+  position: relative;
+  color: var(--aios-v2-color-text);
+  border-color: rgba(210, 184, 137, 0.16);
+  background:
+    linear-gradient(100deg, rgba(210, 184, 137, 0.10), rgba(121, 167, 216, 0.055) 64%, rgba(255, 255, 255, 0.022));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.aios-v2-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(var(--aios-v2-color-accent), var(--aios-v2-color-technology));
+  box-shadow: 0 0 14px rgba(210, 184, 137, 0.34);
+}
+
+.aios-v2-nav-glyph {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 10px;
+  color: rgba(210, 184, 137, 0.92);
+  background: linear-gradient(145deg, rgba(210, 184, 137, 0.09), rgba(121, 167, 216, 0.035));
+}
+
+.aios-v2-rail-footer {
+  left: 16px;
+  right: 16px;
+  bottom: 18px;
+  border-top-color: var(--aios-v2-premium-hairline);
+}
+
+.aios-v2-health {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.aios-v2-main {
+  padding: 0 clamp(20px, 3vw, 54px) 72px;
+}
+
+.aios-v2-topline {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 84px;
+  border-bottom-color: var(--aios-v2-premium-hairline);
+  background: linear-gradient(180deg, rgba(11, 14, 19, 0.91), rgba(11, 14, 19, 0.72));
+  backdrop-filter: blur(24px) saturate(120%);
+}
+
+.aios-v2-topline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(210, 184, 137, 0.24), rgba(121, 167, 216, 0.16), transparent);
+  pointer-events: none;
+}
+
+.aios-v2-topline-context {
+  gap: 12px;
+}
+
+.aios-v2-topline-context strong {
+  font-size: 0.92rem;
+  letter-spacing: -0.02em;
+}
+
+.aios-v2-topline-context span {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.aios-v2-command {
+  min-height: 40px;
+  border-color: rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  transition:
+    transform var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter),
+    border-color var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter),
+    background var(--aios-v2-motion-duration-micro) var(--aios-v2-motion-ease-enter);
+}
+
+.aios-v2-command:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: rgba(210, 184, 137, 0.18);
+  background: linear-gradient(180deg, rgba(210, 184, 137, 0.07), rgba(255, 255, 255, 0.02));
+}
+
+.aios-v2-content {
+  width: min(100%, 1760px);
+  padding-top: clamp(38px, 5vw, 72px);
+}
+
+.aios-v2-kicker {
+  padding: 6px 9px;
+  border: 1px solid rgba(210, 184, 137, 0.13);
+  border-radius: 999px;
+  background: rgba(210, 184, 137, 0.045);
+}
+
+.aios-v2-foundation-note,
+.aios-v2-source-warning {
+  backdrop-filter: blur(14px);
+}
+
+@media (max-width: 980px) {
+  .aios-v2-root {
+    --aios-v2-layout-rail: 1fr;
+  }
+
+  .aios-v2-rail {
+    position: relative;
+    padding: 16px;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);
+  }
+
+  .aios-v2-brand {
+    max-width: 380px;
+  }
+
+  .aios-v2-nav {
+    gap: 8px;
+  }
+
+  .aios-v2-nav-item:not([aria-disabled="true"]):hover {
+    transform: translateY(-1px);
+  }
+
+  .aios-v2-nav-item.active::before {
+    left: 18%;
+    right: 18%;
+    top: auto;
+    bottom: -5px;
+    width: auto;
+    height: 2px;
+  }
+}
+
+@media (max-width: 760px) {
+  .aios-v2-main {
+    padding-inline: 16px;
+  }
+
+  .aios-v2-topline {
+    min-height: 68px;
+  }
+
+  .aios-v2-content {
+    padding-top: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aios-v2-nav-item,
+  .aios-v2-command {
+    transition: none;
+  }
+
+  .aios-v2-nav-item:not([aria-disabled="true"]):hover,
+  .aios-v2-command:not(:disabled):hover {
+    transform: none;
+  }
+}
