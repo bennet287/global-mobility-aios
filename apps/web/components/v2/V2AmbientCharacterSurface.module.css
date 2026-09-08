@@ -17,6 +17,7 @@
   --amb-posture-cycle: 9000ms;
   --amb-drift-cycle: 7000ms;
   --amb-device-cycle: 11000ms;
+  --amb-focus-cycle: 6200ms;
 
   position: relative;
   display: inline-flex;
@@ -94,16 +95,33 @@
   53% { transform: translateX(-0.5px); }
 }
 
+/* Decorative depth polish only. This halo is tied exclusively to an already-
+ * approved presentation action and never represents focus, productivity,
+ * presence, authority or canonical activity. */
 .ambientFocusGlow::after {
   position: absolute;
   inset: -4px;
   border-radius: 8px;
   pointer-events: none;
   content: "";
-  opacity: 0.3;
+  opacity: 0.28;
   box-shadow:
     0 0 14px rgba(191, 219, 254, 0.24),
+    0 0 26px rgba(125, 211, 252, 0.08),
     inset 0 0 0 1px rgba(226, 232, 240, 0.18);
+  animation: ambFocusHalo var(--amb-focus-cycle) ease-in-out infinite;
+  animation-delay: var(--amb-phase-delay);
+}
+
+@keyframes ambFocusHalo {
+  0%, 100% {
+    opacity: 0.24;
+    filter: saturate(.92);
+  }
+  50% {
+    opacity: 0.34;
+    filter: saturate(1.04);
+  }
 }
 
 .ambientDeviceIdle::before {
@@ -116,6 +134,7 @@
   pointer-events: none;
   content: "";
   background: rgba(191, 219, 254, 0.52);
+  box-shadow: 0 0 7px rgba(125, 211, 252, 0.12);
   animation: ambDeviceGlint var(--amb-device-cycle) ease-in-out infinite;
   animation-delay: var(--amb-phase-delay);
 }
@@ -130,13 +149,26 @@
   border-radius: 6px;
   box-shadow:
     0 0 0 1.5px rgba(226, 232, 240, 0.42),
-    0 0 10px rgba(191, 219, 254, 0.2);
+    0 0 10px rgba(191, 219, 254, 0.2),
+    0 6px 18px rgba(15, 23, 42, 0.08);
+  transition:
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.ambientSelectionEmphasis:hover {
+  filter: brightness(1.015);
+  box-shadow:
+    0 0 0 1.5px rgba(226, 232, 240, 0.48),
+    0 0 14px rgba(191, 219, 254, 0.24),
+    0 8px 20px rgba(15, 23, 42, 0.1);
 }
 
 /* Descriptor-driven reduced motion. Root-action classes share the root, while
  * transform classes live on descendants, so both selector shapes are needed. */
 .modeReducedMotion.ambientBlink,
 .modeReducedMotion.ambientDeviceIdle::before,
+.modeReducedMotion.ambientFocusGlow::after,
 .modeReducedMotion .ambientBreathing,
 .modeReducedMotion .ambientMicroPosture,
 .modeReducedMotion .ambientGazeShift,
@@ -150,11 +182,21 @@
 
 .modeReducedMotion.ambientFocusGlow::after {
   opacity: 0.18;
+  filter: none;
+}
+
+.modeReducedMotion.ambientSelectionEmphasis {
+  transition: none;
+}
+
+.modeReducedMotion.ambientSelectionEmphasis:hover {
+  filter: none;
 }
 
 /* Static defensive gate. */
 .modeStatic.ambientBlink,
 .modeStatic.ambientDeviceIdle::before,
+.modeStatic.ambientFocusGlow::after,
 .modeStatic .ambientBreathing,
 .modeStatic .ambientMicroPosture,
 .modeStatic .ambientGazeShift,
@@ -162,10 +204,19 @@
   animation: none;
 }
 
+.modeStatic.ambientSelectionEmphasis {
+  transition: none;
+}
+
+.modeStatic.ambientSelectionEmphasis:hover {
+  filter: none;
+}
+
 /* OS-level final guard. */
 @media (prefers-reduced-motion: reduce) {
   .root.ambientBlink,
   .root.ambientDeviceIdle::before,
+  .root.ambientFocusGlow::after,
   .root .ambientBreathing,
   .root .ambientMicroPosture,
   .root .ambientGazeShift,
@@ -179,5 +230,14 @@
 
   .root.ambientFocusGlow::after {
     opacity: 0.18;
+    filter: none;
+  }
+
+  .root.ambientSelectionEmphasis {
+    transition: none;
+  }
+
+  .root.ambientSelectionEmphasis:hover {
+    filter: none;
   }
 }
