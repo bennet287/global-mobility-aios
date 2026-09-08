@@ -32,7 +32,7 @@ export type OperatorContextualDestination = {
 export const operatorNavigation: readonly OperatorNavigationItem[] = Object.freeze([
   { label: "Work", icon: "work", href: "/", enabled: true, description: "Cases, review queues, blockers and next professional actions" },
   { label: "Profiles", icon: "profiles", href: "/operator/v2/profiles", enabled: true, description: "Mobility profiles and case context" },
-  { label: "Pathways", icon: "pathways", href: "/pathways", enabled: true, description: "Governed pathway catalogue and professional comparison" },
+  { label: "Pathways", icon: "pathways", href: "/operator/v2/pathways", enabled: true, description: "Governed pathway catalogue and professional comparison" },
   { label: "Evidence", icon: "evidence", href: "/document-intelligence", enabled: true, description: "Documents, evidence review, validation and provenance" },
   { label: "Communication", icon: "communication", href: "/communications", enabled: true, description: "Governed professional and client communication workflows" },
   { label: "Tools", icon: "tools", href: "/operator/v2/tools", enabled: true, description: "Contextual professional tools and specialist domains" },
