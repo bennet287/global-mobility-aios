@@ -11,6 +11,7 @@ import {
   operatorContextualDestinations,
   operatorNavigation,
 } from "../lib/v2/operator-navigation.ts";
+import { mobilityNavigation } from "../lib/v2/mobility-navigation.ts";
 
 const shellUrl = new URL("../components/v2/V2Shell.tsx", import.meta.url);
 const operatorShellUrl = new URL("../components/v2/V2OperatorShell.tsx", import.meta.url);
@@ -62,6 +63,29 @@ test("Operator navigation locks the six-domain professional mental model", async
       assert.equal(item.href, null, `${item.label} must fail closed until its conceptual home is implemented`);
     }
   }
+});
+
+test("Mobility navigation locks the five-domain case-first model and fails closed for unmigrated client surfaces", async () => {
+  assert.equal(mobilityNavigation.length, 5);
+  assert.deepEqual(mobilityNavigation.map((item) => item.label), [
+    "Overview",
+    "My Case",
+    "Documents",
+    "Timeline",
+    "Messages",
+  ]);
+
+  for (const item of mobilityNavigation) {
+    if (item.enabled) {
+      assert.ok(item.href, `${item.label} must provide an href when enabled`);
+      await assertRouteExists(item.href);
+    } else {
+      assert.equal(item.href, null, `${item.label} must fail closed until a client-safe destination is accepted`);
+    }
+  }
+
+  assert.equal(mobilityNavigation.find((item) => item.label === "Overview")?.href, "/my-mobility");
+  assert.equal(mobilityNavigation.find((item) => item.label === "My Case")?.href, "/portal");
 });
 
 test("Operator specialist routes stay contextual and map to one primary conceptual home", async () => {
