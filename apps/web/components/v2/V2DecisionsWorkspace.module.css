@@ -1,28 +1,90 @@
 .page {
+  position: relative;
   display: grid;
-  gap: var(--aios-v2-space-5);
+  gap: clamp(18px, 2.2vw, 30px);
   min-width: 0;
+  overflow-x: clip;
+  isolation: isolate;
 }
+
+.page::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -30px -24px auto;
+  height: 310px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(202, 166, 111, 0.11), transparent 34%),
+    radial-gradient(circle at 84% 18%, rgba(117, 151, 201, 0.09), transparent 36%);
+  filter: blur(3px);
+}
+
+.page > header {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(22px, 3vw, 38px);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.012)),
+    radial-gradient(circle at 82% 18%, rgba(117, 151, 201, 0.085), transparent 36%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 28px 80px rgba(0, 0, 0, 0.20);
+}
+
+.page > header::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: 22px;
+  width: 112px;
+  height: 1px;
+  opacity: .7;
+  background: linear-gradient(90deg, transparent, rgba(202, 166, 111, .68));
+}
+
+.page > header h1 { letter-spacing: -.045em; }
+
+.page details { backdrop-filter: blur(12px); }
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
-  gap: var(--aios-v2-space-5);
+  grid-template-columns: minmax(0, 1.48fr) minmax(330px, .62fr);
+  gap: clamp(14px, 1.6vw, 22px);
   align-items: start;
   min-width: 0;
 }
 
 .portfolio {
+  position: relative;
   display: grid;
-  gap: var(--aios-v2-space-4);
+  gap: 18px;
   min-width: 0;
+  overflow: hidden;
+  padding: clamp(18px, 2.2vw, 28px) !important;
+  border-color: rgba(255, 255, 255, .07) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.032), rgba(255,255,255,.01)), rgba(10,14,20,.72) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 24px 64px rgba(0,0,0,.18);
+}
+
+.portfolio::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(202,166,111,.58), rgba(117,151,201,.32), transparent);
 }
 
 .filters {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(170px, .32fr) auto;
-  gap: var(--aios-v2-space-3);
+  gap: 10px;
   align-items: end;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 16px;
+  background: rgba(255,255,255,.018);
 }
 
 .filters label {
@@ -33,17 +95,33 @@
   font-size: var(--aios-v2-type-sm);
 }
 
+.filters label > span {
+  padding-left: 2px;
+  color: var(--aios-v2-color-text-soft);
+  font-size: .64rem;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+
 .filters input,
 .filters select {
   width: 100%;
   min-width: 0;
   min-height: 44px;
   padding: 9px 12px;
-  border: 1px solid var(--aios-v2-color-border-strong);
-  border-radius: var(--aios-v2-radius-control);
-  background: var(--aios-v2-color-surface-inset);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  background: rgba(5,9,14,.56);
   color: var(--aios-v2-color-text);
   font: inherit;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.filters :is(input, select):focus-visible {
+  outline: 2px solid var(--aios-v2-color-accent);
+  outline-offset: 2px;
+  border-color: rgba(202,166,111,.34);
+  box-shadow: 0 0 0 4px rgba(202,166,111,.06);
 }
 
 .ownerToggle {
@@ -54,20 +132,33 @@
   align-items: center;
   justify-content: start;
   gap: 9px !important;
-  padding: 0 4px;
+  padding: 0 8px;
   white-space: nowrap;
+  border-radius: 12px;
 }
 
-.ownerToggle input {
-  width: 18px;
-  min-height: 18px;
-  height: 18px;
-}
+.ownerToggle input { width: 18px; min-height: 18px; height: 18px; }
 
 .list {
   display: grid;
-  gap: 9px;
+  gap: 10px;
   min-width: 0;
+}
+
+.list > * {
+  border-radius: 16px;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.list > *:hover {
+  transform: translateY(-1px);
+  border-color: rgba(202,166,111,.16);
+  box-shadow: 0 14px 34px rgba(0,0,0,.13);
+}
+
+.list > *:focus-within {
+  border-color: rgba(202,166,111,.28);
+  box-shadow: 0 0 0 3px rgba(202,166,111,.055);
 }
 
 .rowMeta {
@@ -83,6 +174,13 @@
   min-width: 0;
 }
 
+.inspectorSlot > * {
+  overflow: hidden;
+  border-color: rgba(255,255,255,.075) !important;
+  background: linear-gradient(155deg, rgba(255,255,255,.04), rgba(255,255,255,.012)), rgba(8,12,18,.78) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 26px 72px rgba(0,0,0,.22);
+}
+
 .stateLine {
   display: flex;
   align-items: center;
@@ -90,15 +188,28 @@
   flex-wrap: wrap;
   gap: var(--aios-v2-space-3);
   margin-bottom: var(--aios-v2-space-3);
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
 }
 
 .recommendation {
+  position: relative;
   display: grid;
   gap: 9px;
-  padding: var(--aios-v2-space-4);
-  margin: var(--aios-v2-space-4) 0;
-  border-radius: var(--aios-v2-radius-control);
-  background: var(--aios-v2-color-surface-inset);
+  padding: 18px;
+  margin: 18px 0;
+  overflow: hidden;
+  border: 1px solid rgba(202,166,111,.12);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(202,166,111,.065), rgba(117,151,201,.035)), rgba(255,255,255,.012);
+}
+
+.recommendation::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(202,166,111,.76), rgba(117,151,201,.22));
 }
 
 .recommendation p,
@@ -106,73 +217,73 @@
 .placeholder p {
   margin: 0;
   color: var(--aios-v2-color-text-muted);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .definitionList {
   display: grid;
   grid-template-columns: minmax(125px, .42fr) minmax(0, 1fr);
-  gap: 8px 14px;
+  gap: 9px 14px;
   margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.045);
+  border-radius: 14px;
+  background: rgba(255,255,255,.012);
 }
 
-.definitionList dt {
-  color: var(--aios-v2-color-text-muted);
-}
-
-.definitionList dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
+.definitionList dt { color: var(--aios-v2-color-text-muted); }
+.definitionList dd { margin: 0; overflow-wrap: anywhere; }
 
 .placeholder {
   min-height: 250px;
   display: grid;
   align-content: center;
+  border: 1px dashed rgba(255,255,255,.08);
+  border-radius: 18px;
 }
 
-.filters :is(input, select):focus-visible,
-.inspectorSlot:focus-visible {
-  outline: 2px solid var(--aios-v2-color-accent);
-  outline-offset: 3px;
+[data-aios-v2-theme="light"] .page > header,
+[data-aios-v2-theme="light"] .portfolio,
+[data-aios-v2-theme="light"] .inspectorSlot > * {
+  border-color: rgba(27,37,51,.10) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(246,248,251,.82)), rgba(255,255,255,.86) !important;
+  box-shadow: 0 24px 64px rgba(32,43,58,.08);
+}
+
+[data-aios-v2-theme="light"] .filters,
+[data-aios-v2-theme="light"] .definitionList {
+  border-color: rgba(27,37,51,.08);
+  background: rgba(31,45,63,.025);
+}
+
+[data-aios-v2-theme="light"] .filters input,
+[data-aios-v2-theme="light"] .filters select {
+  border-color: rgba(27,37,51,.11);
+  background: rgba(255,255,255,.82);
+}
+
+[data-aios-v2-theme="light"] .recommendation {
+  border-color: rgba(153,116,61,.15);
+  background: linear-gradient(135deg, rgba(191,151,88,.08), rgba(96,132,181,.04)), rgba(255,255,255,.65);
 }
 
 @media (max-width: 980px) {
-  .workspace {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .inspectorSlot {
-    position: static;
-  }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .inspectorSlot { position: static; }
 }
 
-@media (max-width: 650px) {
-  .page {
-    gap: 16px;
-  }
-
-  .filters {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .ownerToggle {
-    min-height: 44px;
-  }
-
-  .definitionList {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .rowMeta {
-    justify-content: flex-start;
-  }
+@media (max-width: 760px) {
+  .page { gap: 16px; }
+  .page::before { inset-inline: 0; }
+  .page > header { padding: 20px; border-radius: 20px; }
+  .filters { grid-template-columns: minmax(0, 1fr); }
+  .ownerToggle { min-height: 44px; }
+  .definitionList { grid-template-columns: minmax(0, 1fr); }
+  .rowMeta { justify-content: flex-start; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page,
-  .workspace,
-  .list {
-    scroll-behavior: auto;
-  }
+  .list > *, .filters input, .filters select { transition: none; }
+  .list > *:hover { transform: none; }
+  .page, .workspace, .list { scroll-behavior: auto; }
 }
