@@ -30,7 +30,7 @@
     "test:compiled-auth": "node scripts/verify-compiled-client-auth.mjs"
   },
   "dependencies": {
-    "next": "16.3.1",
+    "next": "16.3.4",
     "react": "19.0.8",
     "react-dom": "19.0.8",
     "tesseract.js": "^7.0.0",
