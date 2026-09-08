@@ -1,0 +1,48 @@
+/* AIOS V2 — Living HQ scene-composition polish.
+ * Presentation-only stage settling. This motion does not encode canonical work,
+ * presence, urgency, authority, completion, collaboration, route state or mutation.
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  [aria-label="Living HQ visual stage"][data-state="established"] {
+    transform-origin: 50% 22%;
+    animation: aios-v2-hq-stage-settle 520ms cubic-bezier(.22, .8, .24, 1) both;
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"] {
+    transform-origin: 50% 35%;
+    animation: aios-v2-hq-scene-settle 620ms cubic-bezier(.22, .8, .24, 1) 70ms both;
+  }
+}
+
+@keyframes aios-v2-hq-stage-settle {
+  from {
+    opacity: 0.94;
+    transform: translate3d(0, 5px, 0) scale(0.996);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes aios-v2-hq-scene-settle {
+  from {
+    opacity: 0.9;
+    transform: translate3d(0, 7px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [aria-label="Living HQ visual stage"][data-state="established"],
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"] {
+    animation: none;
+    transform: none;
+  }
+}
