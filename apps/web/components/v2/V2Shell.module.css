@@ -97,3 +97,15 @@
     background: Highlight;
   }
 }
+
+/* Operator mobile navigation needs a full touch target, including when
+ * reduced motion is requested, without changing the already-reviewed Owner
+ * mobile shell geometry. */
+@media (max-width: 600px) {
+  .shellRail[aria-label="AIOS V2 Professional / Operator navigation"] .navItem {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
