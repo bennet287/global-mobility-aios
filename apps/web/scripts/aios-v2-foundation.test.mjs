@@ -5,11 +5,15 @@ import { test } from "node:test";
 const tokens = await readFile(new URL("../styles/v2/tokens.css", import.meta.url), "utf8");
 const motion = await readFile(new URL("../styles/v2/motion.css", import.meta.url), "utf8");
 const foundation = await readFile(new URL("../styles/v2/foundation.css", import.meta.url), "utf8");
+const premiumShell = await readFile(new URL("../styles/v2/premium-shell.css", import.meta.url), "utf8");
+const premiumOwnerHome = await readFile(new URL("../styles/v2/premium-owner-home.css", import.meta.url), "utf8");
+const premiumHq = await readFile(new URL("../styles/v2/premium-hq.css", import.meta.url), "utf8");
 const shell = await readFile(new URL("../components/v2/V2Shell.tsx", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../lib/v2/navigation.ts", import.meta.url), "utf8");
 const ownerHome = await readFile(new URL("../components/v2/V2OwnerHomePrototype.tsx", import.meta.url), "utf8");
 const situationRoom = await readFile(new URL("../components/v2/V2OwnerSituationRoom.tsx", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/cockpit/v2/page.tsx", import.meta.url), "utf8");
+const layout = await readFile(new URL("../app/cockpit/v2/layout.tsx", import.meta.url), "utf8");
 
 test("AIOS V2 tokens are namespaced and do not replace the legacy root theme", () => {
   assert.match(tokens, /\.aios-v2-root\s*\{/);
@@ -65,6 +69,42 @@ test("V2 responsive foundation establishes non-desktop layout behavior", () => {
   assert.match(foundation, /@media \(max-width: 980px\)/);
   assert.match(foundation, /@media \(max-width: 760px\)/);
   assert.match(foundation, /grid-template-columns: 1fr/);
+});
+
+test("major redesign premium shell stays scoped, responsive and reduced-motion safe", () => {
+  assert.match(layout, /premium-shell\.css/);
+  assert.match(premiumShell, /\.aios-v2-root\s*\{/);
+  assert.match(premiumShell, /\.aios-v2-rail\s*\{/);
+  assert.match(premiumShell, /\.aios-v2-topline\s*\{/);
+  assert.match(premiumShell, /\.aios-v2-nav-item\.active/);
+  assert.match(premiumShell, /@media \(max-width: 980px\)/);
+  assert.match(premiumShell, /@media \(max-width: 760px\)/);
+  assert.match(premiumShell, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(premiumShell, /(^|\n):root\s*\{/);
+  assert.doesNotMatch(premiumShell, /presenceClaimed|locomotionAllowed|canonical_projection|mutations_allowed/);
+});
+
+test("major redesign Owner Home composition is isolated and truth-neutral", () => {
+  assert.match(layout, /premium-owner-home\.css/);
+  assert.match(premiumOwnerHome, /:has\(#aios-v2-owner-home-title\)/);
+  assert.match(premiumOwnerHome, /@media \(max-width: 760px\)/);
+  assert.match(premiumOwnerHome, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(premiumOwnerHome, /(^|\n):root\s*\{/);
+  assert.doesNotMatch(premiumOwnerHome, /presenceClaimed|locomotionAllowed|canonical_projection|mutations_allowed|authority\s*=/);
+});
+
+test("major redesign Living HQ remains presentation-only, responsive and reduced-motion safe", () => {
+  assert.match(layout, /premium-hq\.css/);
+  assert.match(premiumHq, /\.aios-v2-root \.aios-v2-hq-blockout/);
+  assert.match(premiumHq, /\.zone-executive/);
+  assert.match(premiumHq, /\.zone-regulatory/);
+  assert.match(premiumHq, /\.zone-atrium/);
+  assert.match(premiumHq, /\.zone-technology/);
+  assert.match(premiumHq, /\.zone-operations/);
+  assert.match(premiumHq, /@media \(max-width: 760px\)/);
+  assert.match(premiumHq, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(premiumHq, /(^|\n):root\s*\{/);
+  assert.doesNotMatch(premiumHq, /presenceClaimed|locomotionAllowed|canonical_projection|mutations_allowed|physicalLocationClaimed/);
 });
 
 test("the isolated V2 owner-home route mounts the V2 prototype instead of replacing the existing cockpit", () => {

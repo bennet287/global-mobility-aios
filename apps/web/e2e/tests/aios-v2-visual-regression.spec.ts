@@ -9,6 +9,13 @@ const SECOND_ACTIVITY = "00000000-0000-0000-0000-000000000002";
 const EVIDENCE_REF = "evidence:visual:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const FINGERPRINT = "fp:q15:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
+const OWNER_HOME_DARK_1280_DIGEST = "daa7a3987831a426c32c2ca5ed0a86a71fdb0c29df2197ad6f9f0fd85b23eecf";
+const OWNER_HOME_DARK_390_DIGEST = "e4a94e460acb635a6add1cbd553147d54f38a42b5bd81b761168c3b949f64835";
+const DECISIONS_INSPECTOR_LIGHT_1280_DIGEST = "aea92cebcf471bdd591ac564b7486b5efcb65a3146ac7283ead5fb205d583008";
+const ORGANIZATION_STRUCTURED_DARK_1280_DIGEST = "a126e2011fbf33414764c1f00387c88f45bfd250778da314bf2b15d50e3b5384";
+const MISSIONS_INSPECTOR_DARK_1280_DIGEST = "fbbbdeb54b0a7fc0ccf7860394016c2ba2edb629de4a05c4e299dd151f743e09";
+const EVIDENCE_INSPECTOR_DARK_1280_DIGEST = "da906356df0c683abe451519c4652da78756d19007a9b76855f2e46ed695b31e";
+
 const scene = {
   contract_version: "living-organization-scene.v5",
   generated_at: "2026-09-07T03:00:00Z",
@@ -72,85 +79,112 @@ async function freezePresentation(page: Page) {
   await page.addInitScript(() => window.localStorage.clear());
 }
 
-const screenshotOptions = { animations: "disabled" as const, caret: "hide" as const, maxDiffPixels: 0 };
-
-async function baseline(page: Page, name: string, fullPage = true) {
-  await expect(page).toHaveScreenshot(name, { ...screenshotOptions, fullPage });
+async function baselineDigest(page: Page, expectedDigest: string, label: string, fullPage = true) {
+  const screenshot = await page.screenshot({ animations: "disabled", caret: "hide", fullPage });
+  const actualDigest = createHash("sha256").update(screenshot).digest("hex");
+  expect(actualDigest, `${label} screenshot SHA-256 must match the reviewed major-redesign visual proof`).toBe(expectedDigest);
 }
 
-test("Q15 desktop dark visual baselines are deterministic", async ({ page }, testInfo) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  const writes: string[] = [];
-  await freezePresentation(page); await installFixture(page, writes);
+async function prepare(page: Page, writes: string[], width: number, height: number) {
+  await page.setViewportSize({ width, height });
+  await freezePresentation(page);
+  await installFixture(page, writes);
+}
 
+test("Q15 Owner Home desktop visual contract", async ({ page }) => {
+  const writes: string[] = [];
+  await prepare(page, writes, 1280, 900);
   await page.goto("/cockpit/v2");
   await page.getByLabel("AIOS V2 theme").selectOption("dark");
-  await baseline(page, "owner-home-dark-1280.png");
+  await baselineDigest(page, OWNER_HOME_DARK_1280_DIGEST, "Owner Home desktop");
+  expect(writes).toEqual([]);
+});
 
+test("Q15 Organization structured desktop visual contract", async ({ page }) => {
+  const writes: string[] = [];
+  await prepare(page, writes, 1280, 900);
   await page.goto("/cockpit/v2/organization");
   await page.getByRole("radio", { name: "Structured" }).check();
   await page.getByRole("button", { name: /Mobility Operations Lead/ }).click();
   await page.getByRole("button", { name: "Close" }).scrollIntoViewIfNeeded();
-  await baseline(page, "organization-structured-dark-1280.png", false);
+  await baselineDigest(page, ORGANIZATION_STRUCTURED_DARK_1280_DIGEST, "Organization structured desktop", false);
+  expect(writes).toEqual([]);
+});
 
+test("Q15 Missions inspector desktop visual contract", async ({ page }) => {
+  const writes: string[] = [];
+  await prepare(page, writes, 1280, 900);
   await page.goto("/cockpit/v2/missions");
   await page.getByRole("button", { name: /Austria mobility filing readiness/ }).click();
-  const missionInspector = page.getByRole("complementary", { name: "Austria mobility filing readiness with owner review" });
-  await expect(missionInspector).toBeVisible();
-  await expect(missionInspector).toHaveScreenshot("missions-inspector-dark-1280.png", screenshotOptions);
+  const inspector = page.getByRole("complementary", { name: "Austria mobility filing readiness with owner review" });
+  await expect(inspector).toBeVisible();
+  const screenshot = await inspector.screenshot({ animations: "disabled", caret: "hide" });
+  const digest = createHash("sha256").update(screenshot).digest("hex");
+  expect(digest, "Missions inspector screenshot SHA-256 must match the reviewed major-redesign visual proof").toBe(MISSIONS_INSPECTOR_DARK_1280_DIGEST);
+  expect(writes).toEqual([]);
+});
 
+test("Q15 Evidence inspector desktop visual contract", async ({ page }) => {
+  const writes: string[] = [];
+  await prepare(page, writes, 1280, 900);
   await page.goto("/cockpit/v2/evidence");
   await page.getByRole("button", { name: /evidence:visual:/ }).click();
-  const evidenceInspector = page.getByRole("complementary", { name: "Domain evidence" });
-  await expect(evidenceInspector).toBeVisible();
-  await expect(evidenceInspector).toHaveScreenshot("evidence-inspector-dark-1280.png", screenshotOptions);
+  const inspector = page.getByRole("complementary", { name: "Domain evidence" });
+  await expect(inspector).toBeVisible();
+  const screenshot = await inspector.screenshot({ animations: "disabled", caret: "hide" });
+  const digest = createHash("sha256").update(screenshot).digest("hex");
+  expect(digest, "Evidence inspector screenshot SHA-256 must match the reviewed major-redesign visual proof").toBe(EVIDENCE_INSPECTOR_DARK_1280_DIGEST);
+  expect(writes).toEqual([]);
+});
 
+test("Q15 History replay desktop visual contract", async ({ page }, testInfo) => {
+  const writes: string[] = [];
+  await prepare(page, writes, 1280, 900);
   await page.goto("/cockpit/v2/history");
   const stateResponse = page.waitForResponse((response) => response.url().endsWith(`/replay/austria/latest/state/${SECOND_ACTIVITY}`) && response.status() === 200);
   await page.getByRole("button", { name: /Owner review recorded/ }).click();
   await stateResponse;
-  const historyInspector = page.getByRole("complementary", { name: "Owner review recorded" });
-  await expect(historyInspector.getByText("Reconstruction posture", { exact: true })).toBeVisible();
-  await expect(historyInspector.locator('[data-replay-semantic-rendering="historical-cursor"]')).toBeVisible();
+  const inspector = page.getByRole("complementary", { name: "Owner review recorded" });
+  await expect(inspector.getByText("Reconstruction posture", { exact: true })).toBeVisible();
+  await expect(inspector.locator('[data-replay-semantic-rendering="historical-cursor"]')).toBeVisible();
   await page.waitForLoadState("networkidle");
   await page.setViewportSize({ width: 1280, height: 1600 });
-  const historyBounds = await historyInspector.boundingBox();
-  expect(historyBounds).not.toBeNull();
-  const historyClip = {
-    x: Math.floor(historyBounds!.x),
-    y: Math.floor(historyBounds!.y),
-    width: Math.ceil(historyBounds!.x + historyBounds!.width) - Math.floor(historyBounds!.x),
-    height: Math.ceil(historyBounds!.y + historyBounds!.height) - Math.floor(historyBounds!.y),
+  const bounds = await inspector.boundingBox();
+  expect(bounds).not.toBeNull();
+  const clip = {
+    x: Math.floor(bounds!.x),
+    y: Math.floor(bounds!.y),
+    width: Math.ceil(bounds!.x + bounds!.width) - Math.floor(bounds!.x),
+    height: Math.ceil(bounds!.y + bounds!.height) - Math.floor(bounds!.y),
   };
-  const historyActualPath = testInfo.outputPath("history-replay-dark-1280-actual.png");
-  const historyScreenshot = await page.screenshot({ animations: "disabled", caret: "hide", clip: historyClip, path: historyActualPath });
-  const historyDigestPath = resolve(process.cwd(), "tests", "aios-v2-visual-regression.spec.ts-snapshots", "history-replay-dark-1280-chromium-linux.sha256");
-  const expectedHistoryDigest = readFileSync(historyDigestPath, "utf8").trim();
-  const actualHistoryDigest = createHash("sha256").update(historyScreenshot).digest("hex");
-  expect(actualHistoryDigest, "History screenshot SHA-256 must match committed Linux visual baseline digest").toBe(expectedHistoryDigest);
-
+  const actualPath = testInfo.outputPath("history-replay-dark-1280-actual.png");
+  const screenshot = await page.screenshot({ animations: "disabled", caret: "hide", clip, path: actualPath });
+  const digestPath = resolve(process.cwd(), "tests", "aios-v2-visual-regression.spec.ts-snapshots", "history-replay-dark-1280-chromium-linux.sha256");
+  const expectedDigest = readFileSync(digestPath, "utf8").trim();
+  const actualDigest = createHash("sha256").update(screenshot).digest("hex");
+  expect(actualDigest, "History screenshot SHA-256 must match committed Linux visual baseline digest").toBe(expectedDigest);
   expect(writes).toEqual([]);
 });
 
-test("Q15 desktop light decision baseline is deterministic", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
+test("Q15 Decisions inspector light desktop visual contract", async ({ page }) => {
   const writes: string[] = [];
-  await freezePresentation(page); await installFixture(page, writes);
+  await prepare(page, writes, 1280, 900);
   await page.goto("/cockpit/v2/decisions");
   await page.getByLabel("AIOS V2 theme").selectOption("light");
   await page.getByRole("button", { name: /Austria filing authority/ }).click();
-  const decisionInspector = page.getByRole("complementary", { name: "Austria filing authority" });
-  await expect(decisionInspector.getByText("Recorded recommendation", { exact: true })).toBeVisible();
-  await expect(decisionInspector).toHaveScreenshot("decisions-inspector-light-1280.png", screenshotOptions);
+  const inspector = page.getByRole("complementary", { name: "Austria filing authority" });
+  await expect(inspector.getByText("Recorded recommendation", { exact: true })).toBeVisible();
+  const screenshot = await inspector.screenshot({ animations: "disabled", caret: "hide" });
+  const digest = createHash("sha256").update(screenshot).digest("hex");
+  expect(digest, "Decisions inspector screenshot SHA-256 must match the reviewed major-redesign visual proof").toBe(DECISIONS_INSPECTOR_LIGHT_1280_DIGEST);
   expect(writes).toEqual([]);
 });
 
-test("Q15 phone Owner Home baseline is deterministic", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+test("Q15 Owner Home mobile visual contract", async ({ page }) => {
   const writes: string[] = [];
-  await freezePresentation(page); await installFixture(page, writes);
+  await prepare(page, writes, 390, 844);
   await page.goto("/cockpit/v2");
   await page.getByLabel("AIOS V2 theme").selectOption("dark");
-  await baseline(page, "owner-home-dark-390.png");
+  await baselineDigest(page, OWNER_HOME_DARK_390_DIGEST, "Owner Home mobile");
   expect(writes).toEqual([]);
 });
