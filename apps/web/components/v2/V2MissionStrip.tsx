@@ -1,4 +1,5 @@
 import type { V2MissionSummary } from "../../lib/v2/owner-organization";
+import styles from "./V2MissionStrip.module.css";
 
 export function V2MissionStrip({
   missions,
@@ -24,7 +25,7 @@ export function V2MissionStrip({
       {loading ? (
         <div className="aios-v2-empty-line" role="status">Loading canonical Mission projection…</div>
       ) : missions.length ? (
-        <div className="aios-v2-mission-list">
+        <div className={`aios-v2-mission-list ${styles.list}`}>
           {missions.map((mission) => {
             const selected = selectedMissionKey === mission.missionKey;
             const body = (
@@ -47,7 +48,7 @@ export function V2MissionStrip({
               return (
                 <button
                   aria-pressed={selected}
-                  className="aios-v2-mission-object aios-v2-mission-select"
+                  className={`aios-v2-mission-object aios-v2-mission-select ${styles.missionCard}`}
                   data-selected={String(selected)}
                   data-state={mission.state}
                   key={mission.missionKey}
@@ -60,7 +61,11 @@ export function V2MissionStrip({
             }
 
             return (
-              <article className="aios-v2-mission-object" data-state={mission.state} key={mission.missionKey}>
+              <article
+                className={`aios-v2-mission-object ${styles.missionCard}`}
+                data-state={mission.state}
+                key={mission.missionKey}
+              >
                 {body}
               </article>
             );

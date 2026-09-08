@@ -1,0 +1,88 @@
+/* AIOS V2 — Current Missions interaction polish.
+ * Presentation-only. Selection feedback reflects the existing UI selection only;
+ * it does not infer mission progress, urgency, presence, collaboration or authority.
+ */
+
+.list {
+  isolation: isolate;
+}
+
+.missionCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.missionCard::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(
+    118deg,
+    color-mix(in srgb, var(--aios-v2-color-accent) 8%, transparent),
+    transparent 34%,
+    transparent 72%,
+    rgba(255, 255, 255, 0.025)
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .missionCard {
+    translate: 0 0;
+    transition:
+      translate 180ms cubic-bezier(.2, .8, .2, 1),
+      border-color 180ms ease,
+      box-shadow 200ms cubic-bezier(.2, .8, .2, 1),
+      filter 180ms ease;
+  }
+
+  .missionCard::after {
+    transition: opacity 180ms ease;
+  }
+
+  button.missionCard:hover,
+  button.missionCard:focus-visible {
+    translate: 0 -2px;
+    filter: brightness(1.025);
+  }
+
+  button.missionCard:hover::after,
+  button.missionCard:focus-visible::after,
+  button.missionCard[data-selected="true"]::after {
+    opacity: 1;
+  }
+
+  button.missionCard[data-selected="true"] {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--aios-v2-color-accent) 22%, transparent),
+      0 14px 34px rgba(0, 0, 0, 0.11);
+  }
+
+  button.missionCard:active {
+    translate: 0 0;
+    filter: brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .missionCard,
+  .missionCard::after {
+    transition: none;
+  }
+
+  button.missionCard:hover,
+  button.missionCard:focus-visible,
+  button.missionCard:active {
+    translate: none;
+    filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  button.missionCard[data-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
