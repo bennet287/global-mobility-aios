@@ -7,6 +7,10 @@ import {
   navigationCommands,
   ownerNavigation,
 } from "../lib/v2/navigation.ts";
+import {
+  operatorContextualDestinations,
+  operatorNavigation,
+} from "../lib/v2/operator-navigation.ts";
 
 const shellUrl = new URL("../components/v2/V2Shell.tsx", import.meta.url);
 const iconUrl = new URL("../components/v2/V2Icon.tsx", import.meta.url);
@@ -37,6 +41,38 @@ test("Owner navigation keeps the seven-domain mental model without linking unfin
   }
 });
 
+test("Operator navigation locks the six-domain professional mental model", async () => {
+  assert.equal(operatorNavigation.length, 6);
+  assert.deepEqual(operatorNavigation.map((item) => item.label), [
+    "Work",
+    "Profiles",
+    "Pathways",
+    "Evidence",
+    "Communication",
+    "Tools",
+  ]);
+
+  for (const item of operatorNavigation) {
+    if (item.enabled) {
+      assert.ok(item.href, `${item.label} must provide an href when enabled`);
+      await assertRouteExists(item.href);
+    } else {
+      assert.equal(item.href, null, `${item.label} must fail closed until its conceptual home is implemented`);
+    }
+  }
+});
+
+test("Operator specialist routes stay contextual and map to one primary conceptual home", async () => {
+  const homes = new Set(operatorNavigation.map((item) => item.label));
+  const hrefs = operatorContextualDestinations.map((item) => item.href);
+  assert.equal(new Set(hrefs).size, hrefs.length);
+
+  for (const item of operatorContextualDestinations) {
+    assert.ok(homes.has(item.conceptualHome), `${item.label} must map to a valid Operator conceptual home`);
+    await assertRouteExists(item.href);
+  }
+});
+
 test("navigation commands contain only implemented destinations and never imply workflow authority", async () => {
   assert.equal(new Set(navigationCommands.map((item) => item.href)).size, navigationCommands.length);
   for (const command of navigationCommands) {
@@ -61,6 +97,11 @@ test("V2 shell uses the shared SVG icon system instead of single-letter navigati
   assert.match(shell, /<V2Icon name=\{item\.icon\}/);
   assert.match(shell, /<V2Icon name="search"/);
   assert.doesNotMatch(shell, /glyph:\s*"[HOMIEDT]"/);
+  assert.match(icon, /work:/);
+  assert.match(icon, /profiles:/);
+  assert.match(icon, /pathways:/);
+  assert.match(icon, /communication:/);
+  assert.match(icon, /tools:/);
   assert.match(icon, /viewBox="0 0 24 24"/);
   assert.match(icon, /stroke="currentColor"/);
 });
