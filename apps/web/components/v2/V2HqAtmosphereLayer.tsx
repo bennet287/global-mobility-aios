@@ -12,6 +12,7 @@ import type {
   V2HqAtmosphereZone,
 } from "../../lib/v2/hq-atmosphere-presentation";
 import styles from "./V2HqAtmosphereLayer.module.css";
+import polishStyles from "./V2HqAtmosphereMotionPolish.module.css";
 
 export interface V2HqAtmosphereLayerProps {
   readonly presentation: V2HqAtmospherePresentationDescriptor;
@@ -112,6 +113,7 @@ export function V2HqAtmosphereLayer({
   const truth = presentation.truth;
   const rootClassName = [
     styles.root,
+    polishStyles.ambientPolish,
     styles[THEME_CLASS_KEYS[presentation.theme]],
     styles[DEPTH_CLASS_KEYS[presentation.environment.depthClass]],
     styles[ILLUMINATION_CLASS_KEYS[presentation.environment.illuminationClass]],
