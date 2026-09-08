@@ -1,0 +1,96 @@
+/* AIOS V2 — Living HQ spatial interaction polish.
+ * Presentation-only. These effects never encode canonical work, urgency, presence,
+ * authority, success, completion, collaboration, or physical location.
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing] {
+    translate: 0 0;
+    filter: brightness(1) saturate(1);
+    transition:
+      translate 240ms cubic-bezier(.2,.8,.2,1),
+      filter 220ms ease,
+      box-shadow 260ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(118deg, rgba(255,255,255,.045), transparent 30%, transparent 72%, rgba(255,255,255,.018));
+    opacity: .24;
+    transition: opacity 220ms ease;
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing]:has(> button:hover),
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing]:has(> button:focus-visible) {
+    translate: 0 -2px;
+    filter: brightness(1.035) saturate(1.025);
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing]:has(> button:hover)::after,
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing]:has(> button:focus-visible)::after {
+    opacity: .7;
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label$="character presentations"]
+    button[aria-pressed] {
+    translate: 0 0;
+    scale: 1;
+    transition:
+      translate 190ms cubic-bezier(.2,.8,.2,1),
+      scale 190ms cubic-bezier(.2,.8,.2,1),
+      filter 190ms ease;
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label$="character presentations"]
+    button[aria-pressed]:hover,
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label$="character presentations"]
+    button[aria-pressed]:focus-visible {
+    translate: 0 -1px;
+    scale: 1.018;
+    filter: brightness(1.045);
+  }
+
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label$="character presentations"]
+    button[aria-pressed]:active {
+    translate: 0 0;
+    scale: .992;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing],
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label="Architectural presentation zones"]
+    > article[data-wing]::after,
+  [aria-label="Living HQ visual stage"][data-state="established"]
+    [aria-label$="character presentations"]
+    button[aria-pressed] {
+    transition: none;
+    translate: none;
+    scale: none;
+    filter: none;
+  }
+}
