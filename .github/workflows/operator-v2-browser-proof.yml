@@ -8,6 +8,7 @@ on:
       - "apps/web/components/v2/**"
       - "apps/web/lib/v2/operator-navigation.ts"
       - "apps/web/e2e/tests/operator-v2-acceptance.spec.ts"
+      - "apps/web/e2e/tests/operator-v2-pathways-acceptance.spec.ts"
       - ".github/workflows/operator-v2-browser-proof.yml"
 
 permissions:
@@ -51,7 +52,7 @@ jobs:
 
       - name: Run Operator V2 targeted proof
         working-directory: apps/web/e2e
-        run: npx playwright test tests/operator-v2-acceptance.spec.ts --project=chromium
+        run: npx playwright test tests/operator-v2-acceptance.spec.ts tests/operator-v2-pathways-acceptance.spec.ts --project=chromium
 
       - name: Upload Operator V2 visible review
         if: always()
