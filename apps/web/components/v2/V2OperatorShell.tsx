@@ -9,6 +9,7 @@ import {
 } from "../../lib/v2/operator-navigation";
 import { V2Icon } from "./V2Icon";
 import shellStyles from "./V2Shell.module.css";
+import workStyles from "./V2OperatorWork.module.css";
 import {
   V2_THEME_STORAGE_KEY,
   V2ThemeControl,
@@ -41,6 +42,8 @@ export function V2OperatorShell({
       // Storage can be unavailable in hardened/private browser contexts.
     }
   }, []);
+
+  const isWork = activeItem === "Work";
 
   return (
     <div className={`aios-v2-root ${shellStyles.operatorFrame}`} data-theme={themePreference} data-product-role="operator">
@@ -118,12 +121,12 @@ export function V2OperatorShell({
             <div className={`aios-v2-topline-context ${shellStyles.toplineContext}`}>
               <span>Professional control environment</span>
               <strong>{activeItem}</strong>
-              <small>Current workspace · governed operational state</small>
+              <small>{isWork ? "Attention, decisions, and evidence in one operational spine" : "Current workspace · governed operational state"}</small>
             </div>
             <V2ThemeControl value={themePreference} onChange={changeTheme} />
           </div>
 
-          <div className={shellStyles.operatorContent}>{children}</div>
+          <div className={`${shellStyles.operatorContent}${isWork ? ` ${workStyles.workContent}` : ""}`}>{children}</div>
         </main>
       </div>
     </div>
