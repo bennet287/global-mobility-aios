@@ -109,3 +109,339 @@
     align-items: center;
   }
 }
+
+/* Operator visual convergence — strictly scoped beneath operatorFrame so
+ * Owner/Living Organization Q15 baselines remain byte-for-byte unaffected by
+ * the Operator shell's stronger hierarchy and responsive composition. */
+.operatorFrame {
+  --operator-rail-width: 286px;
+  --operator-material: color-mix(in srgb, var(--aios-v2-color-surface, var(--surface)) 88%, transparent);
+  --operator-material-strong: color-mix(in srgb, var(--aios-v2-color-surface-strong, var(--surface-strong)) 94%, transparent);
+  --operator-border: color-mix(in srgb, var(--aios-v2-color-border-strong, var(--line-strong)) 72%, transparent);
+  --operator-accent-soft: color-mix(in srgb, var(--aios-v2-color-accent, var(--green)) 12%, transparent);
+  --operator-accent-line: color-mix(in srgb, var(--aios-v2-color-accent, var(--green)) 42%, transparent);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 13% 8%, var(--operator-accent-soft), transparent 28rem),
+    linear-gradient(145deg, color-mix(in srgb, var(--bg) 96%, var(--surface)) 0%, var(--bg) 58%, color-mix(in srgb, var(--bg) 92%, var(--surface-muted)) 100%);
+}
+
+.operatorShell {
+  display: grid;
+  grid-template-columns: var(--operator-rail-width) minmax(0, 1fr);
+  align-items: start;
+  min-height: 100vh;
+}
+
+.operatorRail {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  min-width: 0;
+  min-height: 100vh;
+  height: 100vh;
+  padding: 24px 18px 18px;
+  border-right: 1px solid var(--operator-border);
+  background: linear-gradient(180deg, var(--operator-material-strong), var(--operator-material));
+  box-shadow: 18px 0 46px rgba(0, 0, 0, .035);
+  overflow-y: auto;
+  isolation: isolate;
+}
+
+.operatorRail::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--aios-v2-color-accent, var(--green)) 5%, transparent), transparent 36%),
+    radial-gradient(circle at 12% 4%, var(--operator-accent-soft), transparent 17rem);
+  z-index: -1;
+}
+
+.operatorBrand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 8px 8px 18px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--operator-border) 72%, transparent);
+}
+
+.brandMark {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, white 18%, transparent),
+    0 12px 30px color-mix(in srgb, var(--aios-v2-color-accent, var(--green)) 12%, transparent);
+}
+
+.roleSignal {
+  display: grid;
+  gap: 3px;
+  margin: 18px 6px 22px;
+  padding: 15px 16px 14px;
+  border: 1px solid var(--operator-border);
+  border-radius: 14px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--operator-material-strong) 96%, var(--operator-accent-soft)), var(--operator-material));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .04);
+}
+
+.roleSignal > span,
+.navEyebrow,
+.railFootnote > span,
+.toplineContext > span {
+  color: var(--aios-v2-color-text-muted, var(--ink-muted));
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.roleSignal > strong {
+  font-size: 19px;
+  font-weight: 760;
+  letter-spacing: -.035em;
+}
+
+.roleSignal > small,
+.railFootnote > strong,
+.toplineContext > small {
+  color: var(--aios-v2-color-text-muted, var(--ink-muted));
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.operatorNav {
+  display: grid;
+  gap: 5px;
+}
+
+.navEyebrow {
+  padding: 0 10px 7px;
+}
+
+.operatorFrame .navItem {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 10px !important;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.operatorFrame .navItem:hover:not([aria-disabled="true"]) {
+  border-color: var(--operator-border);
+  background: color-mix(in srgb, var(--operator-material-strong) 84%, transparent);
+}
+
+.operatorFrame .navItem[aria-current="page"] {
+  border-color: var(--operator-accent-line);
+  background: linear-gradient(90deg, var(--operator-accent-soft), color-mix(in srgb, var(--operator-material-strong) 92%, transparent));
+  box-shadow:
+    inset 3px 0 0 var(--aios-v2-color-accent, var(--green)),
+    0 10px 24px rgba(0, 0, 0, .035);
+}
+
+.navGlyph {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--operator-border) 78%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--operator-material-strong) 92%, transparent);
+}
+
+.operatorFrame .navItem[aria-current="page"] .navGlyph {
+  color: var(--aios-v2-color-accent, var(--green));
+  border-color: var(--operator-accent-line);
+  background: var(--operator-accent-soft);
+}
+
+.navCopy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.navCopy > strong {
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: -.01em;
+}
+
+.navCopy > small {
+  overflow: hidden;
+  color: var(--aios-v2-color-text-muted, var(--ink-muted));
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.railFootnote {
+  display: grid;
+  gap: 5px;
+  margin: 22px 8px 0;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--operator-border) 68%, transparent);
+}
+
+.railFootnote > strong {
+  color: var(--aios-v2-color-text, var(--ink));
+  font-weight: 650;
+}
+
+.operatorMain {
+  min-width: 0;
+  width: 100%;
+}
+
+.operatorTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 76px;
+  padding: 14px clamp(20px, 3vw, 42px);
+  border-bottom: 1px solid var(--operator-border);
+  background: color-mix(in srgb, var(--operator-material-strong) 84%, transparent);
+}
+
+.toplineContext {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  column-gap: 10px;
+  row-gap: 2px;
+  min-width: 0;
+}
+
+.toplineContext > strong {
+  font-size: 17px;
+  font-weight: 780;
+  letter-spacing: -.035em;
+}
+
+.toplineContext > small {
+  grid-column: 1 / -1;
+}
+
+.operatorContent {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .operatorFrame .navItem[aria-current="page"] {
+    box-shadow:
+      inset 3px 0 0 var(--aios-v2-color-accent, var(--green)),
+      inset 0 0 0 1px color-mix(in srgb, var(--aios-v2-color-accent) 14%, transparent),
+      0 10px 24px rgba(0, 0, 0, .04);
+  }
+}
+
+@media (max-width: 900px) {
+  .operatorFrame {
+    --operator-rail-width: 228px;
+  }
+
+  .operatorFrame .navCopy > small,
+  .operatorFrame .railFootnote {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .operatorShell {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .operatorRail {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+    min-height: 0;
+    height: auto;
+    padding: 10px 12px 8px;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--operator-border);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .055);
+  }
+
+  .operatorBrand,
+  .roleSignal,
+  .navEyebrow,
+  .railFootnote {
+    display: none;
+  }
+
+  .operatorNav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .operatorNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .operatorFrame .shellRail[aria-label="AIOS V2 Professional / Operator navigation"] .navItem {
+    display: flex !important;
+    flex: 0 0 auto;
+    min-width: 58px;
+    min-height: 48px;
+    padding: 6px 8px !important;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .operatorFrame .navGlyph {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: transparent;
+  }
+
+  .operatorFrame .navCopy > strong {
+    font-size: 10px;
+  }
+
+  .operatorFrame .navCopy > small {
+    display: none;
+  }
+
+  .operatorFrame .navItem[aria-current="page"] {
+    box-shadow: inset 0 -2px 0 var(--aios-v2-color-accent, var(--green));
+  }
+
+  .operatorTopline {
+    min-height: 62px;
+    padding: 10px 16px;
+  }
+
+  .operatorFrame .toplineContext > span,
+  .operatorFrame .toplineContext > small {
+    display: none;
+  }
+
+  .operatorFrame .toplineContext > strong {
+    font-size: 15px;
+  }
+}
+
+@media (forced-colors: active) {
+  .operatorFrame .navItem[aria-current="page"] {
+    border: 2px solid Highlight;
+  }
+}
