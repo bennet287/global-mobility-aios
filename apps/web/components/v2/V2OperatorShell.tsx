@@ -11,6 +11,7 @@ import { V2Icon } from "./V2Icon";
 import shellStyles from "./V2Shell.module.css";
 import workStyles from "./V2OperatorWork.module.css";
 import profilesStyles from "./V2OperatorProfiles.module.css";
+import pathwaysStyles from "./V2OperatorPathways.module.css";
 import {
   V2_THEME_STORAGE_KEY,
   V2ThemeControl,
@@ -46,11 +47,22 @@ export function V2OperatorShell({
 
   const isWork = activeItem === "Work";
   const isProfiles = activeItem === "Profiles";
+  const isPathways = activeItem === "Pathways";
   const routeContentClass = isWork
     ? workStyles.workContent
     : isProfiles
       ? profilesStyles.profilesContent
-      : "";
+      : isPathways
+        ? pathwaysStyles.pathwaysContent
+        : "";
+
+  const routeDetail = isWork
+    ? "Attention, decisions, and evidence in one operational spine"
+    : isProfiles
+      ? "Client truth, consent, evidence, and immutable profile history"
+      : isPathways
+        ? "Evidence-backed routes, publication gates, and regulatory impact review"
+        : "Current workspace · governed operational state";
 
   return (
     <div className={`aios-v2-root ${shellStyles.operatorFrame}`} data-theme={themePreference} data-product-role="operator">
@@ -128,7 +140,7 @@ export function V2OperatorShell({
             <div className={`aios-v2-topline-context ${shellStyles.toplineContext}`}>
               <span>Professional control environment</span>
               <strong>{activeItem}</strong>
-              <small>{isWork ? "Attention, decisions, and evidence in one operational spine" : isProfiles ? "Client truth, consent, evidence, and immutable profile history" : "Current workspace · governed operational state"}</small>
+              <small>{routeDetail}</small>
             </div>
             <V2ThemeControl value={themePreference} onChange={changeTheme} />
           </div>
