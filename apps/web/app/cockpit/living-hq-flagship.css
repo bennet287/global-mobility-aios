@@ -1,0 +1,259 @@
+/* AIOS V2 Owner / Living HQ flagship visual convergence — Slice 1.
+   Presentation only. Canonical scene truth, authority, selection, motion semantics,
+   renderer fallback, and structured accessibility remain owned by existing contracts. */
+
+.living-scene-shell {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(216, 220, 255, .14);
+  background:
+    radial-gradient(ellipse at 50% -18%, rgba(168, 178, 255, .22), transparent 43%),
+    radial-gradient(circle at 84% 18%, rgba(112, 196, 168, .10), transparent 27%),
+    linear-gradient(152deg, #171b2a 0%, #10131d 48%, #090c13 100%);
+  box-shadow:
+    0 38px 100px rgba(3, 5, 12, .34),
+    inset 0 1px 0 rgba(255,255,255,.055);
+}
+
+.living-scene-shell::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 7%, rgba(255,255,255,.022) 7% 7.08%, transparent 7.08% 92.92%, rgba(255,255,255,.022) 92.92% 93%, transparent 93%),
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 22%);
+}
+
+.living-scene-header {
+  position: relative;
+  padding: 4px 2px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.065);
+}
+
+.living-scene-header::after {
+  content: "OWNER HQ / LIVE ORGANIZATION";
+  position: absolute;
+  right: 2px;
+  bottom: 5px;
+  color: rgba(209,214,242,.26);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .18em;
+}
+
+.living-webgpu-stage {
+  position: relative;
+  margin-top: 24px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(206, 214, 255, .15);
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(176, 186, 255, .12), transparent 42%),
+    linear-gradient(180deg, rgba(19,23,34,.96), rgba(6,8,13,.98));
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.055);
+}
+
+.living-webgpu-stage > header {
+  position: relative;
+  z-index: 4;
+  min-height: 70px;
+  margin: 0;
+  padding: 16px 20px 13px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(22,27,40,.86), rgba(13,16,25,.64));
+  backdrop-filter: blur(18px);
+}
+
+.living-webgpu-stage > header::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  order: -1;
+  margin-right: -6px;
+  border: 1px solid rgba(158,230,188,.68);
+  border-radius: 50%;
+  background: rgba(113,207,153,.28);
+  box-shadow: 0 0 18px rgba(113,207,153,.34);
+}
+
+.living-webgpu-stage > header strong {
+  font-family: var(--font-editorial);
+  font-size: clamp(17px, 1.6vw, 23px);
+  font-weight: 420;
+  letter-spacing: -.02em;
+}
+
+.living-webgpu-stage > header span {
+  color: rgba(199,204,236,.48);
+  letter-spacing: .13em;
+}
+
+.living-webgpu-canvas-wrap {
+  min-height: clamp(410px, 50vw, 620px);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(ellipse at 50% 2%, rgba(135,150,237,.16), transparent 36%),
+    radial-gradient(ellipse at 21% 55%, rgba(78,143,128,.075), transparent 31%),
+    linear-gradient(180deg, #0a0e17 0%, #070a10 70%, #05070b 100%);
+  perspective: 1000px;
+}
+
+/* Architectural ceiling datum. */
+.living-webgpu-canvas-wrap::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 5%;
+  right: 5%;
+  top: 0;
+  height: 19%;
+  pointer-events: none;
+  opacity: .72;
+  clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 11.9%, rgba(255,255,255,.05) 12% 12.15%, transparent 12.25% 24%),
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.012) 45%, transparent);
+  border-bottom: 1px solid rgba(206,214,255,.08);
+  transform-origin: top center;
+}
+
+/* Architectural floor datum / depth grid. */
+.living-webgpu-canvas-wrap::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: -14%;
+  right: -14%;
+  bottom: -22%;
+  height: 62%;
+  pointer-events: none;
+  opacity: .48;
+  background:
+    repeating-linear-gradient(90deg, rgba(199,208,242,.065) 0 1px, transparent 1px 8.25%),
+    repeating-linear-gradient(0deg, rgba(199,208,242,.05) 0 1px, transparent 1px 46px),
+    linear-gradient(180deg, rgba(100,115,164,.035), rgba(0,0,0,.18));
+  transform: rotateX(68deg);
+  transform-origin: center bottom;
+  mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.45) 15%, #000 48%);
+}
+
+.living-webgpu-canvas {
+  position: relative;
+  z-index: 3;
+  height: clamp(410px, 50vw, 620px);
+  filter: saturate(.92) contrast(1.035);
+}
+
+.living-webgpu-overlay {
+  z-index: 5;
+  left: 18px;
+  bottom: 18px;
+  max-width: min(460px, calc(100% - 36px));
+  padding: 12px 14px;
+  border-color: rgba(211,218,255,.12);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(13,17,27,.9), rgba(7,10,16,.82));
+  box-shadow: 0 16px 36px rgba(0,0,0,.26);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+
+.living-webgpu-overlay::before {
+  content: "SPATIAL INSPECTOR";
+  display: block;
+  margin-bottom: 5px;
+  color: rgba(152,218,181,.58);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.living-webgpu-overlay > span { display: none; }
+.living-webgpu-overlay strong { font-size: 12px; letter-spacing: -.01em; }
+
+.living-webgpu-accessibility {
+  margin: 0;
+  padding: 12px 18px 15px;
+  border-top: 1px solid rgba(255,255,255,.045);
+  color: rgba(205,210,232,.43);
+  background: rgba(4,6,10,.46);
+  font-size: 8.5px;
+  line-height: 1.5;
+}
+
+.living-lens-console {
+  border-color: rgba(207,215,255,.11);
+  background: linear-gradient(145deg, rgba(15,19,29,.54), rgba(6,9,14,.36));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.living-lens-grid button,
+.living-owner-analytical-commands button {
+  border-radius: 8px;
+}
+
+.living-lens-grid button[aria-pressed="true"],
+.living-owner-analytical-commands button[aria-pressed="true"] {
+  border-color: rgba(155,220,184,.32);
+  background: linear-gradient(135deg, rgba(77,135,103,.13), rgba(255,255,255,.018));
+  box-shadow: inset 2px 0 0 rgba(135,218,171,.46);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-webgpu-stage[data-renderer-phase="ready"] > header::before {
+    animation: living-hq-ready-pulse 4.8s ease-in-out infinite;
+  }
+
+  @keyframes living-hq-ready-pulse {
+    0%, 100% { opacity: .58; box-shadow: 0 0 10px rgba(113,207,153,.18); }
+    50% { opacity: 1; box-shadow: 0 0 22px rgba(113,207,153,.38); }
+  }
+}
+
+@media (max-width: 760px) {
+  .living-scene-header::after { display: none; }
+
+  .living-webgpu-stage { border-radius: 18px; }
+  .living-webgpu-stage > header {
+    min-height: 62px;
+    padding: 13px 14px 11px;
+  }
+
+  .living-webgpu-stage > header::before { display: none; }
+  .living-webgpu-canvas-wrap,
+  .living-webgpu-canvas { min-height: 360px; height: 360px; }
+  .living-webgpu-canvas-wrap::before { left: 0; right: 0; opacity: .46; }
+  .living-webgpu-canvas-wrap::after { opacity: .28; }
+
+  .living-webgpu-overlay {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    max-width: none;
+    padding: 10px 11px;
+  }
+}
+
+@media (forced-colors: active) {
+  .living-scene-shell,
+  .living-webgpu-stage,
+  .living-webgpu-canvas-wrap,
+  .living-webgpu-overlay,
+  .living-lens-console {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .living-webgpu-canvas-wrap::before,
+  .living-webgpu-canvas-wrap::after,
+  .living-scene-shell::before { display: none; }
+}

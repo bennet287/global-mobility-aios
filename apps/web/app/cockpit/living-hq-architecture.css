@@ -1,0 +1,332 @@
+/* AIOS V2 Living HQ flagship convergence — Slice 3.
+   Architectural hierarchy only. Canonical room/smart-object truth remains authoritative. */
+
+.living-hq-architecture {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px 18px;
+  border-top: 1px solid rgba(255,255,255,.055);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  background:
+    radial-gradient(circle at 50% 0, rgba(132,146,224,.075), transparent 38%),
+    linear-gradient(180deg, rgba(11,14,22,.86), rgba(5,7,11,.94));
+}
+
+.living-hq-architecture-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+}
+
+.living-hq-architecture-header span,
+.living-hq-smart-object-title span {
+  display: block;
+  color: rgba(195,202,235,.47);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.living-hq-architecture-header strong,
+.living-hq-smart-object-title strong {
+  display: block;
+  margin-top: 3px;
+  color: rgba(246,243,235,.92);
+  font-family: var(--font-editorial);
+  font-size: 17px;
+  font-weight: 430;
+  letter-spacing: -.02em;
+}
+
+.living-hq-architecture-header small {
+  color: rgba(201,207,230,.4);
+  font-size: 8.5px;
+}
+
+.living-hq-room-axis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.living-hq-room {
+  --room-accent: 137, 165, 236;
+  position: relative;
+  min-height: 210px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--room-accent), .17);
+  border-radius: 18px;
+  background:
+    linear-gradient(150deg, rgba(var(--room-accent), .065), transparent 46%),
+    linear-gradient(180deg, rgba(19,23,34,.88), rgba(8,11,17,.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 16px 34px rgba(0,0,0,.15);
+}
+
+.living-hq-room-mission { --room-accent: 102, 190, 156; }
+.living-hq-room-evidence { --room-accent: 109, 171, 226; }
+.living-hq-room-board { --room-accent: 188, 159, 226; }
+
+.living-hq-room-shell {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.living-hq-room-shell::before {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: -25%;
+  height: 58%;
+  opacity: .44;
+  background:
+    repeating-linear-gradient(90deg, rgba(var(--room-accent), .095) 0 1px, transparent 1px 24%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 30px),
+    linear-gradient(180deg, rgba(var(--room-accent), .05), rgba(0,0,0,.18));
+  transform: perspective(420px) rotateX(62deg);
+  transform-origin: center bottom;
+}
+
+.living-hq-room-ceiling {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 0;
+  height: 25%;
+  opacity: .58;
+  clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 31%, rgba(255,255,255,.06) 31.5% 32%, transparent 32.5% 64%),
+    linear-gradient(180deg, rgba(255,255,255,.07), transparent);
+}
+
+.living-hq-room-wall {
+  position: absolute;
+  top: 19%;
+  width: 22%;
+  height: 54%;
+  opacity: .33;
+  border-top: 1px solid rgba(var(--room-accent), .18);
+  background: linear-gradient(180deg, rgba(var(--room-accent), .07), transparent);
+}
+
+.living-hq-room-wall-left {
+  left: -4%;
+  transform: skewY(18deg);
+}
+
+.living-hq-room-wall-right {
+  right: -4%;
+  transform: skewY(-18deg);
+}
+
+.living-hq-room-table {
+  position: absolute;
+  left: 31%;
+  right: 31%;
+  top: 46%;
+  height: 18%;
+  border: 1px solid rgba(var(--room-accent), .2);
+  border-radius: 50% 50% 12px 12px;
+  background: linear-gradient(180deg, rgba(var(--room-accent), .18), rgba(255,255,255,.025));
+  box-shadow: 0 10px 20px rgba(0,0,0,.22);
+  transform: perspective(280px) rotateX(54deg);
+}
+
+.living-hq-room-light {
+  position: absolute;
+  left: 50%;
+  top: 19%;
+  width: 1px;
+  height: 38%;
+  background: linear-gradient(180deg, rgba(var(--room-accent), .34), transparent);
+  box-shadow: 0 0 28px 8px rgba(var(--room-accent), .06);
+}
+
+.living-hq-room-copy {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  top: 14px;
+  display: grid;
+  gap: 2px;
+  max-width: calc(100% - 28px);
+}
+
+.living-hq-room-copy span,
+.living-hq-room footer span {
+  color: rgba(var(--room-accent), .7);
+  font-size: 7.5px;
+  font-weight: 790;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.living-hq-room-copy strong {
+  overflow: hidden;
+  color: rgba(246,243,235,.93);
+  font-size: 12px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.living-hq-room-copy small,
+.living-hq-room footer small {
+  color: rgba(205,211,233,.43);
+  font-size: 8px;
+}
+
+.living-hq-room footer {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  right: 14px;
+  bottom: 11px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.045);
+}
+
+.living-hq-smart-object-rail {
+  display: grid;
+  grid-template-columns: minmax(150px, .32fr) 1fr;
+  gap: 12px;
+  align-items: stretch;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  background: rgba(255,255,255,.018);
+}
+
+.living-hq-smart-object-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.living-hq-smart-object-title strong { font-size: 14px; }
+
+.living-hq-smart-object-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.living-hq-smart-object-list article {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  grid-template-areas: "glyph copy" "state state";
+  gap: 4px 7px;
+  padding: 8px 9px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(255,255,255,.028), rgba(0,0,0,.08));
+}
+
+.living-hq-smart-object-list article > i {
+  grid-area: glyph;
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(150,204,178,.55);
+  border-radius: 2px;
+  background: rgba(101,177,141,.12);
+  box-shadow: 0 0 12px rgba(101,177,141,.1);
+}
+
+.living-hq-smart-object-list article > div {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.living-hq-smart-object-list strong,
+.living-hq-smart-object-list small,
+.living-hq-smart-object-list span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.living-hq-smart-object-list strong {
+  color: rgba(246,243,235,.8);
+  font-size: 8.5px;
+}
+
+.living-hq-smart-object-list small,
+.living-hq-smart-object-list span {
+  color: rgba(200,206,230,.4);
+  font-size: 7px;
+  text-transform: capitalize;
+}
+
+.living-hq-smart-object-list span {
+  grid-area: state;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,.035);
+}
+
+.living-hq-smart-object-list article[data-object-state="unavailable"] {
+  opacity: .48;
+  border-style: dashed;
+}
+
+.living-hq-architecture-truth {
+  margin: 0;
+  color: rgba(201,207,228,.34);
+  font-size: 7.5px;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-room-light {
+    animation: living-hq-chamber-light 6.5s ease-in-out infinite;
+    animation-delay: calc(var(--room-order, 0) * -.9s);
+  }
+
+  @keyframes living-hq-chamber-light {
+    0%, 100% { opacity: .38; }
+    50% { opacity: .72; }
+  }
+}
+
+@media (max-width: 980px) {
+  .living-hq-room-axis { grid-template-columns: 1fr 1fr; }
+  .living-hq-room:last-child { grid-column: 1 / -1; }
+  .living-hq-smart-object-rail { grid-template-columns: 1fr; }
+  .living-hq-smart-object-list { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 660px) {
+  .living-hq-architecture { padding: 13px 11px 14px; }
+  .living-hq-architecture-header { align-items: flex-start; flex-direction: column; }
+  .living-hq-room-axis { grid-template-columns: 1fr; }
+  .living-hq-room:last-child { grid-column: auto; }
+  .living-hq-room { min-height: 190px; }
+  .living-hq-smart-object-list { grid-template-columns: 1fr; }
+}
+
+@media (forced-colors: active) {
+  .living-hq-architecture,
+  .living-hq-room,
+  .living-hq-smart-object-rail,
+  .living-hq-smart-object-list article {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .living-hq-room-shell { display: none; }
+}

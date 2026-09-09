@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { LivingOrganizationFlagshipArchitecture } from "./LivingOrganizationFlagshipArchitecture";
+import { LivingOrganizationFlagshipRoster } from "./LivingOrganizationFlagshipRoster";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
 import type { LivingOrganizationLensKey } from "../lib/living-organization-lenses";
 import { FLOW_FIELD_TRIAL_GATES } from "../lib/living-organization-flow-trial";
@@ -134,6 +136,8 @@ export function LivingOrganizationWebGPUScene({
           <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS.</small>
         </div>
       </div>
+      <LivingOrganizationFlagshipArchitecture renderModel={renderModel} />
+      <LivingOrganizationFlagshipRoster renderModel={renderModel} />
       {activeLens === "flow" ? (
         <section
           className="living-flow-trial-console"
