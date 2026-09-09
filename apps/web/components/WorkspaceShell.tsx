@@ -1,8 +1,10 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { HealthStatus } from "../lib/api";
 import { Sidebar } from "./Sidebar";
+import { V2OperatorShell } from "./v2/V2OperatorShell";
 
 export function WorkspaceShell({
   children,
@@ -11,6 +13,7 @@ export function WorkspaceShell({
   children: ReactNode;
   health: HealthStatus | null;
 }) {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileNavWasOpenRef = useRef(false);
@@ -74,6 +77,10 @@ export function WorkspaceShell({
       document.body.style.overflow = previousOverflow;
     };
   }, [mobileOpen]);
+
+  if (pathname === "/profiles") {
+    return <V2OperatorShell activeItem="Profiles">{children}</V2OperatorShell>;
+  }
 
   return (
     <div className={`app-frame ${mobileOpen ? "mobile-nav-open" : ""}`}>

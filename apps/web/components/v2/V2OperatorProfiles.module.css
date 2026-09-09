@@ -1,0 +1,316 @@
+.profilesContent {
+  --profile-border: color-mix(in srgb, var(--aios-v2-color-border-strong, var(--line-strong)) 72%, transparent);
+  --profile-muted: var(--aios-v2-color-text-muted, var(--ink-muted));
+  --profile-accent: var(--aios-v2-color-accent, var(--green));
+  --profile-accent-soft: color-mix(in srgb, var(--profile-accent) 10%, transparent);
+  --profile-surface: color-mix(in srgb, var(--aios-v2-color-surface, var(--surface)) 97%, transparent);
+  --profile-surface-soft: color-mix(in srgb, var(--aios-v2-color-surface-muted, var(--surface-muted)) 95%, transparent);
+  min-width: 0;
+}
+
+.profilesContent :global(.topbar) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profilesContent :global(.profiles-page) {
+  padding: clamp(24px, 3.2vw, 48px);
+}
+
+.profilesContent :global(.profile-selector-panel) {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+  align-items: end;
+  gap: clamp(24px, 4vw, 56px);
+  margin: 0 0 26px;
+  padding: clamp(28px, 4vw, 52px);
+  border: 0;
+  border-left: 4px solid var(--profile-accent);
+  border-radius: 0;
+  background: linear-gradient(110deg, var(--profile-accent-soft), transparent 52%), var(--profile-surface);
+  box-shadow: none;
+}
+
+.profilesContent :global(.profile-selector-panel > div) {
+  display: grid;
+  gap: 12px;
+}
+
+.profilesContent :global(.profile-selector-panel .page-kicker) {
+  color: var(--profile-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.profilesContent :global(.profile-selector-panel > div > strong) {
+  max-width: 760px;
+  font-size: clamp(2rem, 3.4vw, 4rem);
+  font-weight: 520;
+  line-height: .98;
+  letter-spacing: -.05em;
+}
+
+.profilesContent :global(.profile-selector-panel label) {
+  display: grid;
+  gap: 8px;
+  color: var(--profile-muted);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.profilesContent :global(.profile-selector-panel select) {
+  min-height: 48px;
+  border-radius: 8px;
+}
+
+.profilesContent :global(.profile-metrics) {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 28px;
+  overflow: hidden;
+  border-top: 1px solid var(--profile-border);
+  border-bottom: 1px solid var(--profile-border);
+  background: transparent;
+}
+
+.profilesContent :global(.profile-metrics > *) {
+  min-width: 0;
+  min-height: 96px;
+  margin: 0 !important;
+  padding: 18px 16px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--profile-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.profilesContent :global(.profile-metrics > *:last-child) {
+  border-right: 0 !important;
+}
+
+.profilesContent :global(.profiles-grid) {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, .45fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.profilesContent :global(.mobility-profile-form) {
+  padding: clamp(24px, 3vw, 38px);
+  border: 1px solid var(--profile-border);
+  border-radius: 0;
+  background: var(--profile-surface);
+  box-shadow: none;
+}
+
+.profilesContent :global(.mobility-profile-form .section-title) {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--profile-border);
+}
+
+.profilesContent :global(.form-section-title) {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin: 34px 0 18px;
+  padding-top: 22px;
+  border-top: 1px solid var(--profile-border);
+}
+
+.profilesContent :global(.form-section-title > span) {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--profile-border);
+  color: var(--profile-muted);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.profilesContent :global(.form-section-title h3) {
+  margin: 0 0 4px;
+  font-size: 18px;
+  letter-spacing: -.025em;
+}
+
+.profilesContent :global(.form-section-title small) {
+  color: var(--profile-muted);
+  line-height: 1.45;
+}
+
+.profilesContent :global(.profile-field-grid) {
+  gap: 14px;
+}
+
+.profilesContent :global(.profile-field-grid label),
+.profilesContent :global(.profile-purpose-list > span),
+.profilesContent :global(.profile-evidence-list > span) {
+  color: var(--profile-muted);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.profilesContent :global(.profile-field-grid input),
+.profilesContent :global(.profile-field-grid select),
+.profilesContent :global(.profile-field-grid textarea) {
+  min-height: 44px;
+  border-radius: 6px;
+}
+
+.profilesContent :global(.profile-save) {
+  min-height: 48px;
+  margin-top: 26px;
+  border-radius: 8px;
+}
+
+.profilesContent :global(.profile-side-stack) {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 82px;
+}
+
+.profilesContent :global(.profile-side-stack > .panel) {
+  padding: 22px;
+  border: 1px solid var(--profile-border);
+  border-radius: 0;
+  background: var(--profile-surface-soft);
+  box-shadow: none;
+}
+
+.profilesContent :global(.profile-completeness) {
+  height: 5px;
+  margin: 20px 0 14px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--profile-border) 55%, transparent);
+}
+
+.profilesContent :global(.profile-completeness > span) {
+  border-radius: 0;
+  background: var(--profile-accent);
+}
+
+.profilesContent :global(.profile-missing-list) {
+  display: grid;
+  gap: 0;
+  margin-top: 16px;
+  border-top: 1px solid var(--profile-border);
+}
+
+.profilesContent :global(.profile-missing-list > span) {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--profile-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.profilesContent :global(.profile-history-list article) {
+  padding: 15px 0;
+  border: 0;
+  border-bottom: 1px solid var(--profile-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 1040px) {
+  .profilesContent :global(.profile-selector-panel),
+  .profilesContent :global(.profiles-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  .profilesContent :global(.profile-metrics) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .profilesContent :global(.profile-metrics > *:nth-child(3n)) {
+    border-right: 0 !important;
+  }
+
+  .profilesContent :global(.profile-side-stack) {
+    position: static;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .profilesContent :global(.profiles-page) {
+    padding: 14px 12px 28px;
+  }
+
+  .profilesContent :global(.profile-selector-panel) {
+    gap: 20px;
+    margin-bottom: 18px;
+    padding: 24px 18px 26px;
+    border-left-width: 3px;
+  }
+
+  .profilesContent :global(.profile-selector-panel > div > strong) {
+    font-size: clamp(2rem, 10.5vw, 3rem);
+  }
+
+  .profilesContent :global(.profile-metrics) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 20px;
+  }
+
+  .profilesContent :global(.profile-metrics > *) {
+    min-height: 76px;
+    padding: 12px 10px !important;
+    border-right: 1px solid var(--profile-border) !important;
+    border-bottom: 1px solid var(--profile-border) !important;
+  }
+
+  .profilesContent :global(.profile-metrics > *:nth-child(even)) {
+    border-right: 0 !important;
+  }
+
+  .profilesContent :global(.profile-metrics > *:nth-last-child(-n + 2)) {
+    border-bottom: 0 !important;
+  }
+
+  .profilesContent :global(.mobility-profile-form) {
+    padding: 18px 14px 22px;
+  }
+
+  .profilesContent :global(.profile-field-grid.three),
+  .profilesContent :global(.profile-field-grid.four) {
+    grid-template-columns: 1fr;
+  }
+
+  .profilesContent :global(.form-section-title) {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 18px;
+  }
+
+  .profilesContent :global(.profile-side-stack) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (forced-colors: active) {
+  .profilesContent :global(.profile-selector-panel),
+  .profilesContent :global(.profile-metrics),
+  .profilesContent :global(.mobility-profile-form),
+  .profilesContent :global(.profile-side-stack > .panel) {
+    border-color: CanvasText;
+  }
+}
