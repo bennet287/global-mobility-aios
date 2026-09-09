@@ -13,6 +13,7 @@ import workStyles from "./V2OperatorWork.module.css";
 import profilesStyles from "./V2OperatorProfiles.module.css";
 import pathwaysStyles from "./V2OperatorPathways.module.css";
 import evidenceStyles from "./V2OperatorEvidence.module.css";
+import communicationStyles from "./V2OperatorCommunication.module.css";
 import {
   V2_THEME_STORAGE_KEY,
   V2ThemeControl,
@@ -50,6 +51,7 @@ export function V2OperatorShell({
   const isProfiles = activeItem === "Profiles";
   const isPathways = activeItem === "Pathways";
   const isEvidence = activeItem === "Evidence";
+  const isCommunication = activeItem === "Communication";
   const routeContentClass = isWork
     ? workStyles.workContent
     : isProfiles
@@ -58,7 +60,9 @@ export function V2OperatorShell({
         ? pathwaysStyles.pathwaysContent
         : isEvidence
           ? evidenceStyles.evidenceContent
-          : "";
+          : isCommunication
+            ? communicationStyles.communicationContent
+            : "";
 
   const routeDetail = isWork
     ? "Attention, decisions, and evidence in one operational spine"
@@ -68,7 +72,9 @@ export function V2OperatorShell({
         ? "Evidence-backed routes, publication gates, and regulatory impact review"
         : isEvidence
           ? "Provenance, extraction, integrity, validation, and access review"
-          : "Current workspace · governed operational state";
+          : isCommunication
+            ? "Review-gated client drafts, status, and professional handoff"
+            : "Current workspace · governed operational state";
 
   return (
     <div className={`aios-v2-root ${shellStyles.operatorFrame}`} data-theme={themePreference} data-product-role="operator">

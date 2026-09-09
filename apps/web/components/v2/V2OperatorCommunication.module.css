@@ -1,0 +1,223 @@
+.communicationContent :global(.topbar) {
+  margin: 0 0 1rem;
+  padding: 0 0 0.85rem;
+  border: 0;
+  border-block-end: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.communicationContent :global(.topbar h1) {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 3vw, 3.1rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.communicationContent :global(.topbar .button) {
+  border-radius: 0;
+}
+
+.communicationContent :global(.panel) {
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.communicationContent :global(.section-title) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.7fr);
+  gap: 2rem;
+  align-items: end;
+  margin-block-end: 1.1rem;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+}
+
+.communicationContent :global(.section-title h2) {
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  letter-spacing: -0.02em;
+}
+
+.communicationContent :global(.section-title p) {
+  max-inline-size: 44rem;
+  margin: 0;
+}
+
+.communicationContent :global(.agent-review-filters) {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.42fr) minmax(18rem, 1fr);
+  gap: 0;
+  margin-block: 0 1rem;
+  border-block: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+}
+
+.communicationContent :global(.agent-review-filters label) {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem 0.8rem;
+  border-inline-end: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+}
+
+.communicationContent :global(.agent-review-filters label:last-child) {
+  border-inline-end: 0;
+}
+
+.communicationContent :global(.agent-review-filters span) {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.communicationContent :global(.agent-review-filters select),
+.communicationContent :global(.agent-review-filters input) {
+  min-block-size: 2.65rem;
+  border: 0;
+  border-block-end: 1px solid var(--line-strong, rgba(127, 127, 127, 0.42));
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
+}
+
+.communicationContent :global(.agent-review-counts) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-block: 0 1.15rem;
+  border-block: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+}
+
+.communicationContent :global(.agent-review-counts .metric-pill) {
+  min-inline-size: 0;
+  border: 0;
+  border-inline-end: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.8rem 0.75rem;
+}
+
+.communicationContent :global(.agent-review-counts .metric-pill:last-child) {
+  border-inline-end: 0;
+}
+
+.communicationContent :global(.compact-list) {
+  display: grid;
+  gap: 0;
+  border-block-start: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+}
+
+.communicationContent :global(.communication-draft-row) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1rem 0;
+  border: 0;
+  border-block-end: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.communicationContent :global(.communication-draft-row > div:first-child) {
+  display: grid;
+  gap: 0.25rem;
+  min-inline-size: 0;
+}
+
+.communicationContent :global(.communication-draft-row > div:first-child > strong) {
+  font-size: 1rem;
+  letter-spacing: -0.012em;
+}
+
+.communicationContent :global(.communication-draft-row > div:first-child > span) {
+  overflow-wrap: anywhere;
+}
+
+.communicationContent :global(.draft-meta) {
+  margin-block-start: 0.15rem;
+  font-size: 0.76rem;
+  opacity: 0.68;
+}
+
+.communicationContent :global(.draft-row-actions) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.communicationContent :global(.draft-row-actions .button),
+.communicationContent :global(.status-badge),
+.communicationContent :global(.inline-notice),
+.communicationContent :global(.empty-state) {
+  border-radius: 0;
+}
+
+.communicationContent :global(.empty-state) {
+  border-inline-start: 2px solid var(--line-strong, currentColor);
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .communicationContent :global(.section-title) {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .communicationContent :global(.agent-review-filters) {
+    grid-template-columns: 1fr;
+  }
+
+  .communicationContent :global(.agent-review-filters label) {
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--line, rgba(127, 127, 127, 0.24));
+  }
+
+  .communicationContent :global(.agent-review-filters label:last-child) {
+    border-block-end: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .communicationContent :global(.topbar) {
+    gap: 0.75rem;
+  }
+
+  .communicationContent :global(.agent-review-counts) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .communicationContent :global(.agent-review-counts .metric-pill) {
+    padding-inline: 0.5rem;
+  }
+
+  .communicationContent :global(.communication-draft-row) {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .communicationContent :global(.draft-row-actions) {
+    justify-content: flex-start;
+  }
+
+  .communicationContent :global(.draft-row-actions .button) {
+    min-block-size: 44px;
+  }
+}
+
+@media (forced-colors: active) {
+  .communicationContent :global(.communication-draft-row),
+  .communicationContent :global(.agent-review-filters),
+  .communicationContent :global(.agent-review-counts) {
+    border-color: CanvasText;
+  }
+}
