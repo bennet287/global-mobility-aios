@@ -1,6 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./aios-design-system.css";
+import "./aios-shell-system.css";
+import "./aios-surface-controls.css";
+import "./aios-navigation-hierarchy.css";
+import "./aios-data-display.css";
+import "./aios-motion-feedback.css";
+import "./aios-responsive-accessibility.css";
 import { AgentChatWidgetLoader } from "../components/AgentChatWidgetLoader";
 
 const geistSans = Geist({

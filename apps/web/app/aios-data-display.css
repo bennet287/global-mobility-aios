@@ -1,0 +1,194 @@
+/* AIOS V2 shared data-display hierarchy.
+   Presentation-only convergence for existing metrics, rows, tables, progress,
+   empty states, and loading states. No data or domain truth is synthesized here. */
+
+:where(.metric-row) {
+  gap: var(--aios-space-3);
+}
+
+:where(.metric-pill) {
+  min-height: 88px;
+  padding: var(--aios-space-4);
+  border-color: var(--aios-border);
+  border-radius: var(--aios-radius-panel);
+  background: linear-gradient(180deg, var(--aios-surface-strong), var(--aios-surface));
+  box-shadow: var(--aios-shadow-card);
+  transition: transform var(--aios-motion-fast), box-shadow var(--aios-motion-fast), border-color var(--aios-motion-fast);
+}
+
+:where(.metric-pill:hover) {
+  border-color: var(--aios-border-strong);
+  box-shadow: var(--aios-shadow-panel);
+}
+
+:where(.metric-pill > span) {
+  color: var(--aios-text-muted);
+  font-size: var(--aios-text-caption);
+}
+
+:where(.metric-pill > strong) {
+  color: var(--aios-text);
+}
+
+:where(.metric-pill.good) {
+  background: linear-gradient(180deg, var(--aios-surface-strong), var(--aios-accent-soft));
+}
+
+:where(.metric-pill.warn) {
+  background: linear-gradient(180deg, var(--aios-surface-strong), var(--aios-attention-soft));
+}
+
+:where(.metric-pill.bad) {
+  background: linear-gradient(180deg, var(--aios-surface-strong), var(--aios-danger-soft));
+}
+
+:where(.stage-row, .compact-row) {
+  min-height: 48px;
+  padding: 10px var(--aios-space-3);
+  border-color: var(--aios-border);
+  border-radius: var(--aios-radius-card);
+  background: var(--aios-surface-muted);
+  transition: background var(--aios-motion-fast), border-color var(--aios-motion-fast), transform var(--aios-motion-fast), box-shadow var(--aios-motion-fast);
+}
+
+:where(.compact-row:hover, .stage-row:hover) {
+  border-color: var(--aios-border-strong);
+  background: var(--aios-surface);
+  box-shadow: var(--aios-shadow-control);
+}
+
+:where(.stage-row span, .compact-row span) {
+  color: var(--aios-text-muted);
+}
+
+:where(.case-table) {
+  border-color: var(--aios-border);
+  border-radius: var(--aios-radius-panel);
+  background: var(--aios-surface-muted);
+  box-shadow: var(--aios-shadow-control);
+}
+
+:where(.case-table-head) {
+  background: var(--aios-surface-muted);
+  color: var(--aios-text-soft);
+  border-bottom-color: var(--aios-border);
+}
+
+:where(.case-row) {
+  min-height: 68px;
+  border-bottom-color: var(--aios-border-subtle);
+  transition: background var(--aios-motion-fast), box-shadow var(--aios-motion-fast);
+}
+
+:where(.case-row:nth-child(even)) {
+  background: color-mix(in srgb, var(--aios-accent-soft) 10%, transparent);
+}
+
+:where(.case-row:hover, .case-row-link:hover) {
+  background: color-mix(in srgb, var(--aios-accent-soft) 36%, var(--aios-surface));
+}
+
+:where(.case-row:focus-within) {
+  box-shadow: inset 3px 0 0 var(--aios-accent);
+}
+
+:where(.case-row > span) {
+  color: var(--aios-text-muted);
+}
+
+:where(.confidence-row) {
+  color: var(--aios-text-soft);
+}
+
+:where(.confidence-track) {
+  height: 6px;
+  background: color-mix(in srgb, var(--aios-border) 68%, var(--aios-surface-muted));
+}
+
+:where(.confidence-track i) {
+  background: var(--aios-accent);
+}
+
+:where(.empty-state) {
+  border-color: var(--aios-border-strong);
+  border-radius: var(--aios-radius-panel);
+  background: var(--aios-surface-muted);
+  padding: var(--aios-space-6);
+}
+
+:where(.empty-state strong) {
+  color: var(--aios-text);
+}
+
+:where(.empty-state p) {
+  color: var(--aios-text-muted);
+}
+
+:where(.skeleton) {
+  background: linear-gradient(90deg, var(--aios-surface-muted) 25%, var(--aios-surface-strong) 50%, var(--aios-surface-muted) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--aios-radius-control);
+}
+
+:where(.skeleton-badge) {
+  border-radius: 999px;
+}
+
+:where(.button-spinner) {
+  animation-duration: .7s;
+}
+
+@media (max-width: 900px) {
+  :where(.case-table) {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  :where(.case-table-head, .case-row) {
+    min-width: 720px;
+  }
+}
+
+@media (pointer: coarse) {
+  :where(.case-row, .stage-row, .compact-row) {
+    min-height: var(--aios-touch-target);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.metric-pill, .stage-row, .compact-row, .case-row, .panel, .command-strip, .topbar) {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  :where(.skeleton) {
+    animation: none !important;
+    background: var(--aios-surface-muted);
+  }
+
+  :where(.button-spinner) {
+    animation-duration: 1.5s;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(.metric-pill, .stage-row, .compact-row, .case-table, .case-row, .empty-state) {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  :where(.case-row:focus-within) {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+    box-shadow: none;
+  }
+
+  :where(.confidence-track) {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  :where(.confidence-track i) {
+    background: Highlight;
+  }
+}

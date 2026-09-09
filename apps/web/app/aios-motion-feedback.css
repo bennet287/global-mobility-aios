@@ -1,0 +1,175 @@
+/* AIOS V2 shared motion + state-feedback convergence.
+   Presentation only: this layer normalizes visual response for existing states and
+   interactions without creating new workflow, authority, loading, health or status truth. */
+
+:root {
+  --aios-motion-distance-xs: 1px;
+  --aios-motion-distance-sm: 3px;
+  --aios-feedback-ring: 0 0 0 3px color-mix(in srgb, var(--aios-accent) 16%, transparent);
+  --aios-feedback-shadow: 0 10px 28px color-mix(in srgb, var(--aios-text) 10%, transparent);
+}
+
+/* Interactive surfaces: consistent hover/press language, never semantic state. */
+:where(
+  .button,
+  .theme-toggle,
+  .rail-action,
+  .rail-link,
+  .rail-experience-links a,
+  .action-card,
+  .shortcut-card,
+  .case-row-link,
+  .metric-pill,
+  .compact-row
+) {
+  transition:
+    transform var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast),
+    border-color var(--aios-motion-fast),
+    background-color var(--aios-motion-fast),
+    color var(--aios-motion-fast),
+    opacity var(--aios-motion-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :where(.button, .theme-toggle, .rail-action, .action-card, .shortcut-card, .metric-pill):not(:disabled):hover {
+    transform: translateY(calc(var(--aios-motion-distance-xs) * -1));
+  }
+
+  :where(.rail-link, .rail-experience-links a, .case-row-link, .compact-row):hover {
+    transform: translateX(var(--aios-motion-distance-xs));
+  }
+}
+
+:where(.button, .theme-toggle, .rail-action):not(:disabled):active {
+  transform: translateY(var(--aios-motion-distance-xs)) scale(0.99);
+}
+
+:where(.rail-link, .rail-experience-links a, .case-row-link):active {
+  transform: translateX(0) scale(0.995);
+}
+
+:where(.button, .theme-toggle, .rail-action, .rail-link, .rail-experience-links a, .case-row-link):focus-visible {
+  box-shadow: var(--aios-focus-ring), var(--aios-feedback-shadow);
+}
+
+/* Existing current/selected navigation state gets stable emphasis, not animation truth. */
+:where(.rail-link.active, .rail-link[aria-current="page"], .rail-experience-links a.active, .rail-experience-links a[aria-current="true"]) {
+  transform: none;
+}
+
+/* Existing positive/warning/error/health state presentation. */
+:where(.status-badge.good, .inline-notice.good, .soft-success, .pulse.online, .rail-health.online .rail-health-dot) {
+  --aios-state-feedback: var(--aios-accent);
+}
+
+:where(.status-badge.warn, .inline-notice.warn) {
+  --aios-state-feedback: var(--aios-attention);
+}
+
+:where(.status-badge.bad, .inline-notice.bad, .pulse.offline, .rail-health.offline .rail-health-dot) {
+  --aios-state-feedback: var(--aios-danger);
+}
+
+:where(.pulse, .rail-health-dot) {
+  transition: background-color var(--aios-motion-standard), box-shadow var(--aios-motion-standard), opacity var(--aios-motion-standard);
+}
+
+/* Only animate already-existing status dots; motion never implies presence or activity. */
+@media (prefers-reduced-motion: no-preference) {
+  :where(.pulse.online, .rail-health.online .rail-health-dot) {
+    animation: aios-state-breathe 2.8s ease-in-out infinite;
+  }
+
+  :where(.inline-notice, .soft-success, .status-badge) {
+    transition:
+      border-color var(--aios-motion-standard),
+      background-color var(--aios-motion-standard),
+      color var(--aios-motion-standard),
+      box-shadow var(--aios-motion-standard);
+  }
+}
+
+/* Existing loading indicators retain their state source while sharing timing. */
+.button-spinner {
+  animation-duration: 0.8s;
+  animation-timing-function: linear;
+}
+
+.skeleton {
+  animation-duration: 1.45s;
+  animation-timing-function: ease-in-out;
+}
+
+/* Disabled/busy affordances: visual containment only. */
+:where(button, .button)[disabled],
+:where(button, .button)[aria-disabled="true"] {
+  transform: none !important;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+:where(button, .button)[aria-busy="true"] {
+  cursor: progress;
+}
+
+@keyframes aios-state-breathe {
+  0%, 100% {
+    opacity: 0.78;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--aios-state-feedback, var(--aios-accent)) 0%, transparent);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--aios-state-feedback, var(--aios-accent)) 14%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    .button,
+    .theme-toggle,
+    .rail-action,
+    .rail-link,
+    .rail-experience-links a,
+    .action-card,
+    .shortcut-card,
+    .case-row-link,
+    .metric-pill,
+    .compact-row,
+    .status-badge,
+    .inline-notice,
+    .soft-success,
+    .pulse,
+    .rail-health-dot
+  ) {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .button-spinner {
+    animation-duration: 0.01ms !important;
+  }
+
+  .skeleton {
+    animation: none !important;
+    background-position: 50% 0;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(.status-badge, .inline-notice, .soft-success) {
+    box-shadow: none;
+  }
+
+  :where(.pulse, .rail-health-dot) {
+    forced-color-adjust: auto;
+    box-shadow: none;
+  }
+
+  :where(.button, .theme-toggle, .rail-action, .rail-link, .rail-experience-links a, .case-row-link):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}

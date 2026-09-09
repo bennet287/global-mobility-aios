@@ -1,0 +1,147 @@
+:root {
+  --aios-shell-sidebar-width: 248px;
+  --aios-shell-gutter: clamp(18px, 2.4vw, 34px);
+  --aios-shell-header-height: 68px;
+  --aios-shell-overlay: color-mix(in srgb, var(--aios-canvas) 72%, transparent);
+}
+
+/*
+ * Shared AIOS shell convergence.
+ *
+ * This layer deliberately targets only the cross-product workspace frame that is
+ * already shared by legacy/Mobility surfaces. It changes presentation, not route
+ * authority, navigation semantics, or feature behavior.
+ */
+.app-frame {
+  grid-template-columns: var(--aios-shell-sidebar-width) minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--aios-canvas);
+  color: var(--aios-text);
+}
+
+.workspace {
+  width: 100%;
+  min-width: 0;
+  max-width: var(--aios-content-max);
+  margin-inline: auto;
+  padding-inline: var(--aios-shell-gutter);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: var(--aios-space-3);
+  left: var(--aios-space-3);
+  min-height: var(--aios-control-min-height);
+  padding: 10px 14px;
+  border: 1px solid var(--aios-border-strong);
+  border-radius: var(--aios-radius-control);
+  background: var(--aios-surface-strong);
+  color: var(--aios-text);
+  box-shadow: var(--aios-shadow-card);
+  transform: translateY(calc(-100% - 24px));
+  transition: transform var(--aios-motion-fast);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.mobile-header {
+  min-height: var(--aios-shell-header-height);
+  padding: 12px var(--aios-shell-gutter);
+  border-bottom: 1px solid var(--aios-border-subtle);
+  background: color-mix(in srgb, var(--aios-surface) 88%, transparent);
+  color: var(--aios-text);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--aios-border) 54%, transparent);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+.mobile-menu-button {
+  width: var(--aios-touch-target);
+  height: var(--aios-touch-target);
+  min-width: var(--aios-touch-target);
+  min-height: var(--aios-touch-target);
+  border: 1px solid var(--aios-border);
+  border-radius: var(--aios-radius-control);
+  background: var(--aios-surface-strong);
+  color: var(--aios-text);
+  box-shadow: var(--aios-shadow-control);
+  transition:
+    border-color var(--aios-motion-fast),
+    background var(--aios-motion-fast),
+    transform var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast);
+}
+
+.mobile-menu-button:hover {
+  border-color: var(--aios-border-strong);
+  background: var(--aios-surface-elevated);
+}
+
+.mobile-menu-button:active {
+  transform: translateY(1px);
+}
+
+.mobile-title {
+  color: var(--aios-text);
+  font-family: var(--aios-font-sans);
+  font-size: var(--aios-text-body-strong);
+  font-weight: 780;
+  letter-spacing: -0.025em;
+}
+
+.mobile-title small {
+  margin-left: var(--aios-space-2);
+  color: var(--aios-text-muted);
+  font-size: var(--aios-text-label);
+  font-weight: 560;
+  letter-spacing: 0;
+}
+
+@media (max-width: 900px) {
+  .app-frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace {
+    max-width: none;
+    padding-inline: clamp(14px, 4vw, 22px);
+  }
+
+  .mobile-header {
+    position: sticky;
+    z-index: 120;
+    top: 0;
+    display: flex;
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --aios-shell-header-height: 62px;
+  }
+
+  .mobile-title small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link,
+  .mobile-menu-button {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (forced-colors: active) {
+  .mobile-header,
+  .mobile-menu-button,
+  .skip-link {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+}
