@@ -1,0 +1,225 @@
+.living-scene-shell {
+  --hq-polish-line: rgba(157, 178, 255, 0.14);
+  --hq-polish-panel: rgba(12, 17, 31, 0.94);
+  --hq-polish-panel-strong: rgba(9, 13, 24, 0.98);
+}
+
+/* Visible-review correction: make the spatial stage the visual hero instead of a small embedded renderer. */
+.living-webgpu-stage {
+  overflow: clip;
+}
+
+.living-webgpu-canvas-wrap {
+  min-height: clamp(520px, 58vw, 720px);
+  border: 1px solid rgba(139, 160, 255, 0.16);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(98, 118, 206, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(12, 17, 32, 0.96), rgba(5, 8, 16, 0.99));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -80px 120px rgba(0, 0, 0, 0.34),
+    0 28px 70px rgba(0, 0, 0, 0.24);
+}
+
+.living-webgpu-canvas {
+  min-height: clamp(520px, 58vw, 720px);
+}
+
+.living-webgpu-canvas-wrap::before {
+  opacity: 0.72;
+}
+
+.living-webgpu-canvas-wrap::after {
+  content: "";
+  position: absolute;
+  inset: auto 5% 5% 5%;
+  height: 26%;
+  pointer-events: none;
+  border-top: 1px solid rgba(144, 164, 255, 0.16);
+  background:
+    linear-gradient(90deg, transparent 0 7%, rgba(133, 154, 255, 0.07) 7% 7.4%, transparent 7.4% 92.6%, rgba(133, 154, 255, 0.07) 92.6% 93%, transparent 93%),
+    linear-gradient(180deg, rgba(107, 126, 214, 0.06), transparent 78%);
+  clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+}
+
+.living-webgpu-overlay {
+  max-width: min(360px, calc(100% - 32px));
+  padding: 14px 16px;
+  border: 1px solid rgba(145, 165, 255, 0.14);
+  background: rgba(7, 11, 21, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+/* Turn the executive chambers into a stronger architectural second act. */
+.living-hq-architecture {
+  padding: clamp(18px, 2.2vw, 30px);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(104, 124, 213, 0.11), transparent 34%),
+    linear-gradient(180deg, rgba(10, 15, 28, 0.98), rgba(7, 10, 19, 0.98));
+}
+
+.living-hq-room-axis {
+  gap: 14px;
+}
+
+.living-hq-room {
+  min-height: 210px;
+  padding: 16px;
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.living-hq-room-shell {
+  min-height: 106px;
+  margin-bottom: 14px;
+}
+
+.living-hq-room-table {
+  width: 42%;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.living-hq-room-light {
+  filter: blur(4px);
+  opacity: 0.75;
+}
+
+.living-hq-smart-object-list article {
+  min-height: 76px;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+/* Make miniature positions feel like characters rather than tiny status glyphs. */
+.living-hq-department-deck {
+  padding: clamp(18px, 2.2vw, 30px);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(92, 120, 198, 0.1), transparent 30%),
+    linear-gradient(180deg, rgba(11, 16, 30, 0.98), rgba(7, 10, 19, 0.98));
+}
+
+.living-hq-department-grid {
+  gap: 14px;
+}
+
+.living-hq-department-pod {
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(18, 25, 44, 0.9), rgba(10, 14, 26, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.living-hq-character-row {
+  gap: 12px;
+}
+
+.living-hq-character {
+  min-height: 164px;
+  padding: 14px 12px 12px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--character-accent) 16%, transparent), transparent 38%),
+    linear-gradient(180deg, rgba(17, 23, 39, 0.96), rgba(9, 13, 24, 0.98));
+}
+
+.living-hq-character-figure {
+  width: 82px;
+  height: 92px;
+  margin: 2px auto 10px;
+  transform: scale(1.12);
+  transform-origin: center bottom;
+}
+
+.living-hq-character-head {
+  box-shadow:
+    inset -5px -6px 0 rgba(86, 63, 58, 0.08),
+    0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.living-hq-character-console {
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--character-accent) 22%, transparent);
+}
+
+.living-hq-character-copy strong {
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.living-hq-character-copy span,
+.living-hq-character-copy small {
+  line-height: 1.35;
+}
+
+/* Keep phone screenshots readable rather than merely technically responsive. */
+@media (max-width: 760px) {
+  .living-webgpu-canvas-wrap,
+  .living-webgpu-canvas {
+    min-height: 390px;
+  }
+
+  .living-hq-architecture,
+  .living-hq-department-deck {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .living-hq-room {
+    min-height: 178px;
+  }
+
+  .living-hq-character {
+    min-height: 148px;
+  }
+
+  .living-hq-character-figure {
+    width: 72px;
+    height: 82px;
+    transform: scale(1.04);
+  }
+}
+
+@media (max-width: 420px) {
+  .living-webgpu-canvas-wrap,
+  .living-webgpu-canvas {
+    min-height: 340px;
+  }
+
+  .living-webgpu-overlay {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .living-hq-character {
+    min-height: 126px;
+  }
+
+  .living-hq-character-figure {
+    margin-inline: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-room-light,
+  .living-hq-character-figure,
+  .living-hq-character-aura {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .living-webgpu-canvas-wrap,
+  .living-hq-architecture,
+  .living-hq-department-deck,
+  .living-hq-department-pod,
+  .living-hq-character {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}

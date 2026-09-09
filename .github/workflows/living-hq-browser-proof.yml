@@ -1,0 +1,71 @@
+name: Living HQ Browser Proof
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/app/cockpit/**"
+      - "apps/web/components/LivingOrganization*.tsx"
+      - "apps/web/lib/living-organization-*.ts"
+      - "apps/web/e2e/tests/living-hq-flagship-visual.spec.ts"
+      - ".github/workflows/living-hq-browser-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  living-hq-browser:
+    name: Living HQ targeted browser proof
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-owner
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/web/e2e/package-lock.json
+
+      - name: Install and build frontend
+        working-directory: apps/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Chromium proof dependencies
+        working-directory: apps/web/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Living HQ targeted visible proof
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/living-hq-flagship-visual.spec.ts --project=chromium
+
+      - name: Upload Living HQ visible review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: living-hq-visible-review
+          path: apps/web/e2e/living-hq-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Living HQ failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: living-hq-browser-failure-diagnostics
+          path: apps/web/e2e/test-results
+          if-no-files-found: error
+          retention-days: 7

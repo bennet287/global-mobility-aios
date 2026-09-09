@@ -1,0 +1,218 @@
+/*
+ * AIOS V2 Living HQ — spatial wayfinding / flagship scene hierarchy.
+ * Presentation-only. No canonical state, authority, presence, routing, or locomotion semantics are introduced here.
+ */
+
+.living-webgpu-stage {
+  isolation: isolate;
+}
+
+.living-webgpu-canvas-wrap {
+  position: relative;
+}
+
+.living-webgpu-canvas-wrap::before,
+.living-webgpu-canvas-wrap::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Architectural proscenium: frames the GPU scene as a command floor rather than an embedded demo canvas. */
+.living-webgpu-canvas-wrap::before {
+  inset: 18px 22px auto;
+  height: 58px;
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background:
+    linear-gradient(90deg, transparent 0 7%, color-mix(in srgb, #86a6ff 18%, transparent) 7% 7.5%, transparent 7.5% 92.5%, color-mix(in srgb, #86a6ff 18%, transparent) 92.5% 93%, transparent 93%),
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 4%, transparent), transparent 78%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent);
+  opacity: 0.78;
+}
+
+/* Perspective runway that visually connects departments, chambers and the smart-object rail without implying routing. */
+.living-webgpu-canvas-wrap::after {
+  left: 50%;
+  bottom: 24px;
+  width: min(68%, 760px);
+  height: 34%;
+  transform: translateX(-50%) perspective(520px) rotateX(64deg);
+  transform-origin: 50% 100%;
+  border: 1px solid color-mix(in srgb, #9db6ff 10%, transparent);
+  border-radius: 28px 28px 8px 8px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 11%, color-mix(in srgb, #a7b9ff 6%, transparent) 11% 11.35%),
+    repeating-linear-gradient(0deg, transparent 0 18%, color-mix(in srgb, #a7b9ff 5%, transparent) 18% 18.5%),
+    linear-gradient(180deg, color-mix(in srgb, #6f8cff 7%, transparent), transparent 78%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 22%, #000 100%);
+  opacity: 0.62;
+}
+
+/* Lens-specific atmosphere changes emphasis only. */
+.living-webgpu-stage[data-active-lens="flow"] .living-webgpu-canvas-wrap::after {
+  opacity: 0.82;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 11%, color-mix(in srgb, #8fdcff 9%, transparent) 11% 11.35%),
+    repeating-linear-gradient(0deg, transparent 0 18%, color-mix(in srgb, #8fdcff 7%, transparent) 18% 18.5%),
+    linear-gradient(180deg, color-mix(in srgb, #49bce8 9%, transparent), transparent 78%);
+}
+
+.living-webgpu-stage[data-renderer-phase="ready"] .living-webgpu-canvas-wrap {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, #78d7b1 8%, transparent),
+    0 26px 54px color-mix(in srgb, #050816 30%, transparent);
+}
+
+/* Make the spatial inspector feel integrated into the HQ architecture. */
+.living-webgpu-overlay {
+  backdrop-filter: blur(14px) saturate(118%);
+  -webkit-backdrop-filter: blur(14px) saturate(118%);
+}
+
+.living-webgpu-overlay::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 3px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, #82a7ff 85%, white 5%), transparent);
+  opacity: 0.78;
+}
+
+/* Executive chambers read as one architectural suite rather than detached cards. */
+.living-hq-room-axis {
+  position: relative;
+}
+
+.living-hq-room-axis::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, #9eb7ff 18%, transparent) 18% 82%, transparent);
+  pointer-events: none;
+}
+
+.living-hq-room {
+  position: relative;
+  overflow: hidden;
+}
+
+.living-hq-room::after {
+  content: "";
+  position: absolute;
+  inset: auto 12% 0;
+  height: 22%;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, currentColor 4%, transparent));
+  pointer-events: none;
+}
+
+/* Department pods gain a subtle floor datum so miniature characters read as part of an office bay. */
+.living-hq-department-pod {
+  position: relative;
+  overflow: hidden;
+}
+
+.living-hq-department-pod::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, #9fb6ff 11%, transparent), transparent);
+  pointer-events: none;
+}
+
+.living-hq-character {
+  position: relative;
+}
+
+.living-hq-character::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, color-mix(in srgb, currentColor 9%, transparent), transparent 70%);
+  filter: blur(3px);
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* Interaction polish is limited to controls that are already interactive. */
+.living-scene-lens-console button,
+.living-flow-trial-controls button {
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.living-scene-lens-console button:focus-visible,
+.living-flow-trial-controls button:focus-visible {
+  outline: 2px solid color-mix(in srgb, #9ab7ff 82%, white 8%);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #6d8cff 16%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .living-scene-lens-console button:hover:not(:disabled),
+  .living-flow-trial-controls button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 760px) {
+  .living-webgpu-canvas-wrap::before {
+    inset: 12px 12px auto;
+    height: 42px;
+    border-radius: 14px 14px 0 0;
+    opacity: 0.55;
+  }
+
+  .living-webgpu-canvas-wrap::after {
+    bottom: 16px;
+    width: 78%;
+    height: 28%;
+    opacity: 0.42;
+  }
+
+  .living-hq-room-axis::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-scene-lens-console button,
+  .living-flow-trial-controls button {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .living-webgpu-canvas-wrap::before,
+  .living-webgpu-canvas-wrap::after,
+  .living-hq-room-axis::before,
+  .living-hq-room::after,
+  .living-hq-department-pod::after,
+  .living-hq-character::after,
+  .living-webgpu-overlay::before {
+    display: none;
+  }
+
+  .living-webgpu-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
