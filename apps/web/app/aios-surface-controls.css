@@ -1,0 +1,253 @@
+/* AIOS V2 shared surfaces + controls.
+   This layer converges existing cross-product primitives onto the semantic token
+   contract without changing route, workflow, authority, or domain semantics. */
+
+:where(.panel, .command-strip, .metric-pill, .action-card, .claim-card, .shortcut-card, .empty-state) {
+  border-color: var(--aios-border);
+  color: var(--aios-text);
+}
+
+.panel {
+  border-radius: var(--aios-radius-hero);
+  background: var(--aios-surface);
+  box-shadow: var(--aios-shadow-card);
+  transition:
+    box-shadow var(--aios-motion-fast),
+    border-color var(--aios-motion-fast),
+    background var(--aios-motion-fast);
+}
+
+.panel:hover {
+  border-color: var(--aios-border-strong);
+  box-shadow: var(--aios-shadow-panel);
+}
+
+.command-strip {
+  border-radius: var(--aios-radius-hero);
+  border-color: var(--aios-border);
+  box-shadow: var(--aios-shadow-panel);
+}
+
+.metric-pill,
+.action-card,
+.claim-card,
+.shortcut-card {
+  border-radius: var(--aios-radius-panel);
+  box-shadow: var(--aios-shadow-control);
+  transition:
+    transform var(--aios-motion-fast),
+    border-color var(--aios-motion-fast),
+    background var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast);
+}
+
+.metric-pill:hover,
+.action-card:hover,
+.shortcut-card:hover {
+  border-color: var(--aios-border-strong);
+  box-shadow: var(--aios-shadow-card);
+}
+
+.section-title-main {
+  border-left-color: var(--aios-border-strong);
+}
+
+.page-kicker,
+.section-title > span,
+.command-copy > span {
+  color: var(--aios-accent-strong);
+  font-size: var(--aios-text-caption);
+}
+
+.section-title h2 {
+  color: var(--aios-text);
+  font-size: var(--aios-text-title);
+}
+
+.section-title p,
+.command-copy p {
+  color: var(--aios-text-muted);
+}
+
+.button {
+  min-height: var(--aios-control-min-height);
+  padding-inline: var(--aios-space-4);
+  border-radius: 999px;
+  font-family: var(--aios-font-sans);
+  font-size: var(--aios-text-body);
+  transition:
+    transform var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast),
+    background var(--aios-motion-fast),
+    border-color var(--aios-motion-fast),
+    color var(--aios-motion-fast);
+}
+
+.button.primary {
+  background: var(--aios-accent);
+  color: Canvas;
+  box-shadow: var(--aios-shadow-card);
+}
+
+.button.primary:hover {
+  background: var(--aios-accent-strong);
+  box-shadow: var(--aios-shadow-panel);
+}
+
+.button.secondary {
+  border-color: var(--aios-border);
+  background: var(--aios-surface);
+  color: var(--aios-text);
+}
+
+.button.secondary:hover {
+  border-color: var(--aios-border-strong);
+  background: var(--aios-surface-muted);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.status-badge {
+  min-height: 24px;
+  padding-inline: var(--aios-space-2);
+  border-color: var(--aios-border);
+  background: var(--aios-surface-muted);
+  color: var(--aios-text-muted);
+  font-size: var(--aios-text-caption);
+  transition:
+    border-color var(--aios-motion-fast),
+    background var(--aios-motion-fast),
+    color var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast);
+}
+
+.status-badge.good {
+  background: var(--aios-accent-soft);
+  color: var(--aios-accent-strong);
+}
+
+.status-badge.warn {
+  background: var(--aios-attention-soft);
+  color: var(--aios-attention);
+}
+
+.status-badge.bad {
+  background: var(--aios-danger-soft);
+  color: var(--aios-danger);
+}
+
+.intake-form label {
+  color: var(--aios-text);
+  font-size: var(--aios-text-label);
+}
+
+.intake-form input,
+.intake-form select,
+.intake-form textarea,
+.aios-field {
+  width: 100%;
+  min-height: var(--aios-control-min-height);
+  border: 1px solid var(--aios-border);
+  border-radius: var(--aios-radius-control);
+  background: var(--aios-surface-muted);
+  color: var(--aios-text);
+  padding: 10px 11px;
+  outline: none;
+  transition:
+    border-color var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast),
+    background var(--aios-motion-fast);
+}
+
+.intake-form input:hover,
+.intake-form select:hover,
+.intake-form textarea:hover,
+.aios-field:hover {
+  border-color: var(--aios-border-strong);
+}
+
+.intake-form input:focus-visible,
+.intake-form select:focus-visible,
+.intake-form textarea:focus-visible,
+.aios-field:focus-visible {
+  border-color: var(--aios-accent);
+  background: var(--aios-surface);
+  box-shadow: var(--aios-focus-ring);
+}
+
+.intake-form input::placeholder,
+.intake-form textarea::placeholder,
+.aios-field::placeholder {
+  color: var(--ink-placeholder);
+}
+
+.inline-notice,
+.soft-success {
+  border-radius: var(--aios-radius-panel);
+}
+
+.inline-notice {
+  border-color: var(--aios-border);
+  background: var(--aios-surface-muted);
+  color: var(--aios-text-muted);
+}
+
+.text-link {
+  color: var(--aios-accent-strong);
+  transition: color var(--aios-motion-fast), text-decoration-color var(--aios-motion-fast);
+}
+
+.text-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (pointer: coarse) {
+  .button,
+  .mobile-menu-button,
+  .theme-toggle {
+    min-height: var(--aios-touch-target);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .command-strip,
+  .metric-pill,
+  .action-card,
+  .shortcut-card,
+  .button,
+  .status-badge {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .panel,
+  .command-strip,
+  .metric-pill,
+  .action-card,
+  .claim-card,
+  .shortcut-card,
+  .empty-state,
+  .button,
+  .status-badge,
+  .intake-form input,
+  .intake-form select,
+  .intake-form textarea,
+  .aios-field {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .button.primary,
+  .status-badge.good,
+  .status-badge.warn,
+  .status-badge.bad {
+    forced-color-adjust: auto;
+  }
+}

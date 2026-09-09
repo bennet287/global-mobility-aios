@@ -1,0 +1,258 @@
+/* AIOS V2 shared navigation + information hierarchy convergence.
+   Presentation-only: route authority, destinations, active-state truth and shell behavior remain owned by existing components. */
+
+:root {
+  --aios-nav-width: 248px;
+  --aios-nav-item-height: 42px;
+  --aios-nav-icon-size: 20px;
+  --aios-topbar-min-height: 72px;
+}
+
+.workspace-rail {
+  width: var(--aios-nav-width);
+  border-right: 1px solid var(--aios-border);
+  background: color-mix(in srgb, var(--aios-surface) 92%, transparent);
+  box-shadow: 14px 0 42px rgba(30, 26, 18, 0.035);
+}
+
+.rail-brand,
+.rail-experience-links a,
+.rail-link,
+.rail-action {
+  border-radius: var(--aios-radius-card);
+  transition:
+    background var(--aios-motion-fast),
+    color var(--aios-motion-fast),
+    border-color var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast),
+    transform var(--aios-motion-fast);
+}
+
+.rail-brand {
+  border: 1px solid transparent;
+}
+
+.rail-brand:hover,
+.rail-brand:focus-visible {
+  background: var(--aios-surface-strong);
+  border-color: var(--aios-border);
+  box-shadow: var(--aios-shadow-control);
+}
+
+.rail-group-label,
+.rail-experience-label {
+  color: var(--aios-text-soft);
+  font-size: var(--aios-text-caption);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.rail-separator {
+  background: var(--aios-border-subtle);
+}
+
+.rail-link,
+.rail-experience-links a,
+.rail-action {
+  min-height: var(--aios-nav-item-height);
+  color: var(--aios-text-muted);
+  border: 1px solid transparent;
+}
+
+.rail-link:hover,
+.rail-experience-links a:hover,
+.rail-action:hover {
+  color: var(--aios-text);
+  background: color-mix(in srgb, var(--aios-surface-strong) 88%, transparent);
+  border-color: var(--aios-border-subtle);
+  transform: translateX(1px);
+}
+
+.rail-link.active,
+.rail-link[aria-current="page"],
+.rail-experience-links a.active,
+.rail-experience-links a[aria-current="true"] {
+  color: var(--aios-text);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--aios-accent-soft) 75%, transparent), transparent 82%),
+    var(--aios-surface-strong);
+  border-color: color-mix(in srgb, var(--aios-accent) 28%, var(--aios-border));
+  box-shadow:
+    inset 3px 0 0 var(--aios-accent),
+    var(--aios-shadow-control);
+  font-weight: 750;
+}
+
+.rail-icon,
+.rail-experience-icon {
+  width: var(--aios-nav-icon-size);
+  height: var(--aios-nav-icon-size);
+  color: currentColor;
+}
+
+.rail-link:focus-visible,
+.rail-experience-links a:focus-visible,
+.rail-action:focus-visible,
+.rail-brand:focus-visible {
+  outline: none;
+  box-shadow: var(--aios-focus-ring);
+}
+
+.rail-hover-label {
+  border: 1px solid var(--aios-border);
+  border-radius: var(--aios-radius-card);
+  background: color-mix(in srgb, var(--aios-surface-elevated) 96%, transparent);
+  color: var(--aios-text);
+  box-shadow: var(--aios-shadow-card);
+  backdrop-filter: blur(18px);
+}
+
+.rail-health {
+  border-color: var(--aios-border);
+  background: var(--aios-surface-muted);
+  color: var(--aios-text-muted);
+}
+
+.rail-health.online .rail-health-dot {
+  background: var(--aios-accent);
+}
+
+.rail-health.offline .rail-health-dot {
+  background: var(--aios-danger);
+}
+
+.topbar {
+  min-height: var(--aios-topbar-min-height);
+  border-bottom: 1px solid var(--aios-border);
+  background: color-mix(in srgb, var(--aios-surface) 88%, transparent);
+  box-shadow: 0 14px 38px rgba(30, 26, 18, 0.035);
+}
+
+.page-kicker,
+.section-title > span,
+.command-copy > span {
+  color: var(--aios-accent-strong);
+  font-size: var(--aios-text-caption);
+}
+
+.topbar h1 {
+  color: var(--aios-text);
+  font-family: var(--aios-font-sans);
+  font-size: var(--aios-text-display);
+  letter-spacing: -0.045em;
+}
+
+.panel-header-row,
+.section-title {
+  min-width: 0;
+}
+
+.section-title-main {
+  border-left-color: var(--aios-border-strong);
+}
+
+.section-title h2 {
+  color: var(--aios-text);
+  font-size: var(--aios-text-title);
+  letter-spacing: -0.035em;
+}
+
+.section-title p {
+  color: var(--aios-text-muted);
+  font-size: var(--aios-text-body-strong);
+}
+
+.back-link a,
+.text-link,
+.case-row-link {
+  transition:
+    color var(--aios-motion-fast),
+    background var(--aios-motion-fast),
+    border-color var(--aios-motion-fast),
+    box-shadow var(--aios-motion-fast);
+}
+
+.back-link a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--aios-control-min-height);
+  color: var(--aios-text-muted);
+  border-radius: var(--aios-radius-control);
+}
+
+.back-link a:hover,
+.text-link:hover {
+  color: var(--aios-accent-strong);
+}
+
+.back-link a:focus-visible,
+.text-link:focus-visible,
+.case-row-link:focus-visible {
+  outline: none;
+  box-shadow: var(--aios-focus-ring);
+}
+
+.case-row-link:hover {
+  background: color-mix(in srgb, var(--aios-accent-soft) 48%, transparent);
+}
+
+@media (max-width: 900px) {
+  :root {
+    --aios-topbar-min-height: 64px;
+  }
+
+  .topbar {
+    gap: var(--aios-space-3);
+  }
+}
+
+@media (pointer: coarse) {
+  .rail-link,
+  .rail-experience-links a,
+  .rail-action,
+  .back-link a {
+    min-height: var(--aios-touch-target);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-brand,
+  .rail-experience-links a,
+  .rail-link,
+  .rail-action,
+  .back-link a,
+  .text-link,
+  .case-row-link {
+    transition: none;
+  }
+
+  .rail-link:hover,
+  .rail-experience-links a:hover,
+  .rail-action:hover {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .workspace-rail,
+  .rail-brand,
+  .rail-link,
+  .rail-experience-links a,
+  .rail-action,
+  .rail-hover-label,
+  .rail-health,
+  .topbar {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .rail-link.active,
+  .rail-link[aria-current="page"],
+  .rail-experience-links a.active,
+  .rail-experience-links a[aria-current="true"] {
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: inset 3px 0 0 HighlightText;
+  }
+}

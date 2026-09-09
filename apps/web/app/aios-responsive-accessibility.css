@@ -1,0 +1,243 @@
+/* AIOS V2 shared responsive density + accessibility normalization.
+   Presentation only: preserves routes, state, authority, data and interaction semantics. */
+
+:root {
+  --aios-page-gutter: clamp(16px, 2.4vw, 32px);
+  --aios-section-gap: clamp(12px, 1.8vw, 20px);
+  --aios-readable-line: 68ch;
+}
+
+/* Keep readable content from stretching while allowing spatial/visual surfaces to opt out. */
+:where(.section-title p, .command-copy p, .empty-state p, .inline-notice, .soft-success) {
+  max-width: var(--aios-readable-line);
+}
+
+/* Keyboard focus remains visible even when parent surfaces use overflow or box shadows. */
+:where(
+  .button,
+  .mobile-menu-button,
+  .theme-toggle,
+  .rail-action,
+  .rail-link,
+  .rail-experience-links a,
+  .back-link a,
+  .text-link,
+  .case-row-link,
+  .action-card,
+  .shortcut-card
+):focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid transparent;
+  box-shadow: var(--aios-focus-ring);
+}
+
+/* Disabled and busy controls remain legible and non-ambiguous. */
+:where(button, .button)[disabled],
+:where(button, .button)[aria-disabled="true"] {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+:where(button, .button)[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* Prevent narrow layouts from forcing accidental horizontal page scroll. */
+:where(.workspace, .panel, .command-strip, .metric-pill, .case-table, .action-card, .claim-card, .empty-state) {
+  min-width: 0;
+}
+
+:where(.section-title, .panel-header-row, .topbar-actions, .form-actions) {
+  min-width: 0;
+}
+
+:where(.section-title h2, .topbar h1, .action-card strong, .claim-card > strong) {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    padding-inline: var(--aios-page-gutter);
+  }
+
+  .premium-grid,
+  .workbench-grid,
+  .governance-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ops-grid,
+  .metric-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .command-meta {
+    min-width: 0;
+    width: 100%;
+    justify-items: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .workspace {
+    padding-inline: 16px;
+    padding-bottom: 32px;
+  }
+
+  .topbar {
+    margin-inline: -16px;
+    padding-inline: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar-actions,
+  .form-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .button {
+    min-height: var(--aios-touch-target);
+  }
+
+  .metric-row,
+  .ops-grid,
+  .shortcut-grid,
+  .intake-form,
+  .lead-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel,
+  .command-strip,
+  .lead-hero {
+    border-radius: var(--aios-radius-panel);
+  }
+
+  .panel,
+  .command-strip {
+    padding: 16px;
+  }
+
+  .panel-header-row,
+  .section-title,
+  .lead-hero,
+  .lead-hero-main {
+    min-width: 0;
+  }
+
+  .panel-header-row,
+  .lead-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .section-title {
+    gap: 8px;
+  }
+
+  .section-title-main {
+    padding-left: 10px;
+  }
+
+  .case-table {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .case-table-head,
+  .case-row {
+    min-width: 620px;
+  }
+
+  .empty-state {
+    min-height: 112px;
+    padding: 20px 16px;
+  }
+}
+
+@media (pointer: coarse) {
+  :where(
+    .button,
+    .mobile-menu-button,
+    .theme-toggle,
+    .rail-action,
+    .rail-link,
+    .rail-experience-links a,
+    .text-link,
+    .back-link a,
+    .case-row-link
+  ) {
+    min-height: var(--aios-touch-target);
+  }
+
+  :where(input, select, textarea, .aios-field) {
+    font-size: max(16px, var(--aios-text-body));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  :where(
+    *,
+    *::before,
+    *::after
+  ) {
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :where(
+    .button,
+    .panel,
+    .metric-pill,
+    .action-card,
+    .claim-card,
+    .shortcut-card,
+    .empty-state,
+    .case-table,
+    .stage-row,
+    .compact-row,
+    input,
+    select,
+    textarea,
+    .aios-field
+  ) {
+    forced-color-adjust: auto;
+    border-color: CanvasText;
+  }
+
+  :where(
+    .button,
+    .mobile-menu-button,
+    .theme-toggle,
+    .rail-action,
+    .rail-link,
+    .rail-experience-links a,
+    .back-link a,
+    .text-link,
+    .case-row-link
+  ):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  :where(.status-badge.good, .status-badge.warn, .status-badge.bad) {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+}

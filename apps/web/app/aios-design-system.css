@@ -1,0 +1,90 @@
+:root {
+  /* AIOS V2 semantic design-system aliases. These map existing primitives into
+     product-level meaning so Owner, Operator and Mobility can converge without
+     duplicating raw colors, spacing, radii or shadow recipes. */
+  --aios-canvas: var(--bg);
+  --aios-surface: var(--surface);
+  --aios-surface-strong: var(--surface-strong);
+  --aios-surface-muted: var(--surface-muted);
+  --aios-surface-elevated: var(--surface-elevated);
+  --aios-text: var(--ink);
+  --aios-text-muted: var(--ink-muted);
+  --aios-text-soft: var(--ink-soft);
+  --aios-border: var(--line);
+  --aios-border-strong: var(--line-strong);
+  --aios-border-subtle: var(--line-subtle);
+
+  --aios-accent: var(--green);
+  --aios-accent-strong: var(--green-strong);
+  --aios-accent-soft: var(--green-soft);
+  --aios-attention: var(--amber);
+  --aios-attention-soft: var(--amber-soft);
+  --aios-danger: var(--red);
+  --aios-danger-soft: var(--red-soft);
+  --aios-info: var(--blue);
+  --aios-info-soft: var(--blue-soft);
+
+  --aios-radius-control: var(--radius-sm);
+  --aios-radius-card: var(--radius-md);
+  --aios-radius-panel: var(--radius-lg);
+  --aios-radius-hero: var(--radius-xl);
+
+  --aios-space-1: var(--space-1);
+  --aios-space-2: var(--space-2);
+  --aios-space-3: var(--space-3);
+  --aios-space-4: var(--space-4);
+  --aios-space-5: var(--space-5);
+  --aios-space-6: var(--space-6);
+  --aios-space-8: var(--space-8);
+  --aios-space-10: var(--space-10);
+  --aios-space-12: var(--space-12);
+
+  --aios-text-caption: var(--text-xs);
+  --aios-text-label: var(--text-sm);
+  --aios-text-body: var(--text-base);
+  --aios-text-body-strong: var(--text-md);
+  --aios-text-title-sm: var(--text-lg);
+  --aios-text-title: var(--text-xl);
+  --aios-text-display: var(--text-2xl);
+
+  --aios-shadow-control: var(--shadow-sm);
+  --aios-shadow-card: var(--shadow-soft);
+  --aios-shadow-panel: var(--shadow);
+  --aios-shadow-hero: var(--shadow-lg);
+
+  --aios-motion-fast: var(--transition-fast);
+  --aios-motion-standard: var(--transition-base);
+  --aios-motion-emphasis: var(--transition-slow);
+  --aios-focus-ring: var(--focus-ring);
+
+  --aios-font-sans: var(--font-geist-sans), var(--font);
+  --aios-font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --aios-content-max: 1440px;
+  --aios-reading-max: 760px;
+  --aios-control-min-height: 40px;
+  --aios-touch-target: 44px;
+}
+
+/* Shared interaction contract: the alias layer owns behavior, not feature truth. */
+:where(button, a, input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: var(--aios-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --aios-motion-fast: 0.01ms linear;
+    --aios-motion-standard: 0.01ms linear;
+    --aios-motion-emphasis: 0.01ms linear;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --aios-border: CanvasText;
+    --aios-border-strong: CanvasText;
+    --aios-accent: Highlight;
+    --aios-accent-strong: Highlight;
+  }
+}
