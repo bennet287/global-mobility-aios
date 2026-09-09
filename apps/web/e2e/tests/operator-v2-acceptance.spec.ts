@@ -7,7 +7,7 @@ const operatorRoutes = [
   { href: `/profiles?lead_id=${fixtureLeadId}`, label: "Profiles" },
   { href: "/operator/v2/pathways", label: "Pathways" },
   { href: "/document-intelligence", label: "Evidence" },
-  { href: "/operator/v2/communication", label: "Communication" },
+  { href: "/communications", label: "Communication" },
   { href: "/operator/v2/tools", label: "Tools" },
 ] as const;
 
@@ -57,6 +57,19 @@ const documents = [
   { id: "doc-language", lead_id: fixtureLeadId, document_type: "language_certificate", filename: "german-b2.pdf", status: "reviewed", verified_by: null, expiry_date: "2027-03-01", storage_provider: "minio", storage_reference_present: true, file_hash: "29fba1180d3e9a14cc", mime_type: "application/pdf", file_size_bytes: 310000, signed_access_supported: true, storage_key_exposed: false },
 ];
 
+const communicationDrafts = [
+  {
+    draft: { id: "11111111-1111-4111-8111-111111111111", lead_id: fixtureLeadId, channel: "email_draft", status: "pending", created_at: "2026-09-08T15:00:00", updated_at: "2026-09-08T15:00:00" },
+    communication: { template_key: "approval_confirmation", title: "Approval confirmation", subject: "Your application has been approved - next steps", body: "Dear Alex Morgan, your authority-approved case is ready for professional review before any manual communication.", note: null, status: "draft", channel: "email_draft", created_at: "2026-09-08T15:00:00", updated_at: "2026-09-08T15:00:00" },
+    lead,
+  },
+  {
+    draft: { id: "22222222-2222-4222-8222-222222222222", lead_id: fixtureLeadId, channel: "email_draft", status: "completed", created_at: "2026-09-07T10:00:00", updated_at: "2026-09-08T10:00:00" },
+    communication: { template_key: "travel_checklist", title: "Travel checklist", subject: "Travel preparation checklist", body: "Reviewed travel preparation guidance for Alex Morgan.", note: "Reviewed by operator.", status: "reviewed", channel: "email_draft", created_at: "2026-09-07T10:00:00", updated_at: "2026-09-08T10:00:00" },
+    lead,
+  },
+];
+
 const storagePosture = {
   environment: "test",
   backend: "minio",
@@ -99,8 +112,6 @@ async function installOperatorFixture(page: import("@playwright/test").Page, wri
 
     if (url.pathname === "/health") return json({ status: "ok", service: "operator-v2-fixture", environment: "test" });
 
-    // Keep the Work proof shape-valid. These are neutral empty governed states,
-    // not invented operational conclusions.
     if (url.pathname === "/api/v1/crm/summary") return json({ leads_total: 0, leads_new: 0, leads_human_review: 0, leads_converted: 0, truth_queue_pending: 0, truth_queue_resolved: 0, recent_leads: [], recent_truth_audits: [] });
     if (url.pathname === "/api/v1/truth/resolution-queue") return json({ total_leads: 0, stage_counts: {}, items: [] });
     if (url.pathname === "/api/v1/applications/queue") return json({ total_leads: 0, stage_counts: {}, items: [] });
@@ -114,9 +125,8 @@ async function installOperatorFixture(page: import("@playwright/test").Page, wri
       { ...profileFixture, id: "profile-v2", profile_version: 2, lifecycle_status: "superseded", supersedes_profile_id: "profile-v1", completeness_score: 84, readiness_stage: "review_ready", missing_sections: ["employment_reference", "language_evidence"], created_at: "2026-07-15T09:00:00Z", updated_at: "2026-08-10T08:00:00Z" },
     ]);
     if (url.pathname === `/api/v1/leads/${fixtureLeadId}/detail`) return json({ lead, profiles: [], truth_claims: [], source_references: [], reviews: [], workflow_runs: [], agent_runs: [], follow_ups: [], documents, applications: [] });
+    if (url.pathname === "/api/v1/client-communications/drafts") return json({ total_drafts: communicationDrafts.length, drafts: communicationDrafts });
 
-    // Evidence proof is intentionally read-only. These fallbacks let the governed
-    // workspace render unavailable/empty review ledgers without inventing decisions.
     if (url.pathname.toLowerCase().includes("posture")) return json(storagePosture);
     if (url.pathname.toLowerCase().includes("schema")) return json([]);
     if (request.method() === "GET") return json([]);
@@ -162,6 +172,14 @@ for (const width of [1280, 390]) {
         await expect(page.getByText("passport.pdf", { exact: true })).toBeVisible();
         await expect(page.getByText("mba-degree.pdf", { exact: true })).toBeVisible();
         await expect(page.getByText("3 stored documents", { exact: true })).toBeVisible();
+      }
+
+      if (route.label === "Communication") {
+        await expect(page.getByText("Client communication queue", { exact: true })).toBeVisible();
+        await expect(page.getByText("Approval confirmation", { exact: true })).toBeVisible();
+        await expect(page.getByText("Travel checklist", { exact: true })).toBeVisible();
+        await expect(page.getByText("Your application has been approved - next steps", { exact: true })).toBeVisible();
+        await expect(page.getByRole("link", { name: "Review" }).first()).toBeVisible();
       }
 
       const geometry = await page.evaluate(() => {

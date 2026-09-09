@@ -90,6 +90,10 @@ export function WorkspaceShell({
     return <V2OperatorShell activeItem="Evidence">{children}</V2OperatorShell>;
   }
 
+  if (pathname === "/communications") {
+    return <V2OperatorShell activeItem="Communication">{children}</V2OperatorShell>;
+  }
+
   return (
     <div className={`app-frame ${mobileOpen ? "mobile-nav-open" : ""}`}>
       <a className="skip-link" href="#main-content">Skip to main content</a>
