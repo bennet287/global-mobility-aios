@@ -1,0 +1,266 @@
+.pathwaysContent {
+  --pathway-rule: color-mix(in srgb, var(--v2-text, #f5f2ea) 15%, transparent);
+  --pathway-muted: color-mix(in srgb, var(--v2-text, #f5f2ea) 62%, transparent);
+}
+
+.pathwaysContent :global(.topbar) {
+  display: none;
+}
+
+.pathwaysContent :global(.page-pad.pathways-page) {
+  padding: 34px 36px 56px;
+  max-width: 1480px;
+  margin: 0 auto;
+}
+
+.pathwaysContent :global(.pathway-metrics) {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0;
+  border-block: 1px solid var(--pathway-rule);
+  margin: 0 0 34px;
+}
+
+.pathwaysContent :global(.pathway-metrics .metric-pill) {
+  min-width: 0;
+  padding: 15px 14px;
+  border: 0;
+  border-right: 1px solid var(--pathway-rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pathwaysContent :global(.pathway-metrics .metric-pill:last-child) {
+  border-right: 0;
+}
+
+.pathwaysContent :global(.pathway-metrics .metric-pill span) {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--pathway-muted);
+}
+
+.pathwaysContent :global(.pathway-metrics .metric-pill strong) {
+  margin-top: 7px;
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(24px, 2vw, 34px);
+  font-weight: 500;
+}
+
+.pathwaysContent :global(.evidence-provenance) {
+  margin-bottom: 34px;
+  border-radius: 0;
+  border: 1px solid var(--pathway-rule);
+  background: transparent;
+  box-shadow: none;
+}
+
+.pathwaysContent :global(.pathway-impact-panel) {
+  margin-bottom: 38px;
+  border: 0;
+  border-top: 1px solid var(--pathway-rule);
+  border-bottom: 1px solid var(--pathway-rule);
+  border-radius: 0;
+  padding: 24px 0 28px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pathwaysContent :global(.pathway-impact-list) {
+  display: grid;
+  gap: 0;
+}
+
+.pathwaysContent :global(.pathway-impact-card) {
+  border: 0;
+  border-top: 1px solid var(--pathway-rule);
+  border-radius: 0;
+  background: transparent;
+  padding: 20px 0;
+  box-shadow: none;
+}
+
+.pathwaysContent :global(.pathway-workspace-grid) {
+  display: grid;
+  grid-template-columns: minmax(250px, .72fr) minmax(0, 2.15fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.pathwaysContent :global(.pathway-list-panel),
+.pathwaysContent :global(.pathway-editor) {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.pathwaysContent :global(.pathway-list-panel) {
+  position: sticky;
+  top: 24px;
+  border: 0;
+  border-top: 2px solid currentColor;
+  background: transparent;
+  padding: 20px 0 0;
+}
+
+.pathwaysContent :global(.pathway-list) {
+  display: grid;
+  gap: 0;
+  border-bottom: 1px solid var(--pathway-rule);
+}
+
+.pathwaysContent :global(.pathway-list-item) {
+  text-align: left;
+  border: 0;
+  border-top: 1px solid var(--pathway-rule);
+  border-radius: 0;
+  background: transparent;
+  padding: 16px 2px;
+  box-shadow: none;
+}
+
+.pathwaysContent :global(.pathway-list-item.selected) {
+  padding-left: 14px;
+  border-left: 3px solid currentColor;
+}
+
+.pathwaysContent :global(.pathway-list-item strong) {
+  display: block;
+  margin: 8px 0 4px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.pathwaysContent :global(.pathway-editor) {
+  border: 1px solid var(--pathway-rule);
+  background: color-mix(in srgb, var(--v2-surface, #111) 82%, transparent);
+  padding: 28px 30px 34px;
+}
+
+.pathwaysContent :global(.form-section-title) {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 16px;
+  align-items: start;
+  margin: 34px 0 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--pathway-rule);
+}
+
+.pathwaysContent :global(.form-section-title > span) {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  line-height: 1;
+  opacity: .42;
+}
+
+.pathwaysContent :global(.form-section-title strong) {
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.pathwaysContent :global(.form-section-title small) {
+  display: block;
+  margin-top: 4px;
+  color: var(--pathway-muted);
+}
+
+.pathwaysContent :global(.pathway-field-grid input),
+.pathwaysContent :global(.pathway-field-grid select),
+.pathwaysContent :global(.pathway-field-grid textarea),
+.pathwaysContent :global(.pathway-impact-review textarea) {
+  border-radius: 2px;
+  background: transparent;
+}
+
+.pathwaysContent :global(.pathway-rule-picker) {
+  border-top: 1px solid var(--pathway-rule);
+  padding-top: 16px;
+}
+
+.pathwaysContent :global(.pathway-version-list),
+.pathwaysContent :global(.pathway-version-history) {
+  border-top: 1px solid var(--pathway-rule);
+}
+
+@media (max-width: 1080px) {
+  .pathwaysContent :global(.pathway-metrics) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill:nth-child(4)) {
+    border-right: 0;
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill:nth-child(n+5)) {
+    border-top: 1px solid var(--pathway-rule);
+  }
+
+  .pathwaysContent :global(.pathway-workspace-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  .pathwaysContent :global(.pathway-list-panel) {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .pathwaysContent :global(.page-pad.pathways-page) {
+    padding: 22px 16px 44px;
+  }
+
+  .pathwaysContent :global(.pathway-metrics) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 26px;
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill),
+  .pathwaysContent :global(.pathway-metrics .metric-pill:nth-child(4)) {
+    border-right: 1px solid var(--pathway-rule);
+    border-top: 1px solid var(--pathway-rule);
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill:nth-child(odd)) {
+    border-left: 0;
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill:nth-child(even)) {
+    border-right: 0;
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill:first-child),
+  .pathwaysContent :global(.pathway-metrics .metric-pill:nth-child(2)) {
+    border-top: 0;
+  }
+
+  .pathwaysContent :global(.pathway-metrics .metric-pill:last-child) {
+    grid-column: 1 / -1;
+    border-right: 0;
+  }
+
+  .pathwaysContent :global(.pathway-editor) {
+    padding: 22px 16px 28px;
+  }
+
+  .pathwaysContent :global(.form-section-title) {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .pathwaysContent :global(.pathway-field-grid.three),
+  .pathwaysContent :global(.pathway-field-grid.two) {
+    grid-template-columns: 1fr;
+  }
+
+  .pathwaysContent :global(.panel-header-row) {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+}
