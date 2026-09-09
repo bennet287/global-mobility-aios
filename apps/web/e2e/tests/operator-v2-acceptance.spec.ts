@@ -100,12 +100,12 @@ for (const width of [1280, 390]) {
         const activeBox = await active.boundingBox();
         expect(activeBox?.height ?? 0).toBeGreaterThanOrEqual(44);
         expect(activeBox?.width ?? 0).toBeGreaterThanOrEqual(44);
-      } else {
-        await page.screenshot({
-          path: `operator-v2-artifacts/${route.label.toLowerCase()}-desktop.png`,
-          fullPage: true,
-        });
       }
+
+      await page.screenshot({
+        path: `operator-v2-artifacts/${route.label.toLowerCase()}-${width === 390 ? "phone" : "desktop"}.png`,
+        fullPage: true,
+      });
     }
 
     expect(writes).toEqual([]);

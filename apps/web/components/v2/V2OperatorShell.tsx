@@ -43,20 +43,27 @@ export function V2OperatorShell({
   }, []);
 
   return (
-    <div className="aios-v2-root" data-theme={themePreference}>
+    <div className={`aios-v2-root ${shellStyles.operatorFrame}`} data-theme={themePreference} data-product-role="operator">
       <a className="aios-v2-skip-link" href="#aios-v2-operator-main">Skip to main content</a>
 
-      <div className="aios-v2-shell">
-        <aside className={`aios-v2-rail ${shellStyles.shellRail}`} aria-label="AIOS V2 Professional / Operator navigation">
-          <div className="aios-v2-brand">
-            <div className="aios-v2-brand-mark" aria-hidden="true">AI</div>
+      <div className={`aios-v2-shell ${shellStyles.operatorShell}`}>
+        <aside className={`aios-v2-rail ${shellStyles.shellRail} ${shellStyles.operatorRail}`} aria-label="AIOS V2 Professional / Operator navigation">
+          <div className={`aios-v2-brand ${shellStyles.operatorBrand}`}>
+            <div className={`aios-v2-brand-mark ${shellStyles.brandMark}`} aria-hidden="true">AI</div>
             <div className="aios-v2-brand-copy">
               <strong>AIOS</strong>
-              <span>Professional workspace</span>
+              <span>Professional control environment</span>
             </div>
           </div>
 
-          <nav className="aios-v2-nav" aria-label="Professional / Operator">
+          <div className={shellStyles.roleSignal} aria-label="Workspace role">
+            <span>Professional</span>
+            <strong>Operator</strong>
+            <small>Governed case work</small>
+          </div>
+
+          <nav className={`aios-v2-nav ${shellStyles.operatorNav}`} aria-label="Professional / Operator">
+            <span className={shellStyles.navEyebrow} aria-hidden="true">Primary workspaces</span>
             {operatorNavigation.map((item) => {
               const active = item.label === activeItem;
               if (item.enabled && item.href) {
@@ -69,10 +76,13 @@ export function V2OperatorShell({
                     aria-label={item.label}
                     title={item.description}
                   >
-                    <span className="aios-v2-nav-glyph" aria-hidden="true">
+                    <span className={`aios-v2-nav-glyph ${shellStyles.navGlyph}`} aria-hidden="true">
                       <V2Icon name={item.icon} width={18} height={18} />
                     </span>
-                    <span>{item.label}</span>
+                    <span className={shellStyles.navCopy}>
+                      <strong>{item.label}</strong>
+                      <small>{item.description}</small>
+                    </span>
                   </Link>
                 );
               }
@@ -85,26 +95,35 @@ export function V2OperatorShell({
                   key={item.label}
                   title={item.description}
                 >
-                  <span className="aios-v2-nav-glyph" aria-hidden="true">
+                  <span className={`aios-v2-nav-glyph ${shellStyles.navGlyph}`} aria-hidden="true">
                     <V2Icon name={item.icon} width={18} height={18} />
                   </span>
-                  <span>{item.label}</span>
+                  <span className={shellStyles.navCopy}>
+                    <strong>{item.label}</strong>
+                    <small>{item.description}</small>
+                  </span>
                 </span>
               );
             })}
           </nav>
+
+          <div className={shellStyles.railFootnote}>
+            <span>Truth posture</span>
+            <strong>Evidence-aware · human-controlled</strong>
+          </div>
         </aside>
 
-        <main className="aios-v2-main" id="aios-v2-operator-main">
-          <div className={`aios-v2-topline ${shellStyles.topline}`}>
-            <div className="aios-v2-topline-context">
-              <strong>Professional / Operator</strong>
-              <span>AIOS V2 migration</span>
+        <main className={`aios-v2-main ${shellStyles.operatorMain}`} id="aios-v2-operator-main">
+          <div className={`aios-v2-topline ${shellStyles.topline} ${shellStyles.operatorTopline}`}>
+            <div className={`aios-v2-topline-context ${shellStyles.toplineContext}`}>
+              <span>Professional control environment</span>
+              <strong>{activeItem}</strong>
+              <small>Current workspace · governed operational state</small>
             </div>
             <V2ThemeControl value={themePreference} onChange={changeTheme} />
           </div>
 
-          {children}
+          <div className={shellStyles.operatorContent}>{children}</div>
         </main>
       </div>
     </div>
