@@ -1,0 +1,249 @@
+.page {
+  display: grid;
+  gap: 28px;
+  padding: 30px 34px 44px;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(240px, .45fr);
+  gap: 28px;
+  align-items: end;
+  padding: 4px 0 26px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.headerIntro {
+  display: grid;
+  gap: 12px;
+}
+
+.headerIntro > span,
+.sectionHeading span,
+.truthNote span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .62;
+}
+
+.headerIntro h1 {
+  max-width: 850px;
+  margin: 0;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  font-size: clamp(34px, 4vw, 58px);
+  line-height: .98;
+  letter-spacing: -.035em;
+  font-weight: 520;
+}
+
+.headerIntro p {
+  max-width: 760px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  opacity: .72;
+}
+
+.posture {
+  display: grid;
+  gap: 10px;
+  align-content: end;
+  padding-left: 18px;
+  border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.posture strong {
+  font-size: 20px;
+  font-weight: 560;
+}
+
+.posture p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: .65;
+}
+
+.contextSection {
+  display: grid;
+  gap: 18px;
+}
+
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: end;
+}
+
+.sectionHeading h2 {
+  margin: 3px 0 0;
+  font-size: 21px;
+  font-weight: 590;
+  letter-spacing: -.02em;
+}
+
+.sectionHeading p {
+  max-width: 520px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: right;
+  opacity: .62;
+}
+
+.toolLedger {
+  border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.toolRow {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(0, 1.55fr) auto;
+  gap: 24px;
+  align-items: center;
+  min-height: 92px;
+  padding: 18px 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.toolIdentity {
+  display: grid;
+  gap: 7px;
+}
+
+.toolIdentity span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .48;
+}
+
+.toolIdentity h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -.015em;
+}
+
+.toolRow p {
+  margin: 0;
+  max-width: 700px;
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: .7;
+}
+
+.toolRow a {
+  display: inline-flex;
+  min-width: 154px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.toolRow a:hover {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border-color: color-mix(in srgb, currentColor 34%, transparent);
+}
+
+.toolRow a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.truthNote {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: start;
+  margin: 4px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.truthNote p {
+  margin: 0;
+  max-width: 840px;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: .64;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 26px 24px 38px;
+  }
+
+  .header {
+    grid-template-columns: 1fr;
+  }
+
+  .posture {
+    padding-left: 0;
+    padding-top: 16px;
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  .toolRow {
+    grid-template-columns: minmax(160px, .8fr) minmax(0, 1.2fr);
+  }
+
+  .toolRow a {
+    grid-column: 1 / -1;
+    width: max-content;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    gap: 22px;
+    padding: 22px 18px 34px;
+  }
+
+  .headerIntro h1 {
+    font-size: clamp(31px, 11vw, 44px);
+  }
+
+  .sectionHeading {
+    display: grid;
+    align-items: start;
+  }
+
+  .sectionHeading p {
+    text-align: left;
+  }
+
+  .toolRow {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    min-height: 0;
+    padding: 20px 0 22px;
+  }
+
+  .toolRow a {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .truthNote {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolRow a {
+    transition: none;
+  }
+}

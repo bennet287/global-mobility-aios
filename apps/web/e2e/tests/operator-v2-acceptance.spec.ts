@@ -182,6 +182,14 @@ for (const width of [1280, 390]) {
         await expect(page.getByRole("link", { name: "Review" }).first()).toBeVisible();
       }
 
+      if (route.label === "Tools") {
+        await expect(page.getByRole("heading", { name: "Specialist capability, without turning AIOS into a tool drawer." })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Specialist workspaces" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Agent Console" })).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Automation" })).toBeVisible();
+        await expect(page.getByRole("link", { name: "Open workspace" }).first()).toBeVisible();
+      }
+
       const geometry = await page.evaluate(() => {
         const root = document.querySelector<HTMLElement>(".aios-v2-root");
         const main = document.querySelector<HTMLElement>("#aios-v2-operator-main");
