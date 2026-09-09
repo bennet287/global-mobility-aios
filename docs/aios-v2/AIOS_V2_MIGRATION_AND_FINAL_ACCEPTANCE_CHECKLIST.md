@@ -28,9 +28,12 @@ Primary navigation target: **Work · Profiles · Pathways · Evidence · Communi
 
 ## Visual Redesign Convergence — MUST PRECEDE BROAD MOBILITY MIGRATION
 
-Active execution authority:
+Active execution authorities:
 
-`docs/aios-v2/AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md`
+- `docs/aios-v2/AIOS_V2_VISUAL_REDESIGN_EXECUTION_DIRECTIVE_2026-09-09.md`
+- `docs/aios-v2/AIOS_V2_EFFICIENT_PROOF_LADDER.md`
+
+Execution method: **Tier A targeted iteration → visual/UX acceptance → normalized candidate → Tier B exact-head seal proof**. Full Repository Policy + V12 are final seal gates, not the default feedback loop for every visual adjustment. No final quality gate is removed.
 
 - [ ] establish material before/after visual improvement, not only V2 shell wrapping
 - [ ] reject generic SaaS/admin-dashboard composition
@@ -136,9 +139,9 @@ Do not delete legacy surfaces until replacement coverage is proven.
 
 For visible UI/UX phases:
 
-> **implementation → production browser → desktop screenshots → phone screenshots → visual inspection → UX walkthrough → reference-lens review → accessibility/responsive review → automated tests → exact-head CI → merge**
+> **implementation → Tier A targeted checks/browser → desktop screenshots → phone screenshots → visual inspection → UX/reference/accessibility review → iterate → normalize candidate → Tier B exact-head final CI/regression → merge**
 
-A green build or Playwright run cannot by itself close a visible redesign phase.
+A green build or Playwright run cannot by itself close a visible redesign phase. Conversely, full repository CI should not be repeatedly used merely to iterate on visual composition; it belongs at the normalized final-seal boundary unless a governing phase explicitly requires otherwise.
 
 ## Completion law
 
