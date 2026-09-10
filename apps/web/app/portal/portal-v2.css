@@ -1,0 +1,301 @@
+/* Mobility V2 — secure My Case convergence.
+   Presentation only: the protected portal API remains the sole source of case truth. */
+
+.client-portal {
+  --portal-accent: var(--aios-accent, #4f46e5);
+  --portal-accent-strong: var(--aios-accent-strong, #3730a3);
+  --portal-accent-soft: var(--aios-accent-soft, #eef2ff);
+  --portal-surface: var(--aios-surface, #fffdf8);
+  --portal-surface-strong: var(--aios-surface-strong, #ffffff);
+  --portal-surface-muted: var(--aios-surface-muted, #f6f3ee);
+  --portal-text: var(--aios-text, #191817);
+  --portal-muted: var(--aios-text-muted, #68635b);
+  --portal-soft: var(--aios-text-soft, #8d877d);
+  --portal-border: var(--aios-border, #ded8cf);
+  --portal-border-strong: var(--aios-border-strong, #cfc6ba);
+  background:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--portal-accent-soft) 78%, transparent), transparent 31rem),
+    radial-gradient(circle at 88% 3%, color-mix(in srgb, var(--aios-info-soft, #eaf2ff) 68%, transparent), transparent 27rem),
+    linear-gradient(180deg, var(--portal-surface-strong), var(--portal-surface-muted));
+  color: var(--portal-text);
+}
+
+.portal-access-screen {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: clamp(24px, 6vw, 76px) max(20px, env(safe-area-inset-left));
+}
+
+.portal-access-screen::before,
+.portal-access-screen::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--portal-border) 64%, transparent);
+  border-radius: 999px;
+}
+
+.portal-access-screen::before {
+  width: min(72vw, 920px);
+  aspect-ratio: 1;
+  right: -28vw;
+  bottom: -54vw;
+  transform: rotate(-12deg);
+}
+
+.portal-access-screen::after {
+  width: min(38vw, 480px);
+  aspect-ratio: 1;
+  left: -20vw;
+  top: -18vw;
+}
+
+.portal-access-card {
+  width: min(100%, 760px);
+  margin: 0;
+  padding: clamp(28px, 5vw, 56px);
+  border: 1px solid color-mix(in srgb, var(--portal-border-strong) 72%, transparent);
+  border-radius: var(--aios-radius-hero, 28px);
+  background: color-mix(in srgb, var(--portal-surface-strong) 90%, transparent);
+  box-shadow: var(--aios-shadow-hero, 0 30px 80px rgba(30, 26, 18, .12));
+  backdrop-filter: blur(22px);
+}
+
+.portal-access-card .portal-brand {
+  margin-bottom: clamp(32px, 6vw, 64px);
+}
+
+.portal-access-card .portal-mark,
+.portal-loading .portal-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 30%, var(--portal-border));
+  border-radius: 14px;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent-strong);
+  box-shadow: none;
+}
+
+.portal-access-card .portal-eyebrow {
+  color: var(--portal-accent-strong);
+  letter-spacing: .12em;
+}
+
+.portal-access-card h1 {
+  max-width: 650px;
+  margin: 14px 0 18px;
+  color: var(--portal-text);
+  font-size: clamp(2.5rem, 7vw, 5.2rem);
+  font-weight: 650;
+  line-height: .96;
+  letter-spacing: -.06em;
+}
+
+.portal-access-card > p {
+  max-width: 610px;
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: clamp(1rem, 1.6vw, 1.12rem);
+  line-height: 1.7;
+}
+
+.portal-token-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: clamp(28px, 5vw, 42px);
+  padding-top: 24px;
+  border-top: 1px solid var(--portal-border);
+}
+
+.portal-token-form label,
+.portal-token-form .portal-access-error {
+  grid-column: 1 / -1;
+}
+
+.portal-token-form label {
+  color: var(--portal-muted);
+  font-size: var(--aios-text-caption, .75rem);
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.portal-token-form input {
+  min-width: 0;
+  min-height: max(48px, var(--aios-touch-target, 44px));
+  border: 1px solid var(--portal-border-strong);
+  border-radius: var(--aios-radius-control, 12px);
+  background: var(--portal-surface);
+  color: var(--portal-text);
+}
+
+.portal-token-form input:focus-visible {
+  border-color: var(--portal-accent);
+  outline: 3px solid color-mix(in srgb, var(--portal-accent) 22%, transparent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.portal-token-form button[type="submit"] {
+  min-height: max(48px, var(--aios-touch-target, 44px));
+  border: 0;
+  border-radius: var(--aios-radius-control, 12px);
+  background: var(--portal-accent-strong);
+  color: white;
+  font-weight: 760;
+  box-shadow: var(--aios-shadow-control, 0 8px 22px rgba(30, 26, 18, .09));
+}
+
+.portal-token-form button[type="submit"]:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+
+.portal-trust-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--portal-border);
+  color: var(--portal-soft);
+}
+
+.portal-trust-row span {
+  padding: 4px 16px;
+  border-left: 1px solid var(--portal-border);
+  font-size: var(--aios-text-caption, .75rem);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.portal-trust-row span:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.portal-trust-row span:last-child {
+  padding-right: 0;
+}
+
+/* Authenticated workspace: visually converge existing protected content without changing its data model. */
+.portal-topbar {
+  border-bottom-color: var(--portal-border);
+  background: color-mix(in srgb, var(--portal-surface-strong) 86%, transparent);
+  backdrop-filter: blur(20px);
+}
+
+.portal-canvas {
+  width: min(100%, var(--aios-content-wide, 1440px));
+  margin-inline: auto;
+}
+
+.portal-hero,
+.portal-plan-section,
+.portal-progress,
+.portal-documents,
+.portal-summary-card {
+  border-color: var(--portal-border);
+}
+
+.portal-hero {
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--portal-accent-soft) 74%, transparent), transparent 34%),
+    linear-gradient(145deg, var(--portal-surface-strong), var(--portal-surface));
+}
+
+.portal-eyebrow,
+.portal-plan-status,
+.portal-status-pill {
+  color: var(--portal-accent-strong);
+}
+
+.portal-plan-boundary {
+  border-color: color-mix(in srgb, var(--portal-accent) 28%, var(--portal-border));
+  background: color-mix(in srgb, var(--portal-accent-soft) 48%, var(--portal-surface));
+}
+
+.portal-document-row,
+.portal-plan-card,
+.portal-summary-card {
+  background: color-mix(in srgb, var(--portal-surface-strong) 92%, transparent);
+}
+
+@media (max-width: 680px) {
+  .portal-access-screen {
+    align-items: start;
+    padding: 16px;
+  }
+
+  .portal-access-card {
+    margin-top: max(10px, env(safe-area-inset-top));
+    padding: 26px 20px;
+    border-radius: 22px;
+  }
+
+  .portal-access-card .portal-brand {
+    margin-bottom: 38px;
+  }
+
+  .portal-access-card h1 {
+    font-size: clamp(2.35rem, 13vw, 3.8rem);
+  }
+
+  .portal-token-form {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-token-form label,
+  .portal-token-form .portal-access-error {
+    grid-column: auto;
+  }
+
+  .portal-trust-row {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-trust-row span,
+  .portal-trust-row span:first-child,
+  .portal-trust-row span:last-child {
+    padding: 10px 0;
+    border: 0;
+    border-top: 1px solid var(--portal-border);
+    text-align: left;
+  }
+
+  .portal-trust-row span:first-child {
+    border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-portal *,
+  .client-portal *::before,
+  .client-portal *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .portal-access-card,
+  .portal-token-form input,
+  .portal-token-form button[type="submit"],
+  .portal-plan-boundary {
+    border: 1px solid CanvasText;
+  }
+
+  .portal-token-form button[type="submit"] {
+    background: ButtonFace;
+    color: ButtonText;
+  }
+}

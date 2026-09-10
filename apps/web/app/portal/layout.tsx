@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-
+import "./portal-v2.css";
 
 export const metadata: Metadata = {
   title: "GMAI | Private Client Workspace",
@@ -19,9 +19,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#0d6b53",
+  themeColor: "#4338ca",
 };
 
 const swRegistrationScript = `
