@@ -1,0 +1,70 @@
+name: Mobility My Case Browser Proof
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/app/portal/**"
+      - "apps/web/components/ClientPortalPage.tsx"
+      - "apps/web/e2e/tests/mobility-my-case-visual.spec.ts"
+      - ".github/workflows/mobility-my-case-browser-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  mobility-my-case-browser:
+    name: Mobility My Case targeted browser proof
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-mobility
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/web/e2e/package-lock.json
+
+      - name: Install and build frontend
+        working-directory: apps/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Chromium proof dependencies
+        working-directory: apps/web/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Mobility My Case targeted visible proof
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/mobility-my-case-visual.spec.ts --project=chromium
+
+      - name: Upload Mobility My Case visible review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobility-my-case-visible-review
+          path: apps/web/e2e/mobility-my-case-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Mobility My Case failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobility-my-case-browser-failure-diagnostics
+          path: apps/web/e2e/test-results
+          if-no-files-found: error
+          retention-days: 7
