@@ -11,14 +11,14 @@ import styles from "./MyMobilityV2.module.css";
 const journeyStages = [
   { title: "Case", detail: "See where your case stands and what your mobility team is waiting for.", meta: "Current stage · Protected in My Case" },
   { title: "Pathway", detail: "Understand the route being assessed and the status of the guidance behind it.", meta: "Reviewed guidance" },
-  { title: "Documents", detail: "Know when evidence or a document request needs your attention.", meta: "Evidence requests · Client-safe surface pending" },
+  { title: "Documents", detail: "Know when evidence or a document request needs your attention.", meta: "Evidence requests · Secure client-safe document room available" },
   { title: "Timeline", detail: "Follow meaningful milestones without internal operational noise.", meta: "Client-safe surface pending" },
 ] as const;
 
 const nextActionGuidance = [
   "Open My Case when you need protected personal records or reviewed case status.",
   "Use this overview for orientation only; it intentionally does not expose private case data.",
-  "Documents, Timeline and Messages stay unavailable until their client-safe V2 destinations are accepted.",
+  "Documents is available through secure access; Timeline and Messages stay unavailable until their client-safe V2 destinations are accepted.",
 ] as const;
 
 export default function MyMobilityPage() {

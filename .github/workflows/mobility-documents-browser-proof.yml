@@ -1,0 +1,71 @@
+name: Mobility Documents Browser Proof
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/app/portal/documents/**"
+      - "apps/web/lib/v2/mobility-navigation.ts"
+      - "apps/web/e2e/tests/mobility-documents-visual.spec.ts"
+      - "apps/web/e2e/tests/mobility-overview-visual.spec.ts"
+      - ".github/workflows/mobility-documents-browser-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  mobility-documents-browser:
+    name: Mobility Documents targeted browser proof
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_AUTH_ALLOW_HEADER_ROLE: "true"
+      NEXT_PUBLIC_GMAI_ROLE: admin
+      NEXT_PUBLIC_GMAI_USER: frontend-mobility
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/web/e2e/package-lock.json
+
+      - name: Install and build frontend
+        working-directory: apps/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Chromium proof dependencies
+        working-directory: apps/web/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Mobility Documents targeted visible proof
+        working-directory: apps/web/e2e
+        run: npx playwright test tests/mobility-documents-visual.spec.ts --project=chromium
+
+      - name: Upload Mobility Documents visible review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobility-documents-visible-review
+          path: apps/web/e2e/mobility-documents-artifacts
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload Mobility Documents failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobility-documents-browser-failure-diagnostics
+          path: apps/web/e2e/test-results
+          if-no-files-found: error
+          retention-days: 7
