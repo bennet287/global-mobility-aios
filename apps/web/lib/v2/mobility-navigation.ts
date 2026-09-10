@@ -35,9 +35,9 @@ export const mobilityNavigation: readonly MobilityNavigationItem[] = Object.free
   {
     label: "Timeline",
     icon: "history",
-    href: null,
-    enabled: false,
-    description: "Client-safe milestones, changes and waiting states",
+    href: "/portal/timeline",
+    enabled: true,
+    description: "Client-safe milestones, dated records and waiting states",
   },
   {
     label: "Messages",

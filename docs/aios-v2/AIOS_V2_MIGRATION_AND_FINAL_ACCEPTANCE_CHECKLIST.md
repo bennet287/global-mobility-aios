@@ -1,7 +1,7 @@
 # AIOS V2 Migration and Final Acceptance Checklist
 
-**Baseline date:** 2026-09-08
-**Current sealed redesign base:** `5259892dbf1fa1e9cdff238deb0492d4e846eaa2` (actual merge SHA of PR #111)
+**Baseline date:** 2026-09-10
+**Current sealed redesign base:** `d0b70b5dc92b9f877cfb677905ae6ae8b5797900` (actual merge SHA of PR #131)
 
 This checklist prevents structural migration or green CI from being mistaken for whole-product V2 completion.
 
@@ -68,13 +68,13 @@ Execution method: **Tier A targeted iteration → visual/UX acceptance → norma
 
 Primary navigation target: **Overview · My Case · Documents · Timeline · Messages**.
 
-Phase 11A navigation foundation is sealed at actual merge SHA `5259892dbf1fa1e9cdff238deb0492d4e846eaa2`, but **broad Mobility implementation resumes only after Visual Redesign Convergence is accepted**.
+Phase 11A navigation foundation was sealed at actual merge SHA `5259892dbf1fa1e9cdff238deb0492d4e846eaa2`. Visual Redesign Convergence then established the presentation language used by the accepted Overview, My Case and Documents surfaces through PR #131.
 
 - [x] Phase 11A five-domain navigation foundation sealed
-- [ ] Mobility shell built on accepted converged V2 visual language
-- [ ] Overview migrated
-- [ ] My Case secure portal integration accepted
-- [ ] Documents client-safe surface accepted
+- [x] Mobility shell built on accepted converged V2 visual language
+- [x] Overview migrated
+- [x] My Case secure portal integration accepted
+- [x] Documents client-safe surface accepted
 - [ ] Timeline accepted
 - [ ] Messages accepted
 - [ ] internal governance terminology does not leak unless needed for transparency
