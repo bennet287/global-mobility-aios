@@ -1,0 +1,463 @@
+.page {
+  min-height: 100svh;
+  padding: clamp(20px, 4vw, 56px);
+  background:
+    radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--aios-info-soft) 64%, transparent), transparent 28rem),
+    linear-gradient(180deg, var(--aios-surface-strong), var(--aios-surface-muted));
+  color: var(--aios-text);
+}
+
+.loading,
+.accessCard,
+.header,
+.summary,
+.communicationGrid,
+.history,
+.truthBoundary {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+}
+
+.loading {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  color: var(--aios-text-muted);
+}
+
+.accessCard {
+  margin-top: clamp(18px, 8vh, 84px);
+  padding: clamp(26px, 5vw, 58px);
+  border: 1px solid var(--aios-border);
+  border-radius: var(--aios-radius-hero);
+  background: color-mix(in srgb, var(--aios-surface-strong) 92%, transparent);
+  box-shadow: var(--aios-shadow-hero);
+}
+
+.topline,
+.header,
+.actions,
+.sectionHeading {
+  display: flex;
+  align-items: center;
+}
+
+.topline,
+.header,
+.sectionHeading {
+  justify-content: space-between;
+  gap: var(--aios-space-6);
+}
+
+.topline {
+  margin-bottom: clamp(44px, 7vw, 84px);
+  color: var(--aios-text-muted);
+  font-size: var(--aios-text-caption);
+}
+
+.eyebrow,
+.summary span,
+.contactState span {
+  color: var(--aios-accent-strong);
+  font-size: var(--aios-text-caption);
+  font-weight: 760;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.accessCard h1,
+.header h1 {
+  margin: var(--aios-space-3) 0 var(--aios-space-4);
+  max-width: 900px;
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  line-height: .98;
+  letter-spacing: -.055em;
+}
+
+.accessCard > p,
+.header p,
+.sectionHeading p,
+.guidanceCard > p,
+.contactCard > p,
+.note span,
+.contactState small,
+.unavailableState p,
+.truthBoundary span {
+  color: var(--aios-text-muted);
+  line-height: 1.6;
+}
+
+.accessCard > p {
+  max-width: var(--aios-reading-max);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: var(--aios-space-6);
+  padding-top: var(--aios-space-5);
+  border-top: 1px solid var(--aios-border);
+}
+
+.form label,
+.error {
+  grid-column: 1 / -1;
+}
+
+.form label {
+  color: var(--aios-text-muted);
+  font-size: var(--aios-text-caption);
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.form input,
+.form button,
+.actions a,
+.actions button,
+.actions > span {
+  min-height: var(--aios-touch-target);
+  border-radius: var(--aios-radius-control);
+}
+
+.form input {
+  min-width: 0;
+  padding-inline: 14px;
+  border: 1px solid var(--aios-border-strong);
+  background: var(--aios-surface);
+  color: var(--aios-text);
+}
+
+.form button,
+.actions button {
+  border: 0;
+  padding-inline: 18px;
+  background: var(--aios-accent-strong);
+  color: #fff;
+  font-weight: 750;
+}
+
+.form button:disabled {
+  opacity: .48;
+}
+
+.error {
+  color: var(--aios-danger-strong);
+}
+
+.boundary,
+.truthBoundary {
+  margin-top: var(--aios-space-5);
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--aios-accent) 30%, var(--aios-border));
+  border-radius: var(--aios-radius-card);
+  background: color-mix(in srgb, var(--aios-accent-soft) 42%, var(--aios-surface));
+}
+
+.boundary strong,
+.boundary span,
+.truthBoundary strong,
+.truthBoundary span {
+  display: block;
+}
+
+.boundary span,
+.truthBoundary span {
+  margin-top: 5px;
+}
+
+.header {
+  align-items: flex-end;
+  padding-top: 12px;
+  padding-bottom: var(--aios-space-6);
+}
+
+.header p {
+  margin: 0;
+}
+
+.actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.actions a,
+.actions button,
+.actions > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 14px;
+  border: 1px solid var(--aios-border);
+}
+
+.actions a {
+  background: var(--aios-surface);
+  color: var(--aios-text);
+}
+
+.actions > span[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--aios-accent) 38%, var(--aios-border));
+  background: var(--aios-accent-soft);
+  color: var(--aios-accent-strong);
+  font-weight: 760;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1.25fr .75fr .75fr;
+  border-block: 1px solid var(--aios-border);
+}
+
+.summary > article {
+  min-width: 0;
+  padding: var(--aios-space-5);
+  border-right: 1px solid var(--aios-border);
+}
+
+.summary > article:last-child {
+  border-right: 0;
+}
+
+.summary span {
+  display: block;
+  color: var(--aios-text-soft);
+}
+
+.summary strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(1.15rem, 2.2vw, 1.8rem);
+  font-weight: 620;
+  overflow-wrap: anywhere;
+}
+
+.communicationGrid {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr);
+  align-items: start;
+  gap: var(--aios-space-5);
+  margin-top: var(--aios-space-5);
+}
+
+.guidanceCard,
+.contactCard,
+.history {
+  min-width: 0;
+  padding: clamp(22px, 4vw, 38px);
+  border: 1px solid var(--aios-border);
+  border-radius: var(--aios-radius-panel);
+  background: color-mix(in srgb, var(--aios-surface-strong) 94%, transparent);
+  box-shadow: var(--aios-shadow-panel);
+}
+
+.guidanceCard h2,
+.contactCard h2,
+.history h2 {
+  margin: 10px 0 0;
+  font-size: clamp(1.55rem, 3vw, 2.5rem);
+  letter-spacing: -.035em;
+}
+
+.guidance {
+  margin: var(--aios-space-6) 0 0;
+  font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+  color: var(--aios-text) !important;
+}
+
+.note {
+  margin-top: var(--aios-space-6);
+  padding-top: var(--aios-space-5);
+  border-top: 1px solid var(--aios-border);
+}
+
+.note strong,
+.note span,
+.contactState strong,
+.contactState small {
+  display: block;
+}
+
+.note span {
+  margin-top: 6px;
+}
+
+.contactCard {
+  background:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--aios-accent) 26%, transparent), transparent 18rem),
+    color-mix(in srgb, var(--aios-text) 92%, #10131b);
+  color: #fff;
+}
+
+.contactCard .eyebrow {
+  color: color-mix(in srgb, #fff 74%, var(--aios-accent-soft));
+}
+
+.contactCard > p {
+  color: color-mix(in srgb, #fff 72%, transparent);
+}
+
+.contactState {
+  margin-top: var(--aios-space-6);
+  padding: var(--aios-space-5);
+  border: 1px solid color-mix(in srgb, #fff 18%, transparent);
+  border-radius: var(--aios-radius-card);
+  background: color-mix(in srgb, #fff 7%, transparent);
+}
+
+.contactState span {
+  color: color-mix(in srgb, #fff 60%, transparent);
+}
+
+.contactState strong {
+  margin-top: 8px;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+}
+
+.contactState small {
+  margin-top: 6px;
+  color: color-mix(in srgb, #fff 68%, transparent);
+}
+
+.history {
+  margin-top: var(--aios-space-5);
+}
+
+.sectionHeading {
+  align-items: flex-end;
+}
+
+.sectionHeading p {
+  max-width: 430px;
+  margin: 0;
+}
+
+.unavailableState {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--aios-space-5);
+  align-items: start;
+  margin-top: var(--aios-space-6);
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px dashed var(--aios-border-strong);
+  border-radius: var(--aios-radius-card);
+  background: var(--aios-surface-muted);
+}
+
+.unavailableMark {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--aios-accent-soft);
+  color: var(--aios-accent-strong);
+  font-weight: 800;
+}
+
+.unavailableState strong {
+  display: block;
+  font-size: 1.08rem;
+}
+
+.unavailableState p {
+  margin: 6px 0 0;
+}
+
+.form input:focus-visible,
+.form button:focus-visible,
+.actions a:focus-visible,
+.actions button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--aios-accent) 70%, transparent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .header,
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .summary,
+  .communicationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary > article {
+    border-right: 0;
+    border-bottom: 1px solid var(--aios-border);
+  }
+
+  .summary > article:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    padding: 18px 14px 32px;
+  }
+
+  .accessCard,
+  .guidanceCard,
+  .contactCard,
+  .history {
+    padding: 22px 18px;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .form label,
+  .error {
+    grid-column: auto;
+  }
+
+  .form button,
+  .form input,
+  .actions a,
+  .actions button,
+  .actions > span {
+    width: 100%;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .unavailableState {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .accessCard,
+  .guidanceCard,
+  .contactCard,
+  .history,
+  .truthBoundary,
+  .unavailableState,
+  .contactState {
+    forced-color-adjust: auto;
+  }
+}

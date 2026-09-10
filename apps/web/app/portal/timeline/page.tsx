@@ -256,7 +256,7 @@ function MobilityTimelineContent() {
           <Link href="/portal">My Case</Link>
           <Link href="/portal/documents">Documents</Link>
           <span aria-current="page">Timeline</span>
-          <span aria-disabled="true">Messages pending</span>
+          <Link href="/portal/messages">Messages</Link>
           <button type="button" onClick={closeSession}>Close secure session</button>
         </nav>
       </header>

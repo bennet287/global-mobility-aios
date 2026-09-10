@@ -88,7 +88,7 @@ test("Mobility navigation locks the five-domain case-first model and fails close
   assert.equal(mobilityNavigation.find((item) => item.label === "My Case")?.href, "/portal");
   assert.equal(mobilityNavigation.find((item) => item.label === "Documents")?.href, "/portal/documents");
   assert.equal(mobilityNavigation.find((item) => item.label === "Timeline")?.href, "/portal/timeline");
-  assert.equal(mobilityNavigation.find((item) => item.label === "Messages")?.href, null);
+  assert.equal(mobilityNavigation.find((item) => item.label === "Messages")?.href, "/portal/messages");
 });
 
 test("Operator specialist routes stay contextual and map to one primary conceptual home", async () => {

@@ -21,8 +21,10 @@ async function prepare(page: Page) {
   const navigation = page.getByRole("navigation", { name: "My Mobility V2 navigation" });
   await expect(navigation.getByRole("link", { name: /Documents/i })).toHaveAttribute("href", "/portal/documents");
   await expect(navigation.getByRole("link", { name: /Timeline/i })).toHaveAttribute("href", "/portal/timeline");
-  await expect(navigation.getByText("Messages", { exact: true })).toBeVisible();
-  await expect(navigation.locator('[aria-disabled="true"]')).toHaveCount(1);
+  await expect(navigation.getByRole("link", { name: /Messages/i })).toHaveAttribute("href", "/portal/messages");
+  await expect(navigation.locator('[aria-disabled="true"]')).toHaveCount(0);
+  await expect(page.getByText(/Secure client-safe communication surface available/)).toBeVisible();
+  await expect(page.getByText(/communication history stays explicitly unavailable/i)).toBeVisible();
 }
 
 test("Mobility Overview desktop visible-review proof", async ({ page }) => {

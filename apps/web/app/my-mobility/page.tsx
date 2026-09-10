@@ -13,12 +13,13 @@ const journeyStages = [
   { title: "Pathway", detail: "Understand the route being assessed and the status of the guidance behind it.", meta: "Reviewed guidance" },
   { title: "Documents", detail: "Know when evidence or a document request needs your attention.", meta: "Evidence requests · Secure client-safe document room available" },
   { title: "Timeline", detail: "Follow meaningful milestones without internal operational noise.", meta: "Secure client-safe timeline available" },
+  { title: "Messages", detail: "See current communication guidance without exposing internal drafts or inventing delivery history.", meta: "Secure client-safe communication surface available" },
 ] as const;
 
 const nextActionGuidance = [
   "Open My Case when you need protected personal records or reviewed case status.",
   "Use this overview for orientation only; it intentionally does not expose private case data.",
-  "Documents and Timeline are available through secure access; Messages stays unavailable until its client-safe V2 destination is accepted.",
+  "Documents, Timeline and Messages are available through secure access; communication history stays explicitly unavailable until a client-safe delivered-message record exists.",
 ] as const;
 
 export default function MyMobilityPage() {
@@ -92,7 +93,7 @@ export default function MyMobilityPage() {
             <div className={styles.stageTrack}>
               {journeyStages.map((stage, index) => (
                 <div className={styles.stage} key={stage.title}>
-                  <span className={styles.stageIndex} aria-hidden="true">0{index + 1}</span>
+                  <span className={styles.stageIndex} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                   <div>
                     <strong>{stage.title}</strong>
                     <p>{stage.detail}</p>
