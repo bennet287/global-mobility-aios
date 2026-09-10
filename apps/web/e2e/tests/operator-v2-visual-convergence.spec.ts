@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 const ARTIFACT_DIR = "operator-v2-artifacts";
+const workspaceLabels = ["Work", "Profiles", "Pathways", "Evidence", "Communication", "Tools"] as const;
 
 async function assertOperatorSurface(page: import("@playwright/test").Page) {
   await expect(page.getByRole("heading", { level: 1, name: "Run mobility work from one governed command surface." })).toBeVisible();
@@ -9,7 +10,7 @@ async function assertOperatorSurface(page: import("@playwright/test").Page) {
   await expect(page.getByText("Human-controlled.", { exact: false })).toBeVisible();
 
   const navigation = page.getByRole("navigation", { name: "Professional / Operator" });
-  for (const label of ["Work", "Profiles", "Pathways", "Evidence", "Communication", "Tools"]) {
+  for (const label of workspaceLabels) {
     await expect(navigation.getByLabel(label, { exact: true })).toBeVisible();
   }
 
@@ -20,7 +21,9 @@ async function assertOperatorSurface(page: import("@playwright/test").Page) {
   await expect(page.getByText("This surface changes organization, hierarchy, and discovery only.", { exact: false })).toBeVisible();
 
   expect(await page.getByText("Available", { exact: true }).count()).toBe(6);
-  expect(await page.getByRole("link", { name: /^Open / }).count()).toBe(6);
+  for (const label of workspaceLabels) {
+    await expect(page.getByRole("link", { name: `Open ${label}`, exact: true })).toBeVisible();
+  }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth && document.body.scrollWidth <= window.innerWidth)).toBe(true);
 }
 
