@@ -28,9 +28,9 @@ export const mobilityNavigation: readonly MobilityNavigationItem[] = Object.free
   {
     label: "Documents",
     icon: "evidence",
-    href: null,
-    enabled: false,
-    description: "Client-safe document requests and evidence status",
+    href: "/portal/documents",
+    enabled: true,
+    description: "Secure client-safe document room and evidence status",
   },
   {
     label: "Timeline",
