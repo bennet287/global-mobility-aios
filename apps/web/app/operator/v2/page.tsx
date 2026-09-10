@@ -57,7 +57,7 @@ export default function OperatorV2MigrationPage() {
               <span>Primary workspaces</span>
               <h2 id="operator-primary-heading">The professional operating model</h2>
             </div>
-            <p>Six clear homes. Existing governed workflows stay authoritative beneath them.</p>
+            <p>Work, Profiles, Pathways, Evidence, Communication and Tools remain the six clear homes. Existing governed workflows stay authoritative beneath them.</p>
           </div>
 
           <div className={styles.primaryGrid}>
