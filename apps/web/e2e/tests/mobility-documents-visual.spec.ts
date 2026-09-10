@@ -35,11 +35,23 @@ const dashboardFixture = {
 };
 
 async function mockDashboard(page: Page) {
-  await page.route("**/api/v1/public/client-portal/dashboard", async (route) => {
+  await page.route("**/api/v1/public/client-portal/dashboard*", async (route) => {
+    const request = route.request();
+    const corsHeaders = {
+      "access-control-allow-origin": "http://127.0.0.1:3000",
+      "access-control-allow-methods": "GET, OPTIONS",
+      "access-control-allow-headers": "X-GMAI-Portal-Token, X-GMAI-Portal-Device, Content-Type",
+    };
+
+    if (request.method() === "OPTIONS") {
+      await route.fulfill({ status: 204, headers: corsHeaders });
+      return;
+    }
+
     await route.fulfill({
       status: 200,
       headers: {
-        "access-control-allow-origin": "http://127.0.0.1:3000",
+        ...corsHeaders,
         "content-type": "application/json",
       },
       body: JSON.stringify(dashboardFixture),
