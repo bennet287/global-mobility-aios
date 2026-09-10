@@ -14,38 +14,67 @@ const contextualByHome = operatorContextualDestinations.reduce<Record<string, ty
   return groups;
 }, {});
 
+const enabledCount = enabledPrimary.length;
+const specialistCount = operatorContextualDestinations.length;
+
 export default function OperatorV2MigrationPage() {
   return (
     <V2OperatorShell activeItem="Work">
       <div className={styles.page}>
-        <header className={styles.header}>
-          <span>Phase 10 · Professional / Operator migration</span>
-          <h1>One professional workspace, organized by work rather than module topology.</h1>
-          <p>
-            This migration shell establishes the accepted Work, Profiles, Pathways, Evidence, Communication and Tools mental model while the existing governed workflows remain authoritative and reachable.
-          </p>
-        </header>
+        <section className={styles.hero} aria-labelledby="operator-home-title">
+          <div className={styles.heroCopy}>
+            <span className={styles.eyebrow}>Professional operating environment</span>
+            <h1 id="operator-home-title">Run mobility work from one governed command surface.</h1>
+            <p>
+              Move between case work, client context, pathways, evidence, communication, and specialist tools without losing the review gates or authority boundaries that make the underlying workflows trustworthy.
+            </p>
+            <div className={styles.heroActions}>
+              <Link className={styles.primaryAction} href="/">Open current Work Home</Link>
+              <Link className={styles.secondaryAction} href="/operator/v2/tools">Browse specialist tools</Link>
+            </div>
+          </div>
+
+          <aside className={styles.postureCard} aria-label="Operator workspace posture">
+            <span>Operating posture</span>
+            <strong>Evidence-aware.<br />Human-controlled.</strong>
+            <p>No case state, authority outcome, or mutation semantics are changed by this convergence layer.</p>
+            <div className={styles.postureMetrics}>
+              <div>
+                <strong>{enabledCount}</strong>
+                <span>primary workspaces</span>
+              </div>
+              <div>
+                <strong>{specialistCount}</strong>
+                <span>specialist routes</span>
+              </div>
+            </div>
+          </aside>
+        </section>
 
         <section className={styles.primarySection} aria-labelledby="operator-primary-heading">
           <div className={styles.sectionHeading}>
             <div>
-              <span>Primary destinations</span>
-              <h2 id="operator-primary-heading">The six-domain professional model</h2>
+              <span>Primary workspaces</span>
+              <h2 id="operator-primary-heading">The professional operating model</h2>
             </div>
-            <Link className={styles.liveWorkLink} href="/">Open current Work Home</Link>
+            <p>Six clear homes. Existing governed workflows stay authoritative beneath them.</p>
           </div>
 
-          <div className={styles.primaryList}>
-            {operatorNavigation.map((item) => (
-              <article className={styles.primaryRow} key={item.label} data-enabled={item.enabled ? "true" : "false"}>
-                <div>
-                  <strong>{item.label}</strong>
+          <div className={styles.primaryGrid}>
+            {operatorNavigation.map((item, index) => (
+              <article className={styles.primaryCard} key={item.label} data-enabled={item.enabled ? "true" : "false"}>
+                <div className={styles.cardTopline}>
+                  <span className={styles.cardIndex}>{String(index + 1).padStart(2, "0")}</span>
+                  <span className={styles.cardState}>{item.enabled ? "Available" : "Migration pending"}</span>
+                </div>
+                <div className={styles.cardCopy}>
+                  <h3>{item.label}</h3>
                   <p>{item.description}</p>
                 </div>
                 {item.enabled && item.href ? (
-                  <Link href={item.href}>Open</Link>
+                  <Link href={item.href} aria-label={`Open ${item.label}`}>Enter workspace <span aria-hidden="true">↗</span></Link>
                 ) : (
-                  <span aria-label={`${item.label} is not yet available as a consolidated workspace`}>Migration pending</span>
+                  <span aria-label={`${item.label} is not yet available as a consolidated workspace`}>Consolidation pending</span>
                 )}
               </article>
             ))}
@@ -55,9 +84,10 @@ export default function OperatorV2MigrationPage() {
         <section className={styles.contextSection} aria-labelledby="operator-context-heading">
           <div className={styles.sectionHeading}>
             <div>
-              <span>Contextual capability</span>
-              <h2 id="operator-context-heading">Existing specialist workflows remain reachable.</h2>
+              <span>Specialist capability map</span>
+              <h2 id="operator-context-heading">Reach specialist workflows without exposing module topology.</h2>
             </div>
+            <p>Capability is grouped by the professional context in which it is used.</p>
           </div>
 
           <div className={styles.contextGrid}>
@@ -66,11 +96,15 @@ export default function OperatorV2MigrationPage() {
               if (!routes.length) return null;
               return (
                 <section className={styles.contextGroup} key={home.label} aria-label={`${home.label} contextual workflows`}>
-                  <h3>{home.label}</h3>
-                  <div>
+                  <div className={styles.contextHeading}>
+                    <h3>{home.label}</h3>
+                    <span>{routes.length} routes</span>
+                  </div>
+                  <div className={styles.contextLinks}>
                     {routes.map((route) => (
                       <Link href={route.href} key={route.href} title={route.description}>
-                        {route.label}
+                        <span>{route.label}</span>
+                        <small>{route.description}</small>
                       </Link>
                     ))}
                   </div>
@@ -79,11 +113,15 @@ export default function OperatorV2MigrationPage() {
             })}
 
             <section className={styles.contextGroup} aria-label="Tools contextual workflows">
-              <h3>Tools</h3>
-              <div>
+              <div className={styles.contextHeading}>
+                <h3>Tools</h3>
+                <span>{(contextualByHome.Tools || []).length} routes</span>
+              </div>
+              <div className={styles.contextLinks}>
                 {(contextualByHome.Tools || []).map((route) => (
                   <Link href={route.href} key={route.href} title={route.description}>
-                    {route.label}
+                    <span>{route.label}</span>
+                    <small>{route.description}</small>
                   </Link>
                 ))}
               </div>
@@ -91,9 +129,12 @@ export default function OperatorV2MigrationPage() {
           </div>
         </section>
 
-        <p className={styles.truthNote}>
-          Navigation changes organization and discovery only. Existing workflow data, authority boundaries, review gates and mutation semantics remain unchanged until their individual migration slices are accepted.
-        </p>
+        <footer className={styles.truthNote}>
+          <span>Convergence boundary</span>
+          <p>
+            This surface changes organization, hierarchy, and discovery only. Existing workflow data, authority boundaries, review gates, evidence semantics, and mutations remain unchanged until their individual migration slices are accepted.
+          </p>
+        </footer>
       </div>
     </V2OperatorShell>
   );
