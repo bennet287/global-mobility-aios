@@ -13,9 +13,9 @@ async function prepareSecureEntry(page: Page) {
   await expect(page.getByLabel("Access token")).toBeVisible();
   await expect(page.getByRole("button", { name: "Open secure workspace" })).toBeDisabled();
   await expect(page.getByText("No password, public case search, or personal-data lookup is used.")).toBeVisible();
-  await expect(page.getByText("Encrypted transport")).toBeVisible();
-  await expect(page.getByText("Expiring access")).toBeVisible();
-  await expect(page.getByText("Audited activity")).toBeVisible();
+  await expect(page.getByText("Encrypted transport", { exact: true })).toBeVisible();
+  await expect(page.getByText("Expiring access", { exact: true })).toBeVisible();
+  await expect(page.getByText("Audited activity", { exact: true })).toBeVisible();
 }
 
 test("Mobility My Case secure entry desktop visible-review proof", async ({ page }) => {
