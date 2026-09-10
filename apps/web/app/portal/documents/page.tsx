@@ -166,6 +166,7 @@ function MobilityDocumentsContent() {
           <Link href="/my-mobility">Overview</Link>
           <Link href="/portal">My Case</Link>
           <Link href="/portal/timeline">Timeline</Link>
+          <Link href="/portal/messages">Messages</Link>
           <button type="button" onClick={closeSession}>Close secure session</button>
         </nav>
       </header>

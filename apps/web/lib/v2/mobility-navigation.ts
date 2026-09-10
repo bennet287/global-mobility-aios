@@ -42,8 +42,8 @@ export const mobilityNavigation: readonly MobilityNavigationItem[] = Object.free
   {
     label: "Messages",
     icon: "communication",
-    href: null,
-    enabled: false,
-    description: "Governed client communication without internal operational jargon",
+    href: "/portal/messages",
+    enabled: true,
+    description: "Secure communication guidance with explicit delivered-history boundaries",
   },
 ]);

@@ -1,7 +1,7 @@
 # AIOS V2 Migration and Final Acceptance Checklist
 
 **Baseline date:** 2026-09-10
-**Current sealed redesign base:** `d0b70b5dc92b9f877cfb677905ae6ae8b5797900` (actual merge SHA of PR #131)
+**Current sealed redesign base:** `e3fd0b162bff3ab725f402fedbbb0b5ce8efe7ff` (actual merge SHA of PR #135)
 
 This checklist prevents structural migration or green CI from being mistaken for whole-product V2 completion.
 
@@ -68,23 +68,23 @@ Execution method: **Tier A targeted iteration → visual/UX acceptance → norma
 
 Primary navigation target: **Overview · My Case · Documents · Timeline · Messages**.
 
-Phase 11A navigation foundation was sealed at actual merge SHA `5259892dbf1fa1e9cdff238deb0492d4e846eaa2`. Visual Redesign Convergence then established the presentation language used by the accepted Overview, My Case and Documents surfaces through PR #131.
+Phase 11A navigation foundation was sealed at actual merge SHA `5259892dbf1fa1e9cdff238deb0492d4e846eaa2`. Visual Redesign Convergence then established the presentation language used by the accepted Overview, My Case and Documents surfaces through PR #131; Timeline was accepted and merged in PR #135 at `e3fd0b162bff3ab725f402fedbbb0b5ce8efe7ff`. Messages desktop and phone visible-review artifacts were inspected on exact normalized candidate `d765914244bff4d13e5eb7477252df6b6fd1da14` after all targeted Mobility browser proofs and V12 passed; this checklist update becomes part of the final Messages candidate and therefore requires a fresh exact-head seal before merge.
 
 - [x] Phase 11A five-domain navigation foundation sealed
 - [x] Mobility shell built on accepted converged V2 visual language
 - [x] Overview migrated
 - [x] My Case secure portal integration accepted
 - [x] Documents client-safe surface accepted
-- [ ] Timeline accepted
-- [ ] Messages accepted
+- [x] Timeline accepted
+- [x] Messages accepted
 - [ ] internal governance terminology does not leak unless needed for transparency
 - [ ] recommendations remain visibly distinct from official/human-authoritative outcomes
 - [ ] document/evidence status remains truthful without unnecessary internals
-- [ ] mobile-first composition reviewed as a distinct mode, not scaled desktop
+- [x] mobile-first composition reviewed as a distinct mode, not scaled desktop
 - [ ] task completion, next action, uncertainty and waiting states are explicit
-- [ ] privacy-safe information presentation accepted
+- [x] privacy-safe information presentation accepted
 - [ ] keyboard/touch/screen-reader/reduced-motion acceptance
-- [ ] saved desktop + phone screenshots and task walkthrough accepted before merge
+- [x] saved desktop + phone screenshots and task walkthrough accepted before merge
 
 ## Whole-system convergence / hardening
 
