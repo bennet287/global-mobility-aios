@@ -132,7 +132,7 @@ export default function OperatorV2MigrationPage() {
         <footer className={styles.truthNote}>
           <span>Convergence boundary</span>
           <p>
-            This surface changes organization, hierarchy, and discovery only. Existing workflow data, authority boundaries, review gates, evidence semantics, and mutations remain unchanged until their individual migration slices are accepted.
+            This surface changes organization, hierarchy, and discovery only. Existing workflow data and evidence semantics remain unchanged; authority boundaries, review gates and mutation semantics remain unchanged until their individual migration slices are accepted.
           </p>
         </footer>
       </div>
