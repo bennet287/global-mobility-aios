@@ -1,0 +1,61 @@
+.shell {
+  min-height: 100svh;
+}
+
+.navigation {
+  display: none;
+}
+
+.shell:has(:global(#portal-workspace-title)) .navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid var(--aios-border, rgba(15, 23, 42, 0.12));
+  background: color-mix(in srgb, var(--aios-surface-strong, #ffffff) 94%, transparent);
+}
+
+.navigation a,
+.navigation span {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.navigation a {
+  color: var(--aios-text, #111827);
+  border: 1px solid var(--aios-border, rgba(15, 23, 42, 0.12));
+  background: var(--aios-surface, #ffffff);
+}
+
+.navigation span[aria-current="page"] {
+  color: var(--aios-accent-strong, #4f46e5);
+  border: 1px solid color-mix(in srgb, var(--aios-accent, #6366f1) 38%, transparent);
+  background: var(--aios-accent-soft, #eef2ff);
+}
+
+.navigation a:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .shell:has(:global(#portal-workspace-title)) .navigation {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .navigation a,
+  .navigation span {
+    flex: 0 0 auto;
+  }
+}
