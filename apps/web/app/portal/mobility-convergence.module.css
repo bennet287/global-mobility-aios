@@ -6,7 +6,7 @@
   display: none;
 }
 
-.shell:has(#portal-workspace-title) .navigation {
+.shell:has(:global(#portal-workspace-title)) .navigation {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,7 +47,7 @@
 }
 
 @media (max-width: 640px) {
-  .shell:has(#portal-workspace-title) .navigation {
+  .shell:has(:global(#portal-workspace-title)) .navigation {
     justify-content: flex-start;
     flex-wrap: nowrap;
     overflow-x: auto;
