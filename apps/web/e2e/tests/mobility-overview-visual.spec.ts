@@ -20,9 +20,9 @@ async function prepare(page: Page) {
 
   const navigation = page.getByRole("navigation", { name: "My Mobility V2 navigation" });
   await expect(navigation.getByRole("link", { name: /Documents/i })).toHaveAttribute("href", "/portal/documents");
-  await expect(navigation.getByText("Timeline", { exact: true })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: /Timeline/i })).toHaveAttribute("href", "/portal/timeline");
   await expect(navigation.getByText("Messages", { exact: true })).toBeVisible();
-  await expect(navigation.locator('[aria-disabled="true"]')).toHaveCount(2);
+  await expect(navigation.locator('[aria-disabled="true"]')).toHaveCount(1);
 }
 
 test("Mobility Overview desktop visible-review proof", async ({ page }) => {

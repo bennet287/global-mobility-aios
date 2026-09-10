@@ -165,6 +165,7 @@ function MobilityDocumentsContent() {
         <nav aria-label="Document workspace navigation" className={styles.actions}>
           <Link href="/my-mobility">Overview</Link>
           <Link href="/portal">My Case</Link>
+          <Link href="/portal/timeline">Timeline</Link>
           <button type="button" onClick={closeSession}>Close secure session</button>
         </nav>
       </header>
