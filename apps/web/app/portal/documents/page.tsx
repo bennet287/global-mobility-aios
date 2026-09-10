@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ClientPortalDashboard, getClientPortalDashboard } from "../../../lib/api";
 import styles from "./DocumentsV2.module.css";
@@ -52,7 +52,7 @@ function isDeviceMismatchError(errorText: string): boolean {
   }
 }
 
-export default function MobilityDocumentsPage() {
+function MobilityDocumentsContent() {
   const searchParams = useSearchParams();
   const [tokenInput, setTokenInput] = useState("");
   const [dashboard, setDashboard] = useState<ClientPortalDashboard | null>(null);
@@ -218,5 +218,19 @@ export default function MobilityDocumentsPage() {
         <span>This workspace reports only the protected client-safe record returned by the existing portal API.</span>
       </aside>
     </main>
+  );
+}
+
+export default function MobilityDocumentsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className={`client-portal ${styles.page}`} aria-busy="true" aria-label="Secure document room">
+          <div className={styles.loading} role="status" aria-live="polite">Opening secure documents…</div>
+        </main>
+      }
+    >
+      <MobilityDocumentsContent />
+    </Suspense>
   );
 }
