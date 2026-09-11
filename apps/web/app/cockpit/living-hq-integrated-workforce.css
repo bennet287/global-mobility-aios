@@ -1,0 +1,113 @@
+/* Phase 13G.1H visual correction — canonical miniature workforce belongs inside the office world.
+   Placement is presentation-only department identity, never a physical-location claim. */
+
+.living-hq-world-workforce {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.living-hq-world-person {
+  --world-accent: 107,188,143;
+  position: absolute;
+  left: var(--world-person-x);
+  top: var(--world-person-y);
+  width: 58px;
+  height: 66px;
+  transform: translate(-50%,-50%);
+  filter: drop-shadow(0 7px 6px rgba(0,0,0,.18));
+}
+
+.living-hq-world-person[data-character-archetype="executive"] { --world-accent: 220,180,87; }
+.living-hq-world-person[data-character-archetype="technology"] { --world-accent: 91,188,170; }
+.living-hq-world-person[data-character-archetype="evidence"] { --world-accent: 151,123,208; }
+.living-hq-world-person[data-character-archetype="operations"] { --world-accent: 102,181,132; }
+.living-hq-world-person[data-character-archetype="finance"] { --world-accent: 104,157,199; }
+.living-hq-world-person[data-character-archetype="people"] { --world-accent: 202,130,155; }
+
+.living-hq-world-desk {
+  position: absolute;
+  left: 7px;
+  right: 3px;
+  bottom: 3px;
+  height: 15px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg,#926947,#705038);
+  box-shadow: 0 4px 0 rgba(57,43,32,.9);
+}
+
+.living-hq-world-desk::before,
+.living-hq-world-desk::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  width: 4px;
+  height: 11px;
+  border-radius: 1px;
+  background: #3e342e;
+}
+.living-hq-world-desk::before { left: 8px; }
+.living-hq-world-desk::after { right: 8px; }
+
+.living-hq-world-desk i {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  width: 18px;
+  height: 11px;
+  border-radius: 2px;
+  background: #15272a;
+  border: 1px solid rgba(var(--world-accent),.42);
+  box-shadow: 0 0 8px rgba(var(--world-accent),.18);
+}
+
+.living-hq-world-desk b {
+  position: absolute;
+  left: 18px;
+  bottom: 5px;
+  width: 2px;
+  height: 6px;
+  background: #3c4c4b;
+}
+
+.living-hq-world-figure { position:absolute; left:26px; top:5px; width:26px; height:49px; }
+.living-hq-world-shadow { position:absolute; left:2px; bottom:0; width:24px; height:6px; border-radius:50%; background:rgba(0,0,0,.26); }
+.living-hq-world-torso { position:absolute; left:7px; top:20px; width:15px; height:19px; border-radius:7px 7px 5px 5px; background:rgb(var(--world-accent)); }
+.living-hq-world-head { position:absolute; left:8px; top:5px; width:14px; height:15px; border-radius:45% 45% 52% 52%; background:#d8ae8c; }
+.living-hq-world-hair { position:absolute; left:7px; top:4px; width:16px; height:7px; border-radius:8px 8px 4px 4px; background:#312b29; }
+.living-hq-world-leg { position:absolute; top:37px; width:4px; height:11px; border-radius:3px; background:#403c3a; }
+.living-hq-world-leg-left { left:9px; transform:rotate(4deg); }
+.living-hq-world-leg-right { right:5px; transform:rotate(-4deg); }
+.living-hq-world-arm { position:absolute; top:23px; width:4px; height:14px; border-radius:3px; background:rgb(var(--world-accent)); transform-origin:top center; }
+.living-hq-world-arm-left { left:4px; transform:rotate(18deg); }
+.living-hq-world-arm-right { right:1px; transform:rotate(-30deg); }
+.living-hq-world-state { position:absolute; right:-1px; top:0; width:5px; height:5px; border-radius:50%; background:rgb(var(--world-accent)); box-shadow:0 0 7px rgba(var(--world-accent),.7); }
+
+.living-hq-world-person[data-live-semantic-state="blocked"] .living-hq-world-state { background:#db775f; box-shadow:0 0 9px rgba(219,119,95,.8); }
+.living-hq-world-person[data-live-semantic-state="awaiting_owner"] .living-hq-world-state { background:#dfb153; }
+.living-hq-world-person[data-live-semantic-state="completed"] { opacity:.76; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-world-person[data-character-motion="work_pulse"] .living-hq-world-desk i {
+    animation: living-hq-world-monitor 1.8s ease-in-out infinite alternate;
+  }
+  .living-hq-world-person[data-character-motion="work_pulse"] .living-hq-world-arm-right {
+    animation: living-hq-world-type 1.15s ease-in-out infinite alternate;
+  }
+  .living-hq-world-person[data-character-motion="blocked_pulse"] .living-hq-world-state {
+    animation: living-hq-world-alert 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes living-hq-world-monitor { from { opacity:.7; } to { opacity:1; box-shadow:0 0 11px rgba(var(--world-accent),.28); } }
+@keyframes living-hq-world-type { from { transform:rotate(-26deg); } to { transform:rotate(-38deg); } }
+@keyframes living-hq-world-alert { 50% { transform:scale(1.45); opacity:.65; } }
+
+@media (max-width:760px) {
+  .living-hq-world-person { width:44px; height:52px; transform:translate(-50%,-50%) scale(.78); transform-origin:center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-world-person * { animation:none !important; }
+}
