@@ -172,7 +172,7 @@ export function LivingOrganizationWebGPUScene({
           <span>Pointer selection · optional</span>
           <strong>{selection?.label ?? `${SPATIAL_FOCUS_OPTIONS.find((option) => option.key === spatialFocus)?.label ?? "Overview"} focus`}</strong>
           <small>{selection ? selection.entityType + " · " + selection.entityKey : focusDetail}</small>
-          <small data-selection-authority="none">Selection and spatial focus change view emphasis only; they cannot mutate AIOS.</small>
+          <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS. Spatial focus changes presentation emphasis only.</small>
         </div>
       </div>
       <LivingOrganizationFlagshipArchitecture renderModel={renderModel} />
