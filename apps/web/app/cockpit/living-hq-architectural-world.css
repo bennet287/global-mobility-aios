@@ -1,0 +1,585 @@
+/* Phase 13G.1A — Continuous architectural shell.
+   Presentation only. This file deliberately loads after prior Living HQ polish so the
+   flagship architecture reads as one modern office world rather than room cards. */
+
+.living-hq-architecture {
+  --office-ink: #111519;
+  --office-charcoal: #1c2226;
+  --office-warm-white: #ede9df;
+  --office-glass: rgba(190, 211, 216, .18);
+  --office-timber: #8d6545;
+  --office-timber-light: #b48a62;
+  --office-carpet: #4a4a47;
+  --office-plant: #436e4d;
+  padding: clamp(18px, 2.1vw, 30px);
+  border: 1px solid rgba(225, 217, 201, .10);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 78% 4%, rgba(245, 227, 194, .10), transparent 28%),
+    linear-gradient(180deg, #171b1e 0%, #0f1316 100%);
+  box-shadow: 0 30px 80px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.living-hq-architecture-header {
+  position: relative;
+  z-index: 8;
+  margin-bottom: 2px;
+}
+
+.living-hq-architecture-header span,
+.living-hq-smart-object-title span {
+  color: rgba(226, 218, 205, .52);
+}
+
+.living-hq-architecture-header strong,
+.living-hq-smart-object-title strong {
+  color: rgba(247, 243, 235, .94);
+}
+
+.living-hq-office-world {
+  position: relative;
+  display: block;
+  min-height: clamp(500px, 48vw, 680px);
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(230, 222, 207, .14);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, #252a2d 0 19%, #e1ddd3 19% 54%, #b8aea0 54% 55%, #5d5952 55% 100%);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.12);
+  perspective: 1100px;
+}
+
+.living-hq-office-shell {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Dark articulated ceiling with warm linear fixtures. */
+.living-hq-office-ceiling {
+  position: absolute;
+  z-index: 5;
+  inset: 0 0 auto 0;
+  height: 22%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 11%, rgba(0,0,0,.30) 11% 11.5%, transparent 11.5% 23%),
+    repeating-linear-gradient(0deg, transparent 0 32%, rgba(0,0,0,.28) 32% 34%, transparent 34% 66%),
+    linear-gradient(180deg, #181c1f, #282d30);
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 0 100%);
+  box-shadow: 0 14px 30px rgba(0,0,0,.24);
+}
+
+.living-hq-office-light {
+  position: absolute;
+  z-index: 6;
+  top: 9%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 235, 197, .92);
+  box-shadow: 0 0 17px rgba(255, 224, 168, .30);
+  transform: rotate(-4deg);
+}
+.living-hq-office-light-one { left: 14%; width: 26%; }
+.living-hq-office-light-two { left: 47%; width: 20%; top: 13%; }
+.living-hq-office-light-three { right: 6%; width: 18%; top: 7%; }
+
+/* Window wall and skyline give the shell exterior depth instead of a closed card. */
+.living-hq-office-window-wall {
+  position: absolute;
+  z-index: 1;
+  top: 18%;
+  right: 0;
+  width: 53%;
+  height: 42%;
+  border-left: 3px solid rgba(42,48,49,.75);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22%, rgba(42,48,49,.55) 22% 22.8%, transparent 22.8% 45%),
+    linear-gradient(180deg, rgba(185,207,215,.68), rgba(225,229,218,.48));
+  box-shadow: inset 0 0 50px rgba(255,255,255,.10);
+}
+
+.living-hq-office-skyline {
+  position: absolute;
+  z-index: 1;
+  right: 2%;
+  top: 32%;
+  width: 48%;
+  height: 25%;
+  opacity: .28;
+  background:
+    linear-gradient(90deg,
+      transparent 0 3%, #65727a 3% 8%, transparent 8% 10%,
+      #718088 10% 16%, transparent 16% 20%, #58666d 20% 23%, transparent 23% 28%,
+      #78868c 28% 36%, transparent 36% 39%, #5e6a70 39% 45%, transparent 45% 50%,
+      #738187 50% 56%, transparent 56% 61%, #657178 61% 66%, transparent 66% 70%,
+      #7a858a 70% 79%, transparent 79% 83%, #657278 83% 89%, transparent 89% 100%);
+  clip-path: polygon(0 62%, 4% 62%, 4% 24%, 10% 24%, 10% 47%, 18% 47%, 18% 14%, 27% 14%, 27% 38%, 36% 38%, 36% 4%, 48% 4%, 48% 31%, 58% 31%, 58% 16%, 67% 16%, 67% 44%, 76% 44%, 76% 10%, 87% 10%, 87% 39%, 94% 39%, 94% 18%, 100% 18%, 100% 100%, 0 100%);
+}
+
+/* One continuous floor plane with timber circulation and carpet work zones. */
+.living-hq-office-floor {
+  position: absolute;
+  z-index: 1;
+  left: -4%;
+  right: -4%;
+  bottom: -5%;
+  height: 58%;
+  transform-origin: center bottom;
+  transform: perspective(760px) rotateX(58deg) scaleX(1.10);
+}
+
+.living-hq-office-floor-timber {
+  background:
+    repeating-linear-gradient(90deg, rgba(76,49,31,.18) 0 1px, transparent 1px 6.5%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 32px),
+    linear-gradient(90deg, #9d7654, #bc9873 48%, #977050);
+}
+
+.living-hq-office-floor-carpet {
+  z-index: 2;
+  left: 3%;
+  right: 39%;
+  bottom: -2%;
+  height: 46%;
+  opacity: .94;
+  clip-path: polygon(0 18%, 68% 0, 100% 32%, 92% 100%, 8% 100%);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 2px, transparent 2px 12px),
+    linear-gradient(135deg, #565b5a, #414745);
+}
+
+.living-hq-office-circulation {
+  position: absolute;
+  z-index: 3;
+  left: 35%;
+  bottom: -4%;
+  width: 19%;
+  height: 57%;
+  opacity: .82;
+  transform: perspective(650px) rotateX(57deg) rotateZ(-5deg);
+  background: linear-gradient(90deg, rgba(186,145,99,.94), rgba(215,176,126,.94));
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08);
+}
+
+/* Architectural glass rooms: partitions in the same world, never independent cards. */
+.living-hq-office-glass {
+  position: absolute;
+  z-index: 4;
+  top: 23%;
+  height: 34%;
+  border: 2px solid rgba(80, 74, 66, .58);
+  border-bottom-width: 4px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 23%, rgba(79,73,67,.40) 23% 24%, transparent 24% 49%),
+    linear-gradient(180deg, rgba(223,228,220,.22), rgba(137,154,154,.12));
+  box-shadow: inset 0 0 28px rgba(255,255,255,.08), 0 16px 30px rgba(0,0,0,.10);
+  backdrop-filter: blur(1.5px);
+}
+.living-hq-office-glass-evidence { left: 44%; width: 24%; transform: skewY(-1deg); }
+.living-hq-office-glass-board { right: 3%; width: 25%; height: 37%; top: 20%; }
+
+.living-hq-office-workstations {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  gap: 10px;
+}
+.living-hq-office-workstations-operations {
+  left: 6%;
+  bottom: 15%;
+  width: 36%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  transform: perspective(780px) rotateX(7deg) rotateY(5deg);
+}
+.living-hq-office-workstations-technology {
+  left: 28%;
+  bottom: 36%;
+  width: 19%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  transform: scale(.86);
+}
+
+.living-hq-office-workstation {
+  position: relative;
+  display: block;
+  height: 55px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #a67d58 0 13px, #7f5b3e 13px 17px, transparent 17px);
+  box-shadow: 0 13px 18px rgba(0,0,0,.22);
+}
+.living-hq-office-workstation::before,
+.living-hq-office-workstation::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  width: 5px;
+  height: 34px;
+  background: #67513f;
+}
+.living-hq-office-workstation::before { left: 9%; }
+.living-hq-office-workstation::after { right: 9%; }
+.living-hq-office-monitor {
+  position: absolute;
+  left: 34%;
+  top: -16px;
+  width: 34%;
+  height: 25px;
+  border: 3px solid #3a3d3d;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #26343a, #0e171a);
+  box-shadow: 0 3px 7px rgba(0,0,0,.24);
+}
+.living-hq-office-monitor::after {
+  content: "";
+  position: absolute;
+  left: 45%;
+  top: 100%;
+  width: 2px;
+  height: 8px;
+  background: #565b5b;
+}
+.living-hq-office-chair {
+  position: absolute;
+  left: 39%;
+  bottom: -17px;
+  width: 26%;
+  height: 25px;
+  border-radius: 8px 8px 4px 4px;
+  background: #343839;
+  box-shadow: 0 5px 8px rgba(0,0,0,.22);
+}
+
+.living-hq-office-board-table {
+  position: absolute;
+  z-index: 6;
+  right: 7.5%;
+  top: 37%;
+  width: 16%;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #9c7552, #715139);
+  box-shadow: 0 12px 20px rgba(0,0,0,.24);
+  transform: perspective(450px) rotateX(55deg);
+}
+.living-hq-office-board-table > i {
+  position: absolute;
+  width: 13px;
+  height: 19px;
+  border-radius: 5px 5px 2px 2px;
+  background: #343838;
+}
+.living-hq-office-board-table > i:nth-child(1) { left: -8px; top: 4px; }
+.living-hq-office-board-table > i:nth-child(2) { left: 9%; bottom: -12px; }
+.living-hq-office-board-table > i:nth-child(3) { left: 43%; bottom: -15px; }
+.living-hq-office-board-table > i:nth-child(4) { right: 8%; bottom: -12px; }
+.living-hq-office-board-table > i:nth-child(5) { right: -8px; top: 5px; }
+.living-hq-office-board-table > i:nth-child(6) { left: 44%; top: -13px; }
+
+.living-hq-office-evidence-benches {
+  position: absolute;
+  z-index: 6;
+  left: 47%;
+  top: 38%;
+  width: 18%;
+  display: flex;
+  gap: 7px;
+}
+.living-hq-office-evidence-benches > i {
+  flex: 1;
+  height: 40px;
+  border-top: 9px solid #9b7757;
+  border-left: 3px solid #6f5844;
+  border-right: 3px solid #6f5844;
+}
+
+.living-hq-office-lounge {
+  position: absolute;
+  z-index: 5;
+  right: 3%;
+  bottom: 5%;
+  width: 27%;
+  height: 21%;
+}
+.living-hq-office-lounge > i:nth-child(1),
+.living-hq-office-lounge > i:nth-child(2) {
+  position: absolute;
+  bottom: 8%;
+  width: 38%;
+  height: 49%;
+  border-radius: 12px 12px 6px 6px;
+  background: linear-gradient(180deg, #c7c0b6, #9e978e);
+  box-shadow: 0 12px 22px rgba(0,0,0,.22);
+}
+.living-hq-office-lounge > i:nth-child(1) { left: 2%; }
+.living-hq-office-lounge > i:nth-child(2) { right: 3%; }
+.living-hq-office-lounge > i:nth-child(3) {
+  position: absolute;
+  left: 39%;
+  bottom: 3%;
+  width: 24%;
+  height: 25%;
+  border-radius: 50%;
+  background: #3b342e;
+  box-shadow: 0 8px 14px rgba(0,0,0,.20);
+}
+
+.living-hq-office-planter {
+  position: absolute;
+  z-index: 7;
+  width: 42px;
+  height: 31px;
+  border-radius: 5px 5px 9px 9px;
+  background: linear-gradient(180deg, #4a4035, #292722);
+  box-shadow: 0 8px 16px rgba(0,0,0,.20);
+}
+.living-hq-office-planter::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 20px;
+  height: 55px;
+  background:
+    radial-gradient(ellipse at 16% 78%, #54835a 0 14%, transparent 15%),
+    radial-gradient(ellipse at 42% 45%, #456e4d 0 17%, transparent 18%),
+    radial-gradient(ellipse at 72% 69%, #5b8b5e 0 16%, transparent 17%),
+    radial-gradient(ellipse at 84% 27%, #3f6947 0 13%, transparent 14%),
+    radial-gradient(ellipse at 28% 22%, #5d8e61 0 14%, transparent 15%);
+}
+.living-hq-office-planter-left { left: 2%; bottom: 6%; }
+.living-hq-office-planter-center { left: 42%; bottom: 8%; transform: scale(.8); }
+.living-hq-office-planter-right { right: 29%; top: 26%; transform: scale(.72); }
+
+.living-hq-office-zone-label {
+  position: absolute;
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 8px;
+  color: rgba(250,246,239,.90);
+  background: rgba(29, 33, 33, .70);
+  backdrop-filter: blur(10px);
+  font-size: 9px;
+  font-weight: 700;
+  box-shadow: 0 7px 18px rgba(0,0,0,.16);
+}
+.living-hq-office-zone-technology { left: 32%; top: 37%; }
+
+/* Canonical rooms remain semantic DOM zones, but visually become anchored HUDs over one office. */
+.living-hq-office-world .living-hq-room {
+  --room-accent: 106, 158, 130;
+  position: absolute;
+  z-index: 9;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+.living-hq-office-world .living-hq-room-mission {
+  --room-accent: 77, 180, 125;
+  left: 4%;
+  top: 34%;
+  width: 34%;
+  height: 47%;
+}
+.living-hq-office-world .living-hq-room-evidence {
+  --room-accent: 119, 128, 199;
+  left: 43%;
+  top: 19%;
+  width: 26%;
+  height: 39%;
+}
+.living-hq-office-world .living-hq-room-board {
+  --room-accent: 210, 113, 119;
+  right: 2.5%;
+  top: 17%;
+  width: 26%;
+  height: 42%;
+}
+
+.living-hq-office-world .living-hq-room-copy {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: grid;
+  gap: 2px;
+  width: min(220px, 88%);
+  max-width: none;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-left: 3px solid rgba(var(--room-accent), .82);
+  border-radius: 9px;
+  background: rgba(28, 32, 32, .76);
+  box-shadow: 0 9px 22px rgba(0,0,0,.18);
+  backdrop-filter: blur(12px);
+}
+.living-hq-office-world .living-hq-room-copy::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 100%;
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(180deg, rgba(var(--room-accent), .70), transparent);
+}
+.living-hq-office-world .living-hq-room-copy span {
+  color: rgba(var(--room-accent), .92);
+  font-size: 7px;
+}
+.living-hq-office-world .living-hq-room-copy strong {
+  color: rgba(250,247,241,.96);
+  font-size: 12px;
+}
+.living-hq-office-world .living-hq-room-copy small {
+  color: rgba(232,226,215,.67);
+  font-size: 8px;
+}
+
+.living-hq-office-world .living-hq-room-context {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: grid;
+  gap: 2px;
+  max-width: 80%;
+  color: rgba(245,241,233,.72);
+  font-size: 7px;
+  line-height: 1.35;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+}
+
+.living-hq-office-world .living-hq-room footer {
+  position: absolute;
+  left: auto;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  opacity: .62;
+}
+.living-hq-office-world .living-hq-room footer span,
+.living-hq-office-world .living-hq-room footer small {
+  color: rgba(238,234,224,.66);
+  font-size: 6.5px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.60);
+}
+
+/* Infrastructure becomes a light service strip, not a second dashboard wall. */
+.living-hq-smart-object-rail {
+  grid-template-columns: minmax(120px,.24fr) 1fr;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(230,222,207,.09);
+  border-radius: 12px;
+  background: rgba(255,255,255,.018);
+}
+.living-hq-smart-object-list article {
+  min-height: 48px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  border-color: rgba(230,222,207,.08);
+  background: rgba(255,255,255,.018);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-office-light {
+    animation: living-hq-office-light-breathe 7s ease-in-out infinite;
+  }
+  .living-hq-office-light-two { animation-delay: -2.1s; }
+  .living-hq-office-light-three { animation-delay: -4.3s; }
+  @keyframes living-hq-office-light-breathe {
+    0%,100% { opacity: .72; }
+    50% { opacity: 1; }
+  }
+}
+
+@media (max-width: 760px) {
+  .living-hq-office-world {
+    min-height: 650px;
+    border-radius: 16px;
+  }
+  .living-hq-office-ceiling { height: 16%; }
+  .living-hq-office-window-wall { top: 14%; width: 62%; height: 31%; }
+  .living-hq-office-skyline { top: 24%; width: 58%; height: 20%; }
+  .living-hq-office-floor { height: 65%; }
+  .living-hq-office-floor-carpet { right: 22%; height: 50%; }
+  .living-hq-office-circulation { left: 38%; width: 19%; height: 63%; }
+  .living-hq-office-glass-evidence { left: 38%; top: 20%; width: 31%; height: 28%; }
+  .living-hq-office-glass-board { right: 2%; top: 17%; width: 31%; height: 31%; }
+  .living-hq-office-workstations-operations { left: 5%; width: 43%; bottom: 20%; }
+  .living-hq-office-workstations-technology { left: 24%; width: 27%; bottom: 43%; }
+  .living-hq-office-lounge { right: 2%; width: 37%; bottom: 4%; height: 20%; }
+  .living-hq-office-world .living-hq-room-mission { left: 3%; top: 42%; width: 43%; height: 43%; }
+  .living-hq-office-world .living-hq-room-evidence { left: 37%; top: 18%; width: 33%; height: 31%; }
+  .living-hq-office-world .living-hq-room-board { right: 1%; top: 16%; width: 34%; height: 34%; }
+  .living-hq-office-world .living-hq-room-copy { width: min(175px, 94%); padding: 7px 8px; }
+  .living-hq-office-world .living-hq-room-context { display: none; }
+  .living-hq-office-world .living-hq-room footer { display: none; }
+  .living-hq-office-zone-technology { left: 25%; top: 37%; }
+}
+
+@media (max-width: 420px) {
+  .living-hq-architecture { padding: 11px; }
+  .living-hq-office-world { min-height: 590px; }
+  .living-hq-office-workstations-operations { grid-template-columns: 1fr 1fr; width: 47%; }
+  .living-hq-office-board-table { right: 7%; width: 19%; }
+  .living-hq-office-evidence-benches { left: 42%; width: 23%; }
+  .living-hq-office-lounge { width: 40%; }
+  .living-hq-smart-object-rail { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-office-light { animation: none !important; }
+}
+
+@media (forced-colors: active) {
+  .living-hq-office-shell { display: none; }
+  .living-hq-office-world {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    min-height: 0;
+    padding: 10px;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+  .living-hq-office-world .living-hq-room {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 10px;
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  .living-hq-office-world .living-hq-room-copy,
+  .living-hq-office-world .living-hq-room-context,
+  .living-hq-office-world .living-hq-room footer {
+    position: static;
+    display: grid;
+    width: auto;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  .living-hq-office-world .living-hq-room-copy::after { display: none; }
+}
