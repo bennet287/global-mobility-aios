@@ -7,7 +7,9 @@ export type LivingHQLoadedAsset = {
   triangleCount: number;
 };
 
-export async function canLoadLivingHQAsset(definition: LivingHQAssetDefinition): Promise<boolean> {
+const availabilityByUri = new Map<string, Promise<boolean>>();
+
+async function probeLivingHQAsset(definition: LivingHQAssetDefinition): Promise<boolean> {
   try {
     const response = await fetch(definition.uri, { method: "HEAD", cache: "force-cache" });
     if (!response.ok) return false;
@@ -18,6 +20,14 @@ export async function canLoadLivingHQAsset(definition: LivingHQAssetDefinition):
   } catch {
     return false;
   }
+}
+
+export function canLoadLivingHQAsset(definition: LivingHQAssetDefinition): Promise<boolean> {
+  const cached = availabilityByUri.get(definition.uri);
+  if (cached) return cached;
+  const probe = probeLivingHQAsset(definition);
+  availabilityByUri.set(definition.uri, probe);
+  return probe;
 }
 
 export async function detectLivingHQAssetPack(): Promise<boolean> {
@@ -76,6 +86,21 @@ export async function loadLivingHQAsset(definition: LivingHQAssetDefinition): Pr
 }
 
 export async function loadLivingHQHighFidelityPack(): Promise<LivingHQLoadedAsset[]> {
-  const results = await Promise.all(LIVING_HQ_HIGH_FIDELITY_ASSETS.map((asset) => loadLivingHQAsset(asset)));
-  return results.filter((asset): asset is LivingHQLoadedAsset => asset !== null);
+  const heroDefinitions = LIVING_HQ_HIGH_FIDELITY_ASSETS.filter(
+    (asset) => asset.key === "hq-office-shell" || asset.key === "professional-human-base",
+  );
+  const secondaryDefinitions = LIVING_HQ_HIGH_FIDELITY_ASSETS.filter(
+    (asset) => asset.key !== "hq-office-shell" && asset.key !== "professional-human-base",
+  );
+
+  const heroAssets = await Promise.all(heroDefinitions.map((asset) => loadLivingHQAsset(asset)));
+  if (heroAssets.some((asset) => asset === null)) {
+    heroAssets.forEach((asset) => {
+      if (asset) disposeScene(asset.scene);
+    });
+    return [];
+  }
+
+  const secondaryAssets = await Promise.all(secondaryDefinitions.map((asset) => loadLivingHQAsset(asset)));
+  return [...heroAssets, ...secondaryAssets].filter((asset): asset is LivingHQLoadedAsset => asset !== null);
 }
