@@ -1,0 +1,35 @@
+/* Professional-human fidelity pass. Presentation only; no physical-presence claim. */
+.living-hq-world-person { --skin:#c99773; --hair:#2c2521; --cloth:#2d3438; --shirt:#e7e4dc; width:54px; height:78px; }
+.living-hq-world-person[data-human-variant="1"] { --skin:#a96f4d; --hair:#181717; --cloth:#323c48; }
+.living-hq-world-person[data-human-variant="2"] { --skin:#ddb08c; --hair:#51352b; --cloth:#393735; }
+.living-hq-world-person[data-human-variant="3"] { --skin:#85563e; --hair:#171514; --cloth:#252b2d; }
+.living-hq-world-person[data-human-variant="4"] { --skin:#c68662; --hair:#37261e; --cloth:#41464a; }
+.living-hq-world-person[data-human-variant="5"] { --skin:#e0b798; --hair:#24201e; --cloth:#29323a; }
+.living-hq-world-figure { left:25px; top:1px; width:25px; height:63px; }
+.living-hq-world-shadow { bottom:0; height:4px; opacity:.65; }
+.living-hq-world-head { left:8px; top:5px; width:11px; height:14px; border-radius:48% 48% 45% 45%; background:var(--skin); box-shadow:inset -2px -2px 3px rgba(70,40,28,.14); z-index:8; }
+.living-hq-world-neck { position:absolute; left:11px; top:17px; width:5px; height:5px; border-radius:2px; background:var(--skin); z-index:4; }
+.living-hq-world-ear { position:absolute; top:10px; width:2px; height:4px; border-radius:50%; background:var(--skin); z-index:7; }
+.living-hq-world-ear-left { left:7px; } .living-hq-world-ear-right { left:18px; }
+.living-hq-world-hair { left:7px; top:3px; width:13px; height:7px; border-radius:55% 55% 30% 30%; background:var(--hair); z-index:9; box-shadow:inset 0 -2px rgba(255,255,255,.04); }
+.living-hq-world-face { position:absolute; left:10px; top:11px; width:7px; height:2px; z-index:10; opacity:.45; background:linear-gradient(90deg,#332820 0 18%,transparent 18% 78%,#332820 78%); }
+.living-hq-world-torso { left:6px; top:21px; width:16px; height:23px; border-radius:4px 4px 2px 2px; background:var(--cloth); box-shadow:inset -3px 0 4px rgba(0,0,0,.16); z-index:3; }
+.living-hq-world-shirt { position:absolute; left:10px; top:21px; width:8px; height:15px; clip-path:polygon(0 0,50% 35%,100% 0,83% 100%,17% 100%); background:var(--shirt); z-index:5; }
+.living-hq-world-jacket { position:absolute; top:21px; width:7px; height:21px; background:var(--cloth); z-index:6; }
+.living-hq-world-jacket-left { left:6px; clip-path:polygon(0 0,100% 0,72% 100%,0 100%); }
+.living-hq-world-jacket-right { right:3px; clip-path:polygon(0 0,100% 0,100% 100%,28% 100%); }
+.living-hq-world-leg { top:42px; width:5px; height:18px; border-radius:2px; background:#282b2d; }
+.living-hq-world-leg-left { left:7px; } .living-hq-world-leg-right { right:4px; }
+.living-hq-world-arm { top:23px; width:4px; height:18px; background:var(--cloth); }
+.living-hq-world-arm-left { left:3px; transform:rotate(10deg); } .living-hq-world-arm-right { right:0; transform:rotate(-20deg); }
+.living-hq-world-state { right:-4px; top:2px; width:4px; height:4px; }
+.living-hq-world-desk { bottom:4px; height:13px; background:linear-gradient(180deg,#806047 0 5px,#493c33 5px 8px,transparent 8px); box-shadow:none; }
+.living-hq-world-desk i { width:20px; height:12px; bottom:12px; background:linear-gradient(145deg,#132226,#0a1114); border-color:rgba(170,205,206,.24); box-shadow:0 2px 4px rgba(0,0,0,.35); }
+.living-hq-world-desk em { position:absolute; right:6px; bottom:10px; width:5px; height:6px; border-radius:1px 1px 3px 3px; background:#d9d4c8; box-shadow:0 2px 2px rgba(0,0,0,.16); }
+/* State color belongs to the restrained indicator/monitor, not the human body. */
+.living-hq-world-person[data-live-semantic-state="working"] .living-hq-world-state { background:#55b98a; }
+.living-hq-world-person[data-live-semantic-state="blocked"] .living-hq-world-state { background:#d76f59; }
+.living-hq-world-person[data-live-semantic-state="awaiting_owner"] .living-hq-world-state { background:#d5a74f; }
+.living-hq-world-person[data-live-semantic-state="queued"] .living-hq-world-state { background:#6d92ad; }
+.living-hq-world-person[data-live-semantic-state="completed"] { opacity:.72; }
+@media (max-width:760px) { .living-hq-world-person { width:43px; height:62px; transform:translate(-50%,-50%) scale(.76); } }
