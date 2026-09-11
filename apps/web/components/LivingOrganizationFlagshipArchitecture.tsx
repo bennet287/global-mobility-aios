@@ -26,15 +26,15 @@ function roomDescriptor(
   if (!room) return null;
   const copy = {
     mission: {
-      eyebrow: "Execution chamber",
+      eyebrow: "Operations / Mission",
       purpose: "Mission coordination projection",
     },
     evidence: {
-      eyebrow: "Verification chamber",
+      eyebrow: "Evidence Lab",
       purpose: "Evidence inspection projection",
     },
     board: {
-      eyebrow: "Authority chamber",
+      eyebrow: "Board / Executive",
       purpose: "Board decision projection",
     },
   }[roomType];
@@ -47,6 +47,19 @@ function roomDescriptor(
     liveContext,
     governancePosture,
   };
+}
+
+function WorkstationCluster({ variant, count }: { variant: "operations" | "technology"; count: number }) {
+  return (
+    <div className={`living-hq-office-workstations living-hq-office-workstations-${variant}`} aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <span key={index} className="living-hq-office-workstation">
+          <i className="living-hq-office-monitor" />
+          <i className="living-hq-office-chair" />
+        </span>
+      ))}
+    </div>
+  );
 }
 
 export function LivingOrganizationFlagshipArchitecture({
@@ -103,7 +116,41 @@ export function LivingOrganizationFlagshipArchitecture({
         <small>{rooms.length} canonical room projections · {renderModel.smartObjects.length} smart objects</small>
       </header>
 
-      <div className="living-hq-room-axis" aria-label="Canonical Living Organization rooms">
+      <div
+        className="living-hq-room-axis living-hq-office-world"
+        aria-label="Canonical Living Organization rooms"
+        data-office-world="continuous"
+      >
+        <div className="living-hq-office-shell" aria-hidden="true">
+          <i className="living-hq-office-ceiling" />
+          <i className="living-hq-office-window-wall" />
+          <i className="living-hq-office-skyline" />
+          <i className="living-hq-office-floor living-hq-office-floor-timber" />
+          <i className="living-hq-office-floor living-hq-office-floor-carpet" />
+          <i className="living-hq-office-circulation" />
+          <i className="living-hq-office-glass living-hq-office-glass-evidence" />
+          <i className="living-hq-office-glass living-hq-office-glass-board" />
+          <i className="living-hq-office-light living-hq-office-light-one" />
+          <i className="living-hq-office-light living-hq-office-light-two" />
+          <i className="living-hq-office-light living-hq-office-light-three" />
+          <WorkstationCluster variant="operations" count={4} />
+          <WorkstationCluster variant="technology" count={2} />
+          <div className="living-hq-office-board-table">
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
+          <div className="living-hq-office-evidence-benches"><i /><i /><i /></div>
+          <div className="living-hq-office-lounge"><i /><i /><i /></div>
+          <i className="living-hq-office-planter living-hq-office-planter-left" />
+          <i className="living-hq-office-planter living-hq-office-planter-center" />
+          <i className="living-hq-office-planter living-hq-office-planter-right" />
+          <span className="living-hq-office-zone-label living-hq-office-zone-technology">Technology</span>
+        </div>
+
         {rooms.map((room, index) => (
           <article
             key={room.key}
@@ -111,20 +158,16 @@ export function LivingOrganizationFlagshipArchitecture({
             data-room-key={room.key}
             data-room-type={room.roomType}
             data-occupancy-claimed="false"
+            data-world-zone="true"
             style={{ "--room-order": index } as CSSProperties}
           >
-            <div className="living-hq-room-shell" aria-hidden="true">
-              <i className="living-hq-room-ceiling" />
-              <i className="living-hq-room-wall living-hq-room-wall-left" />
-              <i className="living-hq-room-wall living-hq-room-wall-right" />
-              <i className="living-hq-room-table" />
-              <i className="living-hq-room-light" />
-            </div>
             <div className="living-hq-room-copy">
               <span>{room.eyebrow}</span>
               <strong>{room.label}</strong>
-              <small>{room.purpose}</small>
               <small>{room.liveContext}</small>
+            </div>
+            <div className="living-hq-room-context">
+              <small>{room.purpose}</small>
               <small>{room.governancePosture}</small>
             </div>
             <footer>
