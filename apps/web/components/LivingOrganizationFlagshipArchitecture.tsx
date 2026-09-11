@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
+import { LivingHQPhotorealCanvas } from "./LivingHQPhotorealCanvas";
 import { LivingOrganizationDepartmentFabric } from "./LivingOrganizationDepartmentFabric";
 import { LivingOrganizationEventReactions } from "./LivingOrganizationEventReactions";
 import { LivingOrganizationIntegratedWorkforce } from "./LivingOrganizationIntegratedWorkforce";
@@ -28,18 +29,9 @@ function roomDescriptor(
 ): RoomDescriptor | null {
   if (!room) return null;
   const copy = {
-    mission: {
-      eyebrow: "Operations / Mission",
-      purpose: "Mission coordination projection",
-    },
-    evidence: {
-      eyebrow: "Evidence Lab",
-      purpose: "Evidence inspection projection",
-    },
-    board: {
-      eyebrow: "Board / Executive",
-      purpose: "Board decision projection",
-    },
+    mission: { eyebrow: "Operations / Mission", purpose: "Mission coordination projection" },
+    evidence: { eyebrow: "Evidence Lab", purpose: "Evidence inspection projection" },
+    board: { eyebrow: "Board / Executive", purpose: "Board decision projection" },
   }[roomType];
   return {
     key: room.room_key,
@@ -83,11 +75,7 @@ function WorkplaceInteriors() {
   );
 }
 
-export function LivingOrganizationFlagshipArchitecture({
-  renderModel,
-}: {
-  renderModel: LivingSceneRenderModel;
-}) {
+export function LivingOrganizationFlagshipArchitecture({ renderModel }: { renderModel: LivingSceneRenderModel }) {
   const activeMissions = renderModel.missions.filter((mission) => isOpenState(mission.state));
   const openBlockers = renderModel.blockers.filter((blocker) => isOpenState(blocker.status));
   const currentDecisions = renderModel.decisions.filter((decision) => decision.is_current);
@@ -144,6 +132,8 @@ export function LivingOrganizationFlagshipArchitecture({
         data-workplace-interiors="distinct"
         data-integrated-workforce="canonical"
       >
+        <LivingHQPhotorealCanvas renderModel={renderModel} />
+
         <div className="living-hq-office-shell" aria-hidden="true">
           <i className="living-hq-office-ceiling" />
           <i className="living-hq-office-window-wall" />
@@ -159,14 +149,7 @@ export function LivingOrganizationFlagshipArchitecture({
           <WorkstationCluster variant="operations" count={4} />
           <WorkstationCluster variant="technology" count={2} />
           <WorkplaceInteriors />
-          <div className="living-hq-office-board-table">
-            <i />
-            <i />
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
+          <div className="living-hq-office-board-table"><i /><i /><i /><i /><i /><i /></div>
           <div className="living-hq-office-evidence-benches"><i /><i /><i /></div>
           <div className="living-hq-office-lounge"><i /><i /><i /></div>
           <i className="living-hq-office-planter living-hq-office-planter-left" />
@@ -214,11 +197,7 @@ export function LivingOrganizationFlagshipArchitecture({
         </div>
         <div className="living-hq-smart-object-list">
           {renderModel.smartObjects.map((object) => (
-            <article
-              key={object.object_key}
-              data-object-state={object.state}
-              data-object-type={object.object_type}
-            >
+            <article key={object.object_key} data-object-state={object.state} data-object-type={object.object_type}>
               <i aria-hidden="true" />
               <div>
                 <strong>{object.label}</strong>
