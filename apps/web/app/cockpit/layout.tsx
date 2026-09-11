@@ -19,6 +19,7 @@ import "./living-hq-event-reactions.css";
 import "./living-hq-ambient-life.css";
 import "./living-hq-integrated-workforce.css";
 import "./living-hq-reference-realism.css";
+import "./living-hq-photoreal-convergence.css";
 import "./living-hq-mobile-composition.css";
 
 export default function CockpitLayout({ children }: { children: ReactNode }) {
