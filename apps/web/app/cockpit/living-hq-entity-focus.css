@@ -1,4 +1,4 @@
-/* Phase 13B/13C/13D: contextual entity inspection, drill-down and canonical handoff presentation.
+/* Phase 13B/13C/13D/13E: contextual entity inspection, drill-down, canonical handoff and governed conversation presentation.
    Presentation only; no canonical-state, presence or authority semantics live here. */
 
 .living-hq-entity-inspector {
@@ -32,7 +32,8 @@
 .living-hq-entity-inspector-heading > span,
 .living-hq-entity-inspector-basis > span,
 .living-hq-entity-inspector-drilldown span,
-.living-hq-handoff-rail header span {
+.living-hq-handoff-rail header span,
+.living-hq-conversation-rail header span {
   color: rgba(151,218,181,.62);
   font-size: 7.5px;
   font-weight: 800;
@@ -80,7 +81,8 @@
   align-content: start;
 }
 
-.living-hq-handoff-rail {
+.living-hq-handoff-rail,
+.living-hq-conversation-rail {
   grid-column: 1 / -1;
   display: grid;
   gap: 10px;
@@ -90,26 +92,34 @@
   background: rgba(255,255,255,.016);
 }
 
-.living-hq-handoff-rail > header {
+.living-hq-handoff-rail > header,
+.living-hq-conversation-rail > header {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: end;
 }
 
-.living-hq-handoff-rail > header div { display: grid; gap: 4px; }
-.living-hq-handoff-rail > header strong { color: rgba(240,244,255,.9); font-size: 12px; }
+.living-hq-handoff-rail > header div,
+.living-hq-conversation-rail > header div { display: grid; gap: 4px; }
+.living-hq-handoff-rail > header strong,
+.living-hq-conversation-rail > header strong { color: rgba(240,244,255,.9); font-size: 12px; }
 .living-hq-handoff-rail > header small,
-.living-hq-handoff-empty { color: rgba(197,205,231,.5); font-size: 8.5px; line-height: 1.45; }
-.living-hq-handoff-empty { margin: 0; }
+.living-hq-handoff-empty,
+.living-hq-conversation-rail > header small,
+.living-hq-conversation-empty { color: rgba(197,205,231,.5); font-size: 8.5px; line-height: 1.45; }
+.living-hq-handoff-empty,
+.living-hq-conversation-empty { margin: 0; }
 
-.living-hq-handoff-list {
+.living-hq-handoff-list,
+.living-hq-conversation-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.living-hq-handoff-list article {
+.living-hq-handoff-list article,
+.living-hq-conversation-list article {
   display: grid;
   gap: 7px;
   padding: 10px 11px;
@@ -120,16 +130,21 @@
 
 .living-hq-handoff-route,
 .living-hq-handoff-meta,
-.living-hq-handoff-list article footer {
+.living-hq-handoff-list article footer,
+.living-hq-conversation-route,
+.living-hq-conversation-meta,
+.living-hq-conversation-list article footer {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
   align-items: center;
 }
 
-.living-hq-handoff-route strong { color: rgba(235,240,255,.86); font-size: 9px; font-weight: 750; }
+.living-hq-handoff-route strong,
+.living-hq-conversation-route strong { color: rgba(235,240,255,.86); font-size: 9px; font-weight: 750; }
 .living-hq-handoff-route span { color: rgba(151,218,181,.62); }
-.living-hq-handoff-meta span {
+.living-hq-handoff-meta span,
+.living-hq-conversation-meta span {
   padding: 2px 6px;
   border: 1px solid rgba(151,218,181,.18);
   border-radius: 999px;
@@ -139,8 +154,12 @@
   text-transform: uppercase;
 }
 .living-hq-handoff-meta small,
-.living-hq-handoff-list article footer small { color: rgba(197,205,231,.52); font-size: 8px; }
-.living-hq-handoff-list article footer { justify-content: space-between; }
+.living-hq-handoff-list article footer small,
+.living-hq-conversation-meta small,
+.living-hq-conversation-list article footer small { color: rgba(197,205,231,.52); font-size: 8px; }
+.living-hq-handoff-list article footer,
+.living-hq-conversation-list article footer { justify-content: space-between; }
+.living-hq-conversation-list article p { margin: 0; color: rgba(227,233,251,.76); font-size: 9px; line-height: 1.45; }
 
 .living-hq-entity-inspector > footer {
   grid-column: 1 / -1;
@@ -176,7 +195,8 @@
   .living-hq-entity-inspector { grid-template-columns: 1fr 1fr; }
   .living-hq-entity-inspector-basis,
   .living-hq-entity-inspector-drilldown,
-  .living-hq-handoff-rail { grid-column: 1 / -1; }
+  .living-hq-handoff-rail,
+  .living-hq-conversation-rail { grid-column: 1 / -1; }
   .living-hq-entity-inspector-drilldown { grid-template-columns: 1fr 1fr; }
   .living-hq-entity-inspector-drilldown > div:last-child { grid-column: 1 / -1; }
 }
@@ -187,10 +207,13 @@
   .living-hq-entity-inspector-drilldown,
   .living-hq-entity-inspector-drilldown > div:last-child,
   .living-hq-handoff-rail,
+  .living-hq-conversation-rail,
   .living-hq-entity-inspector > footer { grid-column: auto; }
   .living-hq-entity-inspector-drilldown,
-  .living-hq-handoff-list { grid-template-columns: 1fr; }
-  .living-hq-handoff-rail > header { align-items: start; flex-direction: column; }
+  .living-hq-handoff-list,
+  .living-hq-conversation-list { grid-template-columns: 1fr; }
+  .living-hq-handoff-rail > header,
+  .living-hq-conversation-rail > header { align-items: start; flex-direction: column; }
 }
 
 @media (forced-colors: active) {
@@ -200,7 +223,9 @@
   .living-hq-entity-inspector-basis,
   .living-hq-entity-inspector-drilldown > div,
   .living-hq-handoff-rail,
-  .living-hq-handoff-list article {
+  .living-hq-handoff-list article,
+  .living-hq-conversation-rail,
+  .living-hq-conversation-list article {
     background: Canvas;
     border-color: CanvasText;
     box-shadow: none;
