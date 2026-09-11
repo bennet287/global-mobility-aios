@@ -22,6 +22,7 @@ import "./living-hq-reference-realism.css";
 import "./living-hq-photoreal-convergence.css";
 import "./living-hq-human-fidelity.css";
 import "./living-hq-photoreal-canvas.css";
+import "./living-hq-asset-backed-canvas.css";
 import "./living-hq-mobile-composition.css";
 import "./living-hq-final-convergence.css";
 import "./living-hq-workforce-ledger.css";
