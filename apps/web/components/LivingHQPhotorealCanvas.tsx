@@ -16,6 +16,7 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef(renderModel);
   const statusMaterialsRef = useRef<Map<string, any>>(new Map());
+  const renderFrameRef = useRef<(() => void) | null>(null);
   const semanticRevisionRef = useRef(0);
   modelRef.current = renderModel;
 
@@ -52,8 +53,11 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       scene.background = new THREE.Color(0x9fb7c0);
       scene.fog = new THREE.FogExp2(0x9faead, 0.012);
       const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 140);
-      camera.position.set(12.8, 4.65, 17.8);
-      camera.lookAt(0.4, 1.55, -0.8);
+
+      const renderFrame = () => {
+        if (!disposed) renderer.render(scene, camera);
+      };
+      renderFrameRef.current = renderFrame;
 
       scene.add(new THREE.HemisphereLight(0xfff4df, 0x26383d, 1.95));
       const sun = new THREE.DirectionalLight(0xffebc4, 3.9);
@@ -133,7 +137,6 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       [-7.1, -4.0, -0.9].forEach((x, idx) => workstation(x, 1.0 + (idx % 2) * 2.6));
       [-5.6, -2.5].forEach((x) => workstation(x, 4.9));
       [0.2, 2.65].forEach((x) => workstation(x, 2.4));
-
       workstation(5.15, -1.7, 0.03);
       workstation(5.15, -4.5, -0.03);
       addBox([3.9, 1.55, 0.14], [5.15, 2.1, -6.9], blackMetal);
@@ -220,6 +223,7 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       canvas.dataset.locomotionAllowed = "false";
       canvas.dataset.visibleHumans = String(visibleEmployees.length);
       canvas.dataset.humanBudget = isMobile ? "mobile" : "desktop";
+      canvas.dataset.renderCadence = "on-demand";
 
       const resize = () => {
         const rect = canvas.getBoundingClientRect();
@@ -237,28 +241,16 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
           camera.fov = 48;
         }
         camera.updateProjectionMatrix();
+        renderFrame();
       };
       resize();
       const observer = new ResizeObserver(resize);
       observer.observe(canvas);
-
-      let frame = 0;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const animate = () => {
-        if (disposed) return;
-        if (!reducedMotion && canvas.clientWidth >= 600) {
-          const t = performance.now() * 0.000035;
-          camera.position.x = 12.8 + Math.sin(t) * 0.20;
-          camera.lookAt(0.4, 1.55, -0.8);
-        }
-        renderer.render(scene, camera);
-        frame = requestAnimationFrame(animate);
-      };
-      animate();
+      renderFrame();
 
       cleanup = () => {
         observer.disconnect();
-        cancelAnimationFrame(frame);
+        renderFrameRef.current = null;
         statusMaterialsRef.current.clear();
         resources.forEach((resource) => resource.dispose?.());
         renderer.dispose();
@@ -285,6 +277,7 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
         material.emissiveIntensity = employee.semantic_state === "blocked" ? 1.65 : 1.1;
       }
     }
+    renderFrameRef.current?.();
   }, [renderModel]);
 
   return (
