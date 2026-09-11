@@ -1,0 +1,224 @@
+/* Phase 13G.1G — Mobile live-HQ composition.
+   Preserve the same canonical office world on narrow screens; reorganize presentation without inventing state. */
+
+@media (max-width: 760px) {
+  .living-hq-architecture {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .living-hq-architecture-header {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .living-hq-architecture-header > small {
+    max-width: 46%;
+    text-align: right;
+    line-height: 1.35;
+  }
+
+  .living-hq-room-axis.living-hq-office-world {
+    min-height: 420px;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .living-hq-office-shell {
+    min-height: 420px;
+    transform-origin: top center;
+  }
+
+  /* Mobile keeps one architectural world instead of turning rooms back into disconnected cards. */
+  .living-hq-room-axis .living-hq-room {
+    width: auto;
+    min-width: 0;
+    padding: 8px;
+    border-radius: 9px;
+    backdrop-filter: none;
+  }
+
+  .living-hq-room-copy strong {
+    font-size: 11px;
+  }
+
+  .living-hq-room-copy small,
+  .living-hq-room-context small,
+  .living-hq-room footer small {
+    font-size: 6.5px;
+  }
+
+  .living-hq-office-zone-label {
+    font-size: 6px;
+    letter-spacing: .08em;
+  }
+
+  .living-hq-event-reactions {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 5px;
+    max-width: none;
+  }
+
+  .living-hq-event-reaction {
+    min-width: 0;
+    padding: 5px 6px;
+  }
+
+  .living-hq-event-reaction strong {
+    font-size: 9px;
+  }
+
+  .living-hq-event-reaction small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 6px;
+  }
+
+  .living-hq-department-fabric {
+    margin-top: 9px;
+    padding: 9px;
+  }
+
+  .living-hq-department-fabric > header {
+    align-items: flex-start;
+  }
+
+  .living-hq-department-neighborhoods {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .living-hq-department-neighborhood {
+    min-height: 48px;
+    padding: 7px 8px;
+  }
+
+  .living-hq-department-coordination {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(210px,82vw);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    gap: 7px;
+    padding-bottom: 3px;
+  }
+
+  .living-hq-department-coordination > article {
+    scroll-snap-align: start;
+  }
+
+  .living-hq-workforce {
+    padding: 9px;
+    margin-top: 9px;
+  }
+
+  .living-hq-workforce > header {
+    align-items: flex-start;
+  }
+
+  .living-hq-workforce > header small {
+    max-width: 48%;
+    text-align: right;
+  }
+
+  .living-hq-workforce-neighborhoods {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .living-hq-workforce-floor {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 5px;
+  }
+
+  .living-hq-workforce-person {
+    grid-template-rows: 78px auto;
+  }
+
+  .living-hq-workforce-scene {
+    min-height: 78px;
+  }
+
+  .living-hq-workforce-figure {
+    transform: scale(.88);
+    transform-origin: center bottom;
+  }
+
+  .living-hq-smart-object-rail {
+    margin-top: 9px;
+    padding: 9px;
+  }
+
+  .living-hq-smart-object-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(180px,72vw);
+    overflow-x: auto;
+    gap: 6px;
+    scroll-snap-type: inline proximity;
+    overscroll-behavior-inline: contain;
+  }
+
+  .living-hq-smart-object-list > article {
+    scroll-snap-align: start;
+  }
+
+  .living-hq-architecture-truth,
+  .living-hq-department-fabric-truth,
+  .living-hq-workforce > footer {
+    font-size: 6.6px;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 480px) {
+  .living-hq-room-axis.living-hq-office-world,
+  .living-hq-office-shell {
+    min-height: 390px;
+  }
+
+  .living-hq-event-reactions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .living-hq-workforce-floor {
+    grid-template-columns: 1fr;
+  }
+
+  .living-hq-workforce-person {
+    grid-template-columns: 104px minmax(0,1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    min-height: 82px;
+  }
+
+  .living-hq-workforce-scene {
+    min-height: 82px;
+  }
+
+  .living-hq-workforce-label {
+    padding: 7px 4px;
+  }
+
+  .living-hq-workforce-label strong {
+    font-size: 9px;
+  }
+
+  .living-hq-workforce-label span,
+  .living-hq-workforce-label small {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-department-coordination,
+  .living-hq-smart-object-list {
+    scroll-behavior: auto;
+  }
+}
