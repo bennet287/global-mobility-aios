@@ -16,17 +16,138 @@
 }
 
 .living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-photoreal-canvas {
-  opacity:.12;
+  opacity:.08;
 }
 
 .living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-office-shell,
 .living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-world-workforce {
-  opacity:.03;
+  opacity:.02;
 }
 
 .living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-room,
 .living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-event-reactions {
   z-index:12;
+}
+
+/* The hero world should read like a composed office shot, not a debug viewport. */
+.living-hq-office-world {
+  isolation:isolate;
+  overflow:hidden;
+  aspect-ratio:16 / 10;
+  min-height:0 !important;
+  max-height:860px;
+  background:#101516;
+}
+
+.living-hq-office-world::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:9;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    linear-gradient(180deg,rgba(9,12,13,.28) 0%,transparent 18%,transparent 76%,rgba(9,12,13,.22) 100%),
+    radial-gradient(circle at 50% 38%,transparent 38%,rgba(6,9,10,.11) 76%,rgba(6,9,10,.24) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 -60px 80px rgba(0,0,0,.14);
+}
+
+.living-hq-office-world::after {
+  content:"LIVE ORGANIZATION  ·  CANONICAL PROJECTION";
+  position:absolute;
+  z-index:14;
+  left:18px;
+  bottom:16px;
+  padding:8px 10px;
+  border-left:2px solid rgba(93,186,139,.72);
+  color:rgba(244,247,244,.77);
+  font-size:9px;
+  letter-spacing:.13em;
+  background:linear-gradient(90deg,rgba(10,14,16,.68),rgba(10,14,16,0));
+  text-shadow:0 2px 8px rgba(0,0,0,.45);
+  pointer-events:none;
+}
+
+/* Procedural mode gets the same cinematic framing while remaining the fallback. */
+.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"] {
+  filter:saturate(.88) contrast(1.08) brightness(.98);
+}
+
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-office-shell {
+  opacity:.025 !important;
+}
+
+.living-hq-office-world:has(.living-hq-photoreal-canvas[data-render-mode="three-procedural-realism"]) .living-hq-world-workforce {
+  opacity:.015 !important;
+}
+
+/* World HUDs stay compact and subordinate. */
+.living-hq-office-world .living-hq-room {
+  max-width:205px !important;
+  min-width:145px !important;
+  max-height:64px !important;
+  padding:8px 10px !important;
+  border-radius:8px !important;
+  background:linear-gradient(135deg,rgba(12,16,18,.74),rgba(18,23,25,.47)) !important;
+  border-color:rgba(255,255,255,.14) !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.06) !important;
+}
+
+.living-hq-office-world .living-hq-room-copy > span {
+  font-size:7px !important;
+  letter-spacing:.12em;
+}
+
+.living-hq-office-world .living-hq-room-copy > strong {
+  font-size:13px !important;
+}
+
+.living-hq-office-world .living-hq-room-copy > small {
+  font-size:7px !important;
+}
+
+.living-hq-event-reactions {
+  max-width:270px !important;
+  opacity:.82 !important;
+}
+
+/* Structured proof surfaces remain available but visually recede beneath the hero world. */
+.living-webgpu-stage > .living-hq-spatial-command,
+.living-webgpu-stage > .living-webgpu-canvas-wrap,
+.living-webgpu-stage > .living-hq-entity-inspector,
+.living-hq-department-fabric,
+.living-hq-smart-object-rail,
+.living-hq-department-deck {
+  opacity:.64;
+}
+
+.living-webgpu-stage > .living-webgpu-canvas-wrap {
+  max-height:220px !important;
+}
+
+@media (max-width:760px) {
+  .living-hq-office-world {
+    aspect-ratio:9 / 13;
+    max-height:none;
+  }
+
+  .living-hq-office-world::after {
+    left:10px;
+    bottom:10px;
+    padding:6px 8px;
+    font-size:6px;
+  }
+
+  .living-hq-office-world .living-hq-room {
+    min-width:0 !important;
+    max-width:42% !important;
+    max-height:54px !important;
+    padding:6px 7px !important;
+  }
+
+  .living-hq-event-reactions {
+    max-width:none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
