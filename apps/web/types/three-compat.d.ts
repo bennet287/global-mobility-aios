@@ -7,6 +7,7 @@ declare module "three" {
   export const Color: any;
   export const CylinderGeometry: any;
   export const DirectionalLight: any;
+  export const Fog: any;
   export const FogExp2: any;
   export const Group: any;
   export const HemisphereLight: any;
