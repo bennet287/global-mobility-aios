@@ -4,8 +4,10 @@ import { test } from "node:test";
 
 const spec = await readFile(new URL("../e2e/tests/aios-v2-performance-baseline.spec.ts", import.meta.url), "utf8");
 const workflow = await readFile(new URL("../../../.github/workflows/v12-production-proof.yml", import.meta.url), "utf8");
-const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
+const packageJson = await readFile(new URL("../package.json" , import.meta.url), "utf8");
 const assetRenderer = await readFile(new URL("../components/LivingHQAssetBackedCanvas.tsx", import.meta.url), "utf8");
+const adaptiveRenderer = await readFile(new URL("../components/LivingHQAdaptiveRenderer.tsx", import.meta.url), "utf8");
+const flagshipArchitecture = await readFile(new URL("../components/LivingOrganizationFlagshipArchitecture.tsx", import.meta.url), "utf8");
 
 test("Q17 profiles the production V2 runtime across the master-plan measurement dimensions", () => {
   assert.match(spec, /Performance\.getMetrics/);
@@ -73,6 +75,18 @@ test("13G.1I live canonical updates refresh renderer metadata without rebuilding
   assert.match(assetRenderer, /data\.canonicalActiveEmployees/);
   assert.match(assetRenderer, /data\.canonicalBlockedEmployees/);
   assert.match(assetRenderer, /renderRef\.current\?\.\(\)/);
-  assert.match(assetRenderer, /\}, \[\]\);/);
-  assert.match(assetRenderer, /\}, \[renderModel\]\);/);
+  assert.match(assetRenderer, /\[assetPackAvailableOverride\]/);
+  assert.match(assetRenderer, /\[renderModel\]/);
+});
+
+test("13G.1I adaptive arbitration mounts exactly one visual renderer path", () => {
+  assert.match(adaptiveRenderer, /mode === "three-assets"/);
+  assert.match(adaptiveRenderer, /LivingHQAssetBackedCanvas/);
+  assert.match(adaptiveRenderer, /mode === "three-procedural"/);
+  assert.match(adaptiveRenderer, /LivingHQPhotorealCanvas/);
+  assert.match(adaptiveRenderer, /chooseLivingHQHighFidelityMode/);
+  assert.match(flagshipArchitecture, /data-renderer-arbitration="single-context"/);
+  assert.match(flagshipArchitecture, /<LivingHQAdaptiveRenderer renderModel=\{renderModel\} \/>/);
+  assert.doesNotMatch(flagshipArchitecture, /<LivingHQPhotorealCanvas/);
+  assert.doesNotMatch(flagshipArchitecture, /<LivingHQAssetBackedCanvas/);
 });
