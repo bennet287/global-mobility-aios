@@ -1,0 +1,34 @@
+/* Optional high-fidelity asset renderer. Procedural/CSS layers remain the fallback. */
+.living-hq-asset-canvas {
+  position:absolute;
+  inset:0;
+  z-index:3;
+  width:100%;
+  height:100%;
+  display:block;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 180ms ease;
+}
+
+.living-hq-asset-canvas[data-render-mode="three-assets"] {
+  opacity:1;
+}
+
+.living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-photoreal-canvas {
+  opacity:.12;
+}
+
+.living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-office-shell,
+.living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-world-workforce {
+  opacity:.03;
+}
+
+.living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-room,
+.living-hq-office-world:has(.living-hq-asset-canvas[data-render-mode="three-assets"]) .living-hq-event-reactions {
+  z-index:12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-asset-canvas { transition:none; }
+}
