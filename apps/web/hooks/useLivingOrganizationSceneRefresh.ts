@@ -8,6 +8,7 @@ import {
 } from "../lib/live-organization";
 
 export const LIVING_HQ_SCENE_REFRESH_MS = 5000;
+export const LIVING_HQ_INITIAL_SCENE_REFRESH_MS = 8000;
 
 type LivingOrganizationSceneRefreshOptions = {
   enabled: boolean;
@@ -15,6 +16,21 @@ type LivingOrganizationSceneRefreshOptions = {
   onScene: (latest: LivingOrganizationSceneLatest) => void;
   onError?: (error: unknown) => void;
 };
+
+function canonicalSceneFingerprint(latest: LivingOrganizationSceneLatest): string {
+  const scene = latest.scene;
+  if (!scene) return "scene:unavailable";
+  return JSON.stringify({
+    contract_version: scene.contract_version,
+    root_work_item_id: scene.root_work_item_id,
+    objective_key: scene.objective_key,
+    coverage: scene.coverage,
+    deterministic: scene.deterministic,
+    predictive: scene.predictive,
+    environmental: scene.environmental,
+    truth: scene.truth,
+  });
+}
 
 export function useLivingOrganizationSceneRefresh({
   enabled,
@@ -27,6 +43,8 @@ export function useLivingOrganizationSceneRefresh({
   const disposed = useRef(false);
   const onSceneRef = useRef(onScene);
   const onErrorRef = useRef(onError);
+  const lastCanonicalFingerprint = useRef<string | null>(null);
+  const hasCompletedAutomaticRead = useRef(false);
 
   useEffect(() => {
     onSceneRef.current = onScene;
@@ -40,6 +58,8 @@ export function useLivingOrganizationSceneRefresh({
     if (!enabled || !rootWorkItemId) return;
 
     disposed.current = false;
+    lastCanonicalFingerprint.current = null;
+    hasCompletedAutomaticRead.current = false;
 
     const clearTimer = () => {
       if (timer.current) {
@@ -51,7 +71,10 @@ export function useLivingOrganizationSceneRefresh({
     const schedule = () => {
       clearTimer();
       if (disposed.current || document.visibilityState !== "visible") return;
-      timer.current = setTimeout(() => void refresh(), LIVING_HQ_SCENE_REFRESH_MS);
+      const delay = hasCompletedAutomaticRead.current
+        ? LIVING_HQ_SCENE_REFRESH_MS
+        : LIVING_HQ_INITIAL_SCENE_REFRESH_MS;
+      timer.current = setTimeout(() => void refresh(), delay);
     };
 
     const refresh = async () => {
@@ -61,11 +84,18 @@ export function useLivingOrganizationSceneRefresh({
         const latest = await getLatestAustriaLivingScene();
         if (disposed.current) return;
         if (latest.scene?.root_work_item_id !== rootWorkItemId) {
+          hasCompletedAutomaticRead.current = true;
           schedule();
           return;
         }
-        onSceneRef.current(latest);
+
+        const fingerprint = canonicalSceneFingerprint(latest);
+        const unchanged = lastCanonicalFingerprint.current === fingerprint;
+        lastCanonicalFingerprint.current = fingerprint;
+        hasCompletedAutomaticRead.current = true;
+        if (!unchanged) onSceneRef.current(latest);
       } catch (error) {
+        hasCompletedAutomaticRead.current = true;
         if (!disposed.current) onErrorRef.current?.(error);
       } finally {
         inFlight.current = false;
