@@ -4,6 +4,7 @@ import { LIVING_HQ_HIGH_FIDELITY_ASSETS, type LivingHQAssetDefinition } from "./
 export type LivingHQLoadedAsset = {
   definition: LivingHQAssetDefinition;
   scene: Group;
+  triangleCount: number;
 };
 
 export async function canLoadLivingHQAsset(definition: LivingHQAssetDefinition): Promise<boolean> {
@@ -30,13 +31,44 @@ export async function detectLivingHQAssetPack(): Promise<boolean> {
   return heroAvailable && humanAvailable;
 }
 
+function countSceneTriangles(scene: Group): number {
+  let triangles = 0;
+  scene.traverse((node: any) => {
+    if (!node?.isMesh || !node.geometry) return;
+    const geometry = node.geometry;
+    if (geometry.index?.count) {
+      triangles += Math.floor(geometry.index.count / 3);
+      return;
+    }
+    const positions = geometry.attributes?.position?.count;
+    if (typeof positions === "number") triangles += Math.floor(positions / 3);
+  });
+  return triangles;
+}
+
+function disposeScene(scene: Group): void {
+  scene.traverse((node: any) => {
+    node.geometry?.dispose?.();
+    const materials = Array.isArray(node.material) ? node.material : node.material ? [node.material] : [];
+    materials.forEach((material: any) => material?.dispose?.());
+  });
+}
+
 export async function loadLivingHQAsset(definition: LivingHQAssetDefinition): Promise<LivingHQLoadedAsset | null> {
   if (!(await canLoadLivingHQAsset(definition))) return null;
   try {
     const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
     const loader = new GLTFLoader();
     const gltf = await loader.loadAsync(definition.uri);
-    return { definition, scene: gltf.scene };
+    const triangleCount = countSceneTriangles(gltf.scene);
+    if (triangleCount > definition.maxTriangles) {
+      console.warn(
+        `Living HQ optional asset rejected by triangle budget: ${definition.key} (${triangleCount} > ${definition.maxTriangles})`,
+      );
+      disposeScene(gltf.scene);
+      return null;
+    }
+    return { definition, scene: gltf.scene, triangleCount };
   } catch (error) {
     console.warn(`Living HQ optional asset failed to load: ${definition.key}`, error);
     return null;
