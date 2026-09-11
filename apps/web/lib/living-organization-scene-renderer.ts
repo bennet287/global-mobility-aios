@@ -39,6 +39,18 @@ export type LivingSceneDepartmentZone = {
   workItems: LivingSceneWorkItem[];
 };
 
+export type LivingSceneDepartmentCoordination = {
+  key: string;
+  sourceDepartment: string;
+  sourceLabel: string;
+  targetDepartment: string;
+  targetLabel: string;
+  handoffCount: number;
+  conversationCount: number;
+  workItemIds: string[];
+  canonicalOnly: true;
+};
+
 export type LivingSceneRenderModel = {
   contractVersion: string;
   rendererTarget: typeof LIVING_SCENE_RENDERER_TARGET;
@@ -56,8 +68,22 @@ export type LivingSceneRenderModel = {
   riskEscalations: LivingSceneRiskEscalation[];
   employeeSlots: LivingSceneEmployeeSlot[];
   departmentZones: LivingSceneDepartmentZone[];
+  departmentCoordinations: LivingSceneDepartmentCoordination[];
   flowTrial: FlowFieldTrialModel;
 };
+
+type CoordinationAccumulator = {
+  sourceDepartment: string;
+  targetDepartment: string;
+  handoffCount: number;
+  conversationCount: number;
+  workItemIds: Set<string>;
+};
+
+function coordinationKey(left: string, right: string): [string, string, string] {
+  const [sourceDepartment, targetDepartment] = [left, right].sort((a, b) => a.localeCompare(b));
+  return [`${sourceDepartment}::${targetDepartment}`, sourceDepartment, targetDepartment];
+}
 
 export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): LivingSceneRenderModel {
   const workById = new Map(scene.deterministic.work_items.map((item) => [item.work_item_id, item]));
@@ -78,6 +104,70 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
       workItems: scene.deterministic.work_items.filter((workItem) => workItem.department === department.department_key),
     }));
 
+  const departmentByPosition = new Map(
+    scene.deterministic.employees.map((employee) => [employee.position_key, employee.department]),
+  );
+  const departmentLabelByKey = new Map(
+    scene.deterministic.departments.map((department) => [department.department_key, department.label]),
+  );
+  const coordination = new Map<string, CoordinationAccumulator>();
+
+  const getCoordination = (left: string | undefined, right: string | undefined) => {
+    if (!left || !right || left === right) return null;
+    const [key, sourceDepartment, targetDepartment] = coordinationKey(left, right);
+    const existing = coordination.get(key);
+    if (existing) return existing;
+    const created: CoordinationAccumulator = {
+      sourceDepartment,
+      targetDepartment,
+      handoffCount: 0,
+      conversationCount: 0,
+      workItemIds: new Set<string>(),
+    };
+    coordination.set(key, created);
+    return created;
+  };
+
+  for (const handoff of scene.deterministic.handoffs) {
+    const item = getCoordination(
+      departmentByPosition.get(handoff.previous_position_key),
+      departmentByPosition.get(handoff.assigned_position_key),
+    );
+    if (!item) continue;
+    item.handoffCount += 1;
+    item.workItemIds.add(handoff.work_item_id);
+  }
+
+  for (const conversation of scene.deterministic.conversations) {
+    const departments = [...new Set(
+      conversation.participant_position_keys
+        .map((positionKey) => departmentByPosition.get(positionKey))
+        .filter((department): department is string => Boolean(department)),
+    )].sort((a, b) => a.localeCompare(b));
+    for (let leftIndex = 0; leftIndex < departments.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < departments.length; rightIndex += 1) {
+        const item = getCoordination(departments[leftIndex], departments[rightIndex]);
+        if (!item) continue;
+        item.conversationCount += 1;
+        item.workItemIds.add(conversation.work_item_id);
+      }
+    }
+  }
+
+  const departmentCoordinations: LivingSceneDepartmentCoordination[] = [...coordination.entries()]
+    .map(([key, item]) => ({
+      key,
+      sourceDepartment: item.sourceDepartment,
+      sourceLabel: departmentLabelByKey.get(item.sourceDepartment) ?? item.sourceDepartment,
+      targetDepartment: item.targetDepartment,
+      targetLabel: departmentLabelByKey.get(item.targetDepartment) ?? item.targetDepartment,
+      handoffCount: item.handoffCount,
+      conversationCount: item.conversationCount,
+      workItemIds: [...item.workItemIds].sort((a, b) => a.localeCompare(b)),
+      canonicalOnly: true as const,
+    }))
+    .sort((left, right) => left.key.localeCompare(right.key));
+
   const flowBaseline = buildStructuredFlowBaseline(scene);
 
   return {
@@ -97,6 +187,7 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
     riskEscalations: scene.deterministic.risk_escalations,
     employeeSlots,
     departmentZones,
+    departmentCoordinations,
     flowTrial: buildFlowFieldTrialModel(flowBaseline),
   };
 }
