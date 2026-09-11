@@ -95,6 +95,121 @@
   letter-spacing: .13em;
 }
 
+.living-hq-spatial-command {
+  position: relative;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: minmax(210px, .7fr) minmax(420px, 1.5fr) auto;
+  gap: 14px;
+  align-items: stretch;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+  background:
+    linear-gradient(90deg, rgba(9,13,22,.96), rgba(16,20,31,.92) 52%, rgba(8,11,18,.96));
+  box-shadow: 0 16px 34px rgba(0,0,0,.18);
+}
+
+.living-hq-spatial-command-copy {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.living-hq-spatial-command-copy > span {
+  color: rgba(153,221,184,.64);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.living-hq-spatial-command-copy strong {
+  color: rgba(241,244,255,.94);
+  font-size: 13px;
+  letter-spacing: -.01em;
+}
+
+.living-hq-spatial-command-copy small {
+  color: rgba(200,207,232,.48);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.living-hq-spatial-focus-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.living-hq-spatial-focus-rail button {
+  min-height: 54px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 9px 10px;
+  border: 1px solid rgba(205,214,255,.10);
+  border-radius: 11px;
+  color: rgba(219,225,247,.72);
+  background: rgba(255,255,255,.025);
+  text-align: left;
+  cursor: pointer;
+}
+
+.living-hq-spatial-focus-rail button span {
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.living-hq-spatial-focus-rail button small {
+  color: rgba(200,207,232,.42);
+  font-size: 7.5px;
+  line-height: 1.3;
+}
+
+.living-hq-spatial-focus-rail button:hover {
+  border-color: rgba(170,185,255,.24);
+  background: rgba(255,255,255,.04);
+}
+
+.living-hq-spatial-focus-rail button[aria-pressed="true"] {
+  border-color: rgba(145,222,178,.34);
+  color: rgba(238,247,242,.96);
+  background:
+    radial-gradient(circle at 88% 10%, rgba(119,211,160,.12), transparent 45%),
+    linear-gradient(135deg, rgba(73,128,96,.16), rgba(255,255,255,.028));
+  box-shadow: inset 2px 0 0 rgba(139,222,176,.52), 0 8px 18px rgba(0,0,0,.14);
+}
+
+.living-hq-spatial-focus-rail button:focus-visible {
+  outline: 2px solid rgba(184,226,255,.92);
+  outline-offset: 2px;
+}
+
+.living-hq-spatial-truth {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.living-hq-spatial-truth span {
+  display: inline-flex;
+  min-height: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  border: 1px solid rgba(201,210,244,.08);
+  border-radius: 999px;
+  color: rgba(195,204,229,.52);
+  background: rgba(255,255,255,.018);
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .living-webgpu-canvas-wrap {
   min-height: clamp(410px, 50vw, 620px);
   overflow: hidden;
@@ -105,6 +220,27 @@
     radial-gradient(ellipse at 21% 55%, rgba(78,143,128,.075), transparent 31%),
     linear-gradient(180deg, #0a0e17 0%, #070a10 70%, #05070b 100%);
   perspective: 1000px;
+}
+
+.living-webgpu-stage[data-spatial-focus="departments"] .living-webgpu-canvas-wrap {
+  background:
+    radial-gradient(ellipse at 32% 42%, rgba(108,142,231,.20), transparent 36%),
+    radial-gradient(ellipse at 72% 48%, rgba(83,158,139,.12), transparent 30%),
+    linear-gradient(180deg, #0a0e17 0%, #070a10 70%, #05070b 100%);
+}
+
+.living-webgpu-stage[data-spatial-focus="chambers"] .living-webgpu-canvas-wrap {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(152,132,225,.18), transparent 34%),
+    radial-gradient(ellipse at 52% 72%, rgba(80,105,169,.10), transparent 30%),
+    linear-gradient(180deg, #0a0e17 0%, #070a10 70%, #05070b 100%);
+}
+
+.living-webgpu-stage[data-spatial-focus="infrastructure"] .living-webgpu-canvas-wrap {
+  background:
+    radial-gradient(ellipse at 70% 56%, rgba(91,166,180,.16), transparent 34%),
+    radial-gradient(ellipse at 20% 68%, rgba(111,128,198,.10), transparent 28%),
+    linear-gradient(180deg, #0a0e17 0%, #070a10 70%, #05070b 100%);
 }
 
 /* Architectural ceiling datum. */
@@ -212,9 +348,27 @@
     animation: living-hq-ready-pulse 4.8s ease-in-out infinite;
   }
 
+  .living-hq-spatial-focus-rail button {
+    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .living-hq-spatial-focus-rail button:hover { transform: translateY(-1px); }
+
   @keyframes living-hq-ready-pulse {
     0%, 100% { opacity: .58; box-shadow: 0 0 10px rgba(113,207,153,.18); }
     50% { opacity: 1; box-shadow: 0 0 22px rgba(113,207,153,.38); }
+  }
+}
+
+@media (max-width: 980px) {
+  .living-hq-spatial-command {
+    grid-template-columns: 1fr;
+  }
+
+  .living-hq-spatial-truth {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 0;
   }
 }
 
@@ -228,6 +382,20 @@
   }
 
   .living-webgpu-stage > header::before { display: none; }
+
+  .living-hq-spatial-command {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .living-hq-spatial-focus-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .living-hq-spatial-focus-rail button {
+    min-height: 58px;
+  }
+
   .living-webgpu-canvas-wrap,
   .living-webgpu-canvas { min-height: 360px; height: 360px; }
   .living-webgpu-canvas-wrap::before { left: 0; right: 0; opacity: .46; }
@@ -242,12 +410,22 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-spatial-focus-rail button {
+    transition: none;
+    transform: none;
+  }
+}
+
 @media (forced-colors: active) {
   .living-scene-shell,
   .living-webgpu-stage,
   .living-webgpu-canvas-wrap,
   .living-webgpu-overlay,
-  .living-lens-console {
+  .living-lens-console,
+  .living-hq-spatial-command,
+  .living-hq-spatial-focus-rail button,
+  .living-hq-spatial-truth span {
     background: Canvas;
     border-color: CanvasText;
     box-shadow: none;

@@ -12,6 +12,14 @@ import type {
 } from "../lib/living-organization-webgpu-adapter";
 
 type RendererPhase = "initializing" | "ready" | "unavailable";
+type SpatialFocus = "overview" | "departments" | "chambers" | "infrastructure";
+
+const SPATIAL_FOCUS_OPTIONS: Array<{ key: SpatialFocus; label: string; detail: string }> = [
+  { key: "overview", label: "Overview", detail: "Whole governed projection" },
+  { key: "departments", label: "Departments", detail: "Organization zones and positions" },
+  { key: "chambers", label: "Chambers", detail: "Mission, evidence and Board rooms" },
+  { key: "infrastructure", label: "Infrastructure", detail: "Smart-object presentation layer" },
+];
 
 function backendLabel(value: LivingSceneRendererBackend | null): string {
   if (value === "webgpu") return "WebGPU";
@@ -37,6 +45,7 @@ export function LivingOrganizationWebGPUScene({
   const [selection, setSelection] = useState<LivingSceneSelection | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [flowTrialEnabled, setFlowTrialEnabled] = useState(false);
+  const [spatialFocus, setSpatialFocus] = useState<SpatialFocus>("overview");
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -106,6 +115,8 @@ export function LivingOrganizationWebGPUScene({
     controllerRef.current?.setFlowTrialEnabled(enabled);
   }, [activeLens, flowTrialEnabled]);
 
+  const focusDetail = SPATIAL_FOCUS_OPTIONS.find((option) => option.key === spatialFocus)?.detail ?? "Whole governed projection";
+
   return (
     <section
       className="living-webgpu-stage"
@@ -114,6 +125,7 @@ export function LivingOrganizationWebGPUScene({
       data-renderer-backend={backend ?? "pending"}
       data-scene-authoritative="false"
       data-active-lens={activeLens}
+      data-spatial-focus={spatialFocus}
     >
       <header>
         <div>
@@ -122,6 +134,33 @@ export function LivingOrganizationWebGPUScene({
         </div>
         <small>{phase === "ready" ? backendLabel(backend) : phase} · {activeLens.replaceAll("_", " ")} lens</small>
       </header>
+
+      <div className="living-hq-spatial-command" data-authority="none" data-presentation-only="true">
+        <div className="living-hq-spatial-command-copy">
+          <span>Spatial focus · presentation only</span>
+          <strong>Navigate the HQ as an environment.</strong>
+          <small>{focusDetail}. Focus changes presentation emphasis only.</small>
+        </div>
+        <div className="living-hq-spatial-focus-rail" role="group" aria-label="Living HQ spatial focus">
+          {SPATIAL_FOCUS_OPTIONS.map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              aria-pressed={spatialFocus === option.key}
+              onClick={() => setSpatialFocus(option.key)}
+            >
+              <span>{option.label}</span>
+              <small>{option.detail}</small>
+            </button>
+          ))}
+        </div>
+        <div className="living-hq-spatial-truth" aria-label="Spatial focus truth boundary">
+          <span>View only</span>
+          <span>No authority</span>
+          <span>Presence not asserted</span>
+        </div>
+      </div>
+
       <div className="living-webgpu-canvas-wrap">
         <canvas
           ref={canvasRef}
@@ -131,9 +170,9 @@ export function LivingOrganizationWebGPUScene({
         />
         <div className="living-webgpu-overlay" aria-live="polite">
           <span>Pointer selection · optional</span>
-          <strong>{selection?.label ?? "No spatial selection"}</strong>
-          <small>{selection ? selection.entityType + " · " + selection.entityKey : "No view focus selected."}</small>
-          <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS.</small>
+          <strong>{selection?.label ?? `${SPATIAL_FOCUS_OPTIONS.find((option) => option.key === spatialFocus)?.label ?? "Overview"} focus`}</strong>
+          <small>{selection ? selection.entityType + " · " + selection.entityKey : focusDetail}</small>
+          <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS. Spatial focus changes presentation emphasis only.</small>
         </div>
       </div>
       <LivingOrganizationFlagshipArchitecture renderModel={renderModel} />
@@ -196,7 +235,8 @@ export function LivingOrganizationWebGPUScene({
       ) : null}
       <p className="living-webgpu-accessibility">
         Employee motion remains presentation-only workspace motion derived from canonical semantic state.
-        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. The M.7.4 FLOW field is a
+        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. Spatial focus is local presentation
+        state only and cannot change scene truth, authority, work, evidence, decisions, or employee presence. The M.7.4 FLOW field is a
         default-off derived presentation over the maintained Structured FLOW baseline. It is not promoted, does not claim
         throughput or dependency truth, cannot mutate work, and no lens/query/trial control can bypass AIOS governance.
         The Structured Cockpit remains available for every core operation.
