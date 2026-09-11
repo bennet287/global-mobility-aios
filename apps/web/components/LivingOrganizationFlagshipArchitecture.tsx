@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
 import { LivingOrganizationDepartmentFabric } from "./LivingOrganizationDepartmentFabric";
+import { LivingOrganizationEventReactions } from "./LivingOrganizationEventReactions";
 
 type RoomDescriptor = {
   key: string;
@@ -172,6 +173,8 @@ export function LivingOrganizationFlagshipArchitecture({
           <span className="living-hq-office-zone-label living-hq-office-zone-technology">Technology</span>
         </div>
 
+        <LivingOrganizationEventReactions renderModel={renderModel} />
+
         {rooms.map((room, index) => (
           <article
             key={room.key}
@@ -225,7 +228,7 @@ export function LivingOrganizationFlagshipArchitecture({
       </div>
 
       <p className="living-hq-architecture-truth">
-        Mission, department coordination, and Board context above is derived only from canonical Mission, WorkItem, blocker, handoff, conversation, decision, human-action and risk-escalation records.
+        Mission, department coordination, event reactions, and Board context above are derived only from canonical Mission, WorkItem, blocker, handoff, conversation, decision, human-action and risk-escalation records.
         These zones remain presentation-only spatial organization. They do not assert physical occupancy, employee location, room activity,
         work routing, availability, Board action, or authority beyond the canonical scene contract.
       </p>
