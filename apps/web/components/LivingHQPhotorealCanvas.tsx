@@ -132,7 +132,8 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       addBox([0.12, 5.9, 8.0], [8.35, 2.95, -4.2], glass, false);
       addBox([5.0, 0.10, 0.12], [5.82, 5.85, -8.0], blackMetal, false);
       for (let z = -7.2; z <= 7.2; z += 3.2) addBox([26, 0.13, 0.13], [0, 7.0, z], blackMetal, false);
-      for (let x = -10.5; x <= 10.5; x += 4.2) addBox([0.12, 7.0, 20], [x, 7.06, 0], charcoal, false);
+      /* Ceiling tracks are shallow horizontal members; the previous 7m Y-size accidentally created giant opaque walls. */
+      for (let x = -10.5; x <= 10.5; x += 4.2) addBox([0.12, 0.13, 20], [x, 7.06, 0], charcoal, false);
       for (let i = 0; i < 7; i += 1) addBox([3.4, 0.035, 0.09], [-10 + i * 3.3, 6.72, -2.3 + (i % 2) * 4.6], lightMat, false);
 
       const workstation = (x: number, z: number, rotation = 0) => {
