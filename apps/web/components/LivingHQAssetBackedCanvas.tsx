@@ -12,7 +12,15 @@ import {
   loadLivingHQHighFidelityPack,
 } from "../lib/living-hq-high-fidelity-loader";
 
-export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: LivingSceneRenderModel }) {
+type LivingHQAssetBackedCanvasProps = {
+  renderModel: LivingSceneRenderModel;
+  assetPackAvailableOverride?: boolean;
+};
+
+export function LivingHQAssetBackedCanvas({
+  renderModel,
+  assetPackAvailableOverride,
+}: LivingHQAssetBackedCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef(renderModel);
   const renderRef = useRef<(() => void) | null>(null);
@@ -38,7 +46,8 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
 
       const saveData = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const assetPackAvailable = saveData ? false : await detectLivingHQAssetPack();
+      const assetPackAvailable =
+        assetPackAvailableOverride ?? (saveData ? false : await detectLivingHQAssetPack());
       if (disposed) return;
 
       const mode = chooseLivingHQHighFidelityMode({
@@ -190,7 +199,7 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
       intersection.disconnect();
       cleanup?.();
     };
-  }, []);
+  }, [assetPackAvailableOverride]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
