@@ -1,4 +1,5 @@
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
+import { deriveLivingHQRenderBudget } from "../lib/living-hq-render-budget";
 
 function shortPosition(value: string): string {
   return value.replaceAll("_", " ");
@@ -32,6 +33,7 @@ function accessoryFor(archetype: string): string {
 const ACTIVE_STATES = new Set(["working", "blocked", "awaiting_owner", "queued"]);
 
 export function LivingOrganizationFlagshipRoster({ renderModel }: { renderModel: LivingSceneRenderModel }) {
+  const renderBudget = deriveLivingHQRenderBudget(renderModel);
   const workingCount = renderModel.employeeSlots.filter(({ employee }) => employee.semantic_state === "working").length;
   const blockedCount = renderModel.employeeSlots.filter(({ employee }) => employee.semantic_state === "blocked").length;
   const awaitingCount = renderModel.employeeSlots.filter(({ employee }) => employee.semantic_state === "awaiting_owner").length;
@@ -46,10 +48,14 @@ export function LivingOrganizationFlagshipRoster({ renderModel }: { renderModel:
       data-locomotion-allowed="false"
       data-workforce-art="integrated-miniatures"
       data-live-binding="canonical-render-model"
+      data-render-detail={renderBudget.detail}
+      data-motion-budget={renderBudget.motion}
+      data-render-budget-source="canonical-scene-complexity"
       data-active-employees={activeCount}
       data-working-employees={workingCount}
       data-blocked-employees={blockedCount}
       data-awaiting-owner-employees={awaitingCount}
+      title={renderBudget.rationale}
     >
       <span className="living-hq-contract-alias" role="heading" aria-level={4}>Department character deck</span>
       <header>
@@ -57,7 +63,7 @@ export function LivingOrganizationFlagshipRoster({ renderModel }: { renderModel:
           <span>Live workforce projection · canonical state mapped</span>
           <strong id="living-hq-department-deck-title" role="heading" aria-level={4}>Miniature workforce</strong>
         </div>
-        <small>{renderModel.departmentZones.length} departments · {renderModel.employeeSlots.length} AI positions · {workingCount} working · {blockedCount} blocked</small>
+        <small>{renderModel.departmentZones.length} departments · {renderModel.employeeSlots.length} AI positions · {workingCount} working · {blockedCount} blocked · {renderBudget.detail} detail</small>
       </header>
 
       <div className="living-hq-workforce-neighborhoods">
@@ -96,8 +102,9 @@ export function LivingOrganizationFlagshipRoster({ renderModel }: { renderModel:
                       data-character-archetype={archetype}
                       data-character-variant={String((employeeIndex + zone.zoneIndex) % 5)}
                       data-work-item-bound={workItem ? "true" : "false"}
-                      data-semantic-state={employee.semantic_state}
-                      data-work-status={workItem?.status ?? "none"}
+                      data-live-semantic-state={employee.semantic_state}
+                      data-live-work-status={workItem?.status ?? "none"}
+                      data-live-work-item={workItem?.work_item_id ?? "none"}
                       data-position-key={employee.position_key}
                       role="listitem"
                       title={presentation.rationale}
@@ -141,7 +148,7 @@ export function LivingOrganizationFlagshipRoster({ renderModel }: { renderModel:
       </div>
 
       <footer>
-        Miniature employees are differentiated presentation figures bound to canonical employee and WorkItem state. Placement does not assert physical presence or location; locomotion remains disallowed, and conversation or handoff behavior appears only when governed records support it.
+        Miniature employees are differentiated presentation figures bound to canonical employee and WorkItem state. Rendering detail degrades before organization execution: every canonical employee and critical state signal remains represented while decorative detail and ambient motion are reduced as scene complexity grows. Placement does not assert physical presence or location; locomotion remains disallowed, and conversation or handoff behavior appears only when governed records support it.
       </footer>
     </section>
   );
