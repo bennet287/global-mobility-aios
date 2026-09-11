@@ -1,0 +1,232 @@
+/* Phase 13G.1B — whole-organization department fabric.
+   Presentation only. Department nodes and coordination links derive from canonical Living Scene records. */
+
+.living-hq-department-fabric {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(230, 222, 207, .10);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,.012)),
+    rgba(11, 15, 17, .74);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.living-hq-department-fabric > header {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.living-hq-department-fabric > header div {
+  display: grid;
+  gap: 2px;
+}
+
+.living-hq-department-fabric > header span {
+  color: rgba(177, 217, 196, .68);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.living-hq-department-fabric > header strong {
+  color: rgba(246, 242, 234, .94);
+  font-size: 12px;
+}
+
+.living-hq-department-fabric > header small {
+  color: rgba(226, 219, 207, .48);
+  font-size: 8px;
+}
+
+.living-hq-department-neighborhoods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 7px;
+}
+
+.living-hq-department-neighborhood {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 7px 9px;
+  border: 1px solid rgba(230, 222, 207, .08);
+  border-radius: 9px;
+  background: rgba(255,255,255,.018);
+}
+
+.living-hq-department-neighborhood > i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(159, 184, 171, .34);
+  box-shadow: 0 0 0 4px rgba(159,184,171,.055);
+}
+
+.living-hq-department-neighborhood[data-active-employees]:not([data-active-employees="0"]) > i {
+  background: rgba(128, 214, 167, .72);
+  box-shadow: 0 0 13px rgba(128,214,167,.24);
+}
+
+.living-hq-department-neighborhood[data-blocked-employees]:not([data-blocked-employees="0"]) > i {
+  background: rgba(224, 151, 91, .82);
+  box-shadow: 0 0 14px rgba(224,151,91,.28);
+}
+
+.living-hq-department-neighborhood > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.living-hq-department-neighborhood strong {
+  overflow: hidden;
+  color: rgba(245, 241, 233, .90);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.living-hq-department-neighborhood small,
+.living-hq-department-neighborhood > span {
+  color: rgba(225, 219, 207, .48);
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.living-hq-department-coordination {
+  display: flex;
+  gap: 7px;
+  margin-top: 9px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.living-hq-department-coordination article {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: auto 28px auto;
+  gap: 5px;
+  align-items: center;
+  min-width: 210px;
+  padding: 7px 9px;
+  border: 1px solid rgba(136, 196, 166, .13);
+  border-radius: 9px;
+  background: linear-gradient(90deg, rgba(74,122,96,.08), rgba(255,255,255,.015));
+}
+
+.living-hq-department-coordination article > span {
+  max-width: 100px;
+  overflow: hidden;
+  color: rgba(239, 235, 227, .76);
+  font-size: 7.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.living-hq-department-coordination article > i {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(129,204,162,.18), rgba(129,204,162,.78), rgba(129,204,162,.18));
+}
+
+.living-hq-department-coordination article > i::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid rgba(143, 218, 176, .74);
+  border-right: 1px solid rgba(143, 218, 176, .74);
+  transform: rotate(45deg);
+}
+
+.living-hq-department-coordination article > small {
+  grid-column: 1 / -1;
+  color: rgba(166, 211, 188, .58);
+  font-size: 6.5px;
+  letter-spacing: .02em;
+}
+
+.living-hq-department-coordination > p {
+  margin: 0;
+  color: rgba(222, 216, 204, .42);
+  font-size: 7.5px;
+}
+
+.living-hq-department-fabric-truth {
+  margin: 9px 0 0;
+  color: rgba(222, 216, 204, .38);
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-department-neighborhood[data-active-employees]:not([data-active-employees="0"]) > i {
+    animation: living-hq-department-active 3.8s ease-in-out infinite;
+  }
+  .living-hq-department-neighborhood[data-blocked-employees]:not([data-blocked-employees="0"]) > i {
+    animation: living-hq-department-blocked 2.6s ease-in-out infinite;
+  }
+  .living-hq-department-coordination article > i::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(159, 228, 191, .9);
+    box-shadow: 0 0 7px rgba(159,228,191,.48);
+    animation: living-hq-coordination-travel 2.2s linear infinite;
+  }
+
+  @keyframes living-hq-department-active {
+    0%,100% { transform: scale(.9); opacity: .68; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+  @keyframes living-hq-department-blocked {
+    0%,100% { transform: scale(.92); opacity: .72; }
+    50% { transform: scale(1.13); opacity: 1; }
+  }
+  @keyframes living-hq-coordination-travel {
+    from { transform: translateX(0); opacity: .25; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    to { transform: translateX(25px); opacity: .2; }
+  }
+}
+
+@media (max-width: 760px) {
+  .living-hq-department-fabric > header { align-items: start; flex-direction: column; gap: 4px; }
+  .living-hq-department-neighborhoods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .living-hq-department-neighborhood { grid-template-columns: auto 1fr; }
+  .living-hq-department-neighborhood > span { grid-column: 2; }
+}
+
+@media (max-width: 420px) {
+  .living-hq-department-neighborhoods { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-department-neighborhood > i,
+  .living-hq-department-coordination article > i::before { animation: none !important; }
+}
+
+@media (forced-colors: active) {
+  .living-hq-department-fabric,
+  .living-hq-department-neighborhood,
+  .living-hq-department-coordination article {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
