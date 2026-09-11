@@ -110,7 +110,6 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       const lightMat = new THREE.MeshStandardMaterial({ color: 0xffefd0, roughness: 0.2, emissive: 0xffd49a, emissiveIntensity: 2.3 });
       resources.push(wood, woodDark, blackMetal, stone, carpet, lounge, accent, glass, screen, outside, lightMat);
 
-      /* Architectural shell: warm timber floor, carpet neighborhoods, glazed rooms, skyline and exposed ceiling. */
       addBox([24, 0.24, 18], [0, -0.14, 0], wood, false);
       addBox([12.5, 0.055, 9.2], [-4.1, 0.03, 1.0], carpet, false);
       addBox([24, 0.18, 0.12], [0, 0.08, -8.78], blackMetal, false);
@@ -118,14 +117,9 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       for (let x = -10.5; x <= 10.5; x += 3.5) addBox([0.09, 7.0, 0.18], [x, 3.5, -8.72], blackMetal, false);
       addBox([0.16, 5.8, 8.7], [3.0, 2.9, -3.9], glass, false);
       addBox([0.16, 5.8, 7.8], [8.0, 2.9, -4.0], glass, false);
-      for (let z = -7.0; z <= 7.0; z += 3.5) {
-        addBox([24, 0.16, 0.16], [0, 7.0, z], blackMetal, false);
-      }
-      for (let i = 0; i < 5; i += 1) {
-        addBox([4.0, 0.045, 0.13], [-8 + i * 4.0, 6.78, -1.4 + (i % 2) * 3.2], lightMat, false);
-      }
+      for (let z = -7.0; z <= 7.0; z += 3.5) addBox([24, 0.16, 0.16], [0, 7.0, z], blackMetal, false);
+      for (let i = 0; i < 5; i += 1) addBox([4.0, 0.045, 0.13], [-8 + i * 4.0, 6.78, -1.4 + (i % 2) * 3.2], lightMat, false);
 
-      /* Operations / Technology workstation rows. */
       const workstation = (x: number, z: number, rotation = 0) => {
         const top = addBox([2.45, 0.13, 1.05], [x, 0.98, z], wood);
         top.rotation.y = rotation;
@@ -140,13 +134,11 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       [-5.6, -2.5].forEach((x) => workstation(x, 4.9));
       [0.2, 2.65].forEach((x) => workstation(x, 2.4));
 
-      /* Evidence lab. */
       workstation(5.15, -1.7, 0.03);
       workstation(5.15, -4.5, -0.03);
       addBox([3.9, 1.55, 0.14], [5.15, 2.1, -6.9], blackMetal);
       for (let i = 0; i < 3; i += 1) addBox([0.92, 0.56, 0.08], [4.0 + i * 1.15, 2.2, -6.78], screen);
 
-      /* Board room. */
       addBox([4.8, 0.18, 1.75], [7.55, 1.05, -3.9], woodDark);
       for (let i = 0; i < 8; i += 1) {
         const side = i < 4 ? -1 : 1;
@@ -154,21 +146,17 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
         addBox([0.66, 0.86, 0.68], [6.05 + slot * 1.0, 0.48, -3.9 + side * 1.42], blackMetal);
       }
 
-      /* Lounge and reception depth. */
       addBox([3.6, 0.68, 1.12], [6.3, 0.43, 4.7], lounge);
       addBox([1.12, 0.72, 2.75], [8.45, 0.45, 4.1], lounge);
       addCylinder(0.82, 0.82, 0.26, [6.9, 0.32, 2.95], blackMetal, 28);
       addBox([3.6, 1.0, 0.36], [9.8, 0.55, 6.15], blackMetal);
       addBox([3.2, 0.06, 0.14], [9.8, 1.03, 5.95], lightMat, false);
 
-      /* Plants: pots plus multi-leaf clusters. */
       const plantAt = (x: number, z: number, scale = 1) => {
         addCylinder(0.30 * scale, 0.40 * scale, 0.52 * scale, [x, 0.26 * scale, z], stone, 14);
         const leafMat = new THREE.MeshStandardMaterial({ color: 0x315d3d, roughness: 0.92 });
         resources.push(leafMat);
-        const offsets = [
-          [0, 0.98, 0], [-0.28, 0.82, 0.10], [0.25, 0.78, -0.12], [-0.10, 1.20, -0.08], [0.17, 1.09, 0.14],
-        ];
+        const offsets = [[0, 0.98, 0], [-0.28, 0.82, 0.10], [0.25, 0.78, -0.12], [-0.10, 1.20, -0.08], [0.17, 1.09, 0.14]];
         offsets.forEach(([ox, oy, oz], idx) => {
           const geo = new THREE.SphereGeometry((0.34 + (idx % 2) * 0.07) * scale, 9, 6);
           const leaf = new THREE.Mesh(geo, leafMat);
@@ -180,14 +168,15 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
           resources.push(geo);
         });
       };
-      [[-10, -6.9, 1.35], [-8.8, 6.4, 1.2], [-1.0, -6.7, 1.0], [2.25, 6.2, 1.15], [9.4, -6.8, 1.25], [10.4, 1.4, 1.0]].forEach(
-        ([x, z, scale]) => plantAt(x, z, scale),
-      );
+      [[-10, -6.9, 1.35], [-8.8, 6.4, 1.2], [-1.0, -6.7, 1.0], [2.25, 6.2, 1.15], [9.4, -6.8, 1.25], [10.4, 1.4, 1.0]].forEach(([x, z, scale]) => plantAt(x, z, scale));
 
-      /* Canonical workforce: professional silhouettes; placement is presentation only, never physical-location truth. */
       statusMaterialsRef.current.clear();
       const employees = modelRef.current.departmentZones.flatMap((zone) => zone.employeeSlots.map((slot) => slot));
-      const visibleEmployees = employees.slice(0, LIVING_HQ_HIGH_FIDELITY_BUDGET.maximumVisibleHumansDesktop);
+      const isMobile = window.matchMedia("(max-width: 760px)").matches;
+      const humanCap = isMobile
+        ? LIVING_HQ_HIGH_FIDELITY_BUDGET.maximumVisibleHumansMobile
+        : LIVING_HQ_HIGH_FIDELITY_BUDGET.maximumVisibleHumansDesktop;
+      const visibleEmployees = employees.slice(0, humanCap);
       visibleEmployees.forEach(({ employee }, index) => {
         const row = Math.floor(index / 8);
         const col = index % 8;
@@ -230,6 +219,7 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       canvas.dataset.presenceClaimed = "false";
       canvas.dataset.locomotionAllowed = "false";
       canvas.dataset.visibleHumans = String(visibleEmployees.length);
+      canvas.dataset.humanBudget = isMobile ? "mobile" : "desktop";
 
       const resize = () => {
         const rect = canvas.getBoundingClientRect();
@@ -237,6 +227,15 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
         const height = Math.max(360, Math.floor(rect.height || 680));
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
+        if (width < 600) {
+          camera.position.set(9.4, 5.15, 24.8);
+          camera.lookAt(0.15, 1.35, -1.0);
+          camera.fov = 52;
+        } else {
+          camera.position.set(12.8, 4.65, 17.8);
+          camera.lookAt(0.4, 1.55, -0.8);
+          camera.fov = 48;
+        }
         camera.updateProjectionMatrix();
       };
       resize();
@@ -247,7 +246,7 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const animate = () => {
         if (disposed) return;
-        if (!reducedMotion) {
+        if (!reducedMotion && canvas.clientWidth >= 600) {
           const t = performance.now() * 0.000035;
           camera.position.x = 12.8 + Math.sin(t) * 0.20;
           camera.lookAt(0.4, 1.55, -0.8);
