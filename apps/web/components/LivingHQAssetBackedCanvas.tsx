@@ -14,15 +14,28 @@ import {
 
 export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: LivingSceneRenderModel }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const modelRef = useRef(renderModel);
+  const renderRef = useRef<(() => void) | null>(null);
+  const activeMountsRef = useRef(0);
+  modelRef.current = renderModel;
 
+  /*
+   * Renderer lifetime is deliberately independent from the 5s canonical scene refresh.
+   * Canonical changes update metadata/overlays without rebuilding WebGL, reloading GLBs,
+   * or re-allocating GPU resources. Visual quality must never tax organization execution.
+   */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     let disposed = false;
     let cleanup: (() => void) | null = null;
+    let started = false;
 
-    void (async () => {
+    const start = async () => {
+      if (started || disposed) return;
+      started = true;
+
       const saveData = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const assetPackAvailable = saveData ? false : await detectLivingHQAssetPack();
@@ -36,6 +49,8 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
       });
       canvas.dataset.renderMode = mode;
       canvas.dataset.assetPackAvailable = String(assetPackAvailable);
+      canvas.dataset.assetPipelineBudgeted = "true";
+      canvas.dataset.renderCadence = "on-demand";
 
       if (mode !== "three-assets") return;
 
@@ -68,6 +83,7 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
       const sun = new THREE.DirectionalLight(0xffe9c3, 3.25);
       sun.position.set(-7, 11, 8);
       sun.castShadow = true;
+      sun.shadow.mapSize.set(1024, 1024);
       scene.add(sun);
 
       const assetRoots: any[] = [];
@@ -75,8 +91,14 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
         const root: any = loaded.scene;
         root.traverse?.((node: any) => {
           if (!node?.isMesh) return;
-          node.castShadow = loaded.definition.kind !== "environment";
+          node.castShadow = loaded.definition.kind === "human" || loaded.definition.kind === "furniture";
           node.receiveShadow = true;
+          if (node.material) {
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material: any) => {
+              if ("envMapIntensity" in material) material.envMapIntensity = Math.min(material.envMapIntensity || 1, 1.15);
+            });
+          }
         });
 
         if (loaded.definition.kind === "environment") {
@@ -97,21 +119,33 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
         assetRoots.push(root);
       }
 
+      activeMountsRef.current += 1;
+      canvas.dataset.rendererActiveMounts = String(activeMountsRef.current);
       canvas.dataset.assetCount = String(loadedAssets.length);
-      canvas.dataset.canonicalEmployeeCount = String(
-        renderModel.departmentZones.reduce((sum, zone) => sum + zone.employeeSlots.length, 0),
-      );
       canvas.dataset.presentationOnly = "true";
       canvas.dataset.presenceClaimed = "false";
       canvas.dataset.locomotionAllowed = "false";
 
-      const render = () => renderer.render(scene, camera);
+      const render = () => {
+        if (!disposed && document.visibilityState === "visible") renderer.render(scene, camera);
+      };
+      renderRef.current = render;
+
       const resize = () => {
         const rect = canvas.getBoundingClientRect();
         const width = Math.max(320, Math.floor(rect.width || 960));
         const height = Math.max(360, Math.floor(rect.height || 680));
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
+        if (width < 600) {
+          camera.position.set(9.8, 5.4, 24.2);
+          camera.lookAt(0.2, 1.35, -0.8);
+          camera.fov = 52;
+        } else {
+          camera.position.set(11.8, 5.2, 17.4);
+          camera.lookAt(0, 1.5, -0.8);
+          camera.fov = 46;
+        }
         camera.updateProjectionMatrix();
         render();
       };
@@ -119,10 +153,16 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
       resize();
       const observer = new ResizeObserver(resize);
       observer.observe(canvas);
+      const handleVisibility = () => {
+        if (document.visibilityState === "visible") render();
+      };
+      document.addEventListener("visibilitychange", handleVisibility);
       render();
 
       cleanup = () => {
         observer.disconnect();
+        document.removeEventListener("visibilitychange", handleVisibility);
+        renderRef.current = null;
         for (const root of assetRoots) {
           root.traverse?.((node: any) => {
             node.geometry?.dispose?.();
@@ -132,12 +172,42 @@ export function LivingHQAssetBackedCanvas({ renderModel }: { renderModel: Living
         }
         renderer.dispose();
       };
-    })();
+    };
+
+    const intersection = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting || entry.intersectionRatio > 0)) {
+          void start();
+          intersection.disconnect();
+        }
+      },
+      { rootMargin: `${LIVING_HQ_HIGH_FIDELITY_BUDGET.lazyLoadMarginPx}px` },
+    );
+    intersection.observe(canvas);
 
     return () => {
       disposed = true;
+      intersection.disconnect();
       cleanup?.();
     };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const employeeCount = renderModel.departmentZones.reduce((sum, zone) => sum + zone.employeeSlots.length, 0);
+    const activeCount = renderModel.departmentZones.reduce(
+      (sum, zone) => sum + zone.employeeSlots.filter((slot) => ["working", "blocked", "awaiting_owner", "queued"].includes(slot.employee.semantic_state)).length,
+      0,
+    );
+    const blockedCount = renderModel.departmentZones.reduce(
+      (sum, zone) => sum + zone.employeeSlots.filter((slot) => slot.employee.semantic_state === "blocked").length,
+      0,
+    );
+    canvas.dataset.canonicalEmployeeCount = String(employeeCount);
+    canvas.dataset.canonicalActiveEmployees = String(activeCount);
+    canvas.dataset.canonicalBlockedEmployees = String(blockedCount);
+    renderRef.current?.();
   }, [renderModel]);
 
   return (
