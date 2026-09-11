@@ -1,4 +1,4 @@
-/* Phase 13G.1G / 13G.1L — Mobile live-HQ composition.
+/* Phase 13G.1G / 13G.1L / 13G.1M — Mobile live-HQ composition.
    Preserve the same canonical office world while making the flagship experience materially shorter.
    Presentation-only compression: no canonical state, authority, or truth semantics are removed. */
 
@@ -185,6 +185,19 @@
   .living-hq-workforce > footer {
     font-size: 6.6px;
     line-height: 1.4;
+  }
+
+  /*
+   * The V2 flagship HQ already carries the canonical organization/world projection on mobile.
+   * Legacy M.7 structured scene duplicates remain fully available on desktop, but are omitted from
+   * the narrow-screen composition so they cannot turn the live HQ into a multi-screen diagnostics dump.
+   * This is presentation-only: the canonical API payload and flagship truth surfaces stay intact.
+   */
+  .living-scene-shell > .living-structured-reference,
+  .living-scene-shell > .living-flow-baseline,
+  .living-scene-shell > .living-scene-smart-strip,
+  .living-scene-shell > .living-scene-floor {
+    display: none !important;
   }
 
   /* The legacy proof field remains in the product on desktop, but does not compete with mobile HQ. */
