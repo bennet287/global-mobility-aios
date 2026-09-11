@@ -1,0 +1,110 @@
+/* Phase 13G.1H photorealistic-convergence pass.
+   World-first composition inspired by the owner-approved premium office target.
+   CSS remains a lightweight fallback/presentation layer; it creates no canonical facts. */
+
+.living-hq-architecture {
+  background: linear-gradient(180deg,#111517 0%,#0c1012 100%);
+  border-color: rgba(255,255,255,.08);
+}
+
+.living-hq-office-world {
+  min-height: clamp(610px,54vw,790px);
+  background:
+    radial-gradient(circle at 72% 28%,rgba(255,232,190,.18),transparent 25%),
+    linear-gradient(180deg,#1b2023 0 18%,#d9d7cf 18% 53%,#a99f91 53% 54%,#5b554d 54% 100%);
+  box-shadow: 0 34px 90px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.13);
+}
+
+/* Stronger foreground/midground/background separation. */
+.living-hq-office-world::before {
+  content:"";
+  position:absolute;
+  z-index:8;
+  left:-4%;
+  bottom:-9%;
+  width:32%;
+  height:31%;
+  pointer-events:none;
+  opacity:.82;
+  background:
+    radial-gradient(ellipse at 12% 82%,#244832 0 8%,transparent 9%),
+    radial-gradient(ellipse at 25% 55%,#376b49 0 7%,transparent 8%),
+    radial-gradient(ellipse at 38% 77%,#21452f 0 8%,transparent 9%),
+    radial-gradient(ellipse at 52% 49%,#477954 0 6%,transparent 7%),
+    radial-gradient(ellipse at 68% 79%,#315f42 0 7%,transparent 8%);
+  filter: drop-shadow(0 12px 14px rgba(0,0,0,.22));
+}
+
+.living-hq-office-world::after {
+  content:"AIOS  ·  PEOPLE  ·  DECISIONS  ·  PROGRESS";
+  position:absolute;
+  z-index:9;
+  right:4%;
+  bottom:3.5%;
+  padding:10px 15px;
+  border-left:2px solid rgba(244,215,167,.72);
+  color:rgba(249,245,237,.84);
+  font-size:10px;
+  letter-spacing:.15em;
+  background:linear-gradient(90deg,rgba(16,19,20,.76),rgba(16,19,20,.18));
+  text-shadow:0 2px 7px rgba(0,0,0,.4);
+  pointer-events:none;
+}
+
+.living-hq-office-ceiling {
+  height:24%;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 8%,rgba(0,0,0,.42) 8% 8.7%,transparent 8.7% 18%),
+    repeating-linear-gradient(0deg,transparent 0 27%,rgba(0,0,0,.35) 27% 30%,transparent 30% 63%),
+    linear-gradient(180deg,#0e1113,#292d2e);
+}
+
+.living-hq-office-light { height:4px; background:#ffe7bd; box-shadow:0 0 20px rgba(255,221,165,.38); }
+.living-hq-office-window-wall { background:repeating-linear-gradient(90deg,transparent 0 22%,rgba(30,36,38,.7) 22% 22.7%,transparent 22.7% 45%),linear-gradient(180deg,rgba(158,197,214,.78),rgba(225,226,211,.55)); }
+.living-hq-office-skyline { opacity:.38; }
+.living-hq-office-floor-timber { background:repeating-linear-gradient(90deg,rgba(70,43,26,.18) 0 1px,transparent 1px 5.5%),repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 27px),linear-gradient(90deg,#8e6645,#c39a6f 50%,#8b6345); }
+.living-hq-office-glass { border-color:rgba(40,46,47,.66); background:repeating-linear-gradient(90deg,transparent 0 23%,rgba(43,49,50,.42) 23% 24%,transparent 24% 49%),linear-gradient(180deg,rgba(236,241,236,.18),rgba(125,151,153,.08)); box-shadow:inset 0 0 32px rgba(255,255,255,.08),0 18px 32px rgba(0,0,0,.12); }
+
+/* Architecture is dominant; canonical room articles become embedded glass HUD/signage. */
+.living-hq-room {
+  z-index:10;
+  width:min(245px,24%);
+  min-height:0;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:10px;
+  background:linear-gradient(135deg,rgba(20,25,28,.76),rgba(20,25,28,.48));
+  box-shadow:0 12px 28px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08);
+  backdrop-filter:blur(7px);
+}
+.living-hq-room .living-hq-room-copy > span { font-size:9px; letter-spacing:.09em; opacity:.68; }
+.living-hq-room .living-hq-room-copy > strong { font-size:clamp(13px,1.2vw,17px); }
+.living-hq-room .living-hq-room-copy > small { font-size:9px; opacity:.72; }
+.living-hq-room .living-hq-room-context,.living-hq-room footer { display:none; }
+.living-hq-room-mission { left:18%; top:43%; }
+.living-hq-room-evidence { left:47%; top:27%; }
+.living-hq-room-board { right:5%; top:29%; left:auto; }
+
+/* Keep people visually subordinate to the workplace and avoid sticker/cartoon silhouettes. */
+.living-hq-world-person { filter:drop-shadow(0 8px 7px rgba(0,0,0,.18)); }
+.living-hq-world-head { box-shadow:inset -2px -2px 3px rgba(92,55,37,.13); }
+.living-hq-world-torso { box-shadow:inset -3px 0 4px rgba(0,0,0,.13); }
+.living-hq-world-state { width:4px; height:4px; }
+
+/* Detached explanatory surfaces recede behind the hero world. */
+.living-hq-department-fabric,
+.living-hq-smart-object-rail { margin-top:16px; opacity:.88; }
+
+@media (max-width:760px) {
+  .living-hq-office-world { min-height:540px; }
+  .living-hq-office-world::before { opacity:.55; width:43%; }
+  .living-hq-office-world::after { right:3%; bottom:2%; font-size:7px; padding:7px 9px; }
+  .living-hq-room { width:42%; padding:7px 8px; }
+  .living-hq-room-mission { left:4%; top:44%; }
+  .living-hq-room-evidence { left:35%; top:26%; }
+  .living-hq-room-board { right:3%; top:34%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-office-world::before,.living-hq-office-world::after { animation:none !important; }
+}
