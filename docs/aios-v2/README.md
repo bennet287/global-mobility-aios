@@ -253,14 +253,21 @@ These decisions are preserved here so useful patterns are not lost while avoidin
 
 **AIOS decision:** **ADOPT ARCHITECTURE NOW** — provider-neutral memory seam, provenance-aware retrieval, temporal/entity-aware search and explicit memory classification. **EVALUATE IMPLEMENTATION LATER** — Mem0 is only a provider candidate behind `MemoryProvider`. **DO NOT TREAT MEMORY AS CANONICAL TRUTH** and **DO NOT INSTALL NOW**.
 
+### God's Eye View (`bilawalsidhu/gods-eye-view`)
+
+**Observed:** spatial environment as the primary interface; world/region/entity drill-down; cinematic camera framing; selectable entities with contextual HUDs; layered live-data presentation; scene-aware interaction; and explicit distinctions among live, delayed, simulated, reconstructed and unavailable information.
+
+**AIOS decision:** **ADOPT SELECTIVELY AS A LIVING HQ REFERENCE** — use the spatial-navigation, environment-as-interface, entity-focus, contextual-HUD, cinematic-framing and visible source/freshness-state principles during the Owner/Living Organization flagship pass. Map the interaction model to `Organization → HQ → Department → zone/room → employee → mission/work → evidence/decision/context` where canonical AIOS contracts support it. Preserve the permanent direction `canonical truth → presentation`: ambient character behavior, cinematic motion and scene dressing must never create business truth, presence claims, completed work, decisions or authority outcomes. **DO NOT COPY** its military/spy identity, photorealistic-Earth/Cesium product model, visual branding or application architecture, and do not import its code/runtime wholesale.
+
 ### Adoption order
 
 1. Minimum Sufficient Change — active builder discipline.
 2. Curated frontend verification — active for material visible work.
 3. Agent-surface security verification — active for agent/runtime/tooling changes.
-4. Capability seams — architecture direction; implement only for a concrete roadmap need.
-5. Provider-neutral memory seam — architecture direction now; provider implementation only for an accepted persistent-memory slice.
-6. Bounded scheduled/swarm runtime — deferred until a concrete autonomous-operations slice is authorized.
+4. God's Eye View spatial/cinematic interaction principles — active reference for the upcoming Owner/Living HQ flagship visual pass; no runtime/code import.
+5. Capability seams — architecture direction; implement only for a concrete roadmap need.
+6. Provider-neutral memory seam — architecture direction now; provider implementation only for an accepted persistent-memory slice.
+7. Bounded scheduled/swarm runtime — deferred until a concrete autonomous-operations slice is authorized.
 
 ### External-reference governance rule
 
