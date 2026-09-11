@@ -180,7 +180,7 @@ The initial 13G candidate demonstrated that green CI alone does not satisfy the 
 
 ### 13G.1 — Architectural World Redesign — ACTIVE
 
-**Outcome:** the Living HQ must read at first glance as a premium contemporary digital-company headquarters, not a dashboard/card grid whose boxes are styled as rooms.
+**Outcome:** the Living HQ must read at first glance as a premium contemporary digital-company headquarters, not a dashboard/card grid whose boxes are styled as rooms, and it must behave as a live organization surface driven by real AIOS agent state rather than a static office illustration.
 
 The Owner-approved visual direction is one continuous architectural office world with believable depth, circulation, glass partitions, timber/stone/carpet/metal material language, real workplace furniture, planting, lighting, windows, open-plan work areas, specialist glass rooms, executive Board space, miniature employees integrated into the environment, and restrained world-anchored AIOS HUDs.
 
@@ -189,6 +189,49 @@ The Owner-approved visual direction is one continuous architectural office world
 Without reading labels, a first-time viewer must perceive a modern premium headquarters, one connected workplace, open working areas plus glass specialist/executive spaces, miniature employees belonging inside the environment, and a live digital organization.
 
 If the first impression is cards, square rooms, tiles, panels, game board, pixel tower, neon sci-fi pods, repeated creatures or conventional admin dashboard, the candidate fails regardless of automated test status.
+
+#### Non-negotiable real-time organization requirement
+
+Living HQ is not a static scene. Its visible state must continuously derive from the governed Living Organization projection. Agent state, WorkItems, Missions, blockers, canonical handoffs, governed conversations, evidence posture, Board-attention risk, current decisions and human-action requests drive visible presentation changes in the office world.
+
+The target pipeline is:
+
+```text
+REAL AIOS CANONICAL STATE
+        ↓
+Living Organization projection
+        ↓
+Department / Employee / WorkItem / Mission / Blocker /
+Handoff / Conversation / Decision / Escalation state
+        ↓
+Living HQ world-state projection
+        ↓
+Characters + workstations + zones + HUD + environment reactions
+```
+
+A state change in AIOS must become a state change in the Living HQ presentation without hardcoded theatrical activity. The scene is allowed to be visually alive; it is not allowed to invent organizational facts.
+
+Examples:
+
+- `working` employee → focused workstation presentation, active monitor/work pulse and supported task cue;
+- `blocked` employee → visible attention/blocker posture at the workstation;
+- `awaiting_owner` → restrained Owner-attention cue without claiming new work;
+- `queued` → ready/waiting presentation without active-execution implication;
+- `completed` → settled presentation without implying new availability;
+- department active-work count → zone activity/intensity response;
+- canonical blocker → Mission/department attention cue;
+- canonical handoff → short governed transfer cue between involved entities/zones;
+- canonical conversation → semantic communication cue between recorded participants only;
+- evidence state → Evidence Lab presentation response without certifying evidence;
+- Board-attention risk / current decision / open human action → Board-zone governance response without implying occupancy or Board action.
+
+#### Canonical dynamics versus ambient life
+
+**Canonical dynamics** communicate actual organizational state and may only be derived from governed records.
+
+**Ambient life** exists solely to prevent the world from feeling frozen: breathing, subtle head/hand shifts, typing loops for already-working presentation, monitor flicker, chair micro-motion, light variation and similarly neutral environmental motion. Ambient behavior must not create or imply a WorkItem, conversation, handoff, decision, physical location, availability, authority or completion event.
+
+Locomotion remains disallowed under the current contract. Walking between rooms, coffee breaks, meeting entry and other spatial behaviors remain forbidden until future canonical semantics explicitly earn them.
 
 #### Desktop composition target
 
@@ -206,11 +249,13 @@ Functional zones are spatial parts of one HQ. They must not be standalone rectan
 
 The repeated generic creature/card presentation is rejected. Replace it with an original miniature workforce system differentiated through silhouette, face/head/hair, wardrobe, accessories, workstation context and restrained department identity. CEO, Technology/CTO, Regulatory/Evidence and Operations archetypes must be recognisable before reading role text. Characters belong inside desks/chairs/zones rather than floating avatar cards.
 
+Character animation is state-derived. Visual behavior must change when canonical employee state changes. A working employee should not visually behave like a queued or blocked employee.
+
 #### HUD target
 
-World first, HUD second. Use compact contextual overlays anchored to zones/entities. Rich inspectors appear on selection. The architecture must remain understandable when labels/HUDs are mentally removed.
+World first, HUD second. Use compact contextual overlays anchored to zones/entities. Rich inspectors appear on selection. The architecture must remain understandable when labels/HUDs are mentally removed. Live HUD values must derive from the same governed render model as the visible world, not from an independent frontend truth store.
 
-#### 13G.1A — Continuous architectural shell — NEXT
+#### 13G.1A — Continuous architectural shell — ACTIVE
 
 Replace the visible three-room/card axis with one continuous office-world shell. Establish elevated camera/perspective, continuous floor, architectural ceiling and lighting, windows/glazing, circulation, major glass partitions, material zones and depth layers. Preserve canonical room keys and semantic DOM contracts even when visual geometry changes completely.
 
@@ -228,37 +273,49 @@ Replace the rejected creature/card presentation and integrate differentiated min
 
 **Gate:** CEO / Technology / Regulatory-Evidence / Operations archetypes are distinguishable without role text and no floating-avatar-card impression remains.
 
-#### 13G.1D — World-anchored governed intelligence
+#### 13G.1D — Real-time agent/world state binding
 
-Recompose existing spatial focus, inspector, handoff, conversation, Mission/blocker/evidence/Board context as restrained world-anchored cues and contextual drill-down.
+Bind the architectural world directly to the existing governed Living Scene render model. Employee presentation state, WorkItem assignment/status, department activity, Missions and blockers must drive characters, workstations, local lighting/intensity and compact zone cues in real time.
 
-**Gate:** governed state remains discoverable while architecture stays visually dominant.
+The world may interpolate presentation transitions, but it may not create an independent canonical state machine.
 
-#### 13G.1E — Cinematic depth and supported life
+**Gate:** deterministic fixture/state transitions visibly change the correct employee and office zone without page reload or hardcoded scenario-specific decoration.
 
-Tune lighting, glass, material separation, depth, shadows, focus transitions and allowed ambient/state-driven motion. Monitor glow, light sweep and supported state pulses are allowed; fake walking/talking/occupancy/work are not.
+#### 13G.1E — Canonical organizational event reactions
 
-**Gate:** desktop has foreground/midground/background depth and no neon-box/pixel-tower appearance.
+Integrate existing canonical handoffs, governed conversations, evidence posture, Board-attention risks, current decisions and human-action requests as short-lived or persistent world reactions where appropriate.
 
-#### 13G.1F — Mobile HQ composition
+Handoff animation requires an actual canonical handoff. Conversation cues require an actual canonical conversation record. Board response requires actual governance records. Shared Mission membership is never sufficient evidence for transfer or conversation.
 
-Create a dedicated HQ viewport plus spatial focus/drill-down model. Do not stack a desktop room/card grid vertically.
+**Gate:** positive and empty-state fixtures prove that the world reacts when canonical records exist and remains quiet when they do not.
 
-**Gate:** phone remains intentional, spatial, readable, touch-safe and free of horizontal body overflow.
+#### 13G.1F — Ambient life + cinematic depth
 
-#### 13G.1G — Owner visual proof
+Tune lighting, glass, material separation, depth, shadows, focus transitions and ambient micro-motion. Supported ambient motion may make the office feel continuously alive but cannot communicate fabricated work or physical presence.
 
-Generate exact-head desktop and phone screenshots before expensive final sealing. Owner visual acceptance is mandatory.
+**Gate:** desktop has foreground/midground/background depth, visible life when canonical activity is present, restrained neutral ambience otherwise, and no neon-box/pixel-tower appearance.
 
-**Gate:** explicit Owner acceptance. Green CI cannot override visual rejection.
+#### 13G.1G — Mobile live-HQ composition
+
+Create a dedicated HQ viewport plus spatial focus/drill-down model. Preserve real-time state reactions at phone scale. Do not stack a desktop room/card grid vertically.
+
+**Gate:** phone remains intentional, spatial, readable, touch-safe, dynamically state-aware and free of horizontal body overflow.
+
+#### 13G.1H — Owner visual + live-behavior proof
+
+Generate exact-head desktop and phone screenshots plus deterministic state-transition proof showing at minimum working, blocked, waiting, canonical handoff/conversation and Board-attention responses. Owner acceptance is mandatory for both visual quality and live behavior.
+
+**Gate:** explicit Owner acceptance. Green CI cannot override visual or live-behavior rejection.
 
 ### 13G.2 — Final acceptance and companion reconciliation
 
-Only after 13G.1G passes, reconstruct useful closure work from Draft PR #146 onto the accepted architectural base. Run Repository Policy, targeted Living HQ browser proof, V12 Production Proof, Q17 performance and Q18 asset profiling on one exact candidate head. Inspect desktop/phone/Q17/Q18 artifacts. Reconcile ROADMAP, README, migration/final checklist and companion specs. Merge only the exact accepted head and verify the actual merge commit/tree/parents/signature.
+Only after 13G.1H passes, reconstruct useful closure work from Draft PR #146 onto the accepted architectural/live-world base. Run Repository Policy, targeted Living HQ browser proof, V12 Production Proof, Q17 performance and Q18 asset profiling on one exact candidate head. Inspect desktop/phone/Q17/Q18 artifacts. Reconcile ROADMAP, README, migration/final checklist and companion specs. Merge only the exact accepted head and verify the actual merge commit/tree/parents/signature.
 
 ### Phase 13 permanent visual truth boundary
 
-The architectural correction changes presentation, not canonical organization semantics. Room presentation does not assert occupancy. Character placement does not assert physical presence or employee location. Mission-room presentation does not route work. Evidence Lab presentation does not certify evidence. Board-room presentation does not constitute Board action. Handoff and conversation cues remain canonical-only. Local spatial selection remains view state only. No visual element may create work, evidence, decision, authority, presence, occupancy or availability.
+The architectural/live-world correction changes presentation, not canonical organization semantics. Room presentation does not assert occupancy. Character placement does not assert physical presence or employee location. Mission-room presentation does not route work. Evidence Lab presentation does not certify evidence. Board-room presentation does not constitute Board action. Handoff and conversation cues remain canonical-only. Local spatial selection remains view state only. No visual element may create work, evidence, decision, authority, presence, occupancy or availability.
+
+The real-time rule is one-way: canonical organization state may drive Living HQ presentation; Living HQ animation may never silently write canonical organization state.
 
 ---
 
@@ -342,9 +399,11 @@ AIOS should feel like a premium operating system for a living digital company ra
 
 For Living HQ specifically, **environment-as-interface is now mandatory**. The architectural office world is the hero surface. HUDs and inspectors augment it. The Owner-approved direction is premium contemporary office architecture with open-plan workplace, glass specialist/executive rooms, warm timber, neutral stone/concrete/textile, matte metal, plants, real furniture, windows, architectural lighting and miniature employees integrated into the scene.
 
+The environment must also be **organization-driven in real time**. Employees, workstations, department zones, Mission attention, governed handoff/conversation cues, Evidence posture and Board escalation presentation respond to the current governed render model. A static office illustration does not satisfy Living HQ.
+
 Old content inside V2 chrome is not a completed redesign. Generic SaaS/AI-slop output, repeated creatures, room cards, pixel towers and cosmetic relabeling are rejected even when CI is green.
 
-Motion communicates supported state. Decorative ambience cannot imply false work, presence or authority. Every flagship slice considers desktop/phone, keyboard, reduced motion, forced colors/high contrast, readable fallback, predictable focus semantics and bounded rendering cost.
+Motion communicates supported state. Canonical dynamics derive only from real organization records. Decorative ambience cannot imply false work, presence or authority. Every flagship slice considers desktop/phone, keyboard, reduced motion, forced colors/high contrast, readable fallback, predictable focus semantics and bounded rendering cost.
 
 ---
 
@@ -358,7 +417,7 @@ Motion communicates supported state. Decorative ambience cannot imply false work
 
 **Failure classification:** distinguish deterministic product regression, literal/source-contract regression, browser flake, external dependency failure, backend/database failure and policy/hygiene failure before changing code.
 
-**Efficient proof:** iterate narrowly; seal broadly. For 13G.1A–F, use targeted build/browser/screenshot proof and inspect visual artifacts before expensive final V12 sealing. After Owner visual acceptance, full exact-head gates remain mandatory.
+**Efficient proof:** iterate narrowly; seal broadly. For 13G.1A–G, use targeted build/browser/screenshot/state-transition proof and inspect visual artifacts before expensive final V12 sealing. After Owner visual/live-behavior acceptance, full exact-head gates remain mandatory.
 
 **Truth-contract compatibility:** established literal truth statements may be CI-enforced and must remain discoverable.
 
@@ -373,19 +432,20 @@ AIOS does not become a generic multi-agent clone, ungoverned swarm, bulk-importe
 ## 14. Immediate order of work
 
 ```text
-1. Phase 13G.1A — replace room-card geometry with the continuous architectural shell.
-2. Inspect desktop visual proof; reject immediately if it still reads as boxes/cards.
+1. Phase 13G.1A — finish the continuous architectural shell and inspect desktop proof.
+2. Reject immediately if it still reads as boxes/cards rather than one premium office.
 3. Phase 13G.1B — build distinct Operations, Technology, Evidence, Board and shared interiors.
 4. Phase 13G.1C — replace repeated creature presentation with integrated miniature workforce art.
-5. Phase 13G.1D — anchor governed intelligence to the world without creating a dashboard farm.
-6. Phase 13G.1E — establish cinematic depth, materials, lighting and supported environmental life.
-7. Phase 13G.1F — build intentional mobile HQ viewport + drill-down.
-8. Phase 13G.1G — obtain explicit Owner desktop/phone visual acceptance.
-9. Phase 13G.2 — reconstruct final reconciliation, run exact-head full proof, reconcile docs and seal Phase 13.
-10. Begin Autonomous Global Regulatory Intelligence only after redesign is genuinely sealed.
-11. Build Native Skills Registry and lifecycle governance where regulatory/employee capability work requires them.
-12. Establish security, reliability, learning and earned-autonomy foundations before consequential expansion.
-13. Add interoperability and production scale as concrete product dependencies require.
+5. Phase 13G.1D — bind real-time agent, WorkItem, Mission, blocker and department state into the office world.
+6. Phase 13G.1E — add canonical handoff, conversation, evidence and Board-governance reactions.
+7. Phase 13G.1F — establish cinematic depth plus safe ambient life without fabricated activity.
+8. Phase 13G.1G — build intentional mobile live-HQ viewport + drill-down.
+9. Phase 13G.1H — obtain explicit Owner visual and live-behavior acceptance.
+10. Phase 13G.2 — reconstruct final reconciliation, run exact-head full proof, reconcile docs and seal Phase 13.
+11. Begin Autonomous Global Regulatory Intelligence only after redesign is genuinely sealed.
+12. Build Native Skills Registry and lifecycle governance where regulatory/employee capability work requires them.
+13. Establish security, reliability, learning and earned-autonomy foundations before consequential expansion.
+14. Add interoperability and production scale as concrete product dependencies require.
 ```
 
 ---
@@ -396,6 +456,6 @@ Global Mobility AIOS is successful when the Human Owner can open the product and
 
 The system should make it possible to see what the company is doing, inspect why it is doing it, trace what evidence and authority produced each consequential outcome, intervene when necessary, replay what happened, measure cost and quality, and safely grant more autonomy where performance earns it.
 
-For the Living HQ flagship, success additionally means the organization is perceived as a believable premium modern headquarters before it is perceived as software chrome. The environment makes canonical organizational state legible; it never invents that state.
+For the Living HQ flagship, success additionally means the organization is perceived as a believable premium modern headquarters before it is perceived as software chrome, and the headquarters visibly changes as the underlying agents, work and governed organizational events change. The environment makes canonical organizational state legible in real time; it never invents that state.
 
 The long-term advantage is not the number of agents, models, animations or integrations. It is the combination of capable AI employees, durable organizational memory, canonical evidence and decisions, explicit authority, visible organizational state, reliable execution, measured learning and earned autonomy.
