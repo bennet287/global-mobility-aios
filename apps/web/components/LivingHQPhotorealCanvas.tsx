@@ -48,11 +48,12 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       renderer.toneMappingExposure = 1.08;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setClearColor(new THREE.Color(0xb8c0bd), 1);
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x93a9b2);
-      scene.fog = new THREE.Fog(0xa5b3b2, 28, 70);
-      const camera = new THREE.PerspectiveCamera(44, 1, 0.1, 140);
+      scene.background = new THREE.Color(0xb8c0bd);
+      scene.fog = new THREE.Fog(0xb8c0bd, 30, 72);
+      const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 140);
 
       const renderFrame = () => {
         if (!disposed && document.visibilityState === "visible") renderer.render(scene, camera);
@@ -267,6 +268,7 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
       canvas.dataset.humanBudget = isMobile ? "mobile" : "desktop";
       canvas.dataset.renderCadence = "on-demand";
       canvas.dataset.geometryReuse = "shared-human-primitives";
+      canvas.dataset.cameraFraming = "cinematic-floor-dominant";
 
       const resize = () => {
         const rect = canvas.getBoundingClientRect();
@@ -275,13 +277,13 @@ export function LivingHQPhotorealCanvas({ renderModel }: { renderModel: LivingSc
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
         if (width < 600) {
-          camera.position.set(8.7, 4.9, 24.6);
-          camera.lookAt(0.2, 1.25, -1.2);
-          camera.fov = 50;
+          camera.position.set(7.6, 6.25, 19.2);
+          camera.lookAt(0.05, 0.72, -1.7);
+          camera.fov = 48;
         } else {
-          camera.position.set(13.2, 4.25, 18.8);
-          camera.lookAt(0.65, 1.45, -1.0);
-          camera.fov = 44;
+          camera.position.set(11.25, 5.95, 14.35);
+          camera.lookAt(0.15, 0.78, -1.55);
+          camera.fov = 42;
         }
         camera.updateProjectionMatrix();
         renderFrame();
