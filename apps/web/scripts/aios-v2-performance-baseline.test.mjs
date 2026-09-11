@@ -62,18 +62,18 @@ test("Q17 profiling is wired into package scripts and V12 with a retained JSON a
 test("13G.1I asset-backed realism is lazy, on-demand, and independent from canonical refresh churn", () => {
   assert.match(assetRenderer, /new IntersectionObserver/);
   assert.match(assetRenderer, /lazyLoadMarginPx/);
-  assert.match(assetRenderer, /data\.renderCadence = "on-demand"/);
+  assert.match(assetRenderer, /canvas\.dataset\.renderCadence = "on-demand"/);
   assert.match(assetRenderer, /modelRef\.current = renderModel/);
-  assert.match(assetRenderer, /data\.assetPipelineBudgeted = "true"/);
+  assert.match(assetRenderer, /canvas\.dataset\.assetPipelineBudgeted = "true"/);
   assert.match(assetRenderer, /document\.visibilityState === "visible"/);
   assert.match(assetRenderer, /Math\.min\(window\.devicePixelRatio \|\| 1, LIVING_HQ_HIGH_FIDELITY_BUDGET\.maximumDevicePixelRatio\)/);
   assert.doesNotMatch(assetRenderer, /requestAnimationFrame/);
 });
 
 test("13G.1I live canonical updates refresh renderer metadata without rebuilding the asset scene", () => {
-  assert.match(assetRenderer, /data\.canonicalEmployeeCount/);
-  assert.match(assetRenderer, /data\.canonicalActiveEmployees/);
-  assert.match(assetRenderer, /data\.canonicalBlockedEmployees/);
+  assert.match(assetRenderer, /canvas\.dataset\.canonicalEmployeeCount/);
+  assert.match(assetRenderer, /canvas\.dataset\.canonicalActiveEmployees/);
+  assert.match(assetRenderer, /canvas\.dataset\.canonicalBlockedEmployees/);
   assert.match(assetRenderer, /renderRef\.current\?\.\(\)/);
   assert.match(assetRenderer, /\[assetPackAvailableOverride\]/);
   assert.match(assetRenderer, /\[renderModel\]/);
