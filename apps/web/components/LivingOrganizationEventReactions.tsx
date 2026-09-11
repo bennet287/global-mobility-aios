@@ -24,14 +24,15 @@ export function LivingOrganizationEventReactions({ renderModel }: { renderModel:
     (risk) => risk.requires_board_attention && isOpenState(risk.status),
   );
 
-  const reactions: Reaction[] = [
+  const reactionCandidates = [
     { key: "handoff", kind: "handoff", label: "Canonical handoff", count: openHandoffs.length, emphasis: "coordination" },
     { key: "conversation", kind: "conversation", label: "Governed conversation", count: openConversations.length, emphasis: "coordination" },
     { key: "blocker", kind: "blocker", label: "Open blocker", count: openBlockers.length, emphasis: "attention" },
     { key: "decision", kind: "decision", label: "Current decision", count: currentDecisions.length, emphasis: "governance" },
     { key: "human-action", kind: "human-action", label: "Human action", count: openHumanActions.length, emphasis: "governance" },
     { key: "board-risk", kind: "board-risk", label: "Board-attention risk", count: boardRisks.length, emphasis: "governance" },
-  ].filter((reaction) => reaction.count > 0);
+  ] satisfies Reaction[];
+  const reactions = reactionCandidates.filter((reaction) => reaction.count > 0);
 
   return (
     <div
