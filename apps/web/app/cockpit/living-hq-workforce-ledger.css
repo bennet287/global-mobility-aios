@@ -1,0 +1,94 @@
+/* Final workforce reconciliation.
+   Canonical employee DOM/data remains available for accessibility, tests and state inspection,
+   but the duplicate cartoon miniature artwork no longer competes with the integrated 3D HQ workforce. */
+
+.living-hq-department-deck.living-hq-workforce {
+  padding:14px 16px;
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(15,19,21,.72),rgba(12,16,18,.54)) !important;
+  opacity:.92;
+}
+
+.living-hq-department-deck .living-hq-workforce-neighborhoods {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:8px;
+}
+
+.living-hq-department-deck .living-hq-workforce-neighborhood {
+  min-height:0;
+  padding:10px 11px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+  box-shadow:none;
+}
+
+/* Remove only the redundant illustrated miniature scene. The .living-hq-character nodes remain canonical state rows. */
+.living-hq-department-deck .living-hq-workforce-scene {
+  display:none !important;
+}
+
+.living-hq-department-deck .living-hq-workforce-floor {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin-top:7px;
+}
+
+.living-hq-department-deck .living-hq-workforce-person {
+  min-height:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 8px;
+  border:0;
+  border-left:2px solid rgba(126,151,155,.34);
+  border-radius:5px;
+  background:rgba(255,255,255,.022);
+  box-shadow:none;
+}
+.living-hq-department-deck .living-hq-workforce-person[data-live-semantic-state="working"] { border-left-color:#55b98a; }
+.living-hq-department-deck .living-hq-workforce-person[data-live-semantic-state="blocked"] { border-left-color:#d76f59; }
+.living-hq-department-deck .living-hq-workforce-person[data-live-semantic-state="awaiting_owner"] { border-left-color:#d5a74f; }
+.living-hq-department-deck .living-hq-workforce-person[data-live-semantic-state="queued"] { border-left-color:#6d92ad; }
+.living-hq-department-deck .living-hq-workforce-person[data-live-semantic-state="completed"] { border-left-color:#7e9b87; opacity:.72; }
+
+.living-hq-department-deck .living-hq-workforce-label {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  width:100%;
+  align-items:baseline;
+  gap:2px 8px;
+}
+.living-hq-department-deck .living-hq-workforce-label strong {
+  font-size:11px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.living-hq-department-deck .living-hq-workforce-label span {
+  font-size:8px;
+  opacity:.48;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.living-hq-department-deck .living-hq-workforce-label small {
+  grid-column:1 / -1;
+  font-size:8px;
+  opacity:.64;
+}
+
+.living-hq-department-deck > footer {
+  margin-top:10px;
+  font-size:9px;
+  opacity:.52;
+}
+
+@media (max-width:760px) {
+  .living-hq-department-deck.living-hq-workforce { padding:10px; }
+  .living-hq-department-deck .living-hq-workforce-neighborhoods { grid-template-columns:1fr; }
+  .living-hq-department-deck .living-hq-workforce-label { grid-template-columns:1fr; }
+  .living-hq-department-deck .living-hq-workforce-label span,
+  .living-hq-department-deck .living-hq-workforce-label small { grid-column:1; }
+}
