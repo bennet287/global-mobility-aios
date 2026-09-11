@@ -1,0 +1,183 @@
+/* Phase 13G.1H realism correction — premium contemporary-office finish inspired by Owner reference.
+   World first, HUD second. No new canonical facts are introduced here. */
+
+.living-hq-office-world {
+  background:
+    radial-gradient(circle at 18% 36%, rgba(255,233,202,.16), transparent 22%),
+    radial-gradient(circle at 78% 29%, rgba(233,245,248,.13), transparent 24%),
+    linear-gradient(180deg,#1c2023 0 17%,#d8d2c7 17% 49%,#b59d83 49% 50%,#6c655b 50% 100%);
+  box-shadow:
+    0 30px 70px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -55px 100px rgba(32,25,20,.16);
+}
+
+.living-hq-office-ceiling {
+  height: 21%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 7%, rgba(0,0,0,.34) 7% 7.4%, transparent 7.4% 15%),
+    repeating-linear-gradient(0deg, transparent 0 28%, rgba(0,0,0,.26) 28% 30%, transparent 30% 60%),
+    linear-gradient(180deg,#151719,#2b2e30);
+  box-shadow:0 18px 28px rgba(0,0,0,.28);
+}
+
+.living-hq-office-light {
+  height: 4px;
+  background:rgba(255,241,213,.96);
+  box-shadow:0 0 13px rgba(255,224,169,.28),0 6px 16px rgba(255,226,180,.12);
+}
+
+.living-hq-office-window-wall {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 20%, rgba(39,43,44,.62) 20% 20.8%, transparent 20.8% 41%),
+    linear-gradient(180deg,rgba(205,223,228,.72),rgba(235,234,224,.44));
+  box-shadow:inset 0 0 42px rgba(255,255,255,.16), inset 0 -22px 30px rgba(68,79,82,.08);
+}
+
+.living-hq-office-glass {
+  border-color:rgba(54,54,52,.68);
+  background:
+    repeating-linear-gradient(90deg,transparent 0 24%,rgba(58,56,51,.42) 24% 24.7%,transparent 24.7% 49%),
+    linear-gradient(180deg,rgba(230,237,235,.19),rgba(131,146,145,.10));
+  box-shadow:inset 0 0 20px rgba(255,255,255,.08),0 18px 30px rgba(0,0,0,.11);
+}
+
+.living-hq-office-floor-timber {
+  background:
+    repeating-linear-gradient(90deg,rgba(67,43,29,.18) 0 1px,transparent 1px 5.3%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 27px),
+    linear-gradient(92deg,#9b714e,#bc936d 43%,#aa7e58 72%,#8f6849);
+}
+
+.living-hq-office-floor-carpet {
+  background:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 2px,transparent 2px 10px),
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.025) 0 2px,transparent 2px 12px),
+    linear-gradient(135deg,#555b59,#3d4442);
+}
+
+/* Furniture finish: thinner edges and deeper material separation. */
+.living-hq-office-workstation {
+  border-radius:2px;
+  background:linear-gradient(180deg,#a8815f 0 11px,#75533a 11px 15px,transparent 15px);
+  box-shadow:0 15px 19px rgba(0,0,0,.24);
+}
+
+.living-hq-office-monitor {
+  border-width:2px;
+  border-color:#303537;
+  background:linear-gradient(135deg,#17272c,#0a1114);
+  box-shadow:0 2px 5px rgba(0,0,0,.28),inset 0 0 10px rgba(93,178,195,.08);
+}
+
+.living-hq-office-chair {
+  border-radius:7px 7px 3px 3px;
+  background:linear-gradient(180deg,#393f40,#292d2e);
+}
+
+.living-hq-office-lounge > i:nth-child(1),
+.living-hq-office-lounge > i:nth-child(2) {
+  background:linear-gradient(180deg,#d1cbc2,#a59e94);
+  box-shadow:0 14px 23px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+/* Replace heavy room-card appearance with embedded glass signage/HUD anchored inside architecture. */
+.living-hq-room-axis .living-hq-room {
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(18,23,27,.66),rgba(18,23,27,.47));
+  box-shadow:0 10px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter:blur(7px) saturate(.85);
+  border-radius:10px;
+}
+
+.living-hq-room-axis .living-hq-room::before {
+  content:"";
+  position:absolute;
+  left:10px;
+  top:11px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#78bd8c;
+  box-shadow:0 0 9px rgba(120,189,140,.45);
+}
+
+.living-hq-room-axis .living-hq-room-evidence::before { background:#9a7ddb; box-shadow:0 0 9px rgba(154,125,219,.42); }
+.living-hq-room-axis .living-hq-room-board::before { background:#d65d6a; box-shadow:0 0 9px rgba(214,93,106,.42); }
+
+.living-hq-room-copy,
+.living-hq-room-context,
+.living-hq-room footer { position:relative; z-index:1; }
+
+.living-hq-room-copy { padding-left:10px; }
+.living-hq-room-copy > span { opacity:.66; letter-spacing:.06em; }
+.living-hq-room-copy strong { font-weight:650; letter-spacing:-.01em; }
+.living-hq-room-context { opacity:.80; }
+.living-hq-room footer { opacity:.52; }
+
+/* Reference-like spatial placement: small floating wayfinding instead of large boxed rooms. */
+.living-hq-room-mission { width:min(24%,250px) !important; left:14% !important; top:37% !important; }
+.living-hq-room-evidence { width:min(23%,240px) !important; left:46% !important; top:25% !important; }
+.living-hq-room-board { width:min(23%,245px) !important; right:5% !important; top:28% !important; }
+
+/* World-first composition: secondary inventory surfaces visually recede. */
+.living-hq-department-fabric,
+.living-hq-workforce,
+.living-hq-smart-object-rail {
+  background:linear-gradient(180deg,rgba(24,28,31,.82),rgba(16,19,21,.78));
+  border-color:rgba(231,224,211,.08);
+  box-shadow:none;
+}
+
+.living-hq-workforce {
+  opacity:.92;
+}
+
+.living-hq-workforce-neighborhood {
+  background:rgba(255,255,255,.025);
+  border-color:rgba(255,255,255,.06);
+}
+
+/* Atmospheric foreground depth, similar to a camera looking through a real workplace. */
+.living-hq-office-world::before,
+.living-hq-office-world::after {
+  content:"";
+  position:absolute;
+  z-index:8;
+  pointer-events:none;
+  border-radius:50%;
+  filter:blur(1px);
+}
+
+.living-hq-office-world::before {
+  left:-3%;
+  bottom:-11%;
+  width:19%;
+  height:28%;
+  background:
+    radial-gradient(ellipse at 50% 45%,#416544 0 13%,transparent 14%),
+    radial-gradient(ellipse at 28% 70%,#34583b 0 10%,transparent 11%),
+    radial-gradient(ellipse at 72% 68%,#53744f 0 11%,transparent 12%);
+  opacity:.80;
+}
+
+.living-hq-office-world::after {
+  right:-5%;
+  bottom:-9%;
+  width:24%;
+  height:25%;
+  background:radial-gradient(ellipse at center,rgba(50,74,49,.64) 0 20%,transparent 58%);
+  opacity:.62;
+}
+
+@media (max-width:760px) {
+  .living-hq-room-mission { left:5% !important; top:39% !important; width:36% !important; }
+  .living-hq-room-evidence { left:38% !important; top:24% !important; width:34% !important; }
+  .living-hq-room-board { right:3% !important; top:31% !important; width:34% !important; }
+  .living-hq-room-axis .living-hq-room { backdrop-filter:none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-hq-office-world::before,
+  .living-hq-office-world::after { filter:none; }
+}
