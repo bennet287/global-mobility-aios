@@ -1,0 +1,339 @@
+/* Phase 13G.1B — Workplace interiors.
+   Presentation-only architectural detail layered over the continuous 13G.1A shell.
+   Furniture and equipment communicate zone function; they never assert occupancy, work, presence or authority. */
+
+.living-hq-office-world {
+  --interior-shadow: 0 14px 28px rgba(24, 20, 16, .22);
+}
+
+/* Operations / Mission: open collaborative floor, long project table and planning wall. */
+.living-hq-office-operations-table {
+  position: absolute;
+  z-index: 6;
+  left: 8%;
+  bottom: 34%;
+  width: 21%;
+  height: 28px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #b88d64, #815d40);
+  box-shadow: var(--interior-shadow);
+  transform: perspective(420px) rotateX(58deg) rotateZ(-2deg);
+}
+.living-hq-office-operations-table::before,
+.living-hq-office-operations-table::after {
+  content: "";
+  position: absolute;
+  top: 82%;
+  width: 5px;
+  height: 30px;
+  background: #55463a;
+}
+.living-hq-office-operations-table::before { left: 12%; }
+.living-hq-office-operations-table::after { right: 12%; }
+.living-hq-office-operations-table > i {
+  position: absolute;
+  top: 7px;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  background: #e4ded2;
+  box-shadow: 0 2px 4px rgba(0,0,0,.16);
+}
+.living-hq-office-operations-table > i:nth-child(1) { left: 18%; transform: rotate(5deg); }
+.living-hq-office-operations-table > i:nth-child(2) { left: 43%; transform: rotate(-3deg); }
+.living-hq-office-operations-table > i:nth-child(3) { right: 15%; transform: rotate(8deg); }
+
+.living-hq-office-planning-wall {
+  position: absolute;
+  z-index: 5;
+  left: 4%;
+  top: 24%;
+  width: 25%;
+  height: 17%;
+  border: 5px solid #4b4540;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(87,119,105,.72) 8% 26%, transparent 26% 32%, rgba(180,139,93,.72) 32% 49%, transparent 49% 55%, rgba(117,127,157,.72) 55% 76%, transparent 76%),
+    repeating-linear-gradient(0deg, rgba(62,67,66,.10) 0 1px, transparent 1px 12px),
+    #dedbd2;
+  box-shadow: 0 8px 20px rgba(0,0,0,.13);
+}
+.living-hq-office-planning-wall::after {
+  content: "MISSION CONTROL";
+  position: absolute;
+  left: 8px;
+  bottom: 5px;
+  color: rgba(45,49,47,.56);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+
+/* Technology: denser dark equipment language embedded into the same open floor. */
+.living-hq-office-tech-wall {
+  position: absolute;
+  z-index: 5;
+  left: 28%;
+  top: 24%;
+  width: 15%;
+  height: 19%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid rgba(34,39,39,.68);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #353b3b, #222727);
+  box-shadow: var(--interior-shadow);
+}
+.living-hq-office-tech-wall > i {
+  position: relative;
+  border-radius: 2px;
+  background:
+    radial-gradient(circle at 78% 20%, rgba(126,203,171,.78) 0 2px, transparent 2.5px),
+    repeating-linear-gradient(0deg, #161c1e 0 4px, #30393b 4px 6px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.living-hq-office-tech-wall::after {
+  content: "BUILD / SYSTEMS";
+  position: absolute;
+  left: 7px;
+  top: calc(100% + 4px);
+  color: rgba(35,40,38,.62);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.living-hq-office-tech-console {
+  position: absolute;
+  z-index: 7;
+  left: 31%;
+  bottom: 43%;
+  width: 13%;
+  height: 17px;
+  border-radius: 3px;
+  background: #76583f;
+  box-shadow: 0 8px 14px rgba(0,0,0,.18);
+}
+.living-hq-office-tech-console > i {
+  position: absolute;
+  bottom: 13px;
+  width: 29%;
+  height: 24px;
+  border: 3px solid #343b3d;
+  border-radius: 3px;
+  background: linear-gradient(145deg, #17313a, #10191d);
+  box-shadow: inset 0 0 10px rgba(83,166,169,.12);
+}
+.living-hq-office-tech-console > i:nth-child(1) { left: 9%; transform: rotateY(10deg); }
+.living-hq-office-tech-console > i:nth-child(2) { left: 36%; }
+.living-hq-office-tech-console > i:nth-child(3) { right: 8%; transform: rotateY(-10deg); }
+
+/* Evidence Lab: bright analytical glass room with bench instruments, reference shelving and displays. */
+.living-hq-office-evidence-library {
+  position: absolute;
+  z-index: 5;
+  left: 45.5%;
+  top: 27%;
+  width: 8%;
+  height: 24%;
+  border: 3px solid #68635a;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 20%, rgba(88,82,73,.75) 20% 23%, transparent 23% 44%),
+    repeating-linear-gradient(90deg, #9c8165 0 7%, #d1c2aa 7% 13%, #728077 13% 18%, #b08b69 18% 25%);
+  box-shadow: inset 0 0 0 4px rgba(234,230,218,.22), var(--interior-shadow);
+}
+
+.living-hq-office-evidence-displays {
+  position: absolute;
+  z-index: 7;
+  left: 54%;
+  top: 29%;
+  width: 11%;
+  display: flex;
+  gap: 5px;
+}
+.living-hq-office-evidence-displays > i {
+  flex: 1;
+  height: 34px;
+  border: 3px solid #4b5050;
+  border-radius: 3px;
+  background:
+    linear-gradient(120deg, transparent 0 25%, rgba(116,174,161,.28) 25% 27%, transparent 27% 55%, rgba(121,135,179,.25) 55% 58%, transparent 58%),
+    #1d292c;
+  box-shadow: 0 5px 9px rgba(0,0,0,.18);
+}
+
+.living-hq-office-evidence-island {
+  position: absolute;
+  z-index: 7;
+  left: 51%;
+  top: 43%;
+  width: 13%;
+  height: 24px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #d5d0c5 0 8px, #8a7561 8px 13px, #645747 13px);
+  box-shadow: var(--interior-shadow);
+  transform: perspective(360px) rotateX(50deg);
+}
+.living-hq-office-evidence-island::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  top: -8px;
+  width: 17px;
+  height: 11px;
+  border: 2px solid #565f5e;
+  border-radius: 50% 50% 3px 3px;
+  background: #b9c7c2;
+}
+
+/* Board / Executive: restrained premium conference suite, media wall and side credenza. */
+.living-hq-office-board-media {
+  position: absolute;
+  z-index: 5;
+  right: 5%;
+  top: 24%;
+  width: 13%;
+  height: 10%;
+  border: 4px solid #4b4945;
+  border-radius: 3px;
+  background:
+    linear-gradient(135deg, rgba(190,154,103,.20), transparent 40%),
+    linear-gradient(160deg, #243034, #101719);
+  box-shadow: 0 7px 16px rgba(0,0,0,.18);
+}
+.living-hq-office-board-media::after {
+  content: "BOARD / GOVERNANCE";
+  position: absolute;
+  left: 7px;
+  bottom: 5px;
+  color: rgba(222,210,188,.58);
+  font-size: 5.5px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.living-hq-office-board-credenza {
+  position: absolute;
+  z-index: 5;
+  right: 19%;
+  top: 40%;
+  width: 6%;
+  height: 30px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #9a7352 0 7px, #6b503c 7px);
+  box-shadow: 0 8px 14px rgba(0,0,0,.18);
+}
+.living-hq-office-board-credenza::before {
+  content: "";
+  position: absolute;
+  left: 42%;
+  bottom: 100%;
+  width: 13px;
+  height: 22px;
+  border-radius: 50% 50% 25% 25%;
+  background: #54705a;
+  box-shadow: 0 3px 0 #554b40;
+}
+
+/* Shared fabric: coffee point and soft collaboration area make the HQ read as a workplace, not a diagram. */
+.living-hq-office-coffee-point {
+  position: absolute;
+  z-index: 6;
+  right: 29%;
+  bottom: 12%;
+  width: 8%;
+  height: 48px;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, transparent 0 44%, rgba(255,255,255,.08) 44% 46%, transparent 46%),
+    linear-gradient(180deg, #5f554a 0 10px, #403a34 10px);
+  box-shadow: var(--interior-shadow);
+}
+.living-hq-office-coffee-point::before {
+  content: "";
+  position: absolute;
+  left: 13%;
+  top: 14px;
+  width: 23%;
+  height: 19px;
+  border-radius: 3px;
+  background: #171b1b;
+  box-shadow: 26px 0 0 #2e3433;
+}
+
+.living-hq-office-collaboration-rug {
+  position: absolute;
+  z-index: 3;
+  right: 1%;
+  bottom: 2%;
+  width: 30%;
+  height: 25%;
+  border-radius: 48% 8% 12% 42%;
+  opacity: .62;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px),
+    #6d6b62;
+  transform: perspective(520px) rotateX(55deg);
+}
+
+/* Material and zone separation: warm open floor, cool analytical lab, executive timber/glass suite. */
+.living-hq-office-world .living-hq-room-mission::before,
+.living-hq-office-world .living-hq-room-evidence::before,
+.living-hq-office-world .living-hq-room-board::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 16% -2% 8%;
+  border-radius: 22px;
+  pointer-events: none;
+  opacity: .16;
+}
+.living-hq-office-world .living-hq-room-mission::before {
+  background: radial-gradient(ellipse at 35% 65%, rgba(213,168,111,.55), transparent 62%);
+}
+.living-hq-office-world .living-hq-room-evidence::before {
+  background: radial-gradient(ellipse at 50% 45%, rgba(149,190,191,.65), transparent 66%);
+}
+.living-hq-office-world .living-hq-room-board::before {
+  background: radial-gradient(ellipse at 55% 42%, rgba(202,166,118,.58), transparent 66%);
+}
+
+@media (max-width: 760px) {
+  .living-hq-office-planning-wall { left: 3%; top: 29%; width: 28%; height: 12%; }
+  .living-hq-office-operations-table { left: 7%; bottom: 36%; width: 24%; }
+  .living-hq-office-tech-wall { left: 27%; top: 28%; width: 13%; height: 13%; padding: 4px; }
+  .living-hq-office-tech-console { left: 28%; bottom: 47%; width: 17%; }
+  .living-hq-office-evidence-library { left: 40%; top: 24%; width: 9%; height: 19%; }
+  .living-hq-office-evidence-displays { left: 50%; top: 26%; width: 16%; }
+  .living-hq-office-evidence-island { left: 49%; top: 39%; width: 16%; }
+  .living-hq-office-board-media { right: 4%; top: 21%; width: 16%; }
+  .living-hq-office-board-credenza { right: 21%; top: 36%; }
+  .living-hq-office-coffee-point { right: 31%; bottom: 10%; width: 9%; }
+}
+
+@media (max-width: 420px) {
+  .living-hq-office-planning-wall::after,
+  .living-hq-office-tech-wall::after,
+  .living-hq-office-board-media::after { display: none; }
+  .living-hq-office-tech-wall { grid-template-columns: repeat(2, 1fr); }
+  .living-hq-office-tech-wall > i:last-child { display: none; }
+  .living-hq-office-board-credenza,
+  .living-hq-office-coffee-point { display: none; }
+}
+
+@media (forced-colors: active) {
+  .living-hq-office-operations-table,
+  .living-hq-office-planning-wall,
+  .living-hq-office-tech-wall,
+  .living-hq-office-tech-console,
+  .living-hq-office-evidence-library,
+  .living-hq-office-evidence-displays,
+  .living-hq-office-evidence-island,
+  .living-hq-office-board-media,
+  .living-hq-office-board-credenza,
+  .living-hq-office-coffee-point,
+  .living-hq-office-collaboration-rug { display: none; }
+}

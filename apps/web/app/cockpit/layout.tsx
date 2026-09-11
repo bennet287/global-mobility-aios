@@ -10,6 +10,7 @@ import "./living-hq-visible-review-polish.css";
 import "./living-hq-wayfinding.css";
 import "./living-hq-entity-focus.css";
 import "./living-hq-architectural-world.css";
+import "./living-hq-workplace-interiors.css";
 
 export default function CockpitLayout({ children }: { children: ReactNode }) {
   return children;

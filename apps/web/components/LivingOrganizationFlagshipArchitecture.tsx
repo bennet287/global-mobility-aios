@@ -62,6 +62,24 @@ function WorkstationCluster({ variant, count }: { variant: "operations" | "techn
   );
 }
 
+function WorkplaceInteriors() {
+  return (
+    <>
+      <div className="living-hq-office-operations-table" aria-hidden="true"><i /><i /><i /></div>
+      <i className="living-hq-office-planning-wall" aria-hidden="true" />
+      <div className="living-hq-office-tech-wall" aria-hidden="true"><i /><i /><i /></div>
+      <div className="living-hq-office-tech-console" aria-hidden="true"><i /><i /><i /></div>
+      <i className="living-hq-office-evidence-library" aria-hidden="true" />
+      <div className="living-hq-office-evidence-displays" aria-hidden="true"><i /><i /></div>
+      <i className="living-hq-office-evidence-island" aria-hidden="true" />
+      <i className="living-hq-office-board-media" aria-hidden="true" />
+      <i className="living-hq-office-board-credenza" aria-hidden="true" />
+      <i className="living-hq-office-coffee-point" aria-hidden="true" />
+      <i className="living-hq-office-collaboration-rug" aria-hidden="true" />
+    </>
+  );
+}
+
 export function LivingOrganizationFlagshipArchitecture({
   renderModel,
 }: {
@@ -120,6 +138,7 @@ export function LivingOrganizationFlagshipArchitecture({
         className="living-hq-room-axis living-hq-office-world"
         aria-label="Canonical Living Organization rooms"
         data-office-world="continuous"
+        data-workplace-interiors="distinct"
       >
         <div className="living-hq-office-shell" aria-hidden="true">
           <i className="living-hq-office-ceiling" />
@@ -135,6 +154,7 @@ export function LivingOrganizationFlagshipArchitecture({
           <i className="living-hq-office-light living-hq-office-light-three" />
           <WorkstationCluster variant="operations" count={4} />
           <WorkstationCluster variant="technology" count={2} />
+          <WorkplaceInteriors />
           <div className="living-hq-office-board-table">
             <i />
             <i />
