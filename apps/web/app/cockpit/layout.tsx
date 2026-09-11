@@ -15,6 +15,7 @@ import "./living-hq-department-fabric.css";
 import "./living-hq-miniature-workforce.css";
 import "./living-hq-live-bindings.css";
 import "./living-hq-render-budget.css";
+import "./living-hq-event-reactions.css";
 
 export default function CockpitLayout({ children }: { children: ReactNode }) {
   return children;
