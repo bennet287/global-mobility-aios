@@ -93,6 +93,7 @@ export function LivingOrganizationEntityInspector({ selection, renderModel }: { 
   const model = buildInspectorModel(selection, renderModel);
   const workItems = new Map(renderModel.departmentZones.flatMap((zone) => zone.workItems).map((item) => [item.work_item_id, item]));
   const handoffs = [...renderModel.handoffs].sort((left, right) => right.occurred_at.localeCompare(left.occurred_at)).slice(0, 4);
+  const conversations = [...renderModel.conversations].sort((left, right) => right.lifecycle_at.localeCompare(left.lifecycle_at)).slice(0, 4);
 
   return (
     <aside className="living-hq-entity-inspector" aria-label="Living HQ entity inspector" data-selection-state={selection ? "selected" : "none"} data-presentation-only="true" data-authority="none" data-presence-claimed="false">
@@ -121,11 +122,29 @@ export function LivingOrganizationEntityInspector({ selection, renderModel }: { 
           </div>
         ) : <p className="living-hq-handoff-empty">No durable handoff activity exists in the current governed projection. No transfer is inferred.</p>}
       </section>
+      <section className="living-hq-conversation-rail" aria-label="Governed conversation activity" data-read-only="true" data-canonical-source="conversations" data-semantic-cues-only="true">
+        <header><div><span>Governed conversations</span><strong>Canonical communication cues</strong></div><small>{renderModel.conversations.length} governed records · no decorative dialogue is promoted as work</small></header>
+        {conversations.length ? (
+          <div className="living-hq-conversation-list">
+            {conversations.map((conversation) => (
+              <article key={conversation.conversation_id} data-conversation-state={conversation.status}>
+                <div className="living-hq-conversation-route">
+                  {conversation.participant_position_keys.map((positionKey) => <strong key={positionKey}>{positionKey}</strong>)}
+                </div>
+                <div className="living-hq-conversation-meta"><span>{format(conversation.status)}</span><small>WorkItem {conversation.work_item_id}</small></div>
+                <p>{conversation.summary}</p>
+                <footer><small>{conversation.authority_effect}</small><small>{conversation.transcript_persisted ? "Transcript persisted" : "No transcript persisted"}</small></footer>
+              </article>
+            ))}
+          </div>
+        ) : <p className="living-hq-conversation-empty">No canonical conversation activity exists in the current governed projection. No conversation is inferred or animated.</p>}
+      </section>
       <footer>
         <span>Selection contract · department / employee / room / smart_object</span>
         <span>Presentation only · no authority</span>
         <span>Contextual drill-down · read only</span>
         <span>Handoffs · canonical records only</span>
+        <span>Conversations · canonical records only</span>
       </footer>
     </aside>
   );
