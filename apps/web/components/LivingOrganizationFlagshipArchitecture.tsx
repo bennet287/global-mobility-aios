@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
 import { LivingOrganizationDepartmentFabric } from "./LivingOrganizationDepartmentFabric";
 import { LivingOrganizationEventReactions } from "./LivingOrganizationEventReactions";
+import { LivingOrganizationIntegratedWorkforce } from "./LivingOrganizationIntegratedWorkforce";
 
 type RoomDescriptor = {
   key: string;
@@ -141,6 +142,7 @@ export function LivingOrganizationFlagshipArchitecture({
         aria-label="Canonical Living Organization rooms"
         data-office-world="continuous"
         data-workplace-interiors="distinct"
+        data-integrated-workforce="canonical"
       >
         <div className="living-hq-office-shell" aria-hidden="true">
           <i className="living-hq-office-ceiling" />
@@ -173,6 +175,7 @@ export function LivingOrganizationFlagshipArchitecture({
           <span className="living-hq-office-zone-label living-hq-office-zone-technology">Technology</span>
         </div>
 
+        <LivingOrganizationIntegratedWorkforce renderModel={renderModel} />
         <LivingOrganizationEventReactions renderModel={renderModel} />
 
         {rooms.map((room, index) => (
@@ -228,8 +231,8 @@ export function LivingOrganizationFlagshipArchitecture({
       </div>
 
       <p className="living-hq-architecture-truth">
-        Mission, department coordination, event reactions, and Board context above are derived only from canonical Mission, WorkItem, blocker, handoff, conversation, decision, human-action and risk-escalation records.
-        These zones remain presentation-only spatial organization. They do not assert physical occupancy, employee location, room activity,
+        Mission, department coordination, integrated workforce state, event reactions, and Board context above are derived only from canonical Mission, WorkItem, blocker, handoff, conversation, decision, human-action and risk-escalation records.
+        Miniature placement is department-oriented presentation, not a claim of employee physical location. These zones do not assert occupancy,
         work routing, availability, Board action, or authority beyond the canonical scene contract.
       </p>
     </section>
