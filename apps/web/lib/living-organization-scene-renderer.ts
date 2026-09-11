@@ -1,9 +1,14 @@
 import type {
   LivingOrganizationScene,
+  LivingSceneBlocker,
   LivingSceneConversation,
+  LivingSceneDecision,
   LivingSceneDepartment,
   LivingSceneEmployee,
   LivingSceneHandoff,
+  LivingSceneHumanActionRequest,
+  LivingSceneMission,
+  LivingSceneRiskEscalation,
   LivingSceneRoom,
   LivingSceneSmartObject,
   LivingSceneWorkItem,
@@ -44,6 +49,11 @@ export type LivingSceneRenderModel = {
   smartObjects: LivingSceneSmartObject[];
   handoffs: LivingSceneHandoff[];
   conversations: LivingSceneConversation[];
+  missions: LivingSceneMission[];
+  blockers: LivingSceneBlocker[];
+  decisions: LivingSceneDecision[];
+  humanActions: LivingSceneHumanActionRequest[];
+  riskEscalations: LivingSceneRiskEscalation[];
   employeeSlots: LivingSceneEmployeeSlot[];
   departmentZones: LivingSceneDepartmentZone[];
   flowTrial: FlowFieldTrialModel;
@@ -80,6 +90,11 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
     smartObjects: scene.deterministic.smart_objects,
     handoffs: scene.deterministic.handoffs,
     conversations: scene.deterministic.conversations,
+    missions: scene.deterministic.missions,
+    blockers: scene.deterministic.blockers,
+    decisions: scene.deterministic.decisions,
+    humanActions: scene.deterministic.human_actions,
+    riskEscalations: scene.deterministic.risk_escalations,
     employeeSlots,
     departmentZones,
     flowTrial: buildFlowFieldTrialModel(flowBaseline),
