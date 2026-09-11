@@ -35,6 +35,7 @@ export function LivingOrganizationIntegratedWorkforce({ renderModel }: { renderM
         const archetype = archetypeFor(employee.position_key, employee.title, employee.department);
         const x = 12 + ((zoneIndex * 23 + employeeIndex * 11 + index * 7) % 72);
         const y = 45 + ((zoneIndex * 13 + employeeIndex * 17 + index * 5) % 34);
+        const humanVariant = (zoneIndex + employeeIndex + index) % 6;
         return (
           <div
             key={employee.position_key}
@@ -45,20 +46,28 @@ export function LivingOrganizationIntegratedWorkforce({ renderModel }: { renderM
             data-character-state={presentation.state}
             data-character-motion={presentation.motion}
             data-character-archetype={archetype}
+            data-human-variant={humanVariant}
             data-work-item-bound={workItem ? "true" : "false"}
             style={{ "--world-person-x": `${x}%`, "--world-person-y": `${y}%` } as CSSProperties}
             title={`${employee.title} · ${presentation.state.replaceAll("_", " ")}`}
           >
-            <span className="living-hq-world-desk" aria-hidden="true"><i /><b /></span>
+            <span className="living-hq-world-desk" aria-hidden="true"><i /><b /><em /></span>
             <span className="living-hq-world-figure" aria-hidden="true">
               <i className="living-hq-world-shadow" />
               <i className="living-hq-world-leg living-hq-world-leg-left" />
               <i className="living-hq-world-leg living-hq-world-leg-right" />
               <i className="living-hq-world-torso" />
+              <i className="living-hq-world-shirt" />
+              <i className="living-hq-world-jacket living-hq-world-jacket-left" />
+              <i className="living-hq-world-jacket living-hq-world-jacket-right" />
               <i className="living-hq-world-arm living-hq-world-arm-left" />
               <i className="living-hq-world-arm living-hq-world-arm-right" />
+              <i className="living-hq-world-neck" />
               <i className="living-hq-world-head" />
+              <i className="living-hq-world-ear living-hq-world-ear-left" />
+              <i className="living-hq-world-ear living-hq-world-ear-right" />
               <i className="living-hq-world-hair" />
+              <i className="living-hq-world-face" />
               <i className="living-hq-world-state" />
             </span>
           </div>
