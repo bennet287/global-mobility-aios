@@ -1,4 +1,4 @@
-/* Phase 13B: contextual entity inspection for Living HQ.
+/* Phase 13B/13C: contextual entity inspection and read-only drill-down for Living HQ.
    Presentation only; no canonical-state, presence or authority semantics live here. */
 
 .living-hq-entity-inspector {
@@ -17,7 +17,8 @@
 
 .living-hq-entity-inspector-heading,
 .living-hq-entity-inspector-context,
-.living-hq-entity-inspector-basis {
+.living-hq-entity-inspector-basis,
+.living-hq-entity-inspector-drilldown > div {
   min-width: 0;
   display: grid;
   align-content: center;
@@ -29,7 +30,8 @@
 }
 
 .living-hq-entity-inspector-heading > span,
-.living-hq-entity-inspector-basis > span {
+.living-hq-entity-inspector-basis > span,
+.living-hq-entity-inspector-drilldown span {
   color: rgba(151,218,181,.62);
   font-size: 7.5px;
   font-weight: 800;
@@ -47,7 +49,8 @@
 
 .living-hq-entity-inspector-context p,
 .living-hq-entity-inspector-context small,
-.living-hq-entity-inspector-basis small { margin: 0; }
+.living-hq-entity-inspector-basis small,
+.living-hq-entity-inspector-drilldown small { margin: 0; }
 
 .living-hq-entity-inspector-context p {
   color: rgba(227,233,251,.84);
@@ -57,10 +60,23 @@
 }
 
 .living-hq-entity-inspector-context small,
-.living-hq-entity-inspector-basis small {
+.living-hq-entity-inspector-basis small,
+.living-hq-entity-inspector-drilldown small {
   color: rgba(197,205,231,.5);
   font-size: 8.5px;
   line-height: 1.5;
+}
+
+.living-hq-entity-inspector-drilldown {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.living-hq-entity-inspector-drilldown > div {
+  min-height: 72px;
+  align-content: start;
 }
 
 .living-hq-entity-inspector footer {
@@ -97,20 +113,27 @@
 
 @media (max-width: 860px) {
   .living-hq-entity-inspector { grid-template-columns: 1fr 1fr; }
-  .living-hq-entity-inspector-basis { grid-column: 1 / -1; }
+  .living-hq-entity-inspector-basis,
+  .living-hq-entity-inspector-drilldown { grid-column: 1 / -1; }
+  .living-hq-entity-inspector-drilldown { grid-template-columns: 1fr 1fr; }
+  .living-hq-entity-inspector-drilldown > div:last-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 560px) {
   .living-hq-entity-inspector { grid-template-columns: 1fr; padding: 12px; }
   .living-hq-entity-inspector-basis,
+  .living-hq-entity-inspector-drilldown,
+  .living-hq-entity-inspector-drilldown > div:last-child,
   .living-hq-entity-inspector footer { grid-column: auto; }
+  .living-hq-entity-inspector-drilldown { grid-template-columns: 1fr; }
 }
 
 @media (forced-colors: active) {
   .living-hq-entity-inspector,
   .living-hq-entity-inspector-heading,
   .living-hq-entity-inspector-context,
-  .living-hq-entity-inspector-basis {
+  .living-hq-entity-inspector-basis,
+  .living-hq-entity-inspector-drilldown > div {
     background: Canvas;
     border-color: CanvasText;
     box-shadow: none;
