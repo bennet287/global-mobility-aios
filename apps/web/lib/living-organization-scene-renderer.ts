@@ -2,6 +2,7 @@ import type {
   LivingOrganizationScene,
   LivingSceneDepartment,
   LivingSceneEmployee,
+  LivingSceneHandoff,
   LivingSceneRoom,
   LivingSceneSmartObject,
   LivingSceneWorkItem,
@@ -40,6 +41,7 @@ export type LivingSceneRenderModel = {
   evidenceLab: LivingSceneRoom | null;
   boardRoom: LivingSceneRoom | null;
   smartObjects: LivingSceneSmartObject[];
+  handoffs: LivingSceneHandoff[];
   employeeSlots: LivingSceneEmployeeSlot[];
   departmentZones: LivingSceneDepartmentZone[];
   flowTrial: FlowFieldTrialModel;
@@ -74,6 +76,7 @@ export function buildLivingSceneRenderModel(scene: LivingOrganizationScene): Liv
     evidenceLab: room("evidence_lab"),
     boardRoom: room("board_room"),
     smartObjects: scene.deterministic.smart_objects,
+    handoffs: scene.deterministic.handoffs,
     employeeSlots,
     departmentZones,
     flowTrial: buildFlowFieldTrialModel(flowBaseline),

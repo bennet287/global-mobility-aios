@@ -16,10 +16,7 @@ function format(value: string): string {
   return value.replaceAll("_", " ");
 }
 
-function buildInspectorModel(
-  selection: LivingSceneSelection | null,
-  renderModel: LivingSceneRenderModel,
-): InspectorModel {
+function buildInspectorModel(selection: LivingSceneSelection | null, renderModel: LivingSceneRenderModel): InspectorModel {
   if (!selection) {
     return {
       eyebrow: "Spatial entity focus · view only",
@@ -92,54 +89,43 @@ function buildInspectorModel(
   };
 }
 
-export function LivingOrganizationEntityInspector({
-  selection,
-  renderModel,
-}: {
-  selection: LivingSceneSelection | null;
-  renderModel: LivingSceneRenderModel;
-}) {
+export function LivingOrganizationEntityInspector({ selection, renderModel }: { selection: LivingSceneSelection | null; renderModel: LivingSceneRenderModel }) {
   const model = buildInspectorModel(selection, renderModel);
+  const workItems = new Map(renderModel.departmentZones.flatMap((zone) => zone.workItems).map((item) => [item.work_item_id, item]));
+  const handoffs = [...renderModel.handoffs].sort((left, right) => right.occurred_at.localeCompare(left.occurred_at)).slice(0, 4);
 
   return (
-    <aside
-      className="living-hq-entity-inspector"
-      aria-label="Living HQ entity inspector"
-      data-selection-state={selection ? "selected" : "none"}
-      data-presentation-only="true"
-      data-authority="none"
-      data-presence-claimed="false"
-    >
-      <div className="living-hq-entity-inspector-heading">
-        <span>{model.eyebrow}</span>
-        <strong>{model.title}</strong>
-      </div>
-      <div className="living-hq-entity-inspector-context">
-        <p>{model.primary}</p>
-        <small>{model.secondary}</small>
-      </div>
-      <div className="living-hq-entity-inspector-basis">
-        <span>Governed basis</span>
-        <small>{model.basis}</small>
-      </div>
+    <aside className="living-hq-entity-inspector" aria-label="Living HQ entity inspector" data-selection-state={selection ? "selected" : "none"} data-presentation-only="true" data-authority="none" data-presence-claimed="false">
+      <div className="living-hq-entity-inspector-heading"><span>{model.eyebrow}</span><strong>{model.title}</strong></div>
+      <div className="living-hq-entity-inspector-context"><p>{model.primary}</p><small>{model.secondary}</small></div>
+      <div className="living-hq-entity-inspector-basis"><span>Governed basis</span><small>{model.basis}</small></div>
       <div className="living-hq-entity-inspector-drilldown" aria-label="Contextual drill-down" data-read-only="true">
-        <div>
-          <span>Lineage</span>
-          <small>{model.lineage}</small>
-        </div>
-        <div>
-          <span>Evidence posture</span>
-          <small>{model.evidence}</small>
-        </div>
-        <div>
-          <span>Authority boundary</span>
-          <small>{model.authority}</small>
-        </div>
+        <div><span>Lineage</span><small>{model.lineage}</small></div>
+        <div><span>Evidence posture</span><small>{model.evidence}</small></div>
+        <div><span>Authority boundary</span><small>{model.authority}</small></div>
       </div>
+      <section className="living-hq-handoff-rail" aria-label="Canonical handoff activity" data-read-only="true" data-canonical-source="handoffs">
+        <header><div><span>Canonical handoffs</span><strong>Durable work transfer activity</strong></div><small>{renderModel.handoffs.length} governed records · never inferred from shared Mission membership</small></header>
+        {handoffs.length ? (
+          <div className="living-hq-handoff-list">
+            {handoffs.map((handoff) => {
+              const workItem = workItems.get(handoff.work_item_id);
+              return (
+                <article key={handoff.activity_id} data-handoff-state={handoff.status}>
+                  <div className="living-hq-handoff-route"><strong>{handoff.previous_position_key}</strong><span aria-hidden="true">→</span><strong>{handoff.assigned_position_key}</strong></div>
+                  <div className="living-hq-handoff-meta"><span>{format(handoff.status)}</span><small>{workItem?.title ?? handoff.work_item_id}</small></div>
+                  <footer><small>WorkItem {handoff.work_item_id}</small><small>{handoff.canonical_basis}</small></footer>
+                </article>
+              );
+            })}
+          </div>
+        ) : <p className="living-hq-handoff-empty">No durable handoff activity exists in the current governed projection. No transfer is inferred.</p>}
+      </section>
       <footer>
         <span>Selection contract · department / employee / room / smart_object</span>
         <span>Presentation only · no authority</span>
         <span>Contextual drill-down · read only</span>
+        <span>Handoffs · canonical records only</span>
       </footer>
     </aside>
   );
