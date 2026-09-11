@@ -8,6 +8,7 @@ import { LivingOrganizationReplayTimeline } from "../../../components/LivingOrga
 import { Topbar } from "../../../components/Topbar";
 import { WorkspaceShell } from "../../../components/WorkspaceShell";
 import { useBackendStatus } from "../../../hooks/useBackendStatus";
+import { useLivingOrganizationSceneRefresh } from "../../../hooks/useLivingOrganizationSceneRefresh";
 import {
   type AustriaLiveOrganizationLatest,
   type LivingOrganizationSceneLatest,
@@ -159,6 +160,20 @@ export default function AustriaLiveOrganizationPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useLivingOrganizationSceneRefresh({
+    enabled: health?.status === "ok" && !loading && Boolean(latest?.snapshot),
+    rootWorkItemId: latest?.snapshot?.root_work_item_id ?? null,
+    onScene: (refreshedScene) => {
+      setSceneLatest(refreshedScene);
+      setSceneError(null);
+    },
+    onError: (refreshError) => {
+      if (!(refreshError instanceof LiveOrganizationRequestError)) return;
+      if (![401, 403].includes(refreshError.status)) return;
+      setSceneError({ status: refreshError.status, message: refreshError.message });
+    },
+  });
 
   const snapshot = latest?.snapshot ?? null;
   const scene = sceneLatest?.scene ?? null;
