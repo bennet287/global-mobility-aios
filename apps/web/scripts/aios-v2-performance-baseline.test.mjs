@@ -7,6 +7,7 @@ const workflow = await readFile(new URL("../../../.github/workflows/v12-producti
 const packageJson = await readFile(new URL("../package.json" , import.meta.url), "utf8");
 const assetRenderer = await readFile(new URL("../components/LivingHQAssetBackedCanvas.tsx", import.meta.url), "utf8");
 const adaptiveRenderer = await readFile(new URL("../components/LivingHQAdaptiveRenderer.tsx", import.meta.url), "utf8");
+const assetLoader = await readFile(new URL("../lib/living-hq-high-fidelity-loader.ts", import.meta.url), "utf8");
 const flagshipArchitecture = await readFile(new URL("../components/LivingOrganizationFlagshipArchitecture.tsx", import.meta.url), "utf8");
 
 test("Q17 profiles the production V2 runtime across the master-plan measurement dimensions", () => {
@@ -77,6 +78,16 @@ test("13G.1I live canonical updates refresh renderer metadata without rebuilding
   assert.match(assetRenderer, /renderRef\.current\?\.\(\)/);
   assert.match(assetRenderer, /\[assetPackAvailableOverride\]/);
   assert.match(assetRenderer, /\[renderModel\]/);
+});
+
+test("13G.1I asset loading reuses probes and prioritizes the visual core before secondary detail", () => {
+  assert.match(assetLoader, /const availabilityByUri = new Map<string, Promise<boolean>>\(\)/);
+  assert.match(assetLoader, /availabilityByUri\.get\(definition\.uri\)/);
+  assert.match(assetLoader, /availabilityByUri\.set\(definition\.uri, probe\)/);
+  assert.match(assetLoader, /const heroAssets = await Promise\.all/);
+  assert.match(assetLoader, /if \(heroAssets\.some\(\(asset\) => asset === null\)\)/);
+  assert.match(assetLoader, /const secondaryAssets = await Promise\.all/);
+  assert.ok(assetLoader.indexOf("const heroAssets = await Promise.all") < assetLoader.indexOf("const secondaryAssets = await Promise.all"));
 });
 
 test("13G.1I adaptive arbitration mounts exactly one visual renderer path", () => {
