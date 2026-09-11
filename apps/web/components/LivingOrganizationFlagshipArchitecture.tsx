@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
-import { LivingHQAssetBackedCanvas } from "./LivingHQAssetBackedCanvas";
-import { LivingHQPhotorealCanvas } from "./LivingHQPhotorealCanvas";
+import { LivingHQAdaptiveRenderer } from "./LivingHQAdaptiveRenderer";
 import { LivingOrganizationDepartmentFabric } from "./LivingOrganizationDepartmentFabric";
 import { LivingOrganizationEventReactions } from "./LivingOrganizationEventReactions";
 import { LivingOrganizationIntegratedWorkforce } from "./LivingOrganizationIntegratedWorkforce";
@@ -132,9 +131,9 @@ export function LivingOrganizationFlagshipArchitecture({ renderModel }: { render
         data-office-world="continuous"
         data-workplace-interiors="distinct"
         data-integrated-workforce="canonical"
+        data-renderer-arbitration="single-context"
       >
-        <LivingHQPhotorealCanvas renderModel={renderModel} />
-        <LivingHQAssetBackedCanvas renderModel={renderModel} />
+        <LivingHQAdaptiveRenderer renderModel={renderModel} />
 
         <div className="living-hq-office-shell" aria-hidden="true">
           <i className="living-hq-office-ceiling" />
