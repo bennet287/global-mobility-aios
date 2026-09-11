@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
+import { LivingOrganizationDepartmentFabric } from "./LivingOrganizationDepartmentFabric";
 
 type RoomDescriptor = {
   key: string;
@@ -131,7 +132,7 @@ export function LivingOrganizationFlagshipArchitecture({
           <span>Flagship spatial hierarchy · projection only</span>
           <strong id="living-hq-architecture-title" role="heading" aria-level={4}>Executive HQ chambers</strong>
         </div>
-        <small>{rooms.length} canonical room projections · {renderModel.smartObjects.length} smart objects</small>
+        <small>{rooms.length} canonical room projections · {renderModel.departmentZones.length} departments · {renderModel.smartObjects.length} smart objects</small>
       </header>
 
       <div
@@ -198,6 +199,8 @@ export function LivingOrganizationFlagshipArchitecture({
         ))}
       </div>
 
+      <LivingOrganizationDepartmentFabric renderModel={renderModel} />
+
       <div className="living-hq-smart-object-rail" aria-label="Living Organization smart objects">
         <div className="living-hq-smart-object-title">
           <span>Infrastructure rail</span>
@@ -222,8 +225,8 @@ export function LivingOrganizationFlagshipArchitecture({
       </div>
 
       <p className="living-hq-architecture-truth">
-        Mission and Board context above is derived only from canonical Mission, WorkItem, blocker, decision, human-action and risk-escalation records.
-        These chambers remain presentation-only spatial organization. They do not assert physical occupancy, employee location, room activity,
+        Mission, department coordination, and Board context above is derived only from canonical Mission, WorkItem, blocker, handoff, conversation, decision, human-action and risk-escalation records.
+        These zones remain presentation-only spatial organization. They do not assert physical occupancy, employee location, room activity,
         work routing, availability, Board action, or authority beyond the canonical scene contract.
       </p>
     </section>
