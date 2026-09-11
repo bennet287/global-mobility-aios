@@ -1,10 +1,10 @@
 # Global Mobility AIOS — Master Product Roadmap
 
-**Roadmap generation:** 2026.09 — product-direction reset after Mobility and Operator convergence  
-**Date:** 2026-09-11  
-**Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.  
-**Current sealed redesign baseline:** Phase 13F merge `310b73a2eec63f9f0b2f3a0d53752867c1097359`  
-**Active programme:** Phase 13G.1 — Living HQ Architectural World Redesign  
+**Roadmap generation:** 2026.09 — product-direction reset after Mobility and Operator convergence
+**Date:** 2026-09-11
+**Roadmap authority:** this file is the master WHAT / WHEN / WHY scheduler for Global Mobility AIOS.
+**Current sealed redesign baseline:** Phase 13F merge `310b73a2eec63f9f0b2f3a0d53752867c1097359`
+**Active programme:** Phase 13G.1 — Living HQ Architectural World Redesign
 **Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
 
 <!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
