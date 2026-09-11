@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { LivingOrganizationEntityInspector } from "./LivingOrganizationEntityInspector";
 import { LivingOrganizationFlagshipArchitecture } from "./LivingOrganizationFlagshipArchitecture";
 import { LivingOrganizationFlagshipRoster } from "./LivingOrganizationFlagshipRoster";
 import type { LivingSceneRenderModel } from "../lib/living-organization-scene-renderer";
@@ -172,9 +173,11 @@ export function LivingOrganizationWebGPUScene({
           <span>Pointer selection · optional</span>
           <strong>{selection?.label ?? `${SPATIAL_FOCUS_OPTIONS.find((option) => option.key === spatialFocus)?.label ?? "Overview"} focus`}</strong>
           <small>{selection ? selection.entityType + " · " + selection.entityKey : focusDetail}</small>
-          <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS. Spatial focus changes presentation emphasis only.</small>
+          <small data-selection-authority="none">Selection changes view focus only; it cannot mutate AIOS.</small>
+          <small>Spatial focus changes presentation emphasis only.</small>
         </div>
       </div>
+      <LivingOrganizationEntityInspector selection={selection} renderModel={renderModel} />
       <LivingOrganizationFlagshipArchitecture renderModel={renderModel} />
       <LivingOrganizationFlagshipRoster renderModel={renderModel} />
       {activeLens === "flow" ? (
@@ -235,7 +238,7 @@ export function LivingOrganizationWebGPUScene({
       ) : null}
       <p className="living-webgpu-accessibility">
         Employee motion remains presentation-only workspace motion derived from canonical semantic state.
-        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. Spatial focus is local presentation
+        M.4.1 motion discipline is preserved: presence and locomotion are not asserted. Spatial focus and entity inspection are local presentation
         state only and cannot change scene truth, authority, work, evidence, decisions, or employee presence. The M.7.4 FLOW field is a
         default-off derived presentation over the maintained Structured FLOW baseline. It is not promoted, does not claim
         throughput or dependency truth, cannot mutate work, and no lens/query/trial control can bypass AIOS governance.

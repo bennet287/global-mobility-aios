@@ -1,0 +1,118 @@
+/* Phase 13B: contextual entity inspection for Living HQ.
+   Presentation only; no canonical-state, presence or authority semantics live here. */
+
+.living-hq-entity-inspector {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(220px, 1fr) minmax(260px, 1.2fr);
+  gap: 14px;
+  align-items: stretch;
+  margin: 0;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(255,255,255,.055);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(112,196,168,.06), transparent 30%),
+    linear-gradient(90deg, rgba(7,10,16,.96), rgba(14,18,28,.94) 52%, rgba(7,10,16,.96));
+}
+
+.living-hq-entity-inspector-heading,
+.living-hq-entity-inspector-context,
+.living-hq-entity-inspector-basis {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 12px 13px;
+  border: 1px solid rgba(204,214,249,.08);
+  border-radius: 13px;
+  background: rgba(255,255,255,.018);
+}
+
+.living-hq-entity-inspector-heading > span,
+.living-hq-entity-inspector-basis > span {
+  color: rgba(151,218,181,.62);
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.living-hq-entity-inspector-heading strong {
+  color: rgba(242,245,255,.94);
+  font-family: var(--font-editorial);
+  font-size: clamp(15px, 1.4vw, 21px);
+  font-weight: 430;
+  letter-spacing: -.02em;
+}
+
+.living-hq-entity-inspector-context p,
+.living-hq-entity-inspector-context small,
+.living-hq-entity-inspector-basis small { margin: 0; }
+
+.living-hq-entity-inspector-context p {
+  color: rgba(227,233,251,.84);
+  font-size: 11px;
+  font-weight: 690;
+  line-height: 1.45;
+}
+
+.living-hq-entity-inspector-context small,
+.living-hq-entity-inspector-basis small {
+  color: rgba(197,205,231,.5);
+  font-size: 8.5px;
+  line-height: 1.5;
+}
+
+.living-hq-entity-inspector footer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 24px;
+}
+
+.living-hq-entity-inspector footer span {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid rgba(204,214,249,.08);
+  border-radius: 999px;
+  color: rgba(198,207,231,.48);
+  background: rgba(255,255,255,.015);
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.living-hq-entity-inspector[data-selection-state="selected"] {
+  box-shadow: inset 3px 0 0 rgba(136,219,174,.35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-hq-entity-inspector { transition: box-shadow 180ms ease, background 180ms ease; }
+}
+
+@media (max-width: 860px) {
+  .living-hq-entity-inspector { grid-template-columns: 1fr 1fr; }
+  .living-hq-entity-inspector-basis { grid-column: 1 / -1; }
+}
+
+@media (max-width: 560px) {
+  .living-hq-entity-inspector { grid-template-columns: 1fr; padding: 12px; }
+  .living-hq-entity-inspector-basis,
+  .living-hq-entity-inspector footer { grid-column: auto; }
+}
+
+@media (forced-colors: active) {
+  .living-hq-entity-inspector,
+  .living-hq-entity-inspector-heading,
+  .living-hq-entity-inspector-context,
+  .living-hq-entity-inspector-basis {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
