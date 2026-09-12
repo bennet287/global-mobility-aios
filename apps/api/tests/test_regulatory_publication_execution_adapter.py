@@ -156,7 +156,10 @@ def _seed_execution_lineage(db_session, *, rule_count: int = 2, pending_review: 
     return change, authorization, bridge
 
 
-def test_ri_a73_blocks_truthfully_on_review_and_multi_rule_contract_gaps(db_session, monkeypatch) -> None:
+def test_ri_a74_review_and_multi_rule_contracts_are_ready_but_kill_switch_stays_closed(
+    db_session,
+    monkeypatch,
+) -> None:
     change, authorization, bridge = _seed_execution_lineage(db_session, rule_count=2)
     monkeypatch.setattr(
         "app.services.regulatory_publication_execution_adapter.assess_regulatory_authority_bridge",
@@ -172,28 +175,31 @@ def test_ri_a73_blocks_truthfully_on_review_and_multi_rule_contract_gaps(db_sess
     assert assessment.board_delegation_valid is True
     assert assessment.intended_rule_count == 2
     assert assessment.pending_human_review_count == 1
-    assert assessment.execution_state == "blocked_canonical_contract_gap"
+    assert assessment.review_disposition_contract_ready is True
+    assert assessment.multi_rule_publication_contract_ready is True
+    assert assessment.execution_state == "ready_but_disabled"
+    assert assessment.reasons == ("machine_publication_disabled",)
     assert assessment.execution_authority is False
     assert assessment.canonical_write_allowed is False
-    assert "machine_review_disposition_contract_missing" in assessment.reasons
-    assert "atomic_multi_rule_publication_contract_missing" in assessment.reasons
-    assert "machine_publication_disabled" in assessment.reasons
 
 
-def test_ri_a73_single_rule_without_pending_review_still_respects_kill_switch(db_session, monkeypatch) -> None:
-    change, _, _ = _seed_execution_lineage(db_session, rule_count=1, pending_review=False)
+def test_ri_a74_explicit_execution_override_authorizes_clean_contract_only(db_session, monkeypatch) -> None:
+    change, _, _ = _seed_execution_lineage(db_session, rule_count=2)
     monkeypatch.setattr(
         "app.services.regulatory_publication_execution_adapter.assess_regulatory_authority_bridge",
         lambda *args, **kwargs: _live_bridge(),
     )
 
-    assessment = assess_regulatory_publication_execution(db_session, change)
+    assessment = assess_regulatory_publication_execution(
+        db_session,
+        change,
+        machine_publication_enabled=True,
+    )
 
-    assert assessment.intended_rule_count == 1
-    assert assessment.pending_human_review_count == 0
-    assert assessment.execution_state == "ready_but_disabled"
-    assert assessment.reasons == ("machine_publication_disabled",)
-    assert assessment.execution_authority is False
+    assert assessment.execution_state == "execution_authorized"
+    assert assessment.reasons == ()
+    assert assessment.execution_authority is True
+    assert assessment.canonical_write_allowed is True
 
 
 def test_ri_a73_live_delegation_drift_is_fail_closed(db_session, monkeypatch) -> None:
@@ -212,7 +218,7 @@ def test_ri_a73_live_delegation_drift_is_fail_closed(db_session, monkeypatch) ->
     assert assessment.execution_authority is False
 
 
-def test_ri_a73_batch_is_idempotent_and_never_writes_canonical_truth(db_session, monkeypatch) -> None:
+def test_ri_a74_batch_is_idempotent_and_never_writes_canonical_truth(db_session, monkeypatch) -> None:
     change, _, _ = _seed_execution_lineage(db_session, rule_count=2)
     monkeypatch.setattr(
         "app.services.regulatory_publication_execution_adapter.assess_regulatory_authority_bridge",
@@ -230,8 +236,11 @@ def test_ri_a73_batch_is_idempotent_and_never_writes_canonical_truth(db_session,
         .where(AuditLog.entity_id == str(change.id))
     ).all()
     assert first["machine_publication_enabled"] is False
+    assert first["review_disposition_contract_ready"] is True
+    assert first["multi_rule_publication_contract_ready"] is True
     assert first["execution_authorized"] == 0
-    assert first["blocked_contract_gap"] == 1
+    assert first["blocked_contract_gap"] == 0
+    assert first["ready_but_disabled"] == 1
     assert first["verified_rule_writes"] == 0
     assert first["publication_writes"] == 0
     assert first["canonical_writes"] == 0
