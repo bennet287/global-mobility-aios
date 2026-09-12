@@ -16,6 +16,7 @@ from app.services.regulatory_machine_verification import verify_routed_regulator
 from app.services.regulatory_program_discovery import discover_new_program_candidates
 from app.services.regulatory_promotion_authorization import generate_machine_promotion_authorization_envelopes
 from app.services.regulatory_promotion_policy import run_shadow_promotion_policy
+from app.services.regulatory_publication_execution_adapter import scan_regulatory_publication_execution_preflight
 from app.services.regulatory_reassessment_propagation import propagate_regulatory_reassessment_impacts
 from app.services.regulatory_rule_compiler import compile_discovered_regulatory_candidates
 from app.services.source_retrieval import execute_source_monitor
@@ -131,3 +132,11 @@ def scan_regulatory_authority_bridge_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return scan_regulatory_authority_bridge(session, limit=limit)
+
+
+@celery_app.task
+def scan_regulatory_publication_execution_preflight_task(limit: int = 100) -> dict:
+    """Run RI.A7.3 publication execution safety preflight with canonical writes disabled."""
+
+    with Session(db_module.engine) as session:
+        return scan_regulatory_publication_execution_preflight(session, limit=limit)
