@@ -75,6 +75,11 @@ celery_app.conf.update(
             "schedule": 300.0,
             "args": (100,),
         },
+        "scan-regulatory-freshness": {
+            "task": "app.tasks.source_monitor_tasks.scan_regulatory_freshness_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
         "scan-document-expiry-reminders": {
             "task": "app.tasks.document_expiry_tasks.scan_document_expiry_reminders_task",
             "schedule": 21600.0,
