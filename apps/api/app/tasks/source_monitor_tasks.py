@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import SourceMonitor, now_utc
+from app.services.regulatory_authority_bridge import scan_regulatory_authority_bridge
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
 from app.services.regulatory_freshness_guard import scan_regulatory_freshness
 from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
@@ -122,3 +123,11 @@ def generate_machine_promotion_authorization_envelopes_task(limit: int = 100) ->
 
     with Session(db_module.engine) as session:
         return generate_machine_promotion_authorization_envelopes(session, limit=limit)
+
+
+@celery_app.task
+def scan_regulatory_authority_bridge_task(limit: int = 100) -> dict:
+    """Assess RI.A7.2 Board delegation without enabling machine publication writes."""
+
+    with Session(db_module.engine) as session:
+        return scan_regulatory_authority_bridge(session, limit=limit)
