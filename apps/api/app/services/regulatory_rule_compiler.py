@@ -388,10 +388,13 @@ def compile_regulatory_candidates(
             candidate_reasons.append("candidate_program_missing_from_current_catalog")
             row = {}
 
-        effective_date_raw = candidate.get("effective_date") or row.get("effective_date")
-        effective_date, effective_date_error = _iso_date(effective_date_raw)
-        if effective_date_error:
+        discovered_effective_date, discovered_effective_date_error = _iso_date(candidate.get("effective_date"))
+        current_effective_date, current_effective_date_error = _iso_date(row.get("effective_date"))
+        if discovered_effective_date_error or current_effective_date_error:
             candidate_reasons.append("candidate_effective_date_invalid")
+        elif discovered_effective_date and current_effective_date and discovered_effective_date != current_effective_date:
+            candidate_reasons.append("candidate_effective_date_mismatch")
+        effective_date = current_effective_date if row.get("effective_date") not in (None, "") else discovered_effective_date
 
         raw_rules = row.get("typed_rules")
         compiled_rules: list[CompiledRuleCandidate] = []
