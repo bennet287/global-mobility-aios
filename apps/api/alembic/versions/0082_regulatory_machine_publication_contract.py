@@ -100,7 +100,6 @@ def upgrade() -> None:
             f"ix_regulatory_publication_sets_{column}",
             "regulatory_publication_sets",
             [column],
-            unique=(column == "regulatory_change_id"),
         )
 
     op.create_table(
@@ -156,7 +155,6 @@ def upgrade() -> None:
             f"ix_regulatory_review_dispositions_{column}",
             "regulatory_review_dispositions",
             [column],
-            unique=(column == "human_review_id"),
         )
 
 
