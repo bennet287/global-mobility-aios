@@ -1,7 +1,7 @@
 # AIOS Organizational Effectiveness & Coaching Roadmap
 
-**Status:** ACTIVE CROSS-PROGRAMME ROADMAP REQUIREMENT  
-**Date:** 2026-09-12  
+**Status:** ACTIVE CROSS-PROGRAMME ROADMAP REQUIREMENT
+**Date:** 2026-09-12
 **Applies to:** every AIOS department, employee, skill and governed workstream
 
 ## 1. Non-negotiable principle — independent department effectiveness
