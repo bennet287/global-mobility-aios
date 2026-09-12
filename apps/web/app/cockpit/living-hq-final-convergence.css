@@ -203,6 +203,41 @@
   border-radius:14px !important;
 }
 
+/* Phase 13G.1P — HQ-to-product transition bridge.
+   Keep the premium dark HQ intact, but soften the exact visual handoff into the
+   light operational product so the page reads as one system rather than two themes. */
+.living-scene-shell {
+  margin-bottom:clamp(22px,2.8vw,38px);
+  overflow:visible;
+}
+
+.living-scene-shell::before {
+  content:"";
+  position:absolute;
+  left:clamp(10px,1.35vw,20px);
+  right:clamp(10px,1.35vw,20px);
+  bottom:clamp(-34px,-2.5vw,-22px);
+  height:clamp(54px,6.5vw,90px);
+  pointer-events:none;
+  z-index:0;
+  border-radius:0 0 22px 22px;
+  background:
+    linear-gradient(180deg,rgba(18,23,24,.16) 0%,rgba(49,57,55,.08) 42%,rgba(244,241,234,0) 100%);
+  filter:blur(.2px);
+}
+
+.living-scene-shell::after {
+  bottom:clamp(-18px,-1.45vw,-10px);
+  height:clamp(70px,7.2vw,102px);
+  background:
+    linear-gradient(180deg,rgba(11,15,17,0) 0%,rgba(21,27,27,.16) 34%,rgba(98,103,94,.07) 66%,rgba(244,241,234,0) 100%);
+}
+
+.living-scene-shell + * {
+  position:relative;
+  z-index:1;
+}
+
 @media (max-width:760px) {
   .living-hq-architecture { padding:8px; border-radius:14px; }
   .living-hq-architecture-header { align-items:flex-start; flex-direction:column; margin:2px 4px 8px; }
@@ -216,10 +251,23 @@
   .living-hq-event-reactions { max-width:46%; }
   .living-webgpu-stage > .living-webgpu-canvas-wrap { max-height:190px; }
 
-  .living-scene-shell::after {
-    height:34px;
+  .living-scene-shell {
+    margin-bottom:22px;
+  }
+
+  .living-scene-shell::before {
     left:6px;
     right:6px;
+    bottom:-18px;
+    height:48px;
+    border-radius:0 0 14px 14px;
+  }
+
+  .living-scene-shell::after {
+    height:56px;
+    left:6px;
+    right:6px;
+    bottom:-12px;
   }
 
   .living-hq-department-fabric,
