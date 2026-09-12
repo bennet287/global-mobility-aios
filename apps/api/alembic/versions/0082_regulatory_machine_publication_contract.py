@@ -25,16 +25,16 @@ def upgrade() -> None:
         sa.Column("id", _uuid(), nullable=False),
         sa.Column("regulatory_change_id", _uuid(), nullable=False),
         sa.Column("source_snapshot_id", _uuid(), nullable=False),
-        sa.Column("source_snapshot_hash", sa.String(length=64), nullable=False),
+        sa.Column("source_snapshot_hash", sa.String(), nullable=False),
         sa.Column("publication_mode", sa.String(), nullable=False),
         sa.Column("actor_type", sa.String(), nullable=False),
         sa.Column("actor_key", sa.String(), nullable=False),
         sa.Column("authorization_audit_id", _uuid(), nullable=False),
         sa.Column("authority_bridge_audit_id", _uuid(), nullable=False),
-        sa.Column("autonomy_profile_id", _uuid(), nullable=False),
+        sa.Column("autonomy_profile_id", sa.String(), nullable=False),
         sa.Column("autonomy_profile_sequence", sa.Integer(), nullable=False),
         sa.Column("intended_rule_count", sa.Integer(), nullable=False),
-        sa.Column("intended_mutations_sha256", sa.String(length=64), nullable=False),
+        sa.Column("intended_mutations_sha256", sa.String(), nullable=False),
         sa.Column("published_rules_json", sa.String(), nullable=False),
         sa.Column("status", sa.String(), nullable=False),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=False),
@@ -75,30 +75,33 @@ def upgrade() -> None:
             ["audit_logs.id"],
             name="fk_reg_pub_set_bridge_audit",
         ),
-        sa.ForeignKeyConstraint(
-            ["autonomy_profile_id"],
-            ["capability_autonomy_profiles.id"],
-            name="fk_reg_pub_set_autonomy_profile",
-        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "regulatory_change_id",
             name="uq_reg_pub_set_change",
         ),
     )
-    for name, columns in (
-        ("ix_reg_pub_set_source_snapshot_id", ["source_snapshot_id"]),
-        ("ix_reg_pub_set_publication_mode", ["publication_mode"]),
-        ("ix_reg_pub_set_actor_type", ["actor_type"]),
-        ("ix_reg_pub_set_actor_key", ["actor_key"]),
-        ("ix_reg_pub_set_authorization_audit_id", ["authorization_audit_id"]),
-        ("ix_reg_pub_set_authority_bridge_audit_id", ["authority_bridge_audit_id"]),
-        ("ix_reg_pub_set_autonomy_profile_id", ["autonomy_profile_id"]),
-        ("ix_reg_pub_set_intended_mutations_sha256", ["intended_mutations_sha256"]),
-        ("ix_reg_pub_set_status", ["status"]),
-        ("ix_reg_pub_set_published_at", ["published_at"]),
+    for column in (
+        "id",
+        "regulatory_change_id",
+        "source_snapshot_id",
+        "source_snapshot_hash",
+        "publication_mode",
+        "actor_type",
+        "actor_key",
+        "authorization_audit_id",
+        "authority_bridge_audit_id",
+        "autonomy_profile_id",
+        "intended_mutations_sha256",
+        "status",
+        "published_at",
     ):
-        op.create_index(name, "regulatory_publication_sets", columns)
+        op.create_index(
+            f"ix_regulatory_publication_sets_{column}",
+            "regulatory_publication_sets",
+            [column],
+            unique=(column == "regulatory_change_id"),
+        )
 
     op.create_table(
         "regulatory_review_dispositions",
@@ -138,16 +141,23 @@ def upgrade() -> None:
             name="uq_reg_review_disposition_review",
         ),
     )
-    for name, columns in (
-        ("ix_reg_review_disposition_change", ["regulatory_change_id"]),
-        ("ix_reg_review_disposition_publication_set", ["publication_set_id"]),
-        ("ix_reg_review_disposition_disposition", ["disposition"]),
-        ("ix_reg_review_disposition_actor_type", ["actor_type"]),
-        ("ix_reg_review_disposition_actor_key", ["actor_key"]),
-        ("ix_reg_review_disposition_bridge_audit", ["authority_bridge_audit_id"]),
-        ("ix_reg_review_disposition_created_at", ["created_at"]),
+    for column in (
+        "id",
+        "human_review_id",
+        "regulatory_change_id",
+        "publication_set_id",
+        "disposition",
+        "actor_type",
+        "actor_key",
+        "authority_bridge_audit_id",
+        "created_at",
     ):
-        op.create_index(name, "regulatory_review_dispositions", columns)
+        op.create_index(
+            f"ix_regulatory_review_dispositions_{column}",
+            "regulatory_review_dispositions",
+            [column],
+            unique=(column == "human_review_id"),
+        )
 
 
 def downgrade() -> None:
