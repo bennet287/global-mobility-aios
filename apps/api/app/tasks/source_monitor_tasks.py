@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import SourceMonitor, now_utc
+from app.services.regulatory_autonomy import route_pending_regulatory_changes
 from app.services.source_retrieval import execute_source_monitor
 
 
@@ -55,3 +56,16 @@ def enqueue_due_source_monitors(limit: int = 100) -> dict:
     for monitor_id in monitor_ids:
         run_source_monitor_task.delay(monitor_id)
     return {"queued": len(monitor_ids), "monitor_ids": monitor_ids}
+
+
+@celery_app.task
+def route_pending_regulatory_changes_task(limit: int = 100) -> dict:
+    """Continuously route detected changes into machine-verification or exception paths.
+
+    RI.A1 is intentionally non-authoritative: this task never approves a regulatory
+    change and never publishes/supersedes a VerifiedRule. It only records the current
+    evidence-based routing decision so later verification stages can act safely.
+    """
+
+    with Session(db_module.engine) as session:
+        return route_pending_regulatory_changes(session, limit=limit)
