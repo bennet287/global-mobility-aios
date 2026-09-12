@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from sqlmodel import select
 
 from app.models.domain import (
@@ -28,6 +30,7 @@ def _seed_shadow_candidate(
     compile_status: str = "typed_candidate",
     candidate_reasons: list[str] | None = None,
     possible_existing_pathway_ids: list[str] | None = None,
+    discovery_eligible: bool | None = True,
 ):
     jurisdiction = Jurisdiction(code="AT-RIA7", name="Austria RI.A7")
     db_session.add(jurisdiction)
@@ -70,41 +73,45 @@ def _seed_shadow_candidate(
     db_session.flush()
 
     candidate_key = f"{jurisdiction.id}:{source.id}:talent"
+    discovery_payload = {
+        "regulatory_change_id": str(change.id),
+        "discovery_version": DISCOVERY_VERSION,
+        "source_snapshot_id": str(snapshot.id),
+        "source_snapshot_content_hash": snapshot.content_hash,
+        "verification_audit_id": "pytest-verification",
+        "watchdog_audit_id": "pytest-watchdog",
+        "candidates": [
+            {
+                "candidate_key": candidate_key,
+                "program_id": "talent",
+                "name": "Global Talent Route",
+                "summary": "Official structured programme description.",
+                "effective_date": "2026-10-01",
+                "status": "active",
+                "active": True,
+                "possible_existing_pathway_ids": possible_existing_pathway_ids or [],
+                "candidate_only": True,
+                "publication_allowed": False,
+                "pathway_create_allowed": False,
+                "canonical_write_allowed": False,
+            }
+        ],
+        "fanout_limited": False,
+        "candidate_only": True,
+        "publication_allowed": False,
+        "pathway_create_allowed": False,
+        "canonical_write_allowed": False,
+        "reasons": [],
+    }
+    if discovery_eligible is not None:
+        discovery_payload["discovery_eligible"] = discovery_eligible
+
     discovery = record_audit(
         db_session,
         action=DISCOVERY_ACTION,
         entity_type="regulatory_change",
         entity_id=change.id,
-        after_state={
-            "regulatory_change_id": str(change.id),
-            "discovery_version": DISCOVERY_VERSION,
-            "source_snapshot_id": str(snapshot.id),
-            "source_snapshot_content_hash": snapshot.content_hash,
-            "verification_audit_id": "pytest-verification",
-            "watchdog_audit_id": "pytest-watchdog",
-            "candidates": [
-                {
-                    "candidate_key": candidate_key,
-                    "program_id": "talent",
-                    "name": "Global Talent Route",
-                    "summary": "Official structured programme description.",
-                    "effective_date": "2026-10-01",
-                    "status": "active",
-                    "active": True,
-                    "possible_existing_pathway_ids": possible_existing_pathway_ids or [],
-                    "candidate_only": True,
-                    "publication_allowed": False,
-                    "pathway_create_allowed": False,
-                    "canonical_write_allowed": False,
-                }
-            ],
-            "fanout_limited": False,
-            "candidate_only": True,
-            "publication_allowed": False,
-            "pathway_create_allowed": False,
-            "canonical_write_allowed": False,
-            "reasons": [],
-        },
+        after_state=discovery_payload,
         actor="pytest-discovery",
         source=DISCOVERY_VERSION,
     )
@@ -221,6 +228,25 @@ def test_ri_a7_incomplete_or_quarantined_compile_cannot_be_shadow_eligible(db_se
     assert "candidate_not_fully_typed" in candidate.reasons
     assert "typed_rules_missing" in candidate.reasons
     assert "compiler_candidate_has_exceptions" in candidate.reasons
+
+
+def test_ri_a7_legacy_discovery_packet_without_eligibility_marker_fails_closed(db_session) -> None:
+    change, _, _ = _seed_shadow_candidate(db_session, discovery_eligible=None)
+
+    packet = assess_regulatory_shadow_promotion(db_session, change)
+
+    assert "current_discovery_packet_missing" in packet.reasons
+    assert packet.candidates[0].shadow_promotion_eligible is False
+    assert "discovery_candidate_lineage_missing" in packet.candidates[0].reasons
+
+
+def test_ri_a7_explicitly_ineligible_discovery_packet_fails_closed(db_session) -> None:
+    change, _, _ = _seed_shadow_candidate(db_session, discovery_eligible=False)
+
+    packet = assess_regulatory_shadow_promotion(db_session, change)
+
+    assert "current_discovery_packet_missing" in packet.reasons
+    assert packet.candidates[0].shadow_promotion_eligible is False
 
 
 def test_ri_a7_batch_is_idempotent_and_never_writes_canonical_truth(db_session) -> None:
