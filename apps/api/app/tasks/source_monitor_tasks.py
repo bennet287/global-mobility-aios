@@ -11,6 +11,7 @@ from app.models.domain import SourceMonitor, now_utc
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
 from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
+from app.services.regulatory_program_discovery import discover_new_program_candidates
 from app.services.regulatory_reassessment_propagation import propagate_regulatory_reassessment_impacts
 from app.services.source_retrieval import execute_source_monitor
 
@@ -108,3 +109,15 @@ def propagate_regulatory_reassessment_impacts_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return propagate_regulatory_reassessment_impacts(session, limit=limit)
+
+
+@celery_app.task
+def discover_new_program_candidates_task(limit: int = 100) -> dict:
+    """Discover RI.A5 candidate pathways from verified new-program source deltas.
+
+    RI.A5 records candidates only. It never creates/publishes MobilityPathways,
+    VerifiedRules, or any other canonical immigration truth.
+    """
+
+    with Session(db_module.engine) as session:
+        return discover_new_program_candidates(session, limit=limit)
