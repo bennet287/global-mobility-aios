@@ -6,9 +6,9 @@
 **Current sealed redesign baseline:** Phase 13G merge `2ffa8f2ba10a82e3dc9dad031b9869c74c33d543`
 **Active programme:** Autonomous Global Regulatory Intelligence — RI.A1 verification routing
 **Active implementation:** Draft PR #148 — `feature/autonomous-global-regulatory-intelligence`
-**Code migration head:** `0081_capability_autonomy_evidence_evaluation_policy`
+**Code migration head:** `0082_regulatory_machine_publication_contract`
 
-<!-- CURRENT_MIGRATION_HEAD: 0081_capability_autonomy_evidence_evaluation_policy -->
+<!-- CURRENT_MIGRATION_HEAD: 0082_regulatory_machine_publication_contract -->
 
 > **Product necessity pulls technology into the project. Technology does not push the product around.**
 
