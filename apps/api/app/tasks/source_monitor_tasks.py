@@ -9,6 +9,7 @@ from app.core import db as db_module
 from app.core.celery_app import celery_app
 from app.models.domain import SourceMonitor, now_utc
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
+from app.services.regulatory_freshness_guard import scan_regulatory_freshness
 from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
 from app.services.regulatory_program_discovery import discover_new_program_candidates
@@ -104,3 +105,11 @@ def run_shadow_promotion_policy_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return run_shadow_promotion_policy(session, limit=limit)
+
+
+@celery_app.task
+def scan_regulatory_freshness_task(limit: int = 100) -> dict:
+    """Evaluate RI.A8 freshness/quarantine state without canonical rollback writes."""
+
+    with Session(db_module.engine) as session:
+        return scan_regulatory_freshness(session, limit=limit)
