@@ -13,6 +13,7 @@ from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
 from app.services.regulatory_program_discovery import discover_new_program_candidates
 from app.services.regulatory_reassessment_propagation import propagate_regulatory_reassessment_impacts
+from app.services.regulatory_rule_compiler import compile_discovered_regulatory_candidates
 from app.services.source_retrieval import execute_source_monitor
 
 
@@ -121,3 +122,15 @@ def discover_new_program_candidates_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return discover_new_program_candidates(session, limit=limit)
+
+
+@celery_app.task
+def compile_discovered_regulatory_candidates_task(limit: int = 100) -> dict:
+    """Compile RI.A6 typed candidate structures from explicit source evidence only.
+
+    RI.A6 does not translate ordinary prose into executable law and never writes
+    VerifiedRules, MobilityPathways, pathway versions, or other canonical truth.
+    """
+
+    with Session(db_module.engine) as session:
+        return compile_discovered_regulatory_candidates(session, limit=limit)
