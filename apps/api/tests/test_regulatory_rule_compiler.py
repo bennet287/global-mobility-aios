@@ -124,6 +124,7 @@ def _seed_discovered_candidate(db_session, *, typed_rules=None):
                 }
             ],
             "fanout_limited": False,
+            "discovery_eligible": True,
             "candidate_only": True,
             "publication_allowed": False,
             "pathway_create_allowed": False,
@@ -215,6 +216,39 @@ def test_ri_a6_rejects_reversed_effective_window() -> None:
 
     assert compiled is None
     assert "typed_rule_effective_window_reversed" in reasons
+
+
+def test_ri_a6_snapshot_hash_mismatch_quarantines_typed_candidate(db_session) -> None:
+    _, _, snapshot, change, _ = _seed_discovered_candidate(
+        db_session,
+        typed_rules=[_typed_salary_rule()],
+    )
+    snapshot.content_hash = "c" * 64
+    db_session.add(snapshot)
+    db_session.commit()
+
+    packet = compile_regulatory_candidates(db_session, change)
+
+    assert "discovery_snapshot_hash_mismatch" in packet.reasons
+    assert packet.candidates[0].compile_status == "quarantined"
+    assert "compiler_provenance_gate_failed" in packet.candidates[0].reasons
+
+
+def test_ri_a6_invalid_pathway_effective_date_is_quarantined(db_session) -> None:
+    _, _, snapshot, change, _ = _seed_discovered_candidate(
+        db_session,
+        typed_rules=[_typed_salary_rule()],
+    )
+    metadata = json.loads(snapshot.metadata_json)
+    metadata["program_catalog"][0]["effective_date"] = "not-a-date"
+    snapshot.metadata_json = json.dumps(metadata, sort_keys=True)
+    db_session.add(snapshot)
+    db_session.commit()
+
+    packet = compile_regulatory_candidates(db_session, change)
+
+    assert packet.candidates[0].compile_status == "quarantined"
+    assert "candidate_effective_date_invalid" in packet.candidates[0].reasons
 
 
 def test_ri_a6_batch_is_idempotent_and_audit_only(db_session) -> None:
