@@ -80,6 +80,11 @@ celery_app.conf.update(
             "schedule": 300.0,
             "args": (100,),
         },
+        "generate-machine-promotion-authorization-envelopes": {
+            "task": "app.tasks.source_monitor_tasks.generate_machine_promotion_authorization_envelopes_task",
+            "schedule": 300.0,
+            "args": (100,),
+        },
         "scan-document-expiry-reminders": {
             "task": "app.tasks.document_expiry_tasks.scan_document_expiry_reminders_task",
             "schedule": 21600.0,
