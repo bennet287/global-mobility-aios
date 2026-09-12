@@ -142,6 +142,7 @@ def test_ri_a5_discovers_candidate_without_creating_pathway(db_session) -> None:
 
     packet = discover_pathway_candidates(db_session, change)
 
+    assert packet.discovery_eligible is True
     assert len(packet.candidates) == 1
     candidate = packet.candidates[0]
     assert candidate.program_id == "talent"
@@ -217,6 +218,7 @@ def test_ri_a5_surfaces_existing_pathway_as_duplicate_signal(db_session) -> None
 
     packet = discover_pathway_candidates(db_session, change)
 
+    assert packet.discovery_eligible is True
     assert len(packet.candidates) == 1
     assert packet.candidates[0].possible_existing_pathway_ids == (str(pathway.id),)
     assert packet.candidates[0].publication_allowed is False
@@ -228,9 +230,60 @@ def test_ri_a5_requires_integrity_clearance(db_session) -> None:
     packet = discover_pathway_candidates(db_session, change)
     result = discover_new_program_candidates(db_session)
 
+    assert packet.discovery_eligible is False
     assert "regulatory_integrity_clearance_missing" in packet.reasons
     assert result["candidate_packets"] == 0
     assert result["audit_writes"] == 0
     assert db_session.exec(
         select(AuditLog).where(AuditLog.action == DISCOVERY_ACTION)
     ).all() == []
+
+
+def test_ri_a5_hash_mismatch_fails_closed_without_discovery_audit(db_session) -> None:
+    _, _, snapshot, change, _, _ = _seed_verified_new_program(db_session)
+    snapshot.content_hash = "b" * 64
+    db_session.add(snapshot)
+    db_session.commit()
+
+    packet = discover_pathway_candidates(db_session, change)
+    result = discover_new_program_candidates(db_session)
+
+    assert packet.discovery_eligible is False
+    assert "verification_snapshot_hash_mismatch" in packet.reasons
+    assert result["candidate_packets"] == 0
+    assert result["audit_writes"] == 0
+
+
+def test_ri_a5_parser_mismatch_fails_closed_without_discovery_audit(db_session) -> None:
+    _, _, snapshot, change, _, _ = _seed_verified_new_program(db_session)
+    metadata = json.loads(snapshot.metadata_json)
+    metadata["parser_profile"] = "unknown_parser"
+    snapshot.metadata_json = json.dumps(metadata, sort_keys=True)
+    db_session.add(snapshot)
+    db_session.commit()
+
+    packet = discover_pathway_candidates(db_session, change)
+    result = discover_new_program_candidates(db_session)
+
+    assert packet.discovery_eligible is False
+    assert "current_snapshot_parser_profile_invalid" in packet.reasons
+    assert result["candidate_packets"] == 0
+    assert result["audit_writes"] == 0
+
+
+def test_ri_a5_inactive_program_fails_closed_without_discovery_audit(db_session) -> None:
+    _, _, snapshot, change, _, _ = _seed_verified_new_program(db_session)
+    metadata = json.loads(snapshot.metadata_json)
+    metadata["program_catalog"][0]["active"] = False
+    metadata["program_catalog"][0]["status"] = "inactive"
+    snapshot.metadata_json = json.dumps(metadata, sort_keys=True)
+    db_session.add(snapshot)
+    db_session.commit()
+
+    packet = discover_pathway_candidates(db_session, change)
+    result = discover_new_program_candidates(db_session)
+
+    assert packet.discovery_eligible is False
+    assert "candidate_program_inactive" in packet.reasons
+    assert result["candidate_packets"] == 0
+    assert result["audit_writes"] == 0
