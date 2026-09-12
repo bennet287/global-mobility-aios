@@ -11,6 +11,7 @@ from app.models.domain import SourceMonitor, now_utc
 from app.services.regulatory_autonomy import route_pending_regulatory_changes
 from app.services.regulatory_integrity_watchdog import scan_regulatory_integrity
 from app.services.regulatory_machine_verification import verify_routed_regulatory_changes
+from app.services.regulatory_reassessment_propagation import propagate_regulatory_reassessment_impacts
 from app.services.source_retrieval import execute_source_monitor
 
 
@@ -95,3 +96,15 @@ def scan_regulatory_integrity_task(limit: int = 100) -> dict:
 
     with Session(db_module.engine) as session:
         return scan_regulatory_integrity(session, limit=limit)
+
+
+@celery_app.task
+def propagate_regulatory_reassessment_impacts_task(limit: int = 100) -> dict:
+    """Identify RI.A4 downstream reassessment candidates with bounded fan-out.
+
+    RI.A4 is impact discovery only: it does not rewrite pathways, eligibility
+    revisions, active cases, or any other canonical downstream state.
+    """
+
+    with Session(db_module.engine) as session:
+        return propagate_regulatory_reassessment_impacts(session, limit=limit)
