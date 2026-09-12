@@ -23,11 +23,11 @@ EXECUTION_ADAPTER_VERSION = "regulatory-publication-execution-adapter-v1"
 EXECUTION_ADAPTER_ACTION = "regulatory_machine_publication_execution_preflight"
 MACHINE_PUBLICATION_ENABLED = False
 
-# These are deliberate canonical-contract blockers, not feature flags to bypass.
-# RegulatoryChange/HumanReview currently encode a human-review lifecycle, and the
-# legacy publication route assumes one replayable VerifiedRule per RegulatoryChange.
-REVIEW_DISPOSITION_CONTRACT_READY = False
-MULTI_RULE_PUBLICATION_CONTRACT_READY = False
+# RI.A7.4 adds durable Board-delegated review disposition and an atomic
+# multi-rule publication-set contract. Production execution remains gated by the
+# independent MACHINE_PUBLICATION_ENABLED kill switch.
+REVIEW_DISPOSITION_CONTRACT_READY = True
+MULTI_RULE_PUBLICATION_CONTRACT_READY = True
 
 CANONICAL_CONTRACT_BLOCKERS = frozenset(
     {
@@ -126,13 +126,7 @@ def _current_bridge(
 
 
 def _execution_state(reasons: tuple[str, ...]) -> str:
-    """Classify preflight reasons without allowing the kill switch to mask drift.
-
-    `ready_but_disabled` is intentionally narrow: it means the execution contract,
-    evidence, and live Board delegation are otherwise clean and the global publication
-    kill switch is the only remaining reason. Canonical representation blockers are
-    reported separately. Every other reason is a fail-closed quarantine condition.
-    """
+    """Classify preflight reasons without allowing the kill switch to mask drift."""
 
     reason_set = set(reasons)
     if not reason_set:
@@ -149,19 +143,19 @@ def _execution_state(reasons: tuple[str, ...]) -> str:
 def assess_regulatory_publication_execution(
     session: Session,
     change: RegulatoryChange,
+    *,
+    machine_publication_enabled: bool | None = None,
 ) -> RegulatoryPublicationExecutionPreflight:
-    """Fail-closed RI.A7.3 preflight for deterministic machine publication.
+    """Fail-closed preflight for deterministic Board-delegated publication.
 
-    This adapter intentionally performs no canonical mutation. It re-evaluates live
-    Board delegation and binds the current RI.A7.1/RI.A7.2 lineage, while explicitly
-    exposing the two canonical representation gaps that must be solved before machine
-    publication can be truthful and atomic:
-
-    * human-review disposition cannot currently represent Board-delegated machine review;
-    * one RegulatoryChange may compile multiple deterministic rules while the legacy
-      publication route is effectively single-rule on replay.
+    RI.A7.4 closes the two canonical representation gaps identified by RI.A7.3:
+    Board-delegated machine disposition is persisted separately from human review,
+    and one publication set can own multiple VerifiedRules atomically. Live execution
+    remains disabled by default; the explicit override exists only so the governed
+    transaction service can prove the same preflight when its own kill switch is enabled.
     """
 
+    enabled = MACHINE_PUBLICATION_ENABLED if machine_publication_enabled is None else bool(machine_publication_enabled)
     reasons: list[str] = []
     if change.status != "pending_review":
         reasons.append("change_not_pending_review")
@@ -199,11 +193,13 @@ def assess_regulatory_publication_execution(
     intended_rule_count = len(intended)
     if intended_rule_count < 1:
         reasons.append("no_intended_rule_mutations")
+    if intended_rule_count > 100:
+        reasons.append("intended_rule_mutation_bound_exceeded")
 
     source_snapshot_id = authorization.get("source_snapshot_id") if authorization else None
-    source_snapshot_hash = (
-        authorization.get("source_snapshot_content_hash") if authorization else None
-    )
+    source_snapshot_hash = authorization.get("source_snapshot_content_hash") if authorization else None
+    if not source_snapshot_id or not source_snapshot_hash:
+        reasons.append("authorization_snapshot_provenance_missing")
 
     pending_reviews = session.exec(
         select(HumanReview)
@@ -222,7 +218,7 @@ def assess_regulatory_publication_execution(
     if intended_rule_count > 1 and not MULTI_RULE_PUBLICATION_CONTRACT_READY:
         reasons.append("atomic_multi_rule_publication_contract_missing")
 
-    if not MACHINE_PUBLICATION_ENABLED:
+    if not enabled:
         reasons.append("machine_publication_disabled")
 
     unique_reasons = tuple(sorted(set(reasons)))
@@ -243,7 +239,7 @@ def assess_regulatory_publication_execution(
         pending_human_review_count=len(pending_reviews),
         review_disposition_contract_ready=REVIEW_DISPOSITION_CONTRACT_READY,
         multi_rule_publication_contract_ready=MULTI_RULE_PUBLICATION_CONTRACT_READY,
-        machine_publication_enabled=MACHINE_PUBLICATION_ENABLED,
+        machine_publication_enabled=enabled,
         execution_authority=execution_authority,
         execution_state=execution_state,
         canonical_write_allowed=execution_authority,
@@ -257,7 +253,7 @@ def scan_regulatory_publication_execution_preflight(
     limit: int = 100,
     actor: str = "regulatory-publication-execution-adapter",
 ) -> dict[str, Any]:
-    """Persist RI.A7.3 execution preflights; never execute publication in v1."""
+    """Persist execution preflights; production publication remains disabled."""
 
     changes = session.exec(
         select(RegulatoryChange)
@@ -292,7 +288,7 @@ def scan_regulatory_publication_execution_preflight(
             entity_id=change.id,
             after_state=payload,
             reason=(
-                "RI.A7.3 publication execution preflight evaluated live Board delegation and canonical contract readiness; publication remains fail-closed."
+                "Publication execution preflight evaluated live Board delegation, evidence lineage, and canonical contract readiness; production execution remains gated."
             ),
             actor=actor,
             source=EXECUTION_ADAPTER_VERSION,
@@ -303,15 +299,13 @@ def scan_regulatory_publication_execution_preflight(
     return {
         "adapter_version": EXECUTION_ADAPTER_VERSION,
         "machine_publication_enabled": MACHINE_PUBLICATION_ENABLED,
+        "review_disposition_contract_ready": REVIEW_DISPOSITION_CONTRACT_READY,
+        "multi_rule_publication_contract_ready": MULTI_RULE_PUBLICATION_CONTRACT_READY,
         "scanned": len(changes),
         "assessed": len(assessments),
         "execution_authorized": sum(1 for item in assessments if item.execution_authority),
-        "blocked_contract_gap": sum(
-            1 for item in assessments if item.execution_state == "blocked_canonical_contract_gap"
-        ),
-        "ready_but_disabled": sum(
-            1 for item in assessments if item.execution_state == "ready_but_disabled"
-        ),
+        "blocked_contract_gap": sum(1 for item in assessments if item.execution_state == "blocked_canonical_contract_gap"),
+        "ready_but_disabled": sum(1 for item in assessments if item.execution_state == "ready_but_disabled"),
         "verified_rule_writes": 0,
         "publication_writes": 0,
         "canonical_writes": 0,
